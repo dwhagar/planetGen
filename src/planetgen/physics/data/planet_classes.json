@@ -154,7 +154,7 @@
     {
       "letter": "S",
       "name": "Airless super-Earth",
-      "phrase": "a large, airless rocky world",
+      "phrase": "a large, airless world of rock, sometimes under ice",
       "kind": "t",
       "sentence": "A barren, rocky super-Earth with no air: heavier than the dead worlds of class C.",
       "basis": "design: 1.5 Earth masses, the lower edge of a super-Earth"
@@ -170,9 +170,9 @@
     {
       "letter": "A",
       "name": "Volcanic world",
-      "phrase": "a volcanic world whose air carries outgassed sulfur dioxide",
+      "phrase": "a world whose air carries a high share of sulfur dioxide",
       "kind": "t",
-      "sentence": "A volcanic world: air with a high share of sulfur dioxide, outgassed by active volcanism.",
+      "sentence": "A volcanic world: air with a high share of sulfur dioxide, the mark of outgassing from volcanoes.",
       "basis": "design: 3 percent sulfur dioxide, which no non-volcanic mixture reaches"
     },
     {
@@ -180,7 +180,7 @@
       "name": "Gas dwarf",
       "phrase": "a gas dwarf: mostly rock and metal under a thick hydrogen and helium envelope, with no surface to stand on",
       "kind": "t",
-      "sentence": "A gas dwarf: a small world, lighter than the ice giants, with a deep hydrogen envelope over an interior of mostly rock and metal.",
+      "sentence": "A gas dwarf: a world lighter than the ice giants whose air is mostly hydrogen, over an interior of mostly rock and metal; the air can be thin.",
       "basis": "design stand-in (GEN.1142, registry CL1): 30 percent hydrogen and 10 Earth masses; the same T as the giant row, for the terrestrial-kind bodies whose envelope outweighs a thin air"
     },
     {
@@ -226,7 +226,7 @@
     {
       "letter": "P",
       "name": "Glaciated world",
-      "phrase": "a glaciated world, ice-covered except where the season melts it",
+      "phrase": "a glaciated world with air you could breathe, ice-covered except where the season melts it",
       "kind": "t",
       "sentence": "A glaciated world, the oxygen-water world too cold: a cool mean surface whose hottest region still melts in season, with poles that stay frozen.",
       "basis": "design stand-in (GEN.1142, registry CL5, CL7): freezing (273.15 K) at the top, up from 210 K, and -40 C (233.15 K) at the bottom, below which a body is class E"
@@ -266,7 +266,7 @@
     {
       "letter": "O",
       "name": "Ocean world",
-      "phrase": "an ocean world, its surface mostly liquid water",
+      "phrase": "an ocean world with air you could breathe, its surface mostly liquid water",
       "kind": "t",
       "sentence": "An ocean world, the oxygen-water world too wet: water covers most of the surface, at a mild mean surface temperature.",
       "basis": "design stand-in (GEN.1142, registry CL6): 80 percent, from 90"
@@ -274,7 +274,7 @@
     {
       "letter": "H",
       "name": "Desert world",
-      "phrase": "a desert world with little liquid water",
+      "phrase": "a desert world with air you could breathe and little liquid water",
       "kind": "t",
       "sentence": "A desert world, the oxygen-water world too dry: some water but little of the surface, with groundwater below it, at a mild mean surface temperature.",
       "basis": "design stand-in (GEN.1142, registry CL6): 20 percent, from 15"
@@ -290,7 +290,7 @@
     {
       "letter": "R",
       "name": "Hothouse world",
-      "phrase": "a hothouse world too hot and wet for its air to cool",
+      "phrase": "a hothouse world with air you could breathe, too hot and wet for it to cool",
       "kind": "t",
       "sentence": "A hothouse world, the oxygen-water world too hot and wet for its air to cool: a hot mean surface and a high wet-bulb temperature.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
@@ -306,17 +306,17 @@
     {
       "letter": "U",
       "name": "Methane-ethane world",
-      "phrase": "a cold world with seas of liquid methane and ethane",
+      "phrase": "a cold world under a thick air with methane, cold enough for liquid methane and ethane",
       "kind": "t",
-      "sentence": "A cold world with seas of liquid methane and ethane under a thick air with methane in it.",
+      "sentence": "A cold world under a thick air with methane in it, cold and pressed enough that liquid methane and ethane could stand at the surface.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     },
     {
       "letter": "Y",
       "name": "Sulfuric acid world",
-      "phrase": "a sulfuric acid world, with liquid acid under a sulfur-rich air",
+      "phrase": "a warm world under a sulfur-rich air where sulfuric acid could stand as a liquid",
       "kind": "t",
-      "sentence": "A sulfuric acid world: liquid sulfuric acid at the surface, under a sulfur-rich air.",
+      "sentence": "A sulfuric acid world: a warm surface under a sulfur-rich air, where sulfuric acid could stand as a liquid.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     },
     {
@@ -324,7 +324,7 @@
       "name": "Ammonia-water world",
       "phrase": "an ammonia-water world, its ocean often under an ice lid",
       "kind": "t",
-      "sentence": "An ammonia-water world: an ocean of ammonia and water, cold enough to stay liquid and often under an ice lid.",
+      "sentence": "An ammonia-water world: a body with no air and a cover of ammonia and water, cold enough to stay liquid and often under an ice lid.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     }
   ],
