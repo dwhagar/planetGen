@@ -507,6 +507,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | DB.123 | (bug) A moon's host_eccentricity is not stored, so a loaded moon reads 0.0 (40 moons) and re-solving its air (physics/planets.py about lines 649-650) gives a different temperature | none | Lane 13, 2026-11-12. |
 | DB.124 | (bug) Belt and comet makeup are not stored: drawn shares, porosity, density and albedo come back empty after load (the words and chondrite group are kept) | none | Lane 13, 2026-11-12. |
 | DB.125 | (bug) star_words of a wide binary pair come back empty after load (db/store.py about line 10089) | none | Lane 13, 2026-11-12. |
+| DB.126 | legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step | none | Lane 14, 2026-11-12. |
+| DB.127 | Hard cut at 8.0: remove the database version migrations and tests for anything before 8.0, and refuse to open a database whose structure is older than 8.0 (pointing to legacy/) | DB.126 | Lane 14, through Lane 02's train, 2026-11-12. |
 | GEN.1616 | (bug) Class T's terrestrial row (hydrogen 30 percent of air, under 10 Earth masses) has no envelope or pressure bound, so 120 of 1318 stored T bodies are thin hydrogen air, not the thick envelope the page describes | none | Lane 14, 2026-11-12. |
 | GEN.1617 | (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores | none | Lane 14, 2026-11-12. |
 | GEN.1618 | (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K | none | Lane 14, 2026-11-12. |
@@ -550,21 +552,16 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | Lane 11, 2026-11-12. |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | Lane 22, 2026-11-12, top priority. |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | Lane 22, 2026-11-12. |
-| OPS.162 | Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed) | none | Lane 05, 2026-11-12. |
-| OPS.163 | Run-failure line names the cause and stage; a cancel logs as notice, not error (wrapper.py) | none | Lane 05, 2026-11-12. |
-| OPS.164 | After-commit callback failures logged with traceback and the callback's name (store.py) | none | Lane 05, 2026-11-12. |
 | OPS.165 | log.degraded helper (rate-limited warning) used at every silent Redis fallback | none | Lane 05, 2026-11-12. |
-| OPS.166 | update.sh keeps the reason: Apache config test, systemctl restart and reload, Redis install and enable output shown under the warning | none | Lane 05, 2026-11-12. |
-| OPS.167 | Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels | none | Lane 05, 2026-11-12. |
 | OPS.168 | log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers | none | Lane 05, 2026-11-12. |
 | OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | Lane 13, 2026-11-12. |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | Lane 13, 2026-11-12. |
-| OPS.171 | connection_loss.explain on every lost-connection retry | none | Lane 05, 2026-11-12. |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | Lane 13, 2026-11-12. |
 | OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | Lane 23, 2026-11-12. |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | Lane 23, 2026-11-12. |
 | OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | Lane 23, 2026-11-12. |
 | OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | Lane 23, 2026-11-12. |
+| OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | Lane 14, 2026-11-12. |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | Lane 06, 2026-11-12. |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | Lane 06, 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
@@ -728,6 +725,15 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.724 | Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json | none | Boss, 2026-11-11, train management. |
 | TEST.725 | Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train | none | Boss, 2026-11-11, train management. |
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | Test health, 2026-11-11. |
+| TEST.729 | Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run) | none | Lane 14, 2026-11-12. |
+| TEST.730 | Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s) | none | Lane 14, 2026-11-12. |
+| TEST.731 | Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip | TEST.729 | Lane 14, 2026-11-12. |
+| TEST.732 | (bug) test_isotope_record.py defines the same test name twice, so the first never runs | none | Lane 14, 2026-11-12. |
+| TEST.733 | Retire the 23 data-backfill migration tests (Boss: hard cut, no generation before 8.0 is compatible with 8.0 and above) | none | Lane 14, 2026-11-12. |
+| TEST.734 | Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s) | none | Lane 14, 2026-11-12. |
+| TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | Lane 14, 2026-11-12. |
+| TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | Lane 14, 2026-11-12. |
+| TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | Lane 14, 2026-11-12. |
 | TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census |  |  |
 
 ## Phase 12: The headline closes
@@ -753,3 +759,16 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1647 | Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one | GEN.1643 | Lane 23, 2026-11-12. |
 | GEN.1648 | Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right | none | Lane 14 when free, 2026-11-12. |
 | GEN.1644 | Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7) | none | Lane 06, 2026-11-12. |
+| GEN.1649 | Lock-free cleanup: the request bookkeeping list built once, not appended, removed and re-appended | none | Lane 04, 2026-11-12. |
+| GEN.1650 | Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path | none | Lane 04, 2026-11-12. |
+| GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | Lane 04, 2026-11-12. |
+| GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | Lane 04, 2026-11-12. |
+| GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | Lane 04, 2026-11-12. |
+| GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | GEN.1651 | Lane 04, 2026-11-12. |
+| GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | Lane 04, 2026-11-12. |
+| GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | Lane 04, 2026-11-12. |
+| GEN.1657 | calculate_atmospheric_conditions: the three post-hoc corrections move into the solver | GEN.1654 | Lane 04, 2026-11-12. |
+| GEN.1658 | Design: one BODY_COLUMNS table that generates the three body tables (a body column is named in ten places today) | none | Lane 04, design only until Boss decides, 2026-11-12. |
+| GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | Lane 04, 2026-11-12. |
+| GEN.1660 | Remove the backward-compat shims and the 13 functions nothing calls | none | Lane 04, 2026-11-12. |
+| GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | Lane 21, 2026-11-12. |

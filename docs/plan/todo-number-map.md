@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.306 |
 | MAP | MAP.427 |
 | NAV | NAV.78 |
-| GEN | GEN.1649 |
+| GEN | GEN.1662 |
 | PERF | PERF.262 |
-| DB | DB.126 |
+| DB | DB.128 |
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.729 |
+| TEST | TEST.738 |
 | USR | USR.33 |
-| OPS | OPS.177 |
+| OPS | OPS.178 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2953,21 +2953,22 @@ Parents marked "new parent" had no old number of their own.
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | open |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | open |
-| OPS.162 | Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed) | none | open |
-| OPS.163 | Run-failure line names the cause and stage; a cancel logs as notice, not error (wrapper.py) | none | open |
-| OPS.164 | After-commit callback failures logged with traceback and the callback's name (store.py) | none | open |
+| OPS.162 | Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed) | none | done, PR #6276 |
+| OPS.163 | Run-failure line names the cause and stage; a cancel logs as notice, not error (wrapper.py) | none | done, PR #6277 |
+| OPS.164 | After-commit callback failures logged with traceback and the callback's name (store.py) | none | done, PR #6278 |
 | OPS.165 | log.degraded helper (rate-limited warning) used at every silent Redis fallback | none | open |
-| OPS.166 | update.sh keeps the reason: Apache config test, systemctl restart and reload, Redis install and enable output shown under the warning | none | open |
-| OPS.167 | Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels | none | open |
+| OPS.166 | update.sh keeps the reason: Apache config test, systemctl restart and reload, Redis install and enable output shown under the warning | none | done, PR #6282 |
+| OPS.167 | Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels | none | done, PR #6279 |
 | OPS.168 | log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers | none | open |
 | OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | open |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | open |
-| OPS.171 | connection_loss.explain on every lost-connection retry | none | open |
+| OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |
 | OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | open |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | open |
 | OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | open |
 | OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | open |
+| OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3864,6 +3865,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1646 | Trace the nitrogen air excess left after GEN.1583 A, B and C (Earth-analog N2 median about 134 kPa against about 80); first suspect the dry carbon bracket middle (0.056 wt% CO2 against the bulk silicate Earth 0.042) | GEN.1583 | open |
 | GEN.1647 | Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one | GEN.1643 | open |
 | GEN.1648 | Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right | none | open |
+| GEN.1649 | Lock-free cleanup: the request bookkeeping list built once, not appended, removed and re-appended | none | open |
+| GEN.1650 | Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path | none | open |
+| GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | open |
+| GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | open |
+| GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | open |
+| GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | GEN.1651 | open |
+| GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | open |
+| GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | open |
+| GEN.1657 | calculate_atmospheric_conditions: the three post-hoc corrections move into the solver | GEN.1654 | open |
+| GEN.1658 | Design: one BODY_COLUMNS table that generates the three body tables (a body column is named in ten places today) | none | open |
+| GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | open |
+| GEN.1660 | Remove the backward-compat shims and the 13 functions nothing calls | none | open |
+| GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4669,6 +4683,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | done, PR #6122 |
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | open |
 | TEST.728 | (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates) | none | done, PR #6184 |
+| TEST.729 | Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run) | none | open |
+| TEST.730 | Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s) | none | open |
+| TEST.731 | Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip | TEST.729 | open |
+| TEST.732 | (bug) test_isotope_record.py defines the same test name twice, so the first never runs | none | open |
+| TEST.733 | Retire the 23 data-backfill migration tests (Boss: hard cut, no generation before 8.0 is compatible with 8.0 and above) | none | open |
+| TEST.734 | Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s) | none | open |
+| TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | open |
+| TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | open |
+| TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -4751,6 +4774,8 @@ Each citation below resolves to one item by its date.
 | DB.123 | (bug) A moon's host_eccentricity is not stored, so a loaded moon reads 0.0 (40 moons) and re-solving its air (physics/planets.py about lines 649-650) gives a different temperature | none | open |
 | DB.124 | (bug) Belt and comet makeup are not stored: drawn shares, porosity, density and albedo come back empty after load (the words and chondrite group are kept) | none | open |
 | DB.125 | (bug) star_words of a wide binary pair come back empty after load (db/store.py about line 10089) | none | open |
+| DB.126 | legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step | none | open |
+| DB.127 | Hard cut at 8.0: remove the database version migrations and tests for anything before 8.0, and refuse to open a database whose structure is older than 8.0 (pointing to legacy/) | DB.126 | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
