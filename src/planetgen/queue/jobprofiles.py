@@ -148,6 +148,23 @@ def record(kind, items=None, seconds=None, peak_mb=None, outcome="done", conn=No
                 pass
 
 
+def peaks(kind, limit=30, conn=None):
+    """
+    The newest `limit` rows of `kind` that hold a peak memory, newest first, as dicts (`peak_mb`, `outcome` and the machine shape and epoch that measured them): the reading of
+    `profileclaim` (OPS.156). Raises on a database that cannot answer, and the caller falls back.
+    """
+    own = conn is None
+    if own:
+        from planetgen.db import store
+        conn = store.get_control_connection()
+    try:
+        return list(conn.execute("SELECT peak_mb, outcome, host_memory_mb, host_cores, generator_epoch FROM job_profiles WHERE kind = ? AND peak_mb IS NOT NULL"
+                                 " ORDER BY id DESC LIMIT ?", (kind, int(limit))).fetchall())
+    finally:
+        if own:
+            conn.close()
+
+
 def stage_figures(entries):
     """
     The figures of a stage from what its units reported (`{"seconds", "wall", "peak_mb", "avg_mb", "cpu_peak", "cpu_seconds"}` each): the units counted, the longest and mean unit,

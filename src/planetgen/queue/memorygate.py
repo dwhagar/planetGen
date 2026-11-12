@@ -521,9 +521,9 @@ def forget(conn):
         conn.delete(key)
 
 
-def claim_mb(conn, kind, table_mb, job_id=None, known=None):
+def claim_mb(conn, kind, table_mb, job_id=None, known=None, token=None):
     """
-    What a job of `kind` claims, MB: the table's figure (`table_mb`), raised to the peak seen for the kind with its margin
+    What a job of `kind` claims, MB (from the job profile when the machine has history for it, `profileclaim`, else): the table's figure (`table_mb`), raised to the peak seen for the kind with its margin
     (`LEARN_MARGIN`), and to the larger claim a retry was given (`grow`). A kind with no table figure (`table_mb` `None`) claims what has
     been seen, or `MIN_CLAIM_MB` if nothing has: the caller gives a default for it.
     """
@@ -532,6 +532,10 @@ def claim_mb(conn, kind, table_mb, job_id=None, known=None):
     figure = table_mb
     if peak:
         figure = peak * LEARN_MARGIN if table_mb is None else max(table_mb, peak * LEARN_MARGIN)
+    from planetgen.queue import profileclaim
+    profiled = profileclaim.claim(conn, kind, table_mb, token=token)      # OPS.156: the profile's figure, when this machine has history; None gives the figure above
+    if profiled is not None:
+        figure = profiled
     if job_id:
         retried = conn.get(_key(f"override:{job_id}"))
         if retried is not None:

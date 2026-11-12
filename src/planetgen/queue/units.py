@@ -448,7 +448,7 @@ def horse_killed(job, retpid, ret_val, _rusage):
     if note is not None and memory_kill:
         detail = f"; it claimed {note['claimed_mb']:,.0f} MB on the memory gate and the most seen was {note['peak_mb']:,.0f} MB"
         bigger = memorygate.grow(conn, note["kind"], job.id, note["claimed_mb"], note["peak_mb"])
-        jobprofiles.record(note["kind"], peak_mb=note["peak_mb"], outcome="killed_memory")     # OPS.155: a kill is data
+        jobprofiles.record(note["kind"], peak_mb=bigger / memorygate.LEARN_MARGIN, outcome="killed_memory")     # OPS.155: a kill is data; its peak is the size the retry was given less the margin (OPS.156 floors the kind there)
         retry = (getattr(job, "retries_left", None) or 0) > 0
         log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {note['claimed_mb']:,.0f} MB (most seen {note['peak_mb']:,.0f} MB); "
                     + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))

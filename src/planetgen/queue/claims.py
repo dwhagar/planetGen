@@ -195,4 +195,5 @@ def claim_for(job, conn):
         (mb, cpu), exclusive = function_table(function), False
         kind = f"fn:{function}"
     solo = pause.solo_of(conn)
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))
+    token = job.args[0] if function in (UNIT_FUNCTION, OPEN_FUNCTION) else None        # OPS.156: a run holds one figure per kind
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))
