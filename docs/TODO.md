@@ -13580,6 +13580,11 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
+- [ ] **GEN.1638 (bug) Class H is unreachable by construction: groundwater() is none for every liquid-surface world, so treat a liquid-surface world with ocean cover under 0.2 as having a reachable water table**
+  Lane 14 (as the lane reported 12:46 AM EST on 2026-11-12), first answer to GEN.1585 (report reports/gen1585-class-h-reachability-2026-11-12.md): H needs groundwater_present, but groundwater() is none unless the hydrosphere is dry, ice or vapour with an aquifer, and at 275 to 315 K and 50 kPa any world with water is a surface ocean or brine seep; a probe of bulk water 1e-10 to 5e-5 (40 trials each) gave 0 H. Do: in groundwater(), a liquid-surface world with ocean cover under 0.2 has a reachable water table; update the stored groundwater and reuse the H row; census before and after. Lock item.
+  Version 8.1 (Class M audit, approved by Boss's fix-all of 2026-11-11; not deferred). Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1585.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
