@@ -13289,8 +13289,8 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1564 Freeze-out for every gas, sulfur (S2) included: add S2 to the saturation table and run the freeze-out for all gases, including hycean and ice worlds at low temperature (93 gas cases on 61 bodies are supersaturated, 36 bodies hold hot S2 at cold surfaces)**
-  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 5. Do: add S2 to the saturation table (source the vapor pressure curve; register the stand-in if second-hand), then run the freeze-out over every gas in the air once, so no supersaturated gas remains (reuse the existing freeze-out; add no second pass, and place it in the air stage of GEN.1548). Done: census shows zero supersaturated gas cases; tests. Lock item, new epoch. Owner proposed; Lane 14 if the air code sits better there.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 22. Prerequisites: none. Related: GEN.1519, GEN.1562, GEN.1558.
+  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 5. Do: add S2 to the saturation table (source the vapor pressure curve; register the stand-in if second-hand), then run the freeze-out over every gas in the air once, so no supersaturated gas remains (reuse the existing freeze-out; add no second pass, and place it in the air stage of GEN.1548). Done: census shows zero supersaturated gas cases; tests. Lock item, new epoch.
+  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14 (owns the air stage; Lane 22 declined). Prerequisites: none. Related: GEN.1519, GEN.1562, GEN.1558.
   Filed by the TODO thread.
 
 - [ ] **GEN.1565 Oxygen worlds keep too much carbon dioxide: all 9 temperate oxygen-rich worlds have CO2 over 1 kPa or a sea over 95 percent; reopen the GEN.1309 carbon draw-down question with this measurement**
