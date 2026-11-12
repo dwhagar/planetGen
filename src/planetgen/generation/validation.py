@@ -230,11 +230,12 @@ def _shift_belt(belt, amount):
 
 
 def belt_needs_pushing(belt, last):
-    """Whether `space_orbits` would push `belt` outward past `last`, the body just inside it: its center is closer to a belt's outer edge than `MIN_ASTEROID_BELT_SEPARATION`, or to a planet's
-    apoapsis than that planet's `min_orbit_distance`. The one rule the spacing pass and the secular exchange (`StarSystem._secular_exchange`) share."""
+    """Whether `space_orbits` would push `belt` outward past `last`, the body just inside it: its inner edge (`lower_limit`, GEN.1592; a wide belt whose center clears can still reach into the keep-out zone)
+    is closer to a belt's outer edge than `MIN_ASTEROID_BELT_SEPARATION`, or to a planet's apoapsis than that planet's `min_orbit_distance`. The one rule the spacing pass and the secular exchange
+    (`StarSystem._secular_exchange`) share, and the rule `check_orbit_spacing` holds a belt to (`min_distance_after_au`)."""
     if last.body_type == 'a':
-        return _below(belt.distance - last.upper_limit, tuning.MIN_ASTEROID_BELT_SEPARATION)
-    return _below(belt.distance - apoapsis_au(last), last.min_orbit_distance)
+        return _below(belt.lower_limit - last.upper_limit, tuning.MIN_ASTEROID_BELT_SEPARATION)
+    return _below(belt.lower_limit - apoapsis_au(last), last.min_orbit_distance)
 
 
 def space_orbits(planets):
@@ -275,9 +276,9 @@ def space_orbits(planets):
         before = planet.distance
 
         if last_planet.body_type == 'a':
-            distance_to_last = planet.distance - last_planet.upper_limit
+            distance_to_last = inner_edge_au(planet) - last_planet.upper_limit      # GEN.1592: a belt is measured from its inner edge, a planet from its orbit
         else:
-            distance_to_last = planet.distance - apoapsis_au(last_planet)
+            distance_to_last = inner_edge_au(planet) - apoapsis_au(last_planet)
 
         if distance_to_last < 0:
             # abs(distance_to_last) alone is exactly enough to cancel
