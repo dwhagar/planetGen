@@ -19,7 +19,7 @@ They need the star objects of the whole system (the companions' radii and the or
 **What stays out.** A rogue planet has no sun and no row. A body's sibling planets and moons that stand in its sky as disks (not as suns) are not rows: their widths change by the hour, and the
 eclipse and transit rows of the clock block (`clock_rows`) already give how often one crosses its sun and how long it takes.
 
-Stand-ins are the rows SZ1 and SZ2 of section 6.274 of the gap plan.
+Stand-ins are the rows SZ1 and SZ2 of section 6.280 of the gap plan.
 """
 
 import math

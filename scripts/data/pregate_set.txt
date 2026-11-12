@@ -1,0 +1,12 @@
+# The pre-gate quick lane's fixed test files (scripts/pregate.py): the reds that kept coming back, none needs a database.
+tests/test_american_spelling.py
+tests/test_citations_outside_the_registry.py
+tests/test_citations_links.py
+tests/test_settings.py
+tests/test_no_own_log_formatting.py
+tests/test_constants_completeness.py
+tests/test_docs_links.py
+tests/test_docs_index.py
+tests/test_wiring_guard.py
+tests/test_architecture_map.py
+tests/test_bump_version.py

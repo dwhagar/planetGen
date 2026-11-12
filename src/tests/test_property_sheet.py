@@ -574,6 +574,30 @@ def test_a_star_that_is_not_a_peculiar_dwarf_has_no_peculiar_row(client, mysql_c
     assert sheet.PECULIAR_KEY not in rows and sheet.PECULIAR_FIELD_KEY not in rows
 
 
+def test_the_nebula_page_glances_at_the_composition_and_a_remnant_sets_ejecta_beside_swept_gas(client, mysql_config):
+    """GEN.1272: the At a glance panel of a nebula and a remnant lists the hydrogen, helium and heavy-element shares and the dust-to-gas ratio with their units; a remnant's ejecta and swept-up gas sit in two columns."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+    from planetgen.web import item_pages
+
+    config = SystemConfig()
+    for kind, cls, stored_as in (("nebula", Nebula, "nebula"), ("supernova_remnant", SupernovaRemnant, "supernova-remnant")):
+        row_id = store.save_phenomenon(cls(config), config, stored_as, config=mysql_config)
+        body = client.get(f"/api/objects/{kind}:{pid(kind, row_id)}/sheet").get_json()
+        glance = {row["label"]: str(row["html"]) for row in item_pages.glance_view(body)}
+        for key in ("mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"):
+            label = next(row["label"] for group in body["groups"] for row in group["rows"] if row["key"] == key)
+            assert glance.get(label), (kind, key)
+        ejecta = item_pages.ejecta_view(body)
+        if kind == "nebula":
+            assert ejecta is None
+            continue
+        assert ejecta["columns"] == ["Ejecta", "Swept-up gas"]
+        assert [row["label"] for row in ejecta["rows"]] == ["Mass", "Hydrogen share", "Helium share", "Heavy-element share"]
+        assert all(len(row["cells"]) == 2 and all(str(cell) != "&mdash;" for cell in row["cells"]) for row in ejecta["rows"])
+
+
 def test_a_nebula_and_a_remnant_sheet_show_their_composition_and_dust_by_species(client, mysql_config):
     """GEN.1272: the stored composition is on the sheet with its units: the element shares, the gas phases, the dust ratios, the grain species (adding to one), and a remnant's ejecta and swept-up gas."""
     from planetgen.generation.config import SystemConfig
