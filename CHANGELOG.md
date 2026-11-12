@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3955] - 2026-11-12
+
+**Headline:** The swept-disk mass-ledger test finds its system by searching seeds instead of naming the one that had it.
+
+### Changed
+- **`test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system` searches for its system (TEST.714).** It named seed 51 as the system whose outer disk a giant swept and handed on to an inner belt and to captured moons; any change to the draws behind a seed would move that away. It now takes the first seed from 1 to 120 whose system has exactly one such disk, with the same assertions, and fails naming how many seeds it tried when none has one.
+
+generation-affects: none
+
 ## [8.0.3954] - 2026-11-12
 
 **Headline:** A planet that caught small bodies now has a page listing its irregular moons and a page for each one, with its size, makeup, orbit and how it was caught.
