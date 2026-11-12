@@ -84,10 +84,10 @@ def test_two_resonances_close_enough_to_overlap_make_the_zone_chaotic_and_far_ap
     alpha = 1.0e-4
     near = (ov.Mode(-0.50e-4, math.radians(1.0)), ov.Mode(-0.56e-4, math.radians(1.0)))
     far = (ov.Mode(-0.20e-4, math.radians(0.2)), ov.Mode(-0.85e-4, math.radians(0.2)))
-    centre = math.degrees(math.acos(0.53))
-    chaotic = ov.analyse(alpha, centre, near)
+    center = math.degrees(math.acos(0.53))
+    chaotic = ov.analyse(alpha, center, near)
     assert chaotic.chaotic and chaotic.resonant
-    assert chaotic.minimum_deg < centre < chaotic.maximum_deg
+    assert chaotic.minimum_deg < center < chaotic.maximum_deg
     lone = ov.analyse(alpha, math.degrees(math.acos(0.2)), far)
     assert lone.resonant and not lone.chaotic
     assert not ov.analyse(alpha, 5.0, far).resonant
@@ -96,7 +96,7 @@ def test_two_resonances_close_enough_to_overlap_make_the_zone_chaotic_and_far_ap
 def test_the_resonance_sits_where_the_axis_rate_matches_the_node_rate_and_its_width_follows_the_pendulum():
     alpha, mode = 1.0e-4, ov.Mode(-4.0e-5, math.radians(1.0))
     (resonance,) = ov.resonances_of(alpha, (mode,))
-    assert resonance.cos_centre == pytest.approx(0.4)
+    assert resonance.cos_center == pytest.approx(0.4)
     sine = math.sqrt(1.0 - 0.16)
     assert resonance.cos_half_width == pytest.approx(2.0 * math.sqrt(2.0 * math.radians(1.0) * 4.0e-5 * sine / alpha))
     assert ov.resonances_of(alpha, (ov.Mode(-2.0e-4, 0.01),)) == ()          # |s| above alpha: no tilt meets it
