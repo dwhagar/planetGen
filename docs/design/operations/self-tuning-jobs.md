@@ -1,6 +1,6 @@
 # Self-tuning RAM, timing, worker counts and splits (DOC.120)
 
-Status: design note, not built. Asked by Boss, 2026-11-12, 2:50 PM EST: can the system keep stored values for RAM, process times, worker counts and splits, and work them out itself from the machine's memory and performance? Boss added at 2:51 PM EST: not just Stage 17, every job queue.
+Status: design note, not built. Asked by Boss, 2026-11-12, 2:50 PM EST: can the system keep stored values for RAM, process times, worker counts and splits, and work them out itself from the machine's memory and performance? Boss added at 2:51 PM EST: not just Stage 17, every job queue. At 2:52 PM EST he said to start by recording memory per unit and per item together with time per unit and per item, so recording is the first piece and ships alone (see "Record first").
 
 **Answer: yes, and about half of it already exists.** The gate already learns a peak per job kind, the ETA code already stores times and rates per stage, and the adaptive limit already moves the bulk worker count with memory. What is missing is that the learning is thin (one number, kept only in Redis, never used for the cut) and that the starting figures are typed constants. This note joins the pieces into one stored table per job kind and says what each consumer reads from it.
 
@@ -39,6 +39,10 @@ A table `job_profiles` in the **control database** (not Redis, so it survives a 
 
 The existing writers feed it (reuse): `memorygate.release` already knows the peak; `unitrates.note` and `stagetimes.record` already know rate and wall time; `units.horse_killed` already knows a memory kill. No new sampling is added. The Redis hashes stay as the fast cache the running code reads.
 
+### Record first (Boss, 2026-11-12, 2:52 PM EST)
+
+Step 1 of the build changes nothing about how jobs run. For every finished unit, of every command and queue, it stores one sample: the kind, the items the unit did (`unitbeat` already counts them), the unit's own worked seconds (without gate and lock waits, as `unitrates.note` already measures), the peak MB (`peak_resident_mb`), and from those **seconds per item** and **MB per item**. The profile keeps per kind both the per-unit figures and the per-item figures, because the two answer different questions: MB per unit sizes a claim for a unit of a known size, MB per item says how memory grows with the split, which is what a later split choice needs. MB per item is read as the slope between size buckets, not peak divided by items alone, since a unit also holds a fixed base (the worker with its tables is about 1.4 GB before the first item). So each sample also carries the unit's size bucket, and the profile fits `peak = base + slope x items` once a kind has samples from at least two buckets; until then only the per-unit figure is used. Jobs that are not units (API jobs, page jobs, the cut) store their peak and seconds with items left empty.
+
 ### What each consumer reads
 
 1. **Gate reservation (claim).** `memorygate.claim_mb` becomes: the profile's 95th percentile times a margin that shrinks with more samples (1.25 at 3 samples down to 1.10 at 30), else the typed figure. The typed figure stops being a floor once the profile has enough samples, so an over-generous constant is corrected downward on this machine. A memory kill still wins: the retry at 1.5 times, and the kill is recorded against the bucket so the next run starts higher.
@@ -61,7 +65,7 @@ In this order, per field: profile with enough samples (at least 3) on this machi
 
 ## Order of work
 
-1. `job_profiles` table, migration, and the three writers fed from the existing release, rate and stage-time paths. No reader yet. Test: a run fills it.
+1. `job_profiles` table (one row per sample, rolled up by a small job so it cannot grow without bound), migration, and the writers fed from the existing release, rate and stage-time paths, storing memory and time per unit and per item as under "Record first". No reader yet, so nothing changes in a run. Test: a small run fills it for every command it ran. This ships first and alone so the data is gathering while the readers are built.
 2. Gate claim reads the profile with the fallback chain (memory only). Test: no history gives today's claims; history lowers a claim and a kill raises it.
 3. Worker caps (`stage_worker_cap`) and the adaptive starting limit read the profile. Test: caps equal today's with no history.
 4. Status and admin display, pin and clear (extends OPS.150).
