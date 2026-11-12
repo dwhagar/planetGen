@@ -78,8 +78,9 @@ class UnitBeat:
     """
 
     def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS,
-                 stack_file=None, hash_key=None, extra=None):
+                 stack_file=None, hash_key=None, extra=None, usage=None):
         self.stack_file = stack_file
+        self.usage = usage                          # OPS.155: a `usage.Usage` the thread feeds on every tick (memory and processor, peak and average)
         self.extra = dict(extra or {})
         self.conn, self.key, self.unit = conn, hash_key or runrecord.progress_key(run_id, stage), str(unit)
         self.clock = clock
@@ -185,6 +186,8 @@ class UnitBeat:
 
     def _run(self):
         while not self._stop.is_set():
+            if self.usage is not None:
+                self.usage.tick()
             if self._due():
                 try:
                     self.write()
