@@ -13238,11 +13238,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1548.
   Filed by the TODO thread. Bug sweep.
 
-- [ ] **GEN.1602 (bug) mixture_subject.quantities_of_body line 125: runaway_ratio(insolation, star.temperature) is not guarded for a star with no temperature (a dark primary); the subject's teq_k uses the drawn ice-free albedo**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L9, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 15. Prerequisites: none. Related: none.
-  Filed by the TODO thread. Bug sweep.
-
 - [ ] **GEN.1603 (bug) bulk_draw._draw_inverse skips iron_branch_ratios; moons with an origin get ice_shares=None**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L10, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: none.
@@ -13306,6 +13301,7 @@ clears each one.
   Lane 14 (as the lane reported 9:44 PM EST on 2026-11-11), found while building GEN.1580 (PR 6135): 4 of the 62 census systems hit this before the fix; the fixed point now keeps the last solved air and marks it unsettled. Do: add a non-ideal equation of state for deep hot steam airs (reuse what the interior and ocean code already has for supercritical water before adding a new one), so the equilibrium converges and the unsettled mark is gone from the census. Cite only [R....] ids. Lock item (changes generated air).
   Version 8.1 (Class M fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1580. Related: GEN.1580, GEN.1586.
   Filed by the TODO thread.
+  Narrowed (Lane 15, 5:51 AM EST on 2026-11-12): the failures are dry airs whose held fO2 exceeds the total pressure; TODO chose option 3: clamp the held log fO2 to what an ideal gas can hold, logged and registered as a stand-in; real-gas coefficients are GEN.1642.
 
 - [ ] **GEN.1614 (bug) trace_air removes the equilibrium NO2 and N2O from hot airs instead of keeping them**
   Lane 14 (as the lane reported 9:44 PM EST on 2026-11-11), found while building GEN.1580 (PR 6135, which fixed the stale molar mass only). Do: find why the trace-air pass drops NO2 and N2O that the hot-air equilibrium made, keep them, and test that a hot nitrogen-oxygen air keeps its equilibrium nitrogen oxides. Lock item (changes generated air).
@@ -13505,6 +13501,12 @@ clears each one.
 - [ ] **GEN.1641 (bug) GEN.1521's chain rule pushes neighbouring planets past 40 mutual Hill radii, so belt_origin makes many gap belts and belts per system nearly double (G2V 1.21 to 1.73)**
   Train 24 census (Lane 02, 2:15 AM EST on 2026-11-12) and Lane 22's trace (3:03 AM EST): chain_distance_au pushes the next planet far when one gap in the window is wide, so more neighbour pairs exceed 40 mutual Hill radii and each becomes a gap belt (80 G2V systems: 3 gap belts on main, 42 on the train; with the rule reverted 1.16 belts per system). Do: cap the chain push at the 40 mutual Hill radius gap threshold (or an equivalent), re-run the census, and check whether G2V blue_green (0.087 to 0) and F inner_multiplicity (3.15 against 2.83) move back too. Lock item.
   Version 8.1 (regression from Train 24). Owner (TODO, 2026-11-12): Lane 14, with Lane 22. Prerequisites: GEN.1521. Related: GEN.1521, GEN.1537.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1642 Real-gas fugacity coefficients in gas_equilibrium.solve (Peng-Robinson for the species with critical constants, stand-ins for the rest), replacing the GEN.1613 fO2 clamp**
+  Lane 15 (as the lane reported 5:51 AM EST on 2026-11-12), from GEN.1613: the failing solves are dry high-pressure airs whose held mantle fO2 (10^4.1 bar) exceeds the total pressure (9,255 bar), which an ideal gas cannot hold. GEN.1613 clamps the held log fO2 as a registered stand-in; this item replaces the clamp with real-gas fugacity coefficients (Peng-Robinson with critical constants for the 34 species that have them, stand-ins from sigma for the rest, registered in GEN.725). Moves every high-pressure air by a few percent (Venus-like worlds included). Research first, then a lock item.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1613. Related: GEN.1613, GEN.1622.
+  Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
