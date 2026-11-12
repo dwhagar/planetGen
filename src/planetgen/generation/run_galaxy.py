@@ -31,6 +31,7 @@ from planetgen.galaxy import density, drill, named_regions, region_run, resoluti
 from planetgen.queue import commands, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
+from planetgen.util.ticker import Ticker
 from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.region import Region
 from planetgen.galaxy import spherical
@@ -1664,12 +1665,13 @@ def generate_sectors_unit(unit_args, report):
 
 
 def _log_saved(saved, address, suffix=""):
+    """One sector of a bulk stage as it is saved: a debug line (a stage of thousands would bury its own lines at normal; the stage's ticker carries the progress, OPS.172)."""
     designation = provisional_sector_designation(*address)
-    log.normal(
+    log.debug(
         f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)}{suffix} "
         f"(sector_id={saved['sector_id']})."
     )
-    run_sector._log_summary(saved["summary"])
+    run_sector._log_summary(saved["summary"], log.debug)
 
 
 class SectorsFollower(followed.Follower):
@@ -1714,6 +1716,7 @@ class SectorsFollower(followed.Follower):
         self.announce, self.finish = announce or _log_saved, finish
         self.reported = []
         self.generated = 0
+        self._ticker = Ticker(self.label)       # replaced with a total when the plan says how many
         self.bar = None
         self.items = []
         self.suffixes = {}
@@ -1731,8 +1734,9 @@ class SectorsFollower(followed.Follower):
         if plan["detail"].get("warning"):
             log.normal(f"Warning: {plan['detail']['warning']}")
         if not self.collect:
-            log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
-                       f"it is saved, so the first report can take a while in a dense region.")
+            log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
+                       f"{program_constants.PROGRESS_LOG_SECONDS:g} s (each sector's own line is in the debug log), so the first report can take a while in a dense region.")
+        self._ticker = Ticker(self.label, total=sectors or None)
         if self.bar_description is not None:
             self.bar = self.hold(run_common.sector_bar(self.progress, self.args, self.bar_description, sectors))
 
@@ -1753,8 +1757,11 @@ class SectorsFollower(followed.Follower):
                 self.reported.append(saved)
             else:
                 self.announce(saved, address, saved.get("suffix") or self.suffixes.get(address, ""))
+                self._ticker.tick(self.generated)
 
     def on_done(self, conclusion):
+        if self.generated and not self.collect and self.announce is _log_saved:
+            self._ticker.finish(self.generated)
         if self.finish is not None:
             self.finish(self)
 
