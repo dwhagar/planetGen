@@ -38,9 +38,9 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | B | Small hot world | gravity under 0.5 g |
 | F | Anoxic world | oxygen under 3 kPa (GEN.1321: a pressure; 3 percent of the air before) and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more) |
 | G | Carbon dioxide world | carbon dioxide 20 percent of the air or more, any oxygen share (GEN.1306, registry AW5) |
-| O | Ocean world | water covers 80 percent or more of the surface (GEN.1142), at a mean 275 to 312 K: M's floor up to the old ceiling, so a cool global ocean is O and not left to the shoulders (GEN.1342) |
+| O | Ocean world | liquid water covers 95 percent or more of the surface (GEN.1142; 80 percent before GEN.1570, the cover is the liquid sea since GEN.1567), at a mean 275 to 312 K: M's floor up to the old ceiling, so a cool global ocean is O and not left to the shoulders (GEN.1342) |
 | H | Desert world | some water, but under 20 percent of the surface (GEN.1142), at a mean 275 to 315 K: M's floor up to the old ceiling; a world with no water at all is not H (GEN.1342) |
-| M | Temperate world | the rest (air, water 20 to 80 percent); M, H, O, P and R reach 2 g, V's line (GEN.1306, registry AW3; 1.25 g before); M, H, O, P and R judge oxygen (16 to 35.5 kPa) and carbon dioxide (under 1 kPa) by pressure, not share (GEN.1321, registry OP1) |
+| M | Temperate world | the rest (air, liquid water 20 to 95 percent); M, H, O, P and R reach 2 g, V's line (GEN.1306, registry AW3; 1.25 g before); M, H, O, P and R judge oxygen (16 to 35.5 kPa) and carbon dioxide (under 1 kPa) by pressure, not share (GEN.1321, registry OP1) |
 
 The rows are in the order of the file (giants, then D S C A T N V L K E P B F G O H M); the order decides when two rows hold. Each row carries a one-sentence reading and its `basis` ("design: ..."). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.
 

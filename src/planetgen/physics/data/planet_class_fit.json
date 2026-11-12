@@ -641,14 +641,14 @@
         },
         {
           "quantity": "ocean_fraction",
-          "min": 0.8
+          "min": 0.95
         },
         {
           "quantity": "phase_water",
           "equals": 1.0
         }
       ],
-      "note": "M's too wet (GEN.1221, GEN.1342): mean 275 to 312 K (M's floor to the old ceiling), equator at most 315 K, poles at least 250 K, wet bulb under 31 C, water over 80 percent of the surface; up to 2 g (GEN.1306, registry AW3)"
+      "note": "M's too wet (GEN.1221, GEN.1342): mean 275 to 312 K (M's floor to the old ceiling), equator at most 315 K, poles at least 250 K, wet bulb under 31 C, liquid water over 95 percent of the surface (GEN.1570, Boss's edge: a global ocean with at most islands, registry CL6); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "H",
@@ -807,14 +807,14 @@
         },
         {
           "quantity": "ocean_fraction",
-          "lt": 0.8
+          "lt": 0.95
         },
         {
           "quantity": "phase_water",
           "equals": 1.0
         }
       ],
-      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 80 percent, oxygen 16 to 35.5 kPa (GEN.1321: a pressure, so a thick air with that much oxygen counts); up to 2 g (GEN.1306, registry AW3)"
+      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 95 percent (GEN.1570: ocean and continents, up to a global ocean with islands), oxygen 16 to 35.5 kPa (GEN.1321: a pressure, so a thick air with that much oxygen counts); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "R",

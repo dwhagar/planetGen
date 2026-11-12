@@ -194,14 +194,27 @@ def test_carbon_dioxide_of_the_oxygen_water_classes_is_judged_by_pressure():
     assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
 
 
+def test_the_o_edge_is_95_percent_of_liquid_cover_and_m_runs_up_to_it():
+    # GEN.1570 (Boss's edge, registry CL6): M is 20 to 95 percent liquid cover, O is 95 percent or more. Each is 1 on its own side of the edge and falls across the
+    # 0.05 cover shoulder (CF5) on the other, so a body AT 0.95 scores 1.0 in both and the narrower description (M has more conditions) takes it; a full ocean is O at 1.0 and M at 0.
+    def at(cover):
+        found = cf.scores(body(surface_temperature_k=285.0, ocean_fraction=cover))
+        return found["M"], found["O"]
+    assert at(0.8) == (1.0, 0.0)                                              # the old O edge: a body of 80 percent is now plain M
+    assert at(0.949)[0] == 1.0 and at(0.949)[1] < 1.0
+    assert at(0.95) == (1.0, 1.0) and cf.best_class(body(surface_temperature_k=285.0, ocean_fraction=0.95))[0] == "M"
+    assert at(0.951)[1] == 1.0 and cf.best_class(body(surface_temperature_k=285.0, ocean_fraction=0.951))[0] == "O"
+    assert at(1.0) == (0.0, 1.0)
+
+
 def test_a_cool_global_ocean_with_oxygen_is_o_and_a_cool_damp_desert_is_h_and_a_world_with_no_water_is_neither():
     # GEN.1342 (Boss): O and H take their mean temperature from M's floor (275 K) up to their old ceilings (312 and 315 K)
     for kelvin in (276.0, 285.0, 300.0):
-        ocean = body(surface_temperature_k=kelvin, ocean_fraction=0.95)
+        ocean = body(surface_temperature_k=kelvin, ocean_fraction=0.97)
         assert cf.best_class(ocean)[:2] == ("O", 1.0), kelvin
         desert = body(surface_temperature_k=kelvin, ocean_fraction=0.1, groundwater="aquifer")
         assert cf.best_class(desert)[0] == "H" and cf.best_class(desert)[1] > 0.9, kelvin
     assert cf.best_class(body(surface_temperature_k=285.0, ocean_fraction=0.5))[0] == "M"
-    assert cf.best_class(body(surface_temperature_k=309.0, ocean_fraction=0.95))[0] == "O"
+    assert cf.best_class(body(surface_temperature_k=309.0, ocean_fraction=0.97))[0] == "O"
     dry = body(surface_temperature_k=285.0, ocean_fraction=0.0, groundwater="none")
     assert cf.best_class(dry)[0] != "H"
