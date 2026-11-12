@@ -45,13 +45,6 @@ class PointMasses:
     keys: tuple
 
 
-def _sums(conn, table, marks, ids):
-    """`{star system id: mass in kg}` of `table`'s rows in the systems that are in the sectors `ids`."""
-    return {row["star_system_id"]: row["mass_kg"] for row in conn.execute(
-        f"SELECT t.star_system_id, SUM(t.mass_kg) AS mass_kg FROM {table} t JOIN star_systems ss ON ss.id = t.star_system_id"
-        f" WHERE ss.sector_id IN ({marks}) GROUP BY t.star_system_id", ids).fetchall() if row["mass_kg"] is not None}
-
-
 def system_point_masses(conn, sector_ids):
     """The `PointMasses` of the sectors `sector_ids` (see the module doc); empty when none is given or none holds anything."""
     ids = sorted(set(sector_ids))
@@ -60,13 +53,13 @@ def system_point_masses(conn, sector_ids):
     marks = ", ".join("?" for _ in ids)
     centers = {row["id"]: (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]) for row in conn.execute(
         f"SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id IN ({marks})", ids).fetchall()}
-    stars, planets, moons = (_sums(conn, table, marks, ids) for table in ("stars", "planets", "moons"))
     rows = []
     for row in conn.execute(
-            f"SELECT id, sector_id, position_x_mpc AS x, position_y_mpc AS y, position_z_mpc AS z FROM star_systems"
-            f" WHERE sector_id IN ({marks}) AND position_x_mpc IS NOT NULL ORDER BY id", ids).fetchall():
-        mass_kg = stars.get(row["id"], 0.0) + planets.get(row["id"], 0.0) + moons.get(row["id"], 0.0)
-        if row["sector_id"] in centers and mass_kg > 0.0:
+            f"SELECT ss.id, ss.sector_id, ss.position_x_mpc AS x, ss.position_y_mpc AS y, ss.position_z_mpc AS z, sm.system_mass_kg AS mass_kg"
+            f" FROM star_systems ss JOIN system_summary sm ON sm.star_system_id = ss.id"
+            f" WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL ORDER BY ss.id", ids).fetchall():
+        mass_kg = row["mass_kg"]       # GEN.1478: the stars', planets' and moons' mass, kept with the system (`db/system_summary.py`)
+        if row["sector_id"] in centers and mass_kg is not None and mass_kg > 0.0:
             rows.append((("star_systems", row["id"]), geometry.local_to_galaxy_pc(centers[row["sector_id"]], (row["x"] / 1000.0, row["y"] / 1000.0, row["z"] / 1000.0)),
                          _kg_to_msun(mass_kg)))
     for table in STAND_ALONE_TABLES:

@@ -49,6 +49,23 @@ def test_the_record_carries_the_counter_the_phase_the_wait_and_the_server_clock(
     assert free["beat"] - free["moved"] == pytest.approx(2.0, abs=0.01), "moved is when the counter last changed"
 
 
+def test_the_record_carries_the_time_spent_waiting_since_the_counter_last_changed(conn, run_id):
+    """OPS.143: the judge subtracts it, so a unit that has just left a long wait is not quiet for the time it spent waiting."""
+    clock = _Clock()
+    beat = unitbeat.UnitBeat(conn, run_id, 0, 0, clock=clock)
+    beat(1, 10)
+    with beat.waiting("sky lock"):
+        clock.now += 90.0
+        assert beat.record()["waited"] == 0.0, "a wait still going on is reported as waiting_on, not yet as time waited"
+    clock.now += 10.0
+    with beat.waiting("gate"):
+        clock.now += 30.0
+    stored = beat.record()
+    assert stored["waited"] == pytest.approx(120.0) and unitbeat.beat_of(stored).waited == pytest.approx(120.0)
+    beat(2, 10)
+    assert beat.record()["waited"] == 0.0, "a change of the counter starts the count again"
+
+
 def test_moved_is_absent_until_the_counter_first_changes_and_follows_only_a_change(conn, run_id):
     clock = _Clock()
     beat = unitbeat.UnitBeat(conn, run_id, 0, 0, clock=clock)

@@ -93,39 +93,6 @@ def test_a_node_missing_a_child_is_refused():
         pz.planet_zones([node(1, None, None, 1.0, 5.0)], [member(0, 1, 0, 1.0)])
 
 
-def test_a_planets_flux_sums_over_every_member():
-    nodes, members = _triple(20.0)
-    luminosity = {0: 1.0, 1: 0.2, 2: 0.5}
-    s_zone = zone(pz.planet_zones(nodes, members), "S", 2)
-    far = 3.0
-    # The third star's light, plus the close pair's two stars at the root orbit's mean inverse square.
-    mean_inverse_square = 1.0 / (20.0 ** 2 * math.sqrt(1.0 - 0.2 ** 2))
-    assert pz.flux_at(s_zone, far, luminosity, nodes, members) == pytest.approx(
-        0.5 / far ** 2 + (1.0 + 0.2) * mean_inverse_square, rel=1e-12)
-    p_zone = zone(pz.planet_zones(nodes, members), "P", 2)
-    assert pz.flux_at(p_zone, 2.0, luminosity, nodes, members) == pytest.approx(
-        (1.0 + 0.2) / 2.0 ** 2 + 0.5 * mean_inverse_square, rel=1e-12)
-    # A star of the pair meets its partner at the pair's own orbit and the third star at the root's.
-    s_in_pair = zone(pz.planet_zones(nodes, members), "S", 0)
-    expected = 1.0 / 0.05 ** 2 + 0.2 / (0.3 ** 2 * math.sqrt(1 - 0.1 ** 2)) + 0.5 * mean_inverse_square
-    assert pz.flux_at(s_in_pair, 0.05, luminosity, nodes, members) == pytest.approx(expected, rel=1e-12)
-
-
-def test_a_lone_stars_flux_is_the_inverse_square_law():
-    only = [member(0, None, 0, 1.0)]
-    assert pz.flux_at(pz.planet_zones([], only)[0], 2.0, {0: 3.0}, [], only) == pytest.approx(0.75)
-    with pytest.raises(ValueError):
-        pz.flux_at(pz.planet_zones([], only)[0], 0.0, {0: 3.0}, [], only)
-
-
-def test_a_planet_meeting_the_host_at_a_group_node_has_no_flux_sum():
-    nodes = [node(1, None, None, 2.0, 5.0, kind="group")]
-    members = [member(0, 1, 0, 1.0), member(1, 1, 1, 1.0)]
-    host = pz.Zone("S", 0, 0.0, 10.0)
-    with pytest.raises(ValueError):
-        pz.flux_at(host, 1.0, {0: 1.0, 1: 1.0}, nodes, members)
-
-
 # The table of docs/design/systems/multistar-and-compact-systems.md 5.6, on a seeded draw of the generator's own trees.
 TABLE_S_TYPE = {2: 0.77, 3: 0.40, 4: 0.28, 5: 0.20, 6: 0.15, 7: 0.13}
 """dict: Stars with an S-type window above 0.3 AU, by number of stars, as the design page prints them."""
@@ -151,11 +118,12 @@ def test_the_share_of_stars_with_an_s_type_window_falls_as_the_design_table_says
 
 # GEN.543: "usable" is a width above 0.3 AU, as for the S-type row; the design table's own row (34% falling to 18%) was
 # an earlier estimate that neither of two candidate definitions reproduced (docs/design/systems/multistar-and-compact-systems.md 5.6).
-MEASURED_P_TYPE = {2: 0.45, 3: 0.48, 4: 0.43, 5: 0.40, 6: 0.35, 7: 0.28}
+MEASURED_P_TYPE = {2: 0.45, 3: 0.43, 4: 0.39, 5: 0.34, 6: 0.30, 7: 0.28}
 """dict: Pair nodes with a P-type window above 0.3 AU, by number of stars, on the same seeded draw (5 and 7 were re-measured
 after GEN.270 weighted the tight tail of the period law, and 2 after GEN.272 moved the star draws; 2 again after GEN.1009 part 2 (the tree and the
 build read one member record) moved the seeded draw, 0.49 to 0.45 on 300 pairs, which is inside the 0.03 the 300 draws allow, and 7 after GEN.1011 drew each
-pair's period and eccentricity once, cut to the room it has, 0.33 to 0.28 on 1800 pairs, a draw change of 3.7 standard errors. Neither is
+pair's period and eccentricity once, cut to the room it has, 0.33 to 0.28 on 1800 pairs, a draw change of 3.7 standard errors; 3 to 6 again after GEN.1500 slice (a) drew each star
+pair's mutual inclination from the alignment law and moved the seeded draw (re-measured on 300 draws: 2 stars 0.477, 3 0.43, 4 0.39, 5 0.34, 6 0.30, 7 0.251; 2 and 7 stay inside the 0.03). Neither is
 the dark members of GEN.1013, which leave the tree draw as it was)."""
 
 

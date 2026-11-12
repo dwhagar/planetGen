@@ -31,15 +31,15 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
+from planetgen.physics import flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -473,6 +473,7 @@ class StarSystem:
             if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
                 # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
                 self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
+            tide_sources.register(self.all_planets)  # GEN.1502: who else pulls on each body, for the spin history run again at the final age
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
@@ -529,12 +530,14 @@ class StarSystem:
         # system_flavor_count on every render.
         self.system_flavor_text = None
         if draw.random() < tuning.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL:
-            self.system_flavor_text = draw.choice(tuning.SYSTEM_FLAVOR)
-            self.system_config.system_flavor_count += 1
-            log.choice("System flavor text", self.system_flavor_text,
-                       f"roll passed FLAVOR_CHANCE_SYSTEM ({tuning.FLAVOR_CHANCE_SYSTEM}) and "
-                       f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
-                       f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
+            option = flavor_tree.draw_line("system", None, star=self.primary_star)     # GEN.1430: the system scope of the flavor tree, drawn on the system's own stream
+            if option is not None:
+                self.system_flavor_text = option.text
+                self.system_config.system_flavor_count += 1
+                log.choice("System flavor text", option.text,
+                           f"line {option.id}; roll passed FLAVOR_CHANCE_SYSTEM ({tuning.FLAVOR_CHANCE_SYSTEM}) and "
+                           f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
+                           f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 
@@ -544,6 +547,9 @@ class StarSystem:
         # age rather than its provisional pre-adjustment one. Flavor text is decided
         # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
+        with log.timed_phase("late accretion pass"):
+            late_accretion.apply(self.all_planets)      # GEN.1493: the belts are final, so the air of a rocky planet reads them for its late accretion
+
         with log.timed_phase("snow line pass"):
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
@@ -567,12 +573,7 @@ class StarSystem:
                 self._finish_planet(obj)
                 for moon in obj.moons:
                     self._finish_moon(moon, obj)
-            for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
-                if obj.body_type == 'a':
-                    continue
-                ocean_tides.generate(obj)
-                for moon in obj.moons:
-                    ocean_tides.generate(moon, obj)
+            self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
             # unmet, one it gave is met.
             wanted = f"a planet of class {self.system_config.FORCE_CLASS}"
@@ -617,6 +618,25 @@ class StarSystem:
         self._name = value
         if self.binary_type != "wide":
             self.star.name = value
+
+    def _tide_pass(self):
+        """
+        The ocean tide of every planet and moon from every body that pulls on it (GEN.1446, `tide_sources`): its host and companion stars, the other planets of
+        its host, its own moons or its planet, and the other moons of its planet. Each pull is also noted in the effect ledger (GEN.1465) as a tide-raising
+        acceleration, whatever its size.
+        """
+        planets = [obj for obj in self.all_planets if obj.body_type != 'a']
+        for obj in planets:
+            siblings = [other for other in planets if other is not obj and other.star is obj.star]
+            for body, parent in ((obj, None), *((moon, obj) for moon in obj.moons)):
+                sources = tide_sources.sources_of(body, parent, siblings)
+                ocean_tides.generate(body, parent, tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(body, parent)))
+                for source in sources:
+                    self.effect_ledger.add("tide", body, source.body, tide_sources.acceleration_m_s2(body, source))
+                primary = body.star if parent is None else parent
+                for source_body, power in tide_sources.heating_by_source(body, sources, primary):
+                    if power > 0.0:
+                        self.effect_ledger.add("heating", body, source_body, power)
 
     def _fill_light_ledger(self):
         """
@@ -2227,6 +2247,26 @@ class StarSystem:
             if outcome != "unchanged":
                 log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
 
+    def _kozai_pumping(self):
+        """
+        GEN.1447: every moon is the inner body of the triple (its planet, the moon, the planet's star): the star's torque, averaged over both orbits, pumps the moon's eccentricity when their
+        planes are inclined by 39.2 to 140.8 degrees and nothing faster turns the moon's orbit (`physics.kozai_bodies`). A survivor takes the eccentricity of its place in the cycle at the
+        star's age and a moon whose maximum puts its periapsis inside the Roche limit or the planet is lost. It runs after the secular exchange and before the tide wears an eccentricity down
+        (`settle_orbit` wears the pumped one). `self.kozai_outcomes` counts the moons screened and what became of them (a record for the census, not stored).
+        """
+        self.kozai_outcomes = {"screened": 0, "cycling": 0, "lost": 0}
+        for _star, planets in validation.star_lists(self):
+            for planet in planets:
+                if planet.body_type == 'a' or not planet.moons:
+                    continue
+                self.kozai_outcomes["screened"] += len(planet.moons)
+                lost = kozai_bodies.pump_moons(planet, self.effect_ledger)
+                self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if getattr(moon, "_kozai", None) is not None)
+                for moon in lost:
+                    planet.moons.remove(moon)
+                    self.kozai_outcomes["lost"] += 1
+                    log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
+
     @staticmethod
     def _planet_problems(planets):
         """The problems of one star's planets for the secular exchange to compare: their spacing and each planet with its moons."""
@@ -2250,6 +2290,8 @@ class StarSystem:
         """
         with log.timed_phase("settle pass"):
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
+            self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
+            self._give_belts_their_planets()    # GEN.1492: the apsidal rate of the planets beside each belt, which dilutes a companion star's forcing of its members
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":
@@ -2273,6 +2315,14 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+
+    def _give_belts_their_planets(self):
+        """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
+        for _star, planets in validation.star_lists(self):
+            bodies = [p for p in planets if p.body_type != 'a']
+            for belt in planets:
+                if belt.body_type == 'a':
+                    belt.give_secular_planets([p.distance for p in bodies], [p.mass for p in bodies])
 
     def _refresh_wobble(self):
         """The reflex wobble of the planets and of the stars, from the planets and moons as they are (called when the orbits are final, and again if a body is dropped, GEN.1275)."""
@@ -2435,15 +2485,16 @@ class StarSystem:
         outer_au = min(orbit_ceiling_au, disk_edge_au)
 
         sublimation_au = planet_architecture.sublimation_au(star.luminosity or 0.0)
+        gas_factor = disk_truncation.gas_survival_factor(star)       # a companion inside 47 AU disperses the disk's gas early (GEN.1475)
 
         def plan_of(architecture, limit=None):
             floor_au = self._orbit_floor_au(star)
             if floor_au > 0.0:
                 architecture = architecture._replace(planets=tuple(s for s in architecture.planets if s.distance_au >= floor_au))
-            return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
+            return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au, gas_factor)
 
         def built(maximum=False):
-            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au)
+            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au, gas_factor=gas_factor)
 
         if config.PLANETS is False:
             return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0, ())), 0), 0

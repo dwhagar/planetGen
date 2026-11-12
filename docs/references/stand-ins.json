@@ -4994,9 +4994,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5036,9 +5036,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5078,9 +5078,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5120,9 +5120,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5276,9 +5276,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -12165,7 +12165,7 @@
           "fields": [
             [
               "What it is",
-              "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R)"
+              "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
             ],
             [
               "The range it moves in",
@@ -12196,7 +12196,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R)"
+          "what": "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
         },
         {
           "burn_down": [
@@ -12437,6 +12437,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.REDUCED_GASES: the oxygen each reduced gas takes and the oxides it leaves"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5 Gyr step"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored thermal history"
+            ],
+            [
+              "What would show it wrong",
+              "a measured reductant flux of the early Earth far from 2 to 2.5 times today's, or an Archean heat flow of a different ratio"
+            ],
+            [
+              "What replaces it",
+              "an inventory of the sinks by age (ferrous iron, sulfides, volcanic gases)"
+            ],
+            [
+              "Evidence",
+              "design, from the proportionality of R to the heat that reductant_flux already uses; the early heat flow is the model's own thermal history ([R1716] box model), 2 to 3 times today's when the biomarkers appear, as the convection laws give for Earth"
+            ]
+          ],
+          "id": "BO10",
+          "key": "6.21:BO10",
+          "kind": "P",
+          "slug": "6-21-bo10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
         }
       ],
       "slug": "6-21-stand-ins-of-the-life-timeline-and-the-biogenic-oxygen",
@@ -16844,9 +16882,9 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "the share 0.0092 now sits between two read statistics ([R4897]: 0.62 percent Kepler, 0.9 to 1.2 percent radial velocity), but the row also holds the metallicity exponent 2.2 and the period range, which no survey constrains separately; the row stays L3 until they are split"
+            "GEN.946 (2026-11-11): lowered to L2; the extra metallicity exponent 2.2 is 3.4 - 1.2 from the two read exponents [R2172, R3499], the period ceiling 10 d is the read hot-Jupiter edge, and the share is tuned to the read 0.62 and 0.27 percent [R1504, R4897]; no hand tuning remains"
           ],
           "fields": [
             [
@@ -16871,7 +16909,7 @@
             ],
             [
               "Evidence",
-              "[R4897] ([R4897], READ: 0.62 ± 0.09 percent in the Kepler sample, 0.9 to 1.2 percent in radial-velocity surveys; the share 0.0092 sits between them); [R1504] ([R1504], READ: 0.27 percent of early M dwarfs); [R3499] (exponent 3.4 against 1.2 for giants)"
+              "[R4897] ([R4897], READ: 0.62 ± 0.09 percent in the Kepler sample, 0.9 to 1.2 percent in radial-velocity surveys; the share 0.0092 sits between them); [R1504] ([R1504], READ: 0.27 percent of early M dwarfs); [R3499] (exponent 3.4 against 1.2 for giants); checked on 2026-11-11 (GEN.946): the extra exponent 2.2 is 3.4 - 1.2 from the two read exponents, the period ceiling 10 d is the hot-Jupiter edge of [R3196, R4897], and the share is tuned to the read 0.62 percent (Kepler) and 0.27 percent (M dwarfs), so the row is tuned to published statistics, not by hand; test_stand_in_tweaks_held_to_sources.py holds the first two"
             ]
           ],
           "id": "PA9",
@@ -16880,7 +16918,7 @@
           "slug": "6-36-pa9",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
           "what": "tuning.GIANT_MIGRATION_SHARE 0.0092 with GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT 2.2 and GIANT_MIGRATION_PERIOD_RANGE_DAYS (1, 10) (the share of giants that become hot Jupiters, how it rises with [Fe/H], where they end)"
         },
@@ -17836,14 +17874,14 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "the accretion spread was recalled and is now read: [R2677] give core formation under about 1 Myr in the first reservoir and 1.8 to 4 Myr in the second, consistent with the 3 Myr; the value remains the one Solar System spread tuned by the melting test, no other system dates its planetesimals; tier T3, tweak L3 stay"
+            "GEN.946 (2026-11-11): lowered to L2; the 3 Myr spread lies inside the read 1.8 to 4 Myr of the chondrite reservoir [R2677] and gives the melted share of 0.54 at the Solar System's ratio, the 0.55 it is tuned to; no hand tuning remains"
           ],
           "fields": [
             [
               "What it is",
-              "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages"
+              "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages; checked on 2026-11-11 (GEN.946): the 3 Myr lies inside the read 1.8 to 4 Myr of the chondrite reservoir and gives the melted share of 0.544 at the Solar System's aluminium-26 ratio against the 0.55 it is tuned to (1.8 gives 0.91 and 4 gives 0.41), so it is tuned to a published statistic inside a read range, not by hand; test_stand_in_tweaks_held_to_sources.py holds both"
             ],
             [
               "The range it moves in",
@@ -17872,9 +17910,9 @@
           "slug": "6-41-tk5",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
-          "what": "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages"
+          "what": "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages; checked on 2026-11-11 (GEN.946): the 3 Myr lies inside the read 1.8 to 4 Myr of the chondrite reservoir and gives the melted share of 0.544 at the Solar System's aluminium-26 ratio against the 0.55 it is tuned to (1.8 gives 0.91 and 4 gives 0.41), so it is tuned to a published statistic inside a read range, not by hand; test_stand_in_tweaks_held_to_sources.py holds both"
         },
         {
           "burn_down": [
@@ -28996,9 +29034,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1058",
-            "the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor"
+            "no data",
+            "-",
+            "GEN.1058 built the merger tilt but did not replace this tuned share;  the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor"
           ],
           "fields": [
             [
@@ -51255,7 +51293,7 @@
             ],
             [
               "Evidence",
-              "the ring builder of small_body_composition.draw_ring (precedent), recalled peridotite modal mineralogy"
+              "the earlier ring builder of small_body_composition (precedent, removed in GEN.1523), recalled peridotite modal mineralogy"
             ]
           ],
           "id": "IF24",
@@ -51976,9 +52014,9 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it"
           ],
           "fields": [
             [
@@ -56445,6 +56483,90 @@
       "title": "Stand-ins of the superionic boundaries of water and ammonia"
     },
     {
+      "key": "6.257",
+      "number": "6.257",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "flavor_tree.json line weight 1.0 for every line, as the old lists drew with equal chance"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 10 per line"
+            ],
+            [
+              "Where it holds",
+              "any line of the tree"
+            ],
+            [
+              "What would show it wrong",
+              "a census showing one line shown far more than the others without a reason"
+            ],
+            [
+              "What replaces it",
+              "weights set from the census when Boss asks for rarer lines"
+            ],
+            [
+              "Evidence",
+              "none: the old draws were uniform; the weight only keeps that"
+            ]
+          ],
+          "id": "FW1",
+          "key": "6.257:FW1",
+          "kind": "P",
+          "slug": "6-257-fw1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "flavor_tree.json line weight 1.0 for every line, as the old lists drew with equal chance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.FLAVOR_CHANCE_PLANET 0.05: the chance a planet or moon shows a flavor line"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "Boss asking for more or fewer flavor lines"
+            ],
+            [
+              "What replaces it",
+              "the chances by scope from a census"
+            ],
+            [
+              "Evidence",
+              "kept as it was"
+            ]
+          ],
+          "id": "FW2",
+          "key": "6.257:FW2",
+          "kind": "P",
+          "slug": "6-257-fw2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.FLAVOR_CHANCE_PLANET 0.05: the chance a planet or moon shows a flavor line"
+        }
+      ],
+      "slug": "6-257-stand-ins-of-the-flavor-tree-s-line-weights-and-chances",
+      "title": "Stand-ins of the flavor tree's line weights and chances"
+    },
+    {
       "key": "6.237",
       "number": "6.237",
       "rows": [
@@ -57457,7 +57579,7 @@
           "fields": [
             [
               "What it is",
-              "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+              "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.companion_orbits takes it"
             ],
             [
               "The range it moves in",
@@ -57488,7 +57610,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+          "what": "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.companion_orbits takes it"
         },
         {
           "burn_down": null,
@@ -57685,7 +57807,7 @@
           "fields": [
             [
               "What it is",
-              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
+              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444)"
             ],
             [
               "The range it moves in",
@@ -57716,7 +57838,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
+          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444)"
         }
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
@@ -58051,7 +58173,7 @@
           "fields": [
             [
               "What it is",
-              "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+              "disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc"
             ],
             [
               "The range it moves in",
@@ -58071,25 +58193,25 @@
             ],
             [
               "Evidence",
-              "form and numbers of [R5211], recalled, paper not opened; [R5210] abstract read for the use. Read the paper at the build (T3 to T1)"
+              "form and numbers read in [R5211: Eq. 14] (9.5e-5 Earth masses per year, exponents 5/3, 1/3 on the star mass, -1/3 on the age); the star-mass term is replaced by the disc-mass scale (see the section text); [R5210] abstract read for the use"
             ]
           ],
           "id": "DE1",
           "key": "6.242:DE1",
           "kind": "T",
           "slug": "6-242-de1",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+          "what": "disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+              "disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
             ],
             [
               "The range it moves in",
@@ -58109,25 +58231,25 @@
             ],
             [
               "Evidence",
-              "[R5211], recalled; the number is computed from the two recalled efficiencies"
+              "[R5211: Eq. 10] read: r_g = (3/16)^(1/3) (G M)^(1/3) (eps_d Z0)^(2/3) t^(2/3); eps_d 0.05 (sticking efficiency 0.5 over the ISM growth ratio 10, from the paper's text) and Z0 0.01 give 122.8 AU at 1 Myr"
             ]
           ],
           "id": "DE2",
           "key": "6.242:DE2",
           "kind": "T",
           "slug": "6-242-de2",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+          "what": "disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+              "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
             ],
             [
               "The range it moves in",
@@ -58158,14 +58280,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+          "what": "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+              "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
             ],
             [
               "The range it moves in",
@@ -58195,15 +58317,15 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": null,
-          "what": "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+          "unread": "by design",
+          "what": "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+              "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
             ],
             [
               "The range it moves in",
@@ -58234,14 +58356,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+          "what": "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+              "disk_drift.COLD_FINGER_LEAK 0.9 (reported by cold_finger_enrichment, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
             ],
             [
               "The range it moves in",
@@ -58272,14 +58394,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+          "what": "disk_drift.COLD_FINGER_LEAK 0.9 (reported by cold_finger_enrichment, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+              "disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
             ],
             [
               "The range it moves in",
@@ -58310,14 +58432,14 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+          "what": "disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+              "disk_drift.ice_weights and disk_condensation._gas_and_solid_atoms(ice_weights=): the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
             ],
             [
               "The range it moves in",
@@ -58348,14 +58470,14 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+          "what": "disk_drift.ice_weights and disk_condensation._gas_and_solid_atoms(ice_weights=): the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+              "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
             ],
             [
               "The range it moves in",
@@ -58386,14 +58508,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+          "what": "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+              "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
             ],
             [
               "The range it moves in",
@@ -58424,7 +58546,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+          "what": "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
         }
       ],
       "slug": "6-242-stand-ins-of-the-drift-and-evaporation-of-the-ices-in-the-disk",
@@ -58707,6 +58829,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "secular_chain._drive: a held planet is a fixed perturber, the others go round the fixed point it sets"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.carry_spin_with_orbit: a planet whose orbital plane the exchange moves keeps its obliquity and its angle round the orbit normal (the spin axis is turned with the normal), because its spin precesses about the normal far faster than the plane's nodes regress; a locked or resonant planet keeps its Cassini-state share of the inclination (tidal_spin.cassini_tilt_deg, tilt proportional to the folded inclination), its sky of other suns and day shares follow, and its moons are set in the new equator again"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets whose spin precession period is much shorter than the secular nodal period (most; a planet near the resonance of the two is chaotic)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose obliquity has measurably wandered with its plane's regression (the secular spin-orbit resonance)"
+            ],
+            [
+              "What replaces it",
+              "an integration of the spin and the plane together"
+            ],
+            [
+              "Evidence",
+              "design, from the adiabatic invariance of the obliquity; reuse of spin.tilted_axis, orient_moons, sky_suns"
+            ]
+          ],
+          "id": "SC6",
+          "key": "6.244:SC6",
+          "kind": "P",
+          "slug": "6-244-sc6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.carry_spin_with_orbit: a planet whose orbital plane the exchange moves keeps its obliquity and its angle round the orbit normal (the spin axis is turned with the normal), because its spin precesses about the normal far faster than the plane's nodes regress; a locked or resonant planet keeps its Cassini-state share of the inclination (tidal_spin.cassini_tilt_deg, tilt proportional to the folded inclination), its sky of other suns and day shares follow, and its moons are set in the new equator again"
         }
       ],
       "slug": "6-244-stand-ins-of-the-secular-exchange-of-a-star-s-planets",
@@ -59587,7 +59747,7 @@
             ],
             [
               "Evidence",
-              "derived: the Moon touches the Sun for 1.5e-4 of the time and covers 3.6e-5 of its light; Venus crosses the Sun for Earth 2.4e-5 of the time (eight transits of about six hours in 243 years)"
+              "derived: the Moon touches the Sun for 1.5e-4 of the time and covers 3.6e-5 of its light; Venus crosses the Sun for Earth 9.1e-6 of the time (the real cycle has four transits of about six hours in 243 years, 1.2e-5 of the time; the circular orbits give one in 81 years against one in 61)"
             ]
           ],
           "id": "EC1",
@@ -59681,7 +59841,7 @@
           "fields": [
             [
               "What it is",
-              "no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
+              "only a circumbinary planet's light is cut by the eclipse shares (GEN.1484, stored light_factor); for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light and are not applied, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
             ],
             [
               "The range it moves in",
@@ -59712,7 +59872,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
+          "what": "only a circumbinary planet's light is cut by the eclipse shares (GEN.1484, stored light_factor); for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light and are not applied, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
         }
       ],
       "slug": "6-249-stand-ins-of-the-eclipses-of-a-star-by-a-body-of-the-system",
@@ -59925,6 +60085,434 @@
       "title": "Stand-ins of the effect ledger"
     },
     {
+      "key": "6.253",
+      "number": "6.253",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
+            ],
+            [
+              "The range it moves in",
+              "the three numbers"
+            ],
+            [
+              "Where it holds",
+              "a comet lit like one round the Sun"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of active comets by perihelion that departs from the line by more than the scatter"
+            ],
+            [
+              "What replaces it",
+              "a chance from the sublimation rate of water at the nucleus's temperature"
+            ],
+            [
+              "Evidence",
+              "recalled from Comets II (the water-ice sublimation limit near 3 AU); not re-read here"
+            ]
+          ],
+          "id": "CA1",
+          "key": "6.253:CA1",
+          "kind": "P",
+          "slug": "6-253-ca1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "comets with no atmosphere, so no greenhouse or conduction of heat that depends on more than the flux"
+            ],
+            [
+              "What would show it wrong",
+              "a comet of a bright or faint star whose activity begins at a distance that is not close to 3 AU sqrt(L / Lsun)"
+            ],
+            [
+              "What replaces it",
+              "the activity distance from the sublimation flux of water ice and the nucleus's albedo and rotation"
+            ],
+            [
+              "Evidence",
+              "derived: the same flux at d sqrt(Lsun / L); the disk's L^0.25 r^-0.62 is for a passively heated disk and is not used"
+            ]
+          ],
+          "id": "CA2",
+          "key": "6.253:CA2",
+          "kind": "T",
+          "slug": "6-253-ca2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "comets of stars of any type"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose activity differs between a blackbody and a hot-star spectrum at the same flux"
+            ],
+            [
+              "What replaces it",
+              "an absorption of the nucleus's albedo in the star's band"
+            ],
+            [
+              "Evidence",
+              "design"
+            ]
+          ],
+          "id": "CA3",
+          "key": "6.253:CA3",
+          "kind": "T",
+          "slug": "6-253-ca3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
+        }
+      ],
+      "slug": "6-253-stand-ins-of-the-distance-at-which-a-comet-turns-active",
+      "title": "Stand-ins of the distance at which a comet turns active"
+    },
+    {
+      "key": "6.254",
+      "number": "6.254",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "belts of a few to tens of Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5"
+            ],
+            [
+              "What replaces it",
+              "a scattering integration of the belt against the system's planets"
+            ],
+            [
+              "Evidence",
+              "fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, reports/gen1493-late-supply-census-2026-11-09.md)"
+            ]
+          ],
+          "id": "LS1",
+          "key": "6.254:LS1",
+          "kind": "P",
+          "slug": "6-254-ls1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "bodies on near-circular orbits"
+            ],
+            [
+              "What would show it wrong",
+              "a measured impact-speed distribution on a rocky planet that differs by more than a factor of two"
+            ],
+            [
+              "What replaces it",
+              "the speed from the scattered orbits' eccentricities"
+            ],
+            [
+              "Evidence",
+              "no source: an eccentricity of a few tenths"
+            ]
+          ],
+          "id": "LS2",
+          "key": "6.254:LS2",
+          "kind": "P",
+          "slug": "6-254-ls2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+            ],
+            [
+              "The range it moves in",
+              "2 to 6"
+            ],
+            [
+              "Where it holds",
+              "giants outside a belt"
+            ],
+            [
+              "What would show it wrong",
+              "a giant at 4 times a belt's edge whose measured scattering of that belt is negligible"
+            ],
+            [
+              "What replaces it",
+              "the giant's chaotic zone width (the Hill-radius law of the clearing)"
+            ],
+            [
+              "Evidence",
+              "no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters"
+            ]
+          ],
+          "id": "LS3",
+          "key": "6.254:LS3",
+          "kind": "P",
+          "slug": "6-254-ls3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "bodies the planetesimals cross"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose measured veneer is set by the star's capture or by planetesimals outside any belt"
+            ],
+            [
+              "What replaces it",
+              "an Opik collision probability per orbit with the lifetimes of the crossing population"
+            ],
+            [
+              "Evidence",
+              "design; the form is the Safronov focusing factor"
+            ]
+          ],
+          "id": "LS4",
+          "key": "6.254:LS4",
+          "kind": "T",
+          "slug": "6-254-ls4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+        }
+      ],
+      "slug": "6-254-stand-ins-of-the-late-supply-a-planet-takes-from-the-reservoirs-of-its-system",
+      "title": "Stand-ins of the late supply a planet takes from the reservoirs of its system"
+    },
+    {
+      "key": "6.255",
+      "number": "6.255",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.3 to 3 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass"
+            ],
+            [
+              "What replaces it",
+              "a model of the leftover planetesimals of a system with no belt"
+            ],
+            [
+              "Evidence",
+              "recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, reports/gen1493-late-accretion-census-2026-11-09.md: 43 percent of 246 planets take the floor)"
+            ]
+          ],
+          "id": "LA1",
+          "key": "6.255:LA1",
+          "kind": "P",
+          "slug": "6-255-la1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of single and multiple stars"
+            ],
+            [
+              "What would show it wrong",
+              "a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains"
+            ],
+            [
+              "What replaces it",
+              "a draw of the belt's mass and reach from the nebula"
+            ],
+            [
+              "Evidence",
+              "design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent"
+            ]
+          ],
+          "id": "LA2",
+          "key": "6.255:LA2",
+          "kind": "T",
+          "slug": "6-255-la2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 1"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.3 to 3 Earth masses with an air"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found"
+            ],
+            [
+              "What replaces it",
+              "the full replay for every planet, when the cost allows"
+            ],
+            [
+              "Evidence",
+              "fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, reports/gen1493-late-accretion-census-2026-11-09.md); at 1.0 the worst of 60 planets was 29 percent"
+            ]
+          ],
+          "id": "LA3",
+          "key": "6.255:LA3",
+          "kind": "P",
+          "slug": "6-255-la3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
+        }
+      ],
+      "slug": "6-255-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",
+      "title": "Stand-ins of the late accretion the air reads from the system"
+    },
+    {
       "key": "6.256",
       "number": "6.256",
       "rows": [
@@ -60077,12 +60665,534 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1492",
+          "unread": null,
           "what": "belt_forcing.ALPHA_LIMIT 0.3: the largest a / a' the first-order theory is used at"
         }
       ],
       "slug": "6-256-stand-ins-of-a-companion-star-s-secular-forcing-of-a-belt",
       "title": "Stand-ins of a companion star's secular forcing of a belt"
+    },
+    {
+      "key": "6.258",
+      "number": "6.258",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the 30 and 1,000 AU edges and the log-linear line between are read off the trends of the review ([R3333]: close multiples aligned, wide ones random), not a fitted sample; a volume-limited sample of the mutual inclinations of triples and of planet-bearing binaries would replace the line; tier T4, tweak L3 stay"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "star_orbit_alignment.ALIGNED_FULL_AU 30 and ALIGNED_NONE_AU 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple)"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100 AU and 300 to 3000 AU"
+            ],
+            [
+              "Where it holds",
+              "every multiple"
+            ],
+            [
+              "What would show it wrong",
+              "a catalogue of triples or of planet hosts with a wide companion whose aligned share at 100 to 300 AU is far from the 66 to 34 percent the line gives"
+            ],
+            [
+              "What replaces it",
+              "a share fitted to the observed mutual inclinations of a volume-limited sample of triples and of planet-bearing binaries"
+            ],
+            [
+              "Evidence",
+              "recalled from [R3333] (the review of the origin of multiples: orbits and disks of close pairs align, wide ones are random), not read; the two edges and the line between are hand-set to those trends"
+            ]
+          ],
+          "id": "AL1",
+          "key": "6.258:AL1",
+          "kind": "T",
+          "slug": "6-258-al1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "star_orbit_alignment.ALIGNED_FULL_AU 30 and ALIGNED_NONE_AU 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "star_orbit_alignment.ALIGNED_SCALE_DEG 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10 degrees"
+            ],
+            [
+              "Where it holds",
+              "every multiple"
+            ],
+            [
+              "What would show it wrong",
+              "planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees"
+            ],
+            [
+              "What replaces it",
+              "the scale of the distribution of the tilts of aligned multiples"
+            ],
+            [
+              "Evidence",
+              "recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (orbit_elements.draw_planet_inclination_deg)"
+            ]
+          ],
+          "id": "AL2",
+          "key": "6.258:AL2",
+          "kind": "T",
+          "slug": "6-258-al2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "star_orbit_alignment.ALIGNED_SCALE_DEG 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "random-orientation multiples (wide pairs formed by fragmentation)"
+            ],
+            [
+              "What would show it wrong",
+              "a sample of wide multiples whose planes prefer a direction against the planets' plane"
+            ],
+            [
+              "What replaces it",
+              "the measured distribution of the tilts of wide multiples"
+            ],
+            [
+              "Evidence",
+              "design: the draw Tree.place made before GEN.1500, kept for the share that is not aligned"
+            ]
+          ],
+          "id": "AL3",
+          "key": "6.258:AL3",
+          "kind": "T",
+          "slug": "6-258-al3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (stability.mutual_inclination); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "triples and quadruples"
+            ],
+            [
+              "What would show it wrong",
+              "a census of the accepted triples whose mutual inclination shows the peaks without the planet screen"
+            ],
+            [
+              "What replaces it",
+              "the Kozai screen of GEN.1447 run on the planets"
+            ],
+            [
+              "Evidence",
+              "design; reuse of stability.mutual_inclination and kozai_verdict"
+            ]
+          ],
+          "id": "AL4",
+          "key": "6.258:AL4",
+          "kind": "T",
+          "slug": "6-258-al4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (stability.mutual_inclination); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn"
+        }
+      ],
+      "slug": "6-258-stand-ins-of-the-mutual-inclination-of-the-orbits-of-the-stars-of-a-multiple",
+      "title": "Stand-ins of the mutual inclination of the orbits of the stars of a multiple"
+    },
+    {
+      "key": "6.259",
+      "number": "6.259",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_view.NIGHT_LIGHT_W_M2 = 2.6e-3 W/m2: a source shows in the sky text when it gives the body at least the light of a full Moon at Earth, 0.25 lux over the 96 lux per W/m2 of the Sun (1.3e5 lux over 1361 W/m2)"
+            ],
+            [
+              "The range it moves in",
+              "2.6e-3 W/m2"
+            ],
+            [
+              "Where it holds",
+              "the eye at night, a body with an air that scatters like Earth's"
+            ],
+            [
+              "What would show it wrong",
+              "a sky where a fainter source is called bright (a dark-adapted eye, a thin air)"
+            ],
+            [
+              "What replaces it",
+              "a threshold from the sky's brightness in the air the body has"
+            ],
+            [
+              "Evidence",
+              "measured: the illuminance of the full Moon at Earth is about 0.25 lux; the Sun at Earth gives about 1.3e5 lux"
+            ]
+          ],
+          "id": "SKY1",
+          "key": "6.259:SKY1",
+          "kind": "T",
+          "slug": "6-259-sky1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_view.NIGHT_LIGHT_W_M2 = 2.6e-3 W/m2: a source shows in the sky text when it gives the body at least the light of a full Moon at Earth, 0.25 lux over the 96 lux per W/m2 of the Sun (1.3e5 lux over 1361 W/m2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source's width is 2 asin(R / d) with d the distance that the mean light gives (light = L / (4 pi d^2), the root-mean-square distance of the orbit average of GEN.1441); its colour is its blackbody colour as a word"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a companion whose orbit is not much wider than the body's"
+            ],
+            [
+              "What would show it wrong",
+              "a companion on an eccentric orbit that is at its apoapsis at the epoch of the page"
+            ],
+            [
+              "What replaces it",
+              "the width from the offset of the source at the epoch (GEN.1458 offset_au)"
+            ],
+            [
+              "Evidence",
+              "design: the light and the width of the source follow one distance, so the text agrees with the temperature"
+            ]
+          ],
+          "id": "SKY2",
+          "key": "6.259:SKY2",
+          "kind": "P",
+          "slug": "6-259-sky2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a source's width is 2 asin(R / d) with d the distance that the mean light gives (light = L / (4 pi d^2), the root-mean-square distance of the orbit average of GEN.1441); its colour is its blackbody colour as a word"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems with no dark member"
+            ],
+            [
+              "What would show it wrong",
+              "a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system"
+            ],
+            [
+              "What replaces it",
+              "the light of a dark member drawn from its mass, age and companion (GEN.1501)"
+            ],
+            [
+              "Evidence",
+              "design: the follow-up is filed with the item"
+            ]
+          ],
+          "id": "SKY3",
+          "key": "6.259:SKY3",
+          "kind": "P",
+          "slug": "6-259-sky3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
+        }
+      ],
+      "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
+      "title": "Stand-ins of the bright sources in a body's sky"
+    },
+    {
+      "key": "6.260",
+      "number": "6.260",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the orbits of a source and a receiver are taken coplanar when the mean of 1 / d^3 is worked out; a mutual inclination only lengthens the mean separation, so each source's part is an upper bound"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the planets of one star (mutual inclinations of a few degrees) and the moons of one planet"
+            ],
+            [
+              "What would show it wrong",
+              "a pair of orbits inclined by tens of degrees (a captured moon, a companion on a tilted orbit)"
+            ],
+            [
+              "What replaces it",
+              "the mean over the two orbits with their stored nodes and inclinations"
+            ],
+            [
+              "Evidence",
+              "derived: the separation of two circles of radii a and b inclined by i is not under that of the coplanar pair at any phase; the coplanar mean is exact for i = 0 (2 E(m) / (pi (a + b) (a - b)^2), tested against quadrature)"
+            ]
+          ],
+          "id": "TS1",
+          "key": "6.260:TS1",
+          "kind": "P",
+          "slug": "6-260-ts1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the orbits of a source and a receiver are taken coplanar when the mean of 1 / d^3 is worked out; a mutual inclination only lengthens the mean separation, so each source's part is an upper bound"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a sibling planet and its moons are one point at the planet's place with the sum of their masses; a moon's tide from a source outside its planet's system is taken at the planet's place"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "sources far from the receiver compared with the moons' orbits (every planet's moon system is under a tenth of the planet's Hill sphere)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose neighbour is close enough that the neighbour's moon system is not small against the gap"
+            ],
+            [
+              "What replaces it",
+              "each moon of a sibling as its own source on its own orbit"
+            ],
+            [
+              "Evidence",
+              "design: the moons' orbits are inside moon_hill_fraction of the planet's Hill radius, which is small against the planet-to-planet gap for planets spaced by the mutual-Hill checks"
+            ]
+          ],
+          "id": "TS2",
+          "key": "6.260:TS2",
+          "kind": "P",
+          "slug": "6-260-ts2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a sibling planet and its moons are one point at the planet's place with the sum of their masses; a moon's tide from a source outside its planet's system is taken at the planet's place"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (radiation_field.separations_au), and two circles closer than tide_sources._MIN_SEPARATION_SHARE = 0.01 of the larger are held that far apart"
+            ],
+            [
+              "The range it moves in",
+              "0.01"
+            ],
+            [
+              "Where it holds",
+              "planets spaced by the mutual-Hill rule and eccentricities under 0.5"
+            ],
+            [
+              "What would show it wrong",
+              "an eccentric receiver whose orbit crosses a neighbour's"
+            ],
+            [
+              "What replaces it",
+              "the receiver's own radius in the average (a double grid)"
+            ],
+            [
+              "Evidence",
+              "derived: the grid is the one the radiation field uses for the same orbits; the floor is never reached by neighbours several mutual Hill radii apart"
+            ]
+          ],
+          "id": "TS3",
+          "key": "6.260:TS3",
+          "kind": "P",
+          "slug": "6-260-ts3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (radiation_field.separations_au), and two circles closer than tide_sources._MIN_SEPARATION_SHARE = 0.01 of the larger are held that far apart"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source other than the host raises a tide that goes round at the synodic rate abs(n_receiver - n_source), on a circle at the distance whose 1 / d^3 is the source's mean, and adds to the spring and neap range as one more raiser"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any source that is not the receiver's host (the host's own tide moves at the receiver's orbital rate)"
+            ],
+            [
+              "What would show it wrong",
+              "a receiver locked to a source it shares an orbit with (a Trojan pair)"
+            ],
+            [
+              "What replaces it",
+              "the true tide of the moving source at each phase"
+            ],
+            [
+              "Evidence",
+              "derived: the tide a body feels at a phase goes as the mean of 1 / d^3 over the pair's phase difference"
+            ]
+          ],
+          "id": "TS4",
+          "key": "6.260:TS4",
+          "kind": "P",
+          "slug": "6-260-ts4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a source other than the host raises a tide that goes round at the synodic rate abs(n_receiver - n_source), on a circle at the distance whose 1 / d^3 is the source's mean, and adds to the spring and neap range as one more raiser"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the planets and moons of the sample"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose belt mass is a large share of a planet's"
+            ],
+            [
+              "What replaces it",
+              "the belts as sources through the ledger of GEN.1464"
+            ],
+            [
+              "Evidence",
+              "design: the item order; a belt's mass is a small share of its planet's in every sample census"
+            ]
+          ],
+          "id": "TS5",
+          "key": "6.260:TS5",
+          "kind": "T",
+          "slug": "6-260-ts5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "coplanar neighbours and companions"
+            ],
+            [
+              "What would show it wrong",
+              "a pair inclined by tens of degrees, or two planets in a resonance whose line to each other does not wind at either mean motion"
+            ],
+            [
+              "What replaces it",
+              "the mean over both orbits with their nodes, and the tide at the synodic frequency"
+            ],
+            [
+              "Evidence",
+              "derived: <(A - B cos f)^-3> = (2 A^2 + B^2) / (2 (A^2 - B^2)^(5/2)) with A = a^2 + b^2, B = 2 a b (tested against quadrature); census over 30 systems in the last paragraph of the note"
+            ]
+          ],
+          "id": "TS6",
+          "key": "6.260:TS6",
+          "kind": "P",
+          "slug": "6-260-ts6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
+        }
+      ],
+      "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",
+      "title": "Stand-ins of the tide raised by every body of a system"
     },
     {
       "key": "6.261",
@@ -60243,6 +61353,1754 @@
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
       "title": "Stand-ins of the fudge table"
+    },
+    {
+      "key": "6.262",
+      "number": "6.262",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "bodies drawn with an eccentricity of nearly zero"
+            ],
+            [
+              "What would show it wrong",
+              "the cycle of a body with a drawn eccentricity under 1e-3 reaches a peak that depends on the floor"
+            ],
+            [
+              "What replaces it",
+              "the seed taken from the octupole term and the mutual perturbations"
+            ],
+            [
+              "Evidence",
+              "no source; the value only keeps the equations from sticking at a circular start"
+            ]
+          ],
+          "id": "KZ1",
+          "key": "6.262:KZ1",
+          "kind": "P",
+          "slug": "6-262-kz1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "moons and planets with a distant third body"
+            ],
+            [
+              "What would show it wrong",
+              "a triple under the ratio whose integrated eccentricity differs from the averaged peak by tens of percent"
+            ],
+            [
+              "What replaces it",
+              "an N-body check of the closest triples"
+            ],
+            [
+              "Evidence",
+              "the stability cut (stability.stable) is the physical limit and is the caller's; this only stops the averaged equations where they cannot hold"
+            ]
+          ],
+          "id": "KZ2",
+          "key": "6.262:KZ2",
+          "kind": "P",
+          "slug": "6-262-kz2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: J2 = f q, q = w^2 R^3 / G M"
+            ],
+            [
+              "The range it moves in",
+              "rocky 0.2 to 0.4, giant 0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "planets with a rotation period"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose measured J2 is off by more than a third"
+            ],
+            [
+              "What replaces it",
+              "a J2 from the planet's interior (the structure solver's moment of inertia and Love number)"
+            ],
+            [
+              "Evidence",
+              "Earth 1.08e-3 over 3.45e-3, Jupiter 1.47e-2 over 8.9e-2, Saturn 1.63e-2 over 15.5e-2 (recalled, not opened)"
+            ]
+          ],
+          "id": "KZ3",
+          "key": "6.262:KZ3",
+          "kind": "P",
+          "slug": "6-262-kz3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: J2 = f q, q = w^2 R^3 / G M"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "moons and planets with siblings or a bulge"
+            ],
+            [
+              "What would show it wrong",
+              "an integrated orbit with a precession rate within a factor of two of the Kozai rate that still reaches the averaged peak"
+            ],
+            [
+              "What replaces it",
+              "the full precession-resonance criterion of the secular problem"
+            ],
+            [
+              "Evidence",
+              "the rate the star turns the orbit is 1 / t_kl, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal [R5223, R5224]"
+            ]
+          ],
+          "id": "KZ4",
+          "key": "6.262:KZ4",
+          "kind": "P",
+          "slug": "6-262-kz4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon that formed in place (moon_origin disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (kozai_bodies.laplace_tilt_rad)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "moons of planets with a spin axis"
+            ],
+            [
+              "What would show it wrong",
+              "a regular moon far outside the Laplace radius whose plane is observed to sit at the equator and not the planet's orbit"
+            ],
+            [
+              "What replaces it",
+              "a model of the disk's warp with distance"
+            ],
+            [
+              "Evidence",
+              "a circumplanetary disk is held in the local Laplace plane by the same two torques [R5224]; the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352)"
+            ]
+          ],
+          "id": "KZ5",
+          "key": "6.262:KZ5",
+          "kind": "P",
+          "slug": "6-262-kz5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon that formed in place (moon_origin disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (kozai_bodies.laplace_tilt_rad)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (_orbit_birth); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "captured moons that cycle"
+            ],
+            [
+              "What would show it wrong",
+              "a cycling moon whose eccentricity after the tide is higher than the cycle's peak"
+            ],
+            [
+              "What replaces it",
+              "the tide and the cycle integrated together"
+            ],
+            [
+              "Evidence",
+              "the tide's wear (GEN.842) is computed from the birth eccentricity; keeping that number the pumped one lets it do what it already does"
+            ]
+          ],
+          "id": "KZ6",
+          "key": "6.262:KZ6",
+          "kind": "P",
+          "slug": "6-262-kz6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (_orbit_birth); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide"
+        }
+      ],
+      "slug": "6-262-stand-ins-of-the-kozai-lidov-pumping-of-moons",
+      "title": "Stand-ins of the Kozai-Lidov pumping of moons"
+    },
+    {
+      "key": "6.263",
+      "number": "6.263",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 20000 K for P, 300 to 6000 K for the molecules"
+            ],
+            [
+              "What would show it wrong",
+              "a measured partition function or a JANAF value that differs from the fit by more than the fit's own error"
+            ],
+            [
+              "What replaces it",
+              "a fit that extends the molecules past 6000 K"
+            ],
+            [
+              "Evidence",
+              "the fits are the database's own numbers, built by the same script as the other 112 species"
+            ]
+          ],
+          "id": "PHG1",
+          "key": "6.263:PHG1",
+          "kind": "T",
+          "slug": "6-263-phg1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "gas above 6000 K at the pressures of a giant (1 bar to 1e4 bar)"
+            ],
+            [
+              "What would show it wrong",
+              "a computed or measured abundance of a phosphorus molecule at 6000 K and above that holds more than a few percent of the phosphorus"
+            ],
+            [
+              "What replaces it",
+              "an extrapolated or ab initio fit of PH, PO and PN above 6000 K"
+            ],
+            [
+              "Evidence",
+              "measured with the table: at 5990 K (a solar-ratio hydrogen air with 3e-7 phosphorus) atomic P holds 99.7 percent of the phosphorus at 1 bar and 81 percent at 100 bar, but at 1e4 bar PH holds 82 percent, so the step at 6000 K changes which species carries the phosphorus at the highest pressures but not that it is in the gas"
+            ]
+          ],
+          "id": "PHG2",
+          "key": "6.263:PHG2",
+          "kind": "T",
+          "slug": "6-263-phg2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there"
+        }
+      ],
+      "slug": "6-263-stand-ins-of-the-phosphorus-gases-above-6000-k",
+      "title": "Stand-ins of the phosphorus gases above 6000 K"
+    },
+    {
+      "key": "6.264",
+      "number": "6.264",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.CLOSE_COMPANION_AXIS_AU 47 AU: a companion inside it hastens the dispersal of the disk's gas"
+            ],
+            [
+              "The range it moves in",
+              "24 to 106 AU ([R5220]: 47 +59/-23)"
+            ],
+            [
+              "Where it holds",
+              "solar-type hosts with a companion of mass ratio above about 0.4"
+            ],
+            [
+              "What would show it wrong",
+              "a measured disk lifetime or planet occurrence that stays the same inside 47 AU, or changes at a clearly different separation"
+            ],
+            [
+              "What replaces it",
+              "a lifetime that falls smoothly with separation, once a source gives the curve"
+            ],
+            [
+              "Evidence",
+              "[R5220], AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU"
+            ]
+          ],
+          "id": "CD1",
+          "key": "6.264:CD1",
+          "kind": "P",
+          "slug": "6-264-cd1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.CLOSE_COMPANION_AXIS_AU 47 AU: a companion inside it hastens the dispersal of the disk's gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+            ],
+            [
+              "The range it moves in",
+              "0.19 to 0.48 (S_bin = 0.34 +0.14/-0.15)"
+            ],
+            [
+              "Where it holds",
+              "close companions at any separation inside the edge (no dependence on separation is modelled)"
+            ],
+            [
+              "What would show it wrong",
+              "a disk lifetime or giant occurrence in close binaries more than 0.15 off 0.34"
+            ],
+            [
+              "What replaces it",
+              "a separation-dependent share, once a source gives it"
+            ],
+            [
+              "Evidence",
+              "[R5225], ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; [R5220] above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md)"
+            ]
+          ],
+          "id": "CD2",
+          "key": "6.264:CD2",
+          "kind": "P",
+          "slug": "6-264-cd2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+        }
+      ],
+      "slug": "6-264-stand-ins-of-the-gas-a-close-companion-leaves-a-disk",
+      "title": "Stand-ins of the gas a close companion leaves a disk"
+    },
+    {
+      "key": "6.270",
+      "number": "6.270",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.METALLICITY_RANGE_FE_H (-3.5, 0.6): the clip on every drawn [Fe/H]"
+            ],
+            [
+              "The range it moves in",
+              "-3.5 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "every star drawn"
+            ],
+            [
+              "What would show it wrong",
+              "a star outside the range in the 1,615-star Brewer table [R0535]"
+            ],
+            [
+              "What replaces it",
+              "the Brewer table's own range, once the draw reads it"
+            ],
+            [
+              "Evidence",
+              "a clip of a measured range; the gas-metallicity cap of +0.7 dex is registered elsewhere; census GEN.945"
+            ]
+          ],
+          "id": "AUD1",
+          "key": "6.270:AUD1",
+          "kind": "B",
+          "slug": "6-270-aud1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.METALLICITY_RANGE_FE_H (-3.5, 0.6): the clip on every drawn [Fe/H]"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a design factor of Boss's core note; no measurement exists; tier T9 stays"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORE_TIER_FACTOR 1.10: how much higher than the baseline the core's scatter limits default until set"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 1.3"
+            ],
+            [
+              "Where it holds",
+              "the galactic core's scatter limits"
+            ],
+            [
+              "What would show it wrong",
+              "a core limit that the design note's 5.1 (Boss) moves"
+            ],
+            [
+              "What replaces it",
+              "Boss's value in realistic-galactic-core.md 5.1; a design factor, no data"
+            ],
+            [
+              "Evidence",
+              "design; docstring of the constant"
+            ]
+          ],
+          "id": "AUD2",
+          "key": "6.270:AUD2",
+          "kind": "P",
+          "slug": "6-270-aud2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CORE_TIER_FACTOR 1.10: how much higher than the baseline the core's scatter limits default until set"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE 0.25: the share of supernovae drawn as type Ia"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "supernova remnants of a star-forming galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a volume-limited supernova count with a type Ia share outside 0.2 to 0.3"
+            ],
+            [
+              "What replaces it",
+              "a supernova rate paper read in full"
+            ],
+            [
+              "Evidence",
+              "core-collapse outnumber type Ia roughly 3 to 1 (Li and others 2011, MNRAS 412, 1441), second-hand"
+            ]
+          ],
+          "id": "AUD3",
+          "key": "6.270:AUD3",
+          "kind": "B",
+          "slug": "6-270-aud3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE 0.25: the share of supernovae drawn as type Ia"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STAR_FORMATION_AGE_RANGE_GY (0, 10): the age window of the default star-formation history"
+            ],
+            [
+              "The range it moves in",
+              "0 to 10 Gy"
+            ],
+            [
+              "Where it holds",
+              "stars with no population age"
+            ],
+            [
+              "What would show it wrong",
+              "a thin-disk age window other than the disk history's"
+            ],
+            [
+              "What replaces it",
+              "the thin disk's population windows (tuning.STELLAR_POPULATION_AGE_RANGES_GY, THIN_DISK_OLD_WINDOW_GY; test_age_windows_held_to_populations.py holds the window to them)"
+            ],
+            [
+              "Evidence",
+              "checked on 2026-11-11 (GEN.1525): young 0 to 0.1, intermediate 0.1 to 3 and the thin disk's old 3 to 10 lay end to end over exactly 0 to 10, under the age of the Universe; galaxy.disk_history reads the top as its span; population ages by position come on top; value unchanged"
+            ]
+          ],
+          "id": "AUD4",
+          "key": "6.270:AUD4",
+          "kind": "T",
+          "slug": "6-270-aud4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STAR_FORMATION_AGE_RANGE_GY (0, 10): the age window of the default star-formation history"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMPACT_REMNANT_AGE_RANGE_GY (1e-5, 10): the age window of free compact remnants"
+            ],
+            [
+              "The range it moves in",
+              "1e-5 to 10 Gy"
+            ],
+            [
+              "Where it holds",
+              "white dwarfs, neutron stars and black holes drawn free"
+            ],
+            [
+              "What would show it wrong",
+              "a free neutron star younger than its first 10 kyr"
+            ],
+            [
+              "What replaces it",
+              "the star-formation window's top (test_age_windows_held_to_populations.py)"
+            ],
+            [
+              "Evidence",
+              "checked on 2026-11-11 (GEN.1525): the ceiling equals the thin disk's 10 Gy and the floor equals the magnetar active life (10 kyr), so a free neutron star is never young enough to be one (GEN.278); a clip; value unchanged"
+            ]
+          ],
+          "id": "AUD5",
+          "key": "6.270:AUD5",
+          "kind": "P",
+          "slug": "6-270-aud5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.COMPACT_REMNANT_AGE_RANGE_GY (1e-5, 10): the age window of free compact remnants"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.NEUTRON_STAR_MASS_RANGE_SOLAR (1.1, 2.2): the neutron star mass draw"
+            ],
+            [
+              "The range it moves in",
+              "1.1 to 2.2 solar masses (ceiling 2.0 to 2.75 over the equations of state)"
+            ],
+            [
+              "Where it holds",
+              "isolated and binary neutron stars"
+            ],
+            [
+              "What would show it wrong",
+              "a ceiling above the maximum mass of every equation of state, or under the heaviest measured pulsar"
+            ],
+            [
+              "What replaces it",
+              "the maximum masses of the 21 equations of state (neutron_star_structure.maximum_mass_solar; test_remnant_mass_ranges_held_data.py holds the ceiling to them)"
+            ],
+            [
+              "Evidence",
+              "checked on 2026-11-11 (GEN.1525): the 21 maxima run 2.01 to 2.75 with a median of 2.22, so 2.2 is their middle and every star up to it has equations of state that support it (supporting); the floor is held by all 21; compiled radio pulsar timing masses (comment of the constant); value unchanged"
+            ]
+          ],
+          "id": "AUD6",
+          "key": "6.270:AUD6",
+          "kind": "B",
+          "slug": "6-270-aud6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.NEUTRON_STAR_MASS_RANGE_SOLAR (1.1, 2.2): the neutron star mass draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_MASS_RANGE_SOL (0.5, 1.35): the white dwarf mass range of the initial-final relation"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.35 solar masses"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen and oxygen-neon white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a white dwarf outside the range in a large sample"
+            ],
+            [
+              "What replaces it",
+              "the white dwarf cooling sequences (datasets.white_dwarf_models, 0.2 to 1.3; test_remnant_mass_ranges_held_data.py holds the range inside them to the scaled oxygen-neon edge)"
+            ],
+            [
+              "Evidence",
+              "checked on 2026-11-11 (GEN.1525): the sequences run 0.2 to 1.30 solar masses, so the range sits inside them except the 1.30 to 1.35 edge, read from the 1.30 sequence (WL7); the relation read by the star model, the member draw and the disk history; value unchanged"
+            ]
+          ],
+          "id": "AUD7",
+          "key": "6.270:AUD7",
+          "kind": "B",
+          "slug": "6-270-aud7",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_MASS_RANGE_SOL (0.5, 1.35): the white dwarf mass range of the initial-final relation"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.BLACK_HOLE_MASS_RANGE_SOLAR (5, 20): the stellar-mass black hole mass draw"
+            ],
+            [
+              "The range it moves in",
+              "5 to 20 solar masses"
+            ],
+            [
+              "Where it holds",
+              "stellar-mass black holes"
+            ],
+            [
+              "What would show it wrong",
+              "gravitational-wave or X-ray binary masses clustering outside 5 to 20"
+            ],
+            [
+              "What replaces it",
+              "a mass spectrum from the gravitational-wave catalogue"
+            ],
+            [
+              "Evidence",
+              "hundreds of black holes per the observations (BH4, Boss 10-18); the draw is a clip"
+            ]
+          ],
+          "id": "AUD8",
+          "key": "6.270:AUD8",
+          "kind": "B",
+          "slug": "6-270-aud8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.BLACK_HOLE_MASS_RANGE_SOLAR (5, 20): the stellar-mass black hole mass draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.OPEN_CLUSTER_MASS_RANGE_SOL (50, 1e6): the initial mass range of open clusters (slope -2)"
+            ],
+            [
+              "The range it moves in",
+              "50 to 1e6 solar masses"
+            ],
+            [
+              "Where it holds",
+              "bound clusters of the cluster formation efficiency"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster population with a different slope or ceiling"
+            ],
+            [
+              "What replaces it",
+              "the Harris and Courteau-Comeron tables for the upper end"
+            ],
+            [
+              "Evidence",
+              "[R2542] slope -2 and an upper limit as high as 1e6; [R2530] groups of 100 or more members"
+            ]
+          ],
+          "id": "AUD9",
+          "key": "6.270:AUD9",
+          "kind": "B",
+          "slug": "6-270-aud9",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.OPEN_CLUSTER_MASS_RANGE_SOL (50, 1e6): the initial mass range of open clusters (slope -2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range; and CLUSTER_MASS_PEAK_SOL 2e5, the centre of the log-normal"
+            ],
+            [
+              "The range it moves in",
+              "peak 1.3e5 to 2.1e5 (M/L_V of 1.5 to 2.6); 1e4 to 3e6"
+            ],
+            [
+              "Where it holds",
+              "globular clusters"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster brighter than M_V of -6 outside the range, or a bright-cluster median outside the peak band, in the Harris catalog"
+            ],
+            [
+              "What replaces it",
+              "the Harris fit (test_cluster_laws_harris.py holds the tuning to it); a floor under 1e4 if the dissolving tail is modelled"
+            ],
+            [
+              "Evidence",
+              "checked against [R1827] (2010 edition, 156 clusters with M_V) on 2026-11-11 (GEN.1525): the bright-cluster median is 1.3e5 (M/L 1.5) to 2.1e5 (M/L 2.6), the heaviest cluster 2.2e6, and 8 to 10 percent of the catalog is under the floor of 1e4 (evolved clusters a log-normal does not make); values unchanged"
+            ]
+          ],
+          "id": "AUD10",
+          "key": "6.270:AUD10",
+          "kind": "B",
+          "slug": "6-270-aud10",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range; and CLUSTER_MASS_PEAK_SOL 2e5, the centre of the log-normal"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_MASS_SIGMA_DEX 0.5: the width of the globular cluster mass function"
+            ],
+            [
+              "The range it moves in",
+              "0.37 to 0.67 dex"
+            ],
+            [
+              "Where it holds",
+              "globular clusters"
+            ],
+            [
+              "What would show it wrong",
+              "a measured width outside the band of the bright clusters (0.37 dex) and the whole catalog (0.67 dex)"
+            ],
+            [
+              "What replaces it",
+              "the Harris fit (test_cluster_laws_harris.py)"
+            ],
+            [
+              "Evidence",
+              "checked against [R1827] on 2026-11-11 (GEN.1525): 0.37 dex for the clusters brighter than M_V of -6, 0.67 dex with the faint tail; the turnover width of 1.2 mag is 0.48 dex; value unchanged"
+            ]
+          ],
+          "id": "AUD11",
+          "key": "6.270:AUD11",
+          "kind": "B",
+          "slug": "6-270-aud11",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_MASS_SIGMA_DEX 0.5: the width of the globular cluster mass function"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.HALO_INNER_SLOPE 2.5 and HALO_OUTER_SLOPE 4.5: the stellar halo's inner and outer power-law slopes"
+            ],
+            [
+              "The range it moves in",
+              "inner 2.3 to 3.3; outer 4.6 to 4.8"
+            ],
+            [
+              "Where it holds",
+              "the stellar halo of a spiral"
+            ],
+            [
+              "What would show it wrong",
+              "a halo fit outside the SDSS ranges"
+            ],
+            [
+              "What replaces it",
+              "SDSS and Gaia halo fits (design note)"
+            ],
+            [
+              "Evidence",
+              "SDSS fits quoted in the comment of the constants"
+            ]
+          ],
+          "id": "AUD12",
+          "key": "6.270:AUD12",
+          "kind": "B",
+          "slug": "6-270-aud12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.HALO_INNER_SLOPE 2.5 and HALO_OUTER_SLOPE 4.5: the stellar halo's inner and outer power-law slopes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.HALO_AXIS_RATIO 0.7 and HALO_SCALE_LENGTH_PC 2600: the halo flattening and the disk scale length its radii are ratios to"
+            ],
+            [
+              "The range it moves in",
+              "flattening 0.6 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "the stellar halo of a spiral"
+            ],
+            [
+              "What would show it wrong",
+              "a flattening outside 0.6 to 0.8, or a thin-disk scale length of the Milky Way far from 2.6 kpc"
+            ],
+            [
+              "What replaces it",
+              "SDSS flattening fits; the Milky Way scale-length papers"
+            ],
+            [
+              "Evidence",
+              "SDSS fits (flattening 0.6 to 0.8) and the Milky Way's 2.6 kpc, quoted in the comment"
+            ]
+          ],
+          "id": "AUD13",
+          "key": "6.270:AUD13",
+          "kind": "B",
+          "slug": "6-270-aud13",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.HALO_AXIS_RATIO 0.7 and HALO_SCALE_LENGTH_PC 2600: the halo flattening and the disk scale length its radii are ratios to"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no intermediate-mass black hole census is held and the count is Boss's (GEN.563, BH4); any census replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE 3e-6: the chance a black hole is intermediate-mass"
+            ],
+            [
+              "The range it moves in",
+              "1e-6 to 1e-5"
+            ],
+            [
+              "Where it holds",
+              "stellar systems drawn black holes"
+            ],
+            [
+              "What would show it wrong",
+              "a census of intermediate-mass black holes that gives a different count"
+            ],
+            [
+              "What replaces it",
+              "an intermediate-mass black hole census"
+            ],
+            [
+              "Evidence",
+              "GEN.563 (Boss, BH4, 12:34 AM EDT 2026-10-18) holds the count; no catalogue held"
+            ]
+          ],
+          "id": "AUD14",
+          "key": "6.270:AUD14",
+          "kind": "P",
+          "slug": "6-270-aud14",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE 3e-6: the chance a black hole is intermediate-mass"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no X-ray binary census is held; only the qualitative share (a minority) is read"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE 1e-3: the chance a black hole shows an accretion disk"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "stellar-mass black holes"
+            ],
+            [
+              "What would show it wrong",
+              "an observed share of luminous accreting black holes outside the range"
+            ],
+            [
+              "What replaces it",
+              "an X-ray binary census"
+            ],
+            [
+              "Evidence",
+              "most black holes are quiescent; only a minority accrete (Cygnus X-1 type); no catalogue held"
+            ]
+          ],
+          "id": "AUD15",
+          "key": "6.270:AUD15",
+          "kind": "P",
+          "slug": "6-270-aud15",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE 1e-3: the chance a black hole shows an accretion disk"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the pulsar catalogue is not held (GEN.945 section 5); the scale of 1.0 is the physical rate, the recycled share has no source"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.PULSAR_RATE_SCALE 1.0 and PULSAR_RECYCLED_CHANCE 1e-4: the scale on the beamed pulsar rate and the share of recycled pulsars"
+            ],
+            [
+              "The range it moves in",
+              "scale 0.5 to 2; recycled 1e-5 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "isolated neutron stars of a stellar population"
+            ],
+            [
+              "What would show it wrong",
+              "a pulsar catalogue count that differs from 1e5 beamed pulsars among about 5e8 neutron stars by more than the scale"
+            ],
+            [
+              "What replaces it",
+              "a pulsar catalogue (to be fetched)"
+            ],
+            [
+              "Evidence",
+              "[R2749] (Living Rev. Relativ. 11, 8) for the beamed share; the pulsar catalogue is not held"
+            ]
+          ],
+          "id": "AUD16",
+          "key": "6.270:AUD16",
+          "kind": "P",
+          "slug": "6-270-aud16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.PULSAR_RATE_SCALE 1.0 and PULSAR_RECYCLED_CHANCE 1e-4: the scale on the beamed pulsar rate and the share of recycled pulsars"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.MAGNETAR_BIRTH_FRACTION 0.10: the share of core collapses that make a magnetar"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.10"
+            ],
+            [
+              "Where it holds",
+              "young supernova remnants"
+            ],
+            [
+              "What would show it wrong",
+              "a magnetar birth share outside 1 to 10 percent"
+            ],
+            [
+              "What replaces it",
+              "a magnetar census"
+            ],
+            [
+              "Evidence",
+              "born in 1 to 10 percent of core collapses, default 10 percent [R1566, R3346]"
+            ]
+          ],
+          "id": "AUD17",
+          "key": "6.270:AUD17",
+          "kind": "B",
+          "slug": "6-270-aud17",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.MAGNETAR_BIRTH_FRACTION 0.10: the share of core collapses that make a magnetar"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.REFERENCE_STELLAR_DENSITY_PC3 0.14: the stellar density near the Sun that phenomenon rates are scaled by"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.15 per pc^3"
+            ],
+            [
+              "Where it holds",
+              "every rate per star of a rare phenomenon"
+            ],
+            [
+              "What would show it wrong",
+              "the generator's own mass function integrated at the Sun differing by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the integral of the generator's mass function (stellar-mass-function.md)"
+            ],
+            [
+              "Evidence",
+              "the solar-neighbourhood density; to be derived and then registered as derived"
+            ]
+          ],
+          "id": "AUD18",
+          "key": "6.270:AUD18",
+          "kind": "D",
+          "slug": "6-270-aud18",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.REFERENCE_STELLAR_DENSITY_PC3 0.14: the stellar density near the Sun that phenomenon rates are scaled by"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.GIANT_MASS_FUNCTION_SLOPE 0.31: the slope of dN/dlogM of giant planets"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "giants drawn inside their class's range"
+            ],
+            [
+              "What would show it wrong",
+              "an occurrence fit held in the repository that gives a different slope"
+            ],
+            [
+              "What replaces it",
+              "the occurrence fit (planet_occurrence.json, band cold_giants_cumming, [R0960]: dN/dlnM goes as M to the -0.31 +- 0.2; test_giant_mass_function_held_data.py holds the tuning to it)"
+            ],
+            [
+              "Evidence",
+              "checked on 2026-11-11 (GEN.1525): the held fit gives the same 0.31 the constant carries (the other occurrence bands state no slope); [R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants; value unchanged"
+            ]
+          ],
+          "id": "AUD19",
+          "key": "6.270:AUD19",
+          "kind": "B",
+          "slug": "6-270-aud19",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.GIANT_MASS_FUNCTION_SLOPE 0.31: the slope of dN/dlogM of giant planets"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no comet orbit catalogue or interstellar visitor count is held; the shares are design choices"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PARABOLIC_CHANCE 0.3 and INTERSTELLAR_COMET_ACTIVE_CHANCE 0.5: the share of bound comets that are parabolic and of interstellar comets that are active"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "comets"
+            ],
+            [
+              "What would show it wrong",
+              "a comet census that gives other shares"
+            ],
+            [
+              "What replaces it",
+              "a comet orbit catalogue and the interstellar visitor count (n = 2)"
+            ],
+            [
+              "Evidence",
+              "design choices; most bound comets are periodic; Borisov active, 'Oumuamua inert"
+            ]
+          ],
+          "id": "AUD20",
+          "key": "6.270:AUD20",
+          "kind": "P",
+          "slug": "6-270-aud20",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.COMET_PARABOLIC_CHANCE 0.3 and INTERSTELLAR_COMET_ACTIVE_CHANCE 0.5: the share of bound comets that are parabolic and of interstellar comets that are active"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "needed output: a belt has some width; no measured width distribution is held"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN 1.1: the least ratio of a belt's outer edge to its inner"
+            ],
+            [
+              "The range it moves in",
+              "1.05 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "asteroid belts of a system"
+            ],
+            [
+              "What would show it wrong",
+              "a belt narrower than the factor in a measured system"
+            ],
+            [
+              "What replaces it",
+              "an asteroid belt width census"
+            ],
+            [
+              "Evidence",
+              "needed output: a belt has some width"
+            ]
+          ],
+          "id": "AUD21",
+          "key": "6.270:AUD21",
+          "kind": "P",
+          "slug": "6-270-aud21",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN 1.1: the least ratio of a belt's outer edge to its inner"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.ICY_MIN_WATER_FRACTION 0.01: the water mass fraction from which a body's surface is ice"
+            ],
+            [
+              "The range it moves in",
+              "0.005 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "rocky and icy bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a body of 1 percent water with a bare rock surface in a synthesis run"
+            ],
+            [
+              "What replaces it",
+              "the Bern synthesis fit for the delivered water shares"
+            ],
+            [
+              "Evidence",
+              "an icy body holds guest gases in the cages of its ice skin (surface_air)"
+            ]
+          ],
+          "id": "AUD22",
+          "key": "6.270:AUD22",
+          "kind": "B",
+          "slug": "6-270-aud22",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "hydrosphere.ICY_MIN_WATER_FRACTION 0.01: the water mass fraction from which a body's surface is ice"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "read on 2026-11-11 (GEN.1525): the factor 2.0 fits MIST's nuclear arrival within 0.32 dex while the BHAC15 radius-settled times prefer about 1.0; the track is stretched onto those times, so the factor only sets the nuclear-arrival stand-in below MIST's mass reach, and it stays tuned to MIST (PR 6008)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR 2.0: the factor between a star's gravitational energy and what it radiates before the main sequence"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "pre-main-sequence stars"
+            ],
+            [
+              "What would show it wrong",
+              "a track set that differs by more than the factor"
+            ],
+            [
+              "What replaces it",
+              "the MIST isochrones' nuclear arrival (isochrones.pre_main_sequence_arrival_yr; test_pms_energy_factor_held_data.py holds the model's Kelvin-Helmholtz time to it) and the BHAC15 tracks"
+            ],
+            [
+              "Evidence",
+              "checked on 2026-11-11 (GEN.1525): against MIST's nuclear arrival at 0.15 to 3 solar masses the model with 2.0 is within 0.32 dex (0.03 at 1); against the BHAC15 radius-settled times the best factor is near 1.0 (2.0 runs 0.27 dex long, rms 0.31 against 0.16 at 1.0), but the track is stretched onto those times (scale, GEN.1174) so the factor changes only the nuclear-arrival stand-in below MIST's mass reach (0.05 to 0.1 solar masses: 2.9 to 0.75 Gy at 2.0, half that at 1.0); kept at 2.0 as the nuclear-arrival fit; value unchanged"
+            ]
+          ],
+          "id": "AUD23",
+          "key": "6.270:AUD23",
+          "kind": "P",
+          "slug": "6-270-aud23",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR 2.0: the factor between a star's gravitational energy and what it radiates before the main sequence"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "only the Sweeney and others ratios are read; no kinematic sample of remnants is held"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.REMNANT_VERTICAL_FACTOR_MAX 4.0: the most times a remnant's layer is as thick as the thin disk"
+            ],
+            [
+              "The range it moves in",
+              "3 to 5"
+            ],
+            [
+              "Where it holds",
+              "compact remnants and black holes"
+            ],
+            [
+              "What would show it wrong",
+              "a remnant scale height ratio above the factor in a kinematic sample"
+            ],
+            [
+              "What replaces it",
+              "a remnant kinematics paper"
+            ],
+            [
+              "Evidence",
+              "Sweeney and others: remnants about 3 times the stars' height, black holes 2.5 times"
+            ]
+          ],
+          "id": "AUD24",
+          "key": "6.270:AUD24",
+          "kind": "P",
+          "slug": "6-270-aud24",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.REMNANT_VERTICAL_FACTOR_MAX 4.0: the most times a remnant's layer is as thick as the thin disk"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "radius_valley.PERIOD_RANGE_D (2, 100) and HOST_MASS_RANGE_SOLAR (0.8, 1.3): the domain of the radius valley survey"
+            ],
+            [
+              "The range it moves in",
+              "2 to 100 d; 0.8 to 1.3 solar masses"
+            ],
+            [
+              "Where it holds",
+              "the simulated Kepler survey of the valley"
+            ],
+            [
+              "What would show it wrong",
+              "a fit used outside the periods or host masses its paper states"
+            ],
+            [
+              "What replaces it",
+              "the fit's paper"
+            ],
+            [
+              "Evidence",
+              "the scope of the fit; a check run by the tuning tests"
+            ]
+          ],
+          "id": "AUD25",
+          "key": "6.270:AUD25",
+          "kind": "B",
+          "slug": "6-270-aud25",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "radius_valley.PERIOD_RANGE_D (2, 100) and HOST_MASS_RANGE_SOLAR (0.8, 1.3): the domain of the radius valley survey"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "iron_branch_tuning.PERIOD_RANGE_D (0.5, 30), HOST_MASS_RANGE_SOLAR (0.8, 1.2) and MASS_RANGE_EARTH (1, 10): the domain of the iron-branch sample"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 30 d; 0.8 to 1.2 solar masses; 1 to 10 Earth masses"
+            ],
+            [
+              "Where it holds",
+              "the simulated sample the iron branch table is tuned to"
+            ],
+            [
+              "What would show it wrong",
+              "a fit used outside the ranges its paper states"
+            ],
+            [
+              "What replaces it",
+              "the fit's paper"
+            ],
+            [
+              "Evidence",
+              "the scope of the fit; run by the tuning tests"
+            ]
+          ],
+          "id": "AUD26",
+          "key": "6.270:AUD26",
+          "kind": "B",
+          "slug": "6-270-aud26",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "iron_branch_tuning.PERIOD_RANGE_D (0.5, 30), HOST_MASS_RANGE_SOLAR (0.8, 1.2) and MASS_RANGE_EARTH (1, 10): the domain of the iron-branch sample"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giant_tilt.MASS_RANGE_EARTH (5, 30): the planet masses the merger tilt draws for"
+            ],
+            [
+              "The range it moves in",
+              "5 to 30 Earth masses"
+            ],
+            [
+              "Where it holds",
+              "ice giants and gas dwarfs (row GT3)"
+            ],
+            [
+              "What would show it wrong",
+              "a tilted giant outside the range"
+            ],
+            [
+              "What replaces it",
+              "the design table, row GT3"
+            ],
+            [
+              "Evidence",
+              "the design table; the rate is registered as GT3"
+            ]
+          ],
+          "id": "AUD27",
+          "key": "6.270:AUD27",
+          "kind": "P",
+          "slug": "6-270-aud27",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "giant_tilt.MASS_RANGE_EARTH (5, 30): the planet masses the merger tilt draws for"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a design choice of the flavor rebuild (GEN.1430); no data exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.FLAVOR_CHANCE_PLANET 0.05 and FLAVOR_CHANCE_SYSTEM 0.05: how often flavor text is added"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "every planet and system page"
+            ],
+            [
+              "What would show it wrong",
+              "none: a design choice of the flavor rebuild"
+            ],
+            [
+              "What replaces it",
+              "the flavor rebuild (GEN.1430 to GEN.1438)"
+            ],
+            [
+              "Evidence",
+              "design; dropped or replaced with the rebuild"
+            ]
+          ],
+          "id": "AUD28",
+          "key": "6.270:AUD28",
+          "kind": "P",
+          "slug": "6-270-aud28",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.FLAVOR_CHANCE_PLANET 0.05 and FLAVOR_CHANCE_SYSTEM 0.05: how often flavor text is added"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "generation.limits.MAX_GENERATE_RADIUS_PC 200, bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS 0.02 and tuning.MAX_STARS_CEILING 64: run limits of the program"
+            ],
+            [
+              "The range it moves in",
+              "as set"
+            ],
+            [
+              "Where it holds",
+              "the generate and band code"
+            ],
+            [
+              "What would show it wrong",
+              "a run that needs more than the limit"
+            ],
+            [
+              "What replaces it",
+              "none: limits of the program, not of the physics"
+            ],
+            [
+              "Evidence",
+              "out of scope for the physics; listed so the audit of GEN.945 finds every shortlisted name registered"
+            ]
+          ],
+          "id": "AUD29",
+          "key": "6.270:AUD29",
+          "kind": "P",
+          "slug": "6-270-aud29",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "generation.limits.MAX_GENERATE_RADIUS_PC 200, bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS 0.02 and tuning.MAX_STARS_CEILING 64: run limits of the program"
+        }
+      ],
+      "slug": "6-270-stand-ins-of-the-constants-the-gen-945-audit-shortlisted",
+      "title": "Stand-ins of the constants the GEN.945 audit shortlisted"
+    },
+    {
+      "key": "6.271",
+      "number": "6.271",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.fluid_love_number and dynamical_ellipticity: the Darwin-Radau fluid Love number k_f = (3/2) / (1 + (5/2)(1 - (3/2) C/MR^2)^2) and E = k_f q / 3 / (C/MR^2) of a planet"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a planet that has settled to the shape its spin gives it"
+            ],
+            [
+              "What would show it wrong",
+              "the Earth's E off the measured 0.003274 by more than 5 percent, or a stiff planet's (Mars 0.0054 against 0.0041) taken to matter more than the Moon-less result's lower-bound character"
+            ],
+            [
+              "What replaces it",
+              "the planet's stored J2 and moment of inertia, once the figure is stored"
+            ],
+            [
+              "Evidence",
+              "test_obliquity_variation.py: the Earth's 0.00319 against 0.003274 measured (2.6 percent); Mars's fluid value is 23 percent low, which the module states"
+            ]
+          ],
+          "id": "OB1",
+          "key": "6.271:OB1",
+          "kind": "P",
+          "slug": "6-271-ob1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.fluid_love_number and dynamical_ellipticity: the Darwin-Radau fluid Love number k_f = (3/2) / (1 + (5/2)(1 - (3/2) C/MR^2)^2) and E = k_f q / 3 / (C/MR^2) of a planet"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.precession_constant_rad_yr: alpha = (3/2)(E/omega) sum G m / (a^3 (1-e^2)^(3/2)) over the star, the moons and a companion"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a spinning planet with its moons in the equator"
+            ],
+            [
+              "What would show it wrong",
+              "the Earth's alpha off 50.3 arcsec a year by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "test_obliquity_variation.py: Sun 16.0, Sun and Moon 53.96 against 50.3 measured (7 percent)"
+            ]
+          ],
+          "id": "OB2",
+          "key": "6.271:OB2",
+          "kind": "P",
+          "slug": "6-271-ob2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.precession_constant_rad_yr: alpha = (3/2)(E/omega) sum G m / (a^3 (1-e^2)^(3/2)) over the star, the moons and a companion"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.resonances_of: the half-width W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha) in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near alpha cos(eps) = -s)"
+            ],
+            [
+              "The range it moves in",
+              "none (derived in the module docstring)"
+            ],
+            [
+              "Where it holds",
+              "small orbit inclinations (the first-order exchange's limits)"
+            ],
+            [
+              "What would show it wrong",
+              "a zone width that differs from a numerical integration of the spin's equations by a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a numerical integration of the spin of the generated system (Laskar's frequency analysis)"
+            ],
+            [
+              "Evidence",
+              "derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give"
+            ]
+          ],
+          "id": "OB3",
+          "key": "6.271:OB3",
+          "kind": "P",
+          "slug": "6-271-ob3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.resonances_of: the half-width W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha) in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near alpha cos(eps) = -s)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation._chains: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion)"
+            ],
+            [
+              "The range it moves in",
+              "none (a criterion)"
+            ],
+            [
+              "Where it holds",
+              "resonances of comparable strength"
+            ],
+            [
+              "What would show it wrong",
+              "a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound"
+            ],
+            [
+              "What replaces it",
+              "a frequency map of the generated planet's spin"
+            ],
+            [
+              "Evidence",
+              "test_obliquity_variation.py: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says"
+            ]
+          ],
+          "id": "OB4",
+          "key": "6.271:OB4",
+          "kind": "P",
+          "slug": "6-271-ob4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation._chains: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.companion_mode: the nodal precession -(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i) of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a companion beyond five times the planet's distance; the mode is taken as separate from the siblings'"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration"
+            ],
+            [
+              "What replaces it",
+              "a coupled Laplace-Lagrange matrix with the companion as a body"
+            ],
+            [
+              "Evidence",
+              "the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says"
+            ]
+          ],
+          "id": "OB5",
+          "key": "6.271:OB5",
+          "kind": "P",
+          "slug": "6-271-ob5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.companion_mode: the nodal precession -(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i) of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude"
+        }
+      ],
+      "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
+      "title": "Stand-ins of the spin axis and obliquity under every body"
     }
   ]
 }

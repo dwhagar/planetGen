@@ -262,6 +262,27 @@ black_holes = sa.Table(
 )
 
 
+body_history = sa.Table(
+    'body_history',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('birth_eccentricity', mysql.DOUBLE(), nullable=True),
+    sa.Column('birth_spin_rate', mysql.DOUBLE(), nullable=True),
+    sa.Column('birth_obliquity_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('capture_draw_1', mysql.FLOAT(), nullable=True),
+    sa.Column('capture_draw_2', mysql.FLOAT(), nullable=True),
+    sa.Column('formula_version', mysql.TINYINT(unsigned=True), nullable=False),
+    sa.CheckConstraint('((`birth_eccentricity` is null) or (`birth_eccentricity` >= 0))', name='body_history_chk_1'),
+    sa.CheckConstraint('((`birth_obliquity_deg` is null) or (`birth_obliquity_deg` between 0 and 180))', name='body_history_chk_2'),
+    sa.CheckConstraint('((`capture_draw_1` is null) or (`capture_draw_1` between 0 and 1))', name='body_history_chk_3'),
+    sa.CheckConstraint('((`capture_draw_2` is null) or (`capture_draw_2` between 0 and 1))', name='body_history_chk_4'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_body_history_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 bright_stars = sa.Table(
     'bright_stars',
     metadata,
@@ -933,6 +954,23 @@ galaxy_shell = sa.Table(
 )
 
 
+galaxy_totals = sa.Table(
+    'galaxy_totals',
+    metadata,
+    sa.Column('id', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('systems', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('stars', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('planets', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('moons', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('belts', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('habitable_worlds', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 generation_run_arguments = sa.Table(
     'generation_run_arguments',
     metadata,
@@ -1465,6 +1503,7 @@ moons = sa.Table(
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
@@ -2560,6 +2599,7 @@ planets = sa.Table(
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('reflex_offset_x_km', mysql.DOUBLE(), nullable=True),
@@ -3303,6 +3343,7 @@ rogue_planets = sa.Table(
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('moon_origin', sa.String(8), nullable=True),
     sa.Column('moon_disk_lifetime_myr', mysql.DOUBLE(), nullable=True),
     sa.Column('moon_disk_alpha_over_f', mysql.DOUBLE(), nullable=True),
@@ -3461,6 +3502,20 @@ schema_migrations = sa.Table(
 )
 
 
+sector_facets = sa.Table(
+    'sector_facets',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('facet', sa.String(16), primary_key=True, nullable=False),
+    sa.Column('value', sa.String(40), primary_key=True, nullable=False),
+    sa.Column('n', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Index('idx_sector_facets_facet', 'facet', 'value', 'n'),
+    mysql_engine="InnoDB",
+)
+
+
 sector_name_registry = sa.Table(
     'sector_name_registry',
     metadata,
@@ -3533,37 +3588,6 @@ sector_stats = sa.Table(
     sa.Column('total_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_sector_stats_level', 'bright_level_sol'),
-    mysql_engine="InnoDB",
-)
-
-
-sector_facets = sa.Table(
-    'sector_facets',
-    metadata,
-    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('facet', sa.String(16), primary_key=True, nullable=False),
-    sa.Column('value', sa.String(40), primary_key=True, nullable=False),
-    sa.Column('n', mysql.INTEGER(unsigned=True), nullable=False),
-    sa.Index('idx_sector_facets_facet', 'facet', 'value', 'n'),
-    mysql_engine="InnoDB",
-)
-
-
-galaxy_totals = sa.Table(
-    'galaxy_totals',
-    metadata,
-    sa.Column('id', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('systems', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('stars', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('planets', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('moons', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('belts', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('habitable_worlds', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('mass_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -4115,6 +4139,15 @@ system_summary = sa.Table(
     metadata,
     sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
     sa.Column('habitability_stamp', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('stars_mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('system_mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('brightest_star_luminosity_w', mysql.DOUBLE(), nullable=True),
+    sa.Column('total_luminosity_w', mysql.DOUBLE(), nullable=True),
+    sa.Column('star_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('planet_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('moon_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('belt_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('comet_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_summary_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )

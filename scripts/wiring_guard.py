@@ -4,6 +4,7 @@ The wiring guard (GEN.754): what the app builds and downloads but nothing reads.
 
     python scripts/wiring_guard.py            # print every unread thing and whether the register names it
     python scripts/wiring_guard.py --check    # exit 1 when the register and the code disagree
+    python scripts/wiring_guard.py --release  # exit 1 while anything is unread and not marked by design (the release gate, TEST.718)
 
 Six kinds of thing can be built and left unread, and the guard finds each from the source alone (no import of the app, so it
 runs without the datasets or a database):
@@ -412,9 +413,19 @@ def problems(found, entries, todo_text):
     return messages
 
 
+def release_problems(found, entries):
+    """
+    The release gate (TEST.718): one sentence for every unread thing in `found` that the register does not mark `by design`. A version stamp (every minor and major, beside the
+    SEC.33 and TEST.261 audits) waits while this list is not empty: built physics that nothing reads is not shipped.
+    """
+    return [f"{key[0]} {key[1]} is unread and not by design ({entries.get(key, ('NOT IN THE REGISTER', ''))[0]}): wire it, retire it, or mark it by design with the reason"
+            for key in sorted(found) if entries.get(key, (None, ""))[0] != BY_DESIGN]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--check", action="store_true", help="exit 1 when the register and the code disagree")
+    parser.add_argument("--release", action="store_true", help="exit 1 while anything is unread and not marked by design (the release gate, TEST.718)")
     args = parser.parse_args(argv)
     found, entries = unread(), load_register()
     with open(TODO, encoding="utf-8") as handle:
@@ -424,7 +435,12 @@ def main(argv=None):
         print(f"{key[0]:8} {key[1]:60} {item}")
     for message in messages:
         print("PROBLEM:", message, file=sys.stderr)
-    return 1 if args.check and messages else 0
+    gate = release_problems(found, entries) if args.release else []
+    for message in gate:
+        print("RELEASE GATE:", message, file=sys.stderr)
+    if args.release:
+        print(f"release gate: {len(gate)} unread and not by design", file=sys.stderr)
+    return 1 if (args.check and messages) or gate else 0
 
 
 if __name__ == "__main__":

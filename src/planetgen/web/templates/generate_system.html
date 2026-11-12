@@ -60,6 +60,9 @@
     </details>
     <div class="search-fields system-format">
       {{ ui_checkbox("debug", "Show the generator's reasoning (debug log)", checked=form.get("debug")) }}
+      {{ field("debug_areas", "Debug areas", placeholder="all but branch",
+               hint="Used with the debug log. Names separated by commas, or all, or a leading - to leave one out: " ~ debug_areas.keys()|join(", ") ~ ".") }}
+      {{ ui_checkbox("disregard_missing_data", "Disregard missing data files", checked=form.get("disregard_missing_data"), hint=("The generator refuses to run while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it runs anyway and takes a labelled fallback for each missing dataset.")|safe) }}
     </div>
     <div class="search-actions">
       <button type="submit" class="btn">{% if result %}Generate another{% else %}Generate{% endif %}</button>

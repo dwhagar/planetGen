@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -232,7 +232,8 @@ def generate_planet_properties(planet, zone_override=None):
         kind = planet_kind.kind_of_given(planet.mass if mass_given else None, planet.radius if radius_given else None, beyond)
     else:
         formation = planet_kind.draw_formation(planet.distance, planet.star.mass, planet.star.snow_line_au,
-                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star))
+                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star),
+                                               gas_factor=disk_truncation.gas_survival_factor(planet.star))
         kind = formation.kind
         planet.mass = max(formation.mass_kg, tuning.PLANET_MIN_MASS_KG)
         mass_given = True
@@ -328,6 +329,21 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
+def orbit_moved(body):
+    """Whether the eccentricity the body's light goes by (a moon's host's) has moved by more than `ECCENTRICITY_SETTLE_TOLERANCE` since its air was made (GEN.1402): `settle_orbit` wore the
+    orbit down after the air was drawn, so the air, temperature, dose and tide's heat were made on another orbit. A body with no air made on an orbit is not moved."""
+    made_on = getattr(body, "_air_eccentricity", None)
+    if made_on is None:
+        return False
+    now = body.host_eccentricity if body.is_moon else body.eccentricity
+    return abs(float(now) - made_on) > ECCENTRICITY_SETTLE_TOLERANCE
+
+
+def needs_remake(body):
+    """Whether a rocky body's end stages are to be made again: the star's age rose past `AGE_SETTLE_TOLERANCE` (`age_moved`) or the orbit settled past `ECCENTRICITY_SETTLE_TOLERANCE` (`orbit_moved`)."""
+    return age_moved(body) or orbit_moved(body)
+
+
 def remake_end_stages(body, planet):
     """
     Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
@@ -353,7 +369,7 @@ def refinish_rocky(planet):
     habitability score; `generate_spin`), the same sequence a moved planet gets (`validation.reconcile_moved_planet`), but from a stream of
     the body's own (mass, distance, star and the age it settles to), so the run's stream does not move. A body keeps its mass, radius,
     composition and orbit. The forced requests are judged on the classes this makes (`StarSystem`), and the moons' induced fields, rings and
-    life follow in later passes. A planet or moon whose star's age rose by under `AGE_SETTLE_TOLERANCE` of the age it was made at is left.
+    life follow in later passes. A planet or moon whose star's age rose by under `AGE_SETTLE_TOLERANCE` of the age it was made at, and whose eccentricity moved by no more than `ECCENTRICITY_SETTLE_TOLERANCE` since its air was made, is left (GEN.1402).
 
     Args:
         planet (Planet): A rocky planet (`body_type` "t", not a moon) with its moons; a giant's moons are made again too.
@@ -362,7 +378,8 @@ def refinish_rocky(planet):
         int: How many bodies were made again (the planet and its moons).
     """
     made = 0
-    with_planet = planet.body_type == "t" and not planet.is_moon and age_moved(planet)
+    # a rocky planet on a moved age or orbit; a giant only on a moved orbit (its temperature reads the light of the orbit, GEN.1402; its age does not move its end stages)
+    with_planet = not planet.is_moon and ((planet.body_type == "t" and needs_remake(planet)) or (planet.body_type == "g" and orbit_moved(planet)))
 
     def bodies():
         if with_planet:
@@ -370,7 +387,7 @@ def refinish_rocky(planet):
         yield from list(planet.moons)      # read after the planet is made again: its moons' history (GEN.959) can replace a moon with a new body
 
     for body in bodies():
-        if not age_moved(body):
+        if not needs_remake(body):
             continue
         remake_end_stages(body, planet)
         body._age_drawn = body.star.age
@@ -492,14 +509,18 @@ def settle_giant(planet):
     Returns:
         bool: Whether the giant's radius moved.
     """
-    if not giant_draw.settle(planet):
+    moved = giant_draw.settle(planet)
+    stale = bool(getattr(planet, "_air_stale", False))       # the secular exchange moved the orbit and with it the mean light (GEN.1505)
+    planet._air_stale = False
+    if not moved and not stale:
         # The radius stayed (the tables moved it by under the tolerance, or the giant was sized another way), but the star's age rose after the flux was
         # stored and the giant's own heat falls with the age: the flux it radiates is made again at the final age.
         if not planet.is_moon and getattr(planet, "energy_flux_w_m2", None) is not None:
             planet.energy_flux_w_m2 = habitability_world.giant_energy_flux_w_m2(planet)
         return False
-    planet.volume = (4 / 3) * math.pi * planet.radius ** 3
-    calculate_surface_gravity(planet)
+    if moved:
+        planet.volume = (4 / 3) * math.pi * planet.radius ** 3
+        calculate_surface_gravity(planet)
     stream = draw.Stream(f"settle-giant-air:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
                          f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
@@ -509,7 +530,7 @@ def settle_giant(planet):
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
-    return True
+    return moved
 
 
 def _check_given_bounds(mass_kg, radius_km):
@@ -618,14 +639,18 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         host_eccentricity (float, optional): For a moon, its parent planet's eccentricity, which the light it gets goes by (GEN.727);
                                              kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
+    if not planet.is_moon:
+        planet._air_replay = (draw.getstate(), distance_override, host_eccentricity, None)    # GEN.1493: kept, not stored; where this air's draws began, for `remake_air` once the system's belts are known
     envelope_share.restore(planet)      # GEN.1226: the drawn fractions, before the air is solved again (the air share is put in again at the end)
     if host_eccentricity is not None:
         planet.host_eccentricity = host_eccentricity
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
     # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
     distance = orbit_elements.flux_distance_au(distance, planet.host_eccentricity if planet.is_moon else planet.eccentricity)
+    planet._air_eccentricity = float(planet.host_eccentricity if planet.is_moon else planet.eccentricity)      # kept, not stored: the orbit this air was made on (`orbit_moved`, GEN.1402)
     planet._air_light_au = distance     # kept, not stored: the light this air, temperature, dose and spectrum were made on (a later settled orbit moves `_star_distance_au` and leaves them)
-    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance)     # GEN.1441: the host's light and every other star's, by position
+    planet.light_factor = eclipses.light_factor_of(planet)       # GEN.1484: the share of its light a circumbinary planet keeps after its two stars eclipse each other; None for every other body
+    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * (planet.light_factor or 1.0)     # GEN.1441: the host's light and every other star's, by position
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
     albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
@@ -658,6 +683,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     if _past_runaway_with_water(planet, solar_output_at_orbit, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
     air = surface_air.solve(setting, start_k)
+    if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
+        planet._air_replay = (*planet._air_replay[:3], (setting, air.late_state, air.late, air.degassed))
     planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, start_k, solar_output_at_orbit, distance, albedo, giant)
     planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
@@ -748,6 +775,60 @@ def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
         return False
     effective = starlight_w_m2 / tuning.RUNAWAY_FLUX_REFERENCE_W_M2
     return effective > orbits.runaway_greenhouse_flux(planet.star.temperature, units.converter("kg", "Mearth")(planet.mass))
+
+
+LATE_ACCRETION_GATE = 0.5
+"""float: The air is not made again for a new late accretion when it moves the carbon and the nitrogen the late accretion left by less than this share of what the volcanoes gave. The share is how far the
+inventory moves, not how far the air does (a carbonate sink holds the carbon of a wet world whatever is added): in 246 planets of 240 seeds 201 are identical to the full replay, 13 differ by more than 1 percent
+(the worst by a branch of a bistable climate, 99 percent in pressure), and the pass costs 8.8 percent of generation against 18 for every planet; at gate 1.0 a 30-seed trial had a worst of 29 percent. [Stand-in LA3, tier Marginal educated guess from physics, tweak L3.]"""
+
+
+def remake_air(planet, late_accreted_percent, gate=LATE_ACCRETION_GATE):
+    """
+    Makes the air of a planet again with the late accretion the system's own belts give it (GEN.1493, `generation/late_accretion.py`): `calculate_atmospheric_conditions` is run again on the
+    draws it began with (`planet._air_replay`, taken at its last call), in a stream of its own, so every other draw of the air, the water and the ground is the one it was, the late accretion is
+    `late_accreted_percent` of the planet's mass instead of the law's draw, and no draw of the run's stream moves. A planet whose air was never made here (a moon, a loaded one) or has no air is left
+    as it is, and so is one whose new late accretion moves the carbon and the nitrogen it left by less than `gate` of what the volcanoes gave (it reaches the air only through them).
+
+    Args:
+        planet (Planet): The planet.
+        late_accreted_percent (float): The late accretion, percent of the planet's mass.
+        gate (float): The share of the degassed carbon or nitrogen the new late accretion moves it by, under which the air is left as it is; 0 makes it for every planet (the full replay the census compares with).
+
+    Returns:
+        bool: Whether the air was made again.
+    """
+    replay = getattr(planet, "_air_replay", None)
+    if replay is None or planet.is_moon:
+        return False
+    state, distance_override, host_eccentricity, settled = replay
+    planet._air_replay = None       # the replay is spent; the memory it held goes
+    planet._late_accreted_percent = late_accreted_percent
+    if settled is None:      # no air was made, so no late accretion reached one
+        return False
+    if gate > 0.0 and surface_air.late_accretion_moves(*settled, late_accreted_percent) < gate:
+        return False
+    stream = draw.Stream(0)
+    stream.setstate(state)
+    with draw.bound(stream):
+        calculate_atmospheric_conditions(planet, distance_override, host_eccentricity)
+    planet._air_replay = None       # the air made again kept a replay of its own; the memory it held goes
+    _remake_what_reads_the_air(planet)
+    return True
+
+
+def _remake_what_reads_the_air(planet):
+    """
+    The class, the spin and what ends it (the field, the dose, the ultraviolet index, the colour, the equipment and habitability scores; `generate_spin`) made again on the air that
+    `remake_air` just made, the way `remake_end_stages` follows the air (GEN.992), from a stream of the planet's own so the run's stream does not move, and the moons' day and night shares (no
+    draws) after the planet's new spin. The planet keeps its birth spin, so a planet whose air is made again with the same pressure and clouds keeps its day.
+    """
+    stream = draw.Stream(f"late-accretion-end:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:{float(planet.star.age)!r}:{float(planet.radius)!r}")
+    with draw.bound(stream):
+        apply_class(planet)
+        generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))
+    for moon in planet.moons:
+        daylight.generate(moon, planet)
 
 
 def refresh_at_final_age(body):
@@ -957,6 +1038,37 @@ def stale_air(planet):
     for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):        # a giant is not made again by the refresh (its moons are)
         if getattr(body, "_age_drawn", None) is not None:
             body._age_drawn = 0.0
+    if planet.body_type == "g":
+        planet._air_stale = True                 # `settle_giant` makes a giant's air again on the orbit it has now, whether or not its radius moves (GEN.1505)
+
+
+def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
+    """
+    GEN.1504: the spin axis of a planet whose orbital plane the secular exchange has moved (the elements are already the new ones) follows the plane: the axis is turned with the orbit normal,
+    so the obliquity is kept (the planet's spin precesses about its orbit's normal far faster than the plane's nodes regress, so the obliquity is the adiabatic invariant; the angle round the normal
+    is kept too), and a locked or resonant body, whose obliquity is its Cassini state's share of the inclination (`tidal_spin.cassini_tilt_deg`), keeps that share of the new inclination.
+    The sky of the other suns follows the new normal, the day and night shares the new tilt, and the moons are set in the new equator again. No draws.
+    """
+    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+    if any(c is None for c in axis):
+        return
+    new_inclination = planet.orbital_inclination_deg or 0.0
+    tilt = None
+    if spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant"):
+        fold = lambda inc: min(abs(inc), 180.0 - abs(inc))
+        if fold(old_inclination_deg) > 1.0e-12:
+            tilt = planet.axial_tilt_deg * fold(new_inclination) / fold(old_inclination_deg)
+    old_normal = spin.orbit_normal(old_inclination_deg, old_node_deg)
+    new_normal = spin.orbit_normal(new_inclination, planet.orbital_ascending_node_deg or 0.0)
+    planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z = spin.carry_axis(axis, old_normal, new_normal, tilt)
+    if tilt is not None:
+        planet.axial_tilt_deg = tilt
+        daylight.generate(planet)
+    planet.sky_suns = sky_suns.encode(sky_suns.suns_of(
+        planet.star, (planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z), new_normal,
+        orbit_elements.flux_distance_au(planet.distance, getattr(planet, "eccentricity", 0.0))))
+    if getattr(planet, "moons", None):
+        orient_moons(planet)
 
 
 SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")
@@ -1021,15 +1133,19 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
             body.eccentricity = 0.5 * (low + high)
             low, high = (body.eccentricity, high) if keeps_spacing(planets) else (low, body.eccentricity)
         body.eccentricity = low
-    for i in moved:
+    for i in sorted(set(moved) | {i for i, body in enumerate(bodies) if body.eccentricity != old[i]}):      # any change of the eccentricity moves the mean light
         body = bodies[i]
         phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
+        old_inclination, old_node = body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0
+        if getattr(body, "moons", None):
+            release_moons(body)                  # the moons lie in the planet's equator: written back in it, turned onto the new axis below
         body.orbital_inclination_deg = math.degrees(result.inclination[i])
         body.orbital_ascending_node_deg = math.degrees(result.node_longitude[i])
+        carry_spin_with_orbit(body, old_inclination, old_node)
         update_orbital_position(body, phase, math.degrees((result.periapsis_longitude[i] - result.node_longitude[i]) % (2.0 * math.pi)))
         for moon in getattr(body, "moons", ()):
             moon.host_eccentricity = body.eccentricity
-        if abs(body.eccentricity - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE:
+        if body.eccentricity != old[i] or i in moved:
             stale_air(body)
     return "held by the spacing" if held else "exchanged"
 
