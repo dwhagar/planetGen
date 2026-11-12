@@ -206,13 +206,46 @@ class AsteroidBelt:
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
             self.scatter_giant_au = scatter_giant_au
-        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
+        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self._largest_body:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, lit_luminosity_w(star, lower_limit, upper_limit), star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
 
     _members = None
     _secular_planets = ((), ())
+    _largest_body = 0.0
+
+    @property
+    def largest_body_km(self):
+        """
+        The diameter of the belt's heaviest body, km (GEN.1605): the rank 1 member's own, so the number and the member agree (the ledger's `Dc` is the diameter at the grain density the
+        collision law uses, the member's is the diameter its taxon's density gives its mass). A belt with no members (a belt read back from a store without any, or one the giants emptied)
+        keeps the figure the ledger or the store gave it.
+        """
+        members = self.members
+        return 2.0 * members[0]["radius_km"] if members else self._largest_body
+
+    @largest_body_km.setter
+    def largest_body_km(self, value):
+        self._largest_body = value
+
+    def settle(self):
+        """
+        Works the belt's mass, largest body and density out again for the star's age and the limits it has now (GEN.1605): they were settled once, when the belt was built, at the age the star had
+        then and the place the belt then had, and the age that rises after the planets are in (`Star.adjust_age_for_planets`) and a belt moved by the spacing pass change what a belt of its
+        place and age holds; its members, drawn on first use, were drawn at the final age, so the two described different belts. A belt that was not made in this run keeps what it has (returns False);
+        the members are drawn again when the state moved (it never moves a belt, a limit or a count).
+        """
+        star = _STARS.get(self)
+        if star is None:
+            return False
+        left_earth = None if self.origin is None else self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
+        largest_km, mass_kg, density = present_state(star, self.distance, self.lower_limit, self.upper_limit, left_earth)
+        if (mass_kg, density) == (self.mass_kg, self.density) and largest_km == self._largest_body:
+            return False
+        self._largest_body, self.mass_kg, self.density = largest_km, mass_kg, density
+        self._members = None
+        return True
 
     def give_secular_planets(self, axes_au, masses_kg):
         """

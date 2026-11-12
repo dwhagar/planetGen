@@ -2292,6 +2292,7 @@ class StarSystem:
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
             self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
             self._give_belts_their_planets()    # GEN.1492: the apsidal rate of the planets beside each belt, which dilutes a companion star's forcing of its members
+            self._settle_belts()                # GEN.1605: each belt's mass, largest body and density at the age and the place it has now
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":
@@ -2315,6 +2316,13 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+
+    def _settle_belts(self):
+        """Settles every belt of every star again at the star's age and the belt's place now (GEN.1605, `AsteroidBelt.settle`); a belt the age and place did not change is left as it is."""
+        for _star, planets in validation.star_lists(self):
+            for belt in planets:
+                if belt.body_type == 'a' and belt.settle():
+                    log.debug(f"{belt.name if getattr(belt, 'name', None) else 'asteroid belt'} at {belt.distance:.4g} AU: settled again to {belt.mass_kg:.4g} kg at the star's age")
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
