@@ -47251,7 +47251,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.994",
+          "unread": "GEN.1577",
           "what": "hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron)"
         },
         {
@@ -47289,7 +47289,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.994",
+          "unread": "GEN.1577",
           "what": "hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds"
         },
         {
@@ -47327,7 +47327,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
-          "unread": "GEN.994",
+          "unread": "GEN.1577",
           "what": "hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486"
         },
         {
@@ -47365,7 +47365,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.994",
+          "unread": "GEN.1577",
           "what": "hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used)"
         }
       ],
