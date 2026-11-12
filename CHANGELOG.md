@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3956] - 2026-11-12
+
+**Headline:** A test of saving and reading back a planet's irregular moons no longer assumes its neighbouring planets hold none.
+
+### Changed
+
+- The stored-irregular-moons test compares each neighbouring planet with the irregular set the generator gave it before saving (none, or an empty set), instead of requiring none. Since GEN.1406 the sample system's outer planets hold an empty set and the test failed on main. Test only.
+
+generation-output: unchanged
+
 ## [8.0.3955] - 2026-11-12
 
 **Headline:** The swept-disk mass-ledger test finds its system by searching seeds instead of naming the one that had it.
