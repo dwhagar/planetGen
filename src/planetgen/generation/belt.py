@@ -222,6 +222,14 @@ class AsteroidBelt:
         self._secular_planets = (tuple(axes_au), tuple(masses_kg))
         self._members = None
 
+    def __getstate__(self):
+        """
+        The belt's state for a copy or a pickle (GEN.1610): its members are drawn first. The star they are drawn around is held apart from the belt (`_STARS`, a weak map that is neither copied nor
+        pickled), so a copy would otherwise find no star and return no members for a belt whose members were never read.
+        """
+        self.members
+        return self.__dict__.copy()
+
     def _force_by_companions(self, star, rows):
         """
         The members' eccentricity and periapsis as a companion star's secular forcing leaves them (GEN.1492, `belt_forcing`): the vector sum of the drawn eccentricity and the forced one, at
