@@ -82,6 +82,13 @@ _STAR = {
     "chemistry_metal_fraction": "The mass fraction of everything heavier than helium, from [Fe/H] and the star's [X/Fe] on the proto-solar "
                                 "mix of [R0168]; the composition the star formed with.",
     "chemistry_dredge_up_helium": "[R0467]: the rise in helium at the surface of a red giant of this mass and metal fraction.",
+    "chemistry_core_oxygen": "The central oxygen of a carbon-oxygen white dwarf of this mass, from the models of [R5238: Table 1] held inside the range two pulsating white dwarfs fit [R5239]; "
+                             "the rest of the carbon and oxygen is carbon.",
+    "chemistry_core_carbon": "What the central oxygen and the neon-22 leave of the core [R5238, R5239].",
+    "chemistry_core_neon22": "Every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as neon-22 in the core, so the share rises with the star's metal fraction.",
+    "chemistry_pollutant_class": "A polluted white dwarf shows the rock of a body that fell in [R1832]; the body is one belt body of the star's system, chosen in proportion to its mass, "
+                                 "read as the mix of materials of its taxon and sorted by its metal, water and calcium-and-aluminum content.",
+    "chemistry_pollutant_ratios": "The elements a white dwarf's spectrum shows, over the magnesium, from the materials of the accreted body's taxon [R1832].",
 }
 """dict: A star's column key (or the key of a row worked out from the stored values, UX.254) -> its source line."""
 

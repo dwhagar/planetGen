@@ -492,6 +492,64 @@ def test_a_star_shows_its_chemistry_from_the_stored_values_with_units_and_source
     assert rows["chemistry_dredge_up_helium"]["source"]
 
 
+def _give_belt_members(mysql_config, system_id, taxa):
+    """A belt in `system_id` that stores one member of each taxon in `taxa` (heaviest first), for the sheet to read the polluting body from."""
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density, composition_summary) "
+                     "VALUES (?, 99, 4.0e8, 3.0e8, 5.0e8, 'typical', 'test belt')", (system_id,))
+        belt_id = conn.execute("SELECT MAX(id) AS id FROM asteroid_belts WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+        for rank, taxon in enumerate(taxa, start=1):
+            conn.execute("INSERT INTO belt_members (belt_id, member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, "
+                         "arg_periapsis_deg, mean_anomaly_deg, taxon, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status) "
+                         "VALUES (?, ?, ?, 100.0, 4.0e8, 0.1, 5.0, 0.0, 0.0, 0.0, ?, 2.5, 0.8, 0.2, 0.0, 0.0, 'minor body')",
+                         (belt_id, rank, 1.0e20 / rank, taxon))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_a_white_dwarf_shows_its_core_and_a_polluted_one_the_body_it_accreted(client, mysql_config):
+    """GEN.1370: a carbon-oxygen white dwarf shows the central oxygen, carbon and neon-22 of `star_makeup`; a polluted one in a system with stored belt
+    members shows the class and element ratios of the member its own draw picks (in proportion to mass), a star that is not polluted shows none."""
+    from planetgen.physics import constants, stellar_composition, white_dwarf_core
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id, star_system_id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+        distance_ly = sheet._star_distance_ly(conn, star["star_system_id"])
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    polluted = unpolluted = None
+    for hundredths in range(55, 90):
+        mass_sol = hundredths / 100.0
+        mass_kg = mass_sol * constants.SOLAR_MASS_TO_KG
+        key = stellar_composition.abundance_key(mass=mass_kg, distance_ly=distance_ly)
+        if stellar_composition.white_dwarf_polluted(9000.0, stellar_composition.key_draws(key).u_pollution):
+            polluted = polluted or (mass_sol, mass_kg, key)
+        else:
+            unpolluted = unpolluted or (mass_sol, mass_kg, key)
+    assert polluted and unpolluted
+    _give_belt_members(mysql_config, star["star_system_id"], ["M", "S"])
+    for mass_sol, mass_kg, key in (unpolluted, polluted):
+        _set_star(mysql_config, star["id"], state="white-dwarf", yerkes_class="VII", mass_kg=mass_kg, metallicity_fe_h=-0.2, age_gy=8.0, temperature_k=9000.0)
+        rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+        makeup = stellar_composition.star_makeup(stellar_composition.WHITE_DWARF, -0.2, 8.0, mass_sol, key, teff_k=9000.0)
+        core = makeup.detail["core_fractions"]
+        assert rows["chemistry_core_oxygen"]["raw"] == pytest.approx(core.oxygen) and rows["chemistry_core_carbon"]["raw"] == pytest.approx(core.carbon)
+        assert rows["chemistry_core_neon22"]["raw"] == pytest.approx(core.neon22) and rows["chemistry_core_oxygen"]["value"][0]["qty"]["unit"] == "frac"
+        assert all(rows[name]["source"] for name in ("chemistry_core_oxygen", "chemistry_core_carbon", "chemistry_core_neon22"))
+        if makeup.detail["polluted"]:
+            taxon = white_dwarf_core.accreted_taxon([(1.0e20, "M"), (0.5e20, "S")], makeup.draws.u_pollutant)
+            found = white_dwarf_core.pollutant_of_taxon(taxon)
+            assert rows["chemistry_pollutant_class"]["text"] == sheet._POLLUTANT_WORDS[found.kind]
+            assert rows["chemistry_pollutant_class"]["source"] and rows["chemistry_pollutant_ratios"]["source"]
+            assert ("Fe/Mg" in rows["chemistry_pollutant_ratios"]["text"]) == ("Fe" in found.ratios_to_mg and "Mg" in found.ratios_to_mg)
+        else:
+            assert "chemistry_pollutant_class" not in rows and "chemistry_pollutant_ratios" not in rows
+
+
 def test_a_star_lists_the_isotopes_of_its_surface_and_a_red_giant_shows_the_dredged_carbon(client, mysql_config):
     """GEN.1488: the surface isotope lines come from the same makeup as the chemistry rows; a main-sequence star has burned its deuterium, a red giant shows the dredged carbon ratio."""
     from planetgen.physics import constants, isotope_record
