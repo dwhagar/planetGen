@@ -61,6 +61,39 @@ def shells_with_objects(conn, from_parts=False):
     return sorted(shells)
 
 
+UNIT_CELLS = 300000
+"""int: About how many cells with a part one unit of the index works (OPS.153): at about 10,000 rows a second, half a minute of work."""
+
+
+def shell_part_counts(conn):
+    """`[(shell, cells with a part)]`, sorted by shell, for cutting the index into units (OPS.153): one walk of the parts' primary key."""
+    return [(int(row["shell_index"]), int(row["n"])) for row in conn.execute(
+        "SELECT shell_index, COUNT(*) AS n FROM galaxy_block_light_parts GROUP BY shell_index ORDER BY shell_index").fetchall()]
+
+
+def shell_runs(counts, max_units, unit_cells=None):
+    """
+    The shells of `counts` (`shell_part_counts`) cut into runs of neighbors for the units of the index (OPS.153): a run takes shells until it holds `unit_cells`
+    cells (more when the cut would make more than `max_units` runs; a shell is never split, as the index works a shell at a time).
+
+    Returns:
+        list: `(shells, cells)` for each run, in shell order; the shells in a run are the ones in `counts`.
+    """
+    unit_cells = UNIT_CELLS if unit_cells is None else unit_cells
+    total = sum(n for _shell, n in counts)
+    target = max(unit_cells, -(-total // max(max_units, 1)))
+    runs, shells, held = [], [], 0
+    for shell, n in counts:
+        shells.append(shell)
+        held += n
+        if held >= target:
+            runs.append((shells, held))
+            shells, held = [], 0
+    if shells:
+        runs.append((shells, held))
+    return runs
+
+
 def cells_without_a_row(conn, shell, from_parts=False):
     """The `(band, wedge)` of every cell of `shell` that holds a waiting object and has no sector row, sorted. With `from_parts` the cells with a
     part are the cells that hold one (GEN.1476)."""
