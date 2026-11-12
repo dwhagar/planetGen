@@ -296,5 +296,5 @@ def _with_help_links(html):
     try:
         return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
     except Exception:    # a missing link must never take a page down
-        log.exception("the help links could not be added to %s", request.path)
+        log.exception("The help links could not be added to %s.", request.path)
         return html

@@ -500,7 +500,7 @@ def _warm_on_change(args):
         log.normal(f"This warm-up was canceled by {SUPERSEDED_BY}; the update's run warms everything this one would have.")
         return
     except Failed as exc:
-        log.error(f"error: the cache warm-up after a change stopped: {exc}")
+        log.error(f"The cache warm-up after a change stopped: {exc}")
         raise SystemExit(1)
     log.normal(f"The warm-up after a change ran {rounds} time{'' if rounds == 1 else 's'}.")
 
@@ -517,7 +517,7 @@ def run_warm(args):
         try:
             _follow(args)
         except Failed as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
+            log.error(f"The cache warm-up stopped: {exc}")
             raise SystemExit(1)
         except KeyboardInterrupt:
             log.normal("Stopped watching. The warm-up goes on; `planetgen warm --follow` watches it again.")
@@ -534,7 +534,7 @@ def run_warm(args):
             log.warning(f"The cache warm-up was canceled by {SUPERSEDED_BY}. What it stored is kept.")
             raise SystemExit(1)
         except Failed as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
+            log.error(f"The cache warm-up stopped: {exc}")
             raise SystemExit(1)
     except Stopped as stop:
         _say_stopped(stop.reason, stop.status)

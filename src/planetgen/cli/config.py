@@ -133,8 +133,7 @@ def _open_audit(args):
         from planetgen.db.store import control_mysql_config, get_control_connection, mysql_config_from_args
         conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
     except Exception as exc:  # noqa: BLE001 -- pymysql errors, a missing config, anything: the save still goes ahead
-        log.warning(f"warning: the control database could not be reached ({exc}); the change is in the activity "
-              "log but not in the admin audit table.")
+        log.warning(f"The control database could not be reached ({exc}), so the change is in the activity log but not in the admin audit table.")
         return None, lambda: None
     who = _actor()
 
@@ -146,7 +145,7 @@ def _open_audit(args):
 
 def _show_result(result, verb):
     for option, message in result.errors.items():
-        log.error(f"error: {option + ': ' if option else ''}{message}")
+        log.error(f"The setting{' ' + option if option else ''} was refused: {message}")
     if result.errors:
         return 1
     if not result.changes:
@@ -163,7 +162,7 @@ def _show_result(result, verb):
     if result.restart:
         print("These need a restart to take effect: " + ", ".join(result.restart))
     for line in result.audit_errors:
-        log.warning(f"warning: audit row not written: {line}")
+        log.warning(f"The audit row was not written: {line}")
     return 0
 
 
@@ -183,7 +182,7 @@ def run_get(option):
         return 1
     rows = [(path, meta) for path, _info, meta in settings.iter_fields() if option in (None, path)]
     if not rows:
-        log.error(f"error: {option} is not a setting")
+        log.error(f"{option} is not a setting.")
         return 1
     for path, meta in rows:
         value = settings._lookup(current, path)
@@ -197,7 +196,7 @@ def run_save(args, changes, verb):
     try:
         result = settings_writer.save(changes, _actor(), role="host", audit=audit)
     except settings_writer.SettingsWriteError as exc:
-        log.error(f"error: {exc}")
+        log.error(f"The settings could not be saved: {exc}")
         return 1
     finally:
         close()
@@ -209,7 +208,7 @@ def run_restore(args):
     try:
         result = settings_writer.restore(args.backup, _actor(), role="host", audit=audit)
     except settings_writer.SettingsWriteError as exc:
-        log.error(f"error: {exc}")
+        log.error(f"The settings could not be restored: {exc}")
         return 1
     finally:
         close()

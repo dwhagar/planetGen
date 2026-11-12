@@ -150,7 +150,7 @@ def jobs_dir():
                 ensure_private_dir(candidate)
         except OSError as exc:
             if index > 0:
-                log.debug("jobs: not using %s: %s", candidate, exc)
+                log.debug("Not using %s as the jobs folder: %s.", candidate, exc)
             continue
         if os.access(candidate, os.W_OK | os.X_OK):
             return candidate
@@ -581,7 +581,7 @@ def release_lock(job_id):
         with _redis_errors():
             _connection().register_script(_RELEASE)(keys=[_lock_key()], args=[job_id])
     except OSError as exc:
-        log.warning("jobs: could not free the lock for job %s: %s", job_id, exc)
+        log.warning("The lock for job %s could not be freed: %s.", job_id, exc)
 
 
 def free_lock():
@@ -748,7 +748,7 @@ def cancel_runs(job_id, who=None):
         return sum(runcontrol.cancel_run(connection, run_id, who=who) is not None
                    for run_id in runrecord.job_runs(connection, job_id))
     except Exception as exc:  # noqa: BLE001 -- the runner's own stop still follows
-        log.debug("Cancel of job %s: its runs were not canceled (%s)", job_id, exc)
+        log.debug("Cancel of job %s: its runs were not canceled (%s).", job_id, exc)
         return 0
 
 
@@ -823,7 +823,7 @@ def cancel_job(job_id, root=None, who=None):
     except OSError:
         return False
     cancel_runs(job_id, who)        # after the file: the step that finds its run stopped is then a canceled one, not a failed one
-    log.debug("Cancel requested for job %s (runner pid %s)", job_id, pid)
+    log.debug("Cancel requested for job %s (runner pid %s).", job_id, pid)
     return True
 
 

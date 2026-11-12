@@ -242,7 +242,7 @@ def main():
         try:
             version, pending = schema_status(config)
         except Exception as exc:
-            log.error(f"error: {exc}")
+            log.error(f"The schema status could not be read: {exc}")
             sys.exit(1)
         print(version, SCHEMA_VERSION, pending, config.database)
         return
@@ -252,7 +252,7 @@ def main():
         try:
             version = _migrate_with_progress(config)
         except Exception as exc:
-            log.error(f"error: {exc}")
+            log.error(f"The migration failed: {exc}")
             sys.exit(1)
 
         if version == SCHEMA_VERSION:
@@ -272,7 +272,7 @@ def main():
         try:
             seeded = auth.bootstrap_control_schema(control_mysql_config(config))
         except Exception as exc:
-            log.error(f"error: could not set up the control schema ({exc}).")
+            log.error(f"The control schema could not be set up ({exc}).")
             sys.exit(1)
         if seeded is not None:
             print_initial_admin_login(*seeded)
