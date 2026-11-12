@@ -13613,22 +13613,22 @@ clears each one.
 
 - [ ] **GEN.1662 Bright-star backfill: one Band object and one loop replace the two parallel luminosity and mass pipelines in run_plan and bright_stars (about 85% identical)**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N1). Output unchanged, no epoch; lock-free. Same streams; check order on the golden or census.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1665.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: GEN.1665.
   Filed by the TODO thread.
 
 - [ ] **GEN.1663 Sector phenomena: generate_sector_phenomena's five per-kind branches become columns of phenomena/registry.py**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N2). Output unchanged, no epoch; lock-free. Stage E of GEN.556.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: GEN.556, GEN.1666.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds).176. Prerequisites: none. Related: GEN.556, GEN.1666.
   Filed by the TODO thread.
 
 - [ ] **DB.128 One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N3). Output unchanged, no epoch; lock-free. One PR with DB.129 and OPS.178.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: DB.129, OPS.178, GEN.1666.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: DB.129, OPS.178, GEN.1666.
   Filed by the TODO thread.
 
 - [ ] **DB.129 SaveSession dataclass replaces the ten attributes stashed on the database connection during a save**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N4). Output unchanged, no epoch; lock-free. The twin of GEN.1651.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: DB.128, GEN.1651.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: DB.128, GEN.1651.
   Filed by the TODO thread.
 
 - [ ] **GEN.1664 StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once**
@@ -13638,22 +13638,22 @@ clears each one.
 
 - [ ] **GEN.1665 One _advance_rows with a per-kind stepper replaces the three copies of one loop in store.advance_galactic_positions and its five sibling advance_* functions**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N6). Output unchanged, no epoch; lock-free. First slice of GEN.584; check order on the golden.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.584.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: GEN.584.
   Filed by the TODO thread.
 
 - [ ] **OPS.178 CLI validate_sectors_args: the forty pairwise option exclusions become a mode table**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N7). Output unchanged, no epoch; lock-free. One PR with DB.128 and DB.129.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: DB.128.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: DB.128.
   Filed by the TODO thread.
 
 - [ ] **OPS.179 cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N8). Output unchanged, no epoch; lock-free. Low.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: OPS.178.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: OPS.178.
   Filed by the TODO thread.
 
 - [ ] **GEN.1666 describe/sheet.sheet becomes per-kind row providers on the kind-table registry; query.resolve_object follows when DB.73 lands**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N9). Output unchanged, no epoch; lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: DB.128. Related: DB.128, GEN.1663.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds).176. Prerequisites: DB.128. Related: DB.128, GEN.1663.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
