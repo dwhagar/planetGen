@@ -268,11 +268,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.kozai_planets | GEN.1645 | the Kozai-Lidov screen of a planet by a companion star or an outer sibling (lock-free slice 0); the wiring in `StarSystem._kozai_pumping` (waits for the stored companion planes of GEN.1500) applies the outcome to the planet's eccentricity and inclination and drops a planet the maximum puts inside the star, and is a lock item |
 | row | 6.284:KZP2 | GEN.1645 | read when `StarSystem._kozai_pumping` runs the planet case |
 | module | planetgen.physics.white_dwarf_core | GEN.1370 | the central oxygen and 22Ne of a carbon-oxygen white dwarf and the elements and class of an accreted belt body (lock-free slice 0); the lock wiring stores the core fractions in the white dwarf's layers and the pollutant in its pollution detail |
-| row | 6.285:WDC1 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC2 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC3 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC4 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC5 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC6 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC7 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| row | 6.285:WDC8 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC1 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC2 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC3 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC4 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC5 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC6 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC7 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
+| row | 6.286:WDC8 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |

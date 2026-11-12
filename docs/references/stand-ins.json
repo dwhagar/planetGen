@@ -64261,8 +64261,8 @@
       "title": "Stand-ins of the Kozai-Lidov screen of a planet"
     },
     {
-      "key": "6.285",
-      "number": "6.285",
+      "key": "6.286",
+      "number": "6.286",
       "rows": [
         {
           "burn_down": null,
@@ -64293,9 +64293,9 @@
             ]
           ],
           "id": "WDC1",
-          "key": "6.285:WDC1",
+          "key": "6.286:WDC1",
           "kind": "D",
-          "slug": "6-285-wdc1",
+          "slug": "6-286-wdc1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
@@ -64331,9 +64331,9 @@
             ]
           ],
           "id": "WDC2",
-          "key": "6.285:WDC2",
+          "key": "6.286:WDC2",
           "kind": "P",
-          "slug": "6-285-wdc2",
+          "slug": "6-286-wdc2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -64369,9 +64369,9 @@
             ]
           ],
           "id": "WDC3",
-          "key": "6.285:WDC3",
+          "key": "6.286:WDC3",
           "kind": "P",
-          "slug": "6-285-wdc3",
+          "slug": "6-286-wdc3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -64407,9 +64407,9 @@
             ]
           ],
           "id": "WDC4",
-          "key": "6.285:WDC4",
+          "key": "6.286:WDC4",
           "kind": "P",
-          "slug": "6-285-wdc4",
+          "slug": "6-286-wdc4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -64445,9 +64445,9 @@
             ]
           ],
           "id": "WDC5",
-          "key": "6.285:WDC5",
+          "key": "6.286:WDC5",
           "kind": "P",
-          "slug": "6-285-wdc5",
+          "slug": "6-286-wdc5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -64483,9 +64483,9 @@
             ]
           ],
           "id": "WDC6",
-          "key": "6.285:WDC6",
+          "key": "6.286:WDC6",
           "kind": "P",
-          "slug": "6-285-wdc6",
+          "slug": "6-286-wdc6",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -64521,9 +64521,9 @@
             ]
           ],
           "id": "WDC7",
-          "key": "6.285:WDC7",
+          "key": "6.286:WDC7",
           "kind": "P",
-          "slug": "6-285-wdc7",
+          "slug": "6-286-wdc7",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -64559,9 +64559,9 @@
             ]
           ],
           "id": "WDC8",
-          "key": "6.285:WDC8",
+          "key": "6.286:WDC8",
           "kind": "P",
-          "slug": "6-285-wdc8",
+          "slug": "6-286-wdc8",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
@@ -64569,7 +64569,7 @@
           "what": "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
         }
       ],
-      "slug": "6-285-stand-ins-of-the-white-dwarf-core-and-the-accreted-pollutant",
+      "slug": "6-286-stand-ins-of-the-white-dwarf-core-and-the-accreted-pollutant",
       "title": "Stand-ins of the white dwarf core and the accreted pollutant"
     }
   ]

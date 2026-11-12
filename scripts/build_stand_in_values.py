@@ -525,7 +525,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.284", "6.284 Stand-ins of the Kozai-Lidov screen of a planet",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.285", "6.285 Stand-ins of the white dwarf core and the accreted pollutant",
+    ("6.286", "6.286 Stand-ins of the white dwarf core and the accreted pollutant",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

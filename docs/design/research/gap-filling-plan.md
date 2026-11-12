@@ -4106,7 +4106,7 @@ How a partner star's tide takes a star's spin toward the orbit's and turns the o
 | KZP1 | P | T6 | L1 | `kozai_planets.screen_planets`: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only | the strongest, the sum of the pulls | planets with more than one perturber | an N-body run of a planet beside two perturbers whose cycle differs from the strongest pull's | a vector sum of the perturbers' torques | educated guess from physics (the shortest Kozai time is the fastest torque; two perturbers at once is the octupole-and-beyond case no source here covers) |
 | KZP2 | P | T6 | L1 | `kozai_planets.SIBLING_MASS_RATIO` 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis | 0.3 to 10 | outer sibling planets | a lighter outer planet that pumps an inner one in an N-body run | the planet-planet octupole test of GEN.1450 | educated guess from physics (a lighter outer body is a test particle's equal and quenches rather than pumps) |
 
-### 6.285 Stand-ins of the white dwarf core and the accreted pollutant (GEN.1370)
+### 6.286 Stand-ins of the white dwarf core and the accreted pollutant (GEN.1370)
 
 `physics/white_dwarf_core.py` gives a carbon-oxygen white dwarf its central oxygen and 22Ne and reads the elements and class of a polluting body from its stored materials (N16 of the 8.1 real-material set). Pure and unwired.
 
