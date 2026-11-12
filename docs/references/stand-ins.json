@@ -17261,7 +17261,11 @@
           "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the terrestrial-zone solids boost of 4 and its start at 0.45 AU were tuned to [R0572] 0.37 to 0.60 Earth-sized planets per Sun-like star in the habitable zone (with PA17); no disk-evolution or pebble-flux model of the zone is in hand"
+          ],
           "fields": [
             [
               "What it is",
@@ -17299,7 +17303,11 @@
           "what": "tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST 4.0 and PLANET_ROCKY_ZONE_START_AU 0.45 (the solids of the terrestrial zone, from 0.45 AU to the snow line, are 4 times the disk's elsewhere: a pile-up inside the ice line and the several-times-minimum-mass solids the Kepler systems need at 1 AU)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the giant-impact spacing of 25 mutual Hill radii and its end at 3 AU were tuned to [R0572] with PA16; no N-body run of the zone's oligarchs is in hand"
+          ],
           "fields": [
             [
               "What it is",
@@ -48177,7 +48185,11 @@
       "number": "6.183",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of other worlds gives the spread of regional temperature among bodies of one class; the 5 K shoulder is half the shoulder of the mean temperature (CF3) and fades the Earth-like extremes of the families design"
+          ],
           "fields": [
             [
               "What it is",
@@ -48215,7 +48227,11 @@
           "what": "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "no observed world fixes how sharply the 15, 25 and 31 C wet-bulb lines bind a species; the 3 C shoulder is read against the uncompensable limit of 31 C in `species_limits`"
+          ],
           "fields": [
             [
               "What it is",
@@ -48253,7 +48269,11 @@
           "what": "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "no class reads a humidity edge yet, so there is nothing to measure the 0.1 shoulder against; it waits for GEN.1207"
+          ],
           "fields": [
             [
               "What it is",

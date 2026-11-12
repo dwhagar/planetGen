@@ -27,7 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -1032,10 +1032,20 @@ _BODY_RULES = [
 ]
 
 _PLANET_RULES = [
+    (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: row is None or (
+        spin.spin_state(row.get("rotation_period_hours"), row.get("period_years"))[0] in (None, "free") and row.get("belt_order") is None),
+     "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet of the spacing pass that spins freely: a locked or resonant planet sits at the Cassini state "
+     "of its spin and does not wander (GEN.1536), and a belt member promoted to a planet (GEN.1510) is made after the sibling planets' modes are fixed and keeps the tilt it was drawn with"),
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
      "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
+]
+
+_MOON_RULES = [
+    (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: False,
+     "the range a tilt wanders over is worked out for a planet from the nodal modes of the other planets' pull on its orbit; a moon's tilt is held by its planet's pull or its own tide "
+     "(a locked moon takes the Cassini state, GEN.1556) and it has no range"),
 ]
 
 _STAR_RULES = [
@@ -1076,7 +1086,7 @@ _ROGUE_RULES = [
      "a giant or a brown dwarf is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
 ]
 
-APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES, "belt": _BELT_RULES}
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES + _MOON_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES, "belt": _BELT_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
