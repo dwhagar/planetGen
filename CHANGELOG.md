@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3921] - 2026-11-12
+
+**Headline:** A new command, `planetgen refill-effect-ledger`, writes the light and ultraviolet rows of the effect ledger again for a galaxy generated before the ledger or its floor existed, and only for the systems whose stamp is not the running code's.
+
+### Added
+- **`planetgen refill-effect-ledger` (GEN.1498, migration 0246).** For each system whose `system_summary.ledger_stamp` is not the running code's (`derived_stamp` family `ledger`; `--all` takes every system) it loads the stored stars, planets and moons, works out the light and ultraviolet sources that reach each body above `tuning.EFFECT_LEDGER_FLOOR`, deletes that system's light and ultraviolet ledger rows and writes the new ones, then stamps the system. The other effects' rows are not touched. One id range is one transaction at READ COMMITTED with the deadlock retry of `rescore-habitability`, so a stopped run carries on where it stopped. The new stamp column is filled by the system save and cleared by a system edit.
+- **One source of the light rows.** `physics/light_ledger.py` holds what `StarSystem._fill_light_ledger` did at generation (which stars reach which bodies, and a moon's light taken at its planet's distance and eccentricity); generation and the refill both call it. A refilled row may differ from the generated one in its last digits (the distance comes from the stored orbit) and never in its sources.
+- **Reuse.** The expansion, the unit and the transaction wrapper of `rescore-habitability` are now shared (`_expand_stale_systems`, `_run_stale_unit`) with the new command; its stage, bar and queue registration follow the same pattern.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3920] - 2026-11-12
 
 **Headline:** The stars of a close pair now raise tides on each other: a star near enough to its partner is spun to the pair's orbital rate and its spin axis is turned toward the orbit normal, its activity follows its new spin, and the pair's apsidal precession (relativity, both tidal bulges, both rotational bulges) is noted in the effect ledger. A lone star and a wide pair are unchanged.
