@@ -25,7 +25,7 @@ import json
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements, oddities, planet_classes, planet_type, surface_liquid_world
+from planetgen.physics import elements, life_classes, oddities, planet_classes, planet_type, surface_liquid_world
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
@@ -35,8 +35,11 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
 SCOPES = ("system", "planet")
 """tuple: The scopes the file holds a tree for."""
 
-QUANTITIES = ("has_ground", "life_present", "life_multicellular", "has_air")
-"""tuple: The quantities this module adds to the table of `oddities.quantities_of`; each is 1 or 0."""
+QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen")
+"""tuple: The quantities this module adds to the table of `oddities.quantities_of`. `has_ground`, `life_present`, `has_air` and `life_oxygen` are 1 or 0; `life_rung` is 0 to 6 (the
+rung of the stage ladder, 5 once the multicellular life has animals); `life_medium` and `life_energy` are the place, from 1, of the life's solvent medium in
+`life_classes.SOLVENT_MEDIA` and of its energy source in `life_classes.ENERGY_SOURCES` (water 1, hydrocarbon 2, carbon dioxide 3, sulfuric acid 4, ammonia and water 5; light 1, chemical 2).
+A world without life has none of the last four, so a gate on them fails there (GEN.1431: the life lines read the life, never a class letter)."""
 
 GATE_KEYS = {"quantity", "min", "lt", "equals", "not_equals"}
 
@@ -125,9 +128,26 @@ def quantities_of(body):
     found["has_ground"] = 1 if ground else 0
     life = getattr(body, "life_class", None) is not None
     found["life_present"] = 1 if life else 0
-    found["life_multicellular"] = 1 if life and getattr(body, "life_stage", None) in ("multicellularity", "technological_civilization") else 0
+    if life:
+        found.update(_life_quantities(body))
     found["has_air"] = 1 if (getattr(body, "atmospheric_pressure", None) or 0.0) > 0.0 else 0
     return found
+
+
+def _life_quantities(body):
+    """The rung and the chemistry of the life on `body` (GEN.1431): `life_rung` from the stage and the animal grade (`generation.evolution._rung`, the rung the stage page shows), `life_medium` and
+    `life_energy` from the life class's own row in `life_classes` (the class id only finds the row; no gate names it), `life_oxygen` whether it splits water and so makes free oxygen."""
+    from planetgen.generation import evolution     # the rung ladder lives with the milestones; imported here because the generation package imports this module
+    out = {}
+    stage = getattr(body, "life_stage", None)
+    if stage is not None:
+        out["life_rung"] = evolution._rung(stage, getattr(body, "life_animal_grade", 0) or 0)[0]
+    row = life_classes.BY_ID.get(getattr(body, "life_class_id", None))
+    if row is not None:
+        out["life_medium"] = life_classes.SOLVENT_MEDIA.index(row.solvent["medium"]) + 1
+        out["life_energy"] = life_classes.ENERGY_SOURCES.index(row.energy["source"]) + 1
+        out["life_oxygen"] = 1 if row.releases_oxygen else 0
+    return out
 
 
 def walk(scope, body, off=()):

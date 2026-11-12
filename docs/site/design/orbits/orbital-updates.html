@@ -258,7 +258,7 @@ body inside a heavy object's sphere does not miss it (solvers document section 6
 4 pc (about 13 ly) cells of the ring, layer and slot grid
 (galaxy-coordinate-system.md), so neighbour lookup uses that grid's own
 address arithmetic: <code>geometry.enumerate_sectors_within_radius</code> returns cells
-whose center is within the radius, so the search radius is widened by the cell
+whose centre is within the radius, so the search radius is widened by the cell
 reach (about 4 pc). With that margin the search matched brute force at the
 core, the rim, the slot-0 seam and the top and bottom layers; without it 21.6%
 of true neighbours are missed
@@ -278,7 +278,7 @@ long steps. A step is limited to the window in which the straight relative path
 stays within 1% of the combined radius of the curved one (about 1,800 years for
 two Earths, 100 years for two 1 km bodies; the one-day default is far inside).
 The focusing radius is a capture cross-section, not a contact point.</p>
-<p>A merger keeps momentum and mass and is placed at the center of mass at impact;
+<p>A merger keeps momentum and mass and is placed at the centre of mass at impact;
 the merged radius is the volume sum for two terrestrial bodies and
 <code>giant_radius_km(M_new)</code> for giants and brown dwarfs (the volume sum is 30% too
 large for two Jupiters). The Roche factor is 2.44 for fluid bodies only (1.26
@@ -405,9 +405,9 @@ guard. Built in GEN.108; <code>src/tests/test_orbital_limits.py</code> hits each
 <td><code>physics/orbits.py</code>; GEN.109 and GEN.110 call it</td>
 </tr>
 <tr>
-<td>The galactic center</td>
+<td>The galactic centre</td>
 <td>A point mass gives an infinite kick and a zero period</td>
-<td>The rotation curve is softened by its 3 kpc core (<code>v = V r / sqrt(r^2 + r_c^2)</code>), so the period tends to 2 pi r_c / V; an object exactly at the center (the nucleus) has period 0 and never turns. GEN.115's potential adds 1 pc Plummer softening</td>
+<td>The rotation curve is softened by its 3 kpc core (<code>v = V r / sqrt(r^2 + r_c^2)</code>), so the period tends to 2 pi r_c / V; an object exactly at the centre (the nucleus) has period 0 and never turns. GEN.115's potential adds 1 pc Plummer softening</td>
 <td><code>galactic_orbit.calculate_galactic_orbit</code>, <code>store._galactic_turn</code></td>
 </tr>
 <tr>
@@ -589,12 +589,12 @@ the galaxy's shape are developed in
 authority for this part.</p>
 <p>Point masses use Plummer softening, <code>a = G M r / (r^2 + eps^2)^(3/2)</code> with
 eps = 1 pc, so the pull near the central black hole stays finite and falls to
-zero at the center. The document applies the 1 pc to every point mass; that
+zero at the centre. The document applies the 1 pc to every point mass; that
 cancels 46% of the pull of a solar-mass star at its own Hill radius (1.4 pc), the
 region the influence rule cares about, so the recommendation is 1 pc for the
 central black hole only and none (or 1e-3 to 1e-2 pc) between stars
 (orbital-solvers-and-integrators.md section 1, row 9). The Hernquist,
-Miyamoto-Nagai and NFW potentials are finite at the center without softening.</p>
+Miyamoto-Nagai and NFW potentials are finite at the centre without softening.</p>
 <h3 id="102-frames">10.2 Frames</h3>
 <div class="table"><table>
 <thead>
@@ -620,7 +620,7 @@ Miyamoto-Nagai and NFW potentials are finite at the center without softening.</p
 </tr>
 <tr>
 <td>System</td>
-<td>The host star's barycenter</td>
+<td>The host star's barycentre</td>
 <td>+z along the star's spin, +x along the line where the star's equator crosses the galactic midplane (<code>Z_gal x z_sys</code>, or <code>X_gal</code> when the spin points along <code>Z_gal</code>), +y = z x x</td>
 <td><code>p_gal = p_star + R^T r_sys</code></td>
 </tr>
@@ -687,9 +687,9 @@ bound (e &gt;= 1) uses PropagateKeplerianOrbit instead.</li>
 <p>The document puts the epoch at J2000.0 (JD 2451545.0), which also matches
 the spin formulas in &quot;Observational Kinetics for Rotational Vectors.md&quot;.</p>
 <h3 id="the-local-offset-after-a-rotation-test200">The local offset after a rotation (TEST.200)</h3>
-<p>The nightly update turns an object's absolute galaxy point about the galactic axis (<code>store._rotate_about_axis</code>, the angle from <code>store._galactic_turn</code> with whole orbits dropped first, so the largest angle it applies is just under 2 pi) and then stores the offset of that point from the center of the sector it lands in, <code>point - center</code> along the sector's axes, in milliparsecs. The offset is recomputed from the absolute point on every step; it is never carried forward from the last offset.</p>
+<p>The nightly update turns an object's absolute galaxy point about the galactic axis (<code>store._rotate_about_axis</code>, the angle from <code>store._galactic_turn</code> with whole orbits dropped first, so the largest angle it applies is just under 2 pi) and then stores the offset of that point from the centre of the sector it lands in, <code>point - centre</code> along the sector's axes, in milliparsecs. The offset is recomputed from the absolute point on every step; it is never carried forward from the last offset.</p>
 <p><strong>The limit.</strong> The stored offset is only as good as the absolute point it was made from: it can differ from it by one unit in the last place of the absolute coordinate, the 64-bit spacing at that distance. A coordinate is rounded by half that spacing at most, 898 km at 262 kpc and 28 km at the Sun's distance, which is 3.4e5 and 1.1e7 times smaller than the smallest move the galaxy stores (0.01 milliparsec, 3.1e8 km). The offset is not exact to its own (parsec-scale) precision and must not be treated as if it were; where a finer local offset is needed (generating anywhere, 8.9), the offset has to be carried in its own frame, not recomputed from the absolute point. The audit's decision is to document and test, with no change to the update (numeric-precision-audit.md section 5.1).</p>
-<p><strong>What pins it.</strong> <code>tests/test_local_offset_limit.py</code>, <code>test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point</code>, at 8 kpc, 26 kpc and 262 kpc: for random sector centers and offsets, rotations from nothing to a whole orbit less a hair, and a landing sector up to an edge away, the stored offset put back on its center gives the stored absolute point within one unit in the last place of the largest coordinate (over 60,000 draws the worst error measured is exactly 1.0 ulp, never more). A second test pins the ratio to the smallest stored move.</p>
+<p><strong>What pins it.</strong> <code>tests/test_local_offset_limit.py</code>, <code>test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point</code>, at 8 kpc, 26 kpc and 262 kpc: for random sector centres and offsets, rotations from nothing to a whole orbit less a hair, and a landing sector up to an edge away, the stored offset put back on its centre gives the stored absolute point within one unit in the last place of the largest coordinate (over 60,000 draws the worst error measured is exactly 1.0 ulp, never more). A second test pins the ratio to the smallest stored move.</p>
 <h3 id="105-collisions">10.5 Collisions</h3>
 <p><a href="collisions-and-mergers.html">collisions-and-mergers.md</a> is the authority;
 this is the outline with its corrections. Continuous detection over the step:
@@ -701,7 +701,7 @@ closest approach and the miss distance first (collisions-and-mergers.md section
 <code>R_eff = (R1 + R2) sqrt(1 + v_esc^2 / max(dv^2, floor))</code> is a capture
 cross-section, not a contact point, and is capped at the smaller body's Hill
 radius. A hit inside the step merges the pair inelastically: mass and momentum
-conserved, at the center of mass; the merged radius is the volume sum
+conserved, at the centre of mass; the merged radius is the volume sum
 <code>(R1^3 + R2^3)^(1/3)</code> only for two terrestrial bodies and <code>giant_radius_km</code> of
 the new mass for giants and brown dwarfs (the volume sum is 30% too large for two
 Jupiters). The smaller body is hidden with its event id rather than deleted
@@ -731,7 +731,7 @@ code uses the signed form.</li>
 current relative speed as v_inf. When the pair is caught close in,
 the code uses <code>v_inf = sqrt(v^2 - 2 mu / r)</code> instead.</li>
 <li><strong>The merged body's position.</strong> The document puts it at body 1's
-position at impact; the code uses the center of mass at impact,
+position at impact; the code uses the centre of mass at impact,
 <code>(M1 p1(t) + M2 p2(t)) / (M1 + M2)</code>, which momentum conservation needs.</li>
 <li><strong>The focusing floor has no unit.</strong> <code>max(dv^2, 1.0)</code> means 1 m/s in SI
 and 1 km/s in galactic units. The code works in SI and uses 1 m/s.</li>
