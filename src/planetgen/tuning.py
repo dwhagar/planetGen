@@ -617,11 +617,8 @@ ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 # consensus) -- an absolute ceiling on any star's age: no star is older, however
 # long its own track could keep it shining (an M dwarf's runs to trillions of years).
 UNIVERSE_AGE_GY = 13.8
-UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO = 0.85
 OLD_STAR_AGE_LIFESPAN_RATIO = 1/3
 YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
-MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
-WHITE_DWARF_AGE_ADDITION_GY = 5
 # The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
 # the proto-solar Z of the composition scale, [R0168] (stellar-
 # composition.md D1). A solar mass lasts 10.2 Gy at it.
@@ -2261,7 +2258,7 @@ PLANET_CLASSES = {
 
 # Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
 # names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers the paces a star's lifespan allows
-# (`stellar_object.supported_evolutionary_scales`, `age_needs`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
+# (`stellar_object.supported_evolutionary_scales`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years

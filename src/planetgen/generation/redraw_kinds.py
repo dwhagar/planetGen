@@ -44,7 +44,6 @@ KINDS = {
     "companions.circumbinary_floor": Kind("system", False, "the companions drawn again because a close pair leaves no habitable zone outside its stability limit and a habitable world was asked for (kept one time in the request odds otherwise)"),
     # --- the planets of a system -------------------------------------------------------------------------------------------------------
     "system.planets_regenerated": Kind("system", False, "every planet drawn again because the requested habitable world (kept one time in the request odds without one), the forced belt or the forced class is not there"),
-    "system.planets_regenerated_after_age": Kind("system", False, "every planet drawn again once more under the settled age of the system"),
     "planet.request_missed": Kind("planet", False, "a planet drawn again because it is not the class a slot asked for, or has no surface ocean in the ecosphere of a request for a habitable world (kept one time in the request odds without)"),
     "planet.hill_spacing_push": Kind("planet", False, "a planet moved outward to clear the mutual Hill radius of the one inside it"),
     "planet.belt_spacing_push": Kind("planet", False, "a planet moved outward to clear the belt inside it"),

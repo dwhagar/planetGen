@@ -9,7 +9,7 @@ its default (None), plus dedicated tests for AGE and BINARY_SYSTEM. Every
 generated system is checked against invariants systemData.py itself claims
 to guarantee (no orbital overlap, requested features actually present,
 counts matching reality, star age never exceeding lifespan even after
-adjust_age_for_planets runs against the system's actual planets).
+the system is generated).
 
 Run with: pytest tests/test_systems.py
 """
@@ -97,7 +97,7 @@ def assert_ages_never_exceed_lifespan(system):
             continue
         assert star.age <= star.lifespan * 1.001, (
             f"{star.name} ({star.type}): age {star.age} Gy exceeds lifespan {star.lifespan} Gy "
-            f"after adjust_age_for_planets"
+            f"at generation"
         )
 
 
