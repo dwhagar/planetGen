@@ -129,6 +129,10 @@ ENVELOPE_SHELTER_FIELDS = frozenset({"shelter_column_g_cm2"})
 """The shielding a shelter needs (GEN.1323): a planet under a deep envelope has a thick column over its ground, so its yearly dose sits near the edge where a shelter becomes
 necessary, and the starlight that one of a matched pair gets and the other does not decides which side of the edge it falls on."""
 
+AIR_FIELDS = frozenset({"atm_density", "atm_molar_density", "scale_height_km"})
+"""The stored quantities of an air (its density, the mean molar mass and the scale height): an airless body stores none, so they are one-sided only where the body's own heat holds an air on
+one of a matched pair (a rogue world at 57 K under its hydrogen air where the bound planet at 3 K has frozen its gases out and is airless)."""
+
 SOLID_ONLY_FIELDS = frozenset({"roundness_ratio", "yield_strength_pa", "shelter_column_g_cm2"})
 """The stored quantities only a solid body has (a giant has none): they differ only where the two draws fall in different classes."""
 
@@ -229,6 +233,8 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
             allowed |= ENVELOPE_SHELTER_FIELDS
         if rogue.planet_class != bound.planet_class:
             allowed |= SOLID_ONLY_FIELDS
+        if (rogue.atmospheric_pressure > 0.0) != (bound.atmospheric_pressure > 0.0):
+            allowed |= AIR_FIELDS
         assert one_sided <= allowed, sorted(one_sided - allowed)
 
 
