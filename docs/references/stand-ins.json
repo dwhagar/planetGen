@@ -33737,7 +33737,7 @@
           "fields": [
             [
               "What it is",
-              "roundness.POROSITY_RULES: none in use (a void only lowers the density); exponential strength * exp(-b phi), b 5, is built and off"
+              "roundness.POROSITY_RULES: none in use (a void only lowers the density); power strength * (1 - phi/0.5)^1.67 ([R0083], RN12) is built and off (the recalled exponential is gone)"
             ],
             [
               "The range it moves in",
@@ -33749,7 +33749,7 @@
             ],
             [
               "What would show it wrong",
-              "a porous ice-rich body whose roundness the rule gets wrong (Proteus comes out round with exponential on)"
+              "a porous ice-rich body whose roundness the rule gets wrong (Proteus came out round with the old exponential on; the power rule is to be judged on it before it is switched on)"
             ],
             [
               "What replaces it",
@@ -33768,7 +33768,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "roundness.POROSITY_RULES: none in use (a void only lowers the density); exponential strength * exp(-b phi), b 5, is built and off"
+          "what": "roundness.POROSITY_RULES: none in use (a void only lowers the density); power strength * (1 - phi/0.5)^1.67 ([R0083], RN12) is built and off (the recalled exponential is gone)"
         },
         {
           "burn_down": null,
@@ -34149,6 +34149,44 @@
           "tweak": "L0",
           "unread": "GEN.1201",
           "what": "roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), [R1956] (log10 A 5.04, n 3.5, E 530 kJ/mol) and [R2451] (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "roundness.POROSITY_RULES power, solid_limit 0.5 and exponent 1.67 in roundness_strengths.json (strength * (1 - phi/0.5)^1.67, the uniaxial strength of carbonate rock and gypsum against porosity) and roundness.POROSITY_FLOOR 0.1 (T9, L3: the argument is held at 0.1 so a body at the limit keeps 2 percent)"
+            ],
+            [
+              "The range it moves in",
+              "exponent 1.5 to 2 (the paper lists exponentials of b 4.8 to 9.3 for the same data); limit 0.4 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "porous bodies, when the rule is switched on"
+            ],
+            [
+              "What would show it wrong",
+              "test_roundness::test_the_power_porosity_rule_is_the_carbonate_law_of_the_source; a measured strength of a porous ice-rich body far from the law (no ice law exists)"
+            ],
+            [
+              "What replaces it",
+              "an ice-rich porosity law (Ryugu boulders [R1700] give b of 7 to 9 at fragment scale)"
+            ],
+            [
+              "Evidence",
+              "[R0083] (READ, Boss upload): UCS = 60.251 (1 - 0.02 n)^1.67 MPa, n in percent, 178 training and 75 test points, 0.4 to 50 percent porosity, the limit 0.5 assumed and not fitted; right form, wrong material (carbonate, no ice)"
+            ]
+          ],
+          "id": "RN12",
+          "key": "6.126:RN12",
+          "kind": "P",
+          "slug": "6-126-rn12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "roundness.POROSITY_RULES power, solid_limit 0.5 and exponent 1.67 in roundness_strengths.json (strength * (1 - phi/0.5)^1.67, the uniaxial strength of carbonate rock and gypsum against porosity) and roundness.POROSITY_FLOOR 0.1 (T9, L3: the argument is held at 0.1 so a body at the limit keeps 2 percent)"
         }
       ],
       "slug": "6-126-stand-ins-of-the-roundness-engine-and-the-binding-energy",
