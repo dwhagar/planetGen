@@ -100,6 +100,19 @@
   </table></div>
 </section>
 {%- endif %}
+{%- if ejecta %}
+<section class="panel" id="remnant-ejecta" aria-labelledby="remnant-ejecta-heading">
+  <div class="panel-header"><h2 id="remnant-ejecta-heading">What the explosion threw out and what it swept up</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <thead><tr><td></td>{%- for column in ejecta.columns %}<th scope="col">{{ column }}</th>{%- endfor %}</tr></thead>
+    <tbody>
+      {%- for row in ejecta.rows %}
+      <tr><th scope="row">{{ row.label }}</th>{%- for cell in row.cells %}<td>{{ cell }}</td>{%- endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if facts %}
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>

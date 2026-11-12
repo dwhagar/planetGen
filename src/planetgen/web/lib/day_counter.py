@@ -29,7 +29,7 @@ STATE_TEXT = {
     day_night.POLAR: "Day and night alternate, but a polar zone covers a large part of the surface, so much of it has a polar day or night.",
     day_night.RESONANT: "Locked in a spin-orbit resonance: the star crosses the sky slowly, and a solar day is longer or shorter than the spin.",
     day_night.NON_ROTATING: "Not rotating relative to its star: the star goes round the sky once a year.",
-    day_night.NO_SURFACE: "No solid surface: the day below counts the turn of its clouds.",
+    day_night.NO_SURFACE: "No surface to stand on: any rock lies deep under a thick envelope. The day below counts the turn of its clouds.",
     day_night.NO_NIGHT: "No night.",
     day_night.NO_SUN: "No star lights it: night all year.",
 }
