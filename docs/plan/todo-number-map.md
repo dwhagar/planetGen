@@ -22,7 +22,7 @@ release is stamped.
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.729 |
+| TEST | TEST.738 |
 | USR | USR.33 |
 | OPS | OPS.177 |
 | DOC | DOC.121 |
@@ -4669,6 +4669,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | done, PR #6122 |
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | open |
 | TEST.728 | (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates) | none | done, PR #6184 |
+| TEST.729 | Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run) | none | open |
+| TEST.730 | Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s) | none | open |
+| TEST.731 | Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip | TEST.729 | open |
+| TEST.732 | (bug) test_isotope_record.py defines the same test name twice, so the first never runs | none | open |
+| TEST.733 | Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones | none | open |
+| TEST.734 | Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s) | none | open |
+| TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | open |
+| TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | open |
+| TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
