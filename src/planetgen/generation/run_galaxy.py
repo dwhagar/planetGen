@@ -683,7 +683,7 @@ def _sky_unit(unit_args, report):
             # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
-            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+            log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
         finally:
             conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]

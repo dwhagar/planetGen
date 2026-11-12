@@ -108,8 +108,8 @@ def record_duration(db, target, seconds):
         slowest = connection.get(path_key(db, path))
         if slowest is None or seconds >= float(slowest):
             connection.set(path_key(db, path), f"{seconds:.3f}", ex=tuning.SLOW_PAGE_PATH_SECONDS)
-    except (redis.RedisError, OSError, ValueError):
-        pass
+    except (redis.RedisError, OSError, ValueError) as exc:
+        log.degraded("pagejobs", "noting a slow page path in Redis failed", exc)
 
 
 def answer_key(db, target):
@@ -130,14 +130,16 @@ def delivered(db, target):
     """The answer a job kept for `target` in `db` (`deliver`), or `None`."""
     try:
         return _redis().get(answer_key(db, target))
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("pagejobs", "reading a page job answer from Redis failed", exc)
         return None
 
 
 def _duration(key):
     try:
         found = _redis().get(key)
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("pagejobs", "reading a page job duration from Redis failed", exc)
         return None
     try:
         return None if found is None else float(found)
@@ -217,7 +219,9 @@ def status(job_id):
         done = 0 if total is not None else None
     elif total is not None:
         done = 0
-    from planetgen.web.lib import pagecache   # not at import: the queue modules load without the web package
+    from planetgen.web.lib import (
+        pagecache,  # not at import: the queue modules load without the web package
+    )
     return {"id": job_id, "state": state, "done": done, "total": total, "unit": "rows", "estimated": True,
             "eta_seconds": eta, "seconds": round(elapsed, 3), "error": error,
             "canceling": meta.get("canceled") == "1" and state in ("queued", "running"),
@@ -310,7 +314,8 @@ def cancel(job_id):
 def _cancel_asked(job_id):
     try:
         return _redis().hget(meta_key(job_id), "canceled") == "1"
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("pagejobs", "asking Redis whether a page job was canceled failed", exc)
         return False
 
 
