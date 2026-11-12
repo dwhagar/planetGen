@@ -12226,52 +12226,6 @@ clears each one.
   nothing in 8.1.
   Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
-- [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
-  REWORKED (Boss, 10:57 PM EST on 2026-11-07): GEN.1397 removes the life-bearing class list this item counts bodies by; the habitable-class bodies per star band are counted from the stored life class after GEN.1397 (train 18), so its numbers move with that epoch.
-  From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
-  report
-  /mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md,
-  script classes.py in reports/data/planet-class-distribution/). Do:
-  turn the script into a test (a seeded galaxy draw so the host mix is
-  the galaxy's, not the system draw's 74 percent M dwarfs) with each
-  observed rate as a band whose source and tier come from Aux 17's
-  sourcing; repeat the check on the final classes after GEN.689; decide
-  with Boss whether classes O (0.1 percent of planets), P (under 0.05
-  percent) and Q (zero) have a target rate or are only tested for being
-  possible when conditions allow them. Done: the test passes on main
-  with the bands recorded in the registry, and a failure names the bin
-  that left its band. Owner: Aux 16 started it; Aux 16 is retiring, so
-  pool (first free lane). Rules: tests are scripts/test.py changed
-  --resume; the full run belongs to the end-of-version bug hunt only.
-  Prerequisites: GEN.689. Related: GEN.646,
-  GEN.689, GEN.27, GEN.350.
-  Research (2026-10-09): Folded into the class census (TEST.430, Boss
-  7:21 PM EDT 2026-10-28): retire with it.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-  Research (2026-10-09): Part E of the prevalence suite (TEST.430 plan,
-  Bug 2): kept as its own item, built after TEST.430 and TEST.431;
-  supersedes the earlier "folded into TEST.430, retire with it" note.
-  Research (2026-10-09): Bug 2 (PR 3585, 2026-10-28): first cut merged,
-  built on the system draw host mix. Stays open for the repeat on
-  galaxy-placed stars and the final classes after the class cut-over
-  (GEN.646).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Lane 21 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): Kepler DR25 recovery,
-  mass-radius sample, JWST selection fits are in the repo as harness
-  JSONs (kepler_recovery.json, mass_radius_sample.json,
-  jwst_selection.json); the 2,000-system class distribution check and
-  its data are in reports/data/planet-class-distribution; the Bern
-  synthesis binned fit is ngpps_formation_water.json. No occurrence
-  dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-  Owner (TODO sweep, 2026-11-12): Lane 11 (census).
-
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
   Owner (TODO, 9:30 AM EST on 2026-11-08, Boss asked for idle lanes to take non-lock items): Lane 14; lock-free, one item at a time on its own branch.
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
@@ -12524,11 +12478,6 @@ clears each one.
   Lane 22's write-up: /mnt/project-files/reports/memory-kills-and-dynamic-workers-2026-11-08.md; library research: /mnt/project-files/reports/job-library-research-2026-11-08.md (15 libraries read; none re-reads the host while a run goes); Lane 22's Dask assessment: /mnt/project-files/reports/perf254-dask-assessment-2026-11-08.md. Boss chose option 1 of the research (3:34 PM EST on 2026-11-08, 'Send to todo to build option 1'): keep RQ 2.12.0 (no upgrade to RQ 3.0 in this item) and build our own weighted memory gate in Redis fed by psutil. Dask is dropped as the lead (OPS.125 is dropped unless Boss revives it); a Ray one-stage spike is optional and only if Boss asks. Today every worker size is a number measured once in queue/workers.py (STAGE_WORKER_MEMORY_MB) and nothing reads the host while a run goes. Do: add psutil 7.2.2 (new dependency: requirements.lock and the setup script through update.sh); every job carries a claim_mb; a job starts only when the running claims plus its claim plus a reserve fit the budget taken from MemAvailable, re-read every 5 seconds, with a bounded wait and a fallback to the table cap so a wrong gate cannot stall a run; a log line for every decision; claims start from the table and rise to the largest peak seen (units.peak_resident_mb); a job killed for memory retries once with a larger claim, then the run stops with the job named (the idea comes from Snakemake); the cut of a stage into units runs as a claimed job that reads counts per sky cell (GROUP BY), not rows; scale the figures with galaxy size. The job-model fields (claim, dependencies, subjobs) belong to OPS.122 and OPS.124 and the design thread that owns them; this item builds the gate on today's queue, and OPS.124 carries it onto the job model. Output must stay byte-identical (the work seed does not depend on the worker count). Scope (Boss, 3:34 PM EST on 2026-11-08: 'All jobs operate under dynamic load and memory limits to not overload and kill the machine ALLLLLL JOBS'): the gate covers ALL jobs of every kind, with no exempt type: every RQ queue and lane (bulk stage units, scatters, warm-ups, interactive, long and maintenance lanes, API and page jobs, admin tasks, imports, tests and gates, maps, the cut of a stage, anything the web app starts); one gate and one budget; a claim for every job kind (a default claim for a kind with no measured figure, learned from observed peaks); admission also reads the CPU load, not only MemAvailable, so ordinary workers stay under the host cap; the places reserved for interactive work still hold; a test fails when any job kind has no claim, so nothing slips past the gate. Fair-share rule (Boss, 3:44 PM EST on 2026-11-08: 'we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a chance to run'): jobs are scheduled by a task scheduler that shares system time fairly: fair share across job kinds, priority for work that serves the site, no starvation (aging raises a waiting job's turn), and no command, the warm-up included, can block the site; OPS.130 builds the scheduler. Needs Lane 13's measurement of what the cut holds. Done: a full galaxy run on a 16 GB host finishes past stage 13 with no kernel kill, a job killed for memory is retried once and then named, every job kind has a claim (test), and a run with all lanes busy keeps the host under its cap. Lock-free, queue code only; Boss's order: first, before GEN.1441.
   Built (Lane 22, PR 5760, merged 2026-11-08): the gate. Leftovers settled (Lane 22, 2026-11-08): the sky-cell GROUP BY is closed without a build, because PERF.252 (PR 5727) already limits the backfill to charted sectors (a galaxy now opens on 23 sectors and 7 sky cells) and the sky units depend only on the set of 50 pc cells, so a count query would save a few MB and risk changing which cells are planned. Left: the 16 GB full-galaxy run past stage 13, which no code settles; it happens on Boss's test server at his next full run, and the gate's wait lines and the kill report show any shortfall. Retire this item when that run passes.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22 (with Lane 13 for the measurement), first in Lane 22's queue. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
-  Filed by the TODO thread.
-
-- [ ] **UX.295 The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting**
-  Lane 11, 1:51 PM EST on 2026-11-08 (GEN.1432, PR 5729): Do: format the Conditions line (condition_words) through the unit-aware formatters so it follows the visitor's unit setting like the rest of the page. Done: with a non-default unit setting the line shows the chosen units. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: GEN.1432.
   Filed by the TODO thread.
 
 - [ ] **GEN.1449 Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons**

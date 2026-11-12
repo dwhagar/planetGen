@@ -3156,3 +3156,5 @@ Baseline: PR #1817.
 | GEN.1443 | 8.1 | TODO sweep |
 | TEST.728 | 8.1 | TODO sweep |
 | MAP.426 | 8.1 | TODO sweep |
+| TEST.395 | 8.1 | TODO sweep |
+| UX.295 | 8.1 | TODO sweep |
