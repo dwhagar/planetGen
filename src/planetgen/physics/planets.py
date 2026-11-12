@@ -124,17 +124,21 @@ def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
     return max(transition_kg, planet_mass.runaway_mass_kg(star_mass_kg))
 
 
-def apply_class(planet):
+def prepare_class(planet):
     """
-    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`; the composition text is
-    written from the stored fractions, GEN.430). Called when the body is built (so a request can test it) and again once the system is
-    final (the seasonal swing of its starlight, `flux_variation`, is known only then). The words that describe a class are read at view
-    time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
+    What the class reads that the motion and the spin do not make (GEN.1587): the body type (`planet_type.fill`, GEN.1219: terrestrial, transitional, super-puff or gas, from the
+    envelope share (GEN.1226) and the super-puff gate (GEN.1343)) and the roundness ratio (`body_strength.generate`, GEN.1159; a giant body type has none), and the class cleared. The spin chain
+    (`generate_spin`) reads the body type, so this comes before it; `classify` comes after it, because the classes that read the latitude bands (M, O, H, P and R, through the hottest and coldest
+    region, the night side and the wet bulb) can only see them once `habitability_world.generate`, the end of that chain, has made them.
     """
     planet.planet_class = None
     planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
-    planet_type.fill(planet)            # GEN.1219: terrestrial, transitional, super-puff or gas, from the envelope share (GEN.1226) and the super-puff gate (GEN.1343)
-    body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
+    planet_type.fill(planet)
+    body_strength.generate(planet)
+
+
+def classify(planet):
+    """The class letter, its match, the runner-up and the digit of a body `prepare_class` has prepared and whose bands exist (GEN.1587); an Asteroid gets none."""
     detail = planet_classes.classify_detail(planet)
     if detail is None:
         return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
@@ -142,6 +146,17 @@ def apply_class(planet):
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
+
+
+def apply_class(planet):
+    """
+    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`; the composition text is
+    written from the stored fractions, GEN.430). Called once the system is final (the seasonal swing of its starlight, `flux_variation`, is
+    known only then), when the latitude bands exist; a body being built is prepared first, given its spin (and so its bands) and classified after
+    (`prepare_class`, `classify`, GEN.1587). The words that describe a class are read at view time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
+    """
+    prepare_class(planet)
+    classify(planet)
 
 
 @finite_domain()
@@ -354,12 +369,14 @@ def remake_end_stages(body, planet):
     with draw.bound(stream):
         if body.is_moon:
             calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
-            apply_class(body)
+            prepare_class(body)
             generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
+            classify(body)      # GEN.1587: after the spin, which makes the latitude bands the class reads
         else:
             calculate_atmospheric_conditions(body)
-            apply_class(body)
+            prepare_class(body)
             generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+            classify(body)
 
 
 def refinish_rocky(planet):
@@ -525,8 +542,9 @@ def settle_giant(planet):
                          f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
-        apply_class(planet)
+        prepare_class(planet)
         generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))  # the birth spin again worn to the final age, then the field, the dose, the colour and the score
+        classify(planet)      # GEN.1587: after the score, which makes the latitude bands the class reads
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
@@ -815,8 +833,9 @@ def _remake_what_reads_the_air(planet):
     """
     stream = draw.Stream(f"late-accretion-end:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
-        apply_class(planet)
+        prepare_class(planet)
         generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))
+        classify(planet)      # GEN.1587: after the score, which makes the latitude bands the class reads
     for moon in planet.moons:
         daylight.generate(moon, planet)
 
