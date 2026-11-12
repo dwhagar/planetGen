@@ -167,9 +167,9 @@ class SchemaTooOldError(RuntimeError):
     """
     Raised when a database's schema version is older than the oldest this
     code upgrades from (`alembic_runner.BASELINE_VERSION`, DB.11): the
-    migration steps below it were removed once Alembic took over. The fix
-    is to bring the database to the baseline with an earlier planetGen
-    (the last release before DB.11's cleanup), then update.
+    migration steps below it were removed (DB.98, DB.127: Boss's hard cut, no
+    database structure before 8.0). `legacy/bump_database_to_8_0.py` brings a
+    database from v61 up to the baseline on request (DB.126); then update.
     """
 
     def __init__(self, database, version):
@@ -177,8 +177,9 @@ class SchemaTooOldError(RuntimeError):
         self.version = version
         super().__init__(
             f"database '{database}' is at schema v{version}, older than v{alembic_runner.BASELINE_VERSION}, "
-            f"the oldest this planetGen upgrades from. Run update.sh from an earlier planetGen checkout "
-            f"(before the Alembic cleanup) to bring it to v{alembic_runner.BASELINE_VERSION} first."
+            f"the oldest this planetGen upgrades from. To keep its data, run legacy/bump_database_to_8_0.py "
+            f"from this checkout (back the database up first; it brings a database from v61 up to "
+            f"v{alembic_runner.BASELINE_VERSION}), then run update.sh. Otherwise drop the database and run update.sh to make a new one."
         )
 
 
