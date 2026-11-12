@@ -28,7 +28,7 @@ def test_a_progress_line_comes_when_the_log_cadence_and_ten_percent_have_passed(
     """OPS.99, OPS.169: a chunk every 20 s of a stage of 8 is a line every two chunks (40 s, past the 30 s log cadence, 25 points), not one per chunk."""
     lines = _run(8)
     progress = [line for line in lines if "%" in line]
-    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 0:40 elapsed"
+    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 40.0 s elapsed"
     assert len(progress) == 3 and progress[2].startswith("galaxy-deep-nodes 75% (6 of 8 chunks)")
     assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 2:40 over 8 chunks of up to 64 nodes; "
                          "1 chunk at once, 20.0 s a chunk on its worker; family 2 of 2")
@@ -40,7 +40,7 @@ def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
     first = next(line for line in lines if "%" in line)
     assert "left" not in first and "2 of 8" in first
     later = [line for line in lines if "%" in line][-1]
-    assert "2:00 elapsed, about 0:40 left" in later
+    assert "2:00 elapsed, about 40.0 s left" in later
 
 
 def test_the_closing_line_says_how_many_chunks_run_at_once_and_how_long_a_chunk_takes_on_its_worker():
