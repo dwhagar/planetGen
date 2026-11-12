@@ -166,3 +166,17 @@ def test_a_ring_next_to_a_planet_is_left_out_and_a_far_one_kept():
     kept_axes, kept_masses = sc.clear_rings(axes, masses, [2.2])
     assert len(kept_axes) < len(axes) and all(min(a, 2.2) / max(a, 2.2) <= sc.BELT_ALPHA_LIMIT for a in kept_axes)
     assert sc.clear_rings(axes, masses, [0.5]) == (axes, masses)
+
+
+def test_two_close_in_planets_with_a_distant_belt_exchange_as_they_would_without_it():
+    """GEN.1661: a belt's rings are at rest, so they set no fixed point; the planets' nodal block is singular to roundoff (its rows sum to zero but for a pull of 1e-17 of the planets' own),
+    and `evolve` used to raise "Singular matrix" (23 of 600 systems asked for a habitable world and a belt)."""
+    planets = ([0.042251438496789355, 0.05988554646311589], [8.693771682777369e24, 1.2953418525462725e25], 1.0 * SUN_KG,
+               [1.2279207048110896e-05, 0.0048585685820451], [0.3, 1.0], [0.02, 0.01], [4.629775875678458, 0.7368320364212425], 5.0e9)
+    plain = sc.evolve(*planets)
+    belted = sc.evolve(*planets, *sc.belt_rings(2.2, 3.4, 1.0e22))
+    assert belted.linear == plain.linear
+    for got, want in zip(belted.inclination, plain.inclination):
+        assert math.isfinite(got) and got == pytest.approx(want, rel=0.05), "the belt only turns the nodes a little, it does not make the planets' tilts"
+    for got, want in zip(belted.eccentricity, plain.eccentricity):
+        assert math.isfinite(got) and got == pytest.approx(want, abs=1e-3)

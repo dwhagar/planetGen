@@ -197,7 +197,8 @@ def _evolve(matrix, start, years):
 
 def _drive(matrix, start, years, held):
     """`_evolve` for the planets not `held`, which keep their `start` and push on the rest as they are: the rest go round the fixed point those held ones set (`z_eq = -A_PP^-1 A_PH z_H`)
-    as `z_eq + exp(i A_PP t) (z(0) - z_eq)`."""
+    as `z_eq + exp(i A_PP t) (z(0) - z_eq)`. Held ones at rest (`start` zero: the flat rings of a belt) set `z_eq = 0`. The block of planets far from every held body can be singular: the rows of `B_PP` sum to zero without them (the invariable plane
+    is a mode of the planets alone) and a distant, light belt's pull on it is below roundoff (GEN.1661); with a push on such a block, `z_eq` is the shortest solution."""
     free = [i for i, h in enumerate(held) if not h]
     fixed = [i for i, h in enumerate(held) if h]
     if not free:
@@ -205,7 +206,13 @@ def _drive(matrix, start, years, held):
     if not fixed:
         return _evolve(matrix, start, years)
     block = matrix[np.ix_(free, free)]
-    rest = np.linalg.solve(block, matrix[np.ix_(free, fixed)] @ start[fixed])
+    push = matrix[np.ix_(free, fixed)] @ start[fixed]
+    if not np.any(push):
+        rest = np.zeros(len(free), complex)         # the held ones are at rest (the flat rings of a belt, GEN.1661): nothing sets a fixed point but the origin
+    elif np.linalg.matrix_rank(block) == len(free):
+        rest = np.linalg.solve(block, push)
+    else:
+        rest = np.linalg.lstsq(block, push, rcond=None)[0]     # a block with a zero mode (the invariable plane of the free planets) the held ones barely touch: the shortest solution
     out = start.copy()
     out[free] = -rest + _evolve(block, start[free] + rest, years)
     return out
