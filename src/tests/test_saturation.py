@@ -14,10 +14,10 @@ from planetgen.physics import gases, saturation
 # The species whose triple-point pressure on the highest-temperature fit is further than 3 percent from the gas table's,
 # with the ratio (the module docstring says the same).
 OFF_BY_OVER_THREE_PERCENT = {"SO2": 1.038, "C6H6": 1.071, "C2H2": 0.964}
-NO_TRIPLE_PRESSURE = {"HCN", "HF"}
-NO_TRIPLE_POINT = {"HF"}
-"""set: Species whose curve is the critical-point correlation (GEN.524): the gas table holds no triple point for hydrogen fluoride."""
-NO_LIQUID_BRANCH = {"C2H2", "HCl", "HF"}
+NO_TRIPLE_PRESSURE = {"HCN", "HF", "S2"}
+NO_TRIPLE_POINT = {"HF", "S2"}
+"""set: Species whose curve is the critical-point correlation (GEN.524): the gas table holds no triple point for hydrogen fluoride; none for disulfur, a fit to a computed table (GEN.1564)."""
+NO_LIQUID_BRANCH = {"C2H2", "HCl", "HF", "S2"}
 
 
 def _triple_ratio(formula):
@@ -466,26 +466,31 @@ def test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_t
         assert saturation.pressure_pa(formula, 68.0) < 1e-6 * 1e5 * 1e-3
 
 
-# GEN.1564 slice 0: the held-back sulfur curve. The gas table's T6 rows give the temperature at which condensed sulfur holds 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa;
+# GEN.1564: the sulfur curve. The gas table's T6 rows give the temperature at which condensed sulfur holds 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa;
 # the fit was made to those and carries a worst-case error of 8.8 percent over 312 to 925 K (the table's temperatures are whole kelvin).
 S2_TABLE_K = ((1.0e-3, 406.0), (1.0, 504.0), (100.0, 605.0), (1.0e4, 763.0), (1.0e5, 882.0))
 
 
 @pytest.mark.parametrize("pressure_pa, temperature_k", S2_TABLE_K)
-def test_the_held_back_sulfur_curve_reproduces_the_gas_tables_rows(pressure_pa, temperature_k):
-    found = saturation.unread_pressure_pa("S2", temperature_k)
+def test_the_sulfur_curve_reproduces_the_gas_tables_rows(pressure_pa, temperature_k):
+    found = saturation.pressure_pa("S2", temperature_k)
     assert found == pytest.approx(pressure_pa, rel=0.10), (temperature_k, found)       # the fit's own worst error is 8.8 percent
+    assert saturation.condensation_temperature_k("S2", pressure_pa) == pytest.approx(temperature_k, abs=15.0)
 
 
-def test_the_held_back_sulfur_curve_rises_with_temperature_and_is_not_seen_by_the_callers():
+def test_the_sulfur_curve_rises_with_temperature_and_says_where_it_is_carried_on():
     temperatures = [320.0 + 20.0 * step for step in range(31)]
-    values = [saturation.unread_pressure_pa("S2", t) for t in temperatures]
+    values = [saturation.pressure_pa("S2", t) for t in temperatures]
     assert all(b > a > 0.0 for a, b in zip(values, values[1:]))
-    assert saturation.unread_formulas() == ("S2",)
-    assert not saturation.has("S2") and "S2" not in saturation.formulas()
-    with pytest.raises(saturation.UnknownSpecies):
-        saturation.saturation("S2", 500.0)
-    with pytest.raises(saturation.UnknownSpecies):
-        saturation.unread_pressure_pa("H2O", 300.0)
-    with pytest.raises(ValueError):
-        saturation.unread_pressure_pa("S2", 0.0)
+    assert saturation.has("S2") and saturation.species("S2").form == "log-fit"
+    assert saturation.saturation("S2", 350.0).phase == saturation.SOLID and saturation.saturation("S2", 450.0).phase == saturation.LIQUID
+    assert saturation.saturation("S2", 450.0).status == saturation.OK and saturation.saturation("S2", 300.0).status == saturation.BELOW_FIT
+    assert saturation.condensation_temperature_k("S2", 1.0e9) is None
+
+
+def test_a_column_of_sulfur_vapor_over_a_cold_surface_condenses_to_the_curve():
+    from planetgen.physics import surface_air
+    moles = {"N2": 1.0e19, "S2": 1.0e19}
+    left, condensed, _ = surface_air.freeze_out(moles, 9.8, 5.1e14, 300.0)
+    assert condensed["S2"] > 0.0 and left["S2"] < moles["S2"]
+    assert condensed.get("N2", 0.0) == pytest.approx(0.0, abs=1.0e-6)

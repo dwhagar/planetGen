@@ -46,9 +46,9 @@ vapor-pressure curve lives; the callers (GEN.452) read it.
   saturation: the status is `above-critical` and the pressure is infinite.
 * **Known departures at the triple point** from the gas table's pressure: SO2 3.8 percent over, benzene 7 percent over,
   acetylene 3.6 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
-* **Sulfur (S2) is held back** (GEN.1564 slice 0): `unread` in the file holds `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent
-  at worst against the gas table's NASA-polynomial vapor pressure over condensed sulfur) and `unread_pressure_pa` serves it, but `species`, `has`
-  and `saturation` do not know it: putting it in `species` makes every caller see a new gas at once. Slice 1 moves it (stand-in SV1).
+* **Sulfur (S2) is a fit to a computed table** (GEN.1564, `log-fit`): `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent at
+  worst against the gas table's NASA-polynomial vapor pressure over condensed sulfur, stand-in SV1), carried on outside the window; the condensate is solid
+  below 388.36 K and liquid above. The gas table has no triple point for it, so the checks that read one skip it.
 * **Hydrogen's solid** is Clausius-Clapeyron from its triple point with a latent heat of sublimation of 1.02 kJ/mol (the
   gas table's 0.90 of vaporisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species
   without a curve raise `UnknownSpecies`.
@@ -177,13 +177,30 @@ class Liquid:
 
 
 @dataclass(frozen=True)
+class LogFit:
+    """
+    A fit to a computed table (GEN.1564): `ln(P/Pa) = a + b/T + c ln T` over condensed sulfur, between `from_k` and `to_k`.
+
+    Attributes:
+        coefficients (tuple): a, b, c.
+        from_k, to_k (float): The window of the fit; outside it the value is the fit carried on.
+        max_error_percent (float): The largest departure of the fit from the table it was fitted to, in its window.
+    """
+
+    coefficients: Tuple[float, ...]
+    from_k: float
+    to_k: float
+    max_error_percent: float
+
+
+@dataclass(frozen=True)
 class Species:
     """
     One species.
 
     Attributes:
         formula, name (str): As the gas table writes them.
-        form (str): The solid's: `"fray-schmitt"`, `"feistel-wagner"`, `"span-wagner"`, `"clausius-clapeyron"` or `"edmister"` (the critical-point
+        form (str): The solid's: `"fray-schmitt"`, `"feistel-wagner"`, `"span-wagner"`, `"clausius-clapeyron"`, `"log-fit"` or `"edmister"` (the critical-point
             correlation of a species with no triple point in the gas table, GEN.524).
         selection (str): How a second fit was placed (`"single"` or `"crossing"`).
         curves (tuple): The `Curve`s, coldest first (empty for water and carbon dioxide).
@@ -193,6 +210,7 @@ class Species:
         sublimation_kj_mol (float or None): The latent heat of the Clausius-Clapeyron solid.
         liquid (Liquid or None): The liquid branch; `None` where there is none.
         note (str): What is known to be wrong or unread about the row.
+        log_fit (LogFit or None): The fit of a `"log-fit"` species (sulfur).
     """
 
     formula: str
@@ -206,28 +224,7 @@ class Species:
     sublimation_kj_mol: Optional[float]
     liquid: Optional[Liquid]
     note: str
-
-
-@dataclass(frozen=True)
-class LogFit:
-    """
-    A held-back species (GEN.1564 slice 0): `ln(P/Pa) = a + b/T + c ln T` over condensed sulfur, between `from_k` and `to_k`.
-
-    Attributes:
-        formula, name (str): `"S2"`, `"disulfur"`.
-        coefficients (tuple): a, b, c.
-        from_k, to_k (float): The window of the fit; outside it the value is the fit carried on.
-        max_error_percent (float): The largest departure of the fit from the table it was fitted to, in its window.
-        note (str): Where the fit comes from and why it is not in `species`.
-    """
-
-    formula: str
-    name: str
-    coefficients: Tuple[float, ...]
-    from_k: float
-    to_k: float
-    max_error_percent: float
-    note: str
+    log_fit: Optional[LogFit] = None
 
 
 @dataclass(frozen=True)
@@ -256,7 +253,7 @@ def _load():
                 raise ValueError(f"saturation_pressure.json: {formula} curves must start at 0 K and switch upwards")
             if any(len(curve.coefficients) != 7 for curve in curves):
                 raise ValueError(f"saturation_pressure.json: {formula} needs the seven coefficients A0 to A6")
-        elif row["form"] not in ("feistel-wagner", "clausius-clapeyron", "span-wagner", "edmister"):
+        elif row["form"] not in ("feistel-wagner", "clausius-clapeyron", "span-wagner", "edmister", "log-fit"):
             raise ValueError(f"saturation_pressure.json: {formula} has an unknown form {row['form']!r}")
         cold_end = None
         if row.get("cold_end"):
@@ -277,21 +274,22 @@ def _load():
             if item["form"] not in ("wagner", "dippr101"):
                 raise ValueError(f"saturation_pressure.json: {formula} has an unknown liquid form {item['form']!r}")
             liquid = Liquid(item["form"], float(item["t_max_k"]), item.get("pc_pa"), tuple(float(a) for a in item["coefficients"]))
+        log_fit = None
+        if row["form"] == "log-fit":
+            if len(row["coefficients"]) != 3:
+                raise ValueError(f"saturation_pressure.json: {formula} log-fit needs the three coefficients a, b, c")
+            log_fit = LogFit(tuple(float(a) for a in row["coefficients"]), float(row["from_k"]), float(row["to_k"]), float(row["max_error_percent"]))
         rows[formula] = Species(formula, row["name"], row["form"], row["selection"], curves, cold_end, span_wagner,
-                                tuple(float(e) for e in row.get("coefficients", ())), row.get("sublimation_kj_mol"), liquid,
-                                row.get("note", ""))
-    unread = {formula: LogFit(formula, row["name"], tuple(float(a) for a in row["coefficients"]), float(row["from_k"]), float(row["to_k"]),
-                              float(row["max_error_percent"]), row["note"])
-              for formula, row in data.get("unread", {}).items()}
-    for formula, row in data.get("unread", {}).items():
-        if row["form"] != "log-fit" or len(row["coefficients"]) != 3 or formula in rows:
-            raise ValueError(f"saturation_pressure.json: unread {formula} needs form log-fit, three coefficients and no row in species")
-    return data["cold_unverified_below_k"], rows, unread
+                                tuple(float(e) for e in row.get("coefficients", ())) if row["form"] != "log-fit" else (), row.get("sublimation_kj_mol"), liquid,
+                                row.get("note", ""), log_fit)
+    return data["cold_unverified_below_k"], rows
 
 
-COLD_UNVERIFIED_BELOW_K, _TABLE, _UNREAD = _load()
+COLD_UNVERIFIED_BELOW_K, _TABLE = _load()
 """float: Below this temperature the answer is `cold-unverified` (model error of the fits in the cold, finding 11)."""
 
+SULFUR_MELTING_POINT_K = 388.36
+"""float: Condensed sulfur is solid below this temperature and liquid above it (the phase of the S2 curve's condensate)."""
 WATER_TRIPLE_POINT_K = 273.16
 WATER_TRIPLE_POINT_PA = 611.657
 
@@ -446,6 +444,11 @@ def saturation(formula, temperature_k):
     elif row.form == "edmister":
         pressure = _edmister_pa(formula, temperature_k)
         curve_id = f"{formula}-Edmister"
+    elif row.form == "log-fit":
+        a, b, c = row.log_fit.coefficients
+        phase = SOLID if temperature_k < SULFUR_MELTING_POINT_K else LIQUID
+        return Saturation(math.exp(a + b / temperature_k + c * math.log(temperature_k)), BELOW_FIT if temperature_k < row.log_fit.from_k else OK,
+                          f"{formula}-fit", phase)
     else:
         curve = curve_at(formula, temperature_k)
         floor = curve.floor_k
@@ -460,28 +463,6 @@ def saturation(formula, temperature_k):
     else:
         status = OK
     return Saturation(pressure, status, curve_id, SOLID)
-
-
-def unread_formulas():
-    """The formulas of the held-back curves (GEN.1564 slice 0): in the file, not in `species`, so `has` and `saturation` do not see them."""
-    return tuple(_UNREAD)
-
-
-def unread_pressure_pa(formula, temperature_k):
-    """
-    The pressure of a held-back curve, Pa: `exp(a + b/T + c ln T)`, the fit carried on outside its window (read by the tests until GEN.1564
-    slice 1 moves the row into `species`).
-
-    Raises:
-        UnknownSpecies: There is no held-back curve for `formula`.
-        ValueError: The temperature is not above zero.
-    """
-    if formula not in _UNREAD:
-        raise UnknownSpecies(formula)
-    if not temperature_k > 0:
-        raise ValueError("a temperature must be positive")
-    a, b, c = _UNREAD[formula].coefficients
-    return math.exp(a + b / temperature_k + c * math.log(temperature_k))
 
 
 def pressure_pa(formula, temperature_k):
@@ -504,6 +485,9 @@ def condensation_temperature_k(formula, pressure_pa):
     row = species(formula)
     if row.liquid is not None:
         top, top_pa = row.liquid.t_max_k, _liquid_pa(row.liquid, row.liquid.t_max_k)
+    elif row.form == "log-fit":
+        top = row.log_fit.to_k       # the top of the fit's window: a pressure over its value there is not asked of the fit
+        top_pa = saturation(formula, top).pressure_pa
     else:
         top = triple_point_k(formula)
         top_pa = saturation(formula, top).pressure_pa
