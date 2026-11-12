@@ -4097,7 +4097,7 @@ How a partner star's tide takes a star's spin toward the orbit's and turns the o
 | KT7 | P | T3 | L2 | star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass | the four values | main-sequence stars and giants | a star whose measured apsidal motion constant is off by a factor of three | the constants of a stellar model of the star's mass and age [R5233] | observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14 |
 | KT8 | P | T7 | L0 | a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin | none | triples where the outer orbit is much wider than the inner | a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own | the Kozai and secular terms of GEN.1447 added to the apsidal rate | the pair node's own tide dominates by the sixth power of the axis ratio |
 
-### 6.279 Stand-ins of the Kozai-Lidov screen of a planet (GEN.1447)
+### 6.284 Stand-ins of the Kozai-Lidov screen of a planet (GEN.1447)
 
 `physics/kozai_planets.py` screens a planet as the inner body of the triple (its star, the planet, a companion star or a heavier outer sibling) with the maths of `kozai_bodies` (rows KZ1 to KZ6 of section 6.262). Pure and unwired. Report: `reports/gen1447-planet-case-2026-11-12.md`.
 

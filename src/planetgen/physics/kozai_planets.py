@@ -19,7 +19,7 @@ to the planet's eccentricity and inclination at the star's age and drops a plane
 * **The starting argument of periapsis** is drawn from a stream of the planet's own numbers (`kozai-planet:` plus its mass, axis and the host's mass), so a planet made again is the same and no other draw moves.
 * **Which perturber:** the screen is run for each, and the planet takes the one that cycles with the shortest Kozai time (`cycling_perturbers` lists the rest); with none cycling the planet is quiet.
 
-Registered stand-ins: the reuse of KZ1 to KZ6 (section 6.262) for the triple, and KZP1 to KZP2 (section 6.279) for the choice of the strongest perturber and the outer-sibling mass rule.
+Registered stand-ins: the reuse of KZ1 to KZ6 (section 6.262) for the triple, and KZP1 to KZP2 (section 6.284) for the choice of the strongest perturber and the outer-sibling mass rule.
 """
 
 import math

@@ -64177,8 +64177,8 @@
       "title": "Stand-ins of the mutual tides of the stars of a pair"
     },
     {
-      "key": "6.279",
-      "number": "6.279",
+      "key": "6.284",
+      "number": "6.284",
       "rows": [
         {
           "burn_down": null,
@@ -64209,9 +64209,9 @@
             ]
           ],
           "id": "KZP1",
-          "key": "6.279:KZP1",
+          "key": "6.284:KZP1",
           "kind": "P",
-          "slug": "6-279-kzp1",
+          "slug": "6-284-kzp1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -64247,17 +64247,17 @@
             ]
           ],
           "id": "KZP2",
-          "key": "6.279:KZP2",
+          "key": "6.284:KZP2",
           "kind": "P",
-          "slug": "6-279-kzp2",
+          "slug": "6-284-kzp2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1500",
+          "unread": "GEN.1645",
           "what": "kozai_planets.SIBLING_MASS_RATIO 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis"
         }
       ],
-      "slug": "6-279-stand-ins-of-the-kozai-lidov-screen-of-a-planet",
+      "slug": "6-284-stand-ins-of-the-kozai-lidov-screen-of-a-planet",
       "title": "Stand-ins of the Kozai-Lidov screen of a planet"
     }
   ]
