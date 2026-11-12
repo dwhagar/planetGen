@@ -604,7 +604,9 @@ def test_the_dial_at_zero_gives_the_same_system_as_the_dial_at_one_wherever_noth
     from planetgen.util import draw
 
     compared = 0
-    for number in range(12):
+    for number in range(60):          # a search for four systems that rolled none (TEST.714): the share of those moves with the draws
+        if compared >= 4:
+            break
         made = {}
         for dial in (0.0, 1.0):
             with draw.bound(f"isolation:{number}"):
