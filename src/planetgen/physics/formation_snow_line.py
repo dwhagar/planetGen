@@ -29,7 +29,7 @@ def formation_snow_line_au(initial_mass_sol, fe_h):
 
 
 def draw_formation_snow_line_au(initial_mass_sol, fe_h, stream=None):
-    """The star's own snow line, in AU, drawn once around `formation_snow_line_au` (`formation.draw_snow_line_au`: 0.2 dex, cut at the sourced spread of a factor of 3)."""
+    """The star's own snow line, in AU, drawn once around `formation_snow_line_au` (`formation.draw_snow_line_au`: 0.2 dex, cut at 3 sigma)."""
     return formation.draw_snow_line_au(formation_luminosity_sol(initial_mass_sol, fe_h) * constants.SOLAR_LUMINOSITY, stream)
 
 

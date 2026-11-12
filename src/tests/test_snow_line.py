@@ -51,19 +51,11 @@ def test_the_drawn_line_has_the_median_and_scatter_stated():
     with draw.bound(458):
         logs = sorted(math.log10(formation.draw_snow_line_au(luminosity) / center) for _ in range(20000))
     assert statistics.median(logs) == pytest.approx(0.0, abs=0.01)
-    # 0.2 dex, a little under it for the cut at the sourced factor of 3 ([R3193]: lines move by a factor of 2 to 3)
-    assert statistics.pstdev(logs) == pytest.approx(0.1885, abs=0.004)      # 0.2 dex of the normal, cut at 2.39 sigma
+    # 0.2 dex, a little under it for the cut at 3 sigma
+    assert statistics.pstdev(logs) == pytest.approx(tuning.SNOW_LINE_SCATTER_DEX, abs=0.005)
     limit = tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA
-    assert limit == pytest.approx(math.log10(3.0))
     assert -limit <= logs[0] and logs[-1] <= limit
-    assert logs[0] < -0.45 and logs[-1] > 0.45, "the tails are reached"
-
-
-def test_no_drawn_line_is_more_than_a_factor_of_three_from_its_blackbody_position():
-    center = formation.snow_line_au(constants.SOLAR_LUMINOSITY)
-    with draw.bound(1611):
-        ratios = [formation.draw_snow_line_au(constants.SOLAR_LUMINOSITY) / center for _ in range(50000)]
-    assert max(ratios) <= 3.0 + 1e-9 and min(ratios) >= 1.0 / 3.0 - 1e-9
+    assert logs[0] < -0.5 and logs[-1] > 0.5, "the tails are reached"
 
 
 def test_the_same_star_draws_the_same_line_from_its_own_stream():

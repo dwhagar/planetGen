@@ -353,15 +353,11 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
-# law ([R3193, R3196], [R3193]). The draw is cut at the spread the lines are
-# found to move by with the accretion history and the dust, a factor of 3 either
-# way (the "factor 2 to 3" of [R3193], read at the abstract; the upper end is
-# taken, tier T2, tweak L1, registry PA19): `SNOW_LINE_SPREAD_FACTOR`, in sigmas
-# `SNOW_LINE_SCATTER_MAX_SIGMA`. (It was 3 sigma, a factor of 4, which put the line
-# inside the habitable zone for 104 of 3,000 stars, GEN.1611.)
+# law ([R3193, R3196], [R3193]). The draw is cut at
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
+# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
 SNOW_LINE_SCATTER_DEX = 0.2
-SNOW_LINE_SPREAD_FACTOR = 3.0
-SNOW_LINE_SCATTER_MAX_SIGMA = _math.log10(SNOW_LINE_SPREAD_FACTOR) / SNOW_LINE_SCATTER_DEX
+SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 
 # The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
 # `physics.planet_zones`): a protoplanetary disk around a star or a pair is

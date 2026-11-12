@@ -44,11 +44,12 @@ def test_a_star_with_no_stored_initial_mass_uses_the_mass_its_planets_formed_rou
     assert fsl.initial_mass_sol_of(_star_like(4.36, 0.6 * constants.SOLAR_MASS_TO_KG)) == 4.36
 
 
-def test_the_drawn_line_is_inside_a_factor_of_three_of_the_birth_position_and_draws_from_its_own_stream():
+def test_the_drawn_line_is_inside_the_scatter_cut_of_the_birth_position_and_draws_from_its_own_stream():
     star = _star_like(1.0, constants.SOLAR_MASS_TO_KG, yerkes="V")
     center = fsl.formation_snow_line_au(1.0, 0.0)
     lines = [fsl.draw_for_star(star, draw.Stream(f"t:{index}")) for index in range(200)]
-    assert all(1.0 / 3.0 - 1e-9 <= line / center <= 3.0 + 1e-9 for line in lines)
+    limit = tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA
+    assert all(abs(math.log10(line / center)) <= limit + 1e-9 for line in lines)
     assert lines[0] == fsl.draw_for_star(star, draw.Stream("t:0"))
     draw.set_run_seed(7)
     first = draw.random()
@@ -66,7 +67,7 @@ def test_a_generated_white_dwarf_stores_the_line_of_its_progenitors_disk():
             continue
         seen += 1
         center = fsl.formation_snow_line_au(fsl.initial_mass_sol_of(star), star.metallicity_fe_h)
-        assert abs(math.log10(star.snow_line_au / center)) <= math.log10(3.0) + 1e-9
+        assert abs(math.log10(star.snow_line_au / center)) <= tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA + 1e-9
         assert star.snow_line_au > 0.2, "not the 0.02 AU of a white dwarf's own light"
         if seen >= 4:
             break

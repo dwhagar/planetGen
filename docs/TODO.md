@@ -5189,6 +5189,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Owner (TODO sweep, 2026-11-12): Lane 21 (composition).
+  Part 2 built, lock-free and unwired (PR 6179, Lane 21, 2026-11-12: rock_assemblage.py, a ground's mineral mix as the norm of its own oxides). Wiring replaces four stand-in recipes (oxidized stays a recipe) and moves ground shares and albedo: lock item.
 
 - [ ] **GEN.475 Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration**
   Body composition research lane, section 14.4 of
@@ -7496,6 +7497,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
   Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): stays in 8.1 as a light version: mark the Star, Planet and Moon fields as origin (drawn once at birth) or present state (recomputed), and a test that a remake recomputes every present field; built with GEN.1611, GEN.1596, GEN.1606, GEN.1605, GEN.1591 and GEN.1546 (the bug sweep's birth-against-present findings). The full Field-table version waits for GEN.565 in 8.2. Owner: Lane 21, with Lane 05 for the star side.
   Prerequisite GEN.565, GEN.570 lifted (TODO, 2026-11-12): moved to 8.2 under Boss's 9:19 PM EST plan; this item does not wait for it.
+  Light version built (PR 6169, Lane 21, 2026-11-12: generation/body_state_fields.py classifies Star, Planet and Moon fields as birth or present, with a remake test). What is left is the full Field-table version with GEN.565 in 8.2.
 
 - [ ] **GEN.583 reparent: the state-preserving change of a body's parent, shared by re-primary at an event, an ejection, a capture and a merger**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -9261,15 +9263,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census shows the effect.
   Prerequisites: none.
   Owner (TODO sweep, 2026-11-12): Lane 05 (audits).
-
-- [ ] **GEN.1153 Day and night state for stars and rogue planets (follow-up to GEN.1097, which covers planets and moons): a star stores the constant "no night"; a rogue planet gets the same state, night hours and solar days as an in-system planet from its own spin, with no star the answer is no solar day**
-  GEN.1097 stores a day and night state, hours of night and solar days
-  per year for every planet and moon and shows them on the property
-  sheet. Stars and rogue planets store nothing yet. Belt bodies get
-  theirs with GEN.1069. Needs a migration for any stored column, so it
-  rides a train after GEN.1097.
-  Prerequisites: none.
-  Owner (TODO sweep, 2026-11-12): Lane 23 (spin and day).
 
 - [ ] **GEN.1157 Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture**
   Boss, relayed by Lane 22 (10:26 PM EDT 2026-10-30): file separately the
@@ -12533,16 +12526,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22 (with Lane 13 for the measurement), first in Lane 22's queue. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
   Filed by the TODO thread.
 
-- [ ] **MAP.409 Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in**
-  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_the_wheel_carries_the_map_into_a_system_and_back_out_with_no_page_load[single]. Do: find the object that is null when the wheel carries the map into a system (the scene update) and fix the page, not the test. Done: the test passes with no uncaught exception and the scene fades in. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
-- [ ] **MAP.410 Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')"**
-  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_each_edit_of_the_waypoints_plans_the_course_again. Do: find the element read before it exists or after it is removed, and fix the page. Done: the test passes with no uncaught exception. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
 - [ ] **UX.295 The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting**
   Lane 11, 1:51 PM EST on 2026-11-08 (GEN.1432, PR 5729): Do: format the Conditions line (condition_words) through the unit-aware formatters so it follows the visitor's unit setting like the rest of the page. Done: with a non-default unit setting the line shows the chosen units. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: GEN.1432.
@@ -13284,11 +13267,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 22. Prerequisites: none. Related: GEN.1548.
   Filed by the TODO thread. Bug sweep.
 
-- [ ] **GEN.1593 (bug) A NaN quantity passes the class fit as a perfect match (a body with NaN gravity came out class M at 100 percent): add the missing guard in physics/class_fit.py**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, M5, confirmed by hand case (no NaN found on 850 sample bodies, so this is a missing guard, not a live fault). physics/class_fit.py lines 103-136: a NaN quantity gives a NaN membership, comparisons with NaN are false and the sort order breaks. Do: treat a NaN (or missing) quantity as no match and raise a loud, tested error in generation (reuse the existing validation raise; no new logger), never a silent best fit. Done: a test that a NaN in any class quantity scores 0 and that the generation path fails loudly on a stored NaN. Lock-free if it changes no output (no body has a NaN today).
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1587, TEST.719.
-  Filed by the TODO thread. Bug sweep.
-
 - [ ] **GEN.1594 (bug) surface_air.solve: the carbon sink record (Air.co2_sink) is only written on steps that weather, so it can be from an earlier step; and if the no-escape fixed point first settles on the last allowed step, the escape pass never runs**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L1, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 15. Prerequisites: none. Related: GEN.1555.
@@ -13310,11 +13288,6 @@ clears each one.
   Filed by the TODO thread. Bug sweep.
   Status (TODO, 2026-11-12): Lane 23 built the fix on claude/bugsweep-lane23 (afc237cb6, lock item for the earliest train); the state-preserving reparent of GEN.583 is the general form.
 
-- [ ] **GEN.1598 (bug) habitability_world.inventories (about lines 315-321): 'C' is max(hydrogen, carbon...) and 'N' is max(hydrogen, nitrogen...), crediting carbon and nitrogen with the water inventory; looks like a copy slip, confirm intent first**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L5, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1583.
-  Filed by the TODO thread. Bug sweep.
-
 - [ ] **GEN.1599 (bug) planets.generate_moons (about line 1557): disk-full rejections count against MOON_REJECTION_LIMIT while too-large rejections count against the passed rejection_limit**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L6, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 23. Prerequisites: none. Related: none.
@@ -13324,11 +13297,6 @@ clears each one.
 - [ ] **GEN.1600 (bug) system._secular_exchange (lines 2240-2242): problem tuples hold formatted distances, so an unchanged problem can read as new after a tiny move and keep the loop going**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L7, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1548.
-  Filed by the TODO thread. Bug sweep.
-
-- [ ] **GEN.1601 (bug) planet_type.planet_type (lines 37-45) never returns super-puff when given a mapping instead of a body**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L8, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14. Prerequisites: none. Related: none.
   Filed by the TODO thread. Bug sweep.
 
 - [ ] **GEN.1602 (bug) mixture_subject.quantities_of_body line 125: runaway_ratio(insolation, star.temperature) is not guarded for a star with no temperature (a dark primary); the subject's teq_k uses the drawn ice-free albedo**
@@ -13545,11 +13513,6 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
-- [ ] **GEN.1634 (bug) The snow line scatter in the code is a factor of 4, but the text says 2 to 3**
-  Data audit batch 1, D14 (report reports/data-audit-2026-11-11.md, with file and line). Text, not code (Boss, 10:01 PM EST on 2026-11-11: fix the output text to match the code): change the shown and design text to say a factor of 4. Not deferred. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1520.
-  Filed by the TODO thread.
-
 - [ ] **OPS.149 Apply the adaptive worker limit to the maintenance lane (warm-ups)**
   Follow-up of OPS.148. Do: reuse queue/adaptive.py for the maintenance lane; test the same lower/raise/floor rules. Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148. No lock files, no change to generated output.
@@ -13603,6 +13566,11 @@ clears each one.
   Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the contraction track (pre_main_sequence._track_state, GEN.242) gives 0.75 Lsun for 1.0 Msun at 10 Myr against 0.46 in BHAC15 [R0254] (1.2 Msun: 1.67 against 0.85; 0.5 Msun: 0.161 against 0.123; 0.3 Msun and below within 6 percent), and has 1.4 Msun stars on the main sequence at 8.6 Myr where BHAC15 still has them at 1.95 against 3.4 Lsun. This is why birth_luminosity has a 1.8x step at 1.4 Msun. Do: refit the Hayashi-to-radiative join (the radiative-stage luminosity plateau) so the luminosity at 1, 3 and 10 Myr and at the radius-settled time follows BHAC15 from 0.5 to 1.4 Msun. Done: a test against the BHAC15 rows at 3 ages and 6 masses; before and after counts of pre-main-sequence luminosity. Lock item (changes every pre-main-sequence star, new epoch). Low priority (stars under about 40 Myr only).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: GEN.242, GEN.1174, GEN.553, GEN.1611.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
+  Filed by the TODO thread.
+
+- [ ] **MAP.426 (bug) After the wheel carries the map from the whole galaxy into a system, the page URL still holds sector=, so test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main**
+  Lane 11 (as the lane reported 1:46 AM EST on 2026-11-12): tests/test_web_browser_system_handover.py (about line 129) fails on main with sector=1000000000 still in the URL (/galaxy?sector=...&cam=...) after the hand-over into the system; not on the known-red list. Do: drop the sector parameter from the URL on the hand-over into a system (or set the system's own), and keep the test green. Lock-free (page and test).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: MAP.409.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
