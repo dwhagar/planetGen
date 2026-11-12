@@ -7,9 +7,9 @@ Poisson-disk growth (`grow_from_seed`), `nearest_neighbors`, the
 Poisson count sampler, the galaxy-cell geometry sectors place into, and
 the `to_dict`/`from_dict`/`save`/`load` round trip.
 
-`test_bughunt_sector_placement.py` crams a handful of real large systems
-into one small cube. This file instead drives the placement code with
-hypothesis-chosen *geometry*: sector edges from 0 to 10^4 ly, real
+This file drives the placement code with hypothesis-chosen *geometry*
+(it took over from a bug-hunt file that crammed a handful of real large
+systems into one small cube and read only their Hill spheres, TEST.730): sector edges from 0 to 10^4 ly, real
 spherical galaxy cells from shell 0 (the core ball)
 to shell 10^6 (a thin shell piece), Hill radii from 0 to far larger than the
 sector, flat `min_separation_ly` overrides including 0, negative and NaN,
