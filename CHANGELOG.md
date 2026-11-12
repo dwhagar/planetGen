@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3896] - 2026-11-12
+
+**Headline:** a body that stores a NaN quantity can no longer be fitted to a class as a perfect match: the class fit scores a NaN as no match and the classifier stops with a plain error that names the quantity.
+
+### Changed
+
+- `class_fit.membership` reads a NaN quantity as 0, as a missing one already was (every comparison with NaN is false, so a NaN used to pass both a minimum and an upper line). A NaN pressure is on neither side of the air gate.
+- `class_fit.classify` (the path every build and census takes) raises `planet_classes.ClassError` naming the quantities that are not numbers, instead of choosing a best fit for them. No body stores a NaN today (none in 850 sampled bodies), so no generated output changes.
+
 ## [8.0.3895] - 2026-11-12
 
 **Headline:** the page of a star now says it has no night, and the page of a free brown dwarf says it has no solid surface and no sun to make a day, as the pages of planets and moons already give their day and night state.
