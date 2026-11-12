@@ -13362,6 +13362,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 12 (branch claude/lane12-spin-cap). Prerequisites: none. Related: GEN.842.
   Filed by the TODO thread.
 
+- [ ] **GEN.1577 Upper-atmosphere temperature-pressure profile of a hot giant (1e-6 to 1e3 bar), so the cloud decks and trace-gas ceilings of GEN.994 (hot_condensates) have a profile to read**
+  Lane 14 (as the lane reported 8:12 PM EST on 2026-11-11), from the GEN.1559 wiring triage: GEN.994 equilibrium_edges is wired (PR 5976), but hot_condensates cannot be wired yet. Lane 07's deck prebuild (PR 6096) needs a temperature-pressure profile for the upper atmosphere of a hot giant from 1e-6 to 1e3 bar, and nothing in the code makes one: giant_structure.fit_adiabat starts at 1 bar and radiative_convective is by design off the generation path. Do: a short design note first, then the build; the recommended form is the analytic grey profile of Guillot 2010 on the giant's equilibrium temperature, internal flux and a two-band opacity, with the stand-ins registered in GEN.725 (tier and tweak level), reusing the existing giant structure and internal-flux code. A lock-free prebuild as a new module (Lane 07 may build it, Lane 14 reviews); the wiring behind it (deck columns, migration, unit entries in db/column_units.py, describe page, epoch) is a lock item for Lane 14. Done: the profile function with tests against a published hot-Jupiter profile, the registry rows, and then GEN.994 hot_condensates reads it.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 07 prebuild (profile function), Lane 14 review and the wiring. Prerequisites: GEN.994 (equilibrium_edges, PR 5976). Related: GEN.994, GEN.1559, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
