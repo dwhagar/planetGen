@@ -135,3 +135,56 @@ def test_every_moon_orbit_is_a_path_in_the_orbits_layer():
     layers = re.findall(r'<svg class="sysmap-svg sysmap-orbits-layer[^"]*" data-scene="([^"]+)".*?</svg>', markup, re.S)
     assert layers == ["planet-7", "planet-7-true"]
     assert markup.count('<path class="sysmap-orbit"') == 4 and 'class="sysmap-orbit" cx=' not in markup
+
+
+# --- GEN.1086: the irregular moons of a planet have a scene of their own ------------------------------------------------------------------------------------
+
+
+def _held(rank, distance_km, eccentricity=0.3, inclination_deg=150.0, window="encounter"):
+    return {"rank": rank, "designation": f"0008000000-4000000-002.{rank:04X}", "window": window, "mass_kg": 1.0e18, "radius_km": 40.0, "density_g_cm3": 1.5, "taxon": "C",
+            "rock_fraction": 0.5, "metal_fraction": 0.1, "water_fraction": 0.2, "ice_fraction": 0.2, "distance_km": distance_km, "eccentricity": eccentricity,
+            "inclination_deg": inclination_deg, "ascending_node_deg": 10.0, "arg_periapsis_deg": 20.0, "mean_anomaly_deg": 30.0 * rank, "retrograde": inclination_deg > 90.0}
+
+
+def _with_irregulars(moons=(), count=2):
+    planet = _planet(list(moons))
+    planet["uid"] = "0008000000-4000000-002"
+    planet["irregular_moons"] = [_held(rank, 1.5e7 + 2.0e6 * rank) for rank in range(1, count + 1)]
+    return planet
+
+
+def test_the_irregular_scene_draws_each_body_on_its_saved_orbit_with_its_own_info():
+    planet = _with_irregulars()
+    svg = systemmap._render_irregular_scene(planet)
+    assert 'data-scene="planet-7-irregular"' in svg and svg.count('data-kind="irregular"') == 2
+    assert svg.count('class="sysmap-orbit"') == 2
+    assert 'data-planetref="planet:0008000000-4000000-002"' in svg and 'data-rankhex="0001"' in svg and 'data-rankhex="0002"' in svg
+    assert "Irregular moon, backward" in svg and "a close encounter between giants" in svg
+
+
+def test_each_irregular_body_sits_at_its_saved_mean_anomaly_on_its_orbit():
+    planet = _with_irregulars(count=1)
+    row = systemmap._irregular_rows(planet)[0]
+    elements = moonorbits.moon_orbit(planet, row)
+    held = planet["irregular_moons"][0]
+    assert elements["eccentricity"] == pytest.approx(held["eccentricity"], abs=1e-6) and elements["periapsis_km"] == pytest.approx(held["distance_km"] * (1 - held["eccentricity"]), rel=1e-6)
+    distance = math.hypot(row["position_x_km"], row["position_y_km"], row["position_z_km"])
+    assert elements["periapsis_km"] - 1.0 <= distance <= elements["apoapsis_km"] + 1.0
+
+
+def test_a_planet_with_both_kinds_links_the_scenes_each_way_and_one_with_only_irregulars_opens_theirs():
+    both = _with_irregulars([_moon(1, 300_000.0, 0.3)])
+    moons = systemmap._render_moon_scene(both)
+    assert 'planet-7-irregular' in moons and "data-scene-links" in moons
+    irregular = systemmap._render_irregular_scene(both)
+    assert '&quot;scene&quot;: &quot;planet-7&quot;' in irregular
+    assert systemmap.moon_scene_target(both) == "planet-7"
+    only = _with_irregulars()
+    assert systemmap.moon_scene_target(only) == "planet-7-irregular"
+    assert "data-scene-links" not in systemmap._render_irregular_scene(only)
+    assert systemmap.moon_scene_target(_planet([])) is None
+
+
+def test_a_planet_with_no_regular_moons_has_no_regular_scene_links():
+    assert "data-scene-links" in systemmap._render_moon_scene(_with_irregulars([_moon(1, 300_000.0, 0.3)]))
+    assert "data-scene-links" not in systemmap._render_moon_scene(_planet([_moon(1, 300_000.0, 0.3)]))

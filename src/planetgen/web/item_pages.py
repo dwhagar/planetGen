@@ -717,9 +717,9 @@ def _container_page(db, kind, printed_id, found):
 def _moon_system_url(system_id, kind, printed_id, row):
     """MAP.308: the System Map's moon system map of a planet that has moons (the system page opens the diagram that holds
     a `?scene=`); a planet without moons, and anything but a planet, has none."""
-    if kind != "planet" or row is None or not row.get("moons"):
+    if kind != "planet" or row is None or not (row.get("moons") or row.get("irregular_moons")):
         return None
-    return page_url("system", system_id=system_id, scene=f"planet-{row['id']}")
+    return page_url("system", system_id=system_id, scene=f"planet-{row['id']}" if row.get("moons") else f"planet-{row['id']}-irregular")    # GEN.1086: a planet with only irregular moons opens theirs
 
 
 def _irregular_moons_url(db, kind, ref):

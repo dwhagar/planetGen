@@ -44,8 +44,8 @@ def planet(site_db):
         belt = conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id LIMIT 1", (row["star_id"],)).fetchone()
         if belt is None:    # the star keeps no belt: give it one, so a body caught from a belt has a belt to name
             system_id = conn.execute("SELECT star_system_id FROM planets WHERE id = ?", (row["id"],)).fetchone()["star_system_id"]
-            belt_uid = object_uid.to_bytes(object_uid.with_body(object_uid.from_bytes(row["uid"]), 9999))
-            insert_filled_row(conn, "asteroid_belts", star_system_id=system_id, star_id=row["star_id"], orbital_index=0, uid=belt_uid)
+            belt_uid = object_uid.to_bytes(object_uid.with_body(object_uid.from_bytes(row["uid"]), 4000))
+            insert_filled_row(conn, "asteroid_belts", star_system_id=system_id, star_id=row["star_id"], orbital_index=0, uid=belt_uid, density="typical", distance_km=4.0e8, lower_limit_km=3.0e8, upper_limit_km=5.0e8)
             conn.commit()
             belt = conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id LIMIT 1", (row["star_id"],)).fetchone()
         found = (f"planet:{pid('planet', row['id'], conn)}", row["id"], object_uid.from_bytes(row["uid"]), belt)
@@ -101,6 +101,21 @@ def test_the_pages_show_the_list_and_the_body_and_link_each_way(client, planet):
     assert 'id="irregular-body"' in text and 'id="irregular-orbit"' in text and "backward" in text
     assert f'href="/object/{ref}/irregular-moons"' in text and f'href="/object/{ref}/irregular/{_rank(1)}"' in text and f'href="/object/{ref}/irregular/{_rank(4)}"' in text
     assert 'id="irregular-example"' in text and "bodyview.js" in text
+
+
+def test_the_system_detail_and_the_system_page_carry_the_irregular_moons_to_the_map(client, planet):
+    """The System Map's irregular scene (`planet-<id>-irregular`) is built from `irregular_moons` of the planet in `GET /api/systems/<id>`."""
+    ref, _row_id, uid, _belt = planet
+    printed = ref.partition(":")[2]    # a body's id in the detail and in the map's scene names is its printed ID
+    system_ref = next(p["ref"] for p in client.get(f"/api/objects/{ref}").get_json()["parents"] if p["kind"] == "system")
+    detail = client.get(f"/api/systems/{system_ref.partition(':')[2]}").get_json()
+    found = next((p for p in detail["planets"] if p["id"] == printed), None)
+    assert found is not None
+    assert [m["rank"] for m in found["irregular_moons"]] == [rank + 1 for rank in RANKS]
+    assert found["irregular_moons"][1]["retrograde"] is True and found["irregular_moons"][0]["designation"] == object_uid.designation(uid, 1)
+    assert all(p["irregular_moons"] == [] for p in detail["planets"] if p["id"] != printed)
+    page = client.get(f"/system/{system_ref.partition(':')[2]}").get_data(as_text=True)
+    assert f'data-scene="planet-{printed}-irregular"' in page and 'data-kind="irregular"' in page and 'data-nav-irregular="' in page
 
 
 def test_the_planet_page_links_its_irregular_moons(client, planet):
