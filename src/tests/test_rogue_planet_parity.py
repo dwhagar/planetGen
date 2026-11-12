@@ -115,8 +115,9 @@ LIQUID_SURFACE_FIELDS = frozenset({
 """The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star (a rogue world
 of class T holds a sea of carbon monoxide at 76 K under its own air where the matched bound planet is an airless class C at 3 K)."""
 
-CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
-"""The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it."""
+CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_chemistry", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
+"""The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it. `cloud_chemistry` (GEN.1425) is the sulfur chemistry
+of that cloud, so it is filled on the one of a pair whose air holds the acid cloud and empty on the other."""
 
 RUNNER_UP_FIELDS = frozenset({"runner_up_class"})
 """The next-best class letter (GEN.1207): the classifier names one only when a second class fits at all, which the body's own conditions decide."""
@@ -183,7 +184,10 @@ def test_there_is_no_rogue_only_planet_generator():
 
 @pytest.mark.parametrize("kind", ("terrestrial", "saturn"))
 def test_a_rogue_and_its_moons_are_built_by_the_planet_and_moon_code_a_bound_planet_uses(kind):
-    rogue, bound = _moon_matched(kind, 0)
+    from tests.fuzz_support import first_seed_with
+    # TEST.714: the moon count is a number to attempt (`generate_moons`: fewer are made where the orbits have no room), so the pair is the first seed whose two draws both made two
+    _seed, (rogue, bound) = first_seed_with(lambda seed: _moon_matched(kind, seed), lambda pair: len(pair[0].moons) == len(pair[1].moons) == 2,
+                                            seeds=range(24), what="a rogue and a bound planet with two moons each")
     assert type(rogue) is type(bound) is Planet
     assert len(rogue.moons) == len(bound.moons) == 2
     assert {type(moon) for moon in rogue.moons + bound.moons} == {Planet}
