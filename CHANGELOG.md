@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3905] - 2026-11-12
+
+**Headline:** a constant of the birth-luminosity function is now tagged as a numerical stand-in, so the constants completeness test passes; nothing generated changes.
+
+### Changed
+
+- `birth_luminosity.ARRIVAL_MARGIN` carries the stand-in tag (tier T9, tweak L0) that `test_constants_completeness` asks for. Text only (GEN.553).
+
+generation-output: unchanged
+
 ## [8.0.3904] - 2026-11-12
 
 **Headline:** a star read back from the database keeps its state word, so a sky text names a young or evolved companion the way the generated star did.
