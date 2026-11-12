@@ -13657,6 +13657,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13, top item. Prerequisites: none. Related: OPS.153, OPS.154, MAP.402.
   Filed by the TODO thread.
 
+- [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
+  Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: MAP.426.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
