@@ -20,10 +20,10 @@ or `FAIL`, and the exit status is 1 when any failed:
 5. generated: `scripts/regenerate_generated.py --check`, where the script exists.
 6. tests: the files of `scripts/data/pregate_set.txt` (the reds that kept recurring: spelling, citations, settings, own log
    formatting, constants, docs links and index, wiring guard, architecture map) plus the test files the PR edits that need no
-   database, on every free core. Tests that need MySQL, a browser or a real queue worker are the gate's long run.
+   database, on every free core (with `--train` also the train fast set). Tests that need MySQL, a browser or a real queue worker are the gate's long run.
 
-The Train Manager's train pre-gate shares the set: `scripts/data/train_fast_set.txt` is read too and its files run here when they
-need no database (a file that does is skipped here, not failed, because this lane has none).
+The Train Manager's train pre-gate shares the lane: `--train` adds `scripts/data/train_fast_set.txt` (slower: it holds database tests,
+which are skipped here for want of a database).
 """
 
 import argparse
@@ -106,9 +106,9 @@ def step(label, ok, detail=""):
     return ok
 
 
-def test_files(changed):
-    """The pytest files this lane runs: the fixed set, the train fast set and the PR's own edited test files."""
-    wanted = _lines(SET_FILE) + _lines(TRAIN_SET_FILE)
+def test_files(changed, train=False):
+    """The pytest files this lane runs: the fixed set, with `train` the train fast set, and the PR's own edited test files."""
+    wanted = _lines(SET_FILE) + (_lines(TRAIN_SET_FILE) if train else [])
     wanted += [name for name in changed if name.startswith("src/tests/test_") and name.endswith(".py")]
     out, seen = [], set()
     for name in wanted:
@@ -123,10 +123,11 @@ def main(argv=None):
     parser.add_argument("--base", default="origin/main", help="the branch to compare with (default origin/main)")
     parser.add_argument("--no-tests", action="store_true", help="only the static checks")
     parser.add_argument("--workers", default="auto", help="pytest-xdist workers for the tests step (default auto)")
+    parser.add_argument("--train", action="store_true", help="also the Train Manager's train fast set (slower: it holds database tests)")
     parser.add_argument("--list", action="store_true", help="print the checks and the test files, run nothing")
     args = parser.parse_args(argv)
     changed = changed_files(args.base)
-    tests = test_files(changed)
+    tests = test_files(changed, args.train)
     if args.list:
         print("changed files: %d\n%s" % (len(changed), "\n".join(tests)))
         return 0
