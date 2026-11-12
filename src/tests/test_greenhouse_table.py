@@ -216,3 +216,37 @@ def test_the_table_doubles_the_carbon_dioxide_as_the_model_does():
         return warming(_co2(560.0), 9.81, EARTH_FLUX).surface_temperature_k - warming(_co2(280.0), 9.81, EARTH_FLUX).surface_temperature_k
 
     assert abs(doubling(gt.warming) - doubling(radiative_convective.warming)) < 0.3
+
+
+# --- minor gases (GEN.1588) ----------------------------------------------------------------------------------------------------------
+
+def _earth_with(formula, pascal):
+    return {**EARTH, formula: pascal}
+
+
+def test_a_trace_gas_moves_the_temperature_by_its_share_of_its_full_effect_and_none_at_zero():
+    """Ten parts per million of hydrogen cyanide added 76 K to Earth's air, a part in a hundred million of ozone 10 K, a trace of helium 100 K (the fit has no samples between absent and about
+    1e-5): under `TRACE_FULL_SHARE` a gas counts by its share over it of what the table gives it in full, and the answer meets the table at the share."""
+    bare = gt.warming(EARTH, 9.81, EARTH_FLUX).surface_temperature_k
+    for formula in ("HCN", "O3", "He", "NH3", "H2", "SO2"):
+        assert abs(gt.warming(_earth_with(formula, 1.0e-3), 9.81, EARTH_FLUX).surface_temperature_k - bare) < 0.05, formula     # 1e-8 of the air
+        assert abs(gt.warming(_earth_with(formula, 1.0), 9.81, EARTH_FLUX).surface_temperature_k - bare) < 3.0, formula         # 10 ppm
+    total = sum(EARTH.values()) + gt.TRACE_FULL_SHARE * sum(EARTH.values()) / (1.0 - gt.TRACE_FULL_SHARE)
+    at_share = _earth_with("HCN", gt.TRACE_FULL_SHARE * total)
+    just_under = _earth_with("HCN", 0.999 * gt.TRACE_FULL_SHARE * total)
+    assert abs(gt.warming(just_under, 9.81, EARTH_FLUX).surface_temperature_k - gt.warming(at_share, 9.81, EARTH_FLUX).surface_temperature_k) < 1.0     # no step at the share
+    one = gt.warming(_earth_with("HCN", 0.5 * gt.TRACE_FULL_SHARE * total), 9.81, EARTH_FLUX).surface_temperature_k
+    assert bare < one < gt.warming(at_share, 9.81, EARTH_FLUX).surface_temperature_k
+
+
+def test_the_gases_the_fit_saw_at_every_share_count_in_full_at_any_share():
+    """Earth's 400 parts per million of carbon dioxide is 7 K of its greenhouse: the exempt gases are not scaled."""
+    without = {formula: pascal for formula, pascal in EARTH.items() if formula != "CO2"}
+    assert gt.warming(EARTH, 9.81, EARTH_FLUX).surface_temperature_k - gt.warming(without, 9.81, EARTH_FLUX).surface_temperature_k > 3.0
+    assert {"H2O", "CO2", "CH4", "N2", "O2"} <= gt.TRACE_EXEMPT
+
+
+def test_a_trace_changes_nothing_without_one_and_the_answer_is_deterministic():
+    again = [gt.warming(_earth_with("PH3", 0.2), 9.81, EARTH_FLUX).surface_temperature_k for _ in range(2)]
+    assert again[0] == again[1]
+    assert gt.warming(EARTH, 9.81, EARTH_FLUX).surface_temperature_k == gt.warming(dict(EARTH), 9.81, EARTH_FLUX).surface_temperature_k
