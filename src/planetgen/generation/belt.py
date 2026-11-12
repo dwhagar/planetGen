@@ -332,7 +332,6 @@ class AsteroidBelt:
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["composition"] = [list(pair) for pair in self.composition]
         data["history"] = list(self.history)        # a tuple until the star's evolution has written a line; a read-back belt holds a list, and the two must agree
-        data["origin_history"] = list(self.origin_history)
         data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
         data["members"] = self.members
         return data
@@ -355,6 +354,7 @@ class AsteroidBelt:
         belt.system_config = system_config
         fields_from_dict(belt, data, cls.SERIALIZABLE_FIELDS)
         belt.composition = [tuple(pair) for pair in data["composition"]]
+        belt.history = tuple(data.get("history") or ())      # a tuple on a belt as on a new one (JSON gives a list), so what is read back equals what was saved
         belt.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
         belt._members = data.get("members") or []      # a belt read back keeps the members it was saved with, and none it was not (it is not drawn again)
         return belt
