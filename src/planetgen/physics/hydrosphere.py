@@ -79,7 +79,7 @@ OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutra
 WATER_MELTING_K = aquifers.WATER_MELTING_K
 FROZEN_COVER_STATES = ("ice", "ice-covered ocean")
 """tuple: The hydrosphere states whose surface is ice (GEN.833: their cover is the water layer the body holds, `frozen_cover`)."""
-LIQUID_WATER_DENSITY_KG_M3 = 1000.0
+LIQUID_WATER_DENSITY_KG_M3 = constants.LIQUID_WATER_DENSITY_KG_M3
 ICE_DENSITY_KG_M3 = water_layer.ICE_LID_DENSITY_KG_M3
 ICE_CONDUCTIVITY_A_W_M = 567.0
 """float: Water ice conducts heat as k = A / T (Turcotte and Schubert)."""

@@ -53,6 +53,12 @@ R = 8.31446261815324  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.380649e-23  # Boltzmann constant in J/K
 REDUCED_PLANCK = 1.0545718176461565e-34  # hbar, J*s -- Hawking radiation (phenomena.compact_remnant)
 STEFAN_BOLTZMANN_CONSTANT = 5.6703744191844314e-08  # Stefan-Boltzmann constant in W/m²/K⁴
+AVOGADRO = 6.02214076e23  # Avogadro constant, 1/mol, exact (the SI definition; GEN.1526: the one definition the isotope, air column and element tables read)
+GAS_CONSTANT = 8.314462618  # J/(mol K), the [R4361] value to ten digits the interior, core, tide and species-thermo code was written with (GEN.1526); `R` is astropy's full-precision value, the two differ by 2e-11 of themselves
+ICE_DENSITY_KG_M3 = 917.0  # Ice Ih at the freezing point, kg/m3 (GEN.1526: rings, clathrate brine and the water layer's lid)
+LIQUID_WATER_DENSITY_KG_M3 = 1000.0  # Liquid water, kg/m3 (GEN.1526: aquifers and the hydrosphere)
+WATER_MELTING_K = CELSIUS_ZERO_K  # Water's melting point at 1 atm, K (GEN.1526: aquifers, hydrosphere, icy tide)
+BAND_COUNT = 7  # Latitude bands a planet's temperature, class domains and coverage are tabled in (GEN.1526: the one count regional_temperature, latitude_bands, planet_classes and class_domains share)
 COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the floor for any body's surface temperature
 
 # --- Astronomical Constants ---

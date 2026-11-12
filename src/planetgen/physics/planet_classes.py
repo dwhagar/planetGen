@@ -38,7 +38,7 @@ from types import SimpleNamespace
 import os
 from collections.abc import Mapping
 
-from planetgen.physics import atmosphere, elements, planet_type, unit_registry as units
+from planetgen.physics import atmosphere, constants, elements, planet_type, unit_registry as units
 from planetgen.util.wordlist import join_words
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -48,7 +48,7 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_classes.json")
 TERRESTRIAL = "t"
 GIANT = "g"
 
-BAND_COUNT = 7
+BAND_COUNT = constants.BAND_COUNT
 """int: How many latitude bands a body stores (`regional_temperature`, `latitude_bands`)."""
 
 GASES = tuple(atmosphere.SPECIES)

@@ -214,7 +214,7 @@ CORE_ELEMENTS = {"core_ni_fraction": "Ni", "core_s_fraction": "S", "core_si_frac
 """dict: The light-element column of a core and the element it holds."""
 
 _EARTH_G = 9.80665
-AVOGADRO = 6.02214076e23
+AVOGADRO = constants.AVOGADRO
 _GY_S = radiogenic.GY_S
 
 

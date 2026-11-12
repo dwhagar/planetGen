@@ -17,6 +17,7 @@ The merge-train runner's steps as one command, the script rule 10 of the merge-t
                                                         --affects, the stages are the union of the notes' `generation-affects:` lines
     python scripts/train.py checks                      the guards a train must pass before its PR: wiring, numbers, release note
     python scripts/train.py gate [--of N]               print the gate's file list, split over N machines when asked
+    python scripts/train.py pr-body                     the train PR's body to fill in, with the "Known issues" section (TEST.725)
 
 A head that conflicts in a file the train rebuilds (references, stand-in values) takes this branch's side and the file is rebuilt by
 `rebuild`; a conflict anywhere else stops the merge with the files named, and the runner resolves it by hand (`git status`) and runs
@@ -292,6 +293,37 @@ def gate(args):
         print("\n".join(files))
 
 
+PR_BODY = """## What this train carries
+
+(One row per PR: PR number, item, what changes in plain words.)
+
+## Numbers
+
+(Migrations, generator epoch, stand-in sections, references.)
+
+## Fixes made in the train
+
+(What the runner changed to merge the PRs.)
+
+## Known issues
+
+(TEST.725. Leave this section out when there is none. A red the gate found that the train ships anyway, one line each, in plain words:
+the test, what it does wrong, the item that fixes it. Allowed only when ALL hold: the red is not a crash, data loss or a change to a
+page a visitor sees; the fix is gated and goes first in the next train; the red shows in under about 1 percent of draws (above that it
+blocks the train). The same line goes into the merge message and the report to Boss.)
+
+## Reuse
+
+(What the train reuses, and what each PR names.)
+
+Merge authorization: all merges without human review until further notice (Boss, 10-15).
+"""
+
+
+def pr_body(args):
+    print(PR_BODY)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -319,6 +351,7 @@ def main(argv=None):
     p = sub.add_parser("gate")
     p.add_argument("--of", type=int, default=0)
     p.set_defaults(run=gate)
+    sub.add_parser("pr-body").set_defaults(run=pr_body)
     args = parser.parse_args(argv)
     args.run(args)
     return 0
