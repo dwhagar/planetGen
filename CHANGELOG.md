@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3917] - 2026-11-12
+
+**Headline:** a body that fits no planet class exactly is placed by the fudge table: the class that needs the fewest values moved, by no more than the stand-ins allow, and the sheet says which values and how far.
+
+### Changed
+
+- `physics/class_fit.py` (GEN.1314) reads the width of every class edge from `physics/data/fudge_table.json` (GEN.1313) in place of the hand-picked shoulders, which are deleted from `planet_class_fit.json` along with registry rows CF1 to CF7, DM1 to DM3, DM8 and OP2. A body that meets every condition of a class takes it (match 1). Otherwise the class needing the fewest values moved wins (the temperatures of a body count as one value), then the smallest total move in widths, then the class with more conditions, then the letter; a value moves by at most 0.25 width, else by at most 1 width (registry CP1). The match is 1 minus the total move over the values moved (registry CP2). A body no class reaches has its gravity and air-amount edges relaxed (digit 9), else it takes the nearest class at match 0.
+- New columns `class_fudge_values` (the quantities that were moved, comma separated; empty for a full fit) and `class_fudge_amount` (the total move in widths) on planets and moons, in the sheet (migration `0241_class_fudge`, placeholder number, renumbered at merge; old-schema fixture added).
+- Registry 6.261 grows CP1 and CP2 and rewrites FT1 and FT4 (share bounds, lone-edge clips); the fudge table is rebuilt with them. `src/tests/class_fit_cli.py --fudge` reports what the rule did and `--compare-dump` lists each body that changed class code.
+- Effect on a class census of 150 systems (seed 1000, habitable share 0.25, 609 bodies): 3 bodies change class code. Two thin-air worlds at 331 K and 1.7 g, which the old 10 K shoulder let into class Z (340 K and up), are now F9 (anoxic, limited by gravity) because Z is more than one width away; one hole whose nearest class was F is now nearest G (both at match 0). 598 bodies fit a class fully, 5 are placed with one value moved by under a quarter width, 6 are holes as before.
+
+generation-affects: fill
+
 ## [8.0.3916] - 2026-11-12
 
 **Headline:** `scripts/pick_tests.py` picks the tests a PR needs, stops at a stated time limit, and re-runs only the files that failed.
