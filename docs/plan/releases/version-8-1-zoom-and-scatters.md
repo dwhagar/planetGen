@@ -750,6 +750,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp |  |  |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
+| SEC.48 | Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters | none | Lane 05, 2026-11-12. |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261 |  |
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | Lane 23, 2026-11-11. |
 | GEN.1615 | (bug) A close (P-type) pair is judged stable at its drawn eccentricity, then the system build sets that eccentricity to zero, so the stored star tree differs from the judged one | GEN.1016 | Lane 11, 2026-11-12. |
