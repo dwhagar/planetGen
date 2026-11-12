@@ -98127,6 +98127,74 @@
    "volume": "357",
    "year": 2021
   },
+  "10.1016/j.icarus.2021.114391": {
+   "arxiv": "2006.10674",
+   "authors": [
+    [
+     "Lin",
+     "H. W."
+    ],
+    [
+     "Chen",
+     "Y. T."
+    ],
+    [
+     "Volk",
+     "K."
+    ],
+    [
+     "Gladman",
+     "B."
+    ],
+    [
+     "Murray-Clay",
+     "R."
+    ],
+    [
+     "Alexandersen",
+     "M."
+    ],
+    [
+     "Bannister",
+     "M. T."
+    ],
+    [
+     "Lawler",
+     "S. M."
+    ],
+    [
+     "Ip",
+     "W. H."
+    ],
+    [
+     "Lykawka",
+     "P. S."
+    ],
+    [
+     "Kavelaars",
+     "J."
+    ],
+    [
+     "Gwyn",
+     "S. D."
+    ],
+    [
+     "Petit",
+     "J. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2021.114391",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "114391",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "OSSOS: The eccentricity and inclination distributions of the stable neptunian Trojans",
+   "type": "journal-article",
+   "volume": "361",
+   "year": 2021
+  },
   "10.1016/j.icarus.2021.114764": {
    "arxiv": "2110.11992",
    "authors": [
@@ -278052,6 +278120,48 @@
    "volume": "",
    "year": 2024
   },
+  "arXiv:2401.15537": {
+   "arxiv": "2401.15537",
+   "authors": [
+    [
+     "Vokrouhlický",
+     "D."
+    ],
+    [
+     "Nesvorný",
+     "D."
+    ],
+    [
+     "Brož",
+     "M."
+    ],
+    [
+     "Bottke",
+     "W. F."
+    ],
+    [
+     "Deienno",
+     "R."
+    ],
+    [
+     "Fuls",
+     "C. D."
+    ],
+    [
+     "Shelly",
+     "F. C."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Orbital and absolute magnitude distribution of Jupiter Trojans",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
   "arXiv:2402.04658": {
    "arxiv": "2402.04658",
    "authors": [
@@ -283315,7 +283425,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5240,
+ "id_next": 5246,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -284125,6 +284235,7 @@
   "10.1016/j.icarus.2020.114070": "R2175",
   "10.1016/j.icarus.2020.114072": "R2711",
   "10.1016/j.icarus.2020.114228": "R0891",
+  "10.1016/j.icarus.2021.114391": "R5244",
   "10.1016/j.icarus.2021.114764": "R0371",
   "10.1016/j.icarus.2021.114856": "R3411",
   "10.1016/j.icarus.2022.114937": "R1896",
@@ -289205,6 +289316,7 @@
   "arxiv:2006.01881": "R1078",
   "arxiv:2006.05654": "R3363",
   "arxiv:2006.07080": "R0471",
+  "arxiv:2006.10674": "R5244",
   "arxiv:2006.10760": "R2178",
   "arxiv:2006.11872": "R3864",
   "arxiv:2006.12219": "R1894",
@@ -289468,6 +289580,7 @@
   "arxiv:2401.07296": "R0232",
   "arxiv:2401.11082": "R4731",
   "arxiv:2401.12378": "R1962",
+  "arxiv:2401.15537": "R5245",
   "arxiv:2402.04658": "R1076",
   "arxiv:2402.06722": "R1239",
   "arxiv:2402.08292": "R4258",

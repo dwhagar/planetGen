@@ -2,6 +2,47 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3953] - 2026-11-12
+
+**Headline:** The three spreads of a trojan swarm (how widely its bodies librate, how eccentric and how tilted they are) are now fitted to the Jupiter and Neptune Trojans, with the values proposed; no constant has changed yet.
+
+### Changed
+
+- GEN.1643 (slice 0): new `scripts/fit_trojan_scales.py` turns the published Trojan laws into the Rayleigh scale the generator draws from, for the stand-ins TJ9 (libration amplitude), TJ10 (eccentricity) and TJ11 (inclination) of section 6.121 of the gap-filling plan. The sources are the debiased Jupiter Trojan laws of the proper amplitudes and of the libration integral (the Jupiter Trojan paper, [R5245]) and the Rayleigh widths of the Neptune Trojans [R5244]. The proposal, recorded in the registry rows and in `reports/gen1643-trojan-scales-2026-11-12.md`: libration 13 degrees (now 10), eccentricity 0.06 and inclination 12 degrees stay (the fit gives 0.058 and 11.7). Slice 1 sets them and lowers the rows to L1 or L2.
+- The same fit shows that `trojans.TADPOLE_LIMIT_DEG` (23.9) is the nearest a tadpole comes to the secondary, not a libration amplitude (that is 78 degrees at the edge of the zone), and that about a fifth of the real Jupiter Trojans librate wider than 23.9. The note is on the TJ3 row; the correction rides with slice 1.
+- No constant of the generator is changed and nothing is stored.
+
+generation-output: unchanged
+
+## [8.0.3952] - 2026-11-12
+
+**Headline:** Pages that name a database (`?db=`) no longer scan every schema of the MySQL server on each request: the Galaxy Map's near-sector read took 20 to 26 seconds on a server with 147 schemas and takes about one second now.
+
+### Changed
+
+- `db.store.resolve_database` checked that a requested schema exists by calling `list_databases`, which reads the size and modification time of every schema with the prefix (one `information_schema.tables` scan each) and throws the numbers away. It now asks for that one name with one query for the names on `information_schema.schemata` (`_is_listed`), reading the prefixed names and comparing the requested one in Python, with the listing's rules unchanged: the prefix, not the control schema, and the name exactly as written. A name the schema column's collation cannot mix with (an emoji in `?db=`) is a 404, as before, and not a server error.
+- Why it mattered: a Galaxy Map view fetches a dozen stages, each resolving its schema, so one `/galaxy/near` call made 59 resolutions and 8,383 queries. On a test server that had gathered 147 schemas that was 20 to 26 seconds a call, and the whole-galaxy wheel-in browser test (TEST.696) failed because the sector scene arrived long after the camera had flown past the star.
+- The `list_databases` page of the admin screens is unchanged (it does want the sizes).
+
+generation-output: unchanged
+
+## [8.0.3951] - 2026-11-12
+
+**Headline:** `planetgen system` can be asked for a planet class letter or a life class, and says what came of the request.
+
+### Changed
+- **`--force-class LETTER` and `--force-life-class ID` (GEN.1620).** The first sets the existing `SystemConfig.FORCE_CLASS` (a planet of that class, drawn again within the run's tries); the second sets a new `SystemConfig.FORCE_LIFE_CLASS` (a number such as `6`, or a number and variant such as `4c`), judged on the finished planets and moons the same way. The result then says which body holds the class and how well its conditions fit it (the class match, with "the nearest class the conditions allow" when it is not a full fit), or that none came out, and the run keeps its last try with the warning it already gives. Both are off by default and a default run never sets them, so a seeded system is unchanged (a test compares the two). A bad letter or life class, or `--force-class` with a system file's slots, is refused. The form control for the one-off page follows (UX.302).
+
+generation-output: unchanged
+
+## [8.0.3950] - 2026-11-12
+
+**Headline:** the vapor pressure curve of disulfur (S2) is in the saturation data file and tested, held back from use until the freeze-out of every gas is built.
+
+### Changed
+
+- `data/saturation_pressure.json` gains an `unread` block with S2, `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent at worst against the gas table's NASA-polynomial rows, stand-in SV1, section 6.285), and `saturation.unread_pressure_pa` serves it. `saturation.has`, `saturation.saturation` and every caller are unchanged, so no generated output moves (GEN.1564 slice 0; slice 1 moves the row into `species` and runs the freeze-out for it).
+
 ## [8.0.3949] - 2026-11-12
 
 **Headline:** The Earth analog now takes the Earth's late accretion of 0.7 percent instead of the 3.0 percent its generated system set.

@@ -63,7 +63,7 @@ def _setup(age_gy):
     planet.ice_mass_fraction = planet.envelope_mass_fraction = 0.0
     planet.primary_mass_kg, planet._star_distance_au, planet.formation_distance_au = star.mass, 1.0, 1.0
     planet.rotation_period_hours, planet.axial_tilt_deg = 24.0, 23.4
-    planet._late_accreted_percent = impact_history.LATE_ACCRETED_PERCENT_EARTH     # the generated system's own belts set 3.0, six times the Earth's veneer (0.7: Brasser et al. 2016 Table 1; [R4598] 0.5 to 0.8)
+    planet._late_accreted_percent = impact_history.LATE_ACCRETED_PERCENT_EARTH     # the generated system's own belts set 3.0, six times the Earth's veneer (0.7, see LATE_ACCRETED_PERCENT_EARTH; [R4598] gives 0.5 to 0.8)
     return planet, [c for c in class_fit.CLASSES if c.letter == "M"][0]
 
 
