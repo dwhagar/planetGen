@@ -250,12 +250,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
 | row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
 | row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
-| module | planetgen.physics.hot_condensates | GEN.994 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
-| data | hot_condensates.json | GEN.994 | read by `physics/hot_condensates.py` only |
-| row | 6.217:HK1 | GEN.994 | the trace elements' [X/Fe] follow the cloud and gas reader |
-| row | 6.217:HK2 | GEN.994 | the trace gas ceiling is read when the thermochemistry places the gases |
-| row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
-| row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
+| module | planetgen.physics.hot_condensates | GEN.1577 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
+| data | hot_condensates.json | GEN.1577 | read by `physics/hot_condensates.py` only |
+| row | 6.217:HK1 | GEN.1577 | the trace elements' [X/Fe] follow the cloud and gas reader |
+| row | 6.217:HK2 | GEN.1577 | the trace gas ceiling is read when the thermochemistry places the gases |
+| row | 6.217:HK3 | GEN.1577 | the chromium cloud temperature is read with the cloud decks |
+| row | 6.217:HK4 | GEN.1577 | the potassium chloride cloud temperature is read with the cloud decks |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
