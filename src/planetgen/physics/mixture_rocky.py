@@ -235,7 +235,8 @@ def volcanic_gas(subject, recipe, constants, supply=None):
     inventory = rocky_inventory(subject, recipe, constants)
     magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
     budget = cap_halogens(surface_budget(inventory, supply), constants)
-    volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
+    volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic),
+                                      lower_held_o2=True)
     return volcanic, redox, inventory
 
 
@@ -271,7 +272,7 @@ def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True)
     if volcanic is not None and held_diw is None and temperature == volcanic.temperature_k:
         return volcanic
     held = None if held_diw is None else fo2.log_fo2(held_diw, temperature)
-    return gas_equilibrium.solve(cap_halogens(atoms, constants), temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
+    return gas_equilibrium.solve(cap_halogens(atoms, constants), temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held, lower_held_o2=True)
 
 
 def outgassed_mixture(subject, recipe=None, supply=None):
