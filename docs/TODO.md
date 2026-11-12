@@ -12538,11 +12538,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 02 (Train Manager). Prerequisites: none. Related: GEN.1479, OPS.130.
   Filed by the TODO thread.
 
-- [ ] **GEN.1485 Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell**
-  Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09). None of the 8.3e9 visits are rings (that count is the 11-05 per-cell luminosity count; the luminosity bands are now 3.4e7 block visits at a 7.5 sky). Rings are 3.5e6 visits (9 percent) through the same walk; dense rings cannot prune, sparse ones should, and the ring cost is in stars drawn (590k stored for 4.1k shown). No Poisson split. Do: cost sparse rings by block in sky_tiers.build with the same block bound the luminosity bands use; time before and after on the report's sky; the drawn cells and stars must be byte-identical (no epoch). Reuse bright_stars, sky_tiers and the block memo; no second walk.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock-free. Prerequisites: none. Related: GEN.1481, GEN.1486, GEN.1476.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1486 Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown**
   Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09): the ring cost is in stars drawn, 590k stored for 4.1k shown. Do: measure how the stars drawn fall with finer ring edges, and if the saving is real change the edges. Changing ring edges changes which stars are drawn, so this is a lock item with a scatter-stage epoch (--affects scatter), stand-ins registered in GEN.725 with tier and tweak level; time and stored size before and after; reuse sky_tiers and bright_stars.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
@@ -12786,16 +12781,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 15 (wrote the CO2 measure). Prerequisites: none. Related: GEN.909, GEN.1403, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the zone-edge research note against the greenhouse spectrum; slice 1 lock: the edge change. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **UX.298 The single-system generator page cannot ask for a rogue planet or a starless result**
-  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the control (reusing the generator's existing rogue-planet option; no new option) with wording, a result link and a test. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: GEN.1620 (the generator option, filed 2026-11-12). Related: UX.283, GEN.1620.
-  Filed by the TODO thread.
-
-- [ ] **UX.299 The single-system generator page has no weirdness dial or oddities control**
-  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the weirdness dial and the oddities choice the CLI already has, with the same wording and limits, and a test. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
-  Filed by the TODO thread.
 
 - [ ] **UX.302 The single-system generator page has no life-class, class-letter or fudge override on its form**
   Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Needs a generator option first (a request for a life class or class letter with the fudge shown), so it follows that option and is not lock-free. Do: file the generator option as its own item first, then the form control.
@@ -13164,11 +13149,6 @@ clears each one.
   Filed by the TODO thread.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
-- [ ] **GEN.1620 Generator option to request a life class or class letter for a single system, with the fudge it took shown (for UX.302)**
-  Lane 06 (as the lane reported 9:59 PM EST on 2026-11-11): UX.302's form control needs this first; today only SystemConfig FORCE_CLASS exists, as a config attribute with no CLI or page path. Do: a `planetgen system` option (and SystemConfig field) asking for a class letter or life class, reusing FORCE_CLASS and the GEN.1313 fudge table, that reports the fudge used on the result; off by default so default output is unchanged (lock-free if the golden does not move; if it does, it rides a train). Test: off leaves a seeded system byte-identical; on yields the asked class or says why it could not.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06, then UX.302. Prerequisites: none. Related: UX.302, GEN.1313.
-  Filed by the TODO thread.
-
 - [ ] **DB.122 (bug) A planet's collision_count is not stored, so a loaded planet reads 0 (101 planets had 1 or more) and physics/oddities.py (about line 343) loses the collision oddity**
   Bug sweep batch 5, M10 (Medium, confirmed by run: 43 systems saved to MySQL 8 and loaded back; report reports/bug-sweep-read-and-simulate-2026-11-11.md, section "Fifth batch"). Do: store collision_count and read it back (column via db/column_units.py and a migration, or derive it from stored history if one exists; reuse first). Lock item.
   Version 8.1 (bug sweep, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1565. Test: a save-and-load round trip of the field on a seeded system.
@@ -13332,18 +13312,36 @@ clears each one.
 
 - [ ] **GEN.1643 Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues**
   Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): registry rows 6.121:TJ9, TJ10 and TJ11 sit at L4 with no burn-down line. The Rayleigh scales of `trojan_swarm` (LIBRATION_SIGMA_DEG 10, ECC_SIGMA 0.06, INCLINATION_SIGMA_DEG 12) are recalled, not read. Do: read a proper-element catalogue (secondary sources accepted), fit the three scales, and lower the rows to L1 or L2. The catalogue is a calibration reference only; no fixed Solar System content enters the output.
-  Version 8.1. Owner: unassigned (next waiting lane). Prerequisites: GEN.1150. Related: GEN.1151.
+  Version 8.1. Owner: Lane 23. Prerequisites: GEN.1150. Related: GEN.1151, GEN.1647.
   Filed by the TODO thread.
+  Owner (TODO, 2026-11-12): Lane 23. Slice 0 (fit and proposal, lock-free) is PR 6233; slice 1 (lock) sets TJ9 to 13 degrees and lowers the rows, together with GEN.1647.
 
 - [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
   Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
-  Version 8.1. Owner: unassigned (next waiting lane). Prerequisites: none. Related: GEN.1425, GEN.1307.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.1425, GEN.1307.
   Filed by the TODO thread.
 
 - [ ] **GEN.1645 Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored**
   Lane 23 (as the lane reported 6:54 AM EST on 2026-11-12): GEN.1447 slice 0 (PR 6228, lock-free) built kozai_planets.py, which screens a planet against a companion star or a heavier outer planet; report reports/gen1447-planet-case-2026-11-12.md. Do: read the screen in generation (planets in the Kozai band are driven to high eccentricity or removed, as the screen says), using the stored companion planes of GEN.1500. Lock item: it changes output.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: GEN.1500. Related: GEN.1447, GEN.1352.
   Filed by the TODO thread.
+
+- [ ] **GEN.1646 Trace the nitrogen air excess left after GEN.1583 A, B and C (Earth-analog N2 median about 134 kPa against about 80); first suspect the dry carbon bracket middle (0.056 wt% CO2 against the bulk silicate Earth 0.042)**
+  Lane 15 (as the lane reported 7:01 AM EST on 2026-11-12), reports/gen1583-nitrogen-budget-2026-11-12.md: at the Earth late accretion of 0.7 percent (PR 6225), 100 analog trials give N2 quartiles 88/236/507 kPa on main, 46/184/278 with A and C (PR 6192), and 43/134/263 with B as well (PR 6230). The target near 80 kPa is not reached and the remaining excess is not wet-class carbon. Do: trace where the remaining nitrogen comes from (start with the dry carbon bracket middle) and propose a sourced fix; measure first, fudge last.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1583. Related: GEN.1584, GEN.1583.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1647 Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one**
+  Lane 23 (as the lane reported 7:17 AM EST on 2026-11-12), GEN.1643 slice 0 (PR 6233, reports/gen1643-trojan-scales-2026-11-12.md): about a fifth of the real Jupiter Trojans librate wider than 23.9 degrees, and with the cut there the mean amplitude cannot reach the observed mean of 16.2 degrees; a scale of 13 with the cut at the edge of the zone gives 16.3. Do: cut the swarm draw and split tadpole from horseshoe in trojans.motion at the libration amplitude edge, and fix the falsifier of registry row TJ3. Lock item; built together with GEN.1643 slice 1 in one PR.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: GEN.1643. Related: GEN.1150, GEN.1151.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1648 Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right**
+  Lane 04 (as the lane reported 9:51 AM EST on 2026-11-12), from TEST.714: test_star_system_anchored_by_black_hole_defaults_to_no_planets pins seed 0 and its comment says a remnant with no light collapses planets to zero, but across 40 seeds 18 disk-less black holes carry planets (up to 7, seed 12). Do: a short decision note from physics (planets that survive or re-form around a stellar black hole from a fallback disk or capture, against what the architecture does); then either the generator stops leaking planets there or the test and comment are corrected to the physics. Lock-free note first; any generator change is a lock item. Physics drives (Boss, 10-30).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14 when free. Prerequisites: none. Related: TEST.714.
+  Filed by the TODO thread.
+  Slice 0 done (Lane 06, as the lane reported 10:01 AM EST on 2026-11-12), reports/gen1648-black-hole-planets-2026-11-12.md: the generator is wrong and the test is right. Only millisecond pulsars and post-AGB pairs are intercepted in _generate_planets; a black hole falls through to _plan_architecture, whose inner_system_fraction depends on mass alone, so 16 of 40 disk-less stellar holes got planets at 0.1 to 0.6 AU. No disk survives the progenitor and no black hole planet is confirmed. Slice 1 (lock): return no bodies for a disk-less stellar black hole, keep the remnant rules for other remnants, add a multi-seed regression test.
+  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -13627,6 +13625,7 @@ clears each one.
   Prerequisites: none. Related: TEST.237.
   Filed by the TODO thread.
   Added (TODO, 2026-11-12, from MAP.426): test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system (tests/test_web_browser_system_handover.py about line 122) stalls on the wheel in: the camera stops at dist 114.97 with an offscreen step at tick 65 and the system never opens (Lane 11, as the lane reported 4:22 AM EST). Owner for this row: Lane 11.
+  Wheel-in row done (TODO, 2026-11-12): PR 6237 (Lane 11). The stall was resolve_database scanning information_schema once per MySQL schema on every ?db= request (59 resolutions and 8,383 queries per near-read, 20 to 26 s with 147 test schemas); the whole-galaxy test now passes 3 of 3. Lane machines with many leftover planetgen_test_* schemas should drop them.
 
 - [ ] **GEN.1391 Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364)**
   Lane 23 (as the lane reported 9:33 PM EST on 2026-11-07), follow-on to GEN.1364 (core composition split). Do: add Cr, Mn, P and Cu to the core make-up by their partition between metal and silicate (redox and pressure dependent), taking the totals from the star element set; store as columns with units; stand-ins in GEN.725 with tier and tweak level. Size M; lock (epoch and a migration). Target: train 19. Owner (proposed by TODO): Lane 23, after GEN.1364 and GEN.1360 have merged. Rules: tests are

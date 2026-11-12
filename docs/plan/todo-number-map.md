@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.306 |
 | MAP | MAP.427 |
 | NAV | NAV.78 |
-| GEN | GEN.1646 |
+| GEN | GEN.1649 |
 | PERF | PERF.260 |
 | DB | DB.126 |
 | API | API.48 |
@@ -3673,7 +3673,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | done, closed as a finding (Lane 14 retime, 2026-11-09) |
 | GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | done, closed as a finding (Lane 12 measured 2026-11-09: 1M nebulae 14 s and 314 MB, no change needed) |
 | GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | done (Train 22 or earlier, 2026-11-11) |
-| GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | open |
+| GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | done, PR #5898 |
 | GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | open |
 | GEN.1487 | Isotope record for comets, interstellar comets and belt members, from the ice fractionation law already built | none | done, PR #5842 |
 | GEN.1488 | Isotope record for star surfaces | none | done, PR #5852 |
@@ -3807,7 +3807,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1617 | (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores | none | open |
 | GEN.1618 | (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K | none | open |
 | GEN.1619 | tuning.PLANET_CLASSES composition strings are stale (C anthracite, V iridium and tungsten, B potassium) and nothing displays them | none | open |
-| GEN.1620 | Generator option to request a life class or class letter for a single system, with the fudge it took shown (for UX.302) | none | open |
+| GEN.1620 | Generator option to request a life class or class letter for a single system, with the fudge it took shown (for UX.302) | none | done, PR #6153 |
 | GEN.1621 | (bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N2O at 0.033 Pa or O3 at 0.03 Pa each add 21 K in the table against 1 K in the model | none | open |
 | GEN.1622 | (bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs | none | open |
 | GEN.1623 | Star table: the Sun comes out at 1.107 Lsun and 5848 K (the raw MIST file agrees), so F, G and K dwarfs run 70 to 240 K hot | none | open |
@@ -3833,6 +3833,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1643 | Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues | GEN.1150 | open |
 | GEN.1644 | Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7) | none | open |
 | GEN.1645 | Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored | GEN.1500 | open |
+| GEN.1646 | Trace the nitrogen air excess left after GEN.1583 A, B and C (Earth-analog N2 median about 134 kPa against about 80); first suspect the dry carbon bracket middle (0.056 wt% CO2 against the bulk silicate Earth 0.042) | GEN.1583 | open |
+| GEN.1647 | Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one | GEN.1643 | open |
+| GEN.1648 | Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4787,8 +4790,8 @@ Each citation below resolves to one item by its date.
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting | none | done, PR #6195 |
 | UX.296 | The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link | API.46 | open |
 | UX.297 | A groundless body (sub-Neptune or gas dwarf) shows its pressure as a reference level, not a surface pressure, on the sheet, the page and the docs | none | done, PR #6005 |
-| UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | open |
-| UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | open |
+| UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | done, PR #6140 |
+| UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | done, PR #6144 |
 | UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | done, PR #6080 |
 | UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | done (measured clean by Lane 06, 2026-11-11) |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | open |

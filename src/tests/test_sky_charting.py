@@ -196,6 +196,52 @@ def test_a_mass_ring_draws_the_cells_as_the_mass_backfill_does_and_records_the_m
     assert masses == {5.0}
 
 
+def _ring_walk(context, tier, expected, center=SPHERE_CENTER):
+    """What the walk of a ring's sphere does, counted: the `candidate_path` calls it makes and the cells it yields, and what `mass_sphere_walk_visits` says (GEN.1485)."""
+    radius = sky_charting.padded_radius(tier)
+    shape = context.skeleton.shape
+    args = (shape, center, radius, EDGE_PC, expected, float(tier.low), float(tier.high), context.walk_ceiling)
+    calls, real = [], brightStars.candidate_path
+    brightStars.candidate_path = lambda *a, **k: calls.append(1) or real(*a, **k)
+    try:
+        yielded = sum(len(addresses) for addresses, _memo in brightStars.mass_sphere_batches(*args, context.seed, context.edges))
+    finally:
+        brightStars.candidate_path = real
+    visits = brightStars.mass_sphere_walk_visits(*args, context.edges)
+    paths = len(brightStars._mass_paths(shape, float(tier.low), float(tier.high), context.walk_ceiling, context.edges, {})[0])
+    return calls, yielded, visits, paths, radius
+
+
+def test_a_sparse_rings_walk_visits_the_blocks_the_cost_counts_and_not_the_cells(galaxy):
+    """GEN.1485: with no band over the candidate bound every row takes the candidate path, one block lookup per band and block; the cost is those blocks."""
+    context = sky_charting._Context(galaxy)
+    tier = a_tier("mass", low=5.0, high=8.0)
+    calls, yielded, visits, paths, radius = _ring_walk(context, tier, context.expected * 1e-6)
+    assert visits > 0 and len(calls) == visits * paths
+    assert visits < sky_tiers.cells_in_sphere(radius, EDGE_PC) and yielded <= visits
+
+
+def test_a_dense_rings_walk_visits_every_cell_of_its_rows_and_the_cost_counts_them(galaxy):
+    context = sky_charting._Context(galaxy)
+    tier = a_tier("mass", low=5.0, high=8.0)
+    calls, yielded, visits, _paths, radius = _ring_walk(context, tier, context.expected * 1e6)
+    assert not calls
+    rows = sum(length for _shell, _band, _count, _first, length in spherical.sphere_rows(SPHERE_CENTER, radius, EDGE_PC))
+    assert visits == rows and yielded <= visits
+
+
+def test_cost_rings_replaces_a_rings_cell_visits_with_its_walks(galaxy):
+    context = sky_charting._Context(galaxy)
+    ring = a_tier("mass", low=5.0, high=8.0)._replace(visits=12345.0)
+    tiers = sky_tiers.SkyTiers(7.5, SPHERE_CENTER, EDGE_PC, 0.0, (), (), (ring,), None)
+    costed = sky_charting.cost_rings(SPHERE_CENTER, tiers, context.skeleton, context.limits)
+    [found] = costed.rings
+    expected = brightStars.mass_sphere_walk_visits(context.skeleton.shape, SPHERE_CENTER, sky_charting.padded_radius(ring), EDGE_PC, context.expected,
+                                                   5.0, 8.0, context.walk_ceiling, context.edges)
+    assert found.visits == expected and found.visits != 12345.0
+    assert sky_charting.cost_rings(SPHERE_CENTER, tiers._replace(rings=()), context.skeleton, context.limits).rings == ()
+
+
 def delete_since(conn, first_id):
     conn.execute("DELETE FROM bright_stars WHERE id > ?", (first_id,))
     conn.execute("DELETE FROM sector_stats")
