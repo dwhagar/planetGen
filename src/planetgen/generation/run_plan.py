@@ -42,7 +42,9 @@ from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.util import logrecord
 from planetgen.util import step_timer as stepTimer
+from planetgen.util.ticker import Pulse, Ticker, stamp
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy import scatter_limits, spherical
@@ -555,10 +557,12 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
     try:
         conn = store.get_control_connection(store.control_mysql_config(mysql_config))
     except Exception as exc:  # noqa: BLE001 -- no control database yet
+        log.swallowed("generation/run_plan", "_draw_naming_key", exc)
         return f"No naming key drawn: the control database can't be opened ({exc}). Run update.sh."
     try:
         key = naming_key.draw(conn, mysql_config.database, galaxy_seed, replace=new_seed)
     except Exception as exc:  # noqa: BLE001 -- control schema older than v9
+        log.swallowed("generation/run_plan", "_draw_naming_key", exc)
         return f"No naming key drawn: {exc}. Run update.sh."
     finally:
         conn.close()
@@ -2713,7 +2717,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
     written = made = 0
     if part != "index":
         begun = time.monotonic()
-        say("Block light totals, part 1 of 2: " + ("making the parts and the totals again from every pre-placed object." if rebuild
+        say(f"Block light totals, {logrecord.counting_text('Part', 1, 2)}: " + ("making the parts and the totals again from every pre-placed object." if rebuild
                                                      else "checking that the stored parts match the scatter."))
         if rebuild:
             written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
@@ -2723,7 +2727,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
         report(roll_total if part == "roll" else index_start, roll_total if part == "roll" else total)
     if part != "roll":
         begun = time.monotonic()
-        say("Block light totals, part 2 of 2: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
+        say(f"Block light totals, {logrecord.counting_text('Part', 2, 2)}: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
         if shells is None:
             shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
             say(f"{len(shells):,} shells hold objects ({time.monotonic() - begun:,.0f} s to list them).")
@@ -2751,14 +2755,12 @@ def refresh_block_lights(mysql_config, args=None):
                 try:
                     log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept; "
                                "made again from every pre-placed object only when they do not match)...")
-                    last_line = [time.monotonic()]
+                    ticker = Ticker("Making the block light totals", total=1.0, percent=True)
                     with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
                         def on_progress(done, total):
                             bar.update(completed=done, total=total)
-                            if time.monotonic() - last_line[0] >= program_constants.PROGRESS_LOG_SECONDS:
-                                last_line[0] = time.monotonic()
-                                log.normal(f"Making the block light totals: {done / total:.0%}.")
+                            ticker.tick(done / total)
 
                         written, _made = make_block_lights(conn, on_progress, log.normal, getattr(args, "generation_run_id", None))
                 finally:
@@ -2766,7 +2768,7 @@ def refresh_block_lights(mysql_config, args=None):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
-        log.normal(f"Warning: making the block light totals failed: {exc}")
+        log.warning(f"Making the block light totals failed: {exc}")
         return 0
     log.normal(f"Made {written:,} block light totals.")
     return written
@@ -3016,7 +3018,7 @@ def refresh_block_lights_unit(params, report):
 
     def say(text):
         """A phase line: kept for the stage's result and also said at once, in the worker's log and as the unit's phase, so a long part is never silent."""
-        stamped = f"{text} [{time.monotonic() - started:,.0f} s into the stage]"
+        stamped = stamp(text, started)
         lines.append(stamped)
         log.normal(stamped)
         unitbeat.phase(text[:120])
@@ -3026,6 +3028,7 @@ def refresh_block_lights_unit(params, report):
         written, made = make_block_lights(conn, report, say, params.get("run_id"), rebuild=bool(params.get("rebuild")),      # MAP.402: a sector row for every cell the scatter left something in
                                           part=params.get("part", "all"), shells=params.get("shells"))
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
+        log.swallowed("generation/run_plan", "refresh_block_lights_unit", exc)
         return {"written": 0, "made": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}", "part": params.get("part", "all")}
     finally:
         conn.close()
@@ -3042,9 +3045,9 @@ class BlockLightsFollower(followed.Follower):
     def __init__(self, args, rebuild=False):
         super().__init__(args)
         self.bar = None
-        self._started = time.monotonic()
+        self._ticker = Ticker("Making the block light totals", total=1.0, percent=True)
+        self._pulse = Pulse(log.normal, self._pulse_text)      # started with the plan
         self._weights, self._fractions = [1.0], {}
-        self._stop = threading.Event()
         self._lock = threading.Lock()
         self._written = self._made = 0
         self._failed = False
@@ -3063,8 +3066,9 @@ class BlockLightsFollower(followed.Follower):
             self._weights = [roll] + [detail["cells"] * INDEX_SECONDS_PER_CELL / detail["runs"]] * detail["runs"]
             log.normal(f"The block light totals are cut into {plan.get('units', len(self._weights)):,} units: the roll-up of {detail['cells']:,} cells with a part and "
                        f"the uncharted sector rows in {detail['runs']:,} runs of shells, worked by every worker.")
-        self._started = time.monotonic()
-        threading.Thread(target=self._speak, name="block-lights-log", daemon=True).start()
+        self._ticker = Ticker("Making the block light totals", total=1.0, percent=True)
+        self._pulse.stop()
+        self._pulse = Pulse(log.normal, self._pulse_text).start()
         self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
 
@@ -3080,14 +3084,12 @@ class BlockLightsFollower(followed.Follower):
             self._fractions[unit] = min(done / max(estimate, 1e-9), 1.0)
         self.bar.update(completed=BLOCK_LIGHTS_BAR_TOTAL * self._share(), total=BLOCK_LIGHTS_BAR_TOTAL)
 
-    def _speak(self):
-        """A line every `PROGRESS_LOG_SECONDS` for as long as the stage runs, from its own thread, so the log never goes quiet whatever the units are doing."""
-        while not self._stop.wait(program_constants.PROGRESS_LOG_SECONDS):
-            log.normal(f"Making the block light totals: still working, {self._share():.0%} on the bar, "
-                       f"{time.monotonic() - self._started:,.0f} s into the stage.")
+    def _pulse_text(self):
+        """What the stage says every `PROGRESS_LOG_SECONDS` from its own thread, so the log never goes quiet whatever the units are doing."""
+        return self._ticker.text(self._share(), "still working")
 
     def on_done(self, conclusion):
-        self._stop.set()
+        self._pulse.stop()
         if not self._failed:
             log.normal(f"Made {self._written:,} block light totals" + (f" and {self._made:,} uncharted sector rows." if self._made else "."))
 
@@ -3101,7 +3103,7 @@ class BlockLightsFollower(followed.Follower):
                 log.normal(line)
         if result["warning"]:
             self._failed = True
-            log.normal(f"Warning: making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
+            log.warning(f"Making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
 
 
 class _PhenomenaBook:
@@ -3540,8 +3542,8 @@ def log_skeleton_summary(args, summary):
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
-        log.normal(
-            f"WARNING: the galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
+        log.warning(
+            f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
             f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
             f"parameters really do produce a galaxy this large."
         )
