@@ -108,3 +108,30 @@ def test_every_page_says_there_is_no_galaxy_yet(web, path):
     assert response.status_code == 404, path
     assert "<title>No galaxy yet" in html and "There is no galaxy in database" in html and "Generate page" in html
     assert "no page at this address" not in html.lower() and "no such database" not in html.lower()
+
+
+def test_a_database_is_resolved_without_listing_every_schema(mysql_config, monkeypatch):
+    """A request with `?db=` resolves its schema on every call: it asks the server about that one name, not for the size of each of its
+    schemas (`list_databases` scanned `information_schema.tables` once per schema; 0.5 s a request on a server with 147 test schemas)."""
+    def listed(*args, **kwargs):
+        raise AssertionError("resolve_database listed every schema")
+    monkeypatch.setattr(_db, "list_databases", listed)
+    assert _db.resolve_database(mysql_config, mysql_config.database).database == mysql_config.database
+    with pytest.raises(ValueError, match="No such database"):
+        _db.resolve_database(mysql_config, "not_a_planetgen_schema")
+
+
+def test_a_name_is_matched_as_written_and_inside_the_prefix(mysql_config):
+    """The listing's rules hold: a case-folded name and a name outside the prefix are not databases to select."""
+    with pytest.raises(ValueError, match="No such database"):
+        _db.resolve_database(mysql_config, mysql_config.database.upper())
+    with pytest.raises(ValueError, match="No such database"):
+        _db.resolve_database(mysql_config, mysql_config.database, prefix="no_such_prefix_")
+    assert _db.resolve_database(mysql_config, mysql_config.database, prefix=mysql_config.database[:8]).database == mysql_config.database
+
+
+@pytest.mark.parametrize("name", ["\U0001F4A5", "caf\u00e9", "a'; DROP DATABASE x; --", "\x00", "x" * 300])
+def test_a_hostile_name_is_no_such_database_and_never_a_server_error(mysql_config, name):
+    """The name is compared in Python: a character the schema column's collation cannot mix with the name's was a server error (503) before."""
+    with pytest.raises(ValueError, match="No such database"):
+        _db.resolve_database(mysql_config, name)
