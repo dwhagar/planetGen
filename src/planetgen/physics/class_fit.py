@@ -252,6 +252,6 @@ def classify(body):
     return Classification(best.letter, best.kind, best_m, None if runner is None else runner[1].letter, 0.0 if runner is None else runner[0], digit)
 
 
-def rule_words(cls):
-    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`)."""
-    return [planet_classes.condition_words(condition) for condition in cls.when]
+def rule_words(cls, measure=None):
+    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`, which says what `measure` is)."""
+    return [planet_classes.condition_words(condition, measure) for condition in cls.when]

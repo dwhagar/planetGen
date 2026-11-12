@@ -140,7 +140,7 @@ def test_class_pages_show_the_constants(client):
     assert planet_classes.describe("M").sentence in html
     assert "<th scope=\"row\">Core class</th><td>Yes</td>" in html
     html = _html(client, "/classes/planet/S")
-    assert "mass at least 1.5 Earth masses" in html
+    assert re.search(r'mass at least <span class="qty" data-q="mass" data-si="[^"]+" data-nc>1\.5 Earth masses</span>', html)     # UX.295: a number with a unit follows the visitor's unit setting
 
     low_k, high_k = mamajek_sequence.letter_range_k("G")
     html = _html(client, "/classes/star-spectral/G")
@@ -607,3 +607,22 @@ def test_a_written_planet_class_code_resolves_to_its_letters_page(client):
     resp = client.get(f"/classes/planet/{letter}2")
     assert resp.status_code == 301 and resp.headers["Location"].endswith(f"/classes/planet/{letter}")
     assert client.get(f"/classes/planet/{letter}22").status_code == 404
+
+
+def test_the_conditions_line_writes_its_numbers_for_the_visitors_unit_setting(client):
+    """UX.295: the Conditions line of a planet class writes every pressure, temperature, gravity and mass as a `qty` span (`static/units.js` shows it in the visitor's
+    units from `data-si`), not as raw pascals and kelvins; the words round it are escaped and the spans are not."""
+    html = _html(client, "/classes/planet/M")
+    row = re.search(r'<th scope="row">Conditions</th><td>(.*?)</td>', html, re.S).group(1)
+    spans = re.findall(r'<span class="qty" data-q="(pressure|temperature|gravity|mass)" data-si="([^"]+)" data-nc>', row)
+    assert {kind for kind, _ in spans} >= {"pressure", "temperature", "gravity"}
+    outside = re.sub(r"<span.*?</span>", "", row)      # what is written outside the spans carries no number with a unit
+    assert not re.search(r"\d\s*(Pa|kPa|K|Earth masses)\b", outside), outside
+    assert "&lt;span" not in row
+
+
+def test_a_condition_without_a_unit_hook_is_written_as_before():
+    condition = {"quantity": "pressure_pa", "lt": 10.0}
+    assert planet_classes.condition_words(condition) == "surface pressure below 10 Pa"
+    assert planet_classes.condition_words(condition, lambda value, unit: None) == "surface pressure below 10 Pa"
+    assert planet_classes.condition_words(condition, lambda value, unit: f"[{value} {unit}]") == "surface pressure below [10.0 Pa]"
