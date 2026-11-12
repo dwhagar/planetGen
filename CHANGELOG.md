@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3931] - 2026-11-12
+
+**Headline:** Planets inside the Hycean box (1 to 10 Earth masses, 1.4 to 2.6 Earth radii, 150 to 500 K, 1.5 to 3 g/cc) are now named as Hycean candidates (oddity W26) and the page says why they may carry an ocean under a hydrogen envelope.
+
+### Changed
+
+- GEN.1523: `physics/hycean_candidate.py` is now read by the generator. Oddity W26 is a naming row on a new lever L8 (a name on the finished body; no input moves), applied at the end of `calculate_atmospheric_conditions`, after the envelope share. The gate quantities `density_g_cm3` and `equilibrium_temperature_k` are now computed in `oddities.quantities_of` (the temperature from the light of every star at the body's distance, at the Earth's Bond albedo of 0.3). It draws nothing outside its own stream, so no other draw moves; the oddity ids stored on planets change, so the golden and the epoch are Lane 02's to regenerate.
+- GEN.1523: `atmosphere_retention` and its rows SH1 to SH4 are marked by design in the wiring register: the pressure stage reads the Berta-Thompson logistic of the atmosphere recipes (the fit to observed planets), not the module's K-window fit.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.3930] - 2026-11-12
 
 **Headline:** Planets in a tight chain of four or more are now spaced further apart, so the chains an N-body check showed scattering no longer come out of the generator.
