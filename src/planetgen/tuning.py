@@ -354,8 +354,8 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
 # law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way, inside the
-# factor 2 to 3 the observed lines move.
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
+# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
 SNOW_LINE_SCATTER_DEX = 0.2
 SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 
