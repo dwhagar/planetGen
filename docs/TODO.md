@@ -13348,12 +13348,13 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
   Filed by the TODO thread.
 
-- [ ] **OPS.155 Self-tuning step 1: job_profiles table in the control database and writers that record peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run)**
+- [ ] **OPS.155 Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run)**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Do: the table, its migration and roll-up job, and writers fed from memorygate.release, unitrates.note, stagetimes.record and units.horse_killed, as under "Record first" in the note. Ships first and alone. Test: a small run fills it for every command it ran.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
   Defaults taken until Boss says otherwise: control database, other-machine profiles at half trust, splits last and only for cut-neutral stages (the note's three recommendations).
   Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Boss, 3:04 PM EST on 2026-11-12: "Every stage and part of every job should be logged for time, memory, and CPU usage peek and average for each". So every stage and every part (unit, item batch) of every job records time, memory and CPU, each as peak and average, in the log and in the stored profile.
   Filed by the TODO thread.
 
 - [ ] **OPS.156 Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback**
