@@ -2427,7 +2427,7 @@ CREATE TABLE IF NOT EXISTS planets (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
-    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through); `ocean_fraction` is the liquid sea alone
+    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through), `ocean_fraction` is the liquid sea alone
     ocean_depth_km              DOUBLE,
     ice_shell_km                DOUBLE,
     hp_ice_km                   DOUBLE,
@@ -2565,7 +2565,7 @@ CREATE TABLE IF NOT EXISTS planets (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
-    shape_temperature_k         DOUBLE,  -- v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting); the strength reads it
+    shape_temperature_k         DOUBLE,  -- v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting), the strength reads it
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
     relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
@@ -2970,7 +2970,7 @@ CREATE TABLE IF NOT EXISTS moons (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
-    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through); `ocean_fraction` is the liquid sea alone
+    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through), `ocean_fraction` is the liquid sea alone
     ocean_depth_km              DOUBLE,
     ice_shell_km                DOUBLE,
     hp_ice_km                   DOUBLE,
@@ -3108,7 +3108,7 @@ CREATE TABLE IF NOT EXISTS moons (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
-    shape_temperature_k         DOUBLE,  -- v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting); the strength reads it
+    shape_temperature_k         DOUBLE,  -- v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting), the strength reads it
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
     relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
