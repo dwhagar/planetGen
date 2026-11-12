@@ -13573,6 +13573,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: MAP.409.
   Filed by the TODO thread.
 
+- [ ] **GEN.1641 (bug) GEN.1521's chain rule pushes neighbouring planets past 40 mutual Hill radii, so belt_origin makes many gap belts and belts per system nearly double (G2V 1.21 to 1.73)**
+  Train 24 census (Lane 02, 2:15 AM EST on 2026-11-12) and Lane 22's trace (3:03 AM EST): chain_distance_au pushes the next planet far when one gap in the window is wide, so more neighbour pairs exceed 40 mutual Hill radii and each becomes a gap belt (80 G2V systems: 3 gap belts on main, 42 on the train; with the rule reverted 1.16 belts per system). Do: cap the chain push at the 40 mutual Hill radius gap threshold (or an equivalent), re-run the census, and check whether G2V blue_green (0.087 to 0) and F inner_multiplicity (3.15 against 2.83) move back too. Lock item.
+  Version 8.1 (regression from Train 24). Owner (TODO, 2026-11-12): Lane 14, with Lane 22. Prerequisites: GEN.1521. Related: GEN.1521, GEN.1537.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
