@@ -205,9 +205,17 @@ BROWSER_START_SKIPS = ("Playwright could not start", "No Chromium for Playwright
 """tuple: The start of the skip reasons the browser fixtures give when Playwright or its Chromium will not start (TEST.693)."""
 
 
+MYSQL_SKIPS = ("No MySQL test server reachable",)
+"""tuple: The start of the skip reason `_mysql_server_available` gives when the test server will not answer or refuses the login (TEST.723)."""
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
+    TEST.723: with `PLANETGEN_REQUIRE_MYSQL` set (every command of `scripts/test.py` that runs database tests sets it), a database test that skipped because the MySQL test server could not
+    be reached or refused the login is a failure, not a skip. A gate that comes back with hundreds of skips because MySQL died or a lane's login was refused looks green to anyone who reads
+    only the failure count (6055 came back 317 skipped and was nearly reported as a pass).
+
     TEST.693: with `PLANETGEN_REQUIRE_BROWSER` set (the browser phase of `scripts/test.py` sets it), a browser test that skipped because Playwright or
     its Chromium would not start is a failure, not a skip. Before this a version mismatch (every test skipped with "Executable doesn't exist") and
     one test that left an asyncio loop behind (every later test skipped with "inside the asyncio loop") each turned about 1,500 browser tests into skips
@@ -215,12 +223,18 @@ def pytest_runtest_makereport(item, call):
     """
     outcome = yield
     report = outcome.get_result()
-    if not report.skipped or not os.environ.get("PLANETGEN_REQUIRE_BROWSER"):
+    if not report.skipped:
+        return
+    require_browser, require_mysql = os.environ.get("PLANETGEN_REQUIRE_BROWSER"), os.environ.get("PLANETGEN_REQUIRE_MYSQL")
+    if not (require_browser or require_mysql):
         return
     reason = report.longrepr[2] if isinstance(report.longrepr, tuple) and len(report.longrepr) == 3 else str(report.longrepr)
-    if any(marker in reason for marker in BROWSER_START_SKIPS):
+    if require_browser and any(marker in reason for marker in BROWSER_START_SKIPS):
         report.outcome = "failed"
         report.longrepr = f"the browser could not start, so the test did not run: {reason}"
+    elif require_mysql and any(marker in reason for marker in MYSQL_SKIPS):
+        report.outcome = "failed"
+        report.longrepr = f"the MySQL test server could not be reached, so the test did not run (TEST.723): {reason}"
 
 
 def pytest_collection_modifyitems(config, items):
