@@ -13356,6 +13356,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 15. Prerequisites: none. Related: GEN.1566, GEN.849, GEN.1574, GEN.725.
   Filed by the TODO thread. Boss approved.
 
+- [ ] **GEN.1576 (bug) A planet whose thermal and gravitational tides balance away from synchronism (body_spin kind asynchronous) can spin past the breakup limit, because the balance rate is not capped at spin.BREAKUP_FRACTION (0.85) of the breakup rate**
+  Lane 12, found 7:35 PM EST on 2026-11-11 (as the lane reported) while chasing the red test_orbital_motion rotation-period test, which samples unseeded and so fails now and then. Reproduced on main with seed 91, a G2V star with moons: a 3.5 Earth-mass, 9 Earth-radius planet at 0.15 AU turns once in 6.2 h where it would break up at 24.4 h. Do: cap the balance rate in planets.generate_spin at spin.BREAKUP_FRACTION of the breakup rate (reuse the existing constant and breakup helper; add no second spin pass), and add a two-case test (a puffy planet that hits the cap, and one that does not). Done: the test, the seed-91 case below breakup, and the unseeded rotation-period test stops failing. Changes the output only of such low-density planets (generation-affects fill), so a lock item for a later train (new epoch, no migration).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 12 (branch claude/lane12-spin-cap). Prerequisites: none. Related: GEN.842.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
