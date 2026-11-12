@@ -252,6 +252,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
 | module | planetgen.physics.hot_condensates | GEN.994 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
 | data | hot_condensates.json | GEN.994 | read by `physics/hot_condensates.py` only |
+| module | planetgen.physics.hot_cloud_deck | GEN.994 | the cloud base of each hot-atmosphere species along a profile and the ceiling of each trace gas, as the one-column-per-species plan stores them; the hot-giant regime wiring (GEN.994) reads it, adds the columns and the migration, and deletes this line |
 | row | 6.217:HK1 | GEN.994 | the trace elements' [X/Fe] follow the cloud and gas reader |
 | row | 6.217:HK2 | GEN.994 | the trace gas ceiling is read when the thermochemistry places the gases |
 | row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
