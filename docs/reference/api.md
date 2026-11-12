@@ -420,6 +420,15 @@ connectivity to that specific schema rather than the default one.
   typical composition and density), `density_factor` (`by_diameter`: the objects per square AU above 1, 10 and 100 km; `mass`: kilograms per square AU)
   and `totals` (the belt, the listed bodies and the bins, which add up). Every number is `{value, unit, text}`. A new route, so the API version stays; a
   reference that is not a belt, or names nothing, is a `404`.
+- `GET /api/objects/<ref>/irregular-moons` — the irregular moons a planet keeps (GEN.1086, `describe/irregular_moon_info.py`): `planet` (`designation`, `name`, `star`, `mass`,
+  `hill_radius`), `moons` (heaviest first, each with `rank` (the page address), `designation` (`<planet ID>.<rank hex>`, the rank being the stored rank plus one, or the belt's
+  designation `<belt ID>.<rank hex>` for a body caught from an inner belt, with `belt_designation` true), `window` (`gas`, `encounter` or `exchange`), `retrograde`, `mass`,
+  `diameter`, `density`, `taxon`, `analogue`, `composition` shares, the `distance` about the planet, `eccentricity`, `inclination` and `hill_fraction`) and `not_stored`
+  (`remainder`, `above_floor`, `lost`, `temporary`). Every number is `{value, unit, text}`. A new route, so the API version stays; a reference that is not a planet is a `404`.
+- `GET /api/objects/<ref>/irregular-moons/<rank>` — one irregular moon of a planet, `rank` written as a designation writes it (hex, at least four digits): `designation`,
+  `rank`, `moon` (the entry above), `orbit` (the six elements about the planet, the `closest_distance`, `farthest_distance`, `period`, `retrograde` and `hill_fraction`),
+  `planet` and the `previous` (heavier) and `next` (lighter) neighbours as `{rank, designation}`; ranks can have gaps where a smaller body was lost. A new route, so the API
+  version stays. A reference that is not a planet, a rank not written canonically, or a body the planet does not keep is a `404`.
 - `GET /api/objects/<ref>/belt-members/<rank>` — one body an asteroid belt keeps individually (GEN.1070, `describe/belt_member_info.py`), `rank` written as the
   designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry of `bodies` in the belt's information page:
   mass, diameter, density, `taxon`, composition, `status`, `population`), `orbit` (`semi_major_axis`, `eccentricity`, `inclination`, `ascending_node`,

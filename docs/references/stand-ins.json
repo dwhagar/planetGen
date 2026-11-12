@@ -64299,7 +64299,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside"
         },
         {
@@ -64337,7 +64337,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.WD_CENTRAL_OXYGEN_RANGE (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to"
         },
         {
@@ -64375,7 +64375,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.WD_NEON22_PER_CNO 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core"
         },
         {
@@ -64413,7 +64413,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.POLLUTANT_CORE_RICH_METAL_FRACTION 0.5: a fragment with at least this mass fraction of metal grains is core-rich"
         },
         {
@@ -64451,7 +64451,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.POLLUTANT_CRUST_RICH_FACTOR 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich"
         },
         {
@@ -64489,7 +64489,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.POLLUTANT_VOLATILE_RICH_FRACTION 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich"
         },
         {
@@ -64527,7 +64527,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.POLLUTANT_ELEMENT_SHARES: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10"
         },
         {
@@ -64565,7 +64565,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1370",
           "what": "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
         },
         {
