@@ -205,3 +205,22 @@ def test_a_cool_global_ocean_with_oxygen_is_o_and_a_cool_damp_desert_is_h_and_a_
     assert cf.best_class(body(surface_temperature_k=309.0, ocean_fraction=0.95))[0] == "O"
     dry = body(surface_temperature_k=285.0, ocean_fraction=0.0, groundwater="none")
     assert cf.best_class(dry)[0] != "H"
+
+
+def test_a_nan_quantity_is_no_match_and_classification_refuses_it():
+    """GEN.1593: every comparison with NaN is false, which read as a perfect pass; a NaN in a class quantity now scores 0 and the generation path stops on it."""
+    from tests.test_planet_classes import body
+    import pytest
+    from planetgen.physics import class_fit as cf, planet_classes as pc
+
+    assert cf.membership({"quantity": "gravity_g", "min": 0.75}, {"gravity_g": float("nan")}) == 0.0
+    assert cf.membership({"quantity": "gravity_g", "lt": 2.0}, {"gravity_g": float("nan")}) == 0.0
+    assert cf.membership({"quantity": "groundwater_present", "equals": 1.0}, {"groundwater_present": float("nan")}) == 0.0
+    sound = cf.scores(body())
+    nan_gravity = cf.scores(body(gravity_g=float("nan")))
+    assert nan_gravity.get("M", 0.0) == 0.0 < sound["M"]
+    assert cf.scores(body(atmospheric_pressure_pa=float("nan"))) == {}      # no side of the air gate
+    with pytest.raises(pc.ClassError, match="not a number"):
+        cf.classify(body(gravity_g=float("nan")))
+    with pytest.raises(pc.ClassError, match="gravity_g"):
+        pc.classify_detail(body(gravity_g=float("nan")))
