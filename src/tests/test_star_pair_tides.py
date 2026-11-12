@@ -25,7 +25,7 @@ def _axis_au(period_days, total_mass_sol):
 def test_pseudo_synchronous_rate_is_the_mean_motion_for_a_circular_orbit_and_grows_with_eccentricity():
     assert st.pseudo_synchronous_ratio(0.0) == 1.0
     assert st.pseudo_synchronous_ratio(0.3) > st.pseudo_synchronous_ratio(0.1) > 1.0
-    assert st.pseudo_synchronous_ratio(0.5) == pytest.approx(2.805, abs=0.01)       # equation 42 of the tidal theory (R5229) at e = 0.5
+    assert st.pseudo_synchronous_ratio(0.5) == pytest.approx(2.805, abs=0.01)       # equation 42 of the tidal theory (R5230) at e = 0.5
 
 
 def test_the_synchronisation_time_falls_steeply_with_the_separation():
