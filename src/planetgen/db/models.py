@@ -3110,6 +3110,7 @@ rogue_planets = sa.Table(
     sa.Column('roundness_ratio', mysql.DOUBLE(), nullable=True),
     sa.Column('yield_strength_pa', mysql.DOUBLE(), nullable=True),
     sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
+    sa.Column('shape_temperature_k', mysql.DOUBLE(), nullable=True),
     sa.Column('shelter_column_g_cm2', mysql.DOUBLE(), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('body_type', sa.String(4), nullable=True),

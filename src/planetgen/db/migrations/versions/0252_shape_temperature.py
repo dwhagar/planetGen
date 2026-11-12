@@ -1,6 +1,6 @@
 """The temperature a body took its shape at (GEN.1201).
 
-Schema v252. `planets` and `moons` gain `shape_temperature_k` (DOUBLE, K, nullable): the temperature the body took its shape at, worked out by `physics/shape_temperature.py` from its
+Schema v252. `planets`, `moons` and `rogue_planets` gain `shape_temperature_k` (DOUBLE, K, nullable): the temperature the body took its shape at, worked out by `physics/shape_temperature.py` from its
 surface temperature, the heat of its assembly, its radioactive content and its tides, and read by the roundness engine for the yield strength and the roundness ratio (`physics/body_strength.py`).
 A row made before v252 has NULL here and keeps the cold strength it was made with until the galaxy is regenerated (a migration does not draw). A column already there is skipped, so a stopped run can be started again.
 """
@@ -15,7 +15,7 @@ down_revision = "0251"
 branch_labels = None
 depends_on = None
 
-TABLES = ("planets", "moons")
+TABLES = ("planets", "moons", "rogue_planets")
 """tuple: The tables that gain the column."""
 
 COLUMN = "shape_temperature_k"
