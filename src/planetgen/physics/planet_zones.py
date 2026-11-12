@@ -23,12 +23,9 @@ docs/design/systems/multistar-and-compact-systems.md 5.6 and 6.5:
 A `group` node (a young system that is not hierarchical) has no orbit to set a window by: its members get none and a
 node under it is taken as a root.
 
-`flux_at` is the other half: the time-averaged light on a planet of a zone's host, in units of what one solar
-luminosity gives at 1 AU. The host's own light falls with the planet's distance squared; every member outside the host
-adds `L <1/d^2>` with `d` the separation of the node that member and the host meet at and
-`<1/d^2> = 1 / (a^2 sqrt(1 - e^2))` over an eccentric orbit (6.5). Both treat a subtree as a point at its center of
-mass, which holds where a planet is well inside its host's window and the hierarchy is as hierarchical as the
-stability test makes it.
+The light on a planet of a zone is not worked out here: `radiation_field` (GEN.1441) takes the stars outside the host from
+`companion_orbits` (`host_members` names the stars the host is, which its test checks), the host's light falling with the planet's distance squared and each outside member adding `L <1/d^2>` over its orbit; it treats a subtree as a
+point at its center of mass, which holds where a planet is well inside its host's window and the hierarchy is as hierarchical as the stability test makes it.
 
 Distances are AU, masses and luminosities solar.
 """
@@ -260,30 +257,3 @@ def host_members(zone, nodes, members):
     tree = _Tree(list(nodes), list(members))
     host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
     return sorted(tree.below(host))
-
-
-def flux_at(zone, distance_au, luminosities_sol, nodes, members):
-    """
-    The light on a planet that goes round `zone`'s host at `distance_au`, in units of one solar luminosity at 1 AU.
-
-    Args:
-        zone (Zone): The window the planet is in.
-        distance_au (float): The planet's distance from the host (the star for an S-type zone, the pair's center of
-            mass for a P-type one).
-        luminosities_sol (dict): `{member_no: luminosity in solar units}`; every member of the tree needs one.
-        nodes (iterable): The tree's nodes.
-        members (iterable): Its members.
-
-    Returns:
-        float: The host's own light plus, for every other member, its luminosity over the time-averaged square of
-            its distance (`1 / (a^2 sqrt(1 - e^2))` at the node the member and the host meet at).
-
-    Raises:
-        ValueError: For a distance that is not positive, or a member that meets the host at a `group` node.
-    """
-    if not distance_au > 0.0:
-        raise ValueError(f"flux_at: the planet's distance must be positive, got {distance_au!r}")
-    total = sum(luminosities_sol[number] for number in host_members(zone, nodes, members)) / (distance_au * distance_au)
-    for number, axis, eccentricity in companion_orbits(zone, nodes, members):
-        total += luminosities_sol[number] / (axis * axis * math.sqrt(1.0 - eccentricity ** 2))
-    return total

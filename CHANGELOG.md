@@ -2,6 +2,168 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3893] - 2026-11-12
+
+**Headline:** A generation run lowers its bulk worker count when jobs wait for memory and raises it again when memory is free, instead of leaving jobs to wait 300 s at the memory gate.
+
+### Changed
+
+- Adaptive worker control (`queue/adaptive.py`): a bulk job that has waited 30 s at the memory gate for memory, or a host whose available memory is under three quarters of the gate's reserve, lowers the bulk worker limit by one (never below 1); the workers that wait at the gate leave first and put their jobs back at the front of the queue. After 120 s with no memory wait and room for one more worker, the limit goes up by one. Each change is logged and kept in Redis. See `redis-and-the-work-queue.md` section 5.17.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3892] - 2026-11-12
+
+**Headline:** the sheet of a rocky planet or moon now lists its heavy elements (rare earths, platinum group, gold, lead, strontium, barium and the rest), shared between the rock and the metal core from the star it formed around.
+
+### Changed
+
+- `physics/heavy_elements.py` (GEN.1371, registry rows HE1 to HE7): each heavy element of the star is the solar value of [R0768] moved to the star's [Fe/H] and shared between the r- and s-process by the Sun's r-fraction; the r share follows the star's [Eu/Fe] (the draw the thorium of `radiogenic` uses) and the s share the Brewer and Fischer trend of Y with a scatter on its own stream, `heavy:{key}`, so no existing draw moves. Nothing is stored.
+- The element-to-magnesium ratio of the star, times the magnesium of the rock, gives a body's mass of each element, shared between silicate and metal core by a metal-silicate partition coefficient (platinum group and gold nearly all in the core, rare earths and large-ion lithophiles in the mantle). Late accretion is not added.
+- `describe/heavy_rows.py`, `describe/clock_rows.py`, `describe/sheet.py`: the sheet of a body with rock gains the group sums, silicate and metal, as derived rows beside the clock rows (reuse: `clock_rows`' derived-row hook and `radiogenic.host_offset_dex`' star-to-solar pattern).
+- `tuning.py`: `STELLAR_HEAVY_LOG_EPS`, `STELLAR_HEAVY_R_FRACTION` (second-hand [R5228] values, Marginal Unverified, flagged for upgrade) and `STELLAR_S_PROCESS_XFE`.
+
+generation-affects: none
+
+## [8.0.3891] - 2026-11-12
+
+**Headline:** tests only: a fixture that hung once (the browser tests' server, say) is no longer waited for again by every later module.
+
+### Changed
+
+- TEST.190: a session fixture that fails is raised again for its dependents at once, but a module- or class-scoped one is set up again by each module, so a server that never came up cost every module its whole 900 s timeout. The new `tests/dead_fixtures.py` plugin (loaded in `pytest.ini`) remembers a fixture of a scope wider than one test whose setup `pytest-timeout` stopped, and fails the later tests that need it at once, naming the test that waited first. A function-scoped fixture is left alone. `PLANETGEN_TEST_RETRY_DEAD_FIXTURES=1` turns it off. `tests/test_dead_fixtures.py` shows three modules waiting once, not three times. No program code changes.
+
+## [8.0.3890] - 2026-11-12
+
+**Headline:** An uncharted star or scattered object is now shown by its local name and birth sector, with its real Object ID, instead of "Uncharted G2V star 123".
+
+### Changed
+- **Uncharted objects carry their local name and Object ID on every page and list (UX.259).** The uncharted star page, the uncharted phenomenon page, the Uncharted stars table, the sector page rows, the Nearby list and the scattered-phenomena lists now name a scatter row by its local name (with its sector where the name stands alone) and show its Object ID, read from the row's own `uid` (GEN.1254, GEN.1255). A row made before the Object IDs existed, or a galaxy with no naming key, keeps the older label. Display only: nothing stored changes. Map labels and the map infobox are Lane 12's side and follow once the API fields land.
+
+generation-output: unchanged
+
+## [8.0.3889] - 2026-11-12
+
+**Headline:** The train PR's body now shows how an exact Earth comes out of the generator against a stored baseline, so the items that move the air, water, life or class can quote a before and after.
+
+### Changed
+
+- TEST.726 (stacked draft; proposed, to be confirmed by TODO before it merges): the Earth analog of the Class M audit is now `scripts/earth_analog.py` (`run`, `baseline`, `compare`), with its baseline of 800 paired trials in `scripts/data/earth_analog_baseline.json` (made on main at the commit it names). `python scripts/train.py pr-body` prints a "## Earth analog" section: the classes, hydrospheres, temperature bins, medians and failing Class M conditions of the first 400 trials against the baseline, and the trials whose class changed. The draws are paired by seed, so a train that changes nothing shows no movement. It is for information and never blocks a train (any failure is one sentence in the body; `--no-earth-analog` leaves it out). The analysis-only measurement hooks of the audit copy (scaling the volcanic nitrogen, the carbon dioxide gate, the wet-bulb edge) are not carried over.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3888] - 2026-11-12
+
+**Headline:** The multi-star light of a planet has one implementation: the unused `planet_zones.flux_at`, which repeated `radiation_field`, is gone.
+
+### Changed
+
+- GEN.1559 (wiring burn-down, found by `scripts/wiring_guard.py`): `planet_zones.flux_at` was built for the multi-star planet climate and read by nothing; `radiation_field` (GEN.1441) already sums the light of the host and of every star outside it from `planet_zones.companion_orbits`. `host_members` stays, now marked by design in the wiring register (the radiation field's host choice is tested against it). The function, its tests, its wiring-register line and the mentions in the design notes and registry row RF2 are removed or point at `radiation_field`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3887] - 2026-11-12
+
+**Headline:** the gas dwarf and ice giant class texts now describe what the bodies are made of (rock and metal under a thick envelope), and the no-surface line says the rock lies deep under it.
+
+### Changed
+
+- Classes T and I in `physics/data/planet_classes.json`: the gas dwarf was "a deep hydrogen and helium envelope over a small core" and the ice giant "mostly water, ammonia, and methane ices"; the stored bodies are rock and metal 80 to 90 percent of the mass under an envelope of 1 to 18 percent (class T), and two sampled ice giants hold no water. The gas dwarf now reads "mostly rock and metal under a thick hydrogen and helium envelope, with no surface to stand on"; the ice giant "a thick hydrogen and helium envelope over an interior of rock, metal, and the ices its disk gave it". The class page, the planet page and the system map read these words when they are built, so nothing stored changes.
+- The day-counter line of a body with no surface (state word `no solid surface`, unchanged) now reads "No surface to stand on: any rock lies deep under a thick envelope. The day below counts the turn of its clouds."
+- New test `test_giant_class_words.py`: the texts name rock and do not say "small core" or "mostly ices", and the gas dwarfs of a generated system store more rock and metal than envelope.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3886] - 2026-11-12
+
+**Headline:** The class census is now a repeatable script, `scripts/class_census.py`, with the same tables on every run.
+
+### Changed
+
+- `scripts/class_census.py collect` draws the census samples (natural, hab, stars, young, youngforced, capsoff) on fixed seeds through the host's memory and load gate, with `--workers`, `--forced-young` (every random primary star aged 0.5 to 50 Myr, for the disk-by-age row of GEN.1553) and `--caps-off all|d34`; a stopped run continues. `report` prints tables A to K of reports/class-census-2026-11-11.md in one markdown format from a directory of collected files, with numpy only (no pandas). On the stored 11-11 data it gives the report's class counts, funnel, flux-distance mass, pressure pile-up, star and value-check tables exactly.
+- `tests/test_class_census_script.py` holds the table format, the funnel, the crosstab, the age bins, the fixed sample seeds and one real system drawn into a record the report reads.
+
+generation-output: unchanged
+
+## [8.0.3885] - 2026-11-12
+
+**Headline:** A version can no longer be stamped while built physics sits unread: the wiring guard has a release mode that fails on any unread item the register does not mark by design.
+
+### Changed
+
+- TEST.718: `python scripts/wiring_guard.py --release` prints every module, function, registry row, data file, dataset and column that is built and read by nothing and that `docs/design/research/wiring-register.md` does not mark `by design`, and exits 1 while there is one (124 today; the burn-down is GEN.1559). It is the third release gate beside the SEC.33 and TEST.261 audits and is documented in `docs/plan/execution-notes.md`. Two tests pin it: a seeded unread item fails the gate and an empty list passes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3884] - 2026-11-12
+
+**Headline:** When a long sky job loses its MySQL connection, the log now says why: a server restart, an idle timeout, an abort by the server, or something closing the socket.
+
+### Changed
+
+- A sky unit (`run_galaxy._sky_unit`) reads the server's uptime, timeouts and aborted-client count when it opens its connection (`db/connection_loss.py`). When the connection is lost it reads them again on the new one and logs one sentence, for example `MySQL connection lost: MySQL was restarted: its uptime is 40 s now and was 5,000 s 1,800 s ago`, with the logs to look in. The other verdicts are an idle timeout (no batch finished for as long as `wait_timeout`), the server aborting the client (`Aborted_clients` went up: a read or write timeout or a packet over `max_allowed_packet`), and the same server with something between the job and MySQL closing the socket.
+- Nothing about the retry changes: a unit still goes on from its last committed batch on a new connection, up to 3 times. An account that cannot read the server status gets a line that says it cannot tell. DB.115 stays open until a real loss logs a verdict.
+
+generation-output: unchanged
+
+## [8.0.3883] - 2026-11-12
+
+**Headline:** A nebula's or remnant's page shows its composition at a glance, and a remnant sets what the explosion threw out beside the gas it swept up.
+
+### Added
+
+- The At a glance panel of a nebula and of a supernova remnant now lists the hydrogen, helium and heavy-element shares of its mass and its dust-to-gas ratio, read from the stored composition (GEN.1276), with their units. The full sheet below it already listed every stored value (GEN.1269 to GEN.1277); nothing is derived at read time, so no row carries a derived mark.
+- A remnant's page has a two-column table, "What the explosion threw out and what it swept up": the mass and the hydrogen, helium and heavy-element shares of the ejecta beside those of the swept-up gas (`web/item_pages.py::ejecta_view`, the `remnant-ejecta` panel of `phenomenon.html`). It reuses the sheet rows, so a remnant that stores none of them has no table.
+- Tests: `test_property_sheet.py` (the glance rows and the two columns from a stored nebula and remnant) and `test_web_system_phen.py` (the page).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3882] - 2026-11-12
+
+**Headline:** The one-off system page can now pick which debug areas its debug log shows.
+
+### Added
+- **A "Debug areas" box on the one-off system page (UX.300).** `/admin/generate/system` takes the same area list `--debug-areas` takes (names separated by commas, `all`, or a leading `-` to leave one out); it is checked the way the command line checks it and passed on when the debug log is ticked.
+
+## [8.0.3881] - 2026-11-12
+
+**Headline:** tests only: the tests that run a queue command in a process of their own no longer read the machine's data folder through a leftover worker.
+
+### Changed
+
+- TEST.717: `datasets status`, `check-math` and `plan` run through the queue, which hands the work to any worker already serving the Redis database, in that worker's environment. A worker left on the test database by an earlier test answered with the machine's `/var/cache/planetgen/datasets` instead of the test's folder, so `test_datasets_gate` and `test_math_gate` failed together on main. The new `queue_command_env` fixture ends such workers and empties the database before the command runs (and after), and four tests take it. A guard test (`tests/test_queue_command_env.py`) fails for any test that runs one of those commands in a process without it, and checks that a decoy worker is ended. No program code changes.
+
+## [8.0.3880] - 2026-11-12
+
+**Headline:** the orbit ring drawn for a moon in the 3D system view now lies in the plane the moon moves in.
+
+### Changed
+
+- MAP.425: a moon's stored inclination and ascending node are measured in its planet's equator (GEN.1352), but its stored position and velocity are in the star's frame. The system scene took the ring's plane from the columns and the moon's place from the state, so the highlighted ring of a moon (Agnowee VIb, VIc and VIg) did not pass through it. The scene now takes the plane from the state too, as it already took the eccentricity and the periapsis. Display only; nothing stored changes.
+
+## [8.0.3879] - 2026-11-12
+
+**Headline:** Sheet rows for a magnetic field and for how often flares and lethal events happen now read in a fitting unit instead of a fixed one.
+
+### Changed
+- **A magnetic field shows in tesla with gauss in brackets, and event rates go on a ladder (UX.304).** The magnetic-field rows of the sheets (planets and stars) used the `.4g` number with a bare "G"; they now use the existing magnetic-field ladder, so "50 µT (0.5 G)" and "20 mT (200 G)". The flare rate (per year) and the lethal-event rate (per billion years) use a new rate ladder (`1/Gy`, `1/Myr`, `1/yr`, `1/d`; new registry units `1/Myr` and `1/d`), so "25000 per billion years" reads "25 1/Myr" and never goes scientific. Display only: nothing stored changes. The accretion rate stays in solar masses a year, the unit the literature gives it in.
+
+## [8.0.3878] - 2026-11-12
+
+**Headline:** A pre-gate quick lane (`scripts/pregate.py`) runs in minutes the checks that turned most PRs red this week, before the long gate run.
+
+### Added
+- **`scripts/pregate.py` (TEST.720).** One command with no database: the PR merges with its base without a conflict (`git merge-tree`; when every conflicted file is generated it names `regenerate_generated.py --resolve`), the release note passes `bump_version.py --check-pr`, no module-level function or class is defined twice in a changed file (OPS.142 shadowed the Queue page's `_duration` this way; pyflakes' F811 is not used because it flags every pytest fixture import), ruff finds no undefined name or syntax error (`F821`, `F822`, `F823`, `E9`) in the changed Python files, `regenerate_generated.py --check` where that script exists, and a fixed set of test files that need no database (`scripts/data/pregate_set.txt`: spelling, citations, settings, own log formatting, constants, docs links and index, wiring guard, architecture map, release-note tool) plus (with `--train`) the Train Manager's `scripts/data/train_fast_set.txt` plus the test files the PR edits. Reused: `bump_version.py --check-pr`, the train fast set file, `regenerate_generated.py`, and the existing tests as the checks; nothing is re-implemented. `src/tests/test_pregate.py` pins the duplicate-definition, merge-conflict and test-set parts.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3877] - 2026-11-12
 
 **Headline:** A gate run now fails, instead of skipping, when the database tests cannot reach MySQL, and a merge conflict in a generated file has a one-command repair.
