@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3908] - 2026-11-12
+
+**Headline:** The unused dwarf-population module is retired: what it did, the belt member status words and the size-law order statistics, is already done by the running code.
+
+### Changed
+- GEN.1092 (wiring triage, GEN.1559): `physics/dwarf_population.py` (GEN.1090) was built and read by nothing. Its status word, Soter's mu, Margot's Pi and round mass are `physics/body_status.py`, which the belt page already uses for every stored member (the registry rows BR6 and BR7 now name `body_status`), and its counts and order statistic are the belt ledger's own draw (`physics/belt_ledger.py`). The module and its test are removed, with its line in the wiring register. Class D for a belt's heaviest round bodies comes from the planet generator when GEN.1510 makes them planets, not from a second rule.
+- No generated value changes.
+
+generation-output: unchanged
+generation-affects: none
+TODO items resolved: none
+
+## [8.0.3907] - 2026-11-12
+
+**Headline:** The browser test that carries the Galaxy Map from the whole galaxy into a system and back out waits for the camera to come to rest after each wheel tick, so it no longer depends on the speed of the machine.
+
+### Changed
+
+- `test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system` (MAP.426) sent a wheel tick every 120 ms whatever the camera was doing. A tick is one zoom step and the page ignores a tick while a stage change is flying (`zoomAcross`), so on a slow machine the ticks were dropped or piled up in a zoom goal and the run stopped at a different place each time (stuck 6 pc from the star, past the star without opening it, or still in the sector after 400 ticks out). The test now waits for the camera distance to repeat (`_at_rest`) after each tick, going in and coming out. The page is unchanged.
+
+generation-output: unchanged
+
 ## [8.0.3906] - 2026-11-12
 
 **Headline:** The two regions of a trojan swarm, where each lies and how it wanders about its point, can now be drawn for any pair; nothing reads it yet.

@@ -723,12 +723,12 @@ def _moon_system_url(system_id, kind, printed_id, row):
 
 
 def _irregular_moons_url(db, kind, ref):
-    """GEN.1086: the list of the irregular moons a planet keeps, when it keeps any; nothing for another kind or a planet with none."""
+    """GEN.1086: the list of the irregular moons a planet keeps, when it keeps any; nothing for another kind, a planet with none or when the API cannot say."""
     if kind != "planet":
         return None
     try:
         kept = apiclient.get_irregular_moons(db, ref)["moons"]
-    except apiclient.NotFoundError:
+    except (apiclient.NotFoundError, apiclient.ApiError):    # the page does not wait on a second call: without the list it just has no link
         return None
     return page_url("irregular_moons_page", planet_ref=ref) if kept else None
 
