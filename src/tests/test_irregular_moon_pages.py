@@ -44,8 +44,8 @@ def planet(site_db):
         belt = conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id LIMIT 1", (row["star_id"],)).fetchone()
         if belt is None:    # the star keeps no belt: give it one, so a body caught from a belt has a belt to name
             system_id = conn.execute("SELECT star_system_id FROM planets WHERE id = ?", (row["id"],)).fetchone()["star_system_id"]
-            belt_uid = object_uid.to_bytes(object_uid.with_body(object_uid.from_bytes(row["uid"]), object_uid.max_body()))
-            insert_filled_row(conn, "asteroid_belts", star_system_id=system_id, star_id=row["star_id"], orbital_index=0, uid=belt_uid)
+            belt_uid = object_uid.to_bytes(object_uid.with_body(object_uid.from_bytes(row["uid"]), 4000))
+            insert_filled_row(conn, "asteroid_belts", star_system_id=system_id, star_id=row["star_id"], orbital_index=0, uid=belt_uid, density="typical", distance_km=4.0e8, lower_limit_km=3.0e8, upper_limit_km=5.0e8)
             conn.commit()
             belt = conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id LIMIT 1", (row["star_id"],)).fetchone()
         found = (f"planet:{pid('planet', row['id'], conn)}", row["id"], object_uid.from_bytes(row["uid"]), belt)
