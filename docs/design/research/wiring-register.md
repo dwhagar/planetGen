@@ -15,6 +15,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
+| module | planetgen.physics.birth_luminosity | GEN.1611 | the luminosity a star had while its disk was there (BHAC15 where it holds the mass, the zero-age light above 1.4 solar masses); GEN.1611 slice 1 (Lane 21) wires it into `formation_snow_line` |
+| module | planetgen.physics.formation_snow_line | GEN.1611 | the snow line a star's disk saw (an evolved star's from its track at the disk's age, not from today's luminosity); GEN.1611 slice 1 wires it into the star's snow line and belt birth |
 | function | planetgen.physics.radiation_field.companion_share | by design | the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445) |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.disk_drift.cold_finger_enrichment | by design | the rise of the ice-to-rock ratio just outside a line when part of the vapor goes back out (design note 2.4): reported and read by the tests, not by the generator (GEN.1473) |
@@ -43,6 +45,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
+| row | 6.36:PA18 | GEN.1611 | `tuning.FORMATION_DISK_AGE_GY`, read by `formation_snow_line`, which slice 1 wires |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
@@ -94,6 +97,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF3 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
 | module | planetgen.physics.hycean_candidate | GEN.1523 | the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands |
 | row | 6.79:HC1 | GEN.1523 | the four ranges of the Hycean box, read when its wiring step lands |
+| module | planetgen.physics.rock_assemblage | GEN.474 | the mineral assemblage of a rock as the CIPW norm of its oxides on the rows of the materials table (lock-free part 2 of GEN.474); the wiring step replaces the fixed ground recipes of `GROUND_TYPES` with it |
+| function | planetgen.physics.rock_types.divalent_pool | GEN.474 | the divalent pool of a rock's norm, read by the unwired rock_assemblage; wired with it |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
 | row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |
@@ -124,6 +129,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.trojans.swarm_split | GEN.1150 | a swarm split into its L4 and L5 regions; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.point_label | GEN.1150 | the map label of a point, `Jupiter-L4`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.pair_text | GEN.1150 | the page text of a point, `L4 of Sun and Jupiter`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| module | planetgen.physics.trojan_swarm | GEN.1151 | the two regions of a swarm and the libration overlay (lock-free, GEN.1150 slice 0); the whole-body draw reads it, the stored swarm waits for GEN.1006 |
+| row | 6.121:TJ9 | GEN.1151 | `trojan_swarm.LIBRATION_SIGMA_DEG`, read when the whole-body draw lands |
+| row | 6.121:TJ10 | GEN.1151 | `trojan_swarm.ECC_SIGMA`, read when the whole-body draw lands |
+| row | 6.121:TJ11 | GEN.1151 | `trojan_swarm.INCLINATION_SIGMA_DEG`, read when the whole-body draw lands |
 | module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
@@ -261,3 +270,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
 | module | planetgen.physics.obliquity_variation | GEN.1454 | the range and chaos of a planet's tilt under the star, its moons, its siblings and a companion; part 2 of GEN.1454 wires it into the settle pass, the seasonal swing and the oddity table |
+| module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |

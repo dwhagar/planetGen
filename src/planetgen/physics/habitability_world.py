@@ -313,7 +313,9 @@ def air_inventories_kg(values):
 
 
 def inventories(values):
-    """Carbon, nitrogen and hydrogen in Earth units."""
+    """Carbon, nitrogen and hydrogen in Earth units. Hydrogen is the water. Carbon and nitrogen are at least as much as the hydrogen (the volatiles arrive with the water, so a
+    water world is not short of them for want of an air that has not kept them) or the air's own carbon or nitrogen when that is more: the `max` is the rule of
+    docs/design/habitability/habitability-index.md (the inventories row), not a copy slip (GEN.1598)."""
     hydrogen = (values.get("water_mass_fraction") or 0.0) * (values.get("mass_kg") or 0.0) / EARTH_OCEAN_KG
     carbon, nitrogen = air_inventories_kg(values)
     return {"H": hydrogen, "C": max(hydrogen, carbon / EARTH_CARBON_KG),

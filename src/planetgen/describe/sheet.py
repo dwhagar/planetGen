@@ -23,7 +23,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import clock_rows, heavy_rows, influx_row, model, sky_size_rows
+from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
@@ -594,8 +594,8 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
-    "sky_suns": "the other suns of the sky as stored text (GEN.1458); the light, seasons and temperatures it shapes are shown, not the text",
-    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses (GEN.1484); the temperatures and the energy it shapes are shown, not the factor",
+    "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
+    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -800,7 +800,8 @@ def _value(spec, table, stored):
         return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
-        return [text[:1].upper() + text[1:]]
+        text = text[:1].upper() + text[1:]
+        return model.chem_text(text) or [text]  # UX.149: a gas the text names ("H+, e-, O2+") is written out
     if quantity == FLAG:
         return ["Yes" if stored else "No"]
     if quantity == RATING:
@@ -1379,7 +1380,8 @@ def sheet(conn, kind, object_id):
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
-    for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
+    for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
+                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
         by_group[group].append({"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False, "source": None,
                                 "show_absent": False})
     arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None

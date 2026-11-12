@@ -17127,6 +17127,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "evolved stars (a subgiant, giant, supergiant or white dwarf)"
+            ],
+            [
+              "What would show it wrong",
+              "test_formation_snow_line::test_an_evolved_star_gets_the_snow_line_of_its_birth_not_of_today; a white dwarf's snow line under 1 AU"
+            ],
+            [
+              "What replaces it",
+              "a disk-evolution model of the luminosity history of the disk"
+            ],
+            [
+              "Evidence",
+              "a protoplanetary disk lasts 3 to 10 Myr (recalled); the longest, so a massive star is read on its main sequence"
+            ]
+          ],
+          "id": "PA18",
+          "key": "6.36:PA18",
+          "kind": "P",
+          "slug": "6-36-pa18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1611",
+          "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",
@@ -33311,6 +33349,120 @@
           "tweak": "L4",
           "unread": null,
           "what": "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "6 to 15"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm of giants whose median libration amplitude is far from the scale times 1.18"
+            ],
+            [
+              "What replaces it",
+              "a fit to the Jupiter and Neptune Trojan catalogues"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled)"
+            ]
+          ],
+          "id": "TJ9",
+          "key": "6.121:TJ9",
+          "kind": "P",
+          "slug": "6-121-tj9",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm whose mean eccentricity is over 0.15"
+            ],
+            [
+              "What replaces it",
+              "a fit to the proper elements of the Jupiter Trojans"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled)"
+            ]
+          ],
+          "id": "TJ10",
+          "key": "6.121:TJ10",
+          "kind": "P",
+          "slug": "6-121-tj10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "8 to 18"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm whose mean inclination is over 25 degrees"
+            ],
+            [
+              "What replaces it",
+              "a fit to the proper elements of the Jupiter Trojans"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans reach 40 degrees and most lie under 20 (recalled)"
+            ]
+          ],
+          "id": "TJ11",
+          "key": "6.121:TJ11",
+          "kind": "P",
+          "slug": "6-121-tj11",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
       ],
       "slug": "6-121-stand-ins-of-the-lagrange-trojans",
@@ -33699,7 +33851,7 @@
           "fields": [
             [
               "What it is",
-              "roundness.POROSITY_RULES: none in use (a void only lowers the density); exponential strength * exp(-b phi), b 5, is built and off"
+              "roundness.POROSITY_RULES: none in use (a void only lowers the density); power strength * (1 - phi/0.5)^1.67 ([R0083], RN12) is built and off (the recalled exponential is gone)"
             ],
             [
               "The range it moves in",
@@ -33711,7 +33863,7 @@
             ],
             [
               "What would show it wrong",
-              "a porous ice-rich body whose roundness the rule gets wrong (Proteus comes out round with exponential on)"
+              "a porous ice-rich body whose roundness the rule gets wrong (Proteus came out round with the old exponential on; the power rule is to be judged on it before it is switched on)"
             ],
             [
               "What replaces it",
@@ -33730,7 +33882,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "roundness.POROSITY_RULES: none in use (a void only lowers the density); exponential strength * exp(-b phi), b 5, is built and off"
+          "what": "roundness.POROSITY_RULES: none in use (a void only lowers the density); power strength * (1 - phi/0.5)^1.67 ([R0083], RN12) is built and off (the recalled exponential is gone)"
         },
         {
           "burn_down": null,
@@ -34111,6 +34263,44 @@
           "tweak": "L0",
           "unread": "GEN.1201",
           "what": "roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), [R1956] (log10 A 5.04, n 3.5, E 530 kJ/mol) and [R2451] (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "roundness.POROSITY_RULES power, solid_limit 0.5 and exponent 1.67 in roundness_strengths.json (strength * (1 - phi/0.5)^1.67, the uniaxial strength of carbonate rock and gypsum against porosity) and roundness.POROSITY_FLOOR 0.1 (T9, L3: the argument is held at 0.1 so a body at the limit keeps 2 percent)"
+            ],
+            [
+              "The range it moves in",
+              "exponent 1.5 to 2 (the paper lists exponentials of b 4.8 to 9.3 for the same data); limit 0.4 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "porous bodies, when the rule is switched on"
+            ],
+            [
+              "What would show it wrong",
+              "test_roundness::test_the_power_porosity_rule_is_the_carbonate_law_of_the_source; a measured strength of a porous ice-rich body far from the law (no ice law exists)"
+            ],
+            [
+              "What replaces it",
+              "an ice-rich porosity law (Ryugu boulders [R1700] give b of 7 to 9 at fragment scale)"
+            ],
+            [
+              "Evidence",
+              "[R0083] (READ, Boss upload): UCS = 60.251 (1 - 0.02 n)^1.67 MPa, n in percent, 178 training and 75 test points, 0.4 to 50 percent porosity, the limit 0.5 assumed and not fitted; right form, wrong material (carbonate, no ice)"
+            ]
+          ],
+          "id": "RN12",
+          "key": "6.126:RN12",
+          "kind": "P",
+          "slug": "6-126-rn12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "roundness.POROSITY_RULES power, solid_limit 0.5 and exponent 1.67 in roundness_strengths.json (strength * (1 - phi/0.5)^1.67, the uniaxial strength of carbonate rock and gypsum against porosity) and roundness.POROSITY_FLOOR 0.1 (T9, L3: the argument is held at 0.1 so a body at the limit keeps 2 percent)"
         }
       ],
       "slug": "6-126-stand-ins-of-the-roundness-engine-and-the-binding-energy",
