@@ -8,5 +8,4 @@
 - Migration 0244 drops `rogue_planets.has_moons` (v207 left it NULL for the physics rogue); `db/models.py` and `schema.sql` follow, with the v243 old-schema fixture and a migration test.
 - Tests: the host-table and fill-stage tests no longer read the removed table; the stand-in rows of the host table file lose the planet row.
 
-generation-output: changed
 generation-affects: fill
