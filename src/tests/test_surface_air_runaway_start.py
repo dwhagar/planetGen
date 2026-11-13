@@ -6,7 +6,7 @@ GEN.1238: a rocky body with surface water under starlight past its runaway green
 The air's fixed point has two answers for such a body: a cool one (a few bar of vapor at 350 to 420 K, which the greenhouse table, fitted to a radiative-convective
 model, gives no outgoing-flux limit to) and the steam one (the water in the air). Which it finds depended on where it started, and it started from the airless
 temperature, so a Venus twin (Venus's mass at Venus's 1.9 times the Sun's flux at the Earth) kept a liquid ocean in more than half of its draws although the water-loss
-history (`runaway_history`) already called it past the limit (about 1.1 S for a body of its mass around a Sun-like star). `planets._past_runaway_with_water` now
+history (`runaway_history`) already called it past the limit (about 1.1 S for a body of its mass around a Sun-like star). `air_final.past_runaway_with_water` now
 starts such a body hot (`tuning.RUNAWAY_START_TEMPERATURE_K`), so the fixed point finds the steam air.
 """
 
@@ -18,7 +18,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
-from planetgen.physics import orbits, planets
+from planetgen.physics import air_final, orbits
 from planetgen.util import draw
 from tests import class_support
 
@@ -35,11 +35,11 @@ def _planet(temperature_k=5772.0, mass_kg=VENUS_MASS_KG, body_type="t"):
 def test_a_body_with_water_past_its_runaway_limit_starts_hot_and_one_below_it_or_without_water_does_not():
     limit = orbits.runaway_greenhouse_flux(5772.0, VENUS_MASS_KG / 5.972e24)
     s = tuning.RUNAWAY_FLUX_REFERENCE_W_M2
-    assert planets._past_runaway_with_water(_planet(), 1.2 * limit * s, 1e-3)
-    assert not planets._past_runaway_with_water(_planet(), 0.8 * limit * s, 1e-3)
-    assert not planets._past_runaway_with_water(_planet(), 1.2 * limit * s, 0.0)
-    assert not planets._past_runaway_with_water(_planet(), 1.2 * limit * s, None)
-    assert not planets._past_runaway_with_water(_planet(body_type="g"), 1.2 * limit * s, 1e-3)
+    assert air_final.past_runaway_with_water(_planet(), 1.2 * limit * s, 1e-3)
+    assert not air_final.past_runaway_with_water(_planet(), 0.8 * limit * s, 1e-3)
+    assert not air_final.past_runaway_with_water(_planet(), 1.2 * limit * s, 0.0)
+    assert not air_final.past_runaway_with_water(_planet(), 1.2 * limit * s, None)
+    assert not air_final.past_runaway_with_water(_planet(body_type="g"), 1.2 * limit * s, 1e-3)
 
 
 def test_the_limit_is_the_one_the_water_loss_history_follows():
