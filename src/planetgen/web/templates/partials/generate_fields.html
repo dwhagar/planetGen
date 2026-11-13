@@ -75,7 +75,7 @@
 {%- set label = row.label ~ (" (" ~ row.unit ~ ")" if row.unit and row.kind != "length" else "") -%}
 {%- set factors = {} -%}
 {%- if row.kind == "length" %}{% for unit in row.units if unit.factor is not none %}{% set _ = factors.update({unit.name: unit.factor}) %}{% endfor %}{% endif -%}
-<div class="ui-field lever-slider" data-lever-slider data-kind="{{ row.kind }}" data-min="{{ row.minimum }}" data-max="{{ row.maximum }}"
+<div class="lever-slider" data-lever-slider data-kind="{{ row.kind }}" data-min="{{ row.minimum }}" data-max="{{ row.maximum }}"
   data-default="{{ row.slider_default }}"{% if row.log %} data-log{% endif %}{% if row.min_abs is not none %} data-min-abs="{{ row.min_abs }}"{% endif %}
   {%- if row.kind == "length" %} data-unit="{{ row.unit }}" data-factors="{{ factors|tojson|forceescape }}"{% endif %}>
   <div class="lever-slider-head">

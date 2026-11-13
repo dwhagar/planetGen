@@ -2215,7 +2215,7 @@ def test_every_number_and_length_row_is_a_slider_with_a_tick_box_and_a_sticky_au
     for row in sliders:
         assert f'data-lever-set="{row.name}"' in html and f'name="{row.name}_set"' in html, row.name
         assert f'data-default="{row.slider_default}"' in html, row.name
-        assert ("data-log" in re.search(rf'<div class="ui-field lever-slider"[^>]*data-min="{re.escape(str(row.minimum))}"[^>]*>', html).group(0)) == row.log, row.name
+        assert ("data-log" in re.search(rf'<div class="lever-slider"[^>]*data-min="{re.escape(str(row.minimum))}"[^>]*>', html).group(0)) == row.log, row.name
     assert html.index('data-lever-set="mass"') < html.index('data-lever="mass"') < html.index("data-lever-range")
     assert "/static/leversliders.js" in html
     # The sliders add nothing to the plan: the tick boxes are not levers, and a blank box is Auto.

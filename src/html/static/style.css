@@ -7166,3 +7166,6 @@ a.help-mark {
 .lever-fields > .lever-slider {
   flex: 1 1 22rem;
 }
+
+/* A slider row is not a plain text box field: its box sits beside the tick box, so it is not one of the aligned boxes
+   (tests/test_web_generate_alignment.py), and the row takes the room of its own label, box and bar. */
