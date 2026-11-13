@@ -31,6 +31,9 @@ def _sector(name, system_names, rogue_names=()):
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         system.name = system_name
+        for planet in system.planets:      # the carbon sink a planet keeps for the life stage (GEN.1309 A) holds a closure, which is not stored and does not pickle
+            for body in (planet, *getattr(planet, "moons", ())):
+                body._co2_sink = None
         sector.add_system(system, position=(float(index), 0.0, 0.0), system_config=cfg)
     for index, rogue_name in enumerate(rogue_names):
         rogue = RoguePlanet(SystemConfig(), name=rogue_name)
