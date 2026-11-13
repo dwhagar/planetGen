@@ -146,3 +146,40 @@ def test_the_running_digest_passes_the_progress_callback_on(monkeypatch):
     seen = []
     battery.running_digest(lambda done, total: seen.append(done))
     assert seen[-1] == len(battery.CASES)
+
+
+def test_the_wait_for_the_digest_is_a_wait_the_heartbeat_knows(monkeypatch):
+    """A digest of a new code key takes minutes in its own process: the unit waiting for it is waiting, not quiet (the skeleton unit stopped as stuck at 300 s)."""
+    import contextlib
+    from planetgen.queue import unitbeat
+
+    tags = []
+
+    class Beat:
+        @contextlib.contextmanager
+        def waiting(self, tag):
+            tags.append(("begin", tag))
+            yield
+            tags.append(("end", tag))
+
+    class Future:
+        def result(self):
+            tags.append(("result", None))
+            return "digest"
+
+    class Pool:
+        def __init__(self, **kwargs):
+            pass
+
+        def submit(self, function):
+            return Future()
+
+        def shutdown(self):
+            tags.append(("shutdown", None))
+
+    monkeypatch.setattr(battery, "_running", None)
+    monkeypatch.setattr(battery.concurrent.futures, "ProcessPoolExecutor", Pool)
+    monkeypatch.setattr(unitbeat, "_current", Beat())
+    battery.start_running_digest()()
+    assert tags == [("begin", "generator battery"), ("result", None), ("shutdown", None), ("end", "generator battery")]
+    monkeypatch.setattr(battery, "_running", None)

@@ -36,6 +36,7 @@ import multiprocessing
 
 from planetgen import tuning
 from planetgen.db.fingerprint_tree import CLOCK_KEYS
+from planetgen.queue import unitbeat
 from planetgen.util import draw
 from planetgen.util import fingerprint_encoding as encoding
 from planetgen.util import log
@@ -323,12 +324,15 @@ def start_running_digest():
 
     def finish():
         global _running
-        try:
-            _running = future.result()
-        except Exception as exc:  # noqa: BLE001 -- the digest is then worked out where it is asked for
-            log.swallowed("generation/generator_battery", "start_running_digest.finish", exc)
-        finally:
-            pool.shutdown()
+        # The digest of a code key not seen before takes minutes (the bright-star tables are built cold), longer than the quiet limit of a unit whose counter stands on one
+        # phase; the beat says the unit waits for the process, not that it is stuck (`beatjudge`: a wait has its own, longer limit and is never judged quiet).
+        with unitbeat.waiting("generator battery"):
+            try:
+                _running = future.result()
+            except Exception as exc:  # noqa: BLE001 -- the digest is then worked out where it is asked for
+                log.swallowed("generation/generator_battery", "start_running_digest.finish", exc)
+            finally:
+                pool.shutdown()
 
     return finish
 

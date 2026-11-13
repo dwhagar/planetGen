@@ -135,7 +135,7 @@ class UnitBeat:
 
     @contextmanager
     def waiting(self, tag):
-        """The unit waits for `tag` (`gate`, `sky lock` or `mysql`) inside the block."""
+        """The unit waits for `tag` (`gate`, `sky lock`, `mysql` or `generator battery`) inside the block."""
         with self._lock:
             before, self._waiting = self._waiting, tag
         began = self.clock()
