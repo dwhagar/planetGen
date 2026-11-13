@@ -283,7 +283,29 @@ def _plan_field(conn, run_id, marker):
     return detail[marker["field"]]
 
 
-RESOLVERS = {"stage-clock": _stage_clock, "plan-detail": _plan_field,
+def stage_results(key, field):
+    """A deferred parameter (OPS.123): `field` of every unit's result of stage `key`, in unit order, so a step after the stage (a `store-...` or `make-...` command, once the `conclude` of
+    the stage) works from what its units found. A stage this run carried on from an earlier run (`FINISHED_BY`) gives the results the run that did it kept."""
+    return {DEFERRED: "stage-results", "stage": key, "field": field}
+
+
+def _results_field(conn, run_id, marker):
+    """The `marker["field"]` of each unit's result of stage `marker["stage"]` (`stage_results`), from this run, or from the run that did the stage when this one carried it on."""
+    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    keys = [runrecord._s(item["key"]) for item in declared]
+    if marker["stage"] not in keys:
+        raise Unresolved(f"the run has no stage {marker['stage']!r} to read the results of")
+    index = keys.index(marker["stage"])
+    plan = runrecord.read_plan(conn, run_id, index)
+    earlier = ((plan or {}).get("detail") or {}).get(FINISHED_BY)
+    if earlier:
+        return _results_field(conn, earlier, marker)
+    if conn.hget(runrecord.stage_key(run_id, index), "ended") is None:
+        raise Unresolved(f"stage {marker['stage']!r} has not ended, so it has no results")
+    return [result[marker["field"]] for result in _stage_results(conn, run_id, index) if marker["field"] in result]
+
+
+RESOLVERS = {"stage-clock": _stage_clock, "plan-detail": _plan_field, "stage-results": _results_field,
              "scatter-settings": "planetgen.generation.run_plan:resolve_scatter_settings"}
 """dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`), or to
 `"module:function"` naming it, for a resolver in a module that imports this one. A command that needs a value worked out when its

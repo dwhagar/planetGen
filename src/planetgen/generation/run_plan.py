@@ -3313,6 +3313,7 @@ def phenomena_followers(args, refuse=None, tag=""):
     followers = [EmptyPhenomenonScatterFollower(args, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  DropPhenomenonIndexesFollower(args),
                  PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
+                 PhenomenonClassCountsFollower(args),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
                  EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
     return followers, book
@@ -3438,12 +3439,22 @@ class DropPhenomenonIndexesFollower(followed.Follower):
     label = "Take off the phenomenon indexes"
 
 
-def conclude_scatter_phenomena(params, plan, results, seconds):
-    """The `conclude` of the `scatter-phenomena` command (PERF.172): stores how many phenomena of each class the shells
-    placed, for the Phenomena table (`store.record_phenomenon_scatter_classes`); the special phenomena add theirs."""
+def expand_store_phenomenon_class_counts(params):
+    """The `store-phenomenon-class-counts` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def store_phenomenon_class_counts_unit(params, report):
+    """
+    The `store-phenomenon-class-counts` command's unit (OPS.123; the `conclude` of `scatter-phenomena` before it, PERF.172): stores how many phenomena of each class the shells placed, for the Phenomena table
+    (`store.record_phenomenon_scatter_classes`); the special phenomena add theirs when the scatter ends. `params["counts"]` is every shell unit's `counts` (`wrapper.stage_results`).
+
+    Returns:
+        dict: `classes`, how many classes were stored.
+    """
     counts = collections.Counter()
-    for result in results:
-        counts.update(result["counts"])
+    for found in params["counts"]:
+        counts.update(found)
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.record_phenomenon_scatter_classes(
@@ -3451,7 +3462,17 @@ def conclude_scatter_phenomena(params, plan, results, seconds):
         conn.commit()
     finally:
         conn.close()
-    return {}
+    return {"classes": len([count for count in counts.values() if count])}
+
+
+class PhenomenonClassCountsFollower(followed.Follower):
+    """The `store-phenomenon-class-counts` command as a stage of a run (OPS.123): one unit between the shells and the special phenomena, which reads what the shells' units found."""
+
+    key = stages.PHENOMENA_COUNTS_STAGE.key
+    label = stages.PHENOMENA_COUNTS_STAGE.label
+
+    def params(self):
+        return {"counts": wrapper.stage_results("phenomena", "counts")}
 
 
 def expand_finish_phenomena(params):
@@ -3638,8 +3659,8 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
-"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells, their counts and their indexes, the nebula clear and draw."""
 
 
 def _scatter_stands(conn, kinds, current, behind):

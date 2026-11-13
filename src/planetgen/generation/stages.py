@@ -80,8 +80,11 @@ def sectors_stages(args):
 NEBULA_CLEAR_STAGE = Stage("nebula-clear", "Clear the earlier nebula field")
 """Stage: The emptying of the nebula field table before it is drawn again (OPS.123: the `empty-nebula-field` command, once a hook of the draw)."""
 
+PHENOMENA_COUNTS_STAGE = Stage("phenomena-counts", "Store the phenomenon counts")
+"""Stage: The storing of how many phenomena of each class the shells placed (OPS.123: the `store-phenomenon-class-counts` command, once the `conclude` of the shells)."""
+
 PHENOMENA_STAGES = (Stage("phenomena-clear", "Clear the earlier phenomena"), Stage("phenomena-unindex", "Take off the phenomenon indexes"),
-                    Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
+                    Stage("phenomena", "Scatter the phenomena"), PHENOMENA_COUNTS_STAGE, Stage("phenomena-index", "Index the phenomena"),
                     NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"))
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""

@@ -17,6 +17,9 @@ CALLS = []
 FAULTS = {}
 """dict: Stage name -> the unit that raises while it is there."""
 
+TAKEN = []
+"""list: The `counts` a stage was cut with, as `(stage name, value)` (OPS.123: `wrapper.stage_results`)."""
+
 SEED, BUILD, DATABASE = "AB" * 16, "77F01600909B06030C0300", "galaxy"
 
 
@@ -28,6 +31,7 @@ def conn(redis_server):
 @pytest.fixture(autouse=True)
 def _calls(monkeypatch):
     CALLS.clear()
+    TAKEN.clear()
     FAULTS.clear()
     clocks = iter(f"2026-10-30 06:00:{second:02d}" for second in range(1, 60))
     monkeypatch.setattr(wrapper, "_database_clock", lambda params: next(clocks))
@@ -41,6 +45,8 @@ def _unit(args, report):
 
 def _cut(params):
     CALLS.append(("cut", params["name"], params.get("since"), params.get("centers")))
+    if "counts" in params:
+        TAKEN.append((params["name"], params["counts"]))
     detail = {"name": params["name"]}
     if params.get("planned") == "random-start":
         detail["centers"] = [[4, 5, 6], [7, 8, 9]]
@@ -116,6 +122,28 @@ def test_scatter_settings_of_a_stage_that_has_not_opened_are_left_for_when_it_op
     assert wrapper.resolve_params(conn, run_id, {"settings": marker}, strict=False) == {"settings": marker}
     conn.hset(runrecord.run_key(run_id), f"deferred:{wrapper.scatter_settings_name(marker)}", json.dumps({"mass": {"limit": 8.0}}))
     assert wrapper.resolve_params(conn, run_id, {"settings": marker}, strict=False) == {"settings": {"limit": 8.0}}
+
+
+def test_a_stage_takes_what_each_unit_of_the_stage_it_names_found(conn):
+    """OPS.123: the `conclude` that summed the units' results is a step of its own that takes them as a parameter."""
+    run_id = _run([_step("shells", count=3), _step("store", count=1, counts=wrapper.stage_results("shells", "n"))])
+    assert TAKEN == [("store", [0, 1, 2])]
+    assert runrecord.read_run(conn, run_id)["state"] == "done"
+
+
+def test_a_run_carried_on_after_the_stage_takes_the_results_the_stopped_run_kept(conn):
+    steps = [_step("shells", count=3), _step("store", count=1, counts=wrapper.stage_results("shells", "n"))]
+    run_id = _stopped(conn, steps, "store", 0)
+    TAKEN.clear()
+    found = finish_run.plan(conn, run_id, SEED, BUILD, DATABASE)
+    assert found.steps[0].params[wrapper.FINISHED_BY] == run_id
+    _run(found.steps, finishes=run_id)
+    assert TAKEN == [("store", [0, 1, 2])]
+
+
+def test_a_stage_that_has_not_ended_has_no_results_to_take(conn):
+    with pytest.raises(wrapper.Unresolved):
+        wrapper.resolve_params(conn, _run([_step("a")]), {"counts": wrapper.stage_results("nowhere", "n")})
 
 
 def test_other_parameters_pass_through_unchanged(conn):

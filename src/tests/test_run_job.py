@@ -83,7 +83,7 @@ def test_a_job_has_the_stages_of_its_commands_with_the_block_lights_once_at_the_
     parts = job.build_parts(args.job, args)           # nothing is read from a database that has no galaxy yet
     keys = [stage.key for stage in job.stage_list(parts)]
     assert keys == ["skeleton", "start", "neighborhood", "link", "mass-clear", "mass", "mass-limits", "mass-epoch", "luminosity-clear", "luminosity", "luminosity-limits",
-                    "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index",
+                    "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index",
                     "nebula-clear", "nebula-draw", "block-lights", "backfill", "settle"]
     followers = followed.dedupe([f for part in parts for f in part.followers])
     assert [f.key for f in followers] == keys
