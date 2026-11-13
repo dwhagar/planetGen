@@ -164,7 +164,7 @@
       "name": "Dead world",
       "phrase": "an airless world of rock or ice",
       "kind": "t",
-      "sentence": "A dead world: a solid body with no air, bare rock or ice at its surface, more massive than a small airless world and lighter than a super-Earth.",
+      "sentence": "A dead world: a solid body with no air and a bare surface of rock or ice. It is more massive than a small airless world and lighter than a super-Earth.",
       "basis": "design: 10 Pa, the edge of an exosphere; 0.1 Earth masses and up (Boss 8:41 PM EDT 2026-10-30)"
     },
     {
@@ -204,7 +204,7 @@
       "name": "Marginal thin-air world",
       "phrase": "a mild world whose air is too thin in oxygen to breathe without a mask",
       "kind": "t",
-      "sentence": "A marginal world, Earth-like in pressure and temperature but hard to breathe without a mask. Its oxygen is thin and it holds carbon dioxide, which at the high end is a poison of its own.",
+      "sentence": "A marginal world with Earth-like pressure and temperature, though it is hard to breathe without a mask. Its oxygen is thin and it holds carbon dioxide, which at the high end is a poison of its own.",
       "basis": "design stand-in (GEN.1142, registry CL3): Boss's 6:57 PM EDT 10-30 reading of L (Earth-like, high carbon dioxide, low oxygen, near-Earth temperature); the numbers are fitted, 0.5 g is unchanged"
     },
     {
@@ -252,7 +252,7 @@
       "name": "Anoxic world",
       "phrase": "a world with air that has almost no free oxygen",
       "kind": "t",
-      "sentence": "A world with an anoxic air (almost no free oxygen, and not mostly carbon dioxide), a surface above freezing that runs from cool to hot, and a gravity not far from Earth's.",
+      "sentence": "A world with an anoxic air: almost no free oxygen, and not mostly carbon dioxide. Its surface is above freezing and runs from cool to hot. Its gravity is not far from Earth's.",
       "basis": "design"
     },
     {
@@ -260,7 +260,7 @@
       "name": "Carbon dioxide world",
       "phrase": "a rocky world with a carbon dioxide air",
       "kind": "t",
-      "sentence": "A rocky world with a carbon dioxide air (whatever the oxygen), a surface above freezing that runs from cool to hot (hotter and denser is class N), and neither light nor very heavy.",
+      "sentence": "A rocky world with a carbon dioxide air, whatever the oxygen. Its surface is above freezing and runs from cool to hot, and it is neither light nor very heavy. Hotter and denser is class N.",
       "basis": "design"
     },
     {
@@ -308,7 +308,7 @@
       "name": "Methane-ethane world",
       "phrase": "a cold world under a thick air with methane that is cold enough for liquid methane and ethane",
       "kind": "t",
-      "sentence": "A cold world under a thick air with methane in it, cold and pressed enough that liquid methane and ethane could stand at the surface.",
+      "sentence": "A cold world under a thick air with methane in it. The air is cold and pressed enough that liquid methane and ethane could stand at the surface.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     },
     {
