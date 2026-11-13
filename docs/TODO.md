@@ -13475,13 +13475,6 @@ clears each one.
   Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): this is populate(host) step one, with GEN.556's signature populate(host, zone, guarantees), and a prerequisite of GEN.556.
   Filed by the TODO thread.
 
-- [ ] **GEN.1657 calculate_atmospheric_conditions: the three post-hoc corrections move into the solver**
-  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section J, with file:line, shape, risk and output impact). Output measured on the golden before merge.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (moved from Lane 04 to run in parallel). Prerequisites: GEN.1654. Related: GEN.1656.
-  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
-  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1658 GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns)**
   Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section K, with file:line, shape, risk and output impact). Approved by Boss; check a generator against today's schema first.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11, after PERF.260 (Boss gave the go at 4:08 PM EST). Prerequisites: none. Related: GEN.1651.

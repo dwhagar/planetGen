@@ -3878,7 +3878,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | open |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | open |
 | GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | open |
-| GEN.1657 | calculate_atmospheric_conditions: the three post-hoc corrections move into the solver | GEN.1654 | open |
+| GEN.1657 | calculate_atmospheric_conditions: the three post-hoc corrections move into the solver | GEN.1654 | done, PR #6367 (output identical) |
 | GEN.1658 | GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns) | none | open |
 | GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | open |
 | GEN.1660 | Remove the backward-compat shims and the 13 functions nothing calls | none | open |
