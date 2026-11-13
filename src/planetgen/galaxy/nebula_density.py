@@ -22,8 +22,11 @@ How the value is made, for a field:
   with them), and a superbubble (`superbubble_field`, GEN.254) clears the gas inside it. A thin background of the
   model gas alone (`GAS_BACKGROUND` of its saturating share) lets filaments reach a little past a cloud's radius.
   `"young"` (emission and reflection nebulae, which form where hot young stars are): the young stars' density
-  (`density.population_densities_array`) against its value on the solar circle, saturating.
-* octaves of gradient noise (`nebula_shape.GradientNoise`, seeded by the galaxy seed and the octave), the first of
+  (`density.population_densities_array`) against its value on the solar circle, saturating, anchored on the nebula's own
+  sphere (GEN.1267, MAP.423): the model young density falls under the form level outside about 6 kpc, where a hot star's
+  nebula would have no shape at all, so each nebula adds its own polynomial kernel (as a cloud does for the gas) and the model
+  density only lifts it where the galaxy really is star-forming.
+* octaves of gradient noise (`gradient_noise.GradientNoise`, seeded by the galaxy seed and the octave), the first of
   wavelength `W0_PC` and each next half that. They are added to `s` and weighted by `4 s (1 - s)`, so they bite at the
   edge and in the thin gas, and leave the middle of a dense core alone to fade unevenly. Each octave's amplitude is
   `PERSISTENCE` times the one before, and adding one octave changes the value by at most the weight times that
@@ -40,7 +43,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import density as galaxyDensity, nebula_field, nebula_shape, seed as galaxySeed, superbubble_field
+from planetgen.galaxy import density as galaxyDensity, gradient_noise, nebula_field, nebula_volume, seed as galaxySeed, superbubble_field
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import detmath
 
@@ -77,6 +80,20 @@ YOUNG_SCALE = 3.0
 YOUNG_CEILING = 0.6
 """float: The most the smooth `"young"` density reaches: under 1 so a star-forming region has a core to be denser than."""
 
+YOUNG_ANCHOR_FLOOR = 0.8
+"""float: The share of a young-family nebula's own kernel kept where the model young density is nil (GEN.1267, MAP.423); the rest scales with
+the model density (0.2), the same split as `CLOUD_GAS_FLOOR` for a cloud, so a nebula's center is always dense enough to hold a core through
+the first octaves and a nebula in a star-forming arm is a little denser than one in the thin outer disk."""
+
+CONTAIN_DETAIL = 3
+"""int: The noise octaves the containment test reads (GEN.1267): the finest wavelength is `W0_PC / 4`, 16 pc, so the outline is the coarse
+form of the map's, stable and cheap, and a star drawn inside a nebula lies inside the outline the map draws at any closer view (a finer
+octave adds filaments at the edge and does not move the coarse blobs, `octave_bound`)."""
+
+CONTAIN_ROUND = 1e-4
+"""float: The density is rounded to this before it is compared to `FORM_LEVEL` in the containment test, so a last-bit difference of a platform's
+arithmetic cannot put a star on the other side of the outline."""
+
 WARP_PC = 14.0
 """float: How far the smooth `"gas"` density is pushed about by a coarse, smooth warp before the clouds' kernels are read,
 parsecs. It makes a cloud's outline lumpy even with no octave added (`detail` 0), as a cloud on the map has to be bulbous
@@ -105,14 +122,14 @@ def octave_amplitude(octave):
 
 def octave_bound(octave):
     """The most the value can change when octave `octave` is added: the edge weight is at most 1 and a gradient noise is
-    inside +-1 (`nebula_shape.GradientNoise` is under 1.0 in size), so its amplitude."""
+    inside +-1 (`gradient_noise.GradientNoise` is under 1.0 in size), so its amplitude."""
     return octave_amplitude(octave)
 
 
 @functools.lru_cache(maxsize=16)
 def _noise(galaxy_seed, octave):
     """The gradient noise of octave `octave` for a galaxy, from its own permutation table."""
-    return nebula_shape.GradientNoise(galaxySeed.unit_seed(galaxy_seed or nebula_field.FALLBACK_SEED, "nebula-wisp", (octave,)))
+    return gradient_noise.GradientNoise(galaxySeed.unit_seed(galaxy_seed or nebula_field.FALLBACK_SEED, "nebula-wisp", (octave,)))
 
 
 @functools.lru_cache(maxsize=256)
@@ -183,16 +200,29 @@ def _smooth_gas(galaxy_seed, shape, points, low, high):
     return smooth * _bubble_clearing(galaxy_seed, shape, points, low, high)
 
 
-def _smooth_young(shape, points):
+def _smooth_young(galaxy_seed, shape, points, anchors=None):
+    """
+    The smooth `"young"` density at `points`: the model's young-star density, and with `anchors` (`(centers, radii)`: the center `(..., 3)` or
+    `(3,)` and the radius, parsecs, of the nebula each point is read for) the nebula's own kernel `(1 - d^2 / r^2)^2` on the warped point, weighted by
+    `YOUNG_ANCHOR_FLOOR` and the model density, joined to the model as a union (GEN.1267, MAP.423).
+    """
     reference = nebula_field._reference_gas(shape)
     young = np.maximum(galaxyDensity.population_densities_array(points[..., 0], points[..., 1], points[..., 2], shape)["young"], 0.0)
     if reference <= 0.0:
-        return np.zeros(points.shape[:-1])
-    x = young / (YOUNG_SCALE * reference)
-    return YOUNG_CEILING * x / (1.0 + x)
+        model = np.zeros(points.shape[:-1])
+    else:
+        x = young / (YOUNG_SCALE * reference)
+        model = YOUNG_CEILING * x / (1.0 + x)
+    if anchors is None:
+        return model
+    centers, radii = anchors
+    offset = _warped(galaxy_seed, points) - np.asarray(centers, dtype=float)
+    inside = np.clip(1.0 - np.einsum("...i,...i->...", offset, offset) / np.square(np.asarray(radii, dtype=float)), 0.0, 1.0)
+    kernel = inside * inside * (YOUNG_ANCHOR_FLOOR + (1.0 - YOUNG_ANCHOR_FLOOR) * model / YOUNG_CEILING)
+    return 1.0 - (1.0 - model) * (1.0 - kernel)
 
 
-def density_at(galaxy_seed, shape, points_pc, field, detail=0):
+def density_at(galaxy_seed, shape, points_pc, field, detail=0, anchors=None):
     """
     The nebula density at `points_pc`, in 0..1 (`float32`).
 
@@ -202,6 +232,9 @@ def density_at(galaxy_seed, shape, points_pc, field, detail=0):
         points_pc (array-like): Points `[x, y, z]`, parsecs, galaxy frame, any leading shape with a last axis of 3.
         field (str): `"gas"` or `"young"` (`FIELDS`).
         detail (int): Noise octaves, 0 (the smooth model alone) to `MAX_DETAIL`; larger is clamped, a negative is 0.
+        anchors (tuple, optional): For the `"young"` field, `(centers, radii)`: the center `(..., 3)` or `(3,)` and the radius in parsecs of the
+            nebula each point is read for, which anchors the density on that nebula (GEN.1267). The `"gas"` field is anchored on the cloud field
+            and ignores it. `None` reads the model alone.
 
     Returns:
         numpy.ndarray: One value per point, the shape of `points_pc` without its last axis. At least `FORM_LEVEL` is inside.
@@ -222,7 +255,7 @@ def density_at(galaxy_seed, shape, points_pc, field, detail=0):
     if field == "gas":
         smooth = _smooth_gas(galaxy_seed, shape, points, low, high)
     else:
-        smooth = _smooth_young(shape, points)
+        smooth = _smooth_young(galaxy_seed, shape, points, anchors)
     smooth = np.clip(smooth, 0.0, 1.0)
     noise = np.zeros_like(smooth)
     for octave in range(octaves):
@@ -230,3 +263,42 @@ def density_at(galaxy_seed, shape, points_pc, field, detail=0):
         noise += octave_amplitude(octave) * _noise(galaxy_seed, octave)(lattice)
     edge_weight = 4.0 * smooth * (1.0 - smooth)
     return np.clip(smooth + edge_weight * noise, 0.0, 1.0).astype(np.float32)
+
+
+FIELD_OF_FAMILY = nebula_volume.FIELD_OF_FAMILY
+"""dict: Which density a family of nebula is drawn from and contained by: the dark family (molecular gas) from the gas, the rest from the young stars
+(`galaxy.nebula_volume`'s own table, so a map and a containment test read one density)."""
+
+
+def field_of_class(nebula_class):
+    """The density (`"gas"` or `"young"`) a nebula of class `nebula_class` (a letter of `tuning.NEBULA_CLASSES`) is drawn from."""
+    return FIELD_OF_FAMILY[tuning.NEBULA_CLASSES[nebula_class]["family"]]
+
+
+def inside(galaxy_seed, shape, points_pc, center_pc, radius_pc, field):
+    """
+    Which of `points_pc` lie inside the nebula at `center_pc` of radius `radius_pc` (GEN.1267): inside its sphere, and where the density, read for that
+    nebula, is at least `FORM_LEVEL` at `CONTAIN_DETAIL` octaves. The map draws the same contour (`galaxy.nebula_volume`), so a star placed inside a
+    nebula lies inside the outline a reader sees. Nothing about the nebula but its center, radius and field is read, and the object ID never is.
+
+    Args:
+        galaxy_seed (bytes): The galaxy's 16-byte seed.
+        shape (GalaxyShape): The stored shape.
+        points_pc (array-like): Points `[x, y, z]`, parsecs, galaxy frame, last axis 3.
+        center_pc (tuple): The nebula's center, parsecs.
+        radius_pc (float): The nebula's radius, parsecs.
+        field (str): `"gas"` or `"young"` (`field_of_class`).
+
+    Returns:
+        numpy.ndarray: A bool for each point, the shape of `points_pc` without its last axis.
+    """
+    points = np.asarray(points_pc, dtype=float)
+    center = np.asarray(center_pc, dtype=float)
+    held = np.einsum("...i,...i->...", points - center, points - center) < radius_pc * radius_pc
+    result = np.zeros(points.shape[:-1], dtype=bool)
+    if not held.any():
+        return result
+    near = points[held]
+    value = density_at(galaxy_seed, shape, near, field, CONTAIN_DETAIL, anchors=(center, radius_pc))
+    result[held] = np.rint(value.astype(float) / CONTAIN_ROUND) >= round(FORM_LEVEL / CONTAIN_ROUND)
+    return result

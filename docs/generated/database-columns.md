@@ -638,6 +638,10 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
+| `obliquity_min_deg` | DOUBLE | NULL | v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
+| `obliquity_max_deg` | DOUBLE | NULL | v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
+| `belt_order` | INT | NULL | v248 (GEN.1510): for a planet promoted from an asteroid belt, the belt's number among its star's belts (as `irregular_moons.belt_order`), NULL for every other planet and for a row made before v244 |
+| `belt_rank` | INT | NULL | v248 (GEN.1510): for a planet promoted from an asteroid belt, the rank it had among the belt's members (the number is not reused), NULL for every other planet |
 | `energy_flux_w_m2` | DOUBLE | NULL |  |
 | `flux_variation` | DOUBLE | NULL |  |
 | `reflex_offset_x_km` | DOUBLE | NULL |  |
@@ -1118,6 +1122,8 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
+| `obliquity_min_deg` | DOUBLE | NULL | v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
+| `obliquity_max_deg` | DOUBLE | NULL | v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
 | `energy_flux_w_m2` | DOUBLE | NULL |  |
 | `flux_variation` | DOUBLE | NULL |  |
 | `uid` | BINARY(12) | NULL |  |
@@ -1895,7 +1901,6 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `radius_km` | DOUBLE | NOT NULL |  |
 | `composition` | TEXT | NULL |  |
 | `has_internal_heat` | TINYINT(1) | NULL | v207: NULL for a row of the physics rogue |
-| `has_moons` | TINYINT(1) | NULL | v207: NULL for a row of the physics rogue (its moons are `moons` rows) |
 | `age_gy` | DOUBLE | NULL |  |
 | `internal_heat_flux_w_m2` | DOUBLE | NULL |  |
 | `effective_temperature_k` | DOUBLE | NULL |  |
@@ -2204,6 +2209,8 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
+| `obliquity_min_deg` | DOUBLE | NULL | v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
+| `obliquity_max_deg` | DOUBLE | NULL | v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
 | `moon_origin` | VARCHAR(8) | NULL | v207 (GEN.1111) |
 | `moon_disk_lifetime_myr` | DOUBLE | NULL | v207 (GEN.1111) |
 | `moon_disk_alpha_over_f` | DOUBLE | NULL | v207 (GEN.1111) |

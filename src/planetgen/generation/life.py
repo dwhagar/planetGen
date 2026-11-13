@@ -11,9 +11,8 @@ Life data is intentionally NOT computed during `Planet` construction (see
 `physics.planets.generate_planet_properties`) -- every planet and moon is
 generated in a "no life data yet" state. Instead, `StarSystem.__init__`
 calls `apply_life_data` on every planet and moon in the system, after all
-of them have been generated and after `Star.adjust_age_for_planets` has
-finalized the star's age, so evolutionary timelines are computed against
-the star's final age rather than a provisional pre-adjustment one.
+of them have been generated, so evolutionary timelines are computed against
+the star's age, which is fixed when the star is made (GEN.1546).
 
 The class switch (GEN.889, docs/design/habitability/life-classes.md): `physics.life_classes` scores the body for each life class from its
 stored conditions; the class that lives on it is the supported one with the most net primary production (ties within a factor of 2 are
@@ -45,8 +44,8 @@ def apply_life_data(planet, keep_stored=False):
     (`physics.biogenic_oxygen`, GEN.855), its complexity and animal grade (`physics.life_complexity`) and the evolutionary timeline.
 
     Called once per planet/moon by `StarSystem.__init__`, after all planets
-    and moons in the system have been generated and the star's age has been
-    finalized by `Star.adjust_age_for_planets`.
+    and moons in the system have been generated and the star's age is
+    fixed from the star's own state (GEN.1546).
 
     Every draw is made on a stream of the body's own; the run's stream moves by one draw however many are made (GEN.872), and by none for an edit (`keep_stored`).
 
@@ -87,6 +86,7 @@ def _remake_ground_if_thawed(planet, before):
         return
     if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= 273.15:
         planets.refresh_at_final_age(planet)
+        planets.apply_class(planet)         # GEN.1590: the cover the thaw left is not the cover the class was read with
 
 
 @dataclass
@@ -389,10 +389,11 @@ def _build_air(planet, cands):
     if not planet_type.has_ground(planet):      # a giant, or a planet under a deep envelope (GEN.1334): no ground for life to change the air of
         return
     living = _living_of(cands)
+    was = (planet.surface_temperature, planet.atmospheric_pressure)
     rose = _build_oxygen(planet, living)
     changed = life_air.apply_gases(planet, living, rose)
     if rose or changed:
-        _rebuild(planet)
+        _rebuild(planet, remake_water=(planet.surface_temperature, planet.atmospheric_pressure) != was)
     if changed:
         log.choice("Life gases", f"{atmosphere.partial_kpa(planet, 'ch4'):.3g} kPa of methane",
                    f"class {cands[0].row.id}: methane and hydrogen of the ledger at the star's age")
@@ -424,17 +425,23 @@ def _trace_gases(planet):
             radiation.generate_dose(planet)
 
 
-def _rebuild(planet):
+def _rebuild(planet, remake_water=False):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
     stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
-    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980)."""
+    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980). When the life moved the
+    temperature or the pressure (`remake_water`), the water is made again first at the new ones (`planets.refresh_at_final_age`, on the body's own stream):
+    the state of the hydrosphere, the ice, the ocean cover and the ground were drawn at the air the life found, and a liquid ocean stored at 432 K under 63 kPa
+    is not one (GEN.1590)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
     surface_liquid_world.generate(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)
-    habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
+    if remake_water:
+        physics_planets.refresh_at_final_age(planet)       # the hydrosphere, the cover and the ground, and the habitability score that reads them
+    else:
+        habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
     physics_planets.apply_class(planet)               # GEN.980: the class is an output of the finished conditions, and the air has changed them
 
 
