@@ -2452,10 +2452,10 @@ class StarSystem:
             for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
                 moved = planetPhysics.settle_obliquity(planets, star.mass)
                 if moved:
-                    log.debug(f"{star.name}: {moved} planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances")
+                    log.debug(f"{star.name}: {moved} planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances.")
                 moon_tilts = planetPhysics.settle_moon_tilts(planets, star.mass)        # GEN.1556: the locked moons' Cassini states, once the planets' tilts are final
                 if moon_tilts:
-                    log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state")
+                    log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state.")
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
