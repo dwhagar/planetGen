@@ -13652,6 +13652,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Fable thread. Prerequisites: none. Related: GEN.1662, GEN.1665.
   Filed by the TODO thread.
 
+- [ ] **GEN.1672 (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff**
+  Lane 21, 2026-11-12: bulk_structure.envelope_thickness_earth uses (age/5 Gyr)^-0.18, fitted from 0.1 Gyr, but is applied below it; on main body 93 of the oddity S3 scan reads 0.0043 g/cm3 at age 0. Clamp the age at 0.1 Gyr (the fit's lower edge). Found while fixing the Train 25 S3 test red (Train Manager carries a test-only patch for Train 25). Lock item (output changes), Train 26.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
