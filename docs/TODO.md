@@ -13257,17 +13257,17 @@ clears each one.
 
 - [ ] **GEN.1683 One combined mass and luminosity scatter pass (design, then build)**
   The generation-order report measured the two scatter passes run one after the other and did not build a unified pass; it needs its own epoch change. Do: measure what a single pass saves and whether output can stay the same, then build it if worth it. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: GEN.1680. Related: GEN.1681.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15 (Boss 3:03 PM EST: every lane working). Prerequisites: GEN.1680. Related: GEN.1681.
   Filed by the TODO thread.
 
 - [ ] **GEN.1684 Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread**
   GEN.1201 merged in Train 25 (PR 6175, migration 0252): bodies store the temperature they took their shape at and the roundness engine reads it. The wiring register still lists as unread: rows 6.126:RN1, RN2, RN4 and RN11 (roundness.SPHERICITY_FACTOR, ICE_STRENGTH_PA, ROCK_STRENGTH_PA, METAL_STRENGTH_PA, ROCK_CREEP_COLUMNS), planetgen.physics.roundness.is_round, the module planetgen.physics.ice_types and planetgen.physics.compaction.taper_weight. Do: wire each into the engine and pages, or mark it by design with the reason, and drop its register row. Reuse what GEN.1201 built. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: none. Related: GEN.1201.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 12 (Boss 3:03 PM EST: every lane working). Prerequisites: none. Related: GEN.1201.
   Filed by the TODO thread.
 
 - [ ] **GEN.1685 The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance)**
   GEN.1016 merged in Train 25 (PR 6139): four-star systems are the ones the stability network calls stable. The register still says the clearance module is read only by tests/test_clearance.py and waits for the stability gate of GEN.1016. Do: have the gate or the stored-system audit call it, or mark it by design with the reason, and drop the register row. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: none. Related: GEN.1016, TEST.477.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05 (Boss 3:03 PM EST: every lane working). Prerequisites: none. Related: GEN.1016, TEST.477.
   Filed by the TODO thread.
 
 - [ ] **GEN.1686 Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones**
@@ -13307,12 +13307,12 @@ clears each one.
 
 - [ ] **API.48 API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging**
   From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. api/routes.py has many return jsonify error, 404 lines where ApiError exists; uncharted_systems and phenomena repeat the past_end pattern; the after integer parsing is repeated; facility_list whole() vs _int_arg. Do: ApiError and one paging helper; the response bodies stay the same (check the API contract tests).
-  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05 (Boss 3:03 PM EST: every lane working). Lock-free. Prerequisites: none. Related: GEN.1671.
   Filed by the TODO thread.
 
 - [ ] **OPS.181 Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers**
   From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (13) queue runeta.public_view duplicates runview.summary percent, _conclude_empty_stage vs units._end_stage; (14) util/settings_writer._restore_plan repeats _load_document; (15) cli/benchmark_suite _processes and _server_pids both walk /proc, version_history._galaxy_databases and warm_shape.cluster_ages both iterate store.list_databases. Do: one of each.
-  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06 (Boss 3:03 PM EST: every lane working). Lock-free. Prerequisites: none. Related: GEN.1671.
   Filed by the TODO thread.
 
 - [ ] **UX.313 (bug) The system page command names its input file like the --output file**
