@@ -11,11 +11,14 @@ export const MIN_LINK_PX = 4;
 // The link is not drawn for a pair this far apart on screen or more: the stars of a group that wide are on separate parts of the screen,
 // and a line across it says less than it hides.
 export const MAX_LINK_PX = 900;
+// A system holds no more stars than this: a larger run of stars with one system id is not one system to the map (it names and links
+// none of it), so a mistaken id never joins a crowd.
+export const MAX_MEMBERS = 8;
 // The most groups linked in one frame (the brightest first).
 export const MAX_LINKED_GROUPS = 120;
 
 // The groups of `stars` of one system: [{systemId, members (brightest first), luminositySol}], for each system with two or more stars
-// of the list. A star with no system (`system_id` null or undefined) is no group's member.
+// of the list (and no more than MAX_MEMBERS). A star with no system (`system_id` null or undefined) is no group's member.
 export function groupBySystem(stars) {
   const bySystem = new Map();
   (stars || []).forEach((star) => {
@@ -25,7 +28,7 @@ export function groupBySystem(stars) {
   });
   const groups = [];
   bySystem.forEach((members, systemId) => {
-    if (members.length < 2) return;
+    if (members.length < 2 || members.length > MAX_MEMBERS) return;
     members.sort((a, b) => (b.luminosity_sol || 0) - (a.luminosity_sol || 0));
     groups.push({ systemId, members, luminositySol: members.reduce((sum, star) => sum + (star.luminosity_sol || 0), 0) });
   });

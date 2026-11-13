@@ -54,3 +54,9 @@ test("the shared name is anchored at the middle of the members", () => {
   const [group] = G.groupBySystem([star(1, 5, "A", 1, 0), star(2, 5, "B", 1, 4)]);
   assert.deepEqual(G.groupCenter(group), [2, 0, 0]);
 });
+
+test("a run of stars past MAX_MEMBERS with one system id is not a system", () => {
+  const crowd = Array.from({ length: G.MAX_MEMBERS + 1 }, (_, i) => star(100 + i, 42, "Crowd " + i, 1, i));
+  assert.deepEqual(G.groupBySystem(crowd), []);
+  assert.equal(G.groupBySystem(crowd.slice(0, G.MAX_MEMBERS)).length, 1);
+});
