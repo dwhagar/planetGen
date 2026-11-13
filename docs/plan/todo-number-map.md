@@ -3911,7 +3911,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | open |
 | GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | open |
 | GEN.1684 | Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread | none | open |
-| GEN.1685 | The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance) | none | open |
+| GEN.1685 | The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance) | none | closed by design, PR 6405 (Lane 05): clearance.py must not share code with the generator it checks, so it stays a test-side audit |
 | GEN.1686 | Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones | none | open |
 | GEN.1687 | Constants written by hand: 101300 Pa, 365.25-day years, a second Earth mass and a local MPC_PER_PC instead of the shared constants and units | none | open |
 | GEN.1688 | (bug) small_body_composition: the METAL_ROWS set is shadowed by a later tuple of the same name, so nickel and cohenite group as rock | none | open |
