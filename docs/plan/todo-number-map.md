@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.315 |
+| UX | UX.316 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
 | GEN | GEN.1693 |
@@ -4909,6 +4909,7 @@ Each citation below resolves to one item by its date.
 | UX.312 | Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators | none | open |
 | UX.313 | (bug) The system page command names its input file like the --output file | none | open |
 | UX.314 | (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system) | none | open |
+| UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
 
 ### Code tags `TODO(<area> #N)`
 

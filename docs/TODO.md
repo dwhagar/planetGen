@@ -13320,6 +13320,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 22 (owns GEN.1510). Prerequisites: none. Related: GEN.1510, GEN.1668, GEN.1674.
   Filed by the TODO thread.
 
+- [ ] **UX.315 Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above**
+  Boss, 5:34 PM EST 2026-11-13 (as the coordinator relayed), follow-up to UX.307 (PR 6357): "checkboxes on the galaxy gen page, no label but right next to the text box, when checked (Default) the text box is auto. Slider on the bottom is disabled but pre-positioned exactly where the default is. Help text should be hidden under a ? icon to the side, title text above the check/text box combo." Do: for each measure row, the title on its own line; under it the unlabeled checkbox right beside the text box; checked (the starting state) means Default, the text box shows Auto and the slider below is disabled and set exactly at the default value; unchecked frees the text box and slider. The help text moves behind a ? icon at the side (keyboard and screen-reader reachable). Keep the alignment test (test_web_generate_alignment) and the one-unit rule (ADM.127) green; same in light and dark, at 390, 820 and 1280 px. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): the galaxy sliders thread (built UX.307). Prerequisites: UX.307. Related: UX.307, ADM.127.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
