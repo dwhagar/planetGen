@@ -876,11 +876,12 @@ def plan_steps(generate, form):
 
 def after_sectors_steps(generate, scatters=()):
     """
-    The steps after a `planetgen sectors` step (PERF.123): `link`, the `scatters` (`scatter_steps`), the bright-star
-    `backfill` and `settle`, each for the sectors saved since the start of the newest `sectors` run (their default).
+    The steps after a `planetgen sectors` step (PERF.123): `link`, the bright-star `backfill`, the `scatters` (`scatter_steps`) and `settle`,
+    each for the sectors saved since the start of the newest `sectors` run (their default). The backfill goes out from the filled sectors
+    before the scatters, which draw everything past it.
     """
-    return [{"label": "Link the neighbors", "argv": generate + ["link"]}, *scatters,
-            {"label": "Scatter the massive stars from the neighborhood", "argv": generate + ["backfill"]},
+    return [{"label": "Link the neighbors", "argv": generate + ["link"]},
+            {"label": "Scatter the massive stars from the neighborhood", "argv": generate + ["backfill"]}, *scatters,
             {"label": "Save the sector paths", "argv": generate + ["settle"]}]
 
 
