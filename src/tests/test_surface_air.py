@@ -626,3 +626,42 @@ def test_the_earth_twin_late_accretion_leaves_the_nitrogen_the_earth_has_and_ven
         n2_kg = sorted(_n2_kg(_late(setting, seed)[0], setting) for seed in range(40))
         assert n2_kg[0] < observed < n2_kg[-1]                                                         # inside the spread
         assert observed / factor < n2_kg[len(n2_kg) // 2] < observed * factor
+
+
+# GEN.1675: the air carries the vapor of the surface ices of carbon monoxide and methane.
+
+def test_an_ice_is_a_reservoir_only_below_its_triple_point():
+    moles = {"CO": 1.0e18, "CH4": 2.0e18, "N2": 0.0}
+    assert set(sa._ices_at(moles, 44.0)) == {"CO", "CH4"}
+    assert set(sa._ices_at(moles, 80.0)) == {"CH4"}       # CO melts at 68 K, methane at 91 K
+    assert sa._ices_at(moles, 100.0) == {}                # above both triple points neither ice is left
+    assert sa._ices_at({"CO": 0.0}, 40.0) == {}           # an empty reservoir is no reservoir
+
+
+def test_an_empty_column_over_a_surface_ice_fills_to_the_saturation_pressure_of_the_ice():
+    temperature = 44.0
+    left, condensed, remaining = sa.freeze_out({}, EARTH_G, EARTH_AREA, temperature, {"CO": (sa.ICE_HUMIDITY, _moles_for_bar("CO", 1.0))})
+    partial = _partials(left)
+    assert partial["CO"] == pytest.approx(saturation.pressure_pa("CO", temperature), rel=1e-6)
+    assert condensed["CO"] < 0.0                           # the ice gave moles to the air
+    assert remaining["CO"] == pytest.approx(_moles_for_bar("CO", 1.0) + condensed["CO"], rel=1e-9)
+
+
+def test_a_small_ice_is_used_up_and_the_air_over_it_holds_all_of_it():
+    small = _moles_for_bar("CO", 1.0e-6)
+    left, _, remaining = sa.freeze_out({}, EARTH_G, EARTH_AREA, 44.0, {"CO": (sa.ICE_HUMIDITY, small)})
+    assert left["CO"] == pytest.approx(small, rel=1e-9)
+    assert remaining["CO"] == pytest.approx(0.0, abs=1e-6 * small)
+
+
+def test_the_ice_a_body_holds_is_its_mass_fraction_times_its_mass_and_a_body_with_none_has_none():
+    body = types.SimpleNamespace(mass=1.0e22, ice_co_mass_fraction=0.01, ice_ch4_mass_fraction=None)
+    assert sa.surface_ice_kg(body) == {"CO": pytest.approx(1.0e20)}
+    assert sa.surface_ice_kg(types.SimpleNamespace(mass=1.0e22)) == {}
+
+
+def test_a_gas_standing_over_its_own_ice_is_not_held_in_the_clathrate_as_well():
+    floor = clathrate_brine.dissociation_pressure_pa("CH4", 100.0)
+    air = {"CH4": 10.0 * floor, "N2": 1.0e3}
+    held = sa._hold_in_hydrate(air, 100.0, _setting(), 1.0e6, standing={"CH4": 1.0})
+    assert held["CH4"] == air["CH4"]
