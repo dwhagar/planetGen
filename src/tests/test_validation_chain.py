@@ -114,3 +114,27 @@ def test_m3v_systems_that_failed_the_final_check_after_the_settle_pass_validate(
     with draw.bound(seed):
         system = StarSystem(system_config=config)
     assert validation.check_star_system(system) == []
+
+
+def test_a_push_that_would_open_a_gap_the_belt_rule_reads_as_a_belt_is_left_to_the_pairwise_rule(monkeypatch):
+    """GEN.1521, CH5: the effective spacing (mean less half the spread) rewards one wide gap among narrow ones, so a window of two gaps of 10 mutual Hill radii pushed the next planet to a gap of 30.5 and
+    windows beside a wide gap pushed it to 43 to 60, which the belt rule (BG1) reads as a belt. A push whose first distance opens a gap of `CHAIN_MAX_GAP_K` or more leaves the pairwise rule."""
+    from planetgen.physics import belt_origin
+    assert ledger.CHAIN_MAX_GAP_K == belt_origin.GAP_SPACING_K
+    sun = 1.989e30
+    mass = 3e-6 * sun
+    share = (2 * mass / (3 * sun)) ** (1 / 3)
+
+    def beyond(inner_au, gap):
+        return inner_au * (1 + 0.5 * gap * share) / (1 - 0.5 * gap * share)
+
+    first = 1.0
+    second = beyond(first, 10.0)
+    third = beyond(second, 10.0)
+    window = [(first, 0.0, mass), (second, 0.0, mass), (third, 0.0, mass)]
+    start = beyond(third, 10.0)
+    found = ledger.chain_distance_au(window, mass, 0.0, sun, start)
+    opened = ledger.edge_gap_hill_radii(third, 0.0, mass, found, 0.0, mass, sun)
+    assert found > start and opened == pytest.approx(30.5, abs=0.1)
+    monkeypatch.setattr(ledger, "CHAIN_MAX_GAP_K", 25.0)
+    assert ledger.chain_distance_au(window, mass, 0.0, sun, start) == start
