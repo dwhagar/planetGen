@@ -429,15 +429,6 @@ def sweep(level_temperature, depth, surface_temperature):
                                   line_opacity.G_WEIGHTS, DIFFUSIVITY)
 
 
-def _upper_levels(layer_temperature):
-    """The temperatures at the levels above the surface from layer temperatures: the mean of neighbours, the top one extrapolated."""
-    count, layers = layer_temperature.shape
-    levels = np.empty((count, layers + 1))
-    levels[:, 1:-1] = 0.5 * (layer_temperature[:, 1:] + layer_temperature[:, :-1])
-    levels[:, 0] = layer_temperature[:, 0] - 0.5 * (layer_temperature[:, 1] - layer_temperature[:, 0])
-    return levels
-
-
 # ---- the solver ----
 
 class _Solver:

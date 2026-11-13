@@ -1555,13 +1555,6 @@ def _table_names(base_config, name):
         conn.close()
 
 
-def _holds_galaxy(base_config, name):
-    """Whether schema `name` holds this project's galaxy tables (`sectors`). A schema that shares the prefix and holds
-    something else (the real `planetgen_control` on a server whose configured control schema has another name) is no
-    database to select: every route would answer 500 from its first missing table (API.32)."""
-    return "sectors" in _table_names(base_config, name)
-
-
 def _schema_counts(conn, name):
     """`list_databases`'s `sector_count`/`system_count` for schema `name`,
     both `None` when it can't be read (no such tables: mid-migration, or
@@ -4863,8 +4856,7 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     config_id = insert_system_config(conn, system_config)
 
     # binary_type (None | "close" | "wide") is the authoritative
-    # discriminator (see system.StarSystem.__init__); is_binary is kept
-    # for the schema's own pre-existing column and now means "this system
+    # discriminator (see system.StarSystem.__init__); is_binary means "this system
     # has two stars", true for either configuration. proxy_like gates
     # exactly the columns that only ever describe a merged BinaryStarProxy
     # -- see schema.sql's "v15" header note.
@@ -10128,13 +10120,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system_config = load_system_config(conn, row["system_config_id"])
     speed_kms = _speed_kms(row)
 
-    # binary_configuration is the authoritative discriminator (see
-    # schema.sql's "v15" header note); a row written before that column
-    # existed has it NULL, so fall back to the pre-v15 meaning of
-    # is_binary (which only ever meant a 'close'/P-type pair back then).
+    # binary_configuration is the authoritative discriminator (see schema.sql's "v15" header note).
     binary_configuration = row["binary_configuration"]
-    if binary_configuration is None and row["is_binary"]:
-        binary_configuration = "close"
 
     secondary_star = None
     wide_binary = None

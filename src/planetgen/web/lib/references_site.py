@@ -330,10 +330,6 @@ def _group_table(rows, usage, axis, name):
     return {"heading": "", "head": [name, "Sources", "With a DOI", "With an arXiv copy"], "rows": body}
 
 
-def _number_rows(pairs):
-    return [{"id": "", "cells": [name, count(number)]} for name, number in pairs]
-
-
 def _source_cell(item):
     return _link(f"{item['label']}", reference_path("papers", item["id"]))
 
