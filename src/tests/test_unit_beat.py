@@ -157,3 +157,46 @@ def test_code_deep_in_a_unit_tags_a_wait_through_the_module_and_does_nothing_out
     with unitbeat.waiting("mysql"):
         pass
     assert unitbeat._current is None
+
+
+def test_the_record_carries_the_evidence_of_work_besides_the_counter(conn, run_id):
+    """OPS.193: processor seconds, bytes read and written, and the statement the unit is in, so a unit that does not move its counter can still be seen to work."""
+    from planetgen.db import statementmark
+    beat = unitbeat.UnitBeat(conn, run_id, 0, 0)
+    quiet = beat.record()
+    assert quiet["cpu_s"] >= 0.0 and quiet["io_read"] >= 0 and quiet["io_write"] >= 0
+    assert "sql" not in quiet and "sql_since" not in quiet, "no statement out, no field"
+    sum(n * n for n in range(300_000))
+    with statementmark.labelled("clear the scatter"), statementmark.statement("DELETE FROM scatter_masses"):
+        busy = beat.record()
+    assert busy["sql"] == "clear the scatter"
+    assert busy["beat"] - 5.0 < busy["sql_since"] <= busy["beat"], "the statement began on the server clock, a moment before the beat"
+    assert busy["cpu_s"] >= quiet["cpu_s"]
+    with statementmark.statement("SELECT   1\n  FROM dual"):
+        assert beat.record()["sql"] == "SELECT 1 FROM dual"
+    assert statementmark.running() is None
+
+
+def test_the_statement_mark_names_the_longest_running_statement_and_clears_on_error():
+    from planetgen.db import statementmark
+    seen = []
+
+    def other():
+        with statementmark.statement("UPDATE b SET x = 1"):
+            seen.append(statementmark.running())
+            gate.wait(5)
+
+    gate = threading.Event()
+    with pytest.raises(RuntimeError):
+        with statementmark.statement("SELECT 1"):
+            thread = threading.Thread(target=other)
+            thread.start()
+            while not seen:
+                time.sleep(0.01)
+            assert statementmark.running()[0] == "SELECT 1", "the one that has waited longest"
+            raise RuntimeError("boom")
+    assert statementmark.running()[0] == "UPDATE b SET x = 1"
+    gate.set()
+    thread.join()
+    assert statementmark.running() is None
+    assert len(statementmark.shorten("x " * 100)) == statementmark.LABEL_CHARS

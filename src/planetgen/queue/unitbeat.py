@@ -12,7 +12,7 @@ the follower can judge it (`queue/beatjudge.py`, OPS.137) and a person can see i
 * **The clock is Redis's.** `beat`, `started` and `moved` are seconds on the Redis server clock (`TIME`), so a lane machine and the server cannot disagree; `moved` is worked out from this process's
   monotonic clock when the counter changed, set against the server time of the write.
 * **The record** is one JSON object in the unit's field: `done`, `estimate`, `beat`, `started`, `moved` (absent until `done` first changes), `phase`, `waiting_on`, `restarts` (how many times the
-  current phase label has begun again), `resident_mb` (optional), and `pid`, `host` and `stack_file` (where the follower sends `DUMP_SIGNAL`, OPS.140). `read` gives a `beatjudge.Beat` for each unit of a stage.
+  current phase label has begun again), `resident_mb` (optional), and `pid`, `host` and `stack_file` (where the follower sends `DUMP_SIGNAL`, OPS.140), and the evidence of OPS.193 (`cpu_s`, `io_read`, `io_write` and, while a statement is out, `sql` and `sql_since`: see `evidence`). `read` gives a `beatjudge.Beat` for each unit of a stage.
 """
 
 import faulthandler
@@ -25,7 +25,8 @@ import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.queue import beatjudge, runrecord
+from planetgen.db import statementmark
+from planetgen.queue import beatjudge, runrecord, usage as usageModule
 
 COUNTER_WRITE_SECONDS = 2.0
 """float: A counter that moved is written at most this often, between two beats."""
@@ -63,6 +64,31 @@ def register_dump(path):
     if previous is not None:
         previous.close()
     return True
+
+
+def io_bytes():
+    """`(read, written)`: the bytes this process has read and written so far (`/proc/self/io`: `rchar` and `wchar`, so a socket to the database counts as well as a file); `(0, 0)` where the system does not say."""
+    try:
+        with open("/proc/self/io", encoding="ascii") as handle:
+            found = dict(line.split(": ", 1) for line in handle.read().splitlines() if ": " in line)
+        return int(found["rchar"]), int(found["wchar"])
+    except (OSError, KeyError, ValueError) as exc:
+        from planetgen.util import log
+        log.swallowed("queue", "reading /proc/self/io for the beat", exc)
+        return 0, 0
+
+
+def evidence(now_server):
+    """
+    What the unit is doing besides moving its counter (OPS.193): `cpu_s` (processor seconds of this process and the children it waited for), `io_read` and `io_write` (bytes), and, while a
+    statement is out, `sql` (its label) and `sql_since` (server-clock seconds when it was sent). The judge (OPS.194) calls a unit whose counter stands still but whose figures move `busy`.
+    """
+    read, written = io_bytes()
+    made = {"cpu_s": round(usageModule.cpu_seconds(), 2), "io_read": read, "io_write": written}
+    sent = statementmark.running()
+    if sent is not None:
+        made["sql"], made["sql_since"] = sent[0], now_server - sent[1]
+    return made
 
 
 def server_time(conn):
@@ -154,12 +180,14 @@ class UnitBeat:
         now_server = server_time(self.conn) if now_server is None else now_server
         if self._started_server is None:
             self._started_server = now_server - (self.clock() - self._started_at)
+        proof = evidence(now_server)
         with self._lock:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
                     "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
                     "waited": round(max(self._waited, 0.0), 1), "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
             if self.stack_file:
                 made["stack_file"] = self.stack_file
+            made.update(proof)
             made.update(self.extra)
             if self._moved_at is not None:
                 made["moved"] = now_server - (self.clock() - self._moved_at)
