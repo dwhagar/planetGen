@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4028] - 2026-11-13
+
+**Headline:** The two belt-pull tests of the secular exchange find a system with a massive belt by search, so a change of the draw order no longer breaks them.
+
+### Changed
+
+- GEN.1667: `test_secular_exchange_generation.py` no longer relies on seed 1 and seed 2 making a belt with a mass; the belt-pull test searches seeds 1 to 60 for a massive belt whose rings move a planet's orbit, and the rings test takes the first system whose belt gives rings (as TEST.714 did for the others). Belts were not lost: the draw order of the train moved which seeds make one.
+
+generation-output: unchanged
+
 ## [8.0.4027] - 2026-11-13
 
 **Headline:** a free-floating brown dwarf no longer carries a one-in-five "has a captured moon" flag, and a free planet's chance of a moon is no longer a fixed table figure: the moons of a thrown-out planet are the ordinary moon routine's, inside the edge its ejection left.
