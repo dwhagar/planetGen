@@ -54,7 +54,7 @@ def test_a_belt_promotes_at_most_the_limit_of_its_heaviest_round_members(promote
     per_belt = {}
     for body in made:
         per_belt.setdefault(body.belt_order, []).append(body)
-    assert made and all(len(planets) <= tuning.BELT_PLANETS_PER_BELT for planets in per_belt.values())
+    assert made and all(len(planets) <= tuning.BELT_PLANETS_PER_BELT for planets in per_belt.values())      # GEN.1561: a member over the oligarch mass would be an exception; none is drawn in these seeds
     for planets in per_belt.values():
         assert all(planet.planet_class is not None for planet in planets)
 
@@ -138,3 +138,38 @@ def test_a_promoted_planet_is_stored_with_its_belt_and_rank(promoted_system, mys
     assert sorted((b.belt_order, b.belt_rank) for b in _promoted(loaded)) == sorted(stored)
     distances = [row["distance_km"] for row in rows]
     assert distances == sorted(distances)
+
+
+def test_a_belts_largest_body_is_the_largest_member_it_still_holds(promoted_system):
+    """GEN.1561: the figure was the drawn belt's, a planet once a member is promoted."""
+    _seed, system = promoted_system
+    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    taken = {body.belt_order for body in _promoted(system)}
+    assert taken
+    for order in taken:
+        belt = belts[order]
+        left = [2.0 * member["radius_km"] for member in belt.members if member["status"] != "moon"]
+        assert belt.largest_body_km == pytest.approx(max(left, default=0.0), rel=1e-12)
+
+
+def test_a_member_over_the_oligarch_mass_is_promoted_whatever_the_limit(promoted_system, monkeypatch):
+    """GEN.1561 (Boss, 10:06 PM EST 11-12): the ten is a cost limit; a round member heavier than the isolation mass of its stretch is a planet."""
+    seed, system = promoted_system
+    monkeypatch.setattr(tuning, "BELT_PLANETS_PER_BELT", 1)
+    monkeypatch.setattr(belt_planets, "oligarch_cap_kg", lambda star, belt: float("inf"))
+    capped = _promoted(_system(seed))
+    assert capped and max(sum(1 for b in capped if b.belt_order == order) for order in {b.belt_order for b in capped}) == 1
+    monkeypatch.setattr(belt_planets, "oligarch_cap_kg", lambda star, belt: 0.0)
+    over = _promoted(_system(seed))
+    assert len(over) > len(capped) and {(b.belt_order, b.belt_rank) for b in capped} <= {(b.belt_order, b.belt_rank) for b in over}
+    monkeypatch.setattr(tuning, "BELT_PLANETS_PER_BELT", 0)
+    assert not _promoted(_system(seed))           # a limit of zero still promotes nothing
+
+
+def test_the_oligarch_mass_of_a_belt_is_the_isolation_mass_of_its_stretch(promoted_system):
+    _seed, system = promoted_system
+    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    for belt in belts.values():
+        cap = belt_planets.oligarch_cap_kg(system.star, belt)
+        assert cap > 0.0 and cap == pytest.approx(belt_planets.oligarch_cap_kg(system.star, belt))
+        assert all(member["mass_kg"] <= cap for member in belt.members if member["status"] != "moon")       # none is left over it

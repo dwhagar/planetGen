@@ -184501,6 +184501,30 @@
    "volume": "493",
    "year": 2020
   },
+  "10.1093/mnras/staa2385": {
+   "arxiv": "2008.07406",
+   "authors": [
+    [
+     "Krivov",
+     "A. V."
+    ],
+    [
+     "Wyatt",
+     "M. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/staa2385",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "718",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Solution to the debris disc mass problem: planetesimals are born small?",
+   "type": "journal-article",
+   "volume": "500",
+   "year": 2020
+  },
   "10.1093/mnras/staa2391": {
    "authors": [
     [
@@ -283546,7 +283570,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5248,
+ "id_next": 5249,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286550,6 +286574,7 @@
   "10.1093/mnras/staa220": "R1116",
   "10.1093/mnras/staa2289": "R3522",
   "10.1093/mnras/staa236": "R4434",
+  "10.1093/mnras/staa2385": "R5248",
   "10.1093/mnras/staa2391": "R2021",
   "10.1093/mnras/staa2487": "R3282",
   "10.1093/mnras/staa2615": "R3545",
@@ -289460,6 +289485,7 @@
   "arxiv:2008.01968": "R0766",
   "arxiv:2008.05513": "R4528",
   "arxiv:2008.05992": "R1152",
+  "arxiv:2008.07406": "R5248",
   "arxiv:2008.07469": "R0308",
   "arxiv:2008.08430": "R0373",
   "arxiv:2008.09700": "R1866",
