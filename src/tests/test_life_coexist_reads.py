@@ -28,7 +28,7 @@ def _mixed_system():
             system = StarSystem(system_config=config)
         if any(len(planet.life_living or ()) > 1 for planet in system.all_planets if planet.body_type != "a"):
             return system, config
-    pytest.skip("no planet with several classes in these seeds")
+    pytest.fail("(TEST.737) no planet with several classes in these seeds")
 
 
 def test_a_body_with_no_life_has_no_classes_and_one_stored_before_has_its_own():

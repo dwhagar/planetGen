@@ -92,7 +92,7 @@ def _saved_binary_system(mysql_config):
             return conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
         finally:
             conn.close()
-    pytest.skip("no binary system with a rocky planet in a varying light generated")
+    pytest.fail("(TEST.737) no binary system with a rocky planet in a varying light generated")
 
 
 def test_an_edit_in_a_binary_system_works_the_light_swing_out_again(admin, mysql_config):  # noqa: F811

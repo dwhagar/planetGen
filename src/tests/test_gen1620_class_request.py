@@ -51,7 +51,7 @@ def test_a_life_class_is_found_by_number_or_by_number_and_variant():
     held = [(body.life_class, body.life_class_variant) for planet in system.all_planets for body in (planet, *getattr(planet, "moons", ()))
             if getattr(body, "life_class", None) is not None]
     if not held:
-        pytest.skip("this seed holds no life")
+        pytest.fail("(TEST.737) this seed holds no life")
     number, variant = held[0]
     assert system.bodies_with_life_class(str(number))
     assert system.bodies_with_life_class(f"{number}{variant or ''}")

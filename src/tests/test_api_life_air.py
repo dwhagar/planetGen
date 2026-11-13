@@ -47,7 +47,7 @@ def _living_planet_system(mysql_config, monkeypatch, client):
                     shown = client.get(f"/api/planets/{pid('planet', rows[0]['id'])}/life-air").get_json().get("life_air")
                     if shown and "CH4" in {gas["formula"] for gas in shown["gases"]}:
                         return system_id, rows[0]["id"]
-    pytest.skip("no airy rocky planet in these draws")
+    pytest.fail("(TEST.737) no airy rocky planet in these draws")
 
 
 def test_a_living_planets_air_history_has_the_steps_and_stages(client, mysql_config, monkeypatch):
@@ -78,7 +78,7 @@ def test_a_planet_without_a_living_class_has_no_history(client, mysql_config):
     finally:
         conn.close()
     if planet_id is None:
-        pytest.skip("every planet drawn has a life stage")
+        pytest.fail("(TEST.737) every planet drawn has a life stage")
     body = client.get(f"/api/planets/{pid('planet', planet_id['id'])}/life-air").get_json()
     assert body["life_class_id"] is None and body["life_air"] is None
 

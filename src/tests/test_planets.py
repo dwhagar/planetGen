@@ -241,4 +241,4 @@ def test_a_world_no_class_supports_carries_no_class(host_star):
             seen_none = True
             assert planet.life_class is None and planet.life_stage is None
     if not seen_none:
-        pytest.skip("no draw in zone e supported no life class")
+        pytest.fail("(TEST.737) no draw in zone e supported no life class")

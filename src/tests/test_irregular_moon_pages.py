@@ -31,7 +31,7 @@ def planet(site_db):
     try:
         row = conn.execute("SELECT id, uid, star_id FROM planets WHERE mass_kg > 0 AND hill_radius_km > 0 ORDER BY mass_kg DESC, id LIMIT 1").fetchone()
         if row is None:
-            pytest.skip("the sample galaxy holds no planet")
+            pytest.fail("(TEST.737) the sample galaxy holds no planet")
         conn.execute("DELETE FROM irregular_moons WHERE planet_id = ?", (row["id"],))      # the generator already wrote this planet's own set
         conn.execute("DELETE FROM irregular_sets WHERE planet_id = ?", (row["id"],))
         insert_filled_row(conn, "irregular_sets", planet_id=row["id"], remainder_kg=1.0e17, above_floor=5, lost=1, **{"temporary": 1})

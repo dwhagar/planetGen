@@ -84,7 +84,7 @@ def test_a_stored_belt_reads_back_with_its_origin():
                 assert again.co_causes == list(belt.co_causes) and again.primordial_mass_earth == belt.primordial_mass_earth
                 assert again.mass_kg == belt.mass_kg and again.stirred == belt.stirred
                 return
-    pytest.skip("no belt in the sample")
+    pytest.fail("(TEST.737) no belt in the sample")
 
 
 def test_a_floor_above_every_belt_leaves_none(monkeypatch):
@@ -150,7 +150,7 @@ def test_a_belt_past_the_final_ceiling_is_cut_back_not_lost():
             tight = [belt]
             assert validation.trim_to_orbit_ceiling(tight, belt.lower_limit * 1.01) == [belt] and not tight
             return
-    pytest.skip("no wide belt in the sample")
+    pytest.fail("(TEST.737) no wide belt in the sample")
 
 
 def test_a_belt_asked_for_is_still_placed_where_the_chain_leaves_no_stretch(monkeypatch):

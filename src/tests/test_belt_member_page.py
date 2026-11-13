@@ -30,7 +30,7 @@ def belt(site_db):
     finally:
         conn.close()
     if found is None or found[1] == 0:
-        pytest.skip("the sample galaxy holds no asteroid belt with stored bodies")
+        pytest.fail("(TEST.737) the sample galaxy holds no asteroid belt with stored bodies")
     return found
 
 

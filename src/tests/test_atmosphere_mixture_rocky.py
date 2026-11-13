@@ -143,7 +143,7 @@ def test_an_earth_like_oxidized_volcano_gas_is_water_carbon_dioxide_and_sulfur_d
             assert next(iter(fractions)) == "H2O"
             assert fractions["CO2"] > max(fractions.get("CO", 0.0), fractions.get("CH4", 0.0)), "CO2 is the carbon gas of an oxidized vent"
             return
-    pytest.skip("no wet, oxidized draw below 1200 K in 80 seeds")
+    pytest.fail("(TEST.737) no wet, oxidized draw below 1200 K in 80 seeds")
 
 
 def test_a_very_hot_surface_holds_the_halogen_atoms_in_the_table():
