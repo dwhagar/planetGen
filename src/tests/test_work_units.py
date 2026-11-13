@@ -759,7 +759,7 @@ def test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands(mysql
         fill(args)
     conn = redisqueue.connect()
     kinds = [[step["kind"] for step in runrecord.read_steps(conn, run)] for run in runs]
-    assert kinds == [["fill-map-luminosity", "refresh-block-lights"], ["rescore-habitability"]]     # a luminosity fill changes the pre-placed objects: the block lights follow (PERF.172)
+    assert kinds == [["fill-map-luminosity", "refresh-block-lights"], ["rescore-habitability", "make-habitable-block-totals"]]     # a luminosity fill changes the pre-placed objects: the block lights follow (PERF.172)
     stage = runrecord.read_run(conn, runs[0])["stages"][0]
     top = run_plan.expand_fill_map_luminosity(
         {"database": wrapper.database_args(mysql_config)}).plan["top"]
