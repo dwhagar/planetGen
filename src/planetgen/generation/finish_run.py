@@ -38,7 +38,7 @@ from planetgen.queue import commands, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
-    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "store-phenomenon-class-counts", "make-habitable-block-totals", "clear-bright-stars", "store-scatter-limits", "store-scatter-epoch", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
+    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "store-phenomenon-class-counts", "make-habitable-block-totals", "link-nebulae-to-field", "make-nebula-block-totals", "store-nebula-field-epoch", "clear-bright-stars", "store-scatter-limits", "store-scatter-epoch", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
 galaxy an uninterrupted run would have: each either empties what it rewrites when it opens (`prepare`) or does work that

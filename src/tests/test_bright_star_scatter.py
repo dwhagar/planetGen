@@ -1064,7 +1064,7 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
     run_galaxy.run_galaxy(args)
     [followers] = runs
     assert [follower.key for follower in followers] == [
-        "start", "neighborhood", "link", "mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index", "nebula-clear", "nebula-draw",
+        "start", "neighborhood", "link", "mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index", "nebula-clear", "nebula-draw", "nebula-link", "nebula-totals", "nebula-epoch",
         "backfill", "population", "territories", "settle", "run-blocks", "block-lights"]
     by_key = {follower.key: follower for follower in followers}
     # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.

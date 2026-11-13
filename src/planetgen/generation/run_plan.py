@@ -2281,8 +2281,8 @@ class NebulaFieldFollower(followed.Follower):
     The nebula field as a stage of a run (DB.24): the `draw-nebula-field` command draws every kept cloud of classes M and N
     of the galaxy's molecular cloud field from the seed, a unit per slab of field cells (`draw_nebula_field_unit`), after
     the earlier table was emptied (`empty_nebula_field_unit`, a stage of its own). A nebula already stored from the field is linked back to
-    its row afterwards, and the Galaxy Map's nebula block totals are made again from the new field
-    (`conclude_draw_nebula_field`).
+    its row afterwards (`link_nebulae_to_field_unit`), the Galaxy Map's nebula block totals are made again from the new field
+    (`make_nebula_block_totals_unit`) and the epoch it was drawn under is stored (`store_nebula_field_epoch_unit`), each a stage of its own (OPS.123).
 
     Attributes:
         written (int): The rows written.
@@ -2315,10 +2315,7 @@ class NebulaFieldFollower(followed.Follower):
         self.bar.update(advance=result["count"], description=f"Drawing the nebula field ({self.done:,} of {self.slabs:,} slabs)")
 
     def on_done(self, conclusion):
-        linked = conclusion["linked"]
-        log.normal(f"Nebula field: {self.written:,} clouds of classes M and N"
-                   + (f", {linked:,} already stored." if linked else "."))
-        log.normal(f"Made {conclusion['blocks']:,} nebula block totals.")
+        log.normal(f"Nebula field: {self.written:,} clouds of classes M and N.")
 
 
 def expand_empty_nebula_field(params):
@@ -2357,26 +2354,111 @@ class EmptyNebulaFieldFollower(followed.Follower):
     label = "Clear the earlier nebula field"
 
 
-def conclude_draw_nebula_field(params, plan, results, seconds):
+def _whole_nebula_stage(params):
+    """The expansion of the three steps after the nebula field is drawn (OPS.123): one unit each, which carries `slabs`, how many slabs the draw cut (none for a galaxy with no outline, which draws nothing)."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+expand_link_nebulae_to_field = expand_make_nebula_block_totals = expand_store_nebula_field_epoch = _whole_nebula_stage
+
+
+def link_nebulae_to_field_unit(params, report):
     """
-    The `conclude` of the `draw-nebula-field` command (PERF.172): links the nebulae already stored from the field back to
-    their rows (`store.link_nebula_field_stored`) and makes the nebula block totals of the Galaxy Map from the new field
-    (MAP.172, `nebula_blocks.rebuild`).
+    The `link-nebulae-to-field` command's unit (OPS.123; the first part of the `conclude` of `draw-nebula-field` before it, PERF.172): links the nebulae already
+    stored from the field back to their rows (`store.link_nebula_field_stored`). A draw that cut no slab has nothing to link.
 
     Returns:
-        dict: `linked` (nebulae linked) and `blocks` (block totals made).
+        dict: `linked`, the nebulae linked.
     """
-    if not plan["slabs"]:
-        return {"linked": 0, "blocks": 0}
+    if not params["slabs"]:
+        return {"linked": 0}
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        store.record_scatter_epoch(conn, "nebula-field", params.get("run_id"))
         linked = store.link_nebula_field_stored(conn)
+        conn.commit()
+    finally:
+        conn.close()
+    return {"linked": linked}
+
+
+def make_nebula_block_totals_unit(params, report):
+    """
+    The `make-nebula-block-totals` command's unit (OPS.123; the second part of the `conclude` of `draw-nebula-field` before it, MAP.172): makes the nebula block totals of
+    the Galaxy Map from the new field (`nebula_blocks.rebuild`). A draw that cut no slab leaves the totals as they are.
+
+    Returns:
+        dict: `blocks`, the block totals made.
+    """
+    if not params["slabs"]:
+        return {"blocks": 0}
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
         blocks = nebula_blocks.rebuild(conn, store.get_galaxy_shape(conn).edge_pc)
         conn.commit()
     finally:
         conn.close()
-    return {"linked": linked, "blocks": blocks}
+    return {"blocks": blocks}
+
+
+def store_nebula_field_epoch_unit(params, report):
+    """
+    The `store-nebula-field-epoch` command's unit (OPS.123; the last part of the `conclude` of `draw-nebula-field` before it): stores the generator epoch the nebula field was drawn
+    under (`store.record_scatter_epoch`), which marks the draw as finished, so it comes after the field is linked and its block totals are made. A draw that cut no slab stores nothing.
+
+    Returns:
+        dict: `stored`, whether the epoch was stored.
+    """
+    if not params["slabs"]:
+        return {"stored": False}
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        store.record_scatter_epoch(conn, "nebula-field", params.get("run_id"))
+        conn.commit()
+    finally:
+        conn.close()
+    return {"stored": True}
+
+
+class _AfterNebulaDrawFollower(followed.Follower):
+    """A step after the nebula field is drawn (OPS.123): one unit that is told how many slabs the draw cut."""
+
+    def params(self):
+        return {"slabs": wrapper.plan_detail(NEBULA_DRAW_KEY, "slabs"), "run_id": getattr(self.args, "generation_run_id", None)}
+
+
+class LinkNebulaeToFieldFollower(_AfterNebulaDrawFollower):
+    """The `link-nebulae-to-field` command as a stage of a run."""
+
+    key = "nebula-link"
+    label = "Link the stored nebulae to the field"
+
+    def on_result(self, unit, result):
+        if result["linked"]:
+            log.normal(f"Linked {result['linked']:,} nebulae already stored to the nebula field.")
+
+
+class NebulaBlockTotalsFollower(_AfterNebulaDrawFollower):
+    """The `make-nebula-block-totals` command as a stage of a run."""
+
+    key = "nebula-totals"
+    label = "Make the nebula block totals"
+
+    def on_result(self, unit, result):
+        if result["blocks"]:
+            log.normal(f"Made {result['blocks']:,} nebula block totals.")
+
+
+class NebulaFieldEpochFollower(_AfterNebulaDrawFollower):
+    """The `store-nebula-field-epoch` command as a stage of a run."""
+
+    key = "nebula-epoch"
+    label = "Store the generator epoch of the nebula field"
+
+
+def nebula_field_followers(args):
+    """The stages that draw the nebula field again, in order: the emptying, the draw and the three steps after it (OPS.123)."""
+    return [EmptyNebulaFieldFollower(args), NebulaFieldFollower(args), LinkNebulaeToFieldFollower(args),
+            NebulaBlockTotalsFollower(args), NebulaFieldEpochFollower(args)]
 
 
 MAP_LUMINOSITY_BATCH_IDS = 200_000
@@ -3042,7 +3124,8 @@ def redraw_nebula_field(args):
 def planned_nebula_field(args):
     """The nebula field table drawn again as a `followed.Planned`; its result is the rows written."""
     follower = NebulaFieldFollower(args)
-    return followed.Planned([EmptyNebulaFieldFollower(args), follower], "Nebula field", lambda: follower.written)
+    followers = nebula_field_followers(args)
+    return followed.Planned(followers, "Nebula field", lambda: follower.written)
 
 
 ROLL_SECONDS_PER_CELL, INDEX_SECONDS_PER_CELL = 1.5e-5, 1e-4
@@ -3330,7 +3413,7 @@ def phenomena_followers(args, refuse=None, tag=""):
                  PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  PhenomenonClassCountsFollower(args),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
-                 EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
+                 *nebula_field_followers(args)]
     return followers, book
 
 
@@ -3674,7 +3757,7 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY, "nebula-link", "nebula-totals", "nebula-epoch")}
 """dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells, their counts and their indexes, the nebula clear and draw."""
 
 

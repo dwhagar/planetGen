@@ -278,6 +278,8 @@ def _plan_field(conn, run_id, marker):
         raise Unresolved(f"the run has no stage {marker['stage']!r} to read the plan of")
     plan = runrecord.read_plan(conn, run_id, keys.index(marker["stage"]))
     detail = (plan or {}).get("detail") or {}
+    if detail.get(FINISHED_BY):        # the stage was carried on from an earlier run (OPS.123): it planned there
+        return _plan_field(conn, detail[FINISHED_BY], marker)
     if marker["field"] not in detail:
         raise Unresolved(f"stage {marker['stage']!r} has not planned {marker['field']!r}")
     return detail[marker["field"]]

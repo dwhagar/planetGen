@@ -141,6 +141,16 @@ def test_a_run_carried_on_after_the_stage_takes_the_results_the_stopped_run_kept
     assert TAKEN == [("store", [0, 1, 2])]
 
 
+def test_a_run_carried_on_after_the_stage_reads_the_plan_the_stopped_run_made(conn):
+    """OPS.123: a step after a stage that was carried on reads what the stage planned in the run that did it."""
+    steps = [_step("shells", count=3), _step("store", count=1, counts=wrapper.plan_detail("shells", "name"))]
+    run_id = _stopped(conn, steps, "store", 0)
+    TAKEN.clear()
+    found = finish_run.plan(conn, run_id, SEED, BUILD, DATABASE)
+    _run(found.steps, finishes=run_id)
+    assert TAKEN == [("store", "shells")]
+
+
 def test_a_stage_that_has_not_ended_has_no_results_to_take(conn):
     with pytest.raises(wrapper.Unresolved):
         wrapper.resolve_params(conn, _run([_step("a")]), {"counts": wrapper.stage_results("nowhere", "n")})

@@ -80,12 +80,17 @@ def sectors_stages(args):
 NEBULA_CLEAR_STAGE = Stage("nebula-clear", "Clear the earlier nebula field")
 """Stage: The emptying of the nebula field table before it is drawn again (OPS.123: the `empty-nebula-field` command, once a hook of the draw)."""
 
+NEBULA_FIELD_STAGES = (NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"), Stage("nebula-link", "Link the stored nebulae to the field"),
+                       Stage("nebula-totals", "Make the nebula block totals"), Stage("nebula-epoch", "Store the generator epoch of the nebula field"))
+"""tuple[Stage]: The stages that draw the nebula field again (OPS.123: the `empty-nebula-field`, `draw-nebula-field`, `link-nebulae-to-field`, `make-nebula-block-totals`
+and `store-nebula-field-epoch` commands; the last three were the `conclude` of the draw)."""
+
 PHENOMENA_COUNTS_STAGE = Stage("phenomena-counts", "Store the phenomenon counts")
 """Stage: The storing of how many phenomena of each class the shells placed (OPS.123: the `store-phenomenon-class-counts` command, once the `conclude` of the shells)."""
 
 PHENOMENA_STAGES = (Stage("phenomena-clear", "Clear the earlier phenomena"), Stage("phenomena-unindex", "Take off the phenomenon indexes"),
                     Stage("phenomena", "Scatter the phenomena"), PHENOMENA_COUNTS_STAGE, Stage("phenomena-index", "Index the phenomena"),
-                    NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"))
+                    *NEBULA_FIELD_STAGES)
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""
 
@@ -170,7 +175,7 @@ def scatter_stages(args):
         return [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BRIGHT_LIMITS_STAGE[kind], BRIGHT_EPOCH_STAGE[kind],
                 BLOCK_LIGHTS_STAGE]
     if kind == "nebula-field":
-        return [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
+        return list(NEBULA_FIELD_STAGES)
     return [SCATTER_STAGE[kind]]
 
 

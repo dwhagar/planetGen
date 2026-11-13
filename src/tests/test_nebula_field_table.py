@@ -316,6 +316,52 @@ def test_the_empty_nebula_field_step_keeps_the_table_of_a_galaxy_with_no_outline
     assert _table(mysql_config) == kept
 
 
+# --- OPS.123: what the draw concluded is three steps of its own --------------------------------------------------------
+
+def _epochs(config):
+    conn = store.get_connection(config)
+    try:
+        return store.scatter_epochs(conn)
+    finally:
+        conn.close()
+
+
+def test_the_steps_after_the_draw_link_make_the_block_totals_and_store_the_epoch_when_it_cut_slabs(mysql_config):
+    from planetgen.queue import commands, wrapper
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    conn = store.get_connection(mysql_config)
+    try:
+        store.forget_scatter_epoch(conn, "nebula-field")
+        conn.commit()
+    finally:
+        conn.close()
+    params = {"database": wrapper.database_args(mysql_config), "slabs": 3, "run_id": None}
+    assert run_plan.expand_link_nebulae_to_field(params).units == [(params, 1.0)]
+    assert commands.run_alone("link-nebulae-to-field", params)["linked"] >= 0
+    assert commands.run_alone("make-nebula-block-totals", params)["blocks"] > 0
+    assert "nebula-field" not in _epochs(mysql_config), "the epoch is the mark of a finished draw: it comes last"
+    assert commands.run_alone("store-nebula-field-epoch", params) == {"stored": True}
+    assert "nebula-field" in _epochs(mysql_config)
+
+
+def test_the_steps_after_the_draw_do_nothing_for_a_draw_that_cut_no_slab(mysql_config):
+    from planetgen.queue import commands, wrapper
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    conn = store.get_connection(mysql_config)
+    try:
+        store.forget_scatter_epoch(conn, "nebula-field")
+        conn.commit()
+    finally:
+        conn.close()
+    params = {"database": wrapper.database_args(mysql_config), "slabs": 0, "run_id": None}
+    assert commands.run_alone("link-nebulae-to-field", params) == {"linked": 0}
+    assert commands.run_alone("make-nebula-block-totals", params) == {"blocks": 0}
+    assert commands.run_alone("store-nebula-field-epoch", params) == {"stored": False}
+    assert "nebula-field" not in _epochs(mysql_config)
+
+
 # --- OPS.123: the clearing of the earlier phenomena and the taking off of their indexes are steps of their own ---------
 
 def test_the_phenomenon_clearing_steps_empty_the_table_and_take_the_indexes_off(mysql_config):

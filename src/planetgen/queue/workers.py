@@ -94,7 +94,7 @@ STAGE_WORKER_MEMORY_MB = {
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
     "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
     "rescore-habitability": LEAN_WORKER_MEMORY_MB, "refill-effect-ledger": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB, "empty-nebula-field": LEAN_WORKER_MEMORY_MB, "clear-bright-stars": LEAN_WORKER_MEMORY_MB,
-    "store-scatter-limits": LEAN_WORKER_MEMORY_MB, "store-phenomenon-class-counts": LEAN_WORKER_MEMORY_MB, "make-habitable-block-totals": LEAN_WORKER_MEMORY_MB, "store-scatter-epoch": LEAN_WORKER_MEMORY_MB,
+    "store-scatter-limits": LEAN_WORKER_MEMORY_MB, "store-phenomenon-class-counts": LEAN_WORKER_MEMORY_MB, "make-habitable-block-totals": LEAN_WORKER_MEMORY_MB, "link-nebulae-to-field": LEAN_WORKER_MEMORY_MB, "make-nebula-block-totals": LEAN_WORKER_MEMORY_MB, "store-nebula-field-epoch": LEAN_WORKER_MEMORY_MB, "store-scatter-epoch": LEAN_WORKER_MEMORY_MB,
     "empty-phenomenon-scatter": LEAN_WORKER_MEMORY_MB, "drop-phenomenon-indexes": LEAN_WORKER_MEMORY_MB,
     "link-neighbors": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
     "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,

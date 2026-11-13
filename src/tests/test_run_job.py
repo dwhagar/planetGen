@@ -84,7 +84,7 @@ def test_a_job_has_the_stages_of_its_commands_with_the_block_lights_once_at_the_
     keys = [stage.key for stage in job.stage_list(parts)]
     assert keys == ["skeleton", "start", "neighborhood", "link", "mass-clear", "mass", "mass-limits", "mass-epoch", "luminosity-clear", "luminosity", "luminosity-limits",
                     "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-counts", "phenomena-index",
-                    "nebula-clear", "nebula-draw", "block-lights", "backfill", "settle"]
+                    "nebula-clear", "nebula-draw", "nebula-link", "nebula-totals", "nebula-epoch", "block-lights", "backfill", "settle"]
     followers = followed.dedupe([f for part in parts for f in part.followers])
     assert [f.key for f in followers] == keys
     for part in parts:

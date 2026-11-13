@@ -612,7 +612,7 @@ def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_recor
     assert len(one) > 50
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "empty-phenomenon-scatter", "drop-phenomenon-indexes", "scatter-phenomena", "store-phenomenon-class-counts", "finish-phenomena", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights"]
+        "empty-phenomenon-scatter", "drop-phenomenon-indexes", "scatter-phenomena", "store-phenomenon-class-counts", "finish-phenomena", "empty-nebula-field", "draw-nebula-field", "link-nebulae-to-field", "make-nebula-block-totals", "store-nebula-field-epoch", "refresh-block-lights"]
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["stages"][2]["done"] == run["stages"][2]["units"] > 1
     monkeypatch.setattr(wrapper, "run", real)
