@@ -90,10 +90,10 @@ the colour gates below.
 
 | Variable | Blue | Green | Yellow | Red |
 |---|---|---|---|---|
-| Pressure, kPa | 50 to 250 | 14.3 to 400 | 6.3 to 10,000 | beyond (0 a decade out) |
+| Pressure, kPa | 50 to 250 | 33.7 to 400 | 6.3 to 10,000 | beyond (0 a decade out) |
 | Temperature, C | 0 to 31 | -20 to 45 | -50 to 122 | beyond (0 at -120, 200) |
 | Wet bulb | | under 31 C | 31 C or more makes Blue or Green Yellow | |
-| Inspired O2, F(P - 6.3) kPa | 8 to 50 | under 8 (a mask works) | 50 to 160 | over 160 |
+| Inspired O2, F(P - 6.3) kPa | 8 to 50 | 5.7 to 8 (low side) | 50 to 160 (high side); 4 to 5.7 on the low side | over 160; under 4 on the low side (0 at 1) |
 | CO2, kPa | under 0.93 | to 2.0 | to 5.0 | over 5.0 |
 | CO, H2S, SO2 | under the chronic limit | | to ten times the acute limit | beyond |
 | Water pH (Water) | 6 to 8.5 | 5 to 9.5 | 1 to 11.5 | beyond |
@@ -106,8 +106,7 @@ the least pressure at which a pure-oxygen mask still gives the 8 kPa of
 inspired O2 consciousness needs (6.3 + 8); 400 kPa is where nitrogen
 narcosis starts; 31 C wet bulb is the uncompensable limit (Vecellio et al.
 2022); 122 C is the limit of carbon-based life; gas limits are the
-Atmospheric Toxicity table's chronic and acute values, and a filtering
-respirator (NIOSH APF 10) makes Yellow out to ten times the acute limit;
+Atmospheric Toxicity table's chronic and acute values, and gas limits stand on the body alone, with no credit for a respirator;
 CO2 can't be filtered, so its Yellow ends at the acute 5 kPa (scrubbers);
 0.605 and 73.8 kJ/kg are the water-activity and chaotropicity limits for
 cell division; the dose bands are ICRP's (GEN.148, Boss's defaults of
@@ -233,10 +232,10 @@ unless given.
 |---|---|---|---|---|---|---|
 | Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | ideal |
 | Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.63 | 0.97 | 0 | environment suit |
-| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.68 | 0.97 | 0 | environment suit |
+| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Red / Blue / Blue / Yellow | 0.61 | 0.97 | 0 | environment suit |
 | Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | environment suit |
 | Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | environment suit |
-| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0 | 0.01 | 0 | environment suit |
+| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Red / Red / Yellow / Red | 0 | 0.01 | 0 | environment suit |
 | Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour, first plants | Blue / Green / Blue / Yellow / Blue / Red | 0.7499 | 0.64 | 0.64 | ideal |
 | Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Green / Red / Red | 0 | 0.40 | 0 | full life support |
 
@@ -268,7 +267,7 @@ archetypes are in 7.1; a test (`test_habitability.py`) pins this table.
    Sv/yr) then scores 1, not the table's 0.65. Mars is held back by its
    solvent and chemistry instead.
 4. One threshold each: CO chronic 0.005 kPa, acute 0.1, and T_metazoa's
-   0.01 scale; CO2 chronic 0.93, Green 2.0, acute 5.0; the mask band is
+   0.01 scale; CO2 chronic 0.93, Green 2.0, acute 5.0; the mask band (gear) is
    14.3 to 400 kPa (Green), with 6.3 to 14.3 kPa needing a counterpressure
    suit (Yellow).
 5. Other stars (GEN.86, GEN.87): F stars act like G with a shorter

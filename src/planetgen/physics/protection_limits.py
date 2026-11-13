@@ -33,6 +33,8 @@ LIMIT_ROWS = (
     Limit("armstrong_kpa", 6.3, "kPa", "water boils at body temperature below this: a full gas-pressurised suit", 6.3, 6.3),
     Limit("mask_min_kpa", 14.3, "kPa", "least ambient pressure at which a pure-oxygen mask still gives 8 kPa of inspired O2; "
           "below it a counterpressure or pressurised suit is needed", 14.3, 20.0, "lower"),
+    Limit("pressure_green_kpa", 33.7, "kPa", "least ambient pressure at the Green edge of the score: the Everest summit, the least pressure at which people have lived without oxygen "
+          "(West et al. 1983); the score is the body's, not what a pure-oxygen mask allows (`mask_min_kpa` stays the gear's edge; Boss, 11-12)", 33.7, None),
     Limit("pressure_no_gear_kpa", 50.0, "kPa", "least pressure with no gear at all (Blue)", 50.0, 70.0, "lower"),
     Limit("pressure_blue_max_kpa", 250.0, "kPa", "greatest pressure with no gear at all (Blue)", 250.0, None),
     Limit("pressure_narcosis_kpa", 400.0, "kPa", "nitrogen narcosis starts: the greatest pressure of modular gear (Green)", 400.0, 400.0),
@@ -42,6 +44,11 @@ LIMIT_ROWS = (
     Limit("pressure_low_outer_kpa", 0.63, "kPa", "the score reaches 0 here at the low end", 0.63, None),
     # --- Oxygen ---
     Limit("inspired_o2_min_kpa", 8.0, "kPa", "least inspired O2 for consciousness; below it a breathing mask supplies it", 8.0, 19.5, "lower"),
+    Limit("inspired_o2_green_kpa", 5.7, "kPa", "inspired O2 at the Green edge of the score: the Everest summit, 33.7 kPa of air at 20.95 percent O2 less 6.3 kPa of water vapor "
+          "(West et al. 1983, climbers without oxygen); the score is the body's, not what a mask supplies (Boss, 11-12)", 5.7, None),
+    Limit("inspired_o2_yellow_kpa", 4.0, "kPa", "inspired O2 at the Yellow edge of the score: consciousness fails within minutes under about 4 kPa of alveolar O2 "
+          "(hand-set stand-in, tier T9, tweak L3)", 4.0, None),
+    Limit("inspired_o2_outer_kpa", 1.0, "kPa", "inspired O2 at which the score reaches 0 (hand-set stand-in, tier T9, tweak L3)", 1.0, None),
     Limit("inspired_o2_chronic_kpa", 50.0, "kPa", "most inspired O2 for months", 50.0, None),
     Limit("inspired_o2_acute_kpa", 160.0, "kPa", "acute CNS oxygen toxicity (1.6 bar)", 160.0, None),
     # --- Temperature ---
