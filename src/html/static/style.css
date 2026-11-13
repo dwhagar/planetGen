@@ -7105,3 +7105,8 @@ a.help-mark {
 .map-plane-labels .map-plane-note { font-size: 0.68rem; padding: 0 4px; }
 .galaxy-menu-stretch { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
 .galaxy-menu-stretch input[type="range"] { flex: 1; min-width: 6rem; }
+
+/* PERF.147: a running unit's own bar and time left (partials/task_bar.html), under its counter in the Queue run page's unit rows. */
+.task-bar { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
+.task-bar progress { width: 6rem; }
+.task-bar-text { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
