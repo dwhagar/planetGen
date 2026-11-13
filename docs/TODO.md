@@ -12789,7 +12789,7 @@ clears each one.
 
 - [ ] **OPS.149 Apply the adaptive worker limit to the maintenance lane (warm-ups)**
   Follow-up of OPS.148. Do: reuse queue/adaptive.py for the maintenance lane; test the same lower/raise/floor rules. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148. No lock files, no change to generated output.
+  Version 8.1. Owner (TODO, 2026-11-13): held, not to be started; job-engine stage 4 (Boss, 6:35 PM EST 11-13: replace RQ) folds it into the one controller. Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148. No lock files, no change to generated output.
   Filed by the TODO thread.
 
 - [ ] **OPS.150 Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent)**
@@ -12799,7 +12799,7 @@ clears each one.
 
 - [ ] **OPS.151 Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log**
   Follow-up of OPS.148. Waits on Boss sharing his full run log after his run ends. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148, OPS.143. No lock files, no change to generated output.
+  Version 8.1. Owner (TODO, 2026-11-13): held, not to be started; job-engine stage 4 (Boss, 6:35 PM EST 11-13: replace RQ) folds it into the one controller. Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148, OPS.143. No lock files, no change to generated output.
   Filed by the TODO thread.
 
 - [ ] **GEN.1635 (bug) Ordinary M dwarfs are labelled Subdwarf (class VI): the rule in stellar_evolution.py (about lines 228-232, 0.3 dex under the dwarf line) catches every M dwarf under 0.4 Msun with [Fe/H] of -0.2 or lower (13 of 270 single stars, all M3-M5 at [Fe/H] -0.08 to -0.34; real subdwarfs sit near -1 or lower)**
@@ -13091,7 +13091,7 @@ clears each one.
 
 - [ ] **OPS.179 cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N8). Output unchanged, no epoch; lock-free. Low.
-  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: OPS.178.
+  Version 8.1. Owner (TODO, 2026-11-13): held, not to be started; job-engine stage 4 (Boss, 6:35 PM EST 11-13: replace RQ) folds it into the one controller. Prerequisites: none. Related: OPS.178.
   Filed by the TODO thread.
 
 - [ ] **GEN.1666 describe/sheet.sheet becomes per-kind row providers on the kind-table registry; query.resolve_object follows when DB.73 lands**
@@ -13347,17 +13347,137 @@ clears each one.
 
 - [ ] **OPS.188 (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run**
   From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W2. A restart of that process leaves the run unwatched. Waits on Boss's job-engine cards (the design may replace this).
-  Version 8.1. Owner (TODO, 2026-11-13): held for Boss's job-engine answers. Prerequisites: none. Related: OPS.181, OPS.130.
+  Version 8.1. Owner (TODO, 2026-11-13): stage 2 of the job engine; closed by OPS.211 (Boss chose the design, 6:35 PM EST 11-13). Prerequisites: none. Related: OPS.181, OPS.130.
   Filed by the TODO thread.
 
 - [ ] **OPS.189 (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP**
   From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W11 (rq/queue.py). Waits on Boss's job-engine answers (the design may replace this).
-  Version 8.1. Owner (TODO, 2026-11-13): held for Boss's job-engine answers. Prerequisites: none. Related: OPS.181, OPS.130.
+  Version 8.1. Owner (TODO, 2026-11-13): held; closed by job-engine stage 4 (RQ removed), which waits for Boss's word. Prerequisites: none. Related: OPS.181, OPS.130.
   Filed by the TODO thread.
 
 - [ ] **OPS.190 (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit**
   From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W4. Waits on Boss's job-engine answers (the design may replace this).
-  Version 8.1. Owner (TODO, 2026-11-13): held for Boss's job-engine answers. Prerequisites: none. Related: OPS.181, OPS.130.
+  Version 8.1. Owner (TODO, 2026-11-13): held; closed by job-engine stage 3 (ledger fences), which waits for Boss's word. Prerequisites: none. Related: OPS.181, OPS.130.
+  Filed by the TODO thread.
+
+- [ ] **OPS.191 Job engine stage 1: the engine owns the loop (CommandSpec pieces and do; units._do_unit counts pieces into the beat and checks pause and stop between pieces)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P1); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P1 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 13 (after OPS.185). Prerequisites: none. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.192 Job engine stage 1: second-level counts (ctx.step and ctx.advance; a second bar with real numbers and rate on the Queue and Generate pages)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P2); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P2 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 13. Prerequisites: OPS.191, OPS.185, OPS.184. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.193 Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P3 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.194 Job engine stage 1: beatjudge gains busy (no count moved but work did); busy is never stopped, only warned with a stack dump past the learned time**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P4 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: OPS.193. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.195 Job engine stage 1: ctx.sql long-statement helper with label and start time in the beat (MySQL stage events behind a check, off as installed)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P5); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P5 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: OPS.193. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.196 Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P6 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 13. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.197 Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P7 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.198 Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P8 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.199 Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P9); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P9 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 13. Prerequisites: OPS.191, OPS.192, OPS.185, OPS.184. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.200 Job engine stage 1 family: clears and drops step per statement through ctx.sql (clean-nebula-field, clear-scatter, empty-phenomenon-scatter, drop-phenomenon-indexes, clear-bright-stars, empty-nebula-field)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P10); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P10 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: OPS.195. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.201 Job engine stage 1 family: stamped walkers move to pieces by id range (rescore-habitability, refill-effect-ledger)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P11); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P11 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 23. Prerequisites: OPS.191. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.202 Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P12); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P12 says (reuse and delete columns named there; name reuse in the PR). Size L. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15 (after PERF.264; beside PERF.261, Lane 22). Prerequisites: OPS.191, OPS.192, PERF.264, PERF.261. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.203 Job engine stage 1 family: population (run-population, run-territories)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P13); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P13 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 12. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.204 Job engine stage 1 family: checks (the eleven check-* commands, check-math, check-datasets) count tables or checks**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P14); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P14 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 23. Prerequisites: OPS.191. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.205 Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P15); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P15 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 12. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.206 Job engine stage 1 family: reset-galaxy steps per table group through ctx.sql**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P16); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P16 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: OPS.195. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.207 Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S1); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S1 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06 (stage 2 chain, after OPS.186 and OPS.187). Prerequisites: stage 0 simulator skeleton (research thread). Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.208 Job engine stage 2: UnitWatch and Stuck move into the supervisor; wrapper.run and units.follow_stage lose their watch argument**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S2); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S2 says (reuse and delete columns named there; name reuse in the PR). Size M. Touches wrapper.py, units.py or workers.py: one after another in the stage 2 lane, merges with the lock on those files (Train Manager). Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.207. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.209 Job engine stage 2: only the supervisor starts, sheds and lends workers; web threads, CLI and enqueuers nudge it; host-wide deciding lock and starting counter deleted**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S3 says (reuse and delete columns named there; name reuse in the PR). Size M. Touches wrapper.py, units.py or workers.py: one after another in the stage 2 lane, merges with the lock on those files (Train Manager). Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.207, OPS.181. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.210 Job engine stage 2: reconciler each turn and on start (stage done with no next plan gets its opening; running unit with no process is queued again; run whose starter is gone carries on); calls the OPS.186 repair function; holder_is_dead takeover deleted**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S4 says (reuse and delete columns named there; name reuse in the PR). Size M. Touches wrapper.py, units.py or workers.py: one after another in the stage 2 lane, merges with the lock on those files (Train Manager). Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.208, OPS.186. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.211 Job engine stage 2: runs start through the supervisor (runline served by it; generate, Generate page and API submit and follow, no longer own); closes OPS.188**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S5); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S5 says (reuse and delete columns named there; name reuse in the PR). Size M. Touches wrapper.py, units.py or workers.py: one after another in the stage 2 lane, merges with the lock on those files (Train Manager). Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.208, OPS.210, OPS.181. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.212 Job engine stage 2: supervisor simulator under fake clock and store with kill faults; invariants: a finished stage advances exactly once, a run ends or says why, nothing queued twice**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S6 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.207. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.213 Job engine stage 2: kill tests with real Redis and MySQL on the small galaxy (kill starter, supervisor, last unit in conclusion); galaxy must match an undisturbed run**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S7 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.210, OPS.211. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Filed by the TODO thread.
+
+- [ ] **OPS.214 Job engine stage 2: supervisor on the Queue page (alive since, last turn, recent actions with reasons in words)**
+  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S8 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: OPS.207. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
