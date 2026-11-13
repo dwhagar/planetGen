@@ -2967,7 +2967,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.167 | Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels | none | done, PR #6279 |
 | OPS.168 | log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers | none | done, PR #6285 |
 | OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | done, PR #6296 |
-| OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | open |
+| OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | done, PR 6300, 3:58 PM EST 11-13 |
 | OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |
 | OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | done, PR #6281 |
@@ -4900,7 +4900,7 @@ Each citation below resolves to one item by its date.
 | UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | done, PR #6100 |
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | open |
 | UX.306 | (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma | none | done, PR #6345 |
-| UX.307 | Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark | none | open |
+| UX.307 | Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark | none | done, PR 6357, 4:21 PM EST 11-13 |
 | UX.308 | Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices | none | open |
 | UX.309 | The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four | none | open |
 | UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | open |

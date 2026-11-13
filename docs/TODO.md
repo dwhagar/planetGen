@@ -12903,11 +12903,6 @@ clears each one.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
   Filed by the TODO thread. Top priority (Boss: build it and ship it).
 
-- [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
-  Filed by the TODO thread.
-
 - [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
@@ -13171,11 +13166,6 @@ clears each one.
   Lane 21, 2026-11-12: bulk_structure.envelope_thickness_earth uses (age/5 Gyr)^-0.18, fitted from 0.1 Gyr, but is applied below it; on main body 93 of the oddity S3 scan reads 0.0043 g/cm3 at age 0. Clamp the age at 0.1 Gyr (the fit's lower edge). Found while fixing the Train 25 S3 test red (Train Manager carries a test-only patch for Train 25). Lock item (output changes), Train 26.
   Train Manager (2026-11-12): the law is R2741; S3 #2 (3.4 Earth masses, 0.049 Gyr) reads 0.022 g/cm3, under the 0.03 density edge. The Train 25 test has no lower edge under 0.1 Gyr; restore it with this fix.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
-- [ ] **UX.307 Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark**
-  Boss, 2026-11-12 (project thread ...48rDtAdB66SbVi5dmhp8tB): galaxy measures as sliders on the Generate page. Built as PR 6357: unticked is Auto (nothing sent), ticked fills the Auto-position value; the bar snaps to the Auto mark within about 1.4 percent; bounds are each lever's allowed range (log scale where the row is); shape and rogue planets stay dropdowns; halo rows lock when the galaxy is too light. Display only, generation-affects none, lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): the slider thread (PR 6357). Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
 - [ ] **PERF.263 The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401**
