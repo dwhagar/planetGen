@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4037] - 2026-11-13
+
+**Headline:** The self-tuning log prints worker counts as whole numbers again.
+
+### Fixed
+- **Self-tuning log line for workers and start limits.** `profileclaim.log_change` wrote "start limit of unit:link-neighbors was 8.0, now 3.0"; worker counts and start limits now print with no decimal ("was 8, now 3"), which `test_stage_worker_profile` checks. Memory claims keep one decimal.
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4036] - 2026-11-13
 
 **Headline:** A run that generates thousands of sectors no longer writes a normal-level line (and a summary of several lines) for every sector it saves; the stage says how many are saved every 30 seconds instead, and each sector's own line is in the debug log.
