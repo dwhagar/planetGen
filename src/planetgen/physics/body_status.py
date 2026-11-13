@@ -31,7 +31,7 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import body_strength, constants, unit_registry as units
+from planetgen.physics import body_strength, constants, roundness as roundness_engine, unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 
@@ -73,16 +73,16 @@ class BodyStatus:
     pi_agrees: bool | None
 
 
-def round_mass_kg(ice_fraction):
-    """The mass at which a body of this ice mass fraction (0 rock, 1 ice) turns round: where its roundness ratio is 1 at the median strength (`body_strength.round_mass_for`)."""
-    return body_strength.round_mass_for(min(max(ice_fraction, 0.0), 1.0))
+def round_mass_kg(ice_fraction, ice_type=None):
+    """The mass at which a body of this ice mass fraction (0 rock, 1 ice) turns round: where its roundness ratio is 1 at the median strength (`body_strength.round_mass_for`). `ice_type`: the kind of its ice (`ice_types`, GEN.1684)."""
+    return body_strength.round_mass_for(min(max(ice_fraction, 0.0), 1.0), ice_type=ice_type)
 
 
-def roundness(mass_kg, ice_fraction):
-    """The roundness ratio of a body of this mass and ice mass fraction: its mean radius over its round radius, 1 or more is round."""
+def roundness(mass_kg, ice_fraction, ice_type=None):
+    """The roundness ratio of a body of this mass and ice mass fraction: its mean radius over its round radius, 1 or more is round. `ice_type`: the kind of its ice (`ice_types`, GEN.1684)."""
     if mass_kg <= 0.0:
         raise ValueError("the mass must be positive")
-    return body_strength.ratio_for(mass_kg, min(max(ice_fraction, 0.0), 1.0))
+    return body_strength.ratio_for(mass_kg, min(max(ice_fraction, 0.0), 1.0), ice_type=ice_type)
 
 
 def hill_radius_au(a_au, mass_kg, star_mass_solar):
@@ -131,18 +131,18 @@ def stern_levison_lambda(mass_kg, a_au, star_mass_solar):
     return LAMBDA_K * (_kg_to_mearth(mass_kg) / star_mass_solar) ** 2 / period_years
 
 
-def status(mass_kg, ice_fraction, a_au, star_mass_solar, others_kg, parent_is_planet=False):
+def status(mass_kg, ice_fraction, a_au, star_mass_solar, others_kg, parent_is_planet=False, ice_type=None):
     """The `BodyStatus` of a body of `mass_kg` and `ice_fraction` at `a_au` round a star of `star_mass_solar`, with `others_kg` the mass of the others in its zone (`zone_mass_kg`).
-    A body that orbits a planet or dwarf planet (`parent_is_planet`) is a moon and carries only its roundness."""
-    mid = round_mass_kg(ice_fraction)
-    shape = roundness(mass_kg, ice_fraction)
+    A body that orbits a planet or dwarf planet (`parent_is_planet`) is a moon and carries only its roundness. `ice_type` is the kind of its ice (`ice_types`, GEN.1684)."""
+    mid = round_mass_kg(ice_fraction, ice_type)
+    shape = roundness(mass_kg, ice_fraction, ice_type)
     if parent_is_planet:
         return BodyStatus(MOON, mid, shape, None, None, None, None)
     mu = soter_mu(mass_kg, others_kg)
     pi = margot_pi(mass_kg, a_au, star_mass_solar)
     lam = stern_levison_lambda(mass_kg, a_au, star_mass_solar)
     cleared = mu > SOTER_MU_PLANET
-    if shape < 1.0:
+    if not roundness_engine.is_round(shape):
         word = MINOR_BODY
     else:
         word = PLANET if cleared else DWARF_PLANET
