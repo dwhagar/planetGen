@@ -112,7 +112,8 @@ def _apply(planet, keep_stored, key, barred):
         return None
     row = life_classes.describe(chosen.id)
     if kept:
-        log.debug(f"Life class: kept {row.id}, still supported")
+        if log.debug_log_active():
+            log.debug(f"Life class: kept {row.id}, still supported.")
     else:
         log.choice("Life class", row.id, f"the supported class with the most net primary production ({chosen.npp:.3g} of Earth's); "
                    f"{sum(1 for s in scores.values() if s.score > 0)} classes are supported")
@@ -141,7 +142,8 @@ def _apply(planet, keep_stored, key, barred):
     if not (final.get(row.id) and final[row.id].score > 0):
         if row.id in final and "solvent" in final[row.id].failed:
             # Its own air (the greenhouse gas it drew down) took the liquid it lives in: a class cannot live without its solvent (GEN.1298)
-            log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it")
+            if log.debug_log_active():
+                log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it.")
             return row.id
         # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
         # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
@@ -255,7 +257,8 @@ def _settle(planet, cands, key):
                 _build_air(planet, cands)
             return cands
         smallest = min(poisoned, key=lambda c: (c.share, c.row.id))
-        log.debug(f"Life class: {smallest.row.id} dropped, the air of the other classes poisons it")
+        if log.debug_log_active():
+            log.debug(f"Life class: {smallest.row.id} dropped, the air of the other classes poisons it.")
         cands = _redate(planet, [c for c in cands if c is not smallest])
     _store_schedule(planet, cands)
     _build_air(planet, cands)
@@ -499,14 +502,14 @@ def decide_flavor_text(planet):
     with draw.bound(draw.Stream(flavor_tree.seed_of("roll", planet))):       # the body's own stream: the roll does not depend on the order the bodies were made in
         rolled = draw.random()
     if not (rolled < tuning.FLAVOR_CHANCE_PLANET and system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
-        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
+        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached).")
         return
 
     # The tree (GEN.1430) gathers every line whose gates pass on the body's stored conditions (a ground to stand on or none, molten all over, multicellular or technological life),
     # never the class letter (GEN.1399: the class is decided last), takes out the ids already used in the system and draws one by weight.
     option = flavor_tree.draw_line("planet", planet, system_config.used_flavor_ids)
     if option is None:
-        log.debug("Planet flavor text: none (the tree offers no line this body has not already shown in its system)")
+        log.debug("Planet flavor text: none (the tree offers no line this body has not already shown in its system).")
         return
     log.choice("Planet flavor text", option.text, f"line: {option.id}")
     planet.flavor_key = option.id
