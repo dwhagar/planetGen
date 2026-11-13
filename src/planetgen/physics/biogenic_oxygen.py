@@ -422,7 +422,7 @@ def rebalance_co2(body):
         else:
             high = middle
     if not settled:
-        log.warning(f"The carbon dioxide of a world did not settle against its sink: between {low:.4g} and {high:.4g} Pa after {REBALANCE_BISECTIONS} halvings (GEN.1589)")
+        log.warning(f"The carbon dioxide of a world did not settle against its sink: between {low:.4g} and {high:.4g} Pa after {REBALANCE_BISECTIONS} halvings (GEN.1589).")
     answer = min(high, room)
     if abs(answer - current) <= REBALANCE_TOLERANCE * max(current, MINIMUM_PA):
         store(current)          # the trials left the body at the last of them: the air it was given is stored again, solved as the trials were
