@@ -7669,7 +7669,14 @@ def _search_result_sectors(conn, term, limit, offset, coverage=DEFAULT_SECTOR_CO
         conn, "SELECT sec.id, sec.name, sec.edge_mpc", f"FROM sectors sec WHERE {match}" + (f" AND {extra}" if extra else ""), "sec.name, sec.id",
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, _with_formerly(conn, [dict(r) for r in rows], "sectors", term), "sector"), **page}
+    rows = _with_refs(conn, _with_formerly(conn, [dict(r) for r in rows], "sectors", term), "sector")
+    address = sector_address_of_uid(term) if coverage != "charted" and term else None      # OPS.154: a designation typed whole finds the cell that has no row
+    if address is not None and uncharted_cell_has_no_row(conn, address):
+        page["total"] += 1
+        if offset == 0:
+            rows.append(_virtual_item(conn, address, galaxy_edge_pc(conn)))
+        page["truncated"] = page["truncated"] or len(rows) < page["total"]
+    return {"rows": rows, **page}
 
 
 def _search_result_systems(conn, term, limit, offset, stars=None):

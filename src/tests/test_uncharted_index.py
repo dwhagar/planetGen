@@ -1,16 +1,17 @@
 # tests/test_uncharted_index.py
 
 """
-MAP.402: every cell a scatter left a waiting bright star or an unbuilt scattered phenomenon in has a placeholder sector row (`db.uncharted_index`), made when
-a scatter ends (`run_plan.refresh_block_lights_unit`), by `planetgen fill-block-totals` and by migration 0227, so the Sectors list and the search reach it.
+OPS.154: a cell a scatter left a waiting bright star or an unbuilt scattered phenomenon in has no sector row of its own: the block light stage makes none, the
+Sectors list reads the cell from the parts (`db.query.virtual_cells`), and migration 0247 deletes the placeholder rows MAP.402 made (`db.uncharted_index.clear_unoccupied`).
 """
 
 import pytest
 
 from planetgen.api.config import Config
 from planetgen.db import chart_ledger, query, store, uncharted_index
+from planetgen.generation import run_plan
 from planetgen.web.app import create_app
-from tests.db_schema_support import load_old_schema
+from tests.db_schema_support import insert_filled_row, load_old_schema
 
 pytestmark = pytest.mark.db
 
@@ -66,73 +67,70 @@ def _addresses(conn):
     return {(r["shell_index"], r["band_index"], r["wedge_index"]) for r in conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()}
 
 
-def test_a_row_is_made_for_each_cell_that_holds_a_waiting_object_and_for_no_other(galaxy):
+def _placeholders(conn):
+    """The rows an earlier run made (MAP.402) for the three waiting cells."""
+    for cell in (STAR_CELL, SCATTER_CELL, BOTH_CELL):
+        store.uncharted_sector_id(conn, cell, EDGE_PC)
+    conn.commit()
+
+
+def _listed(conn, **options):
+    return {(r["shell_index"], r["band_index"], r["wedge_index"]) for r in query.list_sectors(conn, coverage="uncharted", show_empty=False, limit=50, **options)}
+
+
+def test_the_block_light_stage_makes_no_sector_row(galaxy):
     conn = store.get_connection(galaxy)
     try:
         before = _addresses(conn)
-        made = uncharted_index.index(conn, edge_pc=EDGE_PC)
-        assert made == 3
-        assert _addresses(conn) - before == {STAR_CELL, SCATTER_CELL, BOTH_CELL}
-        assert BUILT_STAR_CELL not in _addresses(conn) and BUILT_SCATTER_CELL not in _addresses(conn)
-        assert query.count_uncharted_sectors(conn) == 4          # the rogue's placeholder and the three made here, none of them charted
-    finally:
-        conn.close()
-
-
-def test_a_second_run_adds_nothing_and_a_made_row_is_a_complete_placeholder(galaxy):
-    conn = store.get_connection(galaxy)
-    try:
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
-        assert uncharted_index.index(conn, edge_pc=EDGE_PC) == 0
-        row = conn.execute("SELECT * FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ?", STAR_CELL).fetchone()
-        assert row["uid"] is not None and row["center_x_pc"] is not None and row["edge_mpc"] == EDGE_PC * 1000.0
-        assert row["name"] and query.sector_is_uncharted(conn, row)
-        again = store.uncharted_sector_id(conn, STAR_CELL, EDGE_PC)
-        assert again == row["id"], "the rogue landing and the index share one row per cell"
-    finally:
-        conn.close()
-
-
-def test_the_cells_it_made_are_listed_as_uncharted_and_not_empty(galaxy):
-    conn = store.get_connection(galaxy)
-    try:
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
-        listed = query.list_sectors(conn, coverage="uncharted", show_empty=False)
-        assert {(r["shell_index"], r["band_index"], r["wedge_index"]) for r in listed} == {STAR_CELL, SCATTER_CELL, BOTH_CELL, ROGUE_CELL}
-        assert all(r["uncharted"] for r in listed)
-    finally:
-        conn.close()
-
-
-def test_a_cell_whose_object_is_built_later_keeps_its_row_as_an_empty_one(galaxy):
-    conn = store.get_connection(galaxy)
-    try:
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
-        conn.execute("UPDATE phenomenon_scatter SET built_at = CURRENT_TIMESTAMP WHERE shell_index = ?", (SCATTER_CELL[0],))
+        run_plan.make_block_lights(conn, lambda done, total: None, lambda text: None, rebuild=True)
         conn.commit()
-        assert uncharted_index.index(conn, edge_pc=EDGE_PC) == 0
-        shown = {(r["shell_index"], r["band_index"], r["wedge_index"]) for r in query.list_sectors(conn, coverage="uncharted", show_empty=False)}
-        assert SCATTER_CELL not in shown
-        every = {(r["shell_index"], r["band_index"], r["wedge_index"]) for r in query.list_sectors(conn, coverage="uncharted", show_empty=True)}
-        assert SCATTER_CELL in every
+        assert _addresses(conn) == before
+        assert not hasattr(uncharted_index, "index")
     finally:
         conn.close()
 
 
-def test_a_run_with_nothing_waiting_makes_no_row_and_no_run(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        runs = conn.execute("SELECT COUNT(*) AS n FROM generation_runs").fetchone()["n"]
-        assert uncharted_index.index(conn) == 0
-        assert conn.execute("SELECT COUNT(*) AS n FROM generation_runs").fetchone()["n"] == runs
-    finally:
-        conn.close()
-
-
-def test_the_api_lists_the_made_cells_only_when_asked(galaxy):
+def test_the_cells_are_listed_and_counted_from_the_parts_without_a_row(galaxy):
     conn = store.get_connection(galaxy)
     try:
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
+        run_plan.make_block_lights(conn, lambda done, total: None, lambda text: None, rebuild=True)
+        conn.commit()
+        assert _listed(conn) == {STAR_CELL, SCATTER_CELL, BOTH_CELL, ROGUE_CELL}      # the rogue's row is the cell's own; the charted cell is not uncharted
+        assert BUILT_STAR_CELL not in _listed(conn) and BUILT_SCATTER_CELL not in _listed(conn)
+        assert query.count_uncharted_sectors(conn) == 4
+    finally:
+        conn.close()
+
+
+def test_the_rows_an_earlier_run_made_give_the_same_list_as_the_parts_alone(galaxy):
+    conn = store.get_connection(galaxy)
+    try:
+        run_plan.make_block_lights(conn, lambda done, total: None, lambda text: None, rebuild=True)
+        conn.commit()
+        without = _listed(conn)
+        _placeholders(conn)
+        assert _listed(conn) == without
+        assert query.count_uncharted_sectors(conn) == 4
+    finally:
+        conn.close()
+
+
+def test_a_row_a_rogue_made_is_one_row_per_cell(galaxy):
+    conn = store.get_connection(galaxy)
+    try:
+        first = store.uncharted_sector_id(conn, STAR_CELL, EDGE_PC)
+        assert store.uncharted_sector_id(conn, STAR_CELL, EDGE_PC) == first
+        row = conn.execute("SELECT * FROM sectors WHERE id = ?", (first,)).fetchone()
+        assert row["uid"] is not None and row["center_x_pc"] is not None and row["edge_mpc"] == EDGE_PC * 1000.0 and query.sector_is_uncharted(conn, row)
+    finally:
+        conn.close()
+
+
+def test_the_api_lists_the_cells_only_when_asked(galaxy):
+    conn = store.get_connection(galaxy)
+    try:
+        run_plan.make_block_lights(conn, lambda done, total: None, lambda text: None, rebuild=True)
+        conn.commit()
     finally:
         conn.close()
 
@@ -150,21 +148,26 @@ def test_the_api_lists_the_made_cells_only_when_asked(galaxy):
 
 
 @pytest.mark.fresh_database
-def test_the_migration_makes_the_rows_of_a_galaxy_scattered_before_it(mysql_config):
-    load_old_schema(mysql_config, 225)
-    assert store.schema_status(mysql_config)[0] == 225
+def test_the_migration_deletes_the_rows_of_a_galaxy_that_has_them_and_keeps_the_rows_something_refers_to(mysql_config):
+    load_old_schema(mysql_config, 245)
+    assert store.schema_status(mysql_config)[0] == 245
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         _star(conn, STAR_CELL)
         _scatter(conn, SCATTER_CELL, built=False)
-        _scatter(conn, BUILT_SCATTER_CELL, built=True)
+        for cell in (STAR_CELL, SCATTER_CELL):
+            store.uncharted_sector_id(conn, cell, EDGE_PC)
+        kept = store.uncharted_sector_id(conn, ROGUE_CELL, EDGE_PC)
+        insert_filled_row(conn, "rogue_planets", sector_id=kept, name="Wanderer")
         conn.commit()
+        assert {STAR_CELL, SCATTER_CELL, ROGUE_CELL} <= _addresses(conn)
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert _addresses(conn) == {STAR_CELL, SCATTER_CELL}
+        assert not ({STAR_CELL, SCATTER_CELL} & _addresses(conn))
+        assert ROGUE_CELL in _addresses(conn), "the rogue planet's row is its address"
     finally:
         conn.close()
 
@@ -172,7 +175,7 @@ def test_the_migration_makes_the_rows_of_a_galaxy_scattered_before_it(mysql_conf
 def test_a_placeholder_does_not_count_as_a_charted_sector_for_the_seed_guard(galaxy):
     conn = store.get_connection(galaxy)
     try:
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
+        _placeholders(conn)
         assert store.has_galaxy_sectors(conn), "the galaxy fixture holds one charted sector"
         conn.execute("DELETE FROM chart_ledger")
         conn.commit()
@@ -184,11 +187,11 @@ def test_a_placeholder_does_not_count_as_a_charted_sector_for_the_seed_guard(gal
 def test_a_new_plan_clears_the_rows_nothing_lives_in(galaxy):
     conn = store.get_connection(galaxy)
     try:
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
+        _placeholders(conn)
         before = _addresses(conn)
         deleted = uncharted_index.clear_unoccupied(conn)
         after = _addresses(conn)
-        assert deleted == len(before - after) and {STAR_CELL, SCATTER_CELL, BOTH_CELL, ROGUE_CELL} <= before
+        assert deleted == len(before - after) and {STAR_CELL, SCATTER_CELL, BOTH_CELL} <= before
         assert CHARTED in after, "a charted sector stays"
         assert not ({STAR_CELL, SCATTER_CELL, BOTH_CELL} & after)
     finally:
@@ -202,7 +205,7 @@ def test_placeholder_rows_add_nothing_to_the_block_region_and_shell_totals(galax
     try:
         before_blocks = block_stats.rebuild(conn)
         before_regions = conn.execute("SELECT COUNT(*) AS n FROM region_stats").fetchone()["n"]
-        uncharted_index.index(conn, edge_pc=EDGE_PC)
+        _placeholders(conn)
         assert block_stats.rebuild(conn) == before_blocks
         assert conn.execute("SELECT COUNT(*) AS n FROM region_stats").fetchone()["n"] == before_regions
         assert conn.execute("SELECT COUNT(*) AS n FROM galaxy_block_stats WHERE m = 3 AND shell_index IN (10, 12)").fetchone()["n"] == 0
