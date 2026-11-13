@@ -3105,11 +3105,6 @@ whose host star has no stored composition (a rogue planet)."""
 RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
 """float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
 
-RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
-"""tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
-inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies [R3293], not a measured
-spread (radiation-model.md R15, part E 3.3)."""
-
 INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (9.3e7, 1.9e11)
 """tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly (GEN.1185). [R1716] take 2.6e10 to 5.3e13 with an
 activation energy of 200 to 300 kJ/mol ([R1716] section 2.2.3; READ); the activation range moved up to the diffusion-creep values of the laboratory

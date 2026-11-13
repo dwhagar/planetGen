@@ -21583,7 +21583,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.492",
+          "unread": null,
           "what": "potassium_depletion.CLASS_MASS_EARTH 0.03: the mass that separates the two classes (the gap in the table runs from the Moon, 0.0123, to Mercury, 0.0553)"
         },
         {
@@ -21621,7 +21621,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.492",
+          "unread": null,
           "what": "potassium_depletion.MAX_DEPLETION 1.0 and no undepleted channel: no body keeps more potassium than CI chondrites, and none is drawn near 1 more often than the normal gives"
         }
       ],

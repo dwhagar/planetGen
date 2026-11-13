@@ -21,8 +21,8 @@ Limits, kept as registry rows (GEN.725, section 6.61): three bodies per class; t
 (depletion rising as `a^1.2`) is not in these six bodies (Mercury is more depleted than a trend from Earth to Mars would give), so none is
 drawn; polluted white dwarfs say a majority of pollutants (38 of the 50 with sodium measured) are not depleted in sodium, a moderately volatile
 element of nearly the same volatility as potassium ([R1832], READ), which the six differentiated bodies do not
-show, so the undepleted channel is a falsifier and a later item, not a draw. Nothing in generation calls this yet: the wiring step is
-`radiogenic.draw_content` taking the depletion from here with the body's mass, and CI K/U from `ci_k_over_u` (it carried 67,407).
+show, so the undepleted channel is a falsifier and a later item, not a draw. `radiogenic.draw_content` takes the depletion from `draw_depletion` with the
+body's mass and the CI K/U from `ci_k_over_u` (the log-uniform 0.03 to 1 of the earlier placeholder, with K/U 67,407, is gone).
 """
 
 import json
