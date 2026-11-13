@@ -1737,7 +1737,7 @@ class SectorsFollower(followed.Follower):
             log.warning(f"{plan['detail']['warning']}")
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
-                       f"{program_constants.PROGRESS_LOG_SECONDS:g} s (each sector's own line is in the debug log), so the first report can take a while in a dense region.")
+                       f"{program_constants.PROGRESS_LOG_SECONDS:g} s and each sector's own line is in the debug log.")
         self._ticker = Ticker(self.label, total=sectors or None)
         if self.bar_description is not None:
             self.bar = self.hold(run_common.sector_bar(self.progress, self.args, self.bar_description, sectors))
