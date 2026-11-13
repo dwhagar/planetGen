@@ -80,6 +80,7 @@ def with_store(operation):
     try:
         return operation(store)
     except Exception as exc:  # noqa: BLE001 -- never fail a login because of the counters
+        log.swallowed("api/loginguard", "with_store", exc)
         _warn_once("store", f"planetgen: Redis can't be used for the login lockouts ({exc}); counting failed "
                             f"logins in memory per process until it can.")
         return operation(memory_store)

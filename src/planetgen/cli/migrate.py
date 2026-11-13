@@ -129,7 +129,8 @@ def _stats_or_none(config):
     not there yet (a first install)."""
     try:
         return run_common._stats_for_config(config)
-    except Exception:  # noqa: BLE001 -- statistics never stop a migration
+    except Exception as exc:  # noqa: BLE001 -- statistics never stop a migration
+        log.swallowed("cli/migrate", "_stats_or_none", exc)
         return None
 
 
@@ -168,7 +169,8 @@ def close_site_for_the_sector_switch(config, write=print):
     """
     try:
         version, _pending = schema_status(config)
-    except Exception:  # noqa: BLE001 -- the migration itself reports what is wrong
+    except Exception as swallowed_exc:  # noqa: BLE001 -- the migration itself reports what is wrong
+        log.swallowed("cli/migrate", "close_site_for_the_sector_switch", swallowed_exc)
         return False
     state = maintenance.read()
     if not 0 < version < SECTOR_SWITCH_VERSION <= SCHEMA_VERSION:
@@ -199,7 +201,8 @@ def _update_guard(config, yes):
         return
     try:
         _version, pending = schema_status(config)
-    except Exception:  # noqa: BLE001 -- the migration reports what is wrong
+    except Exception as swallowed_exc:  # noqa: BLE001 -- the migration reports what is wrong
+        log.swallowed("cli/migrate", "_update_guard", swallowed_exc)
         pending = 0
     if not pending:
         yield

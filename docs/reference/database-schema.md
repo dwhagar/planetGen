@@ -796,14 +796,14 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Twenty-three tables, versioned independently via `control_schema_migrations`
-(currently version 21, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
+Twenty-four tables, versioned independently via `control_schema_migrations`
+(currently version 22, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, and v21 the drop of the work queue's four tables (PERF.100); the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, v21 the drop of the work queue's four tables (PERF.100) and v22 `job_profiles` (OPS.155); the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -923,6 +923,13 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   and `metrics` (JSON text: the arguments that shape the stage, and what it did)
   and `version_key`. Estimates use only rows of the running version key.
   Shown on the Stats page.
+- **`job_profiles`** (v22, OPS.155) — one row per finished unit or job, for the self-tuning jobs
+  (`docs/design/operations/self-tuning-jobs.md`): `kind` (the memory gate's `unit:<command>`, `cut:<command>`, `api:<ref>`,
+  `fn:<name>`, or `stage:<key>`), `size_bucket` (the power of two of `items`, -1 with none), `items`, `parts` (1, or the units of a stage), `seconds` (worked seconds,
+  or a stage's wall seconds), `seconds_peak` and `seconds_avg` (the longest and the mean unit), `peak_mb` and `avg_mb`, `cpu_peak` and `cpu_avg` (cores), `seconds_per_item`, `mb_per_item` (the raw peak over the items), `outcome` (`done`, `killed_memory`, `timed_out`,
+  `stuck`), the machine that measured it (`host_memory_mb`, `host_cores`, `buffer_pool_mb`, `generator_epoch`) and `recorded_at`. A
+  missing or implausible reading is NULL. Written by `planetgen.queue.jobprofiles`, which keeps each kind and bucket to its newest
+  rows; nothing reads it yet.
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
   (`planetgen/generation/stats.py`, see

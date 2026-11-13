@@ -54,6 +54,7 @@ from dataclasses import asdict, dataclass
 
 from planetgen.util import log as debug_log
 from planetgen.util import logrecord
+from planetgen.util import log as planetgen_log
 
 PREFIX = "planetgen"
 """str: Every key starts with this."""
@@ -431,8 +432,8 @@ class Heartbeat:
         while not self._stop.wait(self.interval):
             try:
                 touch(self.conn, self.run_id)
-            except Exception:  # noqa: BLE001 -- a Redis that does not answer now costs a beat, never the run
-                pass
+            except Exception as exc:  # noqa: BLE001 -- a Redis that does not answer now costs a beat, never the run
+                planetgen_log.swallowed("queue/runrecord", "Heartbeat._beat", exc)
 
     def start(self):
         self._thread.start()
@@ -537,7 +538,8 @@ def opening(conn, run_id):
     """The index of the stage being opened, `None` when none is (or the record cannot say)."""
     try:
         found = conn.hget(run_key(run_id), OPENING_FIELD)
-    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+    except Exception as exc:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        planetgen_log.swallowed("queue/runrecord", "opening", exc)
         return None
     return None if found in (None, b"", "") else int(_s(found))
 
@@ -602,6 +604,20 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_
     return UnitDone(bool(counted), bool(advance), int(done))
 
 
+def usage_key(run_id, index):
+    """The hash of what each unit of a stage used (OPS.155): one JSON field per unit, kept with the run."""
+    return _k(f"usage:{run_id}:{index}")
+
+
+def _profile_stage(conn, run_id, index, key, wall_seconds):
+    """OPS.155: the stage's row in `job_profiles`: its wall seconds and, from the units' usage, the longest and the mean unit and the peak and mean memory and processor."""
+    from planetgen.queue import jobprofiles
+    if not jobprofiles.enabled():
+        return
+    entries = [json.loads(_s(value)) for value in conn.hvals(usage_key(run_id, index))]
+    jobprofiles.record(f"stage:{key}", seconds=wall_seconds, **jobprofiles.stage_figures(entries))
+
+
 def _record_stage_time(conn, run_id, index, key):
     """Folds the stage that has just ended into what the server knows of its kind (`stagetimes`, PERF.184). Best
     effort: an estimate's memory is not worth failing a unit for."""
@@ -613,8 +629,9 @@ def _record_stage_time(conn, run_id, index, key):
             return
         stagetimes.record(conn, key, float(ended) - float(started), float(counters.get("cost_done") or 0.0),
                           float(counters.get("seconds") or 0.0))
-    except Exception:  # noqa: BLE001
-        pass
+        _profile_stage(conn, run_id, index, key, float(ended) - float(started))
+    except Exception as exc:  # noqa: BLE001
+        planetgen_log.swallowed("queue/runrecord", "_record_stage_time", exc)
 
 
 def request_cancel(conn, run_id, now=None):
@@ -675,8 +692,8 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
             commandgaps.fold(conn, run_id)          # OPS.135: what the commands learned about how long a counter stands still
             from planetgen.queue import unitrates
             unitrates.fold(conn, run_id)            # PERF.147: how fast their units work, for the ETA of a unit's bar
-        except Exception:   # noqa: BLE001 -- the history is for the next run; the end of this one does not wait on it
-            pass
+        except Exception as exc:   # noqa: BLE001 -- the history is for the next run; the end of this one does not wait on it
+            planetgen_log.swallowed("queue/runrecord", "finish_run", exc)
     pipe = conn.pipeline()
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
@@ -702,8 +719,8 @@ def _log_unrun_dependents(conn, run_id, state, now):
                 log(conn, run_id, f"dropped: stage {_s(declared[index_of[step.key]]['label'])} did not run, the stage(s) it requires "
                     f"({', '.join(unfinished)}) did not finish ({state})", level="warning", kind="stage.dropped",
                     stage=index_of[step.key], now=now)
-    except Exception:  # noqa: BLE001 -- the account of what was left undone must never fail the end of a run
-        pass
+    except Exception as exc:  # noqa: BLE001 -- the account of what was left undone must never fail the end of a run
+        planetgen_log.swallowed("queue/runrecord", "_log_unrun_dependents", exc)
 
 
 def _keys_of(conn, run_id, every=False):

@@ -256,3 +256,13 @@ def test_the_raw_form_is_the_message_as_it_is_and_a_syslog_line_has_the_time_the
     log_record = logging.LogRecord("planetgen.activity", logging.INFO, "a.py", 1, "AUTH login.failed ip=203.0.113.5", None, None)
     assert planetgen_log.LineFormatter("raw").format(log_record) == "AUTH login.failed ip=203.0.113.5"
     assert planetgen_log.syslog_line("AUTH x", JANUARY / 1000, 1234) == "2027-01-05T13:40:00-0500 planetgen[1234]: AUTH x"
+
+
+@pytest.mark.parametrize("seconds, text", [
+    (None, "?"), (-1, "?"), (float("nan"), "?"),
+    (0, "0 ms"), (0.34, "340 ms"), (0.9996, "1.0 s"), (1, "1.0 s"), (12.34, "12.3 s"), (59.94, "59.9 s"),
+    (59.96, "1:00"), (65, "1:05"), (247, "4:07"), (3599.6, "1:00:00"), (3912, "1:05:12"), (86400, "24:00:00"),
+])
+def test_one_duration_form_for_every_log_line(seconds, text):
+    """OPS.173: under a second in milliseconds, under a minute in tenths of a second, then minutes and seconds, then hours."""
+    assert logrecord.duration_text(seconds) == text
