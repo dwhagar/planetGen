@@ -1036,9 +1036,9 @@ _BODY_RULES = [
 
 _PLANET_RULES = [
     (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: row is None or (
-        spin.spin_state(row.get("rotation_period_hours"), row.get("period_years"))[0] in (None, "free") and row.get("belt_order") is None),
-     "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet of the spacing pass that spins freely: a locked or resonant planet sits at the Cassini state "
-     "of its spin and does not wander (GEN.1536), and a belt member promoted to a planet (GEN.1510) is made after the sibling planets' modes are fixed and keeps the tilt it was drawn with"),
+        spin.spin_state(row.get("rotation_period_hours"), row.get("period_years"))[0] in (None, "free")),
+     "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet that spins freely, a belt member made a planet (GEN.1510, GEN.1668) among them: a locked or resonant planet sits at the Cassini state "
+     "of its spin and does not wander (GEN.1536)"),
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring, binary or exchange); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
