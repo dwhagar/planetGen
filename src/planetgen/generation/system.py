@@ -2282,13 +2282,11 @@ class StarSystem:
 
     def _finish_planet(self, obj):
         """The end of a planet's making, after the system is whole (the life data pass): the thermal history, the final-age refresh, the class,
-        the star's induced field, the moons' classes and the planet's own life (a moon's end follows, `_finish_moon`)."""
+        the star's induced field and the planet's own life (a moon's end follows, `_finish_moon`, which classes it once its water is made again, GEN.1587)."""
         interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
         planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
         planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
         magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
-        for moon in obj.moons:
-            planetPhysics.apply_class(moon)
         planetLife.apply_life_data(obj)
         planetLife.decide_flavor_text(obj)
 
@@ -2296,6 +2294,7 @@ class StarSystem:
         """The end of a moon's making (the life data pass), after its parent's (`_finish_planet`)."""
         interior_heat.update_heat(moon)
         planetPhysics.refresh_at_final_age(moon)
+        planetPhysics.apply_class(moon)  # GEN.1587: after the water is made again at the final age (it was judged before it), as the planet's is
         magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
         radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
         planetLife.apply_life_data(moon)

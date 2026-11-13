@@ -472,7 +472,7 @@ class Planet(PlanetaryObject):
         self.mass, self.radius = given_mass, given_radius
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.apply_class(self)
+        planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(primary_mass_kg, moon_count)
 
     def _draw_body(self, zone_override, primary_mass_kg, planned_objects, distance_override):
@@ -489,6 +489,7 @@ class Planet(PlanetaryObject):
     def _finish_motion_and_moons(self, primary_mass_kg, moon_count):
         """What `__init__` does after the air and the class: the motion, the age the body was made at and the moons."""
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        planetPhysics.classify(self)      # GEN.1587: after the spin, which makes the latitude bands the class reads, so a request judges the class it will have
         self._age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
@@ -504,7 +505,7 @@ class Planet(PlanetaryObject):
         moon_count, distance_override = self._deferred_climate
         self._deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.apply_class(self)
+        planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(self.primary_mass_kg, moon_count)
 
     def add_moons(self, moon_count=None):
