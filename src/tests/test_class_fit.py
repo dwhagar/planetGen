@@ -237,6 +237,17 @@ def test_a_cool_global_ocean_with_oxygen_is_o_and_a_cool_damp_desert_is_h_and_a_
     assert cf.best_class(dry)[0] != "H"
 
 
+def test_a_brine_seep_world_with_little_ocean_is_h_without_a_stored_aquifer():
+    """GEN.1638: the aquifer model never gives a world with liquid at its surface a stored groundwater, which kept H out of reach; the cover alone now counts."""
+    from tests.test_planet_classes import body
+    from planetgen.physics import class_fit as cf
+
+    seep = body(surface_temperature_k=285.0, ocean_fraction=0.1, hydrosphere="brine seep", groundwater="none")
+    assert cf.best_class(seep)[0] == "H" and cf.best_class(seep)[1] > 0.9
+    bare = body(surface_temperature_k=285.0, ocean_fraction=0.0, hydrosphere="brine seep", groundwater="none")
+    assert cf.best_class(bare)[0] != "H"
+
+
 def test_a_nan_quantity_is_no_match_and_classification_refuses_it():
     """GEN.1593: every comparison with NaN is false, which read as a perfect pass; a NaN in a class quantity now scores 0 and the generation path stops on it."""
     from tests.test_planet_classes import body

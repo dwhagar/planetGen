@@ -40,6 +40,22 @@ def test_groundwater_and_the_phase_gates_are_one_or_zero():
     assert found["phase_water"] == 1.0 and found["phase_co2"] == 0.0 and found["phase_methane_ethane"] == 0.0
 
 
+def test_a_liquid_surface_world_with_little_ocean_has_a_water_table_under_its_land():
+    """GEN.1638: class H needs groundwater, which no aquifer gives a world with liquid at its surface; a cover under H's own cut counts."""
+    assert domains.derived(_values(ocean_fraction=0.1))["groundwater_present"] == 1.0
+    assert domains.derived(_values(ocean_fraction=0.1, hydrosphere="brine seep"))["groundwater_present"] == 1.0
+    assert domains.derived(_values(ocean_fraction=0.0))["groundwater_present"] == 0.0     # no water at all is not a desert world with some
+    assert domains.derived(_values(ocean_fraction=0.3))["groundwater_present"] == 0.0
+    assert domains.derived(_values(ocean_fraction=0.1, hydrosphere="ice-covered ocean"))["groundwater_present"] == 0.0
+    assert domains.derived(_values())["groundwater_present"] == 0.0     # no cover stored
+
+
+def test_the_water_table_cover_is_the_cut_of_class_h():
+    h = next(cls for cls in class_fit.CLASSES if cls.letter == "H")
+    cut = [c["lt"] for c in h.when if c["quantity"] == "ocean_fraction"]
+    assert cut == [domains.WATER_TABLE_COVER_MAX]
+
+
 def test_every_quantity_of_the_fit_table_has_a_domain_and_every_class_a_cell_in_each():
     for cls in class_fit.CLASSES:
         cells = domains.matrix(cls)

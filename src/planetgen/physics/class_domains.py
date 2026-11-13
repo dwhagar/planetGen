@@ -48,6 +48,14 @@ ALL_DOMAINS = DOMAINS + EXTRA_DOMAINS
 
 PHASE_PREFIX = "phase_"
 
+WATER_TABLE_COVER_MAX = 0.2
+"""float: Over none and under this ocean cover a world whose surface holds liquid (`WATER_TABLE_SURFACES`) has land with a water table under it (GEN.1638). It is the cover class H
+(a desert world with some water) is cut at in `planet_class_fit.json`; the aquifer model (`aquifers`) only covers worlds with no liquid at the surface, so a world with
+a little liquid at the surface never had a stored aquifer and H could not be reached. A test holds it equal to that cut. The reach is not a new number: a table under land with liquid at the surface is as reachable as that liquid."""
+
+WATER_TABLE_SURFACES = ("surface ocean", "brine seep")
+"""tuple: The hydrosphere states that hold liquid water at the surface where a land share can have a water table (a hycean or ice-covered ocean has no such land)."""
+
 QUANTITY_DOMAIN = {
     "mass_earth": "structure", "gravity_g": "gravity", "temperature_k": "thermal", "pressure_pa": "air_amount",
     "ocean_fraction": "water", "water_mass_fraction": "water", "relative_humidity": "water", "groundwater_present": "water",
@@ -93,7 +101,7 @@ def relative_humidity(values):
 
 def derived(values):
     """The quantities of the matrix that are not in `planet_classes.quantities`, from a body's stored `values`:
-    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
+    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0; 1.0 too for a liquid-surface world under `WATER_TABLE_COVER_MAX` of ocean, GEN.1638, which leaves the stored groundwater and so the habitability scores as they were), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
     `phase_<family>` (1.0 where the family's liquid is a liquid at the body's temperature and pressure, else 0.0)."""
     found = {}
     bands = _bands(values)
@@ -112,6 +120,10 @@ def derived(values):
         from planetgen.physics import habitability_world
         groundwater = habitability_world.groundwater(values)
     found["groundwater_present"] = None if groundwater is None else (0.0 if groundwater == "none" else 1.0)
+    cover = values.get("ocean_fraction")
+    if (found["groundwater_present"] == 0.0 and values.get("hydrosphere") in WATER_TABLE_SURFACES      # GEN.1638: the land of a mostly dry liquid-surface world
+            and cover is not None and 0.0 < cover < WATER_TABLE_COVER_MAX):
+        found["groundwater_present"] = 1.0
     temperature, pressure = values.get("surface_temperature_k"), values.get("atmospheric_pressure_pa") or 0.0
     for family in phase_gate.FAMILIES:
         found[PHASE_PREFIX + family] = None if temperature is None else (1.0 if phase_gate.holds(family, temperature, pressure) else 0.0)
