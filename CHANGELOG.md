@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3984] - 2026-11-13
+
+**Headline:** A job's memory claim on the gate now follows what that kind of job has actually used on this machine, so a claim that was too generous comes down and a memory kill still raises it.
+
+### Changed
+- **OPS.156.** `memorygate.claim_mb` reads the job profile (OPS.155) through the new `queue/profileclaim.py`: with at least 3 finished samples from this machine shape and generator epoch, a kind claims the 95th percentile of its last 30 peaks times a margin that falls from 1.25 to 1.10 as samples grow; the typed figure is then no floor, and the largest peak ever seen no longer holds a claim up for good. Samples from another machine shape or epoch count at half weight (the mean of their figure and the typed one). A kind with no history claims what it always did. The figure is worked out once per run, moves by at most 25 percent from the last run's, and a memory kill sets a floor the slow-move rule does not hold back. A retry still claims 1.5 times. Every change of a figure is logged (kind, old and new, the samples, the source and the reason) and kept in Redis for the Queue page (OPS.158). `PLANETGEN_SELF_TUNING=0` restores the typed claims exactly.
+No drawn value changes, so there is no epoch or golden.
+generation-output: unchanged
+
 ## [8.0.3983] - 2026-11-13
 
 **Headline:** The queue now keeps a record of what each kind of job costs in memory and time, so later work can size claims, workers and splits from this machine's own history.
