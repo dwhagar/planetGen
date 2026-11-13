@@ -50,7 +50,7 @@ never mutates the generation/physics code's own native units. Its shape:
   brand-new database is created at the current schema by `schema.sql`, so
   this is a no-op there; a database made by an older release gets one
   revision per version it is behind, and one older than the baseline (v130)
-  is refused with `SchemaTooOldError`, and a database that has the galaxy
+  is refused with `SchemaTooOldError` (its message points to `legacy/bump_database_to_8_0.py`, which brings a database from v61 up to the baseline on request), and a database that has the galaxy
   tables but no recorded version (`schema_migrations` emptied or missing)
   is refused with `SchemaVersionMissingError` instead of guessed at from its
   tables. `planetgen.cli.migrate` is its CLI
