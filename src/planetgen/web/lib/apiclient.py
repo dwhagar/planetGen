@@ -31,7 +31,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from planetgen.util import log
+from planetgen.util import log, logrecord
 from planetgen.util.user_agent import user_agent
 from planetgen.util.settings import get_settings
 
@@ -417,7 +417,7 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
 def _log_call(method, url, start, outcome):
     """One debug-log line per API call, attributed to the `apiclient`
     function that made it (`get_system`, `auth_me`, ...)."""
-    log.debug(f"API {method} {url} -> {outcome} in {(time.perf_counter() - start) * 1000:.1f}ms", stacklevel=4)
+    log.debug("API %s %s -> %s in %s.", method, url, outcome, logrecord.duration_text(time.perf_counter() - start), stacklevel=4)
 
 
 def _build_query(params):

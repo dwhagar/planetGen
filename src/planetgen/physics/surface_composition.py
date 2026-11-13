@@ -224,7 +224,8 @@ class SurfaceInputs:
         volatile_shares (dict): The other ices' mass shares by materials row (`co2 ice`, ...), adding up to the
             non-water ice; empty means water only.
         hydrosphere (str or None): The hydrosphere state (`hydrosphere.HYDROSPHERE_STATES`).
-        ocean_fraction (float): The share of the surface the water covers, liquid or frozen.
+        ocean_fraction (float): The share of the surface the liquid sea covers (GEN.1567).
+        ice_cover_fraction (float): The share the ice covers (a frozen body's whole cover).
         ocean_class (str or None): The ocean's chemistry class.
         internal_heat_flux_w_m2 (float): The body's own heat flow.
         tidal_heat_flux_w_m2 (float): The tidal heat flow (0 for none).
@@ -247,6 +248,7 @@ class SurfaceInputs:
     volatile_shares: dict = field(default_factory=dict)
     hydrosphere: str | None = None
     ocean_fraction: float = 0.0
+    ice_cover_fraction: float = 0.0
     ocean_class: str | None = None
     internal_heat_flux_w_m2: float = 0.0
     tidal_heat_flux_w_m2: float = 0.0
@@ -320,13 +322,12 @@ def _quantities(inputs, frozen):
 
 def _covered(inputs, frozen):
     """The covered share of the surface and its kind: `(share, OCEAN | ICE | None)`."""
-    share = min(max(inputs.ocean_fraction or 0.0, 0.0), 1.0)
-    if share <= 0.0:
-        return 0.0, None
     if inputs.hydrosphere in ("surface ocean", "brine seep", "hycean"):
-        return share, OCEAN
+        share = min(max(inputs.ocean_fraction or 0.0, 0.0), 1.0)
+        return (share, OCEAN) if share > 0.0 else (0.0, None)
     if inputs.hydrosphere in FROZEN_STATES and frozen:
-        return share, ICE
+        share = min(max(inputs.ice_cover_fraction or 0.0, 0.0), 1.0)      # GEN.1567: the ice a frozen body wears (the liquid under an ice lid is not at its surface)
+        return (share, ICE) if share > 0.0 else (0.0, None)
     return 0.0, None
 
 
@@ -589,7 +590,8 @@ def inputs_of(body):
         metal_mass_fraction=getattr(body, "metal_mass_fraction", None) or 0.0,
         rock_feo_fraction=getattr(body, "rock_feo_fraction", None), carbon_rock=bool(getattr(body, "carbon_rock", False)),
         volatile_shares=_volatile_shares(body), hydrosphere=getattr(body, "hydrosphere", None),
-        ocean_fraction=getattr(body, "ocean_fraction", None) or 0.0, ocean_class=getattr(body, "ocean_class", None),
+        ocean_fraction=getattr(body, "ocean_fraction", None) or 0.0, ice_cover_fraction=getattr(body, "ice_cover_fraction", None) or 0.0,
+        ocean_class=getattr(body, "ocean_class", None),
         internal_heat_flux_w_m2=planets.internal_heat_flux_w_m2(body),
         age_gy=getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY,
         mobile_lid=interior_heat.lid_of(body) == magnetism.LID_MOBILE, rock_oxides=_rock_oxides_of(body))

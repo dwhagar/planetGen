@@ -7105,3 +7105,67 @@ a.help-mark {
 .map-plane-labels .map-plane-note { font-size: 0.68rem; padding: 0 4px; }
 .galaxy-menu-stretch { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
 .galaxy-menu-stretch input[type="range"] { flex: 1; min-width: 6rem; }
+
+/* The galaxy measures as sliders (static/leversliders.js): the tick box and the typed box in one row above the bar. */
+.lever-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.lever-slider-head {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.lever-slider-head .ui-field-check {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lever-slider-head .ui-field:not(.ui-field-check) {
+  flex: 0 0 7.5rem;
+  min-width: 0;
+}
+
+.lever-slider-head sl-input {
+  width: 100%;
+}
+
+.lever-slider > .field-hint {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* The box's own label is the tick box's text, so it is kept for readers of the screen only. */
+.lever-slider-head sl-input::part(form-control-label) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.lever-slider-range {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.lever-slider-auto .lever-slider-range {
+  opacity: 0.55;
+}
+
+/* A slider needs room for its label, its box and its bar. */
+.lever-fields > .lever-slider {
+  flex: 1 1 22rem;
+}
+
+/* A slider row is not a plain text box field: its box sits beside the tick box, so it is not one of the aligned boxes
+   (tests/test_web_generate_alignment.py), and the row takes the room of its own label, box and bar. */

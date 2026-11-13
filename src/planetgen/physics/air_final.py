@@ -13,14 +13,16 @@ Nothing is drawn here that the old order did not draw, in the same order, so the
 """
 
 import dataclasses
+import os
 from typing import Optional
 
 from planetgen import tuning
-from planetgen.physics import air_branches, climate_draws, oddities, orbits, surface_air
+from planetgen.physics import air_branches, climate_draws, constants, oddities, orbits, surface_air
 from planetgen.physics import unit_registry as units
+from planetgen.util import log
 
 CAP_TOLERANCE = 1e-9
-"""float: How far above the stored temperature the air's uncapped warming must reach to count as held at `surface_air.MAX_SURFACE_TEMPERATURE_K` (GEN.1236)."""
+"""float: How far above the stored temperature the air's uncapped warming must reach to count as held at the ionization ceiling (`surface_air.Air.ceiling_k`, GEN.1236, GEN.1580)."""
 
 _m_to_km = units.converter("m", "km")
 
@@ -87,6 +89,7 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant)
     planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
+    planet._air_haze = None if air is None or setting.haze_draws is None else (setting.haze_draws, setting.star_temperature_k, setting.far_uv, setting.internal_flux_w_m2)    # GEN.1589: kept, not stored; the haze of the air kept, for the life stage
     if air is None or not air.partials_pa:
         temperature_k, albedo_kept = no_air_temperature_k, albedo
         if setting.albedo_law is not None:
@@ -94,9 +97,11 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
             temperature_k, albedo_kept = surface_air.airless_state(setting.albedo_law, starlight_w_m2, no_air_temperature_k)
         return FinalAir(air=air, temperature_k=temperature_k, albedo=albedo_kept, greenhouse_factor=0.0, pressure_pa=0.0, molar_density_kg_mol=None, density_kg_m3=None,
                         scale_height_km=None, partials_pa={})
+    if air.at_ceiling:
+        _warn_at_ceiling(planet, air, distance_au)
     factor = air.greenhouse_factor
     albedo_kept = albedo if air.albedo is None else air.albedo      # a body with ice has the albedo of its last step (GEN.972)
-    # GEN.1236: the fixed point holds the surface at `surface_air.MAX_SURFACE_TEMPERATURE_K` (a stand-in guard, the equilibrium of the gas does
+    # GEN.1236: the fixed point holds the surface at the ionization ceiling (`ionization.ceiling_k`, GEN.1580; a guard no generated body should reach, the equilibrium of the gas does
     # not converge far above it), but the warming it keeps is the uncapped one, so a body at the cap kept a greenhouse factor that gave 2370 K
     # or 2600 K; its stored G is taken from the stored temperature too, so the three numbers agree.
     capped = air.warming is not None and air.warming.surface_temperature_k > air.temperature_k * (1.0 + CAP_TOLERANCE)
@@ -108,6 +113,33 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     return FinalAir(air=air, temperature_k=air.temperature_k, albedo=albedo_kept, greenhouse_factor=factor, pressure_pa=air.pressure_pa,
                     molar_density_kg_mol=air.state.mean_molar_mass_kg_mol, density_kg_m3=air.state.density_kg_m3, scale_height_km=_m_to_km(air.state.scale_height_m),
                     partials_pa=air.partials_pa)
+
+
+class CeilingReached(RuntimeError):
+    """A body's air asked for more than the ionization ceiling while `CEILING_IS_ERROR_VARIABLE` was set (the test suite sets it, GEN.1580)."""
+
+
+CEILING_IS_ERROR_VARIABLE = "PLANETGEN_CEILING_IS_ERROR"
+"""str: The environment variable that makes a body held at the ionization ceiling an error (`CeilingReached`) and not only a log line. Off in a run, set in the test suite
+(`tests/conftest.py`, workers included), so every seeded census and fuzz run that makes a body at the ceiling fails and the body is explained (Boss, 2026-11-12, GEN.1580)."""
+
+
+def _warn_at_ceiling(planet, air, distance_au):
+    """
+    GEN.1580: one normal-log line per body whose air asked for more than the ionization ceiling (`ionization.ceiling_k`) and was held at it: the body, the
+    uncapped surface the greenhouse gave, the ceiling and the air. The ceiling is the temperature the main gas is half ionized, so a body here is a mistake of
+    the model to explain, never a state to keep (the test suite sets `CEILING_IS_ERROR_VARIABLE`, so a seeded sweep that makes one fails).
+    """
+    if getattr(planet, "_ceiling_warned", False):
+        return
+    planet._ceiling_warned = True
+    name = getattr(planet, "name", None) or "a body not yet named"
+    composition = ", ".join(f"{formula} {pressure:.4g} Pa" for formula, pressure in sorted(air.partials_pa.items(), key=lambda item: -item[1])[:6])
+    message = (f"Ionization ceiling: {name} ({planet.mass / constants.EARTH_MASS_TO_KG:.4g} Earth masses, {distance_au:.4g} au) asked for {air.warming.surface_temperature_k:.0f} K "
+               f"and was held at {air.ceiling_k:.0f} K, the half-ionization temperature of its main gas ({composition}).")
+    log.normal(message)
+    if os.environ.get(CEILING_IS_ERROR_VARIABLE) == "1":
+        raise CeilingReached(message)
 
 
 def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):

@@ -103,7 +103,7 @@ def _write_description(phenomenon, args):
         with open(args.output, "w", encoding="utf-8") as f:
             f.write(text)
     except OSError as exc:
-        log.error(f"error: the description could not be written to {args.output}: {exc.strerror or exc}")
+        log.error(f"The description could not be written to {args.output}: {exc.strerror or exc}")
         raise SystemExit(1)
     log.normal(f"Wrote {TYPE_LABELS.get(args.type, 'phenomenon')} '{phenomenon.name}' to {args.output} (not saved to the database).")
 
@@ -124,7 +124,7 @@ def run_phenomenon(args):
         try:
             store.get_sector_galaxy_position(conn, args.sector_id)
         except ValueError as exc:
-            log.error(f"Error: --sector-id {args.sector_id}: {exc}")
+            log.error(f"Bad --sector-id {args.sector_id}: {exc}")
             raise SystemExit(1) from exc
         finally:
             conn.close()
