@@ -8864,39 +8864,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
   Owner (TODO sweep, 2026-11-12): Lane 22 (belts).
 
-- [ ] **GEN.1070 Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 7. Design section 3,
-  5 and 10 item 11: members stored by the cut rule (at most 300 per
-  belt), L2 bodies addressable by (belt id, rank) and rebuilt, never
-  stored; each page shows status, mass, composition and the belt
-  history. Done: migration, API version bump with the change note,
-  tests, map and page checks. No backward-compat shim. Where we think it
-  belongs (best guess, can move): Lane 12 (map and pages) with Sources 2
-  (storage), train 7.
-  Belt origins (2026-10-30 4:35 PM EDT): Stored members carry the
-  scatter tag once the scatter phase is wired (GEN.1092).
-  Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
-  member is linked from the asteroid belt information page UX.241.
-  Part 1 merged (train 10, #5095, 7:11 AM EST on 2026-11-05) (7:20 AM
-  EST on 2026-11-05): Belts store their members and the belt history
-  text. The rest (designation display, the system map drawing members as
-  dots at true orbits, a body page per member, the scatter tag after
-  GEN.1092) stays open.
-  Prerequisites: GEN.1069.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-  Owner (TODO sweep, 2026-11-12): Lane 22 (belts).
-
 - [ ] **GEN.1072 White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -9145,6 +9112,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1121, GEN.1070.
   Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
   Owner (TODO sweep, 2026-11-12): Lane 12 (storage).
+  From the GEN.1070 audit (Lane 13, /mnt/project-files/reports/gen1070-audit-2026-11-13.md): captured_member, outside_reservoir_member and parse_captured have no reader yet; this item is their reader, and their wiring register rows move here.
 
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
