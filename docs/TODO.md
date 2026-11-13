@@ -13660,6 +13660,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 14 (owns GEN.1611), with Lane 15. Prerequisites: none. Related: GEN.1575, GEN.1611, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1679 The icy-or-rocky origin test (origin_of) reads the same stellar-mass snow line as the delivered-water classes**
+  From GEN.1678 (Lane 14, PR 6389, /mnt/project-files/reports/gen1678-water-line-measure-2026-11-13.md): the water classes and recipes b1 to b4 now read the viscous-disk snow line [R3193], but origin_of, which decides whether a body formed icy or rocky, still reads the luminosity snow line. Two snow lines in one system give a body that formed rocky by one test and wet by the other. Do: origin_of reads the same line through the same helper (reuse, no second formula); measure the icy share by stellar mass before and after. Lock item (epoch, census re-tag). Lane 14 also notes the GEN.1575 premise was stale: since GEN.1611 M-dwarf habitable-zone Earths were already dry; GEN.1678 mainly dries Sun-like stars (dry 18 to 38 percent).
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 14. Prerequisites: GEN.1678. Related: GEN.1611, GEN.1575.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
