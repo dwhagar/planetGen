@@ -685,8 +685,8 @@ class _BrightStarBook:
             f"{self.min_luminosity_sol:g} L_sun bright) in {summary['elapsed_s']:.1f}s: "
             + ", ".join(f"{count:,} {population}" for population, count in summary["counts"].items()) + "."
         )
-        log.debug(f"bright-star scatter: {summary['total']} stars, seed {self.seed}, threshold {self.min_luminosity_sol:g} L_sun, "
-                  f"mass limit {self.mass_limit:g} solar masses")
+        log.debug("Bright-star scatter: %s stars, seed %s, threshold %g L_sun, mass limit %g solar masses.", summary["total"], self.seed,
+                  self.min_luminosity_sol, self.mass_limit)
 
 
 def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=""):
@@ -1751,7 +1751,7 @@ def add_bright_star_band(args):
         + ", ".join(f"{count:,} {population}" for population, count in counts.items())
         + f". The star-fill level is now {target:g} L_sun."
     )
-    log.debug(f"bright-star band: {total} stars, seed {seed}, {target:g} to {current:g} L_sun")
+    log.debug("Bright-star band: %s stars, seed %s, %g to %g L_sun.", total, seed, target, current)
     return {"counts": counts, "total": total, "elapsed_s": elapsed,
             "from_luminosity_sol": current, "to_luminosity_sol": target}
 
@@ -2857,8 +2857,7 @@ def refresh_block_lights(mysql_config, args=None):
             with run_common._generation_progress() as progress:
                 log.set_console(progress.console)
                 try:
-                    log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept; "
-                               "made again from every pre-placed object only when they do not match)...")
+                    log.normal("Making the block light totals for the Galaxy Map from the parts the scatters kept (made again only when they do not match)...")
                     ticker = Ticker("Making the block light totals", total=1.0, percent=True)
                     with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
@@ -2899,7 +2898,7 @@ def fill_block_totals(args):
         conn.commit()
         counted = galaxy_counts.rebuild(conn)    # DB.121: the sectors' counts and the galaxy's running totals
         log.normal(f"Made the stored counts of {counted:,} sectors and the galaxy's totals.")
-        lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
+        lights, uncharted = make_block_lights(conn, lambda done, total: log.debug("Block light totals: %.0f of %.0f.", done, total), log.normal,
                                               getattr(args, "generation_run_id", None), rebuild=True)      # MAP.402; the repair makes the parts again too (GEN.1476)
     finally:
         conn.close()
@@ -3659,11 +3658,8 @@ def log_skeleton_summary(args, summary):
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
-        log.warning(
-            f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
-            f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
-            f"parameters really do produce a galaxy this large."
-        )
+        log.warning(f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}), so the galaxy's true edge was not reached. "
+                    f"Re-run with a larger --edge, or none.")
 
 
 SCATTER_NAMES = {"mass": "massive-star", "luminosity": "bright-star", "phenomena": "phenomena",
