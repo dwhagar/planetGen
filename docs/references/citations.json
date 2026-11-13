@@ -26220,6 +26220,11 @@
       "kind": "web",
       "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
       "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5248": {
+      "kind": "paper",
+      "label": "West et al. 1983",
+      "title": "Barometric pressures at extreme altitudes on Mt. Everest: physiological significance"
     }
   }
 }
