@@ -231,7 +231,7 @@ def test_the_table_changes_ledger_where_the_floor_passes_50_lsun(clear):
 
 def test_a_distance_inside_the_cut_is_built_and_one_past_it_is_not(clear):
     table = build(SUN, 7.5, EDGE, curve=clear, visit_budget=_lum_visits(build(SUN, 7.5, EDGE, curve=clear, visit_budget=1.0e15)) / 3.0)
-    near, far = floor_table(table, clear, (300.0, 3000.0))
+    near, far = floor_table(table, clear, (300.0, 4000.0))          # a third of the visits reaches the 5,623 Lsun band (3,137 pc); 4,000 pc needs the 10,000 Lsun one
     assert near["built"] and not far["built"]
     assert far["band"] is not None and far["band"] > near["band"]
 

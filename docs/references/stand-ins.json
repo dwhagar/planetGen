@@ -36053,7 +36053,7 @@
           "fields": [
             [
               "What it is",
-              "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
+              "sky_tiers.BLOCK_VISIT_BUDGET 1.5e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, under two hours of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7 with the scatter's floor at 7,500 Lsun and 1.35e8 at its 18,000 Lsun default (GEN.1680), so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
             ],
             [
               "The range it moves in",
@@ -36084,7 +36084,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
+          "what": "sky_tiers.BLOCK_VISIT_BUDGET 1.5e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, under two hours of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7 with the scatter's floor at 7,500 Lsun and 1.35e8 at its 18,000 Lsun default (GEN.1680), so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
         },
         {
           "burn_down": null,

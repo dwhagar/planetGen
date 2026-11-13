@@ -42,9 +42,10 @@ from planetgen.physics import constants, photometry
 from planetgen.physics import sky_photometry as photo
 from planetgen.util import draw
 
-BLOCK_VISIT_BUDGET = 1.0e8
+BLOCK_VISIT_BUDGET = 1.5e8
 """float: The visits the luminosity bands may take for one sky (stand-in SKT1): a visit is a block or a row of the sphere draw (`block_visits`), about
-`BLOCK_VISIT_SECONDS` of one worker, so this is about an hour of one worker for the bands, more than a dust-free 7.5 sky takes (4e7)."""
+`BLOCK_VISIT_SECONDS` of one worker, so this is under two hours of one worker for the bands, more than a dust-free 7.5 sky takes (1.35e8 with the scatter's floor
+at 18,000 Lsun, `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`, GEN.1680; 4.5e7 when the floor was 7,500, so the budget moves with the floor and stays above the dust-free 7.5 sky)."""
 
 BLOCK_VISIT_SECONDS = 4.0e-5
 """float: What the sphere draw spends on a block or a row, one worker, warm, in the far bands that hold most of the visits (stand-in SKT3;
