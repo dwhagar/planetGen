@@ -235,7 +235,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.sky_band.face_lookup | by design | the nearest-pixel lookup of the cube map: the reference the bilinear `face_bilinear` that makes the page's image is tested against (test_sky_band), and the CPU twin of the band shader's lookup |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
-| function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |
 | function | planetgen.physics.class_fit.best_class | by design | the public scorer of the best-fit classifier: the generator reads `fit` and the class sweep, the class-fit command line and the tests read this one-call form |
 | function | planetgen.physics.class_fit.domain_scores | by design | the per-domain scores of one class, which the class page and the class-fit command line show; the generator reads the combined `fit` |
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
