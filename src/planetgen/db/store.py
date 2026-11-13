@@ -3004,6 +3004,8 @@ BODY_FIELDS = (
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
     object_rows.computed("oddities", lambda body, context: oddities.column_text(oddities.ids_of(body)),
                          lambda row: {"oddities": oddities.from_column(row["oddities"])}),     # GEN.1047
+    object_rows.computed("collision_count", lambda body, context: int(getattr(body, "collision_count", 0) or 0),
+                         lambda row: {"collision_count": row["collision_count"] or 0}),     # DB.122: the oddity table reads it, so a loaded planet must not read 0
 )
 """tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
 them in place, `_planet_or_moon_row_to_dict` reads them back)."""

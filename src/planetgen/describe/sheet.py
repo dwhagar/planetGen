@@ -608,6 +608,7 @@ _BODY_NOT_SHOWN = {
     "flavor_text_count": "how many flavor lines exist; bookkeeping",
     "flavor_key": "which flavor line the text uses; bookkeeping",
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
+    "collision_count": "the mergers the planet architecture recorded in making the body; the oddity table reads it and the object page prints the oddity it earns, not the count",
     "oddities": "the ids of the oddity rows the body has; the object page prints them as its Odd line",
     "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
