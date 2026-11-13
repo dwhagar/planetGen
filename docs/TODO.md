@@ -3806,6 +3806,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 6, 17
   wait; Blocker 4 after GEN.315 (slice 1 merged earlier by Lane 13).
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
+  Decisions (Boss, 12:31 PM EST 2026-11-13, cards): slice D, the galaxy makes rogue planet pairs at an observed rate; slice C, a disk around a close star pair is stored as a belt row hosted at the pair node. Both released to Lane 13.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -8787,47 +8788,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
   Owner (TODO sweep, 2026-11-12): Lane 23 (moons).
 
-- [ ] **GEN.1092 Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page**
-  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
-  we think it came from, we know because we made it; design
-  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
-  Boss, taken until he changes them: Class D stays "small, airless, at
-  least 1 percent ice" and covers belt members and dwarf planets; dwarf
-  planets are listed on the system page as members of their belt, not in
-  the planet list; the scatter phase is a rule over the architecture's
-  events with stored mass shares, no N-body run. Stand-ins accepted when
-  registered in GEN.725 with tier and tweak level; the Solar System is a
-  test target, never an input. Lock work, train 7 with the outer-disc
-  item (it extends the member storage and the outer disc). New epoch,
-  API bump with the change note. Done: tests, harness, census
-  re-baseline; every belt page says where it came from. Where we think
-  it belongs (best guess, can move): Sources 2 with Lane 21, train 7.
-  Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
-  EDT): Boss confirmed the origins, scatter and Class D defaults and the
-  build. The scatter sweep sits in generation after the giants are
-  placed and before the belts are finalised (the belt birth item
-  GEN.1068 reads its result).
-  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
-  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
-  Kuiper-type objects (classical cold and hot, resonant, scattered,
-  detached) are generated from the cold outer disc and swept by the
-  scatter step, with dwarf planets drawn from the size law (GEN.1090),
-  the outer disc being the belt of GEN.1071.
-  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
-  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
-  objects above a mass threshold, a scatter step in the system before
-  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
-  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
-  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
-  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
-  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
-  built, train 8), GEN.1069, GEN.1070 (pages with Lane 12), GEN.1071
-  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
-  Lane 22 as owner, in that order, after GEN.1014 (train 8).
-  Prerequisites: GEN.1070.
-  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
-  Owner (TODO sweep, 2026-11-12): Lane 22 (belts).
-
 - [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
@@ -12930,13 +12890,6 @@ clears each one.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
   Filed by the TODO thread.
 
-- [ ] **OPS.159 Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
-  Filed by the TODO thread.
-
 - [ ] **OPS.160 Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). After OPS.157, PERF.261 and OPS.159 have run on a full galaxy.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.157. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
@@ -13176,11 +13129,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: SEC.47, SEC.33, OPS.168.
   Filed by the TODO thread.
 
-- [ ] **OPS.180 (bug) Galaxy at a glance says no sectors are charted when sectors are charted**
-  Boss, 5:15 PM EST on 2026-11-12 (live observation on his server): "Galaxy at a glance says no sectors charted even though sectors are charted." Where it comes from: web/glance.galaxy_rows counts len(sectors) from GET /api/galaxy/sectors, which is db.query.galaxy_placed_sectors: placed sectors minus _UNCHARTED_SECTOR_SQL (a sector row whose cell the chart_ledger does not hold). Suspects (unconfirmed, TODO's read): charted sectors whose cell is missing from chart_ledger (so every row counts as an uncharted placeholder), or a cached API or page answer from before the run. Check the other charted counts on the same page (regions table) and the Sectors list against it. Do: find the cause on a galaxy with charted sectors, fix it at the cause, and add a test that the panel's count equals the charted sectors. Output unchanged; lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13, top item. Prerequisites: none. Related: OPS.153, OPS.154, MAP.402.
-  Filed by the TODO thread.
-
 - [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
   Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: MAP.426.
@@ -13212,6 +13160,7 @@ clears each one.
   Lane 21, 2026-11-12, after the GEN.1562 sulfur package (PR 6339, Train 26: N1, N2, N6, with N4 droppable): over 381 seeds class A stays 1 and class Y stays 0. Only 22 of 308 rocky airy bodies sit at 300 to 350 K and 1 of those is water-poor, and the traced warm body holds its sulfur as S2 in the closed-system equilibrium even with an oxidized mantle. Boss wants a chance of class Y: add sulfur speciation (S2, SO2, H2S, COS by temperature, pressure and oxygen fugacity) to the equilibrium step, and check whether warm water-poor rocky bodies are too rare. Lock item (output changes).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1562 sulfur package (PR 6339). Related: GEN.1562.
   Filed by the TODO thread.
+  Decision (Boss, 1:12 PM EST 2026-11-13, as the coordinator relayed): N1 through N6 of the sulfur package (/mnt/project-files/reports/gen1562/redox-lever-research-v2-2026-11-12.md) are approved, so N4 (mantle redox draw) stays in and is not dropped; N3 and N5 keep their present values. The package is PR 6339 in Train 26.
 
 - [ ] **GEN.1671 Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)**
   Fable thread whole-tree read (PR 6343 body, 2026-11-12): these helpers are copied across physics modules; keep one of each and import it everywhere. Output unchanged; lock-free.
@@ -13243,6 +13192,7 @@ clears each one.
   Boss, 10:07 PM EST on 2026-11-12: "There should be a TODO item for making everything within the range of Class D or higher gets a full planet class". GEN.1510 (Train 25) promotes only the 10 heaviest round bodies of each belt; this item extends the rule to every body at or above the Class D floor in every population, built by the one planet generator (class, physics, composition, air if any, moons by the same rule), with no second path and no backward-compat shim. Slice 0 (report, reports/): which populations hold bodies at or above the floor today and how many per system, by star type; the generation-time and storage cost of classing all of them (GEN.1510 measured about +30 percent for about 7 bodies per system); and whether a full class needs the planet pass or a lighter class-only step for airless round bodies. Then the build as a lock item. Coordinate with GEN.1561 (Boss, 10:06 PM EST: belt members above the oligarch mass go to the planet pass) and GEN.1673 (belt spacing).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22 (belts and small bodies), after OPS.161, with Lane 21 for class and composition. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, GEN.1511, GEN.1561, GEN.1673.
   Filed by the TODO thread. Boss approved.
+  Decision (Boss, 12:30 PM EST 2026-11-13, card): on demand, from the one generator. A Class D size body's full class is computed when asked for, from the same generator, not stored for every member. Slice 1 released to Lane 22.
 
 - [ ] **UX.308 Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices**
   Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
@@ -13318,6 +13268,76 @@ clears each one.
 - [ ] **GEN.1685 The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance)**
   GEN.1016 merged in Train 25 (PR 6139): four-star systems are the ones the stability network calls stable. The register still says the clearance module is read only by tests/test_clearance.py and waits for the stability gate of GEN.1016. Do: have the gate or the stored-system audit call it, or mark it by design with the reason, and drop the register row. Lock item if output changes.
   Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: none. Related: GEN.1016, TEST.477.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1686 Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet): physics/pulsar_planets._radius_km has its own radius law where planet.radius_of_mass exists; physics/rogue_yield uses ** 0.5 and its own circular-speed formula where orbits.circular_speed exists; physics/multistar's AM CVn donor radius formula differs from white_dwarf_models. Do: call the shared function (reuse rule), measure the change. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1687 Constants written by hand: 101300 Pa, 365.25-day years, a second Earth mass and a local MPC_PER_PC instead of the shared constants and units**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet): generation/planet.gas_giant_depth uses 101300 Pa (constants.ATMOSPHERE_PA is 101325); physics/helium_core_draw uses 365.25 days a year (the rest uses constants.SECONDS_PER_YEAR); physics/disk_ejection has its own _EARTH_KG 5.97e24 (constants 5.9722e24); galaxy/component_pass and phenomenon_reach each define MPC_PER_PC instead of units. Do: read the shared constant in each. Lock item (small output change).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1688 (bug) small_body_composition: the METAL_ROWS set is shadowed by a later tuple of the same name, so nickel and cohenite group as rock**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). Do: one METAL_ROWS, nickel and cohenite counted as metal; a test that pins the grouping; measure belt metal shares before and after. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1689 Roche coefficient written twice: rings uses 2.456, orbits uses 2.44**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). Do: one constant with its source (the fluid-body value, cite the R-id), both modules read it. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1690 The sphere walk is written three times with different band order (spherical.sphere_rows, region._compute_arcs and _band_arc, window.cells_in_ball)**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). One generator would change the iteration order, and so the draw order. Do: one sphere-walk generator the three read; measure the change. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1691 Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (1) db/fingerprint.CHILD_TABLES vs admin/edits._BODY_CHILD_TABLES; (2) galaxy block_lights and block_stats vs chain_blocks and clear; (3) db read_member_tree vs read_stored_trees; (4) galaxy/sky_sphere and sky_sprites each define _number; (7) describe _tier_name returns an empty string on bad data instead of raising; (16) describe belt_member_info and field_member_info build the neighbour lambdas and the field block twice. Do: one of each, callers moved, names kept where a public name would break.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **UX.312 Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (5) route_neighbours duplicates near.LADDER_PC; (6) _admin_or_redirect vs admin _require_admin; (8) classref _nebula and _supernova_remnant share the center fact text; (9) life_air_chart repeats SERIES.get per series; (10) galaxymap3d _escape and _json_script duplicate starmap's; (11) nearby._stars vs searchpage._valid_stars. Do: one of each, pages unchanged.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **API.48 API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. api/routes.py has many return jsonify error, 404 lines where ApiError exists; uncharted_systems and phenomena repeat the past_end pattern; the after integer parsing is repeated; facility_list whole() vs _int_arg. Do: ApiError and one paging helper; the response bodies stay the same (check the API contract tests).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **OPS.181 Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (13) queue runeta.public_view duplicates runview.summary percent, _conclude_empty_stage vs units._end_stage; (14) util/settings_writer._restore_plan repeats _load_document; (15) cli/benchmark_suite _processes and _server_pids both walk /proc, version_history._galaxy_databases and warm_shape.cluster_ages both iterate store.list_databases. Do: one of each.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **UX.313 (bug) The system page command names its input file like the --output file**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **UX.314 (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system)**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **SEC.49 (bug) The API call log read SESSION_COOKIE_NAME, so __Host- sessions were logged as anonymous**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **OPS.182 (bug) queue/progress_file.set_stage left its temp file behind on error**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **ADM.154 (bug) Admin plans page text read "comes laterrearranger"**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
