@@ -201,6 +201,8 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     ]
     for member, bodies in system.member_hosts() if hasattr(system, "member_hosts") else ():    # GEN.332
         groups.append((bodies, [], star_centers.get(id(member), center_au), star_velocities.get(id(member), system_velocity)))
+    for _host, bodies in system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else ():    # GEN.332, slice A: round the node's pair, placed at the system's center
+        groups.append((bodies, [], center_au, system_velocity))
     for planets, comets, anchor, anchor_v in groups:
         for planet in planets:
             placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v, report=True)

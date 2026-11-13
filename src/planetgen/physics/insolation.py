@@ -89,6 +89,14 @@ def refresh_system(system):
                 node.separation_km / constants.AU_TO_KM * (1.0 + node.eccentricity), planet.eccentricity))
 
 
+    for host, bodies in system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else ():    # GEN.332, slice A: the pair's turn and the planet's own orbit, as a close pair's
+        first, second = host.stars
+        for planet in bodies:
+            _set(planet, None if getattr(planet, "body_type", None) == "a" else min(
+                circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass, host.binary_separation_au, planet.distance)
+                + orbit_elements.flux_swing(planet.eccentricity), 1.0))
+
+
 def _set(planet, value):
     """The swing of a planet's starlight, which its moons share (a giant's own is on the sheet too, GEN.784). A belt has no such
     attribute at all."""
