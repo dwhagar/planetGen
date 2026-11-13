@@ -550,6 +550,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | Lane 11, 2026-11-12. |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | Lane 22, 2026-11-12, top priority. |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | Lane 22, 2026-11-12. |
+| PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | Lane 04, 2026-11-12. |
+| PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | Lane 05, 2026-11-12. |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | Lane 13, 2026-11-12. |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | Lane 13, 2026-11-12. |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | Lane 23, 2026-11-12. |

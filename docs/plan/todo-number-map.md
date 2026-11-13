@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.429 |
 | NAV | NAV.78 |
 | GEN | GEN.1673 |
-| PERF | PERF.262 |
+| PERF | PERF.264 |
 | DB | DB.130 |
 | API | API.48 |
 | ADM | ADM.154 |
@@ -2950,6 +2950,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.158 | Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | open |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | open |
+| PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | open |
+| PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | open |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | open |
