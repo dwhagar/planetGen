@@ -26,9 +26,7 @@
   "kept_as_share": [
     {"file": "planet_class_fit.json", "table": "classes", "kind": "t", "row": "F", "quantity": "share_co2", "reason": "class F is 'not carbon-dioxide-rich', the other side of class G's 20 percent line, and class G stays a share (Boss, 11:19 PM EST on 2026-11-06)"},
     {"file": "planet_class_fit.json", "table": "classes", "kind": "t", "row": "G", "quantity": "share_co2", "reason": "class G is a carbon dioxide air whatever the oxygen: a share of the molecules, the line Boss kept (registry AW5)"},
-    {"file": "life_classes.json", "table": "classes", "row": "6", "quantity": "share_co2", "reason": "dense-CO2 life needs carbon dioxide to be the air's bulk (the solvent is the air), a medium rule and not a breathing one; its phase is read from the total pressure (open question in reports/gen1331-partial-pressure-sweep-2026-11-08.md)"},
-    {"file": "age_needs.json", "table": "rows", "row": "reducing air", "quantity": "share_o2", "reason": "the settling time of a reducing air asks whether there is practically no free oxygen next to a reducing share (chemistry of an outgassing air, the reducing share stays a share)"},
-    {"file": "age_needs.json", "table": "rows", "row": "carbon dioxide air", "quantity": "share_co2", "reason": "the same 20 percent of the air line as class G, which Boss kept as a share (11:19 PM EST on 2026-11-06)"}
+    {"file": "life_classes.json", "table": "classes", "row": "6", "quantity": "share_co2", "reason": "dense-CO2 life needs carbon dioxide to be the air's bulk (the solvent is the air), a medium rule and not a breathing one; its phase is read from the total pressure (open question in reports/gen1331-partial-pressure-sweep-2026-11-08.md)"}
   ],
   "code_constants": [
     {"module": "planetgen.physics.biogenic_oxygen", "name": "MINIMUM_PA", "unit": "Pa", "floor": 0.5, "note": "the least oxygen the rise counts"},

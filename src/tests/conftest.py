@@ -70,6 +70,9 @@ os.environ.setdefault("PLANETGEN_JOBS_DIR", tempfile.mkdtemp(prefix="planetgen-t
 # it with tests/worker_patches.py, which reaches the workers as well.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
+# GEN.1580: a body held at the ionization ceiling of its air is an error in every test that makes one (`planets.CEILING_IS_ERROR_VARIABLE`), never a state to keep.
+os.environ["PLANETGEN_CEILING_IS_ERROR"] = "1"
+
 # A run with more than one worker queues its tasks on Redis (PERF.24):
 # the test server's, when PLANETGEN_TEST_REDIS_URL names one (CI does), in a
 # database of this xdist worker's own (TEST.266, TEST.280): a process a test
@@ -95,6 +98,10 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+# OPS.155: the job profiles (what each kind of unit costs, in the control database) are not recorded by the tests; tests/test_job_profiles.py turns them on.
+os.environ.setdefault("PLANETGEN_JOB_PROFILES", "0")
+# OPS.156: claims come from the typed tables in the tests, not from a job profile; tests/test_profile_claim.py turns the profile on.
+os.environ.setdefault("PLANETGEN_SELF_TUNING", "0")
 # A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
 os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
 # VIEW.25: charting builds the sky tiers by default (`queue.sky_limit` 7.5, half an hour a cell on a real galaxy); a test galaxy would take minutes to

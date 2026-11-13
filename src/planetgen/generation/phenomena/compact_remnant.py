@@ -18,7 +18,7 @@ in the same attribute surface (`mass`, `radius`, `temperature`, `luminosity`, `a
 `lifespan`, `habitable_zone`, `system_perimeter`, `heliosphere_radius`,
 `galactic_orbital_*`) with values appropriate to a compact remnant instead.
 This lets a `CompactRemnant` drop into every place `StarSystem` expects a
-`Star` -- orbit placement, serialization, `adjust_age_for_planets` --
+`Star` -- orbit placement, serialization --
 without any of that code needing to know compact remnants exist.
 
 A compact remnant's `luminosity` is tiny (a black hole's Hawking

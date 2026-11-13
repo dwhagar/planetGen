@@ -97,14 +97,14 @@ def _oxygen_entry(column_du, p_o2_pa=21200.0, teff=5800.0):
     return sweep.Entry(body, None, star, "oxygen")
 
 
-def test_the_temperature_rule_stops_a_runaway_greenhouse_at_the_molten_surface_limit(monkeypatch):
-    """Stand-in CC7: the air solve holds the surface at `MAX_SURFACE_TEMPERATURE_K`, so a hotter greenhouse still gives that, not the Stefan-Boltzmann value."""
-    from planetgen.physics import surface_air
+def test_the_temperature_rule_stops_a_runaway_greenhouse_at_the_ionization_ceiling(monkeypatch):
+    """GEN.1580: the air solve holds the surface at the half-ionization temperature of its main gas, so a hotter greenhouse still gives that, not the Stefan-Boltzmann value."""
+    from planetgen.physics import ionization
 
-    monkeypatch.setattr(rules, "_starlight_w_m2", lambda entry: 1.0e5)
-    entry = _entry("hot", bond_albedo=0.1, greenhouse_factor=100.0, surface_temperature=surface_air.MAX_SURFACE_TEMPERATURE_K, gas_partials_pa={"N2": 1.0e5})
+    monkeypatch.setattr(rules, "_starlight_w_m2", lambda entry: 1.0e10)
+    entry = _entry("hot", bond_albedo=0.1, greenhouse_factor=100.0, surface_temperature=ionization.ceiling_k({"N2": 1.0e5}), gas_partials_pa={"N2": 1.0e5})
     assert rules._check_temperature(entry) == []
-    entry.body.surface_temperature = surface_air.MAX_SURFACE_TEMPERATURE_K * 1.1
+    entry.body.surface_temperature = ionization.ceiling_k({"N2": 1.0e5}) * 1.1
     assert rules._check_temperature(entry)
 
 

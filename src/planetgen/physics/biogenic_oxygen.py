@@ -39,7 +39,8 @@ change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum
+from planetgen.util import log
 
 EARTH_O2_MOL = 3.7e19
 """float: The oxygen of Earth's air, mol (21 percent of 1.77e20 mol of air; 22.8 kPa at its gravity and area)."""
@@ -99,13 +100,21 @@ MINIMUM_PA = 1.0
 EUKARYOTE_MINIMUM_PA = 200.0
 """float: The oxygen, Pa, the air must hold for the wait for complex cells to start (about 1 percent of Earth's: [R3084]; T3, L0)."""
 
-REBALANCE_PASSES = 8
-"""int: The most times `rebalance_co2` works the CO2 and the temperature against each other after the oxygen has risen (GEN.1309 A); each pass takes half of the way to the sink's answer
-(`REBALANCE_DAMPING`), and the fixed point is held to `REBALANCE_TOLERANCE`."""
+REBALANCE_BRACKETS = 40
+"""int: The most times `rebalance_co2` doubles the CO2 pressure while it looks for one the sink holds less than (GEN.1589: the bracket of the root; it stops at the retention cap)."""
 
-REBALANCE_DAMPING = 0.5
+REBALANCE_BISECTIONS = 60
+"""int: The most halvings of that bracket (GEN.1589). Sixty halvings narrow any bracket of an air to a part in 10^15, so a run that uses them all found no root: the sink and the temperature did not
+settle (a switch in the air that makes the answer jump), and it is logged."""
+
 REBALANCE_TOLERANCE = 0.01
-"""float: The relative change of the CO2 pressure under which `rebalance_co2` stops."""
+"""float: The relative width of the bracket (and the relative change of the CO2) under which `rebalance_co2` stops."""
+
+HAZE_PASSES = 12
+"""int: The most times `store_air` works the haze of the air and the temperature against each other (GEN.1589), as the air solver does at its first answer; the last answer stands when they do not settle."""
+
+HAZE_TOLERANCE_K = 0.01
+"""float: The temperature change under which `store_air` stops working the haze and the temperature against each other."""
 
 APPLY_RISE = 1.01
 """float: The air takes new oxygen only when the target is this much above what it holds, so that applying the model again changes nothing."""
@@ -367,8 +376,10 @@ def rebalance_co2(body):
     Solves the carbon sink of the air again at the temperature the oxygen rise left (GEN.1309 A). The air was solved with the methane and hydrogen that warmed it; `apply` burned
     them (the methane's carbon is CO2 now, one for one) and the air found another surface temperature (7 to 67 K lower in the worlds this was measured on), but the sink that holds
     the CO2 of a world (continental weathering, seafloor weathering, or the sealed ocean's chemistry: `surface_air.CarbonSink`) was not asked again. It is asked at the new
-    temperature: the pressure it holds there against the one it held where the air was solved shifts the CO2 by the same amount, the greenhouse of the new CO2 gives the temperature
-    again, and the two are worked against each other (`REBALANCE_PASSES`, damped by half) until the CO2 settles. A body with no sink (no carbon to weather, or an air the oddity
+    temperature: the pressure it holds there against the one it held where the air was solved shifts the CO2 by the same amount, and the greenhouse of the new CO2 gives the temperature
+    again. The CO2 the sink holds at the temperature a CO2 gives is lower the more CO2 there is (the greenhouse warms the air and the sink holds less), so the CO2 that equals it is the one
+    root of a rising difference, found by bracketing and halving (GEN.1589; the damped passes it replaced stopped after 8 with the answer still falling, 562 K to 432 K in one air, and were
+    left where they stood). The root is held to `REBALANCE_TOLERANCE`, and a run that does not settle in `REBALANCE_BISECTIONS` is logged. A body with no sink (no carbon to weather, or an air the oddity
     rows replaced) is left as it is.
 
     Returns:
@@ -379,33 +390,57 @@ def rebalance_co2(body):
         return False
     air = dict(atmosphere.gas_partials_pa(body))
     base = air.get("CO2", 0.0)
+    current = base
     cap = getattr(body, "_retention_cap_pa", None)
-    moved = False
-    for _ in range(REBALANCE_PASSES):
-        current = air.get("CO2", 0.0)
-        target = max(base + (sink.kept_at(body.surface_temperature) - sink.solved_bar) * 1.0e5, 0.0)
-        step = current + REBALANCE_DAMPING * (target - current)
-        if abs(step - current) <= REBALANCE_TOLERANCE * max(current, MINIMUM_PA):
+    room = float("inf") if cap is None else max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0)   # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
+
+    started = (body.surface_temperature, getattr(body, "greenhouse_factor", None))
+
+    def store(carbon_dioxide):
+        """The air with `carbon_dioxide` stored, from the temperature and greenhouse factor the body began with, so every trial works from the same flux and haze start."""
+        body.surface_temperature, body.greenhouse_factor = started
+        store_air(body, {formula: pascal for formula, pascal in {**air, "CO2": carbon_dioxide}.items() if pascal > 0.0})
+
+    def difference(carbon_dioxide):
+        """The CO2 asked of the air less the CO2 the sink holds at the temperature that CO2 gives: below zero while the sink wants more."""
+        store(carbon_dioxide)
+        return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature) - sink.solved_bar) * 1.0e5, 0.0)
+
+    low, high = 0.0, min(max(current, MINIMUM_PA), room)
+    for _ in range(REBALANCE_BRACKETS):
+        if difference(high) >= 0.0 or high >= room:
             break
-        if cap is not None:     # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
-            step = min(step, max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0))
-        air = {formula: pascal for formula, pascal in {**air, "CO2": step}.items() if pascal > 0.0}
-        store_air(body, air)
-        air = dict(atmosphere.gas_partials_pa(body))
-        moved = True
-    return moved
+        low, high = high, min(2.0 * high, room)
+    settled = False
+    for _ in range(REBALANCE_BISECTIONS):
+        middle = 0.5 * (low + high)
+        if high - low <= REBALANCE_TOLERANCE * max(middle, MINIMUM_PA):
+            settled = True
+            break
+        if difference(middle) < 0.0:
+            low = middle
+        else:
+            high = middle
+    if not settled:
+        log.warning(f"The carbon dioxide of a world did not settle against its sink: between {low:.4g} and {high:.4g} Pa after {REBALANCE_BISECTIONS} halvings (GEN.1589).")
+    answer = min(high, room)
+    if abs(answer - current) <= REBALANCE_TOLERANCE * max(current, MINIMUM_PA):
+        store(current)          # the trials left the body at the last of them: the air it was given is stored again, solved as the trials were
+        return False
+    store(answer)
+    return True
 
 
 def store_air(body, air):
     """
     Gives `body` the air `air` (formula to partial pressure, Pa): the warming and surface temperature that mixture gives under the starlight the
-    body absorbed (the closure of `surface_air`, so the stored greenhouse factor still follows from the stored air), and the total pressure,
+    body absorbed (the closure of `surface_air`, so the stored greenhouse factor still follows from the stored air, haze included: GEN.1589), and the total pressure,
     molar mass, density and scale height of the new mixture. The doses, aerosols, colour and score that read the air are the caller's to make
     again (`generation.life`).
     """
     gravity = body.gravity * constants.EARTH_GRAVITY
-    absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
-    warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed)
+    radiated = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
+    warming = _warming(body, air, gravity, radiated)
     state = atmosphere_state.air_state(air, warming.surface_temperature_k, gravity)
     body.surface_temperature = warming.surface_temperature_k
     body.greenhouse_factor = warming.factor
@@ -415,3 +450,27 @@ def store_air(body, air):
     body.scale_height = state.scale_height_m / 1000.0
     atmosphere.store_air(body, air, body.mantle_delta_iw)
     envelope_share.fill(body)       # GEN.1226: the envelope share follows the air the life has changed
+
+
+def _warming(body, air, gravity, radiated):
+    """
+    The warming of `air` under the flux `radiated` (W/m2, the flux the stored temperature and greenhouse factor were made under), with the haze of the air as the air solver takes it
+    (GEN.1589): the haze takes a share of the absorbed sunlight high up (`aerosols.haze_of`, the body's own draws, kept from its air step as `_air_haze`), the share and the pressure it
+    takes it at go to the greenhouse table, and the haze depends on the temperature, so the two are worked against each other (damped, `HAZE_PASSES`). A body that kept no haze
+    (a world read back from the database, or an air step with no haze draws) gets the clear-air warming, as before.
+    """
+    kept = getattr(body, "_air_haze", None)
+    if kept is None:
+        return atmosphere_state.greenhouse_warming(air, gravity, radiated)
+    haze_draws, star_temperature_k, far_uv, internal_flux_w_m2 = kept
+    temperature = body.surface_temperature
+    warming = None
+    for _ in range(HAZE_PASSES):
+        haze = aerosols.haze_of(air, gravity, temperature, haze_draws, star_temperature_k, far_uv)
+        aloft_share = haze.absorbed_share * max(radiated - internal_flux_w_m2, 0.0) / radiated     # the haze takes a share of the sunlight, not of the heat the body radiates from inside
+        warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, aloft_share, haze.pressure_pa)
+        found = warming.surface_temperature_k
+        if abs(found - temperature) <= HAZE_TOLERANCE_K:
+            break
+        temperature = 0.5 * (temperature + found)
+    return warming
