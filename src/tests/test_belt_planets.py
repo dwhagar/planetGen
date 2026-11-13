@@ -6,6 +6,8 @@ members and mass, exempt from the slot spacing, and stored with the belt they ca
 """
 
 
+import types
+
 import pytest
 
 from planetgen import tuning
@@ -76,6 +78,36 @@ def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_syste
         total = sum(shares.values())
         for name, share in shares.items():
             assert getattr(body, f"{name}_mass_fraction") == pytest.approx(share / total, abs=1e-6)
+
+
+def test_a_promoted_planet_stays_inside_the_ring_of_its_belt(promoted_system):
+    """The orbit's closest and farthest points are between the belt's limits, so no promoted planet crosses what the generator cleared round the belt; a member on a long ellipse out of the ring stays a member."""
+    _seed, system = promoted_system
+    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    for body in _promoted(system):
+        belt = belts[body.belt_order]
+        assert body.distance * (1.0 - body.eccentricity) >= belt.lower_limit * (1.0 - 1e-9)
+        assert body.distance * (1.0 + body.eccentricity) <= belt.upper_limit * (1.0 + 1e-9)
+
+
+def test_a_member_whose_orbit_leaves_the_ring_is_not_chosen():
+    belt = types.SimpleNamespace(lower_limit=2.0, upper_limit=4.0, members=[
+        {"rank": 1, "status": "dwarf planet", "mass_kg": 3e21, "distance_au": 3.0, "eccentricity": 0.2},
+        {"rank": 2, "status": "dwarf planet", "mass_kg": 5e21, "distance_au": 3.0, "eccentricity": 0.5},
+        {"rank": 3, "status": "dwarf planet", "mass_kg": 4e21, "distance_au": 2.1, "eccentricity": 0.0}])
+    assert [member["rank"] for member in belt_planets.chosen(belt, 10)] == [3, 1]
+
+
+def test_a_member_beside_a_planet_stays_a_member_unless_the_planet_is_of_its_belt():
+    star = types.SimpleNamespace(mass=2.0e30)
+    member = {"rank": 1, "mass_kg": 1e21, "distance_au": 3.0}
+    near = types.SimpleNamespace(body_type="t", belt_order=None, mass=6e24, distance=3.1)
+    far = types.SimpleNamespace(body_type="t", belt_order=None, mass=6e24, distance=5.0)
+    sibling = types.SimpleNamespace(body_type="t", belt_order=0, mass=1e21, distance=3.001)
+    belt = types.SimpleNamespace(body_type="a", belt_order=None, mass=1e21, distance=3.05)
+    assert not belt_planets.clear_of_planets(star, member, 0, [near])
+    assert belt_planets.clear_of_planets(star, member, 0, [far, sibling, belt])
+    assert not belt_planets.clear_of_planets(star, member, 1, [sibling])
 
 
 def test_the_planets_stand_in_distance_order_and_are_numbered_in_it(promoted_system):
