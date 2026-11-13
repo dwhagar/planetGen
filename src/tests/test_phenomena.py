@@ -382,7 +382,7 @@ def test_star_system_anchored_by_neutron_star_can_force_planets():
     assert system.star is ns
     assert system.planet_count + system.belt_count == 2
     # A dark remnant's zero/near-zero luminosity means no real habitable
-    # zone -- adjust_age_for_planets and rendering must not crash even
+    # zone -- generation and rendering must not crash even
     # though every placed body is far outside any thermal comfort zone.
     assert render_support.text(system)
 
