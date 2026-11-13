@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.308 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1673 |
+| GEN | GEN.1674 |
 | PERF | PERF.264 |
 | DB | DB.130 |
 | API | API.48 |
@@ -2950,7 +2950,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.158 | Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | open |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | open |
-| PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | open |
+| PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | done, PR #6360 |
 | PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | open |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
@@ -3799,7 +3799,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1575 | Check the delivered-water high tail (GEN.849) against the formation papers: read [R2381] in full plus [R3193, R3683] for the spread of water delivered to terrestrial planets | none | open |
 | GEN.1576 | (bug) A planet whose thermal and gravitational tides balance away from synchronism (body_spin kind asynchronous) can spin past the breakup limit, because the balance rate is not capped at spin.BREAKUP_FRACTION (0.85) of the breakup rate | none | open |
 | GEN.1577 | Upper-atmosphere temperature-pressure profile of a hot giant (1e-6 to 1e3 bar), so the cloud decks and trace-gas ceilings of GEN.994 (hot_condensates) have a profile to read | GEN.994 | open |
-| GEN.1578 | Research the moist limit as a function of the air (replacing the fixed 375 K MOIST_LIMIT_K guard): the greenhouse state at which a wet or dense air runs away, fitted from the greenhouse table | none | open |
+| GEN.1578 | Research the moist limit as a function of the air (replacing the fixed 375 K MOIST_LIMIT_K guard): the greenhouse state at which a wet or dense air runs away, fitted from the greenhouse table | none | done, research report /mnt/project-files/reports/moist-limit-method-2026-11-12.md (Lane 14): replace the 375 K guard with the stable root of the saturated outgoing-flux curve; build is GEN.1579 |
 | GEN.1579 | Replace MOIST_LIMIT_K in surface_air with the moist limit as a function of the air, so 375 K stops pinning dense nitrogen and CO2 airs | GEN.1578 | open |
 | GEN.1580 | Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K | none | open |
 | GEN.1581 | Research the lowest carbon dioxide at which oxygen-making (oxygenic) photosynthesis works, and replace the 5 Pa stand-in gate of life classes 1a, 1b and 1c with the sourced value | none | open |
@@ -3894,6 +3894,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1670 | Sulfur speciation in the equilibrium step, so warm water-poor rocky bodies can hold SO2 and class Y can occur | GEN.1562 package | open |
 | GEN.1671 | Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4) | none | open |
 | GEN.1672 | (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff | none | open |
+| GEN.1673 | A better planet spacing rule (GEN.1521 chain rule) so far fewer belts need nudging outward | GEN.1641 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

@@ -12917,12 +12917,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: TEST.720.
   Filed by the TODO thread. Boss approved.
 
-- [ ] **GEN.1578 Research the moist limit as a function of the air (replacing the fixed 375 K MOIST_LIMIT_K guard): the greenhouse state at which a wet or dense air runs away, fitted from the greenhouse table**
-  Lane 14 (as the lane reported 8:31 PM EST on 2026-11-11), GEN.1568 report reports/guards-2000k-375k-2026-11-12.md (sweep rows in reports/gen1568/). The 375 K guard holds 24 census bodies (class F 8, G 6, T 6, B 4); by the sweep the greenhouse asked for 400 K or more in 24 of 26 capped solves (median 467 K), so the guard is what keeps them out of class N. Its steam-limit reasoning applies to steam airs, but these are nitrogen or CO2 airs of 3 to 238 bar, so a fixed 375 K is the wrong physics for them. The 6 bodies pinned at 375 K that GEN.1555 left alone belong here. Do: research the moist limit as a function of the air (the papers by Kasting, Goldblatt and Watson, and Kopparapu on the runaway and moist greenhouse limits; fit a form from the greenhouse table; add the papers to the reference list and write their [R....] ids), report with a recommendation and the stand-in tier and tweak level for GEN.725. Report only; the build is GEN.1579.
-  Boss approved, 8:34 PM EST on 2026-11-11 ('Definitely replace the 375 K guard with physics, as soon as you have a method that is sound and well researched, let's do it', as the coordinator relayed): start the research now. The method must cover nitrogen, carbon dioxide and water mixes, every source written as its [R....] id, and the 2,000 K cap is kept.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1579, GEN.1555, GEN.1568, GEN.725.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1579 Replace MOIST_LIMIT_K in surface_air with the moist limit as a function of the air, so 375 K stops pinning dense nitrogen and CO2 airs**
   Lane 14 (as the lane reported 8:31 PM EST on 2026-11-11), GEN.1568 report reports/guards-2000k-375k-2026-11-12.md (sweep rows in reports/gen1568/). Build after the GEN.1578 research reports: replace the fixed MOIST_LIMIT_K guard in surface_air with the fitted limit, register the stand-in in GEN.725 (tier and tweak level), no second pass (the guard is inside the existing air solve; it rides the GEN.1548 air stage if that has landed). Expect the 24 census bodies to move out of the pile at 375 K, some into class N; the 2,000 K cap is kept (GEN.1568: classes N, B and the giant classes have no upper edge there, 86 census bodies, tier note T5, tweak L1). Done: census of the 24 bodies before and after (scripts/class_census.py), tests, the registry row. Lock item, new epoch.
   Boss, 8:40 PM EST on 2026-11-11: no extra logging here; the clamp warning is for the upper cap of GEN.1580 only.
@@ -12930,6 +12924,7 @@ clears each one.
   Filed by the TODO thread.
   Fold (TODO sweep, 2026-11-12): GEN.1568 (the guard report) is done and retired; this item and GEN.1580 are its builds.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the fitted moist limit as a pure function with tests (unwired), once GEN.1578 reports; slice 1 lock: replace the guard. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
+  Status (TODO, 2026-11-12): blocked. GEN.1578's report (/mnt/project-files/reports/moist-limit-method-2026-11-12.md) needs a lookup of outgoing flux against temperature, nitrogen and CO2 column and gravity (about 3,000 radiative-convective runs on the ExoMol k-tables, about 10 GB), fitted once on a machine that holds the tables (the gate machine or Boss's server). Not buildable without it.
 
 - [ ] **GEN.1580 Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K**
   Boss, 8:36 PM EST on 2026-11-11 (as the coordinator relayed): 'change the upper cap to something absurdly high, like the plasma temperature of oxygen at 1 atm or something similar, physics based but absurd, since nothing hits it now, I have a feeling it is going to come into play at some point.' Correction to the premise from the GEN.1568 report (reports/guards-2000k-375k-2026-11-12.md): the cap is hit today by 86 census bodies (49 class N, 22 T, 8 I, 5 G), so raising it changes their stored temperatures and may move some of them to other classes; this is a lock item, not a no-op. Do: pick a sourced ceiling (the ionization temperature of the dominant gas at the air's pressure, or the plasma-onset temperature; cite as an [R....] id and register it in GEN.725 with tier and tweak level; a single value is acceptable if the physics gives one for the gases that reach it), replace the 2,000 K constant, and search the code, class edges, sorts, displays, units and tests for anything that assumes 2,000 K (class N, B and the giant classes have no upper edge there per the GEN.1568 report; check the sheets, the sort keys and the golden fixtures). Done: census of the 86 bodies before and after (scripts/class_census.py) with each moved letter explained, the registry row, tests. Lock item, new epoch; it fits with GEN.1579 (the 375 K guard) in one air-stage change if both are ready.
@@ -13665,15 +13660,15 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): the slider thread (PR 6357). Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
-- [ ] **PERF.262 (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table**
-  Boss live observation on 8.0.3988 (2026-11-12): /lists answered 504 and both warm-up parts stop at Warm lists. Cause (Lane 04): COALESCE(subtype, '') in the uncharted class filter defeats the index, so the hypervelocity list scans the whole phenomenon_scatter table past the 10 s limit. Fix PR 6360. Lock-free, output unchanged.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
 - [ ] **PERF.263 The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401**
   Seen in Boss's warm-up log (Lane 04, 2026-11-12). Lock-free, display and web only.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: PERF.262.
   Filed by the TODO thread.
+
+- [ ] **GEN.1673 A better planet spacing rule (GEN.1521 chain rule) so far fewer belts need nudging outward**
+  Boss, 9:54 PM EST on 2026-11-12: "accept it but train 26, figure out a better fix". Train 25 accepts the higher belt nudge rate: belt.spacing_push rose from 0.0117 to 0.175 per system with the GEN.1521 chain rule and the GEN.1641 cap; baselines renewed by Lane 14's patches in reports/train25/. For Train 26: redesign how the chain rule and the belt placement work together, so a belt is placed clear of its neighbours from the start and seldom needs a push (for example, place belts from the planets' final chain positions, or have the chain rule treat a belt slot as occupied space). Keep GEN.1641's fix: no extra gap belts. Measure before and after on the same seeds: belt.spacing_push per system, belts per system by star type, and the census rows GEN.1641 named (G2V blue_green, F inner_multiplicity). Lock item (spacing changes output); Train 26.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: GEN.1641 (Train 25). Related: GEN.1521, GEN.1641, GEN.1537.
+  Filed by the TODO thread. Boss approved.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
