@@ -231,7 +231,7 @@ def adapt(conn, cap, queued, host=None, held=None, now=None):
     try:
         return _adapt(conn, cap, queued, host, held, _now(now))
     except Exception as exc:  # noqa: BLE001 -- an optimisation must never keep a run from getting workers
-        log.debug("adaptive worker control failed: %s", exc, area="queue")
+        log.debug("The adaptive worker control failed: %s", exc, area="queue")
         return cap
 
 

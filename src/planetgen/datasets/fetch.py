@@ -349,7 +349,7 @@ def locate(dataset):
         if not os.path.exists(path):
             lacking.append((piece, f"{piece.name} has not been downloaded"))
         elif not _is_good(path, piece):
-            log.debug("dataset %s: %s does not match the catalog (size or sha256)", dataset.key, piece.name)
+            log.debug("The piece %s of dataset %s does not match the catalog (size or sha256).", piece.name, dataset.key)
             lacking.append((piece, f"{piece.name} does not match the catalog's size or sha256"))
     if lacking:
         return Located(dataset, None, lacking[0][1], tuple(lacking))

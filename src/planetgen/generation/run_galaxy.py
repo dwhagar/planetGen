@@ -214,7 +214,7 @@ class _Pending:
             if self._limit is not None and taken >= self._limit:
                 break
             if not bounds.contains(address[0], address[1]):
-                log.debug(f"{_format_address(address)}: skipped (beyond the grid's reach)")
+                log.debug("Skipped %s, beyond the grid's reach.", _format_address(address))
                 skipped += 1
                 continue
             taken += 1
@@ -503,8 +503,8 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
         bar.close(success=not failed)     # nothing to draw: no bar left unmeasured
     run_plan.log_shells("Bright-star backfill", shells)
     if summary["sectors"]:
-        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), masses "
-                  f"{','.join(f'{mass:g}' for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)} Msun")
+        log.debug("Bright-star backfill: %s stars in %s sector(s), masses %s Msun.", summary["stars"], summary["sectors"],
+                  ",".join(f"{mass:g}" for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
     return summary
 
 
@@ -970,7 +970,7 @@ class RunBlocksFollower(followed.Follower):
         if result["nebulae"]:
             log.normal(f"Added {result['nebulae']:,} nebulae to the block totals.")
         for warning in result["warnings"]:
-            log.warning(f"{warning}")
+            log.warning(warning)
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -1337,7 +1337,7 @@ def _settle_named(args):
         conn.close()
     unknown = [sector_id for sector_id in ids if sector_id not in known]
     if unknown:
-        log.error(f"Error: --sector-id: no such sector: {', '.join(str(sector_id) for sector_id in unknown)}")
+        log.error(f"No such sector for --sector-id: {', '.join(str(sector_id) for sector_id in unknown)}")
         raise SystemExit(1)
     stages.begin(stages.for_command("settle", args), args, "settle")
     stages.enter("settle")
@@ -1734,7 +1734,7 @@ class SectorsFollower(followed.Follower):
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
         if plan["detail"].get("warning"):
-            log.warning(f"{plan['detail']['warning']}")
+            log.warning(plan["detail"]["warning"])
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
                        f"{program_constants.PROGRESS_LOG_SECONDS:g} s and each sector's own line is in the debug log.")
@@ -1945,12 +1945,8 @@ def _neighborhood_center(args):
         conn.close()
 
     if center_position is None:
-        log.error(
-            f"sector_id={args.center_sector} has never been placed in a galaxy (its galaxy-position "
-            f"columns are NULL) -- --center-sector requires an already galaxy-placed sector (one "
-            f"generated via 'planetgen galaxy' itself, not 'planetgen sector'). Use --shell to "
-            f"generate placed sectors from scratch instead."
-        )
+        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.",
+                  sector_id=args.center_sector)
         raise SystemExit(1)
     return (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
 
@@ -2484,11 +2480,8 @@ def _plan_random_start(args, edge_pc, progress):
             if args.min_start_density is not None else ""
         )
         within = f"within {args.max_shell} shells" if args.max_shell is not None else "in the galaxy"
-        log.error(
-            f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
-            f"-- this galaxy may already be almost entirely generated within that range, or that range "
-            f"may hold too little real stellar density; try a larger --max-shell."
-        )
+        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.",
+                  attempts=program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS)
         raise SystemExit(1)
     if len(starts) < args.neighborhoods:
         log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods "
@@ -2894,7 +2887,7 @@ def _check_plan(args, edge_pc):
     problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc,
                                    compute_battery=not getattr(args, "estimate_only", False))
     if warning:
-        log.warning(f"{warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
+        log.warning(warning)  # DB.7: a heads-up before it extends a mixed-version galaxy
     if problem:
         log.error(problem)
         raise SystemExit(1)
@@ -3046,8 +3039,8 @@ def _snap_to_region(args, edge_pc):
         finally:
             conn.close()
         if row is None or row["shell_index"] is None:
-            log.error(f"sector_id={args.center_sector} " + ("does not exist." if row is None else
-                      "has never been placed in a galaxy -- --region needs a sector with a grid address."))
+            log.error(f"Sector {args.center_sector} " + ("does not exist." if row is None else
+                      "has never been placed in a galaxy, and --region needs a sector with a grid address."))
             raise SystemExit(1)
         address = (row["shell_index"], row["band_index"], row["wedge_index"])
     else:

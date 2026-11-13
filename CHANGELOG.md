@@ -2,6 +2,57 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4043] - 2026-11-13
+
+**Headline:** The command-line, web, API and admin log lines now read as one sentence each, with no `error:` or `warning:` words in the text, and the log message check has no exceptions left.
+
+### Changed
+
+- OPS.176 (part 4 of the log reformat, Boss 3:06 PM EST on 2026-11-12): the 53 functions in `cli/`, `web/`, `api/` and `admin/` that broke the message text rules now follow them. Hand-made `error:`, `warning:`, `problem:` and `skipped:` words, and the `gate:`, `jobs:`, `worker exits:` and `update guard:` prefixes, are gone; each line starts with a capital and ends with a period, and the level carries the severity.
+- The worker's debug lines read as sentences (`The worker exits because the queue was empty.`; the old idle line printed "no work for its idle time s"), the long rate-limit and secret-key warnings of the web app and the repair-db hint are shorter (the hint is three lines), `planetgen reset`'s dry-run list and "ready for a new galaxy" hint are one sentence each, and an API call's debug line uses the one duration form.
+- `MESSAGE_TEXT_ALLOWED` in TEST.183 is empty, so every log line in the program is held to the message text rules from now on.
+
+generation-output: unchanged
+
+## [8.0.4042] - 2026-11-13
+
+**Headline:** The rest of the generation, galaxy, database, population and dataset log lines now read as one sentence each, and the debug lines that built text for every object no longer do so when nothing records debug.
+
+### Changed
+
+- OPS.175 (part 3 of the log reformat, Boss 3:06 PM EST on 2026-11-12): the 28 functions in `generation/`, `galaxy/`, `db/`, `population/`, `datasets/` and `util/log.py` that broke the message text rules now follow them (a capital first, a period last, no `Parity:`, `uncharted_index:` or `dataset ...:` prefixes, ids as fields such as `sector_id=` and `object_id=`).
+- The per-object debug lines of `generation/system.py`, `galaxy/sector.py`, `generation/life.py` and `population/model.py` are only built when something records debug (`log.debug_log_active()`), so a normal generation run no longer formats thousands of lines it throws away.
+- `log.choice` builds its text only when debug is on, with `%` arguments, and `log.timed_phase` writes `Phase <label> took <duration>.` in the one duration form; the exact milliseconds ride on the record as `elapsed_ms` for the opt-in sector benchmark, which reads them from there.
+- The entries of `MESSAGE_TEXT_ALLOWED` that named OPS.175 are removed, so TEST.183 fails if one of these lines breaks a rule again.
+
+generation-output: unchanged
+
+## [8.0.4041] - 2026-11-13
+
+**Headline:** The log lines of the job queue and the generation commands (galaxy, sector, system, phenomenon, plan) now read as one sentence each, with no `Error:` or `Warning:` words in the text; the level carries the severity.
+
+### Changed
+
+- OPS.174 (part 2 of the log reformat, Boss 3:06 PM EST on 2026-11-12): the 30 functions in `queue/` and `generation/run_*` that broke the message text rules now follow them. Hand-made `Error:`, `Warning:` and `WARNING:` words are gone, and the lines that carried them are written at the matching level (a warning was a normal line, so it now shows as a warning in the display, the file and the JSON).
+- Hand-made prefixes are gone (`gate:`, `dropped:`, `adaptive worker control failed`, `block light totals 3/12`, `bright-star band:`), every line starts with a capital and ends with a period, and the debug lines that built text for each object use `%` arguments.
+- The long "ran out of room" line of a sector is one short sentence with the cube edge as a field; the long block-light-totals and "galactic plane still qualified" lines are shorter.
+- The 30 entries of `MESSAGE_TEXT_ALLOWED` that named OPS.174 are removed, so TEST.183 now fails if one of these lines breaks a rule again.
+
+generation-output: unchanged
+
+## [8.0.4040] - 2026-11-13
+
+**Headline:** Every log line is now held to one message style, with one duration form (`340 ms`, `12.3 s`, `4:07`, `1:05:12`), and a test fails on a new line that breaks it; the lines already in the code are converted in the next three parts.
+
+### Changed
+
+- OPS.173 (part 1 of the log reformat, Boss 3:06 PM EST on 2026-11-12): a "Message text" section in `docs/design/operations/logging-standard.md` with nine rules (one sentence with a capital first and a period last, no severity word and no component prefix, ids and figures as fields, one duration form, counts with separators, at most 160 characters, progress lines from one ticker, error lines say what then why, levels, f-strings above debug and `%` arguments for per-object debug lines).
+- `logrecord.duration_text` is the one duration form. The two copies of `clock_text` (`util/joblog.py`, `cli/warm_progress.py`) are gone; a job log's closing line and the warm-up's "about 4:07 left" now use it, so a job that took under a minute says `340 ms` or `12.3 s` instead of `0:00`.
+- TEST.183 gets a third scan: it reads the first argument of every logger call and fails on a severity word, a component prefix, a lowercase first letter, a missing final period or more than 160 characters of fixed text. The 111 functions that still break a rule are named in `MESSAGE_TEXT_ALLOWED` with the item that converts them (OPS.174: `queue/` and `generation/run_*`, OPS.175: the rest, OPS.176: `cli/`, `web/`, `api/`, `admin/`); each part empties its share.
+- The two "Block light totals, part N of 2" lines of the block-light step word their count through `counting_text` (a hand-made count failed TEST.183 on main).
+
+generation-output: unchanged
+
 ## [8.0.4039] - 2026-11-13
 
 **Headline:** Small test clean-up from the retirement scan: the serialization fuzz runs five seeds instead of twenty, duplicate registry and sweep checks share helpers, and tests that only guard a removed thing are gone.

@@ -415,7 +415,7 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
                 decision, timed_out = Decision(True, f"waited {waited:,.0f} s; the table cap lets it in ({decision.reason})", decision.need_mb, decision.free_mb), True
             if decision.admit:
                 _write(conn, name, claim, pid, job, time.time())
-                log.debug(f"gate admits {claim.kind} ({claim.mb:,.0f} MB, {claim.cpu:g} core(s), {claim.lane}) for {name} after {waited:.1f} s: {decision.reason}", area="queue")
+                log.debug("The memory gate admits %s (%s MB, %g core(s), %s) for %s after %.1f s: %s", claim.kind, f"{claim.mb:,.0f}", claim.cpu, claim.lane, name, waited, decision.reason, area="queue")
                 if timed_out:
                     log.warning(f"The memory gate let {claim.kind} in after {waited:,.0f} s of waiting, by the table cap: {decision.reason}")
                 return Admission(waited, timed_out, decision)
@@ -440,7 +440,7 @@ def _adapt_to_wait(conn, claim, name, memory_waited):
         from planetgen.queue import adaptive
         adaptive.on_memory_wait(conn, name, claim.kind, memory_waited)
     except Exception as exc:  # noqa: BLE001 -- the control is an optimisation; a wait at the gate goes on without it
-        log.debug("gate: the adaptive worker control failed: %s", exc, area="queue")
+        log.debug("The adaptive worker control failed at the memory gate: %s", exc, area="queue")
 
 
 def refresh(conn, name, now=None):

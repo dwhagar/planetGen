@@ -12908,21 +12908,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
   Filed by the TODO thread.
 
-- [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
-- [ ] **OPS.175 Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments)**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, L1). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
-- [ ] **OPS.176 Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
 - [ ] **TEST.729 Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run)**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
@@ -13330,9 +13315,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: none. Related: GEN.1683, GEN.1680.
   Filed by the TODO thread.
 
-- [ ] **PERF.265 The workers' table warm-up starts while the parent plans each scatter pass**
-  From GEN.1683 (same report): up to about 70 s per pass. Do: start the warm-up in parallel with the parent's planning step under the memory gate (PERF.254). Output identical; lock-free.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: PERF.264. Related: GEN.1683, GEN.1680.
+- [ ] **GEN.1692 (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main**
+  Lane 12, 2026-11-13: tests/test_sweep_bulk.py::test_every_body_of_the_sweep_obeys_every_bulk_rule (radius-from-structure, marked slow so no changed-only gate caught it) fails on main for 4 bodies, all belt members promoted by GEN.1510 (PR 6019, generation/belt_planets.py; belt_rank set, belt_order 0): Algebum III 387.13 vs 395.87 km, Ulbarkator II 310.78 vs 311.14 km, Alcopri Carnoris II, Ahilounar II (gaps 0.1 to 2.2 percent). Do (physics first, no test slack): promote() sizes the promoted body from bulk_structure.structure like any planet; measure the radius and density shift of promoted bodies. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 22 (owns GEN.1510). Prerequisites: none. Related: GEN.1510, GEN.1668, GEN.1674.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

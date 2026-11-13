@@ -434,14 +434,16 @@ class StarSystem:
                 class_satisfied = self._forced_class_present()
                 habitable_stands = self._habitable_request_stands()
             if habitable_stands and belt_satisfied and class_satisfied:
-                log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
-                          f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
-                          f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
+                if log.debug_log_active():
+                    log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
+                              f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
+                              f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT}).")
                 break
             draw.redrawn("system.planets_regenerated")
-            log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
-                      f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
-                      f"required and found: {belt_satisfied})")
+            if log.debug_log_active():
+                log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
+                          f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
+                          f"required and found: {belt_satisfied}).")
             if self._request_unreachable:
                 break
 
@@ -511,7 +513,7 @@ class StarSystem:
                            f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
                            f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
         else:
-            log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
+            log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached).")
 
         # All planets and moons are generated without life data (see physics.planets's
         # module docstring). Apply it now, in one pass over the finished system, so
@@ -579,9 +581,10 @@ class StarSystem:
         self.habitable_class_count = self.count_habitable_class_worlds()
         self.habitable_request = self.habitable_request_status()
         self.comet_count = self.count_comets()
-        log.debug(f"System {self.name!r} finished: binary={self.binary_type or 'no'}, "
-                  f"{self.planet_count} planets, {self.belt_count} belts, {self.moon_count} moons, "
-                  f"{self.comet_count} comets, {self.hab_count} habitable")
+        if log.debug_log_active():
+            log.debug(f"System {self.name!r} finished: binary={self.binary_type or 'no'}, "
+                      f"{self.planet_count} planets, {self.belt_count} belts, {self.moon_count} moons, "
+                      f"{self.comet_count} comets, {self.hab_count} habitable.")
 
     @property
     def name(self):
@@ -1247,7 +1250,8 @@ class StarSystem:
                 star.axial_tilt_deg = spin.obliquity_between((star.spin_axis_x, star.spin_axis_y, star.spin_axis_z), pole)
             with draw.bound(draw.Stream(f"pair-activity:{star.mass!r}:{star.age!r}:{partner_kg!r}:{_km_to_au(node.separation_km)!r}")):
                 activity.generate_activity(star)
-            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronization time {result.sync_time_yr:.3g} yr)")
+            if log.debug_log_active():
+                log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronization time {result.sync_time_yr:.3g} yr).")
         for node_no, pair in under.items():
             if len(pair) == 2:
                 node = by_no[node_no]
@@ -1303,7 +1307,8 @@ class StarSystem:
         else:
             return
         draw.redrawn("planet.circumbinary_floor_push")
-        log.debug(f"Innermost body moved out to the circumbinary stability limit ({floor_au:.4g} AU)")
+        if log.debug_log_active():
+            log.debug(f"Innermost body moved out to the circumbinary stability limit ({floor_au:.4g} AU).")
 
     def _generate_planets(self, star, habitable_zone, orbit_ceiling_au, apply_guarantees=True):
         """
@@ -1702,8 +1707,9 @@ class StarSystem:
                 continue
             kept.append(body)
         if len(kept) != len(planets):
-            log.debug(f"Removed {len(planets) - len(kept)} bodies ruled out by the star's age or history "
-                      f"(age {star.age:.3g} Gyr, engulfed inside {engulfed_au:.3g} AU)")
+            if log.debug_log_active():
+                log.debug(f"Removed {len(planets) - len(kept)} bodies ruled out by the star's age or history "
+                          f"(age {star.age:.3g} Gyr, engulfed inside {engulfed_au:.3g} AU).")
         planets[:] = kept
 
     def _trim_to_orbit_ceiling(self, planets, orbit_ceiling_au):
@@ -2409,28 +2415,35 @@ class StarSystem:
                 if obj.body_type == 'a':  # a belt is not a body
                     continue
                 if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-                    log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr.")
                 for body in (obj, *obj.moons):
                     if planetPhysics.settle_orbit(body):
-                        log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                        if log.debug_log_active():
+                            log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
                 # the tides above can move a giant's eccentricity, and with it the mean light its radius was sized on (`orbit_elements.flux_distance_au`): size it again
                 # on the final orbit (a giant the tables moved by under `SETTLE_TOLERANCE` is left as it is)
                 if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-                    log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit")
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit.")
                 if planetPhysics.settle_envelope(obj):
-                    log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km.")
                 if planetPhysics.finish_orbit_oddities(obj):
-                    log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors")
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors.")
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
-                    log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
             # An eccentricity the settle pass raised or the oddities forced (a resonant chain's, W5) can close the gap the spacing pass left exactly at its rule; where the final check would now refuse a
             # star's planets, the pass is run once more on that star (it moves nothing where the rule holds, so a system that passes is untouched).
             respaced = False
             for star, planets in validation.star_lists(self):
                 if validation.check_orbit_spacing(planets):
                     for moved in validation.space_orbits(planets):
-                        log.debug(f"{getattr(moved, 'name', 'a belt')}: moved to {moved.distance:.4g} AU, the eccentricities having settled")
+                        if log.debug_log_active():
+                            log.debug(f"{getattr(moved, 'name', 'a belt')}: moved to {moved.distance:.4g} AU, the eccentricities having settled.")
                     # the pass only pushes outward, so it can carry the outermost body past the star's stability ceiling (a wide binary's a_crit) as the first spacing pass can: trimmed the same way
                     validation.trim_to_orbit_ceiling(planets, validation.orbit_ceiling_au(star))
                     respaced = True
@@ -2439,10 +2452,10 @@ class StarSystem:
             for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
                 moved = planetPhysics.settle_obliquity(planets, star.mass)
                 if moved:
-                    log.debug(f"{star.name}: {moved} planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances")
+                    log.debug(f"{star.name}: {moved} planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances.")
                 moon_tilts = planetPhysics.settle_moon_tilts(planets, star.mass)        # GEN.1556: the locked moons' Cassini states, once the planets' tilts are final
                 if moon_tilts:
-                    log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state")
+                    log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state.")
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
@@ -2504,7 +2517,8 @@ class StarSystem:
                         dropped += 1
         self.barred_world_dropped = dropped
         if dropped:
-            log.debug(f"{dropped} habitable bodies left a system that bars them")
+            if log.debug_log_active():
+                log.debug(f"{dropped} habitable bodies left a system that bars them.")
         return dropped > 0
 
     def count_habitable_class_worlds(self, planets=None):
