@@ -5397,7 +5397,7 @@ def _stamp_family(conn, family, system_ids):
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
         conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
+                     + ", ".join("(?, ?)" for _ in chunk) + f" AS written ON DUPLICATE KEY UPDATE {column} = written.{column}",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
 
 

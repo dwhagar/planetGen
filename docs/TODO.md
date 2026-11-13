@@ -13661,6 +13661,27 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23, with MAP.427. Prerequisites: none. Related: MAP.427, MAP.136.
   Filed by the TODO thread.
 
+- [ ] **GEN.1668 Promoted belt planets run through settle_obliquity and the rest of the settle pass: tilt range, chaotic-tilt check, tides and moon tilts**
+  Lane 12, 2026-11-12: belt members promoted to planets (GEN.1510, `_promote_belt_members`) are made after `settle_obliquity` runs, so they never get obliquity_min_deg/obliquity_max_deg and never the chaotic-tilt check. Free-spinning promoted planets (all class D in the sample, 18 of 18 on seeds 7100 to 7107) should go through settle_obliquity. Lock item (their tilt may change; epoch). Until it lands the property sheet carries a rule that promoted planets have no tilt range (Train 25 patch reports/train25/lane12-sheet-fill-obliquity.patch); remove that clause in this item.
+  Train Manager (Train 25 gate, 2026-11-12): the same promoted planets also miss tides and moon tilts from the settle pass; Lane 22 saw 41 of 93 locked planets in the tilt test were promoted ones. GEN.1510 now skips promotion round a star under 10 Myr (Lane 22, Train 25).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 12. Prerequisites: GEN.1510. Related: GEN.1510.
+  Filed by the TODO thread.
+
+- [ ] **TEST.738 Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale**
+  Train Manager, Train 25 gate (2026-11-12): the Train 25 head had stale generated docs (life-class-rules, stand-in-values, stand-ins.json). Add a regenerate_generated.py step to the pregate for every lock PR (runbook reports/merge-train-runbook-2026-10-29.md and docs/plan/lanes.md) and a check that fails when generated files differ from a fresh regenerate.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1668.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1669 (bug) A forced K5VI star classifies as subdwarf only about 92% of the time; a forced luminosity class must always hold**
+  Lane 21, 2026-11-12: test_forced_star's subdwarf test draws 10 unseeded K5VI stars and asks each to classify as subdwarf; 24 of 300 draws fail on main (23 of 300 on the Train 24 base), so the test fails about half its runs. Not a new regression. Fix the classifier (or the forced draw) so a forced class VI star is always class VI; output-changing, so a lock item for Train 26. Do not seed the test to hide it; the test stays as it is and goes green with the fix.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1670 Sulfur speciation in the equilibrium step, so warm water-poor rocky bodies can hold SO2 and class Y can occur**
+  Lane 21, 2026-11-12, after the GEN.1562 sulfur package (PR 6339, Train 26: N1, N2, N6, with N4 droppable): over 381 seeds class A stays 1 and class Y stays 0. Only 22 of 308 rocky airy bodies sit at 300 to 350 K and 1 of those is water-poor, and the traced warm body holds its sulfur as S2 in the closed-system equilibrium even with an oxidized mantle. Boss wants a chance of class Y: add sulfur speciation (S2, SO2, H2S, COS by temperature, pressure and oxygen fugacity) to the equilibrium step, and check whether warm water-poor rocky bodies are too rare. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1562 sulfur package (PR 6339). Related: GEN.1562.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
