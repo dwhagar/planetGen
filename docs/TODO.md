@@ -13160,6 +13160,7 @@ clears each one.
   Lane 21, 2026-11-12, after the GEN.1562 sulfur package (PR 6339, Train 26: N1, N2, N6, with N4 droppable): over 381 seeds class A stays 1 and class Y stays 0. Only 22 of 308 rocky airy bodies sit at 300 to 350 K and 1 of those is water-poor, and the traced warm body holds its sulfur as S2 in the closed-system equilibrium even with an oxidized mantle. Boss wants a chance of class Y: add sulfur speciation (S2, SO2, H2S, COS by temperature, pressure and oxygen fugacity) to the equilibrium step, and check whether warm water-poor rocky bodies are too rare. Lock item (output changes).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1562 sulfur package (PR 6339). Related: GEN.1562.
   Filed by the TODO thread.
+  Decision (Boss, 1:12 PM EST 2026-11-13, as the coordinator relayed): N1 through N6 of the sulfur package (/mnt/project-files/reports/gen1562/redox-lever-research-v2-2026-11-12.md) are approved, so N4 (mantle redox draw) stays in and is not dropped; N3 and N5 keep their present values. The package is PR 6339 in Train 26.
 
 - [ ] **GEN.1671 Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)**
   Fable thread whole-tree read (PR 6343 body, 2026-11-12): these helpers are copied across physics modules; keep one of each and import it everywhere. Output unchanged; lock-free.
