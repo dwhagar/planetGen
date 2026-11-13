@@ -845,8 +845,8 @@ class _InsideShell(_Everywhere):
         return shell <= self.outer and band == 0
 
 
-def test_the_default_luminosity_floor_is_9000():
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
+def test_the_default_luminosity_floor_is_18000():
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 18000.0
 
 
 def test_each_step_a_face_further_out_takes_the_next_mass():

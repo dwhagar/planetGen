@@ -612,7 +612,7 @@ class _BrightStarBook:
                   f"mass limit {self.mass_limit:g} solar masses")
 
 
-def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=""):
+def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag="", prepare=False):
     """
     The stages that pre-place the galaxy's bright stars on the stored plan into `bright_stars`, in the three star
     passes of GEN.185 (pass 1, the phenomena above the mass limit, and pass 5, the other phenomena, are
@@ -637,6 +637,9 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
         refuse (str, optional): The kind of scatter that is refused when its rows are stored (`_refuse_stored_scatter`, what
             `planetgen scatter` does), when the first pass opens.
         tag (str): Names this scatter among the others of the run that holds it (PERF.203), for what it reads when it opens.
+        prepare (bool): The clearing stage also stores the limits the scatter will run at (`store.record_bright_star_scatter`) as soon as it has emptied
+            the table, so the backfill that now runs between the clear and the passes reads the scatter's floor, mass limit and seed
+            and draws only the stars the passes leave out.
 
     Returns:
         tuple: `(followers, book)`: a `ScatterFollower` for each pass, and the `_BrightStarBook` that adds them up.
@@ -653,7 +656,7 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
         return wrapper.deferred("scatter-settings", merge=True, scope="bright-stars", stage=stage,
                                 database=wrapper.database_args(mysql_config), min_luminosity_sol=min_luminosity_sol,
                                 phenomenon_min_mass=getattr(args, "phenomenon_min_mass", None), passes=passes,
-                                run_id=getattr(args, "generation_run_id", None), refuse=refuse, tag=tag)
+                                run_id=getattr(args, "generation_run_id", None), refuse=refuse, tag=tag, prepare=prepare)
 
     book = _BrightStarBook(min_luminosity_sol)
     if "mass" in passes:
@@ -664,6 +667,8 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
             "min_luminosity_sol": min_luminosity_sol, "settings": settings("luminosity")}, None, book, last=True))
     if not passes:
         return [], book
+    if prepare and passes == ["luminosity"]:      # the clear before the backfill emptied the table already; this pass's own would take the backfill's stars
+        return list(book.followers), book
     return [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *book.followers], book
 
 
@@ -703,7 +708,8 @@ def _bright_star_settings(marker):
     found = {}
     if "mass" in passes:
         found["mass"] = {"mass_limit_sol": float(mass_limit), "clear": "all", "seed": mass_seed,
-                         **({"record": record} if passes == ["mass"] else {})}
+                         **({"record": record} if passes == ["mass"] else {}),
+                         **({"prepare": record} if marker.get("prepare") else {})}
     if "luminosity" in passes:
         clear = ({"clear": "luminosity", "clear_floor_sol": float(stored_settings[0] if stored_settings is not None
                                                                  else min_luminosity_sol),
@@ -745,6 +751,10 @@ def clear_bright_stars_unit(params, report):
     try:
         if clear == "all":
             store.clear_bright_stars(conn)
+            if params.get("prepare"):       # the limits stand from here, so the backfill before the passes draws only what they leave out
+                prepared = params["prepare"]
+                store.record_bright_star_scatter(conn, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
+                conn.commit()
         else:
             store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
                 store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]))
@@ -827,9 +837,9 @@ def _refusals_as_errors(run):
         raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
 
 
-def planned_bright_stars(args, passes=("mass", "luminosity"), refuse=None, tag=""):
+def planned_bright_stars(args, passes=("mass", "luminosity"), refuse=None, tag="", prepare=False):
     """The bright-star passes of `scatter_bright_stars` as a `followed.Planned`; its result is `book.summary()`."""
-    followers, book = bright_star_followers(args, passes, refuse, tag)
+    followers, book = bright_star_followers(args, passes, refuse, tag, prepare)
     return followed.Planned(followers + [BlockLightsFollower(args)], "Bright stars", book.summary)
 
 
