@@ -3036,6 +3036,15 @@ def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
     return classes
 
 
+def scatter_class_clause(entry):
+    """`(sql, params)` of one scattered class of `_scattered_classes` as a condition on `phenomenon_scatter`'s own columns, so MySQL can use
+    `idx_phenomenon_scatter_class (kind, subtype, mass_solar)`. a `COALESCE` of the subtype could not: a class whose rows sit late in the
+    table was found by walking it in id order, and the hypervelocity list timed out at 10 s."""
+    if entry["subtype"]:
+        return "(kind = ? AND subtype = ?)", [entry["kind"], entry["subtype"]]
+    return "(kind = ? AND (subtype IS NULL OR subtype = ''))", [entry["kind"]]
+
+
 def parse_scatter_start(text):
     """The jump-by-value start of the Phenomena table (PERF.135) as a scatter id: a whole number of at least 1.
 
@@ -3067,8 +3076,9 @@ def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=F
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
     clauses, params = [], []
     for entry in classes:
-        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
-        params.extend([entry["kind"], entry["subtype"]])
+        clause, values = scatter_class_clause(entry)
+        clauses.append(clause)
+        params.extend(values)
     later = ""
     if first is not None:
         later, params = "id >= ? AND ", [first] + params
@@ -3507,8 +3517,9 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None, start=None):
             classes = _scattered_classes(c, types, descriptors, placed)
             if not classes:
                 return 0
-            clauses = " OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes)
-            marks = [value for entry in classes for value in (entry["kind"], entry["subtype"])]
+            parts = [scatter_class_clause(entry) for entry in classes]
+            clauses = " OR ".join(sql for sql, _ in parts)
+            marks = [value for _, values in parts for value in values]
             return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({clauses})",
                              [first] + marks).fetchone()["n"]
 

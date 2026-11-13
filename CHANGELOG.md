@@ -2,6 +2,104 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3990] - 2026-11-13
+
+**Headline:** The air a world ends with is made in one step, with no change to any generated world.
+
+### Changed
+- **The steam-branch start temperature, the air oddities and the airless state are the solver's own step.** `planets.calculate_atmospheric_conditions` solved the air and then corrected the solver's input and output in three places of its own; `physics/air_final.py` now does all three (`make`) and returns one `FinalAir` that the planet stores without branching on how it came out (GEN.1657). The same draws come in the same order: 285 bodies of 30 seeds and 200 trials of the Earth analog are identical to main, so the golden does not move.
+
+## [8.0.3989] - 2026-11-13
+
+**Headline:** The Lists page and the cache warm-up no longer time out on the hypervelocity star list, because a scattered class is found through its own index instead of a walk of the whole table.
+
+### Fixed
+- **`/lists` answered 504 and stopped the cache warm-up.** The list of hypervelocity stars (and every other uncharted kind) picked its rows from `phenomenon_scatter` with `COALESCE(subtype, '') = ?` over the OR of the classes. A function of a column cannot use `idx_phenomenon_scatter_class`, so MySQL read the table in id order from the start, and a class whose rows sit late in it ran past the 10 second statement limit. The page of a kind now asks one class at a time on the columns themselves (`kind = ?` and `subtype = ?` or `IS NULL`), and the Phenomena table, its count and the search panel use the same clause (`query.scatter_class_clause`). On a 3,000,000-row copy the hypervelocity page went from 1.3 s with a full walk to 0.03 s on the class index.
+
+generation-affects: none
+
+## [8.0.3988] - 2026-11-13
+
+**Headline:** The map's far-layer browser test holds the whole-galaxy block part to its own bound again.
+
+### Fixed
+- **A browser test was red on main since ADM.148 to ADM.151.** `test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own` used to open the map in the "made" view, which drew no whole-galaxy blocks. With that view gone it opens the ordinary view, whose one part of block prisms (about the galaxy's middle, 15.5 kpc across in the fixture) was held to the 10 kpc a window's layers keep. The part is documented as spanning more (`static/camerarelative.js`), so the test now holds it to 50 kpc and every other layer to 10 kpc. No page code changes.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3987] - 2026-11-13
+
+**Headline:** Five planet class descriptions are rewritten to the plain-words guide: shorter sentences and a comma before the last "and".
+
+### Changed
+- **UX.306: the descriptions of the dead world, marginal world, anoxic world, carbon dioxide world, and cold methane world classes are split into sentences of 30 words or fewer, and lists of three keep the Oxford comma.** No exception was added to the plain-words test. Display text only; no generated output moves.
+
+generation-affects: none
+
+## [8.0.3986] - 2026-11-13
+
+**Headline:** The Queue page now shows what the queue has learned for each kind of job, next to the typed figure, with the latest changes it made, and lets an admin fix a claim, release it or make the queue forget a kind.
+
+### Changed
+- **OPS.158.** A panel "What the queue has learned" on `/admin/queue` lists, per job kind, the typed claim, the claim worked out from the job profile, a figure an admin fixed, the samples behind it and the newest change, and below it the latest 20 changes the queue and the admins made (each with its reason). New API: `GET /api/admin/work/tuning` and `POST /api/admin/work/tuning` (`pin` with `mb`, `unpin`, `clear`), audited as `work.tuning.*`. A fixed claim wins over the profile until it is released (`PLANETGEN_SELF_TUNING=0` does not lift it); forgetting a kind deletes its settled claim, its largest-peak memory, its starting limit and its profile rows, so its next run claims from the typed table and measures again.
+No drawn value changes, so there is no epoch or golden. The API gains routes only (no version bump).
+generation-output: unchanged
+
+## [8.0.3985] - 2026-11-13
+
+**Headline:** The number of workers a stage may run follows what that kind of unit has really used on this machine, and a stage starts with the worker limit where the last run of it settled.
+
+### Changed
+- **OPS.157.** `workers.stage_worker_cap` and `stage_worker_mb` take the connection and the run, and size a stage's workers by the claim the gate makes from the job profile (OPS.156; the typed table with no history), so the cap and the claim cannot disagree and a run holds one figure. The adaptive worker control remembers, per kind of stage, the limit it settled at after a memory wait (`adaptive._remember`, forgotten when memory has been free up to the cap), and a later stage of that kind starts there (`adaptive.start_limit`) instead of at the configured cap; a limit from another machine shape counts half. Both are logged with the kind, old and new value and the reason, and kept for the Queue page. `PLANETGEN_SELF_TUNING=0` restores the typed caps and the configured starting limit.
+No drawn value changes (the work seed does not depend on the worker count), so there is no epoch or golden.
+generation-output: unchanged
+
+## [8.0.3984] - 2026-11-13
+
+**Headline:** A job's memory claim on the gate now follows what that kind of job has actually used on this machine, so a claim that was too generous comes down and a memory kill still raises it.
+
+### Changed
+- **OPS.156.** `memorygate.claim_mb` reads the job profile (OPS.155) through the new `queue/profileclaim.py`: with at least 3 finished samples from this machine shape and generator epoch, a kind claims the 95th percentile of its last 30 peaks times a margin that falls from 1.25 to 1.10 as samples grow; the typed figure is then no floor, and the largest peak ever seen no longer holds a claim up for good. Samples from another machine shape or epoch count at half weight (the mean of their figure and the typed one). A kind with no history claims what it always did. The figure is worked out once per run, moves by at most 25 percent from the last run's, and a memory kill sets a floor the slow-move rule does not hold back. A retry still claims 1.5 times. Every change of a figure is logged (kind, old and new, the samples, the source and the reason) and kept in Redis for the Queue page (OPS.158). `PLANETGEN_SELF_TUNING=0` restores the typed claims exactly.
+No drawn value changes, so there is no epoch or golden.
+generation-output: unchanged
+
+## [8.0.3983] - 2026-11-13
+
+**Headline:** The queue now keeps a record of what each kind of job costs in memory and time, so later work can size claims, workers and splits from this machine's own history.
+
+### Changed
+- **OPS.155.** A new control database table, `job_profiles` (control schema v22, placeholder number for Lane 02 to renumber), takes one row for every finished unit (its items, worked seconds and memory and processor as a peak and an average, with the seconds and MB per item and a size bucket), for every other gated job (peak and seconds held), for every finished stage (wall seconds, the longest and mean unit, and the units' peak and average memory and processor) and for every memory kill. Each row says which machine shape and generator epoch measured it. Every sample is also logged (debug level, area queue). The writers are the paths that already measured these numbers (`units._do_unit` with a `usage.Usage` the unit's beat thread feeds, `memorygate.refresh` and `release`, `runrecord`'s stage end, `units.horse_killed`); a failed write is dropped and the writer leaves the database alone for a minute, and `PLANETGEN_JOB_PROFILES=0` turns it off. Nothing reads the table, so no run, claim, worker count or split changes. Each kind and bucket keeps its newest rows.
+No drawn value changes, so there is no epoch or golden; the control schema bump rides Train 26.
+generation-output: unchanged
+
+## [8.0.3982] - 2026-11-12
+
+**Headline:** The system summary stamp upsert no longer uses the deprecated `VALUES()` function, which a new portability check refused.
+
+### Changed
+
+- `store._stamp_family` (the GEN.1498 ledger stamp and the other derived stamps it writes into `system_summary`) writes its upsert with the row alias form, `INSERT ... VALUES ... AS written ON DUPLICATE KEY UPDATE column = written.column`, as the other upserts since MySQL 8.0.20 do, so `test_sql_portability::test_no_new_values_function_in_on_duplicate_key_update` (TEST.695) passes again. The rows written are the same.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3981] - 2026-11-12
+
+**Headline:** The tuning fuzz check no longer mistakes the white dwarf core table for low-high ranges.
+
+### Fixed
+- **`test_every_numeric_constant_is_finite_and_every_pair_ordered` failed on `WD_CENTRAL_OXYGEN_BY_MASS_SOL` (GEN.1370).** The check reads every two-number tuple as (low, high); the table's knots are (white dwarf mass, central oxygen fraction), so the check now lists it with the other knot tables. Test only. generation-output: unchanged
+
+## [8.0.3980] - 2026-11-12
+
+**Headline:** The warm-up log tests read the one duration form that OPS.173 introduced, which turns main green again.
+
+### Changed
+
+- `test_warm_log.py` matches the closing lines of a warm-up run ("finished after 0 ms", "ended by Ctrl+C after 12.3 s") in any of the one duration forms instead of only `m:ss`; OPS.173 had left it on the old form.
+
+generation-output: unchanged
+
 ## [8.0.3979] - 2026-11-12
 
 **Headline:** The progress lines of the long loops (block light totals, sector stages, downloads) work again: the ticker called a time formatter that the message text standard had removed, so its lines would have failed.
