@@ -2,6 +2,140 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4043] - 2026-11-13
+
+**Headline:** The command-line, web, API and admin log lines now read as one sentence each, with no `error:` or `warning:` words in the text, and the log message check has no exceptions left.
+
+### Changed
+
+- OPS.176 (part 4 of the log reformat, Boss 3:06 PM EST on 2026-11-12): the 53 functions in `cli/`, `web/`, `api/` and `admin/` that broke the message text rules now follow them. Hand-made `error:`, `warning:`, `problem:` and `skipped:` words, and the `gate:`, `jobs:`, `worker exits:` and `update guard:` prefixes, are gone; each line starts with a capital and ends with a period, and the level carries the severity.
+- The worker's debug lines read as sentences (`The worker exits because the queue was empty.`; the old idle line printed "no work for its idle time s"), the long rate-limit and secret-key warnings of the web app and the repair-db hint are shorter (the hint is three lines), `planetgen reset`'s dry-run list and "ready for a new galaxy" hint are one sentence each, and an API call's debug line uses the one duration form.
+- `MESSAGE_TEXT_ALLOWED` in TEST.183 is empty, so every log line in the program is held to the message text rules from now on.
+
+generation-output: unchanged
+
+## [8.0.4042] - 2026-11-13
+
+**Headline:** The rest of the generation, galaxy, database, population and dataset log lines now read as one sentence each, and the debug lines that built text for every object no longer do so when nothing records debug.
+
+### Changed
+
+- OPS.175 (part 3 of the log reformat, Boss 3:06 PM EST on 2026-11-12): the 28 functions in `generation/`, `galaxy/`, `db/`, `population/`, `datasets/` and `util/log.py` that broke the message text rules now follow them (a capital first, a period last, no `Parity:`, `uncharted_index:` or `dataset ...:` prefixes, ids as fields such as `sector_id=` and `object_id=`).
+- The per-object debug lines of `generation/system.py`, `galaxy/sector.py`, `generation/life.py` and `population/model.py` are only built when something records debug (`log.debug_log_active()`), so a normal generation run no longer formats thousands of lines it throws away.
+- `log.choice` builds its text only when debug is on, with `%` arguments, and `log.timed_phase` writes `Phase <label> took <duration>.` in the one duration form; the exact milliseconds ride on the record as `elapsed_ms` for the opt-in sector benchmark, which reads them from there.
+- The entries of `MESSAGE_TEXT_ALLOWED` that named OPS.175 are removed, so TEST.183 fails if one of these lines breaks a rule again.
+
+generation-output: unchanged
+
+## [8.0.4041] - 2026-11-13
+
+**Headline:** The log lines of the job queue and the generation commands (galaxy, sector, system, phenomenon, plan) now read as one sentence each, with no `Error:` or `Warning:` words in the text; the level carries the severity.
+
+### Changed
+
+- OPS.174 (part 2 of the log reformat, Boss 3:06 PM EST on 2026-11-12): the 30 functions in `queue/` and `generation/run_*` that broke the message text rules now follow them. Hand-made `Error:`, `Warning:` and `WARNING:` words are gone, and the lines that carried them are written at the matching level (a warning was a normal line, so it now shows as a warning in the display, the file and the JSON).
+- Hand-made prefixes are gone (`gate:`, `dropped:`, `adaptive worker control failed`, `block light totals 3/12`, `bright-star band:`), every line starts with a capital and ends with a period, and the debug lines that built text for each object use `%` arguments.
+- The long "ran out of room" line of a sector is one short sentence with the cube edge as a field; the long block-light-totals and "galactic plane still qualified" lines are shorter.
+- The 30 entries of `MESSAGE_TEXT_ALLOWED` that named OPS.174 are removed, so TEST.183 now fails if one of these lines breaks a rule again.
+
+generation-output: unchanged
+
+## [8.0.4040] - 2026-11-13
+
+**Headline:** Every log line is now held to one message style, with one duration form (`340 ms`, `12.3 s`, `4:07`, `1:05:12`), and a test fails on a new line that breaks it; the lines already in the code are converted in the next three parts.
+
+### Changed
+
+- OPS.173 (part 1 of the log reformat, Boss 3:06 PM EST on 2026-11-12): a "Message text" section in `docs/design/operations/logging-standard.md` with nine rules (one sentence with a capital first and a period last, no severity word and no component prefix, ids and figures as fields, one duration form, counts with separators, at most 160 characters, progress lines from one ticker, error lines say what then why, levels, f-strings above debug and `%` arguments for per-object debug lines).
+- `logrecord.duration_text` is the one duration form. The two copies of `clock_text` (`util/joblog.py`, `cli/warm_progress.py`) are gone; a job log's closing line and the warm-up's "about 4:07 left" now use it, so a job that took under a minute says `340 ms` or `12.3 s` instead of `0:00`.
+- TEST.183 gets a third scan: it reads the first argument of every logger call and fails on a severity word, a component prefix, a lowercase first letter, a missing final period or more than 160 characters of fixed text. The 111 functions that still break a rule are named in `MESSAGE_TEXT_ALLOWED` with the item that converts them (OPS.174: `queue/` and `generation/run_*`, OPS.175: the rest, OPS.176: `cli/`, `web/`, `api/`, `admin/`); each part empties its share.
+- The two "Block light totals, part N of 2" lines of the block-light step word their count through `counting_text` (a hand-made count failed TEST.183 on main).
+
+generation-output: unchanged
+
+## [8.0.4039] - 2026-11-13
+
+**Headline:** Small test clean-up from the retirement scan: the serialization fuzz runs five seeds instead of twenty, duplicate registry and sweep checks share helpers, and tests that only guard a removed thing are gone.
+
+### Changed
+- **TEST.734: `test_bughunt_serialization_fuzz.py` runs 5 seeds, was 20 (about 400 s off a full run), and its two identical phenomenon and compact-remnant round-trip tests are one parametrised test.**
+- **TEST.735: the registry checks of the atmosphere and young-group draws share `tests/standin_registry_support.py`, and the three sweep files (atmosphere, bulk, class) share `sweep.assert_rules_obeyed`, `assert_every_rule_can_fail` and `assert_rules_are_complete`.** The tests keep their names and what they check.
+- **TEST.736 (the part that touches no code): the wiki-routes-gone and no-wiki-url API tests (they would block the 9.1 spakr link plan), the retired-K-window notes test, the equipment-tags-no-levels-link test, the class-table-has-no-age-ranges test, the comparison to the retired activity table (the Skumanich band check stays) and the one-time black-hole print are retired; three tests lose only their "is gone" line or name.** The two back-compat tests that guard a shim (`test_belt_dose`, `test_benchmark`) are left for TODO, who checks them against the layered-fix scan. Tests only; no generated output moves.
+
+generation-affects: none
+
+## [8.0.4038] - 2026-11-13
+
+**Headline:** The Generate page's galaxy measures are sliders, each with a tick box and a typed box above the bar and a bar that sticks to where Auto sits.
+
+### Changed
+- **Every number and length measure of the lever table (stellar mass, compactness, density, disk scale length, flatness, bulge share and size, nuclear structures, edge, halo ratio, stellar halo share, star richness, arm count, pitch angle, arm contrast) is a slider on the Generate page.** The tick box and the typed box share one row above the bar. Unticked is Auto, as before (the box is blank and no flag goes to the plan); ticked, the bar and the box set the value. Each bar runs over the row's allowed range (logarithmic for a mass, a density or a ratio) and rests at the middle of what Auto draws, `typical` in `planetgen.galaxy.dials`, where it sticks when dragged near. The two choice rows (shape and rogue planets) stay dropdowns. The Plan flags, the ranges and the generated output are unchanged.
+
+generation-affects: none
+
+## [8.0.4037] - 2026-11-13
+
+**Headline:** The self-tuning log prints worker counts as whole numbers again.
+
+### Fixed
+- **Self-tuning log line for workers and start limits.** `profileclaim.log_change` wrote "start limit of unit:link-neighbors was 8.0, now 3.0"; worker counts and start limits now print with no decimal ("was 8, now 3"), which `test_stage_worker_profile` checks. Memory claims keep one decimal.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4036] - 2026-11-13
+
+**Headline:** A run that generates thousands of sectors no longer writes a normal-level line (and a summary of several lines) for every sector it saves; the stage says how many are saved every 30 seconds instead, and each sector's own line is in the debug log.
+
+### Changed
+- **Per-sector lines at debug (OPS.172).** The `Saved sector '...'` line and the sector's summary (`Systems:`, `Totals:`, `Star density:`) of the bulk stages (`SectorsFollower`'s default announce `_log_saved`, and `UnplacedSectorsFollower` of the `sector` command) are debug records now. The single-sector paths (a named wedge, an address, the random starting sector) keep them at normal, since that sector is the result asked for. `run_sector._log_summary` takes the `say` to log with.
+- **A roll-up through the ticker.** Both followers use the progress ticker of OPS.169: `Sectors: 1,240 of 4,000 done (31%), 2.1 per s, 9:50 elapsed.` every `PROGRESS_LOG_SECONDS` and a closing line with the final count. The `Generating N sector(s)` line says so.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4035] - 2026-11-13
+
+**Headline:** The eleven jobs of a generation run that used to show nothing between their start and their end (the galaxy skeleton, the clears and empties, the phenomena and nebula draws, the luminosity fill, the habitability and ledger passes) now say each phase they are in and move a bar.
+
+### Changed
+- **Phase lines and progress for the 11 silent units (OPS.170).** `plan_skeleton_unit` (nine phases), `clear_bright_stars_unit`, `empty_nebula_field_unit`, `empty_phenomenon_scatter_unit`, `drop_phenomenon_indexes_unit` and `clear_scatter_unit` say each phase with the time since the unit began (`Emptying the bright stars (0:03 elapsed).`), set the unit's phase for the heartbeat and report the steps done. `draw_nebula_field_unit` reports a slab at a time, `scatter_phenomena_unit` a run of shells at a time (with a ticker line, OPS.169), `fill_map_luminosity_unit` its three phases, and `rescore_habitability_unit` and `refill_effect_ledger_unit` every 100 systems with a ticker line every 30 seconds. The units that come many to a stage keep their own begin lines at debug, so the stage log does not grow by a line for each.
+- **A bar for the stages of one unit.** `UnitBarFollower` (the skeleton, the clears, the empties and the index drop) draws a share-done bar moved by the unit's reports; it appears only if the unit runs past `PROGRESS_BAR_SECONDS`, and is full when the unit is back.
+- No unit takes `report` and ignores it any more; `test_unit_reports.py` fails when one does.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4034] - 2026-11-13
+
+**Headline:** Every long loop that says where it is now does it through one progress ticker at one cadence (a line every 30 seconds), with the same wording everywhere, instead of five hand-made clocks that each said it their own way.
+
+### Changed
+- **One ticker (OPS.169).** New `util/ticker.py`: `Ticker(label, total)` says `Label: 1,240 of 4,000 done (31%), 41.3 per s, 0:30 elapsed.` at most every `tuning.PROGRESS_LOG_SECONDS`; `Ticker(..., percent=True)` is for a counter on a bar's scale; `Pulse` is a thread that speaks on the cadence for work that goes quiet between counts; `stamp()` is the one form of the hand `[12 s into the stage]` stamp, now `(0:12 elapsed)`.
+- **The copies are gone.** `block_lights.PROGRESS_SAY_SECONDS`, `uncharted_index.SAY_SECONDS` and the `refresh_block_lights` and `BlockLightsFollower` hand throttles and thread are replaced by the ticker. The download lines (`datasets.fetch.PROGRESS_SECONDS`, was 10 s) and the warm-up lines (`warm_progress.PROGRESS_SECONDS`, was 60 s, still held back by ten percentage points) now use the same `tuning.PROGRESS_LOG_SECONDS`.
+- The lines read `Block light totals, units: 3 of 40 done (8%), 12,000 rows written, 0:41 elapsed.` and `Uncharted sectors, shells: ...` in place of the old per-place wording; the block light stage's pulse reads `Making the block light totals: 37% done, still working, 4:07 elapsed.`
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4033] - 2026-11-13
+
+**Headline:** Six quiet error handlers in the job profile code now leave a debug line.
+
+### Fixed
+- **OPS.168 on the self-tuning jobs (OPS.155 to 158).** `jobprofiles` (buffer pool read, connection close), `memorygate` (usage note at the heartbeat), `profileclaim` (pin read) and `usage` (processor time, resident memory) went on past a failure with no trace, which `test_every_broad_except_reraises_or_logs` flags. Each now calls `log.swallowed`, one debug line and nothing at normal level; what each handler returns is unchanged.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4032] - 2026-11-13
+
+**Headline:** The independent overlap verifier stays outside the generator on purpose; the wiring register now says so in one row instead of two.
+
+### Changed
+- **`physics/clearance.py` is by design read only by the tests (GEN.1685).** It must not share a bug with the generator it checks, so the stability gate of GEN.1016 does not call it; the seed sweep in `tests/test_clearance.py` builds, stores and audits systems with it. The register's second row (waiting on the gate) is gone and the first says what reads the verifier.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4031] - 2026-11-13
 
 **Headline:** A sector that holds a star system, or whose fill was recorded, is charted even when the chart ledger lost its row: the next update writes the missing rows, so "Galaxy at a glance" and the Galaxy page count it again, and the update says how many sectors it found in that state.

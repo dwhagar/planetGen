@@ -50,7 +50,7 @@ def main(argv=None):
     try:
         lifted = store.lift(scope, subject)
     except redis.RedisError as exc:
-        log.error(f"error: could not use Redis at {ratelimit_storage_uri()} ({exc}).")
+        log.error(f"Redis at {ratelimit_storage_uri()} could not be used ({exc}).")
         return 1
     target = f"{scope}:{subject}" if scope else "all"
     activity_log.event("DB", "lockout.lift", user=activity_log.login_name(), target=target, lifted=lifted)

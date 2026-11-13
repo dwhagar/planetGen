@@ -34,6 +34,7 @@ failed, when no MySQL test server is configured/reachable.
 import argparse
 import math
 import os
+import re
 import sys
 from unittest import mock
 
@@ -1792,7 +1793,9 @@ def test_a_batch_says_how_many_sectors_it_runs_and_reports_each_with_its_stats(m
     _run_cli(["--shell", "2", "--band", "2", "--limit", "2"] + _mysql_argv(mysql_config))
     out = capsys.readouterr().out
     assert "Generating 2 sector(s) with" in out
-    assert out.count("Saved sector") == 2 and out.count("Totals:") == 2 and out.count("Star density: actual") == 2
+    # OPS.172: each sector's own line and summary are debug lines; the stage says its progress through the ticker and a closing line.
+    assert "Saved sector" not in out and "Totals:" not in out
+    assert re.search(r"\b2 of 2 done \(100%\)", out), out
 
 
 def test_the_freshness_state_does_not_build_the_galaxy_shape(mysql_config, monkeypatch):

@@ -41,11 +41,13 @@ from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.generation.wide_binary import WideBinaryPair
 
-# A modest subset of the full 150-seed fuzz list -- a full StarSystem
+# A small subset of the full 150-seed fuzz list -- a full StarSystem
 # generation (with binaries) is far more expensive per-iteration than the
-# pure-function fuzz tests, so this trades seed-count for still covering
-# every star-type/binary-shape combination below at least once.
-_SEEDS = FUZZ_SEEDS[:20]
+# pure-function fuzz tests, so this trades seed-count for time (TEST.734: 5
+# seeds, was 20, about 400 s off a full run; the shapes each test names are
+# built by the test itself, not drawn by the seed, so five seeds still reach
+# each one).
+_SEEDS = FUZZ_SEEDS[:5]
 
 STANDALONE_PHENOMENON_CLASSES = [Nebula, SupernovaRemnant, RoguePlanet, InterstellarComet, AsteroidField]
 
@@ -88,19 +90,9 @@ def test_system_config_roundtrip_fuzz():
 
 # --- Standalone phenomena --------------------------------------------------
 
-@pytest.mark.parametrize("cls", STANDALONE_PHENOMENON_CLASSES)
-def test_standalone_phenomenon_roundtrip_fuzz(cls):
-    def check(seed):
-        cfg = _make_config()
-        obj = cls(cfg)
-        _assert_roundtrip(obj, cls, f"{cls.__name__} seed={seed}", cfg)
-
-    from tests.bughunt_support import run_seeded
-    run_seeded(check, seeds=_SEEDS)
-
-
-@pytest.mark.parametrize("cls", [BlackHole, NeutronStar])
-def test_compact_remnant_roundtrip_fuzz(cls):
+@pytest.mark.parametrize("cls", [*STANDALONE_PHENOMENON_CLASSES, BlackHole, NeutronStar])
+def test_phenomenon_roundtrip_fuzz(cls):
+    """The standalone phenomena and the compact remnants share one body (TEST.734: two tests had the same one)."""
     def check(seed):
         cfg = _make_config()
         obj = cls(cfg)

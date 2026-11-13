@@ -242,7 +242,8 @@ class Comet(SmallBody):
 
         if orbit_type:
             self.orbit_type = orbit_type
-            log.debug(f"Comet orbit type: {orbit_type!r} (forced)")
+            if log.debug_log_active():
+                log.debug(f"Comet orbit type: {orbit_type!r} (forced).")
         else:
             self.orbit_type = (
                 "parabolic" if draw.random() < tuning.COMET_PARABOLIC_CHANCE else "elliptical"
