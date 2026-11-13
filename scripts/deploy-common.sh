@@ -381,7 +381,7 @@ ensure_redis() {
     }
     host="$("$PYTHON" -c "import sys; from urllib.parse import urlsplit; print(urlsplit(sys.argv[1]).hostname or '')" "$url")"
     if redis_answers "$url"; then
-        log_info "Redis: answering at $url"
+        log_info "Redis: answering at $(log_mask "$url")"
         return 0
     fi
     if [[ "$host" == 127.0.0.1 || "$host" == localhost || "$host" == ::1 ]] && ! is_macos \
@@ -400,11 +400,11 @@ ensure_redis() {
             fi
         fi
         if redis_answers "$url"; then
-            log_info "Redis: answering at $url"
+            log_info "Redis: answering at $(log_mask "$url")"
             return 0
         fi
     fi
-    log_warning "no Redis server answers at $url (config.json's redis.url)."
+    log_warning "no Redis server answers at $(log_mask "$url") (config.json's redis.url)."
     if is_macos; then
         log_warning "  Install and start it as your own user: brew install redis && brew services start redis"
     else

@@ -2,6 +2,7 @@
 
 import io
 import json
+import sys
 import logging
 
 import pytest
@@ -130,3 +131,32 @@ def test_error_log_job_log_callback_and_relay_are_masked(tmp_path):
 def test_write_line_masks(capsys):
     log.write_line(f"another process said password={PASSWORD}")
     assert leaks(capsys.readouterr().out) == []
+
+
+def _shell(command):
+    import os
+    import subprocess
+    root = os.path.join(os.path.dirname(__file__), "..", "..")
+    env = dict(os.environ, PYTHONPATH=os.path.join(root, "src"), PYTHON=sys.executable)
+    return subprocess.run(["bash", "-c", f"source scripts/logrecord.sh; {command}"], cwd=root, env=env, capture_output=True, text=True,
+                          check=False)
+
+
+def test_shell_log_lines_are_masked():
+    """The update and install scripts print through `log_record`: the Redis line of `update.sh` showed the password in full."""
+    done = _shell(f"log_info \"Redis: answering at {REDIS_URL}\"; log_warning \"using --mysql-password {PASSWORD}\"; "
+                  f"log_info \"api_key={KEY} {DB_URL}\"; log_info 'Stage 4 of 9: nothing secret here'")
+    assert leaks(done.stdout + done.stderr) == []
+    assert "Stage 4 of 9: nothing secret here" in done.stdout
+    assert "tok-XXXXXXXXXXXXXXXX06@127.0.0.1" in done.stdout or "@127.0.0.1:6379/0" in done.stdout
+
+
+def test_shell_masks_without_python():
+    done = _shell(f"PYTHON=/nonexistent log_info \"{REDIS_URL} password={PASSWORD}\"")
+    assert leaks(done.stdout) == []
+
+
+def test_a_redis_address_in_an_error_message_is_masked():
+    from planetgen.queue import api_jobs
+    assert leaks(secrets_mask.mask_text(f"no Redis server answers at {REDIS_URL} (config.json's redis.url)")) == []
+    assert "secrets_mask.mask_text(url)" in open(api_jobs.__file__).read()
