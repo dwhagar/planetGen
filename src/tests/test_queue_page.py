@@ -714,3 +714,61 @@ def test_the_two_duration_formats_stay_apart():
     assert queue_page._beat_gap(5) == "5 s" and queue_page._beat_gap(240) == "4 min" and queue_page._beat_gap(7800) == "2 h 10 min"
     names = [node.name for node in ast.parse(inspect.getsource(queue_page)).body if isinstance(node, ast.FunctionDef)]
     assert len(names) == len(set(names)), "a function is defined twice in web/queue_page.py"
+
+
+# --- OPS.158: what the queue has learned per job kind -----------------------------------------------------------------
+
+@pytest.fixture
+def gate_keys(key_prefix, monkeypatch):
+    from planetgen.queue import memorygate, profileclaim
+    monkeypatch.setattr(memorygate, "PREFIX", f"{key_prefix}:gate")
+    monkeypatch.setenv(profileclaim.ENV_VAR, "1")
+
+
+def test_the_tuning_api_needs_an_admin(web_app):
+    client = web_app.test_client()
+    assert client.get("/api/admin/work/tuning").status_code == 401
+    assert client.post("/api/admin/work/tuning", json={"action": "clear", "kind": "unit:x"}).status_code == 401
+
+
+def test_the_tuning_api_pins_unpins_and_clears_a_kind_and_logs_each(admin_client, control_config, conn, gate_keys):
+    from planetgen.queue import memorygate, profileclaim
+    memorygate.learn(conn, "unit:link-neighbors", 900.0)
+    body = admin_client.post("/api/admin/work/tuning", json={"action": "pin", "kind": "unit:link-neighbors", "mb": 1500}).get_json()
+    (row,) = [r for r in body["kinds"] if r["kind"] == "unit:link-neighbors"]
+    assert row["pinned_mb"] == 1500.0 and row["typed_mb"] > 0 and body["self_tuning"] is True
+    assert body["changes"][0]["what"] == "pin" and body["changes"][0]["new"] == 1500.0
+    assert profileclaim.claim(conn, "unit:link-neighbors", 700.0, token="r1", read_rows=lambda kind: []) == 1500.0
+    assert memorygate.claim_mb(conn, "unit:link-neighbors", 700.0, known={}) == 1500.0
+    assert admin_client.post("/api/admin/work/tuning", json={"action": "unpin", "kind": "unit:link-neighbors"}).status_code == 200
+    assert admin_client.post("/api/admin/work/tuning", json={"action": "unpin", "kind": "unit:link-neighbors"}).status_code == 404
+    assert admin_client.post("/api/admin/work/tuning", json={"action": "clear", "kind": "unit:link-neighbors"}).status_code == 200
+    assert memorygate.learned(conn).get("unit:link-neighbors") is None
+    assert [c["what"] for c in admin_client.get("/api/admin/work/tuning").get_json()["changes"]][:3] == ["clear", "unpin", "pin"]
+    assert {"work.tuning.pin", "work.tuning.unpin", "work.tuning.clear"} <= set(_audit(control_config))
+
+
+@pytest.mark.parametrize("body", [{"action": "pin", "kind": "unit:x"}, {"action": "pin", "kind": "unit:x", "mb": 10}, {"action": "stir", "kind": "unit:x"},
+                                  {"action": "clear", "kind": "no spaces or colons"}, {"action": "clear"}])
+def test_the_tuning_api_refuses_a_bad_ask(admin_client, gate_keys, body):
+    assert admin_client.post("/api/admin/work/tuning", json=body).status_code == 400
+
+
+def test_the_queue_page_shows_the_learned_figures_and_the_latest_changes(admin_client, conn, gate_keys):
+    from planetgen.queue import profileclaim
+    assert "What the queue has learned" not in admin_client.get("/admin/queue").get_data(as_text=True)
+    profileclaim.pin(conn, "unit:link-neighbors", 1500.0, "boss")
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "What the queue has learned" in html and "unit:link-neighbors" in html and "1,500 MB" in html and "fixed by boss" in html
+
+
+def test_the_queue_page_controls_pin_release_and_forget(web_app, admin_client, conn, gate_keys):
+    from planetgen.queue import profileclaim
+    assert _post(web_app, admin_client, action="tuning-pin", kind="unit:link-neighbors", mb="1800").status_code == 303
+    assert profileclaim.pinned_mb(conn, "unit:link-neighbors") == 1800.0
+    assert _post(web_app, admin_client, action="tuning-pin", kind="unit:link-neighbors", mb="").status_code == 303
+    assert profileclaim.pinned_mb(conn, "unit:link-neighbors") == 1800.0
+    _post(web_app, admin_client, action="tuning-unpin", kind="unit:link-neighbors")
+    assert profileclaim.pinned_mb(conn, "unit:link-neighbors") is None
+    _post(web_app, admin_client, action="tuning-clear", kind="unit:link-neighbors")
+    assert profileclaim.changes(conn)[0]["what"] == "clear"
