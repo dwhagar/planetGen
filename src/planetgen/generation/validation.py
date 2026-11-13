@@ -189,6 +189,8 @@ def reconcile_moved_planet(planet):
     if getattr(planet, "_deferred_climate", None) is not None:
         # GEN.1282: a planet built without its climate has no air or moons to make again; `finish_climate` makes them at this distance.
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+        if getattr(planet, "_motion_done", False):
+            planetPhysics.update_orbital_position(planet)      # GEN.1548: its position and velocity were made at the old distance (`finish_motion`)
         return
     planetPhysics.calculate_atmospheric_conditions(planet)
     planetPhysics.prepare_class(planet)
