@@ -822,7 +822,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
     _logger.setLevel(logging.DEBUG if (debug_log or _relay_handler is not None) else console_level)
     _sync_tracing()
     if debug_log and not was_active:
-        _logger.debug("Debug log opened (planetGen %s, Python %s, argv=%r, cwd=%s, uid=%s)",
+        _logger.debug("Debug log opened (planetGen %s, Python %s, argv=%r, cwd=%s, uid=%s).",
                       _package_version(), sys.version.split()[0], _redacted_argv(), os.getcwd(),
                       os.getuid() if hasattr(os, "getuid") else "n/a")
 
@@ -1593,6 +1593,37 @@ def error(message, *args, stderr=False, **kwargs):
     _logger.error(message, *args, **kwargs)
 
 
+def swallowed(area, what, exc):
+    """
+    Notes an error that a broad `except` deliberately goes on past (OPS.168): one debug line (`area`, `what` it was doing, the exception's type and text) and nothing at normal level, so
+    a run with debugging on is no longer blind where the code chooses to degrade. It never raises.
+    """
+    if _logger.isEnabledFor(logging.DEBUG):
+        _logger.debug(f"{area}: went on past {what}: {type(exc).__name__}: {exc}", stacklevel=2)
+
+
+_degraded_said = {}
+"""dict: When `degraded` last warned for each `(area, what)`, on the monotonic clock."""
+
+DEGRADED_WARN_SECONDS = 300
+"""int: How often `degraded` warns again for the same place (OPS.165)."""
+
+
+def degraded(area, what, exc):
+    """
+    Notes a fallback that goes on without a service (a Redis that does not answer, say), where the code used to carry on with no trace (OPS.165): `what` happened,
+    `exc` is why, and the caller goes on with its fallback. A debug line is written every time; a warning (which reaches error.log) at most once in
+    `DEGRADED_WARN_SECONDS` for the same `area` and `what`, so a dead Redis shows up as one line and not as a line per request.
+    """
+    text = f"{area}: {what}: {type(exc).__name__}: {exc}"
+    _logger.debug(text, stacklevel=2)
+    key, now = (area, what), time.monotonic()
+    last = _degraded_said.get(key)
+    if last is None or now - last >= DEGRADED_WARN_SECONDS:
+        _degraded_said[key] = now
+        _logger.warning(f"A fallback is in use ({text}); this warns again in {DEGRADED_WARN_SECONDS // 60} min.", stacklevel=2)
+
+
 def trace(message, *args, area="decision", **kwargs):
     """High-volume detail (an SQL statement, a cache hit), in `area` (one of `AREAS`). It goes where every other
     debug line goes (stdout, the debug log, a worker's relay); a no-op unless one of them is on, so the caller
@@ -1611,23 +1642,17 @@ def exception(message, *args, **kwargs):
 
 def choice(description, chosen, reason):
     """Debug-only convenience for narrating a randomized/algorithmic decision: what was chosen and why."""
-    _logger.debug(f"{description}: chose {chosen!r} ({reason})", stacklevel=2)
+    if _logger.isEnabledFor(logging.DEBUG):     # the repr of a large choice is not built when nothing records it
+        _logger.debug("%s: chose %r (%s).", description, chosen, reason, stacklevel=2)
 
 
 @contextmanager
 def timed_phase(label):
     """
-    Debug-only convenience for timing one named phase of generation:
-    logs `"{label}: {elapsed}ms"` at DEBUG severity when the `with` block
-    exits, so `--debug`'s own timestamped output doubles as a per-phase
-    profile with no separate instrumentation needed -- a benchmark can
-    either read the timestamps directly or just parse the elapsed value
-    already printed in the message.
-
-    Formats the elapsed time whether or not DEBUG is enabled (matching
-    every other call in this module, which never checks the level
-    itself) -- a `time.perf_counter()` delta and an f-string are cheap
-    enough that gating on `isEnabledFor` isn't worth the extra branch.
+    Debug-only convenience for timing one named phase of generation: writes `Phase <label> took <duration>.` at DEBUG
+    severity when the `with` block exits (the duration in the one form, `logrecord.duration_text`), with the phase and
+    its exact milliseconds on the record as `phase` and `elapsed_ms` for a benchmark to read, so `--debug`'s timestamped
+    output doubles as a per-phase profile with no separate instrumentation.
 
     Args:
         label (str): A short description of the phase being timed.
@@ -1638,7 +1663,9 @@ def timed_phase(label):
     finally:
         elapsed_ms = (time.perf_counter() - start) * 1000
         # stacklevel 3: past contextlib's __exit__ to the `with` statement.
-        _logger.debug(f"{label}: {elapsed_ms:.3f}ms", stacklevel=3)
+        # The message carries the one duration form; the exact milliseconds ride on the record for a profile to read.
+        _logger.debug("Phase %s took %s.", label, logrecord.duration_text(elapsed_ms / 1000),
+                      stacklevel=3, extra={"phase": label, "elapsed_ms": elapsed_ms})
 
 
 # Sensible default so anything that imports planetgen modules directly

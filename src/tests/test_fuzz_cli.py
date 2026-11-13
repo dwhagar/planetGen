@@ -49,7 +49,8 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db import store
 from planetgen.generation import limits
 from planetgen import tuning
-from planetgen.galaxy import scales
+from planetgen.galaxy import enclosed_mass, scales
+from planetgen.physics import constants
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import log
 from planetgen.galaxy.density import _raw_density, build_galaxy_shape
@@ -464,8 +465,11 @@ def test_sector_runs_clean(mysql_config, argv, seed):
 def _sector_at_the_old_default_distance(monkeypatch):
     """A sector with no galaxy is taken at the galaxy's half-mass radius (GEN.404), nearer the center than the 8,200 pc
     it was, where the stars' Hill spheres are smaller and a full cube holds three times the systems: minutes of work
-    for a test that is about stopping, so it keeps the old distance."""
+    for a test that is about stopping, so it keeps the old distance. Since GEN.1534 the placement keeps a twentieth of the Hill spheres' sum
+    apart (a half before), and a full cube holds some hundred times the systems, so the old distance alone is no longer enough: the galaxy is
+    a lighter test one (1.15e7 solar masses inside the star's radius), where the Hill spheres are wide and a full cube holds about 5 to 19 systems."""
     monkeypatch.setattr(scales, "default_galactocentric_ly", lambda: pc_to_ly(8200.0))
+    monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e7 * constants.SOLAR_MASS_TO_KG)
 
 
 @settings(DB_SETTINGS, max_examples=scaled(3))

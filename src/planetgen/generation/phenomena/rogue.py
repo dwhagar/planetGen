@@ -20,7 +20,6 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.physics import body_strength, brown_dwarf as brownDwarf, constants, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
@@ -81,7 +80,6 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         has_internal_heat (bool): Whether it is still geologically active
             (a giant always is): its own heat reaches the
             cut of `rogueSurface`.
-        has_moons (bool): Whether it retains a captured companion moon.
         age_gy, internal_heat_flux_w_m2, effective_temperature_k,
         surface_regime, surface_temperature_k, surface_pressure_pa,
         ice_shell_thickness_km, ocean_depth_km, has_liquid_water: Its
@@ -90,7 +88,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
 
     FIELD_UNITS = {
         "name": "text", "planet_type": "text", "planet_class": "text", "mass_bin": "text", "mass_kg": "kg",
-        "radius_km": "km", "composition": "text", "has_internal_heat": "flag", "has_moons": "flag",
+        "radius_km": "km", "composition": "text", "has_internal_heat": "flag",
         "density_g_cm3": "g_cm3", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
         **rings.UNITS,
         **ROGUE_SURFACE_UNITS, **rogue_habitability.ROGUE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
@@ -132,7 +130,6 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
             "in the infrared as it cools"
         )
-        self.has_moons = hosts.holds_something("planet-satellites", "rogue-planet")
         self._apply_surface_conditions(rogue_surface_conditions(self.mass_kg, self.radius_km, age_gy=brown_dwarf_age_gy))
         self.planet_class = None    # a failed star has no planet class
         for name, value in body_strength.rogue_values(self, 0.0).items():

@@ -43,13 +43,6 @@ def test_each_kinds_share_of_systems_is_its_table_chance_within_poisson_bounds(k
         assert hits == 0
 
 
-def test_a_rogue_planets_share_of_moons_is_its_table_chance_within_poisson_bounds():
-    chance = hosts.chance("planet-satellites", "rogue-planet")
-    hits = sum(hosts.holds_something("planet-satellites", "rogue-planet", draw.Stream(f"{seed}:moon")) for seed in range(1, SEEDS + 1))
-    expected, bound = _bounds(chance, SEEDS)
-    assert chance > 0 and abs(hits - expected) <= bound, (hits, expected)
-
-
 def test_the_chance_of_a_kind_is_the_same_whatever_the_seed_it_is_rolled_on():
     for key in ("neutron-star:millisecond", "black-hole:stellar"):
         assert [system_pass.hit(key, seed) for seed in range(1, 400)] == [system_pass.hit(key, seed) for seed in range(1, 400)]

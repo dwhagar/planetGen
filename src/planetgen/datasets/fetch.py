@@ -40,6 +40,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.user_agent import user_agent
 
@@ -64,9 +65,9 @@ host that trickles a few bytes a minute) and retried from where it stopped."""
 STALL_MIN_BYTES = 1 << 17
 """int: The least a download must bring in `STALL_WINDOW_SECONDS` (about 2 kB/s)."""
 
-PROGRESS_SECONDS = 10
-"""int: How often the plain progress (`PlainProgress`, output that is not a terminal) says how far a download has come, so a slow one is
-not mistaken for a hang."""
+PROGRESS_SECONDS = tuning.PROGRESS_LOG_SECONDS
+"""float: How often the plain progress (`PlainProgress`, output that is not a terminal) says how far a download has come, so a slow one is
+not mistaken for a hang: the one progress cadence (OPS.169, `tuning.PROGRESS_LOG_SECONDS`)."""
 
 RETRY_WAIT_SECONDS = 3
 """int: The wait between two attempts."""
@@ -348,7 +349,7 @@ def locate(dataset):
         if not os.path.exists(path):
             lacking.append((piece, f"{piece.name} has not been downloaded"))
         elif not _is_good(path, piece):
-            log.debug("dataset %s: %s does not match the catalog (size or sha256)", dataset.key, piece.name)
+            log.debug("The piece %s of dataset %s does not match the catalog (size or sha256).", piece.name, dataset.key)
             lacking.append((piece, f"{piece.name} does not match the catalog's size or sha256"))
     if lacking:
         return Located(dataset, None, lacking[0][1], tuple(lacking))
@@ -567,6 +568,7 @@ def fetch(dataset, *, opener=None, progress=None):
             _derive(dataset)
             changed = True
         except Exception as exc:  # a parser meeting an unexpected file must not stop an update
+            log.swallowed("datasets/fetch", "fetch", exc)
             return Result(dataset, "missing", (f"{dataset.key}: deriving its files failed ({type(exc).__name__}: {exc})",),
                           tuple(handled))
     return Result(dataset, "fetched" if changed else "present", (), tuple(handled))

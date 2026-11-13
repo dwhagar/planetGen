@@ -205,6 +205,7 @@ class AsteroidBelt:
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
+            self.cleared_spans = tuple(origin.cleared_spans)
             self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, lit_luminosity_w(star, lower_limit, upper_limit), star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
@@ -213,6 +214,8 @@ class AsteroidBelt:
 
     _members = None
     _secular_planets = ((), ())
+    cleared_spans = ()
+    """tuple: The `(low, high)` stretches of the belt the giants cleared (GEN.1092, `belt_origin.BeltOrigin.cleared_spans`); the members are not placed in them. Not stored: a belt read back keeps the members it was saved with."""
 
     def give_secular_planets(self, axes_au, masses_kg):
         """
@@ -264,7 +267,7 @@ class AsteroidBelt:
         stream = draw.Stream(f"belt-members:{self.distance!r}:{self.lower_limit!r}:{star.mass!r}")
         populations = None if self.scatter_fates is None else belt_populations.member_weights(self.scatter_fates)
         entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream,
-                                          populations, self.scatter_giant_au)
+                                          populations, self.scatter_giant_au, self.cleared_spans)
         record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), lit_luminosity_w(star, self.lower_limit, self.upper_limit),
                                       star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
         rows = []
@@ -331,6 +334,7 @@ class AsteroidBelt:
         """
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["composition"] = [list(pair) for pair in self.composition]
+        data["history"] = list(self.history)        # a tuple until the star's evolution has written a line; a read-back belt holds a list, and the two must agree
         data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
         data["members"] = self.members
         return data
@@ -353,6 +357,7 @@ class AsteroidBelt:
         belt.system_config = system_config
         fields_from_dict(belt, data, cls.SERIALIZABLE_FIELDS)
         belt.composition = [tuple(pair) for pair in data["composition"]]
+        belt.history = tuple(data.get("history") or ())      # a tuple on a belt as on a new one (JSON gives a list), so what is read back equals what was saved
         belt.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
         belt._members = data.get("members") or []      # a belt read back keeps the members it was saved with, and none it was not (it is not drawn again)
         return belt

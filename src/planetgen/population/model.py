@@ -465,7 +465,8 @@ def scan_life_worlds(conn):
         added += len(inserts)
         low = high
     if added:
-        log.debug(f"Population: {added} new species")
+        if log.debug_log_active():
+            log.debug(f"Population: {added} new species.")
     return added
 
 
@@ -482,7 +483,8 @@ def drop_species_without_civilization(conn):
     with conn:
         dropped = conn.execute("DELETE FROM species WHERE civilization_age_years IS NULL").rowcount
     if dropped:
-        log.debug(f"Population: {dropped} species without a technological civilization removed")
+        if log.debug_log_active():
+            log.debug(f"Population: {dropped} species without a technological civilization removed.")
     return dropped
 
 
@@ -516,7 +518,8 @@ def refresh_tech_levels(conn):
         with conn:
             conn.executemany(
                 f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates)
-        log.debug(f"Population: {len(updates)} species given tech levels")
+        if log.debug_log_active():
+            log.debug(f"Population: {len(updates)} species given tech levels.")
     return len(updates)
 
 
@@ -655,7 +658,8 @@ def population_status(conn):
             "EXISTS(SELECT 1 FROM species) AS species, EXISTS(SELECT 1 FROM polities) AS polities, "
             "EXISTS(SELECT 1 FROM system_owners) AS territories"
         ).fetchone()
-    except Exception:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+    except Exception as exc:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+        log.swallowed("population/model", "population_status", exc)
         return {"generated": False, "species": False, "polities": False, "territories": False}
     return {key: bool(row[key]) for key in ("generated", "species", "polities", "territories")}
 

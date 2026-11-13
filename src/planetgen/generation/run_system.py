@@ -18,6 +18,7 @@ from planetgen.util import log
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen import describe
+from planetgen.physics import oddities
 from planetgen.db import render
 from planetgen.db.render import render_star_system
 from planetgen.generation import followed, run_common
@@ -167,6 +168,15 @@ def build_system_config(args):
         system_config.STAR_TYPE = args.star_type
     if args.num_orbits is not None:
         system_config.NUM_ORBITS = args.num_orbits
+    if getattr(args, "force_class", None):
+        system_config.FORCE_CLASS = args.force_class.upper()
+    if getattr(args, "force_life_class", None):
+        system_config.FORCE_LIFE_CLASS = args.force_life_class.lower()
+
+    if getattr(args, "weirdness_dial", None) is not None:
+        system_config.WEIRDNESS_DIAL = args.weirdness_dial
+    if getattr(args, "force_oddities", None):
+        system_config.FORCE_ODDITIES = forced_oddity_ids(args.force_oddities)
     if args.name is not None:
         system_config.NAME = args.name
     if args.age is not None:
@@ -198,8 +208,7 @@ def build_system_config(args):
 
     if system_config.HABITABLE_WORLD is True and system_config.ASTEROID_BELT is True:
         if system_config.LARGE_STAR is False:
-            log.error("Error: forcing both a habitable world and an asteroid belt requires a large "
-                      "star; -large_star cannot be combined with +habitable_world and +asteroid_belt.")
+            log.error("A habitable world and an asteroid belt together need a large star, so -large_star cannot be combined with +habitable_world and +asteroid_belt.")
             raise SystemExit(1)
         system_config.LARGE_STAR = True
 
@@ -335,7 +344,7 @@ def run_system(args):
     system_config = build_system_config(args)
     conflict = single_system_conflict(system_config)
     if conflict:
-        log.error(f"Error: {conflict}")
+        log.error(f"{conflict[:1].upper()}{conflict[1:]}")
         raise SystemExit(1)
 
     mysql_config = store.mysql_config_from_args(args)
@@ -346,11 +355,13 @@ def run_system(args):
         followed.run_followed(args, [follower], follower.label, workers=1, galaxy=False,
                               kind=runrecord.MAINTENANCE if args.output else runrecord.GENERATION)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the system could not be generated: {exc}")
+        log.error(f"The system could not be generated: {exc}")
         raise SystemExit(1)
     result = follower.result
     if result["warning"]:
         run_common._refuse_or_warn(args, result["warning"])
+    if result.get("asked"):
+        log.normal(result["asked"])
     if args.output:
         text = result["text"]
         if args.output == "-":
@@ -360,13 +371,50 @@ def run_system(args):
                 with open(args.output, "w", encoding="utf-8") as f:
                     f.write(text)
             except OSError as exc:
-                log.error(f"error: the system page could not be written to {args.output}: {exc.strerror or exc}")
+                log.error(f"The system page could not be written to {args.output}: {exc.strerror or exc}")
                 raise SystemExit(1)
             log.normal(f"Wrote system '{result['name']}' to {args.output} (not saved to the database).")
         return
     run_common.RUN_COUNTS["systems"] += 1
     log.normal(f"Saved system '{result['name']}' to the database (star_system_id={result['star_system_id']}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+
+
+def class_request_report(system, system_config):
+    """
+    What a request for a class letter or a life class (`--force-class`, `--force-life-class`, GEN.1620) came to, in plain words, or `None`
+    with no request. A class is read off the finished body, so the report gives how well each body that holds it fits (`class_match`, 100 is a
+    full fit; less means the class was the nearest the conditions allowed, with the runner-up beside it) or says that no body does.
+    """
+    lines = []
+    letter = system_config.FORCE_CLASS
+    if letter:
+        held = [body for planet in system.all_planets for body in (planet, *getattr(planet, "moons", ()))
+                if getattr(body, "planet_class", None) == letter]
+        if not held:
+            lines.append(f"Class {letter} asked for: no body of this system came out as class {letter}.")
+        for body in held:
+            match = getattr(body, "class_match", None)
+            fit = ("" if match is None else ", a full fit" if match >= 100 else
+                   ", though no class fits its conditions; this is the nearest" if match <= 0 else
+                   f", matching {match:.0f}% (the nearest class the conditions allow)")
+            lines.append(f"Class {letter} asked for: {body.name} holds it{fit}.")
+    life = system_config.FORCE_LIFE_CLASS
+    if life:
+        held = system.bodies_with_life_class(life)
+        if not held:
+            lines.append(f"Life class {life} asked for: no body of this system holds life of that class.")
+        for body in held:
+            lines.append(f"Life class {life} asked for: {body.name} holds it (class {body.life_class}{body.life_class_variant or ''}).")
+    return "\n".join(lines) or None
+
+def forced_oddity_ids(text):
+    """The oddity ids a `--force-oddities` text names, as a tuple (upper case, in the order given). Raises `ValueError` for an unknown id."""
+    ids = tuple(part.strip().upper() for part in text.split(",") if part.strip())
+    unknown = [one for one in ids if one not in oddities.BY_ID]
+    if unknown:
+        raise ValueError(f"unknown oddity id {', '.join(unknown)}; the ids are {', '.join(oddities.BY_ID)}")
+    return ids
 
 
 def expand_system(params):
@@ -401,11 +449,12 @@ def system_unit(unit_args, report):
                        f"{star}; the last one is kept without it. Hot, short-lived and very large stars often have "
                        f"no room for one.")
         report(1, 1)
+        asked = class_request_report(system, system_config)      # GEN.1620: said by the starter beside the result
         if warning and run_common._strict(args):
-            return {"warning": warning, "name": system.name, "text": None, "star_system_id": None}
+            return {"warning": warning, "name": system.name, "text": None, "star_system_id": None, "asked": asked}
         if args.output:
             text = (json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT
                     else render_star_system(system, args.format))
-            return {"warning": warning, "name": system.name, "text": text, "star_system_id": None}
+            return {"warning": warning, "name": system.name, "text": text, "star_system_id": None, "asked": asked}
         star_system_id = store.save_system(system, system_config, config=store.mysql_config_from_args(args))
-        return {"warning": warning, "name": system.name, "text": None, "star_system_id": star_system_id}
+        return {"warning": warning, "name": system.name, "text": None, "star_system_id": star_system_id, "asked": asked}

@@ -5,7 +5,7 @@ The temperature a body took its shape at (GEN.1201)
 ===================================================
 
 The roundness engine (`roundness`) gives a body a strength that falls with the temperature the body had when its weight was shaping it: ice creeps at a tenth of its cold strength near
-its melting point, and dry olivine creeps below its cold strength from about 1,100 K. Until now no body stored such a temperature, so every strength was the cold strength. This module
+its melting point, and dry olivine creeps below its cold strength from about 1,100 K. A planet or a moon now stores it (`shape_temperature_k`, `body_strength`, GEN.1201). This module
 works it out from what a body stores, in one place and without drawing from the run's stream:
 
     T_shape = min(T_surface + dT_accretion + dT_heat, T_ceiling)
@@ -27,8 +27,7 @@ that stayed warm and for a rocky one that a short-lived isotope melted, and is t
 
 What it does not have: the surface is the body's own temperature now, not the young star's at the time the body solidified (the star was brighter before it reached the main sequence); a
 body that formed late has less 26Al (the content it stores already carries that); a moon's tides are the mean power of today. The heat of a body's whole history is `interior_heat`'s work,
-and this is the one number for the shape. Stand-ins SHT1 and SHT2 of `gap-filling-plan.md` section 6.162. Nothing reads the module until GEN.1201's wiring step lands (it needs GEN.1159's stored
-roundness columns).
+and this is the one number for the shape. Stand-ins SHT1 and SHT2 of `gap-filling-plan.md` section 6.162. `body_strength.shape_temperature_of` reads it for a planet and a moon.
 
 Use:
 

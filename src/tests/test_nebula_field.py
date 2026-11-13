@@ -163,11 +163,10 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
             row = stored[center]
             assert row["nebula_class"] == nebula.nebula_class
             assert row["radius_ly"] == pytest.approx(nebula.radius_ly)
-        # GEN.75: a cloud holds a system only inside its shape, not its sphere.
-        from planetgen.db import query as queryDb
+        # GEN.1267: a cloud holds a system only inside its density contour (the one the map draws), not its sphere.
+        from planetgen.galaxy import nebula_density
 
-        shapes = [(center, ly_to_pc(nebula.radius_ly), queryDb.nebula_shape(conn, stored[center]["id"])[1])
-                  for center, nebula in expected.items()]
+        shapes = [(center, ly_to_pc(nebula.radius_ly), nebula_density.field_of_class(nebula.nebula_class)) for center, nebula in expected.items()]
         for address in addresses:
             sector_id = _db.get_sector_id_at(conn, *address)
             sector_center = sector_position_pc(*address, EDGE_PC)
@@ -176,8 +175,7 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
                     " WHERE sector_id = ?", (sector_id,)).fetchall():
                 point = _db.local_to_galaxy_pc(sector_center, tuple(
                     system[f"position_{axis}_mpc"] / 1000.0 for axis in "xyz"))
-                inside = any(shape.contains(tuple((point[i] - center[i]) / radius for i in range(3)))
-                             for center, radius, shape in shapes)
+                inside = any(bool(nebula_density.inside(SEED, SHAPE, point, center, radius, field)) for center, radius, field in shapes)
                 assert (system["inside_nebula_id"] is not None) == inside
     finally:
         conn.close()
@@ -194,11 +192,10 @@ def _some_clouds(count=12):
     return found
 
 
-def test_the_centroid_lies_inside_the_clouds_bounding_sphere():
-    for nebula, _center in _some_clouds(6):
-        centroid = nebula.get_shape().interior_centroid()
-        assert math.dist(centroid, (0.0, 0.0, 0.0)) <= 1.0
-        assert centroid == nebula.get_shape().interior_centroid()
+def test_the_centroid_of_a_cloud_is_the_center_of_its_sphere():
+    """GEN.1267: the metaball shape whose interior centroid it used is gone; a cloud is born where its sphere is centered, rounded to 1 mpc."""
+    for nebula, center in _some_clouds(6):
+        assert nebula_field.centroid_mpc(nebula, center) == tuple(int(round(c * 1000.0)) for c in center)
 
 
 def test_a_cloud_is_born_in_the_sector_holding_its_centroid(monkeypatch):
@@ -272,12 +269,9 @@ def test_a_centroid_is_rounded_to_a_milliparsec_before_its_sector_is_taken():
     from types import SimpleNamespace
 
     face = shell_bounds_pc(100, EDGE_PC)[1]       # a point on a shell face, parsecs
-    def cloud_with(offset):
-        shape = SimpleNamespace(interior_centroid=lambda: (0.0, 0.0, offset))
-        return SimpleNamespace(get_shape=lambda: shape, radius_ly=1.0)
+    cloud = SimpleNamespace(radius_ly=1.0)
 
     center = (face, 0.0, 0.0)
-    quiet = cloud_with(0.0)
-    noisy = cloud_with(1e-9)                      # a billionth of the radius: far below 1 mpc
-    assert nebula_field.centroid_mpc(quiet, center) == nebula_field.centroid_mpc(noisy, center)
-    assert nebula_field.birth_sector(quiet, center, EDGE_PC) == nebula_field.birth_sector(noisy, center, EDGE_PC)
+    noisy = (face + 1e-9, 0.0, 0.0)               # a billionth of a parsec: far below 1 mpc
+    assert nebula_field.centroid_mpc(cloud, center) == nebula_field.centroid_mpc(cloud, noisy)
+    assert nebula_field.birth_sector(cloud, center, EDGE_PC) == nebula_field.birth_sector(cloud, noisy, EDGE_PC)

@@ -116,9 +116,11 @@ class History:
     Attributes:
         longest_gap (float): The longest seconds between two counter changes seen for this command, 0 where none is recorded.
         expected_seconds (float, optional): How long a unit like this takes, from the earlier runs; with the unit's `estimate` it gives the expected rate.
+        expected_item_seconds (float, optional): The seconds one item takes (OPS.159, the job profile); its inverse is the expected rate whatever the size of the unit, and it is preferred.
     """
     longest_gap: float = 0.0
     expected_seconds: Optional[float] = None
+    expected_item_seconds: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -192,6 +194,8 @@ def _projected(beat, rate):
 
 
 def _expected_rate(beat, history):
+    if _finite(history.expected_item_seconds) and history.expected_item_seconds > 0:
+        return 1.0 / history.expected_item_seconds
     if not (_finite(history.expected_seconds) and history.expected_seconds > 0 and _finite(beat.estimate) and beat.estimate > 0):
         return None
     return beat.estimate / history.expected_seconds

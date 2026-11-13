@@ -37,8 +37,9 @@ def test_two_runs_give_the_same_digests(baseline):
 def test_the_cases_are_not_empty():
     assert len(battery.case_value("bright-star-scatter")) > 0
     assert len(battery.case_value("population-stream")) == battery.POPULATION_STARS
-    nebula = battery.case_value("nebula-shape")
-    assert len(nebula["inside"]) == battery.NEBULA_POINTS and any(nebula["inside"]) and not all(nebula["inside"])
+    nebula = battery.case_value("nebula-contour")
+    assert set(nebula) == {"young", "gas"} and all(len(held) == battery.NEBULA_POINTS for held in nebula.values())
+    assert any(nebula["young"]) and not all(nebula["young"])    # GEN.1267: the contour holds some of the points and not all
     assert len(battery.case_value("sector-a")["systems"]) == battery.SECTOR_SYSTEMS
 
 
@@ -51,7 +52,7 @@ def test_the_unit_seed_case_is_the_known_answer():
 
 @pytest.mark.parametrize("name, constant, value", [
     ("unit-seed", "KNOWN_UNIT_SEED", (bytes(range(16)), "sector", (3, 1, 1))),
-    ("nebula-shape", "NEBULA_SEED", 0x0EB1),
+    ("nebula-contour", "NEBULA_SEED", 0x0EB1),
     ("sector-b", "SECTOR_ADDRESSES", ((7, 1, 2), (12, -2, 1))),
     ("population-stream", "POPULATION_SEED", 0x9092),
 ])

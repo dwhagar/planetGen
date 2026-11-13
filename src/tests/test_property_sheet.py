@@ -8,7 +8,7 @@ comet, so a column a later change adds cannot be forgotten, and `GET /api/object
 import pytest
 
 from planetgen.db import column_units, models
-from planetgen.describe import model, sheet
+from planetgen.describe import model, quantity, sheet
 from planetgen.describe.quantity import inline_text
 from planetgen.physics import unit_registry
 
@@ -56,7 +56,12 @@ def test_a_unit_decides_how_a_number_is_shown():
     assert sheet._value(spec, "planets", 5.97e24)[0]["qty"]["kind"] == "mass"
     assert sheet._value(spec, "planets", None) == [sheet.NOT_STORED]
     dose = sheet.PropertySpec("surface_dose_msv_yr", "Dose", "radiation")
-    assert sheet._value(dose, "planets", 2.4) == ["2.4 mSv/yr"]
+    assert sheet._value(dose, "planets", 2.4) == [{"qty": {"kind": "dose rate", "value": 2.4, "unit": "mSv/yr"}}]
+    # Boss, 2026-11-11: 13,200 mSv/yr read "1.32 × 10⁴ mSv/yr"; the ladder picks the sievert, so it reads as a plain number
+    assert quantity.quantity_text(sheet._value(dose, "planets", 13200.0)[0]["qty"]) == "13.2 Sv/yr"
+    assert quantity.quantity_text(sheet._value(dose, "planets", 2.4)[0]["qty"]) == "2.4 mSv/yr"
+    assert quantity.quantity_text(sheet._value(dose, "planets", 0.0004)[0]["qty"]) == "400 nSv/yr"
+    assert quantity.quantity_text(sheet._value(dose, "planets", 4.2e7)[0]["qty"]) == "42 kSv/yr"
     flag = sheet.PropertySpec("ozone_loss_flag", "Ozone", "atmosphere", sheet.FLAG)
     assert sheet._value(flag, "planets", 1) == ["Yes"] and sheet._value(flag, "planets", 0) == ["No"]
     tier = sheet.PropertySpec("tier_air", "Air", "habitability", sheet.TIER)
@@ -245,7 +250,7 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and not sheet.clock_rows.is_derived_key(key) and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and not sheet.clock_rows.is_derived_key(key) and not sheet.sky_size_rows.is_derived_key(key) and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
@@ -351,7 +356,7 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         body = response.get_json()
         assert body["kind"] == kind
         rows = _rows(body)
-        assert list(rows) == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
+        assert [key for key in rows if not sheet.clock_rows.is_derived_key(key)] == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]    # GEN.1153: a brown dwarf's day and night state is derived
         assert all(row["text"] for row in rows.values()), kind
         assert any(row["stored"] for row in rows.values()), kind
 
@@ -567,6 +572,30 @@ def test_a_star_that_is_not_a_peculiar_dwarf_has_no_peculiar_row(client, mysql_c
     ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, 0.4)
     rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
     assert sheet.PECULIAR_KEY not in rows and sheet.PECULIAR_FIELD_KEY not in rows
+
+
+def test_the_nebula_page_glances_at_the_composition_and_a_remnant_sets_ejecta_beside_swept_gas(client, mysql_config):
+    """GEN.1272: the At a glance panel of a nebula and a remnant lists the hydrogen, helium and heavy-element shares and the dust-to-gas ratio with their units; a remnant's ejecta and swept-up gas sit in two columns."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+    from planetgen.web import item_pages
+
+    config = SystemConfig()
+    for kind, cls, stored_as in (("nebula", Nebula, "nebula"), ("supernova_remnant", SupernovaRemnant, "supernova-remnant")):
+        row_id = store.save_phenomenon(cls(config), config, stored_as, config=mysql_config)
+        body = client.get(f"/api/objects/{kind}:{pid(kind, row_id)}/sheet").get_json()
+        glance = {row["label"]: str(row["html"]) for row in item_pages.glance_view(body)}
+        for key in ("mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"):
+            label = next(row["label"] for group in body["groups"] for row in group["rows"] if row["key"] == key)
+            assert glance.get(label), (kind, key)
+        ejecta = item_pages.ejecta_view(body)
+        if kind == "nebula":
+            assert ejecta is None
+            continue
+        assert ejecta["columns"] == ["Ejecta", "Swept-up gas"]
+        assert [row["label"] for row in ejecta["rows"]] == ["Mass", "Hydrogen share", "Helium share", "Heavy-element share"]
+        assert all(len(row["cells"]) == 2 and all(str(cell) != "&mdash;" for cell in row["cells"]) for row in ejecta["rows"])
 
 
 def test_a_nebula_and_a_remnant_sheet_show_their_composition_and_dust_by_species(client, mysql_config):

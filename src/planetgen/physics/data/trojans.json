@@ -58,6 +58,24 @@
       "tier": "T4",
       "tweak": "L4",
       "basis": "no source: a swarm needs its giant inside this fraction of 1/margin of the companion-star stability limit (Holman and Wiegert, `Star.a_crit_au`), because a tadpole librates over a wider range of distance than the planet's own orbit does; a margin of 2 keeps a swarm for a giant inside half the limit"
+    },
+    "libration_sigma_deg": {
+      "value": 10.0,
+      "tier": "T4",
+      "tweak": "L4",
+      "basis": "the Rayleigh scale of the libration amplitude of a swarm's bodies, below the tadpole limit: the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled, not read); a lane fits it to the catalogue"
+    },
+    "swarm_ecc_sigma": {
+      "value": 0.06,
+      "tier": "T4",
+      "tweak": "L4",
+      "basis": "the Rayleigh scale of the mean eccentricity of a swarm's bodies, cut at ecc_max: the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled, not read)"
+    },
+    "swarm_inclination_sigma_deg": {
+      "value": 12.0,
+      "tier": "T4",
+      "tweak": "L4",
+      "basis": "the Rayleigh scale of the mean inclination of a swarm's bodies to the secondary's plane, cut at inclination_max_deg: the Jupiter Trojans reach 40 degrees, most lie under 20 (recalled, not read)"
     }
   }
 }

@@ -408,7 +408,7 @@ further gains nothing. The server cost is the stored <code>cell_key</code> expre
 constraints: a fresh table takes 2.5 s with every index, 1.6 s with two of them dropped, and an <code>INSERT ... SELECT</code> of the
 same rows inside the server 0.9 to 1.4 s. Dropping indexes is a DDL statement, which commits the open transaction, so the
 store (which promises not to commit) does not do it. The insert stays as it is.</li>
-<li><strong><code>plan_shape</code> twice costs under a second.</strong> The first call in a process is 0.57 s (the disk history and the cohort means
+<li><strong><code>plan_shape</code> twice costs under a second.</strong> The first call in a process is 0.57 s (the disc history and the cohort means
 fill their caches), the second 0.04 s. The check runs in the command and the unit in a worker process, so the unit pays
 the cold cost again, and sharing it would mean passing the shape between processes for about 0.6 s. Not done.</li>
 <li><strong>The math check (2.5 s, 60 checks) was the gate in front of every bulk generation (TEST.68).</strong> Making it skippable was a
@@ -490,10 +490,10 @@ now builds in its own request when the app is the warm-up's (<code>config.WARMUP
 <li><strong>Two tile pieces read most of the rows (PERF.157).</strong> Over 83 sampled deep tiles of the medium galaxy the tile builder read 342,755
 rows a tile, 22.4 million of the 28.4 million in the scattered points and 2.4 million in the bright stars; the rest are under 3,000.
 The scattered-points query listed a range of shells and read every band and wedge of them when the box reached more than 64
-shells, and for a 256 pc tile at the center the optimizer chose a scan of the whole 3.6 million row table. It now lists a range per
+shells, and for a 256 pc tile at the centre the optimizer chose a scan of the whole 3.6 million row table. It now lists a range per
 shell with the bands the box reaches (up to 1,000 shells): the same rows, 1.6 million instead of 22.4 million. The bright-star piece
-chose between its two ways of reading (the luminosity index or the addresses) by the box's share of the disk's area, which says
-nothing about height: a 1 kpc box a kiloparsec above the plane looked like a share of the disk and was read by walking the whole
+chose between its two ways of reading (the luminosity index or the addresses) by the box's share of the disc's area, which says
+nothing about height: a 1 kpc box a kiloparsec above the plane looked like a share of the disc and was read by walking the whole
 population index, 380,000 rows to find 60 stars. It now chooses by the box's share of the outline's cells and longitudes, with the
 walk's real cost (its 16 arms of four lists' worth each). The estimate that decides whether a box is answered from the galaxy-wide
 sample is as it was.
