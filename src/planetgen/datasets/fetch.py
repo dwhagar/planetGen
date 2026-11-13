@@ -479,6 +479,7 @@ def _request(piece, opener, out, progress=None, url=None):
         headers["Range"] = f"bytes={count}-"
     url = url or piece.url
     request = urllib.request.Request(url, headers=headers)
+    where = url.split("?")[0]          # a query's text is long and says nothing the address does not
     limit = piece.size + 1
     try:
         with opener(request, timeout=TIMEOUT_SECONDS) as response:
@@ -497,14 +498,14 @@ def _request(piece, opener, out, progress=None, url=None):
                 now = _now()
                 if now - window_start >= STALL_WINDOW_SECONDS:
                     if count - window_count < STALL_MIN_BYTES:
-                        raise DownloadError(f"{url}: stalled at {_megabytes(count)} of {_megabytes(piece.size)}")
+                        raise DownloadError(f"{where}: stalled at {_megabytes(count)} of {_megabytes(piece.size)}")
                     window_start, window_count = now, count
                 if progress:
                     progress.update(piece, count)
     except urllib.error.HTTPError as exc:
-        raise DownloadError(f"{url}: the host answered {exc.code} {exc.reason}") from exc
+        raise DownloadError(f"{where}: the host answered {exc.code} {exc.reason}") from exc
     except (urllib.error.URLError, OSError, http.client.HTTPException) as exc:
-        raise DownloadError(f"{url}: {getattr(exc, 'reason', None) or exc}") from exc
+        raise DownloadError(f"{where}: {getattr(exc, 'reason', None) or exc}") from exc
     return count
 
 
