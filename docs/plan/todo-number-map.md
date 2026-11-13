@@ -2954,7 +2954,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | open |
 | PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | done, PR #6360 |
 | PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | open |
-| OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | open |
+| OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | open |
 | OPS.162 | Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed) | none | done, PR #6276 |
@@ -2975,7 +2975,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | open |
 | OPS.178 | CLI validate_sectors_args: the forty pairwise option exclusions become a mode table | none | open |
 | OPS.179 | cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list | none | open |
-| OPS.180 | (bug) Galaxy at a glance says no sectors are charted when sectors are charted | none | open |
+| OPS.180 | (bug) Galaxy at a glance says no sectors are charted when sectors are charted | none | done, Ops train 2 PR 6398 (PR 6322, migration 0253), 5:02 AM EST 11-13 |
 | OPS.181 | Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers | none | open |
 | OPS.182 | (bug) queue/progress_file.set_stage left its temp file behind on error | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
@@ -4820,7 +4820,7 @@ Each citation below resolves to one item by its date.
 | DB.127 | Hard cut at 8.0: remove the database version migrations and tests for anything before 8.0, and refuse to open a database whose structure is older than 8.0 (pointing to legacy/) | DB.126 | open |
 | DB.128 | One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag | none | open |
 | DB.129 | SaveSession dataclass replaces the ten attributes stashed on the database connection during a save | none | open |
-| DB.130 | system_summary REFRESH_SQL uses the deprecated VALUES() form in ON DUPLICATE KEY UPDATE | none | open |
+| DB.130 | system_summary REFRESH_SQL uses the deprecated VALUES() form in ON DUPLICATE KEY UPDATE | none | closed as finding (Fable scan): the VALUES() upserts are a tested choice; the alias form breaks MariaDB (tests/test_sql_portability.py) |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |

@@ -484,7 +484,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | DB.127 | Hard cut at 8.0: remove the database version migrations and tests for anything before 8.0, and refuse to open a database whose structure is older than 8.0 (pointing to legacy/) | DB.126 | Lane 14, through Lane 02's train, 2026-11-12. |
 | DB.128 | One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag | none | Scan thread, 2026-11-12. |
 | DB.129 | SaveSession dataclass replaces the ten attributes stashed on the database connection during a save | none | Scan thread, 2026-11-12. |
-| DB.130 | system_summary REFRESH_SQL uses the deprecated VALUES() form in ON DUPLICATE KEY UPDATE | none | Fable scan thread, 2026-11-13. |
 | GEN.1616 | (bug) Class T's terrestrial row (hydrogen 30 percent of air, under 10 Earth masses) has no envelope or pressure bound, so 120 of 1318 stored T bodies are thin hydrogen air, not the thick envelope the page describes | none | Lane 14, 2026-11-12. |
 | GEN.1617 | (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores | none | Lane 14, 2026-11-12. |
 | GEN.1618 | (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K | none | Lane 14, 2026-11-12. |
@@ -537,10 +536,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | Lane 14, 2026-11-12. |
 | OPS.178 | CLI validate_sectors_args: the forty pairwise option exclusions become a mode table | none | Scan thread, 2026-11-12. |
 | OPS.179 | cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list | none | Scan thread, 2026-11-12. |
-| OPS.180 | (bug) Galaxy at a glance says no sectors are charted when sectors are charted | none | Lane 13, 2026-11-12. |
 | OPS.181 | Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers | none | Fable scan thread, 2026-11-13. |
 | OPS.182 | (bug) queue/progress_file.set_stage left its temp file behind on error | none | Fable scan thread, 2026-11-13. |
-| OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | Lane 06, 2026-11-12. |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | Lane 06, 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
