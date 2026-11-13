@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.315 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1692 |
+| GEN | GEN.1693 |
 | PERF | PERF.266 |
 | DB | DB.131 |
 | API | API.49 |
@@ -3920,6 +3920,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1689 | Roche coefficient written twice: rings uses 2.456, orbits uses 2.44 | none | open |
 | GEN.1690 | The sphere walk is written three times with different band order (spherical.sphere_rows, region._compute_arcs and _band_arc, window.cells_in_ball) | none | open |
 | GEN.1691 | Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice | none | open |
+| GEN.1692 | (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

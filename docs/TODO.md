@@ -13335,6 +13335,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: PERF.264. Related: GEN.1683, GEN.1680.
   Filed by the TODO thread.
 
+- [ ] **GEN.1692 (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main**
+  Lane 12, 2026-11-13: tests/test_sweep_bulk.py::test_every_body_of_the_sweep_obeys_every_bulk_rule (radius-from-structure, marked slow so no changed-only gate caught it) fails on main for 4 bodies, all belt members promoted by GEN.1510 (PR 6019, generation/belt_planets.py; belt_rank set, belt_order 0): Algebum III 387.13 vs 395.87 km, Ulbarkator II 310.78 vs 311.14 km, Alcopri Carnoris II, Ahilounar II (gaps 0.1 to 2.2 percent). Do (physics first, no test slack): promote() sizes the promoted body from bulk_structure.structure like any planet; measure the radius and density shift of promoted bodies. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 22 (owns GEN.1510). Prerequisites: none. Related: GEN.1510, GEN.1668, GEN.1674.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
