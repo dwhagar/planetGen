@@ -103,16 +103,16 @@ def ice_type_of_makeup(makeup):
 
 
 def central_pressure_pa(mass_kg, radius_m):
-    """The pressure at the centre of a uniform sphere of this mass and radius, Pa: `(2 pi / 3) G rho^2 R^2`, the pressure the roundness law is written in (`roundness`, [R2703])."""
+    """The pressure at the center of a uniform sphere of this mass and radius, Pa: `(2 pi / 3) G rho^2 R^2`, the pressure the roundness law is written in (`roundness`, [R2703])."""
     density = roundness.bulk_density_kg_m3(mass_kg, radius_m)
     return (2.0 * math.pi / 3.0) * constants.G * density ** 2 * radius_m ** 2
 
 
 def ice_type_of_body(ice, mass_kg, radius_m, temperature_k=None):
     """
-    The ice type of a planet or a moon, whose ice is stored as one share of its mass (its water and other ices together): water ice in the phase its centre's pressure and the temperature of its
+    The ice type of a planet or a moon, whose ice is stored as one share of its mass (its water and other ices together): water ice in the phase its center's pressure and the temperature of its
     shape-setting give (`ice_types.water_phase`: Ih in a small body, II to VI deep in a large icy one). `None` for a body with no ice, and for one whose shape was set above the temperature of
-    water's triple point (`water_layer.WATER_TRIPLE_K`): its water was a liquid or a vapour then, and the engine keeps the default ice.
+    water's triple point (`water_layer.WATER_TRIPLE_K`): its water was a liquid or a vapor then, and the engine keeps the default ice.
     """
     if not ice > 0.0:
         return None
@@ -175,7 +175,7 @@ def values(body, quantile=None):
     binding_j = binding_energy.binding_energy_j("rocky", mass_kg, radius_m, core_kg, core_m)
     temperature_k = shape_temperature_of(body, mass_kg, radius_m, binding_j, ice, metal)
     out.update(solid(mass_kg, radius_m, density_kg_m3, ice, metal, getattr(body, "porosity", None), temperature_k, quantile, core_kg, core_m, binding_j,
-                     ice_type_of_body(ice, mass_kg, radius_m, temperature_k)))      # GEN.1684: the kind of ice at the centre
+                     ice_type_of_body(ice, mass_kg, radius_m, temperature_k)))      # GEN.1684: the kind of ice at the center
     out[SHAPE_FIELD] = temperature_k
     return out
 

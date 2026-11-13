@@ -206,7 +206,7 @@ def test_a_clathrate_comet_is_stronger_than_the_same_comet_of_water_ice():
     assert clathrate["roundness_ratio"] < water["roundness_ratio"]
 
 
-def test_the_ice_of_a_planet_or_a_moon_is_named_by_the_phase_at_its_centre():
+def test_the_ice_of_a_planet_or_a_moon_is_named_by_the_phase_at_its_center():
     small = body_strength.ice_type_of_body(0.9, 1.0e20, 3.0e5)
     large = body_strength.ice_type_of_body(0.5, 1.5e23, 2.6e6)
     assert small == "ice_ih"

@@ -9,7 +9,7 @@ The roundness engine (`roundness.py`) has one ice: water ice Ih at its creep str
 high-pressure phases of water (ratios by temperature from the creep laws of [R1190], GEN.1183: II 1.7 to 6.5, III about 0.5, V about 8, VI 1.3 to 5.5), methane clathrate hydrate (20 to 30 times), solid
 carbon dioxide (0.1 to 0.5 MPa) and ammonia dihydrate (weaker than water ice near its melting point, stronger below 135 K). The numbers are
 in `data/roundness_strengths.json` under `ice_types`; this module reads them and names a body's ice type from its components. The engine takes the strength of the kind of ice as a factor on its ice strength (GEN.1684: `roundness.yield_strength_pa(..., ice_factor)`,
-`body_strength.ice_factor_of`): a belt member, a comet and the members of a field from their makeup (`body_strength.ice_type_of_makeup`), a planet or a moon from the phase of water ice at its centre
+`body_strength.ice_factor_of`): a belt member, a comet and the members of a field from their makeup (`body_strength.ice_type_of_makeup`), a planet or a moon from the phase of water ice at its center
 (`body_strength.ice_type_of_body`).
 
 * `strength_ratio(ice_type, temperature_k)`: the factor on the Ih strength at the same shape-set temperature (a type with an absolute
