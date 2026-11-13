@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.308 |
+| UX | UX.312 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
 | GEN | GEN.1675 |
@@ -4875,6 +4875,10 @@ Each citation below resolves to one item by its date.
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | open |
 | UX.306 | (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma | none | done, PR #6345 |
 | UX.307 | Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark | none | open |
+| UX.308 | Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices | none | open |
+| UX.309 | The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four | none | open |
+| UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | open |
+| UX.311 | The best-site coldest-to-hottest range says it spans the whole orbit, not a day | none | open |
 
 ### Code tags `TODO(<area> #N)`
 
