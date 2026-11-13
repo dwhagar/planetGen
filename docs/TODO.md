@@ -12965,6 +12965,7 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 15, with Lane 21 for the composition side. Prerequisites: none (GEN.1583 feeds values). Related: GEN.1583, GEN.1581, GEN.725, TEST.726.
   Filed by the TODO thread. Class M audit.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the sourced sink and degassing share as registered stand-ins and a pure function with tests (unwired); slice 1 lock: wire it into the nitrogen supply. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
+  Boss, 8:56 PM EST on 2026-11-12 (card): drop piece B (PR 6230 closed unmerged); keep A and C (PR 6192, Train 26). Re-measure on PR 6259: median N2 103 to 58 kPa with A and C, tail over 300 kPa 14.5 to 6 percent; reports/gen1583-nitrogen-budget-2026-11-12.md.
 
 - [ ] **GEN.1585 Re-check that classes H and P are reachable after GEN.1581 and GEN.1584 (0 in 4,800 Earth-analog trials today); if still 0, look at the brine-seep rule and P's oxygen need**
   Class M audit (coordinator relay, 2026-11-12), reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md fix 8. Classes H and P never came out in 4,800 analog trials, so they may be unreachable by the chain rather than rare. Do: after GEN.1581 and GEN.1584 merge, re-run scripts/earth_analog.py (TEST.726) and a census slice for H and P; if still 0, trace the class rows for the blocking edge (the brine-seep rule for H, the oxygen need for P) and file the fix. Done: counts for H and P before and after, and either a note that they are reachable or a filed fix item.
@@ -13634,6 +13635,7 @@ clears each one.
 
 - [ ] **TEST.738 Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale**
   Train Manager, Train 25 gate (2026-11-12): the Train 25 head had stale generated docs (life-class-rules, stand-in-values, stand-ins.json). Add a regenerate_generated.py step to the pregate for every lock PR (runbook reports/merge-train-runbook-2026-10-29.md and docs/plan/lanes.md) and a check that fails when generated files differ from a fresh regenerate.
+  Train Manager (2026-11-12): also make train_gate.py fall back to the real data dir (/var/cache/planetgen/datasets) when /tmp/claude/data_base is missing, since a gate machine without it fails the math check on every file.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1668.
   Filed by the TODO thread.
 
@@ -13650,6 +13652,17 @@ clears each one.
 - [ ] **GEN.1671 Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)**
   Fable thread whole-tree read (PR 6343 body, 2026-11-12): these helpers are copied across physics modules; keep one of each and import it everywhere. Output unchanged; lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Fable thread. Prerequisites: none. Related: GEN.1662, GEN.1665.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1672 (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff**
+  Lane 21, 2026-11-12: bulk_structure.envelope_thickness_earth uses (age/5 Gyr)^-0.18, fitted from 0.1 Gyr, but is applied below it; on main body 93 of the oddity S3 scan reads 0.0043 g/cm3 at age 0. Clamp the age at 0.1 Gyr (the fit's lower edge). Found while fixing the Train 25 S3 test red (Train Manager carries a test-only patch for Train 25). Lock item (output changes), Train 26.
+  Train Manager (2026-11-12): the law is R2741; S3 #2 (3.4 Earth masses, 0.049 Gyr) reads 0.022 g/cm3, under the 0.03 density edge. The Train 25 test has no lower edge under 0.1 Gyr; restore it with this fix.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **UX.307 Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark**
+  Boss, 2026-11-12 (project thread ...48rDtAdB66SbVi5dmhp8tB): galaxy measures as sliders on the Generate page. Built as PR 6357: unticked is Auto (nothing sent), ticked fills the Auto-position value; the bar snaps to the Auto mark within about 1.4 percent; bounds are each lever's allowed range (log scale where the row is); shape and rogue planets stay dropdowns; halo rows lock when the galaxy is too light. Display only, generation-affects none, lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): the slider thread (PR 6357). Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
