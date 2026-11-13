@@ -2667,74 +2667,48 @@ def planned_habitability(args):
 
 
 BLOCK_LIGHTS_BAR_TOTAL = 100.0
-"""float: The scale of the block light totals' bar (PERF.251): the three parts of the stage share it, so the bar never stands at its end while the next part works."""
+"""float: The scale of the block light totals' bar (PERF.251): the two parts of the stage share it, so the bar never stands at its end while the next part works."""
 
-BLOCK_LIGHTS_UNITS_SHARE, BLOCK_LIGHTS_ROLL_SHARE = 70.0, 15.0
-"""float: How much of `BLOCK_LIGHTS_BAR_TOTAL` the units of shells take, and how much adding up the levels above them; the uncharted index takes the rest. The shares are
-a rough guess of the time each takes on a full galaxy, here so none of them looks like a stage that stopped."""
+BLOCK_LIGHTS_UNITS_SHARE = 85.0
+"""float: How much of `BLOCK_LIGHTS_BAR_TOTAL` the units of shells take; adding up the levels above them takes the rest. The shares are a rough guess of the time each takes
+on a full galaxy, here so neither looks like a stage that stopped (stand-in: a share of a progress bar; it changes no drawn value)."""
 
 
-def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all", shells=None):
+def make_block_lights(conn, report, say, rebuild=False):
     """
-    The block light totals and then the uncharted sector rows (MAP.259, MAP.402), on one bar (PERF.251): the units of shells, the levels above them added up and the
-    index of the uncharted cells, one share each, so the bar moves in all three.
+    The block light totals (MAP.259), on one bar (PERF.251): the units of shells and the levels above them added up, one share each, so the bar moves in both.
 
-    The totals are rolled up from the parts the scatter writers kept (`db.block_lights.roll`, GEN.1476), and the uncharted cells are the parts' too, so
-    neither reads the two scatter tables; the parts are checked first and made again from the objects when they do not match. `rebuild` makes them
-    again from the objects whatever the check says: `fill-block-totals` is the repair and the proof.
-
-    The two halves are separate units of the queue when the parts are current (OPS.153): `part` is `"roll"` for the totals alone (the bar is theirs, to its end),
-    `"index"` for the uncharted rows of `shells` alone (the bar is the shells done), and `"all"` for both, one after the other, as a run of one process makes them.
+    The totals are rolled up from the parts the scatter writers kept (`db.block_lights.roll`, GEN.1476); the parts are checked first and made again from the objects
+    when they do not match. `rebuild` makes them again from the objects whatever the check says: `fill-block-totals` is the repair and the proof. The uncharted cells
+    need no rows of their own (OPS.154): the Sectors list reads them from the parts, so this stage makes none.
 
     Args:
         conn (Connection): A writable connection.
-        report (callable): `report(done, total)` on the scale of `BLOCK_LIGHTS_BAR_TOTAL` (of the part, for a part).
+        report (callable): `report(done, total)` on the scale of `BLOCK_LIGHTS_BAR_TOTAL`.
         say (callable): `say(text)` for the phases of the work.
-        run_id (int, optional): The run the uncharted rows are recorded under.
         rebuild (bool): Make the parts and the totals again from the objects.
-        part (str): `"all"`, `"roll"` or `"index"`.
-        shells (list, optional): The shells an `"index"` part works; every shell with a part by default.
 
     Returns:
-        tuple: The block light rows written, the uncharted sector rows made.
+        int: The block light rows written.
     """
     total = BLOCK_LIGHTS_BAR_TOTAL
-    index_start = BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE
-    roll_total = index_start if part == "roll" else total
 
     def units(done, count):
-        report(BLOCK_LIGHTS_UNITS_SHARE * done / count, roll_total)
+        report(BLOCK_LIGHTS_UNITS_SHARE * done / count, total)
 
     def above(fraction):
-        report(BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE * fraction, roll_total)
+        report(BLOCK_LIGHTS_UNITS_SHARE + (total - BLOCK_LIGHTS_UNITS_SHARE) * fraction, total)
 
-    def indexed(done, count):
-        if part == "index":
-            report(done, count)
-        else:
-            report(index_start + (total - index_start) * done / count, total)
-
-    written = made = 0
-    if part != "index":
-        begun = time.monotonic()
-        say(f"Block light totals, {logrecord.counting_text('Part', 1, 2)}: " + ("making the parts and the totals again from every pre-placed object." if rebuild
-                                                     else "checking that the stored parts match the scatter."))
-        if rebuild:
-            written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
-        else:
-            written, _used = block_lights.roll(conn, on_progress=units, on_phase=say, on_above=above)
-        say(f"Block light totals: {written:,} rows written in {time.monotonic() - begun:,.0f} s.")
-        report(roll_total if part == "roll" else index_start, roll_total if part == "roll" else total)
-    if part != "roll":
-        begun = time.monotonic()
-        say(f"Block light totals, {logrecord.counting_text('Part', 2, 2)}: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
-        if shells is None:
-            shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
-            say(f"{len(shells):,} shells hold objects ({time.monotonic() - begun:,.0f} s to list them).")
-        made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells, from_parts=True)
-        say(f"Uncharted sector rows: {made:,} made in {time.monotonic() - begun:,.0f} s.")
-        report(len(shells) or 1, len(shells) or 1) if part == "index" else report(total, total)
-    return written, made
+    begun = time.monotonic()
+    say("Block light totals: " + ("making the parts and the totals again from every pre-placed object." if rebuild
+                                  else "checking that the stored parts match the scatter."))
+    if rebuild:
+        written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
+    else:
+        written, _used = block_lights.roll(conn, on_progress=units, on_phase=say, on_above=above)
+    say(f"Block light totals: {written:,} rows written in {time.monotonic() - begun:,.0f} s.")
+    report(total, total)
+    return written
 
 
 def refresh_block_lights(mysql_config, args=None):
@@ -2762,7 +2736,7 @@ def refresh_block_lights(mysql_config, args=None):
                             bar.update(completed=done, total=total)
                             ticker.tick(done / total)
 
-                        written, _made = make_block_lights(conn, on_progress, log.normal, getattr(args, "generation_run_id", None))
+                        written = make_block_lights(conn, on_progress, log.normal)
                 finally:
                     log.reset_console()
         finally:
@@ -2795,11 +2769,11 @@ def fill_block_totals(args):
         conn.commit()
         counted = galaxy_counts.rebuild(conn)    # DB.121: the sectors' counts and the galaxy's running totals
         log.normal(f"Made the stored counts of {counted:,} sectors and the galaxy's totals.")
-        lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
-                                              getattr(args, "generation_run_id", None), rebuild=True)      # MAP.402; the repair makes the parts again too (GEN.1476)
+        lights = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
+                                   rebuild=True)      # the repair makes the parts again too (GEN.1476)
     finally:
         conn.close()
-    log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
+    log.normal(f"Made {stats:,} generated block totals and {lights:,} block light totals.")
     return stats + lights
 
 
@@ -2969,37 +2943,19 @@ def planned_nebula_field(args):
     return followed.Planned([EmptyNebulaFieldFollower(args), follower], "Nebula field", lambda: follower.written)
 
 
-ROLL_SECONDS_PER_CELL, INDEX_SECONDS_PER_CELL = 1.5e-5, 1e-4
-"""float: About how long the roll-up and the uncharted index take for a cell with a part (the costs the stage's bar and ETA weigh its units by): 107 s for 7.56 million cells
-in the roll-up, about 10,000 rows a second in the index (OPS.152, OPS.153)."""
-
-
 def expand_refresh_block_lights(params):
     """
-    The `refresh-block-lights` command's stage cut into its units (OPS.153): when the parts are current (a cheap check, `block_lights.parts_current`) one unit rolls
-    the totals up (`part` `"roll"`) and the uncharted index is cut into runs of shells, a unit each (`part` `"index"`), so every worker in the pool takes some of it;
-    the two halves do not read what the other writes. When the parts have to be made again from the objects (`rebuild`, or the check fails) the stage is the one unit of
-    old (`part` `"all"`), since the index must wait for the parts.
+    The `refresh-block-lights` command's stage as its one unit: the totals rolled up from the parts the scatters kept, or made again from the objects when the parts do
+    not match (`block_lights.roll`) or `rebuild` says so. The uncharted index of OPS.153 is gone (OPS.154): the Sectors list reads the cells from the parts, so no unit
+    makes sector rows for them.
 
     Args:
         params (dict): `database`, `run_id` and `rebuild`.
 
     Returns:
-        commands.Expansion: The units and the plan (`cells`, `runs`).
+        commands.Expansion: The unit.
     """
-    if params.get("rebuild"):
-        return commands.Expansion([(dict(params, part="all"), 1.0)], {})
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        if not block_lights.parts_current(conn):
-            return commands.Expansion([(dict(params, part="all"), 1.0)], {"parts": "made again"})
-        runs = uncharted_index.shell_runs(uncharted_index.shell_part_counts(conn), units.MAX_UNITS - 1)
-    finally:
-        conn.close()
-    cells = sum(held for _shells, held in runs)
-    cut = [(dict(params, part="roll"), max(cells * ROLL_SECONDS_PER_CELL, 1.0))]
-    cut += [(dict(params, part="index", shells=shells), max(held * INDEX_SECONDS_PER_CELL, 1.0)) for shells, held in runs]
-    return commands.Expansion(cut, {"cells": cells, "runs": len(runs)})
+    return commands.Expansion([(dict(params), 1.0)], {})
 
 
 def refresh_block_lights_unit(params, report):
@@ -3025,18 +2981,17 @@ def refresh_block_lights_unit(params, report):
 
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        written, made = make_block_lights(conn, report, say, params.get("run_id"), rebuild=bool(params.get("rebuild")),      # MAP.402: a sector row for every cell the scatter left something in
-                                          part=params.get("part", "all"), shells=params.get("shells"))
+        written = make_block_lights(conn, report, say, rebuild=bool(params.get("rebuild")))
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         log.swallowed("generation/run_plan", "refresh_block_lights_unit", exc)
-        return {"written": 0, "made": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}", "part": params.get("part", "all")}
+        return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:
         conn.close()
-    return {"written": written, "made": made, "lines": lines, "warning": None, "part": params.get("part", "all")}
+    return {"written": written, "lines": lines, "warning": None}
 
 
 class BlockLightsFollower(followed.Follower):
-    """The Galaxy Map's block light totals made again, as the last stage of a scatter (`refresh_block_lights_unit`): a unit for the roll-up and a unit for each run of shells of the uncharted index (OPS.153)."""
+    """The Galaxy Map's block light totals made again, as the last stage of a scatter (`refresh_block_lights_unit`): one unit."""
 
     key = "block-lights"
     label = "Make the block light totals"
@@ -3047,25 +3002,18 @@ class BlockLightsFollower(followed.Follower):
         self.bar = None
         self._ticker = Ticker("Making the block light totals", total=1.0, percent=True)
         self._pulse = Pulse(log.normal, self._pulse_text)      # started with the plan
-        self._weights, self._fractions = [1.0], {}
+        self._fractions = {}
         self._lock = threading.Lock()
-        self._written = self._made = 0
+        self._written = 0
         self._failed = False
         self.rebuild = rebuild      # make the parts again from the objects whatever the check says (GEN.1476)
 
     def params(self):
-        return {"run_id": getattr(self.args, "generation_run_id", None),      # the run the uncharted rows (MAP.402) are recorded under
-                "rebuild": self.rebuild}
+        return {"run_id": getattr(self.args, "generation_run_id", None), "rebuild": self.rebuild}
 
     def on_plan(self, plan):
         log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept"
                    + ("; made again from every pre-placed object)..." if self.rebuild else ")..."))
-        detail = plan.get("detail") or {}
-        if detail.get("runs"):      # the roll-up's unit first, then a unit for each run of shells, weighed as the expansion costs them
-            roll = detail["cells"] * ROLL_SECONDS_PER_CELL
-            self._weights = [roll] + [detail["cells"] * INDEX_SECONDS_PER_CELL / detail["runs"]] * detail["runs"]
-            log.normal(f"The block light totals are cut into {plan.get('units', len(self._weights)):,} units: the roll-up of {detail['cells']:,} cells with a part and "
-                       f"the uncharted sector rows in {detail['runs']:,} runs of shells, worked by every worker.")
         self._ticker = Ticker("Making the block light totals", total=1.0, percent=True)
         self._pulse.stop()
         self._pulse = Pulse(log.normal, self._pulse_text).start()
@@ -3073,11 +3021,9 @@ class BlockLightsFollower(followed.Follower):
                                         progress=self.progress, force=True))
 
     def _share(self):
-        """How far the stage is, 0 to 1, over the units' weights."""
+        """How far the stage is, 0 to 1."""
         with self._lock:
-            weights = self._weights
-            total = sum(weights) or 1.0
-            return sum(weights[min(unit, len(weights) - 1)] * fraction for unit, fraction in self._fractions.items()) / total
+            return max(self._fractions.values(), default=0.0)
 
     def on_progress(self, unit, done, estimate):
         with self._lock:
@@ -3091,19 +3037,17 @@ class BlockLightsFollower(followed.Follower):
     def on_done(self, conclusion):
         self._pulse.stop()
         if not self._failed:
-            log.normal(f"Made {self._written:,} block light totals" + (f" and {self._made:,} uncharted sector rows." if self._made else "."))
+            log.normal(f"Made {self._written:,} block light totals.")
 
     def on_result(self, unit, result):
         with self._lock:
             self._fractions[unit] = 1.0
             self._written += result["written"]
-            self._made += result.get("made", 0)
-        if result.get("part") != "index" or result["warning"]:      # a unit for each run of shells would say its phases hundreds of times
-            for line in result["lines"]:
-                log.normal(line)
+        for line in result["lines"]:
+            log.normal(line)
         if result["warning"]:
             self._failed = True
-            log.warning(f"Making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
+            log.warning(f"Making the block light totals failed: {result['warning']}")
 
 
 class _PhenomenaBook:
