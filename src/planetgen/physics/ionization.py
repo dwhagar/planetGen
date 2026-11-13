@@ -8,7 +8,7 @@ The hottest surface a body's air can have. A greenhouse that runs away heats the
 molecules break into atoms (well under 10,000 K at the pressures of an air) and the atoms lose their electrons, a plasma, which radiates as no
 molecular air does. No radiative model of this repository reaches there (the greenhouse table fits to 4,000 K), and no generated body is meant
 to: the ceiling is the temperature the air's main gas is **half ionized** at the air's pressure, so a body that arrives at it is a mistake in the
-model to explain, not a state to keep (`surface_air.Air.at_ceiling`, the warning `planets` logs, the test that fails on it).
+model to explain, not a state to keep (`surface_air.Air.at_ceiling`, the warning `air_final` logs, the test that fails on it).
 
 The law is the Saha equation [R5246] for the first ionization of the atoms of the main gas, a plasma of one electron per ion,
 `x^2 / (1 - x^2) = K / P` for the ionized share `x`, with `K = 2 (g_ion / g_atom) (m_e k T / (2 pi hbar^2))^(3/2) k T exp(-chi / k T)`: the

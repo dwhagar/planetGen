@@ -377,15 +377,15 @@ def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_na
     import dataclasses
     import logging
 
-    from planetgen.physics import planets
+    from planetgen.physics import air_final
 
     real = sa.atmosphere_state.greenhouse_warming
     monkeypatch.setattr(sa.atmosphere_state, "greenhouse_warming",
                         lambda *args: dataclasses.replace(real(*args), surface_temperature_k=1.0e6))
     monkeypatch.setattr(sa, "_steam_possible", lambda *args: True)
-    with pytest.raises(planets.CeilingReached, match="asked for 1000000 K"):                # the suite's switch: a body at the ceiling is an error
+    with pytest.raises(air_final.CeilingReached, match="asked for 1000000 K"):                # the suite's switch: a body at the ceiling is an error
         _earth_like_planet()
-    monkeypatch.delenv(planets.CEILING_IS_ERROR_VARIABLE)
+    monkeypatch.delenv(air_final.CEILING_IS_ERROR_VARIABLE)
     caplog.clear()
     with caplog.at_level(logging.INFO, logger="planetgen"):
         planet = _earth_like_planet()

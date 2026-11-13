@@ -8864,39 +8864,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
   Owner (TODO sweep, 2026-11-12): Lane 22 (belts).
 
-- [ ] **GEN.1070 Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 7. Design section 3,
-  5 and 10 item 11: members stored by the cut rule (at most 300 per
-  belt), L2 bodies addressable by (belt id, rank) and rebuilt, never
-  stored; each page shows status, mass, composition and the belt
-  history. Done: migration, API version bump with the change note,
-  tests, map and page checks. No backward-compat shim. Where we think it
-  belongs (best guess, can move): Lane 12 (map and pages) with Sources 2
-  (storage), train 7.
-  Belt origins (2026-10-30 4:35 PM EDT): Stored members carry the
-  scatter tag once the scatter phase is wired (GEN.1092).
-  Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
-  member is linked from the asteroid belt information page UX.241.
-  Part 1 merged (train 10, #5095, 7:11 AM EST on 2026-11-05) (7:20 AM
-  EST on 2026-11-05): Belts store their members and the belt history
-  text. The rest (designation display, the system map drawing members as
-  dots at true orbits, a body page per member, the scatter tag after
-  GEN.1092) stays open.
-  Prerequisites: GEN.1069.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-  Owner (TODO sweep, 2026-11-12): Lane 22 (belts).
-
 - [ ] **GEN.1072 White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -9145,6 +9112,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1121, GEN.1070.
   Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
   Owner (TODO sweep, 2026-11-12): Lane 12 (storage).
+  From the GEN.1070 audit (Lane 13, /mnt/project-files/reports/gen1070-audit-2026-11-13.md): captured_member, outside_reservoir_member and parse_captured have no reader yet; this item is their reader, and their wiring register rows move here.
 
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
@@ -12573,11 +12541,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health), after GEN.1468. Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
-- [ ] **OPS.139 Heartbeat part 6: the admin Queue page shows each live unit's last beat age, counter, phase, rate and state badge**
-  Boss, 5:16 PM EST on 2026-11-09 ('implement the heartbeat as described'); research in reports/heartbeat-research-2026-11-09.md. Detail: per-unit rows on the existing admin_queue.html from the API of OPS.138 (last beat age, done of estimate, phase, rate, state badge: working, slow, waiting, quiet, looping, dead); the run line keeps 'last heard from'; flags show in the run log and the error.log tail the admin already shows. No new page. Build together with PERF.147 (the progress bar with ETA reads the same counter and estimate; build once, let both read it). Done: the page shows the rows for a running galaxy. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 13 (admin, with PERF.147; Lane 11 is not running, Boss priority). Prerequisites: OPS.138. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
-  Filed by the TODO thread. Top priority (Boss: he wants to finally generate a full galaxy).
-
 - [ ] **OPS.143 Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine**
   Boss, 5:16 PM EST on 2026-11-09 ('implement the heartbeat as described'); research in reports/heartbeat-research-2026-11-09.md. Detail: each rule (dead, waiting, stuck, looping, slow, working), the false-kill case (a moving counter at 10 times the estimate is not killed), requeue once then fail, and the stale rule. Then a trial run of a full-size galaxy on the lane machine with the heartbeat on, reporting every flag it raised. Done: the trial report; no unit was killed while its counter moved. Lock-free.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health). Prerequisites: OPS.137, OPS.140, OPS.141. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
@@ -12879,11 +12842,6 @@ clears each one.
   Filed by the TODO thread. Boss approved.
   Fold (TODO sweep, 2026-11-12): GEN.1566 (the water-law research) is done (reports/water-land-split-h-m-o-2026-11-12.md section 9) and retired; its measurements (Class M audit section 3.1 water shares) carry to this item, GEN.1567, GEN.1573 and GEN.1575.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the pressure law as a pure function with its drawn ranges and tests (unwired); slice 1 lock: wire it. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **GEN.1575 Check the delivered-water high tail (GEN.849) against the formation papers: read [R2381] in full plus [R3193, R3683] for the spread of water delivered to terrestrial planets**
-  Boss approved, 7:30 PM EST on 2026-11-11 ('both, we'll see the actual effects it has on the actual output', as the coordinator relayed), option C of the water-law research (reports/water-land-split-h-m-o-2026-11-12.md section 5 and 6b): cover is bimodal because delivered water is bimodal (GEN.849 re-fit the b2/b3 delivery rows against bulk water, PR 3973). Do: read [R2381, R3193, R3683] (the research thread could not verify Kite and Ford; none of these has been quoted yet), compare the water-by-mass distribution they give against the generator's delivered-water draw (the high tail in particular), and report whether the tail is sourced or a stand-in; if it is a stand-in, register it in GEN.725 with tier and tweak level. Report only, with a recommendation; any rebuild is filed after. Pairs with GEN.1566 (Lane 14 reads the water-law papers); do not both read the same paper, split by the lists. Done: the report in reports/ with the comparison table.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 15. Prerequisites: none. Related: GEN.1566, GEN.849, GEN.1574, GEN.725.
-  Filed by the TODO thread. Boss approved.
 
 - [ ] **GEN.1576 (bug) A planet whose thermal and gravitational tides balance away from synchronism (body_spin kind asynchronous) can spin past the breakup limit, because the balance rate is not capped at spin.BREAKUP_FRACTION (0.85) of the breakup rate**
   Lane 12, found 7:35 PM EST on 2026-11-11 (as the lane reported) while chasing the red test_orbital_motion rotation-period test, which samples unseeded and so fails now and then. Reproduced on main with seed 91, a G2V star with moons: a 3.5 Earth-mass, 9 Earth-radius planet at 0.15 AU turns once in 6.2 h where it would break up at 24.4 h. Do: cap the balance rate in planets.generate_spin at spin.BREAKUP_FRACTION of the breakup rate (reuse the existing constant and breakup helper; add no second spin pass), and add a two-case test (a puffy planet that hits the cap, and one that does not). Done: the test, the seed-91 case below breakup, and the unseeded rotation-period test stops failing. Changes the output only of such low-density planets (generation-affects fill), so a lock item for a later train (new epoch, no migration).
@@ -13512,13 +13470,6 @@ clears each one.
   Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): this is populate(host) step one, with GEN.556's signature populate(host, zone, guarantees), and a prerequisite of GEN.556.
   Filed by the TODO thread.
 
-- [ ] **GEN.1657 calculate_atmospheric_conditions: the three post-hoc corrections move into the solver**
-  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section J, with file:line, shape, risk and output impact). Output measured on the golden before merge.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (moved from Lane 04 to run in parallel). Prerequisites: GEN.1654. Related: GEN.1656.
-  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
-  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1658 GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns)**
   Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section K, with file:line, shape, risk and output impact). Approved by Boss; check a generator against today's schema first.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11, after PERF.260 (Boss gave the go at 4:08 PM EST). Prerequisites: none. Related: GEN.1651.
@@ -13703,6 +13654,11 @@ clears each one.
   Boss's ruling in the Kiamtochen III thread (2026-11-12): habitability ratings come from the planet's conditions, never from what equipment can fix. Audit of physics/habitability.py by that thread. Design report first with proposed condition-only edges and sources; needs Boss's numbers before the build. Lock item at build (ratings change).
   Version 8.1. Owner (TODO, 2026-11-12): the Kiamtochen III page thread. Prerequisites: none. Related: GEN.1676.
   Filed by the TODO thread. Boss approved.
+
+- [ ] **GEN.1678 Delivered-water classes read a stellar-mass snow line (the viscous-disk snow line of [R3193: Eq. 2 and 3], or a stellar-mass term), so M-dwarf Earths come out dry as observed**
+  From GEN.1575 (Lane 15, /mnt/project-files/reports/gen1575-delivered-water-tail-2026-11-13.md): the class law is sourced, but the generator's snow line (GEN.1611) puts the habitable zone at 0.43 snow lines for every stellar mass, so an M-dwarf Earth draws the same water as a Sun-like one (dry 36 percent, over 10 percent water 15 percent). [R3683] (1 of 19 wet below 0.6 solar masses) and [R3193] (dry near 100 percent below 0.4) find M dwarfs dry, and the same Bern law fed the papers' snow lines reproduces the trend. Do: the water classes use the viscous-disk snow line or a stellar-mass term (no rebuild of the class law); update stand-in DW3's source note in GEN.725 (range sourced; shape is the stand-in; Kite and Ford sec. 5.2 and Mulders sec. 4 agree on the 0.5 cap). Give the papers R-ids first. Measure delivered water by stellar mass before and after. Lock item (epoch, census re-tag).
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 14 (owns GEN.1611), with Lane 15. Prerequisites: none. Related: GEN.1575, GEN.1611, GEN.725.
+  Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
