@@ -1037,7 +1037,7 @@ _PLANET_RULES = [
      "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet of the spacing pass that spins freely: a locked or resonant planet sits at the Cassini state "
      "of its spin and does not wander (GEN.1536), and a belt member promoted to a planet (GEN.1510) is made after the sibling planets' modes are fixed and keeps the tilt it was drawn with"),
     (("moon_origin",), lambda klass, row: False,
-     "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
+     "only a moon has an origin (disk, impact, captured, ring, binary or exchange); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
      "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
 ]

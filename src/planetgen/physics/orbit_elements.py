@@ -137,7 +137,7 @@ def draw_moon_eccentricity(origin, e_max):
     """
     e_max = min(max(e_max, 0.0), MAX_ECCENTRICITY)
     point = draw.random()
-    if origin == "captured":
+    if origin in ("captured", "exchange"):    # `moon_composition.CAPTURE_ORBIT_ORIGINS`
         return e_max * math.sqrt(point)
     low, high = REGULAR_MOON_ECCENTRICITY_RANGE
     return min(low * (high / low) ** point, e_max)

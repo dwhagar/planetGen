@@ -25,6 +25,7 @@ import os
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
+from planetgen.physics import planet_moons
 from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
@@ -962,7 +963,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
         birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
-    if planet.is_moon and planet.moon_origin != "captured":
+    if planet.is_moon and planet.moon_origin not in moon_composition.CAPTURE_ORBIT_ORIGINS:
         planet.eccentricity = birth
         return
     planet.eccentricity = orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), primary_mass_kg, planet.distance)
@@ -1869,6 +1870,24 @@ def generate_moons(planet, moon_count=None):
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
         if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more
             break
+
+    # GEN.1157: a giant may also hold one moon of planet size taken by capture (`planet_moons`), drawn after its disk moons and made as a planet is; only its orbit is a captured one
+    if parent_is_giant and (moon_count is None or len(planet.moons) < moon_count):
+        captured = planet_moons.draw_exchange_moon(planet.mass, draw)
+        if captured is not None and captured.mass_kg <= limit_mass_kg:
+            span_low, span_high = max(total_orbit_distance, low_orbit), high_orbit
+            if span_low >= span_high:    # no room left past the last moon
+                draw.redrawn("moon.exchange_no_room")
+            else:
+                moon_distance = _km_to_au(math.exp(draw.uniform(math.log(span_low), math.log(span_high))))
+                new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
+                                  mass=captured.mass_kg, zone_override=planet.zone,
+                                  distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
+                                  moon_origin=captured.origin, host_eccentricity=planet.eccentricity)
+                if new_moon.radius > limit_radius_km:
+                    draw.redrawn("moon.exchange_too_large")
+                else:
+                    planet.moons.append(new_moon)
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the
