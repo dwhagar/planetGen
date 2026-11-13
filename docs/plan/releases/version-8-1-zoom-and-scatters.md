@@ -790,3 +790,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1672 | (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff | none | Lane 21, 2026-11-12. |
 | GEN.1673 | A better planet spacing rule (GEN.1521 chain rule) so far fewer belts need nudging outward | GEN.1641 | belt spacing thread, 2026-11-12. |
 | GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | Lane 22, 2026-11-12. |
+| GEN.1675 | A body's air carries the CO and methane its surface ices give off: gases from the bulk CO and CH4 ice at their saturation vapor pressure at the surface temperature, not an N2-only air | none | Lane 15, 2026-11-12. |
