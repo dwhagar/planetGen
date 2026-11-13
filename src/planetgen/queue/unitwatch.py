@@ -17,7 +17,6 @@ can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/un
 """
 
 import json
-import time
 
 from planetgen.queue import beatjudge, runrecord, taskprogress, unitbeat, unitstuck
 from planetgen.util import log
@@ -155,10 +154,4 @@ def view(verdict, beat, now, agreed=False, stored_rate=None):
 
 def read(conn, run_id, stage):
     """`{unit: view}` as the follower last published it (empty where it has not)."""
-    out = {}
-    for unit, raw in conn.hgetall(runrecord.unitstate_key(run_id, stage)).items():
-        try:
-            out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
-        except (ValueError, TypeError):
-            continue
-    return out
+    return runrecord.unit_json_hash(conn, runrecord.unitstate_key(run_id, stage))

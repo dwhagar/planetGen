@@ -309,6 +309,16 @@ MAX_STARS_HELP = (f"The most stars a system may hold: the cap on the star-count 
                   f"--prevalence multi_star=PERCENT changes how often five or more stars come up.")
 
 
+def _add_flavor_arguments(parser):
+    """The flavor-text options the `system` and `sector` subcommands share."""
+    parser.add_argument('--flavor-chance-system', type=finite_float,
+                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
+    parser.add_argument('--flavor-chance-planet', type=finite_float,
+                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
+    parser.add_argument('--max-planet-flavor', action='store_true',
+                        help="Sets the maximum flavor text total for planets to 99.")
+
+
 def add_system_arguments(parser):
     """
     Adds every option the `system` subcommand accepts (besides
@@ -396,17 +406,7 @@ def add_system_arguments(parser):
     parser.add_argument('--age', type=str, choices=['young', 'old'],
                         help="Specify the age of the star system (young or old).")
 
-    # Override Flavor Chance System
-    parser.add_argument('--flavor-chance-system', type=finite_float,
-                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
-
-    # Override Flavor Chance Planet
-    parser.add_argument('--flavor-chance-planet', type=finite_float,
-                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
-
-    # Max Planet Flavor
-    parser.add_argument('--max-planet-flavor', action='store_true',
-                        help="Sets the maximum flavor text total for planets to 99.")
+    _add_flavor_arguments(parser)
 
 
 def validate_system_args(args, parser):
@@ -547,12 +547,7 @@ def add_shared_generation_options(parser):
                         help="Force every system's star to a specific type (e.g., G2V).")
     parser.add_argument('--age', type=str, choices=['young', 'old'],
                         help="Specify the age of every star in the sector (young or old).")
-    parser.add_argument('--flavor-chance-system', type=finite_float,
-                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
-    parser.add_argument('--flavor-chance-planet', type=finite_float,
-                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
-    parser.add_argument('--max-planet-flavor', action='store_true',
-                        help="Sets the maximum flavor text total for planets to 99.")
+    _add_flavor_arguments(parser)
     parser.add_argument('--prevalence', type=prevalence_setting, action='append', default=None,
                         metavar='FEATURE=PERCENT',
                         help="How much more or less often every system gets FEATURE than by chance, as a "

@@ -28,6 +28,7 @@ import rq
 from rq import command
 
 from planetgen.queue import pause, redisqueue, runrecord, unitbeat
+from planetgen.util import process
 
 DUMP_WAIT_SECONDS = 3.0
 """float: How long the follower waits for a horse to write its stack after the signal."""
@@ -43,13 +44,7 @@ def alive(pid, host):
     """Whether process `pid` on this machine exists; `True` for one on another host (it cannot be told, and a stop is then waited for)."""
     if host != socket.gethostname() or not isinstance(pid, int):
         return True
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
+    return process.pid_alive(pid)
 
 
 def request_dump(raw, signal_process=os.kill, wait=DUMP_WAIT_SECONDS, sleep=time.sleep):
@@ -152,13 +147,7 @@ class Stuck:
 
     def records(self):
         """`{unit: {attempts, phase, at, reason, dump}}` of what has been done in this stage."""
-        out = {}
-        for unit, raw in self.conn.hgetall(self.key).items():
-            try:
-                out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
-            except (ValueError, TypeError):
-                continue
-        return out
+        return runrecord.unit_json_hash(self.conn, self.key)
 
     def stack_of(self, unit):
         """The stack of the unit's horse, asked for now (a busy unit that has run past its learned time: OPS.194); nothing is stopped."""

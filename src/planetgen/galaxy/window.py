@@ -22,6 +22,7 @@ from bisect import bisect_left, bisect_right
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import (
+    block_key_parts,
     STAGE_LEVELS, DrillBlock, block_radius, cell_colatitude, drill_band_count, drill_wedge_count, format_drill_key,
     stage_parent,
 )
@@ -45,13 +46,7 @@ def parse_window_key(key):
     Raises:
         ValueError: On anything else.
     """
-    parts = str(key or "").split(".")
-    if len(parts) != 4:
-        raise ValueError(f"not a block key: {key!r}")
-    try:
-        m, shell, band, wedge = (int(p) for p in parts)
-    except ValueError:
-        raise ValueError(f"not a block key: {key!r}") from None
+    m, shell, band, wedge = block_key_parts(key)
     if m not in STAGE_LEVELS:
         raise ValueError(f"block size must be one of {STAGE_LEVELS}, got {m}")
     if shell < 0:

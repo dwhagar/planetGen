@@ -9,6 +9,9 @@ A belt or a comet has no look record yet, so its page has no example; a belt's m
 out (`look_note`, a stand-in until the colour account of UX.158 / MAP.271 replaces it).
 """
 
+from flask import abort
+
+from planetgen.galaxy import objectref, object_uid
 from planetgen.web.lib import sensor
 from planetgen.web.maps.bodylook import look_json, look_note, member_look, planet_look, star_look
 
@@ -47,6 +50,19 @@ def member_view(designation, member):
 
 MEMBER_COMPOSITION_PARTS = ("rock", "metal", "water", "ice")
 """tuple: The parts of a stored small body's composition, in the order its page lists them."""
+
+
+def member_page_ref(public_ref, rank, kind):
+    """`(api ref, printed id)` of the `kind` of object a member page's `public_ref` names, with `rank` checked to be written as a
+    designation writes it; a 404 for a reference of another kind, one that does not parse or a rank written otherwise."""
+    try:
+        found, printed_id = objectref.parse_public(public_ref)
+        object_uid.parse_rank(rank)
+    except ValueError:
+        abort(404)
+    if found != kind:
+        abort(404)
+    return f"{kind}:{printed_id}", printed_id
 
 
 def quantity_text(value):

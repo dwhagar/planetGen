@@ -588,41 +588,37 @@ def advance(conn, run_id, index):
 
 def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
-    last_ensure = float("-inf")
-    while True:
-        if touch:
-            runrecord.touch(conn, run_id)
-        if on_debug is not None:
-            on_debug()
-        plan = runrecord.read_plan(conn, run_id, index)
-        if plan is not None:
-            return plan
-        state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
-        if state not in runrecord.LIVE_STATES:
-            error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
-            raise units.RunStopped(error or f"the run {state} before stage {index} was queued")
-        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS and runrecord.opening(conn, run_id) is None:
-            last_ensure = clock()
-            ensure()
-        sleep(units.POLL_SECONDS)
+    return _await(conn, run_id, index, runrecord.read_plan, "queued", ensure, clock, sleep, on_debug, touch,
+                  unless_opening=True)
 
 
 def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """What stage `index`'s conclusion found (`conclude_stage`), once the unit that completed the stage has made it."""
+    return _await(conn, run_id, index, runrecord.conclusion, "concluded", ensure, clock, sleep, on_debug, touch)
+
+
+def _await(conn, run_id, index, read, verb, ensure, clock, sleep, on_debug, touch, unless_opening=False):
+    """
+    Polls `read(conn, run_id, index)` every `units.POLL_SECONDS` until it answers, touching the run's record (`touch`) and
+    calling `on_debug` each time; `RunStopped` ("the run <state> before stage <index> was <verb>") once the run is no
+    longer live. Every `units.ENSURE_SECONDS` it calls `ensure` (a check that the stage's work is still queued), except,
+    with `unless_opening`, while a worker is opening a stage.
+    """
     last_ensure = float("-inf")
     while True:
         if touch:
             runrecord.touch(conn, run_id)
         if on_debug is not None:
             on_debug()
-        found = runrecord.conclusion(conn, run_id, index)
+        found = read(conn, run_id, index)
         if found is not None:
             return found
         state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
         if state not in runrecord.LIVE_STATES:
             error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
-            raise units.RunStopped(error or f"the run {state} before stage {index} was concluded")
-        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS:
+            raise units.RunStopped(error or f"the run {state} before stage {index} was {verb}")
+        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS and (
+                not unless_opening or runrecord.opening(conn, run_id) is None):
             last_ensure = clock()
             ensure()
         sleep(units.POLL_SECONDS)

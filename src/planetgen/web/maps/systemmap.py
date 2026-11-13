@@ -657,6 +657,30 @@ def _leader_line_svg(cx, cy, r_px, direction, gap):
     return f'<line class="sysmap-label-leader" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}"></line>'
 
 
+def _planet_marker_attrs(row):
+    """A planet marker's attributes: a scene target for a planet with moons."""
+    return _planet_attrs(row, kind="planet", scene_target=f'planet-{row["id"]}' if row.get("moons") else None)
+
+
+def _body_marker_svgs(markers, placements, css_class, attrs_of, bounds):
+    """The marker SVG of each of `markers` (`cx`, `cy`, `r`, `row`) with its label where `placements` (one per marker, `None` for
+    a label left out) puts it; `attrs_of(row)` gives the marker's attributes."""
+    out = []
+    for marker, placement in zip(markers, placements):
+        row = marker["row"]
+        out.append(_body_marker_svg(
+            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
+            css_class, attrs_of(row),
+            label_direction=(placement["direction"] if placement else "below"),
+            label_pushed=bool(placement and placement["pushed"]),
+            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
+            show_label=(placement is not None),
+            has_life=bool(row.get("life_stage")),
+            bounds=bounds,
+        ))
+    return out
+
+
 def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False,
                       label_direction="below", label_pushed=False, show_label=True, has_life=False,
                       label_shift=(0.0, 0.0), bounds=_DEFAULT_BOUNDS):
@@ -1213,21 +1237,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     placements = _label_sides_2d(
         [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects, bounds=bounds,
     )
-    body_svgs = []
-    for marker, placement in zip(planet_markers, placements):
-        row = marker["row"]
-        scene_target = f'planet-{row["id"]}' if row.get("moons") else None
-        attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
-        body_svgs.append(_body_marker_svg(
-            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-planet", attrs,
-            label_direction=(placement["direction"] if placement else "below"),
-            label_pushed=bool(placement and placement["pushed"]),
-            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
-            show_label=(placement is not None),
-            has_life=bool(row.get("life_stage")),
-            bounds=bounds,
-        ))
+    body_svgs = _body_marker_svgs(planet_markers, placements, "sysmap-planet", _planet_marker_attrs, bounds)
 
     return _scene_svg_pair(
         scene_id, aria_label, hidden,
@@ -1601,21 +1611,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
                                  seed_rects=[o["label_rect"] for o in obstacles] or None, bounds=bounds)
-    body_svgs = []
-    for marker, placement in zip(planet_markers, placements):
-        row = marker["row"]
-        scene_target = f'planet-{row["id"]}' if row.get("moons") else None
-        attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
-        body_svgs.append(_body_marker_svg(
-            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-planet", attrs,
-            label_direction=(placement["direction"] if placement else "below"),
-            label_pushed=bool(placement and placement["pushed"]),
-            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
-            show_label=(placement is not None),
-            has_life=bool(row.get("life_stage")),
-            bounds=bounds,
-        ))
+    body_svgs = _body_marker_svgs(planet_markers, placements, "sysmap-planet", _planet_marker_attrs, bounds)
 
     return [_scene_svg_pair(
         "system", f'System map for {system["name"]}', False,
@@ -1721,19 +1717,8 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers], bounds=bounds)
     body_svgs = []
-    for marker, placement in zip(markers, placements):
-        row = marker["row"]
-        attrs = _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name"))
-        body_svgs.append(_body_marker_svg(
-            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-moon", attrs,
-            label_direction=(placement["direction"] if placement else "below"),
-            label_pushed=bool(placement and placement["pushed"]),
-            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
-            show_label=(placement is not None),
-            has_life=bool(row.get("life_stage")),
-            bounds=bounds,
-        ))
+    body_svgs.extend(_body_marker_svgs(
+        markers, placements, "sysmap-moon", lambda row: _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name")), bounds))
 
     if true_scale:
         note = "Everything at its true size and distance."

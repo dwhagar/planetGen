@@ -117,6 +117,16 @@ _KM_S = unit_registry.unit("km_s").factor
 """float: Metres a second in a kilometre a second."""
 
 
+def _sector_edge(sector_edge_pc):
+    """`sector_edge_pc` as a float, checked finite and positive; `None` stays `None` (no sector grid known)."""
+    if sector_edge_pc is None:
+        return None
+    _finite((sector_edge_pc,), "sector edge")
+    if sector_edge_pc <= 0.0:
+        raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
+    return float(sector_edge_pc)
+
+
 def _finite(values, what):
     for value in values:
         if not isinstance(value, (int, float)) or not math.isfinite(value):
@@ -201,12 +211,7 @@ class SpatialPosition3D:
         self._star_velocity = tuple(float(v) for v in star_velocity_galactic)
         self._epoch_unix = None
         self.set_epoch_unix(epoch_unix)
-        if sector_edge_pc is not None:
-            _finite((sector_edge_pc,), "sector edge")
-            if sector_edge_pc <= 0.0:
-                raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
-            sector_edge_pc = float(sector_edge_pc)
-        self._sector_edge_pc = sector_edge_pc
+        self._sector_edge_pc = _sector_edge(sector_edge_pc)
         self._sector_address = None
         self._coords = {}
         self._stale = True
@@ -253,12 +258,7 @@ class SpatialPosition3D:
     def set_sector_edge_pc(self, sector_edge_pc):
         """Sets (or, with `None`, forgets) the sector grid's edge length,
         parsecs; the address is worked out again."""
-        if sector_edge_pc is not None:
-            _finite((sector_edge_pc,), "sector edge")
-            if sector_edge_pc <= 0.0:
-                raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
-            sector_edge_pc = float(sector_edge_pc)
-        self._sector_edge_pc = sector_edge_pc
+        self._sector_edge_pc = _sector_edge(sector_edge_pc)
         self._sector_address = None
         self._sync()
 

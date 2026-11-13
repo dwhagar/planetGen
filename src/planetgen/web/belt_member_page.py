@@ -7,7 +7,7 @@ The page of one body an asteroid belt keeps, `/object/belt:<ID>/member/<rank>` (
 
 from flask import abort
 
-from planetgen.galaxy import objectref, object_uid
+from planetgen.galaxy import object_uid
 from planetgen.web.lib import apiclient, bodyview
 
 from . import bp
@@ -23,14 +23,8 @@ def member_url(belt_ref, designation):
 @bp.route("/object/<belt_ref>/member/<rank>")
 def belt_member_page(belt_ref, rank):
     """One body of an asteroid belt at the class D size or larger (stored, or made when asked for, GEN.1674); a reference that is not a belt, a rank the belt does not keep or one written otherwise than the designation writes it is a 404."""
-    try:
-        kind, printed_id = objectref.parse_public(belt_ref)
-        object_uid.parse_rank(rank)
-    except ValueError:
-        abort(404)
-    if kind != "belt":
-        abort(404)
-    ref, db = f"belt:{printed_id}", db_name()
+    ref, printed_id = bodyview.member_page_ref(belt_ref, rank, "belt")
+    db = db_name()
     try:
         found = apiclient.get_object(db, ref)
         data = apiclient.get_belt_member(db, ref, rank)

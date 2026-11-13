@@ -55,6 +55,7 @@ from dataclasses import asdict, dataclass
 from planetgen.util import log as debug_log
 from planetgen.util import logrecord
 from planetgen.util import log as planetgen_log
+from planetgen.util import process
 
 PREFIX = "planetgen"
 """str: Every key starts with this."""
@@ -384,14 +385,19 @@ def touch(conn, run_id):
     conn.set(alive_key(run_id), "1", ex=ALIVE_SECONDS)
 
 
-def _pid_alive(pid):
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
-        return True         # of another user: running
-    return True
+_pid_alive = process.pid_alive
+
+
+def unit_json_hash(conn, key):
+    """`{unit: value}` of the Redis hash `key` whose fields are unit numbers and values JSON (the stuck-unit records, the
+    unit views); a field that is not a number or not JSON is left out."""
+    out = {}
+    for unit, raw in conn.hgetall(key).items():
+        try:
+            out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
+        except (ValueError, TypeError):
+            continue
+    return out
 
 
 def holder_is_dead(conn, run_id):

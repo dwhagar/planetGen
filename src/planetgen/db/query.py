@@ -54,7 +54,6 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
-from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.frame import binary_companion_offset_pc
@@ -5681,7 +5680,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     )
     if unfilled_only:
         box += " AND star_system_id IS NULL"
-    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    box_params = _scatter_box_params(lo, hi)
 
     # Rows read each way, assuming stars spread evenly over the sectors: the
     # address path reads the box's longitudes of the bands it reaches, the
@@ -6081,21 +6080,31 @@ included, and the optimizer then often scans the table (3.6 million rows for a 2
 shell, with the bands the box reaches there, reads only those. It was 64."""
 
 
+def _scatter_address_clause(bands):
+    """`(where, params)` picking the `phenomenon_scatter` rows filed in `bands` (`(shell, first band, last band)` each, from
+    `_bright_star_bands`): one shell range when there are more than `SCATTERED_MAX_SHELL_RANGES`, else a term a band."""
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
+        return "shell_index BETWEEN ? AND ?", [bands[0][0], bands[-1][0]]
+    return ("(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")",
+            [v for band in bands for v in band])
+
+
+def _scatter_box_params(lo, hi):
+    """The six bounds of the box `[lo, hi)` (parsecs) as the milliparsec integers the scatter tables store positions in, in the
+    order `x >= ? AND x < ? AND y ... AND z ...` wants them."""
+    return [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+
+
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse node lists those too), so "Charted only" dims the others (MAP.111)."""
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
         return []
-    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
-        where_address = "shell_index BETWEEN ? AND ?"
-        address_params = [bands[0][0], bands[-1][0]]
-    else:
-        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
-        address_params = [v for band in bands for v in band]
+    where_address, address_params = _scatter_address_clause(bands)
     kinds = " OR ".join("(kind = ? AND subtype <=> ?)" for _ in classes)
     kind_params = [v for cls in classes for v in cls[:2]]
-    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    box_params = _scatter_box_params(lo, hi)
     rows = conn.execute(
         f"""
         SELECT id, kind, subtype, built_at, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
@@ -6152,15 +6161,10 @@ def galaxy_scattered_nebulae_in_box(conn, lo, hi, edge_pc, limit):
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
         return []
-    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
-        where_address = "shell_index BETWEEN ? AND ?"
-        address_params = [bands[0][0], bands[-1][0]]
-    else:
-        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
-        address_params = [v for band in bands for v in band]
+    where_address, address_params = _scatter_address_clause(bands)
     kinds = " OR ".join("kind = ?" for _ in SCATTERED_NEBULA_CLASSES)
     kind_params = [cls[0] for cls in SCATTERED_NEBULA_CLASSES]
-    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    box_params = _scatter_box_params(lo, hi)
     rows = conn.execute(
         f"""
         SELECT id, kind, position_x_mpc, position_y_mpc, position_z_mpc
@@ -7258,22 +7262,24 @@ def _body_facet_rows(facet, conn):
     return [{"v": value, "c": n} for value, n in sorted(galaxy_counts.facet(conn, facet).items())]
 
 
+def _class_facet(conn, facet, word):
+    """The planet-class facet options of the stored `facet` counts (`class` or `moon_class`), labelled `Class X <word>`."""
+    return [{"value": row["v"], "label": f"Class {row['v']} {word}", "count": row["c"],
+             "tooltip": PLANET_CLASSES.get(row["v"], {}).get("description")} for row in _body_facet_rows(facet, conn)]
+
+
+def _body_type_facet(conn, facet):
+    """The body-type facet options of the stored `facet` counts (`body` or `moon_body`)."""
+    return [{"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
+            for row in _body_facet_rows(facet, conn)]
+
+
 def _search_facet_class(conn):
-    rows = _body_facet_rows("class", conn)
-    opts = []
-    for row in rows:
-        info = PLANET_CLASSES.get(row["v"], {})
-        opts.append({"value": row["v"], "label": f"Class {row['v']} Planet", "count": row["c"],
-                     "tooltip": info.get("description")})
-    return opts
+    return _class_facet(conn, "class", "Planet")
 
 
 def _search_facet_body(conn):
-    rows = _body_facet_rows("body", conn)
-    return [
-        {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
-        for row in rows
-    ]
+    return _body_type_facet(conn, "body")
 
 
 def _life_class_label(class_id):
@@ -7399,21 +7405,11 @@ def _equipment_clause(alias, tags, clauses, params):
 
 
 def _search_facet_moon_class(conn):
-    rows = _body_facet_rows("moon_class", conn)
-    opts = []
-    for row in rows:
-        info = PLANET_CLASSES.get(row["v"], {})
-        opts.append({"value": row["v"], "label": f"Class {row['v']} Moon", "count": row["c"],
-                     "tooltip": info.get("description")})
-    return opts
+    return _class_facet(conn, "moon_class", "Moon")
 
 
 def _search_facet_moon_body(conn):
-    rows = _body_facet_rows("moon_body", conn)
-    return [
-        {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
-        for row in rows
-    ]
+    return _body_type_facet(conn, "moon_body")
 
 
 def _search_facet_moon_life(conn):

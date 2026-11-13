@@ -52,6 +52,7 @@ from datetime import datetime, timezone
 from planetgen.admin import maintenance, stop_reason
 from planetgen.queue import stopall
 from planetgen.util import log
+from planetgen.util import process
 
 UPDATE_CAUSE = "update"
 """str: The maintenance `cause` of an update."""
@@ -100,23 +101,8 @@ def _now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def pid_alive(pid):
-    """Whether a process with this id is running here (one of another user counts)."""
-    if not isinstance(pid, int) or pid <= 0:
-        return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except OSError:
-        return False
-    try:
-        with open(f"/proc/{pid}/stat", "rb") as handle:
-            return handle.read().rpartition(b")")[2].split()[0] != b"Z"      # a zombie has ended
-    except (OSError, IndexError):
-        return True
+pid_alive = process.pid_alive
+"""Whether a process with this id is running here (`util.process.pid_alive`; a test patches this name)."""
 
 
 def lock_path():
@@ -326,13 +312,8 @@ class GenerateJobSource:
         return jobs.cancel_job(item["id"], item["root"])
 
 
-class QueuedJobSource:
-    """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, interactive and
-    generation). A run's own queue belongs to the run and is canceled with it. Canceled with
-    `workers.cancel_now`. A job whose worker is gone is cleared before the listing (`workers.reap_dead_jobs`), so
-    it does not hold the update for ever."""
-
-    name = "queue-job"
+class _RedisSource:
+    """A source of update blockers read from Redis at `url` (the configured server when `None`)."""
 
     def __init__(self, url=None):
         self.url = url
@@ -342,6 +323,15 @@ class QueuedJobSource:
         connection = redisqueue.connect(self.url or redisqueue.redis_url())
         connection.ping()
         return connection
+
+
+class QueuedJobSource(_RedisSource):
+    """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, interactive and
+    generation). A run's own queue belongs to the run and is canceled with it. Canceled with
+    `workers.cancel_now`. A job whose worker is gone is cleared before the listing (`workers.reap_dead_jobs`), so
+    it does not hold the update for ever."""
+
+    name = "queue-job"
 
     def items(self):
         from planetgen.queue import redisqueue
@@ -375,21 +365,12 @@ class QueuedJobSource:
         return True
 
 
-class RunRecordSource:
+class RunRecordSource(_RedisSource):
     """The runs whose record in Redis says they are live (`queue/runrecord.py`, PERF.96): a `planetgen` run from
     the command line, one a Generate job started, a check or a warm-up. Canceled through `runcontrol.cancel_run`
     (PERF.99), which takes the run's waiting units off the queue and stops the started ones."""
 
     name = "run-record"
-
-    def __init__(self, url=None):
-        self.url = url
-
-    def _connection(self):
-        from planetgen.queue import redisqueue
-        connection = redisqueue.connect(self.url or redisqueue.redis_url())
-        connection.ping()
-        return connection
 
     def items(self):
         from planetgen.queue import runrecord

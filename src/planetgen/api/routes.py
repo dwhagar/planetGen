@@ -105,7 +105,6 @@ from planetgen.db.query import (
     resolve_object,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
-    parse_star_count,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
 )
@@ -128,6 +127,7 @@ from planetgen.db.store import (NoGalaxyError, get_galaxy_bounds, get_galaxy_sha
                                 resolve_database)
 from planetgen.util.checks import finite_float
 from planetgen.util.settings import get_settings
+from planetgen.util.star_count import parse_star_count
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy import drill, gravity_field, potential as galacticPotential, spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
@@ -2024,6 +2024,20 @@ def _body_of(ref):
     return object_ref.parse(resolved)
 
 
+def _kept_body(ref, kind, noun, info, rank=None):
+    """The JSON answer of a route about one kind of object: `info(db, row id)` for the `kind` of object `ref` names (`info(db, row id, rank)` with a
+    `rank` written as a designation writes it), or a 404 with the message of the `ValueError` a wrong `ref` or `kind` ("<ref> is not <noun>"), a rank not
+    written canonically, or a body the object does not keep (the describe modules' not-found errors) raises."""
+    try:
+        found, object_id = _body_of(ref)
+        if found != kind:
+            raise ValueError(f"{ref} is not {noun}")
+        args = () if rank is None else (object_uid.parse_rank(rank),)
+        return jsonify(info(get_db(), object_id, *args))
+    except ValueError as exc:  # includes ids.IdError and the describe modules' *NotFound errors
+        return jsonify({"error": str(exc)}), 404
+
+
 @bp.route("/objects/<ref>/sheet")
 def object_sheet_route(ref):
     """
@@ -2067,13 +2081,7 @@ def object_belt_page_route(ref):
     `density_factor` (`by_diameter`, the objects per square AU above each diameter, and the `mass` per square AU) and `totals` (the belt, the
     listed bodies and the bins, which add up). Every number is `{value, unit, text}`. 404 for a reference that is not a belt.
     """
-    try:
-        kind, object_id = _body_of(ref)
-        if kind != "belt":
-            raise ValueError(f"{ref} is not an asteroid belt")
-        return jsonify(belt_info.belt_info(get_db(), object_id))
-    except ValueError as exc:  # includes ids.IdError and belt_info.BeltPageNotFound
-        return jsonify({"error": str(exc)}), 404
+    return _kept_body(ref, "belt", "an asteroid belt", belt_info.belt_info)
 
 
 @bp.route("/objects/<ref>/belt-members/<rank>")
@@ -2085,13 +2093,7 @@ def object_belt_member_route(ref, rank):
     designation, star, where it came from and what shaped it) and the `previous` and `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is
     not a belt, a rank that is not written canonically, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page).
     """
-    try:
-        kind, object_id = _body_of(ref)
-        if kind != "belt":
-            raise ValueError(f"{ref} is not an asteroid belt")
-        return jsonify(belt_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
-    except ValueError as exc:  # includes ids.IdError and belt_member_info.BeltMemberNotFound
-        return jsonify({"error": str(exc)}), 404
+    return _kept_body(ref, "belt", "an asteroid belt", belt_member_info.member_info, rank)
 
 
 @bp.route("/objects/<ref>/irregular-moons")
@@ -2102,13 +2104,7 @@ def object_irregular_moons_route(ref):
     `window` (`gas`, `encounter` or `exchange`), `retrograde`, mass, diameter, density, `taxon`, `analogue`, composition shares, the `distance` about the planet, `eccentricity`, `inclination` and
     `hill_fraction`) and `not_stored` (`remainder`, `above_floor`, `lost`, `temporary`). Every number is `{value, unit, text}`. 404 for a reference that is not a planet.
     """
-    try:
-        kind, object_id = _body_of(ref)
-        if kind != "planet":
-            raise ValueError(f"{ref} is not a planet")
-        return jsonify(irregular_moon_info.list_info(get_db(), object_id))
-    except ValueError as exc:  # includes ids.IdError and irregular_moon_info.IrregularMoonNotFound
-        return jsonify({"error": str(exc)}), 404
+    return _kept_body(ref, "planet", "a planet", irregular_moon_info.list_info)
 
 
 @bp.route("/objects/<ref>/irregular-moons/<rank>")
@@ -2119,13 +2115,7 @@ def object_irregular_moon_route(ref, rank):
     `retrograde` and the `hill_fraction`), `planet` and the `previous` and `next` neighbours (`{rank, designation}`). Every number is `{value, unit, text}`. 404 for a reference that is not a planet, a rank that is not
     written canonically, or a body the planet does not keep.
     """
-    try:
-        kind, object_id = _body_of(ref)
-        if kind != "planet":
-            raise ValueError(f"{ref} is not a planet")
-        return jsonify(irregular_moon_info.moon_info(get_db(), object_id, object_uid.parse_rank(rank)))
-    except ValueError as exc:  # includes ids.IdError and irregular_moon_info.IrregularMoonNotFound
-        return jsonify({"error": str(exc)}), 404
+    return _kept_body(ref, "planet", "a planet", irregular_moon_info.moon_info, rank)
 
 
 @bp.route("/objects/<ref>/field-members")
@@ -2135,13 +2125,7 @@ def object_field_members_route(ref):
     `count` and `bodies`, heaviest first, each with its `rank`, `designation` (`<field ID>.<rank hex>`), `mass`, `diameter`, `density`, `composition` shares and `status` word. Every number is
     `{value, unit, text}`. A field with no ledger keeps none (`count` 0). 404 for a reference that is not an asteroid field.
     """
-    try:
-        kind, object_id = _body_of(ref)
-        if kind != "asteroid_field":
-            raise ValueError(f"{ref} is not an asteroid field")
-        return jsonify(field_member_info.members_of(get_db(), object_id))
-    except ValueError as exc:  # includes ids.IdError and field_member_info.FieldMemberNotFound
-        return jsonify({"error": str(exc)}), 404
+    return _kept_body(ref, "asteroid_field", "an asteroid field", field_member_info.members_of)
 
 
 @bp.route("/objects/<ref>/field-members/<rank>")
@@ -2151,13 +2135,7 @@ def object_field_member_route(ref, rank):
     the heaviest): `designation`, `rank`, `member` (the entry the field's list holds), `share` of the field's mass, `field` (its designation, name, where it came from and its history) and the `previous` and
     `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is not an asteroid field, a rank that is not written canonically, or a body the field does not keep.
     """
-    try:
-        kind, object_id = _body_of(ref)
-        if kind != "asteroid_field":
-            raise ValueError(f"{ref} is not an asteroid field")
-        return jsonify(field_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
-    except ValueError as exc:  # includes ids.IdError and field_member_info.FieldMemberNotFound
-        return jsonify({"error": str(exc)}), 404
+    return _kept_body(ref, "asteroid_field", "an asteroid field", field_member_info.member_info, rank)
 
 
 @bp.route("/objects/<ref>/children")
@@ -2585,6 +2563,18 @@ def run_queued(function, *args):
     return job_id, None
 
 
+def _job_answer(queue, look_up, job_id, noun):
+    """`look_up(job_id)` of the `queue` module (`api_jobs` or `pagejobs`) as the route's JSON: 503 when the module raises its `NoQueue`
+    (no Redis), 404 ("no such <noun>: <id>") when it knows no such job."""
+    try:
+        job = look_up(job_id)
+    except queue.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is None:
+        raise ApiError(f"no such {noun}: {job_id}", status_code=404)
+    return jsonify(job)
+
+
 @bp.route("/jobs/<job_id>", methods=["GET"])
 @require_admin(scope="read")
 def job_status_route(job_id):
@@ -2592,13 +2582,7 @@ def job_status_route(job_id):
     (`queued`, `running`, `succeeded` or `failed`), its `result` once it
     succeeded, its `error` once it failed (PERF.24). 404 for an
     unknown or expired id; results are kept for a day."""
-    try:
-        job = api_jobs.status(job_id)
-    except api_jobs.NoQueue as exc:
-        raise ApiError(str(exc), status_code=503)
-    if job is None:
-        raise ApiError(f"no such job: {job_id}", status_code=404)
-    return jsonify(job)
+    return _job_answer(api_jobs, api_jobs.status, job_id, "job")
 
 
 @bp.route("/table-estimates")
@@ -2617,13 +2601,7 @@ def page_job_status_route(job_id):
     is true), `unit`, `eta_seconds`, `seconds`, `error`, `canceling`, `cache_key` and `target`. Public, like the
     pages it serves; it names only page jobs, never the admin's other jobs. 404 for an unknown or expired id
     (a job is kept an hour); 503 without Redis."""
-    try:
-        job = pagejobs.status(job_id)
-    except pagejobs.NoQueue as exc:
-        raise ApiError(str(exc), status_code=503)
-    if job is None:
-        raise ApiError(f"no such page job: {job_id}", status_code=404)
-    return jsonify(job)
+    return _job_answer(pagejobs, pagejobs.status, job_id, "page job")
 
 
 @bp.route("/page-jobs/<job_id>/cancel", methods=["POST"])
@@ -2634,13 +2612,7 @@ def page_job_cancel_route(job_id):
     started its query (a query already running finishes, and its answer is kept in the cache); answers `GET`'s body.
     Every visitor waiting on the same request shares the job, so a visitor's own "Cancel" only stops that page
     waiting (it stops polling) and the job goes on for the others. 404 and 503 as `GET`."""
-    try:
-        job = pagejobs.cancel(job_id)
-    except pagejobs.NoQueue as exc:
-        raise ApiError(str(exc), status_code=503)
-    if job is None:
-        raise ApiError(f"no such page job: {job_id}", status_code=404)
-    return jsonify(job)
+    return _job_answer(pagejobs, pagejobs.cancel, job_id, "page job")
 
 
 def _sector_generation_context(conn, sector_id, system_config):
@@ -2949,10 +2921,7 @@ def facility(facility_id):
 def system_facilities(system_id):
     """`GET /api/systems/<id>/facilities` -- every facility in a system.
     404 for an unknown system."""
-    db = get_db()
-    if db.execute("SELECT 1 FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
-        raise ApiError(f"no such system: {system_id}", status_code=404)
-    return jsonify({"items": facilities_for_system(db, system_id)})
+    return _facilities_of("star_systems", "system", system_id, facilities_for_system)
 
 
 @bp.route("/sectors/<uid:sector_id>/facilities")
@@ -2960,10 +2929,15 @@ def sector_facilities(sector_id):
     """`GET /api/sectors/<id>/facilities` -- stand-alone facilities parked
     in a sector and those on its asteroid fields. 404 for an unknown
     sector."""
+    return _facilities_of("sectors", "sector", sector_id, facilities_in_sector)
+
+
+def _facilities_of(table, noun, row_id, facilities):
+    """`{"items": facilities(db, row_id)}`, or a 404 ("no such <noun>: <id>") when `table` has no row `row_id`."""
     db = get_db()
-    if db.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
-        raise ApiError(f"no such sector: {sector_id}", status_code=404)
-    return jsonify({"items": facilities_in_sector(db, sector_id)})
+    if db.execute(f"SELECT 1 FROM {table} WHERE id = ?", (row_id,)).fetchone() is None:
+        raise ApiError(f"no such {noun}: {row_id}", status_code=404)
+    return jsonify({"items": facilities(db, row_id)})
 
 
 _gravity_jobs = {}

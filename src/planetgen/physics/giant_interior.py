@@ -244,7 +244,9 @@ class Polytrope:
     def pressure_at_mass_inside_pa(self, fraction):
         return self.at_mass_inside(fraction)[1]
 
-    def _interpolate(self, key, target, descending):
+    def _bracket(self, key, target, descending):
+        """The two table rows `(a, b)` round `target` under `key` (a bisection over rows whose `key` runs down when `descending`,
+        else up) and the fraction `t` of the way from `a` to `b` the target lies (0 where the two keys are equal)."""
         rows = self._rows
         lo, hi = 0, len(rows) - 1
         while hi - lo > 1:
@@ -255,23 +257,16 @@ class Polytrope:
                 hi = mid
         a, b = rows[lo], rows[hi]
         span = key(b) - key(a)
-        t = 0.0 if span == 0.0 else (target - key(a)) / span
+        return a, b, 0.0 if span == 0.0 else (target - key(a)) / span
+
+    def _interpolate(self, key, target, descending):
+        a, b, t = self._bracket(key, target, descending)
         xi = a[0] + t * (b[0] - a[0])
         mass = a[2] + t * (b[2] - a[2])
         return xi / self._xi1, mass / self._mass1
 
     def _interpolate_to(self, key, target):
-        rows = self._rows
-        lo, hi = 0, len(rows) - 1
-        while hi - lo > 1:
-            mid = (lo + hi) // 2
-            if key(rows[mid]) < target:
-                lo = mid
-            else:
-                hi = mid
-        a, b = rows[lo], rows[hi]
-        span = key(b) - key(a)
-        t = 0.0 if span == 0.0 else (target - key(a)) / span
+        a, b, t = self._bracket(key, target, False)
         return (a[0] + t * (b[0] - a[0])) / self._xi1, a[1] + t * (b[1] - a[1]), a[2] + t * (b[2] - a[2])
 
 

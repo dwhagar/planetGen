@@ -1059,7 +1059,8 @@ def _merge(base, overrides):
             base[key] = copy.deepcopy(value)  # never share a layer's nested dict with the merge
 
 
-def _set_path(data, path, value):
+def set_path(data, path, value):
+    """Sets the dotted `path` of the settings tree `data` to `value`, replacing anything on the way that is not a dict with one."""
     parts = path.split(".")
     for part in parts[:-1]:
         if not isinstance(data.get(part), dict):
@@ -1077,7 +1078,7 @@ def _environment_layer(environ):
         value = environ[name]
         if value == "" and not meta.get("x-env-empty"):
             continue
-        _set_path(layer, path, value)
+        set_path(layer, path, value)
     return layer
 
 

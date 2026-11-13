@@ -54,6 +54,7 @@ import psutil
 
 from planetgen.queue import work
 from planetgen.util import log
+from planetgen.util.process import pid_alive
 
 MB = 2 ** 20
 
@@ -230,9 +231,8 @@ def held_mb(pid):
         return 0.0
 
 
-def alive(pid):
-    """Whether a process with this id runs here. A test patches this."""
-    return psutil.pid_exists(pid)
+alive = pid_alive
+"""Whether a process with this id runs here (`util.process.pid_alive`). A test patches this."""
 
 
 def _decode(value):

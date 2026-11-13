@@ -184,6 +184,17 @@ class Fingerprint:
         return out
 
 
+def select_in(select, table, column, ids):
+    """The rows `select(table, where, params)` gives whose `column` is one of `ids` (distinct, ascending), `_IN_BATCH` ids a query so
+    no statement outgrows the server's limits; `storage_checksum`'s reader shares it."""
+    ids = sorted(set(ids))
+    rows = []
+    for first in range(0, len(ids), _IN_BATCH):
+        chunk = ids[first:first + _IN_BATCH]
+        rows.extend(select(table, f"`{column}` IN ({', '.join('?' * len(chunk))})", chunk))
+    return rows
+
+
 class _Reader:
     """Reads and canonicalizes rows of one database, caching the schema's
     columns and foreign keys and the keys of the rows they point at."""
@@ -233,12 +244,7 @@ class _Reader:
         return self._columns[key]
 
     def select_in(self, table, column, ids):
-        ids = sorted(set(ids))
-        rows = []
-        for first in range(0, len(ids), _IN_BATCH):
-            chunk = ids[first:first + _IN_BATCH]
-            rows.extend(self.select(table, f"`{column}` IN ({', '.join('?' * len(chunk))})", chunk))
-        return rows
+        return select_in(self.select, table, column, ids)
 
     def row_value(self, table, row):
         """`row` of `table` as the value the encoder writes, foreign keys

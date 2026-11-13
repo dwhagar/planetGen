@@ -367,6 +367,18 @@ def format_drill_key(block):
     return ".".join(str(int(v)) for v in block)
 
 
+def block_key_parts(key):
+    """The four ints `(m, shell, band, wedge)` of a cell key `m.shell.band.wedge`, unchecked beyond their form; `ValueError`
+    ("not a block key") for anything else. `parse_drill_key` and `window.parse_window_key` check what they name."""
+    parts = str(key or "").split(".")
+    if len(parts) != 4:
+        raise ValueError(f"not a block key: {key!r}")
+    try:
+        return tuple(int(p) for p in parts)
+    except ValueError:
+        raise ValueError(f"not a block key: {key!r}") from None
+
+
 def parse_drill_key(key):
     """
     `format_drill_key`'s inverse, checked: a known size, a block shell, and a
@@ -375,13 +387,7 @@ def parse_drill_key(key):
     Raises:
         ValueError: On anything else.
     """
-    parts = str(key or "").split(".")
-    if len(parts) != 4:
-        raise ValueError(f"not a block key: {key!r}")
-    try:
-        m, shell, band, wedge = (int(p) for p in parts)
-    except ValueError:
-        raise ValueError(f"not a block key: {key!r}") from None
+    m, shell, band, wedge = block_key_parts(key)
     if m not in DRILL_LEVELS[:-1]:
         raise ValueError(f"block size must be one of {DRILL_LEVELS[:-1]}, got {m}")
     if shell < 0:

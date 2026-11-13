@@ -426,13 +426,7 @@ def _warm_cluster_field(visitor, cap):
 
 def _warm_galaxy_nodes(visitor, cap):
     """Warms every node `warm-galaxy-nodes` builds, in this process (`warm_family`, the command's inline twin)."""
-    keys = _populated_nodes(visitor.db)
-    warmed = already = 0
-    for start in range(0, len(keys), NODE_CHUNK):
-        result = fetch_nodes(visitor.db, keys[start:start + NODE_CHUNK])
-        warmed += len(result["nodes"])
-        already += result["cached"]
-    return {"warmed": warmed, "noun": "nodes", "already": already, "left_out": 0}
+    return _warm_node_keys(visitor, _populated_nodes(visitor.db))
 
 
 def _warm_lists(visitor, cap):
@@ -500,7 +494,11 @@ def _warm_search(visitor, cap):
 
 def _warm_galaxy_deep_nodes(visitor, cap):
     """Warms every node `warm-galaxy-deep-nodes` builds, in this process."""
-    keys = deep_nodes_to_warm(apiclient.get_galaxy_shape(visitor.db), get_settings().tile_cache.warm_zoom_floor)
+    return _warm_node_keys(visitor, deep_nodes_to_warm(apiclient.get_galaxy_shape(visitor.db), get_settings().tile_cache.warm_zoom_floor))
+
+
+def _warm_node_keys(visitor, keys):
+    """Fetches the nodes `keys` name, `NODE_CHUNK` at a time, through the cache; the warmer's result (`warmed`, `already` cached)."""
     warmed = already = 0
     for start in range(0, len(keys), NODE_CHUNK):
         result = fetch_nodes(visitor.db, keys[start:start + NODE_CHUNK])

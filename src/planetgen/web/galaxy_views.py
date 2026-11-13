@@ -254,6 +254,23 @@ def _course_from_args():
         return None
 
 
+def _tile_json(fetch, what):
+    """The JSON answer of a map data route: `fetch()`'s payload with `Cache-Control: no-store`; a malformed request (`TileRequestError`)
+    a 400, an unknown object a 404, any other API failure a 502 (logged as "while fetching <what>"), each as `{"error": ...}`."""
+    try:
+        payload = fetch()
+    except TileRequestError as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching {what}: {exc}")
+        return _json_error("The map could not be loaded. Please try again shortly.", 502)
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 def _json_error(message, status):
     response = jsonify({"error": message})
     response.status_code = status
@@ -378,19 +395,10 @@ def galaxy_stage():
     the galaxy). Returns `tilecache.fetch_stage`'s payload; a malformed
     key is a 400, an API failure a 502, both as `{"error": ...}` JSON.
     """
-    try:
+    def fetch():
         payload = fetch_stage(db_name(), request.args.get("at") or None)
-        payload = _with_nebula_cover(payload, db_name(), request.args.get("at") or None)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a galaxy stage: {exc}")
-        return _json_error("The map could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+        return _with_nebula_cover(payload, db_name(), request.args.get("at") or None)
+    return _tile_json(fetch, "a galaxy stage")
 
 
 galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -406,20 +414,11 @@ def galaxy_window():
     `tilecache.fetch_window`'s payload; a malformed key or width is a 400, an
     API failure a 502, both as `{"error": ...}` JSON.
     """
-    try:
+    def fetch():
         payload = fetch_window(db_name(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW)
-        payload = _with_nebula_cover(payload, db_name(), request.args.get("at") or "",
-                                     request.args.get("g") or DEFAULT_WINDOW)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a galaxy window: {exc}")
-        return _json_error("The map could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+        return _with_nebula_cover(payload, db_name(), request.args.get("at") or "",
+                                 request.args.get("g") or DEFAULT_WINDOW)
+    return _tile_json(fetch, "a galaxy window")
 
 
 galaxy_window.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -433,18 +432,9 @@ def galaxy_near():
     it to look, parsecs. Returns `tilecache.fetch_near`'s payload, the generated sectors with the ids a scene is fetched by; a
     malformed number is a 400, an API failure a 502, both as `{"error": ...}` JSON.
     """
-    try:
-        payload = fetch_near(db_name(), request.args.get("x"), request.args.get("y"), request.args.get("z"), request.args.get("r") or 0)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching the sectors near a point: {exc}")
-        return _json_error("The map could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+    def fetch():
+        return fetch_near(db_name(), request.args.get("x"), request.args.get("y"), request.args.get("z"), request.args.get("r") or 0)
+    return _tile_json(fetch, "the sectors near a point")
 
 
 galaxy_near.json_only = True  # not a page: tests/test_web_a11y.py skips it

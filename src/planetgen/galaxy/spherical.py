@@ -888,6 +888,14 @@ def _wedges_near_longitude(count, center, half_width):
     return sorted((first + k) % count for k in range(length))
 
 
+def _check_sphere(radius_pc, edge_pc):
+    """`ValueError` unless `radius_pc >= 0` and `edge_pc > 0`, the sphere walks' shared check."""
+    if radius_pc < 0:
+        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
+    if edge_pc <= 0:
+        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+
+
 def sphere_rows(center, radius_pc, edge_pc):
     """
     The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
@@ -907,10 +915,7 @@ def sphere_rows(center, radius_pc, edge_pc):
     Raises:
         ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
     """
-    if radius_pc < 0:
-        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
-    if edge_pc <= 0:
-        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+    _check_sphere(radius_pc, edge_pc)
     eps = 1e-9
     cx, cy, cz = center
     reach = math.sqrt(cx * cx + cy * cy + cz * cz)
@@ -994,10 +999,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
         uses `cells_touching_sphere`. Cells come shell by shell, not nearest
         first; sort by the distance before applying any limit.
     """
-    if radius_pc < 0:
-        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
-    if edge_pc <= 0:
-        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+    _check_sphere(radius_pc, edge_pc)
     eps = 1e-9
     cx, cy, cz = center
     reach = math.sqrt(cx * cx + cy * cy + cz * cz)
@@ -1032,10 +1034,7 @@ def cells_touching_sphere(center, radius_pc, edge_pc, reach_edges=CELL_REACH_EDG
     Raises:
         ValueError: As `enumerate_sectors_within_radius`, or a negative `reach_edges`.
     """
-    if radius_pc < 0:
-        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
-    if edge_pc <= 0:
-        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+    _check_sphere(radius_pc, edge_pc)
     if reach_edges < 0:
         raise ValueError(f"reach_edges must be >= 0, got {reach_edges}")
     return enumerate_sectors_within_radius(center, radius_pc + reach_edges * edge_pc, edge_pc)

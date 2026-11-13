@@ -227,22 +227,10 @@ def _read_json(path):
 def _write_json(path, payload):
     """Atomic write (temp file + rename), so a concurrent reader never sees
     half a file. Returns whether it worked."""
-    directory = os.path.dirname(path)
-    tmp_path = None
-    try:
-        os.makedirs(directory, mode=0o750, exist_ok=True)
-        fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".tmp-", suffix=".json")
+    def write(fd):
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(payload, f, separators=(",", ":"))
-        os.replace(tmp_path, path)
-        return True
-    except OSError:
-        if tmp_path:
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
-        return False
+    return _write_atomically(path, ".json", write)
 
 
 def _remove_tree(path):
@@ -569,13 +557,22 @@ first (PERF.133)."""
 def _write_bytes(path, data, ahead=False):
     """Atomic write of raw bytes, like `_write_json`; `ahead` marks the file as built ahead (`AHEAD_MODE`).
     Returns whether it worked."""
+    def write(fd):
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+    return _write_atomically(path, ".part", write, ahead)
+
+
+def _write_atomically(path, suffix, write, ahead=False):
+    """Makes `path`'s directory, writes a temporary file beside it through `write(fd)`, marks it built ahead (`AHEAD_MODE`) when
+    `ahead`, and renames it over `path`, so a concurrent reader never sees half a file. Returns whether it worked; a failed
+    temporary is removed."""
     directory = os.path.dirname(path)
     tmp_path = None
     try:
         os.makedirs(directory, mode=0o750, exist_ok=True)
-        fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".tmp-", suffix=".part")
-        with os.fdopen(fd, "wb") as f:
-            f.write(data)
+        fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".tmp-", suffix=suffix)
+        write(fd)
         if ahead:
             os.chmod(tmp_path, AHEAD_MODE)
         os.replace(tmp_path, path)

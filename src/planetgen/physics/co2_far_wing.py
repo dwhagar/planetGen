@@ -150,6 +150,25 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
     Returns:
         ndarray: (layers, bands).
     """
+    def tail_of(t, pressure, x, scale):
+        gamma = half_width_cm1(t, pressure, x)
+
+        def tail(distance):
+            weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") \
+                + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
+            return np.where(_window(distance), scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+        return tail
+
+    return _layer_cross_sections(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction, tail_of)
+
+
+def _layer_cross_sections(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction, tail_of):
+    """
+    The far-wing cross section in each band for a stack of layers (the shape `cross_section_cm2` describes): for each layer with
+    carbon dioxide and pressure, `tail_of(temperature, pressure, co2 fraction, scale)` gives the Lorentz tail (a function of the
+    distance from the band, cm-1), `scale` being the pressure over one atmosphere times `(REFERENCE_K / T)^gamma_exponent`; the tail
+    is paired with the layer's band strengths over the band edges. A layer without either stays 0.
+    """
     strengths = np.atleast_2d(np.asarray(strengths, dtype=float))
     temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
     pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
@@ -158,15 +177,9 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
     for layer in range(len(temperature)):
         if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
             continue
-        x, t = fraction[layer], temperature[layer]
-        gamma = half_width_cm1(t, pressure[layer], x)
+        t = temperature[layer]
         scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
-
-        def tail(distance):
-            weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") \
-                + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
-            return np.where(_window(distance), scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
-
+        tail = tail_of(t, pressure[layer], fraction[layer], scale)
         result[layer] = detmath.matmul(_pair_matrix(edges_cm1, tail), strengths[layer][:, None])[:, 0]
     return np.maximum(result, 0.0)
 
@@ -178,22 +191,14 @@ def minor_gas_cross_section_cm2(gas, strengths, edges_cm1, temperature_k, pressu
     `minor_uses_chi` is 0), weighted by the carbon dioxide share of the air so that an air without carbon dioxide adds nothing (its water
     far wing is the continuum of `line_opacity`). Arguments as `cross_section_cm2`.
     """
-    strengths = np.atleast_2d(np.asarray(strengths, dtype=float))
-    temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
-    pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
-    fraction = np.atleast_1d(np.asarray(co2_fraction, dtype=float))
     gamma0 = number("minor_gamma_cm1_atm")[gas]
-    result = np.zeros(strengths.shape)
-    for layer in range(len(temperature)):
-        if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
-            continue
-        t = temperature[layer]
-        scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
+
+    def tail_of(t, pressure, x, scale):
         gamma = gamma0 * scale
 
         def tail(distance):
             shape = chi(distance, t, "co2_co2") if number("minor_uses_chi") else 1.0
-            return np.where(_window(distance), fraction[layer] * gamma * shape / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+            return np.where(_window(distance), x * gamma * shape / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+        return tail
 
-        result[layer] = detmath.matmul(_pair_matrix(edges_cm1, tail), strengths[layer][:, None])[:, 0]
-    return np.maximum(result, 0.0)
+    return _layer_cross_sections(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction, tail_of)

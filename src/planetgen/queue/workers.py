@@ -32,6 +32,7 @@ from rq import command, worker_registration
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, runrecord, stopall, work
 from planetgen.util import log
+from planetgen.util import process
 
 WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
@@ -168,17 +169,8 @@ def niceness(queue_names):
     return INTERACTIVE_NICENESS if redisqueue.INTERACTIVE_QUEUE in queue_names else work.WORKER_NICENESS
 
 
-def process_exists(pid):
-    """Whether a process with this id is running here (a process of another user counts as running)."""
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except OSError:
-        return False
-    return True
+process_exists = process.pid_alive
+"""Whether a process with this id is running here (`util.process.pid_alive`; a test patches this name)."""
 
 
 def live_workers(queue):

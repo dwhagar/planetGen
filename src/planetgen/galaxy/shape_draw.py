@@ -577,6 +577,16 @@ def pinned_stellar_mass(args, drawn):
     return drawn.chain.stellar_mass_solar if mass_given or size_and_density else None
 
 
+def current_shape_and_seed():
+    """`(shape, seed)` of the galaxy the running unit belongs to: its stored shape and seed when `galaxy.seed.seeded` was given them,
+    else the galaxy the seed draws with every shape option at its default (the fallback seed's outside any unit)."""
+    seed = galaxySeed.current_galaxy_seed() or mass_chain.FALLBACK_SEED
+    shape = galaxySeed.current_galaxy_shape()
+    if shape is None:
+        shape = default_shape(seed)
+    return shape, seed
+
+
 def default_shape(galaxy_seed):
     """
     The `GalaxyShape` of the galaxy a seed makes with every lever on Auto (what `plan` makes when it is given no shape

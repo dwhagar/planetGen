@@ -276,13 +276,38 @@ def _get(tree, path):
     return True, node
 
 
-def _put(tree, path, value):
-    parts = path.split(".")
-    for part in parts[:-1]:
-        if not isinstance(tree.get(part), dict):
-            tree[part] = {}
-        tree = tree[part]
-    tree[parts[-1]] = value
+_put = settings.set_path
+
+
+def _load_document(result, path):
+    """The settings file at `path` parsed (its hash and document noted on `result`, a `Plan` or `UpdatePlan`), or `None` with
+    `result.errors[""]` saying the file is missing or what is wrong with it."""
+    data = read_bytes(path)
+    if data is None:
+        result.errors[""] = MISSING
+        return None
+    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
+    try:
+        before = _parse(data, path)
+    except SettingsWriteError as exc:
+        result.errors[""] = str(exc)
+        return None
+    result.document_before = before
+    return before
+
+
+def _note_field_errors(result, after, known):
+    """Checks the would-be document `after` against the model and notes each problem on `result.errors`: under its option when
+    `known` lists it, else under `""` for the file as a whole. Returns the checked `Settings`, `None` when there were problems."""
+    checked, problems = settings.field_errors(after)
+    if checked is None:
+        for option, message in problems:
+            if option in known:
+                result.errors.setdefault(option, message)
+            else:
+                result.errors.setdefault("", f"{option}: {message}" if option else message)
+    return checked
+"""Sets a dotted `path` in a settings tree, making the dicts on the way (`settings.set_path`)."""
 
 
 def _drop(tree, path):
@@ -360,17 +385,9 @@ def plan(changes, role="admin", environ=None):
     path = config_path()
     environ = os.environ if environ is None else environ
     result = Plan()
-    data = read_bytes(path)
-    if data is None:
-        result.errors[""] = MISSING
+    before = _load_document(result, path)
+    if before is None:
         return result
-    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
-    try:
-        before = _parse(data, path)
-    except SettingsWriteError as exc:
-        result.errors[""] = str(exc)
-        return result
-    result.document_before = before
     known = _fields()
     after = copy.deepcopy(before)
     wanted = {}
@@ -388,13 +405,7 @@ def plan(changes, role="admin", environ=None):
         else:
             _put(after, option, value)
             wanted[option] = value
-    checked, problems = settings.field_errors(after)
-    if checked is None:
-        for option, message in problems:
-            if option in known:
-                result.errors.setdefault(option, message)
-            else:
-                result.errors.setdefault("", f"{option}: {message}" if option else message)
+    checked = _note_field_errors(result, after, known)
     if result.errors:
         return result
     bare = copy.deepcopy(after)  # the same file without the options being set: what applies if they are left out
@@ -559,17 +570,9 @@ def plan_update(remove=(), apply=(), fields=None):
     """
     path = config_path()
     result = UpdatePlan()
-    data = read_bytes(path)
-    if data is None:
-        result.errors[""] = MISSING
+    before = _load_document(result, path)
+    if before is None:
         return result
-    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
-    try:
-        before = _parse(data, path)
-    except SettingsWriteError as exc:
-        result.errors[""] = str(exc)
-        return result
-    result.document_before = before
     known = _fields() if fields is None else fields
     sections = _sections(known)
     after = copy.deepcopy(before)
@@ -603,13 +606,7 @@ def plan_update(remove=(), apply=(), fields=None):
         _put(after, option, value)
     for option in sorted(remove):
         _drop(after, option)
-    checked, problems = settings.field_errors(after)
-    if checked is None:
-        for option, message in problems:
-            if option in known:
-                result.errors.setdefault(option, message)
-            else:
-                result.errors.setdefault("", f"{option}: {message}" if option else message)
+    if _note_field_errors(result, after, known) is None:
         return result
     for option, value in wanted.items():
         _info, meta = known[option]
