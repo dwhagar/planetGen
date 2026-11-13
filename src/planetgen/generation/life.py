@@ -87,6 +87,7 @@ def _remake_ground_if_thawed(planet, before):
         return
     if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= 273.15:
         planets.refresh_at_final_age(planet)
+        planets.apply_class(planet)         # GEN.1590: the class reads the water as it is now, not the ice it had
 
 
 @dataclass
@@ -389,10 +390,11 @@ def _build_air(planet, cands):
     if not planet_type.has_ground(planet):      # a giant, or a planet under a deep envelope (GEN.1334): no ground for life to change the air of
         return
     living = _living_of(cands)
+    held = (planet.surface_temperature, planet.atmospheric_pressure)      # what the water was made at (GEN.1590)
     rose = _build_oxygen(planet, living)
     changed = life_air.apply_gases(planet, living, rose)
     if rose or changed:
-        _rebuild(planet)
+        _rebuild(planet, held)
     if changed:
         log.choice("Life gases", f"{atmosphere.partial_kpa(planet, 'ch4'):.3g} kPa of methane",
                    f"class {cands[0].row.id}: methane and hydrogen of the ledger at the star's age")
@@ -424,11 +426,24 @@ def _trace_gases(planet):
             radiation.generate_dose(planet)
 
 
-def _rebuild(planet):
+def _remake_water_if_moved(planet, held):
+    """
+    GEN.1590: the air the life made moved the temperature or the pressure the hydrosphere was made at (a 293 K ocean the life took to 432 K was still stored as an ocean), so
+    the water is made again at the air as it is now: the hydrosphere, the ocean cover and chemistry, the ground and what reads them, through `planets.refresh_at_final_age`
+    (the step the thaw path and the life pass already use; no second water model), on the body's own stream so no draw of the run's moves. A body whose temperature
+    and pressure the life left alone keeps what it had, draw for draw.
+    """
+    from planetgen.physics import planets
+    if (planet.surface_temperature, planet.atmospheric_pressure) != held:
+        planets.refresh_at_final_age(planet)
+
+
+def _rebuild(planet, held):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
     stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
-    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980)."""
+    leave a different liquid stable, GEN.1035; `held` is the temperature and pressure the water was made at, GEN.1590), the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
+    _remake_water_if_moved(planet, held)      # GEN.1590
     aerosols.generate_aerosols(planet)
     surface_liquid_world.generate(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
