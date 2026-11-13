@@ -13665,6 +13665,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): the slider thread (PR 6357). Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
+- [ ] **PERF.262 (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table**
+  Boss live observation on 8.0.3988 (2026-11-12): /lists answered 504 and both warm-up parts stop at Warm lists. Cause (Lane 04): COALESCE(subtype, '') in the uncharted class filter defeats the index, so the hypervelocity list scans the whole phenomenon_scatter table past the 10 s limit. Fix PR 6360. Lock-free, output unchanged.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **PERF.263 The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401**
+  Seen in Boss's warm-up log (Lane 04, 2026-11-12). Lock-free, display and web only.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: PERF.262.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
