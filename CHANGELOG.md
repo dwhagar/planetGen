@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3987] - 2026-11-13
+
+**Headline:** Five planet class descriptions are rewritten to the plain-words guide: shorter sentences and a comma before the last "and".
+
+### Changed
+- **UX.306: the descriptions of the dead world, marginal world, anoxic world, carbon dioxide world, and cold methane world classes are split into sentences of 30 words or fewer, and lists of three keep the Oxford comma.** No exception was added to the plain-words test. Display text only; no generated output moves.
+
+generation-affects: none
+
 ## [8.0.3986] - 2026-11-13
 
 **Headline:** The Queue page now shows what the queue has learned for each kind of job, next to the typed figure, with the latest changes it made, and lets an admin fix a claim, release it or make the queue forget a kind.
