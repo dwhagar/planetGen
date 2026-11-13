@@ -116,3 +116,19 @@ def test_the_delivered_water_reads_the_water_line():
     body = types.SimpleNamespace(star=star, formation_distance_au=0.5, distance=0.5)
     assert bulk_draw._snow_ratio(body) == pytest.approx(0.5 / fsl.water_snow_line_au(star))
     assert bulk_draw._snow_ratio(body) != pytest.approx(0.5 / star.snow_line_au)
+
+
+def test_a_body_is_icy_by_the_water_line_not_the_luminosity_line():
+    """GEN.1679: the icy/rocky test and the stored 'formed beyond the snow line' flag read the line the water is read against."""
+    from planetgen.physics import bulk_draw, planets
+    star = _lone(1.0, fsl.formation_snow_line_au(1.0, 0.0))
+    water_line = fsl.water_snow_line_au(star)
+    assert water_line > star.snow_line_au          # a Sun-like star: the viscous line lies outside the luminosity line
+    between = types.SimpleNamespace(star=star, formation_distance_au=0.5 * (water_line + star.snow_line_au), distance=1.0)
+    beyond = types.SimpleNamespace(star=star, formation_distance_au=1.01 * water_line, distance=1.0)
+    assert bulk_draw.origin_of(between) == bulk_draw.ROCKY and not planets.formed_beyond_snow_line(between)
+    assert bulk_draw.origin_of(beyond) == bulk_draw.ICY and planets.formed_beyond_snow_line(beyond)
+    dim = _lone(0.2, fsl.formation_snow_line_au(0.2, 0.0))          # an M dwarf: the viscous line lies inside the luminosity line
+    assert fsl.water_snow_line_au(dim) < dim.snow_line_au
+    inside = types.SimpleNamespace(star=dim, formation_distance_au=0.5 * (fsl.water_snow_line_au(dim) + dim.snow_line_au), distance=1.0)
+    assert bulk_draw.origin_of(inside) == bulk_draw.ICY

@@ -8,7 +8,7 @@ import types
 import pytest
 
 from planetgen.generation import possibility_table as pt, tuning_harness as th
-from planetgen.physics import bulk_draw as bd, iron_branch_tuning as it
+from planetgen.physics import bulk_draw as bd, constants, iron_branch_tuning as it
 from planetgen.util import draw
 
 SAMPLE_TARGETS = ["t5-outlier-share", "t5-within-share"]
@@ -20,7 +20,7 @@ def _ratios():
 
 def _body(icy=False, is_moon=False):
     """A body that formed inside the snow line (2.7 AU), or (`icy`) beyond it."""
-    return types.SimpleNamespace(is_moon=is_moon, distance=20.0 if icy else 1.0, star=types.SimpleNamespace(snow_line_au=2.7))
+    return types.SimpleNamespace(is_moon=is_moon, distance=20.0 if icy else 1.0, star=types.SimpleNamespace(snow_line_au=2.7, mass=constants.SOLAR_MASS_TO_KG))
 
 
 @pytest.mark.parametrize("target_id", SAMPLE_TARGETS)
