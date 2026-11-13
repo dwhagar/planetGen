@@ -27,7 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -209,6 +209,7 @@ _BODY_GROUPS = (
            ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
+           ("obliquity_min_deg", "Lowest tilt over the star's age"), ("obliquity_max_deg", "Highest tilt over the star's age"),
            ("outside_hours", "Hours a person can work outside per year (dose limit)"),
            ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
            ("solar_day_hours", "Length of the solar day"),
@@ -263,7 +264,7 @@ _BODY_GROUPS = (
            ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("relative_humidity", "Relative humidity of the surface air"), ("groundwater", "Groundwater (liquid water underground)", TEXT),
-           ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
+           ("ocean_fraction", "Surface under liquid ocean"), ("ice_cover_fraction", "Surface under ice"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
            ("surface_liquid_depth_km", "Depth of that liquid"),
@@ -449,7 +450,7 @@ _ROGUE_OWN = (
     *_rows("identity", ("planet_type", "Type", TEXT), ("planet_class", "Class", TEXT),
            ("mass_bin", "Mass class", TEXT)),
     *_rows("physical", ("mass_kg", "Mass"), ("radius_km", "Radius", "radius"), ("age_gy", "Age"),
-           ("has_moons", "Has moons", FLAG), ("density_g_cm3", "Mean density"),
+           ("density_g_cm3", "Mean density"),
            ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("composition", ("composition", "Composition", TEXT)),
@@ -586,7 +587,6 @@ _PHENOMENON_BOOKKEEPING = {
     **{f"velocity_{axis}_kms": "a component of its galactic motion; the galactic orbit rows summarize it" for axis in "xyz"},
     **{f"spin_axis_{axis}": _VECTORS for axis in "xyz"},
 }
-_SHAPE = "a parameter of the cloud's drawn 3D shape; bookkeeping for the 3D view"
 
 
 def _phenomenon_not_shown(kind, **extra):
@@ -597,6 +597,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 _BODY_NOT_SHOWN = {
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
+    "shape_temperature_k": "the temperature the body took its shape at (GEN.1201); the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
@@ -651,6 +652,8 @@ NOT_SHOWN = {
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
     "planet": {**_BODY_NOT_SHOWN, "host_node_id": "the orbit tree node; bookkeeping",
+               "belt_order": "the number of the belt a promoted planet came from, which its designation carries (GEN.1510); bookkeeping",
+               "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries (GEN.1510); bookkeeping",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
     "moon": {**_BODY_NOT_SHOWN, "planet_id": "the planet it circles, a link in the Location chain",
              "rogue_planet_id": "the free planet it circles, a link in the Location chain"},
@@ -670,11 +673,7 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
-    "nebula": _phenomenon_not_shown(
-        "nebula", **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
-                                               "shape_angle_y", "shape_angle_z", "shape_warp_amplitude",
-                                               "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
-                                               "shape_iso", "shape_scale")}),
+    "nebula": _phenomenon_not_shown("nebula"),
     "asteroid_field": _phenomenon_not_shown(
         "asteroid_field", formed_at="when the field formed, as a timestamp; bookkeeping",
         origin_event_id="the event that made it; bookkeeping"),
@@ -899,7 +898,7 @@ _MEAN_SWING = ("temp_mean_swing_k",)
 _COVERAGE_ROWS = ("temp_livable_share", "temp_livable_area", "temp_site_coldest_k", "temp_site_hottest_k", "temp_coldest_k", "temp_hottest_k")
 """tuple: The columns of what is read off the temperature of every place that the climate table shows (GEN.1265); a giant has none."""
 _SURFACE = (
-    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
+    "hydrosphere", "ocean_fraction", "ice_cover_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio", *CORE_FRACTIONS, "rock_na2o_fraction", "rock_k2o_fraction", "rock_tio2_fraction", "rock_cr2o3_fraction", "rock_mno_fraction", "rock_nio_fraction", "rock_p2o5_fraction",
@@ -1033,10 +1032,20 @@ _BODY_RULES = [
 ]
 
 _PLANET_RULES = [
+    (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: row is None or (
+        spin.spin_state(row.get("rotation_period_hours"), row.get("period_years"))[0] in (None, "free") and row.get("belt_order") is None),
+     "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet of the spacing pass that spins freely: a locked or resonant planet sits at the Cassini state "
+     "of its spin and does not wander (GEN.1536), and a belt member promoted to a planet (GEN.1510) is made after the sibling planets' modes are fixed and keeps the tilt it was drawn with"),
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
      "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
+]
+
+_MOON_RULES = [
+    (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: False,
+     "the range a tilt wanders over is worked out for a planet from the nodal modes of the other planets' pull on its orbit; a moon's tilt is held by its planet's pull or its own tide "
+     "(a locked moon takes the Cassini state, GEN.1556) and it has no range"),
 ]
 
 _STAR_RULES = [
@@ -1077,7 +1086,7 @@ _ROGUE_RULES = [
      "a giant or a brown dwarf is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
 ]
 
-APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES, "belt": _BELT_RULES}
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES + _MOON_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES, "belt": _BELT_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the

@@ -50,8 +50,8 @@ each `Star`/`BinaryStarProxy` has a `system_perimeter` (its Hill sphere
 i.e. the radius beyond which the galaxy's own gravity dominates over the
 star's, roughly the same concept that sets the outer edge of the Oort
 cloud). Two systems are required to be at least `program_constants.SECTOR_HILL_SEPARATION_SHARE`
-(half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's center sits deep inside the
-other's sphere. The whole sum is not asked (GEN.1284): at the solar circle the median system's sphere is 1.3 pc in radius (measured
+(0.05, fitted to the Gaia nearest-neighbour distribution in GEN.1534; it was half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's center sits deep inside the
+other's sphere. The whole sum is not asked (GEN.1284, and not half of it either since GEN.1534: the real neighbourhood has 30 percent of its systems within a parsec of another, `tuning.SECTOR_HILL_SEPARATION_SHARE`): at the solar circle the median system's sphere is 1.3 pc in radius (measured
 in the audit galaxy), the mean spacing of systems is 2.2 pc, and real neighbouring spheres overlap (the Sun's nearest neighbour is
 inside its sphere); asking for the whole sum fills 0.6 of a 4 pc sector with spheres, which random placement cannot do, and the
 sector ran out of room and kept 85 percent of the systems its profile expects (78 percent of the mass).
