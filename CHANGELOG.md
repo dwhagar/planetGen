@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4007] - 2026-11-13
+
+**Headline:** A young star that keeps a belt now keeps its own protoplanetary disk instead of losing it.
+
+### Changed
+
+- The cold debris-disk step (`StarSystem._set_debris_disk`, GEN.1071) cleared every disk field of a star before it asked whether the star could hold a debris disk. A protostar or pre-main-sequence star that kept a belt (its belts survive the 10 Myr planet cut) lost its class 0, I or II disk (`pre_main_sequence.draw_disk`, GEN.242) this way. The step now leaves any disk that is not a debris disk alone; a debris disk left by an earlier pass is still cleared when its belt is gone, and a main-sequence star is unchanged.
+
+generation-output: changed
+
 ## [8.0.4006] - 2026-11-13
 
 **Headline:** A star's age is no longer raised to suit the planets it hosts, so planets are made on the age the star was born with and generation is about a quarter faster.
