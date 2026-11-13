@@ -297,6 +297,11 @@ ECCENTRICITY_SETTLE_TOLERANCE = 1e-4
 below it the orbit cannot be told apart. A stand-in, registry row OE14."""
 
 
+def is_bare(body):
+    """Whether `body` was built without its air, class, spin and moons (`Planet(defer_climate=True)`, GEN.1282) and `Planet.finish_climate` still owes them (GEN.1548)."""
+    return getattr(body, "_deferred_climate", None) is not None
+
+
 def settle_orbit(planet):
     """
     Takes the tides of a planet's (or captured moon's) orbit again at the star's final age (GEN.985): `generate_orbit_shape` wore the
@@ -509,6 +514,8 @@ def settle_envelope(planet):
     """
     if not apply_envelope(planet):
         return False
+    if is_bare(planet):      # GEN.1548: the air is not made yet, so there is none to make again
+        return True
     remake_end_stages(planet, planet)
     planet._age_drawn = planet.star.age
     return True
@@ -524,6 +531,12 @@ def settle_giant(planet):
         bool: Whether the giant's radius moved.
     """
     moved = giant_draw.settle(planet)
+    if is_bare(planet):      # GEN.1548: a body whose air waits has only its radius to settle; the air is made once, on the orbit and the radius it keeps
+        planet._air_stale = False
+        if moved:
+            planet.volume = (4 / 3) * math.pi * planet.radius ** 3
+            calculate_surface_gravity(planet)
+        return moved
     stale = bool(getattr(planet, "_air_stale", False))       # the secular exchange moved the orbit and with it the mean light (GEN.1505)
     planet._air_stale = False
     if not moved and not stale:
@@ -993,7 +1006,7 @@ def remake_after_orbit_change(planet):
     """`follow_orbit_change` and, for a rocky planet, its air, class and spin made again at once (the tide of the orbit is a heat source, `remake_end_stages`). Used by `finish_orbit_oddities`,
     after which nothing moves the orbit again."""
     follow_orbit_change(planet)
-    if planet.body_type == "t":
+    if planet.body_type == "t" and not is_bare(planet):
         remake_end_stages(planet, planet)
 
 
@@ -1657,7 +1670,7 @@ MOON_REJECTION_LIMIT = 5
 """int: How many moons in a row `generate_moons` may discard for being larger than their parent can hold before it stops."""
 
 
-def generate_moons(planet, moon_count=None):
+def generate_moons(planet, moon_count=None, bare=False):
     """
     Generates a system of moons for the given planet.
 
@@ -1675,6 +1688,8 @@ def generate_moons(planet, moon_count=None):
             stops once `moon_count` moons exist, even if more room remains;
             if the planet doesn't have room for `moon_count` moons, fewer
             than requested may be generated.
+        bare (bool, optional): Builds each moon without its air, class and spin (`Planet(defer_climate=True)`, GEN.1548) but with its orbit's state, for `Planet.finish_moons` to
+            finish once the orbits are settled.
     """
     if moon_count == 0:
         return
@@ -1754,7 +1769,7 @@ def generate_moons(planet, moon_count=None):
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           mass=moon_mass, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
-                          moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
+                          moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity, defer_climate=bare)
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
             draw.redrawn("moon.too_large")
             rejected += 1
@@ -1762,6 +1777,8 @@ def generate_moons(planet, moon_count=None):
                 break
             continue
         rejected = 0
+        if bare:
+            new_moon.finish_motion()      # GEN.1548: its place on its orbit now (the reflex, the Kozai pumping and the tide read it); the air waits
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
         if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more
