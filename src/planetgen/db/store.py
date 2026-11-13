@@ -247,7 +247,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 21
+CONTROL_SCHEMA_VERSION = 22
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -258,7 +258,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -2990,7 +2990,7 @@ BODY_FIELDS = (
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
-    object_rows.each(body_strength.FIELDS),
+    object_rows.each(body_strength.BODY_FIELDS),
     object_rows.each(planet_type.FIELDS),
     object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
@@ -3006,8 +3006,11 @@ PLANET_ONLY_FIELDS = tuple(
     for axis in "xyz") + (
     object_rows.attr("sky_suns"),       # GEN.1458: the other suns of a planet's sky; the re-score reads it back, as generation read it
     object_rows.attr("light_factor"),   # GEN.1484: the share of its light a circumbinary planet keeps
+    object_rows.attr("obliquity_min_deg"),   # GEN.1535: the lowest tilt its axis reaches over the age of its star
+    object_rows.attr("obliquity_max_deg"),   # GEN.1535: the highest
+    object_rows.attr("belt_order"), object_rows.attr("belt_rank"),     # GEN.1510: the belt a promoted body came from and its rank in it
 )
-"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons)."""
+"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons; a moon is no belt body)."""
 
 PLANET_BODY_FIELDS = BODY_FIELDS + PLANET_ONLY_FIELDS
 
@@ -3756,26 +3759,9 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         ),
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
-    _store_nebula_shape(conn, cur.lastrowid, nebula)
     store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
-
-
-def _store_nebula_shape(conn, nebula_id, nebula):
-    """Writes `nebula`'s shape (GEN.75) to its row's `shape_*` columns and to
-    `nebula_shape_balls`."""
-    from planetgen.galaxy import nebula_shape
-
-    scalars, balls = nebula_shape.to_columns(nebula.get_shape())
-    sets = ", ".join(f"{column} = ?" for column in scalars)
-    conn.execute(f"UPDATE nebulae SET {sets} WHERE id = ?", (*scalars.values(), nebula_id))
-    storage_checksum.mark_rows(conn, "nebulae", [nebula_id])
-    conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
-    for ball in balls:
-        conn.execute(
-            "INSERT INTO nebula_shape_balls (nebula_id, ball_index, center_x, center_y, center_z, radius)"
-            " VALUES (?, ?, ?, ?, ?, ?)", (nebula_id, *ball))
 
 
 def _placement_values(placement):
@@ -3907,7 +3893,6 @@ ROGUE_PLANET_FIELDS = (
     object_rows.optional("planet_class"), object_rows.attr("mass_bin"), object_rows.attr("mass_kg"),
     object_rows.attr("radius_km"), object_rows.attr("composition"),
     object_rows.computed("has_internal_heat", lambda planet, context: int(planet.has_internal_heat)),
-    object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
     object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
     object_rows.each(rogue_habitability.ROGUE_FIELDS),
     object_rows.each(rings.BODY_FIELDS),  # GEN.836
@@ -3942,7 +3927,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
 ROGUE_HOST_ONLY_COLUMNS = frozenset({
     "distance_km", "period_years", "zone", "hill_radius_km", "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity", "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
-    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", *_VELOCITY_COLUMNS})
+    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "belt_order", "belt_rank", *_VELOCITY_COLUMNS})
 """frozenset: The `planets` columns that are the orbit round a host (GEN.1111): a rogue planet has no host, so its `velocity_*_kms` is the galaxy-frame movement (`_FREE_VECTOR_FIELD`)."""
 
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
@@ -5113,16 +5098,17 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
     """
     Every placed nebula and supernova remnant whose sphere can reach the box
     `low`-`high` (galaxy-frame parsecs, each an `(x, y, z)`), padded by
-    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`.
+    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`, and for a nebula `inside` (the density contour, GEN.1267).
     """
     containers = []
+    galaxy = _lazy_galaxy(conn)
     for table, column in CONTAINER_TABLES:
         max_row = conn.execute(f"SELECT MAX(radius_ly) AS r FROM {table} WHERE center_x_pc IS NOT NULL").fetchone()
         if max_row["r"] is None:
             continue
         pad = ly_to_pc(max_row["r"]) + reach_pc
         rows = conn.execute(
-            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly FROM {table}"
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly{', nebula_class' if table == 'nebulae' else ''} FROM {table}"
             " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
             (low[0] - pad, high[0] + pad, low[1] - pad, high[1] + pad, low[2] - pad, high[2] + pad),
         ).fetchall()
@@ -5133,25 +5119,23 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
                 "radius_pc": ly_to_pc(row["radius_ly"]),
             }
             if table == "nebulae":
-                container["shape"] = _lazy_nebula_shape(conn, row["id"])
+                container["inside"] = containment.contour_test(galaxy, row["nebula_class"], container["center"], container["radius_pc"])
             containers.append(container)
     return containers
 
 
-def _lazy_nebula_shape(conn, nebula_id):
-    """A function returning nebula `nebula_id`'s `NebulaShape` (GEN.75),
-    loaded on the first call: most containers never see a point inside
-    their sphere."""
+def _lazy_galaxy(conn):
+    """A function giving the galaxy's `(seed, shape)` for the density contour of a nebula (GEN.1267), read on the first call (building the skeleton
+    takes a while and most containers never see a point inside their sphere), or `None` for a database never planned, whose nebulae are spheres."""
     loaded = []
 
-    def shape():
+    def galaxy():
         if not loaded:
-            from planetgen.db import query
-
-            loaded.append(query.nebula_shape(conn, nebula_id)[1])
+            skeleton = get_galaxy_shape(conn)
+            loaded.append(None if skeleton is None else (skeleton.galaxy_seed, skeleton.shape))
         return loaded[0]
 
-    return shape
+    return galaxy
 
 
 def refresh_containment(conn, sector_ids, on_progress=None):
@@ -5389,7 +5373,7 @@ def _stamp_family(conn, family, system_ids):
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
         conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
+                     + ", ".join("(?, ?)" for _ in chunk) + f" AS written ON DUPLICATE KEY UPDATE {column} = written.{column}",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
 
 

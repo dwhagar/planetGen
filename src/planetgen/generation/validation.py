@@ -191,18 +191,20 @@ def reconcile_moved_planet(planet):
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
         return
     planetPhysics.calculate_atmospheric_conditions(planet)
-    planetPhysics.apply_class(planet)
+    planetPhysics.prepare_class(planet)
     planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
     planetPhysics.update_orbital_position(planet)
     planetPhysics.generate_spin(planet, planet.star.mass)
+    planetPhysics.classify(planet)      # GEN.1587: after the spin, which makes the latitude bands the class reads
 
     planetPhysics.release_moons(planet)      # GEN.1352: the moons are regenerated in their planet's equator, then set in the system again below
     for moon in planet.moons:
         planetPhysics.reconcile_zone(moon, planet.mass, distance_override=planet.distance)
         planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
-        planetPhysics.apply_class(moon)
+        planetPhysics.prepare_class(moon)
         # GEN.704: the moon's star distance changed, so the dose, UV and score `generate_spin` ends with are re-run as a moved planet's are.
         planetPhysics.generate_spin(moon, planet.mass)
+        planetPhysics.classify(moon)
     planetPhysics.orient_moons(planet)
 
     # v20: planet.reflex_offset_x/y/z (this planet's own wobble from its moons -- see Planet.reflex_offset_x's docstring) depends on
@@ -247,6 +249,11 @@ def belt_needs_pushing(belt, last):
     return _below(belt.distance - apoapsis_au(last), last.min_orbit_distance)
 
 
+def slot_planets(planets):
+    """`planets` without the belt members promoted to planets (GEN.1510, `Planet.belt_rank`): they orbit inside a belt, which is exempt from the spacing of the slots (as the belt is), so the spacing rules do not see them."""
+    return [body for body in planets if getattr(body, "belt_rank", None) is None]
+
+
 def space_orbits(planets):
     """
     Validates and adjusts the distances of `planets` (one star's ordered
@@ -276,6 +283,7 @@ def space_orbits(planets):
         list: The bodies that moved.
     """
     moved = []
+    planets = slot_planets(planets)
     if len(planets) < 2:
         return moved
 
@@ -542,6 +550,7 @@ def check_orbit_spacing(planets):
         list: `Problem`s, empty when it validates.
     """
     problems = []
+    planets = slot_planets(planets)
     for index, (last, body) in enumerate(zip(planets, planets[1:])):
         if _below(inner_edge_au(body), inner_edge_au(last)):
             problems.append(Problem(_label(body), f"it is listed after {_label(last)} but orbits inside it"))

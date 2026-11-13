@@ -100,7 +100,6 @@ from planetgen.db.query import (
     scattered_phenomenon_detail as query_scattered_phenomenon_detail,
     uncharted_system_detail as query_uncharted_system_detail,
     resolve_object,
-    nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
     parse_star_count,
@@ -2176,33 +2175,6 @@ def object_children_route(ref):
         return jsonify({"error": str(exc)}), 400
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
-
-
-@bp.route("/nebulae/<uid:nebula_id>/shape")
-def nebula_shape_route(nebula_id):
-    """
-    One nebula's shape as a triangle mesh (GEN.75): `?lod=low` (the default,
-    a coarse mesh for the Galaxy Map) or `?lod=full`. Answers `{"id",
-    "radius_ly", "center_pc" (or null for a nebula never placed), "lod",
-    "vertices", "faces"}`: the vertices are `[x, y, z]` in units of the
-    nebula's radius from its center (multiply by `radius_ly` for light-years),
-    the faces triples of vertex indexes. A 404 for an unknown nebula or a
-    `lod` other than `low` or `full`.
-    """
-    lod = request.args.get("lod", "low")
-    if lod not in ("low", "full"):
-        return jsonify({"error": f"lod must be 'low' or 'full', got {lod!r}"}), 404
-    try:
-        row, shape = query_nebula_shape(get_db(), nebula_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
-    vertices, faces = shape.mesh(lod)
-    center = None if row["center_x_pc"] is None else [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
-    return jsonify({
-        "id": nebula_id, "radius_ly": row["radius_ly"], "center_pc": center, "lod": lod,
-        "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
-        "faces": [[int(i) for i in face] for face in faces],
-    })
 
 
 @bp.route("/nebulae/<uid:nebula_id>/volume")

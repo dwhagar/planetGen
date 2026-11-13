@@ -248,10 +248,10 @@ class Planet(PlanetaryObject):
         *habitability_world.BODY_FIELDS,
         *aerosols.BODY_FIELDS,
         *body_colour.BODY_FIELDS,
-        *body_strength.FIELDS,
+        *body_strength.BODY_FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "collision_count",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count", "belt_order", "belt_rank",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -284,8 +284,20 @@ class Planet(PlanetaryObject):
     collision_count = 0
     """int: The mergers the planet architecture recorded for this planet (see `__init__`); 0 for a body made without them."""
 
+    belt_member = None
+    """dict or None: While a belt member promoted to a planet is being made, the member's record (`AsteroidBelt.members`); never stored (the planet keeps `belt_order` and `belt_rank`)."""
+
+    belt_order = belt_rank = None
+    """int or None: For a belt member promoted to a planet (GEN.1510), the belt's place among its star's belts and the member's rank in it, the pair `irregular_moons` names a body caught from a belt by;
+    `None` for every other body. The member's designation, `<belt ID>.<rank in hex>`, and its page still resolve by them."""
+
+
     light_factor = None
     """float or None: The share of its host's light a planet keeps after the eclipses of its sky (`physics/eclipses.py`, GEN.1484): below 1 for a circumbinary planet, `None` (all of it) for every other body."""
+    obliquity_min_deg = None
+    """float or None: The lowest tilt a free-spinning planet's axis reaches over the age of its star (`physics/obliquity_variation.py`, GEN.1535), degrees; `None` for a body that was not worked (`planets.settle_obliquity`)."""
+    obliquity_max_deg = None
+    """float or None: The highest tilt it reaches, degrees; `None` as `obliquity_min_deg`."""
     sky_suns = None
     """str or None: The other suns in a planet's sky as JSON text (`physics/sky_suns.py`, GEN.1458); `None` for a lone star, a moon, and a body not yet placed."""
     oddities = ()
@@ -309,7 +321,8 @@ class Planet(PlanetaryObject):
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
-                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False, collision_count=0):
+                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False, collision_count=0,
+                 belt_member=None, belt_order=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -365,6 +378,9 @@ class Planet(PlanetaryObject):
             late_core (bool, optional): Draw the planet as a core that finished growing after the gas disk was gone, so it captured no envelope
                                         (`envelope_capture`, GEN.1323). Only a request for a class that no planet with an envelope can be
                                         (a dense rocky world, V) asks for it (`StarSystem.build_planet`).
+            belt_member (dict, optional): A member of an asteroid belt (`AsteroidBelt.members`) promoted to a planet (GEN.1510, `generation.belt_planets`): its mass, orbit (the eccentricity, plane,
+                                          node, periapsis and place on it) and its rock, metal, water and ice shares are the member's, not drawn; everything else is the planet generator's, unchanged.
+            belt_order (int, optional): With `belt_member`, the belt's place among its star's belts (`irregular_moons.belts_of`), kept with the member's rank (`belt_rank`) as the body's link to its belt.
             moon_disk_system (DiskSystem, optional): For a disk moon, its giant parent's circumplanetary disk
                                                      (`moon_composition.draw_disk_system`), shared by that parent's moons.
             defer_climate (bool, optional): Builds the body and its orbit's shape only (GEN.1282); the air, the class, the motion and the moons
@@ -377,7 +393,10 @@ class Planet(PlanetaryObject):
         self.is_moon = is_moon
         self.moon_origin = moon_origin
         self.moon_disk_system = moon_disk_system
-        self._late_core = late_core
+        self._late_core = late_core or belt_member is not None       # GEN.1510: a belt member was built from solids and captured no envelope
+        self.belt_member = belt_member
+        self.belt_order = belt_order
+        self.belt_rank = None if belt_member is None else belt_member["rank"]
         self.moons = []
         self.irregulars = irregular_moons.NO_IRREGULARS    # the small bodies the planet caught (GEN.1083); `StarSystem` fills them in once the system's belts stand
         # This planet's own reflex-offset "wobble" (schema v20) from its
@@ -393,6 +412,7 @@ class Planet(PlanetaryObject):
         self.born_beyond_snow_line = None
         self.oddities = ()      # the oddities the body is given (`oddities.apply`, GEN.1047)
         self.light_factor = None     # the share of its light it keeps after the eclipses of its sky (`eclipses.light_factor_of`, set with its air, GEN.1484)
+        self.obliquity_min_deg = self.obliquity_max_deg = None     # the range the tilt wanders over (`planets.settle_obliquity`, GEN.1535)
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.collision_count = collision_count
         self.atm_molar_density = None
@@ -446,7 +466,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + core_composition.BODY_FIELDS + phosphorus_budget.COLUMN_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + ore_deposits.COLUMN_FIELDS + (ore_deposits.ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + core_composition.BODY_FIELDS + phosphorus_budget.COLUMN_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + ore_deposits.COLUMN_FIELDS + (ore_deposits.ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.BODY_FIELDS + planet_type.FIELDS + class_code.FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
@@ -469,8 +489,9 @@ class Planet(PlanetaryObject):
             return
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.apply_class(self)
+        planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(primary_mass_kg, moon_count)
+        self.belt_member = None       # made: the planet keeps `belt_order` and `belt_rank`, not the member's record
 
     def _draw_body(self, zone_override, primary_mass_kg, planned_objects, distance_override):
         """The body itself and the shape of its orbit, before any climate (what `__init__` does ahead of the air)."""
@@ -484,8 +505,10 @@ class Planet(PlanetaryObject):
         planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
 
     def _finish_motion_and_moons(self, primary_mass_kg, moon_count):
-        """What `__init__` does after the air and the class: the motion, the age the body was made at and the moons."""
+        """What `__init__` does after the air and the prepared class (`planets.prepare_class`): the motion, whose spin makes the latitude bands, the class (GEN.1587: judged on the bands, which M, O, H, P and R
+        read, so a request for one of them can be met), the age the body was made at and the moons."""
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        planetPhysics.classify(self)
         self._age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
@@ -501,7 +524,7 @@ class Planet(PlanetaryObject):
         moon_count, distance_override = self._deferred_climate
         self._deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.apply_class(self)
+        planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(self.primary_mass_kg, moon_count)
 
     def add_moons(self, moon_count=None):

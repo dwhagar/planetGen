@@ -86,7 +86,6 @@ CHILD_TABLES = (
     ("interstellar_comet_composition", "comet_id", "interstellar_comets"),
     ("asteroid_field_composition", "field_id", "asteroid_fields"),
     ("field_members", "field_id", "asteroid_fields"),
-    ("nebula_shape_balls", "nebula_id", "nebulae"),
     ("orbit_nodes", "star_system_id", "star_systems"),
     ("dark_members", "star_system_id", "star_systems"),
 )
@@ -113,7 +112,7 @@ SECTIONS = {
     "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life"),
     "belt": ("asteroid_belts", "asteroid_belt_composition", "belt_members", "asteroid_fields", "asteroid_field_composition", "field_members"),
     "comet": ("comets", "comet_composition", "interstellar_comets", "interstellar_comet_composition"),
-    "phenomenon": ("nebulae", "nebula_shape_balls", "supernova_remnants", "quasars", "bright_stars",
+    "phenomenon": ("nebulae", "supernova_remnants", "quasars", "bright_stars",
                    "phenomenon_scatter"),
     "population": ("facilities",),
     "plan": PLAN_TABLES,

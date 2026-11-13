@@ -219,3 +219,19 @@ def test_settling_is_the_same_for_the_same_giant_and_leaves_the_run_stream_where
     again.star.age = 9.0
     giant_draw.settle(again)
     assert (again.radius, again.composition, again.metal_mass_fraction) == first
+
+
+def test_gen1606_a_giants_ices_follow_where_it_formed_not_where_it_orbits_now():
+    from types import SimpleNamespace
+    from planetgen.physics import giant_draw
+    from planetgen.util import draw
+    star = SimpleNamespace(snow_line_au=2.7)
+    with draw.bound(1):
+        migrated_in = giant_draw._ice_shares(SimpleNamespace(is_moon=False, distance=0.1, formation_distance_au=5.0, star=star), giant_draw.ICE)
+        stayed_in = giant_draw._ice_shares(SimpleNamespace(is_moon=False, distance=0.1, formation_distance_au=0.1, star=star), giant_draw.ICE)
+        moved_out = giant_draw._ice_shares(SimpleNamespace(is_moon=False, distance=9.0, formation_distance_au=1.0, star=star), giant_draw.ICE)
+        no_line = giant_draw._ice_shares(SimpleNamespace(is_moon=False, distance=9.0, formation_distance_au=9.0, star=SimpleNamespace(snow_line_au=None)), giant_draw.ICE)
+        unset = giant_draw._ice_shares(SimpleNamespace(is_moon=False, distance=9.0, formation_distance_au=None, star=star), giant_draw.ICE)
+    assert migrated_in and "water_liquid" in migrated_in
+    assert stayed_in == {} and moved_out == {} and no_line == {}
+    assert unset

@@ -604,6 +604,20 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_
     return UnitDone(bool(counted), bool(advance), int(done))
 
 
+def usage_key(run_id, index):
+    """The hash of what each unit of a stage used (OPS.155): one JSON field per unit, kept with the run."""
+    return _k(f"usage:{run_id}:{index}")
+
+
+def _profile_stage(conn, run_id, index, key, wall_seconds):
+    """OPS.155: the stage's row in `job_profiles`: its wall seconds and, from the units' usage, the longest and the mean unit and the peak and mean memory and processor."""
+    from planetgen.queue import jobprofiles
+    if not jobprofiles.enabled():
+        return
+    entries = [json.loads(_s(value)) for value in conn.hvals(usage_key(run_id, index))]
+    jobprofiles.record(f"stage:{key}", seconds=wall_seconds, **jobprofiles.stage_figures(entries))
+
+
 def _record_stage_time(conn, run_id, index, key):
     """Folds the stage that has just ended into what the server knows of its kind (`stagetimes`, PERF.184). Best
     effort: an estimate's memory is not worth failing a unit for."""
@@ -615,6 +629,7 @@ def _record_stage_time(conn, run_id, index, key):
             return
         stagetimes.record(conn, key, float(ended) - float(started), float(counters.get("cost_done") or 0.0),
                           float(counters.get("seconds") or 0.0))
+        _profile_stage(conn, run_id, index, key, float(ended) - float(started))
     except Exception as exc:  # noqa: BLE001
         planetgen_log.swallowed("queue/runrecord", "_record_stage_time", exc)
 

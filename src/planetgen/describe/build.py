@@ -596,7 +596,7 @@ def _sky_sentences(sky):
     host, others = sky[0], sky[1:]
     sentences = []
     if getattr(host.star, "state", None) in sky_view.COMPACT_STATES:
-        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'} and {_degrees(host.angular_deg)} wide.")
+        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'}, and {_degrees(host.angular_deg)} wide.")
     for number, body in enumerate(others):
         colour = f"{body.colour} " if body.colour else ""
         if body.role == "sun":
