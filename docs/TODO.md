@@ -13330,6 +13330,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): the thread that built PR 6421. Prerequisites: none. Related: OPS.170, OPS.137.
   Filed by the TODO thread.
 
+- [ ] **OPS.185 Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter**
+  Boss, 2026-11-13 evening (as the OPS.184 thread relayed), after the Stage 3 stop (OPS.184): are there other OPS.170 phases with no fine counter? OPS.170 (PR 6300) gave eleven units phase lines through _UnitPhases; a phase that counts once and then works for minutes looks quiet to the heartbeat (300 s floor). Do: list every such phase with its worst-case time on a slow host (4 cores, cold caches); for each that can pass the floor, report real counts (rows, cases, shells) with a bar and ticker as OPS.184 did for the battery digest (unitbeat.moving), never a blanket waiting tag. Output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 13 (built OPS.170). Prerequisites: OPS.184. Related: OPS.170, OPS.169, OPS.137.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
