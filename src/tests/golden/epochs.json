@@ -876,8 +876,7 @@
     },
     {
       "epoch": 147,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3993",
       "reason": "Train 25: GEN.1589 air, 1641 belts, 1580 ionization ceiling, Class M edges and fixes, 1546 age floor, 1550 young disks, 1556 Cassini, 1267 nebula, 1201 shape, and the rest of the list",
       "affects": ["plan", "scatter", "fill", "population"]
     }
