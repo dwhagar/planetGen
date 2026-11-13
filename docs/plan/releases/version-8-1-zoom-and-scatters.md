@@ -514,7 +514,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1617 | (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores | none | Lane 14, 2026-11-12. |
 | GEN.1618 | (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K | none | Lane 14, 2026-11-12. |
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | Lane 06, 2026-11-12. |
-| UX.306 | (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma | none | Lane 14, 2026-11-12. |
 | GEN.1619 | tuning.PLANET_CLASSES composition strings are stale (C anthracite, V iridium and tungsten, B potassium) and nothing displays them | none | Lane 14, 2026-11-12. |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283, GEN.1620 | Lane 06 first pass, 2026-11-11. |
 | GEN.1621 | (bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N2O at 0.033 Pa or O3 at 0.03 Pa each add 21 K in the table against 1 K in the model | none | Lane 15, 2026-11-12, deferred. |
@@ -547,16 +546,11 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | 2026-11-12. |
 | OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | 2026-11-12. |
 | OPS.154 | Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB | OPS.153 | Lane 13, 2026-11-12. |
-| OPS.155 | Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run) | none | Lane 06, 2026-11-12. |
-| OPS.156 | Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback | OPS.155 | Lane 06, 2026-11-12. |
-| OPS.157 | Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile | OPS.156 | Lane 06, 2026-11-12. |
-| OPS.158 | Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear | OPS.155 | Lane 06, 2026-11-12. |
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | Lane 11, 2026-11-12. |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | Lane 22, 2026-11-12, top priority. |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | Lane 22, 2026-11-12. |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | Lane 13, 2026-11-12. |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | Lane 13, 2026-11-12. |
-| OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | Lane 23, 2026-11-12. |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | Lane 23, 2026-11-12. |
 | OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | Lane 23, 2026-11-12. |
 | OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | Lane 23, 2026-11-12. |

@@ -13344,36 +13344,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
   Filed by the TODO thread.
 
-- [ ] **OPS.155 Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run)**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Do: the table, its migration and roll-up job, and writers fed from memorygate.release, unitrates.note, stagetimes.record and units.horse_killed, as under "Record first" in the note. Ships first and alone. Test: a small run fills it for every command it ran.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Defaults taken until Boss says otherwise: control database, other-machine profiles at half trust, splits last and only for cut-neutral stages (the note's three recommendations).
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
-  Logging review item 9 (finding M4, /mnt/project-files/reports/logging-review-2026-11-12.md) folded in here: the stage finish record carries peak and average memory and CPU per stage and unit, taken with memwatch.PeakTracker.
-  Boss, 3:04 PM EST on 2026-11-12: "Every stage and part of every job should be logged for time, memory, and CPU usage peek and average for each". So every stage and every part (unit, item batch) of every job records time, memory and CPU, each as peak and average, in the log and in the stored profile.
-  Filed by the TODO thread.
-
-- [ ] **OPS.156 Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: no history gives today's claims; history lowers a claim and a memory kill raises it.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
-  Filed by the TODO thread.
-
-- [ ] **OPS.157 Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: caps equal today's with no history.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.156. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
-  Filed by the TODO thread.
-
-- [ ] **OPS.158 Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Extends OPS.150.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Filed by the TODO thread.
-
 - [ ] **PERF.260 Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
@@ -13416,11 +13386,6 @@ clears each one.
 - [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
-  Filed by the TODO thread.
-
-- [ ] **OPS.173 Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: none. Related: OPS.174, OPS.175, OPS.176.
   Filed by the TODO thread.
 
 - [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
@@ -13685,11 +13650,6 @@ clears each one.
 - [ ] **GEN.1671 Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)**
   Fable thread whole-tree read (PR 6343 body, 2026-11-12): these helpers are copied across physics modules; keep one of each and import it everywhere. Output unchanged; lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Fable thread. Prerequisites: none. Related: GEN.1662, GEN.1665.
-  Filed by the TODO thread.
-
-- [ ] **UX.306 (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma**
-  Fable thread (2026-11-12): tests/test_plain_words.py::test_the_class_pages_keep_the_guide_except_the_listed is red on main. Rewrite the five class descriptions to the guide (UX.252 rules); do not add them to the exception list. Display text only, lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: UX.252.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
