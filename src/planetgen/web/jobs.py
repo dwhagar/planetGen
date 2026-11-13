@@ -58,7 +58,7 @@ import redis
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, runline, runrecord
 from planetgen.web.lib.privatedir import ensure_private_dir
-from planetgen.util import log, stagemark
+from planetgen.util import log, secrets_mask, stagemark
 from planetgen.util.settings import get_settings
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -714,7 +714,7 @@ def _spawn(path):
     try:
         connection.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise OSError(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise OSError(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                       f"start Redis to run jobs: {exc}") from exc
     name = QUEUE_PREFIX + job_id
     redisqueue.queue(name, connection).enqueue(
