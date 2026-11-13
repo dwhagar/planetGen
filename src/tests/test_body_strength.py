@@ -189,3 +189,33 @@ def test_applying_the_class_changes_no_strength_field(mysql_config):
                 assert {name: getattr(body, name, None) for name in fields} == before
                 checked += 1
     assert checked
+
+
+def test_the_factor_of_a_kind_of_ice_is_one_for_water_ice_and_for_a_kind_with_no_strength():
+    """GEN.1684: ice Ih and no ice are the engine as it was; methane clathrate is 20 to 30 times the strength of ice; a kind `ice_types` has no strength for keeps the default ice."""
+    assert body_strength.ice_factor_of(None) == 1.0 and body_strength.ice_factor_of("ice_ih") == 1.0
+    assert 20.0 <= body_strength.ice_factor_of("ch4_clathrate") <= 30.0
+    assert body_strength.ice_factor_of("n2_ice") == 1.0
+
+
+def test_a_clathrate_comet_is_stronger_than_the_same_comet_of_water_ice():
+    mass, radius, density = 1.0e18, 5.0e4, 950.0
+    water = body_strength.solid(mass, radius, density, 0.9, 0.0)
+    clathrate = body_strength.solid(mass, radius, density, 0.9, 0.0, ice_type="ch4_clathrate")
+    assert clathrate["yield_strength_pa"] > 10.0 * water["yield_strength_pa"]
+    assert clathrate["roundness_ratio"] < water["roundness_ratio"]
+
+
+def test_the_ice_of_a_planet_or_a_moon_is_named_by_the_phase_at_its_centre():
+    small = body_strength.ice_type_of_body(0.9, 1.0e20, 3.0e5)
+    large = body_strength.ice_type_of_body(0.5, 1.5e23, 2.6e6)
+    assert small == "ice_ih"
+    assert large in ("ice_ii", "ice_iii", "ice_v", "ice_vi")
+    assert body_strength.ice_type_of_body(0.0, 1.0e24, 6.0e6) is None
+    assert body_strength.central_pressure_pa(1.5e23, 2.6e6) > body_strength.central_pressure_pa(1.0e20, 3.0e5)
+
+
+def test_a_body_whose_shape_was_set_above_water_s_triple_point_keeps_the_default_ice():
+    """GEN.1684: the high-pressure phases belong to cold bodies; a warm body's water was not solid when its shape was set."""
+    assert body_strength.ice_type_of_body(0.5, 1.5e23, 2.6e6, temperature_k=300.0) is None
+    assert body_strength.ice_type_of_body(0.5, 1.5e23, 2.6e6, temperature_k=120.0) is not None
