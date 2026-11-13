@@ -2,7 +2,7 @@
 
 """
 OPS.154: a cell a scatter left a waiting bright star or an unbuilt scattered phenomenon in has no sector row of its own: the block light stage makes none, the
-Sectors list reads the cell from the parts (`db.query.virtual_cells`), and migration 0247 deletes the placeholder rows MAP.402 made (`db.uncharted_index.clear_unoccupied`).
+Sectors list reads the cell from the parts (`db.query.virtual_cells`), and migration 0254 deletes the placeholder rows MAP.402 made (`db.uncharted_index.clear_unoccupied`).
 """
 
 import pytest
