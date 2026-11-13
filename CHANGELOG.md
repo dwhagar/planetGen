@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3990] - 2026-11-13
+
+**Headline:** The air a world ends with is made in one step, with no change to any generated world.
+
+### Changed
+- **The steam-branch start temperature, the air oddities and the airless state are the solver's own step.** `planets.calculate_atmospheric_conditions` solved the air and then corrected the solver's input and output in three places of its own; `physics/air_final.py` now does all three (`make`) and returns one `FinalAir` that the planet stores without branching on how it came out (GEN.1657). The same draws come in the same order: 285 bodies of 30 seeds and 200 trials of the Earth analog are identical to main, so the golden does not move.
+
 ## [8.0.3989] - 2026-11-13
 
 **Headline:** The Lists page and the cache warm-up no longer time out on the hypervelocity star list, because a scattered class is found through its own index instead of a walk of the whole table.
