@@ -845,8 +845,8 @@ class _InsideShell(_Everywhere):
         return shell <= self.outer and band == 0
 
 
-def test_the_default_luminosity_floor_is_9000():
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
+def test_the_default_luminosity_floor_is_18000():
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 18000.0
 
 
 def test_each_step_a_face_further_out_takes_the_next_mass():
@@ -1036,8 +1036,8 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
     run_galaxy.run_galaxy(args)
     [followers] = runs
     assert [follower.key for follower in followers] == [
-        "start", "neighborhood", "link", "mass-clear", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw",
-        "backfill", "population", "territories", "settle", "run-blocks", "block-lights"]
+        "start", "neighborhood", "link", "mass-clear", "backfill", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw",
+        "population", "territories", "settle", "run-blocks", "block-lights"]
     by_key = {follower.key: follower for follower in followers}
     # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.
     mass, phenomena = by_key["mass"].params()["settings"], by_key["phenomena"].params()["settings"]

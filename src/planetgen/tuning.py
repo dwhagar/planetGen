@@ -4215,13 +4215,15 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 9000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 18000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
 filled in near generated sectors by the backfill (luminosity tiers, then the
-mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
+mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day, 9000 after, and 18000 on
+2026-11-13 (Boss: twice as high; a survey of the default galaxy put the luminosity pass at 24,794 stars at 9000 and 5,983 at
+18000, see reports/generation-order-2026-11-13/report.md). The user
 picks it from the ladder in `generation/luminosity_floor.py`, from
 `BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
 already scattered keeps the level it was scattered at. The value a scatter
