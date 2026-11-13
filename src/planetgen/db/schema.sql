@@ -2602,7 +2602,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ozone_column_du                  DOUBLE,  -- v135 (GEN.413): the ozone column, Dobson units
     tau_haze                         DOUBLE,  -- v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air
     tau_dust                         DOUBLE,  -- v138 (GEN.414, DB.68): dust optical depth at 550 nm
-    tau_cloud                        DOUBLE,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
+    tau_cloud                        DOUBLE,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (gray)
     cloud_cover                      DOUBLE,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
     aerosol_draw                     DOUBLE,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
     c_k0_ppm                         DOUBLE,  -- v141 (GEN.459): potassium in the bulk silicate at formation, ppm by mass
@@ -2708,7 +2708,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ring_optical_depth               DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction                DOUBLE,  -- v160: its water-ice share by mass
     ring_age_yr                      DOUBLE,  -- v192 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring
-    atmosphere_colour                INT UNSIGNED,  -- v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
+    atmosphere_colour                INT UNSIGNED,  -- v162 (DB.96): the color of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
     lid_regime                       VARCHAR(10),  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
     day_share_equator                DOUBLE,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
     day_share_mean                   DOUBLE,  -- v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1
@@ -2724,8 +2724,8 @@ CREATE TABLE IF NOT EXISTS planets (
     life_complexity                  DOUBLE,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
     life_traits                      VARCHAR(48),  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
     cloud_chemistry                  VARCHAR(48),  -- v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
-    tide_range_spring_m              DOUBLE,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
-    tide_range_neap_m                DOUBLE,  -- v191 (GEN.1034): the neap range, metres
+    tide_range_spring_m              DOUBLE,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, meters, 0 under an ice cover, NULL without a sea
+    tide_range_neap_m                DOUBLE,  -- v191 (GEN.1034): the neap range, meters
     ocean_liquid                     VARCHAR(40),  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
 
     UNIQUE KEY uq_planets_uid (uid),
@@ -3140,7 +3140,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ozone_column_du                  DOUBLE,  -- v135 (GEN.413): the ozone column, Dobson units
     tau_haze                         DOUBLE,  -- v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air
     tau_dust                         DOUBLE,  -- v138 (GEN.414, DB.68): dust optical depth at 550 nm
-    tau_cloud                        DOUBLE,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
+    tau_cloud                        DOUBLE,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (gray)
     cloud_cover                      DOUBLE,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
     aerosol_draw                     DOUBLE,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
     rogue_planet_id                  BIGINT UNSIGNED,  -- v140 (DB.73): the rogue planet a moon of a free planet orbits
@@ -3247,7 +3247,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ring_optical_depth               DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction                DOUBLE,  -- v160: its water-ice share by mass
     ring_age_yr                      DOUBLE,  -- v192 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring
-    atmosphere_colour                INT UNSIGNED,  -- v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
+    atmosphere_colour                INT UNSIGNED,  -- v161 (DB.96): the color of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
     lid_regime                       VARCHAR(10),  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
     day_share_equator                DOUBLE,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
     day_share_mean                   DOUBLE,  -- v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1
@@ -3263,8 +3263,8 @@ CREATE TABLE IF NOT EXISTS moons (
     life_complexity                  DOUBLE,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
     life_traits                      VARCHAR(48),  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
     cloud_chemistry                  VARCHAR(48),  -- v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
-    tide_range_spring_m              DOUBLE,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
-    tide_range_neap_m                DOUBLE,  -- v191 (GEN.1034): the neap range, metres
+    tide_range_spring_m              DOUBLE,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, meters, 0 under an ice cover, NULL without a sea
+    tide_range_neap_m                DOUBLE,  -- v191 (GEN.1034): the neap range, meters
     ocean_liquid                     VARCHAR(40),  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
 
     UNIQUE KEY uq_moons_uid (uid),
