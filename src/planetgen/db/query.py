@@ -2892,7 +2892,7 @@ def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
 
 def scatter_class_clause(entry):
     """`(sql, params)` of one scattered class of `_scattered_classes` as a condition on `phenomenon_scatter`'s own columns, so MySQL can use
-    `idx_phenomenon_scatter_class (kind, subtype, mass_solar)`. `COALESCE(subtype, '') = ?` could not: a class whose rows sit late in the
+    `idx_phenomenon_scatter_class (kind, subtype, mass_solar)`. a `COALESCE` of the subtype could not: a class whose rows sit late in the
     table was found by walking it in id order, and the hypervelocity list timed out at 10 s."""
     if entry["subtype"]:
         return "(kind = ? AND subtype = ?)", [entry["kind"], entry["subtype"]]
