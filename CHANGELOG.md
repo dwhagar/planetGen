@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3991] - 2026-11-13
+
+**Headline:** The Sectors list, its counts and the sector page now find an uncharted cell that holds a waiting star or phenomenon from its address and the block light parts, so such a cell no longer needs a sector row of its own (part 1 of OPS.154; the rows stay until part 2 stops making and deletes them).
+
+### Changed
+- **Cells without a row are listed (OPS.154).** With `coverage=uncharted|all`, `list_sectors` goes on, after the rows, into the cells that hold a part of the block lights, have no chart-ledger entry and no sector row (`query.virtual_cells`): by distance (shell, band, wedge; backward for a descending sort), read by key so any page costs the same, with `after` and `offset` both working across the rows and the cells. Such an item has `virtual: true` and its sector ID (the designation) as `id`. The `quadrant` filter works from the cell's position; the `systems` and `density` sorts count a cell as zero. A cell that has a row (a rogue's) is listed once, as its row.
+- **Counts.** `count_uncharted_sectors` and `count_sectors` for `uncharted` and `all` add `count_virtual_cells`; the placeholder-row count is kept by `countcache` now, as it is read on every list.
+- **The cell answers by its ID.** `GET /api/sectors/<id>` for a designation no row has answers for a cell that holds a waiting object (`query.virtual_sector_detail`), so the web sector page opens it as the uncharted page; `after=<id>` takes such an ID.
+- **While the rows are still there** (more than `VIRTUAL_PLACEHOLDER_LIMIT`, 100,000, of them) the cells are not listed from the parts, since they have rows and the walk would read the whole table: the list is the rows alone, as before.
+- Not in this part: search by name does not find a cell with no row (a designation typed in the box) until part 2.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3990] - 2026-11-13
+
+**Headline:** The air a world ends with is made in one step, with no change to any generated world.
+
+### Changed
+- **The steam-branch start temperature, the air oddities and the airless state are the solver's own step.** `planets.calculate_atmospheric_conditions` solved the air and then corrected the solver's input and output in three places of its own; `physics/air_final.py` now does all three (`make`) and returns one `FinalAir` that the planet stores without branching on how it came out (GEN.1657). The same draws come in the same order: 285 bodies of 30 seeds and 200 trials of the Earth analog are identical to main, so the golden does not move.
+
+## [8.0.3989] - 2026-11-13
+
+**Headline:** The Lists page and the cache warm-up no longer time out on the hypervelocity star list, because a scattered class is found through its own index instead of a walk of the whole table.
+
+### Fixed
+- **`/lists` answered 504 and stopped the cache warm-up.** The list of hypervelocity stars (and every other uncharted kind) picked its rows from `phenomenon_scatter` with `COALESCE(subtype, '') = ?` over the OR of the classes. A function of a column cannot use `idx_phenomenon_scatter_class`, so MySQL read the table in id order from the start, and a class whose rows sit late in it ran past the 10 second statement limit. The page of a kind now asks one class at a time on the columns themselves (`kind = ?` and `subtype = ?` or `IS NULL`), and the Phenomena table, its count and the search panel use the same clause (`query.scatter_class_clause`). On a 3,000,000-row copy the hypervelocity page went from 1.3 s with a full walk to 0.03 s on the class index.
+
+generation-affects: none
+
 ## [8.0.3988] - 2026-11-13
 
 **Headline:** The map's far-layer browser test holds the whole-galaxy block part to its own bound again.
