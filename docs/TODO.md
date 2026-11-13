@@ -3806,6 +3806,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 6, 17
   wait; Blocker 4 after GEN.315 (slice 1 merged earlier by Lane 13).
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
+  Decisions (Boss, 12:31 PM EST 2026-11-13, cards): slice D, the galaxy makes rogue planet pairs at an observed rate; slice C, a disk around a close star pair is stored as a belt row hosted at the pair node. Both released to Lane 13.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13159,6 +13160,7 @@ clears each one.
   Lane 21, 2026-11-12, after the GEN.1562 sulfur package (PR 6339, Train 26: N1, N2, N6, with N4 droppable): over 381 seeds class A stays 1 and class Y stays 0. Only 22 of 308 rocky airy bodies sit at 300 to 350 K and 1 of those is water-poor, and the traced warm body holds its sulfur as S2 in the closed-system equilibrium even with an oxidized mantle. Boss wants a chance of class Y: add sulfur speciation (S2, SO2, H2S, COS by temperature, pressure and oxygen fugacity) to the equilibrium step, and check whether warm water-poor rocky bodies are too rare. Lock item (output changes).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1562 sulfur package (PR 6339). Related: GEN.1562.
   Filed by the TODO thread.
+  Decision (Boss, 1:12 PM EST 2026-11-13, as the coordinator relayed): N1 through N6 of the sulfur package (/mnt/project-files/reports/gen1562/redox-lever-research-v2-2026-11-12.md) are approved, so N4 (mantle redox draw) stays in and is not dropped; N3 and N5 keep their present values. The package is PR 6339 in Train 26.
 
 - [ ] **GEN.1671 Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)**
   Fable thread whole-tree read (PR 6343 body, 2026-11-12): these helpers are copied across physics modules; keep one of each and import it everywhere. Output unchanged; lock-free.
@@ -13190,6 +13192,7 @@ clears each one.
   Boss, 10:07 PM EST on 2026-11-12: "There should be a TODO item for making everything within the range of Class D or higher gets a full planet class". GEN.1510 (Train 25) promotes only the 10 heaviest round bodies of each belt; this item extends the rule to every body at or above the Class D floor in every population, built by the one planet generator (class, physics, composition, air if any, moons by the same rule), with no second path and no backward-compat shim. Slice 0 (report, reports/): which populations hold bodies at or above the floor today and how many per system, by star type; the generation-time and storage cost of classing all of them (GEN.1510 measured about +30 percent for about 7 bodies per system); and whether a full class needs the planet pass or a lighter class-only step for airless round bodies. Then the build as a lock item. Coordinate with GEN.1561 (Boss, 10:06 PM EST: belt members above the oligarch mass go to the planet pass) and GEN.1673 (belt spacing).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22 (belts and small bodies), after OPS.161, with Lane 21 for class and composition. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, GEN.1511, GEN.1561, GEN.1673.
   Filed by the TODO thread. Boss approved.
+  Decision (Boss, 12:30 PM EST 2026-11-13, card): on demand, from the one generator. A Class D size body's full class is computed when asked for, from the same generator, not stored for every member. Slice 1 released to Lane 22.
 
 - [ ] **UX.308 Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices**
   Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
