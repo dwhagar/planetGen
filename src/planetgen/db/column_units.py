@@ -1004,6 +1004,10 @@ TABLES = {
         "index": ("generator_epoch",),
         "flag": ("complete",),
     },
+    "body_numbers": {
+        "id": ("star_system_id",),
+        "index": ("body_number",),
+    },
     "body_history": {
         "id": ("star_system_id", "body_id"),
         "key": ("body_type",),
