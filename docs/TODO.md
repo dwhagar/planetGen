@@ -13676,6 +13676,26 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22 (belts and small bodies), after OPS.161, with Lane 21 for class and composition. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, GEN.1511, GEN.1561, GEN.1673.
   Filed by the TODO thread. Boss approved.
 
+- [ ] **UX.308 Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices**
+  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
+  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.309, UX.310, UX.311.
+  Filed by the TODO thread.
+
+- [ ] **UX.309 The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four**
+  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
+  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.310, UX.311.
+  Filed by the TODO thread.
+
+- [ ] **UX.310 "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit**
+  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
+  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.309, UX.311.
+  Filed by the TODO thread.
+
+- [ ] **UX.311 The best-site coldest-to-hottest range says it spans the whole orbit, not a day**
+  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
+  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.309, UX.310.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

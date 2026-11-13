@@ -514,6 +514,10 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1618 | (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K | none | Lane 14, 2026-11-12. |
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | Lane 06, 2026-11-12. |
 | UX.307 | Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark | none | slider thread, 2026-11-12. |
+| UX.308 | Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices | none | page review thread, 2026-11-12. |
+| UX.309 | The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four | none | page review thread, 2026-11-12. |
+| UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | page review thread, 2026-11-12. |
+| UX.311 | The best-site coldest-to-hottest range says it spans the whole orbit, not a day | none | page review thread, 2026-11-12. |
 | GEN.1619 | tuning.PLANET_CLASSES composition strings are stale (C anthracite, V iridium and tungsten, B potassium) and nothing displays them | none | Lane 14, 2026-11-12. |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283, GEN.1620 | Lane 06 first pass, 2026-11-11. |
 | GEN.1621 | (bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N2O at 0.033 Pa or O3 at 0.03 Pa each add 21 K in the table against 1 K in the model | none | Lane 15, 2026-11-12, deferred. |
