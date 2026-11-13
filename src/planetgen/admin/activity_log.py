@@ -178,6 +178,7 @@ def _current_handler():
         path = logpaths.activity_log_path(config)
         mode = logpaths.log_rotation_mode(config)
     except Exception as exc:  # noqa: BLE001 -- logging must never stop the program
+        log.swallowed("admin/activity_log", "_current_handler", exc)
         _warn_once("config", f"planetgen: activity log disabled, could not read config.json: {exc}")
         return None
     if path == _disabled_path:
@@ -228,6 +229,7 @@ def event(category, action, user=None, ip=None, **fields):
     try:
         line = format_line(category, action, ip=ip if ip is not None else _request_ip(), user=user, fields=fields)
     except Exception as exc:  # noqa: BLE001
+        log.swallowed("admin/activity_log", "event", exc)
         _warn_once(f"format:{category}:{action}", f"planetgen: activity log line not written: {exc}")
         return None
     with _lock:
@@ -235,8 +237,8 @@ def event(category, action, user=None, ip=None, **fields):
     if handler is not None:
         try:
             _sink.write(line)
-        except Exception:  # noqa: BLE001 -- logging's own handleError already reported it
-            pass
+        except Exception as swallowed_exc:  # noqa: BLE001 -- logging's own handleError already reported it
+            log.swallowed("admin/activity_log", "event", swallowed_exc)
     log.trace("activity: %s", line)
     return line
 
@@ -265,7 +267,8 @@ def login_name():
     event."""
     try:
         return getpass.getuser()
-    except Exception:  # noqa: BLE001 -- no user name in this environment
+    except Exception as exc:  # noqa: BLE001 -- no user name in this environment
+        log.swallowed("admin/activity_log", "login_name", exc)
         return None
 
 

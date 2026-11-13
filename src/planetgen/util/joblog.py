@@ -20,15 +20,7 @@ folder is rotated by the rule `examples/apache/setup-debug-log.sh` installs for 
 import logging
 import time
 
-from planetgen.util import log, logpaths
-
-
-def clock_text(seconds):
-    """`seconds` as `1:05:12` (hours when there are any), or `4:07`."""
-    seconds = int(round(max(0.0, seconds)))
-    hours, rest = divmod(seconds, 3600)
-    minutes, secs = divmod(rest, 60)
-    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+from planetgen.util import log, logpaths, logrecord
 
 
 def started_by_environment():
@@ -88,15 +80,15 @@ class JobLog:
             return
         try:
             self.handler.handle(logging.LogRecord(f"planetgen.{self.component}", level, "", 0, message, None, None))
-        except Exception:  # noqa: BLE001 -- a log that cannot be written never stops the run
-            pass
+        except Exception as exc:  # noqa: BLE001 -- a log that cannot be written never stops the run
+            log.swallowed("util/joblog", "JobLog._write", exc)
         if level >= logging.ERROR:
             log.record_error(self.component, message, log=self.name)       # the run's own failure line is an error for error.log too (OPS.116)
 
     def __exit__(self, exc_type, exc, _tb):
         if self.handler is None:
             return False
-        took = clock_text(time.monotonic() - self.started)
+        took = logrecord.duration_text(time.monotonic() - self.started)
         status = exc.code if exc_type is SystemExit else self.status
         if exc_type is None or (exc_type is SystemExit and not status):
             if status:

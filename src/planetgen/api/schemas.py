@@ -649,7 +649,7 @@ class TuningAction(Lenient):
 
     action: StrictStr = Field(description="One of `pin`, `unpin` or `clear`.")
     kind: StrictStr = Field(description="The job kind: `unit:<command>`, `cut:<command>`, `api:<ref>` or `fn:<name>`.", max_length=160)
-    mb: Optional[StrictFloat] = Field(default=None, description="Unit: megabytes. The claim to fix; `pin` only.")
+    mb: Optional[StrictFloat] = Field(default=None, description="Unit: count of megabytes, the claim to fix; `pin` only.")
 
     @model_validator(mode="after")
     def _check(self):

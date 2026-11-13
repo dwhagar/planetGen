@@ -16,6 +16,7 @@ import time
 from flask import Blueprint, g, jsonify, request
 
 from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.util import log
 
 from .authz import audit, require_admin
 from .common import ApiError, require_json_body
@@ -34,7 +35,8 @@ def _connection():
         connection = redisqueue.connect()
         connection.ping()
         return connection
-    except Exception:  # noqa: BLE001 -- any connection failure
+    except Exception as exc:  # noqa: BLE001 -- any connection failure
+        log.swallowed("api/workqueue", "_connection", exc)
         return None
 
 

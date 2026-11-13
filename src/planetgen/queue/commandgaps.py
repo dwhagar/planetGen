@@ -14,6 +14,7 @@ longest gap seen for the command, never under 5 minutes).
 """
 
 from planetgen.queue import beatjudge, profiletime, runrecord
+from planetgen.util import log
 
 KEEP_WEIGHT = 0.5
 """float: The share of a stored gap that stays when a shorter one is folded in."""
@@ -63,7 +64,8 @@ def history_of(conn, run_id):
     def history(kind):
         try:
             gap = max(persisted(conn).get(kind, 0.0), read(conn, run_id).get(kind, 0.0))
-        except Exception:       # noqa: BLE001 -- a Redis that cannot answer for one poll leaves the judge with the floor
+        except Exception as exc:       # noqa: BLE001 -- a Redis that cannot answer for one poll leaves the judge with the floor
+            log.swallowed("queue/commandgaps", "history_of.history", exc)
             gap = 0.0
         return beatjudge.History(longest_gap=gap, expected_item_seconds=profiletime.item_seconds(conn, kind, token=run_id))       # OPS.159: how long an item of the command takes on this machine
     return history

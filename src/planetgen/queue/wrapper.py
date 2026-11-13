@@ -31,7 +31,7 @@ import redis
 
 from planetgen.datasets import fetch
 from planetgen.queue import commandgaps, commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
-from planetgen.util import log
+from planetgen.util import log, logrecord
 from planetgen.util.settings import get_settings
 
 
@@ -406,7 +406,7 @@ def stage_label(conn, run_id, index):
 def stop_line(run_id, stage_at, stage_count, exc, message, stopped):
     """OPS.163: the severity, text and fields of the line a generation run that stopped early logs. It says why and at which stage it stopped; a cancel (Ctrl+C,
     a SIGTERM) is a notice and not an error, the rule of `log.DELIBERATE_SIGNALS`."""
-    where = "" if stage_at is None else f" at stage {stage_at + 1} of {stage_count}"
+    where = "" if stage_at is None else f" at {logrecord.counting_text('Stage', stage_at + 1, stage_count)}"
     cause = "canceled" if stopped else type(exc).__name__
     reason = message if stopped else f"{cause}: {message}"
     fields = {"run_id": run_id, "cause": cause}
@@ -421,7 +421,8 @@ def stage_name(conn, run_id, index):
     number only where the run record cannot say (a run already gone from Redis)."""
     try:
         label = stage_label(conn, run_id, index)
-    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+    except Exception as exc:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        log.swallowed("queue/wrapper", "stage_name", exc)
         label = None
     return label or str(index)
 
@@ -564,7 +565,8 @@ def expected_seconds(step, row):
             return stats.stage_seconds(conn, step.key, row["settings"])
         finally:
             conn.close()
-    except Exception:  # noqa: BLE001 -- a time that cannot be read is a stage with none recorded
+    except Exception as exc:  # noqa: BLE001 -- a time that cannot be read is a stage with none recorded
+        log.swallowed("queue/wrapper", "expected_seconds", exc)
         return None
 
 
@@ -709,8 +711,8 @@ def report_wait(holder, position):
             job.meta["waiting"] = None if holder is None else {"run": holder, "position": position,
                                                                "text": waiting_text(holder, position)}
             job.save_meta()
-    except Exception:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
-        pass
+    except Exception as exc:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
+        log.swallowed("queue/wrapper", "report_wait", exc)
 
 
 def _note_cap(conn, step_kind, cap, run_id):

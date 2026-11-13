@@ -571,3 +571,246 @@ def test_record_of_always_returns_a_name_from_the_table(logger, path):
     from planetgen.util import log, logrecord
     entry = logging.LogRecord(logger, logging.INFO, path, 1, "a message", None, None)
     assert log.record_of(entry).component in logrecord.COMPONENTS
+
+
+# --- one message style (OPS.173) ---------------------------------------------------------------------------------------
+
+MESSAGE_METHODS = {"debug", "info", "notice", "warning", "error", "critical", "exception", "normal"}
+"""set: Logger methods whose first argument is a message."""
+
+MAX_MESSAGE = 160
+"""int: The most characters of fixed text a message holds (logging standard, "Message text", rule 5)."""
+
+SEVERITY_WORD = re.compile(r"^\s*(planetgen:\s*)?(error|warning|warn|problem|critical|fatal|notice)\s*:", re.I)
+"""re.Pattern: A severity word that opens a message; the severity column says it (rule 1)."""
+
+COMPONENT_PREFIX = re.compile(r"^\s*[a-z][a-z0-9_./ -]{0,30}:\s")
+"""re.Pattern: A lowercase word and a colon that open a message: a hand-made component or module prefix (rule 1)."""
+
+PLACEHOLDER_END = re.compile(r"%[-+# 0-9.]*[sdirfgeE]$")
+"""re.Pattern: A `%` placeholder that ends a message."""
+
+PLACEHOLDER_START = re.compile(r"^%[-+# 0-9.]*[sdirfgeE]")
+"""re.Pattern: A `%` placeholder that opens a message."""
+
+
+def _message_parts(node):
+    """`(first, last, fixed)`: the fixed text that opens and ends the message (`None` where a value stands there) and all of its fixed text; `None` when the message is not a literal."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value, node.value, node.value
+    if isinstance(node, ast.JoinedStr):
+        values = node.values
+        fixed = "".join(v.value for v in values if isinstance(v, ast.Constant))
+        first = values[0].value if values and isinstance(values[0], ast.Constant) else None
+        last = values[-1].value if values and isinstance(values[-1], ast.Constant) else None
+        return first, last, fixed
+    if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Mod)):
+        left = _message_parts(node.left)
+        if left is None:
+            return None
+        right = _message_parts(node.right) if isinstance(node.op, ast.Add) else (None, None, "")
+        if right is None:
+            return left[0], None, left[2]
+        return left[0], right[1] if isinstance(node.op, ast.Add) else left[1], left[2] + right[2]
+    return None
+
+
+def find_message_text(source, filename="<source>"):
+    """
+    Returns `[(function, line, kind)]` for every logger call in `source` whose first argument breaks a rule of the logging standard's "Message text" (1 and 5): a severity word or a component prefix at the
+    start, a lowercase first letter, no period at the end (when the message ends in fixed text) or more than `MAX_MESSAGE` characters of fixed text. `function` is the innermost function that holds the call.
+    """
+    found = []
+
+    def visit(scope, scope_name):
+        stack = list(ast.iter_child_nodes(scope))
+        while stack:
+            node = stack.pop()
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                visit(node, node.name)
+                continue
+            stack.extend(ast.iter_child_nodes(node))
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in MESSAGE_METHODS and node.args):
+                continue
+            if "log" not in ast.unparse(node.func.value).lower():
+                continue
+            parts = _message_parts(node.args[0])
+            if parts is None:
+                continue
+            first, last, fixed = parts
+            kinds = []
+            if first is not None and SEVERITY_WORD.search(first):
+                kinds.append("severity word")
+            elif first is not None and COMPONENT_PREFIX.search(first):
+                kinds.append("component prefix")
+            elif first is not None and first.lstrip()[:1].islower() and not PLACEHOLDER_START.match(first.lstrip()):
+                kinds.append("lowercase first letter")
+            if last is not None and last.strip() and not last.rstrip().endswith((".", "?", "!")) and not PLACEHOLDER_END.search(last.rstrip()):
+                kinds.append("no final period")
+            if len(fixed) > MAX_MESSAGE:
+                kinds.append("over 160 characters")
+            for kind in kinds:
+                found.append((scope_name, node.lineno, kind))
+
+    visit(ast.parse(source, filename), "<module>")
+    return sorted(set(found), key=lambda hit: (hit[1], hit[0], hit[2]))
+
+
+MESSAGE_TEXT_ALLOWED = {
+    ("admin/updateguard.py", "items"): "OPS.176",
+    ("api/authz.py", "wrapped"): "OPS.176",
+    ("cli/accounts.py", "main"): "OPS.176",
+    ("cli/backup.py", "run_restore"): "OPS.176",
+    ("cli/backup.py", "run_take"): "OPS.176",
+    ("cli/backup.py", "run_verify"): "OPS.176",
+    ("cli/checkdb.py", "run_check_db"): "OPS.176",
+    ("cli/config.py", "_open_audit"): "OPS.176",
+    ("cli/config.py", "_show_result"): "OPS.176",
+    ("cli/config.py", "run_get"): "OPS.176",
+    ("cli/config.py", "run_restore"): "OPS.176",
+    ("cli/config.py", "run_save"): "OPS.176",
+    ("cli/datasets.py", "run_status"): "OPS.176",
+    ("cli/forget_devices.py", "main"): "OPS.176",
+    ("cli/generate.py", "_fatal"): "OPS.176",
+    ("cli/generate.py", "run_check_math"): "OPS.176",
+    ("cli/generate.py", "run_repair_db"): "OPS.176",
+    ("cli/lift_lockout.py", "main"): "OPS.176",
+    ("cli/lockouts.py", "main"): "OPS.176",
+    ("cli/lockouts.py", "redis_store"): "OPS.176",
+    ("cli/migrate.py", "main"): "OPS.176",
+    ("cli/orbits.py", "_update"): "OPS.176",
+    ("cli/reset.py", "reset_database"): "OPS.176",
+    ("cli/reset_jobs.py", "main"): "OPS.176",
+    ("cli/reset_two_factor.py", "main"): "OPS.176",
+    ("cli/version_history.py", "_record_with_bar"): "OPS.176",
+    ("cli/version_history.py", "main"): "OPS.176",
+    ("cli/warm.py", "_warm_on_change"): "OPS.176",
+    ("cli/warm.py", "run_warm"): "OPS.176",
+    ("cli/warm_shape.py", "line"): "OPS.176",
+    ("cli/warm_shape.py", "main"): "OPS.176",
+    ("cli/worker.py", "_exit_if_stopped"): "OPS.176",
+    ("cli/worker.py", "_release_claim"): "OPS.176",
+    ("cli/worker.py", "_start_over_with"): "OPS.176",
+    ("cli/worker.py", "_take_claim"): "OPS.176",
+    ("cli/worker.py", "_turn_away_during_solo_hold"): "OPS.176",
+    ("cli/worker.py", "_wait_while_paused"): "OPS.176",
+    ("cli/worker.py", "_while_gated"): "OPS.176",
+    ("cli/worker.py", "dequeue_job_and_maintain_ttl"): "OPS.176",
+    ("cli/worker.py", "main"): "OPS.176",
+    ("cli/worker.py", "maintain_heartbeats"): "OPS.176",
+    ("datasets/fetch.py", "locate"): "OPS.175",
+    ("db/dataversion.py", "bump"): "OPS.175",
+    ("db/parity.py", "protect_sector"): "OPS.175",
+    ("db/store.py", "_advance_body_states"): "OPS.175",
+    ("db/uncharted_index.py", "index"): "OPS.175",
+    ("galaxy/sector.py", "_random_position"): "OPS.175",
+    ("galaxy/sector.py", "add_phenomenon"): "OPS.175",
+    ("galaxy/sector.py", "add_preplaced_system"): "OPS.175",
+    ("galaxy/sector.py", "add_system"): "OPS.175",
+    ("galaxy/sector.py", "grow_from_seed"): "OPS.175",
+    ("generation/comet.py", "__init__"): "OPS.175",
+    ("generation/life.py", "_apply"): "OPS.175",
+    ("generation/life.py", "_settle"): "OPS.175",
+    ("generation/life.py", "decide_flavor_text"): "OPS.175",
+    ("generation/phenomena/supernova_remnant.py", "__init__"): "OPS.175",
+    ("generation/remnant_orbits.py", "widen_for_mass_loss"): "OPS.175",
+    ("generation/run_galaxy.py", "_eligible"): "OPS.174",
+    ("generation/run_galaxy.py", "_neighborhood_center"): "OPS.174",
+    ("generation/run_galaxy.py", "_plan_random_start"): "OPS.174",
+    ("generation/run_galaxy.py", "_settle_named"): "OPS.174",
+    ("generation/run_galaxy.py", "_snap_to_region"): "OPS.174",
+    ("generation/run_galaxy.py", "backfill_bright_stars_around"): "OPS.174",
+    ("generation/run_phenomenon.py", "_write_description"): "OPS.174",
+    ("generation/run_phenomenon.py", "run_phenomenon"): "OPS.174",
+    ("generation/run_plan.py", "add_bright_star_band"): "OPS.174",
+    ("generation/run_plan.py", "fill_block_totals"): "OPS.174",
+    ("generation/run_plan.py", "log"): "OPS.174",
+    ("generation/run_plan.py", "log_skeleton_summary"): "OPS.174",
+    ("generation/run_plan.py", "refresh_block_lights"): "OPS.174",
+    ("generation/run_sector.py", "add_galactic_nucleus"): "OPS.174",
+    ("generation/run_sector.py", "generate_sector"): "OPS.174",
+    ("generation/run_sector.py", "run_sector"): "OPS.174",
+    ("generation/run_system.py", "build_system_config"): "OPS.174",
+    ("generation/run_system.py", "run_system"): "OPS.174",
+    ("generation/system.py", "__init__"): "OPS.175",
+    ("generation/system.py", "_apply_star_history"): "OPS.175",
+    ("generation/system.py", "_clear_circumbinary_floor"): "OPS.175",
+    ("generation/system.py", "_drop_barred_bodies"): "OPS.175",
+    ("generation/system.py", "_settle_to_final_age"): "OPS.175",
+    ("generation/system.py", "_tidal_spin_of_stars"): "OPS.175",
+    ("population/model.py", "drop_species_without_civilization"): "OPS.175",
+    ("population/model.py", "refresh_tech_levels"): "OPS.175",
+    ("population/model.py", "scan_life_worlds"): "OPS.175",
+    ("queue/adaptive.py", "adapt"): "OPS.174",
+    ("queue/api_jobs.py", "run_command"): "OPS.174",
+    ("queue/memorygate.py", "_acquire"): "OPS.174",
+    ("queue/memorygate.py", "_adapt_to_wait"): "OPS.174",
+    ("queue/requires.py", "drop_held"): "OPS.174",
+    ("queue/warmstart.py", "request"): "OPS.174",
+    ("util/log.py", "choice"): "OPS.175",
+    ("util/log.py", "configure"): "OPS.175",
+    ("util/log.py", "timed_phase"): "OPS.175",
+    ("web/__init__.py", "init_app"): "OPS.176",
+    ("web/app.py", "_handle_internal_error"): "OPS.176",
+    ("web/app.py", "_handle_too_large"): "OPS.176",
+    ("web/app.py", "_warn_if_unshared_ratelimit_storage"): "OPS.176",
+    ("web/helpers.py", "_with_help_links"): "OPS.176",
+    ("web/jobs.py", "cancel_job"): "OPS.176",
+    ("web/jobs.py", "cancel_runs"): "OPS.176",
+    ("web/jobs.py", "jobs_dir"): "OPS.176",
+    ("web/jobs.py", "release_lock"): "OPS.176",
+    ("web/lib/apiclient.py", "_log_call"): "OPS.176",
+    ("web/lib/classref.py", "preload"): "OPS.176",
+    ("web/warmup.py", "_node_units"): "OPS.176",
+}
+"""dict: `(file, function)` to the item that converts that function's messages to the style. OPS.174 to OPS.176 empty it; a new line is held to the rules at once."""
+
+
+def _message_hits():
+    hits = {}
+    for relative, path in _modules():
+        with open(path, encoding="utf-8") as handle:
+            for function, line, kind in find_message_text(handle.read(), path):
+                hits.setdefault((relative, function), []).append((line, kind))
+    return hits
+
+
+def test_every_log_message_follows_the_message_text_rules():
+    stray = {key: where for key, where in _message_hits().items() if key not in MESSAGE_TEXT_ALLOWED}
+    lines = [f"{path}:{line} in {function} ({kind})" for (path, function), where in sorted(stray.items()) for line, kind in where]
+    assert not stray, (
+        "These log messages break the logging standard's \"Message text\" rules (docs/design/operations/logging-standard.md): one sentence with a capital first and a period last, no severity "
+        "word and no component prefix, at most 160 characters of fixed text. Rewrite them (ids and figures go in fields), or name the function in MESSAGE_TEXT_ALLOWED with the item that converts it:\n  " + "\n  ".join(lines)
+    )
+
+
+def test_every_unconverted_message_place_is_still_unconverted_and_names_its_item():
+    hits = _message_hits()
+    for key, item in MESSAGE_TEXT_ALLOWED.items():
+        assert item.startswith("OPS."), f"{key} needs the item that converts it"
+        assert key in hits, f"{key} follows the message rules now; remove it from MESSAGE_TEXT_ALLOWED"
+
+
+@pytest.mark.parametrize("source, kinds", [
+    ("def f(log):\n    log.error('Error: the file is gone.')\n", ["severity word"]),
+    ("def f(log):\n    log.error('planetgen: error: the file is gone.')\n", ["severity word"]),
+    ("def f(log):\n    log.warning('WARNING: slow.')\n", ["severity word"]),
+    ("def f(log):\n    log.info('worker exits: now.')\n", ["component prefix"]),
+    ("def f(log):\n    log.info('gate: the machine is busy.')\n", ["component prefix"]),
+    ("def f(log):\n    log.info('the unit is done.')\n", ["lowercase first letter"]),
+    ("def f(log):\n    log.info('The unit is done')\n", ["no final period"]),
+    ("def f(log, n):\n    log.info(f'The unit {n} is done')\n", ["no final period"]),
+    ("def f(log):\n    log.info('The unit is done?')\n", []),
+    ("def f(log, n):\n    log.info(f'{n} sectors saved.')\n", []),
+    ("def f(log, n):\n    log.info(f'Saved {n}')\n", []),
+    ("def f(log, n):\n    log.info('Saved %s', n)\n", []),
+    ("def f(log):\n    log.info('Saved %s.', 3)\n", []),
+    ("def f(log):\n    log.info('Unit done.')\n", []),
+    ("def f(log):\n    log.debug('Unit ' + 'x' * 3)\n", []),
+    ("def f(log):\n    log.info('A ' + 'long text ' * 40)\n", []),
+    ("def f(log):\n    log.info('Words " + "word " * 40 + "end.')\n", ["over 160 characters"]),
+    ("def f(self):\n    self.count.info('the thing')\n", []),
+    ("def f(log):\n    log.get('queue').error('Unit failed: the sector could not be saved.', run_id=3)\n", []),
+])
+def test_the_message_scan_sees_what_it_should(source, kinds):
+    assert [kind for _function, _line, kind in find_message_text(source)] == kinds
