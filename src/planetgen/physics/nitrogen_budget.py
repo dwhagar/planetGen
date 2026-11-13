@@ -25,13 +25,13 @@ Every number is a design constant with its tier and tweak level in `docs/design/
 import math
 
 REDUCED_DIW = -4.0
-"""float: The redox of the reduced end of the partition table, log10 units above the iron-wuestite buffer (Suer and others 2023, Table 1)."""
+"""float: The redox of the reduced end of the partition table, log10 units above the iron-wuestite buffer (measured, Suer and others 2023, Table 1)."""
 OXIDIZED_DIW = -1.0
-"""float: The oxidized end."""
+"""float: The oxidized end (measured, the same table)."""
 D_N_REDUCED = 1.0
 """float: `D_N` at the reduced end, 20 GPa and 3000 K (Suer and others 2023, Table 1: 'embryo or intermediate magma ocean')."""
 D_N_OXIDIZED = 39.0
-"""float: `D_N` at the oxidized end, same conditions."""
+"""float: `D_N` at the oxidized end, same conditions (measured)."""
 D_N_MAX = 265.0
 """float: The most `D_N` takes (the oxidized value at 5 GPa and 2000 K of the same table)."""
 CORE_FORMATION_OFFSET = -2.5
