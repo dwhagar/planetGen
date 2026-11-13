@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4030] - 2026-11-13
+
+**Headline:** The estimate for a stage nothing has timed, and the heartbeat judge's idea of how fast a unit should go, now come from what that kind of unit has actually done on this machine.
+
+### Changed
+- **OPS.159.** New `queue/profiletime.py` reads the job profile (OPS.155): the median worked seconds of a unit of a command and of one item of it, from the last 30 finished units on this machine shape and generator epoch (another machine's count half, fewer than 3 samples give nothing), held for the run and moving at most 25 percent from the last run's figure. The untimed stage estimate (`roughtime.stage_seconds`, through the new `Stage.unit_seconds` the wrapper fills at plan time) uses it in place of the typed 20 s, and the heartbeat judge's `History` gains `expected_item_seconds`, so a unit far slower than its kind's usual item time is flagged as slow whatever its size. Every change is logged (kind, old and new, samples, reason) and shown in the Queue page's latest changes. `PLANETGEN_SELF_TUNING=0` restores the old estimates. Nothing here changes what a run generates, only the time shown and the slow flag.
+No drawn value changes, so there is no epoch or golden.
+generation-output: unchanged
+
 ## [8.0.4029] - 2026-11-13
 
 **Headline:** A star is called a subdwarf from the same temperature it is stored with, so a stored subdwarf always passes the subdwarf test.
