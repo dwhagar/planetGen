@@ -2397,21 +2397,21 @@ class StarSystem:
     def _settle_body(obj):
         """The settle pass for one planet and its moons (`_settle_to_final_age`; and, for a belt member made a planet, `_settle_promoted`): the giant sized again, the tides of the orbit, the envelope, the oddities of a resonant chain and the end stages of a rocky body made again."""
         if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-            log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
+            log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr.")
         for body in (obj, *obj.moons):
             if planetPhysics.settle_orbit(body):
-                log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
         # the tides above can move a giant's eccentricity, and with it the mean light its radius was sized on (`orbit_elements.flux_distance_au`): size it again
         # on the final orbit (a giant the tables moved by under `SETTLE_TOLERANCE` is left as it is)
         if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-            log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit")
+            log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit.")
         if planetPhysics.settle_envelope(obj):
-            log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
+            log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km.")
         if planetPhysics.finish_orbit_oddities(obj):
-            log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors")
+            log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors.")
         made = planetPhysics.refinish_rocky(obj)
         if made:
-            log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+            log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
 
     def _settle_promoted(self, star, bodies, promoted):
         """
@@ -2425,10 +2425,10 @@ class StarSystem:
             self._settle_body(planet)
         moved = planetPhysics.settle_obliquity(bodies, star.mass, only=promoted)
         if moved:
-            log.debug(f"{star.name}: {moved} belt planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances")
+            log.debug(f"{star.name}: {moved} belt planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances.")
         moon_tilts = planetPhysics.settle_moon_tilts(bodies, star.mass, only=promoted)
         if moon_tilts:
-            log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} of a belt planet given the tilt of their Cassini state")
+            log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} of a belt planet given the tilt of their Cassini state.")
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
