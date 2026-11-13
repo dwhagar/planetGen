@@ -1006,7 +1006,6 @@ TABLES = {
     },
     "body_numbers": {
         "id": ("star_system_id",),
-        "key": ("slot_key",),
         "index": ("body_number",),
     },
     "body_history": {
