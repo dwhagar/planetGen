@@ -24,7 +24,7 @@ def test_a_tick_says_nothing_until_the_cadence_has_passed_and_then_once():
     assert count.tick(10) is False and lines == []
     clock.now += 1
     assert count.tick(1240) is True
-    assert lines == ["Things: 1,240 of 4,000 done (31%), 41.3 per s, 0:30 elapsed."]
+    assert lines == ["Things: 1,240 of 4,000 done (31%), 41.3 per s, 30.0 s elapsed."]
     assert count.tick(1300) is False and len(lines) == 1
     clock.now += tuning.PROGRESS_LOG_SECONDS
     count.tick(2000, "3 failed")
@@ -41,14 +41,14 @@ def test_a_ticker_on_a_bars_scale_says_the_share_and_not_a_rate():
     count = ticker.Ticker("Block light totals", total=1.0, percent=True, clock=clock)
     clock.now += 247
     assert count.text(0.37) == "Block light totals: 37% done, 4:07 elapsed."
-    assert ticker.Ticker("Block light totals", total=1.0, percent=True, clock=clock).text(0.5, "still working").endswith("50% done, still working, 0:00 elapsed.")
+    assert ticker.Ticker("Block light totals", total=1.0, percent=True, clock=clock).text(0.5, "still working").endswith("50% done, still working, 0 ms elapsed.")
 
 
 def test_a_ticker_with_no_total_counts_and_finish_speaks_whatever_the_clock():
     clock, lines = _Clock(), []
     count = ticker.Ticker("Rows", say=lines.append, clock=clock)
     count.finish(12)
-    assert lines == ["Rows: 12 done, 0:00 elapsed."]
+    assert lines == ["Rows: 12 done, 0 ms elapsed."]
 
 
 def test_the_stamp_puts_the_time_since_the_start_after_the_text():

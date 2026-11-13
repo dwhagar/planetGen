@@ -20,6 +20,7 @@ import json
 import time
 
 from planetgen.queue import beatjudge, runrecord, taskprogress, unitbeat, unitstuck
+from planetgen.util import log
 
 
 class UnitWatch:
@@ -64,7 +65,8 @@ class UnitWatch:
         try:
             found = unitbeat.read(self.conn, self.run_id, self.stage)
             now = unitbeat.server_time(self.conn)
-        except Exception:   # noqa: BLE001 -- a Redis that cannot answer for one poll says nothing about the units
+        except Exception as exc:   # noqa: BLE001 -- a Redis that cannot answer for one poll says nothing about the units
+            log.swallowed("queue/unitwatch", "UnitWatch.check", exc)
             return dict(self._current)
         history = self.history()
         starved = bool(self.starved()) if self.starved is not None else False
@@ -124,7 +126,8 @@ class UnitWatch:
             return None
         try:
             return self.rate_of(self.kind)
-        except Exception:       # noqa: BLE001 -- a bar without a recorded rate still counts
+        except Exception as exc:       # noqa: BLE001 -- a bar without a recorded rate still counts
+            log.swallowed("queue/unitwatch", "UnitWatch._stored_rate", exc)
             return None
 
     def _publish(self, verdicts, found, now, stored_rate=None):

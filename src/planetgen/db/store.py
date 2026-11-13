@@ -5397,7 +5397,7 @@ def _stamp_family(conn, family, system_ids):
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
         conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
+                     + ", ".join("(?, ?)" for _ in chunk) + f" AS written ON DUPLICATE KEY UPDATE {column} = written.{column}",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
 
 
@@ -7838,11 +7838,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()

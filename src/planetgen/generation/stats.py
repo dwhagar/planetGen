@@ -274,8 +274,8 @@ class GenerationStats:
             # MySQL 8 caches these sizes for a day by default, so a run's
             # growth wouldn't show.
             galaxy_conn.execute("SET SESSION information_schema_stats_expiry = 0")
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as swallowed_exc:  # noqa: BLE001
+            log.swallowed("generation/stats", "GenerationStats.measure_size", swallowed_exc)
         excluded = sorted(GALAXY_WIDE_TABLES)
         try:
             systems = galaxy_conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]

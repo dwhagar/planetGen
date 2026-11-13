@@ -392,8 +392,8 @@ def warm_unit(job):
             warm_star_tables()
         if spec.warm is not None:
             commands.warm_function(kind)(args)
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("queue/units", "warm_unit", exc)
 
 
 def warm_shape(unit_args):
@@ -551,8 +551,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
         if watch is not None:
             try:
                 watch.clear()
-            except Exception:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
-                pass
+            except Exception as exc:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
+                log.swallowed("queue/units", "follow_stage", exc)
 
 
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):

@@ -18,6 +18,7 @@ them because they are replaced by a measurement in the first run, and `memorygat
 
 from planetgen.queue import commands, memorygate, pause, redisqueue, workers
 from planetgen.queue.memorygate import Claim
+from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 OPEN_FUNCTION = "planetgen.queue.units.open_stage"
@@ -179,7 +180,8 @@ def cut_command(conn, run_id, index):
     try:
         declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
         return next(commands.Step.from_dict(item).kind for item in runrecord.read_steps(conn, run_id) if item["key"] == declared["key"])
-    except Exception:  # noqa: BLE001 -- a run that is gone or a stage that is not there is cut under the default claim
+    except Exception as exc:  # noqa: BLE001 -- a run that is gone or a stage that is not there is cut under the default claim
+        log.swallowed("queue/claims", "cut_command", exc)
         return None
 
 
