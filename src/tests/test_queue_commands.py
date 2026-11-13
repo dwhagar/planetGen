@@ -54,15 +54,16 @@ def test_a_step_the_request_does_not_select_is_not_in_the_list():
     assert kinds(["scatter", "--phenomena"]) == [
         "empty-phenomenon-scatter", "drop-phenomenon-indexes", "scatter-phenomena", "store-phenomenon-class-counts", "finish-phenomena", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights"]
     assert kinds(["fill-map-luminosity"]) == ["fill-map-luminosity", "refresh-block-lights"]
-    assert kinds(["rescore-habitability"]) == ["rescore-habitability"]
+    assert kinds(["rescore-habitability"]) == ["rescore-habitability", "make-habitable-block-totals"]
     assert kinds(["clean-nebula-field"]) == ["clean-nebula-field"]
     assert kinds(["clear-scatter", "--luminosity"]) == ["clear-scatter"]
 
 
-def test_the_habitability_re_score_makes_the_block_totals_in_its_conclude_hook():
-    """PERF.202: the tail the starter used to do after the last range is the command's `conclude`, run by the unit that
-    completes the stage."""
-    assert commands.conclude_function("rescore-habitability").__name__ == "conclude_rescore_habitability"
+def test_the_habitability_re_score_makes_the_block_totals_in_a_step_of_its_own():
+    """OPS.123: the tail the starter did after the last range (PERF.202, once the re-score's `conclude`) is the one-unit `make-habitable-block-totals` command after it."""
+    assert commands.conclude_function("rescore-habitability") is None
+    assert commands.REGISTRY["make-habitable-block-totals"].whole
+    assert commands.REQUIRES["make-habitable-block-totals"] == ("rescore-habitability",)
 
 
 def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_of_their_passes():

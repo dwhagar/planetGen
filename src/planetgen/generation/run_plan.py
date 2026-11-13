@@ -2696,10 +2696,18 @@ def planned_effect_ledger(args):
     return followed.Planned([follower], "Effect ledger", lambda: follower.total)
 
 
-def conclude_rescore_habitability(params, plan, results, seconds):
+def expand_make_habitable_block_totals(params):
+    """The `make-habitable-block-totals` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def make_habitable_block_totals_unit(params, report):
     """
-    The `conclude` of the `rescore-habitability` command (PERF.202): makes the blocks' habitable-world totals follow the
-    sectors' counts (MAP.143, `block_stats.rebuild`), once, when every range is done.
+    The `make-habitable-block-totals` command's unit (OPS.123; the `conclude` of `rescore-habitability` before it, PERF.202): makes the blocks'
+    habitable-world totals follow the sectors' counts (MAP.143, `block_stats.rebuild`), once, after every range of the re-score is done.
+
+    Returns:
+        dict: Empty.
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
@@ -2708,6 +2716,13 @@ def conclude_rescore_habitability(params, plan, results, seconds):
     finally:
         conn.close()
     return {}
+
+
+class HabitableBlocksFollower(followed.Follower):
+    """The `make-habitable-block-totals` command as a stage of a run (OPS.123): one unit after the habitability re-score."""
+
+    key = stages.HABITABLE_BLOCKS_STAGE.key
+    label = stages.HABITABLE_BLOCKS_STAGE.label
 
 
 def fill_habitability(args):
@@ -2724,7 +2739,7 @@ def fill_habitability(args):
 def planned_habitability(args):
     """The habitability rescore as a `followed.Planned`; its result is the bodies updated."""
     follower = HabitabilityFollower(args)
-    return followed.Planned([follower], "Habitability", lambda: follower.total)
+    return followed.Planned([follower, HabitableBlocksFollower(args)], "Habitability", lambda: follower.total)
 
 
 BLOCK_LIGHTS_BAR_TOTAL = 100.0

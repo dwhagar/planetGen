@@ -151,8 +151,10 @@ REGISTRY = _commands(
     CommandSpec("rescore-habitability", "Re-score the habitability: one unit per run of ids",
                 unit=("planetgen.generation.run_plan", "rescore_habitability_unit"),
                 expand=("planetgen.generation.run_plan", "expand_rescore_habitability"),
-                conclude=("planetgen.generation.run_plan", "conclude_rescore_habitability"),
                 unit_seconds=25),
+    CommandSpec("make-habitable-block-totals", "Make the blocks' habitable-world totals follow the sectors' counts: one unit",
+                unit=("planetgen.generation.run_plan", "make_habitable_block_totals_unit"),
+                expand=("planetgen.generation.run_plan", "expand_make_habitable_block_totals"), whole=True),
     CommandSpec("refill-effect-ledger", "Refill the effect ledger: one unit per run of ids",
                 unit=("planetgen.generation.run_plan", "refill_effect_ledger_unit"),
                 expand=("planetgen.generation.run_plan", "expand_refill_effect_ledger"),
@@ -318,6 +320,7 @@ REGISTRY = _commands(
 """dict: Every command the wrapper can name, by kind."""
 
 REQUIRES = {
+    "make-habitable-block-totals": ("rescore-habitability",),
     "finish-phenomena": ("scatter-phenomena",),
     "store-phenomenon-class-counts": ("scatter-phenomena",),
     "run-territories": ("run-population",),
@@ -361,7 +364,7 @@ def validate_order(steps):
 KIND_OF_STAGE = {
     "mass": "scatter-mass", "skeleton": "plan-skeleton", "phenomena": "scatter-phenomena",
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
-    "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability", "ledger": "refill-effect-ledger",
+    "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability", "habitability-blocks": "make-habitable-block-totals", "ledger": "refill-effect-ledger",
     "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "nebula-clear": "empty-nebula-field",
     "phenomena-counts": "store-phenomenon-class-counts", "phenomena-clear": "empty-phenomenon-scatter", "phenomena-unindex": "drop-phenomenon-indexes",
     "mass-clear": "clear-bright-stars", "luminosity-clear": "clear-bright-stars",

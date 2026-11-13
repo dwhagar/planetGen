@@ -201,6 +201,9 @@ def clear_stages(args):
     return [] if kind is None else [CLEAR_STAGE[kind]]
 
 
+HABITABLE_BLOCKS_STAGE = Stage("habitability-blocks", "Make the habitable block totals")
+"""Stage: The making of the blocks' habitable-world totals from the sectors' counts, after the habitability is re-scored (OPS.123: the `make-habitable-block-totals` command, once the `conclude` of the re-score)."""
+
 SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill the map luminosity"),
                          "rescore-habitability": Stage("habitability", "Re-score the habitability"),
                          "refill-effect-ledger": Stage("ledger", "Refill the effect ledger"),
@@ -231,6 +234,8 @@ def for_command(command, args):
         return clear_stages(args)
     if command == "fill-map-luminosity":
         return [SINGLE_STAGE_COMMANDS[command], BLOCK_LIGHTS_STAGE]
+    if command == "rescore-habitability":
+        return [SINGLE_STAGE_COMMANDS[command], HABITABLE_BLOCKS_STAGE]
     if command in SINGLE_STAGE_COMMANDS:
         return [SINGLE_STAGE_COMMANDS[command]]
     return []
