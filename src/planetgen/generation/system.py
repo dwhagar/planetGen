@@ -24,7 +24,7 @@ import re
 
 from planetgen.generation import irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
+from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, node_pair_label, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
@@ -674,8 +674,7 @@ class StarSystem:
     def node_label(self, host):
         """The name of the pair of an inner pair node `host` (GEN.332, slice A) as the Washington Double Star catalogue writes a pair: the system's name and the letters of the
         node's stars together (`Voranthis CD`; the three stars of a pair and a star about it are `Voranthis ABC`), `Voranthis node N` for stars named some other way."""
-        letters = [star.name[len(self.name) + 1:] for star in host.leaf_stars if star.name.startswith(f"{self.name} ")]
-        return f"{self.name} {''.join(sorted(letters))}" if len(letters) == len(host.leaf_stars) else f"{self.name} node {host.host_node_no}"
+        return node_pair_label(self.name, [star.name for star in host.leaf_stars], host.host_node_no)
 
     def node_planet_hosts(self):
         """`[(proxy, planets)]` for each of `node_hosts` (GEN.332, slice A): the pair of stars a pair node's planets go round and the planets."""

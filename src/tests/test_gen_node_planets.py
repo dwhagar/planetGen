@@ -206,3 +206,26 @@ def test_the_description_lists_a_nodes_planets_under_its_pair():
         for body in bodies:
             if body.body_type != "a":
                 assert body.name in text
+
+
+def test_the_system_page_map_draws_a_nodes_planets_in_a_scene_of_their_own(mysql_config):
+    """A saved system read through `system_detail` (as the page does) gives each node with planets a pair marker and a `node-<n>` scene."""
+    from planetgen.db import query
+    from planetgen.web.maps.systemmap import render_system_map_panel
+    system, cfg = _with_node_planets()
+    system.assign_names("Voranthis")
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = store.insert_star_system(conn, system, cfg)
+        conn.commit()
+        detail = query.system_detail(conn, system_id)
+    finally:
+        conn.close()
+    html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"])
+    for host, bodies in system.node_planet_hosts():
+        scene = f'data-scene="node-{host.host_node_no}"'
+        assert scene in html
+        assert system.node_label(host) in html
+        for body in bodies:
+            if body.body_type != "a":
+                assert body.name in html

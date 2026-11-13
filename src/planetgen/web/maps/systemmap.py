@@ -88,6 +88,7 @@ from planetgen.web.lib.tabledisplay import (
     to_plain_text,
 )
 
+from planetgen.names.bodies import node_pair_label
 from planetgen.physics import planet_class_text, planet_type
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
@@ -1382,11 +1383,12 @@ def _member_stars_scenes(system, members, facilities, placed):
         if not (x_km or y_km):
             # No stored direction: spread them round the frame instead of stacking them.
             x_km, y_km = math.cos(index * _GOLDEN_ANGLE_RAD), math.sin(index * _GOLDEN_ANGLE_RAD)
-        scene_id = f'star-{member["id"]}'
-        svg, obstacle = _companion_star(system, member, "Member", scene_id, x_km, y_km, placed)
+        scene_id = member.get("scene_id") or f'star-{member["id"]}'
+        role = member.get("map_role", "Member")
+        svg, obstacle = _companion_star(system, member, role, scene_id, x_km, y_km, placed)
         placed.append(obstacle)
         markers.append(svg)
-        attrs = _wide_binary_star_attrs(system, member, "Member")
+        attrs = _wide_binary_star_attrs(system, member, role)
         attrs["self"] = "true"
         scenes.append(_star_scene_svg(
             scene_id, f'Planets of {_star_label(system, member)}', True, member,
@@ -1798,6 +1800,55 @@ def finite_row(row):
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
+def _node_pair_hosts(system, stars, planets):
+    """
+    GEN.332, slice A: the inner pair nodes of the tree that hold planets (`planets.host_node_id`), each as `(host, its planets)` where `host` is a
+    copy of the heaviest star of the node's subtree that stands for the pair as one body, as the generator's proxy does: the pair's name
+    (`names.bodies.node_pair_label`), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
+    stars' center of mass, `id` and `scene_id` `node-<n>` and `map_role` "Pair". A node whose stars are not among `stars` (a system stored before the tree) is left out and its
+    planets stay where they were.
+    """
+    by_node = {}
+    for planet in planets:
+        if planet.get("host_node_id") is not None:
+            by_node.setdefault(planet["host_node_id"], []).append(planet)
+    if not by_node:
+        return []
+    children = {}
+    for node in system.get("orbits") or ():
+        children.setdefault(node.get("parent_node_no"), []).append(node["node_no"])
+
+    def below(node_no):
+        found = [star for star in stars if star.get("parent_node_no") == node_no]
+        for sub in children.get(node_no, ()):
+            found.extend(below(sub))
+        return found
+
+    hosts = []
+    for node_no, bodies in sorted(by_node.items()):
+        leaves = below(node_no)
+        light = sum(star["luminosity_w"] or 0.0 for star in leaves)
+        mass = sum(star["mass_kg"] or 0.0 for star in leaves)
+        if len(leaves) < 2 or not (light > 0.0 and mass > 0.0):
+            continue
+        lead = max(leaves, key=lambda star: star["mass_kg"] or 0.0)
+        host = dict(lead)
+        host.update({
+            "name": node_pair_label(system["name"], [star.get("name") or "" for star in leaves], node_no),
+            "mass_kg": mass, "luminosity_w": light, "radius_km": max(star["radius_km"] or 0.0 for star in leaves),
+            "temperature_k": sum((star["luminosity_w"] or 0.0) * (star["temperature_k"] or 0.0) for star in leaves) / light,
+            "offset_x_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_x_au") or 0.0) for star in leaves) / mass,
+            "offset_y_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_y_au") or 0.0) for star in leaves) / mass,
+            "id": f"node-{node_no}", "scene_id": f"node-{node_no}", "map_role": "Pair",    # (an id no page answers to: the panel offers no links for it)
+        })
+        for planet in bodies:
+            planet["_star_temperature_k"] = host["temperature_k"]
+            for moon in planet.get("moons") or []:
+                moon["_star_temperature_k"] = host["temperature_k"]
+        hosts.append((host, bodies, []))
+    return hosts
+
+
 def put_star_temperatures(stars, planets):
     """MAP.244: each planet and moon row carries `_star_temperature_k`, the effective temperature of the star it orbits (the primary for
     a close pair, whose planets have no `star_id`), which `bodylook.air_colour` needs for the colour of its air."""
@@ -1916,8 +1967,11 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
                 [b for b in belts if b.get("star_id") == star["id"]])
                for star in stars if star.get("role") == "member"]
     member_ids = {star["id"] for star, _, _ in members}
+    node_hosts = _node_pair_hosts(system, stars, planets)    # GEN.332, slice A: the planets round an inner pair get a marker and a scene of their own, like a member's
+    node_planet_ids = {id(p) for _, bodies, _ in node_hosts for p in bodies}
+    members.extend(node_hosts)
     stars = [star for star in stars if star["id"] not in member_ids]
-    pair_planets = [p for p in planets if p.get("star_id") not in member_ids]
+    pair_planets = [p for p in planets if p.get("star_id") not in member_ids and id(p) not in node_planet_ids]
     pair_belts = [b for b in belts if b.get("star_id") not in member_ids]
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
