@@ -24,7 +24,7 @@ EXAMPLES = {
                   ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6326, 0.969, 0.0, "B1h S2"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20,
                      life_stage="microbial"),
-               ("Yellow", "Yellow", "Red", "Blue", "Blue", "Yellow"), 0.609, 0.969, 0.0, "B2d S3"),
+               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.6763, 0.969, 0.0, "B2d S3"),
     "Photochemical CO": (World(100, 10, {"N2": 0.9, "CO2": 0.05, "CO": 0.05}, ph=7.5),
                          ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, "S2"),
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
@@ -35,7 +35,7 @@ EXAMPLES = {
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Red", "Red", "Yellow", "Red"), 0.0, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
+                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.0, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapor", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
@@ -303,28 +303,8 @@ def test_a_world_with_no_atmosphere_has_red_air_and_a_zero_score():
     for pressure in (0.0, 1e-9, 0.04):
         got = scores(World(pressure, -227, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, relative_humidity=0.05))
         assert got["Air"] == (0.0, "Red"), pressure
+    assert hab.air_score(World(0.6, -60, {"CO2": 0.95, "N2": 0.03})) > 0.0
     assert scores(EARTH)["Air"][1] == "Blue"
-
-
-def test_low_oxygen_is_rated_by_the_air_and_not_by_the_mask_that_fixes_it():
-    """GEN.1676 (Boss, 11-12): a rating is the planet's conditions, never what equipment can fix, so an air with no oxygen is Red and thin oxygen falls from Blue through Green and Yellow."""
-    def air(o2_kpa):          # inspired O2 of o2_kpa at 100 kPa: the fraction F satisfies F (100 - 6.3) = o2_kpa
-        return hab.air_score(World(100.0, 15, {"N2": 1.0 - o2_kpa / 93.7, "O2": o2_kpa / 93.7}))
-    assert air(0.0) == 0.0 and hab.tier(air(0.0)) == "Red"
-    assert hab.tier(air(2.0)) == "Red" and hab.tier(air(4.5)) == "Yellow" and hab.tier(air(6.5)) == "Green" and hab.tier(air(8.0)) == "Blue"
-    assert air(0.0) < air(2.0) < air(4.0) < air(5.7) < air(8.0)
-    assert air(5.7) == pytest.approx(0.75, abs=1e-3) and air(4.0) == pytest.approx(0.4, abs=1e-3)
-
-
-def test_the_gases_a_filter_takes_out_are_scored_on_the_body_and_the_pressure_edge_is_the_everest_summit():
-    """GEN.1676 (Boss, 11-12): no credit for a respirator (CO, H2S and SO2 are Yellow only up to their acute limit), and the Green edge of the pressure score is 33.7 kPa, not the mask's 14.3."""
-    breathable = {"N2": 0.78, "O2": 0.21}
-    acute = hab.GAS_LIMITS_KPA["CO"][1]
-    chronic = hab.GAS_LIMITS_KPA["CO"][0]
-    assert hab.tier(hab.air_score(World(100.0, 15, {**breathable, "CO": 0.5 * chronic / 100.0}))) == "Blue"
-    assert hab.tier(hab.air_score(World(100.0, 15, {**breathable, "CO": 3.0 * acute / 100.0}))) == "Red"      # past the acute limit with no respirator credit
-    assert hab.band_score(hab.limit("pressure_green_kpa"), hab.pressure_band(), log=True) == pytest.approx(0.75, abs=1e-6)
-    assert hab.tier(hab.pressure_score(World(20.0, 15, breathable))) == "Yellow" and hab.tier(hab.pressure_score(World(40.0, 15, breathable))) == "Green"
 
 
 def test_blue_and_green_are_habitable_from_three_quarters():

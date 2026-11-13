@@ -93,11 +93,11 @@ def _under(value, unit):
 
 
 def _gas_rows(gases):
-    """One row per gas a filter handles: Blue under the long-term limit, Yellow up to the short-term one (the body's limit, with no credit for a filter)."""
+    """One row per gas a filter handles: Blue under the long-term limit, Yellow up to ten times the short-term one."""
     rows = []
     for gas, _kpa, band in gases:
         name = atmosphere.species_name(gas.lower()).capitalize()
-        rows.append((f"{name} (a filter can take it out, but the score does not count it)", _under(band[4], "kPa"), "", _up_to(band[6], "kPa")))
+        rows.append((f"{name} (a filter takes it out)", _under(band[4], "kPa"), "", _up_to(band[6], "kPa")))
     return rows
 
 
@@ -107,7 +107,7 @@ def domains(bands=habitability.HUMAN):
     read from `bands` (the limits in `protection_limits`) and the constants of `habitability`, so the page cannot
     drift from the score.
     """
-    pressure, temperature, dose, uv = habitability.pressure_band(bands), bands.temperature, bands.dose, bands.uv
+    pressure, temperature, dose, uv = bands.pressure, bands.temperature, bands.dose, bands.uv
     gases = habitability.gas_inputs(habitability.World(pressure_kpa=0.0, temperature_c=0.0, gases={}))
     co2, filtered = gases[0], gases[1:]
     water = {label: band for label, _value, band in habitability.water_inputs(
@@ -126,7 +126,7 @@ def domains(bands=habitability.HUMAN):
         ]),
         ("Air", [
             (f"Oxygen the lungs get (the pressure minus {_n(bands.armstrong)} kPa of water vapor), too little",
-             f"{_n(bands.o2_min)} kPa or more", f"{_n(bands.o2_low[2])} kPa or more", f"{_n(bands.o2_low[1])} kPa or more"),
+             f"{_n(bands.o2_min)} kPa or more", f"{_under(bands.o2_min, 'kPa')} (a mask works)", ""),
             ("Oxygen the lungs get, too much", _up_to(bands.o2_high[4], "kPa"), "",
              _up_to(bands.o2_high[6], "kPa")),
             ("Carbon dioxide", _under(co2[2][4], "kPa"), _up_to(co2[2][5], "kPa"), _up_to(co2[2][6], "kPa")),
