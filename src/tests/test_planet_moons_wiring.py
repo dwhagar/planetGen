@@ -10,17 +10,19 @@ from planetgen.physics import planet_moons as pm
 from planetgen.util import draw
 
 
-def _giants(seed, systems, monkeypatch=None):
+def _giants(seed, count):
+    """`count` giants of one Jupiter mass round a G2 star at 5.2 AU, each from its own stream and with the moons a giant draws (a giant is drawn on purpose: a seeded run of whole systems finds none in a dozen systems)."""
     from planetgen.generation.config import SystemConfig
-    from planetgen.generation.system import StarSystem
-    found = []
-    with draw.bound(seed):
-        for _ in range(systems):
-            config = SystemConfig()
-            config.MOONS = True
-            system = StarSystem(system_config=config)
-            found += [planet for planet in system.planets + system.secondary_planets if planet.body_type == "g" and planet.moons]
-    return found
+    from planetgen.generation.star import Star
+    from tests import class_support
+    config = SystemConfig()
+    config.STAR_TYPE = "G2V"
+    config.MOONS = True
+    with draw.bound(f"planet-moons-wiring:star:{seed}"):
+        star = Star(config)
+    star.age = 1.0
+    giants = [class_support.draw_planet(star, 5.2, seed + index, config, mass=mc.JUPITER_MASS_KG, zone_override="c") for index in range(count)]
+    return [giant for giant in giants if giant.body_type == "g" and giant.moons]
 
 
 def test_the_giant_cap_is_the_disk_ceiling():
@@ -30,7 +32,7 @@ def test_the_giant_cap_is_the_disk_ceiling():
 
 @pytest.fixture(scope="module")
 def captured_giants():
-    """Giants with moons of 25 seeded systems, at a capture chance of 1."""
+    """Giants with moons of 25 seeded draws, at a capture chance of 1."""
     saved = pm.CAPTURE_CHANCE
     pm.CAPTURE_CHANCE = 1.0
     try:
@@ -42,7 +44,7 @@ def captured_giants():
 def test_a_capture_moon_is_a_planet_sized_moon_with_a_captured_orbit(captured_giants):
     low, high = mc.KOZAI_FORBIDDEN_DEG
     seen = [(giant, moon) for giant in captured_giants for moon in giant.moons if moon.moon_origin == "exchange"]
-    assert seen, "no giant took a capture moon in 25 systems at a chance of 1"
+    assert seen, "no giant took a capture moon in 25 giants at a chance of 1"
     for giant, moon in seen:
         assert pm.PLANET_MOON_MIN_MASS_KG <= moon.mass <= pm.exchange_ceiling_kg(giant.mass)
         assert not low < moon.orbital_inclination_deg < high

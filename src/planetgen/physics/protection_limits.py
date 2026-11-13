@@ -34,7 +34,7 @@ LIMIT_ROWS = (
     Limit("mask_min_kpa", 14.3, "kPa", "least ambient pressure at which a pure-oxygen mask still gives 8 kPa of inspired O2; "
           "below it a counterpressure or pressurised suit is needed", 14.3, 20.0, "lower"),
     Limit("pressure_green_kpa", 33.7, "kPa", "least ambient pressure at the Green edge of the score: the Everest summit, the least pressure at which people have lived without oxygen "
-          "([R5248]); the score is the body's, not what a pure-oxygen mask allows (`mask_min_kpa` stays the gear's edge; Boss, 11-12)", 33.7, None),
+          "[R5248]; the score is the body's, not what a pure-oxygen mask allows (`mask_min_kpa` stays the gear's edge; Boss, 11-12)", 33.7, None),
     Limit("pressure_no_gear_kpa", 50.0, "kPa", "least pressure with no gear at all (Blue)", 50.0, 70.0, "lower"),
     Limit("pressure_blue_max_kpa", 250.0, "kPa", "greatest pressure with no gear at all (Blue)", 250.0, None),
     Limit("pressure_narcosis_kpa", 400.0, "kPa", "nitrogen narcosis starts: the greatest pressure of modular gear (Green)", 400.0, 400.0),
