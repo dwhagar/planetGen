@@ -241,6 +241,8 @@ def log_change(conn, what, kind, old, new, reason, now=None, **extra):
     try:
         now = time.time() if now is None else now
         digits = ",.1f" if max(abs(old or 0.0), abs(new)) < 100 else ",.0f"
+        if what in ("workers", "start limit"):
+            digits = ",.0f"          # worker counts are whole numbers
         log.normal(f"Self-tuning: {what} of {kind} {'was ' + format(old, digits) if old is not None else 'had no earlier figure'}, now {format(new, digits)} ({reason}).")
         conn.lpush(_changes_key(), json.dumps({"at": now, "what": what, "kind": kind, "old": old, "new": new, "reason": reason, **extra}))
         conn.ltrim(_changes_key(), 0, KEEP_CHANGES - 1)
