@@ -528,6 +528,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | Lane 22, 2026-11-12, top priority. |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | Lane 22, 2026-11-12. |
 | PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | Lane 05, 2026-11-12. |
+| PERF.264 | The mass and luminosity scatter passes share the component sector addresses in their planning step | none | Lane 15, 2026-11-13. |
+| PERF.265 | The workers' table warm-up starts while the parent plans each scatter pass | PERF.264 | Lane 15, 2026-11-13. |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | Lane 13, 2026-11-12. |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | Lane 13, 2026-11-12. |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | Lane 23, 2026-11-12. |
@@ -763,7 +765,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1680 | Galaxy run order: sectors, link, one hoisted clear that records the scatter limits, then backfill, then the mass and luminosity scatters and phenomena | none | generation-order thread, PR 6392, 2026-11-13. |
 | GEN.1681 | Luminous-star default floor rises from 9,000 to 18,000 solar luminosities | none | generation-order thread, PR 6392, 2026-11-13. |
 | GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | generation-order thread, 2026-11-13. |
-| GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | Lane 15, 2026-11-13. |
 | GEN.1684 | Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread | none | Lane 12, 2026-11-13. |
 | GEN.1686 | Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones | none | Fable scan thread, 2026-11-13. |
 | GEN.1687 | Constants written by hand: 101300 Pa, 365.25-day years, a second Earth mass and a local MPC_PER_PC instead of the shared constants and units | none | Fable scan thread, 2026-11-13. |
