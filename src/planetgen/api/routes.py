@@ -90,6 +90,9 @@ from planetgen.db.query import (
     phenomena_facets,
     systems_facets,
     list_sectors,
+    sector_address_of_uid,
+    uncharted_cell_has_no_row,
+    virtual_sector_detail,
     list_systems,
     GENERATED_KINDS,
     generated_since,
@@ -541,8 +544,11 @@ def sectors():
     after = None
     if request.args.get("after"):
         after = ids.row_id(db, "sector", request.args["after"])
-        if after is None:
-            raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
+        if after is None:       # OPS.154: the page ended on an uncharted cell that has no row; its ID is its address
+            address = sector_address_of_uid(request.args["after"])
+            if address is None or not uncharted_cell_has_no_row(db, address):
+                raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
+            after = address
     total = count_sectors(db, coverage=coverage, show_empty=show_empty)
     items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after, coverage=coverage, show_empty=show_empty)
     for item in items:
@@ -569,7 +575,7 @@ def sectors():
 def sector_detail(sector_id):
     conn = get_db()
     try:
-        detail = query_sector_detail(conn, sector_id)
+        detail = virtual_sector_detail(conn, sector_id) if isinstance(sector_id, tuple) else query_sector_detail(conn, sector_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     detail["superbubble"] = superbubble_of(conn, detail)
@@ -579,7 +585,7 @@ def sector_detail(sector_id):
         _show_uncharted_sector(conn, detail)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
-    detail["former_designations"] = ids.former_designations(conn, ids.SECTOR, sector_id)
+    detail["former_designations"] = [] if isinstance(sector_id, tuple) else ids.former_designations(conn, ids.SECTOR, sector_id)
     return jsonify(detail)
 
 
