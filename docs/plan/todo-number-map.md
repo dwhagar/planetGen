@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.312 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1680 |
+| GEN | GEN.1684 |
 | PERF | PERF.264 |
 | DB | DB.130 |
 | API | API.48 |
@@ -3901,6 +3901,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1677 | Design: remove the rest of the equipment-based habitability scoring: UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT | none | open |
 | GEN.1678 | Delivered-water classes read a stellar-mass snow line (the viscous-disk snow line of [R3193: Eq. 2 and 3], or a stellar-mass term), so M-dwarf Earths come out dry as observed | none | open |
 | GEN.1679 | The icy-or-rocky origin test (origin_of) reads the same stellar-mass snow line as the delivered-water classes | GEN.1678 | open |
+| GEN.1680 | Galaxy run order: sectors, link, one hoisted clear that records the scatter limits, then backfill, then the mass and luminosity scatters and phenomena | none | open |
+| GEN.1681 | Luminous-star default floor rises from 9,000 to 18,000 solar luminosities | none | open |
+| GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | open |
+| GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
