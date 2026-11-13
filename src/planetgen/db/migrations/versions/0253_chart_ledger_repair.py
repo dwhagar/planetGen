@@ -1,6 +1,6 @@
 """Write the chart ledger row of every sector that was charted and has none (OPS.180).
 
-Schema v247, no schema change. The Sectors list, the Galaxy page and the Generate page's "Galaxy at a glance" count a placed sector as charted when the chart ledger holds its cell (GEN.1127); a placed row whose
+Schema v253, no schema change. The Sectors list, the Galaxy page and the Generate page's "Galaxy at a glance" count a placed sector as charted when the chart ledger holds its cell (GEN.1127); a placed row whose
 cell it does not hold reads as an uncharted placeholder. A sector that holds a star system or whose fill was recorded (`sector_stats.bright_level_sol` 0) is charted, so this writes the ledger row it lacks
 (`db.chart_ledger.repair`) and says what it found: how many placed sectors there are, how many have a row, how many held content with none. A second run finds nothing.
 """
