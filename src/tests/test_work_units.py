@@ -455,11 +455,13 @@ def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_co
     conn = redisqueue.connect()
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["database"] == mysql_config.database
-    assert [stage["key"] for stage in run["stages"]] == ["mass-clear", "mass", "block-lights"]
+    assert [stage["key"] for stage in run["stages"]] == [
+        "mass-clear", "mass", "mass-limits", "mass-epoch", "block-lights"]
     assert run["stages"][1]["done"] == run["stages"][1]["units"] > 0
     plan = runrecord.read_plan(conn, runs[0], 1)
     assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][1]["units"]
-    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["clear-bright-stars", "scatter-mass", "refresh-block-lights"]
+    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == [
+        "clear-bright-stars", "scatter-mass", "store-scatter-limits", "store-scatter-epoch", "refresh-block-lights"]
 
 
 def _scatter_then_band(mysql_config, workers):
@@ -484,7 +486,8 @@ def test_the_luminosity_pass_and_the_band_give_the_same_stars_at_any_worker_coun
     assert len(scattered) > 20 and len(banded) > len(scattered)
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "clear-bright-stars", "scatter-mass", "scatter-luminosity", "refresh-block-lights", "scatter-band"]
+        "clear-bright-stars", "scatter-mass", "scatter-luminosity", "store-scatter-limits", "store-scatter-epoch",
+        "refresh-block-lights", "scatter-band"]
     for run_id in runs:
         run = runrecord.read_run(conn, run_id)
         assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 0
