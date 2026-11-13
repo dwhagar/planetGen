@@ -43,6 +43,7 @@ import math
 
 from scipy import special
 
+from planetgen.physics import vec3
 from planetgen.physics import chemically_peculiar, constants, impact_spin, unit_registry as units
 from planetgen.util import draw
 
@@ -118,15 +119,6 @@ BLACK_HOLE_MAX_SPIN = 0.998
 """float: The Thorne limit; a* never reaches 1."""
 
 
-def _unit(v):
-    norm = math.sqrt(sum(c * c for c in v))
-    return tuple(c / norm for c in v)
-
-
-def _cross(a, b):
-    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
-
-
 def orbit_normal(inclination_deg, ascending_node_deg):
     """The unit normal of an orbit with these elements, in the frame
     `orbits.orbital_position_au` places the body in (Rz(node) Rx(incl)
@@ -147,7 +139,7 @@ def turn_from_axis(vector, axis):
 
 
 def _turn(vector, axis, sense):
-    a = _unit(axis)
+    a = vec3.unit(axis)
     k = (-a[1], a[0], 0.0)                   # z x axis
     s = math.sqrt(k[0] * k[0] + k[1] * k[1])
     c = a[2]
@@ -155,7 +147,7 @@ def _turn(vector, axis, sense):
         return tuple(vector) if c > 0.0 else (vector[0], -vector[1], -vector[2])    # a pole upside down: half a turn about x (either way)
     k = (k[0] / s, k[1] / s, 0.0)
     s *= sense
-    kxv = _cross(k, vector)
+    kxv = vec3.cross(k, vector)
     along = (1.0 - c) * (k[0] * vector[0] + k[1] * vector[1])
     return tuple(vector[i] * c + kxv[i] * s + k[i] * along for i in range(3))
 
@@ -168,23 +160,36 @@ def moon_orbit_normal(moon, planet):
     return normal if any(c is None for c in axis) else turn_to_axis(normal, axis)
 
 
+def spin_axis_of(body):
+    """The stored spin axis of `body` (`spin_axis_x/y/z`) as a tuple, or `None` when it has none."""
+    axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+    return None if any(value is None for value in axis) else axis
+
+
+def orbit_normal_of(body, planet=None):
+    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
+    if planet is not None:
+        return moon_orbit_normal(body, planet)
+    return orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
+
+
 def orbit_normal_from_state(position, velocity):
     """The unit normal of the orbit a body on this position and velocity (about its primary) is on: `r x v`, in the same
     frame. Raises `ZeroDivisionError` for a body moving straight at or away from its primary."""
-    return _unit(_cross(position, velocity))
+    return vec3.unit(vec3.cross(position, velocity))
 
 
 def tilted_axis(normal, obliquity_deg, precession_rad):
     """`cos e n + sin e (cos phi u + sin phi v)`, with `u`, `v` completing
     an orthonormal frame round the unit `normal`."""
-    n = _unit(normal)
+    n = vec3.unit(normal)
     helper = (1.0, 0.0, 0.0) if abs(n[0]) < 0.9 else (0.0, 1.0, 0.0)
-    u = _unit(_cross(n, helper))
-    v = _cross(n, u)
+    u = vec3.unit(vec3.cross(n, helper))
+    v = vec3.cross(n, u)
     e = math.radians(obliquity_deg)
     c, s = math.cos(e), math.sin(e)
     cp, sp = math.cos(precession_rad), math.sin(precession_rad)
-    return _unit(tuple(c * n[k] + s * (cp * u[k] + sp * v[k]) for k in range(3)))
+    return vec3.unit(tuple(c * n[k] + s * (cp * u[k] + sp * v[k]) for k in range(3)))
 
 
 def carry_axis(axis, old_normal, new_normal, tilt_deg=None):
@@ -192,8 +197,8 @@ def carry_axis(axis, old_normal, new_normal, tilt_deg=None):
     GEN.1504: a spin axis after its orbit's plane has moved from `old_normal` to `new_normal`, carried with the plane: the axis is turned by the turn that takes the old normal onto the new
     (about `old x new`), so its obliquity and its angle round the normal stay as they were. With `tilt_deg` the obliquity is set to that instead (the plane's angle round the normal kept).
     """
-    a, o, n = _unit(axis), _unit(old_normal), _unit(new_normal)
-    k = _cross(o, n)
+    a, o, n = vec3.unit(axis), vec3.unit(old_normal), vec3.unit(new_normal)
+    k = vec3.cross(o, n)
     sin_t = math.sqrt(sum(c * c for c in k))
     cos_t = sum(x * y for x, y in zip(o, n))
     if sin_t < 1.0e-12:
@@ -201,14 +206,14 @@ def carry_axis(axis, old_normal, new_normal, tilt_deg=None):
             turned = a                                                  # the plane has not moved
         else:                                                           # turned over: half a turn about any line in the plane (the axis of the old normal's smallest component)
             helper = (1.0, 0.0, 0.0) if abs(o[0]) < 0.9 else (0.0, 1.0, 0.0)
-            k = _unit(_cross(o, helper))
+            k = vec3.unit(vec3.cross(o, helper))
             along = sum(x * y for x, y in zip(k, a))
-            turned = _unit(tuple(2.0 * along * k[i] - a[i] for i in range(3)))
+            turned = vec3.unit(tuple(2.0 * along * k[i] - a[i] for i in range(3)))
     else:
         k = tuple(c / sin_t for c in k)
-        kxa = _cross(k, a)
+        kxa = vec3.cross(k, a)
         along = sum(x * y for x, y in zip(k, a))
-        turned = _unit(tuple(a[i] * cos_t + kxa[i] * sin_t + k[i] * along * (1.0 - cos_t) for i in range(3)))
+        turned = vec3.unit(tuple(a[i] * cos_t + kxa[i] * sin_t + k[i] * along * (1.0 - cos_t) for i in range(3)))
     if tilt_deg is None:
         return turned
     cos_e = sum(x * y for x, y in zip(turned, n))
@@ -217,12 +222,12 @@ def carry_axis(axis, old_normal, new_normal, tilt_deg=None):
     if length < 1.0e-12:
         return turned
     e = math.radians(tilt_deg)
-    return _unit(tuple(math.cos(e) * n[i] + math.sin(e) * sideways[i] / length for i in range(3)))
+    return vec3.unit(tuple(math.cos(e) * n[i] + math.sin(e) * sideways[i] / length for i in range(3)))
 
 
 def obliquity_between(axis, normal):
     """The angle, degrees, between a spin axis and a reference normal."""
-    dot = sum(a * b for a, b in zip(_unit(axis), _unit(normal)))
+    dot = sum(a * b for a, b in zip(vec3.unit(axis), vec3.unit(normal)))
     return math.degrees(math.acos(max(-1.0, min(1.0, dot))))
 
 

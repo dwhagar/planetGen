@@ -950,7 +950,7 @@ _BODY_RULES = [
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
     (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
-     "a body that fits its class with no value moved (the fit is full, `class_fudge.fit`) has nothing fudged, so the list of values is empty and the amount is 0 or empty (GEN.1314)"),
+     "a body that fits its class with no value moved (the fit is full, `class_fudge.fit`) has nothing fudged, so the list of values is empty and the amount is 0 or empty"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
@@ -988,7 +988,7 @@ _BODY_RULES = [
     (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
     (("cloud_chemistry",), lambda klass, row: row is None or row.get("cloud_chemistry") is not None,
-     "only a rocky body whose air, light and ground open at least one gate of the Venus sulfur-cloud set (GEN.1425) stores its species; a body with no air, or an air with none of the sulfur, chlorine, carbon monoxide or carbonyl sulfide the gates need, stores none"),
+     "only a rocky body whose air, light and ground open at least one gate of the Venus sulfur-cloud set stores its species; a body with no air, or an air with none of the sulfur, chlorine, carbon monoxide or carbonyl sulfide the gates need, stores none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
      "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
     (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,
@@ -1336,6 +1336,107 @@ PRESSURE_KEYS = ("atmospheric_pressure_pa", "surface_pressure_pa")
 """tuple: The rows whose label follows the body's ground (`planet_type.pressure_label`, UX.297)."""
 
 
+EXTRA_COLUMNS = {
+    # table -> the columns the sheet reads beyond its specs' (the row providers below read them)
+    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),      # GEN.1108: the table of the bands; the range on the mean temperature row
+    "moons": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),
+    "asteroid_belts": ("star_system_id", "star_id", "ice_mass_fraction", "distance_km", "formation_snow_line_au"),      # GEN.1420, GEN.1487: the isotope lines of the ices
+    "comets": ("star_system_id", "star_id", "ice_mass_fraction", "perihelion_distance_km"),
+    "interstellar_comets": ("ice_mass_fraction", "galactic_radius_pc"),      # GEN.1487: no host star, so the gas of the galaxy at its radius
+    "asteroid_fields": ("ice_mass_fraction", "galactic_radius_pc"),
+    "stars": ("lifespan_gy", "metallicity_fe_h", "age_gy", "star_system_id", "star_type"),    # GEN.1026: the carbon or S star row, UX.254: the chemistry rows
+}
+"""dict: The columns `sheet` reads of each table beyond the stored columns of its specs."""
+
+
+def _sheet_row(key, label, value, raw=None, stored=True, absent=False, source=None, show_absent=False):
+    """One row of the sheet (the shape `sheet` documents): `value` is the inline list, `text` is it as plain text."""
+    return {"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": stored,
+            "absent": absent, "source": source, "show_absent": show_absent}
+
+
+def _text_row(key, label, text, ratio):
+    """A composition row whose value is one line of text (an isotope line)."""
+    return _sheet_row(key, label, [text], raw=ratio)
+
+
+def _gas_provider(conn, kind, object_id, row):
+    for spec, pascals in _gas_rows(conn, kind, object_id):
+        yield spec.group, _sheet_row(spec.key, spec.label, _value(spec, GAS_TABLES[kind][0], pascals), raw=pascals,
+                                     absent=not pascals, show_absent=spec.key in SHOW_WHEN_ABSENT.get(kind, ()))
+
+
+def _isotope_provider(conn, kind, object_id, row):
+    recorded = conn.execute(f"SELECT isotope, fraction, initial_ratio FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
+    for key, label, text, ratio in isotope_record.sheet_rows(recorded) + isotope_record.mantle_sheet_rows(recorded):
+        yield "composition", _text_row(key, label, text, ratio)
+
+
+def _small_body_provider(conn, kind, object_id, row):
+    for key, label, text, ratio in _small_body_rows(conn, kind, object_id, row):
+        yield "composition", _text_row(key, label, text, ratio)
+
+
+def _eclipse_provider(conn, kind, object_id, row):
+    eclipse = _longest_eclipse(conn, kind, object_id)
+    if eclipse:
+        yield "rotation", _sheet_row(ECLIPSE_KEY, "Longest eclipse in the planet's shadow", [model.qty("time", eclipse, "h")], raw=eclipse)
+
+
+def _module_rows_provider(conn, kind, object_id, row):
+    for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
+                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
+        yield group, _sheet_row(key, label, value, raw=raw)
+
+
+def _influx_provider(conn, kind, object_id, row):
+    arriving = influx_row.influx_kg_per_yr(conn, object_id)
+    if arriving:
+        yield "dust", _sheet_row(influx_row.INFLUX_KEY, "Belt dust and comets reaching it, a year", [model.qty("mass", arriving, "kg")], raw=arriving)
+
+
+def _star_identity_provider(conn, kind, object_id, row):
+    variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
+                                   None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"]))
+    if variable:
+        yield "identity", _sheet_row(VARIABILITY_KEY, "Variability", [variable])
+    carbon = None
+    if row["state"] == "asymptotic-giant" and row["metallicity_fe_h"] is not None:
+        initial = agb_carbon.initial_mass_from_lifespan_sol(row["lifespan_gy"], row["metallicity_fe_h"])
+        carbon = agb_carbon.kind_of(row["state"], initial, _kg_to_msun(row["mass_kg"]), row["metallicity_fe_h"], row["age_gy"])
+    if carbon:
+        yield "identity", _sheet_row(CARBON_KEY, "Carbon or S star", [carbon])
+    peculiar = chemically_peculiar.of_star(row["yerkes_class"], row["mass_kg"], row["radius_km"], row["temperature_k"], row["age_gy"])
+    if peculiar:
+        yield "identity", _sheet_row(PECULIAR_KEY, "Chemically peculiar star", [peculiar.kind])
+        if peculiar.field_gauss is not None:
+            yield "physical", _sheet_row(PECULIAR_FIELD_KEY, "Polar magnetic field", [model.qty("magnetic field", peculiar.field_gauss, "G")],
+                                         raw=peculiar.field_gauss)
+
+
+def _star_composition_provider(conn, kind, object_id, row):
+    makeup = _star_makeup(conn, row)
+    for sheet_row in _chemistry_rows(makeup):
+        yield "composition", sheet_row
+    for key, label, text, ratio in _star_isotope_rows(makeup, row):
+        yield "composition", _text_row(key, label, text, ratio)
+
+
+ROW_PROVIDERS = (
+    # (applies(kind), provide(conn, kind, object_id, row) -> (group, row) pairs), in the order the sheet lists them
+    (lambda kind: kind in GAS_TABLES, _gas_provider),
+    (lambda kind: kind in ISOTOPE_TABLES, _isotope_provider),
+    (lambda kind: kind in SMALL_BODY_SHEET_KINDS, _small_body_provider),
+    (lambda kind: kind == "moon", _eclipse_provider),
+    (lambda kind: True, _module_rows_provider),
+    (lambda kind: kind == "planet", _influx_provider),
+    (lambda kind: kind == "star", _star_identity_provider),
+    (lambda kind: kind == "star", _star_composition_provider),
+)
+"""tuple: The rows of a sheet beyond its specs (GEN.1666): each provider says which kinds it serves and yields `(group,
+row)` pairs. A new kind of row is one provider here, not another block in `sheet`."""
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -1356,17 +1457,7 @@ def sheet(conn, kind, object_id):
     specs = specs_for(kind)
     table = TABLES[kind]
     wanted = {spec.stored_column() for spec in specs}
-    if table in ("planets", "moons"):
-        wanted.update(regional_temperature.BAND_COLUMNS)    # GEN.1108: the table of the bands
-        wanted.add("temp_mean_swing_k")                      # the range on the mean temperature row
-    if table in ("asteroid_belts", "comets"):
-        wanted.update(("star_system_id", "star_id", "ice_mass_fraction", "distance_km" if table == "asteroid_belts" else "perihelion_distance_km"))      # GEN.1420, GEN.1487: the isotope lines of the ices
-        if table == "asteroid_belts":
-            wanted.add("formation_snow_line_au")
-    if table in ("interstellar_comets", "asteroid_fields"):
-        wanted.update(("ice_mass_fraction", "galactic_radius_pc"))      # GEN.1487: no host star, so the gas of the galaxy at its radius
-    if table == "stars":
-        wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy", "star_system_id", "star_type"))    # GEN.1026: the carbon or S star row, UX.254: the chemistry rows
+    wanted.update(EXTRA_COLUMNS.get(table, ()))
     columns = ", ".join(sorted(wanted))
     row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
@@ -1376,64 +1467,18 @@ def sheet(conn, kind, object_id):
     for spec in specs:
         stored = row[spec.stored_column()]
         value = _range_value(spec, table, stored, row)
-        absent = stored is None or stored == 0 or stored == ""
         if spec.key == "zone" and kind in ("planet", "moon") and stored:
             value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
         label = pressure_label if pressure_label and spec.key in PRESSURE_KEYS else spec.label
-        by_group[spec.group].append({"key": spec.key, "label": label, "value": value,
-                                     "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
-                                     "stored": stored is not None, "absent": absent, "source": source_of(kind, spec.key),
-                                     "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
-    for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
-        value = _value(spec, GAS_TABLES[kind][0], pascals)
-        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
-                                     "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
-    if kind in ISOTOPE_TABLES:
-        recorded = conn.execute(f"SELECT isotope, fraction, initial_ratio FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
-        for key, label, text, ratio in isotope_record.sheet_rows(recorded) + isotope_record.mantle_sheet_rows(recorded):
-            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
-    if kind in SMALL_BODY_SHEET_KINDS:
-        for key, label, text, ratio in _small_body_rows(conn, kind, object_id, row):
-            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
-    eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
-    if eclipse:
-        value = [model.qty("time", eclipse, "h")]
-        by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
-                                     "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
-    for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
-                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
-        by_group[group].append({"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False, "source": None,
-                                "show_absent": False})
-    arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
-    if arriving:
-        value = [model.qty("mass", arriving, "kg")]
-        by_group["dust"].append({"key": influx_row.INFLUX_KEY, "label": "Belt dust and comets reaching it, a year", "value": value, "text": inline_text(value),
-                                 "raw": arriving, "stored": True, "absent": False, "source": None, "show_absent": False})
-    variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
-                                   None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"])) if kind == "star" else None
-    if variable:
-        by_group["identity"].append({"key": VARIABILITY_KEY, "label": "Variability", "value": [variable], "text": variable, "raw": None,
-                                     "stored": True, "absent": False, "source": None, "show_absent": False})
-    carbon = None
-    if kind == "star" and row["state"] == "asymptotic-giant" and row["metallicity_fe_h"] is not None:
-        initial = agb_carbon.initial_mass_from_lifespan_sol(row["lifespan_gy"], row["metallicity_fe_h"])
-        carbon = agb_carbon.kind_of(row["state"], initial, _kg_to_msun(row["mass_kg"]), row["metallicity_fe_h"], row["age_gy"])
-    if carbon:
-        by_group["identity"].append({"key": CARBON_KEY, "label": "Carbon or S star", "value": [carbon], "text": carbon, "raw": None,
-                                     "stored": True, "absent": False, "source": None, "show_absent": False})
-    peculiar = chemically_peculiar.of_star(row["yerkes_class"], row["mass_kg"], row["radius_km"], row["temperature_k"], row["age_gy"]) if kind == "star" else None
-    if peculiar:
-        by_group["identity"].append({"key": PECULIAR_KEY, "label": "Chemically peculiar star", "value": [peculiar.kind], "text": peculiar.kind, "raw": None,
-                                     "stored": True, "absent": False, "source": None, "show_absent": False})
-        if peculiar.field_gauss is not None:
-            field = [model.qty("magnetic field", peculiar.field_gauss, "G")]
-            by_group["physical"].append({"key": PECULIAR_FIELD_KEY, "label": "Polar magnetic field", "value": field, "text": inline_text(field),
-                                         "raw": peculiar.field_gauss, "stored": True, "absent": False, "source": None, "show_absent": False})
-    if kind == "star":
-        makeup = _star_makeup(conn, row)
-        by_group["composition"].extend(_chemistry_rows(makeup))
-        for key, label, text, ratio in _star_isotope_rows(makeup, row):
-            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
+        by_group[spec.group].append(_sheet_row(
+            spec.key, label, value, raw=stored if isinstance(stored, (int, float)) else None, stored=stored is not None,
+            absent=stored is None or stored == 0 or stored == "", source=source_of(kind, spec.key),
+            show_absent=spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())))
+    # GEN.1666: every other row of the sheet comes from a provider in `ROW_PROVIDERS`, in that order.
+    for applies, provide in ROW_PROVIDERS:
+        if applies(kind):
+            for group, sheet_row in provide(conn, kind, object_id, row):
+                by_group[group].append(sheet_row)
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     result = {"kind": kind, "groups": groups, "missing": missing(kind, stored)}

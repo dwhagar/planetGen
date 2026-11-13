@@ -31,7 +31,7 @@ import os
 import statistics
 
 from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, positive_number
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
@@ -50,10 +50,7 @@ def load(path=DATA_FILE):
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the potassium table {path}: {error}") from error
 
-    def positive(value, what):
-        if not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
-            raise DataError(f"{what} must be a positive number, not {value!r}")
-        return float(value)
+    positive = positive_number      # GEN.1667: the shared check
 
     reference = positive((document.get("reference") or {}).get("k_over_u"), "the CI K/U")
     bodies = {}

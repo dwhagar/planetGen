@@ -16,6 +16,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import models, store
+from planetgen.galaxy import remnant_density
 from planetgen.galaxy import sector as galaxy_sector
 from planetgen.generation import phenomenon_scatter, run_phenomenon, run_sector
 from planetgen.generation.config import SystemConfig
@@ -38,6 +39,9 @@ def test_every_row_has_every_column_and_valid_values():
         assert row.host is None or row.host in hosts.BY_NAME, row.kind
         assert isinstance(row.carries, tuple) and isinstance(row.sector_roll, bool), row.kind
         assert (row.scatter_pass in registry.SCATTER_PASSES) == (row.mode == "scatter"), row.kind
+        assert (row.rate_source in registry.RATE_SOURCES) == row.sector_roll, row.kind
+        assert isinstance(row.aged_by_population, bool) and (row.sector_roll or not row.aged_by_population), row.kind
+        assert (row.rate_source == "remnant density") == (row.kind in remnant_density.KINDS), row.kind
 
 
 def test_every_builder_resolves_and_a_made_kind_has_one():

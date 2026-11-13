@@ -106,7 +106,7 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
 SECTIONS = {
     "sector": ("sectors",),
     "system": ("star_systems", "orbit_nodes", "dark_members"),
-    "star": ("stars", "black_holes", "neutron_stars"),
+    "star": ("stars", *STAR_TABLES),
     "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_deposit_types", "planet_isotopes", "planet_gases", "planet_life_class_scores", "planet_life", "irregular_sets", "irregular_moons",
                "rogue_planets", "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_deposit_types", "rogue_planet_isotopes", "rogue_planet_gases", "rogue_planet_life_class_scores"),
     "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life"),

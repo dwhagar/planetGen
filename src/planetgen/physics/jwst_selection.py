@@ -38,7 +38,7 @@ from dataclasses import dataclass
 from planetgen.generation import tuning_harness
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "jwst_selection.json")
@@ -96,12 +96,6 @@ class Model:
     retrieved: str
 
 
-def _finite(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"{owner}: {value!r} is not a finite number")
-    return float(value)
-
-
 def load(path=DATA_FILE):
     """Reads and checks the fitted model at `path`."""
     try:
@@ -117,14 +111,14 @@ def load(path=DATA_FILE):
     edges = []
     previous = 0.0
     for low, high in classes:
-        if _finite("class edge", low) != previous or (high is not None and _finite("class edge", high) <= previous):
+        if finite_number("class edge", low) != previous or (high is not None and finite_number("class edge", high) <= previous):
             raise DataError("the radius classes are not contiguous and increasing")
         edges.append(math.inf if high is None else float(high))
         previous = edges[-1]
     magnitudes = document.get("host_magnitudes") or {}
-    sd_j = _finite("sd_j", magnitudes.get("sd_j"))
-    scatter = _finite("colour_scatter", magnitudes.get("colour_scatter"))
-    min_j, max_j = _finite("min_j", magnitudes.get("min_j")), _finite("max_j", magnitudes.get("max_j"))
+    sd_j = finite_number("sd_j", magnitudes.get("sd_j"))
+    scatter = finite_number("colour_scatter", magnitudes.get("colour_scatter"))
+    min_j, max_j = finite_number("min_j", magnitudes.get("min_j")), finite_number("max_j", magnitudes.get("max_j"))
     if sd_j <= 0 or scatter < 0 or not min_j < max_j:
         raise DataError("the host magnitude model is out of range")
     planets, observed = document.get("planets"), document.get("observed")
@@ -133,13 +127,13 @@ def load(path=DATA_FILE):
     calibration = tuple({k: v for k, v in c.items() if k in ("planets", "observed", "predicted")} for c in document.get("calibration") or [])
     if len(calibration) != len(classes):
         raise DataError("the calibration does not cover every radius class")
-    return Model(planets=planets, observed=observed, intercept=_finite("intercept", coefficients.get("intercept")),
-                 tsm_slope=_finite("log10_tsm", coefficients.get("log10_tsm")), esm_slope=_finite("log10_esm", coefficients.get("log10_esm")),
-                 class_edges=tuple(edges), class_offsets=tuple(_finite("offset", v) for v in offsets),
-                 mean_j=_finite("mean_j", magnitudes.get("mean_j")), sd_j=sd_j, min_j=min_j, max_j=max_j,
-                 colour_intercept=_finite("colour_intercept", magnitudes.get("colour_intercept")),
-                 colour_slope=_finite("colour_slope", magnitudes.get("colour_slope_per_log10_teff")), colour_scatter=scatter,
-                 calibration=calibration, auc=_finite("auc", document.get("auc_logistic")), source=document.get("source", ""),
+    return Model(planets=planets, observed=observed, intercept=finite_number("intercept", coefficients.get("intercept")),
+                 tsm_slope=finite_number("log10_tsm", coefficients.get("log10_tsm")), esm_slope=finite_number("log10_esm", coefficients.get("log10_esm")),
+                 class_edges=tuple(edges), class_offsets=tuple(finite_number("offset", v) for v in offsets),
+                 mean_j=finite_number("mean_j", magnitudes.get("mean_j")), sd_j=sd_j, min_j=min_j, max_j=max_j,
+                 colour_intercept=finite_number("colour_intercept", magnitudes.get("colour_intercept")),
+                 colour_slope=finite_number("colour_slope", magnitudes.get("colour_slope_per_log10_teff")), colour_scatter=scatter,
+                 calibration=calibration, auc=finite_number("auc", document.get("auc_logistic")), source=document.get("source", ""),
                  retrieved=document.get("retrieved", ""))
 
 
