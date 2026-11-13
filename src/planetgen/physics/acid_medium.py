@@ -20,6 +20,12 @@ The model, with every number in `physics/data/acid_medium.json` and its tier and
   reported.
 * **Pool.** Acid at the ground: the surface in the liquid window with a concentrated acid at its own temperature and pressure.
 
+**Fringe physics (GEN.1562).** The acid pool is the least supported part of this model. [R0232] say it is unknown whether stable
+surface lakes or oceans of sulfuric acid could exist on a dry planet, and [R0043] propose surface
+ionic liquids (hydrogen sulfate salts) on warm, water-depleted worlds where the acid is only transiently liquid and "likely itself not a dominant
+planetary surface feature". So a pool here means a warm, water-poor, sulfur-rich ground with acid pools or ionic liquid, not an acid ocean. Tier: from
+reputable fringe physics (T8).
+
 `level(values)` is the number the life class rules read as `acid_medium`: 0 no liquid acid, 1 a cloud layer, 2 a pool (a pool world usually has a cloud too; the
 pool is the larger number because a class that needs the ground reads it).
 """
