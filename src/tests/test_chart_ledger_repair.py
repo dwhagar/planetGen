@@ -1,7 +1,7 @@
 """
 OPS.180: a placed sector that holds a star system or a recorded fill is charted whether or not the chart ledger holds its cell. The panels that count charted sectors
 (the Generate page's "Galaxy at a glance", `shell_specs`; the Galaxy page's, `galaxy_placed_sectors`) read the ledger, so a sector with no row vanished from them. `chart_ledger.repair`
-(migration 0247) writes the row and says what it found.
+(migration 0253) writes the row and says what it found.
 """
 
 import math
