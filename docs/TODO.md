@@ -13325,6 +13325,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): the galaxy sliders thread (built UX.307). Prerequisites: UX.307. Related: UX.307, ADM.127.
   Filed by the TODO thread.
 
+- [ ] **OPS.184 (bug) New galaxy run fails at Stage 3: the skeleton unit is stopped as quiet while it waits for the generator battery's digest (regression of OPS.170)**
+  Boss's live run, 8.0.4043, 5:36 PM EST 2026-11-13: OPS.170 (PR 6300) gave plan_skeleton_unit a 9-phase counter; the phase "Waiting for the generator battery's digest" stays at count 5 for minutes after a release (cold digest in its own process), so the 300 s quiet floor stopped the unit twice. Fix built as PR 6421: the wait is announced to the heartbeat via unitbeat.waiting("generator battery"), 30 minute flag, never quiet. Output unchanged; lock-free; merge alone, Boss's runs are blocked.
+  Version 8.1. Owner (TODO, 2026-11-13): the thread that built PR 6421. Prerequisites: none. Related: OPS.170, OPS.137.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
