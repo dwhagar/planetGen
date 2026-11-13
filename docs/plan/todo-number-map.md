@@ -2944,10 +2944,10 @@ Parents marked "new parent" had no old number of their own.
 | OPS.152 | (bug) Galaxy job 20261111-223907-a86a goes quiet at Stage 17 of 19, 'Make the block light totals' | none | done, PRs #6261 (live logging) and #6262 (recount removed); the uncharted index is OPS.153 |
 | OPS.153 | Uncharted-sector index of Stage 17 as per-shell-range units across all workers (it runs at about 10k rows/s in one process: about 40 h at 1.5 billion sectors) | OPS.152 | done, PR #6266 (one roll-up unit plus one index unit per run of about 300,000 cells) |
 | OPS.154 | Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB | OPS.153 | open |
-| OPS.155 | Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run) | none | open |
-| OPS.156 | Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback | OPS.155 | open |
-| OPS.157 | Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile | OPS.156 | open |
-| OPS.158 | Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear | OPS.155 | open |
+| OPS.155 | Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run) | none | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
+| OPS.156 | Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
+| OPS.157 | Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile | OPS.156 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
+| OPS.158 | Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | open |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | open |
@@ -2964,7 +2964,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | open |
 | OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |
-| OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | open |
+| OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | done, PR #6281 |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | open |
 | OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | open |
 | OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | open |
@@ -4868,7 +4868,7 @@ Each citation below resolves to one item by its date.
 | UX.303 | Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr" | none | done, PR #6072 |
 | UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | done, PR #6100 |
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | open |
-| UX.306 | (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma | none | open |
+| UX.306 | (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma | none | done, PR #6345 |
 
 ### Code tags `TODO(<area> #N)`
 
