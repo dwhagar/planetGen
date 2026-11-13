@@ -5290,6 +5290,23 @@ CREATE TABLE IF NOT EXISTS system_summary (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- body_numbers (v257, DB.75): the body number each slot of a system has had. A slot is where a body sits (its kind, the star it orbits and its place in that star's orbits, a moon under its planet's slot);
+-- `slot_key` is its path as text (`planet:primary:3`, `moon:planet:primary:3:1`; `store._slot_key`). When a system's content is drawn again the numbers its bodies hold are written here first, and a new body at a
+-- remembered path takes that number, so a planet that comes back at a slot an earlier draw left empty is the same object (the same Object ID) it was, and a surviving body keeps its ID when its siblings change.
+-- A number is held by one path (`uq_body_numbers_number`), and the system's counter (`id_counters`) never goes back, so no number is given to two slots. A galaxy made before v257 has no rows; the first draw of a
+-- system writes its rows. It goes with its system (`ON DELETE CASCADE`).
+CREATE TABLE IF NOT EXISTS body_numbers (
+    star_system_id      BIGINT UNSIGNED NOT NULL,
+    slot_key            VARCHAR(96) NOT NULL,
+    body_number         SMALLINT UNSIGNED NOT NULL CHECK (body_number BETWEEN 1 AND 4095),
+
+    PRIMARY KEY (star_system_id, slot_key),
+    UNIQUE KEY uq_body_numbers_number (star_system_id, body_number),
+    CONSTRAINT fk_body_numbers_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with
 -- (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version`
 -- of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no
