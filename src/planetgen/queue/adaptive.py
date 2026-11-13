@@ -172,7 +172,7 @@ def _remember(conn, kind, limit):
         conn.hset(_key("settled"), kind, json.dumps({"limit": int(limit), "memory": round(host.total_mb), "cores": host.cores}))
         conn.expire(_key("settled"), SETTLED_KEEP_SECONDS)
     except Exception as exc:  # noqa: BLE001 -- a memory of the last run is never worth a change of the limit
-        log.debug("adaptive: the settled limit of %s was not kept: %s", kind, exc, area="queue")
+        log.debug("The settled limit of %s was not kept: %s.", kind, exc, area="queue")
 
 
 def settled(conn, kind):
