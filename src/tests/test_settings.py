@@ -234,9 +234,6 @@ NON_OPTION_VARIABLES = {
                                   "where install.sh puts them; the test suite points it at a temporary folder)",
     "PLANETGEN_MEMORY_GATE": "`0` turns the memory/load gate off for one process, so every claim is admitted at once (PERF.254, queue/memorygate.py; a switch for a "
                              "benchmark or a debugging run, not a site setting: the gate is the rule on every install)",
-    "PLANETGEN_SELF_TUNING": "`0` turns the learned claims off for one process, so every claim is the typed figure (OPS.156, queue/profileclaim.py; a switch for a "
-                             "benchmark or a debugging run, not a site setting)",
-    "PLANETGEN_JOB_PROFILES": "`0` turns the job profile writers off for one process (OPS.155, queue/jobprofiles.py; a switch for a benchmark or a test, not a site setting)",
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209, PERF.250; the test suite sets it; "
                                       "unset, an install keeps it in the folder of its kept star tables, /var/cache/planetgen/band-tables, "
                                       "which update.sh makes; set but empty, none is kept)",

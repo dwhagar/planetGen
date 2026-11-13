@@ -12825,7 +12825,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14. Prerequisites: GEN.1560. Related: GEN.1560, GEN.1492, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the belt mass research note and the target distribution; slice 1 lock: the build. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-  Boss, 10:06 PM EST on 2026-11-12 (card, on reports/gen1561-belt-mass-scale-note-2026-11-13.md): option 2. After GEN.1560, cut the belt size law at the oligarch mass so members above it go to the planet pass and the belt keeps its mass. Lock item, Lane 14. Related: GEN.1674.
 
 - [ ] **GEN.1563 Ammonia-water fraction never reaches 0.1, so class X is unreachable (157 bodies pass every other condition); find where ammonia_water_mass_fraction is set and why it stays under 0.1**
   Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 4. Do: trace ammonia_water_mass_fraction from its source (ice-giant and ice-world composition, the cold-body freeze-out) to the class test, find why it stays under 0.1 (a mixing step, a missing ammonia supply, or the threshold itself), fix the cause and not the threshold unless the sources support it, and re-measure X. Done: census of the 157 bodies and how many reach X after; tests. Lock item if it builds.
@@ -12918,6 +12917,12 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: TEST.720.
   Filed by the TODO thread. Boss approved.
 
+- [ ] **GEN.1578 Research the moist limit as a function of the air (replacing the fixed 375 K MOIST_LIMIT_K guard): the greenhouse state at which a wet or dense air runs away, fitted from the greenhouse table**
+  Lane 14 (as the lane reported 8:31 PM EST on 2026-11-11), GEN.1568 report reports/guards-2000k-375k-2026-11-12.md (sweep rows in reports/gen1568/). The 375 K guard holds 24 census bodies (class F 8, G 6, T 6, B 4); by the sweep the greenhouse asked for 400 K or more in 24 of 26 capped solves (median 467 K), so the guard is what keeps them out of class N. Its steam-limit reasoning applies to steam airs, but these are nitrogen or CO2 airs of 3 to 238 bar, so a fixed 375 K is the wrong physics for them. The 6 bodies pinned at 375 K that GEN.1555 left alone belong here. Do: research the moist limit as a function of the air (the papers by Kasting, Goldblatt and Watson, and Kopparapu on the runaway and moist greenhouse limits; fit a form from the greenhouse table; add the papers to the reference list and write their [R....] ids), report with a recommendation and the stand-in tier and tweak level for GEN.725. Report only; the build is GEN.1579.
+  Boss approved, 8:34 PM EST on 2026-11-11 ('Definitely replace the 375 K guard with physics, as soon as you have a method that is sound and well researched, let's do it', as the coordinator relayed): start the research now. The method must cover nitrogen, carbon dioxide and water mixes, every source written as its [R....] id, and the 2,000 K cap is kept.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1579, GEN.1555, GEN.1568, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1579 Replace MOIST_LIMIT_K in surface_air with the moist limit as a function of the air, so 375 K stops pinning dense nitrogen and CO2 airs**
   Lane 14 (as the lane reported 8:31 PM EST on 2026-11-11), GEN.1568 report reports/guards-2000k-375k-2026-11-12.md (sweep rows in reports/gen1568/). Build after the GEN.1578 research reports: replace the fixed MOIST_LIMIT_K guard in surface_air with the fitted limit, register the stand-in in GEN.725 (tier and tweak level), no second pass (the guard is inside the existing air solve; it rides the GEN.1548 air stage if that has landed). Expect the 24 census bodies to move out of the pile at 375 K, some into class N; the 2,000 K cap is kept (GEN.1568: classes N, B and the giant classes have no upper edge there, 86 census bodies, tier note T5, tweak L1). Done: census of the 24 bodies before and after (scripts/class_census.py), tests, the registry row. Lock item, new epoch.
   Boss, 8:40 PM EST on 2026-11-11: no extra logging here; the clamp warning is for the upper cap of GEN.1580 only.
@@ -12925,7 +12930,6 @@ clears each one.
   Filed by the TODO thread.
   Fold (TODO sweep, 2026-11-12): GEN.1568 (the guard report) is done and retired; this item and GEN.1580 are its builds.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the fitted moist limit as a pure function with tests (unwired), once GEN.1578 reports; slice 1 lock: replace the guard. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-  Status (TODO, 2026-11-12): blocked. GEN.1578's report (/mnt/project-files/reports/moist-limit-method-2026-11-12.md) needs a lookup of outgoing flux against temperature, nitrogen and CO2 column and gravity (about 3,000 radiative-convective runs on the ExoMol k-tables, about 10 GB), fitted once on a machine that holds the tables (the gate machine or Boss's server). Not buildable without it.
 
 - [ ] **GEN.1580 Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K**
   Boss, 8:36 PM EST on 2026-11-11 (as the coordinator relayed): 'change the upper cap to something absurdly high, like the plasma temperature of oxygen at 1 atm or something similar, physics based but absurd, since nothing hits it now, I have a feeling it is going to come into play at some point.' Correction to the premise from the GEN.1568 report (reports/guards-2000k-375k-2026-11-12.md): the cap is hit today by 86 census bodies (49 class N, 22 T, 8 I, 5 G), so raising it changes their stored temperatures and may move some of them to other classes; this is a lock item, not a no-op. Do: pick a sourced ceiling (the ionization temperature of the dominant gas at the air's pressure, or the plasma-onset temperature; cite as an [R....] id and register it in GEN.725 with tier and tweak level; a single value is acceptable if the physics gives one for the gases that reach it), replace the 2,000 K constant, and search the code, class edges, sorts, displays, units and tests for anything that assumes 2,000 K (class N, B and the giant classes have no upper edge there per the GEN.1568 report; check the sheets, the sort keys and the golden fixtures). Done: census of the 86 bodies before and after (scripts/class_census.py) with each moved letter explained, the registry row, tests. Lock item, new epoch; it fits with GEN.1579 (the 375 K guard) in one air-stage change if both are ready.
@@ -12961,7 +12965,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 15, with Lane 21 for the composition side. Prerequisites: none (GEN.1583 feeds values). Related: GEN.1583, GEN.1581, GEN.725, TEST.726.
   Filed by the TODO thread. Class M audit.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the sourced sink and degassing share as registered stand-ins and a pure function with tests (unwired); slice 1 lock: wire it into the nitrogen supply. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-  Boss, 8:56 PM EST on 2026-11-12 (card): drop piece B (PR 6230 closed unmerged); keep A and C (PR 6192, Train 26). Re-measure on PR 6259: median N2 103 to 58 kPa with A and C, tail over 300 kPa 14.5 to 6 percent; reports/gen1583-nitrogen-budget-2026-11-12.md.
 
 - [ ] **GEN.1585 Re-check that classes H and P are reachable after GEN.1581 and GEN.1584 (0 in 4,800 Earth-analog trials today); if still 0, look at the brine-seep rule and P's oxygen need**
   Class M audit (coordinator relay, 2026-11-12), reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md fix 8. Classes H and P never came out in 4,800 analog trials, so they may be unreachable by the chain rather than rare. Do: after GEN.1581 and GEN.1584 merge, re-run scripts/earth_analog.py (TEST.726) and a census slice for H and P; if still 0, trace the class rows for the blocking edge (the brine-seep rule for H, the oxygen need for P) and file the fix. Done: counts for H and P before and after, and either a note that they are reachable or a filed fix item.
@@ -13341,6 +13344,36 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
   Filed by the TODO thread.
 
+- [ ] **OPS.155 Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run)**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Do: the table, its migration and roll-up job, and writers fed from memorygate.release, unitrates.note, stagetimes.record and units.horse_killed, as under "Record first" in the note. Ships first and alone. Test: a small run fills it for every command it ran.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Defaults taken until Boss says otherwise: control database, other-machine profiles at half trust, splits last and only for cut-neutral stages (the note's three recommendations).
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Logging review item 9 (finding M4, /mnt/project-files/reports/logging-review-2026-11-12.md) folded in here: the stage finish record carries peak and average memory and CPU per stage and unit, taken with memwatch.PeakTracker.
+  Boss, 3:04 PM EST on 2026-11-12: "Every stage and part of every job should be logged for time, memory, and CPU usage peek and average for each". So every stage and every part (unit, item batch) of every job records time, memory and CPU, each as peak and average, in the log and in the stored profile.
+  Filed by the TODO thread.
+
+- [ ] **OPS.156 Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: no history gives today's claims; history lowers a claim and a memory kill raises it.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Filed by the TODO thread.
+
+- [ ] **OPS.157 Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: caps equal today's with no history.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.156. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Filed by the TODO thread.
+
+- [ ] **OPS.158 Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Extends OPS.150.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Filed by the TODO thread.
+
 - [ ] **PERF.260 Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
@@ -13383,6 +13416,11 @@ clears each one.
 - [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
+  Filed by the TODO thread.
+
+- [ ] **OPS.173 Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: none. Related: OPS.174, OPS.175, OPS.176.
   Filed by the TODO thread.
 
 - [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
@@ -13631,7 +13669,6 @@ clears each one.
 
 - [ ] **TEST.738 Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale**
   Train Manager, Train 25 gate (2026-11-12): the Train 25 head had stale generated docs (life-class-rules, stand-in-values, stand-ins.json). Add a regenerate_generated.py step to the pregate for every lock PR (runbook reports/merge-train-runbook-2026-10-29.md and docs/plan/lanes.md) and a check that fails when generated files differ from a fresh regenerate.
-  Train Manager (2026-11-12): also make train_gate.py fall back to the real data dir (/var/cache/planetgen/datasets) when /tmp/claude/data_base is missing, since a gate machine without it fails the math check on every file.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1668.
   Filed by the TODO thread.
 
@@ -13650,56 +13687,10 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Fable thread. Prerequisites: none. Related: GEN.1662, GEN.1665.
   Filed by the TODO thread.
 
-- [ ] **GEN.1672 (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff**
-  Lane 21, 2026-11-12: bulk_structure.envelope_thickness_earth uses (age/5 Gyr)^-0.18, fitted from 0.1 Gyr, but is applied below it; on main body 93 of the oddity S3 scan reads 0.0043 g/cm3 at age 0. Clamp the age at 0.1 Gyr (the fit's lower edge). Found while fixing the Train 25 S3 test red (Train Manager carries a test-only patch for Train 25). Lock item (output changes), Train 26.
-  Train Manager (2026-11-12): the law is R2741; S3 #2 (3.4 Earth masses, 0.049 Gyr) reads 0.022 g/cm3, under the 0.03 density edge. The Train 25 test has no lower edge under 0.1 Gyr; restore it with this fix.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
+- [ ] **UX.306 (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma**
+  Fable thread (2026-11-12): tests/test_plain_words.py::test_the_class_pages_keep_the_guide_except_the_listed is red on main. Rewrite the five class descriptions to the guide (UX.252 rules); do not add them to the exception list. Display text only, lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: UX.252.
   Filed by the TODO thread.
-
-- [ ] **UX.307 Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark**
-  Boss, 2026-11-12 (project thread ...48rDtAdB66SbVi5dmhp8tB): galaxy measures as sliders on the Generate page. Built as PR 6357: unticked is Auto (nothing sent), ticked fills the Auto-position value; the bar snaps to the Auto mark within about 1.4 percent; bounds are each lever's allowed range (log scale where the row is); shape and rogue planets stay dropdowns; halo rows lock when the galaxy is too light. Display only, generation-affects none, lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): the slider thread (PR 6357). Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
-- [ ] **PERF.263 The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401**
-  Seen in Boss's warm-up log (Lane 04, 2026-11-12). Lock-free, display and web only.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: PERF.262.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1673 A better planet spacing rule (GEN.1521 chain rule) so far fewer belts need nudging outward**
-  Boss, 9:54 PM EST on 2026-11-12: "accept it but train 26, figure out a better fix". Train 25 accepts the higher belt nudge rate: belt.spacing_push rose from 0.0117 to 0.175 per system with the GEN.1521 chain rule and the GEN.1641 cap; baselines renewed by Lane 14's patches in reports/train25/. For Train 26: redesign how the chain rule and the belt placement work together, so a belt is placed clear of its neighbours from the start and seldom needs a push (for example, place belts from the planets' final chain positions, or have the chain rule treat a belt slot as occupied space). Keep GEN.1641's fix: no extra gap belts. Measure before and after on the same seeds: belt.spacing_push per system, belts per system by star type, and the census rows GEN.1641 named (G2V blue_green, F inner_multiplicity). Lock item (spacing changes output); Train 26.
-  Version 8.1. Owner (TODO, 2026-11-12): the thread "Find better planet spacing rule for belts" (Boss's dedicated thread). Prerequisites: GEN.1641 (Train 25). Related: GEN.1521, GEN.1641, GEN.1537.
-  Filed by the TODO thread. Boss approved.
-
-- [ ] **GEN.1674 Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues)**
-  Boss, 10:07 PM EST on 2026-11-12: "There should be a TODO item for making everything within the range of Class D or higher gets a full planet class". GEN.1510 (Train 25) promotes only the 10 heaviest round bodies of each belt; this item extends the rule to every body at or above the Class D floor in every population, built by the one planet generator (class, physics, composition, air if any, moons by the same rule), with no second path and no backward-compat shim. Slice 0 (report, reports/): which populations hold bodies at or above the floor today and how many per system, by star type; the generation-time and storage cost of classing all of them (GEN.1510 measured about +30 percent for about 7 bodies per system); and whether a full class needs the planet pass or a lighter class-only step for airless round bodies. Then the build as a lock item. Coordinate with GEN.1561 (Boss, 10:06 PM EST: belt members above the oligarch mass go to the planet pass) and GEN.1673 (belt spacing).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 22 (belts and small bodies), after OPS.161, with Lane 21 for class and composition. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, GEN.1511, GEN.1561, GEN.1673.
-  Filed by the TODO thread. Boss approved.
-
-- [ ] **UX.308 Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.309, UX.310, UX.311.
-  Filed by the TODO thread.
-
-- [ ] **UX.309 The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.310, UX.311.
-  Filed by the TODO thread.
-
-- [ ] **UX.310 "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.309, UX.311.
-  Filed by the TODO thread.
-
-- [ ] **UX.311 The best-site coldest-to-hottest range says it spans the whole orbit, not a day**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.309, UX.310.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1675 A body's air carries the CO and methane its surface ices give off: gases from the bulk CO and CH4 ice at their saturation vapor pressure at the surface temperature, not an N2-only air**
-  Boss, 10:33 PM EST on 2026-11-12 (as the coordinator relayed), item 1 of the Kiamtochen III page diagnosis (thread "Diagnose odd Kiamtochen III planet page"): link the air to the planet's CO and methane ice. A cold body whose bulk composition holds CO or CH4 ice at the surface should have those gases in its air at their saturation vapor pressure at the surface temperature (the same vapor-pressure path the freeze-out step uses), so the air is not N2 only. Reuse the saturation table and freeze-out of GEN.1564 (PR 6235) and the composition rows; no second path. Measure the class and air census before and after. Lock item (output changes), Train 27 or later.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (air and climate), with Lane 21 for composition. Prerequisites: none (check GEN.1564's PR 6235 first). Related: GEN.1564, GEN.1425, UX.308.
-  Filed by the TODO thread. Boss approved.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on

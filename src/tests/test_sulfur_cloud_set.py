@@ -179,12 +179,3 @@ def test_a_given_cloud_decides_gate_two_so_it_agrees_with_the_aerosols():
     cloud = sc.acid_cloud(values)
     assert sc.chemistry(values, cloud=cloud).species == sc.chemistry(values).species
     assert sc.chemistry(cold_clean(), cloud=cloud).species == ()      # no sulfur dioxide: gate 1 stays shut whatever cloud is given
-
-
-def test_the_gas_line_names_only_the_gases_above_their_floors():
-    """UX.309: V3 opens on any one of its four gases, so a page names those the air holds, not the four of the set."""
-    only_hcl = sc.sentence("V3", {"N2": 24.8e3, "HCl": 8.6e-3})
-    assert only_hcl.startswith("hydrogen chloride gas:") and "fluoride" not in only_hcl and "monoxide" not in only_hcl
-    two = sc.sentence("V3", {"N2": 24.8e3, "HCl": 8.6e-3, "CO": 1.0})
-    assert two.startswith("hydrogen chloride and carbon monoxide gases:")
-    assert sc.sentence("V3") == sc.sentence("V3", None) and "hydrogen fluoride" in sc.sentence("V3")

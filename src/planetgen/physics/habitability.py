@@ -111,7 +111,7 @@ shelter from the sun), Red beyond, 0 a decade further out. The score of the Radi
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv."""
 
-Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv o2_low")
+Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv")
 """namedtuple: The limits the five core domains are scored against: the Armstrong pressure, the least inspired
 O2, the chronic and acute inspired O2 edges, the uncompensable wet bulb, and the pressure, temperature and
 dose bands with `o2_high`, the band of too much O2. `HUMAN` is the visitor's; `bands` builds a species'
@@ -138,23 +138,7 @@ def bands(overrides=None):
         dose=(None, None, None, None, value("dose_blue_sv_yr"), value("dose_green_sv_yr"), value("dose_yellow_sv_yr"),
               value("dose_outer_sv_yr")),
         o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10),
-        uv=(None, None, None, None, value("uv_cover_index"), value("uv_suit_index"), value("uv_lethal_index"), value("uv_outer_index")),
-        o2_low=_o2_low_band(value("inspired_o2_min_kpa"), value))
-
-
-def _o2_low_band(minimum, value):
-    """The low side of the inspired-O2 band: Blue from `minimum`, and the 0, Yellow and Green edges scaled with it, so a species that lowers its minimum lowers them too."""
-    scale = minimum / limit("inspired_o2_min_kpa")
-    return (value("inspired_o2_outer_kpa") * scale, value("inspired_o2_yellow_kpa") * scale, value("inspired_o2_green_kpa") * scale, minimum, None, None, None, None)
-
-
-def pressure_band(limits=None):
-    """The pressure band the score reads: the gear's band (`Bands.pressure`) with its Green low edge at the Everest summit's pressure (`pressure_green_kpa`) instead of the 14.3 kPa a pure-oxygen mask
-    allows, scaled with a species' own mask edge. A rating is the planet's conditions, never what equipment can fix (Boss, 11-12)."""
-    limits = HUMAN if limits is None else limits
-    band = list(limits.pressure)
-    band[2] = band[2] * limit("pressure_green_kpa") / limit("mask_min_kpa")
-    return tuple(band)
+        uv=(None, None, None, None, value("uv_cover_index"), value("uv_suit_index"), value("uv_lethal_index"), value("uv_outer_index")))
 
 
 HUMAN = bands()
@@ -169,9 +153,10 @@ GAS_LIMITS_KPA = {
     "SO2": (0.0005, 0.01),
 }
 
-FILTER_FACTOR = 1.0
-"""float: How far past its acute limit a gas the body must breathe (CO, H2S, SO2) is still Yellow: 1, the acute limit itself. It was 10 (a half-face filtering respirator, NIOSH APF 10)
-until Boss ruled that a rating is the planet's conditions and never what equipment can fix (11-12)."""
+FILTER_FACTOR = 10.0
+"""float: A half-face filtering respirator's assigned protection factor
+(NIOSH APF 10): a gas a filter can take out (CO with Hopcalite, H2S, SO2)
+is Yellow up to ten times its acute limit, Red above."""
 
 CO2_GREEN_KPA = 2.0
 """float: CO2 is Green up to 2.0 kPa, where progressive hypercapnic acidosis
@@ -395,7 +380,7 @@ def wet_bulb_c(temperature_c, relative_humidity):
 
 
 def pressure_score(world, limits=HUMAN):
-    return band_score(world.pressure_kpa, pressure_band(limits), log=True)
+    return band_score(world.pressure_kpa, limits.pressure, log=True)
 
 
 def temperature_extremes_c(world):
@@ -512,8 +497,10 @@ O2_HIGH_BAND = (None, None, None, None, INSPIRED_O2_CHRONIC_KPA, INSPIRED_O2_CHR
 def _gas_scores(world, limits=HUMAN):
     scores = {}
     o2 = inspired_o2_kpa(world, limits)
-    # Low O2 is scored on the air's own oxygen, never on the mask that supplies it (Boss, 11-12: a rating is the planet's conditions).
-    scores["O2"] = min(band_score(o2, limits.o2_low, log=True), band_score(o2, limits.o2_high, log=True))
+    # Low O2: a mask fixes it wherever a mask works (Green); where it doesn't,
+    # the pressure domain already says so.
+    o2_low = 1.0 if o2 >= limits.o2_min else 0.75
+    scores["O2"] = min(o2_low, band_score(o2, limits.o2_high, log=True))
     for gas, kpa, band in gas_inputs(world):
         scores[gas] = band_score(kpa, band, log=True)
     return scores
