@@ -36213,7 +36213,7 @@
           "fields": [
             [
               "What it is",
-              "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
+              "sky_tiers.RING_MIN_YIELD 0.005 (0.01 until GEN.1486): every ring is drawn as far as this share of its stars (weights SKT6) is bright enough to show (no farther than a 50 Lsun star), so it draws 200 stars or fewer for each one that shows; 1.4 times fewer stars drawn than before (the rings under 1 solar mass at 0.01, the others over the sphere of a 50 Lsun star), and about 1 percent of the stars that would show are not drawn (Boss's choice of the measured 0.001 to 0.01)"
             ],
             [
               "The range it moves in",
@@ -36244,7 +36244,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
+          "what": "sky_tiers.RING_MIN_YIELD 0.005 (0.01 until GEN.1486): every ring is drawn as far as this share of its stars (weights SKT6) is bright enough to show (no farther than a 50 Lsun star), so it draws 200 stars or fewer for each one that shows; 1.4 times fewer stars drawn than before (the rings under 1 solar mass at 0.01, the others over the sphere of a 50 Lsun star), and about 1 percent of the stars that would show are not drawn (Boss's choice of the measured 0.001 to 0.01)"
         },
         {
           "burn_down": [
