@@ -66,7 +66,7 @@ MOON_PROGRADE_HILL_FRACTION = 0.4895
 
 RIGID_ROCHE_COEFFICIENT = 1.26
 """float: A rigid satellite breaks up inside `1.26 R (rho_host / rho_body)^(1/3)` of its host (Roche 1849, in [R3220]);
-the fluid coefficient 2.44 would flag a rocky body the generator is entitled to place."""
+the fluid coefficient 2.456 would flag a rocky body the generator is entitled to place."""
 
 IRREGULAR_PROGRADE_HILL_FRACTION = 0.4
 """float: A prograde irregular moon is stable out to this share of its planet's Hill radius, time averaged (surveys give 0.4 to 0.5; GEN.1076)."""

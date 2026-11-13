@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1663 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1664 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1636 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1637 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,7 +48,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
-| T2 | 155 | 64 | 1 | 1 | 0 | 221 |
+| T2 | 156 | 64 | 1 | 1 | 0 | 222 |
 | T3 | 114 | 53 | 12 | 9 | 0 | 188 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 93 | 35 | 200 |
-| All | 961 | 326 | 81 | 239 | 56 | 1663 |
+| All | 962 | 326 | 81 | 239 | 56 | 1664 |
 
 ## How the labels were given
 
@@ -641,6 +641,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AC8 | P | T3 | L1 | tuning.MICROQUASAR_SHARE_OF_XRAY_BINARIES 0.10: the share of accreting neutron stars and black holes that launch jets | 0.05 to 0.15 | accreting compact objects | the microquasar count of the catalogues against the X-ray binaries | RECALLED (several dozen microquasars against 165 high-mass and 349 low-mass X-ray binaries) | predicted only | - | - |
 | AC9 | T | T5 | L0 | tuning.ACCRETION_EFFICIENCY_BLACK_HOLE 0.1: the share of accreted rest mass a black hole radiates | 0.057 to 0.42 | any spin | a spin draw with the Novikov-Thorne efficiency | physics (the thin-disc efficiency runs 0.057 for no spin to 0.42 for maximal spin; 0.1 is a moderate spin) | predicted only | - | - |
 | AC10 | D | T2 | L0 | multistar.MEMBER_STATE_BY_PLACED recycled-pulsar neutron-star companion 2.0e-3 (low 6e-4, high 4.3e-3), the phenomena row millisecond-pulsar-companion by_class neutron-star 0.0026 of recycled pulsars with a companion | 6e-4 to 4.3e-3 | recycled pulsars | the double neutron star rate of the gravitational-wave catalogues | derived (the double neutron stars at 0.04 percent of neutron stars; 5 percent would be about ten times too many) | predicted only | - | - |
+| AC11 | T | T2 | L0 | degenerate_radius.zero_temperature_radius_sol: Eggleton's zero-temperature mass-radius relation (0.0114 solar radii scale, Chandrasekhar mass 1.44, degeneracy mass 0.00057 solar masses), the radius of the AM CVn helium donor `multistar._accreting_companion` draws (GEN.1686; it replaced the scaling `AM_CVN_DONOR_RADIUS_SOL_AT_0_05`, 0.03 at 0.05 solar masses) | none (a law without knobs) | cold degenerate bodies from planetary masses to the Chandrasekhar mass; a hot semi-degenerate donor is up to twice as large (Deloye et al. 2007) | a donor evolution track with the donor's entropy | 2ND-HAND (Verbunt and Rappaport 1988 eq. 15, quoted in the module doc; the fit itself is unpublished) | predicted only | - | - |
 
 ## 6.32 Stand-ins of the neutron star structure
 

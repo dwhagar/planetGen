@@ -2105,11 +2105,8 @@ AM_CVN_PERIOD_MINUTES = (5.0, 65.0)
 
 AM_CVN_DONOR_MASS_RANGE_SOL = (0.009, 0.13)
 """tuple: The mass of an AM CVn helium donor, log-uniform, solar masses. A stand-in that gives the periods of
-`AM_CVN_PERIOD_MINUTES` with the radius law below; a draw whose period falls outside is made again."""
-
-AM_CVN_DONOR_RADIUS_SOL_AT_0_05 = 0.03
-"""float: The radius of a 0.05 solar mass degenerate helium donor, solar radii; other masses scale as the mass to the power
--1/3 (a stand-in for the semi-degenerate donors of AM CVn systems)."""
+`AM_CVN_PERIOD_MINUTES` with the zero-temperature radius law (`physics.degenerate_radius`); a draw whose period falls
+outside is made again."""
 
 ACCRETING_FILL_FACTOR = 1.05
 """float: How far a cataclysmic variable's or AM CVn's donor fills its Roche lobe (1 is exactly full); a pair at this

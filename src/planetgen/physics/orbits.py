@@ -14,7 +14,7 @@ close approach is (GEN.108).
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants as physical_constants, unit_registry as units
+from planetgen.physics import constants as physical_constants, relations, unit_registry as units
 from planetgen.util.checks import finite_domain
 
 
@@ -141,11 +141,8 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     return distance_m * (body_mass_kg / (3 * (central_mass_kg + body_mass_kg))) ** (1 / 3)
 
 
-ROCHE_FLUID_COEFFICIENT = 2.44
-"""float: The fluid-body Roche limit, d = 2.44 R (rho_M / rho_m)^(1/3)
-: a self-gravitating satellite with no strength comes
-apart inside it. A rigid body survives closer (1.26), so the fluid limit
-is the cautious one."""
+ROCHE_FLUID_COEFFICIENT = relations.ROCHE_FLUID_COEFFICIENT
+"""float: The fluid-body Roche limit in primary radii, `relations.ROCHE_FLUID_COEFFICIENT` (the one copy)."""
 
 
 @finite_domain()

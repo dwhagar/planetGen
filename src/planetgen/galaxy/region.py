@@ -30,9 +30,6 @@ adjacency above it."""
 
 _EPS = 1e-9
 
-def _angle(cosine):
-    """The angle whose cosine is `cosine`, clamped to [0, pi] (a cosine past -1 is a full half turn)."""
-    return math.pi if cosine <= -1.0 else math.acos(min(1.0, max(-1.0, cosine)))
 BandArc = namedtuple("BandArc", ["shell", "band", "first", "count", "whole"])
 """One band's wedges in a region: `count` wedges from `first`, counterclockwise
 as the longitude grows, wrapping past the band's last wedge when `first +
@@ -91,19 +88,11 @@ class Region:
         """The wedges of `band` of `shell` inside the ball, as a `BandArc`, or `None`; `delta` is the angle on the
         shell's centreline sphere the ball cuts out around the center's direction, `cos_delta` its cosine."""
         n = self.wedge_count(shell, band)
-        plane, z = spherical.band_center_pc(shell, band, self.edge_pc)
-        if n == 1 or plane == 0.0:
-            return BandArc(shell, band, 0, 1, True) if self._inside(shell, band, 0) else None
-        colat = math.atan2(plane, z)
-        denominator = math.sin(colat) * math.sin(colat_c)
-        if delta >= math.pi or denominator < 1e-12:
-            candidates = range(n)
-        else:
-            cos_width = (cos_delta - math.cos(colat) * math.cos(colat_c)) / denominator
-            if cos_width > 1.0 + 1e-6:
-                return None
-            width = _angle(cos_width)
-            candidates = spherical._wedges_near_longitude(n, lon_c, width + 1e-6)
+        window = spherical.band_window(n, shell, band, self.edge_pc, cos_delta, delta, colat_c, lon_c)
+        if window is None:
+            return None
+        first, length = window
+        candidates = range(n) if length == n else ((first + k) % n for k in range(length))
         inside = {wedge for wedge in candidates if self._inside(shell, band, wedge)}
         if not inside:
             return None
@@ -121,35 +110,11 @@ class Region:
         return list(self._arcs)
 
     def _compute_arcs(self):
-        cx, cy, cz = self.center_pc
-        reach = math.sqrt(cx * cx + cy * cy + cz * cz)
+        reach, colat_c, lon_c = spherical.sphere_direction(self.center_pc)
         if reach <= self.reach_pc + _EPS:
             yield BandArc(0, 0, 0, 1, True)
-        colat_c = math.atan2(detmath.hypot(cx, cy), cz)
-        lon_c = math.atan2(cy, cx) % (2 * math.pi)
-        edge = self.edge_pc
-        shell_min = max(1, math.ceil((reach - self.reach_pc) / edge - _EPS))
-        shell_max = math.floor((reach + self.reach_pc) / edge + _EPS)
-        for shell in range(shell_min, shell_max + 1):
-            radius = shell * edge
-            if reach < 1e-9:
-                cos_delta = -2.0 if radius <= self.reach_pc + _EPS else 2.0
-            else:
-                cos_delta = (radius * radius + reach * reach - self.reach_pc ** 2) / (2 * radius * reach)
-            if cos_delta > 1.0 + 1e-9:
-                continue
-            delta = _angle(cos_delta)
-            low, high = spherical.band_range(shell)
-            layout = spherical.shell_layout(shell)
-            lo_colat = max(0.0, colat_c - delta)
-            hi_colat = min(math.pi, colat_c + delta)
-            first = max(0, int(math.floor((lo_colat - layout.cap_colatitude) / layout.band_step)) - 1)
-            last = min(layout.band_count - 1, int(math.ceil((hi_colat - layout.cap_colatitude) / layout.band_step)) + 1)
-            bands = [high] if lo_colat <= layout.cap_colatitude + 1e-9 else []
-            bands += [layout.high_band - i for i in range(first, last + 1)]
-            if hi_colat >= math.pi - layout.cap_colatitude - 1e-9:
-                bands.append(low)
-            for band in bands:
+        for shell, cos_delta, delta, north, middle, south in spherical.sphere_shells(self.center_pc, self.reach_pc, self.edge_pc):
+            for band in north + middle + south:
                 arc = self._band_arc(shell, band, cos_delta, delta, colat_c, lon_c)
                 if arc is not None:
                     yield arc
