@@ -94,10 +94,9 @@ def test_a_moons_air_cuts_its_belt_dose_by_the_column():
     assert aired.dose_belt_msv_yr < 0.01 * bare.dose_belt_msv_yr
 
 
-def test_the_total_dose_has_the_belt_part_and_old_rows_without_it_still_total():
-    assert radiation.total_dose_msv_yr(2.0, 1.5, 1.0, 0.5) == pytest.approx(4.5)
+def test_the_total_dose_has_the_belt_part():
+    assert radiation.total_dose_msv_yr(2.0, 1.5, 1.0, 0.5, 0.0) == pytest.approx(4.5)
     assert radiation.total_dose_msv_yr(2.0, 1.5, 1.0, 0.5, 100.0) == pytest.approx(104.5)
-    assert radiation.total_dose_msv_yr(2.0, 1.5, 1.0, 0.5, None) == pytest.approx(4.5)
 
 
 def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
