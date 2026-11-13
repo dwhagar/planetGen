@@ -13693,12 +13693,13 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (air and climate), with Lane 21 for composition. Prerequisites: none (check GEN.1564's PR 6235 first). Related: GEN.1564, GEN.1425, UX.308.
   Filed by the TODO thread. Boss approved.
 
-- [ ] **GEN.1676 Habitability rating: low inspired oxygen is rated by the body, not by a mask: Yellow below 8 kPa inspired O2, Red from about 4 kPa, on a log curve (replaces the flat 0.75 Green)**
+- [ ] **GEN.1676 Habitability rating by the body, not by equipment, for oxygen, gases and pressure: low inspired oxygen on a log curve (Yellow below 8 kPa, Red from about 4 kPa), the CO/H2S/SO2 respirator credit (FILTER_FACTOR) removed, and the pressure Green edge moved from 14.3 kPa (oxygen mask) to 33.7 kPa (Everest summit)**
   Boss's ruling in the Kiamtochen III thread (2026-11-12): habitability ratings come from the planet's conditions, never from what equipment can fix. Audit of physics/habitability.py by that thread. Stand-in tier T9, tweak L3, registered in GEN.725. Changes generated PHI-6 ratings, so it is a lock item (epoch).
   Version 8.1. Owner (TODO, 2026-11-12): the Kiamtochen III page thread. Prerequisites: none. Related: GEN.1677.
   Filed by the TODO thread. Boss approved.
+  Boss's card "Oxygen, gases and pressure" (2026-11-12): all three in one build, PR 6372 (with UX.308-311). Stand-ins: O2 Yellow edge 4 kPa, zero edge 1 kPa (T9/L3). Lock item, Train 26 if open, else Train 27.
 
-- [ ] **GEN.1677 Design: remove the rest of the equipment-based habitability scoring: CO/H2S/SO2 bands widened by FILTER_FACTOR 10, the 14.3 kPa pressure Green edge from a pure-oxygen mask, UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT**
+- [ ] **GEN.1677 Design: remove the rest of the equipment-based habitability scoring: UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT**
   Boss's ruling in the Kiamtochen III thread (2026-11-12): habitability ratings come from the planet's conditions, never from what equipment can fix. Audit of physics/habitability.py by that thread. Design report first with proposed condition-only edges and sources; needs Boss's numbers before the build. Lock item at build (ratings change).
   Version 8.1. Owner (TODO, 2026-11-12): the Kiamtochen III page thread. Prerequisites: none. Related: GEN.1676.
   Filed by the TODO thread. Boss approved.
