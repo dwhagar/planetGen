@@ -380,7 +380,7 @@ def general_failures(body, star):
         if (getattr(body, "envelope_mass_fraction", 0.0) or 0.0) > 0.0:
             low = min(low, super_puff.DENSITY_RANGE_G_CM3[0])      # a rocky planet that kept a hydrogen envelope (GEN.1323) is a sub-Neptune or a super-puff (GEN.1343), as light as 0.04 g/cm3
             if star.age < ENVELOPE_LAW_MIN_AGE_GY:
-                low = 0.0      # the envelope law ([R2741], Eq. 3) is a fit from 0.1 Gyr; younger it is extrapolated (a 3 Earth mass planet with a 20 percent envelope at 0.05 Gyr is 0.02 g/cm3), so there is no lower edge to hold it to
+                low = 0.0      # the envelope law ([R2741: Eq. 3]) is a fit from 0.1 Gyr; younger it is extrapolated (a 3 Earth mass planet with a 20 percent envelope at 0.05 Gyr is 0.02 g/cm3), so there is no lower edge to hold it to
         if not low * 0.99 <= body.density <= high * 1.01:
             failures.append(("structure", f"density {body.density:.2f} g/cm3 outside {low} to {high}"))
 

@@ -60,7 +60,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.61:KD4 | GEN.492 | `potassium_depletion.MAX_DEPLETION`, not read until `radiogenic` calls the module |
 | data | co2_far_wing.json | by design | the carbon dioxide far-wing rules (Perrin and Hartmann chi, widths, reach) (read by `line_opacity` since GEN.1019, which is by design the model the greenhouse table is fitted to; checked 2026-11-12: the shipped table agrees with the model with the wing to 0.4 K at Venus's 92 bar and 2 K at 10 bar, and the model without the wing is 54 K colder at 92 bar, so the table already holds the wing and needs no refit) |
 | module | planetgen.physics.co2_far_wing | by design | the far wing of carbon dioxide, added to the band opacities by `line_opacity` (read by `line_opacity` since GEN.1019, which is by design the model the greenhouse table is fitted to; checked 2026-11-12: the shipped table agrees with the model with the wing to 0.4 K at Venus's 92 bar and 2 K at 10 bar, and the model without the wing is 54 K colder at 92 bar, so the table already holds the wing and needs no refit) |
-| module | planetgen.physics.clearance | GEN.1016 | the independent overlap checker (audit of a stored system, TEST.477); read by tests/test_clearance.py now and by the stability gate of GEN.1016 once it lands |
+| module | planetgen.physics.clearance | GEN.1685 | the independent overlap checker (audit of a stored system, TEST.477); read by tests/test_clearance.py now and by the stability gate of GEN.1016 once it lands |
 | data | acid_cloud_optics.json | by design | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.cloud_infrared | by design | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | function | planetgen.physics.sulfuric_cloud.infrared_cloud | by design | the acid cloud's depth, droplet radius, base temperature and strength as `radiative_convective.solve(cloud=)` takes them; the column solver is run by the fit and the tests, not by generation (GEN.850 built) |
@@ -102,12 +102,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
-| row | 6.126:RN1 | GEN.1201 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
-| row | 6.126:RN2 | GEN.1201 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1201 wires the module |
-| row | 6.126:RN4 | GEN.1201 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1201 wires the module |
-| module | planetgen.physics.ice_types | GEN.1201 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
-| function | planetgen.physics.roundness.is_round | GEN.1201 | whether a stored roundness ratio is round (1 or more); the wiring step that stores the ratio and the pages that read it call it |
-| row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
+| row | 6.126:RN1 | GEN.1684 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
+| row | 6.126:RN2 | GEN.1684 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1201 wires the module |
+| row | 6.126:RN4 | GEN.1684 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1201 wires the module |
+| module | planetgen.physics.ice_types | GEN.1684 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
+| function | planetgen.physics.roundness.is_round | GEN.1684 | whether a stored roundness ratio is round (1 or more); the wiring step that stores the ratio and the pages that read it call it |
+| row | 6.126:RN11 | GEN.1684 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
 | column | binary_epoch_unix | by design | the daily orbit update (`store.advance_*`) reads and writes the pair's clock; nothing outside the store needs it |
 | column | binary_next_update_due | by design | the daily orbit update (`store.advance_*`) schedules the pair's next step from it; nothing outside the store needs it |
 | column | dynamical_state | GEN.291 | `planets` and `moons`: every body is `bound`; the unbind and capture test of GEN.291 is what sets `unbound` |
@@ -145,7 +145,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.collision_outcome.conservation_error | by design | the mass and momentum check of a collision outcome; the tests and the census run it, the generator never needs it |
 | function | planetgen.physics.comet_admission.observed_sampler | by design | the simulated observed sample of the comet admission selection model: the simulated side of the `comet_admission` selection model, run by test_comet_admission through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
 | function | planetgen.physics.comet_admission.expected_measured | by design | the expected count the comet admission model measures: the simulated side of the `comet_admission` selection model, run by test_comet_admission through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
-| function | planetgen.physics.compaction.taper_weight | GEN.1201 | the taper of the compaction law in log mass; `body_status.roundness` calls it, and that module is wired with the roundness engine |
+| function | planetgen.physics.compaction.taper_weight | GEN.1684 | the taper of the compaction law in log mass; `body_status.roundness` calls it, and that module is wired with the roundness engine |
 | function | planetgen.physics.elements.isotopic_mass_fraction | by design | the isotope mass fraction the published specific activities are checked against, read by test_elements |
 | function | planetgen.physics.field_kernel.accelerations | GEN.105 | the pull at an object's exact place; the update's motion vector reads the gravitational field there (the numba kernel `sector_path` loads) |
 | function | planetgen.physics.giant_tilt.large_tilt_chance | by design | the expected share of ice giants tilted over 60 degrees that `MERGER_SHARE` gives, the check of the tilt draw; read by test_giant_tilt, never by the generator |
