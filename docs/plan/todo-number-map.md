@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.429 |
 | NAV | NAV.78 |
 | GEN | GEN.1692 |
-| PERF | PERF.264 |
+| PERF | PERF.266 |
 | DB | DB.131 |
 | API | API.49 |
 | ADM | ADM.155 |
@@ -2954,6 +2954,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | open |
 | PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | done, PR #6360 |
 | PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | open |
+| PERF.264 | The mass and luminosity scatter passes share the component sector addresses in their planning step | none | open |
+| PERF.265 | The workers' table warm-up starts while the parent plans each scatter pass | PERF.264 | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | open |
@@ -3909,7 +3911,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1680 | Galaxy run order: sectors, link, one hoisted clear that records the scatter limits, then backfill, then the mass and luminosity scatters and phenomena | none | open |
 | GEN.1681 | Luminous-star default floor rises from 9,000 to 18,000 solar luminosities | none | open |
 | GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | open |
-| GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | open |
+| GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | closed as finding (Lane 15, /mnt/project-files/reports/gen1683-combined-scatter-pass-2026-11-13.md): a combined pass saves about 13 percent and cannot share draws; follow-ups PERF.264 and PERF.265 |
 | GEN.1684 | Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread | none | open |
 | GEN.1685 | The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance) | none | closed by design, PR 6405 (Lane 05): clearance.py must not share code with the generator it checks, so it stays a test-side audit |
 | GEN.1686 | Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones | none | open |

@@ -13255,11 +13255,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): generation-order thread. Prerequisites: GEN.1680. Related: GEN.1683.
   Filed by the TODO thread.
 
-- [ ] **GEN.1683 One combined mass and luminosity scatter pass (design, then build)**
-  The generation-order report measured the two scatter passes run one after the other and did not build a unified pass; it needs its own epoch change. Do: measure what a single pass saves and whether output can stay the same, then build it if worth it. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 15 (Boss 3:03 PM EST: every lane working). Prerequisites: GEN.1680. Related: GEN.1681.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1684 Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread**
   GEN.1201 merged in Train 25 (PR 6175, migration 0252): bodies store the temperature they took their shape at and the roundness engine reads it. The wiring register still lists as unread: rows 6.126:RN1, RN2, RN4 and RN11 (roundness.SPHERICITY_FACTOR, ICE_STRENGTH_PA, ROCK_STRENGTH_PA, METAL_STRENGTH_PA, ROCK_CREEP_COLUMNS), planetgen.physics.roundness.is_round, the module planetgen.physics.ice_types and planetgen.physics.compaction.taper_weight. Do: wire each into the engine and pages, or mark it by design with the reason, and drop its register row. Reuse what GEN.1201 built. Lock item if output changes.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 12 (Boss 3:03 PM EST: every lane working). Prerequisites: none. Related: GEN.1201.
@@ -13338,6 +13333,16 @@ clears each one.
 - [ ] **OPS.183 Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap**
   The setup download of nearby Gaia stars (datasets/gaia_nearby.py, GEN.1534: the gea.esac.esa.int TAP sync query, parallax over 40 and parallax_over_error over 10) hits the anonymous 2,000-row cap. Boss (3:09 PM EST 2026-11-13, as the coordinator relayed): "Have all 4 and if one fails it goes to the next". Do: try in order, moving to the next on failure or on a capped result: (1) the same ESA server's async TAP endpoint; (2) the Heidelberg ARI Gaia TAP mirror; (3) VizieR TAP with MAXREC raised; (4) the GCNS catalogue (VizieR I/360) downloaded and filtered locally. Log which source served and the row count; fail setup only if all four fail. Optional: use a registered ESA account when its credentials are set (mask them in logs per SEC.48). Runs at setup (update.sh); raw data stays out of the repo. Tests with each source stubbed to fail in turn.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: GEN.1534, SEC.48.
+  Filed by the TODO thread.
+
+- [ ] **PERF.264 The mass and luminosity scatter passes share the component sector addresses in their planning step**
+  From GEN.1683 (Lane 15, /mnt/project-files/reports/gen1683-combined-scatter-pass-2026-11-13.md): 110 of the 171 profiled CPU seconds of each pass's 69 s serial planning step are component sector addresses that do not depend on the pass. Do: compute them once and hand them to both passes; about 50 to 60 s saved on the default galaxy. Output identical (check the golden); lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: none. Related: GEN.1683, GEN.1680.
+  Filed by the TODO thread.
+
+- [ ] **PERF.265 The workers' table warm-up starts while the parent plans each scatter pass**
+  From GEN.1683 (same report): up to about 70 s per pass. Do: start the warm-up in parallel with the parent's planning step under the memory gate (PERF.254). Output identical; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: PERF.264. Related: GEN.1683, GEN.1680.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
