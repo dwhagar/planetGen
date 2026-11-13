@@ -13279,6 +13279,81 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: none. Related: GEN.1016, TEST.477.
   Filed by the TODO thread.
 
+- [ ] **GEN.1686 Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet): physics/pulsar_planets._radius_km has its own radius law where planet.radius_of_mass exists; physics/rogue_yield uses ** 0.5 and its own circular-speed formula where orbits.circular_speed exists; physics/multistar's AM CVn donor radius formula differs from white_dwarf_models. Do: call the shared function (reuse rule), measure the change. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1687 Constants written by hand: 101300 Pa, 365.25-day years, a second Earth mass and a local MPC_PER_PC instead of the shared constants and units**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet): generation/planet.gas_giant_depth uses 101300 Pa (constants.ATMOSPHERE_PA is 101325); physics/helium_core_draw uses 365.25 days a year (the rest uses constants.SECONDS_PER_YEAR); physics/disk_ejection has its own _EARTH_KG 5.97e24 (constants 5.9722e24); galaxy/component_pass and phenomenon_reach each define MPC_PER_PC instead of units. Do: read the shared constant in each. Lock item (small output change).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1688 (bug) small_body_composition: the METAL_ROWS set is shadowed by a later tuple of the same name, so nickel and cohenite group as rock**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). Do: one METAL_ROWS, nickel and cohenite counted as metal; a test that pins the grouping; measure belt metal shares before and after. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1689 Roche coefficient written twice: rings uses 2.456, orbits uses 2.44**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). Do: one constant with its source (the fluid-body value, cite the R-id), both modules read it. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **DB.130 system_summary REFRESH_SQL uses the deprecated VALUES() form in ON DUPLICATE KEY UPDATE**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). Do: switch to the row-alias form, as GEN.1498 did for its upsert (PR 6338). Output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1690 The sphere walk is written three times with different band order (spherical.sphere_rows, region._compute_arcs and _band_arc, window.cells_in_ball)**
+  From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet). One generator would change the iteration order, and so the draw order. Do: one sphere-walk generator the three read; measure the change. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1691 Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (1) db/fingerprint.CHILD_TABLES vs admin/edits._BODY_CHILD_TABLES; (2) galaxy block_lights and block_stats vs chain_blocks and clear; (3) db read_member_tree vs read_stored_trees; (4) galaxy/sky_sphere and sky_sprites each define _number; (7) describe _tier_name returns an empty string on bad data instead of raising; (16) describe belt_member_info and field_member_info build the neighbour lambdas and the field block twice. Do: one of each, callers moved, names kept where a public name would break.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **UX.312 Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (5) route_neighbours duplicates near.LADDER_PC; (6) _admin_or_redirect vs admin _require_admin; (8) classref _nebula and _supernova_remnant share the center fact text; (9) life_air_chart repeats SERIES.get per series; (10) galaxymap3d _escape and _json_script duplicate starmap's; (11) nearby._stars vs searchpage._valid_stars. Do: one of each, pages unchanged.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **API.48 API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. api/routes.py has many return jsonify error, 404 lines where ApiError exists; uncharted_systems and phenomena repeat the past_end pattern; the after integer parsing is repeated; facility_list whole() vs _int_arg. Do: ApiError and one paging helper; the response bodies stay the same (check the API contract tests).
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **OPS.181 Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers**
+  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (13) queue runeta.public_view duplicates runview.summary percent, _conclude_empty_stage vs units._end_stage; (14) util/settings_writer._restore_plan repeats _load_document; (15) cli/benchmark_suite _processes and _server_pids both walk /proc, version_history._galaxy_databases and warm_shape.cluster_ages both iterate store.list_databases. Do: one of each.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Filed by the TODO thread.
+
+- [ ] **UX.313 (bug) The system page command names its input file like the --output file**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **UX.314 (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system)**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **SEC.49 (bug) The API call log read SESSION_COOKIE_NAME, so __Host- sessions were logged as anonymous**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **OPS.182 (bug) queue/progress_file.set_stage left its temp file behind on error**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **ADM.154 (bug) Admin plans page text read "comes laterrearranger"**
+  From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
+  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
