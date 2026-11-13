@@ -24,7 +24,7 @@ import re
 
 from planetgen.generation import irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
+from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, node_pair_label, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
@@ -100,7 +100,10 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 7 -> 8 to add `dark_members` (GEN.1013): the brown dwarfs, neutron stars and black holes that hang in the tree but
 # are not stars of `stars`, a list of dicts (`stored_trees.DarkMember`). A pre-v8 save has no key and reads as none.
-SERIALIZATION_SCHEMA_VERSION = 8
+#
+# Bumped 8 -> 9 to add `node_planets` (GEN.332, slice A): the circumbinary planets of the inner pair nodes of a tree, a list of
+# `{"node_no", "planets"}` dicts. A pre-v9 save has no key and reads as none.
+SERIALIZATION_SCHEMA_VERSION = 9
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -188,6 +191,16 @@ class StarSystem:
     """tuple of list: The planets and belts of each of `member_stars`, in that order (GEN.332): bodies in the S-type window
     round the member (`physics.planet_zones`), drawn like a wide pair's secondary's and never under a `SLOTS` list or a
     forced habitable world. Empty for a system with no members. Members have no comets yet."""
+
+    node_hosts = ()
+    """tuple of BinaryStarProxy: The inner pair nodes of the tree that hold circumbinary planets (GEN.332, slice A), each a proxy of the
+    pair's two stars with `host_node_no` the node's number (`_make_node_hosts`): a `close` node other than the system's own pair whose
+    two children are both stars and whose P-type window exists. Derived from the tree and the stars, made again by `build_ledger`."""
+
+    node_planets = ()
+    """list of list: The planets of each of `node_hosts`, in that order (GEN.332, slice A): bodies in the P-type window of the node
+    (`physics.planet_zones`), drawn from a stream of the node's own so no other draw of the system moves, never under a `SLOTS` list
+    or a forced habitable world. Planets only: a belt at a node needs `asteroid_belts.host_node_id`."""
 
     star_slots = None
     """tuple or None: Where each star of `stars` hangs in `orbit_nodes`, as `(node_no, slot)` in `stars` order (slot 0 or
@@ -428,6 +441,7 @@ class StarSystem:
                     self._validate_cross_star_clearance()
 
                 self.member_planets = [self._generate_member_planets(member) for member in self.member_stars]
+                self.node_planets = [self._generate_node_planets(host) for host in self.node_hosts]
 
                 habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
                 belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
@@ -629,8 +643,9 @@ class StarSystem:
     @property
     def all_planets(self):
         """list: Every planet and belt of the system: the primary's (or a close pair's), the wide secondary's, then each
-        member star's."""
-        return [*self.planets, *self.secondary_planets, *(body for bodies in self.member_planets for body in bodies)]
+        member star's, then each inner pair node's."""
+        return [*self.planets, *self.secondary_planets, *(body for bodies in self.member_planets for body in bodies),
+                *(body for bodies in self.node_planets for body in bodies)]
 
     def apply_cloud(self, cloud, point_pc, rng=draw):
         """
@@ -655,6 +670,15 @@ class StarSystem:
     def member_hosts(self):
         """`[(star, planets)]` for each of `member_stars`."""
         return list(zip(self.member_stars, self.member_planets or [[] for _ in self.member_stars]))
+
+    def node_label(self, host):
+        """The name of the pair of an inner pair node `host` (GEN.332, slice A) as the Washington Double Star catalogue writes a pair: the system's name and the letters of the
+        node's stars together (`Voranthis CD`; the three stars of a pair and a star about it are `Voranthis ABC`), `Voranthis node N` for stars named some other way."""
+        return node_pair_label(self.name, [star.name for star in host.leaf_stars], host.host_node_no)
+
+    def node_planet_hosts(self):
+        """`[(proxy, planets)]` for each of `node_hosts` (GEN.332, slice A): the pair of stars a pair node's planets go round and the planets."""
+        return list(zip(self.node_hosts, self.node_planets or [[] for _ in self.node_hosts]))
 
     def _tree_members(self):
         """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
@@ -685,6 +709,8 @@ class StarSystem:
 
     def _ledger_host(self, star):
         """The `(kind, number)` of the ledger host that is `star`: a close pair's proxy is its pair node, any other star its number."""
+        if getattr(star, "host_node_no", None) is not None:
+            return planet_zones.P_TYPE, star.host_node_no       # the proxy of an inner pair node (`_make_node_hosts`)
         if self.binary_type == "close" and star is self.star:
             return planet_zones.P_TYPE, self.pair_node_no()
         return planet_zones.S_TYPE, next((number for number, other in enumerate(self.stars) if other is star), 0)
@@ -710,18 +736,61 @@ class StarSystem:
         """
         self._ledger = None
         radiation_field.attach(self.star, ())
+        self.node_hosts = ()
         if not self.orbit_nodes or (len(self.stars) < 2 and not self.dark_members):
             return
         ledger = self.ledger
+        self.node_hosts = self._make_node_hosts(ledger)
         hosts = [(planet_zones.S_TYPE, number, star) for number, star in enumerate(self.stars)
                  if self.binary_type != "close" or number >= 2]
         if self.binary_type == "close":
             hosts.append((planet_zones.P_TYPE, self.pair_node_no(), self.star))
+        hosts.extend((planet_zones.P_TYPE, proxy.host_node_no, proxy) for proxy in self.node_hosts)
         for kind, number, star in hosts:
             limit = ledger.stability_limit_au((kind, number))
             if limit is not None:
                 star.a_crit_au = limit
             self._attach_sources(ledger, kind, number, star)
+
+    def _make_node_hosts(self, ledger):
+        """
+        The proxies of the inner pair nodes that hold circumbinary planets (GEN.332, slice A): every `close` node of the tree other than
+        the system's own pair (the proxy `star` serves that one) whose subtree holds stars only (no dark member and no `group` or `wide`
+        node below it) and whose P-type window exists. Each is a `BinaryStarProxy` of the node's two sides on the node's stored orbit, with
+        `host_node_no` the node's number; a side that is a node is the proxy of that node (the system's own proxy where it is the system's
+        pair), so a pair of pairs is a proxy of two proxies. It merges their mass and light as the system's own pair does. The proxy draws
+        nothing the stream bound here does not settle. A node with a dark member or a wide pair below it has no planets yet.
+        """
+        if self.star_slots is None:
+            return ()
+        own = self.pair_node_no()
+        nodes = {node.node_no: node for node in self.orbit_nodes}
+        sub_nodes = {number: [node.node_no for node in self.orbit_nodes if node.parent_node_no == number] for number in nodes}
+        star_children = {number: [index for index, (parent, _slot) in enumerate(self.star_slots) if parent == number] for number in nodes}
+        dark_nodes = {dark.parent_node_no for dark in self.dark_members}
+
+        def clean(number):
+            return (nodes[number].kind == "close" and number not in dark_nodes and len(star_children[number]) + len(sub_nodes[number]) == 2
+                    and all(clean(sub) for sub in sub_nodes[number]))
+
+        proxies = {}
+
+        def proxy_of(number):
+            if number == own and self.binary_type == "close":
+                return self.star
+            if number not in proxies:
+                first, second = [*(self.stars[index] for index in star_children[number]), *(proxy_of(sub) for sub in sub_nodes[number])]
+                lead = self.primary_star
+                with draw.bound(draw.Stream(f"node-host:{number}:{first.mass!r}:{second.mass!r}:{nodes[number].separation_km!r}")):
+                    # (a star loaded from the database has no galactic distance: it takes the default, which only the Hill ceiling reads)
+                    proxy = BinaryStarProxy(self.system_config, first, second, galactic_center_dist_ly=getattr(lead, "galactic_center_dist_ly", None),
+                                            galactic_orbital_phase_deg=lead.galactic_orbital_phase_deg, orbit=nodes[number])
+                proxy.host_node_no = number
+                proxies[number] = proxy
+            return proxies[number]
+
+        return tuple(proxy_of(node.node_no) for node in self.orbit_nodes
+                     if node.node_no != own and clean(node.node_no) and ledger.zone((planet_zones.P_TYPE, node.node_no)).exists)
 
     def _attach_sources(self, ledger, kind, number, star):
         """Gives `star` the other radiating objects its bodies see, each with the orbit it moves in against the host (GEN.1441, `radiation_field`): the
@@ -795,7 +864,8 @@ class StarSystem:
         try:
             places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix + epoch_shift_s)
             if kind == planet_zones.P_TYPE:
-                pair = [member for member in ledger.members if member.parent_node_no == number]
+                below = set(planet_zones.host_members(ledger.zone((kind, number)), ledger.nodes, ledger.members))
+                pair = [member for member in ledger.members if member.member_no in below]
                 total = sum(member.mass_solar for member in pair)
                 origin = tuple(sum(member.mass_solar * places[member.member_no][axis] for member in pair) / total for axis in range(3))
             else:
@@ -869,6 +939,8 @@ class StarSystem:
         for index, member in enumerate(self.member_stars):    # C, D, ... after the pair's A and B (GEN.631)
             member.name = f"{system_name} {chr(ord(CLOSE_PAIR_LETTERS[1]) + 1 + index)}"
             hosts.append((member.name, self.member_planets[index] if self.member_planets else []))    # GEN.332
+        for host, bodies in self.node_planet_hosts():    # GEN.332, slice A: a pair node's planets take the pair's name (`Voranthis CD I`)
+            hosts.append((self.node_label(host), bodies))
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
@@ -1587,6 +1659,28 @@ class StarSystem:
             self._trim_to_orbit_ceiling(bodies, ceiling_au)
         return bodies
 
+    def _generate_node_planets(self, host):
+        """
+        The planets of an inner pair node (GEN.332, slice A): the same draw as a member's, round the node's proxy `host` and inside the
+        P-type window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world, and no belts (`asteroid_belts`
+        has no `host_node_id` yet). The draw comes from a stream keyed by the node, its two stars and its orbit, so a system without such a
+        node draws exactly what it drew before and one with a node draws the same planets whatever else the system holds.
+        """
+        node = self.orbit_nodes[host.host_node_no]
+        first, second = host.stars
+        key = (f"node-planets:{host.host_node_no}:{first.mass!r}:{second.mass!r}:{first.age!r}:{first.metallicity_fe_h!r}"
+               f":{node.separation_km!r}:{node.eccentricity!r}")
+        with draw.bound(draw.Stream(key)):
+            ceiling_au = self._orbit_ceiling_au(host)
+            bodies = self._generate_planets(host, host.habitable_zone, ceiling_au, apply_guarantees=False)
+            self.validate_system(bodies)
+            validation.trim_to_orbit_ceiling(bodies, ceiling_au)
+            self._apply_star_history(bodies, host)
+            if remnant_orbits.widen_for_mass_loss(bodies, host, self._explicit_request()):
+                self.validate_system(bodies)
+                validation.trim_to_orbit_ceiling(bodies, ceiling_au)
+        return bodies
+
     def _orbit_ceiling_au(self, star):
         """
         The AU distance beyond which `_generate_planets` stops placing
@@ -1626,7 +1720,7 @@ class StarSystem:
         around it, and its giant phase is no part of what was specified.
         """
         radius_au = 0.0
-        for member in getattr(star, "stars", None) or [star]:
+        for member in getattr(star, "leaf_stars", None) or getattr(star, "stars", None) or [star]:
             yerkes = getattr(member, "yerkes_class", None)
             if yerkes in ("VII", "D"):
                 if explicit_request and member.initial_mass_sol is None:
@@ -1883,6 +1977,8 @@ class StarSystem:
             "orbit_nodes": [dataclasses.asdict(node) for node in self.orbit_nodes],
             "member_stars": [star.to_dict() for star in self.member_stars],
             "member_planets": [[obj.to_dict() for obj in bodies] for bodies in self.member_planets],
+            "node_planets": [{"node_no": host.host_node_no, "planets": [obj.to_dict() for obj in bodies]}
+                             for host, bodies in self.node_planet_hosts()],
             "star_slots": [list(place) for place in self.star_slots] if self.star_slots is not None else None,
             "dark_members": [dataclasses.asdict(member) for member in self.dark_members],
         }
@@ -2003,6 +2099,8 @@ class StarSystem:
         system.member_planets = [_load_objects(bodies, member) for member, bodies in zip(
             system.member_stars, data.get("member_planets") or [[] for _ in system.member_stars])]
         system.build_ledger()
+        by_node = {entry["node_no"]: entry["planets"] for entry in data.get("node_planets") or ()}
+        system.node_planets = [_load_objects(by_node.get(host.host_node_no, []), host) for host in system.node_hosts]
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
@@ -2490,7 +2588,7 @@ class StarSystem:
         if self.system_config.HABITABLE_WORLD is not False:
             return False
         dropped = 0
-        for planets in (self.planets, self.secondary_planets, *self.member_planets):
+        for planets in (self.planets, self.secondary_planets, *self.member_planets, *self.node_planets):
             for planet in list(planets):
                 if planet.body_type == "a":
                     continue
