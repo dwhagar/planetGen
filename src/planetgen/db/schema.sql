@@ -2576,7 +2576,7 @@ CREATE TABLE IF NOT EXISTS planets (
     class_fudge_values          VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
     class_fudge_amount          DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
-    collision_count             SMALLINT UNSIGNED NULL,  -- v247 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v247
+    collision_count             SMALLINT UNSIGNED NULL,  -- v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     obliquity_min_deg           DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
@@ -3120,7 +3120,7 @@ CREATE TABLE IF NOT EXISTS moons (
     class_fudge_values          VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
     class_fudge_amount          DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
-    collision_count             SMALLINT UNSIGNED NULL,  -- v247 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v247
+    collision_count             SMALLINT UNSIGNED NULL,  -- v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     obliquity_min_deg           DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
@@ -3469,7 +3469,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
     origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
     scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object
-    makeup                      TEXT NULL,  -- v247 (DB.124): what the belt is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo, the taxon shares)
+    makeup                      TEXT NULL,  -- v256 (DB.124): what the belt is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo, the taxon shares)
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
 
@@ -3679,7 +3679,7 @@ CREATE TABLE IF NOT EXISTS comets (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the nucleus releases, J
-    makeup                      TEXT NULL,  -- v247 (DB.124): what the nucleus is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo)
+    makeup                      TEXT NULL,  -- v256 (DB.124): what the nucleus is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo)
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
@@ -4581,7 +4581,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     class_fudge_values            VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
     class_fudge_amount            DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
-    collision_count               SMALLINT UNSIGNED NULL,  -- v247 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v247
+    collision_count               SMALLINT UNSIGNED NULL,  -- v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255
     sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                  DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     obliquity_min_deg             DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees

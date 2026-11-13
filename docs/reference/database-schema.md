@@ -1601,7 +1601,7 @@ columns capture the facts the prose always states instead.
 | `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v204 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
 | `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` | DOUBLE | nullable | Added in v204 (GEN.1069). The star's snow line when the system formed (AU), the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses). |
 | `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` | TINYINT(1), TEXT | nullable | Added in v204 (GEN.1069). Whether a giant stirs the belt; the sentences of what shaped it (a JSON list); the sentence of where it came from; for an outer disk the share of its mass in each population after the scatter step (a JSON object, `physics/scatter.py`). |
-| `makeup` | TEXT | nullable | Added in v247 (DB.124). What the belt is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`: the shares of the materials, porosity, densities, albedo and the taxon shares). NULL for a row made before v247. |
+| `makeup` | TEXT | nullable | Added in v256 (DB.124). What the belt is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`: the shares of the materials, porosity, densities, albedo and the taxon shares). NULL for a row made before v256. |
 | `largest_body_km` | DOUBLE | nullable | Added in v204 (GEN.1069). The largest body of the belt (Dc), km, settled with its mass (`physics/belt_ledger.py`, GEN.1000). |
 
 ### `asteroid_belt_composition`
@@ -1637,7 +1637,7 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `nucleus_diameter_km` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Searchable summary; structured breakdown lives in `comet_composition`. |
 | `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v199 (GEN.1159, GEN.1178). The bulk density of the nucleus in g/cm3, the share of its mass that is ice of any kind, and the same three values a planet keeps (`physics/body_strength.py`). NULL for a row made before v195. |
-| `makeup` | TEXT | nullable | Added in v247 (DB.124). What the nucleus is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`). NULL for a row made before v247. |
+| `makeup` | TEXT | nullable | Added in v256 (DB.124). What the nucleus is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`). NULL for a row made before v256. |
 | `perihelion_distance_km` | DOUBLE | NOT NULL | |
 | `eccentricity`, `inclination_deg`, `arg_periapsis_deg`, `ascending_node_deg` | DOUBLE | NOT NULL | Full 3D orbit orientation. |
 | `orbital_period_years`, `mean_anomaly_deg` | DOUBLE | nullable | Only set for `orbit_type = 'elliptical'`. |
