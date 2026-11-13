@@ -1943,7 +1943,9 @@ def test_a_lever_row_names_its_unit_once(site, client):
     for row in dials.LEVERS:
         if row.kind != "length" and row.unit:
             assert row.unit not in row.label, row.name
-    assert html.count("Arm pitch angle (degrees)") == 1 and "Arm pitch angle (degrees) (degrees)" not in html
+    # The slider (Boss, 2026-11-12) shows the label on its tick box, its typed box and its bar's aria text, each with the unit once.
+    assert "Arm pitch angle (degrees)" in html and "Arm pitch angle (degrees) (degrees)" not in html
+    assert "(degrees), slider" in html and "degrees) degrees" not in html
 
 
 def test_the_edge_is_typed_with_its_unit(site, client):
