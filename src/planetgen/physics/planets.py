@@ -1073,7 +1073,7 @@ def companion_modes(planet, host_mass_kg):
     return tuple(out)
 
 
-def settle_obliquity(planets, host_mass_kg):
+def settle_obliquity(planets, host_mass_kg, only=None):
     """
     GEN.1454: a free-spinning planet whose tilt lies in a chaotic zone of the spin-orbit secular resonances (`obliquity_variation`: the torques of the star and the planet's moons on its
     bulge against the nodal modes of the other planets' pull on its orbit) is not at the tilt it was made with: over the age of the star its axis has wandered over the zone, so it is
@@ -1081,6 +1081,7 @@ def settle_obliquity(planets, host_mass_kg):
     (`StarSystem._settle_to_final_age`) for one star's planets and belts in orbital order. A planet whose tilt is not chaotic keeps it (the regular wander of an Earth or a Mars
     is a few degrees to a few tens, and the stored tilt is one place in it); a locked or resonant body takes the Cassini state instead; a lone planet has the modes of the companion stars of its star (GEN.1535, `companion_modes`), none for a lone star. Every free-spinning planet it works keeps the range of its tilt (`obliquity_min_deg`, `obliquity_max_deg`, GEN.1535), a range of its own tilt when nothing drives it. The sky of the other
     suns follows the new tilt, the day and night shares it, and the moons are set in the new equator, as `carry_spin_with_orbit` does. Returns how many planets changed tilt.
+    `only` (GEN.1668): the planets to judge, where the others are already settled and only stand in the modes (the belt members promoted to planets, which are made after the first pass).
     """
     from planetgen.physics import obliquity_variation, tidal_spin
 
@@ -1094,6 +1095,8 @@ def settle_obliquity(planets, host_mass_kg):
     changed = 0
     all_modes = None
     for index, body in enumerate(bodies):
+        if only is not None and not any(body is chosen for chosen in only):
+            continue
         tilt = getattr(body, "axial_tilt_deg", None)
         rotation = getattr(body, "rotation_period_hours", None)
         axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
@@ -1127,17 +1130,19 @@ def settle_obliquity(planets, host_mass_kg):
     return changed
 
 
-def settle_moon_tilts(planets, host_mass_kg):
+def settle_moon_tilts(planets, host_mass_kg, only=None):
     """
     GEN.1556: a regular moon of one star's planets that is locked to its planet takes the tilt of its first Cassini state from its nodal regression (the planet's bulge and the star,
     `cassini_state.locked_moon_tilt_deg`) and its own figure, in place of the share `tidal_spin.cassini_tilt_deg` drew early. The moon's axis is turned in its planet's equator frame (where its
     inclination is measured) and back; its day and night shares follow. One draw per moon from a stream of its own. Called after `settle_obliquity` has set the planets' tilts (which turned the
-    moons with them). Returns how many moons changed tilt.
+    moons with them). Returns how many moons changed tilt. `only` (GEN.1668): the planets whose moons to judge (the belt members promoted to planets).
     """
     from planetgen.physics import cassini_state
 
     changed = 0
     for planet in planets:
+        if only is not None and not any(planet is chosen for chosen in only):
+            continue
         if getattr(planet, "is_moon", False) or not getattr(planet, "period", None) or not planet.mass or not planet.radius or not getattr(planet, "rotation_period_hours", None):
             continue
         for moon in getattr(planet, "moons", None) or ():
