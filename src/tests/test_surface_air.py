@@ -665,3 +665,25 @@ def test_a_gas_standing_over_its_own_ice_is_not_held_in_the_clathrate_as_well():
     air = {"CH4": 10.0 * floor, "N2": 1.0e3}
     held = sa._hold_in_hydrate(air, 100.0, _setting(), 1.0e6, standing={"CH4": 1.0})
     assert held["CH4"] == air["CH4"]
+
+
+def test_the_mantle_redox_takes_one_draw_from_the_unit_whatever_the_recipe_takes():
+    """A body that gains or loses its air, or whose temperature moves the recipe to a different set of rows, moves no draw of the bodies after it."""
+    from planetgen.physics import planets
+
+    class Air:
+        mixture = types.SimpleNamespace(redox_diw=-1.0)
+
+    calls = []
+    taken = []
+    real = sa.mantle_redox_diw
+    sa.mantle_redox_diw = lambda *args: taken.append(args[-1]) or 0.5
+    try:
+        for air in (None, Air()):
+            with draw.bound(5):
+                planets._mantle_redox(object(), air, 1.0, False)
+                calls.append(draw.random())
+    finally:
+        sa.mantle_redox_diw = real
+    assert calls[0] == calls[1]        # the same stream position afterwards with or without an air
+    assert len(taken) == 1

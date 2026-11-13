@@ -897,17 +897,19 @@ def _retention_cap_pa(mixture, subject):
 
 # --- a body ---------------------------------------------------------------------------------------------------------------------
 
-def mantle_redox_diw(body, star_distance_au, water_lost):
+def mantle_redox_diw(body, star_distance_au, water_lost, seed):
     """
     The oxygen fugacity of the mantle of a body whose air is not drawn (airless by its class, or by loss), log10 units above
     iron-wuestite: the recipe's redox rows (`mixture_rocky.draw_redox`) at the body's own mass and age. `None` for a giant.
+    The rows are drawn in a stream of their own, from `seed`: how many rows the subject supports follows its temperature and water, and a count taken from the unit's stream moved every body drawn after.
     """
     if not planet_type.has_ground(body):
         return None
     subject = mixture_subject.subject_of_body(body, ts_k=body.surface_temperature, pressure_bar=AIRLESS_PRESSURE_BAR,
                                               ocean_present=False, long_lived_geology=False, water_lost=water_lost,
                                               star_distance_au=star_distance_au)
-    return mixture_rocky.draw_redox(subject, mixture_draw.draw_recipe(subject), {})
+    with _draw_stream(seed):
+        return mixture_rocky.draw_redox(subject, mixture_draw.draw_recipe(subject), {})
 
 
 def ice_albedo_law(body, albedo, surface_w):
