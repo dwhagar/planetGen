@@ -1,0 +1,4 @@
+**Headline:** A new planet, moon or rogue planet column is now one row in one file instead of edits in ten places.
+
+### Changed
+- **The body tables are declared once (GEN.1658, the first slice of GEN.570).** `src/planetgen/db/body_fields.py` holds a row for each column of `planets`, `moons` and `rogue_planets`: its SQL type, `NOT NULL`, default and check, its unit, its comment and which tables have it. `scripts/build_body_tables.py` writes the three `CREATE TABLE` statements in `schema.sql` from it between marker lines, and `db/column_units.py` takes the unit groups of the three tables from the same rows. A database built from the new `schema.sql` has the same columns in the same order with the same types, defaults, keys, foreign keys and CHECK names as before (checked by building both), and `models.py` is unchanged. `tests/test_body_fields.py` fails when `schema.sql` and the declaration differ. No migration, no epoch. generation-output: unchanged
