@@ -46,6 +46,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.names.wordsalad import generate_sector_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.random import log_uniform
+from planetgen.util.ticker import Ticker
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation.phenomena import registry
 from planetgen.generation.star_labels import describe_types, star_label
@@ -997,11 +998,12 @@ def _summary_star_label(star):
     return star_label(getattr(star, "type", None), getattr(star, "yerkes_class", None))
 
 
-def _log_summary(text):
+def _log_summary(text, say=None):
     """Logs a multi-line summary one line per record, so each line gets
-    the debug log's timestamp, process and source prefix (OPS.9)."""
+    the debug log's timestamp, process and source prefix (OPS.9). `say` is `log.normal` unless a bulk run gives `log.debug` (OPS.172)."""
+    say = log.normal if say is None else say
     for line in text.splitlines():
-        log.normal(line)
+        say(line)
 
 
 def sector_generation_summary_lines(sector, args_used):
@@ -1080,6 +1082,8 @@ class UnplacedSectorsFollower(followed.Follower):
     def __init__(self, args):
         super().__init__(args)
         self.label = commands.build_steps("sector", args)[0].label
+        self._ticker = Ticker("Sectors saved", total=getattr(args, "num_sectors", None) or None)
+        self._saved = 0
 
     def params(self):
         return commands.build_steps("sector", self.args)[0].params
@@ -1095,12 +1099,18 @@ class UnplacedSectorsFollower(followed.Follower):
                 run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
             run_common._record_sector(args, saved, saved["seconds"])
             phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
-            log.normal(
+            log.debug(      # a run of thousands would bury its stage lines; the ticker carries the progress (OPS.172)
                 f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "
                 f"{saved['systems']} systems{phenomena_note}, "
                 f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
             )
-            _log_summary(saved["summary"])
+            _log_summary(saved["summary"], log.debug)
+            self._saved += 1
+            self._ticker.tick(self._saved)
+
+    def on_done(self, conclusion):
+        if self._saved:
+            self._ticker.finish(self._saved)
 
 
 def run_sector(args):
