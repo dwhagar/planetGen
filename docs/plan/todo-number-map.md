@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.312 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1676 |
+| GEN | GEN.1678 |
 | PERF | PERF.264 |
 | DB | DB.130 |
 | API | API.48 |
@@ -3897,6 +3897,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1673 | A better planet spacing rule (GEN.1521 chain rule) so far fewer belts need nudging outward | GEN.1641 | open |
 | GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | open |
 | GEN.1675 | A body's air carries the CO and methane its surface ices give off: gases from the bulk CO and CH4 ice at their saturation vapor pressure at the surface temperature, not an N2-only air | none | open |
+| GEN.1676 | Habitability rating: low inspired oxygen is rated by the body, not by a mask: Yellow below 8 kPa inspired O2, Red from about 4 kPa, on a log curve (replaces the flat 0.75 Green) | none | open |
+| GEN.1677 | Design: remove the rest of the equipment-based habitability scoring: CO/H2S/SO2 bands widened by FILTER_FACTOR 10, the 14.3 kPa pressure Green edge from a pure-oxygen mask, UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

@@ -13693,6 +13693,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (air and climate), with Lane 21 for composition. Prerequisites: none (check GEN.1564's PR 6235 first). Related: GEN.1564, GEN.1425, UX.308.
   Filed by the TODO thread. Boss approved.
 
+- [ ] **GEN.1676 Habitability rating: low inspired oxygen is rated by the body, not by a mask: Yellow below 8 kPa inspired O2, Red from about 4 kPa, on a log curve (replaces the flat 0.75 Green)**
+  Boss's ruling in the Kiamtochen III thread (2026-11-12): habitability ratings come from the planet's conditions, never from what equipment can fix. Audit of physics/habitability.py by that thread. Stand-in tier T9, tweak L3, registered in GEN.725. Changes generated PHI-6 ratings, so it is a lock item (epoch).
+  Version 8.1. Owner (TODO, 2026-11-12): the Kiamtochen III page thread. Prerequisites: none. Related: GEN.1677.
+  Filed by the TODO thread. Boss approved.
+
+- [ ] **GEN.1677 Design: remove the rest of the equipment-based habitability scoring: CO/H2S/SO2 bands widened by FILTER_FACTOR 10, the 14.3 kPa pressure Green edge from a pure-oxygen mask, UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT**
+  Boss's ruling in the Kiamtochen III thread (2026-11-12): habitability ratings come from the planet's conditions, never from what equipment can fix. Audit of physics/habitability.py by that thread. Design report first with proposed condition-only edges and sources; needs Boss's numbers before the build. Lock item at build (ratings change).
+  Version 8.1. Owner (TODO, 2026-11-12): the Kiamtochen III page thread. Prerequisites: none. Related: GEN.1676.
+  Filed by the TODO thread. Boss approved.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
