@@ -13665,6 +13665,26 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 14. Prerequisites: GEN.1678. Related: GEN.1611, GEN.1575.
   Filed by the TODO thread.
 
+- [ ] **GEN.1680 Galaxy run order: sectors, link, one hoisted clear that records the scatter limits, then backfill, then the mass and luminosity scatters and phenomena**
+  Boss's generation-order thread (report /mnt/project-files/reports/generation-order-2026-11-13/report.md): orders that record the scatter limits first give identical output (421 stars, same hash), while backfilling before the limits are stored draws 407. Built as PR 6392: the Generate page and the job runner list the same order. Lock item (generation-affects: scatter, fill; no migration), Train 26.
+  Version 8.1. Owner (TODO, 2026-11-13): generation-order thread, PR 6392. Prerequisites: none. Related: GEN.1681, GEN.1682.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1681 Luminous-star default floor rises from 9,000 to 18,000 solar luminosities**
+  Same report: the default galaxy's luminosity pass drops from about 24,794 stars to 5,983. Built in PR 6392 with GEN.1680. Lock item, Train 26.
+  Version 8.1. Owner (TODO, 2026-11-13): generation-order thread, PR 6392. Prerequisites: none. Related: GEN.1680.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1682 Phenomena rings drawn in the backfill as well**
+  Left out of PR 6392 on purpose: the backfill does not yet place phenomena rings. Do: a second PR that adds them, reusing the phenomena pass. Lock item (generation-affects).
+  Version 8.1. Owner (TODO, 2026-11-13): generation-order thread. Prerequisites: GEN.1680. Related: GEN.1683.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1683 One combined mass and luminosity scatter pass (design, then build)**
+  The generation-order report measured the two scatter passes run one after the other and did not build a unified pass; it needs its own epoch change. Do: measure what a single pass saves and whether output can stay the same, then build it if worth it. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: GEN.1680. Related: GEN.1681.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
