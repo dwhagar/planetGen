@@ -3469,6 +3469,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
     origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
     scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object
+    makeup                      TEXT NULL,  -- v247 (DB.124): what the belt is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo, the taxon shares)
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
 
@@ -3678,6 +3679,7 @@ CREATE TABLE IF NOT EXISTS comets (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the nucleus releases, J
+    makeup                      TEXT NULL,  -- v247 (DB.124): what the nucleus is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo)
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
