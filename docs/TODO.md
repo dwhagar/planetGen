@@ -13340,6 +13340,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
   Filed by the TODO thread.
 
+- [ ] **OPS.183 Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap**
+  The setup download of nearby Gaia stars (datasets/gaia_nearby.py, GEN.1534: the gea.esac.esa.int TAP sync query, parallax over 40 and parallax_over_error over 10) hits the anonymous 2,000-row cap. Boss (3:09 PM EST 2026-11-13, as the coordinator relayed): "Have all 4 and if one fails it goes to the next". Do: try in order, moving to the next on failure or on a capped result: (1) the same ESA server's async TAP endpoint; (2) the Heidelberg ARI Gaia TAP mirror; (3) VizieR TAP with MAXREC raised; (4) the GCNS catalogue (VizieR I/360) downloaded and filtered locally. Log which source served and the row count; fail setup only if all four fail. Optional: use a registered ESA account when its credentials are set (mask them in logs per SEC.48). Runs at setup (update.sh); raw data stays out of the repo. Tests with each source stubbed to fail in turn.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: GEN.1534, SEC.48.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
