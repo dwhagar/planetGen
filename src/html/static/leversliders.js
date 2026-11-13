@@ -1,9 +1,10 @@
 // static/leversliders.js
 //
 // The Generate page's galaxy measures as sliders (templates/partials/generate_fields.html `lever_input`; Boss, 2026-11-12).
-// Each number or length row of the lever table (planetgen/galaxy/dials.py) is a tick box and a typed box side by side with
-// a slider bar under them. Unticked is Auto: the box is blank and disabled (so the plan gets no flag) and the bar is
-// greyed at the middle of what Auto draws (data-default). Ticked, the box takes the value and the bar moves it. The bar
+// Each number or length row of the lever table (planetgen/galaxy/dials.py) has its title, an unlabeled Default tick box beside
+// the typed box, and a slider bar under them; the help text is behind a ? button beside the title. Ticked (the starting state)
+// is Default, which is Auto: the box is blank and disabled (so the plan gets no flag) and the bar is disabled at the
+// middle of what Auto draws (data-default). Unticked, the box takes that value and the bar and the box move it. The bar
 // is sticky: dragged near that Auto mark it snaps onto it. The typed box is the form field (name = the lever), so
 // the server still reads blank as Auto and the page works without this script, typed into.
 //
@@ -42,8 +43,21 @@ class LeverSlider {
     this.box.addEventListener("sl-input", () => this.typed());
     this.box.addEventListener("input", () => this.typed());
     root.addEventListener("lever-lock", (event) => this.lock(event.detail.off));
+    this.help = root.querySelector("[data-lever-help]");
+    this.helpText = root.querySelector("[data-lever-help-text]");
+    if (this.help && this.helpText) {
+      this.help.hidden = false;
+      this.helpText.hidden = true;
+      this.help.addEventListener("click", () => {
+        this.helpText.hidden = !this.helpText.hidden;
+        this.help.setAttribute("aria-expanded", String(!this.helpText.hidden));
+      });
+    }
     this.sync(this.box.value.trim() !== "");
   }
+
+  // Whether the measure is set by hand: its Default tick box is off, and it is not locked.
+  get set() { return !this.tick.checked && !this.locked; }
 
   toPosition(value) {
     const clamped = Math.min(Math.max(value, this.min), this.max);
@@ -85,14 +99,14 @@ class LeverSlider {
 
   // Shows the state the tick says: Auto (blank box, bar greyed at the Auto mark) or a value.
   sync(on) {
-    this.tick.checked = on && !this.locked;
+    this.tick.checked = !(on && !this.locked);
     this.paint();
     const value = this.read();
     this.range.value = this.toPosition(on && value !== null ? value : this.auto);
   }
 
   paint() {
-    const on = this.tick.checked && !this.locked;
+    const on = this.set;
     this.box.disabled = !on;
     this.range.disabled = !on;
     this.tick.disabled = this.locked;
@@ -105,7 +119,7 @@ class LeverSlider {
 
   toggle() {
     if (this.locked) return;
-    if (this.tick.checked) {
+    if (!this.tick.checked) {
       if (this.read() === null) this.box.value = this.text(this.auto);
       this.paint();
       this.range.value = this.toPosition(this.read() ?? this.auto);
@@ -135,7 +149,7 @@ class LeverSlider {
   lock(off) {
     this.locked = !!off;
     if (off) {
-      this.tick.checked = false;
+      this.tick.checked = true;
       this.range.value = this.toPosition(this.auto);
     }
     this.paint();

@@ -7169,3 +7169,39 @@ a.help-mark {
 
 /* A slider row is not a plain text box field: its box sits beside the tick box, so it is not one of the aligned boxes
    (tests/test_web_generate_alignment.py), and the row takes the room of its own label, box and bar. */
+
+/* The measure's title with its ? button beside it; the help text opens under the bar. */
+.lever-slider-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.lever-help-button {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lever-help-button[aria-expanded="true"] {
+  color: inherit;
+  border-color: currentColor;
+}
+
+.lever-slider-head .ui-field-check {
+  flex: 0 0 auto;
+}
+
+.lever-slider-head .ui-field:not(.ui-field-check) {
+  flex: 1 1 auto;
+}
