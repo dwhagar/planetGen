@@ -55,7 +55,7 @@ import numpy as np
 from scipy.optimize import brentq
 
 from planetgen.physics import activity, air_column, atmospheric_radiation, climate_draws, constants, gases, photolysis, planet_type, saturation, stellar_spectrum
-from planetgen.physics import radiation_field
+from planetgen.physics import hydrosphere, radiation_field
 from planetgen.util import draw
 
 SKIN_FACTOR = 2.0 ** -0.25
@@ -697,7 +697,7 @@ def generate_aerosols(body):
     column = air_column.column_of(body)
     if column is None or not temperature:
         return
-    dry = body.body_type != "g" and not (getattr(body, "ocean_fraction", None) or 0.0)
+    dry = body.body_type != "g" and not hydrosphere.water_cover(body)       # GEN.1567: a surface with ice or a sea is wet, as `ocean_fraction` alone said before
     star_temperature = getattr(getattr(body, "star", None), "temperature", None)
     star = getattr(body, "star", None)
     haze = haze_in(column, _haze_temperature_k(body, temperature), draw_haze_draws(haze_stream_of(body)), star_temperature,

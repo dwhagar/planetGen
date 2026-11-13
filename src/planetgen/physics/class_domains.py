@@ -93,7 +93,7 @@ def relative_humidity(values):
 
 def derived(values):
     """The quantities of the matrix that are not in `planet_classes.quantities`, from a body's stored `values`:
-    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
+    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0: an aquifer under a dry surface, or the water table under the land of a world with liquid at its surface, GEN.1638), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
     `phase_<family>` (1.0 where the family's liquid is a liquid at the body's temperature and pressure, else 0.0)."""
     found = {}
     bands = _bands(values)
@@ -112,6 +112,9 @@ def derived(values):
         from planetgen.physics import habitability_world
         groundwater = habitability_world.groundwater(values)
     found["groundwater_present"] = None if groundwater is None else (0.0 if groundwater == "none" else 1.0)
+    from planetgen.physics import habitability_world
+    if found["groundwater_present"] == 0.0 and values.get("hydrosphere") in habitability_world.LIQUID_WATER_STATES and (values.get("ocean_fraction") or 0.0) > 0.0:
+        found["groundwater_present"] = 1.0      # GEN.1638: a world with liquid at its surface has a water table under its land; the stored `groundwater` stays the water held only underground, which the habitability score reads
     temperature, pressure = values.get("surface_temperature_k"), values.get("atmospheric_pressure_pa") or 0.0
     for family in phase_gate.FAMILIES:
         found[PHASE_PREFIX + family] = None if temperature is None else (1.0 if phase_gate.holds(family, temperature, pressure) else 0.0)

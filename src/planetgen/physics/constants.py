@@ -366,6 +366,7 @@ HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 GLADMAN_MUTUAL_HILL_STABILITY_FACTOR = 2 * math.sqrt(3)
 
 ELECTRON_VOLT_J = 1.602176634e-19  # One electron volt in joules (the elementary charge times 1 V)
+ELECTRON_MASS_KG = 9.1093837015e-31  # The electron's rest mass, kg; the Saha equation's electron term (`ionization.py`)
 
 # Earth's XUV flux today, 4.6 erg/cm^2/s at 1 AU [R3753], W/m^2:
 # the unit of a planet's `xuv_flux_earth` (GEN.86).

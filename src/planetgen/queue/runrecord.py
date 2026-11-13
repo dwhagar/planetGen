@@ -104,6 +104,8 @@ class Stage:
         prior_rate (float, optional): Cost units per second recorded for this kind of work (`R0`).
         worker_rate (float, optional): Cost units per worker second this server recorded for the stage's last runs
             (`stagetimes`), which `runeta` turns into a rate once the units are known (PERF.184).
+        unit_seconds (float, optional): What the job profile says a unit of the stage's command takes on this machine (OPS.159, `profiletime`), which the untimed
+            estimate (`roughtime`) uses in place of its typed 20 s.
         workers (int): Workers the stage runs on, for the ETA's time constant.
         row (dict, optional): The `generation_stage_runs` row the unit that completes the stage writes (PERF.106:
             `command`, `n`, `total`, `label` and `settings`; `generation.stages.hand_over_open_stage`); none for a
@@ -117,6 +119,7 @@ class Stage:
     expected_seconds: float = None
     prior_rate: float = None
     worker_rate: float = None
+    unit_seconds: float = None
     workers: int = 1
     row: dict = None
 
@@ -604,6 +607,20 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_
     return UnitDone(bool(counted), bool(advance), int(done))
 
 
+def usage_key(run_id, index):
+    """The hash of what each unit of a stage used (OPS.155): one JSON field per unit, kept with the run."""
+    return _k(f"usage:{run_id}:{index}")
+
+
+def _profile_stage(conn, run_id, index, key, wall_seconds):
+    """OPS.155: the stage's row in `job_profiles`: its wall seconds and, from the units' usage, the longest and the mean unit and the peak and mean memory and processor."""
+    from planetgen.queue import jobprofiles
+    if not jobprofiles.enabled():
+        return
+    entries = [json.loads(_s(value)) for value in conn.hvals(usage_key(run_id, index))]
+    jobprofiles.record(f"stage:{key}", seconds=wall_seconds, **jobprofiles.stage_figures(entries))
+
+
 def _record_stage_time(conn, run_id, index, key):
     """Folds the stage that has just ended into what the server knows of its kind (`stagetimes`, PERF.184). Best
     effort: an estimate's memory is not worth failing a unit for."""
@@ -615,6 +632,7 @@ def _record_stage_time(conn, run_id, index, key):
             return
         stagetimes.record(conn, key, float(ended) - float(started), float(counters.get("cost_done") or 0.0),
                           float(counters.get("seconds") or 0.0))
+        _profile_stage(conn, run_id, index, key, float(ended) - float(started))
     except Exception as exc:  # noqa: BLE001
         planetgen_log.swallowed("queue/runrecord", "_record_stage_time", exc)
 

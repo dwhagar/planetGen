@@ -1480,6 +1480,19 @@ def admin_work_held(cookie_header):
     return body
 
 
+def admin_work_tuning(cookie_header):
+    """`GET /api/admin/work/tuning` -- what the queue has learned per job kind and its latest changes (OPS.158)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/tuning", cookie_header=cookie_header)
+    return body
+
+
+def admin_work_tuning_set(cookie_header, action, kind, mb=None):
+    """`POST /api/admin/work/tuning` -- `pin` a kind's claim at `mb`, `unpin` it or `clear` what was learned (OPS.158)."""
+    payload = {"action": action, "kind": kind, **({"mb": mb} if mb is not None else {})}
+    body, _set_cookie_headers = _auth_request("POST", "/admin/work/tuning", cookie_header=cookie_header, json_body=payload)
+    return body
+
+
 def admin_work_jobs(cookie_header):
     """`GET /api/admin/work/jobs` -- the API, web and prefetch jobs running now, from their beats (OPS.142): `{"jobs": [...], "available"}`."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/work/jobs", cookie_header=cookie_header)

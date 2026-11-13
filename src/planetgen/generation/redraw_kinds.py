@@ -34,6 +34,7 @@ KINDS = {
     "tree.restart_overlap": Kind("star-tree", True, "a tree drawn again because the final extents check found a pair that does not clear what it holds"),
     "tree.member_dropped": Kind("star-tree", False, "the lightest loose member dropped after every restart failed"),
     "tree.drawn_at_earlier_age": Kind("star-tree", False, "a tree drawn again at the end of the placed star's lifetime because the star had collapsed by its age"),
+    "tree.restart_unstable_hierarchy": Kind("star-tree", False, "a tree drawn again because the quadruple network does not keep its hierarchy (GEN.1016)"),
     "tree.second_star_forced": Kind("star-tree", False, "a tree drawn again because a companion was wanted and the first draw had none"),
     "star.mass_lightened": Kind("star", False, "a member lightened by a fifth because it had already collapsed at the system's age"),
     "accreting.donor": Kind("star-tree", False, "a donor of an X-ray, cataclysmic or AM CVn binary drawn again because it cannot fill its lobe in the period window"),

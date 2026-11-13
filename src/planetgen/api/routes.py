@@ -90,6 +90,9 @@ from planetgen.db.query import (
     phenomena_facets,
     systems_facets,
     list_sectors,
+    sector_address_of_uid,
+    uncharted_cell_has_no_row,
+    virtual_sector_detail,
     list_systems,
     GENERATED_KINDS,
     generated_since,
@@ -100,7 +103,6 @@ from planetgen.db.query import (
     scattered_phenomenon_detail as query_scattered_phenomenon_detail,
     uncharted_system_detail as query_uncharted_system_detail,
     resolve_object,
-    nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
     parse_star_count,
@@ -541,8 +543,11 @@ def sectors():
     after = None
     if request.args.get("after"):
         after = ids.row_id(db, "sector", request.args["after"])
-        if after is None:
-            raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
+        if after is None:       # OPS.154: the page ended on an uncharted cell that has no row; its ID is its address
+            address = sector_address_of_uid(request.args["after"])
+            if address is None or not uncharted_cell_has_no_row(db, address):
+                raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
+            after = address
     total = count_sectors(db, coverage=coverage, show_empty=show_empty)
     items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after, coverage=coverage, show_empty=show_empty)
     for item in items:
@@ -569,7 +574,7 @@ def sectors():
 def sector_detail(sector_id):
     conn = get_db()
     try:
-        detail = query_sector_detail(conn, sector_id)
+        detail = virtual_sector_detail(conn, sector_id) if isinstance(sector_id, tuple) else query_sector_detail(conn, sector_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     detail["superbubble"] = superbubble_of(conn, detail)
@@ -579,7 +584,7 @@ def sector_detail(sector_id):
         _show_uncharted_sector(conn, detail)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
-    detail["former_designations"] = ids.former_designations(conn, ids.SECTOR, sector_id)
+    detail["former_designations"] = [] if isinstance(sector_id, tuple) else ids.former_designations(conn, ids.SECTOR, sector_id)
     return jsonify(detail)
 
 
@@ -2176,33 +2181,6 @@ def object_children_route(ref):
         return jsonify({"error": str(exc)}), 400
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
-
-
-@bp.route("/nebulae/<uid:nebula_id>/shape")
-def nebula_shape_route(nebula_id):
-    """
-    One nebula's shape as a triangle mesh (GEN.75): `?lod=low` (the default,
-    a coarse mesh for the Galaxy Map) or `?lod=full`. Answers `{"id",
-    "radius_ly", "center_pc" (or null for a nebula never placed), "lod",
-    "vertices", "faces"}`: the vertices are `[x, y, z]` in units of the
-    nebula's radius from its center (multiply by `radius_ly` for light-years),
-    the faces triples of vertex indexes. A 404 for an unknown nebula or a
-    `lod` other than `low` or `full`.
-    """
-    lod = request.args.get("lod", "low")
-    if lod not in ("low", "full"):
-        return jsonify({"error": f"lod must be 'low' or 'full', got {lod!r}"}), 404
-    try:
-        row, shape = query_nebula_shape(get_db(), nebula_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
-    vertices, faces = shape.mesh(lod)
-    center = None if row["center_x_pc"] is None else [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
-    return jsonify({
-        "id": nebula_id, "radius_ly": row["radius_ly"], "center_pc": center, "lod": lod,
-        "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
-        "faces": [[int(i) for i in face] for face in faces],
-    })
 
 
 @bp.route("/nebulae/<uid:nebula_id>/volume")
