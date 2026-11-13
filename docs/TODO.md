@@ -13265,11 +13265,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 12 (Boss 3:03 PM EST: every lane working). Prerequisites: none. Related: GEN.1201.
   Filed by the TODO thread.
 
-- [ ] **GEN.1685 The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance)**
-  GEN.1016 merged in Train 25 (PR 6139): four-star systems are the ones the stability network calls stable. The register still says the clearance module is read only by tests/test_clearance.py and waits for the stability gate of GEN.1016. Do: have the gate or the stored-system audit call it, or mark it by design with the reason, and drop the register row. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 05 (Boss 3:03 PM EST: every lane working). Prerequisites: none. Related: GEN.1016, TEST.477.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1686 Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones**
   From the Fable layered-fixes scan (in-depth read of every package, 2026-11-13; output-changing set, nothing changed yet): physics/pulsar_planets._radius_km has its own radius law where planet.radius_of_mass exists; physics/rogue_yield uses ** 0.5 and its own circular-speed formula where orbits.circular_speed exists; physics/multistar's AM CVn donor radius formula differs from white_dwarf_models. Do: call the shared function (reuse rule), measure the change. Lock item (output changes).
   Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread (PR on its branch), unless TODO routes it to a lane. Prerequisites: none. Related: GEN.1671.
