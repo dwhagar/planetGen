@@ -21,7 +21,7 @@ What a promoted member is:
   largest body (`largest_body_km`) and its other numbers are as they were drawn.
 
 It runs once, when the planets, belts and ages of the system are final and before the irregular moons are given (`StarSystem._add_irregular_moons`), so a promoted planet can catch moons by the same rule as any planet, and
-no body that a planet caught from the belt (status `moon`) is promoted. A belt that was read back from a store holds the members it was saved with, minus the promoted ones; promoting is only done by generation.
+no body that a planet caught from the belt (status `moon`) is promoted. The first settle pass (`StarSystem._settle_to_final_age`) is over by then, so a promoted planet is given its own (`StarSystem._settle_promoted`, GEN.1668): the tides of its orbit, its envelope and end stages, then the tilt range and chaotic-tilt check (`settle_obliquity`) and the locked moons' Cassini states (`settle_moon_tilts`) against the modes of all its star's planets. The secular exchange and the Kozai pumping are not run again. A belt that was read back from a store holds the members it was saved with, minus the promoted ones; promoting is only done by generation.
 """
 
 from planetgen import tuning
