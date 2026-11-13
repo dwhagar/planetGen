@@ -14,8 +14,9 @@ The two ledgers of the backfill (VIEW.19, reports/system-sky-backfill-cost-2026-
   white dwarf, under which the luminosity backfill refuses a floor) to the scatter's own floor. A band shows out to the reach of its brightest member
   (`reach_pc`), and is drawn over every cell inside that sphere.
 * **Mass ledger, a floor under 50 Lsun.** The mass rings (`bright_stars.mass_band_edges`: 1, 2, 5, 8 and the mass limit) draw the stars born at 1 solar mass and up
-  that are dimmer than 50 Lsun, so every ring reaches as far as a star of 50 Lsun does. The rings under 1 solar mass (`NEAR_RING_MASSES_SOL`, VIEW.41) draw
-  the stars born lighter than the Sun, which are faint: a ring reaches only as far as `RING_MIN_YIELD` of its stars still show, tens of parsecs.
+  that are dimmer than 50 Lsun, and the rings under 1 solar mass (`NEAR_RING_MASSES_SOL`, VIEW.41) draw the stars born lighter than the Sun, which are faint. A ring
+  reaches only as far as `RING_MIN_YIELD` of its stars still show (GEN.1486: every ring, where the rings of 1 solar mass and up once reached the sphere of a 50 Lsun
+  star whatever they held), tens of parsecs for the faint ones and no farther than a star of 50 Lsun shows for the others.
 
 The bright far bands hold few stars in an enormous number of cells (a 7.5 sky is 3e9 cells in its farthest band), and since VIEW.41 they are drawn by
 blocks (`bright_stars.luminosity_sphere_batches`), so they cost the blocks and rows of their sphere, not its cells (`block_visits`). The table is cut by a budget of
@@ -168,9 +169,11 @@ NEAR_RING_MASSES_SOL = (0.1, 0.3, 0.5, 0.7, 0.85)
 """tuple: The mass edges under 1 solar mass the sky's rings add (stand-in SKT4), so the stars born lighter than the Sun that show near the observer are
 drawn. The sampler takes 0.1 as the lightest mass (VIEW.19 section 5)."""
 
-RING_MIN_YIELD = 0.01
-"""float: A ring under 1 solar mass reaches as far as this share of its stars (the largest of any population) is still bright enough to show (stand-in
-SKT5): beyond, the ring draws 100 stars or more for every one that shows, as the rings over 1 solar mass do (VIEW.19: 140)."""
+RING_MIN_YIELD = 0.005
+"""float: A ring reaches as far as this share of its stars (the largest of any population) is still bright enough to show (stand-in SKT5; Boss chose 0.005 of the
+measured 0.001 to 0.01, GEN.1486): beyond, the ring draws 200 stars or more for every one that shows. It was 0.01 for the rings under 1 solar mass, and the rings of 1 solar mass and
+up had no yield rule at all (VIEW.19: 140 drawn for each shown), so they all reached the sphere of a 50 Lsun star; 0.005 for every ring draws about 1.4 times fewer stars and leaves
+about 1 percent of the stars that would show undrawn (reports/gen1486-ring-drawn-vs-shown-2026-11-12.md)."""
 
 RING_SAMPLES = 400
 """int: The stars sampled per population to find a ring's share of visible stars."""
@@ -189,12 +192,16 @@ def ring_edges(near_masses=NEAR_RING_MASSES_SOL):
 def ring_luminosities(low, high, count):
     """
     `{population: sorted luminosities, Lsun}` of `count` living stars sampled per population from the ring born with `low <= mass < high` and dimmer than
-    `RING_TOP_SOL` (the brighter ones belong to the luminosity ledger), on streams named by the ring alone, so the same ring gives the same sample.
+    `RING_TOP_SOL` (the brighter ones belong to the luminosity ledger), on streams named by the ring alone, so the same ring gives the same sample. A population
+    for which the ring holds no star under the cap (the rings of 8 solar masses and up) is an empty array.
     """
     out = {}
     for population in bright_stars.SCATTERED_POPULATIONS:
         rng = draw.Stream(f"sky-tiers:ring:{low:g}:{high:g}:{population}")
-        stars = star_population.sample_mass_band_stars(count, low, high, population, rng, max_luminosity_sol=RING_TOP_SOL)
+        try:
+            stars = star_population.sample_mass_band_stars(count, low, high, population, rng, max_luminosity_sol=RING_TOP_SOL)
+        except ValueError:      # the sampler found no living star of the ring under the cap in its tries: every star of the ring is brighter (GEN.1486)
+            stars = []
         out[population] = np.sort(np.array([star["luminosity_w"] / constants.SOLAR_LUMINOSITY for star in stars]))
     return out
 
@@ -206,13 +213,14 @@ def visible_share(luminosities, floor_sol, weights=None):
     if not total > 0.0:
         raise ValueError("no population of the weights is among the ring's")
     return sum(weights.get(population, 0.0) * (len(values) - int(np.searchsorted(values, floor_sol, side="left"))) / len(values)
-               for population, values in luminosities.items()) / total
+               for population, values in luminosities.items() if len(values)) / total      # a population with no star under the cap shows none
 
 
 def ring_reach_pc(low, high, limit_mag, curve, *, min_yield=None, count=None, weights=None):
     """
-    How far a ring under 1 solar mass is drawn: the largest distance of the curve's grid at which `min_yield` of its stars (`visible_share`, the mix of `weights`) still show
-    at `limit_mag` through the least dust of any direction; never more than a star of `RING_TOP_SOL` reaches. Zero when the ring shows nowhere.
+    How far a ring is drawn (GEN.1486: every ring, not only those under 1 solar mass): the largest distance of the curve's grid at which `min_yield` of its stars (`visible_share`, the mix of `weights`) still show
+    at `limit_mag` through the least dust of any direction; never more than a star of `RING_TOP_SOL` reaches. Zero when the ring shows nowhere, and for a ring with no living star under
+    `RING_TOP_SOL` to show (the rings of 8 solar masses and up: every star of them is brighter, and belongs to the luminosity ledger).
     """
     min_yield = RING_MIN_YIELD if min_yield is None else min_yield
     luminosities = ring_luminosities(low, high, RING_SAMPLES if count is None else count)
@@ -239,8 +247,7 @@ def build(observer_pc, limit_mag, edge_pc, *, visit_budget=BLOCK_VISIT_BUDGET, c
 
     Returns:
         SkyTiers: The luminosity bands taken from the 50 Lsun band up while their visits fit `visit_budget` (a band that does not fit is dropped with every
-            brighter one), the mass rings of 1 solar mass and up, each over the sphere of a star of `RING_TOP_SOL`, and the rings under it, each over the
-            sphere `ring_reach_pc` gives (a ring that shows nowhere is left out).
+            brighter one), the mass rings, each over the sphere `ring_reach_pc` gives (a ring that shows nowhere is left out).
     """
     if curve is None:
         curve = extinction_curve(observer_pc, **dust)
@@ -259,7 +266,7 @@ def build(observer_pc, limit_mag, edge_pc, *, visit_budget=BLOCK_VISIT_BUDGET, c
             taken.append(tier)
     rings = []
     for low, high in zip(edges[:-1], edges[1:]):
-        radius = reach_pc(RING_TOP_SOL, limit_mag, curve) if low >= 1.0 else ring_reach_pc(low, high, limit_mag, curve, weights=weights)
+        radius = ring_reach_pc(low, high, limit_mag, curve, weights=weights)
         if radius > 0.0:
             cells = cells_in_sphere(radius, edge_pc)
             rings.append(Tier("mass", low, low, high, radius, cells, cells))
