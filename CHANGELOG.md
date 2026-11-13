@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4017] - 2026-11-13
+
+**Headline:** A trace of a minor gas no longer moves a world's temperature by tens of kelvin: its effect now goes with its share.
+
+### Changed
+- **The greenhouse table's trace-gas swings (GEN.1588).** The fitted table (`greenhouse_table.warming`) had no samples between a gas being absent and about a part in a hundred thousand of the air, so it invented a slope there: ten parts per million of HCN added 76 K to Earth's air, a part in a hundred million of ozone 10 K, a trace of helium up to 100 K, and a trace of ammonia or hydrogen took the greenhouse away. A gas other than H2O, CO2, CH4, N2 and O2 that stands under a part in a thousand of the air now counts by its share over that share of what the table gives it in full (the thin-gas limit), and not at all at zero; the answer meets the table at the share. Stand-in IR19 (tier T5, tweak L3) in the gap plan; the better fix, a refit with minor gases from 1e-9 up, is named as its replacement.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4016] - 2026-11-13
 
 **Headline:** a planet or moon is now classed after its latitude bands exist, so the classes that read the hottest and coldest region, the night side and the wet bulb (M, O, H, P and R) can match when a body is built, and a moon is classed after its water is remade at the final age.
