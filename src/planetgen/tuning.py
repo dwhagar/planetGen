@@ -241,6 +241,9 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
+# How well a body must match the class it was given for the class to count as an outcome (GEN.1315): a requested class is met, and a Class M world is counted, only by a body whose stored
+# `class_match` (1 for a full fit, `1 - total / (values * largest cap)` for a fudged one, `class_fit.match_of`) is at least this. Below it the class is shown with its match but is not an outcome.
+CLASS_MATCH_THRESHOLD = 0.5
 # How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
