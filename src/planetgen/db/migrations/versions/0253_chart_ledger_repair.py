@@ -7,8 +7,8 @@ cell it does not hold reads as an uncharted placeholder. A sector that holds a s
 
 from planetgen.db.migrations import helpers
 
-revision = "0247"
-down_revision = "0246"
+revision = "0253"
+down_revision = "0252"
 branch_labels = None
 depends_on = None
 
