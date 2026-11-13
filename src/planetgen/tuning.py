@@ -104,6 +104,12 @@ PLANET_SOLIDS_STELLAR_MASS_EXPONENT = 1.2
 # so that a Sun-like star has about 0.8 planets of 1 to 20 Earth masses inside 0.45 AU and an M dwarf about 1 (Petigura et al.
 # 2018; [R1156]: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
 PLANET_INNER_DISK_STEEPENING = 0.75
+# The terrestrial zone (GEN.1560): from this distance to the star's snow line the solids the oligarchs are built from are this many times the rest of the disk's (`planet_mass.solids_surface_density_gcm2`).
+# `PLANET_DISK_SOLIDS_ENHANCEMENT` is fitted to the giants beyond the snow line; the Kepler systems' extrasolar nebula needs several times the minimum-mass solids at 1 AU ([R0771], recalled),
+# and the giant-impact stage below then merges the oligarchs it builds. A planetGen stand-in (tier T6, tweak L3) fitted with `GIANT_IMPACT_SPACING` to the share of Sun-like stars with an Earth-sized
+# planet in the habitable zone ([R0572]: 0.37 to 0.60 for 0.5 to 1.5 Earth radii).
+PLANET_ROCKY_ZONE_SOLIDS_BOOST = 4.0
+PLANET_ROCKY_ZONE_START_AU = 0.45
 # Beyond this distance the cores of the outer disk have not had time to assemble before the gas and the planetesimals are gone:
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
@@ -146,7 +152,7 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
-# The age, in Gy, at which the luminosity an evolved star's disk saw is read from its track (GEN.1611, `formation_snow_line`): the disk is gone in 3 to 10 Myr
+# The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
@@ -199,6 +205,13 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 # The share of the mass of two oligarchs that collide which stays in the planet; the rest is debris (Pu and Wu 2015 expect a destructive
 # collision at the relative speeds of the compact systems and cannot predict the outcome). A planetGen stand-in (tier T4, tweak L0).
 COLLISION_MASS_RETENTION = 0.9
+# The spacing, in mutual Hill radii of the pair, the planets of the terrestrial zone are left at by the giant-impact stage (`planet_architecture.giant_impacts`, GEN.1560). 0 turns the stage off.
+# N-body runs of protoplanets 10 Hill radii apart end in a few planets, two of them Earth-sized, after 100 Myr [R2431]. A planetGen stand-in (tier T6, tweak L3) fitted with the boost above to [R0572].
+GIANT_IMPACT_SPACING = 25.0
+# The giant-impact stage ends at this distance, AU, or the snow line when that is nearer: protoplanets farther out, round A stars whose snow line lies at 10 AU and more, do not finish merging in the
+# age of the disk (the timescale grows steeply with distance, [R2431]), and merging them pulled the outermost planet in, which moved the outer disk and the debris disks of A stars from 10 to 27 of 40.
+# A planetGen stand-in (tier T6, tweak L3), registry PA17.
+GIANT_IMPACT_END_AU = 3.0
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
 # a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
@@ -305,6 +318,10 @@ ALBEDO_WET_RANGE = (0.25, 0.40)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
 # --- Star System Generation Parameters ---
+BELT_PLANETS_PER_BELT = 10
+"""int: How many of a belt's round members become planets (GEN.1510, Boss 2026-11-10: the heaviest ten of each belt). The rest stay members, with the status `dwarf planet` or `minor body`. A planet
+costs about a tenth of a second to make, so the cap bounds the generation time of a system (about +30 percent at ten, `reports/belt-bodies-as-planets-2026-11-09.md` section 3)."""
+
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
@@ -546,12 +563,15 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
-SECTOR_HILL_SEPARATION_SHARE = 0.5
-"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192). A galactic Hill
-sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
-overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
-sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
-of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
+SECTOR_HILL_SEPARATION_SHARE = 0.05
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192, fitted to Gaia in GEN.1534). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood overlaps them freely:
+in the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, 958 systems within 15 pc, 0.074 systems per cubic parsec) 30 percent of the systems have a neighbour nearer than 1 pc and the
+median nearest neighbour is 1.33 pc, which is what no exclusion at all gives (1.31 pc, 27 percent), while the old half of the sum (1.3 pc between two median systems) forbade every
+neighbour under 1 pc and moved the median to 1.65 pc. `scripts/fit_sector_separation.py` places systems at that density by the galaxy's own rejection and compares the nearest-neighbour
+distribution with the sample's: the Kolmogorov-Smirnov distance is inside the 95 percent band (0.044) for shares up to 0.075, 0.045 at 0.1 and past it from 0.15 (0.086 at 0.2, 0.38 at 0.5).
+0.05 is the middle of the shares the data allow and keeps a mild exclusion; the nearby clustering of real wide pairs and moving groups is not reproduced by any share. Every sector keeps
+every system it is asked for (GEN.1284 found 424 of 424 at the old half, and a smaller share has more room)."""
 
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
@@ -1079,8 +1099,7 @@ RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
 
 RUNAWAY_START_TEMPERATURE_K = 1500.0
 """float: The temperature the air's fixed point starts from for a body with surface water under starlight past its runaway greenhouse limit (GEN.1238), so it
-finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K,
-`surface_air.MAX_SURFACE_TEMPERATURE_K`). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
+finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
 
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the

@@ -93,6 +93,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.36:PA9 | replaced | - | GEN.946 (2026-11-11): lowered to L2; the extra metallicity exponent 2.2 is 3.4 - 1.2 from the two read exponents [R2172, R3499], the period ceiling 10 d is the read hot-Jupiter edge, and the share is tuned to the read 0.62 and 0.27 percent [R1504, R4897]; no hand tuning remains |
 | 6.36:PA10 | no data | - | the inward move of other giants is tuned to the 1 to 3 AU peak of [R0960, R1479]; no survey measures the migration |
 | 6.36:PA11 | no data | - | [R4271] (read) give the planet counts per log mass ratio beyond the snow line down to their sensitivity edge but no floor below it; the lightest oligarch that counts stays tuned to those counts; tier T5, tweak L3 stay |
+| 6.36:PA16 | no data | - | L3, the terrestrial-zone solids boost of 4 and its start at 0.45 AU were tuned to [R0572] 0.37 to 0.60 Earth-sized planets per Sun-like star in the habitable zone (with PA17); no disk-evolution or pebble-flux model of the zone is in hand |
+| 6.36:PA17 | no data | - | L3, the giant-impact spacing of 25 mutual Hill radii and its end at 3 AU were tuned to [R0572] with PA16; no N-body run of the zone's oligarchs is in hand |
 | 6.36:PA14 | no data | - | a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide |
 | 6.40:RD1 | no data | - | no atmosphere of a runaway-greenhouse planet has been measured; TRAPPIST-1 b and c only forbid keeping all of it |
 | 6.40:RD2 | no data | - | no abiotic oxygen air has been detected or ruled out on an M-dwarf habitable-zone planet; Luger and Barnes fix only the possible amount |
@@ -103,7 +105,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.43:BM2 | no data | - | the words dense, sparse and typical are labels for the spread of belt masses at one age; no survey resolves the masses of belts of asteroids, and the factor of 3 is a choice of where the words change |
 | 6.44:MG2 | no data | - | the widths of the axes and the distance past which a body is called none are choices; the collection's spread inside each group is not in the table, which gives averages and ranges only |
 | 6.47:SE4 | replaced | - | the tail now comes from the isotope record of [R4475] (0.0077 events a year at 1e10 cm-2, power law -4 beyond); no longer hand-tuned; the pairing of fluence with peak flux stays McCracken's recalled number (tier T3, tweak L1) |
-| 6.14:SP22 | no data | - | the generator holds no secular frequencies or fossil shapes to give the Cassini-state share of the inclination; a Laplace-Lagrange run of the generated system with the body's gravity field replaces the log-uniform share, which is kept inside Mercury's 0.004 and the bound 1
+| 6.14:SP22 | replaced | - | GEN.1536 and GEN.1556 (2026-11-11): a locked or resonant planet takes its Cassini-state tilt from the nodal modes of its orbit and a fossil or hydrostatic figure, a locked moon from its nodal regression (planet bulge and star) and its figure (OB9 to OB14); the log-uniform share stays only as the early value the settle overwrites; the tilts of the Galilean moons and the Moon check out |
 | 6.51:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |
 | 6.60:GM3 | no data | - | a design default of the multi-star build; no measured limit for a close pair's separation in summed radii is held, and an N-body audit (GEN.1006 section 9) is optional; tier T6 stays |
 | 6.60:GM7 | replace | GEN.1006 | the 3+1 network of [R4575] replaces the margin inside its training range; outside it the margin stays, flagged lower confidence |
@@ -174,9 +176,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
 | 6.129:IT9 | no data | - | no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength |
-| 6.59:CK1 | replace | GEN.1021 | the N2 and Ar trapping shares are tuned to the one comet measured (67P); a second comet's N2 or Ar per water replaces them |
-| 6.59:CK2 | replace | GEN.1021 | the OCS and SO2 trapping shares are tuned to the one comet measured (67P); a second comet's sulfur species replace them |
-| 6.59:CK5 | replace | GEN.1021 | O2, krypton and xenon per water are the 67P values with no host ratio; a second comet's values replace them |
 | 6.136:CC7 | no data | - | no measured viscosity of the lowest mantle at the core-mantle boundary; the Earth's core temperature and inner core size are the only constraint it is tuned to |
 | 6.136:CC9 | no data | - | no measurement of the shell thickness at which a core dynamo dies; Mars and the Earth are the only two points |
 | 6.142:DY7 | no data | - | the core model has the pure-iron liquidus only; no sulfur-bearing melting curve is held, and the first one replaces the stand-in moment of a small iron-rich body |
@@ -190,6 +189,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.185:BPO2 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it |
 | 6.185:BPO3 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it |
 | 6.185:BPO4 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it |
+| 6.183:DM1 | no data | - | no survey of other worlds gives the spread of regional temperature among bodies of one class; the 5 K shoulder is half the shoulder of the mean temperature (CF3) and fades the Earth-like extremes of the families design |
+| 6.183:DM2 | no data | - | no observed world fixes how sharply the 15, 25 and 31 C wet-bulb lines bind a species; the 3 C shoulder is read against the uncompensable limit of 31 C in `species_limits` |
+| 6.183:DM3 | no data | - | no class reads a humidity edge yet, so there is nothing to measure the 0.1 shoulder against; it waits for GEN.1207 |
 | 6.183:DM5 | no data | - | the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md) |
 | 6.183:DM6 | no data | - | no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep |
 | 6.183:DM7 | no data | - | no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened |
@@ -235,7 +237,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.179:NBC22 | no data | - | the graphite share of interstellar carbon grains is not measured; the silicate-graphite-PAH and astrodust models disagree and the middle of their range is taken; any measured graphite fraction replaces it |
 | 6.179:NBC23 | no data | - | no source measures the sputtering or shattering rate of silicon carbide in shocks; it is taken to survive like the silicates until one does |
 | 6.190:CW2 | no data | - | no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses |
-| 6.192:SEP1 | no data | - | L3, hand-tuned against a Hill-sphere packing sweep (125, 27 and 27 sectors at 8,128, 4,000 and 1,500 pc); it goes when a nearest-neighbour distribution from catalogued stars is fitted |
+| 6.192:SEP1 | replaced | - | GEN.1534: the share is now fitted (L2) to the nearest-neighbour distribution of the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, `scripts/fit_sector_separation.py`); it was hand-tuned against a Hill-sphere packing sweep; the form of the rule stays a design choice |
 | 6.189:HC2 | no data | - | L4, a body that fits no class takes the nearest of the ordinary families by the fudge rule with no cap; no survey says what such a body is called, so the family list is fitted to keep the stored class defined |
 | 6.18:LF63 | no data | - | the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them |
 | 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |

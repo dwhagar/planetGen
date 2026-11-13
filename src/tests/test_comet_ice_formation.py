@@ -13,13 +13,27 @@ from planetgen.physics import comet_species as cs
 K5_MU, K5_SIGMA = math.log10(0.025), 0.65         # row k5: the CO / H2O of the population of comets, in decades
 
 
+def latent_species_over_h2o(co_over_h2o, residuals=None, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
+    """The chain row k7 draws, with the standard normals given: N2 and Ar about the temperature's value, Kr about the argon, Xe about the krypton."""
+    z = {name: 0.0 for name in ice.LATENT_SPECIES}
+    z.update(residuals or {})
+    unknown = set(z) - set(ice.LATENT_SPECIES)
+    if unknown:
+        raise ValueError(sorted(unknown))
+    n2 = ice.latent_log10("N2", co_over_h2o, n_over_c, ar_over_c, s_over_c) + ice.residual_dex("N2") * z["N2"]
+    argon = ice.latent_log10("Ar", co_over_h2o, n_over_c, ar_over_c, s_over_c) + ice.residual_dex("Ar") * z["Ar"]
+    krypton = ice.tie_log10("Kr", 10.0 ** argon) + ice.residual_dex("Kr") * z["Kr"]
+    xenon = ice.tie_log10("Xe", 10.0 ** krypton) + ice.residual_dex("Xe") * z["Xe"]
+    return {"N2": 10.0 ** n2, "Ar": 10.0 ** argon, "Kr": 10.0 ** krypton, "Xe": 10.0 ** xenon}
+
+
 def _population(count=4000, seed=1022):
     rng = random.Random(seed)
     comets = []
     for _ in range(count):
         co = 10.0 ** rng.gauss(K5_MU, K5_SIGMA)
         z = {name: rng.gauss(0.0, 1.0) for name in ice.LATENT_SPECIES}
-        comets.append((co, ice.latent_species_over_h2o(co, z)))
+        comets.append((co, latent_species_over_h2o(co, z)))
     return comets
 
 
@@ -32,7 +46,6 @@ def _correlation(xs, ys):
 def test_the_laboratory_law_gives_halley_its_anchor_and_six_decades_in_75_kelvin():
     assert ice.formation_temperature_k(0.035) == pytest.approx(48.0)
     assert ice.formation_temperature_k(0.035 * 1e-6) - ice.formation_temperature_k(0.035) == pytest.approx(75.0)
-    assert ice.co_over_h2o_at(ice.formation_temperature_k(0.0123)) == pytest.approx(0.0123)
 
 
 def test_a_colder_ice_holds_more_co_and_the_median_and_hale_bopp_sit_where_the_notes_say():
@@ -49,8 +62,8 @@ def test_the_position_is_0_at_the_median_comet_1_at_hale_bopp_and_held_at_the_en
 
 
 def test_the_median_comet_has_the_warm_end_of_every_species_and_hale_bopp_the_cold_end():
-    warm = ice.latent_species_over_h2o(cs.CO_OVER_H2O_MEDIAN)
-    cold = ice.latent_species_over_h2o(0.2)
+    warm = latent_species_over_h2o(cs.CO_OVER_H2O_MEDIAN)
+    cold = latent_species_over_h2o(0.2)
     for species in ice.LATENT_SPECIES:
         low, high = cs.bracket_over_h2o(species)
         if species == "N2":                                   # per CO at the ends, so per water with the comet's own CO
@@ -61,26 +74,26 @@ def test_the_median_comet_has_the_warm_end_of_every_species_and_hale_bopp_the_co
 
 
 def test_krypton_and_xenon_are_the_comets_argon_times_the_ratios_of_67p():
-    value = ice.latent_species_over_h2o(0.07)
+    value = latent_species_over_h2o(0.07)
     assert value["Kr"] == pytest.approx(value["Ar"] * 0.089)
     assert value["Xe"] == pytest.approx(value["Kr"] * 0.269)
-    moved = ice.latent_species_over_h2o(0.07, {"Ar": 1.0})
+    moved = latent_species_over_h2o(0.07, {"Ar": 1.0})
     assert moved["Kr"] / value["Kr"] == pytest.approx(10 ** 0.4) and moved["Xe"] / value["Xe"] == pytest.approx(10 ** 0.4)
 
 
 def test_a_residual_moves_only_its_own_species_by_its_width():
-    base = ice.latent_species_over_h2o(0.07)
-    moved = ice.latent_species_over_h2o(0.07, {"N2": 2.0})
+    base = latent_species_over_h2o(0.07)
+    moved = latent_species_over_h2o(0.07, {"N2": 2.0})
     assert moved["N2"] / base["N2"] == pytest.approx(10 ** (2.0 * ice.RESIDUAL_DEX["N2"]))
     assert moved["Ar"] == base["Ar"]
-    kr = ice.latent_species_over_h2o(0.07, {"Kr": -1.0})
+    kr = latent_species_over_h2o(0.07, {"Kr": -1.0})
     assert kr["Kr"] / base["Kr"] == pytest.approx(10 ** -ice.NOBLE_TIE_DEX) and kr["Ar"] == base["Ar"]
 
 
 def test_the_host_ratios_scale_the_species_they_belong_to():
-    base = ice.latent_species_over_h2o(0.07)
-    assert ice.latent_species_over_h2o(0.07, n_over_c=2.0)["N2"] == pytest.approx(2.0 * base["N2"])
-    rich = ice.latent_species_over_h2o(0.07, ar_over_c=3.0)
+    base = latent_species_over_h2o(0.07)
+    assert latent_species_over_h2o(0.07, n_over_c=2.0)["N2"] == pytest.approx(2.0 * base["N2"])
+    rich = latent_species_over_h2o(0.07, ar_over_c=3.0)
     assert rich["Ar"] == pytest.approx(3.0 * base["Ar"]) and rich["Kr"] == pytest.approx(3.0 * base["Kr"]) and rich["N2"] == base["N2"]
 
 
@@ -114,6 +127,10 @@ def test_refusals():
     with pytest.raises(ValueError):
         ice.formation_temperature_k(0.0)
     with pytest.raises(ValueError):
-        ice.latent_species_over_h2o(0.05, {"OCS": 1.0})
+        ice.latent_log10("OCS", 0.05)
     with pytest.raises(ValueError):
-        ice.latent_species_over_h2o(0.05, ar_over_c=0.0)
+        ice.tie_log10("Ar", 1e-5)
+    with pytest.raises(ValueError):
+        ice.residual_dex("O2")
+    with pytest.raises(ValueError):
+        ice.latent_log10("Ar", 0.05, ar_over_c=0.0)

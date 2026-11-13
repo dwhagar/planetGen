@@ -20,6 +20,7 @@ the system.
 
 import dataclasses
 import math
+import re
 
 from planetgen.generation import irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
@@ -36,7 +37,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, belt_planets, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
@@ -470,6 +471,8 @@ class StarSystem:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
 
+        self._promote_belt_members()
+
         self._add_irregular_moons()
 
         # Comets don't participate in the planet-slot retry loop above --
@@ -523,7 +526,8 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
                     continue
-                obj.born_beyond_snow_line = bool(obj.distance >= obj.star.snow_line_au)
+                line = getattr(obj.star, "snow_line_au", None)
+                obj.born_beyond_snow_line = None if line is None else planetPhysics.formed_beyond_snow_line(obj)      # GEN.1596: where it formed (the make-up reads that), not where it orbits now; none for a star with no line
                 for moon in obj.moons:
                     moon.born_beyond_snow_line = obj.born_beyond_snow_line
 
@@ -729,8 +733,13 @@ class StarSystem:
             orbits = []
         offsets = self._offsets_from_host(ledger, kind, number)
         dark = self._dark_sources(ledger)
+        normals = {}
+        if offsets is not None:
+            for member_no, axis, _eccentricity in orbits:
+                if member_no < len(self.stars):
+                    normals[member_no] = self._orbit_normal_about_host(ledger, kind, number, star, member_no, axis, offsets[member_no])
         radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no] if member_no < len(self.stars) else dark[member_no], member_no, axis, eccentricity,
-                                                                None if offsets is None else offsets.get(member_no), dark=member_no >= len(self.stars))
+                                                                None if offsets is None else offsets.get(member_no), normals.get(member_no), dark=member_no >= len(self.stars))
                                       for member_no, axis, eccentricity in orbits if member_no < len(self.stars) or member_no in dark])
 
     def _dark_sources(self, ledger):
@@ -757,11 +766,34 @@ class StarSystem:
                 found[number] = source
         return found
 
-    def _offsets_from_host(self, ledger, kind, number):
-        """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch, AU, in the system's frame (GEN.1458);
+    ORBIT_NORMAL_FRACTION = 0.1
+    """float: The share of a companion's period between the two places its orbit normal is worked from (GEN.1535); 0.1 keeps the two apart by a tenth of an orbit, which an eccentric orbit still crosses in its plane."""
+
+    def _orbit_normal_about_host(self, ledger, kind, number, host, member_no, axis_au, first_offset):
+        """
+        The unit normal `(x, y, z)` of the plane that member `member_no` moves in about `host` (the star of the zone `(kind, number)`), in the system's frame, from its place now (`first_offset`) and a tenth of its period later
+        (`_offsets_from_host` again at that time): the cross product of the two places, taken in the direction of the motion. `None` when the tree gives no places, the period is not known or the two are in line.
+        """
+        total_solar = (self.stars[member_no].mass + host.mass) / constants.SOLAR_MASS_TO_KG
+        if not (axis_au > 0.0 and total_solar > 0.0):
+            return None
+        period_s = math.sqrt(axis_au ** 3 / total_solar) * constants.SECONDS_PER_YEAR
+        later = self._offsets_from_host(ledger, kind, number, epoch_shift_s=self.ORBIT_NORMAL_FRACTION * period_s)
+        if later is None or member_no not in later:
+            return None
+        a, b = first_offset, later[member_no]
+        cross = (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+        length = math.sqrt(sum(c * c for c in cross))
+        scale = math.sqrt(sum(c * c for c in a)) * math.sqrt(sum(c * c for c in b))
+        if not scale > 0.0 or length < 1.0e-6 * scale:
+            return None
+        return tuple(c / length for c in cross)
+
+    def _offsets_from_host(self, ledger, kind, number, epoch_shift_s=0.0):
+        """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch (shifted by `epoch_shift_s` seconds), AU, in the system's frame (GEN.1458);
         the host of a P-type zone is the center of mass of the pair of its node. `None` when the tree cannot give positions."""
         try:
-            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix)
+            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix + epoch_shift_s)
             if kind == planet_zones.P_TYPE:
                 pair = [member for member in ledger.members if member.parent_node_no == number]
                 total = sum(member.mass_solar for member in pair)
@@ -1450,6 +1482,8 @@ class StarSystem:
         the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
         """
         holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
+        if holder.disk_kind not in (None, debris_dust.DEBRIS_KIND):                  # GEN.1550: a young star's own class 0, I or II disk (`pre_main_sequence.draw_disk`) is not this method's to clear
+            return
         holder.disk_kind = holder.disk_mass_solar = holder.disk_inner_au = holder.disk_outer_au = None
         if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
             return
@@ -1470,6 +1504,19 @@ class StarSystem:
         if brightest is not None:
             belt = brightest[1]
             holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
+
+    def _promote_belt_members(self):
+        """
+        The heaviest round members of each belt become planets of their star (GEN.1510, `generation/belt_planets.py`): made by the planet generator from the member, put in the star's planets by
+        distance, and taken out of the belt. It runs once the planets, belts and ages are final, before the irregular moons. A system whose bodies the author named (`SLOTS`, `NUM_ORBITS`) is left as written.
+        """
+        if self.system_config.SLOTS is not None or self.system_config.NUM_ORBITS is not None:
+            return
+        with log.timed_phase("belt planets"):
+            for star, bodies in validation.star_lists(self):
+                if self._too_young_for_planets(star):      # a star under 10 Myr keeps its belts and holds no planets (`_apply_star_history`); a round member of its debris is not one either
+                    continue
+                belt_planets.promote(self, star, bodies)
 
     def _add_irregular_moons(self):
         """
@@ -1628,6 +1675,10 @@ class StarSystem:
         letter = self.system_config.FORCE_CLASS
         return not letter or any(getattr(planet, "planet_class", None) == letter for planet in self.planets)
 
+    def _too_young_for_planets(self, star):
+        """Whether `star` is younger than `tuning.PLANET_MIN_STAR_AGE_GY`, so it holds a debris disk (belts) and no planets, unless the config asks for a class or lists its slots."""
+        return star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY and not self._explicit_request()
+
     def _apply_star_history(self, planets, star):
         """
         Removes, in place, the bodies `star`'s age and history rule out: a
@@ -1641,8 +1692,7 @@ class StarSystem:
         """
         explicit_request = self._explicit_request()
         engulfed_au = self._engulfment_radius_au(star, explicit_request)
-        too_young = (star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY
-                     and not explicit_request)
+        too_young = self._too_young_for_planets(star)
         kept = []
         for body in planets:
             if body.body_type == 'a':
@@ -2286,10 +2336,10 @@ class StarSystem:
         self.secular_outcomes = {}
         for star, planets in validation.star_lists(self):
             bodies = [p for p in planets if p.body_type != 'a']
-            baseline = {tuple(problem) for problem in self._planet_problems(planets)}
+            baseline = {self._problem_key(problem) for problem in self._planet_problems(planets)}
 
             def keeps(group, baseline=baseline):
-                return all(tuple(problem) in baseline for problem in self._planet_problems(group))
+                return all(self._problem_key(problem) in baseline for problem in self._planet_problems(group))
 
             outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
             self.secular_outcomes[star.name] = outcome
@@ -2319,6 +2369,12 @@ class StarSystem:
                     planet.moons.remove(moon)
                     self.kozai_outcomes["lost"] += 1
                     log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
+
+    @staticmethod
+    def _problem_key(problem):
+        """A problem as the secular exchange compares it (GEN.1600): its body and its message with the numbers taken out, because the message quotes distances and a planet that
+        moved a hair would otherwise make a problem the system already had read as a new one, and the exchange would be turned down for it."""
+        return problem.body, re.sub(r"[-+]?\d+(?:\.\d+)?(?:e[-+]?\d+)?", "#", problem.message)
 
     @staticmethod
     def _planet_problems(planets):
@@ -2388,6 +2444,13 @@ class StarSystem:
                     respaced = True
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
+            for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
+                moved = planetPhysics.settle_obliquity(planets, star.mass)
+                if moved:
+                    log.debug(f"{star.name}: {moved} planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances")
+                moon_tilts = planetPhysics.settle_moon_tilts(planets, star.mass)        # GEN.1556: the locked moons' Cassini states, once the planets' tilts are final
+                if moon_tilts:
+                    log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state")
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
