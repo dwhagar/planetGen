@@ -12908,21 +12908,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
   Filed by the TODO thread.
 
-- [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
-- [ ] **OPS.175 Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments)**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, L1). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
-- [ ] **OPS.176 Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
 - [ ] **TEST.729 Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run)**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.

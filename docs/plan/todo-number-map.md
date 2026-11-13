@@ -2971,9 +2971,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |
 | OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | done, PR #6281 |
-| OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | open |
-| OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | open |
-| OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | open |
+| OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | done, PR 6327, 4:44 PM EST 11-13 |
+| OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | done, PR 6328 via 6329, 4:45 PM EST 11-13 |
+| OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | done, PR 6329, 4:45 PM EST 11-13 |
 | OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | open |
 | OPS.178 | CLI validate_sectors_args: the forty pairwise option exclusions become a mode table | none | open |
 | OPS.179 | cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list | none | open |
