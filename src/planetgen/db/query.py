@@ -3905,39 +3905,6 @@ def resolve_object(conn, kind, object_id):
     return found
 
 
-def nebula_shape(conn, nebula_id):
-    """
-    One nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`): the one
-    stored with it (`nebulae.shape_*` and `nebula_shape_balls`), or, for a
-    nebula saved before v56, the one a fresh save would have stored,
-    drawn from its own properties.
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
-        nebula_id (int): `nebulae.id`.
-
-    Returns:
-        tuple: `(row, shape)`: the nebula's row (a dict) and its `NebulaShape`.
-
-    Raises:
-        ValueError: If no such nebula exists.
-    """
-    from planetgen.galaxy import nebula_shape as shapes
-
-    row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
-    if row is None:
-        raise ValueError(f"no such nebula: {nebula_id!r}")
-    row = _with_printed_uid(row)
-    if row.get("shape_scale") is None:
-        return row, shapes.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"],
-                                            row["temperature_k"], row["extinction_av"])
-    balls = conn.execute(
-        "SELECT ball_index, center_x, center_y, center_z, radius FROM nebula_shape_balls"
-        " WHERE nebula_id = ? ORDER BY ball_index", (nebula_id,)).fetchall()
-    return row, shapes.from_columns(row, [tuple(b[k] for k in ("ball_index", "center_x", "center_y", "center_z", "radius"))
-                                          for b in balls])
-
-
 NEBULA_SURROUNDINGS_STARS = 300
 """int: Most bright stars `nebula_surroundings` lists around a nebula."""
 

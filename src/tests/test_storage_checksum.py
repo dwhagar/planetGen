@@ -292,7 +292,6 @@ WRITERS = {
     ("db/store.py", "insert_asteroid_belt"): INSERT,
     ("db/store.py", "insert_comet"): INSERT,
     ("db/store.py", "insert_nebula"): INSERT,
-    ("db/store.py", "_store_nebula_shape"): MARKS,
     ("db/store.py", "insert_supernova_remnant"): INSERT,
     ("db/store.py", "insert_interstellar_comet"): INSERT,
     ("db/store.py", "insert_asteroid_field"): INSERT,

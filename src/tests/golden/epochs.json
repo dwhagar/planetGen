@@ -873,6 +873,13 @@
       "first_release": "8.0.3918",
       "reason": "Train 24 union golden at epoch 146: GEN.1314 GEN.1425 GEN.1498 GEN.1521 (chain push cap, respace after settle, wide-binary ceiling trim) GEN.1523 GEN.1527 GEN.1540 and the rest of the train",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 147,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 25: GEN.1589 air, 1641 belts, 1580 ionization ceiling, Class M edges and fixes, 1546 age floor, 1550 young disks, 1556 Cassini, 1267 nebula, 1201 shape, and the rest of the list",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }

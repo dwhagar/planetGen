@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import albedo_color, climate_branches, climate_draws, cloud_albedo, constants, giant_draw, greenhouse, orbit_elements, surface_air
+from planetgen.physics import albedo_color, atmosphere, climate_branches, climate_draws, cloud_albedo, constants, giant_draw, greenhouse, ionization, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -66,8 +66,8 @@ def test_nothing_is_colder_than_the_background():
 
 def _temperature_of_draws(planet, flux):
     """What the stored albedo and greenhouse quantity give: the starlight alone, `T_e (1 + G)^(1/4)`, for a giant too (its own heat flux radiated with the
-    starlight is inside the stored G, GEN.1030, so the pair reproduces the temperature, GEN.412); the air solve stops at `surface_air.MAX_SURFACE_TEMPERATURE_K`."""
-    return min(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), surface_air.MAX_SURFACE_TEMPERATURE_K)
+    starlight is inside the stored G, GEN.1030, so the pair reproduces the temperature, GEN.412); the air solve stops at the ionization ceiling of its air."""
+    return min(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), ionization.ceiling_of(atmosphere.gas_partials_pa(planet)))
 
 
 @pytest.mark.parametrize("zone", ["h", "e", "c"])
@@ -104,25 +104,27 @@ def test_a_giant_stores_the_pair_that_gives_its_temperature_with_its_own_heat_in
             climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)), rel=TOLERANCE)
 
 
-def test_a_body_held_at_the_surface_temperature_cap_stores_the_greenhouse_that_gives_the_cap(host_star, monkeypatch):
-    """GEN.1236: the fixed point holds a runaway greenhouse at `MAX_SURFACE_TEMPERATURE_K`, and the stored G follows the stored temperature (it kept the
-    uncapped warming's, 107 and 79 on two class N planets, which with the albedo gave 2370 K and 2600 K)."""
+def test_a_body_held_at_the_ionization_ceiling_stores_the_greenhouse_that_gives_the_ceiling(host_star, monkeypatch):
+    """GEN.1236, GEN.1580: the fixed point holds a runaway greenhouse at the ionization ceiling of its air, and the stored G follows the stored temperature (it kept the
+    uncapped warming's, 107 and 79 on two class N planets, which with the albedo gave 2370 K and 2600 K). A body here is an error in the test suite; this test turns that off."""
     import dataclasses
 
     from planetgen.physics import surface_air
 
     real = surface_air.atmosphere_state.greenhouse_warming
     monkeypatch.setattr(surface_air.atmosphere_state, "greenhouse_warming",
-                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0, factor=300.0))
+                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=1.0e6, factor=1.0e6))
+    monkeypatch.delenv("PLANETGEN_CEILING_IS_ERROR")
     with draw.bound(3):
         # inside the runaway flux, so the steam limit of GEN.1329 (`MOIST_LIMIT_K`) does not hold the surface down
         planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, 0.4 * host_star.habitable_zone[0],
                         mass=constants.EARTH_MASS_TO_KG, moon_count=0)
     assert planet.atmospheric_pressure > 0.0
-    assert planet.surface_temperature == pytest.approx(surface_air.MAX_SURFACE_TEMPERATURE_K)
-    assert planet.greenhouse_factor != 300.0
+    ceiling = ionization.ceiling_k(atmosphere.gas_partials_pa(planet))
+    assert planet.surface_temperature == pytest.approx(ceiling)
+    assert planet.greenhouse_factor != 1.0e6
     assert climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)) == pytest.approx(
-        surface_air.MAX_SURFACE_TEMPERATURE_K, rel=TOLERANCE)
+        ceiling, rel=TOLERANCE)
 
 
 def _old_convention_row(albedo, factor, flux, gravity_g, molar_kg_mol=0.029):

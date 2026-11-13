@@ -58,9 +58,14 @@ def venus_twins():
 
 
 def test_a_wet_body_past_the_runaway_limit_holds_its_water_as_steam(venus_twins):
-    wet = [p for p in venus_twins if p.water_mass_fraction > 1.0e-3]
+    # A body whose recipe draws a retention regime with a pressure cap (`surface_air._retention_cap_pa`, rows d1 to d4 of the recipe, GEN.1340) keeps an air under that cap whatever its water,
+    # so it cannot hold its water as steam; which regime a seed draws moves with every change of the draws before it (the nitrogen of GEN.1584 made seed 8 draw d4, 0.1 bar), so the
+    # bodies the test speaks of are the ones no cap holds, and the capped ones are held to their cap.
+    wet = [p for p in venus_twins if p.water_mass_fraction > 1.0e-3 and p._retention_cap_pa is None]
     assert wet, "the sample holds no wet body, so it says nothing"
     assert [p.hydrosphere for p in venus_twins if p.hydrosphere == "surface ocean"] == []
+    for planet in (p for p in venus_twins if p._retention_cap_pa is not None):
+        assert planet.atmospheric_pressure <= planet._retention_cap_pa * (1.0 + 1e-9)
     for planet in wet:
         assert planet.surface_temperature > 550.0, (planet.water_mass_fraction, planet.surface_temperature, planet.atmospheric_pressure)
         assert planet.atmospheric_pressure > 20.0e5
