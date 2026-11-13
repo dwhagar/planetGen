@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.50 |
 | TEST | TEST.739 |
 | USR | USR.33 |
-| OPS | OPS.191 |
+| OPS | OPS.215 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2988,6 +2988,30 @@ Parents marked "new parent" had no old number of their own.
 | OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | open |
 | OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | open |
 | OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | open |
+| OPS.191 | Job engine stage 1: the engine owns the loop (CommandSpec pieces and do; units._do_unit counts pieces into the beat and checks pause and stop between pieces) | none | open |
+| OPS.192 | Job engine stage 1: second-level counts (ctx.step and ctx.advance; a second bar with real numbers and rate on the Queue and Generate pages) | none | open |
+| OPS.193 | Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s) | none | open |
+| OPS.194 | Job engine stage 1: beatjudge gains busy (no count moved but work did); busy is never stopped, only warned with a stack dump past the learned time | none | open |
+| OPS.195 | Job engine stage 1: ctx.sql long-statement helper with label and start time in the beat (MySQL stage events behind a check, off as installed) | none | open |
+| OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | open |
+| OPS.197 | Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives | none | open |
+| OPS.198 | Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity) | none | open |
+| OPS.199 | Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights) | none | open |
+| OPS.200 | Job engine stage 1 family: clears and drops step per statement through ctx.sql (clean-nebula-field, clear-scatter, empty-phenomenon-scatter, drop-phenomenon-indexes, clear-bright-stars, empty-nebula-field) | none | open |
+| OPS.201 | Job engine stage 1 family: stamped walkers move to pieces by id range (rescore-habitability, refill-effect-ledger) | none | open |
+| OPS.202 | Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two | none | open |
+| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | open |
+| OPS.204 | Job engine stage 1 family: checks (the eleven check-* commands, check-math, check-datasets) count tables or checks | none | open |
+| OPS.205 | Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text | none | open |
+| OPS.206 | Job engine stage 1 family: reset-galaxy steps per table group through ctx.sql | none | open |
+| OPS.207 | Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since | none | open |
+| OPS.208 | Job engine stage 2: UnitWatch and Stuck move into the supervisor; wrapper.run and units.follow_stage lose their watch argument | none | open |
+| OPS.209 | Job engine stage 2: only the supervisor starts, sheds and lends workers; web threads, CLI and enqueuers nudge it; host-wide deciding lock and starting counter deleted | none | open |
+| OPS.210 | Job engine stage 2: reconciler each turn and on start (stage done with no next plan gets its opening; running unit with no process is queued again; run whose starter is gone carries on); calls the OPS.186 repair function; holder_is_dead takeover deleted | none | open |
+| OPS.211 | Job engine stage 2: runs start through the supervisor (runline served by it; generate, Generate page and API submit and follow, no longer own); closes OPS.188 | none | open |
+| OPS.212 | Job engine stage 2: supervisor simulator under fake clock and store with kill faults; invariants: a finished stage advances exactly once, a run ends or says why, nothing queued twice | none | open |
+| OPS.213 | Job engine stage 2: kill tests with real Redis and MySQL on the small galaxy (kill starter, supervisor, last unit in conclusion); galaxy must match an undisturbed run | none | open |
+| OPS.214 | Job engine stage 2: supervisor on the Queue page (alive since, last turn, recent actions with reasons in words) | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |

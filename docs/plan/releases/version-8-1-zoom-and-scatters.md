@@ -540,9 +540,33 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.185 | Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter | OPS.184 | Lane 13, 2026-11-13. |
 | OPS.186 | (bug) A finished stage can fail to advance: if the horse running units._end_stage is killed with a retry left, or enqueue_open raises, the retry skips, unit_failed says the run goes on and no opening is queued, so the starter waits for ever | none | Lane 06, 2026-11-13. |
 | OPS.187 | (bug) open_failed has no already-done guard, so an RQ housekeeping failure after a finished cut fails the run | none | Lane 06, 2026-11-13. |
-| OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | held for Boss's job-engine answers, 2026-11-13. |
-| OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | held for Boss's job-engine answers, 2026-11-13. |
-| OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | held for Boss's job-engine answers, 2026-11-13. |
+| OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | stage 2 of the job engine, closed by OPS.211, 2026-11-13. |
+| OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | held for job-engine stage 4, 2026-11-13. |
+| OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | held for job-engine stage 3, 2026-11-13. |
+| OPS.191 | Job engine stage 1: the engine owns the loop (CommandSpec pieces and do; units._do_unit counts pieces into the beat and checks pause and stop between pieces) | none | Lane 13, 2026-11-13. |
+| OPS.192 | Job engine stage 1: second-level counts (ctx.step and ctx.advance; a second bar with real numbers and rate on the Queue and Generate pages) | none | Lane 13, 2026-11-13. |
+| OPS.193 | Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s) | none | Lane 05, 2026-11-13. |
+| OPS.194 | Job engine stage 1: beatjudge gains busy (no count moved but work did); busy is never stopped, only warned with a stack dump past the learned time | none | Lane 05, 2026-11-13. |
+| OPS.195 | Job engine stage 1: ctx.sql long-statement helper with label and start time in the beat (MySQL stage events behind a check, off as installed) | none | Lane 05, 2026-11-13. |
+| OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | Lane 13, 2026-11-13. |
+| OPS.197 | Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives | none | Lane 05, 2026-11-13. |
+| OPS.198 | Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity) | none | Lane 15, 2026-11-13. |
+| OPS.199 | Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights) | none | Lane 13, 2026-11-13. |
+| OPS.200 | Job engine stage 1 family: clears and drops step per statement through ctx.sql (clean-nebula-field, clear-scatter, empty-phenomenon-scatter, drop-phenomenon-indexes, clear-bright-stars, empty-nebula-field) | none | Lane 05, 2026-11-13. |
+| OPS.201 | Job engine stage 1 family: stamped walkers move to pieces by id range (rescore-habitability, refill-effect-ledger) | none | Lane 23, 2026-11-13. |
+| OPS.202 | Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two | none | Lane 15, 2026-11-13. |
+| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | Lane 12, 2026-11-13. |
+| OPS.204 | Job engine stage 1 family: checks (the eleven check-* commands, check-math, check-datasets) count tables or checks | none | Lane 23, 2026-11-13. |
+| OPS.205 | Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text | none | Lane 12, 2026-11-13. |
+| OPS.206 | Job engine stage 1 family: reset-galaxy steps per table group through ctx.sql | none | Lane 05, 2026-11-13. |
+| OPS.207 | Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since | none | Lane 06, 2026-11-13. |
+| OPS.208 | Job engine stage 2: UnitWatch and Stuck move into the supervisor; wrapper.run and units.follow_stage lose their watch argument | none | Lane 06, 2026-11-13. |
+| OPS.209 | Job engine stage 2: only the supervisor starts, sheds and lends workers; web threads, CLI and enqueuers nudge it; host-wide deciding lock and starting counter deleted | none | Lane 06, 2026-11-13. |
+| OPS.210 | Job engine stage 2: reconciler each turn and on start (stage done with no next plan gets its opening; running unit with no process is queued again; run whose starter is gone carries on); calls the OPS.186 repair function; holder_is_dead takeover deleted | none | Lane 06, 2026-11-13. |
+| OPS.211 | Job engine stage 2: runs start through the supervisor (runline served by it; generate, Generate page and API submit and follow, no longer own); closes OPS.188 | none | Lane 06, 2026-11-13. |
+| OPS.212 | Job engine stage 2: supervisor simulator under fake clock and store with kill faults; invariants: a finished stage advances exactly once, a run ends or says why, nothing queued twice | none | Lane 06, 2026-11-13. |
+| OPS.213 | Job engine stage 2: kill tests with real Redis and MySQL on the small galaxy (kill starter, supervisor, last unit in conclusion); galaxy must match an undisturbed run | none | Lane 06, 2026-11-13. |
+| OPS.214 | Job engine stage 2: supervisor on the Queue page (alive since, last turn, recent actions with reasons in words) | none | Lane 06, 2026-11-13. |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | Lane 06, 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
