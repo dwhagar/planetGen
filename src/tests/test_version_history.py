@@ -135,7 +135,7 @@ def test_the_changes_between_two_rows_are_named(control):
     older = generator_battery.running_digest()
     cases = generator_battery.cases_of(older)
     newer = generator_battery.BatteryDigest("f" * 64, {
-        name: generator_battery.CaseDigest("0" * 64 if name == "nebula-shape" else digest, "", "")
+        name: generator_battery.CaseDigest("0" * 64 if name == "nebula-contour" else digest, "", "")
         for name, digest in cases.items()})
     env = version_history.environment()
     version_history.record(control, "galaxy_h", SEED, lock_sha256="1" * 64, epoch=7, env=env, battery=older)
@@ -144,7 +144,7 @@ def test_the_changes_between_two_rows_are_named(control):
     rows = version_history.history(control, "galaxy_h")
     found = version_history.changes(rows[0], rows[1])
     assert found == ["epoch 7 to 8", "lock file", f"numpy {env['numpy']} to 0.0.1",
-                     "battery digest (first case nebula-shape)"]
+                     "battery digest (first case nebula-contour)"]
     assert version_history.changes(rows[1], None) == []
 
 

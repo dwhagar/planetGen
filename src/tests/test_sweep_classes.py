@@ -138,7 +138,7 @@ def test_the_stored_class_is_the_conditions_class_or_the_anomaly_is_known(everyt
 
 @pytest.mark.slow
 def test_each_class_rule_reports_a_body_with_exactly_that_rule_broken(everything):
-    assert sweep.prove_rules_can_fail(rules.RULES, everything) == {rule.name: True for rule in rules.RULES}
+    sweep.assert_every_rule_can_fail(rules.RULES, everything)
 
 
 @pytest.mark.slow

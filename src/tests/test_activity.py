@@ -92,12 +92,8 @@ def test_the_stream_after_a_stars_activity_draws_does_not_depend_on_its_mass():
     assert after[0] == after[1] == after[2]
 
 
-def test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age():
-    """AB1: with the median saturation age of [R2183] the exponents give the `L_X/L_bol` at 5 Gyr the earlier table gave."""
-    earlier = {0.45: 4.43e-5, 0.6: 4.74e-6, 0.8: 6.66e-7, 1.0: 2.96e-7}
-    for mass, ratio in earlier.items():
-        now = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(mass), activity.saturation_age_gy(mass), activity.decay_exponent(mass))
-        assert now == pytest.approx(ratio, rel=0.08), mass
+def test_the_decay_exponent_of_a_solar_mass_star_is_in_the_skumanich_band():
+    """AB1 (TEST.736: the comparison to the retired table went; this is the physics check)."""
     assert 1.35 <= activity.decay_exponent(1.0) <= 1.5  # the Skumanich band
 
 

@@ -13,7 +13,6 @@ from planetgen.generation.phenomena import hosts, registry
 from planetgen.util import draw
 
 ORIGINAL_MILLISECOND_PULSAR_PLANETS = 0.007
-ORIGINAL_ROGUE_MOON = 0.2
 
 
 def host_of(kind):
@@ -53,12 +52,12 @@ def test_a_moon_and_a_small_body_have_host_rows_gated_by_may_host():
 
 
 def test_the_tables_are_registered_and_each_row_says_where_its_weight_comes_from():
-    for name in ("star-count", "remnant-satellites", "planet-satellites", "moon-satellites"):
+    for name in ("star-count", "remnant-satellites", "moon-satellites"):
         table = pt.REGISTRY.get(name)
         assert table is hosts.REGISTRY_TABLES[name]
         for row in table.rows:
             assert row.source and row.state in pt.STATES, (name, row.name)
-    assert "stand-in" in pt.REGISTRY.get("planet-satellites").state_counts()
+    assert "planet-satellites" not in hosts.REGISTRY_TABLES    # a free planet's moons are the moon routine's (GEN.558)
 
 
 def test_the_star_count_table_holds_the_class_weights_and_scales_the_five_or_more_columns():
@@ -96,16 +95,6 @@ def test_the_other_remnants_and_kinds_hold_nothing():
                 "black-hole:supermassive", "comet", "asteroid-field", "brown-dwarf", "rogue-planet"):
         assert not hosts.holds("remnant-satellites", key), key
         assert hosts.chance("remnant-satellites", key) == 0.0
-
-
-def test_a_rogue_planet_keeps_a_moon_exactly_when_the_original_odds_would():
-    for seed in range(30_000):
-        original = draw.Stream(seed).random() < ORIGINAL_ROGUE_MOON
-        rng = draw.Stream(seed)
-        assert hosts.holds_something("planet-satellites", "rogue-planet", rng) == original, seed
-        original_stream = draw.Stream(seed)
-        original_stream.random()
-        assert rng.random() == original_stream.random()
 
 
 def test_the_no_satellites_row_is_the_rest_of_the_chance():
