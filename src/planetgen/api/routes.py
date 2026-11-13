@@ -142,7 +142,7 @@ from planetgen.util import detmath
 from . import ids
 from . import lookup as lookup_module
 from .authz import audit, require_admin
-from .common import ApiError, request_json, require_json_body
+from .common import ApiError, optional_json_body, require_json_body
 from .version import API_VERSION
 from .schemas import (
     BlockGenerateRequest, BodyRename, FacilityCreate, FacilityUpdate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
@@ -307,6 +307,11 @@ def _parse_stars(query_args):
         return parse_star_count(query_args.get("stars"))
     except ValueError as exc:
         raise ApiError(str(exc))
+
+
+def _flag(query_args, name):
+    """Whether a switch query parameter is on: `1`, `true`, `yes` or `on`; anything else, or absent, is off."""
+    return query_args.get(name, "") in ("1", "true", "yes", "on")
 
 
 def _parse_yes_no(raw, name):
@@ -534,7 +539,7 @@ def sectors():
     coverage = request.args.get("coverage") or DEFAULT_SECTOR_COVERAGE
     if coverage not in SECTOR_COVERAGES:
         raise ApiError(f"coverage must be one of {', '.join(SECTOR_COVERAGES)}, got {coverage!r}")
-    show_empty = request.args.get("empty") in ("1", "true", "yes", "on")
+    show_empty = _flag(request.args, "empty")
     sort = None
     descending = False
     if request.args.get("sort") or request.args.get("order"):
@@ -588,6 +593,17 @@ def sector_detail(sector_id):
     return jsonify(detail)
 
 
+def _sector_row(raw, message, missing=0):
+    """The row id of the sector a printed ID names, `missing` (0: no sector has it) when there is none; a 400 with
+    `message` (`{raw}` is the text) for text that is not a sector ID."""
+    try:
+        ids.parse(ids.SECTOR, raw)
+    except ids.IdError:
+        raise ApiError(message.format(raw=raw))
+    found = ids.row_id(get_db(), ids.SECTOR, raw)
+    return missing if found is None else found
+
+
 def _parse_sector_id_filter(raw_sector_id):
     """
     Parses the `sector_id` query parameter `/api/systems` accepts: a
@@ -602,12 +618,7 @@ def _parse_sector_id_filter(raw_sector_id):
         return None
     if raw_sector_id.strip().lower() == "none":
         return NO_SECTOR
-    try:
-        ids.parse(ids.SECTOR, raw_sector_id)
-    except ids.IdError:
-        raise ApiError(f"sector_id must be a sector ID or 'none', got {raw_sector_id!r}")
-    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
-    return 0 if found is None else found  # a sector that is not there holds no systems
+    return _sector_row(raw_sector_id, "sector_id must be a sector ID or 'none', got {raw!r}")  # a sector that is not there holds no systems
 
 
 MAX_START_LENGTH = 80
@@ -1004,12 +1015,9 @@ def _float_arg(query_args, name):
     """A required finite number from the query string; anything else is an `ApiError`."""
     raw = query_args.get(name)
     try:
-        value = float(raw)
+        return finite_float(raw)
     except (TypeError, ValueError):
-        raise ApiError(f"{name} must be a number, got {raw!r}")
-    if value != value or value in (float("inf"), float("-inf")):
         raise ApiError(f"{name} must be a finite number, got {raw!r}")
-    return value
 
 
 def _nav_ref_param(query_args, name):
@@ -1100,8 +1108,8 @@ def nav():
     to_ref = _nav_ref_param(request.args, "to")
 
     stay_minutes = _nav_stay_param(request.args)
-    with_graph = request.args.get("graph", "") in ("1", "true", "yes", "on")
-    with_adjusted = request.args.get("adjusted", "") in ("1", "true", "yes", "on")
+    with_graph = _flag(request.args, "graph")
+    with_adjusted = _flag(request.args, "adjusted")
     try:
         result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=with_adjusted)
     except ValueError as exc:
@@ -1147,7 +1155,7 @@ def nav_chart():
     """
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
-    border = request.args.get("border", "") in ("1", "true", "yes", "on")
+    border = _flag(request.args, "border")
     try:
         plan = nav_chart_plan(get_db(), from_ref, to_ref, border=border)
     except ValueError as exc:
@@ -1332,13 +1340,18 @@ def superbubble_of(conn, detail):
             "center_distance_pc": round(detmath.dist(bubble.center_pc, center), 1)}
 
 
+def _address_of(detail):
+    """The `(shell, band, wedge)` a sector's row names (`None`s for a sector off the grid)."""
+    return (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+
+
 def scatter_tier_of(conn, detail):
     """
     The tier of the sector's band and the limits the galaxy scatter drew its stars at there (GEN.333): `{"tier",
     "min_luminosity_sol", "mass_limit_sol"}` (`mass_limit_sol` `None` when the scatter had no mass pass), or `None`
     for a sector outside the galaxy or before any scatter ran.
     """
-    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    address = _address_of(detail)
     if not detail.get("placed") or None in address:
         return None
     limits = store.scatter_limits_of(conn)
@@ -1357,7 +1370,7 @@ def unresolved_of(conn, detail):
     "expected_systems", "unresolved_systems", "unresolved_mass_solar"}`, worked out from the address.
     """
     skeleton = get_galaxy_shape(conn)
-    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    address = _address_of(detail)
     if skeleton is None or not detail.get("placed") or None in address:
         return None
     found = cell_resolution(sector_profile(address, skeleton), skeleton.cell_star_ceiling,
@@ -1389,7 +1402,7 @@ def _cell_query_address(skeleton):
         except ValueError:
             raise ApiError(f"{name} must be a number")
 
-    edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
+    edge_pc = _edge_pc_of(skeleton)
     shell, band, wedge = number("shell", int), number("band", int), number("wedge", int)
     x, y, z = number("x", float), number("y", float), number("z", float)
     # An address astronomically far out overflows the float geometry
@@ -1406,6 +1419,12 @@ def _cell_query_address(skeleton):
     if address[0] < 0:
         raise ApiError("shell must be >= 0")
     return address, edge_pc
+
+
+def _in_galaxy(conn, address):
+    """Whether the cell at `address` lies inside the planned galaxy's stored outline; `None` before any plan."""
+    bounds = get_galaxy_bounds(conn)
+    return bounds.qualifies(address[0], address[1]) if bounds is not None else None
 
 
 @bp.route("/galaxy/cell")
@@ -1431,8 +1450,7 @@ def galaxy_cell():
         raise ApiError(str(err))
     cell["edge_pc"] = edge_pc
     cell["sector_id"] = get_sector_id_at(conn, *address)
-    bounds = get_galaxy_bounds(conn)
-    cell["in_galaxy"] = bounds.qualifies(address[0], address[1]) if bounds is not None else None
+    cell["in_galaxy"] = _in_galaxy(conn, address)
     return jsonify(cell)
 
 
@@ -1461,8 +1479,7 @@ def galaxy_profile():
         raise ApiError(str(err))
     body = profile_report(profile)
     body["sector_id"] = get_sector_id_at(conn, *address)
-    bounds = get_galaxy_bounds(conn)
-    body["in_galaxy"] = bounds.qualifies(address[0], address[1]) if bounds is not None else None
+    body["in_galaxy"] = _in_galaxy(conn, address)
     body["unresolved"] = unresolved_of(conn, {"placed": True, "shell_index": address[0], "band_index": address[1],
                                               "wedge_index": address[2]})
     resolution = cell_resolution(profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
@@ -1490,6 +1507,12 @@ def galaxy_nodes_route():
         raise ApiError(str(exc))
 
 
+def _volume_answer(packed, **head):
+    """A packed nebula volume (`galaxy.nebula_volume.pack`) as a route's answer: `head`, then `format`, `level`, `count` and the base64 `data`."""
+    return {**head, "format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+            "data": base64.b64encode(packed).decode("ascii")}
+
+
 @bp.route("/galaxy/nebula-volume")
 def galaxy_nebula_volume_route():
     """
@@ -1503,9 +1526,7 @@ def galaxy_nebula_volume_route():
         packed = nebula_volumes.group_volume(get_db(), key)
     except ValueError as exc:
         raise ApiError(str(exc))
-    count = int.from_bytes(packed[6:10], "little")
-    return jsonify({"key": key, "format": "NVOL1", "level": packed[5], "count": count,
-                    "data": base64.b64encode(packed).decode("ascii")})
+    return jsonify(_volume_answer(packed, key=key))
 
 
 @bp.route("/galaxy/cloud-volume")
@@ -1522,8 +1543,7 @@ def galaxy_cloud_volume_route():
         packed = nebula_volumes.sphere_volume(get_db(), center, radius, request.args.get("family") or "")
     except ValueError as exc:
         raise ApiError(str(exc))
-    count = int.from_bytes(packed[6:10], "little")
-    return jsonify({"format": "NVOL1", "level": packed[5], "count": count, "data": base64.b64encode(packed).decode("ascii")})
+    return jsonify(_volume_answer(packed))
 
 
 @bp.route("/galaxy/locate")
@@ -1680,12 +1700,7 @@ def _object_list_sector(raw_sector_id):
     absent; 0 (no sector has it) for a sector that is not there."""
     if not raw_sector_id:
         return None
-    try:
-        ids.parse(ids.SECTOR, raw_sector_id)
-    except ids.IdError:
-        raise ApiError(f"sector_id must be a sector ID, got {raw_sector_id!r}")
-    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
-    return 0 if found is None else found
+    return _sector_row(raw_sector_id, "sector_id must be a sector ID, got {raw!r}")
 
 
 @bp.route("/object-lists/<kind>")
@@ -2002,10 +2017,7 @@ def object_ref_route(ref):
     `db.query.resolve_object` and docs/reference/api.md.
     """
     try:
-        resolved = ids.resolve_ref(get_db(), ref)
-        if resolved is None:
-            raise ValueError(f"nothing has the ID {ref}")
-        kind, object_id = object_ref.parse(resolved)
+        kind, object_id = _body_of(ref)
         found = resolve_object(get_db(), kind, object_id)
         found["region"] = region_of(get_db(), found["positions"]["galaxy_pc"])
         found["oddities"] = oddities_of(get_db(), kind, object_id)
@@ -2149,10 +2161,7 @@ def object_children_route(ref):
     404 for a reference that names nothing, 400 for a bad `limit` or `after`.
     """
     try:
-        resolved = ids.resolve_ref(get_db(), ref)
-        if resolved is None:
-            raise ValueError(f"nothing has the ID {ref}")
-        kind, object_id = object_ref.parse(resolved)
+        kind, object_id = _body_of(ref)
         limit = _int_arg(request.args, "limit", children_db.DEFAULT_LIMIT)
         return jsonify(children_db.children(get_db(), kind, object_id, limit, request.args.get("after") or None))
     except children_db.PageError as exc:
@@ -2172,9 +2181,7 @@ def nebula_volume_route(nebula_id):
         packed = nebula_volumes.single_nebula_volume(get_db(), nebula_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
-    count = int.from_bytes(packed[6:10], "little")
-    return jsonify({"id": nebula_id, "format": "NVOL1", "level": packed[5], "count": count,
-                    "data": base64.b64encode(packed).decode("ascii")})
+    return jsonify(_volume_answer(packed, id=nebula_id))
 
 
 @bp.route("/nebulae/<uid:nebula_id>/surroundings")
@@ -2247,7 +2254,7 @@ def search():
     sector_coverage = args.get("sector_coverage") or DEFAULT_SECTOR_COVERAGE
     if sector_coverage not in SECTOR_COVERAGES:
         raise ApiError(f"sector_coverage must be one of {', '.join(SECTOR_COVERAGES)}, got {sector_coverage!r}")
-    sector_scope = (sector_coverage, args.get("sector_empty") in ("1", "true", "yes", "on"))
+    sector_scope = (sector_coverage, _flag(args, "sector_empty"))
     texts = {
         key: (args.get(key) or "").strip()
         for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q")
@@ -2438,12 +2445,7 @@ def generate_sector_neighborhood_route(sector_id):
     can't hold (over a quarter of it, or under 5 GB left) is refused with
     507 and nothing written; a radius holding more than 2 million sectors
     (`run_common.WEB_ENUMERATION_LIMIT`, PERF.36) is refused with 413."""
-    body = request_json()
-    if body is None:
-        body = {}
-    if not isinstance(body, dict):
-        raise ApiError("request body must be a JSON object")
-    request_body = parse_body(NeighborhoodRequest, body)
+    request_body = parse_body(NeighborhoodRequest, optional_json_body())
     radius_ly, estimate_only = request_body.radius_ly, request_body.estimate_only
     disregard = request_body.disregard_missing_data
 
@@ -2470,12 +2472,7 @@ def generate_block_route(key):
     `estimate` without writing anything. A key that names no block is refused with 400, a block holding more than
     2 million sectors (`run_common.WEB_ENUMERATION_LIMIT`) with 413, a galaxy never planned with 409, and a run the
     database disk can't hold with 507."""
-    body = request_json()
-    if body is None:
-        body = {}
-    if not isinstance(body, dict):
-        raise ApiError("request body must be a JSON object")
-    request_body = parse_body(BlockGenerateRequest, body)
+    request_body = parse_body(BlockGenerateRequest, optional_json_body())
     estimate_only, disregard = request_body.estimate_only, request_body.disregard_missing_data
     try:
         block = drill.parse_stage_key(key)
@@ -2658,11 +2655,7 @@ def create_system():
     body = given(parse_body(SystemCreate, require_json_body()))
     sector_id, position = body.pop("sector_id", None), body.pop("position", None)
     if sector_id is not None:
-        try:
-            ids.parse(ids.SECTOR, sector_id)
-        except ids.IdError:
-            raise ApiError(f"sector_id must be a sector ID, got {sector_id!r}")
-        found = ids.row_id(get_db(), ids.SECTOR, sector_id)
+        found = _sector_row(sector_id, "sector_id must be a sector ID, got {raw!r}", missing=None)
         if found is None:
             raise ApiError(f"no sector with ID {sector_id}", 404)
         sector_id = found
@@ -2994,6 +2987,19 @@ def sector_gravity(sector_id):
     return accepted(job_id)
 
 
+def _cell_args():
+    """The `(shell, band, wedge)` the query names, each a whole number; anything else is a 400."""
+    try:
+        return tuple(int(request.args[key]) for key in ("shell", "band", "wedge"))
+    except (KeyError, ValueError):
+        raise ApiError("'shell', 'band' and 'wedge' must be integers")
+
+
+def _edge_pc_of(skeleton):
+    """The sector edge of the stored skeleton, else the standard one (`tuning.DEFAULT_SECTOR_EDGE_PC`)."""
+    return skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
+
+
 @bp.route("/galaxy/bright-stars")
 def galaxy_bright_stars_in_cell():
     """`GET /api/galaxy/bright-stars?shell=&band=&wedge=[&all=1]` -- the
@@ -3001,10 +3007,7 @@ def galaxy_bright_stars_in_cell():
     (`db.query.bright_stars_in_sector`): only those not yet built into a
     system unless `all=1`. `{"items": []}` when no scatter has run (or
     the database predates them)."""
-    try:
-        shell, band, wedge = (int(request.args[key]) for key in ("shell", "band", "wedge"))
-    except (KeyError, ValueError):
-        raise ApiError("'shell', 'band' and 'wedge' must be integers")
+    shell, band, wedge = _cell_args()
     unfilled_only = request.args.get("all") not in ("1", "true")
     try:
         items = bright_stars_in_sector(get_db(), shell, band, wedge, unfilled_only=unfilled_only)
@@ -3022,15 +3025,12 @@ def galaxy_uncharted_sector():
     waiting bright stars, `db.query.bright_stars_in_sector`) and `scattered`
     (its unbuilt scattered phenomena, `db.query.uncharted_sector_contents`).
     A cell outside the grid is a 400."""
-    try:
-        shell, band, wedge = (int(request.args[key]) for key in ("shell", "band", "wedge"))
-    except (KeyError, ValueError):
-        raise ApiError("'shell', 'band' and 'wedge' must be integers")
+    shell, band, wedge = _cell_args()
     if shell < 0:
         raise ApiError("shell must be >= 0")
     conn = get_db()
     skeleton = get_galaxy_shape(conn, light=True)
-    edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
+    edge_pc = _edge_pc_of(skeleton)
     try:
         cell = describe_sector_cell(shell, band, wedge, edge_pc)
     except OverflowError:

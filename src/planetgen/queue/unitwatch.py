@@ -115,11 +115,7 @@ class UnitWatch:
             self._to_error_log(f"run {self.run_id} stage {self.stage}: {message}", unit)
 
     def _to_error_log(self, message, unit):
-        if self.record_error is not None:
-            self.record_error(message, unit=unit)
-            return
-        from planetgen.util import log
-        log.record_error("queue", message, unit=unit)
+        unitstuck.to_error_log(self.record_error, message, unit)
 
     def _stored_rate(self):
         """The items a second recorded for this stage's command (`rate_of`), `None` where there is none."""
@@ -138,8 +134,9 @@ class UnitWatch:
         stale = {int(unit) for unit in self.conn.hkeys(key)} - set(verdicts)
         if stale:
             pipe.hdel(key, *sorted(stale))
+        agreed = set(self.agreed())
         for unit, verdict in verdicts.items():
-            pipe.hset(key, unit, json.dumps(view(verdict, found[unit], now, unit in self.agreed(), stored_rate)))
+            pipe.hset(key, unit, json.dumps(view(verdict, found[unit], now, unit in agreed, stored_rate)))
         pipe.execute()
 
 

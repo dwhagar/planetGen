@@ -48,7 +48,7 @@ G_PC_KMS2_PER_MSUN = constants.G * unit_registry.converter("Msun", "kg")(1.0) / 
 """float: The gravitational constant in pc (km/s)^2 per solar mass (4.3009e-3)."""
 ACCELERATION_TO_SI = 1.0e6 / constants.PARSEC_M
 """float: One (km/s)^2 per pc in m/s^2."""
-KMS_TO_PC_PER_MYR = 1.0e3 * 365.25 * 86400.0 * 1.0e6 / constants.PARSEC_M
+KMS_TO_PC_PER_MYR = 1.0e3 * constants.SECONDS_PER_MYR / constants.PARSEC_M
 """float: One km/s in pc per Myr (1.0227)."""
 BLACK_HOLE_SOFTENING_PC = 1.0
 """float: The Plummer softening of the central black hole, parsecs; the only softened part of the potential (GEN.338)."""

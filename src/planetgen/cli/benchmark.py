@@ -204,6 +204,16 @@ def stages_of_runs(conn, database):
     return stages
 
 
+def connection_args(config, database):
+    """The `--mysql-*` options that point a `planetgen.cli.generate` child at `database` on `config`'s server."""
+    return ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
+            "--mysql-database", database]
+
+
+GENERATE = [sys.executable, "-m", "planetgen.cli.generate"]
+"""list: How a child `planetgen.cli.generate` is started."""
+
+
 def _profile(config, control, args, workdir):
     """One single-worker fill under cProfile, in a database of its own; returns `(seconds, [(cumulative, calls,
     function)])` for the project's own functions."""
@@ -213,11 +223,9 @@ def _profile(config, control, args, workdir):
         cur.execute(f"CREATE DATABASE `{database}`")
     try:
         env = _child_env(config, control, 1)
-        base = [sys.executable, "-m", "planetgen.cli.generate"]
-        conn_args = ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
-                     "--mysql-database", database]
+        conn_args = connection_args(config, database)
         for command in _plan_commands(args):
-            _run(base + command + conn_args, env, "the plan")
+            _run(GENERATE + command + conn_args, env, "the plan")
         out = os.path.join(workdir, "fill.prof")
         seconds = _run([sys.executable, "-m", "cProfile", "-o", out, "-m", "planetgen.cli.generate",
                         *_fill_args(args), *conn_args], env, "the profiled fill")
@@ -269,12 +277,10 @@ def run_benchmark(args):
                 cur.execute(f"CREATE DATABASE `{database}`")
             scratch.append(database)
             env = _child_env(config, control, workers)
-            conn_args = ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
-                         "--mysql-database", database]
-            base = [sys.executable, "-m", "planetgen.cli.generate"]
+            conn_args = connection_args(config, database)
             before = _status(admin)
-            plan_seconds = sum(_run(base + command + conn_args, env, "the plan") for command in _plan_commands(args))
-            fill_seconds = _run(base + _fill_args(args) + conn_args, env, "the fill")
+            plan_seconds = sum(_run(GENERATE + command + conn_args, env, "the plan") for command in _plan_commands(args))
+            fill_seconds = _run(GENERATE + _fill_args(args) + conn_args, env, "the fill")
             after = _status(admin)
             total = plan_seconds + fill_seconds
             results.append({

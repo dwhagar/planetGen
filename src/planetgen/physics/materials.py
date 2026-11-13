@@ -30,7 +30,8 @@ the code `N` (not reached); none is kept from memory.
 Units: densities in g/cm3 (`rho_grain_g_cm3`, the grain density at ambient conditions, solids at room temperature), temperatures
 in K, pressures in bar, latent heats in kJ/mol and kJ/kg, interaction length in g/cm2, albedo as a fraction, Mohs hardness on its
 scale of 1 to 10 (`mohs`: the middle of the range the source prints, the range itself as `measured_range`), molar mass in kg/mol
-(computed here from `physics.elements`). A mineral row also names its crystal system (`crystal_system`) and its color (`color`, the\nsource's words). An equation of state states its own units in the names of its constants (`rho0_kg_m3`,
+(computed here from `physics.elements`). A mineral row also names its crystal system (`crystal_system`) and its color (`color`, the
+source's words). An equation of state states its own units in the names of its constants (`rho0_kg_m3`,
 `k0_gpa`).
 
 Use:

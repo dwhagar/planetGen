@@ -943,7 +943,7 @@ BLACK_HOLE_MAP_BRIGHTNESS = 0.8
 MASSLESS_MARKER_MASS_SOL = 1.0
 # The Sun's effective temperature (IAU 2015 nominal), anchoring
 # Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
-SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
+SUN_EFFECTIVE_TEMPERATURE_K = _physical_constants.SOLAR_TEMPERATURE_K
 
 # White dwarfs: final mass from the initial-final mass relation of
 # [R0961], ApJ 866:21 [R0961], the MIST-based fit, equations 4 to 6, read; luminosity from Mestel

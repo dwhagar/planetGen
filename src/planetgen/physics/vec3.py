@@ -33,3 +33,8 @@ def unit(a):
 def scale(a, k):
     """`a` times the scalar `k`."""
     return (a[0] * k, a[1] * k, a[2] * k)
+
+
+def add(a, b):
+    """The sum `a + b`."""
+    return (a[0] + b[0], a[1] + b[1], a[2] + b[2])

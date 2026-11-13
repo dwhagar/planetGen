@@ -2436,6 +2436,9 @@ def _center_distance_ly(row):
     )
 
 
+_FACILITY_HOST_COLUMNS = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
+                          "asteroid_field": "asteroid_field_id", "space": "sector_id"}
+"""dict: A facility's `host_type` -> the column of `facilities` that names its host."""
 _FACILITY_SELECT = """
     SELECT f.*,
            COALESCE(st.name, p.name, m.name, af.name, sec.name) AS host_name,
@@ -2459,9 +2462,7 @@ def _facility_dict(row):
         "orbit_distance_km", "orbit_period_years", "orbital_speed_kms", "orbit_phase_deg", "description",
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "host_name",
     )}
-    host_columns = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
-                    "asteroid_field": "asteroid_field_id", "space": "sector_id"}
-    facility["host_id"] = row[host_columns[row["host_type"]]]
+    facility["host_id"] = row[_FACILITY_HOST_COLUMNS[row["host_type"]]]
     for key in ("type_id", "type_name", "type_icon", "affiliation_polity_id", "affiliation_name"):
         facility[key] = row[key]
     facility.update(facility_ratings.describe(row))
@@ -3031,6 +3032,11 @@ def parse_scatter_start(text):
     return number
 
 
+def _scatter_class_clauses(classes):
+    """`(sql, params)` picking the `phenomenon_scatter` rows of the scattered `classes` (`_scattered_classes`): one
+    `(kind, subtype)` term each, joined with OR."""
+    return (" OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes),
+            [value for entry in classes for value in (entry["kind"], entry["subtype"])])
 def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=False):
     """`limit` unbuilt scatter rows from `offset` among the `classes`, in id order, shaped like the Phenomena rows
     (`scattered` True, named "Uncharted <kind> <shell>.<band>.<wedge>"). With `after` (a scatter row id) the page
@@ -3039,17 +3045,14 @@ def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=F
     if not classes:
         return []
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
-    clauses, params = [], []
-    for entry in classes:
-        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
-        params.extend([entry["kind"], entry["subtype"]])
+    class_sql, params = _scatter_class_clauses(classes)
     later = ""
     if first is not None:
         later, params = "id >= ? AND ", [first] + params
     if after is not None:
         later, params, offset = "id > ? AND " + later, [after] + params, 0
     query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index,"
-             f" member_count, system_mass_solar, uid FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) "
+             f" member_count, system_mass_solar, uid FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({class_sql}) "
              f"ORDER BY id{' DESC' if last else ''}")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
@@ -3481,9 +3484,8 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None, start=None):
             classes = _scattered_classes(c, types, descriptors, placed)
             if not classes:
                 return 0
-            clauses = " OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes)
-            marks = [value for entry in classes for value in (entry["kind"], entry["subtype"])]
-            return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({clauses})",
+            class_sql, marks = _scatter_class_clauses(classes)
+            return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({class_sql})",
                              [first] + marks).fetchone()["n"]
 
         return _counted(conn, ["count_phenomena", list(types), list(descriptors), placed, first], exact_tail,
@@ -3775,8 +3777,7 @@ def resolve_object(conn, kind, object_id):
                   "name, host_type, star_system_id, star_id, planet_id, moon_id, asteroid_belt_id, asteroid_field_id, "
                   "sector_id, center_x_pc, center_y_pc, center_z_pc")
         name = row["name"]
-        host_column = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
-                       "asteroid_field": "asteroid_field_id", "space": "sector_id"}[row["host_type"]]
+        host_column = _FACILITY_HOST_COLUMNS[row["host_type"]]
         if row["star_system_id"] is not None:
             parents, positions = system_parents_and_positions(row["star_system_id"])
             host_kind, host_table = {"star": ("star", "stars"), "planet": ("planet", "planets"), "moon": ("moon", "moons"),
@@ -4185,8 +4186,6 @@ def nearest_systems(conn, object_table, object_ids):
     return found
 
 
-_PHENOMENON_TYPE_TABLES = {type_label: table for table, type_label, _descriptor, _radius in _PHENOMENON_TABLES}
-"""dict: `_PHENOMENON_TABLES`' type label -> table."""
 
 
 def _sector_reach_pc(sector, edge_pc):
@@ -4319,7 +4318,7 @@ def phenomena_near_sector(conn, sector_id):
     for match in matches:
         by_type.setdefault(match["type"], []).append(match["id"])
     for kind, ids in by_type.items():
-        stored = nearest_systems(conn, _PHENOMENON_TYPE_TABLES[kind], ids)
+        stored = nearest_systems(conn, _PHENOMENON_TYPE_TO_TABLE[kind], ids)
         for match in matches:
             if match["type"] == kind:
                 match["nearest"] = stored.get(match["id"], [])
@@ -7458,10 +7457,9 @@ def _search_phenomenon_class_label(type_label, value):
 
 def _search_facet_phenomenon_class(conn):
     options = []
-    tables = dict((type_label, table) for table, type_label in _search_phenomenon_tables())
     for type_label, column in _SEARCH_PHENOMENON_CLASS_COLUMNS.items():
         counts = {row["v"]: row["c"] for row in conn.execute(
-            f"SELECT {column} AS v, COUNT(*) AS c FROM {tables[type_label]} GROUP BY v ORDER BY v").fetchall()}
+            f"SELECT {column} AS v, COUNT(*) AS c FROM {_PHENOMENON_TYPE_TO_TABLE[type_label]} GROUP BY v ORDER BY v").fetchall()}
         if type_label == "nebula":      # MAP.400: the field clouds no sector has stored are nebulae of class M and N
             for row in conn.execute("SELECT nebula_class AS v, COUNT(*) AS c FROM nebula_field WHERE is_stored = 0"
                                     " GROUP BY v").fetchall():

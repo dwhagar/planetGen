@@ -8,12 +8,12 @@ and orbit about the planet, and a page per body with its picture, orbit and the 
 
 from flask import abort
 
-from planetgen.galaxy import objectref, object_uid
+from planetgen.galaxy import object_uid
 from planetgen.web.lib import apiclient, bodyview
 
 from . import bp
 from .helpers import crumb, db_name, page_url, render_page
-from .item_pages import _crumbs, item_url
+from .item_pages import item_url, linked_crumbs
 
 WINDOW_WORDS = {"gas": "the gas of the planet's disk", "encounter": "a close encounter between giants", "exchange": "an exchange with a binary"}
 """dict: The capture window (`captured_composition.WINDOWS`) in the words the page uses."""
@@ -30,13 +30,7 @@ def irregular_moon_url(planet_ref, rank):
 
 
 def _planet_ref(planet_ref):
-    try:
-        kind, printed_id = objectref.parse_public(planet_ref)
-    except ValueError:
-        abort(404)
-    if kind != "planet":
-        abort(404)
-    return f"planet:{printed_id}"
+    return bodyview.page_ref(planet_ref, "planet")[0]
 
 
 @bp.route("/object/<planet_ref>/irregular-moons")
@@ -49,8 +43,7 @@ def irregular_moons_page(planet_ref):
     except apiclient.NotFoundError:
         abort(404)
     name = found["name"]
-    crumbs = _crumbs(found, name)
-    crumbs[-1] = {"label": name, "url": item_url(ref)}
+    crumbs = linked_crumbs(found, name, ref)
     crumbs.append(crumb("Irregular moons"))
     return render_page(
         "irregular_moons.html",
@@ -70,19 +63,15 @@ def irregular_moons_page(planet_ref):
 @bp.route("/object/<planet_ref>/irregular/<rank>")
 def irregular_moon_page(planet_ref, rank):
     """One irregular moon of a planet; a reference that is not a planet, a rank the planet does not keep or one written otherwise than a designation writes it is a 404."""
-    ref, db = _planet_ref(planet_ref), db_name()
-    try:
-        object_uid.parse_rank(rank)
-    except ValueError:
-        abort(404)
+    ref, _printed_id = bodyview.member_page_ref(planet_ref, rank, "planet")
+    db = db_name()
     try:
         found = apiclient.get_object(db, ref)
         data = apiclient.get_irregular_moon(db, ref, rank)
     except apiclient.NotFoundError:
         abort(404)
     name = found["name"]
-    crumbs = _crumbs(found, name)
-    crumbs[-1] = {"label": name, "url": item_url(ref)}
+    crumbs = linked_crumbs(found, name, ref)
     crumbs.append(crumb("Irregular moons", "irregular_moons_page", planet_ref=ref))
     crumbs.append(crumb(data["designation"]))
     moon = data["moon"]

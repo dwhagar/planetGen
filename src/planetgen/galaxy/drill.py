@@ -163,8 +163,7 @@ def _parent_band(m, shell, band):
     """The signed row of the parent block shell holding row `band`."""
     count = drill_band_count(m, shell)
     parent_count = drill_band_count(m * DRILL_STEP, shell // DRILL_STEP)
-    row = (count - 1) // 2 - band
-    parent_row = row // (count // parent_count)
+    parent_row = _row_of(m, shell, band) // (count // parent_count)
     return (parent_count - 1) // 2 - parent_row
 
 
@@ -388,8 +387,7 @@ def parse_drill_key(key):
         ValueError: On anything else.
     """
     m, shell, band, wedge = block_key_parts(key)
-    if m not in DRILL_LEVELS[:-1]:
-        raise ValueError(f"block size must be one of {DRILL_LEVELS[:-1]}, got {m}")
+    _check_level(m)
     if shell < 0:
         raise ValueError(f"no such block: {key!r}")
     rows = drill_band_count(m, shell)

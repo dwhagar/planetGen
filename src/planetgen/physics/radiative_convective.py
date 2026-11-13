@@ -155,50 +155,58 @@ class Solution:
 
 # ---- water and heat capacity ----
 
-@functools.lru_cache(maxsize=1)
-def _water_curve():
-    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of water from 30 K to `WATER_TABLE_TOP_K`."""
-    grid = np.arange(30.0, WATER_TABLE_TOP_K + 0.25, 0.5)
-    log_pressure = np.log([saturation.pressure_pa("H2O", float(t)) for t in grid])
+@functools.lru_cache(maxsize=2)
+def _curve(formula, top_k):
+    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of a condensable from 30 K to `top_k` on a half-kelvin grid: the saturation
+    curve of `saturation` and the latent heat from its slope (Clausius and Clapeyron)."""
+    grid = np.arange(30.0, top_k + 0.25, 0.5)
+    log_pressure = np.log([saturation.pressure_pa(formula, float(t)) for t in grid])
     latent = R * grid ** 2 * np.gradient(log_pressure, grid)
     return grid, log_pressure, latent
+
+
+def _water_curve():
+    """The `_curve` of water, to `WATER_TABLE_TOP_K`."""
+    return _curve("H2O", WATER_TABLE_TOP_K)
+
+
+def _methane_curve():
+    """The `_curve` of methane, to `METHANE_TABLE_TOP_K` (GEN.1030)."""
+    return _curve("CH4", METHANE_TABLE_TOP_K)
+
+
+def _curve_pressure_pa(curve, temperature_k):
+    """The saturation pressure of a `_curve` at `temperature_k` (scalar or array), Pa; infinite above the curve's top."""
+    grid, log_pressure, _latent = curve
+    temperature = np.asarray(temperature_k, dtype=float)
+    value = np.exp(np.interp(np.maximum(temperature, grid[0]), grid, log_pressure))
+    return np.where(temperature > grid[-1], np.inf, value)
+
+
+def _curve_latent_j_mol(curve, temperature_k):
+    """The latent heat of a `_curve` at `temperature_k`, J/mol."""
+    grid, _log, latent = curve
+    return np.interp(temperature_k, grid, latent)
 
 
 def saturation_pressure_pa(temperature_k):
     """Water's saturation pressure at `temperature_k` (scalar or array), Pa; infinite above `WATER_TABLE_TOP_K`."""
-    grid, log_pressure, _latent = _water_curve()
-    temperature = np.asarray(temperature_k, dtype=float)
-    value = np.exp(np.interp(np.maximum(temperature, grid[0]), grid, log_pressure))
-    return np.where(temperature > grid[-1], np.inf, value)
+    return _curve_pressure_pa(_water_curve(), temperature_k)
 
 
 def latent_heat_j_mol(temperature_k):
     """Water's latent heat at `temperature_k`, J/mol, from the slope of its saturation curve (Clausius and Clapeyron)."""
-    grid, _log, latent = _water_curve()
-    return np.interp(temperature_k, grid, latent)
-
-
-@functools.lru_cache(maxsize=1)
-def _methane_curve():
-    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of methane from 30 K to `METHANE_TABLE_TOP_K` (GEN.1030)."""
-    grid = np.arange(30.0, METHANE_TABLE_TOP_K + 0.25, 0.5)
-    log_pressure = np.log([saturation.pressure_pa("CH4", float(t)) for t in grid])
-    latent = R * grid ** 2 * np.gradient(log_pressure, grid)
-    return grid, log_pressure, latent
+    return _curve_latent_j_mol(_water_curve(), temperature_k)
 
 
 def methane_saturation_pressure_pa(temperature_k):
     """Methane's saturation pressure at `temperature_k` (scalar or array), Pa; infinite above `METHANE_TABLE_TOP_K`."""
-    grid, log_pressure, _latent = _methane_curve()
-    temperature = np.asarray(temperature_k, dtype=float)
-    value = np.exp(np.interp(np.maximum(temperature, grid[0]), grid, log_pressure))
-    return np.where(temperature > grid[-1], np.inf, value)
+    return _curve_pressure_pa(_methane_curve(), temperature_k)
 
 
 def methane_latent_heat_j_mol(temperature_k):
     """Methane's latent heat at `temperature_k`, J/mol, from the slope of its saturation curve (Clausius and Clapeyron)."""
-    grid, _log, latent = _methane_curve()
-    return np.interp(temperature_k, grid, latent)
+    return _curve_latent_j_mol(_methane_curve(), temperature_k)
 
 
 _CP_GRID = np.arange(40.0, 4001.0, 20.0)

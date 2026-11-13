@@ -60,10 +60,14 @@ def disk_mass_range_earth():
     """`(low, high)` Earth masses of a disk planet: the design range, cut at the largest disk body (a sphere of `tuning.PULSAR_DISK_MAX_RADIUS_KM`
     at the mean of its density range)."""
     low, high = tuning.PULSAR_DISK_MASS_EARTH_RANGE
-    low_density, high_density = constants.PLANET_DENSITY["t"]
-    max_radius_km = tuning.PULSAR_DISK_MAX_RADIUS_KM
-    ceiling = _mass_earth(max_radius_km, (low_density + high_density) / 2.0)
+    ceiling = _mass_earth(tuning.PULSAR_DISK_MAX_RADIUS_KM, _disk_density_g_cm3())
     return low, max(low, min(high, ceiling))
+
+
+def _disk_density_g_cm3():
+    """The density a disk planet is given: the mean of the terrestrial range (`constants.PLANET_DENSITY`)."""
+    low_density, high_density = constants.PLANET_DENSITY["t"]
+    return (low_density + high_density) / 2.0
 
 
 def _mass_earth(radius_km, density_g_cm3):
@@ -118,14 +122,12 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
     if count is None:
         count = draw.randint(*tuning.PULSAR_DISK_PLANET_COUNT)
     low, high = disk_mass_range_earth()
-    low_density, high_density = constants.PLANET_DENSITY["t"]
-    max_radius_km = tuning.PULSAR_DISK_MAX_RADIUS_KM
     planets = []
     for distance in _disk_distances_au(count) if count > 0 else []:
         if distance > orbit_ceiling_au:
             break
         mass_earth = math.exp(draw.uniform(math.log(low), math.log(high)))
-        radius_km = min(max_radius_km, _radius_km(mass_earth, (low_density + high_density) / 2.0))
+        radius_km = min(tuning.PULSAR_DISK_MAX_RADIUS_KM, _radius_km(mass_earth, _disk_density_g_cm3()))
         planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
                               mass=_mearth_to_kg(mass_earth), moon_count=0,
                               formation_distance_au=0.0, late_core=True))      # the disk is the debris of a disrupted star: no gas disk, so no hydrogen envelope (GEN.1323 gave it one)

@@ -77,6 +77,10 @@ def _focus(planet_mass_kg, ring_radius_km):
     return 1.0 + (escape_kms / DUST_SPEED_AT_INFINITY_KMS) ** 2
 
 
+_REFERENCE_FOCUS = _focus(REFERENCE_PLANET_MASS_KG, REFERENCE_RING_RADIUS_KM)
+"""float: The focusing at Saturn's rings, where the reference flux holds."""
+
+
 @finite_domain()
 def pollution_flux(distance_au, planet_mass_kg, ring_radius_km):
     """
@@ -89,9 +93,8 @@ def pollution_flux(distance_au, planet_mass_kg, ring_radius_km):
     """
     if distance_au <= 0 or planet_mass_kg <= 0 or ring_radius_km <= 0:
         raise ValueError("distance, mass and ring radius must be positive")
-    reference = _focus(REFERENCE_PLANET_MASS_KG, REFERENCE_RING_RADIUS_KM)
     scale = (distance_au / REFERENCE_DISTANCE_AU) ** FLUX_DISTANCE_EXPONENT
-    return SATURN_POLLUTION_FLUX_KG_M2_S * scale * _focus(planet_mass_kg, ring_radius_km) / reference
+    return SATURN_POLLUTION_FLUX_KG_M2_S * scale * _focus(planet_mass_kg, ring_radius_km) / _REFERENCE_FOCUS
 
 
 @finite_domain()

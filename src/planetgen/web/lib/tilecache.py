@@ -640,6 +640,16 @@ def stored_nodes(db, node_keys):
     return found
 
 
+def _generation_dir(root, db, generation):
+    """The directory of `generation`'s files for `db`, or `None` with no disk cache or no generation."""
+    return os.path.join(_db_dir(root, db), generation) if root and generation else None
+
+
+def _meta_of(fetched):
+    """The `meta.json` of a generation from a `/galaxy/nodes` answer: the sector edge and whether the galaxy has a shape."""
+    return {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
+
+
 def _collect(db, keys, known_stamp, ahead=False):
     """
     What `fetch_nodes` and `fetch_nodes_wire` share: the requested nodes' stored bytes, from the disk cache where
@@ -659,7 +669,7 @@ def _collect(db, keys, known_stamp, ahead=False):
     info = current_stamp(db, root)
     stamp = info["stamp"]
     generation = info["generation"]
-    generation_dir = os.path.join(_db_dir(root, db), generation) if root and generation else None
+    generation_dir = _generation_dir(root, db, generation)
 
     stored = {}
     meta = None
@@ -692,7 +702,7 @@ def _collect(db, keys, known_stamp, ahead=False):
         try:
             if to_fetch or (not held and not isinstance(meta, dict)):
                 fetched = get_galaxy_nodes(db, to_fetch)
-                meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
+                meta = _meta_of(fetched)
                 made = {key: _node_bytes(value) for key, value in (fetched.get("nodes") or {}).items()}
 
                 # Another request may have found changes while this one was
@@ -725,12 +735,11 @@ def _collect(db, keys, known_stamp, ahead=False):
                 for key, value in (fetched.get("nodes") or {}).items():
                     stored[key] = _node_bytes(value)
                 if not isinstance(meta, dict):
-                    meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
+                    meta = _meta_of(fetched)
             if not isinstance(meta, dict):
                 meta = _read_json(os.path.join(generation_dir, "meta.json"))
                 if not isinstance(meta, dict):
-                    fetched = get_galaxy_nodes(db, [])
-                    meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
+                    meta = _meta_of(get_galaxy_nodes(db, []))
 
     header = {
         "stamp": stamp,
@@ -799,7 +808,7 @@ def fetch_stage(db, at=None):
     info = current_stamp(db, root)
     stamp = info["stamp"]
     generation = info["generation"]
-    generation_dir = os.path.join(_db_dir(root, db), generation) if root and generation else None
+    generation_dir = _generation_dir(root, db, generation)
     path = os.path.join(generation_dir, _stage_filename(key)) if generation_dir else None
 
     stage = _read_json(path) if path else None

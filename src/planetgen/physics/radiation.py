@@ -61,7 +61,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -107,15 +107,15 @@ add primaries, so a ratio the runs put above 1 (a weak field at 500 and 700 g/cm
 FIELD_MAX_MOMENT = FIELD_FULL_MOMENTS[-1]
 """float: The strongest field the runs reach (10 Earth moments); a stronger one takes this ratio, an upper bound."""
 
-"""float: The solar-cycle spread of the dose as fractions of its mean (Mars: 0.35 to 1.15 mSv/day around 0.7; a total spread
-of 3.3, [R1730]). `tuning.GCR_SOLAR_MODULATION_RANGE` is the draw."""
+# The solar-cycle spread of the dose as fractions of its mean (Mars: 0.35 to 1.15 mSv/day around 0.7; a total spread of 3.3, [R1730]) is the draw
+# `tuning.GCR_SOLAR_MODULATION_RANGE`.
 
 MUON_LOG_A = (-11.22, -14.10)
 MUON_RATE_PER_HG_CM2 = (0.00262, 0.001213)
 MUON_FLOOR = 2.17e-13
 MUON_MEV_PER_G = 2.0
 MUON_J_PER_MEV = 1.602176634e-13
-SECONDS_PER_YEAR = 3.15576e7
+SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
 """The Crouch fit of the vertical muon intensity (cm-2 s-1 sr-1) at depth h in hg/cm2 (m of water): `exp(-11.22 - 0.00262 h)
 + exp(-14.10 - 0.001213 h) + 2.17e-13` (docs/design/composition/radiation-model.md section 5), valid from about 1 km of water; the dose is
 pi I times 2 MeV cm2/g. It is 9 times below a published value at Titan (10 850 g/cm2), so it is a floor under the table's tail."""
@@ -133,7 +133,7 @@ EARTH_AGE_GY = 4.5
 SV_PER_GY = 0.7
 """float: Effective dose per absorbed dose in air for gamma rays from the ground, UNSCEAR (RECALLED, part E 5; radiation-model.md
 section 6)."""
-HOURS_PER_YEAR = 8766.0
+HOURS_PER_YEAR = constants.HOURS_PER_YEAR
 GAMMA_AIR_ATTENUATION_CM2_PER_G = 0.0637
 """float: Gamma dose under a dense gas falls as exp(-this * density g/cm3 * 100 cm) (radiation-model.md section 6). The Earth's
 coefficients are valid for a density under about 0.03 g/cm3 (F9); beyond it the factor is an extrapolation."""
@@ -295,7 +295,7 @@ def magnetic_factor(cutoff_gv, column_g_cm2):
     moment = min(cutoff_gv / EARTH_CUTOFF_GV, FIELD_MAX_MOMENT)
     columns = FIELD_COLUMNS_G_CM2
     x = min(max(column_g_cm2, columns[0]), columns[-1])
-    ratios = [min(_field_ratio_at_column(moment, i), 1.0) for i in range(len(columns))]
+    ratios = [_field_ratio_at_column(moment, i) for i in range(len(columns))]        # each already held at 1
     return _log_linear(math.log(x), [math.log(c) for c in columns], ratios)
 
 
@@ -501,7 +501,7 @@ def generate_dose(body):
     body.dose_ground_msv_yr = ground
     body.dose_helio_mult = 1.0
     body.dose_belt_msv_yr = belt_dose_msv_yr(body, column)
-    body.surface_dose_msv_yr = gcr + sep + ground + body.dose_belt_msv_yr
+    body.surface_dose_msv_yr = total_dose_msv_yr(gcr, body.dose_helio_mult, sep, ground, body.dose_belt_msv_yr)
     body.ozone_loss_flag = ozone_lost(body)
     if body.ozone_loss_flag:     # GEN.808: the ozone the flares leave is what filters the ultraviolet and tints the sky
         body.ozone_column_du *= OZONE_LOSS_REMAINING

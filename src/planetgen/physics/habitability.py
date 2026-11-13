@@ -407,8 +407,8 @@ def temperature_extremes_c(world):
     f = min(max(world.flux_variation or 0.0, 0.0), 1.0)
     if f == 0.0:
         return world.temperature_c, world.temperature_c
-    kelvin = world.temperature_c + 273.15
-    return kelvin * (1.0 - f / 2.0) ** 0.25 - 273.15, kelvin * (1.0 + f / 2.0) ** 0.25 - 273.15
+    kelvin = world.temperature_c + constants.CELSIUS_ZERO_K
+    return kelvin * (1.0 - f / 2.0) ** 0.25 - constants.CELSIUS_ZERO_K, kelvin * (1.0 + f / 2.0) ** 0.25 - constants.CELSIUS_ZERO_K
 
 
 LIVABLE_YELLOW_EDGE = 0.10
@@ -459,7 +459,7 @@ def temperature_coverage(world, limits=HUMAN):
     from planetgen.physics import temperature_coverage as coverage
     if world.coverage is not None and limits.temperature == HUMAN.temperature and limits.wet_bulb == HUMAN.wet_bulb:
         return world.coverage
-    series = world.series if world.series is not None else coverage.still_series(world.temperature_c + 273.15)
+    series = world.series if world.series is not None else coverage.still_series(world.temperature_c + constants.CELSIUS_ZERO_K)
     return coverage.coverage(series, world.relative_humidity, limits.temperature, limits.wet_bulb)
 
 
@@ -469,13 +469,13 @@ def site_extremes_c(world, limits=HUMAN):
     the year, GEN.1266): the temperatures the required gear is chosen for. A world with one temperature everywhere has the one value.
     """
     site = temperature_coverage(world, limits).best_site
-    return site.coldest_k - 273.15, site.hottest_k - 273.15
+    return site.coldest_k - constants.CELSIUS_ZERO_K, site.hottest_k - constants.CELSIUS_ZERO_K
 
 
 def worst_extremes_c(world, limits=HUMAN):
     """`(coldest, hottest)` deg C of the coldest and hottest sample anywhere on `world` in a year (GEN.1266): the worst conditions elsewhere, which the heavier gear is recommended for."""
     read = temperature_coverage(world, limits)
-    return read.coldest.temperature_k - 273.15, read.hottest.temperature_k - 273.15
+    return read.coldest.temperature_k - constants.CELSIUS_ZERO_K, read.hottest.temperature_k - constants.CELSIUS_ZERO_K
 
 
 def temperature_score(world, limits=HUMAN):

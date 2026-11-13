@@ -82,7 +82,7 @@ from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
 from planetgen.web.maps.bodylook import look_json, look_note, planet_look, star_look
 from planetgen.web.maps.moonorbits import moon_orbit
-from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
+from planetgen.web.maps.starmap import _SUN_RADIUS_KM, _rgb_hex, star_color
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_radius, format_period, format_luminosity, format_mass, format_star_radius,
     to_plain_text,
@@ -209,10 +209,9 @@ def _hex_to_rgb01(hex_color):
 
 def _darken_hex(hex_color, amount):
     r, g, b = _hex_to_rgb01(hex_color)
-    h, l, s = colorsys.rgb_to_hls(r, g, b)
-    l = max(0.0, l - amount)
-    r, g, b = colorsys.hls_to_rgb(h, l, s)
-    return "#{:02x}{:02x}{:02x}".format(round(r * 255), round(g * 255), round(b * 255))
+    hue, light, sat = colorsys.rgb_to_hls(r, g, b)
+    light = max(0.0, light - amount)
+    return _rgb_hex(colorsys.hls_to_rgb(hue, light, sat))
 
 
 def _text_color_for(hex_color):
@@ -296,9 +295,7 @@ def _radial_px(distance_km, lo_km, hi_km):
         return 0.0
     if hi_km <= lo_km:
         return _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
-    distance_km = max(lo_km, min(hi_km, distance_km))
-    frac = (math.log10(distance_km) - math.log10(lo_km)) / (math.log10(hi_km) - math.log10(lo_km))
-    return _MIN_RADIUS_PX + frac * _RADIUS_SPREAD_PX
+    return _log_scale(distance_km, lo_km, hi_km, _MIN_RADIUS_PX, _MIN_RADIUS_PX + _RADIUS_SPREAD_PX)
 
 
 def _orbit_radius_km(planet):
@@ -774,8 +771,9 @@ def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
     star_attrs["look"] = look_json(star_look(star))
     half_w = _label_half_width_px(name)
     label_x, anchor = cx, "middle"
-    if _slide_into_view(cx - half_w, cx + half_w, bounds):
-        label_x, anchor = _edge_anchor(_slide_into_view(cx - half_w, cx + half_w, bounds), bounds)
+    shift = _slide_into_view(cx - half_w, cx + half_w, bounds)
+    if shift:
+        label_x, anchor = _edge_anchor(shift, bounds)
     return (
         f'<g class="sysmap-body sysmap-star" tabindex="0" role="button"{_data_attrs(star_attrs)} '
         f'aria-label="{esc(name)}">'
@@ -995,18 +993,14 @@ def _facilities_svg(facilities, hosts, scale):
         if host is None:
             continue
         cx, cy, r_px, centered = host
-        if facility["host_type"] == "asteroid_belt":
+        if facility["host_type"] == "asteroid_belt" or facility["placement"] != "orbital":
             radius_px = r_px
-        elif facility["placement"] != "orbital":
-            radius_px = r_px
-        elif centered:
-            on_scale = (facility["orbit_distance_km"] or 0.0) * scale if isinstance(scale, (int, float)) \
-                else _radial_px(facility["orbit_distance_km"], *scale)
-            radius_px = max(on_scale, r_px + _FACILITY_HOST_GAP_PX)
-            orbits.append(_facility_orbit_svg(cx, cy, radius_px))
-            boxes.append(_circle_box(cx, cy, radius_px))
         else:
             radius_px = r_px + _FACILITY_HOST_GAP_PX
+            if centered:
+                on_scale = (facility["orbit_distance_km"] or 0.0) * scale if isinstance(scale, (int, float)) \
+                    else _radial_px(facility["orbit_distance_km"], *scale)
+                radius_px = max(on_scale, radius_px)
             orbits.append(_facility_orbit_svg(cx, cy, radius_px))
             boxes.append(_circle_box(cx, cy, radius_px))
         fx, fy = _facility_point(cx, cy, radius_px, facility)
@@ -1133,6 +1127,14 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
     return orbits_svg + bodies_svg
 
 
+def _scene_distances_km(planets, belts):
+    """Every real distance a scene's log scale must hold (`_radial_scale_bounds`): each planet's orbit radius and both edges of each belt."""
+    distances = [_orbit_radius_km(planet) for planet in planets]
+    for belt in belts:
+        distances.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
+    return distances
+
+
 def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacles=(),
                     facilities=None):
     """
@@ -1184,13 +1186,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     Returns:
         str: A complete `<svg class="sysmap-svg">` scene.
     """
-    local_r_list = []
-    for planet in planets:
-        local_r_list.append(_orbit_radius_km(planet))
-    for belt in belts:
-        local_r_list.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
-    lo, hi = _radial_scale_bounds(local_r_list)
-
+    lo, hi = _radial_scale_bounds(_scene_distances_km(planets, belts))
     star_r = _star_radius_px(star["radius_km"])
     orbit_paths = []
     # Kept OUT of orbit_paths (which _scene_svg_pair puts in the
@@ -1260,10 +1256,10 @@ def _star_label(system, star):
     return star.get("name") or system["name"]
 
 
-def _wide_binary_star_attrs(system, star, role, scene_target=None):
-    """Shared `star_attrs` dict for `_star_scene_svg`'s own star marker, in
-    either of a wide (S-type) pair's two scenes, and in a further star's
-    (`role` "Member") own scene."""
+def _star_attrs(system, star, role, scene_target=None, xkm=0.0, ykm=0.0):
+    """The `star_attrs` dict of a star marker (`_star_marker_svg`): in its own scene, in either of a wide (S-type) pair's two scenes,
+    in a further star's (`role` "Member") own scene, and in the whole-system scene of a single star or a close pair, where `xkm`/`ykm`
+    are its real km from the shared barycenter."""
     attrs = {
         "kind": "star", "id": star["id"], "name": _star_label(system, star),
         "role": role,
@@ -1282,7 +1278,7 @@ def _wide_binary_star_attrs(system, star, role, scene_target=None):
         # companion marker it draws *inside the other star's* scene,
         # where the real separation (not 0, 0) is what a "measure
         # distance" click needs.
-        "xkm": 0.0, "ykm": 0.0,
+        "xkm": xkm, "ykm": ykm,
         "masskg": star["mass_kg"],
     }
     if scene_target is not None:
@@ -1347,8 +1343,8 @@ def _companion_star(system, star, role, scene_target, x_km, y_km, placed):
     # land its *label* on top of the companion's name underneath it.
     reach = radius + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2
     cx, cy = _companion_position(x_km, y_km, reach, placed)
-    attrs = _wide_binary_star_attrs(system, star, role, scene_target=scene_target)
-    # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
+    attrs = _star_attrs(system, star, role, scene_target=scene_target)
+    # Override the "own scene" (0, 0) default `_star_attrs`
     # sets -- this marker represents the star at its real position
     # *relative to the scene's origin*, and that real separation is exactly
     # what a "measure distance" click needs, decoupled from `cx`/`cy`'s own
@@ -1392,7 +1388,7 @@ def _member_stars_scenes(system, members, facilities, placed):
         svg, obstacle = _companion_star(system, member, "Member", scene_id, x_km, y_km, placed)
         placed.append(obstacle)
         markers.append(svg)
-        attrs = _wide_binary_star_attrs(system, member, "Member")
+        attrs = _star_attrs(system, member, "Member")
         attrs["self"] = "true"
         scenes.append(_star_scene_svg(
             scene_id, f'Planets of {_star_label(system, member)}', True, member,
@@ -1453,10 +1449,10 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None, m
     primary_scene = _star_scene_svg(
         "system", f'System map for {system["name"]}', False,
         primary, primary_planets, primary_belts,
-        _wide_binary_star_attrs(system, primary, "Primary"),
+        _star_attrs(system, primary, "Primary"),
         extra_svg=companion_marker_svg + members_svg, extra_obstacles=obstacles, facilities=facilities,
     )
-    secondary_attrs = _wide_binary_star_attrs(system, secondary, "Secondary")
+    secondary_attrs = _star_attrs(system, secondary, "Secondary")
     secondary_attrs["self"] = "true"
     secondary_scene = _star_scene_svg(
         secondary_scene_id, f'Planets of {_star_label(system, secondary)}', True,
@@ -1490,13 +1486,8 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
     else:
         star_pos_km = {}
 
-    local_r_list = [math.hypot(*star_pos_km[star["id"]]) for star in stars] if is_binary else []
-    for planet in planets:
-        local_r_list.append(_orbit_radius_km(planet))
-    for belt in belts:
-        local_r_list.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
-
-    lo, hi = _radial_scale_bounds(local_r_list)
+    star_distances_km = [math.hypot(*star_pos_km[star["id"]]) for star in stars] if is_binary else []
+    lo, hi = _radial_scale_bounds(star_distances_km + _scene_distances_km(planets, belts))
 
     # Phase 1: place and relax the star(s) alone. A close binary's tiny
     # real separation (as little as ~0.05 AU) routinely log-compresses to
@@ -1590,24 +1581,12 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
         star = marker["star"]
         is_primary = marker["is_primary"]
         sx, sy = star_pos_km[star["id"]]
-        star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star, {
-            "kind": "star",
-            "id": star["id"],
-            "name": _star_label(system, star),
-            "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
-            "type": star["star_type"], "temp": _star_temp_text(star),
-            "mass": to_plain_text(format_mass(star["mass_kg"])),
-            "radius": to_plain_text(format_star_radius(star["radius_km"])),
-            "lum": to_plain_text(format_luminosity(star["luminosity_w"])),
-            "radiuskm": star["radius_km"],
-            # Real km (a close binary's own true, small separation from
-            # the shared barycenter -- (0, 0) for a single star, per
-            # `star_pos_km`'s own construction above), not this marker's
-            # drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
-            # identical `xkm`/`ykm`.
-            "xkm": sx, "ykm": sy,
-            "masskg": star["mass_kg"],
-        }, bounds))
+        # Real km (a close binary's own true, small separation from the shared barycenter -- (0, 0) for a single star, per
+        # `star_pos_km`'s own construction above), not this marker's drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
+        # identical `xkm`/`ykm`.
+        role = ("Primary" if is_primary else "Secondary") if is_binary else "Single"
+        star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star,
+                                          _star_attrs(system, star, role, xkm=sx, ykm=sy), bounds))
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
                                  seed_rects=[o["label_rect"] for o in obstacles] or None, bounds=bounds)
@@ -1716,13 +1695,10 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
     )
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers], bounds=bounds)
-    body_svgs = []
-    body_svgs.extend(_body_marker_svgs(
-        markers, placements, "sysmap-moon", lambda row: _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name")), bounds))
+    body_svgs = _body_marker_svgs(
+        markers, placements, "sysmap-moon", lambda row: _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name")), bounds)
 
-    if true_scale:
-        note = "Everything at its true size and distance."
-    elif scale["enlarge"] > 1.05:
+    if not true_scale and scale["enlarge"] > _SAME_SIZE_ENLARGE:
         note = f"Orbits to scale; the planet and moons are drawn {scale['enlarge']:.0f} times their true size."
     else:
         note = "Everything at its true size and distance."
@@ -1909,16 +1885,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         _render_moon_scene(planet, facilities) for planet in planets if planet.get("moons")
     )
 
-    if planets or belts or stars:
-        info_panel = (
-            '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
-            '<p class="hint">Click a star, planet, moon, asteroid belt, or facility for details.</p></aside>'
-        )
-    else:
-        info_panel = (
-            '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
-            '<p class="hint">Nothing to show yet.</p></aside>'
-        )
+    hint = "Click a star, planet, moon, asteroid belt, or facility for details." if planets or belts or stars else "Nothing to show yet."
+    info_panel = ('<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
+                  f'<p class="hint">{hint}</p></aside>')
 
     # One shared WebGL canvas, sized to cover the whole `.sysmap-viewport`
     # and drawn BETWEEN each scene's two sibling `<svg>`s -- below the

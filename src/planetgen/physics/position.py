@@ -93,7 +93,7 @@ THRESHOLDS_M = {
 0.01 mpc (about 2 AU) for stars and other bodies outside a system, 0.01 AU
 for planets and companion stars, 100,000 km for moons."""
 
-MAX_UPDATE_INTERVAL_S = 1.0e9 * 365.25 * 86400.0
+MAX_UPDATE_INTERVAL_S = physical_constants.SECONDS_PER_GY
 """float: The longest a next-due time runs, a billion years in seconds, so a
 very slow body still gets looked at."""
 

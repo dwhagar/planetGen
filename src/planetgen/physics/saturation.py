@@ -63,11 +63,11 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from planetgen import tuning
-from planetgen.physics import elements, gases
+from planetgen.physics import constants, elements, gases
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "saturation_pressure.json")
 
-BAR_TO_PA = 1.0e5
+BAR_TO_PA = constants.BAR_PA
 """float: Pascals in a bar; the Fray and Schmitt polynomials give `ln P` in bar."""
 
 GAS_CONSTANT_J_MOL_K = 8.314

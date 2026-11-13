@@ -78,10 +78,10 @@ GATES = ("stellar density", "nebula field", "hot stars", "young stars", "none")
 COLUMNS = ("kind", "family", "status", "rate", "gate", "mode", "scatter_pass", "sector_roll", "builder",
            "host", "carries", "page_class", "marker", "phenomenon_type", "evidence_note", "rate_source",
            "aged_by_population")
+"""tuple: Every column of a row, in order; the completeness test reads it."""
 
 RATE_SOURCES = ("tuning", "remnant density")
 """tuple: The valid `Kind.rate_source` values of a `sector_roll` kind."""
-"""tuple: Every column of a row, in order; the completeness test reads it."""
 
 
 @dataclass(frozen=True)

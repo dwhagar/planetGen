@@ -568,14 +568,17 @@ def sector_address_at(position, edge_pc):
     n = wedge_count(shell, band)
     if n == 1:
         return shell, band, 0
-    theta = math.atan2(y, x) % TWO_PI
+    return shell, band, _wedge_at(math.atan2(y, x) % TWO_PI, n)
+def _wedge_at(theta, n):
+    """The wedge of a band of `n` holding longitude `theta` (radians from `+X`, in `[0, 2 pi)`), against the very edges
+    `wedge_longitude_bounds` reports."""
     wedge = min(n - 1, int(theta * n / TWO_PI))
     step = TWO_PI / n
     if wedge > 0 and theta < wedge * step:
         wedge -= 1
     elif wedge < n - 1 and theta >= (wedge + 1) * step:
         wedge += 1
-    return shell, band, wedge
+    return wedge
 
 
 def sector_cell_test(address, edge_pc):
@@ -605,7 +608,6 @@ def sector_cell_test(address, edge_pc):
             return sqrt(x * x + y * y + z * z) < half
         return contains
     layout = shell_layout(shell)
-    step = TWO_PI / n
 
     def contains(position):
         x, y, z = position
@@ -615,15 +617,7 @@ def sector_cell_test(address, edge_pc):
             return False
         if _band_at(layout, atan2(planar, z)) != band:
             return False
-        if n == 1:
-            return True
-        theta = atan2(y, x) % TWO_PI
-        found = min(n - 1, int(theta * n / TWO_PI))
-        if found > 0 and theta < found * step:
-            found -= 1
-        elif found < n - 1 and theta >= (found + 1) * step:
-            found += 1
-        return found == wedge
+        return n == 1 or _wedge_at(atan2(y, x) % TWO_PI, n) == wedge
 
     return contains
 
@@ -635,6 +629,9 @@ def cell_volume(shell, band, wedge, edge_pc):
     inner, outer = shell_bounds_pc(shell, edge_pc)
     north, south = band_colatitude_bounds(shell, band)
     start, end = wedge_longitude_bounds(shell, band, wedge)
+    return _wedge_volume(inner, outer, north, south, start, end)
+def _wedge_volume(inner, outer, north, south, start, end):
+    """The volume between radii `inner` and `outer`, colatitudes `north` and `south` and longitudes `start` and `end`."""
     return (outer ** 3 - inner ** 3) / 3 * (math.cos(north) - math.cos(south)) * (end - start)
 
 
@@ -703,8 +700,7 @@ class SectorCell:
     @property
     def volume(self):
         """The cell's volume, in the unit cubed."""
-        return ((self.r_outer ** 3 - self.r_inner ** 3) / 3
-                * (math.cos(self.colat_north) - math.cos(self.colat_south)) * (self.lon_end - self.lon_start))
+        return _wedge_volume(self.r_inner, self.r_outer, self.colat_north, self.colat_south, self.lon_start, self.lon_end)
 
     def contains(self, point):
         """Whether a sector-local point lies inside the cell (boundary

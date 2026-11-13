@@ -155,7 +155,7 @@ def hand_on(bodies, star):
     inner = [belt for belt in belts if belt.origin != "outer-disk"]
     for disk in disks:
         gone = units.convert(disk.cleared_mass_earth + disk.scattered_mass_earth, "Mearth", "kg")
-        theta = scatter.safronov_number(units.convert(disk.scatter_giant_kg, "kg", "Mearth"), units.convert(disk.scatter_giant_radius_km, "km", "Rearth"), disk.scatter_giant_au, units.convert(star.mass, "kg", "Msun"))
+        theta = scatter.safronov_number(_kg_to_mearth(disk.scatter_giant_kg), units.convert(disk.scatter_giant_radius_km, "km", "Rearth"), disk.scatter_giant_au, units.convert(star.mass, "kg", "Msun"))
         disk.swept_kg = swept_hand_on.hand_on(gone, theta)
         if disk.swept_kg is None or not disk.swept_kg["implanted"] > 0.0 or not inner:
             continue

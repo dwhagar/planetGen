@@ -4,6 +4,7 @@ the stuck-unit watch) and the admin's update guard share, so a fix to it lands e
 """
 
 import os
+import signal
 
 
 def pid_alive(pid):
@@ -27,3 +28,11 @@ def pid_alive(pid):
             return handle.read().rpartition(b")")[2].split()[0] != b"Z"
     except (OSError, IndexError):
         return True
+
+
+def interrupt_on_sigterm():
+    """Makes SIGTERM (Cancel on the Generate page, `kill`) raise `KeyboardInterrupt`, so a run ends as canceled in Redis the
+    way Ctrl+C ends it. Returns the handler it replaced, for `signal.signal(signal.SIGTERM, previous)`."""
+    def on_term(_signum, _frame):
+        raise KeyboardInterrupt
+    return signal.signal(signal.SIGTERM, on_term)

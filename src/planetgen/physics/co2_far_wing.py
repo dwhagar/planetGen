@@ -30,12 +30,12 @@ import os
 
 import numpy as np
 
-from planetgen.physics import elements
+from planetgen.physics import constants, elements
 from planetgen.util import detmath
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "co2_far_wing.json")
 
-ATMOSPHERE_PA = 101325.0
+ATMOSPHERE_PA = constants.STANDARD_ATMOSPHERE_PA
 """float: One standard atmosphere, Pa, the pressure the half widths are stated at."""
 REFERENCE_K = 296.0
 """float: The temperature the half widths are stated at (HITRAN's)."""

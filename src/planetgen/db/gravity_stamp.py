@@ -52,11 +52,10 @@ def source_stamp(conn, sectors, zones=ZONES, reach_edges=REACH_EDGES, pot=None):
     modified = {row["id"]: str(row["modified_at"]) for row in conn.execute(f"SELECT id, modified_at FROM sectors WHERE id IN ({marks})", ids).fetchall()} if ids else {}
     rows = {}
     for table in _TABLES:
-        sector_column = "sector_id"
         if ids:
             for row in conn.execute(
-                    f"SELECT {sector_column} AS sector_id, COUNT(*) AS n, MAX(modified_at) AS latest FROM {table} WHERE {sector_column} IN ({marks})"
-                    f" GROUP BY {sector_column}", ids).fetchall():
+                    f"SELECT sector_id, COUNT(*) AS n, MAX(modified_at) AS latest FROM {table} WHERE sector_id IN ({marks}) GROUP BY sector_id",
+                    ids).fetchall():
                 rows[(row["sector_id"], table)] = (row["n"], str(row["latest"]))
     for sector_id in sorted(ids):
         parts.append((sector_id, modified.get(sector_id), tuple(rows.get((sector_id, table)) for table in _TABLES)))

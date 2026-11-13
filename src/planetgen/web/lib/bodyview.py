@@ -52,17 +52,25 @@ MEMBER_COMPOSITION_PARTS = ("rock", "metal", "water", "ice")
 """tuple: The parts of a stored small body's composition, in the order its page lists them."""
 
 
-def member_page_ref(public_ref, rank, kind):
-    """`(api ref, printed id)` of the `kind` of object a member page's `public_ref` names, with `rank` checked to be written as a
-    designation writes it; a 404 for a reference of another kind, one that does not parse or a rank written otherwise."""
+def page_ref(public_ref, kind):
+    """`(api ref, printed id)` of the `kind` of object a page's `public_ref` names; a 404 for a reference of another kind or one
+    that does not parse."""
     try:
         found, printed_id = objectref.parse_public(public_ref)
-        object_uid.parse_rank(rank)
     except ValueError:
         abort(404)
     if found != kind:
         abort(404)
     return f"{kind}:{printed_id}", printed_id
+
+
+def member_page_ref(public_ref, rank, kind):
+    """`page_ref` for a member page, with `rank` checked to be written as a designation writes it (else a 404)."""
+    try:
+        object_uid.parse_rank(rank)
+    except ValueError:
+        abort(404)
+    return page_ref(public_ref, kind)
 
 
 def quantity_text(value):

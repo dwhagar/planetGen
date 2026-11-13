@@ -18,6 +18,7 @@ folder is rotated by the rule `examples/apache/setup-debug-log.sh` installs for 
 """
 
 import logging
+import os
 import time
 
 from planetgen.util import log, logpaths, logrecord
@@ -25,7 +26,6 @@ from planetgen.util import log, logpaths, logrecord
 
 def started_by_environment():
     """What started a command: the maintenance timer's service has systemd's `INVOCATION_ID`, a person at a terminal has not."""
-    import os
     return "systemd timer" if os.environ.get("INVOCATION_ID") else "by hand"
 
 
@@ -90,13 +90,11 @@ class JobLog:
             return False
         took = logrecord.duration_text(time.monotonic() - self.started)
         status = exc.code if exc_type is SystemExit else self.status
-        if exc_type is None or (exc_type is SystemExit and not status):
+        if exc_type is None or exc_type is SystemExit:
             if status:
                 self._write(logging.ERROR, f"{self.title} ended with exit status {status} after {took}")
             else:
                 self._write(logging.INFO, f"{self.title} finished after {took}" + (f" ({self.detail})" if self.detail else ""))
-        elif exc_type is SystemExit:
-            self._write(logging.ERROR, f"{self.title} ended with exit status {status} after {took}")
         elif hasattr(exc, "reason"):
             self._write(logging.ERROR, f"{self.title} ended by {exc.reason} after {took}")
         elif exc_type is KeyboardInterrupt:

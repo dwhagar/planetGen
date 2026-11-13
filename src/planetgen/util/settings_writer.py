@@ -92,6 +92,18 @@ class StaleSettingsError(SettingsWriteError):
     """The file changed after the caller read it (`expect_hash`)."""
 
 
+def _check_hash(expect_hash, planned, what, again):
+    """Raises `StaleSettingsError` when the caller's `expect_hash` (none to skip the check) is not the file's: `what` is the form or page
+    it came from and `again` what to do after reloading it."""
+    if expect_hash is not None and expect_hash != planned.file_hash:
+        raise StaleSettingsError(f"The settings were changed by someone else since this {what} was opened; reload it and {again}.")
+
+
+def _write_error(exc):
+    """A `BackupError` as the `SettingsWriteError` to raise: itself when it is one already."""
+    return exc if isinstance(exc, SettingsWriteError) else SettingsWriteError(str(exc))
+
+
 @dataclass
 class Change:
     """One option that a save changes."""
@@ -277,6 +289,7 @@ def _get(tree, path):
 
 
 _put = settings.set_path
+"""Sets a dotted `path` in a settings tree, making the dicts on the way (`settings.set_path`)."""
 
 
 def _load_document(result, path):
@@ -307,7 +320,6 @@ def _note_field_errors(result, after, known):
             else:
                 result.errors.setdefault("", f"{option}: {message}" if option else message)
     return checked
-"""Sets a dotted `path` in a settings tree, making the dicts on the way (`settings.set_path`)."""
 
 
 def _drop(tree, path):
@@ -452,9 +464,7 @@ def _write(path, document, actor, action, result, archive):
         _atomic_write(path, _dump(document))
         result.saved = True
     except backup.BackupError as exc:
-        if isinstance(exc, SettingsWriteError):
-            raise
-        raise SettingsWriteError(str(exc)) from exc
+        raise _write_error(exc) from exc
 
 
 def save(changes, actor, role="admin", audit=None, expect_hash=None, action="config.update", environ=None):
@@ -479,9 +489,7 @@ def save(changes, actor, role="admin", audit=None, expect_hash=None, action="con
     with _Lock(path):
         planned = plan(changes, role=role, environ=environ)
         result = Result(**planned.__dict__)
-        if expect_hash is not None and expect_hash != planned.file_hash:
-            raise StaleSettingsError("The settings were changed by someone else since this form was opened; "
-                                     "reload it and make the change again.")
+        _check_hash(expect_hash, planned, "form", "make the change again")
         if result.errors or not result.changes:
             return result
         _write(path, result.document_after, actor, action, result, archive=True)
@@ -642,9 +650,7 @@ def update(actor, remove=(), apply=(), audit=None, expect_hash=None, fields=None
     with _Lock(path):
         planned = plan_update(remove=remove, apply=apply, fields=fields)
         result = UpdateResult(**planned.__dict__)
-        if expect_hash is not None and expect_hash != planned.file_hash:
-            raise StaleSettingsError("The settings were changed by someone else since this page was opened; "
-                                     "reload it and look again.")
+        _check_hash(expect_hash, planned, "page", "look again")
         if result.errors or not result.changes:
             return result
         _write(path, _stamp_version(result.document_after), actor, UPDATE_ACTION, result, archive=True)
@@ -742,11 +748,7 @@ def _restore_plan(data, label, role, environ):
                     _put(wanted, option, value)
                 else:
                     _drop(wanted, option)
-    checked, problems = settings.field_errors(wanted)
-    if checked is None:
-        for option, message in problems:
-            result.errors.setdefault(option if option in known else "", message if option in known
-                                     else f"{option}: {message}" if option else message)
+    if _note_field_errors(result, wanted, known) is None:
         return result, None
     _diff(current, wanted, list(known), known, environ, result)
     result.document_after = wanted
@@ -806,16 +808,12 @@ def restore(name, actor, role="admin", audit=None, expect_hash=None, environ=Non
     preview = plan_restore(name, role=role, environ=environ)
     if preview.errors:
         return Result(**preview.__dict__)
-    if expect_hash is not None and expect_hash != preview.file_hash:
-        raise StaleSettingsError("The settings were changed by someone else since this page was opened; "
-                                 "reload it and try again.")
+    _check_hash(expect_hash, preview, "page", "try again")
     try:
         report = backup.restore(name, [PART], backup.RestoreContext(who=actor, role=role, audit=audit,
                                                                     environ=environ))
     except backup.BackupError as exc:
-        if isinstance(exc, SettingsWriteError):
-            raise
-        raise SettingsWriteError(str(exc)) from exc
+        raise _write_error(exc) from exc
     result = report.results[PART]
     result.backup = report.safety
     return result

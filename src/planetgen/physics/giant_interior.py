@@ -279,8 +279,6 @@ def _polytrope_rows(index):
     return _POLYTROPE_ROWS[index]
 
 
-
-
 # ---------------------------------------------------------------------------------------------------------------------
 # The result
 # ---------------------------------------------------------------------------------------------------------------------
@@ -711,7 +709,7 @@ def _gas_giant(subject):
         p_mm_gpa = profile.pressure_at_mass_inside_pa(1.0 - mass_mol / mass) / 1e9
 
     # Helium
-    depletion = helium_depletion(subject.temperature_1bar_k)
+    depletion = depletion_now
     y_nat = subject.helium_share
     rain_active = depletion < 1.0
 
@@ -833,7 +831,7 @@ def _gas_giant(subject):
             heavy_part = layer_heavy.get(kind, {})
             helium, hydrogen = gas[kind][0], gas[kind][1]
         top = max(top, 0.0)
-        layers.append(_layer(kind, state, top if kind != "molecular_envelope" else 1e5, bottom, heavy_part, helium, hydrogen,
+        layers.append(_layer(kind, state, top if kind != "molecular_envelope" else constants.BAR_PA, bottom, heavy_part, helium, hydrogen,
                              top_radius, bottom_radius))
         above += layer_mass
     layers = _fix_water(layers, _temperature_function(profile))
@@ -880,7 +878,7 @@ class _ConstantDensityProfile:
         self.density = [density for _mass, density in layers]
         self.layer_masses = [layer_mass for layer_mass, _density in layers]
         self.samples = []  # (radius, pressure, mass inside), surface first
-        pressure = 1e5
+        pressure = constants.BAR_PA
         for index in range(len(layers) - 1, -1, -1):
             r_out = self.outer_radii[index]
             r_in = self.outer_radii[index - 1] if index > 0 else 0.0
@@ -1045,7 +1043,7 @@ def _brown_dwarf(subject):
     layers = []
     y = subject.helium_share
     for kind, layer_mass, state, top, bottom in (
-            ("molecular_envelope", mass_mol, "molecular_fluid", 1e5, p_mm_gpa * 1e9),
+            ("molecular_envelope", mass_mol, "molecular_fluid", constants.BAR_PA, p_mm_gpa * 1e9),
             ("metallic_envelope", mass - mass_mol, "metallic_fluid", p_mm_gpa * 1e9, profile.central_pressure_pa)):
         if layer_mass <= 0:
             continue

@@ -409,6 +409,47 @@ def add_system_arguments(parser):
     _add_flavor_arguments(parser)
 
 
+WORKERS_HELP = ("How many worker processes the run uses at most. Default: 80%% of this machine's cores "
+                "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+"""str: The help of the `--workers` option every run command shares (`plan`, `scatter`, `fill`, `run-job`)."""
+
+
+def _validate_workers(args, parser):
+    """`--workers` is 0 (automatic) or more."""
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
+
+
+def _validate_num_orbits(args, parser):
+    """`--num-orbits` is a whole number from 0 to `limits.MAX_NUM_ORBITS`."""
+    if args.num_orbits is not None and args.num_orbits < 0:
+        parser.error("--num-orbits must be zero or a positive integer.")
+    if args.num_orbits is not None and args.num_orbits > limits.MAX_NUM_ORBITS:
+        parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
+
+
+def _validate_radius_pc(args, parser):
+    """A given `--radius-pc` is positive and at most `limits.MAX_GENERATE_RADIUS_PC`."""
+    if args.radius_pc is not None and args.radius_pc <= 0:
+        parser.error("--radius-pc must be a positive number.")
+    if args.radius_pc is not None and args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
+        parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
+
+
+def _validate_flavor_chances(args, parser):
+    """The two `--flavor-chance-*` options are fractions."""
+    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
+        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
+    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
+        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+
+
+def _shape_like_sector(args):
+    """generate_sector()/iter_sector_configs() expect a namespace shaped like the `sector` subcommand's own output: the
+    options only `system` has are always None in the other modes."""
+    args.sector_name = args.system_file = args.num_orbits = args.name = None
+
+
 def validate_system_args(args, parser):
     """
     Validates every option `add_system_arguments` added, calling
@@ -457,21 +498,14 @@ def validate_system_args(args, parser):
             parser.error(f"--system-file {args.system_file!r}: num_orbits {file_num_orbits!r} must be a "
                          f"whole number from 0 to {limits.MAX_NUM_ORBITS}.")
 
-    if args.num_orbits is not None and args.num_orbits < 0:
-        parser.error("--num-orbits must be zero or a positive integer.")
-    if args.num_orbits is not None and args.num_orbits > limits.MAX_NUM_ORBITS:
-        parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
+    _validate_num_orbits(args, parser)
 
     if args.num_orbits is not None and args.planets is False:
         parser.error("--num-orbits cannot be combined with -planets.")
 
     _validate_star_count(args, parser, file_data if args.system_file else {})
 
-    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
-        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
-
-    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
-        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+    _validate_flavor_chances(args, parser)
 
 
 def _validate_star_count(args, parser, file_data):
@@ -622,8 +656,7 @@ def validate_shared_generation_args(args, parser):
     validate_sky_arguments(args, parser)
     if args.density is not None and args.num_systems is not None:
         parser.error("--density cannot be combined with --num-systems.")
-    if args.workers is not None and args.workers < 0:
-        parser.error("--workers must be 0 (automatic) or more.")
+    _validate_workers(args, parser)
     if args.directive_attempts < 1:
         parser.error("--directive-attempts must be 1 or more.")
     try:
@@ -666,11 +699,7 @@ def validate_shared_generation_args(args, parser):
     _validate_star_type(args, parser)
     _validate_name(args, parser)
 
-    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
-        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
-
-    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
-        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+    _validate_flavor_chances(args, parser)
 
 
 def add_sector_arguments(parser):
@@ -972,10 +1001,7 @@ def validate_sectors_args(args, parser):
     if args.radius_pc is not None and args.shell is not None and args.wedge is None:
         parser.error("--radius-pc only applies to --center-sector, --shell --band --wedge, or random-start mode "
                      "(neither --shell nor --center-sector), not --shell alone.")
-    if args.radius_pc is not None and args.radius_pc <= 0:
-        parser.error("--radius-pc must be a positive number.")
-    if args.radius_pc is not None and args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
-        parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
+    _validate_radius_pc(args, parser)
 
     if args.limit is not None and args.shell is None:
         parser.error("--limit only applies to --shell.")
@@ -1012,13 +1038,7 @@ def validate_sectors_args(args, parser):
                      "override every position's density uniformly, leaving no per-position value for "
                      "--min-start-density to compare against.")
 
-    # generate_sector()/iter_sector_configs() expect a namespace shaped
-    # like the `sector` subcommand's own output -- see this function's
-    # docstring for why these are always None here.
-    args.sector_name = None
-    args.system_file = None
-    args.num_orbits = None
-    args.name = None
+    _shape_like_sector(args)
 
 
 _REGION_FLAGS = (
@@ -1041,7 +1061,7 @@ def _refuse_other_modes(args, parser, mode, allowed=()):
 def _validate_course(args, parser):
     """Refuses what can't go with `--course` (NAV.48) and shapes `args` like the other modes."""
     _refuse_other_modes(args, parser, "--course")
-    args.sector_name = args.system_file = args.num_orbits = args.name = None
+    _shape_like_sector(args)
 
 
 def _validate_around(args, parser):
@@ -1050,15 +1070,12 @@ def _validate_around(args, parser):
     _refuse_other_modes(args, parser, "--around", allowed=("--radius-pc",))
     if args.radius_pc is None:
         parser.error("--around requires --radius-pc.")
-    if args.radius_pc <= 0:
-        parser.error("--radius-pc must be a positive number.")
-    if args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
-        parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
+    _validate_radius_pc(args, parser)
     if args.grow_shells is not None and args.grow_shells < 0:
         parser.error("--grow-shells must be >= 0.")
     if args.unit_sectors is not None and args.unit_sectors < 1:
         parser.error("--unit-sectors must be >= 1.")
-    args.sector_name = args.system_file = args.num_orbits = args.name = None
+    _shape_like_sector(args)
 
 
 def _validate_block(args, parser):
@@ -1072,7 +1089,7 @@ def _validate_block(args, parser):
     args.block = drill.format_drill_key(block)
     if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
         parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
-    args.sector_name = args.system_file = args.num_orbits = args.name = None
+    _shape_like_sector(args)
 
 
 def _validate_span(args, parser):
@@ -1094,7 +1111,7 @@ def _validate_span(args, parser):
     if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
         parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
     args.span = span
-    args.sector_name = args.system_file = args.num_orbits = args.name = None
+    _shape_like_sector(args)
 
 
 def _galaxy_seed_arg(text):
@@ -1129,8 +1146,7 @@ def add_plan_arguments(parser):
                              f"{spherical.MAX_ADDRESSABLE_SHELL}; the galaxy's disk outline must fit inside it.")
 
     parser.add_argument('--workers', type=int, default=None,
-                        help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
-                             "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+                        help=WORKERS_HELP)
     resolution_group = parser.add_argument_group("how deep a dense cell is filled (planetgen.galaxy.resolution)")
     resolution_group.add_argument('--cell-star-ceiling', type=finite_float, default=None, metavar='SYSTEMS',
                                   help="A cell that expects more systems than this is filled only with the stars at "
@@ -1174,8 +1190,7 @@ def validate_plan_args(args, parser):
         args (argparse.Namespace): Parsed arguments.
         parser (argparse.ArgumentParser): The parser to raise errors through.
     """
-    if args.workers is not None and args.workers < 0:
-        parser.error("--workers must be 0 (automatic) or more.")
+    _validate_workers(args, parser)
     if args.cell_star_ceiling is not None and args.cell_star_ceiling < 1:
         parser.error("--cell-star-ceiling must be at least 1 system.")
     if args.fill_luminosity_cap is not None:
@@ -1254,16 +1269,14 @@ def add_scatter_arguments(parser):
                         help="For --band: the luminosity (solar luminosities) to go down to. Sectors already filled "
                              "are left out. Does nothing when L_SUN is not below the current level.")
     parser.add_argument('--workers', type=int, default=None,
-                        help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
-                             "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+                        help=WORKERS_HELP)
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
 
 def validate_scatter_args(args, parser):
     """Validates `add_scatter_arguments`'s options, calling `parser.error` on the first problem found."""
-    if args.workers is not None and args.workers < 0:
-        parser.error("--workers must be 0 (automatic) or more.")
+    _validate_workers(args, parser)
     kind = "nebula_field" if args.nebula_field else next(name for name in ("mass", "luminosity", "phenomena", "band")
                                                          if getattr(args, name))
     others = {"phenomenon_min_mass": "mass", "compact_min_mass": "phenomena", "down_to": "band"}
@@ -1314,8 +1327,7 @@ def add_fill_arguments(parser):
     """Adds the options of a command that only runs units on the queue and takes no setting of its own
     (`fill-map-luminosity`, `rescore-habitability`): the worker count, the MySQL connection and the logging."""
     parser.add_argument('--workers', type=int, default=None,
-                        help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
-                             "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+                        help=WORKERS_HELP)
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1355,8 +1367,7 @@ def add_since_arguments(parser):
 
 def validate_fill_args(args, parser):
     """Validates `add_fill_arguments`'s options (and that `settle` is given --since or --sector-id, not both)."""
-    if args.workers is not None and args.workers < 0:
-        parser.error("--workers must be 0 (automatic) or more.")
+    _validate_workers(args, parser)
     if args.command == 'settle' and args.sector_id and args.since is not None:
         parser.error("--since and --sector-id cannot be combined.")
     validate_sky_arguments(args, parser)
@@ -1436,10 +1447,7 @@ def validate_phenomenon_args(args, parser):
     """
     if args.num_orbits is not None and not args.anchor_system:
         parser.error("--num-orbits requires --anchor-system.")
-    if args.num_orbits is not None and args.num_orbits < 0:
-        parser.error("--num-orbits must be zero or a positive integer.")
-    if args.num_orbits is not None and args.num_orbits > limits.MAX_NUM_ORBITS:
-        parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
+    _validate_num_orbits(args, parser)
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
     if args.output and args.sector_id is not None:
@@ -1793,8 +1801,7 @@ def build_parser():
         help="Run a list of generation commands as one run.")
     run_job_parser.add_argument('spec', metavar='SPEC', help="The job as JSON, or @FILE to read it from a file.")
     run_job_parser.add_argument('--workers', type=int, default=None,
-                                help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
-                                     "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+                                help=WORKERS_HELP)
     store.add_mysql_connection_args(run_job_parser)
     add_logging_arguments(run_job_parser)
 
@@ -2029,8 +2036,8 @@ def validate_command(args, command_parser):
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
-    elif args.command == 'run-job' and args.workers is not None and args.workers < 0:
-        command_parser.error("--workers must be 0 (automatic) or more.")
+    elif args.command == 'run-job':
+        _validate_workers(args, command_parser)
 
 
 def run_fingerprint(args):

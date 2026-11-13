@@ -12,7 +12,7 @@ from planetgen.web.lib import apiclient, bodyview
 
 from . import bp
 from .helpers import crumb, db_name, page_url, render_page
-from .item_pages import _crumbs, item_url
+from .item_pages import item_url, linked_crumbs
 
 
 def member_url(belt_ref, designation):
@@ -31,8 +31,7 @@ def belt_member_page(belt_ref, rank):
     except apiclient.NotFoundError:
         abort(404)
     name = found["name"]
-    crumbs = _crumbs(found, name)
-    crumbs[-1] = {"label": name, "url": item_url(ref)}
+    crumbs = linked_crumbs(found, name, ref)
     crumbs.append(crumb("Bodies and sizes", "belt_info_page", belt_ref=ref))
     crumbs.append(crumb(data["designation"]))
     member = data["member"]

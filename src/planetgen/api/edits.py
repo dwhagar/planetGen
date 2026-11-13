@@ -25,11 +25,10 @@ from planetgen.generation import run_phenomenon
 from planetgen.db import edits as editStore, sector_paths, store
 from planetgen.admin import edits as adminEdits
 from planetgen.generation import validation
-from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 
 from .authz import audit, require_admin
-from .common import ApiError, request_json
+from .common import ApiError, optional_json_body
 from .limiter import limiter
 from .schemas import ChangeStar, DropFacilities, parse_body
 from .routes import WRITE_RATE_LIMIT, accepted, run_queued, _resolve_requested_write_db_config, _write_conn
@@ -40,19 +39,9 @@ _BODY_TABLES = {"planet": "planets", "moon": "moons", "belt": "asteroid_belts"}
 _FACILITY_COLUMNS = {"planet": "planet_id", "moon": "moon_id", "belt": "asteroid_belt_id"}
 
 
-def _optional_body():
-    """The optional JSON body: absent is `{}`."""
-    body = request_json()
-    if body is None:
-        return {}
-    if not isinstance(body, dict):
-        raise ApiError("request body must be a JSON object")
-    return body
-
-
 def _options():
     """The optional JSON body: `{"drop_facilities": bool}`."""
-    return parse_body(DropFacilities, _optional_body()).drop_facilities
+    return parse_body(DropFacilities, optional_json_body()).drop_facilities
 
 
 def _facilities_lost(conn, kind, body, regenerate):
@@ -66,8 +55,7 @@ def _facilities_lost(conn, kind, body, regenerate):
             ids.append(("planet_id", body.db_id))
     elif not regenerate:
         ids = [(_FACILITY_COLUMNS[kind], body.db_id)]
-    return sum(conn.execute(f"SELECT COUNT(*) AS n FROM facilities WHERE {column} = ?", (value,)).fetchone()["n"]
-               for column, value in ids)
+    return _facility_count(conn, ids)
 
 
 def _result_dict(result, **extra):
@@ -108,17 +96,12 @@ def edit_body_job(config, kind, body_id, regenerate, drop_facilities):
     conn = store.open_write(config)
     try:
         with conn:
-            row = conn.execute(f"SELECT star_system_id FROM {_BODY_TABLES[kind]} WHERE id = ?",
-                               (body_id,)).fetchone()
-            if row is None:
-                raise ApiError(f"no such {kind}: {body_id}", status_code=404)
-            system_id = row["star_system_id"]
-            system = store.load_star_system(conn, system_id)
+            system_id, system = _load_system_of(conn, kind, body_id)
             body, owner = adminEdits.find_body(system, kind, body_id)
             lost = _facilities_lost(conn, kind, body, regenerate)
             if lost and not drop_facilities:
-                raise ApiError(f"this would delete {lost} facilit{'y' if lost == 1 else 'ies'}; send "
-                               "\"drop_facilities\": true to go ahead", status_code=409)
+                raise ApiError(f"this would delete {_facilities_text(lost)}; send \"drop_facilities\": true to go ahead",
+                               status_code=409)
             try:
                 if regenerate:
                     result = adminEdits.regenerate_body(system, kind, body, owner)
@@ -163,27 +146,39 @@ _body_routes("belt", "belts")
 # ADM.6 and ADM.7: a body's class, a system's star
 # ---------------------------------------------------------------------
 
+def _load_system_of(conn, kind, body_id):
+    """`(system id, loaded system)` of the system a body belongs to; 404 for a body that is not stored."""
+    row = conn.execute(f"SELECT star_system_id FROM {_BODY_TABLES[kind]} WHERE id = ?", (body_id,)).fetchone()
+    if row is None:
+        raise ApiError(f"no such {kind}: {body_id}", status_code=404)
+    return row["star_system_id"], store.load_star_system(conn, row["star_system_id"])
+
+
+def _facility_count(conn, columns_and_ids):
+    """How many facilities sit on the rows `[(facility column, row id)]` name."""
+    return sum(conn.execute(f"SELECT COUNT(*) AS n FROM facilities WHERE {column} = ?", (value,)).fetchone()["n"]
+               for column, value in columns_and_ids)
+
+
+def _facilities_text(lost):
+    return f"{lost} facilit{'y' if lost == 1 else 'ies'}"
+
 
 def _removed_rows(system_before_ids, system):
     """The planet, moon and belt rows an edit dropped:
     `[(facility column, row id)]`."""
-    kept = set()
-    for _star, planets in validation.star_lists(system):
-        for body in planets:
-            kind = "belt" if body.body_type == 'a' else "planet"
-            kept.add((kind, getattr(body, "db_id", None)))
-            for moon in getattr(body, "moons", ()):
-                kept.add(("moon", getattr(moon, "db_id", None)))
+    kept = set(_body_ids(system))
     return [(_FACILITY_COLUMNS[kind], row_id) for kind, row_id in system_before_ids if (kind, row_id) not in kept]
 
 
 def _body_ids(system):
+    """`[(kind, row id)]` of every planet, belt and moon of `system` (`None` for a body not stored yet)."""
     ids = []
     for _star, planets in validation.star_lists(system):
         for body in planets:
-            ids.append(("belt" if body.body_type == 'a' else "planet", body.db_id))
+            ids.append(("belt" if body.body_type == 'a' else "planet", getattr(body, "db_id", None)))
             for moon in getattr(body, "moons", ()):
-                ids.append(("moon", moon.db_id))
+                ids.append(("moon", getattr(moon, "db_id", None)))
     return ids
 
 
@@ -199,7 +194,7 @@ def change_system_star(system_id):
     and listed in `removed`. 409 for a binary, a black hole or neutron
     star, a system built around a pre-placed bright star, or when removed
     bodies host facilities and `"drop_facilities": true` isn't sent."""
-    change = parse_body(ChangeStar, _optional_body())
+    change = parse_body(ChangeStar, optional_json_body())
     star_type, drop_facilities = change.star_type, change.drop_facilities
     return _queued_edit("system.star", f"system:{system_id}", change_star_job,
                         _resolve_requested_write_db_config(), system_id, star_type, drop_facilities,
@@ -224,12 +219,10 @@ def change_star_job(config, system_id, star_type, drop_facilities):
             except ValueError as exc:
                 raise ApiError(str(exc), status_code=409 if "single star" in str(exc) or "black hole" in str(exc)
                                else 400)
-            lost = sum(conn.execute(f"SELECT COUNT(*) AS n FROM facilities WHERE {column} = ?",
-                                    (row_id,)).fetchone()["n"]
-                       for column, row_id in _removed_rows(before, system))
+            lost = _facility_count(conn, _removed_rows(before, system))
             if lost and not drop_facilities:
-                raise ApiError(f"this would delete {lost} facilit{'y' if lost == 1 else 'ies'} on the bodies "
-                               "with no room left; send \"drop_facilities\": true to go ahead", status_code=409)
+                raise ApiError(f"this would delete {_facilities_text(lost)} on the bodies with no room left; send "
+                               "\"drop_facilities\": true to go ahead", status_code=409)
             editStore.save_system_edits(conn, system_id, system, stars=[new_star])
         # GEN.126: a new star has a new mass, which bends the paths around it.
         sector_id = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()["sector_id"]

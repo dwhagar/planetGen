@@ -97,8 +97,13 @@ class UpdateRunning(OSError):
     """Work was refused because an update is running; the message says what and why."""
 
 
+def _iso(moment):
+    """A UTC `datetime` as the guard's time text, `2026-10-15T08:00:00Z`."""
+    return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _now():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return _iso(datetime.now(timezone.utc))
 
 
 pid_alive = process.pid_alive
@@ -191,16 +196,8 @@ def running(kind, title, **extra):
     """
     path = None
     try:
-        folder = running_dir()
-        os.makedirs(folder, exist_ok=True)
-        with contextlib.suppress(OSError):
-            os.chmod(folder, 0o1777)    # every user a run starts as may register
-        path = os.path.join(folder, f"{kind}-{os.getpid()}.json")
-        with contextlib.suppress(FileNotFoundError):
-            os.unlink(path)         # a link or file planted under the name: removed itself, never followed
-        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-            os.fchmod(handle.fileno(), 0o644)       # whatever the umask: the guard, another user, reads it
+        path = os.path.join(running_dir(), f"{kind}-{os.getpid()}.json")
+        with stop_reason.open_shared_file(running_dir(), path) as handle:        # SEC.38: every user a run starts as may register
             json.dump({"kind": kind, "title": title, "pid": os.getpid(), "since": _now(), **extra}, handle)
     except OSError:
         path = None
@@ -299,8 +296,7 @@ class GenerateJobSource:
                 job = None
             if job is None:
                 continue
-            started = (datetime.fromtimestamp(job["created_at"], timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                       if job.get("created_at") else None)
+            started = _iso(datetime.fromtimestamp(job["created_at"], timezone.utc)) if job.get("created_at") else None
             found.append({"source": self.name, "kind": job.get("kind") or "job", "id": job["id"],
                           "title": job.get("title") or "Generate job", "started": started,
                           "holds": "the Generate page's job lock", "queued": job["status"] == "starting",
@@ -354,7 +350,7 @@ class QueuedJobSource(_RedisSource):
                     started = job.started_at or job.enqueued_at if job is not None else None
                     found.append({"source": self.name, "kind": name, "id": job_id,
                                   "title": (job.description if job is not None else None) or job_id,
-                                  "started": started.strftime("%Y-%m-%dT%H:%M:%SZ") if started else None,
+                                  "started": _iso(started) if started else None,
                                   "holds": f"the {name} queue", "queued": state == "queued", "queue": name,
                                   "protect": name == redisqueue.GENERATION_QUEUE})
         return found
@@ -390,7 +386,7 @@ class RunRecordSource(_RedisSource):
                 continue
             started = run["started"] or run["created"]
             found.append({"source": self.name, "kind": run["kind"], "id": run_id, "title": run["title"],
-                          "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)) if started else None,
+                          "started": _iso(datetime.fromtimestamp(started, timezone.utc)) if started else None,
                           "holds": "the generation slot" if run["kind"] == runrecord.GENERATION else "a run slot",
                           "queued": False, "protect": run["kind"] == runrecord.GENERATION})
         return found
@@ -609,30 +605,19 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
     # Whatever appeared between the first look and the lock is canceled only with the same word.
     leftover = list_running(sources)
     if systemd and protected(leftover):
-        _abort(already_closed)
-        write("Not updating: generation started while the update began:")
-        for line in describe(protected(leftover)):
-            write(line)
-        write("Run it again when it has finished.")
-        return False
+        return _not_updating(already_closed, write, "generation started while the update began:", protected(leftover),
+                             "Run it again when it has finished.")
     if leftover and not agreed:
-        _abort(already_closed)
-        write("Not updating: work started while the update began:")
-        for line in describe(leftover):
-            write(line)
-        write("Run it again when it has finished.")
-        return False
+        return _not_updating(already_closed, write, "work started while the update began:", leftover,
+                             "Run it again when it has finished.")
     if leftover:
         write("Canceling the work above and waiting for it to stop...")
         remaining = wait_until_idle(sources, timeout, poll, write, spare_generation=systemd, why=why)
         if systemd and not remaining:
             remaining = protected(list_running(sources))
         if remaining:
-            _abort(already_closed)
-            write(f"Not updating: this did not stop within {int(timeout)} seconds, and nothing was changed:")
-            for line in describe(remaining):
-                write(line)
-            return False
+            return _not_updating(already_closed, write,
+                                 f"this did not stop within {int(timeout)} seconds, and nothing was changed:", remaining)
         write("Everything stopped; the update has the machine to itself.")
     return True
 
@@ -642,6 +627,18 @@ def _abort(already_closed):
     _remove_lock()
     if not already_closed:
         maintenance.turn_off_for(UPDATE_CAUSE, by="update")
+
+
+def _not_updating(already_closed, write, why, items, tail=None):
+    """`begin` gives up after taking the lock: undoes it (`_abort`), says why with the `items` in the way, and returns
+    `False`."""
+    _abort(already_closed)
+    write(f"Not updating: {why}")
+    for line in describe(items):
+        write(line)
+    if tail:
+        write(tail)
+    return False
 
 
 def end(pid, ok, step=None, write=print):
@@ -664,10 +661,10 @@ def end(pid, ok, step=None, write=print):
         if lock is not None and not lock.get("kept"):
             maintenance.turn_off_for(UPDATE_CAUSE, by="update")
         return not maintenance.is_on()
+    failed = f"error: the update failed{f' at {step}' if step else ''}."
     if state["enabled"] and state["cause"] == UPDATE_CAUSE:
-        write(f"error: the update failed{f' at {step}' if step else ''}. The site stays closed (maintenance mode) "
-              f"because the database may be half migrated. Fix the problem and run ./update.sh again; to open the "
-              f"site without updating: {TURN_OFF_HINT}")
+        write(f"{failed} The site stays closed (maintenance mode) because the database may be half migrated. Fix the "
+              f"problem and run ./update.sh again; to open the site without updating: {TURN_OFF_HINT}")
     else:
-        write(f"error: the update failed{f' at {step}' if step else ''}.")
+        write(failed)
     return False
