@@ -23,13 +23,17 @@ def client(site_app):
 
 @pytest.fixture(scope="module")
 def belt(site_db):
+    """`(reference, ranks)` of the belt with the most stored bodies: `ranks` are the ranks it keeps, in order. The heaviest bodies of a belt are planets (GEN.1510) and are not stored as members, so rank 1 may not be among them."""
     conn = store.get_connection(site_db)
     try:
         row = conn.execute("SELECT b.id, (SELECT COUNT(*) FROM belt_members m WHERE m.belt_id = b.id) AS members FROM asteroid_belts b ORDER BY members DESC, b.id LIMIT 1").fetchone()
-        found = (f"belt:{pid('belt', row['id'], conn)}", row["members"]) if row else None
+        found = None
+        if row:
+            ranks = [r["member_rank"] for r in conn.execute("SELECT member_rank FROM belt_members WHERE belt_id = ? ORDER BY member_rank", (row["id"],)).fetchall()]
+            found = (f"belt:{pid('belt', row['id'], conn)}", ranks)
     finally:
         conn.close()
-    if found is None or found[1] == 0:
+    if found is None or not found[1]:
         pytest.skip("the sample galaxy holds no asteroid belt with stored bodies")
     return found
 
@@ -39,9 +43,10 @@ def _rank(n):
 
 
 def test_the_api_answers_a_member_the_belt_page_lists(client, belt):
-    ref, members = belt
+    ref, ranks = belt
+    members = len(ranks)
     listed = client.get(f"/api/objects/{ref}/belt-page").get_json()["bodies"]
-    data = client.get(f"/api/objects/{ref}/belt-members/{_rank(1)}")
+    data = client.get(f"/api/objects/{ref}/belt-members/{_rank(ranks[0])}")
     assert data.status_code == 200
     body = data.get_json()
     assert set(body) == {"designation", "rank", "member", "orbit", "share", "belt", "previous", "next", "planet"}
@@ -51,22 +56,23 @@ def test_the_api_answers_a_member_the_belt_page_lists(client, belt):
 
 
 def test_the_orbit_follows_from_the_stored_elements(client, belt):
-    ref, _ = belt
-    orbit = client.get(f"/api/objects/{ref}/belt-members/{_rank(1)}").get_json()["orbit"]
+    ref, ranks = belt
+    orbit = client.get(f"/api/objects/{ref}/belt-members/{_rank(ranks[0])}").get_json()["orbit"]
     a, e = orbit["semi_major_axis"]["value"], orbit["eccentricity"]
     assert orbit["closest_distance"]["value"] == pytest.approx(a * (1 - e)) and orbit["farthest_distance"]["value"] == pytest.approx(a * (1 + e))
     assert orbit["period"]["unit"] == "yr" and orbit["period"]["value"] > 0 and math.isfinite(orbit["period"]["value"])
 
 
 def test_the_page_shows_the_body_and_links_its_neighbours_and_its_belt(client, belt):
-    ref, members = belt
-    page = client.get(f"/object/{ref}/member/{_rank(1)}")
+    ref, ranks = belt
+    members = len(ranks)
+    page = client.get(f"/object/{ref}/member/{_rank(ranks[0])}")
     assert page.status_code == 200
     text = page.get_data(as_text=True)
     assert 'id="member-body"' in text and 'id="member-orbit"' in text
     assert f'href="/object/{ref}"' in text and f'href="/object/{ref}/belt"' in text
     if members > 1:
-        assert f'href="/object/{ref}/member/{_rank(2)}"' in text
+        assert f'href="/object/{ref}/member/{_rank(ranks[1])}"' in text
 
 
 def test_the_page_draws_its_body_from_the_look_of_a_belt_member(client, belt):
@@ -74,22 +80,23 @@ def test_the_page_draws_its_body_from_the_look_of_a_belt_member(client, belt):
     import html
     import json
 
-    ref, _members = belt
-    text = client.get(f"/object/{ref}/member/{_rank(1)}").get_data(as_text=True)
+    ref, ranks = belt
+    text = client.get(f"/object/{ref}/member/{_rank(ranks[0])}").get_data(as_text=True)
     assert 'id="member-example"' in text and "bodyview.js" in text and 'class="body-view-canvas"' in text
     look = json.loads(html.unescape(text.split("data-look='", 1)[1].split("'", 1)[0]))
     assert look["kind"] == "belt_member" and look["body"] == "solid" and look["color"].startswith("#") and look["radiusKm"] > 0
-    assert look["seed"] == bodylook.seed_for("belt_member", client.get(f"/api/objects/{ref}/belt-members/{_rank(1)}").get_json()["designation"])
+    assert look["seed"] == bodylook.seed_for("belt_member", client.get(f"/api/objects/{ref}/belt-members/{_rank(ranks[0])}").get_json()["designation"])
 
 
 def test_the_belt_page_links_every_body_to_its_page(client, belt):
-    ref, members = belt
+    ref, ranks = belt
+    members = len(ranks)
     text = client.get(f"/object/{ref}/belt").get_data(as_text=True)
     assert text.count(f'href="/object/{ref}/member/') == members
 
 
 def test_a_rank_the_belt_does_not_keep_or_does_not_write_so_is_not_found(client, belt):
-    ref, members = belt
+    ref, _ranks = belt
     for rank in (_rank(10 ** 7), "0000", "1", "00001", "ZZZZ"):
         assert client.get(f"/api/objects/{ref}/belt-members/{rank}").status_code == 404
         assert client.get(f"/object/{ref}/member/{rank}").status_code == 404
