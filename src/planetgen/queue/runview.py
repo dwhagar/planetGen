@@ -48,8 +48,6 @@ def summary(run, now):
     """
     live = run["state"] in runrecord.LIVE_STATES
     stages = run["stages"]
-    cost_total = sum(stage["cost_total"] or 0.0 for stage in stages)
-    cost_done = sum(stage["cost_done"] or 0.0 for stage in stages)
     current = stages[min(max(run["current"], 0), len(stages) - 1)] if stages else None
     started = run["started"] or run["created"]
     end = run["finished"] if run["finished"] is not None else (now if live else run["updated"])
@@ -63,7 +61,7 @@ def summary(run, now):
         "stage": None if current is None else {"index": stages.index(current), "count": len(stages),
                                                "label": current["label"], "state": stage_state(current)},
         "units": sum(stage["units"] for stage in stages), "units_done": sum(stage["done"] for stage in stages),
-        "percent": round(100.0 * cost_done / cost_total, 1) if cost_total else (100.0 if run["state"] == "done" else None),
+        "percent": runeta.cost_percent(stages, 100.0 if run["state"] == "done" else None),
         "eta": eta_view(run, now),
     }
 
