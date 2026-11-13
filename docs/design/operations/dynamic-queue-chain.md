@@ -1,6 +1,6 @@
 # The dynamic queue chain: jobs declare, the engine splits (OPS.161)
 
-Status: skeleton built (declaration, engine, stub profile, logging); no stage uses it yet. Asked by Boss, 2026-11-12, 3:00 PM EST ("a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue"), with his rulings of 3:01 to 3:04 PM EST. It is the second half of [self-tuning-jobs.md](self-tuning-jobs.md) (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of [job-graph-and-memory-broker.md](job-graph-and-memory-broker.md) (DOC.113).
+Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet. Asked by Boss, 2026-11-12, 3:00 PM EST ("a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue"), with his rulings of 3:01 to 3:04 PM EST. It is the second half of [self-tuning-jobs.md](self-tuning-jobs.md) (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of [job-graph-and-memory-broker.md](job-graph-and-memory-broker.md) (DOC.113).
 
 ## What a job declares
 
@@ -30,7 +30,7 @@ The decision (`Decision`) carries the flag, the old and new unit counts and size
 
 ## The profile contract (OPS.155)
 
-`queue/splitprofile.py` is a stub. `lookup(kind)` returns `None` for every kind, so the engine takes every job's suggested split and nothing changes in any run. OPS.155 (the `job_profiles` table) replaces the body of `lookup` and nothing else; the contract is `Reading(seconds_per_item, mb_base, mb_per_item, samples, trust)`, with `trust` 1.0 for this machine's shape and epoch and 0.5 for a profile measured elsewhere (the design note's half trust). A reading is usable at 3 samples. The same table feeds the gate claim (OPS.156) and the worker caps (OPS.157).
+`queue/splitprofile.py` reads the `job_profiles` rows of `jobprofiles` (`unit_rows`, kind `unit:<command>`, finished units with seconds per item). `lookup(kind)` gives a `Reading(seconds_per_item, mb_base, mb_per_item, samples, trust)`: the median seconds per item, and a memory line through the lowest and highest size bucket's median peaks (one bucket gives the raw peak over the items and no base, which overstates the slope and so never cuts a unit too large). Rows from this machine's shape and epoch (the rule of `profileclaim._shape_of`, reused) count in full at 3 samples or more; otherwise rows from elsewhere count at half trust (0.5); fewer than 3 of either gives `None`, so the job keeps its suggested split. `PLANETGEN_SELF_TUNING=0` or `PLANETGEN_JOB_PROFILES=0` (the test default) turns the reading off, and any failure to read leaves the suggested split. The same table feeds the gate claim (OPS.156) and the worker caps (OPS.157).
 
 ## What is not built
 

@@ -121,8 +121,53 @@ def test_decide_reads_the_stub_profile_and_the_host(monkeypatch):
     assert splitter.decide("k", dynamic()).by == splitter.BY_SUGGESTED, "learning never blocks a job"
 
 
-def test_the_stub_profile_knows_nothing_until_the_table_exists():
+def test_the_stub_profile_is_empty_and_a_test_run_reads_no_table():
     assert splitprofile.STUB == {} and splitprofile.lookup("scatter-mass") is None
+
+
+def _row(items, spi, peak, memory=32000, cores=16, epoch=146):
+    return {"items": items, "size_bucket": splitprofile_bucket(items), "seconds_per_item": spi, "peak_mb": peak, "host_memory_mb": memory, "host_cores": cores, "generator_epoch": epoch}
+
+
+def splitprofile_bucket(items):
+    from planetgen.queue import jobprofiles
+    return jobprofiles.size_bucket(items)
+
+
+def test_the_reading_of_this_machines_rows_is_in_full_trust_with_a_memory_line():
+    rows = [_row(100, 0.02, 500 + 100 * 2.0), _row(110, 0.03, 500 + 110 * 2.0), _row(120, 0.01, 500 + 120 * 2.0), _row(1000, 0.02, 500 + 1000 * 2.0), _row(1100, 0.02, 500 + 1100 * 2.0)]
+    got = splitprofile.from_rows(rows, 32000, 16, 146)
+    assert got.trust == 1.0 and got.samples == 5 and got.seconds_per_item == pytest.approx(0.02)
+    assert got.mb_per_item == pytest.approx(2.0, rel=0.05) and got.mb_base == pytest.approx(500, rel=0.1) and got.usable()
+
+
+def test_one_size_bucket_gives_the_raw_peak_over_items_and_no_base():
+    got = splitprofile.from_rows([_row(100, 0.02, 600), _row(105, 0.02, 650), _row(110, 0.02, 700)], 32000, 16, 146)
+    assert got.mb_base == 0.0 and got.mb_per_item == pytest.approx(650 / 105)
+
+
+def test_rows_from_another_machine_or_epoch_count_at_half_trust_and_too_few_rows_give_nothing():
+    rows = [_row(100, 0.02, 700, memory=64000, cores=32) for _ in range(3)]
+    assert splitprofile.from_rows(rows, 32000, 16, 146).trust == splitprofile.OTHER_TRUST
+    assert splitprofile.from_rows(rows[:2], 32000, 16, 146) is None
+    assert splitprofile.from_rows([_row(100, 0.02, 700, epoch=145) for _ in range(3)], 32000, 16, 146).trust == 0.5
+    assert splitprofile.from_rows([_row(100, None, 700) for _ in range(5)], 32000, 16, 146) is None
+
+
+def test_lookup_reads_the_unit_rows_of_the_kind_and_fails_open(monkeypatch):
+    from planetgen.queue import jobprofiles, memorygate, profileclaim
+    monkeypatch.setattr(jobprofiles, "enabled", lambda: True)
+    monkeypatch.setattr(profileclaim, "enabled", lambda: True)
+    monkeypatch.setattr(memorygate, "read_host", lambda: memorygate.Host(32000, 20000, 16, 0.1))
+    seen = []
+    monkeypatch.setattr(jobprofiles, "unit_rows", lambda kind, *a, **k: seen.append(kind) or [_row(100, 0.02, 700)] * 4)
+    got = splitprofile.lookup("scatter-mass")
+    assert seen == ["unit:scatter-mass"] and got is not None and got.samples == 4
+    monkeypatch.setattr(jobprofiles, "unit_rows", lambda *a, **k: 1 / 0)
+    assert splitprofile.lookup("scatter-mass") is None, "a table that cannot answer leaves the suggested split"
+    monkeypatch.setattr(profileclaim, "enabled", lambda: False)
+    monkeypatch.setattr(jobprofiles, "unit_rows", lambda *a, **k: seen.append("read") or [])
+    assert splitprofile.lookup("scatter-mass") is None and "read" not in seen, "the self-tuning switch turns the reading off"
 
 
 def test_the_resources_come_from_the_gate_and_the_stage_cap(monkeypatch):
