@@ -702,7 +702,6 @@ MESSAGE_TEXT_ALLOWED = {
     ("db/dataversion.py", "bump"): "OPS.175",
     ("db/parity.py", "protect_sector"): "OPS.175",
     ("db/store.py", "_advance_body_states"): "OPS.175",
-    ("db/uncharted_index.py", "index"): "OPS.175",
     ("galaxy/sector.py", "_random_position"): "OPS.175",
     ("galaxy/sector.py", "add_phenomenon"): "OPS.175",
     ("galaxy/sector.py", "add_preplaced_system"): "OPS.175",

@@ -135,6 +135,7 @@ connectivity to that specific schema rather than the default one.
   (at most 100,000). Such an item has `virtual: true` and the cell's sector ID as `id` (its designation, which `GET /api/sectors/<id>` and `after=<sector ID>` accept though no row has it);
   it has no systems (the `systems` and `density` sorts count it as zero, so these follow the rows) and the `quadrant` filter of the library function works from the cell's position.
   `uncharted_total` and `total` include these cells. A cell with a row (a rogue planet's) is listed once, as its row.
+  Migration 0247 deletes the placeholder rows nothing lives in and no stage makes them, so these cells are all of the waiting cells that no rogue planet holds a row for. A sector search (`sector_q`) with `coverage=uncharted|all` finds such a cell when the whole designation is typed (`virtual: true`).
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
