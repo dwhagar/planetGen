@@ -608,6 +608,7 @@ The map panels and their data.
 | `generateplace.js` | The Add sectors form's choices: shows the one panel of the choice made (ADM.108). |
 | `generatestarmix.js` | The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45). |
 | `generatelevers.js` | The Generate task pages' shape dials: the line under them (disc crest, planned-star share, outline) read from `/admin/generate/shape-report` (GEN.617, ADM.124). |
+| `leversliders.js` | The Generate task pages' galaxy measures as sliders: a tick box and the typed box in one row above a bar that rests at where Auto sits in the row's range (`Lever.slider_default`) and sticks to it; unticked is Auto (blank box, no flag). |
 | `generatesize.js` | The line under the Add sectors and Check forms: the sectors, systems, stars, database growth and time the run would make, read a moment after each change from `/admin/generate/task/<key>/size` (ADM.126); the palette adds the same figures to a typed command. |
 | `adminshell.js` | The admin shell's density switch: compact by default, the choice kept in the browser (ADM.92). |
 | `adminpalette.js` | The Ctrl+K palette, its typed commands and the keyboard set (ADM.120, ADM.121, ADM.122). |

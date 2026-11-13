@@ -59,16 +59,42 @@
 {%- set choices = [{"value": "", "label": row.choices[0]|capitalize if row.choices|length == 1 else "Auto"}] -%}
 {%- if row.choices|length > 1 %}{% for choice in row.choices %}{% set _ = choices.append({"value": choice, "label": choice|capitalize}) %}{% endfor %}{% endif -%}
 {{ ui_select(row.name, row.label, choices, shown, hint=row.help ~ " Auto: " ~ row.auto_text ~ ".", **{"data-lever": row.name}) }}
-{%- elif row.kind == "length" -%}
-{{ ui_input(row.name, row.label, shown, hint=row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ". " ~ row.units_text(), placeholder="Auto", autocomplete="off", autocapitalize="off", spellcheck="false", **{"data-lever": row.name}) }}
 {%- else -%}
-{%- set extra = {"data-lever": row.name, "data-step": row.step, "data-dial": row.dial} -%}
+{#- A number or length row is a slider (Boss, 2026-11-12): the tick box and the typed box share one row above the bar. Unticked is Auto
+    (the box is blank, so no flag goes to the plan) and the bar rests at the middle of what Auto draws (`slider_default`),
+    which it sticks to; ticked, the bar and the box set the value. static/leversliders.js drives it; without scripts the
+    box is typed into, blank for Auto. -#}
+{%- set extra = {"data-lever": row.name} -%}
+{%- if row.kind == "length" -%}
+{%- set hint = row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ". " ~ row.units_text() -%}
+{%- else -%}
+{%- set _ = extra.update({"data-step": row.step, "data-dial": row.dial}) -%}
 {%- if row.name == "mass" %}{% set _ = extra.update({"data-no-dark-halo-below": halo_min_stellar_mass, "data-simple-below": full_structure_min_mass}) %}{% endif -%}
-{{ ui_input(row.name, row.label ~ (" (" ~ row.unit ~ ")" if row.unit else ""), shown, type="number", hint=row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ".", step="any", inputmode="decimal", min=row.minimum, max=row.maximum, placeholder="Auto", **extra) }}
+{%- set hint = row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ "." -%}
+{%- endif -%}
+{%- set label = row.label ~ (" (" ~ row.unit ~ ")" if row.unit and row.kind != "length" else "") -%}
+{%- set factors = {} -%}
+{%- if row.kind == "length" %}{% for unit in row.units if unit.factor is not none %}{% set _ = factors.update({unit.name: unit.factor}) %}{% endfor %}{% endif -%}
+<div class="ui-field lever-slider" data-lever-slider data-kind="{{ row.kind }}" data-min="{{ row.minimum }}" data-max="{{ row.maximum }}"
+  data-default="{{ row.slider_default }}"{% if row.log %} data-log{% endif %}{% if row.min_abs is not none %} data-min-abs="{{ row.min_abs }}"{% endif %}
+  {%- if row.kind == "length" %} data-unit="{{ row.unit }}" data-factors="{{ factors|tojson|forceescape }}"{% endif %}>
+  <div class="lever-slider-head">
+    {{ ui_checkbox(row.name ~ "_set", label, checked=(shown|string|length > 0), **{"data-lever-set": row.name}) }}
+    {% if row.kind == "length" -%}
+    {{ ui_input(row.name, label, shown, placeholder="Auto", autocomplete="off", autocapitalize="off", spellcheck="false", **extra) }}
+    {%- else -%}
+    {{ ui_input(row.name, label, shown, type="number", step="any", inputmode="decimal", min=row.minimum, max=row.maximum, placeholder="Auto", **extra) }}
+    {%- endif %}
+  </div>
+  <input type="range" min="0" max="1000" step="1" value="500" list="{{ row.name }}-auto-tick" class="lever-slider-range" data-lever-range
+    aria-label="{{ label }}, slider" hidden>
+  <datalist id="{{ row.name }}-auto-tick"><option value="500"></option></datalist>
+  <span class="field-hint">{{ hint }}</span>
+</div>
 {%- endif -%}
 {%- endmacro -%}
 {%- macro plan_inputs() -%}
-<div class="search-fields">
+<div class="search-fields lever-fields">
   {%- for row in plan_fields if not row.advanced %}
   {{ lever_input(row) }}
   {%- endfor %}
@@ -77,7 +103,7 @@
 <p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
 <details class="generate-advanced">
   <summary>Advanced shape options</summary>
-  <div class="search-fields">
+  <div class="search-fields lever-fields">
     {%- for row in plan_fields if row.advanced %}
     {{ lever_input(row) }}
     {%- endfor %}
