@@ -474,8 +474,8 @@ def _note_usage(row, pid, current, now):
         elif now - float(row["t_last"]) >= 1.0:
             row["cpu_peak"] = max(float(row.get("cpu_peak", 0.0)), max(used - float(row["cpu_last"]), 0.0) / (now - float(row["t_last"])))
             row["cpu_last"], row["t_last"] = used, now
-    except Exception:       # noqa: BLE001 -- an average is not worth a heartbeat
-        pass
+    except Exception as exc:        # noqa: BLE001 -- an average is not worth a heartbeat
+        log.swallowed("queue", "noting the usage of a gated job at its heartbeat", exc)
 
 
 def release(conn, name):

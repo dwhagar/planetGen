@@ -151,7 +151,8 @@ def pinned_mb(conn, kind):
     try:
         raw = conn.hget(_pins_key(), kind)
         return None if raw is None else float(memorygate._decode(raw))
-    except Exception:       # noqa: BLE001 -- the pins are not worth a job
+    except Exception as exc:        # noqa: BLE001 -- the pins are not worth a job
+        log.swallowed("queue", f"reading the pin of {kind}", exc)
         return None
 
 
