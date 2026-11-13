@@ -13335,6 +13335,31 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 13 (built OPS.170). Prerequisites: OPS.184. Related: OPS.170, OPS.169, OPS.137.
   Filed by the TODO thread.
 
+- [ ] **OPS.186 (bug) A finished stage can fail to advance: if the horse running units._end_stage is killed with a retry left, or enqueue_open raises, the retry skips, unit_failed says the run goes on and no opening is queued, so the starter waits for ever**
+  From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W1. Do: reproduce with a killed horse and a raising enqueue_open, then make the stage end idempotent and retried until the opening is queued (or the run fails loudly). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06 (queue work; fold with OPS.181 part 13 at units._end_stage). Prerequisites: none. Related: OPS.181, OPS.130.
+  Filed by the TODO thread.
+
+- [ ] **OPS.187 (bug) open_failed has no already-done guard, so an RQ housekeeping failure after a finished cut fails the run**
+  From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), item 3. Do: open_failed checks the stage's done state first; a test with a housekeeping failure after a finished cut. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06. Prerequisites: none. Related: OPS.181, OPS.130.
+  Filed by the TODO thread.
+
+- [ ] **OPS.188 (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run**
+  From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W2. A restart of that process leaves the run unwatched. Waits on Boss's job-engine cards (the design may replace this).
+  Version 8.1. Owner (TODO, 2026-11-13): held for Boss's job-engine answers. Prerequisites: none. Related: OPS.181, OPS.130.
+  Filed by the TODO thread.
+
+- [ ] **OPS.189 (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP**
+  From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W11 (rq/queue.py). Waits on Boss's job-engine answers (the design may replace this).
+  Version 8.1. Owner (TODO, 2026-11-13): held for Boss's job-engine answers. Prerequisites: none. Related: OPS.181, OPS.130.
+  Filed by the TODO thread.
+
+- [ ] **OPS.190 (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit**
+  From the job-engine audit (research thread, /mnt/project-files/reports/job-engine-audit-2026-11-13.md section 5; read from main at 8.0.4045, not reproduced in a run), W4. Waits on Boss's job-engine answers (the design may replace this).
+  Version 8.1. Owner (TODO, 2026-11-13): held for Boss's job-engine answers. Prerequisites: none. Related: OPS.181, OPS.130.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

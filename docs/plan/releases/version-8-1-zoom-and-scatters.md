@@ -538,6 +538,11 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.183 | Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap | none | Lane 05, 2026-11-13. |
 | OPS.184 | (bug) New galaxy run fails at Stage 3: the skeleton unit is stopped as quiet while it waits for the generator battery's digest (regression of OPS.170) | none | PR 6421, 2026-11-13. |
 | OPS.185 | Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter | OPS.184 | Lane 13, 2026-11-13. |
+| OPS.186 | (bug) A finished stage can fail to advance: if the horse running units._end_stage is killed with a retry left, or enqueue_open raises, the retry skips, unit_failed says the run goes on and no opening is queued, so the starter waits for ever | none | Lane 06, 2026-11-13. |
+| OPS.187 | (bug) open_failed has no already-done guard, so an RQ housekeeping failure after a finished cut fails the run | none | Lane 06, 2026-11-13. |
+| OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | held for Boss's job-engine answers, 2026-11-13. |
+| OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | held for Boss's job-engine answers, 2026-11-13. |
+| OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | held for Boss's job-engine answers, 2026-11-13. |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | Lane 06, 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
