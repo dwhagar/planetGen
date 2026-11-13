@@ -260,13 +260,7 @@ def _warn_if_unshared_ratelimit_storage(app):
     """
     if app.config.get("RATELIMIT_STORAGE_URI") == "memory://":
         app.logger.warning(
-            "Flask-Limiter and the login lockouts are counting in memory: "
-            "rate limits are tracked per worker process, not shared across "
-            "them. This is correct for a single-process deployment (Flask's "
-            "dev server, or mod_wsgi/gunicorn with exactly one worker) but "
-            "silently under-enforces limits by roughly a factor of the "
-            "worker count otherwise -- leave ratelimit.storage_uri empty in "
-            "config.json to count on the Redis server (redis.url)."
+            "Rate limits and lockouts count in memory per worker, so more than one worker under-enforces them; leave ratelimit.storage_uri empty to use Redis."
         )
 
 
@@ -365,16 +359,16 @@ def _register_error_handlers(app):
         # propagates to the root logger, which the debug log listens on).
         g.error_logged = True
         if _is_api_request():
-            app.logger.exception("Unhandled exception in API request: %s %s (route %s)", request.method, request.path, request.endpoint or "-")
+            app.logger.exception("Unhandled exception in API request: %s %s (route %s).", request.method, request.path, request.endpoint or "-")
             return jsonify({"error": "internal server error"}), 500
-        app.logger.exception("Unhandled exception while building a page: %s %s (route %s)", request.method, request.path, request.endpoint or "-")
-        log.exception(f"Unhandled exception while building {request.path}")
+        app.logger.exception("Unhandled exception while building a page: %s %s (route %s).", request.method, request.path, request.endpoint or "-")
+        log.exception(f"Unhandled exception while building {request.path}.")
         return render_error(500, unexpected_error_message())
 
     @app.errorhandler(413)
     def _handle_too_large(exc):
         # A body over `MAX_CONTENT_LENGTH` (config.py).
-        log.debug(f"Request body too large on {request.method} {request.path}: {request.content_length} bytes")
+        log.debug(f"Request body too large on {request.method} {request.path}: {request.content_length} bytes.")
         if _is_api_request():
             return jsonify({"error": "request body too large"}), 413
         return render_error(413, "That request was too large.")

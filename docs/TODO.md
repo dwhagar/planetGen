@@ -12903,29 +12903,9 @@ clears each one.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
   Filed by the TODO thread. Top priority (Boss: build it and ship it).
 
-- [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
-  Filed by the TODO thread.
-
 - [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
-  Filed by the TODO thread.
-
-- [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
-- [ ] **OPS.175 Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments)**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, L1). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
-  Filed by the TODO thread.
-
-- [ ] **OPS.176 Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
   Filed by the TODO thread.
 
 - [ ] **TEST.729 Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run)**
@@ -13173,11 +13153,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
-- [ ] **UX.307 Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark**
-  Boss, 2026-11-12 (project thread ...48rDtAdB66SbVi5dmhp8tB): galaxy measures as sliders on the Generate page. Built as PR 6357: unticked is Auto (nothing sent), ticked fills the Auto-position value; the bar snaps to the Auto mark within about 1.4 percent; bounds are each lever's allowed range (log scale where the row is); shape and rogue planets stay dropdowns; halo rows lock when the galaxy is too light. Display only, generation-affects none, lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): the slider thread (PR 6357). Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
 - [ ] **PERF.263 The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401**
   Seen in Boss's warm-up log (Lane 04, 2026-11-12). Lock-free, display and web only.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: PERF.262.
@@ -13255,19 +13230,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): generation-order thread. Prerequisites: GEN.1680. Related: GEN.1683.
   Filed by the TODO thread.
 
-- [ ] **GEN.1683 One combined mass and luminosity scatter pass (design, then build)**
-  The generation-order report measured the two scatter passes run one after the other and did not build a unified pass; it needs its own epoch change. Do: measure what a single pass saves and whether output can stay the same, then build it if worth it. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: GEN.1680. Related: GEN.1681.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1684 Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread**
   GEN.1201 merged in Train 25 (PR 6175, migration 0252): bodies store the temperature they took their shape at and the roundness engine reads it. The wiring register still lists as unread: rows 6.126:RN1, RN2, RN4 and RN11 (roundness.SPHERICITY_FACTOR, ICE_STRENGTH_PA, ROCK_STRENGTH_PA, METAL_STRENGTH_PA, ROCK_CREEP_COLUMNS), planetgen.physics.roundness.is_round, the module planetgen.physics.ice_types and planetgen.physics.compaction.taper_weight. Do: wire each into the engine and pages, or mark it by design with the reason, and drop its register row. Reuse what GEN.1201 built. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: none. Related: GEN.1201.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1685 The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance)**
-  GEN.1016 merged in Train 25 (PR 6139): four-star systems are the ones the stability network calls stable. The register still says the clearance module is read only by tests/test_clearance.py and waits for the stability gate of GEN.1016. Do: have the gate or the stored-system audit call it, or mark it by design with the reason, and drop the register row. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-13): unassigned. Prerequisites: none. Related: GEN.1016, TEST.477.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 12 (Boss 3:03 PM EST: every lane working). Prerequisites: none. Related: GEN.1201.
   Filed by the TODO thread.
 
 - [ ] **GEN.1686 Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones**
@@ -13307,12 +13272,12 @@ clears each one.
 
 - [ ] **API.48 API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging**
   From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. api/routes.py has many return jsonify error, 404 lines where ApiError exists; uncharted_systems and phenomena repeat the past_end pattern; the after integer parsing is repeated; facility_list whole() vs _int_arg. Do: ApiError and one paging helper; the response bodies stay the same (check the API contract tests).
-  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05 (Boss 3:03 PM EST: every lane working). Lock-free. Prerequisites: none. Related: GEN.1671.
   Filed by the TODO thread.
 
 - [ ] **OPS.181 Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers**
   From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (13) queue runeta.public_view duplicates runview.summary percent, _conclude_empty_stage vs units._end_stage; (14) util/settings_writer._restore_plan repeats _load_document; (15) cli/benchmark_suite _processes and _server_pids both walk /proc, version_history._galaxy_databases and warm_shape.cluster_ages both iterate store.list_databases. Do: one of each.
-  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 06 (Boss 3:03 PM EST: every lane working). Lock-free. Prerequisites: none. Related: GEN.1671.
   Filed by the TODO thread.
 
 - [ ] **UX.313 (bug) The system page command names its input file like the --output file**
@@ -13338,6 +13303,26 @@ clears each one.
 - [ ] **ADM.154 (bug) Admin plans page text read "comes laterrearranger"**
   From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
   Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **OPS.183 Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap**
+  The setup download of nearby Gaia stars (datasets/gaia_nearby.py, GEN.1534: the gea.esac.esa.int TAP sync query, parallax over 40 and parallax_over_error over 10) hits the anonymous 2,000-row cap. Boss (3:09 PM EST 2026-11-13, as the coordinator relayed): "Have all 4 and if one fails it goes to the next". Do: try in order, moving to the next on failure or on a capped result: (1) the same ESA server's async TAP endpoint; (2) the Heidelberg ARI Gaia TAP mirror; (3) VizieR TAP with MAXREC raised; (4) the GCNS catalogue (VizieR I/360) downloaded and filtered locally. Log which source served and the row count; fail setup only if all four fail. Optional: use a registered ESA account when its credentials are set (mask them in logs per SEC.48). Runs at setup (update.sh); raw data stays out of the repo. Tests with each source stubbed to fail in turn.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: GEN.1534, SEC.48.
+  Filed by the TODO thread.
+
+- [ ] **PERF.264 The mass and luminosity scatter passes share the component sector addresses in their planning step**
+  From GEN.1683 (Lane 15, /mnt/project-files/reports/gen1683-combined-scatter-pass-2026-11-13.md): 110 of the 171 profiled CPU seconds of each pass's 69 s serial planning step are component sector addresses that do not depend on the pass. Do: compute them once and hand them to both passes; about 50 to 60 s saved on the default galaxy. Output identical (check the golden); lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: none. Related: GEN.1683, GEN.1680.
+  Filed by the TODO thread.
+
+- [ ] **PERF.265 The workers' table warm-up starts while the parent plans each scatter pass**
+  From GEN.1683 (same report): up to about 70 s per pass. Do: start the warm-up in parallel with the parent's planning step under the memory gate (PERF.254). Output identical; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: PERF.264. Related: GEN.1683, GEN.1680.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1692 (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main**
+  Lane 12, 2026-11-13: tests/test_sweep_bulk.py::test_every_body_of_the_sweep_obeys_every_bulk_rule (radius-from-structure, marked slow so no changed-only gate caught it) fails on main for 4 bodies, all belt members promoted by GEN.1510 (PR 6019, generation/belt_planets.py; belt_rank set, belt_order 0): Algebum III 387.13 vs 395.87 km, Ulbarkator II 310.78 vs 311.14 km, Alcopri Carnoris II, Ahilounar II (gaps 0.1 to 2.2 percent). Do (physics first, no test slack): promote() sizes the promoted body from bulk_structure.structure like any planet; measure the radius and density shift of promoted bodies. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-13): Lane 22 (owns GEN.1510). Prerequisites: none. Related: GEN.1510, GEN.1668, GEN.1674.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

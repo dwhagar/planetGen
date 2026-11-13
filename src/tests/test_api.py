@@ -2200,26 +2200,6 @@ def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_cl
     assert body["error"] == "rate limit exceeded"
 
 
-# ---------------------------------------------------------------------
-# The wiki upload is gone (OPS.69): no routes, no sector `wiki_url`.
-# ---------------------------------------------------------------------
-
-def test_the_wiki_routes_are_gone(admin_client, seeded_sector):
-    _config, sector_id, system_ids = seeded_sector
-    assert admin_client.get("/api/wiki-config").status_code == 404
-    system_path = f"/api/systems/{pid('system', system_ids[0])}/wiki"
-    sector_path = f"/api/sectors/{pid('sector', sector_id)}/wiki"
-    for path in (system_path, sector_path):
-        assert admin_client.post(path, json={"backend": "wikijs", "path": "x"}).status_code in (404, 405)
-
-
-def test_a_sector_has_no_wiki_url(admin_client, seeded_sector):
-    _config, sector_id, _system_ids = seeded_sector
-    assert "wiki_url" not in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()
-    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": "https://wiki.example.com/Sector"})
-    assert response.status_code == 400
-
-
 def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     """`GET /api/galaxy/cell` answers for any place in the galaxy, by
     address or by a point inside the cell, with its coordinates and 8

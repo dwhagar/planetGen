@@ -109,7 +109,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.51:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |
 | 6.60:GM3 | no data | - | a design default of the multi-star build; no measured limit for a close pair's separation in summed radii is held, and an N-body audit (GEN.1006 section 9) is optional; tier T6 stays |
 | 6.60:GM7 | replace | GEN.1006 | the 3+1 network of [R4575] replaces the margin inside its training range; outside it the margin stays, flagged lower confidence |
-| 6.60:GM12 | replace | GEN.1016 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
+| 6.60:GM12 | no data | - | the criterion holds only for q_out up to 5; GEN.1028 enforces the range, and GEN.1016 (built, Train 25) uses the quadruple fit and the 3+1 criterion beyond it; a fit of C over a wider q_out from the N-body papers would replace the hand value |
 | 6.60:GM13 | replace | GEN.1006 | the 3+1 axis margin of 1.3 is hand-tuned on 331 N-body systems; a larger own N-body sample (GEN.1006 section 9) or a retrained network replaces it |
 | 6.60:GM14 | replaced | - | GEN.1155: the 2+2 axis margin is now 1.5, tuned (L2) to the paper's 0.94 precision on 302 + 185 own REBOUND 2+2 systems; it was the 3+1 margin of 1.3 with no 2+2 sample |
 | 6.148:RGD1 | no data | - | the clean-ice reflectance and the half-darkening share of an ice and dark mixture are recalled ([R0814] was not read); the share is tuned to Saturn's ring reflectances, and a measured mixture curve replaces both |
