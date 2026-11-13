@@ -106,7 +106,7 @@ def known_values():
 
 def _looks_secret(text):
     """Whether a word that only a space follows a secret name with looks like a key: 12 characters or more with a letter and a digit."""
-    return len(text) >= 12 and any(c.isdigit() for c in text) and any(c.isalpha() for c in text)
+    return len(text) >= 12 and "=" not in text and any(c.isdigit() for c in text) and any(c.isalpha() for c in text)
 
 
 def _assigned(match):
@@ -117,7 +117,7 @@ def _assigned(match):
         return match.group(0)
     if inner in ("<withheld>", "(set)"):
         return match.group(0)
-    if match.group("sep").isspace() and not match.group("name").startswith("--") and not _looks_secret(inner):
+    if match.group("sep").isspace() and not match.group("name").startswith("--") and (not _looks_secret(inner) or "." in match.group("name")):
         return match.group(0)            # "token ended" is a sentence; "token 9f8e7d6c5b4a" is a secret
     if inner.lower() in ("bearer", "basic"):
         return match.group(0)

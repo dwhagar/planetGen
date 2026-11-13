@@ -160,3 +160,10 @@ def test_a_redis_address_in_an_error_message_is_masked():
     from planetgen.queue import api_jobs
     assert leaks(secrets_mask.mask_text(f"no Redis server answers at {REDIS_URL} (config.json's redis.url)")) == []
     assert "secrets_mask.mask_text(url)" in open(api_jobs.__file__).read()
+
+
+def test_event_names_and_addresses_are_not_secrets():
+    """An activity line such as `AUTH password.failed ip=198.51.100.77 user=admin` names a secret word but holds none."""
+    for line in ("AUTH password.failed ip=198.51.100.77 user=admin", "AUTH token.refreshed ip=203.0.113.9 user=boss",
+                 "AUTH password.changed ip=2001:db8::1 user=boss"):
+        assert secrets_mask.mask_text(line) == line
