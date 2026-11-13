@@ -267,9 +267,10 @@ archetypes are in 7.1; a test (`test_habitability.py`) pins this table.
    Sv/yr) then scores 1, not the table's 0.65. Mars is held back by its
    solvent and chemistry instead.
 4. One threshold each: CO chronic 0.005 kPa, acute 0.1, and T_metazoa's
-   0.01 scale; CO2 chronic 0.93, Green 2.0, acute 5.0; the mask band (gear) is
-   14.3 to 400 kPa (Green), with 6.3 to 14.3 kPa needing a counterpressure
-   suit (Yellow).
+   0.01 scale; CO2 chronic 0.93, Green 2.0, acute 5.0; the Green band of the
+   pressure score is 33.7 to 400 kPa (GEN.1676: the score reads the body's own
+   air, not what a mask allows); the mask band (gear, `mask_min_kpa`) is 14.3
+   to 400 kPa, with 6.3 to 14.3 kPa needing a counterpressure suit.
 5. Other stars (GEN.86, GEN.87): F stars act like G with a shorter
    saturated phase (about 50 Myr); A, B and O stars have no flare term but
    a high UV flux; white dwarfs and giants use their own luminosity and

@@ -472,7 +472,7 @@ def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client
     from planetgen.web.lib import habitability_ref
 
     rows = {variable: cells for _domain, table in habitability_ref.domains() for variable, *cells in table}
-    assert rows["Air pressure"] == ["50 to 250 kPa", "14.3 to 400 kPa", "6.3 to 10,000 kPa"]
+    assert rows["Air pressure"] == ["50 to 250 kPa", "33.7 to 400 kPa", "6.3 to 10,000 kPa"]
     assert rows["Air temperature"] == ["0 to 31 C", "-20 to 45 C", "-50 to 122 C"]
     assert rows["Carbon dioxide"][0] == f"under {habitability.GAS_LIMITS_KPA['CO2'][0]:g} kPa"
     assert rows["Chaotropicity (how strongly dissolved salts pull the water's structure apart)"][0] == (
