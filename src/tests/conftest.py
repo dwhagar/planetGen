@@ -70,7 +70,7 @@ os.environ.setdefault("PLANETGEN_JOBS_DIR", tempfile.mkdtemp(prefix="planetgen-t
 # it with tests/worker_patches.py, which reaches the workers as well.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
-# GEN.1580: a body held at the ionization ceiling of its air is an error in every test that makes one (`planets.CEILING_IS_ERROR_VARIABLE`), never a state to keep.
+# GEN.1580: a body held at the ionization ceiling of its air is an error in every test that makes one (`air_final.CEILING_IS_ERROR_VARIABLE`), never a state to keep.
 os.environ["PLANETGEN_CEILING_IS_ERROR"] = "1"
 
 # A run with more than one worker queues its tasks on Redis (PERF.24):

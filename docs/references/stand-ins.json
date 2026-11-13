@@ -34063,7 +34063,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1201",
+          "unread": "GEN.1684",
           "what": "roundness.SPHERICITY_FACTOR 1.1: the longest axis of a body counted round is at most this times its mean radius"
         },
         {
@@ -34101,7 +34101,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1201",
+          "unread": "GEN.1684",
           "what": "roundness.ICE_STRENGTH_PA 1 MPa and roundness.ROCK_STRENGTH_PA 16.5 MPa (from roundness_strengths.json): the default strength of ice (the creep strength of pure ice near 158 K) and the strength that rounds rock at 300 km and 2500 kg/m3"
         },
         {
@@ -34181,7 +34181,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1201",
+          "unread": "GEN.1684",
           "what": "roundness.METAL_STRENGTH_PA 100 MPa"
         },
         {
@@ -34603,7 +34603,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1201",
+          "unread": "GEN.1684",
           "what": "roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), [R1956] (log10 A 5.04, n 3.5, E 530 kJ/mol) and [R2451] (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile"
         },
         {

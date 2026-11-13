@@ -8,7 +8,7 @@ The hottest surface a body's air can have. A greenhouse that runs away heats the
 molecules break into atoms (well under 10,000 K at the pressures of an air) and the atoms lose their electrons, a plasma, which radiates as no
 molecular air does. No radiative model of this repository reaches there (the greenhouse table fits to 4,000 K), and no generated body is meant
 to: the ceiling is the temperature the air's main gas is **half ionized** at the air's pressure, so a body that arrives at it is a mistake in the
-model to explain, not a state to keep (`surface_air.Air.at_ceiling`, the warning `planets` logs, the test that fails on it).
+model to explain, not a state to keep (`surface_air.Air.at_ceiling`, the warning `air_final` logs, the test that fails on it).
 
 The law is the Saha equation [R5246] for the first ionization of the atoms of the main gas, a plasma of one electron per ion,
 `x^2 / (1 - x^2) = K / P` for the ionized share `x`, with `K = 2 (g_ion / g_atom) (m_e k T / (2 pi hbar^2))^(3/2) k T exp(-chi / k T)`: the
@@ -31,10 +31,10 @@ HALF_IONIZED = 0.5
 """float: The ionized share of the main gas's atoms that defines the ceiling (a half-ionized gas is a plasma on any definition)."""
 
 HOTTEST_BRACKET_K = 1.0e7
-"""float: The hottest temperature the half-ionization search looks at."""
+"""float: The hottest temperature the half-ionization search looks at. A stand-in search bracket."""
 
 COOLEST_BRACKET_K = 500.0
-"""float: The coolest temperature the search looks at."""
+"""float: The coolest temperature the search looks at. A stand-in search bracket."""
 
 STATISTICAL_WEIGHT_RATIO = 1.0
 """float: `g_ion / g_atom` of the Saha equation. DESIGN stand-in, tier educated guess from physics, tweak L0 (the true ratio is 1/2 to 6 and moves the ceiling under 2 percent)."""

@@ -131,3 +131,4 @@ Commit each file came from:
 - v249: after GEN.1567's migration 0249 (ice cover column), before GEN.558 rogue_planets.has_moons dropped (0250)
 - v250: after GEN.558's migration 0250 (rogue_planets.has_moons dropped), before GEN.1267 drop of the nebula shape table and columns (0251)
 - v251: after GEN.1267's migration 0251 (nebula shape dropped), before GEN.1201 shape_temperature_k column (0252)
+- v252: after GEN.1201's migration 0252 (shape_temperature_k column), before OPS.180 chart ledger repair (0253, no schema change)
