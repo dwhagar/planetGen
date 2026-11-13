@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3999] - 2026-11-13
+
+**Headline:** A planet in a crowded system whose tilt can wander chaotically under the pull of its neighbours now gets a tilt from its whole wander range, not the one it was made with.
+
+### Changed
+
+- GEN.1454 (part 2, a lock item): at the end of the settle pass each free-spinning planet of a star with other planets is checked against the spin-orbit resonances (`obliquity_variation`: the star's and moons' torque on its bulge against the nodal modes of its neighbours' pull on its orbit). A planet whose tilt lies in a chaotic zone, where two or more resonances overlap, takes a tilt drawn from that zone from a stream of its own; the axis keeps its angle round the orbit's normal, the sky of the other suns, the day and night shares and the planet's moons follow. Planets with a large moon, locked or resonant planets, lone planets and planets whose tilt is regular are not touched. In 100 sampled systems of four star types 80 planets changed tilt, almost all of them in crowded chains of 15 to 24 small planets whose slow precession puts many resonances inside their range. Registry section 6.271 (OB6). The resonance and chaos picture follows [R2571, R5227].
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.3998] - 2026-11-13
 
 **Headline:** A nebula is the outline the map draws: a system is inside a nebula only where the galaxy's density holds it, and a hot-star nebula in the outer disk, which the map drew as nothing, now has a body.
