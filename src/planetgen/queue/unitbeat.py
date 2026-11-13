@@ -127,6 +127,12 @@ class UnitBeat:
         with self._lock:
             return self._done, max(self.clock() - self._started_at - self._waited_total, 0.0)
 
+    def moving(self):
+        """The unit has made progress its count does not show (OPS.184: a sampling table worked out inside a phase that counts only its cases): the quiet clock starts again."""
+        with self._lock:
+            self._moved_at = self.clock()
+            self._close_gap(self._moved_at)
+
     def phase(self, text):
         """The unit begins `text`; the same label beginning again counts as a restart of the phase."""
         with self._lock:
@@ -135,7 +141,7 @@ class UnitBeat:
 
     @contextmanager
     def waiting(self, tag):
-        """The unit waits for `tag` (`gate`, `sky lock`, `mysql` or `generator battery`) inside the block."""
+        """The unit waits for `tag` (`gate`, `sky lock` or `mysql`) inside the block."""
         with self._lock:
             before, self._waiting = self._waiting, tag
         began = self.clock()
@@ -225,6 +231,12 @@ def waiting(tag):
         return
     with _current.waiting(tag):
         yield
+
+
+def moving():
+    """The running unit has made progress its count does not show; nothing happens outside a unit."""
+    if _current is not None:
+        _current.moving()
 
 
 def phase(text):

@@ -12,7 +12,7 @@ stuck, not dead.
 The states, checked in this order:
 
 * **dead**: no beat for `DEAD_BEATS` intervals (30 s). The process is gone.
-* **waiting**: `waiting_on` is set (the gate, the sky lock, MySQL, the generator battery's process). Not stuck. It has its own, longer limit (`WAITING_LIMIT_SECONDS`); past it the state stays
+* **waiting**: `waiting_on` is set (the gate, the sky lock, MySQL). Not stuck. It has its own, longer limit (`WAITING_LIMIT_SECONDS`); past it the state stays
   waiting and `over_limit` is set, because what it waits for may be a good job (a sky cell can take half an hour): the holder is what gets judged, not the waiter.
 * **quiet** (stuck): the beat is fresh and the counter has not changed (not counting time spent waiting, which ends with the wait) for longer than `max(5 min, 5 x the longest gap between counter changes seen for this
   command)`, doubled while the host is starved (memory gate pressure, swap, load far over the cores).
@@ -91,7 +91,7 @@ class Beat:
         estimate (float): The work expected, 0 or `None` for a unit that has no counter.
         moved (float, optional): When `done` last changed; `None` while it never has.
         phase (str): What it is doing ("drawing tier 3").
-        waiting_on (str): `gate`, `sky lock`, `mysql`, `generator battery` or empty.
+        waiting_on (str): `gate`, `sky lock`, `mysql` or empty.
         restarts (int): How many times this phase has begun again.
         waited (float): Seconds the unit has spent waiting (gate, sky lock, MySQL) and stopped since `moved`; a wait that has ended is not time the counter stood still.
         resident_mb (float, optional): The memory it holds, carried for the page; not judged.
