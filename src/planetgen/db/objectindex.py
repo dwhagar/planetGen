@@ -30,7 +30,7 @@ import time
 
 import redis
 
-from planetgen.db import query, uncharted
+from planetgen.db import kind_tables, query, uncharted
 from planetgen.galaxy import objectref
 from planetgen.physics import constants
 from planetgen.queue import redisclient
@@ -79,7 +79,7 @@ def _phenomenon_sources():
             kind, table, "t.name", "t.sector_id", "NULL", "NULL", descriptor,
             f"t.{mass_column} * {SOLAR_MASS_KG!r}" if mass_column else "NULL",
             f"t.radius_ly * {KM_PER_LY!r}" if radius == "radius_ly" else "NULL", "(t.center_x_pc IS NOT NULL)",
-            where="t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
+            where="t.star_id IS NULL" if table in kind_tables.tables("star_filed") else "")
     return sources
 
 

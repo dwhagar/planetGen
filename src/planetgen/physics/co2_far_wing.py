@@ -26,7 +26,6 @@ carbon dioxide and nitrogen one for every gas; the temperature exponent and the 
 Units: strengths in cm per molecule (cm-1 times cm2), result in cm2 per molecule of carbon dioxide; wavenumbers in cm-1; pressure in Pa.
 """
 
-import json
 import os
 
 import numpy as np
@@ -52,13 +51,8 @@ class FarWingError(ValueError):
 
 
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise FarWingError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-    return document
+    """The rule file's document, checked (`elements.load_rule_numbers`): every number has a value, a tier, a tweak and a basis."""
+    return elements.load_rule_numbers(DATA_FILE, FarWingError)
 
 
 DOCUMENT = _load()

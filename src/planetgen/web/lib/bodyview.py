@@ -43,3 +43,19 @@ def member_view(designation, member):
         "id": designation, "taxon": member["taxon"], "mass_kg": value("mass"), "radius_km": value("diameter") / 2.0, "density_g_cm3": value("density") / 1000.0,
         "rock_fraction": member["composition"]["rock"]["value"], "metal_fraction": member["composition"]["metal"]["value"], "water_fraction": water, "ice_fraction": ice})
     return {"look": look_json(look), "note": look_note(look), "estimate": []}
+
+
+MEMBER_COMPOSITION_PARTS = ("rock", "metal", "water", "ice")
+"""tuple: The parts of a stored small body's composition, in the order its page lists them."""
+
+
+def quantity_text(value):
+    """The `text` of an API quantity (`{"value", "text", ...}`), or `""` for a missing one."""
+    return value["text"] if value else ""
+
+
+def member_composition_text(entry):
+    """The parts of a stored small body's composition that are present, as `"rock 60 %, metal 10 %"`: the one line the
+    belt member, field member and irregular moon pages all show."""
+    return ", ".join(f"{part} {entry['composition'][part]['text']}" for part in MEMBER_COMPOSITION_PARTS
+                     if entry["composition"][part]["value"] > 0.0)

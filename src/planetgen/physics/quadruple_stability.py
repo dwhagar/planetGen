@@ -67,12 +67,7 @@ def _load(kind, input_names):
     """`(rule document, coefficient matrices, bias vectors)` of the network of `kind` (`"3p1"` or `"2p2"`), refusing a file that does not hold what it claims."""
     data_file = os.path.join(elements.DATA_DIRECTORY, f"quadruple_stability_{kind}.json")
     weights_file = os.path.join(elements.DATA_DIRECTORY, f"quadruple_stability_{kind}_weights.json")
-    with open(data_file, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise QuadrupleStabilityError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+    document = elements.load_rule_numbers(data_file, QuadrupleStabilityError)
     with open(weights_file, encoding="utf-8") as handle:
         network = json.load(handle)
     coefs = [np.array(c, dtype=float) for c in network["coefs"]]

@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, scatter_epochs, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import belt_names, chart_ledger, compact_pairs, countcache, galaxy_counts, hostednebula, interests, nebula_blocks, point_columns, search_values
+from planetgen.db import belt_names, chart_ledger, compact_pairs, countcache, galaxy_counts, hostednebula, interests, kind_tables, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -1379,16 +1379,48 @@ def _bodies_by_system(conn, kind, where_sql, params, query_for, limit, after):
     return rows
 
 
+_BODY_LISTS = {
+    # kind -> (alias, selected columns, FROM and JOIN clauses, ORDER BY)
+    "planet": ("p", "p.id, p.name, p.planet_class, p.body_type, p.radius_km, p.star_system_id, ss.name AS system_name",
+               "FROM planets p\n            JOIN star_systems ss ON ss.id = p.star_system_id",
+               "ss.name, ss.id, p.orbital_index, p.id"),
+    "moon": ("m", "m.id, m.name, m.planet_class, m.body_type, m.radius_km, m.star_system_id,\n"
+                  "                   ss.name AS system_name, p.name AS planet_name",
+             "FROM moons m\n            JOIN planets p ON p.id = m.planet_id\n"
+             "            JOIN star_systems ss ON ss.id = m.star_system_id",
+             "ss.name, ss.id, p.orbital_index, p.id, m.orbital_index, m.id"),
+}
+"""dict: What differs between `list_planets` and `list_moons`: the rest of the listing is `_list_bodies`."""
+
+
+def _list_bodies(conn, kind, planet_class, min_radius_km, max_radius_km, sector_id, system_id, limit, offset, after):
+    """The shared body of `list_planets` and `list_moons`: filter, page (by system or by `after`) and list."""
+    alias, columns, source, order = _BODY_LISTS[kind]
+    where_sql, params = _body_filter_clause(alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id)
+
+    def query_for(where):
+        return f"""
+            SELECT {columns}
+            {source}{where}
+            ORDER BY {order}
+            """
+
+    if limit is not None and not params and (after is not None or not offset):
+        return [dict(r) for r in _bodies_by_system(conn, kind, where_sql, params, query_for, limit, after)]
+    where_sql, params = _bodies_after(conn, kind, where_sql, params, after)
+    query = query_for(where_sql)
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params = params + [limit, 0 if after is not None else offset or 0]
+    return [dict(r) for r in conn.execute(query, params).fetchall()]
+
+
 def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
-                  sector_id=None, system_id=None, limit=None, offset=None, after=None):
+                 sector_id=None, system_id=None, limit=None, offset=None, after=None):
     """
-    Returns planets (never asteroid belts -- `body_type` is always `'t'`/
-    `'g'` here, `schema.sql`'s `planets` table holds only those), optionally
-    filtered by class, radius range, sector, and/or system -- the `planets`
-    equivalent of `list_systems` above, closing the gap `docs/TODO.md`'s
-    "Open items" > "Search" flagged: the web/API faceted search
-    (`search()`/`GET /api/search`) already supports a planet size range and
-    class tags, but this CLI's own subcommands never got an equivalent.
+    Returns planets (never asteroid belts -- `body_type` is always `'t'`/`'g'` here, `schema.sql`'s `planets` table
+    holds only those), optionally filtered by class, radius range, sector, and/or system -- the `planets` equivalent
+    of `list_systems` above, for the CLI's own subcommands.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -1409,76 +1441,19 @@ def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None
             `planet_class`, `body_type`, `radius_km`, `star_system_id`,
             `system_name`.
     """
-    where_sql, params = _body_filter_clause("p", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
-
-    def query_for(where):
-        return f"""
-            SELECT p.id, p.name, p.planet_class, p.body_type, p.radius_km, p.star_system_id, ss.name AS system_name
-            FROM planets p
-            JOIN star_systems ss ON ss.id = p.star_system_id{where}
-            ORDER BY ss.name, ss.id, p.orbital_index, p.id
-            """
-
-    if limit is not None and not params and (after is not None or not offset):
-        return [dict(r) for r in _bodies_by_system(conn, "planet", where_sql, params, query_for, limit, after)]
-    where_sql, params = _bodies_after(conn, "planet", where_sql, params, after)
-    query = query_for(where_sql)
-    if limit is not None:
-        query += " LIMIT ? OFFSET ?"
-        params = params + [limit, 0 if after is not None else offset or 0]
-
-    rows = conn.execute(query, params).fetchall()
-    return [dict(r) for r in rows]
+    return _list_bodies(conn, "planet", planet_class, min_radius_km, max_radius_km, sector_id, system_id, limit,
+                        offset, after)
 
 
 def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
-                sector_id=None, system_id=None, limit=None, offset=None, after=None):
+               sector_id=None, system_id=None, limit=None, offset=None, after=None):
     """
-    Returns moons, optionally filtered by class, radius range, sector,
-    and/or system -- the `moons` counterpart of `list_planets` above (see
-    its docstring for the gap this closes).
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
-        planet_class (str, optional): Exact `planet_class` match (e.g. `"M"`).
-        min_radius_km (float, optional): Only moons at least this large.
-        max_radius_km (float, optional): Only moons at most this large.
-        sector_id (int, optional): Only moons whose system is in this sector.
-        system_id (int, optional): Only moons in this one system.
-        limit (int, optional): Caps the number of rows returned. `None`
-            (the default) returns every matching moon.
-        offset (int, optional): Skips this many rows first. Ignored
-            unless `limit` is also given, and when `after` is.
-        after (int, optional): The row id of the moon the previous page ended on: the page starts after it in the order
-            (system name, system, its planet's orbit and id, its orbit, id) and `offset` is not used (PERF.207).
-
-    Returns:
-        list[dict]: One row per matching moon, with `id`, `name`,
-            `planet_class`, `body_type`, `radius_km`, `star_system_id`,
-            `system_name`, `planet_name` (its parent planet's name).
+    Returns moons, optionally filtered by class, radius range, sector, and/or system -- the `moons` counterpart of
+    `list_planets` above, with the same arguments. The page order is (system name, system, its planet's orbit and
+    id, its orbit, id), and each row also carries `planet_name` (its parent planet's name).
     """
-    where_sql, params = _body_filter_clause("m", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
-
-    def query_for(where):
-        return f"""
-            SELECT m.id, m.name, m.planet_class, m.body_type, m.radius_km, m.star_system_id,
-                   ss.name AS system_name, p.name AS planet_name
-            FROM moons m
-            JOIN planets p ON p.id = m.planet_id
-            JOIN star_systems ss ON ss.id = m.star_system_id{where}
-            ORDER BY ss.name, ss.id, p.orbital_index, p.id, m.orbital_index, m.id
-            """
-
-    if limit is not None and not params and (after is not None or not offset):
-        return [dict(r) for r in _bodies_by_system(conn, "moon", where_sql, params, query_for, limit, after)]
-    where_sql, params = _bodies_after(conn, "moon", where_sql, params, after)
-    query = query_for(where_sql)
-    if limit is not None:
-        query += " LIMIT ? OFFSET ?"
-        params = params + [limit, 0 if after is not None else offset or 0]
-
-    rows = conn.execute(query, params).fetchall()
-    return [dict(r) for r in rows]
+    return _list_bodies(conn, "moon", planet_class, min_radius_km, max_radius_km, sector_id, system_id, limit,
+                        offset, after)
 
 
 class NavUnavailable(Exception):
@@ -2858,7 +2833,7 @@ def _phenomena_union():
                (t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
-        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else
+        {"WHERE t.star_id IS NULL" if table in kind_tables.tables("star_filed") else
          f"WHERE {_LIVE_CLAUSE[table]}" if table in _LIVE_CLAUSE else ""}
         """
         for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
@@ -3069,7 +3044,7 @@ def _built_by_key(conn, limit, sort, descending, types, descriptors, placed, sta
             continue
         key_sql, constant = _built_sort_key(sort, type_label, descriptor_expr, radius_expr)
         clauses, clause_params = [], []
-        if table in ("black_holes", "neutron_stars"):
+        if table in kind_tables.tables("star_filed"):
             clauses.append("t.star_id IS NULL")
         if table in _LIVE_CLAUSE:
             clauses.append(_LIVE_CLAUSE[table])
@@ -3123,7 +3098,7 @@ def _sector_rows(conn, limit, descending, types, descriptors, placed, sector_ids
         clauses = ["t.sector_id IN (" + ", ".join("?" for _ in sector_ids) + ")"] if sector_ids is not None \
             else ["t.sector_id IS NOT NULL"]
         clause_params = list(sector_ids or [])
-        if table in ("black_holes", "neutron_stars"):
+        if table in kind_tables.tables("star_filed"):
             clauses.append("t.star_id IS NULL")
         if table in _LIVE_CLAUSE:
             clauses.append(_LIVE_CLAUSE[table])
@@ -7644,75 +7619,69 @@ def _with_values(entity, rows, keys):
     return out
 
 
-def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
-                           equipment_tags=(), tags=None, sort=None, ranges=None):
-    clauses, params = [], []
-    _equipment_clause("p", equipment_tags, clauses, params)
-    _score_clauses("p", tags or {}, "", clauses)
-    if class_tags:
-        _class_clause("p", class_tags, clauses, params)
-    if body_tags:
-        clauses.append(f"p.body_type IN ({','.join('?' * len(body_tags))})")
-        params.extend(sorted(body_tags))
-    _life_class_clause("p", life_tags, clauses, params)
-    _append_size_clause(clauses, params, "p.radius_km", size_range)
-    search_values.clauses("planet", "p", ranges, clauses, params)
-    if term:
-        match, match_params = _search_name(conn, "p.name", "p.id", "planets", term)
-        clauses.append(match)
-        params.extend(match_params)
-    where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    keys = search_values.used("planet", ranges, sort)
-    rows, page = _search_page(
-        conn,
-        f"""
-        SELECT p.id, p.name, p.planet_class, p.body_type, CASE WHEN p.life_stage IS NULL THEN NULL ELSE CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) END AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
-               p.star_system_id, ss.name AS system_name, ss.sector_id{search_values.select_columns("planet", "p", keys)}
-        """,
-        f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
-        search_values.order_by("planet", "p", sort, _score_order("p", sort, "ss.name, ss.id, p.orbital_index, p.id")),
-        params, limit, offset,
-    )
-    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(r) for r in _with_values("planet", rows, keys)], "planets", term), "planet"), **page}
-
-
-def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
-                         equipment_tags=(), tags=None, sort=None, ranges=None):
-    clauses, params = [], []
-    _equipment_clause("m", equipment_tags, clauses, params)
-    _score_clauses("m", tags or {}, "moon_", clauses)
-    if class_tags:
-        _class_clause("m", class_tags, clauses, params)
-    if body_tags:
-        clauses.append(f"m.body_type IN ({','.join('?' * len(body_tags))})")
-        params.extend(sorted(body_tags))
-    _life_class_clause("m", life_tags, clauses, params)
-    _append_size_clause(clauses, params, "m.radius_km", size_range)
-    search_values.clauses("moon", "m", ranges, clauses, params)
-    if term:
-        match, match_params = _search_name(conn, "m.name", "m.id", "moons", term)
-        clauses.append(match)
-        params.extend(match_params)
-    where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    keys = search_values.used("moon", ranges, sort)
-    rows, page = _search_page(
-        conn,
-        f"""
-        SELECT m.id, m.name, m.planet_class, m.body_type, CASE WHEN m.life_stage IS NULL THEN NULL ELSE CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) END AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
-               m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,
-               ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id{search_values.select_columns("moon", "m", keys)}
-        """,
-        f"""
+_SEARCH_BODIES = {
+    # entity -> (alias, score column prefix, table, extra selected columns, FROM and JOINs, score order)
+    "planet": ("p", "", "planets", "p.star_system_id, ss.name AS system_name, ss.sector_id",
+               "FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1",
+               "ss.name, ss.id, p.orbital_index, p.id"),
+    "moon": ("m", "moon_", "moons",
+             "m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,\n"
+             "               ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id",
+             """
         FROM moons m
         LEFT JOIN planets p ON p.id = m.planet_id
         LEFT JOIN rogue_planets rp ON rp.id = m.rogue_planet_id
         LEFT JOIN star_systems ss ON ss.id = m.star_system_id
-        WHERE 1=1{where}
+        WHERE 1=1""",
+             "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id"),
+}
+"""dict: What differs between the planet and the moon search result: the rest is `_search_result_bodies`."""
+
+
+def _search_result_bodies(conn, entity, class_tags, body_tags, life_tags, term, limit, offset, size_range, equipment_tags,
+                          tags, sort, ranges):
+    """The shared body of `_search_result_planets` and `_search_result_moons`."""
+    alias, score_prefix, table, extra_columns, source, order = _SEARCH_BODIES[entity]
+    clauses, params = [], []
+    _equipment_clause(alias, equipment_tags, clauses, params)
+    _score_clauses(alias, tags or {}, score_prefix, clauses)
+    if class_tags:
+        _class_clause(alias, class_tags, clauses, params)
+    if body_tags:
+        clauses.append(f"{alias}.body_type IN ({','.join('?' * len(body_tags))})")
+        params.extend(sorted(body_tags))
+    _life_class_clause(alias, life_tags, clauses, params)
+    _append_size_clause(clauses, params, f"{alias}.radius_km", size_range)
+    search_values.clauses(entity, alias, ranges, clauses, params)
+    if term:
+        match, match_params = _search_name(conn, f"{alias}.name", f"{alias}.id", table, term)
+        clauses.append(match)
+        params.extend(match_params)
+    where = (" AND " + " AND ".join(clauses)) if clauses else ""
+    keys = search_values.used(entity, ranges, sort)
+    rows, page = _search_page(
+        conn,
+        f"""
+        SELECT {alias}.id, {alias}.name, {alias}.planet_class, {alias}.body_type, CASE WHEN {alias}.life_stage IS NULL THEN NULL ELSE CONCAT({alias}.life_class, COALESCE({alias}.life_class_variant, '')) END AS life_class_id, {_equipment_columns(alias)}, {_tiers(alias)}, {alias}.radius_km,
+               {extra_columns}{search_values.select_columns(entity, alias, keys)}
         """,
-        search_values.order_by("moon", "m", sort, _score_order("m", sort, "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id")),
+        f"{source}{where}",
+        search_values.order_by(entity, alias, sort, _score_order(alias, sort, order)),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(r) for r in _with_values("moon", rows, keys)], "moons", term), "moon"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(r) for r in _with_values(entity, rows, keys)], table, term), entity), **page}
+
+
+def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
+                           equipment_tags=(), tags=None, sort=None, ranges=None):
+    return _search_result_bodies(conn, "planet", class_tags, body_tags, life_tags, term, limit, offset, size_range,
+                                 equipment_tags, tags, sort, ranges)
+
+
+def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
+                         equipment_tags=(), tags=None, sort=None, ranges=None):
+    return _search_result_bodies(conn, "moon", class_tags, body_tags, life_tags, term, limit, offset, size_range,
+                                 equipment_tags, tags, sort, ranges)
 
 
 def _search_result_belts(conn, density_tags, limit, offset):

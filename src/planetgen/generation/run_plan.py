@@ -114,8 +114,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
     """
     Draws each of `addresses` down to its floor (`floors`, a dict or one
     number) from the level it holds (else its band's scatter level, `limits`, a
-    `galaxy.scatter_limits.ScatterLimits`: GEN.333), `BACKFILL_CHUNK_SECTORS` at a time:
-    locks the chunk's `sector_stats` rows, rechecks each level under the
+    `galaxy.scatter_limits.ScatterLimits`: GEN.333), `BACKFILL_CHUNK_SECTORS` at a time
+    (`_draw_sector_chunks`): locks the chunk's `sector_stats` rows, rechecks each level under the
     lock (another run may have got there first, or filled it), wipes the
     stray stars of a sector with no level at all (a failed run, GEN.44),
     writes the stars and the new levels, and commits. `ceiling_cap` caps
@@ -129,77 +129,36 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
     Returns:
         tuple: `(sectors drawn, stars written)`.
     """
-    sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
-    blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
-    sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
-    for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
-        chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
-        ticked = [0]      # the progress ticks already given: a retried chunk does not tick its sectors twice
 
-        def attempt(c):
-            """The chunk as one transaction (DB.114): locks, rechecks, wipes, writes and commits; it keeps nothing between tries."""
-            contention.begin_read_committed(c)
-            entries = []
-            for address in chunk:
-                density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
-                entries.append((address, density, density * e_value))
-            locked = store.lock_sector_stats(c, entries)
-            held_masses = store.sector_bright_masses(c, chunk, current=True)
-            filled = store.get_occupied_addresses(c, {address[0] for address in chunk})
-            rows, new_levels = [], {}
-            settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, held_masses)    # VIEW.25: what the sky spheres drew here
-            if settled.masses:
-                store.set_sector_bright_masses(c, settled.masses)
-                held_masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
-                locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
-            locked.update(settled.levels)
-            new_levels.update(settled.levels)
-            for index, address in enumerate(chunk):
-                floor = floors if isinstance(floors, (int, float)) else floors[address]
-                level = locked.get(address)
-                galaxy_level = limits.level_at(address[0], address[1])
-                if address in filled or not _needs_band(level, galaxy_level, floor):
-                    if on_sector is not None:
-                        _tick(on_sector, ticked, index)
-                    continue
-                ceiling = _effective_level(level, galaxy_level)
-                if ceiling is None:
-                    # No level here and no finished scatter: any unbuilt star in
-                    # this cell is left over from a run that failed before it
-                    # recorded one (TEST.25, GEN.44). This draw has no ceiling,
-                    # so it is wiped and drawn again whole.
-                    store.delete_unbuilt_bright_stars(c, address)
-                if ceiling_cap is not None:
-                    cap = ceiling_cap if isinstance(ceiling_cap, (int, float)) else ceiling_cap[address]
-                    ceiling = cap if ceiling is None else min(ceiling, cap)
-                held = held_masses.get(address)
-                # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
-                # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
-                mass_limit = limits.mass_limit_at(address[0], address[1])
-                mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
-                rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
-                                                       ceiling, seed,
-                                                       mass_range=None if mass_cap is None else (None, mass_cap),
-                                                       memo=blocks))
-                new_levels[address] = floor
-                if on_sector is not None:
-                    _tick(on_sector, ticked, index)
-            scatterCompanions.insert_bright_stars(c, rows)
-            store.set_sector_bright_levels(c, new_levels)
-            c.commit()
-            return rows, new_levels
+    def draw_one(c, address, locked, held_masses, filled, blocks):
+        floor = floors if isinstance(floors, (int, float)) else floors[address]
+        level = locked.get(address)
+        galaxy_level = limits.level_at(address[0], address[1])
+        if address in filled or not _needs_band(level, galaxy_level, floor):
+            return None
+        ceiling = _effective_level(level, galaxy_level)
+        if ceiling is None:
+            # No level here and no finished scatter: any unbuilt star in
+            # this cell is left over from a run that failed before it
+            # recorded one (TEST.25, GEN.44). This draw has no ceiling,
+            # so it is wiped and drawn again whole.
+            store.delete_unbuilt_bright_stars(c, address)
+        if ceiling_cap is not None:
+            cap = ceiling_cap if isinstance(ceiling_cap, (int, float)) else ceiling_cap[address]
+            ceiling = cap if ceiling is None else min(ceiling, cap)
+        held = held_masses.get(address)
+        # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
+        # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
+        mass_limit = limits.mass_limit_at(address[0], address[1])
+        mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
+        rows = brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor, ceiling, seed,
+                                          mass_range=None if mass_cap is None else (None, mass_cap), memo=blocks)
+        return rows, floor
 
-        rows, new_levels = contention.run_with_retries(conn, attempt, gate="scatter-ids", label="Sector band backfill")
-        if counts is not None:
-            for row in rows:
-                counts[row[6]] += 1
-        if shells is not None:
-            for row in rows:
-                shells.setdefault(row[0], collections.Counter())[star_label(row[7], row[8])] += 1
-        sectors += len(new_levels)
-        stars += len(rows)
-    return sectors, stars
+    return _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, store.set_sector_bright_levels,
+                               "Sector band backfill", settled_levels_now=False, counts=counts, on_sector=on_sector,
+                               shells=shells)
 
 
 def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, shells=None):
@@ -207,7 +166,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     The mass backfill's draw (GEN.187): takes each sector of `targets` (a
     dict, `(shell, band, wedge)` -> the lightest initial mass to place,
     solar masses) down to its target, `BACKFILL_CHUNK_SECTORS` at a time,
-    the way `_draw_sector_bands` does for luminosity: locks the chunk's
+    the way `_draw_sector_bands` does for luminosity (`_draw_sector_chunks`): locks the chunk's
     `sector_stats` rows, rechecks each sector under the lock (another run
     may have got there first, or filled it), writes the stars and the new
     mass (`store.set_sector_bright_masses`; the galaxy scatter's level too,
@@ -223,10 +182,47 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     Returns:
         tuple: `(sectors drawn, stars written)`.
     """
-    sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
     edges = brightStars.mass_band_edges([found.mass_limit_sol for found in limits.tiers or ()])
-    addresses = sorted(targets)
+
+    def draw_one(c, address, locked, masses, filled, blocks):
+        target = targets[address]
+        level = locked.get(address)
+        galaxy_level = limits.level_at(address[0], address[1])
+        held = masses.get(address, limits.mass_limit_at(address[0], address[1]))
+        if address in filled or level == 0 or (held is not None and held <= target):
+            return None
+        ceiling = _effective_level(level, galaxy_level)
+        if ceiling is None and held is None:
+            # Nothing was placed here by any pass: an unbuilt star in this
+            # cell is left over from a run that failed before it recorded
+            # a level (TEST.25, GEN.44), so it is wiped and drawn again.
+            store.delete_unbuilt_bright_stars(c, address)
+        rows = brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, target, held,
+                                               ceiling, seed, edges, memo=blocks)
+        own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
+        return rows, (target, own)
+
+    return _draw_sector_chunks(conn, skeleton, sorted(targets), limits, draw_one, store.set_sector_bright_masses,
+                               "Sector mass backfill", settled_levels_now=True, on_sector=on_sector, shells=shells)
+
+
+def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_states, label, settled_levels_now,
+                        counts=None, on_sector=None, shells=None):
+    """
+    The one sector backfill loop (GEN.1662), shared by `_draw_sector_bands` and `_draw_sector_masses`: takes
+    `addresses` `BACKFILL_CHUNK_SECTORS` at a time, each chunk one transaction (DB.114) run with retries: locks the
+    chunk's `sector_stats` rows, reads the masses held and the filled cells, settles what the sky tiers drew there
+    (VIEW.25; `settled_levels_now` writes the settled levels at once, as the mass draw does, else they go out with
+    the chunk's own states), then calls `draw_one(c, address, locked, masses, filled, blocks)` per address, which
+    returns `None` to skip the cell or `(rows, state)`: the rows to insert and the state `write_states(c, {address:
+    state})` records for it. `counts`, `on_sector` and `shells` are as in `_draw_sector_bands`.
+
+    Returns:
+        tuple: `(sectors drawn, stars written)`.
+    """
+    sectors = stars = 0
+    e_value = skeleton.expected_system_count_at_density_1
     blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
     sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
@@ -244,41 +240,33 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
             masses = store.sector_bright_masses(c, chunk, current=True)
             filled = store.get_occupied_addresses(c, {address[0] for address in chunk})
             rows, states = [], {}
-            settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, masses)         # VIEW.25: what the sky spheres drew here
+            settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, masses)    # VIEW.25: what the sky spheres drew here
             if settled.masses:
                 store.set_sector_bright_masses(c, settled.masses)
                 masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
                 locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
-            if settled.levels:
-                store.set_sector_bright_levels(c, settled.levels)
-                locked.update(settled.levels)
+            if settled_levels_now:
+                if settled.levels:
+                    store.set_sector_bright_levels(c, settled.levels)
+            else:
+                states.update(settled.levels)
+            locked.update(settled.levels)
             for index, address in enumerate(chunk):
-                target = targets[address]
-                level = locked.get(address)
-                galaxy_level = limits.level_at(address[0], address[1])
-                held = masses.get(address, limits.mass_limit_at(address[0], address[1]))
-                if address in filled or level == 0 or (held is not None and held <= target):
-                    if on_sector is not None:
-                        _tick(on_sector, ticked, index)
-                    continue
-                ceiling = _effective_level(level, galaxy_level)
-                if ceiling is None and held is None:
-                    # Nothing was placed here by any pass: an unbuilt star in this
-                    # cell is left over from a run that failed before it recorded
-                    # a level (TEST.25, GEN.44), so it is wiped and drawn again.
-                    store.delete_unbuilt_bright_stars(c, address)
-                rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
-                                                            target, held, ceiling, seed, edges, memo=blocks))
-                own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
-                states[address] = (target, own)
+                drawn = draw_one(c, address, locked, masses, filled, blocks)
+                if drawn is not None:
+                    new_rows, states[address] = drawn
+                    rows.extend(new_rows)
                 if on_sector is not None:
                     _tick(on_sector, ticked, index)
             scatterCompanions.insert_bright_stars(c, rows)
-            store.set_sector_bright_masses(c, states)
+            write_states(c, states)
             c.commit()
             return rows, states
 
-        rows, states = contention.run_with_retries(conn, attempt, gate="scatter-ids", label="Sector mass backfill")
+        rows, states = contention.run_with_retries(conn, attempt, gate="scatter-ids", label=label)
+        if counts is not None:
+            for row in rows:
+                counts[row[6]] += 1
         if shells is not None:
             for row in rows:
                 shells.setdefault(row[0], collections.Counter())[star_label(row[7], row[8])] += 1
