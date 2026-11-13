@@ -37,6 +37,8 @@
   "/api/admin/work/held GET",
   "/api/admin/work/jobs GET",
   "/api/admin/work/queue POST",
+  "/api/admin/work/tuning GET",
+  "/api/admin/work/tuning POST",
   "/api/admin/work/warm GET",
   "/api/admin/work/workers GET",
   "/api/admin/work/workers POST",

@@ -341,20 +341,25 @@ def host_worker_cap():
     return max(floor, min(by_memory, 4 * cores))
 
 
-def stage_worker_mb(kind):
+def stage_worker_mb(kind, conn=None, run_id=None):
     """What one worker of a stage of command `kind` takes at most, MB (PERF.226): its figure in `STAGE_WORKER_MEMORY_MB`, or `None`
-    for a command that is one unit or inline (one worker, nothing to limit)."""
-    return STAGE_WORKER_MEMORY_MB.get(kind)
+    for a command that is one unit or inline (one worker, nothing to limit). With `conn` (OPS.157) the figure is the claim the gate makes for a unit of the kind
+    (`profileclaim.claim`: from the job profile when this machine has history, held for the run `run_id`), which is the typed figure with no history."""
+    typed = STAGE_WORKER_MEMORY_MB.get(kind)
+    if conn is None or typed is None:
+        return typed
+    from planetgen.queue import profileclaim
+    return profileclaim.claim(conn, f"unit:{kind}", typed, token=run_id) or typed
 
 
-def stage_worker_cap(kind):
+def stage_worker_cap(kind, conn=None, run_id=None):
     """
     The most workers a stage of command `kind` may use at once (PERF.220, PERF.226): `STAGE_MEMORY_SHARE` of the host's memory in
     workers of what that stage's worker takes (`stage_worker_mb`), at least 1. `None` for a command that is one unit or inline or
     where the OS does not say how much memory there is. What a stage generates does not depend on how many workers share it
-    (`work.task_seed`), so the cap only changes the time.
+    (`work.task_seed`), so the cap only changes the time. With `conn` the workers are sized by the claim from the job profile (OPS.157, see `stage_worker_mb`).
     """
-    per_worker_mb = stage_worker_mb(kind)
+    per_worker_mb = stage_worker_mb(kind, conn, run_id)
     total = _physical_memory_bytes()
     if per_worker_mb is None or total is None:
         return None
