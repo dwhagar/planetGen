@@ -46,6 +46,8 @@ GIVE_UP_AFTER_MISSES = 3
 """int: `run_row` stops when this many samples in a row found no gated body and none has been found (the slow part of a run is the draws of a gate that is never met)."""
 TEMPERATURE_SLACK = 1.01
 """float: The slack on the radiative balance of an airless body (floating point and the choice of the sub-stellar flux, which is the most it gets)."""
+ENVELOPE_LAW_FLOOR_G_CM3 = 0.02
+"""float: The lightest bulk density of a rocky planet under a hydrogen envelope, g/cm3: the envelope law ([R2741]) held at its youngest age (GEN.1672) gives 0.025 for a 3 Earth mass planet with the 20 percent envelope the generator draws at most, so the super-puff edge (0.03) is not a floor for it."""
 TIDAL_ENERGY_FRACTION = 1.0
 """float: The share of the orbital energy of the planet that tidal heating over the age of the system may spend (design 5, general invariant 1)."""
 VOLATILE_ALLOWANCE = 0.09
@@ -374,7 +376,7 @@ def general_failures(body, star):
     if body.body_type == "t":
         low, high = bulk_draw.DENSITY_BOUNDS_G_CM3
         if (getattr(body, "envelope_mass_fraction", 0.0) or 0.0) > 0.0:
-            low = min(low, super_puff.DENSITY_RANGE_G_CM3[0])      # a rocky planet that kept a hydrogen envelope (GEN.1323) is a sub-Neptune or a super-puff (GEN.1343), as light as 0.04 g/cm3
+            low = min(low, super_puff.DENSITY_RANGE_G_CM3[0], ENVELOPE_LAW_FLOOR_G_CM3)      # a rocky planet that kept a hydrogen envelope (GEN.1323) is a sub-Neptune or a super-puff (GEN.1343), as light as 0.04 g/cm3, or at the youngest age of the envelope law (GEN.1672) 0.025
         if not low * 0.99 <= body.density <= high * 1.01:
             failures.append(("structure", f"density {body.density:.2f} g/cm3 outside {low} to {high}"))
 
