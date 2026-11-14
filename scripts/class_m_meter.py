@@ -122,7 +122,7 @@ def per_thousand(hits, total):
 def target_text(tier):
     from planetgen.generation import abundance_tier
     per = abundance_tier.TARGET_SYSTEMS_PER_CLASS_M.get(tier)
-    return "none (what the laws give)" if per is None else f"{1000.0 / per:g} per 1,000 (1 in {per:,})"
+    return "none (what the laws give)" if per is None else f"{1000.0 / per:.3g} per 1,000 (1 in {per:,})"
 
 
 def tier_table(tier, numbers):
