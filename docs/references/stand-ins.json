@@ -63939,8 +63939,8 @@
         {
           "burn_down": [
             "replaced",
-            "GEN.1700",
-            "the L3 cap of 1e-2 of the parent on a captured moon is gone: the bound of the binary encounter (Eq. 1 to 3 of [R5229]) from the generated parent and partner replaces it; its encounter distance is now one L1 share of the Hill radius from the one worked case"
+            "-",
+            "GEN.1700 (merged with this note): the L3 cap of 1e-2 of the parent on a captured moon is gone: the bound of the binary encounter (Eq. 1 to 3 of [R5229]) from the generated parent and partner replaces it; its encounter distance is now one L1 share of the Hill radius from the one worked case"
           ],
           "fields": [
             [
