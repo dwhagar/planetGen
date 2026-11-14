@@ -329,3 +329,30 @@ def test_the_carbon_dioxide_takes_only_the_room_the_retention_cap_leaves(monkeyp
     assert body.air["O2"] == 6500.0 and body.air["N2"] == 1000.0
     assert sum(body.air.values()) <= 10000.0 + 1e-9
     assert body.air["CO2"] > 100.0
+
+
+# --- GEN.1564: the air the life makes is frozen out again at the temperature it leaves ------------------------------------------------------------------------------
+
+
+def _cold_body():
+    import types
+    return types.SimpleNamespace(radius=6371.0, gravity=1.0)
+
+
+def test_a_gas_standing_over_its_saturation_pressure_at_the_new_temperature_condenses():
+    from planetgen.physics import saturation
+    body = _cold_body()
+    air = {"N2": 8.0e4, "NH3": 9.0e4, "CH4": 1.0e4}
+    frozen = bo.freeze_out_at(body, air, 170.0)
+    assert frozen["NH3"] < air["NH3"] and frozen["NH3"] <= saturation.pressure_pa("NH3", 170.0) * 1.001
+    assert frozen["N2"] == pytest.approx(air["N2"], rel=0.5) and set(frozen) <= set(air)
+    warm = bo.freeze_out_at(body, air, 300.0)
+    assert warm["NH3"] == pytest.approx(air["NH3"], rel=1e-6)       # at 300 K ammonia holds 1 MPa: nothing condenses
+
+
+def test_air_with_no_gas_over_its_saturation_pressure_is_left_as_it_is():
+    body = _cold_body()
+    air = {"N2": 7.8e4, "O2": 2.1e4, "CO2": 40.0}
+    frozen = bo.freeze_out_at(body, air, 288.0)
+    for formula, pascal in air.items():
+        assert frozen[formula] == pytest.approx(pascal, rel=1e-6)
