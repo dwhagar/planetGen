@@ -91,7 +91,7 @@ def temperature_k(pressure_bar, equilibrium_k, internal_flux_w_m2, gravity_m_s2,
 
 
 def skin_k(equilibrium_k, internal_flux_w_m2, gamma=None, redistribution=HEAT_REDISTRIBUTION):
-    """The temperature at the top (`tau` = 0), K: `T^4 = T_int^4 / 2 + 3 f T_irr^4 / 4 (2/3 + gamma/sqrt 3)` of equation 29 at `tau` = 0, with the `1/(gamma sqrt 3)` terms cancelling."""
+    """The temperature at the top (`tau` = 0), K: `T^4 = T_int^4 / 2 + 3 f T_irr^4 / 4 (2/3 + gamma/sqrt 3)` of equation 29 at `tau` = 0, with the `1/(gamma sqrt 3)` terms canceling."""
     t_irr = irradiation_temperature_k(equilibrium_k)
     if gamma is None:
         gamma = opacity_ratio(t_irr)
