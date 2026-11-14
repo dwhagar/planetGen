@@ -491,3 +491,40 @@ CREATE TABLE IF NOT EXISTS generate_recipe_fields (
     CONSTRAINT fk_generate_recipe_fields_recipe
         FOREIGN KEY (recipe_id) REFERENCES generate_recipes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v22 (OPS.155): what each kind of job costs in memory and time, one row per
+-- finished unit or job, for the self-tuning jobs (docs/design/operations/
+-- self-tuning-jobs.md). `kind` is the memory gate's string (`unit:<command>`,
+-- `cut:<command>`, `api:<ref>`, `fn:<name>`) or `stage:<key>` for a stage.
+-- `size_bucket` is the power of two of `items` (-1 for a job with no items),
+-- so a reader can fit peak = base + slope x items from two buckets. The raw
+-- `mb_per_item` is the peak over the items, base included. The host columns say
+-- which machine shape and generator epoch measured the row. A reading that was
+-- missing or implausible is NULL. Memory, time and processor each have a peak
+-- and an average (a stage's come from its units). Nothing reads the table yet,
+-- and each kind and bucket keeps its newest rows (`planetgen/queue/jobprofiles.py`).
+CREATE TABLE IF NOT EXISTS job_profiles (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    kind              VARCHAR(160) NOT NULL,
+    size_bucket       SMALLINT NOT NULL DEFAULT -1,
+    items             DOUBLE NULL,
+    parts             INT UNSIGNED NOT NULL DEFAULT 1,   -- 1 for a unit or job, the units for a stage
+    seconds           DOUBLE NULL,            -- worked seconds of a unit or job, wall seconds of a stage
+    seconds_peak      DOUBLE NULL,            -- the longest unit of a stage (the unit's own seconds for a unit)
+    seconds_avg       DOUBLE NULL,            -- the mean unit of a stage
+    peak_mb           DOUBLE NULL,
+    avg_mb            DOUBLE NULL,            -- mean of the readings taken while it ran
+    cpu_peak          DOUBLE NULL,            -- cores, the busiest interval
+    cpu_avg           DOUBLE NULL,            -- cores, processor seconds over seconds
+    seconds_per_item  DOUBLE NULL,
+    mb_per_item       DOUBLE NULL,
+    outcome           VARCHAR(16) NOT NULL DEFAULT 'done',
+    host_memory_mb    INT UNSIGNED NOT NULL,
+    host_cores        SMALLINT UNSIGNED NOT NULL,
+    buffer_pool_mb    INT UNSIGNED NULL,
+    generator_epoch   SMALLINT UNSIGNED NULL,
+    recorded_at       DATETIME(6) NOT NULL,
+
+    KEY idx_job_profiles_kind (kind, size_bucket, id),
+    CONSTRAINT chk_job_profiles_outcome CHECK (outcome IN ('done', 'killed_memory', 'timed_out', 'stuck'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

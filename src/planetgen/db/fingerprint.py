@@ -86,7 +86,6 @@ CHILD_TABLES = (
     ("interstellar_comet_composition", "comet_id", "interstellar_comets"),
     ("asteroid_field_composition", "field_id", "asteroid_fields"),
     ("field_members", "field_id", "asteroid_fields"),
-    ("nebula_shape_balls", "nebula_id", "nebulae"),
     ("orbit_nodes", "star_system_id", "star_systems"),
     ("dark_members", "star_system_id", "star_systems"),
 )
@@ -113,7 +112,7 @@ SECTIONS = {
     "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life"),
     "belt": ("asteroid_belts", "asteroid_belt_composition", "belt_members", "asteroid_fields", "asteroid_field_composition", "field_members"),
     "comet": ("comets", "comet_composition", "interstellar_comets", "interstellar_comet_composition"),
-    "phenomenon": ("nebulae", "nebula_shape_balls", "supernova_remnants", "quasars", "bright_stars",
+    "phenomenon": ("nebulae", "supernova_remnants", "quasars", "bright_stars",
                    "phenomenon_scatter"),
     "population": ("facilities",),
     "plan": PLAN_TABLES,
@@ -124,6 +123,7 @@ _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tab
 
 LEFT_OUT_TABLES = frozenset({
     "galaxy_block_light_parts",    # the sums the scatter writers kept for the block light stage (GEN.1476): derived from the scatter, which the fingerprint reads
+    "body_history",    # the numbers a body's history left, kept for the stored galaxy (GEN.1497); the fingerprint reads the results they produced
     "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
     "system_summary", "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",

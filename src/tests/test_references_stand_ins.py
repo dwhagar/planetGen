@@ -92,7 +92,7 @@ def test_the_counts_by_tier_and_tweak_match_the_overview(data, overview):
 
 def test_the_unread_and_burn_down_lines_come_from_their_registers(data):
     by_key = {row["key"]: row for _part, row in references_site.rows_of(data)}
-    assert by_key["6.7:AM64"]["burn_down"][:2] == ["replace", "GEN.804"]
+    assert by_key["6.18:LF18"]["burn_down"][:2] == ["replace", "GEN.878"]
     assert by_key["5.3:AT.b5"]["burn_down"][0] == "no data"
     assert any(row["unread"] for row in by_key.values())
 
@@ -165,10 +165,10 @@ def test_the_filters_narrow_the_rows_and_name_how_many_are_left(client, data):
 
 
 def test_a_page_for_a_row_says_what_it_is_how_sure_it_is_and_what_replaces_it(client):
-    html = _html(client, "/references/stand-ins/6-7-am64")
-    assert BANNER_ID in html and "<title>Stand-in AM64" in html
+    html = _html(client, "/references/stand-ins/6-18-lf18")
+    assert BANNER_ID in html and "<title>Stand-in LF18" in html
     assert "Its source tier is" in html and "Its tweak level is" in html
-    assert "The item GEN.804 replaces it with data." in html
+    assert "The item GEN.878 replaces it with data." in html
     assert "How it was made and decided" in html and "<dt>What it is</dt>" in html
 
 

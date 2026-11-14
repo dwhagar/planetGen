@@ -11,9 +11,8 @@ Life data is intentionally NOT computed during `Planet` construction (see
 `physics.planets.generate_planet_properties`) -- every planet and moon is
 generated in a "no life data yet" state. Instead, `StarSystem.__init__`
 calls `apply_life_data` on every planet and moon in the system, after all
-of them have been generated and after `Star.adjust_age_for_planets` has
-finalized the star's age, so evolutionary timelines are computed against
-the star's final age rather than a provisional pre-adjustment one.
+of them have been generated, so evolutionary timelines are computed against
+the star's age, which is fixed when the star is made (GEN.1546).
 
 The class switch (GEN.889, docs/design/habitability/life-classes.md): `physics.life_classes` scores the body for each life class from its
 stored conditions; the class that lives on it is the supported one with the most net primary production (ties within a factor of 2 are
@@ -32,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_classes, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -45,8 +44,8 @@ def apply_life_data(planet, keep_stored=False):
     (`physics.biogenic_oxygen`, GEN.855), its complexity and animal grade (`physics.life_complexity`) and the evolutionary timeline.
 
     Called once per planet/moon by `StarSystem.__init__`, after all planets
-    and moons in the system have been generated and the star's age has been
-    finalized by `Star.adjust_age_for_planets`.
+    and moons in the system have been generated and the star's age is
+    fixed from the star's own state (GEN.1546).
 
     Every draw is made on a stream of the body's own; the run's stream moves by one draw however many are made (GEN.872), and by none for an edit (`keep_stored`).
 
@@ -87,6 +86,7 @@ def _remake_ground_if_thawed(planet, before):
         return
     if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= 273.15:
         planets.refresh_at_final_age(planet)
+        planets.apply_class(planet)         # GEN.1590: the cover the thaw left is not the cover the class was read with
 
 
 @dataclass
@@ -112,7 +112,8 @@ def _apply(planet, keep_stored, key, barred):
         return None
     row = life_classes.describe(chosen.id)
     if kept:
-        log.debug(f"Life class: kept {row.id}, still supported")
+        if log.debug_log_active():
+            log.debug(f"Life class: kept {row.id}, still supported.")
     else:
         log.choice("Life class", row.id, f"the supported class with the most net primary production ({chosen.npp:.3g} of Earth's); "
                    f"{sum(1 for s in scores.values() if s.score > 0)} classes are supported")
@@ -141,7 +142,8 @@ def _apply(planet, keep_stored, key, barred):
     if not (final.get(row.id) and final[row.id].score > 0):
         if row.id in final and "solvent" in final[row.id].failed:
             # Its own air (the greenhouse gas it drew down) took the liquid it lives in: a class cannot live without its solvent (GEN.1298)
-            log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it")
+            if log.debug_log_active():
+                log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it.")
             return row.id
         # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
         # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
@@ -255,7 +257,8 @@ def _settle(planet, cands, key):
                 _build_air(planet, cands)
             return cands
         smallest = min(poisoned, key=lambda c: (c.share, c.row.id))
-        log.debug(f"Life class: {smallest.row.id} dropped, the air of the other classes poisons it")
+        if log.debug_log_active():
+            log.debug(f"Life class: {smallest.row.id} dropped, the air of the other classes poisons it.")
         cands = _redate(planet, [c for c in cands if c is not smallest])
     _store_schedule(planet, cands)
     _build_air(planet, cands)
@@ -389,10 +392,11 @@ def _build_air(planet, cands):
     if not planet_type.has_ground(planet):      # a giant, or a planet under a deep envelope (GEN.1334): no ground for life to change the air of
         return
     living = _living_of(cands)
+    was = (planet.surface_temperature, planet.atmospheric_pressure)
     rose = _build_oxygen(planet, living)
     changed = life_air.apply_gases(planet, living, rose)
     if rose or changed:
-        _rebuild(planet)
+        _rebuild(planet, remake_water=(planet.surface_temperature, planet.atmospheric_pressure) != was)
     if changed:
         log.choice("Life gases", f"{atmosphere.partial_kpa(planet, 'ch4'):.3g} kPa of methane",
                    f"class {cands[0].row.id}: methane and hydrogen of the ledger at the star's age")
@@ -424,17 +428,23 @@ def _trace_gases(planet):
             radiation.generate_dose(planet)
 
 
-def _rebuild(planet):
+def _rebuild(planet, remake_water=False):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
     stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
-    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980)."""
+    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980). When the life moved the
+    temperature or the pressure (`remake_water`), the water is made again first at the new ones (`planets.refresh_at_final_age`, on the body's own stream):
+    the state of the hydrosphere, the ice, the ocean cover and the ground were drawn at the air the life found, and a liquid ocean stored at 432 K under 63 kPa
+    is not one (GEN.1590)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
     surface_liquid_world.generate(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)
-    habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
+    if remake_water:
+        physics_planets.refresh_at_final_age(planet)       # the hydrosphere, the cover and the ground, and the habitability score that reads them
+    else:
+        habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
     physics_planets.apply_class(planet)               # GEN.980: the class is an output of the finished conditions, and the air has changed them
 
 
@@ -462,22 +472,9 @@ def _set_evolutionary_state(planet, state):
     planet.life_system_age_gyr = state["system_age_gyr"] if state else None
 
 
-def _flavor_lists():
-    return {"habitable": tuning.HABITABLE_FLAVOR, "planet": tuning.PLANET_FLAVOR, "orbital": tuning.ORBITAL_FLAVOR}
-
-
-def flavor_key(category, text):
-    """The `category:index` key of the flavor line `text` in a `tuning` flavor list (`habitable`, `planet` or
-    `orbital`)."""
-    return f"{category}:{_flavor_lists()[category].index(text)}"
-
-
 def flavor_line(key):
-    """The flavor line a `flavor_key` names, or `None` for no key."""
-    if key is None:
-        return None
-    category, index = key.split(":")
-    return _flavor_lists()[category][int(index)]
+    """The flavor line a stored `flavor_key` (a line id of `physics/data/flavor_tree.json`) names, or `None` for no key."""
+    return flavor_tree.text_of(key)
 
 
 def decide_flavor_text(planet):
@@ -501,55 +498,21 @@ def decide_flavor_text(planet):
                          `recent_flavor_texts` are updated when a flavor is
                          selected.
     """
-    if not (draw.random() < tuning.FLAVOR_CHANCE_PLANET
-            and planet.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
-        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
+    system_config = planet.system_config
+    with draw.bound(draw.Stream(flavor_tree.seed_of("roll", planet))):       # the body's own stream: the roll does not depend on the order the bodies were made in
+        rolled = draw.random()
+    if not (rolled < tuning.FLAVOR_CHANCE_PLANET and system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
+        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached).")
         return
 
-    selected_flavor = None
-    system_config = planet.system_config
-
-    # Filter out recently used flavor texts
-    available_habitable_flavor = [f for f in tuning.HABITABLE_FLAVOR if f not in system_config.recent_flavor_texts]
-    available_planet_flavor = [f for f in tuning.PLANET_FLAVOR if f not in system_config.recent_flavor_texts]
-    available_orbital_flavor = [f for f in tuning.ORBITAL_FLAVOR if f not in system_config.recent_flavor_texts]
-
-    # If all flavors of a category have been recently used, reset to the full list
-    if not available_habitable_flavor:
-        available_habitable_flavor = tuning.HABITABLE_FLAVOR
-    if not available_planet_flavor:
-        available_planet_flavor = tuning.PLANET_FLAVOR
-    if not available_orbital_flavor:
-        available_orbital_flavor = tuning.ORBITAL_FLAVOR
-
-    # Check for habitable and multicellular/technological life
-    is_habitable = planet.life_class is not None
-    # The orbital list is for a body with no ground to put a wreck on: a gas giant or a body under a deep envelope (GEN.1334), or a rock whose whole surface is molten. It is judged by the stored
-    # conditions of the body, never by its class letter (GEN.1399: the class is decided last).
-    has_no_ground = not planet_type.has_ground(planet) or getattr(planet, "surface_liquid", None) in surface_liquid_world.LAVA_IDS
-    has_multicellular_life = planet.life_stage in ("multicellularity", "technological_civilization")
-
-    if is_habitable and has_multicellular_life:
-        selected_flavor = draw.choice(available_habitable_flavor)
-        flavor_category = "habitable (multicellular/technological life present)"
-        flavor_list = "habitable"
-    elif not has_no_ground:
-        selected_flavor = draw.choice(available_planet_flavor)
-        flavor_category = "planet (a ground to stand on)"
-        flavor_list = "planet"
-    else:
-        selected_flavor = draw.choice(available_orbital_flavor)
-        flavor_category = "orbital (no ground: a gas body, a deep envelope or a molten surface)"
-        flavor_list = "orbital"
-
-    if selected_flavor:
-        log.choice("Planet flavor text", selected_flavor, f"category: {flavor_category}")
-        planet.flavor_key = flavor_key(flavor_list, selected_flavor)
-        system_config.system_flavor_count += 1
-        planet.flavor_text_count += 1
-
-        # Add the selected flavor text to the recent list
-        system_config.recent_flavor_texts.append(selected_flavor)
-        # Keep the recent_flavor_texts list to a maximum size
-        if len(system_config.recent_flavor_texts) > tuning.MAX_RECENT_FLAVOR_TEXTS:
-            system_config.recent_flavor_texts.pop(0) # Remove the oldest entry
+    # The tree (GEN.1430) gathers every line whose gates pass on the body's stored conditions (a ground to stand on or none, molten all over, multicellular or technological life),
+    # never the class letter (GEN.1399: the class is decided last), takes out the ids already used in the system and draws one by weight.
+    option = flavor_tree.draw_line("planet", planet, system_config.used_flavor_ids)
+    if option is None:
+        log.debug("Planet flavor text: none (the tree offers no line this body has not already shown in its system).")
+        return
+    log.choice("Planet flavor text", option.text, f"line: {option.id}")
+    planet.flavor_key = option.id
+    system_config.system_flavor_count += 1
+    planet.flavor_text_count += 1
+    system_config.used_flavor_ids.append(option.id)

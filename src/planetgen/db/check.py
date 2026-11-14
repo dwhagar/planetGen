@@ -55,6 +55,7 @@ from alembic.migration import MigrationContext
 
 from planetgen.db import alembic_runner, models, storage_checksum, store
 from planetgen.generation import steps, validation
+from planetgen.util import log
 
 MAX_ROWS_SHOWN = 10
 """int: How many offending rows a problem lists before "and N more"."""
@@ -588,6 +589,7 @@ def check_systems(ctx):
                 lines = [f"{problem.body}: {problem.message}" for problem in found]
                 name = system.name
             except Exception as exc:  # noqa: BLE001 -- a system that will not load is the finding
+                log.swallowed("db/check", "check_systems", exc)
                 lines, name = [f"could not be loaded or checked: {type(exc).__name__}: {exc}"], "?"
             if lines:
                 failing.append(f"star system {name!r} (id {system_id}): " + "; ".join(lines))

@@ -35,7 +35,7 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import spin
+from planetgen.physics import secular_chain, spin, tide_sources
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
 from tests.tide_support import locking_time_s, rocky
@@ -98,8 +98,12 @@ def test_orbital_orientation_is_in_range_and_there_is_no_stored_phase(bodies):
         assert 0 <= body.orbital_ascending_node_deg < 360
         assert not hasattr(body, "orbital_phase_deg")  # GEN.289: the state vector is the body
 
+    # The birth draw stops at PLANET_ORBITAL_INCLINATION_MAX_DEG, but the secular exchange (GEN.1450) shares the planets' inclinations among them against the star's reference
+    # plane, so a planet can end up to the limit of the theory (secular_chain.LINEAR_INCLINATION_LIMIT_RAD) from it: a planet beside a tilted neighbour is not held to the draw's limit.
+    ceiling = max(pc.PLANET_ORBITAL_INCLINATION_MAX_DEG, math.degrees(secular_chain.LINEAR_INCLINATION_LIMIT_RAD))
     for planet in planets:
-        assert 0 <= planet.orbital_inclination_deg <= pc.PLANET_ORBITAL_INCLINATION_MAX_DEG
+        limit = 90.0 if planet.belt_rank is not None else ceiling      # GEN.1510: a body promoted from a belt keeps the belt's inclination, not a planet's
+        assert 0 <= planet.orbital_inclination_deg <= limit
     for moon in moons:
         # GEN.714: a regular moon lies near the equator, a captured one can be retrograde
         limit = 180.0 if moon.moon_origin == "captured" else pc.MOON_ORBITAL_INCLINATION_MAX_DEG
@@ -137,7 +141,10 @@ def test_rotation_period_is_a_birth_spin_worn_down_by_the_tide_or_a_locked_or_re
         if spin.spin_state(moon.rotation_period_hours, moon.period)[0] != "free":
             continue
         min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS[moon.body_type]
-        assert min(min_h, _orbital_hours(moon)) * (1 - 1e-9) <= moon.rotation_period_hours <= max(max_h, _orbital_hours(moon)) * (1 + 1e-9)
+        # GEN.1502: the other bodies that raise a tide on the moon (its star, the sibling planets, the other moons) pull its spin toward their own rates too, so a free spin
+        # lies between the birth range and the slowest rate any raiser turns the line to the moon at
+        slowest_hours = max([_orbital_hours(moon)] + [2.0 * math.pi / raiser.orbital_rate / 3600.0 for raiser in tide_sources.spin_raisers(moon) if raiser.orbital_rate > 0.0])
+        assert min(min_h, _orbital_hours(moon)) * (1 - 1e-9) <= moon.rotation_period_hours <= max(max_h, slowest_hours) * (1 + 1e-9)
 
 
 def _spin_rate(period_hours):
@@ -382,6 +389,35 @@ def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
             moon_radius = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
             low, high = _orbit_range(moon)
             assert low * (1 - 1e-9) <= moon_radius <= high * (1 + 1e-9)
+
+
+def test_a_moon_the_kozai_pass_changed_sits_on_the_ellipse_it_ends_with():
+    """
+    GEN.1540: the star's pull (GEN.1447) sets a cycling moon's eccentricity to its place in the cycle at the star's age; the moon's position and speed were drawn on
+    the eccentricity it had before, so a captured moon pumped down from a high eccentricity sat far outside `a (1 + e)` (0.507 AU against 0.233 to 0.313 AU). Found by
+    the position test above on a rare draw; this one searches the seeds for a system that has a moon the pass cycled.
+    """
+    from tests.fuzz_support import deterministic_entropy, first_seed_with
+
+    def build(seed):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE, cfg.MOONS, cfg.MAX_PLANETS = "G2V", True, True
+        return StarSystem(system_config=cfg)
+
+    def has_pumped_moon(system):
+        return any(getattr(moon, "_kozai", None) is not None for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
+
+    _, system = first_seed_with(build, has_pumped_moon, seeds=range(60), what="a moon the Kozai-Lidov pass cycled")
+    checked = 0
+    for planet in system.planets:
+        if planet.body_type == "a":
+            continue
+        for moon in planet.moons:
+            radius = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
+            low, high = _orbit_range(moon)
+            assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9), f"{moon.name}: {radius:.4g} AU outside {low:.4g} to {high:.4g}"
+            checked += 1
+    assert checked
 
 
 # ---------------------------------------------------------------------------

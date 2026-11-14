@@ -423,7 +423,7 @@
     },
     "R0085": {
       "kind": "paper",
-      "label": "Althaus et al. 2010",
+      "label": "Althaus et al. 2010b",
       "title": "Evolutionary and pulsational properties of white dwarf stars"
     },
     "R0086": {
@@ -3528,7 +3528,7 @@
     },
     "R0706": {
       "kind": "paper",
-      "label": "Chabrier and Baraffe 1997",
+      "label": "Chabrier and Baraffe 1997b",
       "title": "Theory of low mass stars, brown dwarfs and extra-solar giant planets"
     },
     "R0707": {
@@ -12388,7 +12388,7 @@
     },
     "R2478": {
       "kind": "paper",
-      "label": "Kraus et al. 2011",
+      "label": "Kraus et al. 2011b",
       "title": "Impacts onto H2O ice: Scaling laws for melting, vaporization, excavation, and final crater size"
     },
     "R2479": {
@@ -18103,7 +18103,7 @@
     },
     "R3621": {
       "kind": "paper",
-      "label": "Pu and Wu 2015",
+      "label": "Pu and Wu 2015b",
       "title": "Spacing of Kepler Planets: Sculpting by Dynamical Instability"
     },
     "R3622": {
@@ -26083,10 +26083,150 @@
     },
     "R5220": {
       "kind": "paper",
+      "label": "Kraus et al. 2016",
+      "title": "THE IMPACT OF STELLAR MULTIPLICITY ON PLANETARY SYSTEMS. I. THE RUINOUS INFLUENCE OF CLOSE BINARY COMPANIONS"
+    },
+    "R5221": {
+      "kind": "paper",
+      "label": "Kozai 1962",
+      "title": "Secular perturbations of asteroids with high inclination and eccentricity"
+    },
+    "R5222": {
+      "kind": "paper",
+      "label": "Lidov 1962",
+      "title": "The evolution of orbits of artificial satellites of planets under the action of gravitational perturbations of external bodies"
+    },
+    "R5223": {
+      "kind": "paper",
+      "label": "Innanen et al. 1997",
+      "title": "The Kozai Mechanism and the Stability of Planetary Orbits in Binary Star Systems"
+    },
+    "R5224": {
+      "kind": "paper",
+      "label": "Tremaine et al. 2009",
+      "title": "SATELLITE DYNAMICS ON THE LAPLACE SURFACE"
+    },
+    "R5225": {
+      "kind": "paper",
+      "label": "Kraus et al. 2011a",
+      "title": "THE ROLE OF MULTIPLICITY IN DISK EVOLUTION AND PLANET FORMATION"
+    },
+    "R5226": {
+      "kind": "paper",
+      "label": "Fabrycky and Tremaine 2007",
+      "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction"
+    },
+    "R5227": {
+      "kind": "paper",
+      "label": "Laskar et al. 1993",
+      "title": "Stabilization of the Earth's obliquity by the Moon"
+    },
+    "R5228": {
+      "kind": "paper",
+      "label": "Sneden et al. 2008",
+      "title": "Neutron-Capture Elements in the Early Galaxy"
+    },
+    "R5229": {
+      "kind": "paper",
+      "label": "Heller 2018",
+      "title": "The nature of the giant exomoon candidate Kepler-1625 b-i"
+    },
+    "R5230": {
+      "kind": "paper",
+      "label": "Hamers and Portegies Zwart 2018",
+      "title": "Catching a Planet: A Tidal Capture Origin for the Exomoon Candidate Kepler 1625b I"
+    },
+    "R5231": {
+      "kind": "paper",
+      "label": "Pu (濮勃南) and Wu (武延庆) 2015a",
+      "title": "SPACING OF KEPLER PLANETS: SCULPTING BY DYNAMICAL INSTABILITY"
+    },
+    "R5232": {
+      "kind": "paper",
+      "label": "Hurley et al. 2002",
+      "title": "Evolution of binary stars and the effect of tides on binary populations"
+    },
+    "R5233": {
+      "kind": "paper",
+      "label": "Claret and Giménez 2010",
+      "title": "The apsidal-motion test of stellar structure and evolution: an update"
+    },
+    "R5234": {
+      "kind": "paper",
+      "label": "Willems et al. 2010",
+      "title": "ENERGY DISSIPATION THROUGH QUASI-STATIC TIDES IN WHITE DWARF BINARIES"
+    },
+    "R5235": {
+      "kind": "paper",
+      "label": "Rasio et al. 1996",
+      "title": "Tidal Decay of Close Planetary Orbits"
+    },
+    "R5236": {
+      "kind": "paper",
+      "label": "Sterne 1939",
+      "title": "Apsidal Motion in Binary Stars"
+    },
+    "R5237": {
+      "kind": "paper",
+      "label": "Chabrier and Baraffe 1997a",
+      "title": "Structure and evolution of low-mass stars"
+    },
+    "R5238": {
+      "kind": "paper",
+      "label": "Althaus et al. 2010a",
+      "title": "NEW CHEMICAL PROFILES FOR THE ASTEROSEISMOLOGY OF ZZ CETI STARS"
+    },
+    "R5239": {
+      "kind": "paper",
+      "label": "Metcalfe 2003",
+      "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate"
+    },
+    "R5240": {
+      "kind": "paper",
+      "label": "McGinn et al. 2003",
+      "title": "Inorganic Carbon Limitation and Light Control the Expression of Transcripts Related to the CO2-Concentrating Mechanism in the Cyanobacterium Synechocystis sp. Strain PCC6803"
+    },
+    "R5241": {
+      "kind": "paper",
+      "label": "Birmingham and Colman 1979",
+      "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae"
+    },
+    "R5242": {
+      "kind": "paper",
+      "label": "Noyelles and Lhotka 2013",
+      "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury"
+    },
+    "R5243": {
+      "kind": "paper",
+      "label": "Correia and Rodríguez 2013",
+      "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES"
+    },
+    "R5244": {
+      "kind": "paper",
+      "label": "Lin et al. 2021",
+      "title": "OSSOS: The eccentricity and inclination distributions of the stable neptunian Trojans"
+    },
+    "R5245": {
+      "kind": "paper",
+      "label": "Vokrouhlický et al. 2024",
+      "title": "Orbital and absolute magnitude distribution of Jupiter Trojans"
+    },
+    "R5246": {
+      "kind": "paper",
+      "label": "Saha 1920",
+      "title": "LIII. Ionization in the solar chromosphere"
+    },
+    "R5247": {
+      "kind": "web",
+      "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+      "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5248": {
+      "kind": "paper",
       "label": "Boyajian et al. 2016",
       "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
     },
-    "R5221": {
+    "R5249": {
       "kind": "paper",
       "label": "Boyajian et al. 2018",
       "title": "The First Post- Kepler Brightness Dips of KIC 8462852"

@@ -164,6 +164,8 @@ def _airless_planets():
     draw.set_run_seed(5)
     for _ in range(400):
         system = StarSystem(system_config=SystemConfig())
+        if len(system.stars) != 1:      # a companion star adds light that does not follow the planet's orbit (GEN.1441, GEN.1500), and the laws held here are those of one star
+            continue
         for planet in system.planets:
             if isinstance(planet, Planet) and planet.atmosphere == "None" and planet.body_type == "t" and not planet.is_moon:
                 yield planet
@@ -384,7 +386,8 @@ def test_the_orbits_of_neighbours_do_not_cross():
         system = StarSystem(system_config=SystemConfig())
         for planets in (system.planets, getattr(system, "secondary_planets", [])):
             assert validation.check_orbit_spacing(planets) == []
-            for inner, outer in zip(planets, planets[1:]):
+            slots = validation.slot_planets(planets)       # GEN.1510: a body promoted from a belt is on the belt's orbit, not a slot
+            for inner, outer in zip(slots, slots[1:]):
                 if inner.body_type != "a" and outer.body_type != "a":
                     assert validation.apoapsis_au(inner) < validation.periapsis_au(outer)
 

@@ -19,6 +19,7 @@ or as the installed `planetgen` command):
     planetgen scatter --KIND        -- one scatter (mass, luminosity, phenomena, nebula-field, band)
     planetgen fill-map-luminosity   -- fill the map luminosity of the scattered phenomena
     planetgen rescore-habitability  -- re-derive the stored habitability numbers
+    planetgen refill-effect-ledger  -- write again the light and ultraviolet rows of the effect ledger
     planetgen fill-nebula-blocks    -- make the Galaxy Map's nebula block totals again
     planetgen fill-block-totals     -- make the Galaxy Map's block light totals again
     planetgen clear-scatter         -- empty one kind of scatter, so a scatter can draw it again
@@ -59,6 +60,7 @@ from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
 from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
 from planetgen import tuning as program_constants
+from planetgen.physics import oddities
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy import region_run, scatter_limits
@@ -180,6 +182,43 @@ def _validate_star_type(args, parser):
         parser.error(f"--star-type {args.star_type!r} is not a spectral type: expected a class letter "
                      f"(OBAFGKM), a subclass digit (0-9) and a Yerkes class (0, IA+, IA, IAB, IB, II, "
                      f"III, IV, V, VI, VII or D), e.g. G2V.")
+
+
+def class_request_problem(letter, life_class):
+    """What is wrong with a request for a class letter and a life class (GEN.1620), or `None`: the letter must be a planet class, the life
+    class an id of `physics/life_classes.py` or a bare number of one."""
+    from planetgen.physics import life_classes, planet_classes
+    if letter and letter.upper() not in planet_classes.LETTERS:
+        return f"{letter!r} is not a planet class; the classes are {', '.join(planet_classes.LETTERS)}"
+    numbers = {one.rstrip("abc") for one in life_classes.IDS}
+    if life_class and life_class.lower() not in life_classes.IDS and life_class not in numbers:
+        return f"{life_class!r} is not a life class; the classes are {', '.join(life_classes.IDS)} (or just the number)"
+    return None
+
+
+def _validate_class_request(args, parser):
+    """--force-class and --force-life-class must name a class, and --force-class cannot meet a system file's slots."""
+    problem = class_request_problem(args.force_class, args.force_life_class)
+    if problem:
+        parser.error(f"--force-class/--force-life-class: {problem}.")
+    if args.force_class and args.system_file:
+        try:
+            slots = run_system.load_system_file(args.system_file).get("slots")
+        except Exception as exc:        # the system file's own checks say what is wrong with it
+            log.swallowed("cli/generate", "_validate_class_request", exc)
+            slots = None
+        if slots:
+            parser.error("--force-class cannot be combined with a system file's slots: a slot already names its class.")
+
+def _validate_oddities(args, parser):
+    """--weirdness-dial must be 0 or more, and --force-oddities must name oddity ids of `physics/oddities.py` (UX.299)."""
+    if args.weirdness_dial is not None and args.weirdness_dial < 0:
+        parser.error("--weirdness-dial must be 0 or more.")
+    if args.force_oddities is not None:
+        try:
+            run_system.forced_oddity_ids(args.force_oddities)
+        except ValueError as exc:
+            parser.error(f"--force-oddities: {exc}.")
 
 
 def _validate_name(args, parser):
@@ -319,10 +358,28 @@ def add_system_arguments(parser):
     parser.add_argument('--star-type', type=str,
                         help="Force the generation of a specific star type (e.g., G2V).")
 
+    # A class letter or a life class to hold (GEN.1620)
+    parser.add_argument('--force-class', type=str, default=None, metavar='LETTER',
+                        help="Ask for a planet of this class letter (e.g. O): the system is drawn again until one is "
+                             "there, and the result says how well it fits (the nearest class the conditions allow) or "
+                             "that none came out. Cannot be combined with a system file's slots.")
+    parser.add_argument('--force-life-class', type=str, default=None, metavar='ID',
+                        help="Ask for a planet or moon living under this life class: a number (6) or a number and "
+                             "variant (4c). Drawn again until one is there, else the result says none came out.")
+
     # Number of Orbits
     parser.add_argument('--num-orbits', type=int,
                         help="Force an exact number of orbital slots (planets and asteroid belts "
                              "combined) to be generated.")
+
+    # Oddities (GEN.1047, UX.299)
+    parser.add_argument('--weirdness-dial', type=finite_float, default=None, metavar='X',
+                        help="Multiply the rate of every oddity (rare, physically plausible outcomes, "
+                             "docs/design/systems/weird-worlds.md) by X: 0 turns them all off, 1 is the table's own rates. "
+                             "Blank takes the settings' dial.")
+    parser.add_argument('--force-oddities', type=str, default=None, metavar='IDS',
+                        help="Oddity ids, comma separated (" + ", ".join(oddities.BY_ID) + "), that every body whose "
+                             "conditions allow them is given, without the roll. The gate still applies.")
 
     # Number of stars (GEN.267)
     parser.add_argument('--stars', type=int,
@@ -371,6 +428,9 @@ def validate_system_args(args, parser):
 
     _validate_star_type(args, parser)
     _validate_name(args, parser)
+    _validate_class_request(args, parser)
+
+    _validate_oddities(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
@@ -774,7 +834,7 @@ def add_sectors_arguments(parser):
                              f"{region_run.BLOCK_SECTORS}).")
     parser.add_argument('--rogues', type=dials.lever("rogues").parse, metavar="{" + ",".join(dials.lever("rogues").choices) + "}",
                         help="With --around: the Rogues level of the run's top-up (stage 3, after every sector is built), for this run only. Default: the level "
-                             "the galaxy's plan was given (plan --rogues), else normal.")
+                             "the galaxy's plan was given (plan --rogues), else few.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -1363,6 +1423,14 @@ def add_phenomenon_arguments(parser):
     # Database persistence
     store.add_mysql_connection_args(parser)
 
+    # Write the description instead of saving (a one-off phenomenon, UX.298): the same two options `system` has
+    parser.add_argument('--format', choices=run_system.OUTPUT_FORMATS, default=run_system.OUTPUT_FORMATS[0],
+                        help="With --output, how to write the phenomenon: plain text (the default), Markdown "
+                             "or the Document as JSON.")
+    parser.add_argument('--output', '-o', type=str, metavar='FILE',
+                        help="Write the phenomenon's description (in --format) to FILE instead of saving it "
+                             "to the database; '-' writes it to stdout. Not combined with --sector-id.")
+
     # Name
     parser.add_argument('--name', type=str, help="Force the name of the generated phenomenon.")
 
@@ -1389,6 +1457,8 @@ def validate_phenomenon_args(args, parser):
         parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
+    if args.output and args.sector_id is not None:
+        parser.error("--output writes the phenomenon without saving it, so it can't be combined with --sector-id.")
     if args.sector_id is not None and args.anchor_system:
         parser.error("--sector-id cannot be combined with --anchor-system -- an anchored compact remnant "
                      "belongs to its own StarSystem, not directly to a sector.")
@@ -1547,9 +1617,9 @@ def run_repair_db(args):
             report = dbRepair.repair(conn, scope, dry_run=args.dry_run)
             if any(result.outcome == dbRepair.UNREADABLE for result in report.results):
                 tables = table_rebuild.probe_unreadable(conn)
-                log.normal("Repair: unreadable table(s): " + (", ".join(tables) or "none found now") + ". To rebuild one, stop the "
-                           "website and generation, restart the server with innodb_force_recovery = 1, run `planetgen repair-db "
-                           "--salvage TABLE`, restart it normally, then `planetgen repair-db --reload TABLE`.")
+                log.normal("Unreadable table(s): " + (", ".join(tables) or "none found now") + ".")
+                log.normal("To rebuild one, stop the website and generation and restart the server with innodb_force_recovery = 1.")
+                log.normal("Then run `planetgen repair-db --salvage TABLE`, restart the server normally, and run `planetgen repair-db --reload TABLE`.")
         except table_rebuild.RebuildRefused as exc:
             log.error(str(exc))
             sys.exit(1)
@@ -1657,6 +1727,20 @@ def build_parser():
              "re-scored only when its stamp (`system_summary.habitability_stamp`, a hash of the physics source) is not the code's, "
              "so a rerun after no change to the rules touches nothing and a run that stopped carries on where it stopped.")
     add_fill_arguments(rescore_habitability_parser)
+
+    refill_effect_ledger_parser = subparsers.add_parser(
+        'refill-effect-ledger',
+        description="Write again the light and ultraviolet rows of the effect ledger (the sources that reach a body above the ledger's floor) of every "
+                    "system from its stored stars, planets and moons, so a galaxy generated before the ledger existed, or before its floor or its "
+                    "formulas changed, holds the rows a new one would. Only those rows and the system's ledger stamp change; it can be stopped and run "
+                    "again, and it takes only the systems whose stamp is not the running code's (--all takes every one).",
+        help="Write again the light and ultraviolet rows of the effect ledger of the systems that this code has not filled.")
+    refill_effect_ledger_parser.add_argument(
+        '--all', action='store_true',
+        help="Refill every system, including the ones that already hold the rows of the running code. Without it a system is refilled only when "
+             "its stamp (`system_summary.ledger_stamp`, a hash of the physics source) is not the code's, so a rerun after no change touches "
+             "nothing and a run that stopped carries on where it stopped.")
+    add_fill_arguments(refill_effect_ledger_parser)
 
     fill_nebula_blocks_parser = subparsers.add_parser(
         'fill-nebula-blocks',
@@ -1882,6 +1966,7 @@ def build_parser():
         'clear-scatter': clear_scatter_parser,
         'fill-map-luminosity': fill_map_luminosity_parser,
         'rescore-habitability': rescore_habitability_parser,
+        'refill-effect-ledger': refill_effect_ledger_parser,
         'fill-nebula-blocks': fill_nebula_blocks_parser,
         'fill-block-totals': fill_block_totals_parser,
         'clean-nebula-field': clean_nebula_field_parser,
@@ -1953,7 +2038,7 @@ def validate_command(args, command_parser):
         validate_plan_args(args, command_parser)
     elif args.command == 'scatter':
         validate_scatter_args(args, command_parser)
-    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'fill-block-totals',
+    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'refill-effect-ledger', 'fill-nebula-blocks', 'fill-block-totals',
                           'clean-nebula-field', 'finish-run',
                           'link', 'backfill', 'settle'):
         validate_fill_args(args, command_parser)
@@ -1994,7 +2079,7 @@ def run_check_math(args):
         wrapper.run("Math check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
                     kind=runrecord.CHECK, argv=sys.argv[1:])
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the math check could not run: {exc}")
+        log.error(f"The math check could not run: {exc}")
         raise SystemExit(1)
     finally:
         if previous_term is not None:
@@ -2092,6 +2177,7 @@ _COMMAND_HANDLERS = {
     'clear-scatter': run_plan.run_clear_scatter,
     'fill-map-luminosity': run_plan.run_fill_map_luminosity,
     'rescore-habitability': run_plan.run_rescore_habitability,
+    'refill-effect-ledger': run_plan.run_refill_effect_ledger,
     'fill-nebula-blocks': run_plan.run_fill_nebula_blocks,
     'fill-block-totals': run_plan.run_fill_block_totals,
     'clean-nebula-field': run_plan.run_clean_nebula_field,
@@ -2111,7 +2197,7 @@ _COMMAND_HANDLERS = {
 
 DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scatter": ("everything",),
                 "fill-map-luminosity": ("everything",), "finish-run": ("everything",),
-                "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
+                "rescore-habitability": ("everything",), "refill-effect-ledger": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
                 "population": ("population",), "territories": ("population",),
                 "bring-to-epoch": ("generated", "population"), "refresh-parity": (), "repair-db": ()}
@@ -2337,7 +2423,8 @@ def _run_user():
     """Who ran this: the login name (`getpass.getuser`), or `None`."""
     try:
         return getpass.getuser()
-    except Exception:  # noqa: BLE001 -- no user name in this environment
+    except Exception as exc:  # noqa: BLE001 -- no user name in this environment
+        log.swallowed("cli/generate", "_run_user", exc)
         return None
 
 
@@ -2352,11 +2439,11 @@ def _fatal(message, logger_ready=True, traceback=False):
     it."""
     if logger_ready:
         if traceback:
-            log.exception(f"Error: {message}")
+            log.exception(message)
         else:
-            log.error(f"Error: {message}")
+            log.error(message)
     else:
-        log.error(f"planetgen: error: {message}")
+        log.error(message)
         if traceback:
             import traceback as traceback_module
 

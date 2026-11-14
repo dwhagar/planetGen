@@ -102,9 +102,18 @@ class Lever:
     advanced: bool = False
     log: bool = False
     """bool: Whether a slider for the row runs on a logarithmic scale (a mass, a density)."""
+    typical: float = None
+    """float: Where Auto sits in the range, for the Generate page's slider (its sticky default mark): the middle of what the
+    seed draws, or the fixed Auto (`auto_value`) for a row that has one. Only the slider's resting place; the drawn
+    value is the seed's, so it moves nothing in generation. `None` for an enum, which has no slider."""
     tweak: str = "L0"
     """str: How far the range was moved to fit outcomes (GEN.725): L0 as first envisioned from its source, up to L4 fitted to an
     outcome with no independent source."""
+
+    @property
+    def slider_default(self):
+        """float: Where the row's slider rests and sticks for Auto: the fixed Auto value, else `typical`; `None` for an enum."""
+        return self.auto_value if self.auto_value is not None else self.typical
 
     @property
     def dest(self):
@@ -249,7 +258,7 @@ LEVERS = (
         help="The galaxy family. A selector, not a dial: it never sets a size or a count.",
         source="the galaxy families; only the spiral exists, later families fill the list", status="theory"),
     Lever(
-        name="mass", flag="--mass", dial="scale", label="Stellar mass", kind="float",
+        name="mass", typical=4200000000.0, flag="--mass", dial="scale", label="Stellar mass", kind="float",
         unit="solar masses", minimum=281.0, maximum=1.55e11, step=0.01, log=True,
         law="the total mass of the galaxy's stars (not its dark halo, which the Halo dial sets); the size, the halo, "
             "the thick disk, the bulge and the black hole all follow it through their laws; under about 4.6e6 the "
@@ -261,7 +270,7 @@ LEVERS = (
                "Volume Database v1.1.1; [R4098]); ceiling 1.5 x Andromeda's 1.03e11 "
                "[R4084], read by the galaxy size research thread", status="derived"),
     Lever(
-        name="compactness", flag="--compactness", dial="scale", label="Compactness", kind="float",
+        name="compactness", typical=0.0, flag="--compactness", dial="scale", label="Compactness", kind="float",
         unit="sigma", minimum=-3.0, maximum=3.0, step=0.1,
         law="the size at the same mass, as standard deviations from the size-mass law: 0 is the median galaxy, a "
             "positive value a larger disk (the scale length is the law's median times e^(sigma x z))",
@@ -271,7 +280,7 @@ LEVERS = (
         source="scatter of the late-type size-mass law, [R4048] (read in the repository); three sigma is "
                "the draw's own cap", status="derived"),
     Lever(
-        name="density", flag="--density", dial="scale", label="Central surface density",
+        name="density", typical=250.0, flag="--density", dial="scale", label="Central surface density",
         kind="float", unit="solar masses per pc^2", minimum=0.04, maximum=1.0e5, step=0.01, log=True,
         law="the thin disk's central surface density, mass over 2 pi L^2: the same thing as the size at a fixed mass",
         auto_text="a read-out of the mass and size",
@@ -281,7 +290,7 @@ LEVERS = (
                "0.043; the largest found in dense stellar systems is 1e5 [R2001]; the "
                "floor also grows with the scale height (check_outline)", status="derived"),
     Lever(
-        name="disk_scale_length", flag="--disk-scale-length", dial="scale", label="Disk scale length",
+        name="disk_scale_length", typical=1500.0, flag="--disk-scale-length", dial="scale", label="Disk scale length",
         kind="length", unit="pc", minimum=28.0, maximum=8250.0, step=0.1, advanced=True,
         units=(Unit("pc", 1.0), Unit("kpc", 1000.0)),
         law="the thin disk's scale length L; every other length of the galaxy is a ratio of it",
@@ -292,7 +301,7 @@ LEVERS = (
                "[R0909, R1145], read by the galaxy size "
                "research thread", status="derived"),
     Lever(
-        name="flatness", flag="--flatness", dial="structure", label="Flatness (scale length over scale height)",
+        name="flatness", typical=7.3, flag="--flatness", dial="structure", label="Flatness (scale length over scale height)",
         kind="float", unit="", minimum=3.0, maximum=20.0, step=0.1,
         law="the thin disk's thickness: its scale height is the scale length over this (the thick disk's is 3x); a "
             "ratio keeps its meaning when the scale length moves",
@@ -301,7 +310,7 @@ LEVERS = (
         source="median 7.3 and 0.13 dex read in Kregel, van [R2484] (shape_draw); the range 3 to "
                "20 is the proposal's suggestion (galaxy size levers, 10-21), not read in a source", status="bracket"),
     Lever(
-        name="bulge_share", flag="--bulge-share", dial="structure", label="Bulge share (bulge-to-total mass)",
+        name="bulge_share", typical=0.1, flag="--bulge-share", dial="structure", label="Bulge share (bulge-to-total mass)",
         kind="float", unit="", minimum=0.0, maximum=0.9, step=0.01,
         law="the share of the stellar mass in the bulge and bar; the bulge's central density is solved from it, and "
             "0 leaves a disk with no bulge",
@@ -310,7 +319,7 @@ LEVERS = (
         source="stage medians from [R1656: Table 4] (shape_draw); the range 0 to 0.9 is the "
                "proposal's suggestion (galaxy size levers, 10-21), not read in a source", status="bracket"),
     Lever(
-        name="bulge_size", flag="--bulge-size", dial="structure", label="Bulge size (scale radius over scale length)",
+        name="bulge_size", typical=0.25, flag="--bulge-size", dial="structure", label="Bulge size (scale radius over scale length)",
         kind="float", unit="", minimum=0.02, maximum=1.0, step=0.01,
         law="the bar bulge's scale length along the bar over the disk's scale length (the bar ends at three of them)",
         auto_text="drawn from the seed, a third of a bar of 0.2 to 3 scale lengths [R1289]",
@@ -328,7 +337,7 @@ LEVERS = (
              "the bulge: 1 is the pair its stellar mass draws, 0 is none.",
         source="hand option of the first plan, no source", status="placeholder"),
     Lever(
-        name="edge", flag="--edge", dial="edge", label="Edge", kind="length", unit="pc", minimum=4.0,
+        name="edge", typical=20000.0, flag="--edge", dial="edge", label="Edge", kind="length", unit="pc", minimum=4.0,
         maximum=262140.0, step=1.0,
         units=(Unit("L", None, 3.0, 20.0), Unit("pc", 1.0), Unit("kpc", 1000.0), Unit("Mpc", 1.0e6)),
         law="how far out the plan walks the outline of the galaxy: the outline stops here even where sectors still "
@@ -339,7 +348,7 @@ LEVERS = (
         source="relative: Boss, 10-21 (7:01 PM EDT), 3 to 20 scale lengths; absolute: one 4 pc shell up to the grid's "
                "reach of 65,535 shells, 262 kpc (spherical.MAX_ADDRESSABLE_SHELL)", status="derived"),
     Lever(
-        name="halo_ratio", flag="--halo-ratio", dial="halo", label="Dark halo mass over stellar mass", kind="float",
+        name="halo_ratio", typical=80.0, flag="--halo-ratio", dial="halo", label="Dark halo mass over stellar mass", kind="float",
         unit="", minimum=10.0, maximum=3000.0, step=1.0, log=True,
         law="the dark halo's mass (M200) as a multiple of the galaxy's stellar mass; the virial radius, the tidal "
             "field and the disk's gas inflow follow it. Refused for a galaxy under the halo threshold",
@@ -350,7 +359,7 @@ LEVERS = (
                "([R3181], read in the repository) and 2200 times at the halo threshold of 1e10 solar masses; "
                "the ends are those, rounded", status="derived"),
     Lever(
-        name="stellar_halo_share", flag="--stellar-halo-share", dial="halo", label="Stellar halo share", kind="float",
+        name="stellar_halo_share", typical=0.01, flag="--stellar-halo-share", dial="halo", label="Stellar halo share", kind="float",
         unit="", minimum=0.001, maximum=0.3, step=0.001, log=True,
         law="the share of the galaxy's stars in its diffuse stellar halo (the rest are the disk, bulge and bar); "
             "refused for a galaxy under 3e8 solar masses of stars, which has none",
@@ -361,7 +370,7 @@ LEVERS = (
         source="the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (the "
                "disk-dominated galaxies of [R0329]), read in structure_draw", status="bracket"),
     Lever(
-        name="richness", flag="--richness", dial="census", label="Star richness", kind="float",
+        name="richness", typical=2.0, flag="--richness", dial="census", label="Star richness", kind="float",
         unit="systems per solar mass", minimum=1.0, maximum=3.0, step=0.01, advanced=True,
         law="how many systems each solar mass of the galaxy's stars makes, so the galaxy's number of systems and with it "
             "the density in systems and the cost of a full generation; the mean system mass is its inverse",
@@ -376,13 +385,13 @@ LEVERS = (
         choices=("none", "few", "normal", "many"),
         law="how many free-floating planets a sector may hold once its top-up has made up the mass its own systems did not (physics/rogue_topup): "
             "the systems' own ejections always land where they land, and the top-up only brings a sector to the level, never past it",
-        auto_text="normal, the low side of the observed range of free-floating planets per star",
+        auto_text="few, the cheapest of the four to generate (about 43 percent on top of the systems' own time against about 67 for normal)",
         help="How many rogue planets a sector may hold after its top-up: none, few, normal or many. The top-up adds rogues only where the "
              "systems' own ejections left a sector short of its mass.",
         source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "
                "10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)", status="placeholder", tweak="L3"),
     Lever(
-        name="arm_count", flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
+        name="arm_count", typical=2, flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",
         auto_text="drawn from the arm-count shares (two arms in about two thirds of spirals)",
@@ -390,7 +399,7 @@ LEVERS = (
         source="[R1836] counts 1 to 5 or more arms; the ceiling of 10 is a placeholder",
         status="placeholder"),
     Lever(
-        name="pitch_angle_deg", flag="--pitch-angle-deg", dial="pattern", label="Arm pitch angle",
+        name="pitch_angle_deg", typical=20.0, flag="--pitch-angle-deg", dial="pattern", label="Arm pitch angle",
         kind="float", unit="degrees", minimum=-90.0, maximum=90.0, step=0.5, min_abs=1.0,
         law="the arms' pitch angle (a negative one winds the other way)",
         auto_text="drawn from the seed, tighter for heavier galaxies",

@@ -841,14 +841,14 @@ def placed_in_uncharted(cell, stored=None):
             details.append(format_luminosity_sol(star["luminosity_sol"]))
         if star.get("member_count"):
             details.append(f"{star['member_count']} stars together")
-        rows.append({"name": f"Uncharted {star['star_type']} star {star['id']}", "url": page_url("uncharted_star", bright_star_id=star["id"]),
+        rows.append({"name": star.get("local_name") or f"Uncharted {star['star_type']} star {star['id']}", "url": page_url("uncharted_star", bright_star_id=star["id"]),
                      "kind": "Detected star", "details": ", ".join(details)})
     for scattered in cell.get("scattered") or ():
         label = PHENOMENON_TYPE_LABELS.get(scattered["type"]) or scattered["type"].replace("_", " ").title()
         details = [(scattered.get("subtype") or "").replace("_", " ").replace("-", " ").capitalize()]
         if scattered.get("mass_solar"):
             details.append(format_mass_solar(scattered["mass_solar"]))
-        rows.append({"name": f"{label} (uncharted)", "url": page_url("uncharted_phenomenon", scatter_id=scattered["id"]),
+        rows.append({"name": scattered.get("local_name") or f"{label} (uncharted)", "url": page_url("uncharted_phenomenon", scatter_id=scattered["id"]),
                      "kind": label, "details": ", ".join(bit for bit in details if bit)})
     for nebula in cell.get("hosted_nebulae") or ():
         rows.append({"name": nebula["name"], "url": page_url("uncharted_star", bright_star_id=nebula["star_id"]),

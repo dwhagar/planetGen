@@ -26,9 +26,9 @@ def test_the_moon_covers_a_small_share_of_the_suns_light_and_touches_it_rarely()
     assert 1.0e-4 < touched < 2.0e-4
 
 
-def test_venus_crosses_the_sun_for_earth_eight_times_in_243_years():
+def test_venus_crosses_the_sun_for_earth_four_times_in_243_years():
     covered, touched = eclipses.orbiting_the_star(SUN_R, 1.0, 1.0, 6051.8, 0.723, 0.6152, 3.39, KM)
-    assert touched == pytest.approx(8 * 6.0 / (243.0 * 8766.0), rel=0.5)      # about six hours each
+    assert touched == pytest.approx(4 * 6.0 / (243.0 * 8766.0), rel=0.5)      # about six hours each
     assert 0.0 < covered < touched
 
 
@@ -59,3 +59,47 @@ def test_two_stars_of_a_close_pair_eclipse_each_other_for_a_planet_in_their_plan
     assert tilted < covered and tilted_touched < touched
     far, _ = eclipses.pair(SUN_R, SUN_R, 0.2, 0.0426, 1.0, 40.0, KM)
     assert 0.0 < far < covered / 20.0                         # a planet far out of their plane sees a crossing only when it stands near a node
+
+
+def _pair_planet(distance_au=1.0, inclination_deg=0.0, moon=False, plane=(0.0, 0.0), stars=2):
+    """A planet of a close pair of two Suns 0.2 AU apart (a 15.6-day pair), the host a stand-in for `BinaryStarProxy`."""
+    from types import SimpleNamespace
+    sun = SimpleNamespace(radius=SUN_R, luminosity=3.828e26)
+    host = SimpleNamespace(stars=[sun, sun][:stars], binary_mutual_orbital_period_years=0.0426, binary_separation_au=0.2,
+                           binary_mutual_orbital_inclination_deg=plane[0], binary_mutual_orbital_ascending_node_deg=plane[1])
+    return SimpleNamespace(star=host, distance=distance_au, is_moon=moon, orbital_inclination_deg=inclination_deg, orbital_ascending_node_deg=0.0)
+
+
+def test_a_planet_in_the_plane_of_a_close_pair_loses_the_share_its_stars_eclipse_of_the_light():
+    """GEN.1484: two Suns 0.2 AU apart, seen from 1 AU in their plane, eclipse for about 3 percent of the time and cover 0.5 to 2 percent of the light of the star behind, so 0.25 to 1 percent of the pair's light."""
+    factor = eclipses.light_factor_of(_pair_planet())
+    covered, _ = eclipses.pair(SUN_R, SUN_R, 0.2, 0.0426, 1.0, 0.0, KM)
+    assert factor == pytest.approx(1.0 - covered / 2.0, rel=1e-9)         # the star behind carries half the light of two equal stars
+    assert 0.99 < factor < 0.998
+
+
+def test_a_tilted_planet_loses_less_and_every_other_body_keeps_all_its_light():
+    flat = eclipses.light_factor_of(_pair_planet())
+    tilted = eclipses.light_factor_of(_pair_planet(inclination_deg=20.0))
+    assert flat < tilted <= 1.0
+    assert eclipses.light_factor_of(_pair_planet(moon=True)) is None
+    assert eclipses.light_factor_of(_pair_planet(stars=1)) is None            # a host of one star
+    lone = _pair_planet()
+    lone.star = type(lone.star)(radius=SUN_R, luminosity=3.8e26)               # a Star holds no `stars` list
+    assert eclipses.light_factor_of(lone) is None
+
+
+def test_two_unequal_stars_lose_the_light_of_the_star_behind_in_proportion_to_its_luminosity():
+    from types import SimpleNamespace
+    big = SimpleNamespace(radius=SUN_R, luminosity=3.828e26)
+    small = SimpleNamespace(radius=0.5 * SUN_R, luminosity=0.06 * 3.828e26)
+    same = eclipses.pair_light_lost(big, big, 0.2, 0.0426, 1.0, 0.0, KM)
+    unequal = eclipses.pair_light_lost(big, small, 0.2, 0.0426, 1.0, 0.0, KM)
+    assert unequal > 0.0
+    assert unequal < same                         # the faint star has little light to lose and the big one's disk is covered only by a small disk
+    assert eclipses.pair_light_lost(big, small, 0.2, 0.0426, 1.0, 0.0, KM) == eclipses.pair_light_lost(small, big, 0.2, 0.0426, 1.0, 0.0, KM)
+
+
+def test_gen1606_a_factor_of_zero_keeps_no_light_and_none_keeps_all():
+    from planetgen.physics import eclipses
+    assert eclipses.kept_share(None) == 1.0 and eclipses.kept_share(0.0) == 0.0 and eclipses.kept_share(0.8) == 0.8

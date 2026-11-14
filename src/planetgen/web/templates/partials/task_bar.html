@@ -1,0 +1,9 @@
+{#- planetgen/web/templates/partials/task_bar.html -- one task's own bar and ETA (PERF.147). `progress` is `taskprogress.as_dict` (the `progress` of a unit in `GET /api/admin/work/<id>/units`). -#}
+{% macro task_bar(progress, label="") -%}
+{%- if progress and progress.show and progress.percent is not none -%}
+<span class="task-bar">
+  <progress max="100" value="{{ progress.percent }}" aria-label="{{ label ~ ' ' if label }}progress">{{ progress.percent }}%</progress>
+  <span class="task-bar-text">{{ progress.percent|round(0)|int }}%{% if progress.eta_seconds is not none %}, about {{ progress.eta_seconds|round(0)|int }} s left{% if progress.source == 'stored' %} (from earlier runs){% endif %}{% endif %}</span>
+</span>
+{%- endif -%}
+{%- endmacro %}

@@ -49,7 +49,7 @@ main{padding:16px 16px 60px}}
 <h2 id="1-short-answers">1. Short answers</h2>
 <ol>
 <li><strong>Rogue-rogue collisions are real physics but almost never happen.</strong> About <strong>one collision in the whole life of the Galaxy</strong> (range 0.1 to 10) [C]. A field made that way would be unrecognisable within about 60 thousand years, so the standing number in the Galaxy is about 1e-5. A generator that follows the physics makes none. That is what the repo's rate 0 already says, and the reason it gives (fields disperse) is right.</li>
-<li><strong>Even when it happens, it rarely leaves asteroids.</strong> At normal rogue speeds (30 to 60 km/s) two Earth-size rocks hit with peak shock pressure of 1 to 4 TPa, which is mostly melt and vapor that recondenses as droplets and dust. Boulders and 100 km fragments need a slower hit, roughly 15 to 30 km/s, a few percent of collisions [C]. Slower than about 15 km/s the pieces mostly fall back together into one planet.</li>
+<li><strong>Even when it happens, it rarely leaves asteroids.</strong> At normal rogue speeds (30 to 60 km/s) two Earth-size rocks hit with peak shock pressure of 1 to 4 TPa, which is mostly melt and vapour that recondenses as droplets and dust. Boulders and 100 km fragments need a slower hit, roughly 15 to 30 km/s, a few percent of collisions [C]. Slower than about 15 km/s the pieces mostly fall back together into one planet.</li>
 <li><strong>A field cannot evolve by grinding.</strong> With no star holding it together the cloud flies apart in a straight line. Collisions stop within hours for big pieces and within years for grit [C]. After that &quot;evolution&quot; is only expansion (a pure function of age), then galactic shear. So bodies are <strong>derived from a seed and an age</strong>, not simulated.</li>
 <li><strong>The best physical sources are not collisions.</strong> The leftover belts of stars that went supernova are unbound by the mass loss: about 100 to 200 fields standing in the Galaxy [C with [R] inputs], roughly 4 orders of magnitude more than collisions, and still about 1 sector in 2e8. They are the right ones to host, because a young supernova remnant already exists in the generator.</li>
 <li><strong>To have any fields at all we need a labelled game rate.</strong> Recommendation in section 8: physical sources hosted where they belong, plus one stand-in &quot;wanderer&quot; rate at tier &quot;from needed output&quot;, tweak L4, default 1 field per 10,000 sectors, registered next to the physical figure so research can replace it.</li>
@@ -59,7 +59,7 @@ main{padding:16px 16px 60px}}
 <h3 id="21-inputs-repo-unless-marked">2.1 Inputs [REPO unless marked]</h3>
 <ul>
 <li>Rogue density: 6.5 rogues per star, so 0.91 per pc3 at the solar neighbourhood, of which terrestrial 0.78 per pc3 (<code>tuning.ROGUE_PLANET_RATE_PER_STAR</code>, <code>PHENOMENON_DENSITY_PC3</code>). The observational root is the microlensing work ([R3191], 2020; [R2178], cited in tuning) [REPO]; the terrestrial number is already an extrapolation.</li>
-<li>Relative speed: rogues share the stellar velocity dispersion, plus the ejection kick. Relative 3-D speeds of 30 to 60 km/s in the old thin disk, 100 km/s and up in the bulge, 2 to 4 km/s inside a young cluster [R]. I carry 20, 40 and 80 km/s.</li>
+<li>Relative speed: rogues share the stellar velocity dispersion, plus the ejection kick. Relative 3-D speeds of 30 to 60 km/s in the old thin disc, 100 km/s and up in the bulge, 2 to 4 km/s inside a young cluster [R]. I carry 20, 40 and 80 km/s.</li>
 <li>Gravitational focusing: cross-section <code>sigma = pi (R1+R2)^2 (1 + v_esc^2 / v^2)</code> with <code>v_esc</code> at touching of the pair (11.2 km/s for two Earths). At 40 km/s focusing is 1.08, so it hardly matters.</li>
 </ul>
 <h3 id="22-rate-per-rogue-c">2.2 Rate per rogue [C]</h3>
@@ -97,7 +97,7 @@ main{padding:16px 16px 60px}}
 </table></div>
 <p>With the real mass function (most rogues are 0.1 to 0.5 Earth masses, radius 0.5 to 0.7 Earth) the number is 2 to 4 times lower.</p>
 <h3 id="23-galaxy-total-c">2.3 Galaxy total [C]</h3>
-<p><code>events/yr = 0.5 x sigma v x (6.5)^2 x integral(n_star^2 dV)</code>. Exponential disk (scale length 2.6 kpc, height 0.3 kpc, 0.14 stars per pc3 at the Sun, 8.4e10 stars) gives 3.4e10 star^2 per pc3 pc3; a 2e10 star Plummer bulge of 700 pc gives 5.1e10.</p>
+<p><code>events/yr = 0.5 x sigma v x (6.5)^2 x integral(n_star^2 dV)</code>. Exponential disc (scale length 2.6 kpc, height 0.3 kpc, 0.14 stars per pc3 at the Sun, 8.4e10 stars) gives 3.4e10 star^2 per pc3 pc3; a 2e10 star Plummer bulge of 700 pc gives 5.1e10.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -108,7 +108,7 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td>Earth-size pairs, disk 40 km/s, bulge 120 km/s</td>
+<td>Earth-size pairs, disc 40 km/s, bulge 120 km/s</td>
 <td>8.9e-11</td>
 <td>0.9</td>
 </tr>
@@ -127,7 +127,7 @@ main{padding:16px 16px 60px}}
 <p><strong>Answer: order one per Galaxy lifetime, about one per 10 Gyr to one per 1 Gyr at most.</strong> Standing fields at any moment: rate x field lifetime (section 5) = 1e-10 x 6e4 yr = <strong>6e-6</strong>. In a 3e10-sector Galaxy, no sector holds one, ever, unless we put it there.</p>
 <p>Cluster collisions are the only ones slow enough to leave real fragments, and they sit inside a cluster where the fragments are dispersed in a few Myr.</p>
 <h3 id="24-related-tidal-disruption-of-a-rogue-by-an-isolated-neutron-star-or-black-hole-c">2.4 Related: tidal disruption of a rogue by an isolated neutron star or black hole [C]</h3>
-<p>Tidal radius for an Earth: 4.9e5 km (1.4 Msun neutron star), 9.5e5 km (10 Msun black hole). Focusing is large (escape speed 870 and 1670 km/s there). Per object 1.7e-18 and 7.8e-17 per year; with the repo's 1e9 neutron stars and 1e8 black holes, 30 percent of them in rogue-rich space, about <strong>5e-10 and 2e-9 events per year</strong>, 1 per 0.5 to 2 Gyr. Debris is thrown at about 100 km/s, so it leaves a 1 ly cloud within about 3 thousand years: standing number 1e-5. The bound half is a disk around the remnant (this is the pulsar-planet origin that already exists). Not a field source. Listed for completeness.</p>
+<p>Tidal radius for an Earth: 4.9e5 km (1.4 Msun neutron star), 9.5e5 km (10 Msun black hole). Focusing is large (escape speed 870 and 1670 km/s there). Per object 1.7e-18 and 7.8e-17 per year; with the repo's 1e9 neutron stars and 1e8 black holes, 30 percent of them in rogue-rich space, about <strong>5e-10 and 2e-9 events per year</strong>, 1 per 0.5 to 2 Gyr. Debris is thrown at about 100 km/s, so it leaves a 1 ly cloud within about 3 thousand years: standing number 1e-5. The bound half is a disc around the remnant (this is the pulsar-planet origin that already exists). Not a field source. Listed for completeness.</p>
 <h2 id="3-what-a-collision-leaves-behind">3. What a collision leaves behind</h2>
 <h3 id="31-energy-and-shock-c">3.1 Energy and shock [C]</h3>
 <p>Specific impact energy of an equal-mass pair <code>Q_R = v^2 / 8</code>; gravitational binding energy of an Earth <code>3GM/5R = 3.7e7 J/kg</code>; complete vaporisation of silicate is of the order 1e7 J/kg for the heating share [R].</p>
@@ -169,19 +169,19 @@ main{padding:16px 16px 60px}}
 <td>30</td>
 <td>1.1e8</td>
 <td>1.2 TPa</td>
-<td>super-catastrophic: melt and vapor dominate, small remnant</td>
+<td>super-catastrophic: melt and vapour dominate, small remnant</td>
 </tr>
 <tr>
 <td>40</td>
 <td>2e8</td>
 <td>2.1 TPa</td>
-<td>mostly vapor and droplets</td>
+<td>mostly vapour and droplets</td>
 </tr>
 <tr>
 <td>60</td>
 <td>4.5e8</td>
 <td>4.4 TPa</td>
-<td>essentially all vapor and melt</td>
+<td>essentially all vapour and melt</td>
 </tr>
 </tbody>
 </table></div>
@@ -214,13 +214,13 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>So only about 1 to 17 percent of the (already rare) collisions leave rubble. The rest give a vapor and droplet cloud (still a &quot;debris field&quot; but made of mm to m material) or a merged planet.</p>
+<p>So only about 1 to 17 percent of the (already rare) collisions leave rubble. The rest give a vapour and droplet cloud (still a &quot;debris field&quot; but made of mm to m material) or a merged planet.</p>
 <h3 id="32-what-is-in-it">3.2 What is in it</h3>
 <ul>
-<li><strong>Mass:</strong> the unbound part, not the sum. Unbound mass fraction runs from near 0 (merger) to near 1 (super-catastrophic); a remnant planet is a <strong>separate rogue planet</strong> with its own ID, left near the field's center.</li>
+<li><strong>Mass:</strong> the unbound part, not the sum. Unbound mass fraction runs from near 0 (merger) to near 1 (super-catastrophic); a remnant planet is a <strong>separate rogue planet</strong> with its own ID, left near the field's centre.</li>
 <li><strong>Composition:</strong> from the two parents. A differentiated rogue has an iron core (about 0.3 of its mass) and a silicate mantle; water-rich rogues (GEN.26 <code>ROGUE_WATER_RICH_CHANCE</code>) add ice shards. The repo's <code>small_body_composition.draw_field(&quot;collisional&quot;)</code> picks one taxon; replace with shards: iron/M-type from the cores, V/A or S-type from the mantles, D/P-type from ice. The ledger draft's rule (differentiated bodies only if the parent was) is automatically met because the parents are differentiated.</li>
 <li><strong>Speed:</strong> ejecta dispersion about 0.3 to 1 times the impact speed above <code>v_esc</code>: stand-in 5 to 15 km/s (L1, nudged inside the physics bracket; to be derived in item F1).</li>
-<li><strong>Sizes:</strong> a steep tail in the catastrophic regime. Largest fragment at 15 to 30 km/s: tens to hundreds of km (stand-in; from LS12 once read). Below a few km the vapor/droplet share dominates. The L1 ledger tier (mass cut rule E, floor 1e19 kg) holds the large pieces.</li>
+<li><strong>Sizes:</strong> a steep tail in the catastrophic regime. Largest fragment at 15 to 30 km/s: tens to hundreds of km (stand-in; from LS12 once read). Below a few km the vapour/droplet share dominates. The L1 ledger tier (mass cut rule E, floor 1e19 kg) holds the large pieces.</li>
 <li><strong>Shape:</strong> a sphere is acceptable for a collision. Supernova-unbound belts (section 4) are a thin expanding <strong>annulus/pancake</strong>, not a ball; store the shape flag.</li>
 </ul>
 <h2 id="4-other-plausible-sources">4. Other plausible sources</h2>
@@ -256,7 +256,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>S3</td>
 <td>Young-cluster stripped swarms</td>
-<td>Flybys truncate disks at about 0.3 of periastron (Holman and Wiegert style cut already in repo; [R0527] [R]); the cut-off planetesimals fly free. Cluster dispersion 1 to 3 km/s, so the swarm leaves in a few Myr, then joins the interstellar background.</td>
+<td>Flybys truncate discs at about 0.3 of periastron (Holman and Wiegert style cut already in repo; [R0527] [R]); the cut-off planetesimals fly free. Cluster dispersion 1 to 3 km/s, so the swarm leaves in a few Myr, then joins the interstellar background.</td>
 <td>cluster-limited</td>
 <td>tens of clusters x 1e5-ish swarm members, no coherent field after 10 to 20 Myr</td>
 <td>hook only: a young cluster (age under 20 Myr) may list a swarm. Low priority.</td>
@@ -267,7 +267,7 @@ main{padding:16px 16px 60px}}
 <td>section 2.4</td>
 <td>5e-10 and 2e-9 per yr</td>
 <td>1e-5</td>
-<td>not a field source. Feeds the pulsar-planet disk.</td>
+<td>not a field source. Feeds the pulsar-planet disc.</td>
 </tr>
 <tr>
 <td>S5</td>
@@ -306,7 +306,7 @@ main{padding:16px 16px 60px}}
 <p>Source of rogues themselves: planet-planet scattering ejects them with a kick of several km/s [R]; all of them already come from <code>RoguePlanet</code>, which matters for section 7.</p>
 <h2 id="5-how-a-field-disperses-and-ages">5. How a field disperses and ages</h2>
 <h3 id="51-no-central-star-so-no-orbit">5.1 No central star, so no orbit</h3>
-<p>Each body moves in a straight line relative to the field center at its ejection velocity. Radius <code>R(t) = R0 + sigma_v t</code>. Galactic tidal shear (Oort A 15 km/s per kpc) adds a drift of <code>2 A x t</code> for a body at offset x: for x = 1 pc and t = 10 Myr that is 0.3 pc, small beside <code>sigma_v t</code> until about 100 Myr and 10 pc [C]. So shear is a second-order step for fields that matter.</p>
+<p>Each body moves in a straight line relative to the field centre at its ejection velocity. Radius <code>R(t) = R0 + sigma_v t</code>. Galactic tidal shear (Oort A 15 km/s per kpc) adds a drift of <code>2 A x t</code> for a body at offset x: for x = 1 pc and t = 10 Myr that is 0.3 pc, small beside <code>sigma_v t</code> until about 100 Myr and 10 pc [C]. So shear is a second-order step for fields that matter.</p>
 <h3 id="52-age-at-a-given-radius-c">5.2 Age at a given radius [C]</h3>
 <div class="table"><table>
 <thead>
@@ -383,10 +383,10 @@ main{padding:16px 16px 60px}}
 <p>Column density <code>Sigma = M_field / (pi R(t)^2)</code>, falling as <code>t^-2</code>. A &quot;dense/typical/sparse&quot; word (the repo's three levels) is derived from it with the same thresholds the belt rule uses. The word changes as the field ages, never stored.</p>
 <h2 id="6-storage-id-and-bodies">6. Storage, ID and bodies</h2>
 <ul>
-<li><strong>Mass rule (GEN.1161, Boss approved 3:14 PM EDT 2026-10-31).</strong> A field holds what the disk stretch it came from has left, by the belts' own rule, and its bodies add up to it: a supernova-unbound belt is the progenitor's belt ground for the progenitor's life (<code>belt_ledger.solve_belt</code>) and then kept; a collision field is the unbound share of the pair (<code>rogue_collision.unbound_fraction</code>); nothing is drawn from a table of typical masses. Built in <code>physics/field_mass.py</code>; <code>mass_total_kg</code> below stores its result.</li>
+<li><strong>Mass rule (GEN.1161, Boss approved 3:14 PM EDT 2026-10-31).</strong> A field holds what the disc stretch it came from has left, by the belts' own rule, and its bodies add up to it: a supernova-unbound belt is the progenitor's belt ground for the progenitor's life (<code>belt_ledger.solve_belt</code>) and then kept; a collision field is the unbound share of the pair (<code>rogue_collision.unbound_fraction</code>); nothing is drawn from a table of typical masses. Built in <code>physics/field_mass.py</code>; <code>mass_total_kg</code> below stores its result.</li>
 <li><strong>One row per field</strong> (the existing <code>asteroid_fields</code> row with its 12-byte <code>uid</code>) gains: <code>mass_total_kg</code>, <code>seed</code>, <code>birth_age_yr</code> (age at the sector's epoch), <code>sigma_v_kms</code>, <code>shape</code> (ball, annulus), <code>origin</code> (S1, S<sub>2</sub>, ...), <code>history</code> text, <code>parent_a</code> and <code>parent_b</code> (mass, class, speed; text), <code>remnant_id</code> (the rogue left behind, if any), <code>size_law</code> (slope, largest-fragment mass). Units go in <code>db/column_units.py</code>.</li>
 <li><strong>Built (GEN.1103, Aux 5, 11-06).</strong> Schema 225 adds <code>rms_speed_kms</code>, <code>birth_age_yr</code>, <code>shape</code>, <code>origin</code>, <code>history</code> and <code>largest_body_kg</code> to <code>asteroid_fields</code> (the rest of the list waits for the items that need them). A field's radius is no longer drawn: <code>asteroid_field.radius_ly_at(age, speed)</code> gives it (<code>field_dispersal.rms_radius_m</code>), for a field made by hand (speed log-uniform over <code>tuning.ASTEROID_FIELD_SPEED_KMS_RANGE</code>, stand-in row AF1 in section 6.203; age uniform from the age of the smallest field to the retirement age, since births are uniform in time) and for a Rogues top-up field (<code>field_topup_build</code> copies the plan's speed, age, shape, origin and largest piece, and writes the history sentence of its apparent origin). The sheet shows them.</li>
-<li><strong>Built, the supernova host rule (GEN.1104, Aux 5, 11-07).</strong> <code>generation/field_host.hosted_field</code> gives every scattered core-collapse remnant (<code>run_sector.add_scattered_phenomena</code>) the field its progenitor's belt left, from the remnant's own seed: a progenitor mass from the IMF over the windows of the remnant's core, <code>field_rates.hosted_belt</code> (the share of progenitors that kept a belt by age, the unbinding, the retirement past a light year), the mass from <code>field_mass.unbound_belt_field</code> with the rocky law, and an <code>AsteroidField</code> with shape <code>annulus</code> (a ring of <code>RING_RADIUS_AU</code>), origin <code>unbound belt</code> and the sentence of where the mass came from. About 13 percent of core-collapse remnants host one in a 2,000-remnant probe (stand-ins HF1 and HF2, section 6.202). The remnant's core is not given a field of its own: the field is placed at the remnant's center.</li>
+<li><strong>Built, the supernova host rule (GEN.1104, Aux 5, 11-07).</strong> <code>generation/field_host.hosted_field</code> gives every scattered core-collapse remnant (<code>run_sector.add_scattered_phenomena</code>) the field its progenitor's belt left, from the remnant's own seed: a progenitor mass from the IMF over the windows of the remnant's core, <code>field_rates.hosted_belt</code> (the share of progenitors that kept a belt by age, the unbinding, the retirement past a light year), the mass from <code>field_mass.unbound_belt_field</code> with the rocky law, and an <code>AsteroidField</code> with shape <code>annulus</code> (a ring of <code>RING_RADIUS_AU</code>), origin <code>unbound belt</code> and the sentence of where the mass came from. About 13 percent of core-collapse remnants host one in a 2,000-remnant probe (stand-ins HF1 and HF2, section 6.202). The remnant's core is not given a field of its own: the field is placed at the remnant's centre.</li>
 <li><strong>Built (GEN.1107, Aux 5, 11-07).</strong> Bring-to-epoch for fields. The orbit update that moves a field (<code>store.advance_galactic_positions</code>) now also ages it: <code>birth_age_yr</code> is the age at the row's <code>epoch_unix</code>, so a due field gets the years since its epoch added (<code>asteroid_field.aged</code>), its <code>radius_ly</code> follows by <code>radius_ly_at</code> and the size digit of <code>field_class</code> by <code>asteroid_field_class</code> (the letter, from composition and density, does not change). <strong>Retirement (Boss decision 2, &quot;retire it&quot;; the TODO asked Boss to pick between marking and deleting, default retire):</strong> a field whose radius passes 1 ly (<code>RETIREMENT_RADIUS_LY</code>) is retired by <em>marking, not deleting</em>: the row, its Object ID, its members and any facility at it (<code>facilities.asteroid_field_id</code> cascades on delete) stay. Retired is a formula of the row (<code>radius_ly &gt; 1</code>, <code>asteroid_field.is_retired_radius</code> and the same test in SQL, <code>RETIRED_FIELD_SQL</code>), so no column holds it and nothing can disagree with the radius. The map reads (<code>query._placed_phenomenon_rows</code>) and the widest-radius reads (<code>query._widest_placed_phenomenon_radius_ly</code>, <code>obstacles.widest_reach_pc</code>) leave a retired field out; its page stays. (GEN.1073, Aux 5, 11-07: the Phenomena catalog and its counts, the nearby search, the contents of a cloud and the pass-through reach leave retired fields out too; the row, its page and its members stay.) A field is aged only when it is due (its own galactic interval, tens of years), so its radius is the radius at its epoch, as its position is. No schema change, no epoch (the clock step is not generation). Left for later if Boss wants it: a status line on the sheet, and a density word that follows the column density (5.4).</li>
 <li><strong>Position and size at any epoch are formulas of the row</strong>, so the bring-to-epoch step is a pure function, with one exception (retirement, 5.2).</li>
 <li><strong>Bodies are derived.</strong> L1 members (mass cut rule E, floor 1e19 kg, cap 300) come from the seed: rank k has mass from the order-statistic draw, velocity from <code>Normal(0, sigma_v)</code> per component, position <code>x_k = v_k x age</code>. Stable rank by mass drawn once at birth, as the belt draw. L2 (1e15 to 1e19 kg) is drawn on demand; L3 is the tail as total mass.</li>

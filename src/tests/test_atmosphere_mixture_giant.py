@@ -8,7 +8,7 @@ import math
 import pytest
 
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import gas_equilibrium as ge, mixture_giant as mg, saturation, species_thermo as st
+from planetgen.physics import disk_drift, gas_equilibrium as ge, mixture_giant as mg, saturation, species_thermo as st
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError
 from planetgen.util import draw
@@ -242,7 +242,7 @@ def test_a_giant_with_a_disk_takes_its_carbon_to_oxygen_from_the_disk_spread_by_
     subject = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=100.0, disk_carbon=1.0, disk_oxygen=1.0)
     with draw.bound(5):
         recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
-    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"])      # GEN.1471: the envelope carries a share of the bulk metals
+    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"], solids_edge_k=disk_drift.edge_temperature_k())      # GEN.1471: the envelope carries a share of the bulk metals
     for f7 in (disk_condensation.RECIPE_C_OVER_O_MEDIAN, 0.4, 1.2):
         shifted = dataclasses.replace(recipe, values={**recipe.values, "f7": f7})
         with draw.bound(6):
@@ -406,3 +406,31 @@ def test_the_ice_caps_still_refuse_a_layer_that_cycles_with_oxygen_to_spare():
         total_moles = 1.0
     with pytest.raises(MixtureError, match="did not settle"):
         mg.cap_ices({"H": 1.0, "O": 0.5}, 100.0, 1.0, lambda trial: Cycling(), iterations=5)
+
+
+@pytest.mark.parametrize("layer_k", [20000.0, 27559.5, 5.0e4])
+def test_a_layer_hotter_than_the_gas_table_is_equilibrated_at_the_top_of_the_table(layer_k):
+    """A giant lit by an O star has a quoted layer far above the table's 20,000 K (the zeta Ophiuchi example drew one at 27,560 K and the build stopped with 'no species can be made'): the gas is the
+    table's own at its hottest temperature, and the temperature drawn is the one kept."""
+    cool = giant()
+    hot = giant(t_layer_k=layer_k, tday_k=layer_k, teq_k=layer_k, teff_k=layer_k)
+    with draw.bound(3):
+        recipe = RECIPES.draw_all(cool, categories="abdcefghijkl")
+        result = mg.giant_mixture(hot, recipe)
+    assert mg.CHEMISTRY_CEILING_K == 20000.0
+    assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-6)
+    assert result.mole_fractions["H2"] + result.mole_fractions.get("H", 0.0) > 0.1
+
+
+def test_an_envelope_that_lost_hydrogen_first_has_the_helium_of_its_history_in_place_of_the_solar_one():
+    # GEN.1527: `envelope_helium_y` is the helium mass share of the hydrogen and helium (`helium_fractionation`); the budget's helium per hydrogen follows it
+    def helium(**changes):
+        subject = giant("envelope", **changes)
+        with draw.bound("he-envelope"):
+            recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
+            return mg.giant_mixture(subject, recipe, family="envelope", log_enrichment=0.5).mole_fractions.get("He", 0.0)
+
+    solar = helium()
+    rich = helium(envelope_helium_y=0.6)
+    assert rich > 2.0 * solar
+    assert helium(envelope_helium_y=0.2447) == pytest.approx(solar, rel=0.01)

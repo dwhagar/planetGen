@@ -28,6 +28,38 @@ TRUNCATION_OF_ROCHE_LOBE = 0.733
 cut-off, read second-hand). [Stand-in DT1, tier Marginal unverified, tweak L0.]"""
 
 
+CLOSE_COMPANION_AXIS_AU = 47.0
+"""float: A companion inside this separation hastens the dispersal of the gas of the disk ([R5220], AJ 152, 8: inside a_cut = 47 +59/-23 AU the planet occurrence of binaries is 0.34 of that of wider
+binaries and single stars; [R5225], ApJ 745, 19: for binaries closer than 40 AU, about two thirds lose their disk within 1 Myr). Both read second-hand (the abstracts). [Stand-in CD1, tier Confident
+unverified, tweak L0.]"""
+
+CLOSE_COMPANION_GAS_SHARE = 0.34
+"""float: The share of the stars with a companion inside `CLOSE_COMPANION_AXIS_AU` whose disk keeps its gas long enough for a core to find it: one less the two thirds of close binaries whose disks go within 1 Myr
+[R5225], which is also the planet occurrence ratio S_bin = 0.34 +0.14/-0.15 of [R5220]. It multiplies the chance a core past the critical mass finds gas (`planet_mass.gas_outcome`), so a star's
+rocky planets are unchanged and about two thirds of the giants of such a star are not made. [Stand-in CD2, tier Confident unverified, tweak L0.]"""
+
+
+def star_companion_axis_au(star):
+    """The axis of the nearest companion of `star`, AU: the tightest of the companions `radiation_field` attached to it, or, for the proxy a close pair's planets orbit (`binary.BinaryStarProxy`), the separation of its two
+    stars; `math.inf` for a lone star."""
+    axis = math.inf
+    for companion in radiation_field.companions_of(star):
+        if companion.axis_au > 0.0:
+            axis = min(axis, companion.axis_au)
+    separation = getattr(star, "binary_separation_au", None)
+    if separation is not None and 0.0 < separation:
+        axis = min(axis, separation)
+    return axis
+
+
+def gas_survival_factor(star):
+    """
+    The factor on the chance a core of `star` finds gas (GEN.1475): `CLOSE_COMPANION_GAS_SHARE` for a star with a companion inside `CLOSE_COMPANION_AXIS_AU` (its disk is gone within 1 Myr in two thirds of such systems, with no gas
+    for a core to find), 1 for every other star, so a lone star or a wide pair draws exactly as before.
+    """
+    return CLOSE_COMPANION_GAS_SHARE if star_companion_axis_au(star) < CLOSE_COMPANION_AXIS_AU else 1.0
+
+
 def roche_lobe_share(mass_ratio):
     """The Roche lobe of a star over the separation, for `mass_ratio` its mass over its companion's [R1222]."""
     if not mass_ratio > 0.0:
@@ -48,6 +80,8 @@ def star_truncation_au(star):
     """The radius where the companions that `radiation_field` attached to `star` cut its disk, AU: the tightest of them, `math.inf` for a star with none."""
     radius = math.inf
     for companion in radiation_field.companions_of(star):
+        if companion.dark:      # a glowing dark member of the tree (GEN.1501) lights the planets; the gravity of every member is the work of GEN.1446 to GEN.1462
+            continue
         mass = getattr(companion.star, "mass", None)
         host = getattr(star, "mass", None)
         if mass and host:
