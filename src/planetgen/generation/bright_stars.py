@@ -74,7 +74,7 @@ from planetgen.galaxy.spherical import (
     wedge_longitude_bounds,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation import object_first, place_terms, stored_trees
+from planetgen.generation import abundance_tier, object_first, place_terms, stored_trees
 from planetgen.generation.star_population import (
     bright_band_fraction, fe_h_support, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
@@ -1652,7 +1652,8 @@ class FillContext:
         system_config.POPULATION = pick_population(self.densities, rng)
         system_config.AGE_LAW = age_laws_of(self.shape).get(system_config.POPULATION)
         system_config.GALAXY_SHAPE = self.shape
-        system_config.ABUNDANCE_TIER = self.shape.abundance_tier
+        if self.shape.abundance_tier != abundance_tier.DEFAULT:      # GEN.1704: science sets nothing, so a config made on it is what it always was
+            system_config.ABUNDANCE_TIER = self.shape.abundance_tier
         system_config.PLACE_TERMS = self.place_terms
         if system_config.POPULATION in POPULATIONS_IN_THE_GATE:
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h

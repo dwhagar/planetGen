@@ -30,7 +30,7 @@ from its finished conditions. The targets are what the dial values are calibrate
 **Science changes nothing.** On `science` every dial is 0, every function here says so without a draw, and a caller must make no draw of its
 own: a seeded system comes out byte for byte as it did before the tier existed.
 
-The tier reaches a system through its config (`SystemConfig.ABUNDANCE_TIER`), which a galaxy sector sets from the galaxy's stored choice
+The tier reaches a system through its config (`SystemConfig.ABUNDANCE_TIER`, a class attribute that is set on a config only for a tier other than science), which a galaxy sector sets from the galaxy's stored choice
 (`brightStars.FillContext.apply_population`), as it sets the population and the galaxy's shape.
 """
 

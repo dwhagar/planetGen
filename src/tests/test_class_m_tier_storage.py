@@ -35,17 +35,19 @@ def test_a_shape_defaults_to_science_and_keeps_it_out_of_the_prism_fields():
     assert "abundance_tier" in GalaxyShape._fields
 
 
-def test_a_system_made_in_a_galaxy_takes_the_galaxys_tier():
+def test_a_system_made_in_a_galaxy_takes_the_galaxys_tier_and_science_leaves_the_config_as_it_was(monkeypatch):
+    monkeypatch.setattr(bright_stars, "pick_population", lambda densities, rng: "old")
+    monkeypatch.setattr(bright_stars, "age_laws_of", lambda shape: {})
     context = bright_stars.FillContext.__new__(bright_stars.FillContext)
     context.densities, context.profile, context.place_terms = {}, None, None
+    untouched = set(vars(SystemConfig()))
     for tier in abundance_tier.TIERS:
         context.shape = shape_draw.default_shape(b"\x02" * 16)._replace(abundance_tier=tier)
-        config = SystemConfig()
-        try:
-            context.apply_population(config, rng=types.SimpleNamespace(random=lambda: 0.0))
-        except Exception:      # the population draw needs a real sector; the tier is set after it, so test the line directly
-            config.ABUNDANCE_TIER = context.shape.abundance_tier
-        assert config.ABUNDANCE_TIER == tier
+        config = context.apply_population(SystemConfig())
+        assert abundance_tier.tier_of(config) == tier
+        # science adds no field to the config (the golden digests list every field a config holds)
+        assert ("ABUNDANCE_TIER" in vars(config)) == (tier != "science")
+        assert set(vars(config)) - {"ABUNDANCE_TIER"} == untouched
 
 
 def test_the_system_command_takes_class_m():

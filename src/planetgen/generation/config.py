@@ -68,6 +68,15 @@ class SystemConfig:
     `None` takes `tuning.WEIRDNESS_DIAL`. A class attribute like `FORCE_CLASS`: not saved with the system. Defaults to None.
     """
 
+    ABUNDANCE_TIER = None
+    """
+    str or None: The Class M abundance tier the system is made under (GEN.1704, `generation.abundance_tier.TIERS`: "sparse", "scattered",
+    "plentiful" or "abundant"), which moves the water and envelope draws of rocky planets in the ecosphere and the share of systems given the
+    habitable request. None is "science": nothing is moved. A class attribute like `FORCE_CLASS`, so a config holds it only when it is set: a
+    galaxy sector sets it from the galaxy's stored choice when that is not science (`FillContext.apply_population`), a config made on science
+    carries no field of it, and a seeded system and its golden digest are what they were before the tier existed. Not saved with the system.
+    """
+
     def __init__(self):
         self.system_flavor_count = 0
         self.used_flavor_ids = [] # The flavor line ids this system has shown, so no line shows twice (GEN.1430; it replaces the recency list)
@@ -250,14 +259,6 @@ class SystemConfig:
         "multi_star" scales the chance of five or more stars
         (`prevalence.multi_star_scale`, which `StarSystem._drawn_plan` passes as
         the `prevalence` of `multistar.draw_member_tree`).
-        """
-
-        self.ABUNDANCE_TIER = None
-        """
-        str or None: The Class M abundance tier the system is made under (GEN.1704, `generation.abundance_tier.TIERS`: "science",
-        "sparse", "scattered", "plentiful" or "abundant"), which moves the water and envelope draws of rocky planets in
-        the ecosphere and the share of systems given the habitable request. None is "science": nothing is moved. A galaxy
-        sector sets it from the galaxy's stored choice with `POPULATION`. Not saved with the config.
         """
 
         self.POPULATION = None

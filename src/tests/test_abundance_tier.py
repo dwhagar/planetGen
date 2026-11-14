@@ -20,6 +20,7 @@ def _planet(tier, zone="e", body_type="t", is_moon=False):
 def test_science_is_the_default_and_every_dial_is_off():
     config = SystemConfig()
     assert config.ABUNDANCE_TIER is None and abundance_tier.tier_of(config) == "science"
+    assert "ABUNDANCE_TIER" not in vars(config)      # a class attribute: a config on science holds no field of it (the golden digests list every field)
     assert abundance_tier.dials_of(config) == abundance_tier.OFF == (0.0, 0.0, 0.0)
     assert not abundance_tier.active(config) and abundance_tier.request_share(config) == 0.0
     for tier in (None, "science"):
