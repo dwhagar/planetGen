@@ -111,3 +111,18 @@ def test_the_fill_and_the_stamped_system_units_report_their_ranges(mysql_config)
     run_plan.fill_map_luminosity_unit({"low": 1, "high": 10, "database": _database(mysql_config)}, lambda done, total: reports.append((done, total)))
     assert reports[0] == (0, 3) and reports[-1] == (3, 3)
 
+
+
+def test_a_phase_that_counts_its_own_work_moves_the_unit_between_two_counts(monkeypatch):
+    """OPS.184: the wait for the generator battery's digest moves the bar a case at a time and never past the next phase."""
+    reports = []
+    monkeypatch.setattr(log, "normal", lambda line: None)
+    monkeypatch.setattr(run_plan.unitbeat, "phase", lambda text: None)
+    phases = run_plan._UnitPhases(lambda done, total: reports.append((done, total)), 9)
+    for _ in range(6):
+        phases.next("a phase")
+    reports.clear()
+    step = run_plan._battery_waiter(phases)
+    for numbers in ((0, 8, 0), (0, 8, 40), (0, 8, 40), (4, 8, 120), (8, 8, 200)):
+        step(*numbers)
+    assert reports == [(5.0, 9), (5.0, 9), (5.5, 9), (5.999, 9)]

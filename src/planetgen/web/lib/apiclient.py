@@ -1018,7 +1018,7 @@ def get_irregular_moon(db, ref, rank):
 
 
 def get_belt_member(db, ref, rank):
-    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`), the page data of one body an asteroid belt keeps
+    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`, `planet`), the page data of one body an asteroid belt keeps
     individually (`rank` as the designation writes it) -- see `describe/belt_member_info.py`."""
     _require_db(db)
     return _request(f"/objects/{ref}/belt-members/{rank}", {"db": db})
