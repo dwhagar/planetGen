@@ -13421,6 +13421,21 @@ clears each one.
   Version 8.3. Owner (TODO, 2026-11-14): to be routed when 8.3 opens. Prerequisites: API.49. Related: ADM.155, API.28.
   Filed by the TODO thread.
 
+- [ ] **OPS.253 (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed**
+  Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". The log ends at Stage 8's first lines ("Drawing the sky tiers of 5 observer cell(s) after the sectors' backfill.", then the backfill line) with nothing after. Do: find why the backfill hangs or crawls (stuck query, lock wait, a loop with no end); give it real counted progress (Boss's standing order of 11-13: every long step reports fine-grained progress); and make sure the watchdog stops or holds a step that makes no progress for its proven-idle time (job engine OPS.207 to 214 design: stopped only when dead or proven idle). Boss's queue page at 10:07 AM EST (relayed by the coordinator): the run reads "Stage 6 of 16: Bright-star backfill, 116 of 131 units", running 10 h 47 m, "waiting on progress"; the run that owns the machine was last heard from 4 h 17 m ago while the job's beat still shows 6 s ago (a dead-but-not-cancelled run: the job beat keeps it looking alive); 3 workers active, load about 2.9; unit:scatter-backfill has one sample, claim 2,100 MB typed; the cache warm-up failed at 5:02 AM EST with /galaxy answering 503. Check whether Train 27 or the engine stacks already change it. Not a lock item unless the fix changes output.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.184, OPS.208, PERF.260.
+  Filed by the TODO thread.
+
+- [ ] **OPS.254 (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s**
+  Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Do: on a New galaxy whose database was just emptied, skip (or make instant) the clear-earlier-runs and clear-earlier-bright-stars work; an empty table is checked cheaply, not deleted from row by row. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.267 Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s**
+  Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Stage 5 log: 109 of 109 sectors done after 6:05:18. Do: measure whether this is the expected cost per sector on that machine after Train 26 or a slowdown; report before any change.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
