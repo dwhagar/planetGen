@@ -48,7 +48,7 @@ cloud take the rest (Venus has 150 ppm of SO2 in CO2, a share of about 1e-4 of t
 AIR_BUFFER_DIW = (9.1, 10.8, "uniform")
 """tuple: The oxygen fugacity a warm, dry, oxidized air holds, log10 units above iron-wuestite (GEN.1670). It is the crust's magnetite-hematite buffer,
 not the mantle's: Venus's air at 0 km (735 K) holds 10^-21.7 to 10^-20.0 bar of oxygen, "indistinguishable, within the uncertainties of the
-thermodynamic data, from the magnetite-hematite phase boundary" ([R5251]); on the iron-wuestite fit of `oxygen_fugacity` at 735 K that is IW+9.1 to
+thermodynamic data, from the magnetite-hematite phase boundary" [R5251]; on the iron-wuestite fit of `oxygen_fugacity` at 735 K that is IW+9.1 to
 IW+10.8, the bracket. Applied as a constant offset at the cooler surface temperatures too (the buffers run close to parallel; the
 air above 0.7 km is more oxidizing still), which the source does not reach: tier 3, tweak level 1 (AM100)."""
 

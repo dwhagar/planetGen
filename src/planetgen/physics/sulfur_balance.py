@@ -81,7 +81,7 @@ extrapolation, and below about 450 K another route (water films on the grains) w
 unverified, tier 2, tweak level 0."""
 
 SULFATION_REFERENCE_K = 735.0
-"""float: The surface temperature of Venus, K, where `DRY_LIFETIME_YEARS` is the lifetime: the lifetime at a temperature `T` is that times `exp(SULFATION_ACTIVATION_K (1 / T - 1 / 735))`."""
+"""float: The surface temperature of Venus, K (measured), where `DRY_LIFETIME_YEARS` is the lifetime: the lifetime at a temperature `T` is that times `exp(SULFATION_ACTIVATION_K (1 / T - 1 / 735))`."""
 
 WATER_LAYER_FULL_M = 2.75
 """float: The depth, m, of a global layer of water (1e-3 of the Earth's ocean, 2.75 km deep) at and above which the sulfur is taken to be removed by water as fast as the wet lifetime says, ocean or not

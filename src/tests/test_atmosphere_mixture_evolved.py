@@ -50,7 +50,7 @@ def test_a_venus_like_body_is_carbon_dioxide_with_a_few_percent_nitrogen():
 
 
 def test_a_warm_venus_like_air_holds_the_crust_buffer_and_keeps_sulfur_dioxide():
-    """GEN.1670 (AM100): at Venus's 735 K the air is held at the crust's magnetite-hematite buffer ([R5251]), IW+9.1 to IW+10.8, which keeps
+    """GEN.1670 (AM100): at Venus's 735 K the air is held at the crust's magnetite-hematite buffer [R5251], IW+9.1 to IW+10.8, which keeps
     sulfur dioxide, the species the old hold at the mantle's redox lost to S2 (Venus: 150 ppm of SO2 in CO2)."""
     changes = dict(water_lost=True, runaway_ratio=1.2, ts_k=735.0, pressure_bar=90.0, mass_earth=0.8, ocean_present=False)
     found = draws("terrestrial", changes, "venus", count=120)
