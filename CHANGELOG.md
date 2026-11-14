@@ -2,6 +2,43 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4151] - 2026-11-14
+
+**Headline:** The clear of the earlier bright stars still shows its step on the Queue page when a new galaxy has nothing to clear.
+
+### Fixed
+- **OPS.254 (bug), output unchanged.** After the clears of a new galaxy were made cheap, the clear unit reported nothing, so its bar never showed a first step and the log had no line for it (`test_unit_reports` went red on main). A clear that finds nothing stored now says so as its one phase ("No bright stars are stored, nothing to clear") and the bar fills.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4150] - 2026-11-14
+
+**Headline:** A stray scratch script, `m.py`, is gone from the repository root, and a test now fails if another one lands there.
+
+### Fixed
+- `m.py` (a throwaway measuring helper that came in with the GEN.1309 A commit) is removed; nothing used it.
+- New `test_repo_root_holds_no_scratch_files.py` fails when a tracked `.py` file other than `setup.py` sits in the repository root (TEST.745).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4149] - 2026-11-14
+
+**Headline:** The sky code itself now knows when no star scatter has run, so a sky draw never reaches the 0.0 luminosity ceiling, whichever way it is started.
+
+### Fixed
+- **No scatter, no sky tiers (OPS.256, follow-up).** The first fix left the sky out in the backfill's expansion only. The cause was `sky_charting.walk_edges_and_ceiling` turning "no scatter" (`ScatterLimits.tiers` is `None`) into a ceiling of 0.0. `ScatterLimits.scatter_ran` now says whether a scatter ran; `sky_charting.plan` returns no tier when it did not (so nothing is costed, owed or drawn), `walk_edges_and_ceiling` refuses to hand back a made-up ceiling, and `sky_charting.chart` (the sky unit, so a retry or a resume of a unit cut before a scatter was cleared) ends clean with nothing drawn. The backfill's expansion still logs why no sky is drawn. Covered for every entry of the backfill stage (`run_backfill`, which the web Add sectors and New galaxy steps and the CLI reach, and the one-sector fills around a centre) by tests.
+
+## [8.0.4148] - 2026-11-14
+
+**Headline:** The shell log mask no longer takes the word "pass" for a password name, so "Skipping the population pass: the math check failed." prints whole.
+
+### Fixed
+- `log_mask` in `scripts/logrecord.sh` (SEC.48) matched the bare word `pass` followed by a colon and replaced the word after it with X's, in the shell gate and in the no-Python fallback. It now matches only `password`, `passwd` and `passphrase`, the same names `util/secrets_mask.py` holds. `test_math_gate::test_update_sh_check_math_failure_only_warns` passes again, and a new test pins that ordinary log text goes through unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4147] - 2026-11-14
 
 **Headline:** Adding sectors to a galaxy that was only planned (no star scatter yet) no longer crashes at the backfill step.
