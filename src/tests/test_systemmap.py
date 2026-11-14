@@ -871,6 +871,23 @@ def test_the_planets_round_an_inner_pair_node_get_a_marker_and_a_scene_of_their_
     assert 'data-scene="star-32"' in html, "a member keeps its own scene as before"
 
 
+def test_a_belt_round_an_inner_pair_node_is_drawn_in_the_scene_of_its_pair_and_not_in_the_whole_system():
+    """GEN.332, slice C display: a belt with `host_node_id` (no `star_id`) goes with the planets of its pair node, and a node with a belt and no planet still gets its scene."""
+    system = {"name": "Quad", "binary_configuration": "close", "binary_mutual_position_x_km": 0.05 * AU_KM,
+              "binary_mutual_position_y_km": 0.0, "binary_mutual_position_z_km": 0.0,
+              "orbits": [{"node_no": 0, "parent_node_no": None}, {"node_no": 1, "parent_node_no": 0}, {"node_no": 2, "parent_node_no": 0}]}
+    named = [("A", 1), ("B", 1), ("C", 2), ("D", 2)]
+    stars = [dict(_star(30 + n, mass_kg=(1.0 + 0.1 * n) * 1e30), name=f"Quad {letter}", parent_node_no=node,
+                  role="member" if n > 1 else "primary", offset_x_au=300.0 + n, offset_y_au=50.0)
+             for n, (letter, node) in enumerate(named)]
+    pair_belt = _belt(1, None, AU_KM * 2.7, AU_KM * 2.1, AU_KM * 3.3)
+    node_belt = dict(_belt(2, None, AU_KM * 7.0, AU_KM * 6.0, AU_KM * 8.0), host_node_id=2)
+    html = sm.render_system_map_panel(system, stars, [], [pair_belt, node_belt])
+    assert 'data-kind="belt" data-id="2"' in _scene_html(html, "node-2")
+    assert 'data-kind="belt" data-id="2"' not in _scene_html(html, "system")
+    assert 'data-kind="belt" data-id="1"' in _scene_html(html, "system") and 'data-kind="belt" data-id="1"' not in _scene_html(html, "node-2")
+
+
 def test_the_further_stars_markers_clear_each_other_and_the_planets_labels():
     """Two further stars in nearly the same direction do not stack, and the real offsets are what a measure reads."""
     system = {"name": "Triple", "binary_configuration": "close", "binary_mutual_position_x_km": 0.05 * AU_KM,
