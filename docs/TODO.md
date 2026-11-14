@@ -13302,6 +13302,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1716.
   Filed by the TODO thread.
 
+- [ ] **TEST.744 (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900)**
+  Lane 13, 2:01 PM EST on 2026-11-14 (seen on plain main while gating its job-engine stack). Candidates by area: OPS.254 (PR 6508, clearing units), OPS.255 (PR 6502, job limits), OPS.256 (PRs 6511, 6517, sky limits), Train 27. Do: bisect each red to its PR and have that PR's lane fix it at the cause; never loosen a test.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: TEST.740.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
