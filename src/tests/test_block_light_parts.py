@@ -10,6 +10,7 @@ import struct
 import pytest
 
 from planetgen.db import block_lights, store, uncharted_index
+from planetgen.queue import commands
 from tests.db_schema_support import load_old_schema
 from tests.test_block_lights import _stored
 
@@ -246,7 +247,7 @@ def _run_units(mysql_config, expansion):
     results = []
     for params, _cost in expansion.units:
         reports = []
-        results.append(run_plan.refresh_block_lights_unit(params, lambda done, total, reports=reports: reports.append((done, total))))
+        results.append(commands.run_alone("refresh-block-lights", params, lambda done, total, reports=reports: reports.append((done, total))))
         assert reports and reports[-1][0] == reports[-1][1]      # every unit ends its own bar
     return results
 
@@ -277,7 +278,7 @@ def test_the_stage_is_cut_into_a_roll_up_and_runs_of_shells_that_make_the_rows_t
     conn.execute("DELETE FROM sectors")
     conn.execute("DELETE FROM galaxy_block_lights")
     conn.commit()
-    whole = run_plan.refresh_block_lights_unit(dict(params, part="all"), lambda done, total: None)
+    whole = commands.run_alone("refresh-block-lights", dict(params, part="all"))
     conn.commit()
     assert whole["written"] == results[0]["written"] and whole["made"] == sum(result["made"] for result in results)
     _assert_same(_stored(conn), cut_totals)

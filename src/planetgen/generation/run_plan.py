@@ -345,11 +345,12 @@ class _UnitPhases:
         self.report(self.total, self.total)
 
 
-def _battery_waiter(phases):
+def _battery_waiter(phases=None):
     """
-    `on_progress` for the wait on the generator battery's digest process (OPS.184): the bar moves a case at a time, the ticker says the cases and the sampling tables built so far
-    (the cold digest of a new code key is mostly tables), and the unit's heartbeat is told whenever a table was built, so a process that still works never looks quiet and one that
-    does not does.
+    `on_progress` for the wait on the generator battery's digest process (OPS.184): the ticker says the cases and the sampling tables built so far (the cold digest of a new code
+    key is mostly tables), which is also the unit's second-level count (OPS.192), and the unit's heartbeat is told whenever a table was built, so a process that still works never
+    looks quiet and one that does not does. A unit that counts its phases by hand (`_UnitPhases`) passes them and its bar moves a case at a time between two phases; a unit of the
+    engine's pieces (OPS.199) passes none.
     """
     pace = Ticker("Generator battery digest, cases", total=len(generatorBattery.CASES))
     seen = []
@@ -359,7 +360,8 @@ def _battery_waiter(phases):
             return
         seen.append((cases, tables))
         del seen[:-1]
-        phases.within(cases / total if total else 0.0)
+        if phases is not None:
+            phases.within(cases / total if total else 0.0)
         unitbeat.moving()
         pace.tick(cases, detail=f"{tables:,} sampling tables built")
     return step
@@ -384,20 +386,186 @@ def expand_plan_skeleton(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def plan_skeleton_unit(params, report):
+SKELETON_PIECES = ("clear", "outline", "report", "components", "shells", "battery", "shape", "containers", "naming")
+"""tuple: The nine pieces of the `plan-skeleton` unit, in order (OPS.199; the nine phases OPS.170 counted by hand)."""
+
+
+def skeleton_pieces(params, cursor):
     """
-    The `plan-skeleton` command (PERF.106): builds and persists the galaxy's skeleton: `galaxy_shape` (the shape
+    The pieces of the `plan-skeleton` unit (OPS.199): `SKELETON_PIECES`. They hand each other what they made through `ctx.state["skeleton"]` (they run in one process, in order), so
+    a unit starts from its first piece whatever the cursor says: restarting the whole is what the unit did before.
+    """
+    return list(SKELETON_PIECES)
+
+
+def plan_skeleton_do(params, piece, ctx):
+    """One piece of the `plan-skeleton` unit: `_SKELETON_PIECE_FUNCTIONS[piece]` with the unit's state."""
+    state = ctx.state.get("skeleton")
+    if state is None:
+        state = ctx.state["skeleton"] = types.SimpleNamespace(
+            unit_started=time.perf_counter(), lines=[], timer=stepTimer.StepTimer(), edge_pc=run_common._edge_pc(),
+            e_value=expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY), finish_battery=None)
+        state.say = state.lines.append
+        state.threshold_rho = 1.0 / state.e_value
+    return _SKELETON_PIECE_FUNCTIONS[piece](params, ctx, state)
+
+
+def _skeleton_clear(params, ctx, st):
+    """The first piece: the checks of the request, then the scatters the old outline drew are cleared (a new outline invalidates every pre-placed bright star, schema v43)."""
+    st.reach_shell_index = params.get("reach_shells", DEFAULT_REACH_SHELL)
+    try:
+        spherical.check_reach(st.reach_shell_index)
+    except ValueError as exc:
+        raise ValueError(f"--reach-shells {st.reach_shell_index}: {exc}") from exc
+    st.mysql_config = ctx.config
+    st.requested_seed = None if params["galaxy_seed"] is None else galaxySeed.parse_seed(params["galaxy_seed"])
+    conn = ctx.db
+    st.stored_seed = store.get_galaxy_seed(conn)
+    if (st.requested_seed is not None and st.stored_seed is not None and st.requested_seed != st.stored_seed
+            and store.has_galaxy_sectors(conn)):
+        raise ValueError(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(st.stored_seed)}; "
+                         f"a different --seed needs a wiped galaxy.")
+    # A new outline invalidates every pre-placed bright star (schema v43) and with it the phenomena and the nebula
+    # field drawn on the old one: a plan alone leaves them to the scatters, which draw them again (PERF.121).
+    ctx.phase("Clearing the scatters the old outline drew")
+    with st.timer.step("clearing the scatters the old outline drew"):
+        store.clear_bright_stars(conn)
+        store.clear_phenomenon_scatter(conn)
+        store.clear_nebula_field(conn)
+        block_lights.clear(conn)
+        ctx.commit()
+        uncharted_index.clear_unoccupied(conn, on_phase=log.normal)       # MAP.402: the rows made for the cells those scatters filled
+
+
+def _skeleton_outline(params, ctx, st):
+    """The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites (GEN.237) all come from it, and the components go in the outline's bound."""
+    st.galaxy_seed = st.requested_seed or st.stored_seed or galaxySeed.new_seed()
+    # A new seed records the generator battery's digest with the galaxy (store.save_galaxy_shape): worked out in a
+    # process of its own while the rest of the plan runs, instead of waited for at the end (PERF.176).
+    st.finish_battery = generatorBattery.start_running_digest() if st.galaxy_seed != st.stored_seed else None
+    st.shape_args = types.SimpleNamespace(**{name: dials.restored(params.get(name)) for name in SKELETON_OPTIONS})
+    ctx.phase("Building the galaxy's outline")
+    st.built = planOutline.build(st.shape_args, st.galaxy_seed, st.edge_pc, st.reach_shell_index)
+    shape, drawn = st.built.shape, st.built.drawn
+    st.say(
+        f"Building skeleton: edge {st.edge_pc:g} pc, stellar mass {drawn.chain.stellar_mass_solar:.3g} solar masses "
+        f"({drawn.stage}-type), disk scale length {shape.disk_scale_length_pc:.0f} pc, "
+        f"disk scale height {shape.disk_scale_height_pc:.0f} pc, "
+        f"bulge scale radius {shape.bulge_scale_radius_pc:.0f} pc, bulge-to-total mass ratio {drawn.bulge_to_total:.3f}, "
+        f"{shape.arm_count} spiral arms, pitch angle {drawn.pitch_angle_deg:.1f} degrees, "
+        f"density normalization {shape.k_norm:.4f} (a factor, no unit), "
+        f"lowest density kept {st.threshold_rho:.6f} x the local average"
+    )
+    st.say(f"{dials.describe_pins(shapeDraw.pins_of(st.shape_args, shape.disk_scale_length_pc))}.")
+
+
+def _skeleton_report(params, ctx, st):
+    ctx.phase("Working out the outline's report")
+    with st.timer.step("the report lines (pins, halo, outline)"):
+        halo_line, halo_warning = shapeDraw.halo_report(st.built.drawn)
+        made = planOutline.report(st.built)
+    st.say(f"{halo_line}.")
+    if halo_warning:
+        st.say(f"WARNING: {halo_warning}")
+    st.say(f"{made.line()}.")
+    for note in made.warnings:
+        st.say(f"WARNING: {note}")
+    if made.empty:
+        raise ValueError(planOutline.EMPTY_OUTLINE_REASON)
+    st.timer.steps.extend(st.built.timer.steps)
+
+
+def _skeleton_components(params, ctx, st):
+    ctx.phase("Storing the clusters and satellites")
+    found, young, dwarfs = st.built.clusters, st.built.young, st.built.satellites
+    with st.timer.step("storing the clusters and satellites"):
+        store.replace_galaxy_components(ctx.db, found + young, kind="cluster")
+        store.replace_galaxy_components(ctx.db, dwarfs, kind="satellite")
+        ctx.commit()
+    ctx.close_db()
+    with st.timer.step("the system counts of the 'Drew' line"):
+        st.say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
+               f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} systems "
+               f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f} systems.")
+
+
+def _skeleton_shells(params, ctx, st):
+    ctx.phase("Storing the shells")
+    with st.timer.step("storing the shells"):
+        store.replace_galaxy_shells(st.built.extents, config=st.mysql_config)
+
+
+def _skeleton_battery(params, ctx, st):
+    """The wait for the generator battery's digest, which only a new seed has started; a piece that does nothing for a seed the galaxy already had."""
+    if st.finish_battery is None:
+        return
+    ctx.phase("Waiting for the generator battery's digest")
+    with st.timer.step("the generator battery's digest, as far as it was waited for"):
+        st.finish_battery(_battery_waiter())
+
+
+def _skeleton_shape(params, ctx, st):
+    ctx.phase("Storing the galaxy's shape")
+    built, shape = st.built, st.built.shape
+    with st.timer.step("storing the shape"):
+        st.galaxy_seed = store.save_galaxy_shape(
+            shape, edge_pc=st.edge_pc, outer_shell_index=built.outer_shell_index,
+            expected_system_count_at_density_1=st.e_value, config=st.mysql_config, galaxy_seed=st.galaxy_seed,
+            reach_shell_index=st.reach_shell_index, cell_star_ceiling=params.get("cell_star_ceiling"),
+            fill_luminosity_cap_sol=params.get("fill_luminosity_cap"),
+            core_min_luminosity_sol=params.get("core_min_luminosity"),
+            core_mass_limit_sol=params.get("core_mass_limit"),
+            halo_min_luminosity_sol=params.get("halo_min_luminosity"),
+            pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(st.shape_args, built.drawn),
+            pins=shapeDraw.pins_of(st.shape_args, shape.disk_scale_length_pc),
+        )
+
+
+def _skeleton_containers(params, ctx, st):
+    ctx.phase("Storing the containers")
+    with st.timer.step("storing the containers"):
+        st.say(_store_containers(st.mysql_config, st.galaxy_seed, st.edge_pc, st.built.outer_shell_index))
+    core_floor = params.get("core_min_luminosity")
+    core_mass = params.get("core_mass_limit")
+    halo_floor = params.get("halo_min_luminosity")
+    limits = store.GalaxySkeletonInfo(
+        st.built.shape, st.edge_pc, st.built.outer_shell_index, st.e_value, None, core_min_luminosity_sol=core_floor,
+        core_mass_limit_sol=core_mass,
+        halo_min_luminosity_sol=program_constants.HALO_MIN_LUMINOSITY_SOL if halo_floor is None else halo_floor)
+    with st.timer.step("the scatter limits line"):
+        st.say(
+            f"Scatter limits by place: core luminosity floor {scatter_limits.core_min_luminosity_sol(limits, None):,.0f} "
+            f"L_sun{'' if core_floor is not None else ' (the baseline plus a tenth)'}, core mass limit "
+            f"{scatter_limits.core_mass_limit_sol(limits, None):g} M_sun{'' if core_mass is not None else ' (the baseline plus a tenth)'}, "
+            f"halo luminosity floor {scatter_limits.halo_min_luminosity_sol(limits):,.0f} L_sun.")
+    if st.requested_seed is not None:
+        source = "from --seed"
+    elif st.stored_seed is not None:
+        source = "kept from the earlier plan"
+    else:
+        source = "drawn at random"
+    st.say(f"Galaxy seed {galaxySeed.format_seed(st.galaxy_seed)} ({source}).")
+
+
+def _skeleton_naming(params, ctx, st):
+    ctx.phase("Drawing the naming key")
+    with st.timer.step("the naming key"):
+        st.say(_draw_naming_key(st.mysql_config, st.galaxy_seed, new_seed=st.stored_seed != st.galaxy_seed))
+
+
+_SKELETON_PIECE_FUNCTIONS = {"clear": _skeleton_clear, "outline": _skeleton_outline, "report": _skeleton_report, "components": _skeleton_components,
+                             "shells": _skeleton_shells, "battery": _skeleton_battery, "shape": _skeleton_shape, "containers": _skeleton_containers,
+                             "naming": _skeleton_naming}
+
+
+def plan_skeleton_result(params, results, ctx):
+    """
+    The `plan-skeleton` command's result (PERF.106), made from what its pieces left: the galaxy's skeleton is built and persisted by them: `galaxy_shape` (the shape
     parameters, calibration constant, edge length and outer shell -- one singleton row) and `galaxy_shell` (the
     galaxy's outline: one row per shell, from the core out, holding the highest band that shell reaches -- see
     `galaxy.skeleton.build_shell_extents`). Together they are the bounds every generation path checks first. The edge
-    is always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC`.
-
-    No sector content or individual addresses are stored -- that stays lazy (a run makes it). Re-running
-    replaces the whole skeleton; a full Milky-Way-scale build takes a few milliseconds.
-
-    Args:
-        params (dict): `skeleton_params`.
-        report (callable): `report(done, 9)` as each of the unit's nine phases begins (OPS.170), each also a log line and the unit's phase.
+    is always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC`. No sector content or individual addresses are stored -- that stays lazy (a run makes it).
+    Re-running replaces the whole skeleton; a full Milky-Way-scale build takes a few milliseconds.
 
     Returns:
         dict: `summary` (`outer_shell_index`, `reach_shell_index`, `shell_count`, `total_candidate_sectors`,
@@ -406,151 +574,22 @@ def plan_skeleton_unit(params, report):
             unit's time went.
 
     Raises:
-        ValueError: `reach_shells` is out of range, or a different seed is asked for in a galaxy that has sectors.
+        ValueError: (in the pieces) `reach_shells` is out of range, or a different seed is asked for in a galaxy that has sectors.
     """
-    unit_started = time.perf_counter()
-    lines = []
-    say = lines.append
-    timer = stepTimer.StepTimer()
-    phases = _UnitPhases(report, 9)
-    edge_pc = run_common._edge_pc()
-    e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
-    threshold_rho = 1.0 / e_value
-
-    reach_shell_index = params.get("reach_shells", DEFAULT_REACH_SHELL)
-    try:
-        spherical.check_reach(reach_shell_index)
-    except ValueError as exc:
-        raise ValueError(f"--reach-shells {reach_shell_index}: {exc}") from exc
-
-    mysql_config = _mysql_config_of(params)
-    requested_seed = None if params["galaxy_seed"] is None else galaxySeed.parse_seed(params["galaxy_seed"])
-    conn = store.get_connection(mysql_config)
-    try:
-        stored_seed = store.get_galaxy_seed(conn)
-        if (requested_seed is not None and stored_seed is not None and requested_seed != stored_seed
-                and store.has_galaxy_sectors(conn)):
-            raise ValueError(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(stored_seed)}; "
-                             f"a different --seed needs a wiped galaxy.")
-        # A new outline invalidates every pre-placed bright star (schema v43) and with it the phenomena and the nebula
-        # field drawn on the old one: a plan alone leaves them to the scatters, which draw them again (PERF.121).
-        phases.next("Clearing the scatters the old outline drew")
-        with timer.step("clearing the scatters the old outline drew"):
-            store.clear_bright_stars(conn)
-            store.clear_phenomenon_scatter(conn)
-            store.clear_nebula_field(conn)
-            block_lights.clear(conn)
-            conn.commit()
-            uncharted_index.clear_unoccupied(conn, on_phase=log.normal)       # MAP.402: the rows made for the cells those scatters filled
-        # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
-        # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
-        # outline is walked.
-        galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
-        # A new seed records the generator battery's digest with the galaxy (store.save_galaxy_shape): worked out in a
-        # process of its own while the rest of the plan runs, instead of waited for at the end (PERF.176).
-        finish_battery = generatorBattery.start_running_digest() if galaxy_seed != stored_seed else None
-        shape_args = types.SimpleNamespace(**{name: dials.restored(params.get(name)) for name in SKELETON_OPTIONS})
-        phases.next("Building the galaxy's outline")
-        built = planOutline.build(shape_args, galaxy_seed, edge_pc, reach_shell_index)
-        shape, drawn, found, young, dwarfs = built.shape, built.drawn, built.clusters, built.young, built.satellites
-        say(
-            f"Building skeleton: edge {edge_pc:g} pc, stellar mass {drawn.chain.stellar_mass_solar:.3g} solar masses "
-            f"({drawn.stage}-type), disk scale length {shape.disk_scale_length_pc:.0f} pc, "
-            f"disk scale height {shape.disk_scale_height_pc:.0f} pc, "
-            f"bulge scale radius {shape.bulge_scale_radius_pc:.0f} pc, bulge-to-total mass ratio {drawn.bulge_to_total:.3f}, "
-            f"{shape.arm_count} spiral arms, pitch angle {drawn.pitch_angle_deg:.1f} degrees, "
-            f"density normalization {shape.k_norm:.4f} (a factor, no unit), "
-            f"lowest density kept {threshold_rho:.6f} x the local average"
-        )
-        say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")
-        phases.next("Working out the outline's report")
-        with timer.step("the report lines (pins, halo, outline)"):
-            halo_line, halo_warning = shapeDraw.halo_report(drawn)
-            made = planOutline.report(built)
-        say(f"{halo_line}.")
-        if halo_warning:
-            say(f"WARNING: {halo_warning}")
-        say(f"{made.line()}.")
-        for note in made.warnings:
-            say(f"WARNING: {note}")
-        if made.empty:
-            raise ValueError(planOutline.EMPTY_OUTLINE_REASON)
-        timer.steps.extend(built.timer.steps)
-        phases.next("Storing the clusters and satellites")
-        with timer.step("storing the clusters and satellites"):
-            store.replace_galaxy_components(conn, found + young, kind="cluster")
-            store.replace_galaxy_components(conn, dwarfs, kind="satellite")
-            conn.commit()
-    finally:
-        conn.close()
-    with timer.step("the system counts of the 'Drew' line"):
-        say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
-            f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} systems "
-            f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f} systems.")
-
-    extents, outer_shell_index, edge_confirmed = built.extents, built.outer_shell_index, built.edge_confirmed
-    elapsed = built.elapsed_s
-
-    phases.next("Storing the shells")
-    with timer.step("storing the shells"):
-        store.replace_galaxy_shells(extents, config=mysql_config)
-    if finish_battery is not None:
-        phases.next("Waiting for the generator battery's digest")
-        with timer.step("the generator battery's digest, as far as it was waited for"):
-            finish_battery(_battery_waiter(phases))
-    phases.next("Storing the galaxy's shape")
-    with timer.step("storing the shape"):
-        galaxy_seed = store.save_galaxy_shape(
-            shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
-            expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=galaxy_seed,
-            reach_shell_index=reach_shell_index, cell_star_ceiling=params.get("cell_star_ceiling"),
-            fill_luminosity_cap_sol=params.get("fill_luminosity_cap"),
-            core_min_luminosity_sol=params.get("core_min_luminosity"),
-            core_mass_limit_sol=params.get("core_mass_limit"),
-            halo_min_luminosity_sol=params.get("halo_min_luminosity"),
-            pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(shape_args, drawn),
-            pins=shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc),
-        )
-    phases.next("Storing the containers")
-    with timer.step("storing the containers"):
-        say(_store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index))
-    core_floor = params.get("core_min_luminosity")
-    core_mass = params.get("core_mass_limit")
-    halo_floor = params.get("halo_min_luminosity")
-    limits = store.GalaxySkeletonInfo(
-        shape, edge_pc, outer_shell_index, e_value, None, core_min_luminosity_sol=core_floor,
-        core_mass_limit_sol=core_mass,
-        halo_min_luminosity_sol=program_constants.HALO_MIN_LUMINOSITY_SOL if halo_floor is None else halo_floor)
-    with timer.step("the scatter limits line"):
-        say(
-            f"Scatter limits by place: core luminosity floor {scatter_limits.core_min_luminosity_sol(limits, None):,.0f} "
-            f"L_sun{'' if core_floor is not None else ' (the baseline plus a tenth)'}, core mass limit "
-            f"{scatter_limits.core_mass_limit_sol(limits, None):g} M_sun{'' if core_mass is not None else ' (the baseline plus a tenth)'}, "
-            f"halo luminosity floor {scatter_limits.halo_min_luminosity_sol(limits):,.0f} L_sun.")
-    if requested_seed is not None:
-        source = "from --seed"
-    elif stored_seed is not None:
-        source = "kept from the earlier plan"
-    else:
-        source = "drawn at random"
-    say(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
-    phases.next("Drawing the naming key")
-    with timer.step("the naming key"):
-        say(_draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed))
-    phases.finish()
-    timer.steps.append(("the rest of the unit (the checks, the report, the limits)",
-                        max(0.0, time.perf_counter() - unit_started - timer.total())))
+    st = ctx.state["skeleton"]
+    built = st.built
+    st.timer.steps.append(("the rest of the unit (the checks, the report, the limits)",
+                           max(0.0, time.perf_counter() - st.unit_started - st.timer.total())))
     if params.get("timing"):
-        lines.extend(timer.lines("Where the plan's time went"))
-
+        st.lines.extend(st.timer.lines("Where the plan's time went"))
     return {"summary": {
-        "outer_shell_index": outer_shell_index,
-        "reach_shell_index": reach_shell_index,
-        "shell_count": len(extents),
-        "total_candidate_sectors": shell_candidate_sector_count(extents),
-        "elapsed_s": elapsed,
-        "edge_confirmed": edge_confirmed,
-    }, "lines": lines}
+        "outer_shell_index": built.outer_shell_index,
+        "reach_shell_index": st.reach_shell_index,
+        "shell_count": len(built.extents),
+        "total_candidate_sectors": shell_candidate_sector_count(built.extents),
+        "elapsed_s": built.elapsed_s,
+        "edge_confirmed": built.edge_confirmed,
+    }, "lines": st.lines}
 
 
 def _store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index):
@@ -595,11 +634,11 @@ class UnitBarFollower(followed.Follower):
 class SkeletonFollower(UnitBarFollower):
     """
     The galaxy skeleton as a stage of a run (PERF.106, PERF.202): the `plan-skeleton` command builds it in one unit
-    (`plan_skeleton_unit`) and this side logs what the unit says. The skeleton stage is only that unit, so the unit that
+    (the `plan-skeleton` unit) and this side logs what the unit says. The skeleton stage is only that unit, so the unit that
     completes it stores the stage's row.
 
     Attributes:
-        summary (dict): The build's summary (`plan_skeleton_unit`), once the unit is back.
+        summary (dict): The build's summary (the `plan-skeleton` unit), once the unit is back.
     """
 
     key = "skeleton"
@@ -624,7 +663,7 @@ def _skeleton_on_queue(args):
     Builds the skeleton on the new queue as a run of the `SkeletonFollower` stage.
 
     Returns:
-        dict: The build's summary (`plan_skeleton_unit`).
+        dict: The build's summary (the `plan-skeleton` unit).
 
     Raises:
         SystemExit: The unit refused its parameters (the reach, or a seed that does not match a galaxy with sectors).
@@ -3136,41 +3175,55 @@ def expand_refresh_block_lights(params):
     return commands.Expansion(cut, {"cells": cells, "runs": len(runs)})
 
 
-def refresh_block_lights_unit(params, report):
+def refresh_block_lights_pieces(params, cursor):
     """
-    The `refresh-block-lights` command's unit (MAP.259, PERF.172): makes the light totals of the Galaxy Map's blocks again
+    The pieces of the `refresh-block-lights` unit (OPS.199): the roll-up and the uncharted rows, by the unit's `part` (`"all"` is both, one after the other; `"roll"` and `"index"`
+    one of them, as the expansion cuts them, OPS.153). They hand each other what they wrote through `ctx.state`, so a unit starts from its first piece whatever the cursor says.
+    """
+    return {"roll": ["roll"], "index": ["index"]}.get(params.get("part", "all"), ["roll", "index"])
+
+
+def refresh_block_lights_do(params, piece, ctx):
+    """
+    One piece of the `refresh-block-lights` command's unit (MAP.259, PERF.172): makes the light totals of the Galaxy Map's blocks again
     (`db.block_lights.rebuild`) once a scatter, a clear or the map-luminosity fill has changed the pre-placed objects, so the
-    nodes' glow follows them. It reports the units it has done (PERF.189). A failure only warns: `planetgen fill-block-totals`
-    makes the totals again.
-
-    Returns:
-        dict: `written` (the block rows written, 0 when it failed), `lines` (what the run says about it) and `warning`
-            (the failure, or `None`).
+    nodes' glow follows them, or makes the uncharted sector rows. Its own counts are the second-level count (OPS.192, as a share of the piece). A failure only warns, and the
+    pieces after it are left: `planetgen fill-block-totals` makes the totals again.
     """
-    lines = []
-    started = time.monotonic()
+    state = ctx.state
+    state.setdefault("lines", [])
+    if state.get("warning"):
+        return
+    name = "Block light totals" if piece == "roll" else "Uncharted sector rows"
+    ctx.step(name, 100)
 
-    def say(text):
-        """A phase line: kept for the stage's result and also said at once, in the worker's log and as the unit's phase, so a long part is never silent."""
-        stamped = stamp(text, started)
-        lines.append(stamped)
-        log.normal(stamped)
-        unitbeat.phase(text[:120])
+    def share(done, total):
+        unitbeat.step_to(100.0 * min(done / max(total, 1e-9), 1.0), 100)
 
-    conn = store.get_connection(_mysql_config_of(params))
     try:
-        written, made = make_block_lights(conn, report, say, params.get("run_id"), rebuild=bool(params.get("rebuild")),      # MAP.402: a sector row for every cell the scatter left something in
-                                          part=params.get("part", "all"), shells=params.get("shells"))
+        written, made = make_block_lights(ctx.db, share, lambda text: ctx.phase(text, keep=state["lines"]), params.get("run_id"), rebuild=bool(params.get("rebuild")),      # MAP.402: a sector row for every cell the scatter left something in
+                                          part=piece, shells=params.get("shells"))
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         log.swallowed("generation/run_plan", "refresh_block_lights_unit", exc)
-        return {"written": 0, "made": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}", "part": params.get("part", "all")}
-    finally:
-        conn.close()
-    return {"written": written, "made": made, "lines": lines, "warning": None, "part": params.get("part", "all")}
+        state["warning"] = f"{type(exc).__name__}: {exc}"
+        return
+    state["written"] = state.get("written", 0) + written
+    state["made"] = state.get("made", 0) + made
+
+
+def refresh_block_lights_result(params, results, ctx):
+    """
+    The `refresh-block-lights` unit's result: `written` (the block rows written, 0 when it failed), `made`, `lines` (what the run says about it), `warning` (the failure, or `None`)
+    and `part`.
+    """
+    state = ctx.state
+    warning = state.get("warning")
+    return {"written": 0 if warning else state.get("written", 0), "made": 0 if warning else state.get("made", 0), "lines": state.get("lines", []), "warning": warning,
+            "part": params.get("part", "all")}
 
 
 class BlockLightsFollower(followed.Follower):
-    """The Galaxy Map's block light totals made again, as the last stage of a scatter (`refresh_block_lights_unit`): a unit for the roll-up and a unit for each run of shells of the uncharted index (OPS.153)."""
+    """The Galaxy Map's block light totals made again, as the last stage of a scatter (the `refresh-block-lights` unit): a unit for the roll-up and a unit for each run of shells of the uncharted index (OPS.153)."""
 
     key = "block-lights"
     label = "Make the block light totals"
@@ -3327,7 +3380,7 @@ class PhenomenaFollower(followed.Follower):
 
 class PhenomenaIndexFollower(followed.Follower):
     """The end of the phenomenon scatter as a stage of a run: the special phenomena written, the indexes built, the
-    hypervelocity stars stamped and the scatter recorded (`finish_phenomena_unit`)."""
+    hypervelocity stars stamped and the scatter recorded (the `finish-phenomena` unit)."""
 
     key = "phenomena-index"
     label = "Index the phenomena"
@@ -3476,7 +3529,7 @@ def drop_phenomenon_indexes_unit(params, report):
     """
     The `drop-phenomenon-indexes` command's unit (OPS.123; the second half of the `prepare` of `scatter-phenomena` before it, PERF.172):
     takes off the table's indexes: none to keep up to date while tens of millions of rows go in, built once at the end
-    (`finish_phenomena_unit`, PERF.73).
+    (the `finish-phenomena` unit, PERF.73).
 
     Returns:
         dict: `dropped`, always true.
@@ -3538,60 +3591,68 @@ def expand_finish_phenomena(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def finish_phenomena_unit(params, report):
+FINISH_PHENOMENA_PIECES = ("draw", "write", "indexes", "record")
+"""tuple: The four pieces of the `finish-phenomena` unit, in order (OPS.199; the four quarters the unit reported by hand): the special rows drawn, written, the indexes built, the rest."""
+
+
+def finish_phenomena_pieces(params, cursor):
+    """The pieces of the `finish-phenomena` unit (OPS.199): `FINISH_PHENOMENA_PIECES`. They hand each other the special rows through `ctx.state`, so a unit starts from its first piece whatever the cursor says."""
+    return list(FINISH_PHENOMENA_PIECES)
+
+
+def finish_phenomena_do(params, piece, ctx):
     """
-    The `finish-phenomena` command's unit (PERF.172): ends the phenomenon scatter once its shells are written: draws the
+    One piece of the `finish-phenomena` command's unit (PERF.172): ends the phenomenon scatter once its shells are written: draws the
     special phenomena (the nucleus and the hypervelocity stars, minus any in a cell already filled) and writes them, builds
     the table's indexes one at a time (PERF.101), stamps the hypervelocity stars' epoch and records the scatter's seed and
-    mass cut, which tells a sector fill to build its objects from the table (`store.record_phenomenon_scatter`). The
-    unit reports its progress in quarters: the special rows drawn, written, the indexes built, the rest.
-
-    Returns:
-        dict: `special`, how many special phenomena of each class were written, and `lines`, what the run says about it.
+    mass cut, which tells a sector fill to build its objects from the table (`store.record_phenomenon_scatter`).
     """
-    mysql_config = _mysql_config_of(params)
-    conn = store.get_connection(mysql_config)
-    lines = []
-    try:
+    conn = ctx.db
+    lines = ctx.state.setdefault("lines", [])
+    if piece == "draw":
         skeleton = store.get_galaxy_shape(conn)
         extents = _outline(conn)
         filled = store.filled_sector_addresses(conn)
         reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
-        special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled,
-                                                       reach))
-        report(1, 4)
+        ctx.state["special"] = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach))
+    elif piece == "write":
+        special = ctx.state["special"]
 
         def write_special(c):
             """The special rows and their Object IDs as one transaction (DB.114): other phenomenon units write the same table."""
             contention.begin_read_committed(c)
             store.insert_phenomenon_scatter(c, special)
-            c.commit()
+            ctx.commit()
 
         contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
-        report(2, 4)
-        # One index at a time, each worth the table's rows, so the bar moves after every index and its time left comes
-        # from the rows per second earlier runs recorded (PERF.101).
+    elif piece == "indexes":
+        # One index at a time, each worth the table's rows, so the second-level count moves after every index (PERF.101, OPS.192).
         rows = max(store.estimated_rows(conn, "phenomenon_scatter"), 1)
         pending = store.missing_phenomenon_scatter_indexes(conn)
         lines.append(f"Building the phenomena indexes: {len(pending)} indexes over about {rows:,} rows, one at a time; a "
                      f"full galaxy takes a while.")
+        ctx.step("Building the phenomena indexes", len(pending))
 
         def built(name):
             lines.append(f"Built index {name}.")
-            report(2 + len(lines) / (len(pending) + 1), 4)
+            ctx.advance()
 
         store.add_phenomenon_scatter_indexes(conn, on_index=built)
         store.stamp_phenomenon_scatter_epoch(conn)
-        report(4, 4)
+    else:
+        special = ctx.state["special"]
         store.record_phenomenon_scatter(conn, params["seed"], params["min_mass_solar"])
         store.record_scatter_epoch(conn, "phenomena", params.get("run_id"))
         special_counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in special)
         store.add_phenomenon_scatter_classes(
             conn, {phenomenon_scatter.split_label(label): count for label, count in special_counts.items()})
-        conn.commit()
-    finally:
-        conn.close()
-    return {"special": dict(special_counts), "lines": lines}
+        ctx.commit()
+        ctx.state["special_counts"] = special_counts
+
+
+def finish_phenomena_result(params, results, ctx):
+    """The `finish-phenomena` unit's result: `special`, how many special phenomena of each class were written, and `lines`, what the run says about it."""
+    return {"special": dict(ctx.state["special_counts"]), "lines": ctx.state.get("lines", [])}
 
 
 def _phenomenon_shells_task(payload):
@@ -3679,7 +3740,7 @@ def run_plan(args):
 
 
 def log_skeleton_summary(args, summary):
-    """Says what the skeleton build (`plan_skeleton_unit`'s `summary`) made, and warns when the galaxy's edge was not reached."""
+    """Says what the skeleton build (the `plan-skeleton` unit's `summary`) made, and warns when the galaxy's edge was not reached."""
     if summary["shell_count"]:
         shells = f"{summary['shell_count']:,} shells"
     else:

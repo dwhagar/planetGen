@@ -2,7 +2,7 @@
 
 """
 MAP.402: every cell a scatter left a waiting bright star or an unbuilt scattered phenomenon in has a placeholder sector row (`db.uncharted_index`), made when
-a scatter ends (`run_plan.refresh_block_lights_unit`), by `planetgen fill-block-totals` and by migration 0227, so the Sectors list and the search reach it.
+a scatter ends (the `refresh-block-lights` unit), by `planetgen fill-block-totals` and by migration 0227, so the Sectors list and the search reach it.
 """
 
 import pytest

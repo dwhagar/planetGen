@@ -20,7 +20,7 @@ import contextlib
 import importlib
 from dataclasses import dataclass, field
 
-from planetgen.queue import commands
+from planetgen.queue import commands, engine
 
 SPLIT_FIELD = "split"
 """str: The `CommandSpec` field that holds a command's split flag (OPS.161); a command without it keeps its suggested split."""
@@ -117,9 +117,8 @@ def run_stage(recipe, context, values):
     """
     with _knobs(context, recipe, values):
         expansion = commands.expand_function(recipe.kind)(recipe.run_params(context))
-        unit = commands.unit_function(recipe.kind)
         for params, _cost in expansion.units:
-            unit(params, lambda *args, **kwargs: None)
+            engine.run(recipe.kind, params, lambda *args, **kwargs: None)
     return len(expansion.units)
 
 

@@ -403,8 +403,11 @@ def test_only_the_table_names_what_a_unit_runs(monkeypatch):
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
-    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
+    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena"):
         assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
+    assert callable(commands.pieces_function("plan-skeleton")) and callable(commands.do_function("plan-skeleton")) and callable(commands.expand_function("plan-skeleton"))
+    with pytest.raises(ValueError, match="engine"):
+        commands.unit_function("plan-skeleton")
     monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
     with pytest.raises(ValueError, match="inline"):
         commands.unit_function("an-inline-command")

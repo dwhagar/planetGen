@@ -23,9 +23,15 @@ def test_a_command_is_a_registered_kind_with_json_arguments_and_a_result(kind):
     spec = commands.spec(kind)
     assert spec.kind == kind and spec.summary.strip(), "a command has a name and says what it does"
     assert not spec.inline, f"{kind} is inline: give it a unit and an expand (PERF.120 leaves no second way)"
-    unit, expand = commands.unit_function(kind), commands.expand_function(kind)
-    assert len(inspect.signature(unit).parameters) == 2, f"{kind}'s unit takes (params, report)"
+    expand = commands.expand_function(kind)
     assert len(inspect.signature(expand).parameters) == 1, f"{kind}'s expand takes (params)"
+    if spec.pieces is not None:         # OPS.191: the engine owns the loop of a command with pieces and do
+        assert len(inspect.signature(commands.pieces_function(kind)).parameters) == 2, f"{kind}'s pieces take (params, cursor)"
+        assert len(inspect.signature(commands.do_function(kind)).parameters) == 3, f"{kind}'s do takes (params, piece, ctx)"
+        if spec.gather is not None:
+            assert len(inspect.signature(commands.gather_function(kind)).parameters) == 3, f"{kind}'s gather takes (params, results, ctx)"
+        return
+    assert len(inspect.signature(commands.unit_function(kind)).parameters) == 2, f"{kind}'s unit takes (params, report)"
 
 
 @pytest.mark.parametrize("kind", sorted(commands.REGISTRY))
