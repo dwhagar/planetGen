@@ -26,6 +26,7 @@ from planetgen.generation import stats as generationStats
 from planetgen.api import naming
 from planetgen.names import naming_key
 from planetgen.util import generator_epoch
+from planetgen.util import log
 from planetgen.web.lib import xfetch
 from planetgen._version import __version__
 
@@ -90,6 +91,7 @@ def _redis_health():
     try:
         return redishealth.redis_info()
     except Exception as exc:  # noqa: BLE001 -- the page still shows without it
+        log.swallowed("api/admin", "_redis_health", exc)
         return {"url": None, "answering": False, "error": str(exc) or type(exc).__name__}
 
 
@@ -164,6 +166,7 @@ def stats():
         conn = get_db()
         conn.execute("SELECT 1")
     except Exception as exc:
+        log.swallowed("api/admin", "stats", exc)
         body["database"]["detail"] = str(exc)
         return jsonify(body)
 
@@ -248,12 +251,14 @@ def generation_stats():
     try:
         stats.read(get_control_db())
         available = True
-    except Exception:  # noqa: BLE001 -- update.sh not run yet
+    except Exception as exc:  # noqa: BLE001 -- update.sh not run yet
+        log.swallowed("api/admin", "generation_stats", exc)
         available = False
     if available:
         try:
             stages = generationStats.stage_history(get_control_db(), limit=100)
-        except Exception:  # noqa: BLE001 -- the control schema is older than v14
+        except Exception as exc:  # noqa: BLE001 -- the control schema is older than v14
+            log.swallowed("api/admin", "generation_stats", exc)
             stages = []
     return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available, "stages": stages,
                     "object_types": _object_type_means()})
@@ -266,7 +271,8 @@ def _object_type_means():
 
     try:
         return object_timing.kind_summaries(get_db())
-    except Exception:  # noqa: BLE001 -- an older galaxy schema, or nothing generated yet
+    except Exception as exc:  # noqa: BLE001 -- an older galaxy schema, or nothing generated yet
+        log.swallowed("api/admin", "_object_type_means", exc)
         return []
 
 

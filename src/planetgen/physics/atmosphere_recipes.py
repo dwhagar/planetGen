@@ -46,7 +46,7 @@ drawn constant. Nothing is fixed: a constant is the seeded draw or the subject's
 Source states (Boss's rule of 3:02 AM EDT, composition-model.md section 4a item 10): a row whose weight source is read and
 computed is `verified`; one that also leans on a second-hand, snippet, recalled, not-reached or design part is `partly
 verified` with that as its limit; a row with no sourced weight is `open` and names its research item (R1 to R15 = GEN.480
-to GEN.494); a row built from a measured Solar System body is a `stand-in` (a2, k7). The tables register in
+to GEN.494); a row built from a measured Solar System body is a `stand-in` (l1). The tables register in
 `possibility_table.REGISTRY` as `atmosphere-a` to `atmosphere-p` so the report lists every open row with its item. Their
 weights for the sourced rows are the same expressions; the open rows carry `open` there, so the draw of this module
 (`Recipes.draw_group`, which gives an open row its seeded constant) is the one to use for them.
@@ -77,7 +77,7 @@ from dataclasses import dataclass, field
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
 from planetgen.generation import tuning_harness
-from planetgen.physics import comet_species, elements, envelope_escape, magma_ocean_redox, saturation_time
+from planetgen.physics import comet_ice_formation, comet_species, elements, envelope_escape, magma_ocean_redox, saturation_time
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
@@ -94,10 +94,10 @@ BODY_KINDS = ("terrestrial", "giant", "brown-dwarf", "asteroid", "comet")
 
 KINDS = ("option", "binary", "param", "bins", "derived", "flag", "windows", "choice")
 
-OPTIONAL_QUANTITIES = {"host_distance_au": None, "xuv_companions": ()}
+OPTIONAL_QUANTITIES = {"host_distance_au": None, "xuv_companions": (), "co_over_h2o": comet_species.CO_OVER_H2O_MEDIAN}
 """dict: Quantities a subject carries only when its host has companions (GEN.1442) and the value an expression reads without them: `host_distance_au`, the body's
 distance from its host (AU; the host's own XUV cannot take it from the total light), and `xuv_companions`, the other stars' XUV sources at the body
-(`radiation_field.xuv_emitters`)."""
+(`radiation_field.xuv_emitters`), and `co_over_h2o`, the CO / H2O row k5 drew for a comet, which a caller that drew no k5 leaves at the population median (GEN.1022)."""
 
 INPUTS = {
     "mass_earth": "mass of the body (Earth masses)",
@@ -130,6 +130,7 @@ INPUTS = {
     "water_lost": "True when the water was lost",
     "runaway_ratio": "insolation over the runaway-greenhouse limit of the host",
     "perihelion_au": "perihelion distance of a comet (AU)",
+    "co_over_h2o": "CO / H2O of a comet, drawn by row k5 (GEN.1022: the species of row k7 follow the ice formation temperature it implies)",
     "family": "asteroid-field family (carbonaceous, stony, metallic, icy, basaltic, mixed, dust, collisional)",
     "o2_pal": "oxygen partial pressure as a fraction of the present atmospheric level",
     "co2_rich": "True for a CO2-rich atmosphere",
@@ -159,7 +160,7 @@ INPUTS = {
 }
 """dict: Every stored quantity a gate or a weight may read, with its meaning and unit. `body_class` is the class of the subject."""
 
-FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "ch4_co_edge_k", "water_loss_edge_k", "comet_species_median", "comet_species_sigma", "w", "p", "pdist")
+FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "ch4_co_edge_k", "water_loss_edge_k", "comet_species_low", "comet_species_high", "comet_latent_log10", "comet_tie_log10", "comet_residual_dex", "w", "p", "pdist")
 SHAPES = ("log", "uniform")
 DIST_KINDS = ("normal", "uniform", "loguniform", "mixture")
 
@@ -229,7 +230,9 @@ _PLAIN = {"phi": phi, "window": window, "exp": math.exp, "log": math.log, "log10
           "later_mantle_diw": magma_ocean_redox.later_mantle_diw,
           "ch4_co_edge_k": lambda pressure_bar: _regime_edge("ch4_co", pressure_bar),
           "water_loss_edge_k": lambda pressure_bar: _regime_edge("water", pressure_bar),
-          "comet_species_median": comet_species.median_over_h2o, "comet_species_sigma": comet_species.sigma_dex}
+          "comet_species_low": comet_species.low_over_h2o, "comet_species_high": comet_species.high_over_h2o,
+          "comet_latent_log10": comet_ice_formation.latent_log10, "comet_tie_log10": comet_ice_formation.tie_log10,
+          "comet_residual_dex": comet_ice_formation.residual_dex}
 
 
 class Expression:
@@ -338,6 +341,7 @@ class _Env:
         self.lets = lets if lets is not None else {}
         self.value = value
         self.stack = stack
+        self.drawn = {}
 
     def get(self, name):
         if name in self.lets:
@@ -346,6 +350,8 @@ class _Env:
             return self.value
         if name == "body_class":
             return self.subject.body_class
+        if name.startswith("draw_") and name[5:] in self.drawn:
+            return self.drawn[name[5:]]
         scope = self.entry.constants
         if name in scope:
             return self.recipes.constant(self.entry.id, name, scope[name], self.subject)
@@ -612,6 +618,7 @@ class Recipes:
         allowed = set(INPUTS) | set(OPTIONAL_QUANTITIES) | set(self.physical) | {"body_class", "value"} | set(entry.constants) | set(entry.lets)
         if entry.group:
             allowed |= set(self.groups[entry.group].constants)
+        allowed |= {f"draw_{name}" for name in entry.spec.get("dists", {})}      # a species of a row with several reads the ones drawn before it (GEN.1022)
         expressions = list(entry.lets.values())
         if entry.weight is not None:
             expressions.append(entry.weight)
@@ -999,10 +1006,14 @@ class Recipes:
             return None
         drawn = self._draw_constants(entry.id, entry.constants)
         view = self._with_constants(subject, drawn)
-        spec = self._dist_of(entry, view)
         if "dists" in entry.spec:
-            return {name: self._draw_dist(d) for name, d in spec.items()}
-        return self._draw_dist(spec)
+            env = self._env(entry, view, ())
+            out = {}
+            for name, raw in entry.spec["dists"].items():          # in the file's order, each species after the ones it may read
+                env.drawn = out
+                out[name] = self._draw_dist(self._dist(entry, raw, env))
+            return out
+        return self._draw_dist(self._dist_of(entry, view))
 
     def bins(self, row_id, subject):
         """

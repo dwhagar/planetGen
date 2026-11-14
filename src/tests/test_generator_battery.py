@@ -37,8 +37,9 @@ def test_two_runs_give_the_same_digests(baseline):
 def test_the_cases_are_not_empty():
     assert len(battery.case_value("bright-star-scatter")) > 0
     assert len(battery.case_value("population-stream")) == battery.POPULATION_STARS
-    nebula = battery.case_value("nebula-shape")
-    assert len(nebula["inside"]) == battery.NEBULA_POINTS and any(nebula["inside"]) and not all(nebula["inside"])
+    nebula = battery.case_value("nebula-contour")
+    assert set(nebula) == {"young", "gas"} and all(len(held) == battery.NEBULA_POINTS for held in nebula.values())
+    assert any(nebula["young"]) and not all(nebula["young"])    # GEN.1267: the contour holds some of the points and not all
     assert len(battery.case_value("sector-a")["systems"]) == battery.SECTOR_SYSTEMS
 
 
@@ -51,7 +52,7 @@ def test_the_unit_seed_case_is_the_known_answer():
 
 @pytest.mark.parametrize("name, constant, value", [
     ("unit-seed", "KNOWN_UNIT_SEED", (bytes(range(16)), "sector", (3, 1, 1))),
-    ("nebula-shape", "NEBULA_SEED", 0x0EB1),
+    ("nebula-contour", "NEBULA_SEED", 0x0EB1),
     ("sector-b", "SECTOR_ADDRESSES", ((7, 1, 2), (12, -2, 1))),
     ("population-stream", "POPULATION_SEED", 0x9092),
 ])
@@ -145,3 +146,63 @@ def test_the_running_digest_passes_the_progress_callback_on(monkeypatch):
     seen = []
     battery.running_digest(lambda done, total: seen.append(done))
     assert seen[-1] == len(battery.CASES)
+
+
+def test_the_wait_for_the_digest_reports_what_the_process_has_done(monkeypatch):
+    """OPS.184: the plan waits for the digest process minutes on a new code key; the wait reads the process's cases and tables as often as `DIGEST_POLL_SECONDS`, and once at the end."""
+    from planetgen.generation import battery_progress
+
+    seen = []
+
+    class Future:
+        calls = 0
+
+        def done(self):
+            Future.calls += 1
+            return Future.calls > 3
+
+        def result(self):
+            return "digest"
+
+    class Pool:
+        def __init__(self, **kwargs):
+            self.initializer, self.initargs = kwargs["initializer"], kwargs["initargs"]
+
+        def submit(self, function):
+            self.initializer(*self.initargs)         # what the process does first
+            battery_progress.case(2, 8)
+            for _ in range(5):
+                battery_progress.table_built()
+            return Future()
+
+        def shutdown(self):
+            seen.append("shutdown")
+
+    monkeypatch.setattr(battery, "_running", None)
+    monkeypatch.setattr(battery, "DIGEST_POLL_SECONDS", 0.0)
+    monkeypatch.setattr(battery.concurrent.futures, "ProcessPoolExecutor", Pool)
+    monkeypatch.setattr(battery.concurrent.futures, "wait", lambda futures, timeout: None)
+    try:
+        battery.start_running_digest()(lambda *numbers: seen.append(numbers))
+    finally:
+        battery_progress.adopt(None)
+    assert battery._running == "digest"
+    assert seen == [(2, 8, 5)] * 3 + ["shutdown"]
+    monkeypatch.setattr(battery, "_running", None)
+
+
+def test_the_digest_process_counts_nothing_outside_itself():
+    from planetgen.generation import battery_progress
+
+    battery_progress.case(1, 8)
+    battery_progress.table_built()          # no `adopt` here: nothing to write to, and no error
+    shared = battery_progress.create(battery.multiprocessing.get_context("spawn"))
+    assert battery_progress.read(shared) == (0, 0, 0)
+    battery_progress.adopt(shared)
+    try:
+        battery_progress.case(3, 8)
+        battery_progress.table_built()
+        battery_progress.table_built()
+        assert battery_progress.read(shared) == (3, 8, 2)
+    finally:
+        battery_progress.adopt(None)

@@ -415,7 +415,7 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
                 decision, timed_out = Decision(True, f"waited {waited:,.0f} s; the table cap lets it in ({decision.reason})", decision.need_mb, decision.free_mb), True
             if decision.admit:
                 _write(conn, name, claim, pid, job, time.time())
-                log.debug(f"gate admits {claim.kind} ({claim.mb:,.0f} MB, {claim.cpu:g} core(s), {claim.lane}) for {name} after {waited:.1f} s: {decision.reason}", area="queue")
+                log.debug("The memory gate admits %s (%s MB, %g core(s), %s) for %s after %.1f s: %s", claim.kind, f"{claim.mb:,.0f}", claim.cpu, claim.lane, name, waited, decision.reason, area="queue")
                 if timed_out:
                     log.warning(f"The memory gate let {claim.kind} in after {waited:,.0f} s of waiting, by the table cap: {decision.reason}")
                 return Admission(waited, timed_out, decision)
@@ -440,7 +440,7 @@ def _adapt_to_wait(conn, claim, name, memory_waited):
         from planetgen.queue import adaptive
         adaptive.on_memory_wait(conn, name, claim.kind, memory_waited)
     except Exception as exc:  # noqa: BLE001 -- the control is an optimisation; a wait at the gate goes on without it
-        log.debug("gate: the adaptive worker control failed: %s", exc, area="queue")
+        log.debug("The adaptive worker control failed at the memory gate: %s", exc, area="queue")
 
 
 def refresh(conn, name, now=None):
@@ -456,8 +456,26 @@ def refresh(conn, name, now=None):
     current = held_mb(int(row["pid"]))
     row["peak"] = max(float(row.get("peak", 0.0)), current)
     row["expires"] = now + CLAIM_SECONDS
+    _note_usage(row, int(row["pid"]), current, now)
     conn.hset(_key("claims"), name, json.dumps(row))
     return current
+
+
+def _note_usage(row, pid, current, now):
+    """OPS.155: keeps beside the peak what the claim needs for an average of the memory and the processor (cores) over its life: the sum and count of the readings, the
+    processor seconds at the first and the last look and the busiest interval between two looks. Best effort."""
+    try:
+        from planetgen.queue import usage
+        if current > 0.0:
+            row["sum"], row["n"] = float(row.get("sum", 0.0)) + current, int(row.get("n", 0)) + 1
+        used = usage.cpu_seconds(pid)
+        if "cpu0" not in row:
+            row.update(cpu0=used, cpu_last=used, t0=now, t_last=now)
+        elif now - float(row["t_last"]) >= 1.0:
+            row["cpu_peak"] = max(float(row.get("cpu_peak", 0.0)), max(used - float(row["cpu_last"]), 0.0) / (now - float(row["t_last"])))
+            row["cpu_last"], row["t_last"] = used, now
+    except Exception as exc:        # noqa: BLE001 -- an average is not worth a heartbeat
+        log.swallowed("queue", "noting the usage of a gated job at its heartbeat", exc)
 
 
 def release(conn, name):
@@ -470,6 +488,12 @@ def release(conn, name):
     peak = float(row.get("peak", 0.0))
     if peak > 0.0:
         learn(conn, row["kind"], peak)
+    if not str(row["kind"]).startswith("unit:"):        # OPS.155: a unit's own row is written by the unit, with its items
+        from planetgen.queue import jobprofiles
+        lived = float(row["t_last"]) - float(row["t0"]) if "t0" in row else 0.0
+        jobprofiles.record(row["kind"], seconds=max(0.0, time.time() - float(row.get("started", time.time()))), peak_mb=peak or None,
+                           avg_mb=float(row["sum"]) / int(row["n"]) if row.get("n") else None, cpu_peak=row.get("cpu_peak"),
+                           cpu_avg=(float(row["cpu_last"]) - float(row["cpu0"])) / lived if lived >= 1.0 else None)
     from planetgen.queue import scheduler
     if not row.get("solo"):         # OPS.145: a solo run is not a turn of its kind, so the jobs it held back are not behind it afterwards
         scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
@@ -497,9 +521,9 @@ def forget(conn):
         conn.delete(key)
 
 
-def claim_mb(conn, kind, table_mb, job_id=None, known=None):
+def claim_mb(conn, kind, table_mb, job_id=None, known=None, token=None):
     """
-    What a job of `kind` claims, MB: the table's figure (`table_mb`), raised to the peak seen for the kind with its margin
+    What a job of `kind` claims, MB (from the job profile when the machine has history for it, `profileclaim`, else): the table's figure (`table_mb`), raised to the peak seen for the kind with its margin
     (`LEARN_MARGIN`), and to the larger claim a retry was given (`grow`). A kind with no table figure (`table_mb` `None`) claims what has
     been seen, or `MIN_CLAIM_MB` if nothing has: the caller gives a default for it.
     """
@@ -508,6 +532,10 @@ def claim_mb(conn, kind, table_mb, job_id=None, known=None):
     figure = table_mb
     if peak:
         figure = peak * LEARN_MARGIN if table_mb is None else max(table_mb, peak * LEARN_MARGIN)
+    from planetgen.queue import profileclaim
+    profiled = profileclaim.claim(conn, kind, table_mb, token=token)      # OPS.156: the profile's figure, when this machine has history; None gives the figure above
+    if profiled is not None:
+        figure = profiled
     if job_id:
         retried = conn.get(_key(f"override:{job_id}"))
         if retried is not None:

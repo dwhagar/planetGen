@@ -27,12 +27,12 @@ fits' (`species_thermo`); pressures are in bar.
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
 from planetgen.physics import species_thermo
-from planetgen.util import detmath
+from planetgen.util import detmath, log
 
 NEGLIGIBLE_LOG_FRACTION = -18.420680743952367
 """float: ln 1e-8, the mole fraction below which a species is treated as negligible when the step is damped (Gordon and McBride)."""
@@ -50,6 +50,12 @@ STALL_ITERATIONS = 60
 precision the rounding allows."""
 
 STALL_LOG_STEP = 1e-4
+
+MAX_HELD_O2_SHARE = 0.9
+"""float: The most of the gas the held oxygen may be, as a share of the total pressure (GEN.1613, stand-in GR1 of the gap plan, tweak level L3). A mantle holds the oxygen fugacity
+at a value that, in an ideal gas, is its partial pressure; over a deep hot air (4,000 K and 4,000 to 9,000 bar) a buffer at an oxidized redox asks for more than the total pressure
+(10^4.1 bar in 9,255 bar), which no ideal gas can have (it takes a real gas, fugacity coefficient over 1: its own item), and the solve never settles. When the held value stops the solve
+and asks for more than this share, the solve is made again at this share (the solver settles at 0.9 of the total everywhere tried, up to 4,500 K and 10,000 bar)."""
 
 CONVERGED_FRACTION = 1e-12
 """float: Species rarer than this are not waited for: the trace species of a stiff system jitter at 1e-8 in the Newton step while
@@ -89,6 +95,8 @@ class Equilibrium:
         total_moles (float): The moles of gas.
         iterations (int): How many Newton iterations it took.
         skipped (tuple): The species left out because their fit does not reach `temperature_k`.
+        clamped_o2_log_fugacity (float or None): The log10 oxygen fugacity (bar) that was asked for when the solve could not hold it and was made again at `MAX_HELD_O2_SHARE` of the
+            pressure (GEN.1613); `None` when the value asked for was held.
     """
 
     temperature_k: float
@@ -98,13 +106,31 @@ class Equilibrium:
     total_moles: float
     iterations: int
     skipped: tuple = field(default=())
+    clamped_o2_log_fugacity: float | None = None
 
 
-def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
+def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None, lower_held_o2=False):
     """
-    The equilibrium gas of `abundances`, tried again without the trace elements (`TRACE_ELEMENT_FRACTIONS`, the rarest first) when it does not settle
-    with them in.  See `_solve` for the arguments.
+    The equilibrium gas of `abundances` (see `_solve` for the arguments). With `lower_held_o2` (a gas whose total pressure is fixed, an air), a held oxygen fugacity that no ideal gas can have
+    at this pressure and that stopped the solve is lowered to `MAX_HELD_O2_SHARE` of the pressure and the solve made again; the result then says so (`clamped_o2_log_fugacity`,
+    GEN.1613). A gas whose pressure is free raises it instead (`mixture_lava.carbon_gas`, GEN.1513) and leaves the option off.
     """
+    try:
+        return _with_fewer_trace_elements(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity, species)
+    except EquilibriumError:
+        if not lower_held_o2 or fixed_o2_log_fugacity is None or pressure_bar <= 0.0:
+            raise
+        ceiling = math.log10(MAX_HELD_O2_SHARE * pressure_bar)
+        if fixed_o2_log_fugacity <= ceiling:
+            raise
+    result = _with_fewer_trace_elements(abundances, temperature_k, pressure_bar, ceiling, species)
+    log.normal(f"Held oxygen: the mantle asks for an oxygen fugacity of 10^{fixed_o2_log_fugacity:.2f} bar in {pressure_bar:.4g} bar at {temperature_k:.0f} K, more than an ideal gas can hold; "
+               f"the gas is solved at 10^{ceiling:.2f} bar ({MAX_HELD_O2_SHARE:.0%} of the pressure).")
+    return replace(result, clamped_o2_log_fugacity=fixed_o2_log_fugacity)
+
+
+def _with_fewer_trace_elements(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity, species):
+    """`_solve`, tried again without the trace elements (`TRACE_ELEMENT_FRACTIONS`, the rarest first) when it does not settle with them in."""
     try:
         return _solve(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
     except EquilibriumError as first:

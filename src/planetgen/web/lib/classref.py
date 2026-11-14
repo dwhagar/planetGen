@@ -491,7 +491,7 @@ def preload():
     try:
         catalog()
     except DataMissing as missing:
-        log.warning("the class reference catalog was not built at start: %s", missing)
+        log.warning("The class reference catalog was not built at start: %s", missing)
         return False
     return True
 

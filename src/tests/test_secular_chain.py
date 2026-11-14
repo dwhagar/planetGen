@@ -108,3 +108,75 @@ def test_inputs_are_checked():
         sc.matrices([1.0, -2.0], [1.0, 1.0], SUN_KG)
     with pytest.raises(sc.SecularChainError):
         sc.matrices([1.0, 2.0], [1.0, 1.0], 0.0)
+
+
+def _laplace_by_quadrature(index, alpha, steps=20000):
+    """b_{3/2}^{(index)}(alpha) from its integral, independent of the module's own coefficient."""
+    total = 0.0
+    for i in range(steps):
+        psi = 2.0 * math.pi * (i + 0.5) / steps
+        total += math.cos(index * psi) / (1.0 - 2.0 * alpha * math.cos(psi) + alpha * alpha) ** 1.5
+    return total / steps * 2.0
+
+
+def test_a_belt_is_cut_into_rings_that_keep_its_mass_and_lie_inside_it():
+    axes, masses = sc.belt_rings(2.2, 3.4, 1.0e22)
+    assert len(axes) == sc.BELT_RINGS and sum(masses) == pytest.approx(1.0e22)
+    assert all(2.2 < a < 3.4 for a in axes) and axes == sorted(axes)
+    assert masses == sorted(masses), "a uniform surface density puts more mass in the wider outer rings"
+    assert sc.belt_rings(2.2, 3.4, 0.0) == ([], []) and sc.belt_rings(2.2, 2.2, 1.0e22) == ([], [])
+
+
+def test_a_belt_of_known_mass_turns_a_neighbouring_planet_by_the_expected_amount_outer_and_inner():
+    # Murray and Dermott 7.2: a ring of mass m outside a planet at alpha = a / a' adds (n / 4) (m / M) alpha^2 b_{3/2}^{(1)}(alpha) to the planet's apsidal rate (a ring inside: alpha * 1)
+    planet_a, planet_m = 1.0, 5.972e24
+    base, _ = sc.precession_rates([planet_a], [planet_m], SUN_KG)
+    n = sc.mean_motions_rad_yr([planet_a], SUN_KG, [planet_m])[0]
+    ring_m = 6.0e21
+    for ring_a in (1.6, 0.6):
+        with_ring, _ = sc.precession_rates([planet_a], [planet_m], SUN_KG, [ring_a], [ring_m])
+        alpha = min(planet_a, ring_a) / max(planet_a, ring_a)
+        bar = alpha if planet_a < ring_a else 1.0
+        expected = 0.25 * n * ring_m / (SUN_KG + planet_m) * alpha * bar * _laplace_by_quadrature(1, alpha)
+        assert with_ring[0] - base[0] == pytest.approx(expected, rel=2e-3), ring_a
+
+
+def test_a_belt_turns_the_nodes_the_other_way_and_a_light_belt_turns_less_than_a_heavy_one():
+    light, heavy = 1.0e21, 1.0e22
+    base_g, base_s = sc.precession_rates([1.0], [5.972e24], SUN_KG)
+    g1, s1 = sc.precession_rates([1.0], [5.972e24], SUN_KG, [2.0], [light])
+    g2, s2 = sc.precession_rates([1.0], [5.972e24], SUN_KG, [2.0], [heavy])
+    assert g1[0] > base_g[0] and s1[0] < base_s[0]
+    assert g2[0] - base_g[0] == pytest.approx(10.0 * (g1[0] - base_g[0]), rel=1e-6)
+    assert s2[0] - base_s[0] == pytest.approx(10.0 * (s1[0] - base_s[0]), rel=1e-6)
+
+
+def test_no_belt_or_a_massless_one_changes_nothing_and_the_rings_are_not_part_of_the_result():
+    args = ([0.5, 1.5], [5.0e24, 2.0e27], SUN_KG, [0.02, 0.05], [1.0, 2.0], [0.01, 0.02], [0.5, 3.0], 1.0e9)
+    plain = sc.evolve(*args)
+    assert sc.evolve(*args, [], []) == plain
+    assert sc.evolve(*args, *sc.belt_rings(0.8, 1.2, 0.0)) == plain
+    belted = sc.evolve(*args, *sc.belt_rings(2.2, 3.4, 1.0e22))
+    assert len(belted.eccentricity) == 2 and len(belted.apsidal_rates) == 2 and belted.linear
+    assert belted != plain, "the belt's pull moves the planets' orbits at the star's age"
+
+
+def test_a_ring_next_to_a_planet_is_left_out_and_a_far_one_kept():
+    axes, masses = sc.belt_rings(2.0, 3.0, 1.0e22)
+    kept_axes, kept_masses = sc.clear_rings(axes, masses, [2.2])
+    assert len(kept_axes) < len(axes) and all(min(a, 2.2) / max(a, 2.2) <= sc.BELT_ALPHA_LIMIT for a in kept_axes)
+    assert sc.clear_rings(axes, masses, [0.5]) == (axes, masses)
+
+
+def test_two_close_in_planets_with_a_distant_belt_exchange_as_they_would_without_it():
+    """GEN.1661: a belt's rings are at rest, so they set no fixed point; the planets' nodal block is singular to roundoff (its rows sum to zero but for a pull of 1e-17 of the planets' own),
+    and `evolve` used to raise "Singular matrix" (23 of 600 systems asked for a habitable world and a belt)."""
+    planets = ([0.042251438496789355, 0.05988554646311589], [8.693771682777369e24, 1.2953418525462725e25], 1.0 * SUN_KG,
+               [1.2279207048110896e-05, 0.0048585685820451], [0.3, 1.0], [0.02, 0.01], [4.629775875678458, 0.7368320364212425], 5.0e9)
+    plain = sc.evolve(*planets)
+    belted = sc.evolve(*planets, *sc.belt_rings(2.2, 3.4, 1.0e22))
+    assert belted.linear == plain.linear
+    for got, want in zip(belted.inclination, plain.inclination):
+        assert math.isfinite(got) and got == pytest.approx(want, rel=0.05), "the belt only turns the nodes a little, it does not make the planets' tilts"
+    for got, want in zip(belted.eccentricity, plain.eccentricity):
+        assert math.isfinite(got) and got == pytest.approx(want, abs=1e-3)

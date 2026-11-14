@@ -18,6 +18,7 @@ from flask import g, jsonify, make_response, redirect, render_template, request,
 
 from planetgen.admin import maintenance
 from planetgen.api.limiter import is_in_process_call
+from planetgen.util import log
 
 RETRY_AFTER_SECONDS = 600
 """int: What `Retry-After` says, and how often the maintenance page asks again."""
@@ -43,7 +44,8 @@ def is_admin():
 
     try:
         return _current_admin() is not None
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("web/maintenance_gate", "is_admin", exc)
         return False
 
 
