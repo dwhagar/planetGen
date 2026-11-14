@@ -23,7 +23,6 @@ have or lack it often enough to move that share by the percentage
 
 
 from planetgen import tuning
-from planetgen.generation import abundance_tier
 from planetgen.util import draw
 
 FEATURES = ("habitable_world", "asteroid_belt", "comets", "large_star", "moons", "max_planets",
@@ -110,33 +109,6 @@ def resolve(config, rng=draw):
     if getattr(config, "_prevalence_resolved", False):
         return
     config._prevalence_resolved = True
-    _resolve_prevalences(config, rng)
-    _give_tier_request(config, rng)
-
-
-def _give_tier_request(config, rng=draw):
-    """
-    The Class M abundance tier's request dial (GEN.1704): a system still left to chance (`HABITABLE_WORLD` None, after the prevalences above) is
-    given the request for a habitable world in the tier's `request_share` of systems, which raises the odds and never forces
-    (`util.request_odds`). The request is the tier's, not the user's: `REQUEST_FROM_TIER` makes the host star be drawn as without a request
-    (a request would thin out the white dwarfs, `star.py`) and the system not report an unmet request (`StarSystem.habitable_request_status`).
-    A config that already says True or False, a system with no planets and one that asks for a belt (a belt and a habitable world need a large star)
-    are left alone. One draw when the share is over 0; none on `science`.
-
-    Args:
-        config (SystemConfig): The system's config, changed in place.
-        rng: The random source.
-    """
-    share = abundance_tier.request_share(config)
-    if share <= 0.0 or config.HABITABLE_WORLD is not None or config.PLANETS is False or config.ASTEROID_BELT is True:
-        return
-    if rng.random() < share:
-        config.HABITABLE_WORLD = True
-        config.REQUEST_FROM_TIER = True
-
-
-def _resolve_prevalences(config, rng=draw):
-    """The measured features' prevalences (`resolve`): decides and sets the flags."""
     decided = {}
     for feature in MEASURED_FEATURES:
         p = percent(config, feature)

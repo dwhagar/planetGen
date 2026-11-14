@@ -1,135 +1,118 @@
 # tests/test_class_m_request_dial.py
 
 """
-The Class M abundance tier's request dial (GEN.1704): the share of systems given the request for a habitable world.
-`science` makes no draw and changes no system; a tier sets `HABITABLE_WORLD` (and `REQUEST_FROM_TIER`) in its share of the systems left to
-chance, the star is drawn as without a request, and an unmet tier request is not reported as the user's.
+The Class M abundance tier's request dial (GEN.1704): the share of systems given the request for a habitable world, drawn by the `StarSystem` itself
+after its stars and before its planets and kept on the system only (`StarSystem._tier_request`). `science` makes no draw and changes no system; the
+config, the stars and the reported request status are never touched.
 """
-
-import random
 
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import abundance_tier, prevalence
+from planetgen.generation import abundance_tier
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
 
-class _Counting:
-    """A random source that counts its draws."""
-
-    def __init__(self, seed=3):
-        self.rng, self.draws = random.Random(seed), 0
-
-    def random(self):
-        self.draws += 1
-        return self.rng.random()
-
-
 def _config(tier, **flags):
     config = SystemConfig()
     config.ABUNDANCE_TIER = tier
+    config.PLANETS = True
     for name, value in flags.items():
         setattr(config, name, value)
     return config
 
 
-@pytest.mark.parametrize("tier", [None, "science"])
-def test_science_makes_no_draw_and_sets_nothing(tier):
-    rng = _Counting()
-    for _ in range(50):
-        config = _config(tier)
-        prevalence.resolve(config, rng)
-        assert config.HABITABLE_WORLD is None and config.REQUEST_FROM_TIER is False
-    assert rng.draws == 0
+def _stars_only(monkeypatch):
+    """Planets are not the point of the star and draw checks: leave them out (the tier's draw is made before them)."""
+    monkeypatch.setattr(StarSystem, "_generate_planets", lambda self, *args, **kwargs: [])
 
 
-@pytest.mark.parametrize("tier", abundance_tier.TIERS[1:])
-def test_a_tier_makes_one_draw_only_when_its_share_is_over_zero(tier):
-    rng = _Counting()
-    share = abundance_tier.request_share(_config(tier))
-    prevalence.resolve(_config(tier), rng)
-    assert rng.draws == (1 if share > 0 else 0)
+def _build(seed, tier, **flags):
+    config = _config(tier, **flags)
+    with draw.bound(seed):
+        system = StarSystem(system_config=config)
+    return system, config
 
 
-def test_share_one_requests_every_system_left_to_chance_and_share_half_about_half(monkeypatch):
+def _star(system):
+    star = system.stars[0]
+    return (star.type, star.mass, star.age)
+
+
+def test_the_request_is_a_system_attribute_and_never_enters_the_config(monkeypatch):
+    _stars_only(monkeypatch)
     monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0))
-    for _ in range(100):
-        config = _config("abundant")
-        prevalence.resolve(config, random.Random(5))
-        assert config.HABITABLE_WORLD is True and config.REQUEST_FROM_TIER is True
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 0.5))
-    rng = random.Random(9)
-    hits = 0
-    for _ in range(2000):
-        config = _config("abundant")
-        prevalence.resolve(config, rng)
-        hits += config.HABITABLE_WORLD is True
-    assert hits / 2000 == pytest.approx(0.5, abs=0.04)
+    system, config = _build(5, "abundant")
+    assert system._tier_request is True and config.HABITABLE_WORLD is None
+    assert system.habitable_request_status() is None and StarSystem._tier_request is False
 
 
-def test_a_config_that_already_says_true_or_false_or_cannot_hold_the_request_is_left_alone(monkeypatch):
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0))
-    rng = _Counting()
-    for flags, expected in (({"HABITABLE_WORLD": False}, False), ({"HABITABLE_WORLD": True}, True),
-                            ({"PLANETS": False}, None), ({"ASTEROID_BELT": True}, None)):
-        config = _config("abundant", **flags)
-        prevalence.resolve(config, rng)
-        assert config.HABITABLE_WORLD is expected and config.REQUEST_FROM_TIER is False
-    assert rng.draws == 0
+def test_science_and_a_tier_without_a_request_share_make_the_same_draws(monkeypatch):
+    _stars_only(monkeypatch)
+    counts = {}
+    real = draw.random
+    for tier in (None, "science", "sparse"):         # sparse has request_share 0
+        calls = []
+        monkeypatch.setattr(draw, "random", lambda: calls.append(1) or real())
+        system, _ = _build(7, tier)
+        counts[tier] = len(calls)
+        assert system._tier_request is False
+    assert counts[None] == counts["science"] == counts["sparse"]
 
 
-def test_a_users_prevalence_resolves_first_and_stays_the_users_request(monkeypatch):
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0))
-    config = _config("abundant")
-    config.PREVALENCE = {"habitable_world": 10_000}
-    prevalence.resolve(config, random.Random(1))
-    assert config.HABITABLE_WORLD is True and config.REQUEST_FROM_TIER is False
-
-
-def _signature(system):
-    return (system.star.mass, system.star.age, system.star.type, [(p.body_type, getattr(p, "mass", None), p.distance) for p in system.planets])
-
-
-def test_science_builds_the_same_systems_as_no_tier():
+def test_a_tier_with_no_request_share_makes_the_same_system_as_science(monkeypatch):
     for seed in (101, 102, 103):
         signatures = []
-        for tier in (None, "science"):
-            config = _config(tier)
-            config.PLANETS = True
-            with draw.bound(seed):
-                signatures.append(_signature(StarSystem(system_config=config)))
-        assert signatures[0] == signatures[1]
+        for tier in (None, "science", "sparse"):       # sparse has request_share 0
+            system, _ = _build(seed, tier)
+            signatures.append((_star(system), [(p.body_type, getattr(p, "mass", None), p.distance) for p in system.planets]))
+        assert signatures[0] == signatures[1] == signatures[2]
 
 
-def test_the_tier_request_leaves_the_host_star_as_drawn_without_a_request(monkeypatch):
-    """The star sampler is told no habitable host for a tier's request (it would thin out white dwarfs, 36 to 5 of 500 systems) and told so for a user's."""
-    from planetgen.generation import star as star_module
+def test_the_primary_star_is_identical_on_science_and_abundant_for_200_seeds(monkeypatch):
+    _stars_only(monkeypatch)
     monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0))
-    seen = []
-    real = star_module.sample_living_star
-
-    def spy(*args, **kwargs):
-        seen.append(kwargs.get("habitable_host"))
-        return real(*args, **kwargs)
-
-    monkeypatch.setattr(star_module, "sample_living_star", spy)
-    for tier, user, expected in ((None, True, True), ("abundant", None, False), (None, None, False)):
-        seen.clear()
-        config = _config(tier, HABITABLE_WORLD=user)
-        config.PLANETS = False if user is None and tier is None else True
-        with draw.bound(201):
-            StarSystem(system_config=config)
-        assert seen and seen[0] is expected, (tier, user, seen)
-        assert config.REQUEST_FROM_TIER is (tier is not None and user is None)
+    for seed in range(5000, 5200):
+        science, _ = _build(seed, "science")
+        abundant, _ = _build(seed, "abundant")
+        assert _star(science) == _star(abundant), seed
+        assert abundant._tier_request is True and science._tier_request is False
 
 
-def test_an_unmet_tier_request_says_nothing_and_an_unmet_user_request_says_unmet():
+def test_share_half_requests_about_half_of_the_systems(monkeypatch):
+    _stars_only(monkeypatch)
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 0.5))
+    hits = sum(_build(seed, "abundant")[0]._tier_request for seed in range(6000, 6200))
+    assert hits / 200 == pytest.approx(0.5, abs=0.14)
+
+
+@pytest.mark.parametrize("flags", [{"HABITABLE_WORLD": False}, {"HABITABLE_WORLD": True}, {"PLANETS": False}, {"ASTEROID_BELT": True}])
+def test_a_config_the_user_set_is_left_alone(flags, monkeypatch):
+    _stars_only(monkeypatch)
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0))
+    system, config = _build(9, "abundant", **flags)
+    assert system._tier_request is False
+    assert config.HABITABLE_WORLD is flags.get("HABITABLE_WORLD")
+
+
+def test_the_planets_are_drawn_under_the_request_a_tier_gave(monkeypatch):
+    """Every planet-stage reader asks `_habitable_requested`, which counts the tier's request and the user's."""
     holder = type("Holder", (), {})()
-    holder.all_planets = []
-    holder.system_config = _config("abundant", HABITABLE_WORLD=True)
-    assert StarSystem.habitable_request_status(holder) == "unmet"
-    holder.system_config.REQUEST_FROM_TIER = True
-    assert StarSystem.habitable_request_status(holder) is None
+    holder.system_config = _config("abundant")
+    holder._tier_request = False
+    assert StarSystem._habitable_requested(holder) is False
+    holder._tier_request = True
+    assert StarSystem._habitable_requested(holder) is True
+    holder._tier_request, holder.system_config.HABITABLE_WORLD = False, True
+    assert StarSystem._habitable_requested(holder) is True
+
+
+def test_the_request_stands_check_runs_only_under_a_request():
+    """`_habitable_request_stands` redraws planets and never stars; without a request it draws nothing."""
+    holder = type("Holder", (), {})()
+    holder.system_config, holder.planets = _config("abundant"), []
+    holder._tier_request = False
+    holder._habitable_requested = lambda: StarSystem._habitable_requested(holder)
+    assert StarSystem._habitable_request_stands(holder) is True
