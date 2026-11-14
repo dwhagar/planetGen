@@ -43,7 +43,7 @@ these:
 """
 
 
-from flask import current_app, g, render_template, request, url_for
+from flask import current_app, g, jsonify, render_template, request, url_for
 from markupsafe import Markup
 
 from planetgen.web.lib import apiclient, autolink, help_registry
@@ -54,6 +54,13 @@ from planetgen.web.lib import reference_urls
 from planetgen.web.lib.reference_urls import reference_path
 
 from . import csrf
+
+
+def json_error(message, status):
+    """A `{"error": message}` JSON answer with `status`, for the data routes (`json_only` views)."""
+    response = jsonify({"error": message})
+    response.status_code = status
+    return response
 
 
 def db_name():
@@ -225,7 +232,6 @@ def help_menu():
     return (("help_index", "All help"),) + help_registry.menu()
 
 
-
 HELP_SECTIONS = ("classes", "help", "references")
 """tuple: The `section` names that mark the Help menu current: the class pages, the help pages, and the References pages."""
 
@@ -246,7 +252,8 @@ def population_status():
     if status is None:
         try:
             status = apiclient.get_population_status(db_name())
-        except Exception:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+        except Exception as exc:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+            log.swallowed("web/helpers", "population_status", exc)
             status = dict(apiclient.POPULATION_NONE)
         g.web_population = status
     return status
@@ -296,5 +303,5 @@ def _with_help_links(html):
     try:
         return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
     except Exception:    # a missing link must never take a page down
-        log.exception("the help links could not be added to %s", request.path)
+        log.exception("The help links could not be added to %s.", request.path)
         return html

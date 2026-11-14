@@ -5,7 +5,7 @@
 import pytest
 
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import gases, mixture_draw as md
+from planetgen.physics import gases, mixture_draw as md, mixture_evolved as evolved
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 
@@ -35,7 +35,7 @@ def test_a_mars_like_body_has_a_thin_carbon_dioxide_nitrogen_air_without_water()
     assert found
     for result in found:
         x = result.mole_fractions
-        assert x["CO2"] > 0.9 and 0.0 < x["N2"] < 0.1 and x.get("H2O", 0.0) < 1e-3
+        assert x["CO2"] > 0.85 and 0.0 < x["N2"] < 0.12 and x.get("H2O", 0.0) < 1e-3       # GEN.1584: the delivered nitrogen per carbon is higher (no melt share is applied here: that is the supply's), so the nitrogen share is up to 0.12
         assert x.get("CO", 0.0) < 0.1 * x["CO2"]
 
 
@@ -44,7 +44,23 @@ def test_a_venus_like_body_is_carbon_dioxide_with_a_few_percent_nitrogen():
     found = draws("terrestrial", changes, "venus", count=120)
     assert found
     for result in found:
-        assert result.mole_fractions["CO2"] > 0.6 and result.mole_fractions.get("H2O", 0.0) < 0.01
+        assert result.mole_fractions["CO2"] > 0.6 and result.mole_fractions.get("H2O", 0.0) < 0.05       # GEN.1670: the water of a hydrogen-rich gas, held in an oxidized air, is water (Venus: 2 to 3e-5)
+    water = sorted(result.mole_fractions.get("H2O", 0.0) for result in found)
+    assert water[len(water) // 2] < 3e-4
+
+
+def test_a_warm_venus_like_air_holds_the_crust_buffer_and_keeps_sulfur_dioxide():
+    """GEN.1670 (AM100): at Venus's 735 K the air is held at the crust's magnetite-hematite buffer [R5251], IW+9.1 to IW+10.8, which keeps
+    sulfur dioxide, the species the old hold at the mantle's redox lost to S2 (Venus: 150 ppm of SO2 in CO2)."""
+    changes = dict(water_lost=True, runaway_ratio=1.2, ts_k=735.0, pressure_bar=90.0, mass_earth=0.8, ocean_present=False)
+    found = draws("terrestrial", changes, "venus", count=120)
+    assert found
+    low, high = evolved.AIR_BUFFER_DIW[:2]
+    for result in found:
+        assert low <= result.constants["air_buffer_diw"] <= high
+    shares = sorted(result.mole_fractions.get("SO2", 0.0) for result in found)
+    assert shares[len(shares) // 2] > 1e-5       # the median keeps SO2 at tens of ppm or more (it was 1e-10)
+    assert max(shares) < 0.03                    # Venus's air stays carbon dioxide, not a sulfur-dioxide air
 
 
 def test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air():

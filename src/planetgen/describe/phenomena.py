@@ -149,8 +149,6 @@ def _rogue_planet(planet):
     ]
     sentences = [inline(f"{planet.name} is a free-floating {what} adrift in interstellar space, bound to no star."),
                  *_rogue_surface_sentences(planet)]
-    if planet.has_moons:
-        sentences.append(inline("A smaller companion body, likely captured after ejection, still orbits it."))
     sentences.append(_orbit(planet))
     return section("rogue-planet", None, planet.name, [facts("Rogue planet", rows), prose("summary", *sentences)])
 

@@ -30,11 +30,10 @@ from typing import Optional, Tuple
 
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import unit_registry
-from planetgen.physics import unit_registry as units
 
-_mearth_to_kg = units.converter("Mearth", "kg")
-_mjup_to_kg = units.converter("Mjup", "kg")
-_msun_to_kg = units.converter("Msun", "kg")
+_mearth_to_kg = unit_registry.converter("Mearth", "kg")
+_mjup_to_kg = unit_registry.converter("Mjup", "kg")
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 TINY_NUMBER = 1e-3
 """float: A number below this in the unit shown is written as scientific
@@ -461,6 +460,9 @@ MAGNETIC_FIELD = Ladder(
         rung("T"),
         rung("G", start=1e4, systems=(AUTOMATIC, CUSTOMARY)),
     ),
+    # Gauss in brackets beside the tesla figure of a planet or star (Boss, 2026-11-11: SI tesla as uT or mT with gauss in
+    # brackets); from 10,000 T up gauss is the rung itself.
+    companions=(companion("G", max_size=1e4, systems=(AUTOMATIC, CUSTOMARY)),),
 )
 
 # A dose rate: effective dose a year, in sieverts with the SI prefixes. A body's dose runs from a hundredth of a microsievert
@@ -482,13 +484,29 @@ DOSE_RATE = Ladder(
     ),
 )
 
+# How often something happens: the large flares of a star a year and its lethal events (supernovae, gamma-ray bursts) per
+# billion years. The column units stay 1/yr and 1/Gy; the ladder picks the rung that keeps the number readable instead of
+# writing "2.5e+04" (UX.304).
+RATE = Ladder(
+    quantity="rate",
+    base="1/s",
+    nonfinite="1/yr",
+    zero="1/yr",
+    rungs=(
+        rung("1/Gy", start=0.0),
+        rung("1/Myr"),
+        rung("1/yr", start=0.1 / 31557600.0),
+        rung("1/d"),
+    ),
+)
+
 LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, TEMPERATURE_DIFFERENCE, FRACTION, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD,
-           DOSE_RATE)
+           DOSE_RATE, RATE)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""
 
 _BY_KIND = dict(zip(
     ("length", "speed", "duration", "temperature", "delta_temperature", "fraction", "pressure", "acceleration", "mass", "power", "flux", "number_density",
-     "magnetic_field", "dose_rate"), LADDERS))
+     "magnetic_field", "dose_rate", "frequency"), LADDERS))
 _BY_KIND_OF_LADDER = {ladder.quantity: kind for kind, ladder in _BY_KIND.items()}
 LADDER_OF_KIND = {kind: ladder.quantity for kind, ladder in _BY_KIND.items()}
 """dict: The name of the ladder each registry kind is shown on (`unitladders.js` `LADDER_OF_KIND`)."""

@@ -47,7 +47,7 @@ ENVELOPE_STEP = 0.03
 MAX_STEPS = 4000
 """int: A bound on the steps of one integration (numerical; a planet that has not settled by then counts as stripped)."""
 
-_GY_S = 1e9 * constants.SECONDS_PER_YEAR
+_GY_S = constants.SECONDS_PER_GY
 
 
 def equilibrium_temperature_k(insolation):
@@ -55,7 +55,7 @@ def equilibrium_temperature_k(insolation):
     return TEQ_OVER_INSOLATION_FOURTH * insolation ** 0.25
 
 
-def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, distance_au=None, emitters=(), radius_ratio=None):
+def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, distance_au=None, emitters=(), radius_ratio=None, trace=None):
     """
     The envelope the planet still has at `age_gy`, Earth masses (0 when it has fallen under `BARE_BELOW` of the planet's mass).
 
@@ -75,6 +75,8 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
             law at that step (GEN.1480: the rate goes as about R^4 to R^6 on the XUV branch and R^10 on the boil-off one, so a planet the
             obliquity tide has inflated loses its envelope faster, and the loss has to see the radius the planet really has). None, the
             default, leaves the radius as the law gives it, as every caller without a tide wants.
+        trace (list, optional): Filled with `(age_gy, envelope_earth)` after each step of the loss, the first the start at `ONSET_GY` (GEN.1527: the history
+            `helium_fractionation.helium_fraction_from_history` reads). The result does not depend on it.
     """
     f_env0 = min(f_env0, MAX_ENVELOPE)
     start = f_env0 * core_mass_earth / (1.0 - f_env0)
@@ -90,6 +92,8 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
     envelope = start
     t = ONSET_GY * _GY_S
     end = age_gy * _GY_S
+    if trace is not None:
+        trace.append((ONSET_GY, start))
     earth_kg = constants.EARTH_MASS_TO_KG
     for _ in range(MAX_STEPS):
         age = t / _GY_S
@@ -106,6 +110,8 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
             step = min(step, ENVELOPE_STEP * envelope / rate)
         envelope -= rate * step
         t += step
+        if trace is not None:
+            trace.append((t / _GY_S, max(envelope, 0.0)))
         if envelope <= BARE_BELOW * (core_mass_earth + envelope):
             return 0.0
         if t >= end:

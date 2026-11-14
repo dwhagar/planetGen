@@ -82,3 +82,32 @@ def test_the_class_pages_read_the_model():
     assert giants.luminosity_sol[0] < giants.luminosity_sol[1]
     with pytest.raises(ValueError):
         forced_star.class_summary("XX")
+
+
+def test_a_subdwarf_is_judged_at_the_temperature_it_is_stored_with():
+    """TEST.727: the class cut used the unrounded temperature, so a K5 star at 4,439 K (0.312 dex under the dwarf sequence) was a subdwarf, and stored at 4,400 K
+    (0.284 dex) it was not; about 4 percent of forced K5VI stars came out that way."""
+    fainter = stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": 0.0847, "temperature_k": 4439.0})
+    assert fainter == "V"           # stored at 4,400 K the deficit is 0.284 dex
+    assert stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": 0.0847, "temperature_k": 4350.0}) == stellar_evolution.yerkes_class_of(
+        {"yerkes_class": "V", "luminosity_sol": 0.0847, "temperature_k": 4400.0})
+
+
+def test_every_forced_subdwarf_is_a_subdwarf_by_its_stored_numbers():
+    from planetgen.util import draw
+    for seed in (13, 17, 36, 59, 89, 130, 137, 171):          # the seeds that came out class V near 4,400 K before the cut was judged on the stored temperature
+        with draw.bound(seed):
+            star = make_star("K5VI")
+        assert stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": star.luminosity / constants.SOLAR_LUMINOSITY,
+                                                  "temperature_k": star.temperature}) == "VI", (seed, star.temperature, star.luminosity)
+@pytest.mark.parametrize("letter,subclass", [("K", 5), ("K", 0), ("G", 5), ("M", 9), ("M", 5), ("F", 2)])
+def test_a_forced_subdwarf_always_classifies_as_a_subdwarf_at_the_temperature_it_is_shown(letter, subclass):
+    """GEN.1669: the class is judged at the temperature the type stands for with the star's own luminosity, so no draw of a forced
+    `VI` star is a dwarf there. Seeded here (the draw is a function of the seed, so the check cannot flake)."""
+    import random
+    for seed in range(60):
+        found = forced_star.sample(letter, subclass, "VI", rng=random.Random(seed))
+        state = forced_star._shown(found.state, found.exact, letter, subclass)
+        assert (stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": state["luminosity_sol"],
+                                                   "temperature_k": state["temperature_k"]}) == "VI"
+                or forced_star._hot_subdwarf(found.state)), (letter, subclass, seed)

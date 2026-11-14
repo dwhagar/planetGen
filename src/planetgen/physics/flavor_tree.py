@@ -236,7 +236,8 @@ def draw_line(scope, body, used_ids=(), off=(), star=None):
     """
     The `Option` drawn for `body` in `scope`, or `None`: the walk's options less the ids in `used_ids`, one drawn by weight on the body's own stream (no retry on an empty list).
     """
-    options = [option for option in walk(scope, body, off) if option.id not in set(used_ids)]
+    used = set(used_ids)
+    options = [option for option in walk(scope, body, off) if option.id not in used]
     if not options:
         return None
     with draw.bound(draw.Stream(seed_of(scope, body, star))):

@@ -50,7 +50,7 @@ never mutates the generation/physics code's own native units. Its shape:
   brand-new database is created at the current schema by `schema.sql`, so
   this is a no-op there; a database made by an older release gets one
   revision per version it is behind, and one older than the baseline (v130)
-  is refused with `SchemaTooOldError`, and a database that has the galaxy
+  is refused with `SchemaTooOldError` (its message points to `legacy/bump_database_to_8_0.py`, which brings a database from v61 up to the baseline on request), and a database that has the galaxy
   tables but no recorded version (`schema_migrations` emptied or missing)
   is refused with `SchemaVersionMissingError` instead of guessed at from its
   tables. `planetgen.cli.migrate` is its CLI
@@ -121,6 +121,13 @@ text (e.g. `"1.2 R☉"`) were the one exception to both conventions; v5
 dropped them (see "The searchable-field principle" below).
 
 ### Units of a column
+
+**The body tables are generated (GEN.1658).** `planets`, `moons` and `rogue_planets` share all but a few dozen of about 360 columns each, so their columns are declared once, one row each, in
+[`src/planetgen/db/body_fields.py`](../../src/planetgen/db/body_fields.py): the SQL type, `NOT NULL`, the default and any check on the column, the unit it is stored in, its comment, and which of the three
+tables hold it. `python scripts/build_body_tables.py` writes the three `CREATE TABLE` statements into `schema.sql` between the marker lines `-- BEGIN GENERATED body tables` and `-- END GENERATED body tables`
+(`--check` and `tests/test_body_fields.py` fail when they differ), and `db/column_units.py` takes the unit groups of the three tables from the same rows. To add a body column: add its row, add its Alembic revision,
+run `python scripts/build_body_tables.py` and `python scripts/generate_db_models.py`. Do not edit the statements between the markers; a merge conflict inside them is resolved by running the script.
+The keys and constraints are `CLAUSES` in that file. The rogue planet keeps its columns in the order its database holds them (`ORDERS`), because MySQL numbers an inline CHECK by its place and revisions name them by number.
 
 Every numeric column declares the unit it is stored in, in one list: `db/column_units.py` (DB.76). `TABLES` gives, for each
 table, the columns of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key of the unit registry
@@ -796,14 +803,14 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Twenty-three tables, versioned independently via `control_schema_migrations`
-(currently version 21, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
+Twenty-four tables, versioned independently via `control_schema_migrations`
+(currently version 22, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, and v21 the drop of the work queue's four tables (PERF.100); the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, v21 the drop of the work queue's four tables (PERF.100) and v22 `job_profiles` (OPS.155); the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -923,6 +930,13 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   and `metrics` (JSON text: the arguments that shape the stage, and what it did)
   and `version_key`. Estimates use only rows of the running version key.
   Shown on the Stats page.
+- **`job_profiles`** (v22, OPS.155) — one row per finished unit or job, for the self-tuning jobs
+  (`docs/design/operations/self-tuning-jobs.md`): `kind` (the memory gate's `unit:<command>`, `cut:<command>`, `api:<ref>`,
+  `fn:<name>`, or `stage:<key>`), `size_bucket` (the power of two of `items`, -1 with none), `items`, `parts` (1, or the units of a stage), `seconds` (worked seconds,
+  or a stage's wall seconds), `seconds_peak` and `seconds_avg` (the longest and the mean unit), `peak_mb` and `avg_mb`, `cpu_peak` and `cpu_avg` (cores), `seconds_per_item`, `mb_per_item` (the raw peak over the items), `outcome` (`done`, `killed_memory`, `timed_out`,
+  `stuck`), the machine that measured it (`host_memory_mb`, `host_cores`, `buffer_pool_mb`, `generator_epoch`) and `recorded_at`. A
+  missing or implausible reading is NULL. Written by `planetgen.queue.jobprofiles`, which keeps each kind and bucket to its newest
+  rows; nothing reads it yet.
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
   (`planetgen/generation/stats.py`, see
@@ -1594,6 +1608,7 @@ columns capture the facts the prose always states instead.
 | `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v204 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
 | `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` | DOUBLE | nullable | Added in v204 (GEN.1069). The star's snow line when the system formed (AU), the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses). |
 | `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` | TINYINT(1), TEXT | nullable | Added in v204 (GEN.1069). Whether a giant stirs the belt; the sentences of what shaped it (a JSON list); the sentence of where it came from; for an outer disk the share of its mass in each population after the scatter step (a JSON object, `physics/scatter.py`). |
+| `makeup` | TEXT | nullable | Added in v256 (DB.124). What the belt is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`: the shares of the materials, porosity, densities, albedo and the taxon shares). NULL for a row made before v256. |
 | `largest_body_km` | DOUBLE | nullable | Added in v204 (GEN.1069). The largest body of the belt (Dc), km, settled with its mass (`physics/belt_ledger.py`, GEN.1000). |
 
 ### `asteroid_belt_composition`
@@ -1629,6 +1644,7 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `nucleus_diameter_km` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Searchable summary; structured breakdown lives in `comet_composition`. |
 | `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v199 (GEN.1159, GEN.1178). The bulk density of the nucleus in g/cm3, the share of its mass that is ice of any kind, and the same three values a planet keeps (`physics/body_strength.py`). NULL for a row made before v195. |
+| `makeup` | TEXT | nullable | Added in v256 (DB.124). What the nucleus is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`). NULL for a row made before v256. |
 | `perihelion_distance_km` | DOUBLE | NOT NULL | |
 | `eccentricity`, `inclination_deg`, `arg_periapsis_deg`, `ascending_node_deg` | DOUBLE | NOT NULL | Full 3D orbit orientation. |
 | `orbital_period_years`, `mean_anomaly_deg` | DOUBLE | nullable | Only set for `orbit_type = 'elliptical'`. |
@@ -1777,7 +1793,7 @@ from any star. Since v207 (GEN.1111) it also carries every `planets` column apar
 | `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
-| `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | `has_internal_heat`: still geologically active (computed since v48; a giant always is). |
+| `has_internal_heat` | BOOLEAN | NOT NULL | Still geologically active (computed since v48; a giant always is). (`has_moons` was dropped in v244: a free planet's moons are `moons` rows.) |
 | `age_gy`, `internal_heat_flux_w_m2`, `effective_temperature_k` | DOUBLE | nullable | Added in v48: its age and its own heat (W/m^2, K). |
 | `surface_regime` | VARCHAR(24) | nullable | Added in v48: `bare-rock`, `frozen-atmosphere`, `ice-shell-ocean`, `ice-world`, `hydrogen-envelope`, `hycean` (v73: an ocean under the envelope with no high-pressure ice beneath), `gas-giant` or `brown-dwarf`. |
 | `surface_temperature_k`, `surface_pressure_pa` | DOUBLE | nullable | Added in v48: at the ground, or a giant's at 1 bar. |
@@ -2041,6 +2057,18 @@ Added in v240 (GEN.1465). For every body of a system and every effect that acts 
 | `largest_value` | DOUBLE | nullable | Summary row only: the largest source's contribution in the effect's own unit (CHECK over 0). |
 
 Primary key `(star_system_id, body_type, body_id, effect, source_type, source_id)`; no other index. Left out of the fingerprint (it records, it does not decide). A galaxy made before v240 has no rows, which reads as no ledger.
+
+### `body_numbers`
+
+Added in v247 (DB.75; design draft `db75-stable-body-numbers-2026-11-12.md`). The body number (the last 12 bits of an Object ID) each slot of a system has had. A slot is where a body sits: its kind, the star it orbits (`primary`, `secondary`, `single`, `member`, or `system` for a circumbinary one) and its place in that star's orbits, a moon under its planet's slot (`store._body_slots`); `slot_key` is that path as text (`store._slot_key`: `star:primary:0`, `planet:primary:3`, `moon:planet:primary:3:1`).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | NOT NULL | The system; FK -> `star_systems.id` (`ON DELETE CASCADE`). First in the primary key. |
+| `slot_key` | VARCHAR(96) | NOT NULL | The slot path. |
+| `body_number` | SMALLINT UNSIGNED | NOT NULL | 1 to 4095 (CHECK), the number a body at that slot took in the system's Object ID. |
+
+Primary key `(star_system_id, slot_key)`; unique `(star_system_id, body_number)`, so one path holds a number. Left out of the fingerprint (it keeps ID numbers; the results are what a fingerprint reads). When a system's content is drawn again (`store.replace_star_system_content`) the numbers its bodies hold are written here first, and a new body at a remembered path takes that number: a surviving body keeps its ID, and a planet that returns to a slot an earlier draw left empty is the object it was. The system's counter (`id_counters`) never goes back, so a number is not given to a second slot. A galaxy made before v247 has no rows; the first draw of a system writes its rows.
 
 ### `body_history`
 
@@ -2659,6 +2687,14 @@ Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading F
 
 Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatter. The single-space map draws a block it has not opened as one node: its brightest objects and a glow made from the light of the rest, so a node needs the summed light of what is in a block without reading the objects. A row is one block `(m, shell_index, band_index, wedge_index)` of the eleven levels above a sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`). `star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz` (luminosity times position, solar luminosities times parsecs, so a center of light is each over `star_luminosity_sol`) and `star_lt` (luminosity times temperature, so the mean temperature of the light is `star_lt / star_luminosity_sol`) sum the stars; `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy` and `point_lpz` sum the phenomena the same way (`map_luminosity_sol`, no temperature). Built objects are counted in `galaxy_block_stats` (the generated sector's total luminosity), so a block's two tables never count one light twice. `db/block_lights.py` keeps it, as `block_stats.py` keeps its table: a level-3 block is summed from the objects of its sectors, a bigger block from its children's rows; `refresh_chain` puts right the blocks above one sector (a deletion), `refresh_sectors` those above the sectors a `galaxy` run saved (once at its end), and `rebuild` makes every row, a unit of sector shells at a time (the shells of one level-729 block), committing each unit, then the levels above the unit from the stored rows. A scatter, a clear and the map-luminosity fill rebuild the table at their end, and `planetgen fill-block-totals` makes it (and `galaxy_block_stats`) again. No foreign keys: a block is not a row of its own. The version is detected from the table.
 
+
+### v257 (DB.75): `body_numbers`, the body number each slot of a system has had
+
+Migration 0257 creates `body_numbers` (see the table section above). Nothing is backfilled: a system's first draw again writes the numbers its bodies hold at that time.
+
+### v244 (GEN.558): `rogue_planets.has_moons` is gone
+
+A free planet's moons are `moons` rows the ordinary moon routine makes inside the outer edge its ejection left (`generation/phenomena/starless_host.py`), so the one-bit flag that a brown dwarf drew at 20 percent (and a physics rogue left NULL, v207) has nothing to say and is dropped by migration 0244. The `planet-satellites` host table that rolled it is removed with it; the chance that a free planet has a moon is an output of the ejection model.
 
 ### v243 (GEN.1497): `body_history`, the birth orbit and spin of planets and moons
 

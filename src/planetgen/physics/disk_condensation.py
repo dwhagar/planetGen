@@ -236,6 +236,30 @@ def condensed(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, n
     return found
 
 
+PROVENANCE_SAMPLES = 64
+"""int: The annuli (equal in distance) `provenance_condensed` averages the frozen species over, between a giant's place and the disk's edge. [Stand-in PRV1, tier T5, tweak L0.]"""
+
+
+def provenance_condensed(temperature_k, edge_temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    The species frozen in the planetesimals a giant that formed where the disk was at `temperature_k` accretes, as `{species: molecules per 10^4 hydrogen}` (GEN.1519): the mean of
+    `condensed` over the places between the giant's and the disk's edge (at `edge_temperature_k`), each annulus counting by its distance (the solids of a disk of surface density
+    1/r add equally per AU). The planetesimals did not form where the giant did: those that formed beyond a line froze that ice, whatever the temperature at the giant's place.
+    The disk's temperature falls as the square root of the distance. A giant at or beyond the edge takes `condensed` itself.
+    """
+    if not temperature_k > 0.0 or not edge_temperature_k > 0.0:
+        raise ValueError("the temperatures must be positive")
+    if temperature_k <= edge_temperature_k:
+        return condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    span = (temperature_k / edge_temperature_k) ** 2 - 1.0                      # (r_edge - r_place) / r_place
+    total = {}
+    for index in range(PROVENANCE_SAMPLES):
+        distance = 1.0 + (index + 0.5) / PROVENANCE_SAMPLES * span              # r / r_place
+        for species, moles in condensed(temperature_k / math.sqrt(distance), carbon, oxygen, nitrogen, sulfur, noble).items():
+            total[species] = total.get(species, 0.0) + moles
+    return {species: moles / PROVENANCE_SAMPLES for species, moles in total.items()}
+
+
 def masses_percent(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
     """
     The mass each condensate makes at `temperature_k`, in percent of the nebula, as `condensate_shares.condensed_masses` gives it: `rock` (the silicates, oxides, metal and
@@ -293,12 +317,7 @@ def gas_and_solid_c_over_o(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, 
     is not frozen: the carbon not in grains and not in a frozen CO, CO2 or CH4, over the oxygen not in rock and not in frozen water, CO or CO2. The solids are the rest. `None` for a
     side that holds no oxygen.
     """
-    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
-    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
-    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
-    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
-    carbon_gas = held.carbon - carbon_solid
-    oxygen_gas = held.oxygen - oxygen_solid
+    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
     gas = carbon_gas / oxygen_gas if oxygen_gas > 1e-12 else None
     solid = carbon_solid / oxygen_solid if oxygen_solid > 1e-12 else None
     return gas, solid
@@ -313,19 +332,28 @@ def line_au(species, luminosity_w):
     return _m_to_au(distance_m)
 
 
-def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble, ice_weights=None):
+def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble, ice_weights=None, solids_edge_k=None):
     """
     `(carbon gas, oxygen gas, carbon solid, oxygen solid)` in atoms per 10^4 hydrogen at `temperature_k` (the rock's oxygen is solid at any temperature below its line).
 
     `ice_weights` (`{species: E}`, from `disk_drift.ice_weights`; GEN.1473) multiplies the vapor of each ice that evaporated on the way to this place: its atoms in the gas are `E` times
     the static ones, the solids stay the static ones. `None` and weights of 1 are the static budget (GEN.1363) exactly.
+
+    `solids_edge_k` (the disk's edge temperature; GEN.1519) gives the solids the provenance of `provenance_condensed`: they are the planetesimals formed between this place and the edge, not
+    those that froze here. `None` is the solids that froze here.
     """
     held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
     frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
-    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
-    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
-    carbon_gas = held.carbon - carbon_solid
-    oxygen_gas = held.oxygen - oxygen_solid
+    carbon_here = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
+    oxygen_here = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
+    if solids_edge_k is None:
+        carbon_solid, oxygen_solid = carbon_here, oxygen_here
+    else:
+        mixed = provenance_condensed(temperature_k, solids_edge_k, carbon, oxygen, nitrogen, sulfur, noble)
+        carbon_solid = mixed.get("C", 0.0) + mixed.get("CO", 0.0) + mixed.get("CO2", 0.0) + mixed.get("CH4", 0.0)
+        oxygen_solid = held.rock_oxygen + mixed.get("H2O", 0.0) + mixed.get("CO", 0.0) + 2.0 * mixed.get("CO2", 0.0)
+    carbon_gas = held.carbon - carbon_here
+    oxygen_gas = held.oxygen - oxygen_here
     for species, weight in (ice_weights or {}).items():
         if species not in held.moles or temperature_k < LINES_K[species]:
             continue                                  # a frozen ice is not in the gas, whatever its weight
@@ -351,7 +379,7 @@ def _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen
 
 
 @finite_domain()
-def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0, ice_weights=None):
+def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0, ice_weights=None, solids_edge_k=None):
     """
     The carbon over oxygen atoms of a giant's envelope that formed where the disk was at `temperature_k` and holds `enrichment` times its star's heavy elements (GEN.1363 part C).
 
@@ -366,12 +394,14 @@ def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0, ice_wei
         carbon, oxygen (float): The star's C and O over its rock-forming metals, over the Sun's (`bulk_draw.ice_forming_ratios`).
         ice_weights (dict): `{species: E}` of the ices that evaporated on the way to the giant's place at the age it gathered its gas (`disk_drift.giant_ice_weights`, GEN.1473: the pebbles
             carry ice inward faster than the gas); `None` for the static disk, which is every `E` equal to 1.
+        solids_edge_k (float): The disk's edge temperature when the planetesimals the envelope takes are those formed between its place and the edge (`provenance_condensed`, GEN.1519); `None` for
+            the solids that froze at its own place.
     """
     if not temperature_k > 0.0:
         raise ValueError("the temperature must be positive")
     if not enrichment >= 0.0:
         raise ValueError("the enrichment must be zero or more")
-    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0, ice_weights)
+    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0, ice_weights, solids_edge_k)
     held = inventory(carbon, oxygen)
     sigma = _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid, held.carbon + held.oxygen)
     oxygen_total = oxygen_gas + sigma * oxygen_solid
@@ -386,20 +416,25 @@ is rock at every formation temperature of a giant and follows the rock-forming m
 
 
 @finite_domain()
-def envelope_enrichments(temperature_k, enrichment, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+def envelope_enrichments(temperature_k, enrichment, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0, ice_weights=None, solids_edge_k=None):
     """
     The nitrogen, sulfur and noble gases of a giant's envelope over its star's, element by element (GEN.1372), for a giant that formed where the disk was at `temperature_k` and holds
     `enrichment` times its star's heavy elements.
 
     The envelope is the disk's gas plus `sigma` times what froze there (`envelope_c_over_o` gives `sigma`: the share that makes the carbon and oxygen `enrichment` times the star's),
     so an element's factor is `(gas + sigma * solid) / (gas + solid)` of its atoms: one for an element that stays gas (the noble gases of a giant that formed warmer than their
-    lines; its Jupiter-like 3 times solar needs the cold trapping or the pebble drift this model does not have), `sigma` for one that froze whole as an ice, the rock's own scale `enrichment` for the troilite of the sulfur, and
+    lines, unless the pebbles carried them in: `ice_weights`, GEN.1516), `sigma` for one that froze whole as an ice, the rock's own scale `enrichment` for the troilite of the sulfur, and
     between for the nitrogen (N2 gas, the ammonia and the salts frozen below the ammonia line) and the rest of the sulfur (H2S gas above its line).
 
     Args:
         temperature_k (float): The disk temperature where the giant formed.
         enrichment (float): The envelope's heavy elements over its star's; zero or more.
         carbon, oxygen, nitrogen, sulfur, noble (float): The star's ratios over the rock-forming metals, over the Sun's (`inventory`); `noble` is the argon's, taken for krypton and xenon.
+        ice_weights (dict): `{species: E}` of the ices that evaporated on the way to the giant's place (`disk_drift.giant_ice_weights`, GEN.1473; GEN.1516 gives it to the nitrogen,
+            sulfur and noble gases as `envelope_c_over_o` gives it to the carbon and oxygen): the gas holds `E` times the static vapor of each, so a noble gas the pebbles carried in is enriched
+            past what the solids alone give. `None` is the static disk, every `E` equal to 1.
+        solids_edge_k (float): The disk's edge temperature when the planetesimals are those formed between the giant's place and the edge (`provenance_condensed`, GEN.1519): a giant that formed
+            warmer than the noble gases' lines still takes them in the planetesimals that formed beyond; `None` for the solids that froze at its own place.
 
     Returns:
         dict: `ENRICHED_ELEMENTS` symbol to the envelope's atoms per hydrogen over the star's.
@@ -410,14 +445,23 @@ def envelope_enrichments(temperature_k, enrichment, carbon=1.0, oxygen=1.0, nitr
         raise ValueError("the enrichment must be zero or more")
     held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
     frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
-    sigma = _planetesimal_share(enrichment, *_gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble))
+    if ice_weights or solids_edge_k is not None:
+        sigma = _planetesimal_share(enrichment, *_gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble, ice_weights, solids_edge_k), held.carbon + held.oxygen)
+    else:
+        sigma = _planetesimal_share(enrichment, *_gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble))
+    mixed = frozen if solids_edge_k is None else provenance_condensed(temperature_k, solids_edge_k, carbon, oxygen, nitrogen, sulfur, noble)
+    extra = {species: (weight - 1.0) * held.moles[species] for species, weight in (ice_weights or {}).items() if species in held.moles and temperature_k >= LINES_K[species]}
     nitrogen_total = 2.0 * held.moles["N2"] + held.moles["NH3"] + ammonium_salts(carbon, oxygen, nitrogen, sulfur, noble)
-    nitrogen_solid = 2.0 * frozen.get("N2", 0.0) + frozen.get("NH3", 0.0) + frozen.get("NH4", 0.0)
+    nitrogen_here = 2.0 * frozen.get("N2", 0.0) + frozen.get("NH3", 0.0) + frozen.get("NH4", 0.0)
+    nitrogen_solid = 2.0 * mixed.get("N2", 0.0) + mixed.get("NH3", 0.0) + mixed.get("NH4", 0.0)
+    nitrogen_vapor = 2.0 * extra.get("N2", 0.0) + extra.get("NH3", 0.0)
     sulfur_total = solar_per_1e4_h("S") * sulfur
     sulfur_ice = frozen.get("H2S", 0.0)
+    sulfur_planetesimal = mixed.get("H2S", 0.0)
     troilite = sulfur_total * (1.0 - SULFUR_AS_H2S)
-    solids = {"N": (nitrogen_total, nitrogen_solid), "Ar": (held.moles["Ar"], frozen.get("Ar", 0.0)), "Kr": (held.moles["Kr"], frozen.get("Kr", 0.0)),
-              "Xe": (held.moles["Xe"], frozen.get("Xe", 0.0))}
-    factors = {symbol: (total - solid + sigma * solid) / total for symbol, (total, solid) in solids.items()}
-    factors["S"] = (sulfur_total - troilite - sulfur_ice + enrichment * troilite + sigma * sulfur_ice) / sulfur_total      # the troilite is rock: the rock's scale, not the ices'
+    solids = {"N": (nitrogen_total, nitrogen_here, nitrogen_solid, nitrogen_vapor), "Ar": (held.moles["Ar"], frozen.get("Ar", 0.0), mixed.get("Ar", 0.0), extra.get("Ar", 0.0)),
+              "Kr": (held.moles["Kr"], frozen.get("Kr", 0.0), mixed.get("Kr", 0.0), extra.get("Kr", 0.0)),
+              "Xe": (held.moles["Xe"], frozen.get("Xe", 0.0), mixed.get("Xe", 0.0), extra.get("Xe", 0.0))}
+    factors = {symbol: (total - here + vapor + sigma * solid) / total for symbol, (total, here, solid, vapor) in solids.items()}
+    factors["S"] = (sulfur_total - troilite - sulfur_ice + extra.get("H2S", 0.0) + enrichment * troilite + sigma * sulfur_planetesimal) / sulfur_total      # the troilite is rock: the rock's scale, not the ices'
     return factors

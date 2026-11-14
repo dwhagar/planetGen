@@ -10,9 +10,11 @@ module works out, in one place and without drawing from the run's stream:
 - `roundness_ratio`: the body's mean radius over the radius at which its own weight beats the strength of what it is made of
   (`roundness.roundness_ratio`); 1 or more is round, less is not (the classes and the Asteroid type of GEN.1160 read it).
 - `yield_strength_pa`: the whole-body strength of the body's material mix, drawn from the range the research gives for each material
-  (`roundness.drawn_strengths_pa`, GEN.1178), so the line between round and not round is fuzzy as it is in the Solar System. It is the
-  cold strength: the engine's temperature is the one a body took its shape at (it creeps round when warm), not its surface temperature,
-  and no body stores that yet, so none is passed.
+  (`roundness.drawn_strengths_pa`, GEN.1178), so the line between round and not round is fuzzy as it is in the Solar System. A planet or a moon
+  has it at the temperature it took its shape at (`shape_temperature_k`, GEN.1201; ice creeps near its melting point and dry olivine from about
+  1,000 K); a body with no surface temperature yet, a comet and a rogue planet have the cold strength (`None`).
+- `shape_temperature_k`: that temperature (`shape_temperature.shape_temperature_k`), from the body's surface temperature, the binding energy of its assembly, its
+  stored radioactive content and its tide's flux.
 - `binding_energy_j`: the energy that assembling the body from infinity releases (`binding_energy.binding_energy_j`): two uniform
   shells for a rocky body with a core, the n = 1 polytrope for a gas giant.
 
@@ -24,17 +26,24 @@ kept. A body without a mass or a radius has none of the three.
 
 Use:
 
-    body_strength.generate(planet)       # sets FIELDS on a planet or a moon
+    body_strength.generate(planet)       # sets BODY_FIELDS on a planet or a moon
 """
 
 import math
 
-from planetgen.physics import binding_energy, planet_classes, planet_type, roundness
+from planetgen.physics import binding_energy, planet_classes, planet_type, radiogenic, roundness, shape_temperature
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
 FIELDS = ("roundness_ratio", "yield_strength_pa", "binding_energy_j")
 """tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1159)."""
+
+SHAPE_FIELD = "shape_temperature_k"
+"""str: The temperature, K, a planet or a moon took its shape at (`shape_temperature`, GEN.1201): a `planets` and `moons` column beside `FIELDS`. A comet, a rogue planet and a
+belt member keep the cold strength (`None`) until their own thermal inputs are stored."""
+
+BODY_FIELDS = (*FIELDS, SHAPE_FIELD)
+"""tuple: What `values` returns for a planet or a moon: `FIELDS` and the shape-setting temperature."""
 
 _km_to_m = units.converter("km", "m")
 _g_cm3_to_kg_m3 = units.converter("g_cm3", "kg_m3")
@@ -77,27 +86,42 @@ def _is_giant(body):
     return (getattr(body, "envelope_mass_fraction", None) or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE
 
 
-def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0):
+def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0, binding_j=None):
     """
     The `FIELDS` of a solid body from its mass, mean radius, density and composition: `{name: value}`. `ice` and `metal` are the shares of its mass,
-    `temperature_k` the temperature the body took its shape at (`None`: the cold whole-body strength, which every caller passes until a body stores its shape-setting temperature), `quantile` the strength draw from 0 to 1, and `core_kg` and
-    `core_m` the core of a differentiated body (0 for none).
+    `temperature_k` the temperature the body took its shape at (`None`: the cold whole-body strength; a planet or a moon passes `shape_temperature_of`, GEN.1201), `quantile` the strength draw from 0 to 1, `core_kg` and
+    `core_m` the core of a differentiated body (0 for none), and `binding_j` its binding energy where the caller has worked it out already.
     """
     ice = min(max(ice or 0.0, 0.0), 1.0)
     metal = min(max(metal or 0.0, 0.0), 1.0 - ice)
     return {
         "roundness_ratio": roundness.roundness_ratio(radius_m, density_kg_m3, ice, metal, porosity or 0.0, temperature_k, draw=quantile),
         "yield_strength_pa": roundness.yield_strength_pa(ice, metal, porosity or 0.0, temperature_k, draw=quantile),
-        "binding_energy_j": binding_energy.binding_energy_j("rocky", mass_kg, radius_m, core_kg, core_m),
+        "binding_energy_j": binding_energy.binding_energy_j("rocky", mass_kg, radius_m, core_kg, core_m) if binding_j is None else binding_j,
     }
+
+
+def shape_temperature_of(body, mass_kg, radius_m, binding_j, ice, metal):
+    """
+    The temperature, K, a planet or a moon took its shape at (`shape_temperature.shape_temperature_k`, GEN.1201), from what it stores: its surface temperature, the
+    binding energy of its assembly, its stored radioactive content and aluminium, and the tide's flux through its surface. `None` for a body that has no surface temperature yet (the class
+    is first read before the air is made; the body is made again once it has one).
+    """
+    surface_k = getattr(body, "surface_temperature", None)
+    if not (surface_k and surface_k > 0.0):
+        return None
+    silicate = max(min(getattr(body, "rock_mass_fraction", None) or 0.0, 1.0 - ice - metal), 0.0)
+    tidal_w = max(getattr(body, "tidal_flux_w_m2", None) or 0.0, 0.0) * 4.0 * math.pi * radius_m ** 2
+    return shape_temperature.shape_temperature_k(mass_kg, radius_m, ice, metal, silicate, surface_k, binding_j, radiogenic.content_of(body),
+                                                 radiogenic.rock_of(body).aluminium, tidal_w)
 
 
 def values(body, quantile=None):
     """
-    The `FIELDS` of a planet or a moon: `{name: value}`, every one `None` for a body that lacks a mass or a radius. `quantile` is the strength
-    draw from 0 to 1 (`None` draws it from the body's own stream).
+    The `BODY_FIELDS` of a planet or a moon: `{name: value}`, every one `None` for a body that lacks a mass or a radius. `quantile` is the strength
+    draw from 0 to 1 (`None` draws it from the body's own stream). A giant keeps its binding energy alone.
     """
-    out = dict.fromkeys(FIELDS)
+    out = dict.fromkeys(BODY_FIELDS)
     mass_kg, radius_km = getattr(body, "mass", None), getattr(body, "radius", None)
     if not (mass_kg and radius_km and mass_kg > 0.0 and radius_km > 0.0):
         return out
@@ -110,8 +134,13 @@ def values(body, quantile=None):
     density_kg_m3 = _g_cm3_to_kg_m3(density) if density else roundness.bulk_density_kg_m3(mass_kg, radius_m)
     if quantile is None:
         quantile = quantile_of(body)
-    return solid(mass_kg, radius_m, density_kg_m3, ice_fraction(body), getattr(body, "metal_mass_fraction", None), getattr(body, "porosity", None),
-                 None, quantile, core_kg, core_m)
+    ice = min(max(ice_fraction(body), 0.0), 1.0)
+    metal = min(max(getattr(body, "metal_mass_fraction", None) or 0.0, 0.0), 1.0 - ice)
+    binding_j = binding_energy.binding_energy_j("rocky", mass_kg, radius_m, core_kg, core_m)
+    temperature_k = shape_temperature_of(body, mass_kg, radius_m, binding_j, ice, metal)
+    out.update(solid(mass_kg, radius_m, density_kg_m3, ice, metal, getattr(body, "porosity", None), temperature_k, quantile, core_kg, core_m, binding_j))
+    out[SHAPE_FIELD] = temperature_k
+    return out
 
 
 def quantile_for(*parts):
@@ -121,12 +150,13 @@ def quantile_for(*parts):
 
 
 def quantile_of(body):
-    """The strength quantile of a planet or a moon, from a stream of its own (mass, radius, distance and whether it is a moon)."""
-    return quantile_for(float(body.mass), float(body.radius), float(getattr(body, "distance", 0.0) or 0.0), int(bool(getattr(body, "is_moon", False))))
+    """The strength quantile of a planet or a moon, from a stream of its own keyed to its birth (mass, the distance it formed at, its star's mass and whether it is a moon; GEN.1547)."""
+    with draw.bound(draw.body_stream_of(STRENGTH_DRAW_STREAM, body, slot=str(int(bool(getattr(body, "is_moon", False)))))):
+        return draw.random()
 
 
 def generate(body):
-    """Sets `FIELDS` on a planet or a moon (call once its mass, radius, composition and temperature are final)."""
+    """Sets `BODY_FIELDS` on a planet or a moon (call once its mass, radius, composition and temperature are final)."""
     for name, value in values(body).items():
         setattr(body, name, value)
 

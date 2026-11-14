@@ -26,7 +26,7 @@ from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeR
 
 from planetgen.datasets import catalogue, fetch
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
-from planetgen.util import log
+from planetgen.util import log, process
 
 
 _CONSEQUENCE = " -- generation will not start until it is fetched (it replaces: {})"
@@ -146,10 +146,6 @@ def check_datasets_unit(params, report):
     return {"lines": lines, "absent": absent}
 
 
-def _raise_interrupt(_signum, _frame):
-    raise KeyboardInterrupt
-
-
 def run_status(keys, disregard_missing_data):
     """
     `datasets status`: runs the `check-datasets` command through the wrapper as a check run and prints its lines.
@@ -161,16 +157,16 @@ def run_status(keys, disregard_missing_data):
     step = commands.Step("datasets", "check-datasets", "Check the data sets",
                          {"keys": list(keys), "disregard": bool(disregard_missing_data)})
     found = []
-    previous_term = signal.signal(signal.SIGTERM, _raise_interrupt)      # Cancel ends the run as canceled in Redis
+    previous_term = process.interrupt_on_sigterm()      # Cancel ends the run as canceled in Redis
     try:
         wrapper.run("Data check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
                     kind=runrecord.CHECK, argv=sys.argv[1:])
     except runrecord.Busy as exc:       # another check holds the check place: this one reads files only, so it just answers
-        log.warning(f"another data or database check is running ({exc}); checking the data here without a run record")
+        log.warning(f"Another data or database check is running ({exc}), so the data is checked here without a run record.")
         lines, absent = status_lines(_chosen(keys), bool(disregard_missing_data))
         found.append({"lines": lines, "absent": absent})
     except (redisqueue.Unavailable, units.RunStopped) as exc:
-        log.error(f"error: the data check could not run: {exc}")
+        log.error(f"The data check could not run: {exc}")
         return 1
     finally:
         signal.signal(signal.SIGTERM, previous_term)

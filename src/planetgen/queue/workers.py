@@ -32,6 +32,7 @@ from rq import command, worker_registration
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, runrecord, stopall, work
 from planetgen.util import log
+from planetgen.util import process
 
 WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
@@ -93,12 +94,12 @@ STAGE_WORKER_MEMORY_MB = {
     "generate-start-sector": SECTOR_WORKER_MEMORY_MB, "generate-neighborhood": SECTOR_WORKER_MEMORY_MB,
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
     "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
-    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB, "empty-nebula-field": LEAN_WORKER_MEMORY_MB, "clear-bright-stars": LEAN_WORKER_MEMORY_MB,
+    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "refill-effect-ledger": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB, "empty-nebula-field": LEAN_WORKER_MEMORY_MB, "clear-bright-stars": LEAN_WORKER_MEMORY_MB,
     "empty-phenomenon-scatter": LEAN_WORKER_MEMORY_MB, "drop-phenomenon-indexes": LEAN_WORKER_MEMORY_MB,
     "link-neighbors": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
     "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,
     "warm-sectors": LEAN_WORKER_MEMORY_MB, "warm-systems": LEAN_WORKER_MEMORY_MB, "warm-phenomena": LEAN_WORKER_MEMORY_MB,
-    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `whole` (no unit-length ceiling) but cut into one unit per run of shells: 90 units on the full galaxy
+    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `whole` (no unit-length ceiling): the roll-up is the one unit (OPS.154 ended the uncharted index units of OPS.153)
     "warm-cluster-field": BULK_WORKER_MEMORY_MB,        # not measured yet (PERF.225 cuts it into parts): the larger figure
 }
 """dict: The command kinds of the stages with units, and what one worker takes at most in MB (`stage_worker_cap`). Every other
@@ -168,17 +169,8 @@ def niceness(queue_names):
     return INTERACTIVE_NICENESS if redisqueue.INTERACTIVE_QUEUE in queue_names else work.WORKER_NICENESS
 
 
-def process_exists(pid):
-    """Whether a process with this id is running here (a process of another user counts as running)."""
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except OSError:
-        return False
-    return True
+process_exists = process.pid_alive
+"""Whether a process with this id is running here (`util.process.pid_alive`; a test patches this name)."""
 
 
 def live_workers(queue):
@@ -288,9 +280,12 @@ def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
         cap = count or maintenance_cap(connection, mysql_host)
     else:
-        cap = count or lane_cap(queue_name) or wanted(connection, mysql_host)
+        asked = wanted(connection, mysql_host)
+        cap = count or lane_cap(queue_name) or asked
         if queue_name == redisqueue.BULK_QUEUE:
-            cap = min(cap, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
+            cap = min(cap, max(1, asked - maintenance_share(connection, mysql_host)))
+            from planetgen.queue import adaptive
+            cap = adaptive.adapt(connection, cap, waiting)           # the cap, lowered while the host is short of memory
     live = live_worker_count(queue)
     need = min(waiting, cap) - live - starting
     log.trace(f"workers for {queue_name}: {waiting} job(s) waiting, cap {cap}, {live} live, {starting} starting; "
@@ -338,20 +333,25 @@ def host_worker_cap():
     return max(floor, min(by_memory, 4 * cores))
 
 
-def stage_worker_mb(kind):
+def stage_worker_mb(kind, conn=None, run_id=None):
     """What one worker of a stage of command `kind` takes at most, MB (PERF.226): its figure in `STAGE_WORKER_MEMORY_MB`, or `None`
-    for a command that is one unit or inline (one worker, nothing to limit)."""
-    return STAGE_WORKER_MEMORY_MB.get(kind)
+    for a command that is one unit or inline (one worker, nothing to limit). With `conn` (OPS.157) the figure is the claim the gate makes for a unit of the kind
+    (`profileclaim.claim`: from the job profile when this machine has history, held for the run `run_id`), which is the typed figure with no history."""
+    typed = STAGE_WORKER_MEMORY_MB.get(kind)
+    if conn is None or typed is None:
+        return typed
+    from planetgen.queue import profileclaim
+    return profileclaim.claim(conn, f"unit:{kind}", typed, token=run_id) or typed
 
 
-def stage_worker_cap(kind):
+def stage_worker_cap(kind, conn=None, run_id=None):
     """
     The most workers a stage of command `kind` may use at once (PERF.220, PERF.226): `STAGE_MEMORY_SHARE` of the host's memory in
     workers of what that stage's worker takes (`stage_worker_mb`), at least 1. `None` for a command that is one unit or inline or
     where the OS does not say how much memory there is. What a stage generates does not depend on how many workers share it
-    (`work.task_seed`), so the cap only changes the time.
+    (`work.task_seed`), so the cap only changes the time. With `conn` the workers are sized by the claim from the job profile (OPS.157, see `stage_worker_mb`).
     """
-    per_worker_mb = stage_worker_mb(kind)
+    per_worker_mb = stage_worker_mb(kind, conn, run_id)
     total = _physical_memory_bytes()
     if per_worker_mb is None or total is None:
         return None
@@ -416,23 +416,31 @@ def maintenance_share(connection, mysql_host=None):
     return min(maintenance_cap(connection, mysql_host), busy + waiting)
 
 
-def shed_bulk(connection, cap):
+def staying_bulk_workers(connection):
+    """The live bulk workers that have not been asked to leave (`shed_bulk`), as RQ workers."""
+    live = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))
+    return [worker for worker in live if not connection.exists(LENT_PREFIX + worker.name)]
+
+
+def shed_bulk(connection, cap, first=()):
     """
     The lend rule (PERF.150): asks the bulk workers over `cap` to finish their unit and exit (RQ's shutdown command),
     idle ones first and the newest first, so a maintenance worker can have a place without the host's total growing.
     A worker already asked is not asked again (`LENT_PREFIX`), and counts as gone. The bulk lane starts workers
     again by itself (`ensure_workers`) when the maintenance lane no longer needs the places.
 
+    `first` (the adaptive control, `queue.adaptive`) names workers to ask before any other: those that hold a job back at the memory gate and
+    run nothing, so shedding them costs no work (a worker that waits at the gate puts its job back at the front of its queue and exits).
+
     Returns:
         int: How many workers were asked.
     """
-    live = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))
-    staying = [worker for worker in live if not connection.exists(LENT_PREFIX + worker.name)]
+    staying = staying_bulk_workers(connection)
     over = len(staying) - cap
     if over <= 0:
         return 0
-    staying.sort(key=lambda worker: (worker.get_state() != "idle", -(worker.birth_date.timestamp()
-                                                                        if worker.birth_date else 0.0)))
+    staying.sort(key=lambda worker: (worker.name not in first, worker.get_state() != "idle", -(worker.birth_date.timestamp()
+                                                                                              if worker.birth_date else 0.0)))
     for worker in staying[:over]:
         connection.set(LENT_PREFIX + worker.name, "1", ex=LENT_SECONDS)
         command.send_shutdown_command(connection, worker.name)

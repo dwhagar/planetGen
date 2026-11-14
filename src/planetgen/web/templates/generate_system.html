@@ -20,6 +20,8 @@
   <form method="post" action="{{ url_for('web.generate_system') }}#system-result" class="search-form">
     {{ csrf_field() }}
     <div class="search-fields">
+      {{ ui_select("result_kind", "Result", result_choices, form.get("result_kind", ""),
+                   hint="A rogue planet or comet has no star: only the name and the debug log apply.") }}
       {{ field("name", "Name", placeholder="random") }}
       {{ field("star_type", "Star type", placeholder="random, e.g. G2V") }}
       {{ ui_select("age", "Age", [{"value": "", "label": "Generator decides"}, {"value": "young", "label": "Young"}, {"value": "old", "label": "Old"}], form.get("age", "")) }}
@@ -58,8 +60,22 @@
         <span class="field-hint">Anything <code>--system-file</code> accepts, such as an exact slot layout. The options above override it.</span>
       </label>
     </details>
+    <div class="search-fields">
+      {{ field("force_class", "Ask for a class", placeholder="none, e.g. O",
+               hint="A planet class letter the system should hold (it is drawn again a few times if needed); the result says which body holds it and how well it fits, or that none came out.") }}
+      {{ field("force_life_class", "Ask for a life class", placeholder="none, e.g. 6 or 4c",
+               hint="A number, or a number and variant, of the life class a planet or moon should live under. A class letter cannot be combined with a system file's slots.") }}
+    </div>
+    <div class="search-fields">
+      {{ field("weirdness_dial", "Weirdness dial", kind="number", min=0, placeholder="default",
+               hint="Multiplies the rate of every oddity: 0 turns them all off, 1 is the table's own rates.") }}
+      {{ field("force_oddities", "Force oddities", placeholder="none, e.g. W10,G1",
+               hint="Oddity ids that every body whose conditions allow them is given without the roll: " ~ oddity_ids ~ ".") }}
+    </div>
     <div class="search-fields system-format">
       {{ ui_checkbox("debug", "Show the generator's reasoning (debug log)", checked=form.get("debug")) }}
+      {{ field("debug_areas", "Debug areas", placeholder="all but branch",
+               hint="Used with the debug log. Names separated by commas, or all, or a leading - to leave one out: " ~ debug_areas.keys()|join(", ") ~ ".") }}
       {{ ui_checkbox("disregard_missing_data", "Disregard missing data files", checked=form.get("disregard_missing_data"), hint=("The generator refuses to run while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it runs anyway and takes a labelled fallback for each missing dataset.")|safe) }}
     </div>
     <div class="search-actions">
@@ -75,6 +91,9 @@
   <textarea readonly rows="12" class="content-box" aria-label="Generator output">{{ result.output or "No output." }}</textarea>
   {%- else %}
   <h2 id="system-result-heading">{{ result.title }}</h2>
+  {%- for line in result.asked %}
+  <p class="hint" role="status">{{ line }}</p>
+  {%- endfor %}
   <div class="system-downloads search-actions">
     {%- for download in result.downloads %}
     <form method="post" action="{{ url_for('web.generate_system_download') }}">

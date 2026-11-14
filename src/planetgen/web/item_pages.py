@@ -84,6 +84,13 @@ def _crumbs(found, name):
     return crumbs
 
 
+def linked_crumbs(found, name, ref):
+    """`_crumbs` with the item itself a link (`item_url(ref)`): the trail of a page under the item's own, which appends its crumb."""
+    crumbs = _crumbs(found, name)
+    crumbs[-1] = {"label": name, "url": item_url(ref)}
+    return crumbs
+
+
 def cluster_name(name, printed_id):
     """MAP.224: a globular cluster is called by its name, or by its designation (the kind and its printed Object ID) while it has none."""
     return name or f"{KIND_LABELS['globular_cluster']} {printed_id}"
@@ -258,6 +265,27 @@ def sheet_view(sheet):
     return [group for group in groups if group["rows"]]
 
 
+EJECTA_ROWS = (("Mass", "ejecta_mass_sol", "swept_mass_sol"), ("Hydrogen share", "ejecta_mass_fraction_h", "swept_mass_fraction_h"),
+               ("Helium share", "ejecta_mass_fraction_he", "swept_mass_fraction_he"),
+               ("Heavy-element share", "ejecta_mass_fraction_z", "swept_mass_fraction_z"))
+"""tuple: The rows of a remnant's two-column table (GEN.1272): the label, the key of the ejecta's value and the key of the swept-up gas's value."""
+
+
+def ejecta_view(sheet):
+    """
+    A supernova remnant's ejecta and swept-up gas side by side (GEN.1272): `{"columns": ["Ejecta", "Swept-up gas"], "rows": [{"label", "cells": [html]}]}`
+    with the mass and the hydrogen, helium and heavy-element shares of each, a figure the remnant does not store a dash. `None` for anything that is not a
+    remnant, or a remnant with none of them stored.
+    """
+    rows = {row["key"]: row for group in sheet["groups"] for row in group["rows"]}
+    if not any(rows.get(key, {}).get("stored") for _, ejecta, swept in EJECTA_ROWS for key in (ejecta, swept)):
+        return None
+    dash = trusted_html("&mdash;")
+    return {"columns": ["Ejecta", "Swept-up gas"],
+            "rows": [{"label": label, "cells": [_value_html(rows[key]) if rows.get(key, {}).get("stored") else dash for key in (ejecta, swept)]}
+                     for label, ejecta, swept in EJECTA_ROWS]}
+
+
 def bands_view(sheet):
     """
     The table of the seven bands of a planet or moon (GEN.1108) as the page draws it: `{"caption", "columns": [label], "rows": [{"label", "cells": [html]}]}`, the bands as columns
@@ -384,7 +412,8 @@ def sheet_context(sheet):
     total = sum(len(group["rows"]) for group in sheet["groups"])
     notes = [sheet_registry.MISSING_SENTENCES[key] for key in sheet_registry.MISSING_SENTENCES
              if key in (sheet.get("missing") or ())]
-    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed, "absences": notes}
+    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed, "absences": notes,
+            "ejecta": ejecta_view(sheet)}
 
 
 def region_row(found):
@@ -399,13 +428,29 @@ def region_row(found):
     return {"label": "Region", "html": esc(f"in {region['name']}")}
 
 
+def _with_glance_rows(context, rows):
+    """A page's sheet context with `rows` (escaped text) added to the end of its At a glance panel; unchanged for none."""
+    if not rows:
+        return context
+    return {**context, "glance": context["glance"] + [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]}
+
+
 def with_region(context, found):
     """A page's sheet context with the region the object lies in as the last row of its At a glance panel (UX.231), when it lies
     in a charted one. `found` is `GET /api/objects/<ref>`."""
     row = region_row(found)
-    if row is None:
-        return context
-    return {**context, "glance": context["glance"] + [{"label": row["label"], "html": trusted_html(row["html"])}]}
+    return _with_glance_rows(context, [row] if row is not None else [])
+
+
+def annotated_sheet(sheet, found):
+    """The template variables of an object's sheet (`sheet_context`) with its oddities and then its region on the At a glance
+    panel. `found` is `GET /api/objects/<ref>`."""
+    return with_region(with_oddities(sheet_context(sheet), found), found)
+
+
+def parent_of(found, kind):
+    """The parent of `kind` in an object's parent chain (`GET /api/objects/<ref>`), or `None`."""
+    return next((p for p in found["parents"] if p["kind"] == kind), None)
 
 
 def oddity_rows(found):
@@ -418,10 +463,7 @@ def oddity_rows(found):
 
 def with_oddities(context, found):
     """A page's sheet context with the object's oddities as rows of its At a glance panel, before the region row (GEN.1047)."""
-    rows = oddity_rows(found)
-    if not rows:
-        return context
-    return {**context, "glance": context["glance"] + [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]}
+    return _with_glance_rows(context, oddity_rows(found))
 
 
 def _bodies(detail):
@@ -541,7 +583,7 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(""),
-        **with_region(with_oddities(sheet_context(apiclient.get_object_sheet(db, ref)), found), found),
+        **annotated_sheet(apiclient.get_object_sheet(db, ref), found),
         tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
         location=location(found["parents"], None),
         owner_url=item_url(free_planet["ref"]),
@@ -578,7 +620,7 @@ def _facility_page(db, printed_id, found):
     ref = f"facility:{printed_id}"
     name = found["name"]
     facility = apiclient.get_facility(db, printed_id)
-    system = next((p for p in found["parents"] if p["kind"] == "system"), None)
+    system = parent_of(found, "system")
     nav_ref = endpoint("facility", printed_id)
     return render_page(
         "item.html",
@@ -591,7 +633,7 @@ def _facility_page(db, printed_id, found):
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(_facility_facts(facility, found)),
-        **with_region(with_oddities(sheet_context(apiclient.get_object_sheet(db, ref)), found), found),
+        **annotated_sheet(apiclient.get_object_sheet(db, ref), found),
         tree="",
         location=location(found["parents"], None),
         system_url=page_url("system", system_id=system["ref"].partition(":")[2]) if system else None,
@@ -681,7 +723,7 @@ def _container_page(db, kind, printed_id, found):
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(_container_facts(container, found, listing)),
-        **with_region(with_oddities(sheet_context(apiclient.get_object_sheet(db, ref)), found), found),
+        **annotated_sheet(apiclient.get_object_sheet(db, ref), found),
         tree="",
         location=location(found["parents"], None),
         bookmark=bookmark(kind, endpoint(kind, printed_id), name, item_url(ref)),
@@ -700,6 +742,17 @@ def _moon_system_url(system_id, kind, printed_id, row):
     return page_url("system", system_id=system_id, scene=f"planet-{row['id']}")
 
 
+def _irregular_moons_url(db, kind, ref):
+    """GEN.1086: the list of the irregular moons a planet keeps, when it keeps any; nothing for another kind, a planet with none or when the API cannot say."""
+    if kind != "planet":
+        return None
+    try:
+        kept = apiclient.get_irregular_moons(db, ref)["moons"]
+    except (apiclient.NotFoundError, apiclient.ApiError):    # the page does not wait on a second call: without the list it just has no link
+        return None
+    return page_url("irregular_moons_page", planet_ref=ref) if kept else None
+
+
 def render_item(kind, printed_id):
     """The page of one star, planet, moon, belt, comet, facility, globular cluster or superbubble; a missing one is a 404."""
     ref = f"{kind}:{printed_id}"
@@ -713,9 +766,9 @@ def render_item(kind, printed_id):
         return _facility_page(db, printed_id, found)
     if kind in objectref.CONTAINER_KINDS:
         return _container_page(db, kind, printed_id, found)
-    system = next((p for p in found["parents"] if p["kind"] == "system"), None)
+    system = parent_of(found, "system")
     if system is None:
-        free_planet = next((p for p in found["parents"] if p["kind"] == "rogue_planet"), None)
+        free_planet = parent_of(found, "rogue_planet")
         if free_planet is None:
             abort(404)
         return _free_moon_page(db, kind, printed_id, found, free_planet)    # DB.94: no system, so no description
@@ -757,7 +810,7 @@ def render_item(kind, printed_id):
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
         day_counter=day_counter.counter(row, kind) if kind in ("planet", "moon") and row is not None else None,
         life_air=life_air_view(db, kind, printed_id, row),
-        **with_region(with_oddities(sheet_context(sheet), found), found),
+        **annotated_sheet(sheet, found),
         **({"planet": planet_sections(name, row, sheet, species, piece, life_readings_view(db, kind, printed_id, row))} if kind in ("planet", "moon") else {}),
         tree=tree,
         tree_marks=tree_has_marks(children),
@@ -774,6 +827,7 @@ def render_item(kind, printed_id):
         edit=admin,
         object_ref=ref,
         belt_info_url=page_url("belt_info_page", belt_ref=ref) if kind == "belt" else None,
+        irregular_moons_url=_irregular_moons_url(db, kind, ref),
     )
 
 

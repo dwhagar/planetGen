@@ -97,6 +97,22 @@ def wide_pair_first_word(system_name):
     return system_name.split()[0]
 
 
+def wide_pair_star_words(system_name, primary_name, secondary_name):
+    """
+    A wide pair's two star words read back from the names its two stars carry (DB.125): `assign_names` names them `<first word> <primary word>` and
+    `<first word> <secondary word>` (GEN.62), so the words are what follows the system name's first word. `None` where either name does not have that
+    shape (a pair renamed by hand, or stored before star words), which `StarSystem.assign_names` then draws again as it does for an old export.
+    """
+    first_word = wide_pair_first_word(system_name)
+    words = []
+    for name in (primary_name, secondary_name):
+        head, _, word = (name or "").partition(" ")
+        if head != first_word or not word or " " in word:
+            return None
+        words.append(word)
+    return tuple(words)
+
+
 def close_pair_label(primary_name, secondary_name):
     """
     The two stars of a close pair named together: `Voranthis A / B` for
@@ -110,6 +126,16 @@ def close_pair_label(primary_name, secondary_name):
             and (primary_letter, secondary_letter) == CLOSE_PAIR_LETTERS):
         return f"{primary_base} {primary_letter} / {secondary_letter}"
     return f"{primary_name} & {secondary_name}"
+
+
+def node_pair_label(system_name, star_names, node_no):
+    """
+    The name of the pair of stars at an inner node of a system's tree (GEN.332, slice A), as the Washington Double Star catalogue writes
+    a pair: the system's name and the letters of the node's stars together (`Voranthis CD`; a star and a pair about it are
+    `Voranthis ABC`), `Voranthis node N` for stars named some other way.
+    """
+    letters = [name[len(system_name) + 1:] for name in star_names if name.startswith(f"{system_name} ")]
+    return f"{system_name} {''.join(sorted(letters))}" if letters and len(letters) == len(star_names) else f"{system_name} node {node_no}"
 
 
 def name_bodies(prefix, bodies):

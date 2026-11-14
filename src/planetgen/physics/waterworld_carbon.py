@@ -4,7 +4,7 @@
 The carbon sink of a world with no land: ocean carbonate chemistry under a high-pressure-ice seal, and seafloor weathering (GEN.814)
 =====================================================================================================================================
 
-Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land. A water-rich world has none: the ocean is deeper than the
+Silicate weathering (`continental_weathering.pco2_bar`) needs land. A water-rich world has none: the ocean is deeper than the
 tallest mountain. What takes its carbon dioxide back out of the air depends on how deep the ocean is.
 
 * **A sealed world** (seafloor pressure at or above `SEAL_PRESSURE_PA`, 1 to 3 GPa). The weight of the water stops the mantle melting
@@ -51,7 +51,7 @@ from dataclasses import dataclass
 from planetgen.physics import constants, elements
 from planetgen.physics.mixture_base import bracket
 from planetgen.physics.sulfur_balance import CRUST_CALCIUM_WT
-from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_W_M2, MIN_PCO2_BAR, TS_MODERN_K)
+from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_W_M2, MIN_PCO2_BAR, TS_MODERN_K, balance_root_bar)
 
 # --- the seal ---------------------------------------------------------------------------------------------------------------
 
@@ -117,7 +117,7 @@ OCEAN_CHEMISTRY, CONTINENTAL_WEATHERING, SEAFLOOR_WEATHERING = "ocean-chemistry"
 def sink_kind(sealed, land_fraction):
     """
     Which sink sets the carbon dioxide of a world with an ocean: `OCEAN_CHEMISTRY` if the seafloor is sealed (whatever land there is, the
-    mantle no longer feeds the air), else `CONTINENTAL_WEATHERING` (`surface_pressure.carbonate_pco2_bar`) if there is land, else
+    mantle no longer feeds the air), else `CONTINENTAL_WEATHERING` (`continental_weathering.pco2_bar`, the land and the seafloor together) if there is land, else
     `SEAFLOOR_WEATHERING` (`seafloor_pco2_bar`).
     """
     if sealed:
@@ -141,7 +141,7 @@ def leached_cations_mol_m2(altered_km):
 TEMPERATURE_RANGE_K = (273.15, 373.15)
 """tuple: The temperatures the carbonate constants are used at ([R3548] give 0 to 90 C; hotter oceans use the 373 K values)."""
 
-BAR_PA = 1.0e5
+BAR_PA = constants.BAR_PA
 """float: One bar, Pa."""
 
 
@@ -386,17 +386,4 @@ def seafloor_pco2_bar(supply_bar, heat_flux_w_m2, temperature_of, law, outgassin
     def excess(p_bar):
         return SEAFLOOR_SHARE_OF_OUTGASSING * seafloor_rate_over_modern(p_bar, temperature_of(p_bar), heat_flux_w_m2, law) - outgassing
 
-    if excess(supply_bar) <= 0.0:
-        return supply_bar
-    if excess(MIN_PCO2_BAR) >= 0.0:
-        return MIN_PCO2_BAR
-    low, high = math.log(MIN_PCO2_BAR), math.log(supply_bar)
-    for _ in range(80):
-        middle = 0.5 * (low + high)
-        if excess(math.exp(middle)) > 0.0:
-            high = middle
-        else:
-            low = middle
-        if high - low < 1e-9:
-            break
-    return math.exp(0.5 * (low + high))
+    return balance_root_bar(supply_bar, excess)

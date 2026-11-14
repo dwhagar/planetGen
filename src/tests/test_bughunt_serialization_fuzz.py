@@ -41,11 +41,13 @@ from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.generation.wide_binary import WideBinaryPair
 
-# A modest subset of the full 150-seed fuzz list -- a full StarSystem
+# A small subset of the full 150-seed fuzz list -- a full StarSystem
 # generation (with binaries) is far more expensive per-iteration than the
-# pure-function fuzz tests, so this trades seed-count for still covering
-# every star-type/binary-shape combination below at least once.
-_SEEDS = FUZZ_SEEDS[:20]
+# pure-function fuzz tests, so this trades seed-count for time (TEST.734: 5
+# seeds, was 20, about 400 s off a full run; the shapes each test names are
+# built by the test itself, not drawn by the seed, so five seeds still reach
+# each one).
+_SEEDS = FUZZ_SEEDS[:5]
 
 STANDALONE_PHENOMENON_CLASSES = [Nebula, SupernovaRemnant, RoguePlanet, InterstellarComet, AsteroidField]
 
@@ -88,19 +90,9 @@ def test_system_config_roundtrip_fuzz():
 
 # --- Standalone phenomena --------------------------------------------------
 
-@pytest.mark.parametrize("cls", STANDALONE_PHENOMENON_CLASSES)
-def test_standalone_phenomenon_roundtrip_fuzz(cls):
-    def check(seed):
-        cfg = _make_config()
-        obj = cls(cfg)
-        _assert_roundtrip(obj, cls, f"{cls.__name__} seed={seed}", cfg)
-
-    from tests.bughunt_support import run_seeded
-    run_seeded(check, seeds=_SEEDS)
-
-
-@pytest.mark.parametrize("cls", [BlackHole, NeutronStar])
-def test_compact_remnant_roundtrip_fuzz(cls):
+@pytest.mark.parametrize("cls", [*STANDALONE_PHENOMENON_CLASSES, BlackHole, NeutronStar])
+def test_phenomenon_roundtrip_fuzz(cls):
+    """The standalone phenomena and the compact remnants share one body (TEST.734: two tests had the same one)."""
     def check(seed):
         cfg = _make_config()
         obj = cls(cfg)
@@ -145,9 +137,9 @@ _RUNTIME_ONLY = {
              "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",
              "_formation_fractions", "irregulars", "_deferred_climate",
              "_bare_core", "_captured_envelope", "_late_core",
-             "_air_choice", "_air_context", "_co2_sink", "_tidal_radius_km", "_resonance_e", "_kozai", "_retention_cap_pa", "_venus_spin", "oddity_quantities", "_frame_axis", "_air_light_au",
-             "_air_replay", "_late_accreted_percent", "_air_stale", "_air_eccentricity", "_tide_parent", "_tide_siblings"},    # GEN.1047 to 1051, GEN.1340: the air branch and its context the oddity rows read, the resonance eccentricity, the retention cap the life stage keeps its oxygen inside, the Venus-type spin and the oddity quantities; the stored columns (`oddities`, the eccentricity, the spin, the air) hold their result;    # the core the envelope was captured onto, the envelope it kept and the late-core request, which only the draw reads (GEN.1323); the stored columns hold their result; `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran    # kept so the moon history can run again (GEN.959); the ring it builds is stored
-    AsteroidBelt: {"system_config", "composition", "makeup", "_members", "scatter_giant_au", "captured_mass_kg", "oddity_quantities", "swept_kg", "scatter_giant_kg", "scatter_giant_radius_km", "_secular_planets"},    # where the mass an outer disk lost went and the giant that scattered it (GEN.1308, not stored); the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave; the mass the planets caught (GEN.1085), already out of `mass_kg`
+             "_air_choice", "_air_context", "belt_member", "_air_haze", "_co2_sink", "_tidal_radius_km", "_resonance_e", "_kozai", "_retention_cap_pa", "_venus_spin", "oddity_quantities", "_frame_axis", "_air_light_au",
+             "_air_replay", "_late_accreted_percent", "_air_stale", "_air_eccentricity", "_tide_parent", "_tide_siblings", "_envelope_helium_y"},    # GEN.1047 to 1051, GEN.1340: the air branch and its context the oddity rows read, the resonance eccentricity, the retention cap the life stage keeps its oxygen inside, the Venus-type spin and the oddity quantities, the helium share of a hydrogen-first loss (GEN.1527, rebuilt by the settle pass); the stored columns (`oddities`, the eccentricity, the spin, the air) hold their result;    # the core the envelope was captured onto, the envelope it kept and the late-core request, which only the draw reads (GEN.1323); the stored columns hold their result; `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+    AsteroidBelt: {"system_config", "composition", "makeup", "_members", "cleared_spans", "scatter_giant_au", "captured_mass_kg", "oddity_quantities", "swept_kg", "implanted_kg", "scatter_giant_kg", "scatter_giant_radius_km", "_secular_planets"},    # where the mass an outer disk lost went and the giant that scattered it (GEN.1308, not stored); the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave; the mass the planets caught (GEN.1085), already out of `mass_kg`
 }
 
 

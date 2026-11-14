@@ -36,6 +36,8 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.random import log_uniform
 
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 class Quasar(LazySaladName):
@@ -158,7 +160,4 @@ class Quasar(LazySaladName):
         return self.luminosity_w / tuning.MILKY_WAY_STELLAR_LUMINOSITY_W
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
-
-_kg_to_msun = units.converter("kg", "Msun")
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Quasar, "quasar")

@@ -57,8 +57,9 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history,
-    remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
+    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, hierarchy_stability, imf, mass_boundaries, ms_lifetime, neutron_star,
+    pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
+from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -394,9 +395,9 @@ class MemberTree:
         single members and whose inclination is within `asin((R1 + R2) / a)` of edge-on (`pair_eclipses`)."""
         found = []
         for node in self.nodes:
-            pair = [member for member in self.members if member.parent_node_no == node.node_no]
-            if len(pair) == 2 and pair_eclipses(node.separation_au, node.inclination_deg, pair[0].radius_au,
-                                                pair[1].radius_au):
+            pair = self._pair_members(node)
+            if pair is not None and pair_eclipses(node.separation_au, node.inclination_deg, pair[0].radius_au,
+                                                  pair[1].radius_au):
                 found.append(node.node_no)
         return tuple(found)
 
@@ -673,7 +674,7 @@ def _inside_share(initial_mass_sol):
     under the period of that axis for the star and a companion of the mean mass ratio."""
     low, high = companion_ratio_range(initial_mass_sol)
     total = initial_mass_sol * (1.0 + 0.5 * (low + high))
-    period_d = _yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / total))
+    period_d = period_d_of_axis(CLOSE_COMPANION_AXIS_AU, total)
     mu, sigma = PERIOD_LAWS_LOG10_DAYS["massive" if initial_mass_sol >= MASSIVE_PRIMARY_MIN_MASS_SOL else "solar"]
     return NormalDist(mu, sigma).cdf(math.log10(period_d))
 
@@ -733,11 +734,24 @@ def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng, weights=None)
     return min(count, max_stars)
 
 
+def period_d_of_axis(axis_au, total_mass_solar):
+    """The period, days, of a pair of this axis (AU) and total mass (solar masses): Kepler's third law."""
+    return _yr_to_d(math.sqrt(axis_au ** 3 / total_mass_solar))
+
+
+def _radius_au_of_km(radius_km):
+    return _m_to_au(_km_to_m(radius_km))
+
+
+def _radius_au_of_sol(radius_sol):
+    return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
+
+
 def _radius_au(state):
     if state["radius_km"] is not None:
-        return _m_to_au(_km_to_m(state["radius_km"]))
+        return _radius_au_of_km(state["radius_km"])
     radius_sol = math.sqrt(state["luminosity_sol"]) * (tuning.SUN_EFFECTIVE_TEMPERATURE_K / state["temperature_k"]) ** 2
-    return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
+    return _radius_au_of_sol(radius_sol)
 
 
 def _leaf_of(record):
@@ -760,11 +774,11 @@ def _schwarzschild_au(mass_solar):
 
 def _remnant_leaf(kind, progenitor, mass, direct=False):
     if kind == "white-dwarf":
-        radius = _m_to_au(_km_to_m(evolution.white_dwarf_radius_km(mass)))
+        radius = _radius_au_of_km(evolution.white_dwarf_radius_km(mass))
         return _Leaf(kind, "VII", mass, progenitor, radius)
     if kind == "neutron-star":
         return _Leaf(kind, None, mass, progenitor,
-                     _m_to_au(_km_to_m(neutron_star.radius_km(mass))))
+                     _radius_au_of_km(neutron_star.radius_km(mass)))
     return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
 
 
@@ -880,11 +894,11 @@ def period_days(law, mass, a_lo, a_hi, massive, inside_weight=1.0, u=0.5):
     """The period, days, of a pair of total mass `mass` (solar masses) from its law cut to the axes `a_lo` to `a_hi` (AU), drawn from
     the unit `u`; None when the cut leaves no period. `massive` and `inside_weight` are the primary's (the law of a massive primary;
     `close_trend`'s weight on an axis inside `CLOSE_COMPANION_AXIS_AU`)."""
-    lo = _yr_to_d(math.sqrt(a_lo ** 3 / mass))
-    hi = _yr_to_d(math.sqrt(a_hi ** 3 / mass)) if math.isfinite(a_hi) else math.inf
+    lo = period_d_of_axis(a_lo, mass)
+    hi = period_d_of_axis(a_hi, mass) if math.isfinite(a_hi) else math.inf
     if law == "compact-pair":
-        lo = max(lo, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[0] ** 3 / mass)))
-        hi = min(hi, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass)))
+        lo = max(lo, period_d_of_axis(COMPACT_PAIR_AXIS_AU[0], mass))
+        hi = min(hi, period_d_of_axis(COMPACT_PAIR_AXIS_AU[1], mass))
     elif law == "interacted":
         lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
     elif law == "stripped":
@@ -907,7 +921,7 @@ def period_days(law, mass, a_lo, a_hi, massive, inside_weight=1.0, u=0.5):
     if inside_weight != 1.0:
         # The odds of an axis inside `CLOSE_COMPANION_AXIS_AU` follow the star's [Fe/H] (`close_trend`): the draw's
         # inside part grows or shrinks, the outside part keeps its shape.
-        edge = min(max(math.log10(_yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / mass))), log_lo), log_hi)
+        edge = min(max(math.log10(period_d_of_axis(CLOSE_COMPANION_AXIS_AU, mass)), log_lo), log_hi)
         reach = min(max(dist.cdf(edge), p_lo), p_hi)
         inside = (reach - p_lo) * weight if reach <= split else tail + (reach - split)
         u = _tilted(u, inside / (tail + rest), inside_weight)
@@ -1118,7 +1132,7 @@ class _Builder:
                     draw.redrawn("pair.axis_out_of_range")
                     continue
                 axis = 10.0 ** (math.log10(low) + rng.random() * (math.log10(high) - math.log10(low)))
-                period_d = 365.25 * math.sqrt(axis ** 3 / total)
+                period_d = period_d_of_axis(axis, total)
             elif fixed is None:
                 period_d = self.period_days(law, total, a_lo, a_hi, massive,
                                             self.inside_weight if parent is None else 1.0)
@@ -1147,6 +1161,15 @@ class _Builder:
             circular = (lambda both: both is not None and any(leaf.circular for leaf in both))(self.pair_leaves(left, right))
             if circular:
                 e = 0.0                      # the companion of a helium-core white dwarf the star draw made (GEN.996)
+            both = self.pair_leaves(left, right)
+            if both is not None and not any(leaf.compact for leaf in both) and axis < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
+                # GEN.1615: two single stars closer than the least a wide pair has are a P-type pair, tracked on a circle (`System`
+                # sets the pair's node that way). It is circular here, at the draw, so the tree the stability judges is the tree
+                # that is stored; a circle has no periapsis, so the angle from the ascending node (the argument plus the anomaly)
+                # is carried in the anomaly.
+                e = 0.0
+                anomaly = (anomaly + arg) % (2.0 * math.pi)
+                arg = 0.0
             interaction, member_flags = self.interaction(left, right, axis, e)
             if circular:
                 interaction = "post-common-envelope"
@@ -1158,7 +1181,7 @@ class _Builder:
                 m_left, m_right = (m_left - self.leaves[index].mass + replaced.mass if left == index else m_left,
                                    m_right - self.leaves[index].mass + replaced.mass if right == index else m_right)
                 total = m_left + m_right
-                period_d = 365.25 * math.sqrt(axis ** 3 / total)
+                period_d = period_d_of_axis(axis, total)
                 e = 0.0                      # the overflow circularised the orbit: the lobe was filled at this axis
                 if m_left < m_right:
                     left, right, m_left, m_right = right, left, m_right, m_left
@@ -1284,6 +1307,26 @@ class _Builder:
         return all(pair_clears(record["separation_au"], record["eccentricity"], self.side(record["left"], by_sub),
                                self.side(record["right"], by_sub)) for record in self.nodes)
 
+    def hierarchy_stable(self):
+        """
+        GEN.1016: whether every level of the drawn tree is stable (`physics/hierarchy_stability.py`): each triple level at its own criterion, and a tree of four stars
+        also by the network of the quadruple paper, a 3+1 chain (an inner pair, a star, a star) or a 2+2 (two pairs). The pair draw tests each orbit as a triple against the
+        orbit it goes round (`stable_at`); only the quadruple network sees the outer star pumping the middle orbit, so it is asked here, once the whole tree is drawn. A tree
+        of three stars or fewer has no quadruple level and is as `stable_at` left it.
+        """
+        if len(self.leaves) < 4:
+            return True
+        nodes, members = [], []
+        for record in self.nodes:
+            nodes.append(OrbitNode(
+                node_no=record["node_no"], parent_node_no=record["parent_node_no"], slot=record["slot"], mass_solar=record["mass_solar"],
+                separation_km=record["separation_au"] * constants.AU_TO_KM, eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
+                ascending_node_deg=record["ascending_node_deg"], arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
+                epoch_unix=0.0, period_years=record["period_years"], kind=record["kind"], interaction=record["interaction"], flags=record["flags"]))
+            members += [TreeMember(member_no=child, parent_node_no=record["node_no"], slot=slot, mass_solar=self.leaves[child].mass)
+                        for slot, child in enumerate((record["left"], record["right"])) if isinstance(child, int)]
+        return hierarchy_stability.tree_is_stable(nodes, members)
+
     def finish(self):
         """Flags the members of an ultra-wide system `fragile` and the theoretical kinds `theoretical`."""
         fragile = bool(self.nodes) and self.nodes[0]["separation_au"] > FRAGILE_AXIS_AU
@@ -1405,7 +1448,7 @@ def _stripped_helium_leaf(be_birth_mass_sol, rng):
     mass = rng.uniform(*tuning.BE_STRIPPED_COMPANION_MASS_RANGE_SOL)
     progenitor = be_birth_mass_sol * rng.uniform(*tuning.BE_STRIPPED_PROGENITOR_RATIO_RANGE)
     radius_sol = tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47 * (mass / 0.47) ** (-1.0 / 3.0)
-    return _Leaf("stripped-helium", None, mass, progenitor, _m_to_au(radius_sol * constants.SOLAR_RADIUS_M))
+    return _Leaf("stripped-helium", None, mass, progenitor, _radius_au_of_sol(radius_sol))
 
 
 def _swap_units(shape, a, b):
@@ -1546,7 +1589,7 @@ def _xray_span(donor, compact, period_days):
     pair's mass, the low end no closer than keeps the donor inside `MAX_FILL_FACTOR` of its lobe and the high end at least
     `tuning.XRAY_SPAN_ROOM` times the low one."""
     total = donor.mass + compact.mass
-    low, high = (stability.axis_au(days / 365.25, total) for days in period_days)
+    low, high = (stability.axis_au(_d_to_yr(days), total) for days in period_days)
     low = max(low, roche.separation_for_filling(donor.radius_au, MAX_FILL_FACTOR, donor.mass, compact.mass))
     return low, max(high, low * tuning.XRAY_SPAN_ROOM)
 
@@ -1593,7 +1636,7 @@ def _spider_companion(placed, base, state, age_yr, rng):
     low, high = tuning.BLACK_WIDOW_MASS_RANGE_SOL if state == "black-widow" else tuning.REDBACK_MASS_RANGE_SOL
     companion = _star_leaf(rng.uniform(low, high), age_yr, rng, fe_h=placed.tree_fe_h)
     total = placed.mass_solar + companion.mass
-    companion.orbit_au = tuple(stability.axis_au(days / 365.25, total) for days in tuning.SPIDER_PERIOD_DAYS)
+    companion.orbit_au = tuple(stability.axis_au(_d_to_yr(days), total) for days in tuning.SPIDER_PERIOD_DAYS)
     base.flags |= MEMBER_ABLATING
     return companion
 
@@ -1602,7 +1645,7 @@ def _filling_axis_au(donor, accretor_mass, period_range_days):
     """The axis at which `donor` fills its lobe by `tuning.ACCRETING_FILL_FACTOR` about an accretor of `accretor_mass`, or
     None when the period falls outside `period_range_days`."""
     axis = roche.separation_for_filling(donor.radius_au, tuning.ACCRETING_FILL_FACTOR, donor.mass, accretor_mass)
-    period_d = 365.25 * math.sqrt(axis ** 3 / (donor.mass + accretor_mass))
+    period_d = period_d_of_axis(axis, donor.mass + accretor_mass)
     return axis if period_range_days[0] <= period_d <= period_range_days[1] else None
 
 
@@ -1665,7 +1708,7 @@ def _giant_white_dwarf(leaf, binary, age_yr, rng, fe_h=0.0):
         return None
     days = tuning.SYMBIOTIC_PERIOD_DAYS if binary == "symbiotic" else tuning.BARIUM_PERIOD_DAYS
     total = leaf.mass + dwarf.mass
-    dwarf.orbit_au = tuple(stability.axis_au(period / 365.25, total) for period in days)
+    dwarf.orbit_au = tuple(stability.axis_au(_d_to_yr(period), total) for period in days)
     leaf.flags |= MEMBER_SYMBIOTIC if binary == "symbiotic" else MEMBER_BARIUM
     return dwarf
 
@@ -1713,8 +1756,7 @@ def _bind_helium_core_companion(dwarf, companion, fe_h):
     partner = companion.initial if companion.initial <= dwarf.initial else companion.mass
     axis = helium_core_white_dwarf.overflow_axis_au(dwarf.mass, dwarf.initial, partner, fe_h)
     companion.orbit_au, companion.circular = (axis, axis), True
-    dwarf.radius_max_au = max(dwarf.radius_au, _m_to_au(helium_core_white_dwarf.giant_radius_rsun(dwarf.mass, fe_h)
-                                                          * constants.SOLAR_RADIUS_M))
+    dwarf.radius_max_au = max(dwarf.radius_au, _radius_au_of_sol(helium_core_white_dwarf.giant_radius_rsun(dwarf.mass, fe_h)))
     dwarf.mass_max_solar = max(dwarf.initial, dwarf.mass)
 
 
@@ -1894,6 +1936,11 @@ def _compact_tertiary(placed, age_yr, rng):
     return _star_leaf(_alive_star_mass(0.1, mass_boundaries.sol("core_collapse_limit"), age_yr, rng, placed.tree_fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
 
 
+def _separation_km(axis_au):
+    """An axis in AU as km, the way a node stores it."""
+    return _m_to_km(_au_to_m(axis_au))
+
+
 def _assemble(leaves, builder, age_yr, dropped, rng):
     """The result for the placed shape in `builder`: members renumbered by roster order."""
     used = sorted({i for record in builder.nodes for i in builder.leaves_of((record["left"], record["right"]))})
@@ -1906,7 +1953,7 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
                 where[child] = (record["node_no"], child_slot)
         nodes.append(Node(node_no=record["node_no"], parent_node_no=record["parent_node_no"], slot=record["slot"],
                           mass_solar=record["mass_solar"], separation_au=record["separation_au"],
-                          separation_km=_m_to_km(_au_to_m(record["separation_au"])),
+                          separation_km=_separation_km(record["separation_au"]),
                           eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
                           ascending_node_deg=record["ascending_node_deg"],
                           arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
@@ -1916,11 +1963,7 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
     for leaf_index in used:
         leaf = leaves[leaf_index]
         node_no, slot = where[leaf_index]
-        members.append(Member(member_no=number[leaf_index], parent_node_no=node_no, slot=slot, kind=leaf.kind,
-                              state=leaf.state, flags=leaf.flags | builder.extra_flags.get(leaf_index, 0), mass_solar=leaf.mass,
-                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=leaf.member_seed(rng),
-                              effective_age_yr=leaf.effective_age_yr, radius_max_au=leaf.largest_radius_au,
-                              mass_max_solar=leaf.largest_mass_solar))
+        members.append(_member_of(number[leaf_index], leaf, rng, node_no, slot, builder.extra_flags.get(leaf_index, 0)))
     return MemberTree(tuple(members), tuple(nodes), age_yr, dropped)
 
 
@@ -1972,8 +2015,8 @@ def _in_sphere(radius, rng):
             return tuple(c * radius for c in point)
 
 
-def _group_member(number, leaf, rng, parent_node_no, slot, flags, **extra):
-    """A `Member` of a young group's tree from a roster leaf."""
+def _member_of(number, leaf, rng, parent_node_no, slot, flags, **extra):
+    """A `Member` from a roster leaf: its state, the `flags` the tree adds to the leaf's own, and the seed of its record."""
     return Member(member_no=number, parent_node_no=parent_node_no, slot=slot, kind=leaf.kind, state=leaf.state,
                   flags=leaf.flags | flags, mass_solar=leaf.mass, initial_mass_solar=leaf.initial,
                   radius_au=leaf.radius_au, seed=leaf.member_seed(rng), effective_age_yr=leaf.effective_age_yr,
@@ -2002,10 +2045,10 @@ def _group_tree(leaves, age_yr, decay_age_yr, rng):
     offsets, velocities = at_rest(offsets), at_rest(velocities)
     crossing_yr = radius_au * constants.AU_TO_KM / sigma / constants.SECONDS_PER_YEAR
     node = Node(node_no=1, parent_node_no=None, slot=0, mass_solar=total, separation_au=radius_au,
-                separation_km=_m_to_km(_au_to_m(radius_au)), eccentricity=0.0, inclination_deg=0.0,
+                separation_km=_separation_km(radius_au), eccentricity=0.0, inclination_deg=0.0,
                 ascending_node_deg=0.0, arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, period_years=crossing_yr,
                 kind="group", interaction="detached", flags=0)
-    members = tuple(_group_member(n, leaf, rng, 1, n, 0, offset_au=offsets[n], velocity_kms=velocities[n],
+    members = tuple(_member_of(n, leaf, rng, 1, n, 0, offset_au=offsets[n], velocity_kms=velocities[n],
                                   decay_age_yr=decay_age_yr) for n, leaf in enumerate(leaves))
     return MemberTree(members, (node,), age_yr)
 
@@ -2021,7 +2064,7 @@ def _decayed_group(leaves, age_yr, rng, max_axis_au, pair_placed):
     kept = [leaf for i, leaf in enumerate(leaves) if i != lightest]
     tree = _grow_tree(kept, list(range(len(kept))), age_yr, rng, len(kept),
                       min(max_axis_au, tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU), pair_placed)
-    thrown = _group_member(0, leaves[lightest], rng, None, 0, MEMBER_RUNAWAY_DYNAMICAL)
+    thrown = _member_of(0, leaves[lightest], rng, None, 0, MEMBER_RUNAWAY_DYNAMICAL)
     return dataclasses.replace(tree, ejected=(thrown,))
 
 
@@ -2063,10 +2106,7 @@ def draw_young_group(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, prevalence
 
 
 def _single(leaf, age_yr, dropped, rng):
-    member = Member(0, None, 0, leaf.kind, leaf.state, leaf.flags, leaf.mass, leaf.initial, leaf.radius_au,
-                    leaf.member_seed(rng), leaf.effective_age_yr, radius_max_au=leaf.largest_radius_au,
-                    mass_max_solar=leaf.largest_mass_solar)
-    return MemberTree((member,), (), age_yr, dropped)
+    return MemberTree((_member_of(0, leaf, rng, None, 0, 0),), (), age_yr, dropped)
 
 
 def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
@@ -2136,6 +2176,9 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
                 continue
             if not builder.clears_extents():
                 draw.redrawn("tree.restart_overlap")
+                continue
+            if not builder.hierarchy_stable():
+                draw.redrawn("tree.restart_unstable_hierarchy")      # GEN.1016: the quadruple network refuses the tree
                 continue
             builder.finish()
             alone = _contact_pair_alone(builder.leaves, builder, n_stars, rng)

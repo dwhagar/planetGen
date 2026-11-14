@@ -153,6 +153,10 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_rescore_habitability"),
                 conclude=("planetgen.generation.run_plan", "conclude_rescore_habitability"),
                 unit_seconds=25),
+    CommandSpec("refill-effect-ledger", "Refill the effect ledger: one unit per run of ids",
+                unit=("planetgen.generation.run_plan", "refill_effect_ledger_unit"),
+                expand=("planetgen.generation.run_plan", "expand_refill_effect_ledger"),
+                unit_seconds=25),
     CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
                 unit=("planetgen.generation.run_plan", "clean_nebula_field_unit"),
                 expand=("planetgen.generation.run_plan", "expand_clean_nebula_field"), whole=True),
@@ -350,7 +354,7 @@ def validate_order(steps):
 KIND_OF_STAGE = {
     "mass": "scatter-mass", "skeleton": "plan-skeleton", "phenomena": "scatter-phenomena",
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
-    "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability",
+    "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability", "ledger": "refill-effect-ledger",
     "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "nebula-clear": "empty-nebula-field",
     "phenomena-clear": "empty-phenomenon-scatter", "phenomena-unindex": "drop-phenomenon-indexes",
     "mass-clear": "clear-bright-stars", "luminosity-clear": "clear-bright-stars", "start": "generate-start-sector",
@@ -411,6 +415,12 @@ def unit_function(kind):
     return _function(command.unit)
 
 
+def _hook(kind, name):
+    """The optional function `name` (`warm`, `finish`, `prepare`, `conclude`) of command `kind`, or `None`."""
+    pair = getattr(REGISTRY[kind], name)
+    return None if pair is None else _function(pair)
+
+
 def warm_function(kind):
     """The function a worker calls with a unit's arguments before it forks the horse that runs it, or `None`
     (`CommandSpec.warm`).
@@ -418,8 +428,7 @@ def warm_function(kind):
     Raises:
         KeyError: No such command.
     """
-    command = REGISTRY[kind]
-    return None if command.warm is None else _function(command.warm)
+    return _hook(kind, "warm")
 
 
 def finish_function(kind):
@@ -429,8 +438,7 @@ def finish_function(kind):
     Raises:
         KeyError: No such command.
     """
-    command = REGISTRY[kind]
-    return None if command.finish is None else _function(command.finish)
+    return _hook(kind, "finish")
 
 
 def prepare_function(kind):
@@ -439,8 +447,7 @@ def prepare_function(kind):
     Raises:
         KeyError: No such command.
     """
-    command = REGISTRY[kind]
-    return None if command.prepare is None else _function(command.prepare)
+    return _hook(kind, "prepare")
 
 
 def conclude_function(kind):
@@ -449,8 +456,7 @@ def conclude_function(kind):
     Raises:
         KeyError: No such command.
     """
-    command = REGISTRY[kind]
-    return None if command.conclude is None else _function(command.conclude)
+    return _hook(kind, "conclude")
 
 
 def expand_function(kind):
@@ -467,7 +473,7 @@ def expand_function(kind):
 
 
 STAGED_COMMANDS = ("galaxy", "sectors", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
-                   "clean-nebula-field", "link", "backfill", "settle", "population", "territories")
+                   "refill-effect-ledger", "clean-nebula-field", "link", "backfill", "settle", "population", "territories")
 """tuple: The commands whose stages (`generation/stages.py`) the wrapper turns into steps."""
 
 

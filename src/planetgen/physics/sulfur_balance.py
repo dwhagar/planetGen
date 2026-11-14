@@ -49,14 +49,14 @@ Every number that is not read from a source is a design constant with its source
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import elements
+from planetgen.physics import constants as physical_constants, elements
 from planetgen.physics.mixture_base import bracket
 from planetgen.physics.surface_pressure import PROCESSING_ENERGY_J_PER_KG, THETA_EARTH
 
 DAY_S = 86400.0
 """float: One day, s."""
 
-YEAR_S = 3.15576e7
+YEAR_S = physical_constants.SECONDS_PER_YEAR
 """float: One Julian year, s."""
 
 OXIDIZED_SULFUR = ("SO2", "SO3", "SO")
@@ -69,9 +69,27 @@ WET_LIFETIME_DAYS = (0.5, 7.0, "log")
 """tuple: The lifetime of atmospheric sulfur gas against rain-out and oxidation to sulfate over liquid water, days: the Earth's tropospheric
 SO2 and H2S live one to a few days, the sulfate aerosol up to a week (read from memory, not re-checked: tier 3, tweak level 0)."""
 
-DRY_LIFETIME_YEARS = (5.0e5, 5.0e6, "log")
-"""tuple: The lifetime of atmospheric SO2 against sulfation of the surface rock when there is no liquid water, years: [R1343]
-for Venus give about 1.9 million years, here a factor of about three either side (second-hand, not opened: tier 3, tweak level 0)."""
+DRY_LIFETIME_YEARS = (2.0e6, 2.0e7, "log")
+"""tuple: The lifetime of atmospheric SO2 against sulfation of the surface rock when there is no liquid water, years, at `SULFATION_REFERENCE_K` (Venus's surface): about 1.9 million years from the
+sulfation rate of [R1343] and 20 million from a later estimate, both second-hand through [R0157] (GEN.1562 N1: the range was 0.5 to 5 Myr, which
+sat below the second figure). Confident unverified, tier 2, tweak level 0."""
+
+SULFATION_ACTIVATION_K = 15248.0
+"""float: The activation temperature of the sulfation of rock by SO2, K: the rate `10^19.64 exp(-15248 / T)` molecules per square centimetre per second of [R1343] (126.8 +/- 5.4 kJ/mol),
+second-hand and checked only for consistency (15248 K x 8.314 = 126.8 kJ/mol; 4.4e10 at 735 K against the quoted 4.6e10 mean). The lab runs were 873 to 1123 K; below that the law is an
+extrapolation, and below about 450 K another route (water films on the grains) would take over, so a cool dry surface is taken to sulfate slowly, not faster (GEN.1562 N2). Confident
+unverified, tier 2, tweak level 0."""
+
+SULFATION_REFERENCE_K = 735.0
+"""float: The surface temperature of Venus, K (measured), where `DRY_LIFETIME_YEARS` is the lifetime: the lifetime at a temperature `T` is that times `exp(SULFATION_ACTIVATION_K (1 / T - 1 / 735))`."""
+
+WATER_LAYER_FULL_M = 2.75
+"""float: The depth, m, of a global layer of water (1e-3 of the Earth's ocean, 2.75 km deep) at and above which the sulfur is taken to be removed by water as fast as the wet lifetime says, ocean or not
+([R2735], whose models need more than that to hold a sustained sulfuric acid haze) (GEN.1562 N6). Under it the water removes at most one mole of sulfur per mole of water (SO2 + H2O to
+H2SO4 is one water per sulfur) and the rest meets only the dry sulfation lifetime. Confident unverified, tier 2, tweak level 1."""
+
+WATER_MOLAR_MASS_KG = 0.01801528
+"""float: Kilograms per mole of water (measured: the atomic masses of H and O)."""
 
 EARTH_MANTLE_KG = 4.0e24
 """float: The mass of the Earth's mantle, kg (the mass `surface_pressure.PROCESSING_ENERGY_J_PER_KG` is calibrated on)."""
@@ -121,6 +139,18 @@ class SulfurBalance:
     sulfate_mol_m2: float
     sulfide_mol_m2: float
     lifetime_s: float
+
+
+def sulfation_lifetime_s(reference_s, temperature_k):
+    """
+    The sulfation lifetime of SO2 at a surface temperature (GEN.1562 N2): the lifetime at `SULFATION_REFERENCE_K` times `exp(SULFATION_ACTIVATION_K (1 / T - 1 / T_ref))`, so a cool dry surface
+    keeps its SO2 far longer than Venus does (a factor 5e5 at 450 K) and a hotter one shorter. The exponent is held under 60 (the lifetime is far past any age by then). `temperature_k` of
+    `None` or under 1 K gives `reference_s`.
+    """
+    if temperature_k is None or temperature_k < 1.0:
+        return reference_s
+    exponent = SULFATION_ACTIVATION_K * (1.0 / temperature_k - 1.0 / SULFATION_REFERENCE_K)
+    return reference_s * math.exp(min(exponent, 60.0))
 
 
 def draw_lifetimes(constants):
@@ -176,7 +206,7 @@ def sink_capacities_mol_m2(crust_kg_m2):
     return (crust_kg_m2 * CRUST_CALCIUM_WT / elements.molar_mass("Ca"), crust_kg_m2 * CRUST_IRON_WT / elements.molar_mass("Fe"))
 
 
-def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m2, lifetimes):
+def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m2, lifetimes, temperature_k=None, water_layer_m=None):
     """
     Splits the degassed sulfur between the air, the sulfate sink and the sulfide sink.
 
@@ -187,6 +217,10 @@ def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m
         oxidized_share (float): The share of the sulfur that is oxidized (`oxidized_share_of`), 0 to 1.
         crust_kg_m2 (float): The crust that holds the sinks (`crust_column_kg_m2`).
         lifetimes (Lifetimes): `draw_lifetimes`.
+        temperature_k (float or None): The surface temperature, K, that scales the dry sulfation lifetime (`sulfation_lifetime_s`, GEN.1562 N2); `None` keeps the lifetime at Venus's.
+        water_layer_m (float or None): The depth, m, of the global layer the body's surface water would make (GEN.1562 N6). Without an ocean, water under `WATER_LAYER_FULL_M` removes at most one mole of
+            oxidized sulfur per mole of water over the wet lifetime and the rest meets the dry lifetime; at or over it the wet lifetime holds for all of it. `None` keeps the old rule (the ocean
+            alone picks the lifetime).
 
     Returns:
         SulfurBalance: The three reservoirs; they sum to `degassed_mol_m2`.
@@ -196,9 +230,19 @@ def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m
     capacity_sulfate, capacity_sulfide = sink_capacities_mol_m2(max(crust_kg_m2, 0.0))
     sulfate = min(share * total, capacity_sulfate)
     sulfide = min((1.0 - share) * total, capacity_sulfide)
-    lifetime = lifetimes.wet_s if ocean_present else lifetimes.dry_s
-    in_air_share = 1.0 if age_s <= 0.0 else min(1.0, lifetime / age_s)
-    burden_sulfate, burden_sulfide = sulfate * in_air_share, sulfide * in_air_share
+    dry = sulfation_lifetime_s(lifetimes.dry_s, temperature_k)
+    wet_full = ocean_present or (water_layer_m is not None and water_layer_m >= WATER_LAYER_FULL_M)
+    if wet_full:
+        wet_share = 1.0
+    elif water_layer_m is None or water_layer_m <= 0.0 or sulfate <= 0.0:
+        wet_share = 0.0
+    else:       # GEN.1562 N6: acid is made from the water there is, one mole of oxidized sulfur per mole of water
+        wet_share = min(1.0, max(water_layer_m, 0.0) * 1000.0 / WATER_MOLAR_MASS_KG / sulfate)
+    wet_kept = 1.0 if age_s <= 0.0 else min(1.0, lifetimes.wet_s / age_s)
+    dry_kept = 1.0 if age_s <= 0.0 else min(1.0, dry / age_s)
+    burden_sulfate = sulfate * (wet_share * wet_kept + (1.0 - wet_share) * dry_kept)
+    burden_sulfide = sulfide * (wet_kept if wet_full else dry_kept)
+    lifetime = lifetimes.wet_s if wet_share >= 0.5 else dry
     excess = total - sulfate - sulfide
     return SulfurBalance(air_mol_m2=excess + burden_sulfate + burden_sulfide, sulfate_mol_m2=sulfate - burden_sulfate,
                          sulfide_mol_m2=sulfide - burden_sulfide, lifetime_s=lifetime)

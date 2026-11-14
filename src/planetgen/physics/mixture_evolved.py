@@ -34,16 +34,22 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
 
 import dataclasses
 
-from planetgen.physics import saturation
-from planetgen.physics import mixture_oxygen, mixture_rocky
+from planetgen.physics import mixture_oxygen, mixture_rocky, saturation
 from planetgen.physics.mixture_base import MixtureDraw, NotApplicable, atoms_of, bracket, finish, require
 
-WATER_RESIDUAL = (1e-5, 1e-3, "log")
+WATER_RESIDUAL = (1e-6, 1e-4, "log")
 """tuple: The share of the hydrogen a water-lost body keeps (Venus keeps 20 ppm of water in 96.5 percent carbon dioxide, TEST)."""
 
 SULFUR_SINK = (1e-4, 1e-2, "log")
 """tuple: The share of the outgassed sulfur that stays in the air of a Venus-like or Mars-like body after the surface sulfates and the
 cloud take the rest (Venus has 150 ppm of SO2 in CO2, a share of about 1e-4 of the BSE sulfur to carbon of 1.7; TEST); design."""
+
+AIR_BUFFER_DIW = (9.1, 10.8, "uniform")
+"""tuple: The oxygen fugacity a warm, dry, oxidized air holds, log10 units above iron-wuestite (GEN.1670). It is the crust's magnetite-hematite buffer,
+not the mantle's: Venus's air at 0 km (735 K) holds 10^-21.7 to 10^-20.0 bar of oxygen, "indistinguishable, within the uncertainties of the
+thermodynamic data, from the magnetite-hematite phase boundary" [R5251]; on the iron-wuestite fit of `oxygen_fugacity` at 735 K that is IW+9.1 to
+IW+10.8, the bracket. Applied as a constant offset at the cooler surface temperatures too (the buffers run close to parallel; the
+air above 0.7 km is more oxidizing still), which the source does not reach: tier 3, tweak level 1 (AM100)."""
 
 WATER_PHOTOLYSED = (0.3, 1.0, "uniform")
 """tuple: The share of the water an abiotic-oxygen world loses its hydrogen from (the tail of Luger and Barnes: up to ten oceans); design."""
@@ -130,7 +136,9 @@ def evolved_oxidized(subject, recipe, row, supply=None):
         atoms["H"] = atoms.get("H", 0.0) * bracket(constants, "water_residual", WATER_RESIDUAL)
         atoms["S"] = atoms.get("S", 0.0) * bracket(constants, "sulfur_sink", SULFUR_SINK)
         atoms.pop("O", None)
-        held = redox       # the crust buffers the oxygen: its sulfates and ferric iron take what the lost water's oxygen leaves
+        # the crust buffers the oxygen: its magnetite and hematite, sulfates and ferric iron take what the lost water's oxygen leaves,
+        # at the crust's buffer (`AIR_BUFFER_DIW`) and never below the mantle's redox
+        held = max(redox, bracket(constants, "air_buffer_diw", AIR_BUFFER_DIW))
     else:
         ocean = 2.0 * bracket(constants, "ocean_water_wt_percent", OCEAN_WATER_WT_PERCENT) / mixture_rocky.AMU_G_MOL["H2O"]
         carbon = ocean / 2.0 * bracket(constants, "carbon_per_ocean_water", CARBON_PER_OCEAN_WATER)
@@ -187,9 +195,10 @@ def titan_like(subject, recipe, supply=None):
         raise NotApplicable("no nitrogen has reached the surface")
     temperature, pressure = subject["ts_k"], subject["pressure_bar"]
     humidity = bracket(constants, "methane_humidity", TITAN_HUMIDITY)
-    methane = min(humidity * _saturation_bar("CH4", temperature) / pressure, TITAN_MAX_METHANE)
+    saturation_bar = _saturation_bar("CH4", temperature)
+    methane = min(humidity * saturation_bar / pressure, TITAN_MAX_METHANE)
     hydrogen = bracket(constants, "hydrogen_fraction", TITAN_HYDROGEN)
-    constants["methane_saturation_bar"] = _saturation_bar("CH4", temperature)
+    constants["methane_saturation_bar"] = saturation_bar
     result = _from_fractions({"N2": 1.0 - methane - hydrogen, "CH4": methane, "H2": hydrogen}, family="titan", recipe=recipe,
                              temperature_k=temperature, pressure_bar=pressure, inventory=inventory, constants=constants)
     return dataclasses.replace(result, moles=0.5 * nitrogen / result.mole_fractions["N2"])

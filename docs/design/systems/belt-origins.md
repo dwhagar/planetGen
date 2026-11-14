@@ -113,6 +113,8 @@ The step is a rule over the architecture's own events; it needs no N-body run. A
 
 ### 6.1 Built: the loss past the outermost planet (GEN.1341)
 
+GEN.1092: the spans a giant clears from a belt come from `physics/resonance_gaps.py` (`belt_map`, the chaotic zone and the mean-motion resonance widths of the giant's mass and eccentricity at the system's age), not from constants of `belt_origin`. `belt_origin.cleared_spans` returns them for a belt stretch; `semi_major_axis_au(table, u, cleared)` draws a member's axis outside them and `AsteroidBelt.cleared_spans` carries them to the member draw. The Yarkovsky cut of that module is not applied to stored members (all are far above the cut).
+
 `belt_origin` has a shaping cause `planet-scattering`. A system with an instability level above 0 and two giants or more lost belt mass past its outermost giant: the stretch of the disk that starts at or beyond that giant and lies inside its reach (apoapsis plus 3 chaotic half-widths) loses the share `instability x (1 - exp(-Theta / 10))`, where Theta is the Safronov number of the giant (row SX3, the escape-speed-to-orbital-speed ratio squared, [R5138] [R5139] [R5141] [R5140]). No share is tuned to the observed cold share. A system with one giant, or none, or a stretch outside the reach, is untouched. Registry rows BG20 and BG21 in section 6.97 of the stand-in values.
 
 ### 6.2 Built: a companion star cuts the disk (GEN.1451)
@@ -127,7 +129,7 @@ A star with a bound companion (`radiation_field.companions_of`) holds a disk onl
 | GEN.1060 | Research read (extended with the sources here) | Sources 2, now |
 | GEN.1088 | belt_origin.py | Planets 1 |
 | GEN.1089 | scatter.py | Core 4 |
-| GEN.1090 | dwarf_population.py | Sources 2 |
+| GEN.1090 | dwarf_population.py (retired by GEN.1092 as a duplicate of `body_status.py` and `belt_ledger.py`) | Sources 2 |
 | GEN.1091 | Class D wording (docs only) | Aux 2, done: the wording is a conditions rule, stated in mass-object-class.md, small-bodies-composition.md, D-small-bodies-moons.md, unified-system-barycentre.md and the comment on `tuning.PLANET_CLASSES["D"]` |
 | GEN.1068, GEN.1069 | Belt birth and storage carry the origin (lock) | Planets 1 and Sources 2, train 15 |
 | GEN.1092 | Wire scatter and origin (lock) | Sources 2 with Planets 1, train 16 |

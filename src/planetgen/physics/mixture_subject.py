@@ -26,8 +26,8 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
-from planetgen.physics import eclipses, radiation_field
+from planetgen.physics import (activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, eclipses, formation_snow_line, giant_draw,
+                               giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, radiation_field, unit_registry as units)
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -115,6 +115,9 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["nh3_mass_fraction"] = fractions.ice * shares.get("NH3", 0.0)
         quantities["water_mass_fraction"] = fractions.water
         quantities["rock_mass_fraction"] = fractions.rock
+        quantities["metal_mass_fraction"] = fractions.metal        # GEN.1584: the core the nitrogen is partitioned into
+    if getattr(body, "_envelope_helium_y", None) is not None:       # GEN.1527: the helium share of a hydrogen-first loss; the envelope mixture takes it for the star's
+        quantities["envelope_helium_y"] = body._envelope_helium_y
     core = getattr(body, "core_mass_earth", None)
     envelope = getattr(body, "envelope_mass_fraction", None)
     if not core and envelope is not None:  # a rocky planet's core is the mass its envelope (none, for a stripped one) leaves
@@ -144,7 +147,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     quantities["runaway_ratio"] = runaway_ratio(insolation, star.temperature)
     snow_line = getattr(star, "snow_line_au", None)
     if snow_line:
-        quantities["snow_ratio"] = distance_au / snow_line
+        quantities["snow_ratio"] = distance_au / formation_snow_line.water_snow_line_au(star)      # GEN.1678: the water is read against the viscous-disk line
         if kind_of_body(body) == "giant" and not quantities["is_moon"]:     # GEN.1363 part C: the disk a giant formed in gives its C/O
             formation_au = getattr(body, "formation_distance_au", None) or body.distance
             ratios = bulk_draw.ice_forming_ratios(star)
@@ -167,7 +170,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["xuv_index"] = index
     if getattr(star, "log_lx_lbol", None) is not None:
         quantities["log_lx_lbol"] = star.log_lx_lbol
-    flux = (climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)) * (eclipses.light_factor_of(body) or 1.0)     # GEN.1441, GEN.1484
+    flux = (climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)) * eclipses.kept_share(eclipses.light_factor_of(body))     # GEN.1441, GEN.1484
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
         teq = climate_draws.equilibrium_temperature_k(albedo, flux)
@@ -180,7 +183,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("envelope_helium_y", "log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metal_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

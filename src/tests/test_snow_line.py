@@ -12,7 +12,8 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import condensate_shares, constants, formation
+from planetgen.physics import condensate_shares, constants, formation, formation_snow_line
+from planetgen.physics import planets as planetPhysics
 from planetgen.util import draw
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -85,7 +86,7 @@ def test_a_system_gives_the_same_line_and_flags_from_its_seed_at_one_and_four_wo
 def test_a_star_stores_a_line_inside_the_scatter_of_its_blackbody_position():
     for seed in range(12):
         star = _system(seed).star
-        center = formation.snow_line_au(star.luminosity)
+        center = formation_snow_line.formation_snow_line_au(formation_snow_line.initial_mass_sol_of(star), star.metallicity_fe_h)     # GEN.1611: the luminosity its disk saw
         assert abs(math.log10(star.snow_line_au / center)) <= tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA + 1e-12
 
 
@@ -96,7 +97,7 @@ def test_a_planet_is_born_beyond_the_line_of_its_star_when_it_orbits_at_or_beyon
         for planet in system.planets:
             if planet.body_type == 'a':
                 continue
-            assert planet.born_beyond_snow_line == (planet.distance >= planet.star.snow_line_au)
+            assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= formation_snow_line.water_snow_line_au(planet.star))   # GEN.1596: where it formed, not where it has moved to
             seen.add(planet.born_beyond_snow_line)
             assert all(moon.born_beyond_snow_line == planet.born_beyond_snow_line for moon in planet.moons)
     assert seen == {True, False}
@@ -112,7 +113,7 @@ def test_a_close_pairs_line_is_the_root_of_the_sum_of_the_squares_of_its_stars()
         assert pair.snow_line_au == pytest.approx(math.hypot(*(s.snow_line_au for s in pair.stars)))
         for planet in system.planets:
             if planet.body_type != 'a':
-                assert planet.born_beyond_snow_line == (planet.distance >= pair.snow_line_au)
+                assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= formation_snow_line.water_snow_line_au(pair))
         found += 1
     assert found
 

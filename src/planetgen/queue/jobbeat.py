@@ -15,10 +15,10 @@ Redis server clock), and the Queue page lists them with the state `beatjudge` gi
         beat.phase("step 2 of 4")
 """
 
-import time
 from contextlib import contextmanager
 
 from planetgen.queue import beatjudge, redisqueue, runrecord, unitbeat
+from planetgen.util import log
 
 FORGET_SECONDS = 3600.0
 """float: How long a dead job's record is listed before it is dropped."""
@@ -56,7 +56,8 @@ def beating(kind, job_id, label="", conn=None, beat_seconds=None):
         conn = conn or redisqueue.connect(redisqueue.redis_url())
         field = f"{kind}:{job_id}"
         beat = unitbeat.UnitBeat(conn, "", 0, field, hash_key=hash_key(), beat_seconds=beat_seconds, extra={"kind": kind, "job": str(job_id), "label": str(label)})
-    except Exception:       # noqa: BLE001 -- a job runs without a beat before it runs with a failing Redis
+    except Exception as exc:       # noqa: BLE001 -- a job runs without a beat before it runs with a failing Redis
+        log.swallowed("queue/jobbeat", "beating", exc)
         yield _NoBeat()
         return
     try:
@@ -65,8 +66,8 @@ def beating(kind, job_id, label="", conn=None, beat_seconds=None):
     finally:
         try:
             conn.hdel(hash_key(), field)
-        except Exception:       # noqa: BLE001 -- the record expires into `dead` and is dropped
-            pass
+        except Exception as exc:       # noqa: BLE001 -- the record expires into `dead` and is dropped
+            log.swallowed("queue/jobbeat", "beating", exc)
 
 
 def states(conn, now=None):

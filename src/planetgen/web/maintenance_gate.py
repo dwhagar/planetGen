@@ -18,6 +18,7 @@ from flask import g, jsonify, make_response, redirect, render_template, request,
 
 from planetgen.admin import maintenance
 from planetgen.api.limiter import is_in_process_call
+from planetgen.util import log
 
 RETRY_AFTER_SECONDS = 600
 """int: What `Retry-After` says, and how often the maintenance page asks again."""
@@ -43,7 +44,8 @@ def is_admin():
 
     try:
         return _current_admin() is not None
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("web/maintenance_gate", "is_admin", exc)
         return False
 
 
@@ -53,10 +55,15 @@ def page_response(state, status=503):
     response = make_response(render_template(
         "maintenance.html", state=state, message=state.get("reason") or MESSAGE, refresh=RETRY_AFTER_SECONDS, admin=status == 200), status)
     if status == 503:
-        response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
-        g.expected_unavailable = True       # a closed site is not an error for error.log (OPS.116)
+        _refused(response)
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+def _refused(response):
+    """Marks a 503 of the closed site: when to ask again, and that it is not an error for error.log (OPS.116)."""
+    response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+    g.expected_unavailable = True
 
 
 def gate():
@@ -70,9 +77,8 @@ def gate():
     if _is_api():
         response = jsonify({"error": state["reason"] or MESSAGE, "maintenance": True, "eta": state["eta"] or None})
         response.status_code = 503
-        response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
         response.headers["Cache-Control"] = "no-store"
-        g.expected_unavailable = True
+        _refused(response)
         return response
     return redirect(url_for("web.maintenance_page"), code=302)
 

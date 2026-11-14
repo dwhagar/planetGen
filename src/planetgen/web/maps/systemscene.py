@@ -73,17 +73,21 @@ def _orbit(row, around):
     (`state_vectors.elements_from_state`), so a pull that changed the orbit changes the drawn path with it; a circle has 0 and 0."""
     position, velocity = _xyz(row), _xyz(row, "velocity_", "_kms")
     eccentricity = arg_periapsis_deg = 0.0
+    inclination_deg, ascending_node_deg = row["orbital_inclination_deg"], row["orbital_ascending_node_deg"]
     try:
         elements = state_vectors.elements_from_state(position, velocity, body_state.mu_km3_s2(row["distance_km"], row["period_years"]))
         if elements["kind"] == "elliptical":
             eccentricity, arg_periapsis_deg = elements["eccentricity"], math.degrees(elements["arg_periapsis"])
+            # MAP.425: the plane too. A moon's stored inclination and node are measured in its planet's equator (GEN.1352), its stored state is in the star's frame;
+            # the ring drawn from the columns then lay in another plane than the moon, which the state puts on its own.
+            inclination_deg, ascending_node_deg = math.degrees(elements["inclination"]), math.degrees(elements["ascending_node"])
     except ValueError:
         pass   # a body with no motion yet has no ellipse to draw: its orbit is the circle of its distance
     return {
         "around": around,
         "distance_km": row["distance_km"], "period_years": row["period_years"],
-        "inclination_deg": row["orbital_inclination_deg"],
-        "ascending_node_deg": row["orbital_ascending_node_deg"],
+        "inclination_deg": inclination_deg,
+        "ascending_node_deg": ascending_node_deg,
         "eccentricity": eccentricity, "arg_periapsis_deg": arg_periapsis_deg,
         "position_km": position, "velocity_kms": velocity,
         "epoch_unix": row.get("epoch_unix"),
@@ -105,7 +109,9 @@ def _pair_around(tree, stars):
 
 def _star_around(planet_or_belt, stars, system, pair_around="barycenter"):
     """What a planet or belt goes round: its own star in a wide binary, a
-    single-star system or a further star of the tree (GEN.332), else the close pair's center of mass."""
+    single-star system or a further star of the tree (GEN.332), else the close pair's center of mass; the node of an inner pair for the planets round it."""
+    if planet_or_belt.get("host_node_id") is not None:        # the planets of an inner pair node go round the node's center of mass (GEN.332, slice A)
+        return f"node:{planet_or_belt['host_node_id']}"
     star_id = planet_or_belt.get("star_id")
     if system["binary_configuration"] == "close" and not any(
             s["id"] == star_id and s["role"] == "member" for s in stars):    # a member star's own planets (GEN.332)

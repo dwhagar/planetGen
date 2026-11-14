@@ -35,9 +35,11 @@ from planetgen.queue import api_jobs
 from planetgen import describe
 from planetgen.describe import DOCUMENT_FORMAT, html as describe_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
-from planetgen.generation.run_system import ODDS_OPTIONS, max_stars_problem, stars_problem
+from planetgen.generation.run_system import ODDS_OPTIONS, class_request_problem, forced_oddity_ids, max_stars_problem, stars_problem
+from planetgen.physics import oddities
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
+from planetgen.util import log as planetgen_log
 from planetgen.tuning import MAX_STARS_CEILING, MAX_STARS_DEFAULT
 
 TRISTATE_FIELDS = (
@@ -54,6 +56,13 @@ TRISTATE_FIELDS = (
     ("wide_binary", "Wide (S-type) binary"),
     ("planets", "At least one planet or belt"),
 )
+
+ODDITY_IDS = tuple(oddities.BY_ID)
+"""tuple: The oddity ids the Force oddities box accepts (UX.299)."""
+
+STARLESS_RESULTS = (("", "A star system"), ("rogue-planet", "A rogue planet (no star)"), ("comet", "An interstellar comet (no star)"))
+"""tuple: (UX.298) What the page can generate: a star system, or one of the starless results `planetgen phenomenon --type` makes,
+described but not saved (`--output`). Only the name and the debug log apply to a starless result."""
 
 TRISTATE_CHOICES = (("", "Generator decides"), ("yes", "Yes"), ("no", "No"))
 
@@ -96,6 +105,42 @@ def _text(form, name):
     return (form.get(name) or "").strip()
 
 
+def _name(form):
+    """The name the form gives, or a `FormError` when it is too long for the database."""
+    name = _text(form, "name")
+    if len(name) > SYSTEM_NAME_MAX_LENGTH:
+        raise FormError(f"The name is {len(name)} characters; a name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
+    return name
+
+
+def _starless_request(form, result_kind):
+    """The `planetgen phenomenon` options for a rogue planet or an interstellar comet (UX.298): its name and debug log only,
+    so any other option that is filled in is refused instead of ignored."""
+    others = [name for name, _label in TRISTATE_FIELDS if _tristate(form, name) is not None]
+    others += [key for key in ("star_type", "age", "num_orbits", "stars", "max_stars", "flavor_chance_system", "flavor_chance_planet",
+                               "system_file", "weirdness_dial", "force_oddities", "force_class", "force_life_class") if _text(form, key)]
+    if form.get("max_planet_flavor"):
+        others.append("max_planet_flavor")
+    if others:
+        raise FormError("A rogue planet or comet has no star, so only its name applies; clear: " + ", ".join(others).replace("_", " ") + ".")
+    name = _name(form)
+    argv = ["--type", result_kind, f"--format={DOCUMENT_FORMAT}"]
+    if name:
+        argv.append(f"--name={name}")
+    if form.get("disregard_missing_data"):
+        argv.append("--disregard-missing-data")
+    return {"argv": argv, "debug": bool(form.get("debug")), "system_file": None, "command": "phenomenon"}
+
+
+def _slots_of(form):
+    """The `slots` of the form's system file when it is valid JSON that names some, else `None` (the full check comes after)."""
+    try:
+        data = json.loads(_text(form, "system_file") or "null")
+    except ValueError:
+        return None
+    return data.get("slots") if isinstance(data, dict) else None
+
+
 def system_request(form):
     """
     The `planetgen system` options a form asks for, checked the way
@@ -109,8 +154,13 @@ def system_request(form):
     Raises:
         FormError: A bad value, or a combination the generator refuses.
     """
+    result_kind = _text(form, "result_kind")
+    if result_kind not in {value for value, _label in STARLESS_RESULTS}:
+        raise FormError("The result must be a star system, a rogue planet or an interstellar comet.")
+    if result_kind:
+        return _starless_request(form, result_kind)
     states = {name: _tristate(form, name) for name, _label in TRISTATE_FIELDS}
-    name = _text(form, "name")
+    name = _name(form)
     star_type = _text(form, "star_type")
     age = _text(form, "age")
     if age not in ("", "young", "old"):
@@ -121,9 +171,21 @@ def system_request(form):
     max_flavor = bool(form.get("max_planet_flavor"))
     stars = _number(form, "stars", "Number of stars", int, minimum=1, maximum=MAX_STARS_CEILING)
     max_stars = _number(form, "max_stars", "Most stars", int, minimum=1, maximum=MAX_STARS_CEILING)
+    force_class = _text(form, "force_class").upper()
+    force_life_class = _text(form, "force_life_class").lower()
+    problem = class_request_problem(force_class, force_life_class)
+    if problem:
+        raise FormError(f"Class request: {problem}.")
+    if force_class and _slots_of(form):
+        raise FormError("A class letter can't be combined with a system file's slots: a slot already names its class.")
+    weirdness = _number(form, "weirdness_dial", "Weirdness dial", float, minimum=0.0)
+    oddity_ids = _text(form, "force_oddities")
+    if oddity_ids:
+        try:
+            oddity_ids = ",".join(forced_oddity_ids(oddity_ids))
+        except ValueError as exc:
+            raise FormError(f"Force oddities: {exc}.") from None
 
-    if len(name) > SYSTEM_NAME_MAX_LENGTH:
-        raise FormError(f"The name is {len(name)} characters; a system name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
     if star_type and not STAR_TYPE_PATTERN.fullmatch(star_type.upper()):
         raise FormError("The star type must be a spectral type: a class letter (OBAFGKM), a subclass digit (0-9) "
                         "and a Yerkes class (0, IA+, IA, IAB, IB, II, III, IV, V, VI, VII or D), e.g. G2V.")
@@ -175,6 +237,14 @@ def system_request(form):
         argv.append(f"--stars={stars}")
     if max_stars is not None:
         argv.append(f"--max-stars={max_stars}")
+    if force_class:
+        argv.append(f"--force-class={force_class}")
+    if force_life_class:
+        argv.append(f"--force-life-class={force_life_class}")
+    if weirdness is not None:
+        argv.append(f"--weirdness-dial={weirdness}")
+    if oddity_ids:
+        argv.append(f"--force-oddities={oddity_ids}")
     if chance_system is not None:
         argv.append(f"--flavor-chance-system={chance_system}")
     if chance_planet is not None:
@@ -183,7 +253,16 @@ def system_request(form):
         argv.append("--max-planet-flavor")
     if form.get("disregard_missing_data"):
         argv.append("--disregard-missing-data")
-    return {"argv": argv, "debug": bool(form.get("debug")), "system_file": system_file}
+    debug = bool(form.get("debug"))
+    areas = _text(form, "debug_areas")
+    if areas:
+        try:
+            planetgen_log.parse_areas(areas)
+        except ValueError as exc:
+            raise FormError(f"Debug areas: {exc}.") from None
+        if debug:
+            argv.append(f"--debug-areas={areas}")
+    return {"argv": argv, "debug": debug, "system_file": system_file, "asks": bool(force_class or force_life_class)}
 
 
 def _read(path):
@@ -196,6 +275,10 @@ def _read(path):
 
 def _tail(text, limit=MAX_LOG_BYTES):
     return text[-limit:] if len(text) > limit else text
+
+
+_ASKED_LINE = re.compile(r"^(Class|Life class) \S+ asked for: ")
+"""re.Pattern: The lines `planetgen system` prints for a class request (`run_system.class_request_report`)."""
 
 
 def run_generator(spec):
@@ -212,10 +295,10 @@ def run_generator(spec):
         page_path = os.path.join(tmp, "system.json")
         # With --debug the generator narrates every choice to stdout, which
         # the page shows as the debug log; otherwise only errors.
-        argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, "system", "--output", page_path,
-                "--debug" if spec["debug"] else "--quiet"]
+        argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, spec.get("command", "system"), "--output", page_path,
+                *(["--debug"] if spec["debug"] else [] if spec.get("asks") else ["--quiet"])]
         if spec["system_file"] is not None:
-            file_path = os.path.join(tmp, "system.json")
+            file_path = os.path.join(tmp, "system-file.json")   # not the output file's name
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(spec["system_file"], f)
             argv.append("--system-file=" + file_path)
@@ -229,7 +312,8 @@ def run_generator(spec):
             output, ok = f"The generator could not be started: {done['error']}", False
         text = _read(page_path)
     output = _tail(output.strip())
-    return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else ""}
+    asked = [line for line in output.splitlines() if _ASKED_LINE.match(line)]    # GEN.1620: what came of a class request, said beside the system
+    return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else "", "asked": asked}
 
 
 def download_name(title, fmt):
@@ -250,9 +334,9 @@ def _page(admin, form=None, result=None, error=None, status=200):
     return render_screen(
         "generate_system.html", admin, "One-off system", [crumb("One-off system")], form=form, error=error,
         status=status, description="Generate one star system without saving it to the database.",
-        tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, odds_choices=ODDS_CHOICES,
+        result_choices=[{"value": value, "label": label} for value, label in STARLESS_RESULTS], tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, odds_choices=ODDS_CHOICES,
         odds_options=ODDS_OPTIONS, max_stars_ceiling=MAX_STARS_CEILING, max_stars_default=MAX_STARS_DEFAULT, system_file_example=SYSTEM_FILE_EXAMPLE,
-        max_num_orbits=MAX_NUM_ORBITS, result=result)
+        max_num_orbits=MAX_NUM_ORBITS, oddity_ids=", ".join(ODDITY_IDS), debug_areas=planetgen_log.AREAS, result=result)
 
 
 @bp.route("/admin/generate/system", methods=["GET", "POST"])

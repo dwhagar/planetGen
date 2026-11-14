@@ -158,10 +158,6 @@ def uv_edge(level):
     return limit("uv_cover_index")
 
 
-def _air_hours(supply):
-    return supply_hours(supply)
-
-
 def work_days_per_year(rotation_period_hours, period_years, locked=False):
     """
     The work days of a year, the local solar days: the year over the solar day `1 / (1 / rotation - 1 / orbit)` of a world that
@@ -199,7 +195,7 @@ def outside_hours_day(world, levels, daylight_hours, days_per_year, temperatures
         candidates.append(("heat", heat))
     if cold is not None:
         candidates.append(("cold", cold))
-    air = _air_hours(int(levels.get("eq_supply") or 0))
+    air = supply_hours(int(levels.get("eq_supply") or 0))
     if air is not None:
         candidates.append(("air", air))
     index, edge = world.uv_index or 0.0, uv_edge(level)

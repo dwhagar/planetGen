@@ -20,6 +20,7 @@ from urllib.parse import urlencode
 from flask import abort, current_app, jsonify, redirect, request, url_for
 
 from planetgen.admin import recipes
+from planetgen.util import log
 
 from . import adminregistry, bp, generate_commands, jobs
 from .generate_page import (
@@ -100,12 +101,18 @@ def draft_of(action, form):
     return [[name, value] for name, value in form.items(multi=True) if name not in DRAFT_SKIP | NEVER_KEPT]
 
 
+def _task_of_draft(draft):
+    """`(action, task)` a kept draft (`[name, value]` pairs) names: the task is `None` when the draft names no action or
+    an action no task owns."""
+    action = next((value for name, value in draft if name == "action"), None)
+    return action, (task_for_action(action) if action else None)
+
+
 def draft_url(draft):
     """The Review step of the task a kept `draft` (`[name, value]` pairs, the first naming the action) belongs to,
     filled with it (nothing starts until Run is pressed there), or `None` for a draft that names no task or one that
     cannot be run again."""
-    action = next((value for name, value in draft if name == "action"), None)
-    task = task_for_action(action) if action else None
+    action, task = _task_of_draft(draft)
     if task is None or action in DESTRUCTIVE_ACTIONS:
         return None
     return page_url(task.endpoint, **task.params) + "?" + urlencode([*map(tuple, draft), ("review", "1")])
@@ -123,12 +130,12 @@ def recipe_views(username):
     be deleted. An unreachable control database lists none."""
     try:
         found = recipes.list_recipes(username, current_app.config["CONTROL_MYSQL_CONFIG"])
-    except Exception:  # noqa: BLE001 -- the Start screen must still draw when the control database does not answer
+    except Exception as exc:  # noqa: BLE001 -- the Start screen must still draw when the control database does not answer
+        log.swallowed("web/generate_flow", "recipe_views", exc)
         return []
     views = []
     for recipe in found:
-        action = next((value for name, value in recipe["draft"] if name == "action"), None)
-        task = task_for_action(action) if action else None
+        _action, task = _task_of_draft(recipe["draft"])
         views.append({"id": recipe["id"], "name": recipe["name"], "task": task.label if task else "an unknown task",
                       "url": draft_url(recipe["draft"])})
     return views

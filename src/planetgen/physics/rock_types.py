@@ -33,8 +33,6 @@ takes the volcanic (secondary) crust of a body from its stored mantle through `r
 assemblages of the types and as the calibration.
 """
 
-import math
-
 from planetgen.physics import elements
 from planetgen.util.checks import finite_domain
 
@@ -153,6 +151,12 @@ def _units(oxides):
     raise ValueError("the silica is too short for any norm")
 
 
+def divalent_pool(oxides):
+    """The mole fractions of the divalent oxides (`MgO`, `FeO`, `MnO`, `NiO`) of a rock that the mafic minerals of its norm carry: `{oxide: share}`, adding to 1 (empty where the rock has none)."""
+    _units_, iron = _units(oxides)
+    return dict(iron)
+
+
 def _mass(name, iron):
     """The mass of one formula unit of a normative mineral, g/mol (`iron` is the divalent pool's mole fractions)."""
     total = 0.0
@@ -174,8 +178,6 @@ def cipw_norm(oxides):
     """
     units, iron = _units(oxides)
     return {name: units[name] * _mass(name, iron) for name in MINERALS if units[name] > 0.0}
-
-
 
 
 @finite_domain()

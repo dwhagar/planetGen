@@ -22,15 +22,14 @@ import math
 import os
 import time
 
-import pymysql
-
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
+from planetgen.util.ticker import Ticker
 from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.region import Region
 from planetgen.galaxy import spherical
@@ -213,7 +212,7 @@ class _Pending:
             if self._limit is not None and taken >= self._limit:
                 break
             if not bounds.contains(address[0], address[1]):
-                log.debug(f"{_format_address(address)}: skipped (beyond the grid's reach)")
+                log.debug("Skipped %s, beyond the grid's reach.", _format_address(address))
                 skipped += 1
                 continue
             taken += 1
@@ -316,7 +315,8 @@ def _fill_context(args, address):
     its backfill's, GEN.44, GEN.187, else the galaxy scatter's), and its unbuilt scattered phenomena when the galaxy's
     phenomenon scatter ran (GEN.100). `None` without a stored skeleton
     (nothing to take the mix from)."""
-    conn = store.get_connection(store.mysql_config_from_args(args))
+    config = store.mysql_config_from_args(args)
+    conn = store.get_connection(config)
     try:
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
@@ -347,7 +347,7 @@ def _fill_context(args, address):
                 expected = profile.expected_systems
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
         if not resolution.capped:
-            _take_to_the_deepest_floor(store.mysql_config_from_args(args), skeleton, address, limits, backfill_seed)
+            _take_to_the_deepest_floor(config, skeleton, address, limits, backfill_seed)
             conn.commit()   # the draw ran on a connection of its own: this one's snapshot must see its stars
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
@@ -379,28 +379,19 @@ def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):
     to a heavier floor is topped up with only the masses it lacks. A sector at or below the floor (a band whose mass
     limit already reaches it) is left alone.
 
-    The draw runs on a connection of its own at READ COMMITTED and starts over after a deadlock or lock wait timeout
-    (`store.RETRYABLE_ERRORS`): the fills of several workers write `bright_stars` rows at once.
+    The draw runs on a connection of its own, so the fill's connection keeps its snapshot; the draw itself runs at READ COMMITTED and
+    starts over after a deadlock or lock wait timeout (`run_plan._draw_sector_chunks`, `contention.run_with_retries`): the fills of
+    several workers write `bright_stars` rows at once.
     """
     floor = float(min(program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
     mass_limit = limits.mass_limit_at(address[0], address[1])
     if mass_limit is not None and mass_limit <= floor:
         return
-    for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
-        conn = store.get_connection(config)
-        try:
-            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
-            run_plan._draw_sector_masses(conn, skeleton, {tuple(address): floor}, limits, seed)
-            return
-        except pymysql.err.OperationalError as exc:
-            if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
-                raise
-            conn.rollback()
-            log.debug(f"The first fill of {tuple(address)} hit MySQL error {exc.args[0]}; trying again "
-                      f"({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
-            time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)   # not a draw: the process id spreads the workers
-        finally:
-            conn.close()
+    conn = store.get_connection(config)
+    try:
+        run_plan._draw_sector_masses(conn, skeleton, {tuple(address): floor}, limits, seed)
+    finally:
+        conn.close()
 
 
 def backfill_step_targets(addresses, bounds, step_masses=None):
@@ -502,8 +493,8 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
         bar.close(success=not failed)     # nothing to draw: no bar left unmeasured
     run_plan.log_shells("Bright-star backfill", shells)
     if summary["sectors"]:
-        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), masses "
-                  f"{','.join(f'{mass:g}' for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)} Msun")
+        log.debug("Bright-star backfill: %s stars in %s sector(s), masses %s Msun.", summary["stars"], summary["sectors"],
+                  ",".join(f"{mass:g}" for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
     return summary
 
 
@@ -521,12 +512,27 @@ def backfill_targets(conn, skeleton, limits, centers_pc):
     targets = backfill_step_targets(centers, bounds)
     # GEN.333: a sector backfills the masses under its own band's mass limit.
     targets = {address: mass for address, mass in targets.items()
-               if limits.mass_limit_at(address[0], address[1]) is None
-               or mass < limits.mass_limit_at(address[0], address[1])}
+               if (limit := limits.mass_limit_at(address[0], address[1])) is None or mass < limit}
     held = store.sector_bright_masses(conn, targets)
     filled = store.get_occupied_addresses(conn, {address[0] for address in targets})
     return {address: mass for address, mass in targets.items()
             if address not in filled and mass < held.get(address, math.inf)}
+
+
+def _chunks(items, unit_size, units_max):
+    """`items` cut in order into static chunks (PERF.107): each of at least `unit_size`, and at most `units_max` of them, the same
+    at any worker count. Returns `(size, chunks)`."""
+    size = max(unit_size, -(-len(items) // units_max))
+    return size, [items[start:start + size] for start in range(0, len(items), size)]
+
+
+def _database_now(config):
+    """The database's clock, on a connection of its own (the start a stage's `since` is measured from)."""
+    conn = store.get_connection(config)
+    try:
+        return store.database_now(conn)
+    finally:
+        conn.close()
 
 
 BACKFILL_UNIT_CELLS = 10_000
@@ -547,7 +553,7 @@ def expand_backfill_bright_stars(params):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         skeleton = store.get_galaxy_shape(conn)
-        todo = {}
+        todo, centers = {}, []
         skip = None
         if skeleton is not None:
             limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
@@ -558,9 +564,9 @@ def expand_backfill_bright_stars(params):
     finally:
         conn.close()
     addresses = sorted(todo)
-    size = max(BACKFILL_UNIT_CELLS, -(-len(addresses) // BACKFILL_UNITS_MAX))
-    units = [({"database": params["database"], "items": [[*address, todo[address]] for address in addresses[start:start + size]]},
-              float(len(addresses[start:start + size]))) for start in range(0, len(addresses), size)]
+    _size, chunks = _chunks(addresses, BACKFILL_UNIT_CELLS, BACKFILL_UNITS_MAX)
+    units = [({"database": params["database"], "items": [[*address, todo[address]] for address in chunk]}, float(len(chunk)))
+             for chunk in chunks]
     sky = _sky_units(params, centers) if params.get("sky_limit") is not None and centers else []
     return commands.Expansion((units or [({"database": params["database"], "items": []}, 1.0)]) + sky,
                               {"sectors": len(addresses), **({"sky_cells": len(sky)} if sky else {}), **({} if skip is None else {"skip": skip})})
@@ -599,7 +605,7 @@ def _sky_units(params, centers):
         cells[cell] = center
     units = []
     for cell in sorted(cells):
-        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
+        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits, skeleton=skeleton)
         owed = sky_charting.owed_tiers(tiers, ledger, center)
         if owed:
             seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
@@ -662,10 +668,20 @@ def _sky_unit(unit_args, report):
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
+    before, opened, ticked = None, 0.0, 0.0
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
         conn = store.get_connection(_mysql_config_of(unit_args))
         try:
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), progress=report)
+            if before is not None:
+                connection_loss.explain(conn, before, time.monotonic() - ticked, time.monotonic() - opened)      # DB.115: what the new connection says about the lost one
+            before, opened = connection_loss.facts(conn), time.monotonic()
+            ticked = opened
+
+            def tick(batches, cells, stars):
+                nonlocal ticked
+                ticked = time.monotonic()
+
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=report)
             break
         except BaseException as exc:
             conn.rollback()
@@ -673,7 +689,7 @@ def _sky_unit(unit_args, report):
             # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
-            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+            log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
         finally:
             conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
@@ -816,10 +832,9 @@ def expand_link_neighbors(params):
     """
     created = _sectors_since(params)
     ordered = store.link_order(_mysql_config_of(params), created)
-    size = max(LINK_UNIT_SECTORS, -(-len(ordered) // LINK_UNITS_MAX))
+    _size, chunks = _chunks(ordered, LINK_UNIT_SECTORS, LINK_UNITS_MAX)
     run = {key: params[key] for key in ("since", "sector_ids") if params.get(key) is not None}
-    units = [({"database": params["database"], "chunk": ordered[start:start + size], **run},
-              float(len(ordered[start:start + size]) * store.LINK_PHASES)) for start in range(0, len(ordered), size)]
+    units = [({"database": params["database"], "chunk": chunk, **run}, float(len(chunk) * store.LINK_PHASES)) for chunk in chunks]
     return commands.Expansion(units or [({"database": params["database"], "chunk": [], **run}, 1.0)],
                               {"sectors": len(ordered), **({} if ordered else {"skip": SAVED_NO_SECTOR})})
 
@@ -922,6 +937,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new nebulae to the block totals failed: {exc}")
     report(1, 2)
     try:
@@ -936,6 +952,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new sectors to the block totals failed: {exc}")
     return {"nebulae": nebulae, "sectors": sectors, "warnings": warnings}
 
@@ -957,7 +974,7 @@ class RunBlocksFollower(followed.Follower):
         if result["nebulae"]:
             log.normal(f"Added {result['nebulae']:,} nebulae to the block totals.")
         for warning in result["warnings"]:
-            log.normal(f"Warning: {warning}")
+            log.warning(warning)
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -988,11 +1005,10 @@ def expand_save_sector_paths(params):
             sectors = sector_paths.sectors_in_cell_order(conn, sectors)
         finally:
             conn.close()
-    size = max(SETTLE_UNIT_SECTORS, -(-len(sectors) // SETTLE_UNITS_MAX))
+    size, chunks = _chunks(sectors, SETTLE_UNIT_SECTORS, SETTLE_UNITS_MAX)
     # One unit may spread a crowded sector's bodies over processes; a stage of many units already fills the workers.
     workers = params["workers"] if len(sectors) <= size else 1
-    units = [({"database": params["database"], "sector_ids": sectors[start:start + size], "workers": workers},
-              float(len(sectors[start:start + size]))) for start in range(0, len(sectors), size)]
+    units = [({"database": params["database"], "sector_ids": chunk, "workers": workers}, float(len(chunk))) for chunk in chunks]
     return commands.Expansion(units or [({"database": params["database"], "sector_ids": [], "workers": 1}, 1.0)],
                               {"sectors": len(sectors), **({"skip": SAVED_NO_SECTOR} if not created and params.get("sector_ids") is None else {})})
 
@@ -1112,11 +1128,11 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
         cloud_field = (galaxy_seed, fill.shape, tuple(position_pc), edge_pc * math.sqrt(3) / 2)
     # GEN.39: every draw for this sector, its save included, comes from
     # its own seed, so the run's order and worker count don't matter.
+    address_key = ",".join(str(part) for part in address)
     with galaxySeed.seeded(galaxy_seed, "sector", address,
                            disk_scale_length_pc=fill.shape.disk_scale_length_pc if fill is not None else None,
                            shape=fill.shape if fill is not None else None
-                           ), object_timing.unit(
-            ",".join(str(part) for part in address)) as timings:
+                           ), object_timing.unit(address_key) as timings:
         _sector_name, sector = run_sector.generate_directed_sector(
             args, galaxy_seed=galaxy_seed, address=address,
             galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill, cloud_field=cloud_field)
@@ -1128,7 +1144,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
         # PERF.45: a run links its sectors to their neighbours once, at its end
         # (the `link` stage), instead of one at a time under a lock.
         units = len(sector.entries) + len(sector.phenomena)
-        with steps.worker_step(channel, "save:" + ",".join(str(part) for part in address),
+        with steps.worker_step(channel, "save:" + address_key,
                                f"Saving sector {provisional_sector_designation(*address)}", "save", units,
                                workers=run_common._worker_count(args)) as save_step:
             sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
@@ -1324,7 +1340,7 @@ def _settle_named(args):
         conn.close()
     unknown = [sector_id for sector_id in ids if sector_id not in known]
     if unknown:
-        log.error(f"Error: --sector-id: no such sector: {', '.join(str(sector_id) for sector_id in unknown)}")
+        log.error(f"No such sector for --sector-id: {', '.join(str(sector_id) for sector_id in unknown)}")
         raise SystemExit(1)
     stages.begin(stages.for_command("settle", args), args, "settle")
     stages.enter("settle")
@@ -1345,12 +1361,7 @@ def settle_named_sectors(sector_ids, config, expand=True):
         return 0
     args = _default_generation_args(config=config)
     args.workers = 1
-    conn = store.get_connection(config)
-    try:
-        started_at = store.database_now(conn)
-    finally:
-        conn.close()
-    return _settle_on_queue(args, started_at, extra={"sector_ids": sector_ids, "expand": expand})
+    return _settle_on_queue(args, _database_now(config), extra={"sector_ids": sector_ids, "expand": expand})
 
 
 def _cell_to_generate(address, config, link=True):
@@ -1416,7 +1427,7 @@ def _refresh_block_totals(config, address):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sector is saved; the totals can be made again
-        log.normal(f"Warning: adding the sector at {_format_address(address)} to the block totals failed: {exc}")
+        log.warning(f"Adding the sector at {_format_address(address)} to the block totals failed: {exc}")
 
 
 def regenerate_sector_cell(address, config):
@@ -1432,11 +1443,7 @@ def regenerate_sector_cell(address, config):
     if early is not None:
         return {"sector_id": early["sector_id"], "sector_name": early["sector_name"]}
     args.workers = 1
-    conn = store.get_connection(config)
-    try:
-        started_at = store.database_now(conn)
-    finally:
-        conn.close()
+    started_at = _database_now(config)
     [saved] = _submit_batch(args, [(address, position_pc, args, "")], f"Sector ({_format_address(address)})", edge_pc,
                             count=1, collect=True)
     _backfill_on_queue(args, started_at, center_pc=position_pc)
@@ -1496,6 +1503,12 @@ def _planned_around_centers(args, centers, edge_pc, config, batch_density):
             sector_position_pc(*address, edge_pc), args.radius_pc, edge_pc, config, batch_density.bounds)
         located.extend(_Pending.of_candidates(args, candidates, occupied, batch_density,
                                               f", {{distance:.2f}} pc from sector_id={sector_id}").located())
+    return _flat_located(located)
+
+
+def _flat_located(located):
+    """`(items, suffixes)` of `_Pending.located` pairs: the addresses as flat `shell, band, wedge` triples and the words after each."""
+    located = list(located)
     return [index for address, _suffix in located for index in address], [suffix for _address, suffix in located]
 
 
@@ -1504,21 +1517,28 @@ def _planned_single(address, config, batch_density):
     (the stage's own arguments are the defaults of `sector`, not the run's), anywhere in the grid's reach (GEN.235). The part of
     `_plan_single_sector` that reads the database, at the time the stage opens."""
     _require_in_reach(batch_density.bounds, address[0], address[1], _format_address(address))
-    conn = store.get_connection(config)
-    try:
-        exists = store.get_sector_id_at(conn, *address) is not None
-    finally:
-        conn.close()
-    return [] if exists else list(address)
+    return [] if _sector_id_at(config, address) is not None else list(address)
 
 
 def _planned_starts(args, edge_pc, config, batch_density, run_seed):
     """The starts of a "random-start" stage (PERF.214), as flat `shell, band, wedge` triples: the places `_plan_random_start` picks, from the
     run seed the starter drew, so the same seed gives the same starts wherever it is asked. Fewer than `--neighborhoods` is said; none
     fails the stage."""
-    radius_pc = _random_start_radius(args)
+    starts = _draw_starts(args, edge_pc, config, batch_density, _random_start_radius(args), run_seed)
+    if not starts:
+        raise RuntimeError(f"no unoccupied sector address was found after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts "
+                           f"(this galaxy may already be almost entirely generated within the range asked, or hold too little stellar density)")
+    return [index for address, _position, _args in starts for index in address]
+
+
+def _draw_starts(args, edge_pc, config, batch_density, radius_pc, run_seed, drawn=None):
+    """
+    The `--neighborhoods` starts of a random-start run, each `_pick_random_start`'s `(address, position_pc, sector_args)`, drawn from
+    `run_seed` and the start's index, on one connection; fewer than asked when the attempts run out (said here when there is at least one;
+    none is the caller's to refuse). `drawn`, when given, counts the centers examined and dropped as `_pick_random_start` does.
+    """
     conn = store.get_connection(config)
-    starts, drawn = [], {}
+    starts = []
     try:
         for index in range(args.neighborhoods):
             start = _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, [position for _address, position, _args in starts],
@@ -1528,13 +1548,10 @@ def _planned_starts(args, edge_pc, config, batch_density, run_seed):
             starts.append(start)
     finally:
         conn.close()
-    if not starts:
-        raise RuntimeError(f"no unoccupied sector address was found after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts "
-                           f"(this galaxy may already be almost entirely generated within the range asked, or hold too little stellar density)")
-    if len(starts) < args.neighborhoods:
+    if starts and len(starts) < args.neighborhoods:
         log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods (each whole inside the galaxy, at least "
                    f"{2 * radius_pc:g} pc apart).")
-    return [index for address, _position, _args in starts for index in address]
+    return starts
 
 
 def planned_items(params):
@@ -1563,8 +1580,7 @@ def planned_items(params):
         candidates, occupied, _outside = _neighborhood_candidates(
             _neighborhood_center(args), args.radius_pc, edge_pc, config, batch_density.bounds)
         pending = _Pending.of_candidates(args, candidates, occupied, batch_density, _neighborhood_suffix(args))
-        located = list(pending.located())
-        return [index for address, _suffix in located for index in address], [suffix for _address, suffix in located]
+        return _flat_located(pending.located())
     plan = _address_plan(args, edge_pc, batch_density, say=_quiet)
     if plan is None:
         return [], []
@@ -1648,18 +1664,19 @@ def generate_sectors_unit(unit_args, report):
             "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
             "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
             "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
-            "seconds": time.monotonic() - started, "suffix": suffixes[len(done)] if suffixes else ""})
+            "seconds": time.monotonic() - started, "suffix": suffixes[place // 3] if suffixes else ""})    # by place: a run again skips some
         report(len(done), len(items) // 3)
     return {"sectors": done, "pid": os.getpid()}
 
 
 def _log_saved(saved, address, suffix=""):
+    """One sector of a bulk stage as it is saved: a debug line (a stage of thousands would bury its own lines at normal; the stage's ticker carries the progress, OPS.172)."""
     designation = provisional_sector_designation(*address)
-    log.normal(
+    log.debug(
         f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)}{suffix} "
         f"(sector_id={saved['sector_id']})."
     )
-    run_sector._log_summary(saved["summary"])
+    run_sector._log_summary(saved["summary"], log.debug)
 
 
 class SectorsFollower(followed.Follower):
@@ -1704,6 +1721,7 @@ class SectorsFollower(followed.Follower):
         self.announce, self.finish = announce or _log_saved, finish
         self.reported = []
         self.generated = 0
+        self._ticker = Ticker(self.label)       # replaced with a total when the plan says how many
         self.bar = None
         self.items = []
         self.suffixes = {}
@@ -1719,23 +1737,20 @@ class SectorsFollower(followed.Follower):
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
         if plan["detail"].get("warning"):
-            log.normal(f"Warning: {plan['detail']['warning']}")
+            log.warning(plan["detail"]["warning"])
         if not self.collect:
-            log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
-                       f"it is saved, so the first report can take a while in a dense region.")
+            log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
+                       f"{program_constants.PROGRESS_LOG_SECONDS:g} s and each sector's own line is in the debug log.")
+        self._ticker = Ticker(self.label, total=sectors or None)
         if self.bar_description is not None:
             self.bar = self.hold(run_common.sector_bar(self.progress, self.args, self.bar_description, sectors))
 
     def on_result(self, unit, result):
-        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
+        elsewhere = result["pid"] != os.getpid()
         sector_args = self.base_args or self.args
         for saved in result["sectors"]:
             address = tuple(saved["address"])
-            if elsewhere:
-                run_common.RUN_COUNTS["sectors"] += 1
-                run_common.RUN_COUNTS["systems"] += saved["systems"]
-                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
-            run_common._record_sector(sector_args, saved, saved["seconds"])
+            run_common._count_reported(sector_args, saved, elsewhere)
             self.generated += 1
             if self.bar is not None:
                 self.bar.update(advance=1)
@@ -1743,8 +1758,11 @@ class SectorsFollower(followed.Follower):
                 self.reported.append(saved)
             else:
                 self.announce(saved, address, saved.get("suffix") or self.suffixes.get(address, ""))
+                self._ticker.tick(self.generated)
 
     def on_done(self, conclusion):
+        if self.generated and not self.collect and self.announce is _log_saved:
+            self._ticker.finish(self.generated)
         if self.finish is not None:
             self.finish(self)
 
@@ -1926,14 +1944,14 @@ def _neighborhood_center(args):
         conn.close()
 
     if center_position is None:
-        log.error(
-            f"sector_id={args.center_sector} has never been placed in a galaxy (its galaxy-position "
-            f"columns are NULL) -- --center-sector requires an already galaxy-placed sector (one "
-            f"generated via 'planetgen galaxy' itself, not 'planetgen sector'). Use --shell to "
-            f"generate placed sectors from scratch instead."
-        )
+        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.")
         raise SystemExit(1)
-    return (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
+    return _center_pc(center_position)
+
+
+def _center_pc(position):
+    """The `(x, y, z)` center, pc, of a stored sector's galaxy position (`store.get_sector_galaxy_position`)."""
+    return (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
 
 
 def _neighborhood_suffix(args):
@@ -2116,11 +2134,7 @@ def _generate_batch_as_runs(args, batch, title, edge_pc, config, center_pc):
     Returns:
         tuple: `(created_ids, generated)`: the ids of the sectors made, in the order they were saved, and how many.
     """
-    conn = store.get_connection(config)
-    try:
-        started_at = store.database_now(conn)
-    finally:
-        conn.close()
+    started_at = _database_now(config)
     saved = _submit_batch(args, batch, title, edge_pc, count=len(batch), collect=True)
     created_ids = [item["sector_id"] for item in saved]
     if created_ids:
@@ -2191,7 +2205,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
             f"(one generated via 'planetgen galaxy', not 'planetgen sector')."
         )
 
-    center = (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
+    center = _center_pc(center_position)
     batch_density = _BatchDensity(config)
     center_shell, center_band, _wedge = sector_address_at(center, edge_pc)
     if not batch_density.bounds.contains(center_shell, center_band):
@@ -2204,21 +2218,29 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         ordered=not estimate_only, limit=run_common.WEB_ENUMERATION_LIMIT,
     )
 
+    args = _api_fill_args(config)
+    pending = _Pending.of_candidates(args, candidates, occupied, batch_density)
+    return _api_fill(args, pending, len(candidates), outside, f"Sectors (around sector {center_sector_id})", edge_pc, config,
+                     center, estimate_only)
+
+
+def _api_fill_args(config):
+    """The arguments an API job's fill generates with: the defaults of `sector`, density-driven from the skeleton
+    (`_BatchDensity`) rather than the flat `num_systems=10` default, one worker generating the run's sectors one at a time."""
     args = _default_generation_args(config=config)
-    # Density-driven from the skeleton (_BatchDensity), not the flat
-    # num_systems=10 default.
     args.density = None
     args.num_systems = None
-    args.workers = 1   # one worker generates the run's sectors, one at a time
+    args.workers = 1
+    return args
 
-    pending = _Pending.of_candidates(args, candidates, occupied, batch_density)
+
+def _api_fill(args, pending, candidates, outside, title, edge_pc, config, center_pc, estimate_only):
+    """The end of an API job's fill (`generate_sector_neighborhood`, `generate_block`): the sectors of `pending` counted and estimated
+    (PERF.3, PERF.36), the estimate alone when `estimate_only`, a refusal when the disk cannot hold them, else the runs
+    (`_generate_batch_as_runs`). Returns the result dict both callers give."""
     batch, estimate_args, total = _plan_pending(pending)
-    counts = {
-        "already_existed": pending.existed,
-        "skipped": pending.skipped,
-        "candidates": len(candidates),
-        "outside_galaxy": outside,
-    }
+    counts = {"already_existed": pending.existed, "skipped": pending.skipped, "candidates": candidates,
+              "outside_galaxy": outside}
     estimate = run_common._estimate_sectors(args, estimate_args, total)
     if estimate_only:
         run_common._RUN_STATS.clear()
@@ -2226,10 +2248,33 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     if estimate.refusal:
         run_common._RUN_STATS.clear()
         raise GenerationRefused(estimate.refusal)
-
-    _created_ids, generated = _generate_batch_as_runs(args, batch, f"Sectors (around sector {center_sector_id})", edge_pc,
-                                                     config, center_pc=center)
+    _created_ids, generated = _generate_batch_as_runs(args, batch, title, edge_pc, config, center_pc=center_pc)
     return {"generated": generated, "estimate": estimate.as_dict(), **counts}
+
+
+def _block_addresses_inside(block, bounds):
+    """A callable giving, each time, the addresses of `block` (`drill.block_addresses`) that the outline `bounds` holds."""
+    def addresses():
+        return ((shell, band, wedge) for shell, band, wedge in drill.block_addresses(block) if bounds.qualifies(shell, band))
+    return addresses
+
+
+def _occupied_in_shells(config, shells):
+    """The set of generated addresses in `shells` (`store.get_occupied_addresses`), on a connection of its own."""
+    conn = store.get_connection(config)
+    try:
+        return set(store.get_occupied_addresses(conn, set(shells)))
+    finally:
+        conn.close()
+
+
+def _sector_id_at(config, address):
+    """The id of the sector saved at `address`, or `None` (`store.get_sector_id_at`), on a connection of its own."""
+    conn = store.get_connection(config)
+    try:
+        return store.get_sector_id_at(conn, *address)
+    finally:
+        conn.close()
 
 
 def generate_block(block_key, config=None, estimate_only=False):
@@ -2278,36 +2323,11 @@ def generate_block(block_key, config=None, estimate_only=False):
         else:
             outside += 1
 
-    def addresses():
-        return ((shell, band, wedge) for shell, band, wedge in drill.block_addresses(block)
-                if bounds.qualifies(shell, band))
-
-    conn = store.get_connection(config)
-    try:
-        occupied = set(store.get_occupied_addresses(conn, shells))
-    finally:
-        conn.close()
-
-    args = _default_generation_args(config=config)
-    args.density = None            # density-driven from the skeleton (_BatchDensity), not the flat default
-    args.num_systems = None
-    args.workers = 1               # one worker generates the run's sectors, one at a time
-
-    pending = _Pending.of_addresses(args, addresses, occupied, batch_density, edge_pc)
-    batch, estimate_args, total = _plan_pending(pending)
-    counts = {"already_existed": pending.existed, "skipped": pending.skipped, "candidates": inside,
-              "outside_galaxy": outside}
-    estimate = run_common._estimate_sectors(args, estimate_args, total)
-    if estimate_only:
-        run_common._RUN_STATS.clear()
-        return {"generated": 0, "estimate": estimate.as_dict(), **counts}
-    if estimate.refusal:
-        run_common._RUN_STATS.clear()
-        raise GenerationRefused(estimate.refusal)
-
-    _created_ids, generated = _generate_batch_as_runs(
-        args, batch, f"Sectors (block {drill.format_drill_key(block)})", edge_pc, config, center_pc=None)
-    return {"generated": generated, "estimate": estimate.as_dict(), **counts}
+    args = _api_fill_args(config)
+    pending = _Pending.of_addresses(args, _block_addresses_inside(block, bounds), _occupied_in_shells(config, shells),
+                                    batch_density, edge_pc)
+    return _api_fill(args, pending, inside, outside, f"Sectors (block {drill.format_drill_key(block)})", edge_pc, config,
+                     None, estimate_only)
 
 
 def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
@@ -2436,24 +2456,12 @@ def _plan_random_start(args, edge_pc, progress):
                    budget.
     """
     radius_pc = _random_start_radius(args)
-    run_seed = draw.getrandbits(128)
-    log.debug(f"Random starts are drawn from the run seed {run_seed}.")
+    run_seed = _run_seed()
 
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
-    conn = store.get_connection(mysql_config)
-    starts = []
     drawn = {}
-    try:
-        for index in range(args.neighborhoods):
-            start = _pick_random_start(args, edge_pc, batch_density, conn, radius_pc,
-                                       [position for _address, position, _args in starts], drawn,
-                                       run_seed=run_seed, index=index)
-            if start is None:
-                break
-            starts.append(start)
-    finally:
-        conn.close()
+    starts = _draw_starts(args, edge_pc, mysql_config, batch_density, radius_pc, run_seed, drawn)
     if args.avoid_filled_space:
         log.normal(f"Keeping away from filled space: {drawn.get('filled', 0):,} of {drawn.get('centers', 0):,} "
                    f"candidate centers touched sectors that are already generated and were dropped, "
@@ -2465,15 +2473,8 @@ def _plan_random_start(args, edge_pc, progress):
             if args.min_start_density is not None else ""
         )
         within = f"within {args.max_shell} shells" if args.max_shell is not None else "in the galaxy"
-        log.error(
-            f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
-            f"-- this galaxy may already be almost entirely generated within that range, or that range "
-            f"may hold too little real stellar density; try a larger --max-shell."
-        )
+        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.")
         raise SystemExit(1)
-    if len(starts) < args.neighborhoods:
-        log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods "
-                   f"(each whole inside the galaxy, at least {2 * radius_pc:g} pc apart).")
 
     # The estimate covers every start and its whole neighborhood, before any is written.
     around, count, existed, skipped = _neighborhood_after(
@@ -2494,6 +2495,56 @@ def _plan_random_start(args, edge_pc, progress):
             _neighborhood_follower(args, edge_pc, addresses, count, existed, skipped)]
 
 
+def _single_address(args):
+    """The `(shell, band, wedge)` of a single-address run (`--shell --band --wedge`), its wedge checked against the band.
+
+    Raises:
+        SystemExit: The wedge is out of range for the band (said), or the band for the shell.
+    """
+    address = (args.shell, args.band, args.wedge)
+    try:
+        total_wedges = spherical.wedge_count(args.shell, args.band)
+    except ValueError as error:
+        log.error(f"{_format_address(address)} -- {error}.")
+        raise SystemExit(1) from error
+    if not (0 <= args.wedge < total_wedges):
+        log.error(
+            f"--wedge {args.wedge} is out of range for shell {args.shell} band {args.band} (holds {total_wedges} "
+            f"wedges, 0..{total_wedges - 1})."
+        )
+        raise SystemExit(1)
+    return address
+
+
+def _single_sector_args(mysql_config):
+    """The arguments a single sector of `galaxy --wedge` is drawn with: the defaults of `sector`, density-driven from the address's own
+    profile, linked at the end of the run."""
+    single = _default_generation_args(config=mysql_config)
+    single.density = single.num_systems = None
+    single.link_later = True            # the run links its sectors at its end
+    return single
+
+
+def _single_saved_line(address, existing_id=None):
+    """The `finish` of a single sector's stage: says the sector saved (`_log_saved`), or that it already existed (with its id when the
+    starter read it)."""
+    def saved_line(follower):
+        if not follower.reported:
+            known = "" if existing_id is None else f" (sector_id={existing_id})"
+            log.normal(f"Sector [{provisional_sector_designation(*address)}] at {_format_address(address)} already existed{known}.")
+            return
+        [saved] = follower.reported
+        _log_saved(saved, address)
+    return saved_line
+
+
+def _run_seed():
+    """The one draw the starter's plan makes for the random starts (PERF.123): the seed their draws come from, said in the debug log."""
+    run_seed = draw.getrandbits(128)
+    log.debug(f"Random starts are drawn from the run seed {run_seed}.")
+    return run_seed
+
+
 def _plan_single_sector(args, edge_pc, progress):
     """
     Single-address mode: generates exactly the one sector at `(--shell I,
@@ -2509,35 +2560,16 @@ def _plan_single_sector(args, edge_pc, progress):
         SystemExit: If the address is out of range for the band, or is beyond
                    the grid's reach.
     """
-    address = (args.shell, args.band, args.wedge)
-    try:
-        total_wedges = spherical.wedge_count(args.shell, args.band)
-    except ValueError as error:
-        log.error(f"{_format_address(address)} -- {error}.")
-        raise SystemExit(1) from error
-    if not (0 <= args.wedge < total_wedges):
-        log.error(
-            f"--wedge {args.wedge} is out of range for shell {args.shell} band {args.band} (holds {total_wedges} "
-            f"wedges, 0..{total_wedges - 1})."
-        )
-        raise SystemExit(1)
-
+    address = _single_address(args)
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     # Named outright, so generated from its profile anywhere in the reach (GEN.235).
     _require_in_reach(batch_density.bounds, args.shell, args.band, _format_address(address))
     position_pc = sector_position_pc(*address, edge_pc)
-    conn = store.get_connection(mysql_config)
-    try:
-        existing_id = store.get_sector_id_at(conn, *address)
-    finally:
-        conn.close()
+    existing_id = _sector_id_at(mysql_config, address)
     sector_args = single = None
     if existing_id is None:
-        # Density-driven, from the address's own profile.
-        single = _default_generation_args(config=mysql_config)
-        single.density = single.num_systems = None
-        single.link_later = True            # the run links its sectors at its end
+        single = _single_sector_args(mysql_config)
         sector_args = batch_density.resolve(single, address, position_pc)
     sectors = [sector_args] if sector_args is not None else []
     what = _format_address(address)
@@ -2548,23 +2580,10 @@ def _plan_single_sector(args, edge_pc, progress):
         what += f" and the sectors {_region_text(args)} of it"
     run_common._check_estimate(args, sectors, what, progress)
     # The backfill waits for the end of the run, with its own bar, instead of stalling this one at 0 of 1 (PERF.28).
-    designation = provisional_sector_designation(*address)
-
-    def saved_line(follower):
-        if not follower.reported:
-            log.normal(f"Sector [{designation}] at {_format_address(address)} already existed (sector_id={existing_id}).")
-            return
-        [saved] = follower.reported
-        log.normal(
-            f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)} "
-            f"(sector_id={saved['sector_id']})."
-        )
-        run_sector._log_summary(saved["summary"])
-
     label = f"Sector ({_format_address(address)})"
     batch = [(address, position_pc, sector_args, "")] if single is not None else []
     followers = [SectorsFollower(args, "sectors", label, edge_pc, batch, bar_description=label if batch else None,
-                                 base_args=single, collect=True, finish=saved_line)]
+                                 base_args=single, collect=True, finish=_single_saved_line(address, existing_id))]
     if around is not None:
         followers.append(_neighborhood_follower(args, edge_pc, [address], *around[1:]))
     return followers
@@ -2659,11 +2678,7 @@ def _block_plan(args, bounds, say):
         log.error(f"--block: {exc}")
         raise SystemExit(1) from exc
     what = f"block {drill.format_drill_key(block)}"
-
-    def addresses():
-        return ((shell, band, wedge) for shell, band, wedge in drill.block_addresses(block)
-                if bounds.qualifies(shell, band))
-
+    addresses = _block_addresses_inside(block, bounds)
     total = sum(1 for _address in addresses())
     if total == 0:
         say(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
@@ -2752,11 +2767,7 @@ def _course_plan(args, say):
 
 def _pending_of_plan(args, plan, edge_pc, batch_density):
     """The `_Pending` of an `AddressPlan`: its addresses that are not generated yet, up to `--limit`."""
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        occupied = set(store.get_occupied_addresses(conn, set(plan.shells)))
-    finally:
-        conn.close()
+    occupied = _occupied_in_shells(store.mysql_config_from_args(args), plan.shells)
     return _Pending.of_addresses(args, plan.addresses, occupied, batch_density, edge_pc,
                                  limit=getattr(args, "limit", None))
 
@@ -2875,7 +2886,7 @@ def _check_plan(args, edge_pc):
     problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc,
                                    compute_battery=not getattr(args, "estimate_only", False))
     if warning:
-        log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
+        log.warning(warning)  # DB.7: a heads-up before it extends a mixed-version galaxy
     if problem:
         log.error(problem)
         raise SystemExit(1)
@@ -2884,11 +2895,7 @@ def _check_plan(args, edge_pc):
 def _start_clock(args):
     """The database's clock now (`store.database_now`), the start time of a run: the sectors saved since are the run's.
     Says it for the stages that take it as `--since`, unless the run only estimates."""
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        started_at = store.database_now(conn)
-    finally:
-        conn.close()
+    started_at = _database_now(store.mysql_config_from_args(args))
     if not getattr(args, "estimate_only", False):
         log.normal(f"Run started at {_since_text(started_at)} on the database's clock (the --since of "
                    f"'planetgen link', 'backfill' and 'settle' for this run's sectors).")
@@ -2918,32 +2925,11 @@ def _deferred_sectors(args, edge_pc):
         return [SectorsFollower(args, "sectors", "Sectors", edge_pc, count=0, bar_description="Sectors", planned="addresses",
                                 finish=generated_in("the sectors asked for"))]
     if args.wedge is not None:
-        address = (args.shell, args.band, args.wedge)
-        try:
-            total_wedges = spherical.wedge_count(args.shell, args.band)
-        except ValueError as error:
-            log.error(f"{_format_address(address)} -- {error}.")
-            raise SystemExit(1) from error
-        if not (0 <= args.wedge < total_wedges):
-            log.error(f"--wedge {args.wedge} is out of range for shell {args.shell} band {args.band} (holds {total_wedges} "
-                      f"wedges, 0..{total_wedges - 1}).")
-            raise SystemExit(1)
-        single = _default_generation_args(config=store.mysql_config_from_args(args))
-        single.density = single.num_systems = None
-        single.link_later = True            # the run links its sectors at its end
+        address = _single_address(args)
+        single = _single_sector_args(store.mysql_config_from_args(args))
         label = f"Sector ({_format_address(address)})"
-
-        def saved_line(follower):
-            designation = provisional_sector_designation(*address)
-            if not follower.reported:
-                log.normal(f"Sector [{designation}] at {_format_address(address)} already existed.")
-                return
-            [saved] = follower.reported
-            log.normal(f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)} (sector_id={saved['sector_id']}).")
-            run_sector._log_summary(saved["summary"])
-
         followers = [SectorsFollower(args, "sectors", label, edge_pc, count=0, bar_description=label, base_args=single, collect=True,
-                                     planned="single", extra={"address": list(address)}, finish=saved_line)]
+                                     planned="single", extra={"address": list(address)}, finish=_single_saved_line(address))]
         if args.radius_pc is not None:
             followers.append(_deferred_neighborhood(args, edge_pc, [list(address)]))
         return followers
@@ -2954,8 +2940,7 @@ def _deferred_sectors(args, edge_pc):
                                 finish=generated_in(f"{region} of sector_id={args.center_sector}"))]
     radius_pc = _random_start_radius(args)
     args.radius_pc = radius_pc
-    run_seed = draw.getrandbits(128)        # the one draw the starter's plan makes, so the draws after it are the same
-    log.debug(f"Random starts are drawn from the run seed {run_seed}.")
+    run_seed = _run_seed()        # the one draw the starter's plan makes, so the draws after it are the same
     return [SectorsFollower(args, "start", "Starting sector", edge_pc, count=0, planned="random-start", extra={"run_seed": run_seed},
                             announce=_log_start),
             _deferred_neighborhood(args, edge_pc, wrapper.plan_detail("start", "centers"))]
@@ -3027,8 +3012,8 @@ def _snap_to_region(args, edge_pc):
         finally:
             conn.close()
         if row is None or row["shell_index"] is None:
-            log.error(f"sector_id={args.center_sector} " + ("does not exist." if row is None else
-                      "has never been placed in a galaxy -- --region needs a sector with a grid address."))
+            log.error(f"Sector {args.center_sector} " + ("does not exist." if row is None else
+                      "has never been placed in a galaxy, and --region needs a sector with a grid address."))
             raise SystemExit(1)
         address = (row["shell_index"], row["band_index"], row["wedge_index"])
     else:
@@ -3110,9 +3095,10 @@ def run_sectors(args):
 def run_galaxy(args):
     """
     `planetgen galaxy`: the sectors in the mode the arguments ask for (span, course, single-address, shell,
-    local-neighborhood, or random-start), then the link, the scatters of the bright stars and phenomena (GEN.30: they come
-    after the sectors, so neither the scatter nor the backfill draws stars for a sector the run filled), the backfill, the
-    population and territories, the sector paths (GEN.126) and the block totals -- every one a stage of the one run
+    local-neighborhood, or random-start), then the link, the clearing of the earlier bright stars (which stores the scatter's
+    limits), the backfill out from the filled sectors (before the scatters, so the scatters draw everything past it),
+    the scatters of the bright stars and phenomena (GEN.30: they come after the sectors, so neither the scatter nor the
+    backfill draws stars for a sector the run filled), the population and territories, the sector paths (GEN.126) and the block totals -- every one a stage of the one run
     (PERF.172), so one estimate covers it and it is one entry in the queue. First checks the galaxy has been planned at the
     standard sector edge, since every mode validates its addresses against that plan's stored outline before generating
     anything.
@@ -3123,10 +3109,13 @@ def run_galaxy(args):
     args.stage_skips = run_plan.stored_scatter_skips(args)       # PERF.256: a scatter that is stored and current is not planned
 
     def tail(since):
-        stars, _book = run_plan.bright_star_followers(args)
+        stars, _book = run_plan.bright_star_followers(args, prepare=True)
         phenomena, _book = run_plan.phenomena_followers(args)
-        planned = [LinkFollower(args, since), *stars, *phenomena,
-                   BackfillFollower(args, since), run_population.population_follower(args),
+        clear, passes = (stars[:1], stars[1:]) if stars and stars[0].key == stages.BRIGHT_CLEAR_STAGE["mass"].key else ([], stars)
+        # the backfill goes out from the filled sectors before the scatters, so the scatters draw everything past it: the clear (which also
+        # stores the scatter's limits, so the backfill draws only what the passes leave out) is the first thing after the link
+        planned = [LinkFollower(args, since), *clear, BackfillFollower(args, since), *passes, *phenomena,
+                   run_population.population_follower(args),
                    run_population.territories_follower(args), SettleFollower(args, since),
                    RunBlocksFollower(args, since), run_plan.BlockLightsFollower(args)]       # PERF.251: the block lights are the last thing a galaxy run makes
         for key, reason in args.stage_skips.items():

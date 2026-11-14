@@ -194,6 +194,13 @@ def mix_layers(a, b):
     return tau, omega, asymmetry
 
 
+def gas_slab(tau_rayleigh, tau_absorption, share):
+    """`(tau, omega, g)` of `share` of the gas column: its Rayleigh and absorption depths, the Rayleigh share as the albedo, no asymmetry."""
+    tau = share * (tau_rayleigh + tau_absorption)
+    omega = np.where(tau > 0.0, share * tau_rayleigh / np.where(tau > 0.0, tau, 1.0), 1.0)
+    return tau, omega, np.zeros_like(tau)
+
+
 def gas_layers(column, centers, edges):
     """The Rayleigh and absorption optical depth of the whole column at each cell, and the absorption alone."""
     tau_rayleigh = np.zeros_like(centers)
@@ -206,7 +213,10 @@ def gas_layers(column, centers, edges):
     for formula, pressure in column.partials_pa.items():
         if formula == "O3" or pressure / column.pressure_pa < 1e-12:
             continue
-        tau_absorption = tau_absorption + column.number_column_cm2(formula) * uv_cross_sections.cross_section_cm2(formula, edges)
+        if formula == "CH4":
+            tau_absorption = tau_absorption + uv_cross_sections.methane_optical_depth(column.number_column_cm2(formula), edges)   # GEN.949: the bands of Karkoschka
+        else:
+            tau_absorption = tau_absorption + column.number_column_cm2(formula) * uv_cross_sections.cross_section_cm2(formula, edges)
     return tau_rayleigh, tau_absorption
 
 
@@ -268,14 +278,9 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
         sigma = uv_cross_sections.ozone_cross_section_cm2(edges, ozone_temperature_k)
         tau_ozone = ozone_du * uv_cross_sections.DOBSON_CM2 * sigma
 
-    def gas_slab(share):
-        tau = share * (tau_rayleigh + tau_absorption)
-        omega = np.where(tau > 0.0, share * tau_rayleigh / np.where(tau > 0.0, tau, 1.0), 1.0)
-        return tau, omega, np.zeros_like(tau)
-
-    upper = two_stream.scattering_layer(*gas_slab(above), mu0)
+    upper = two_stream.scattering_layer(*gas_slab(tau_rayleigh, tau_absorption, above), mu0)
     ozone = two_stream.absorbing_layer(tau_ozone, mu0)
-    lower_slab = gas_slab(1.0 - above)
+    lower_slab = gas_slab(tau_rayleigh, tau_absorption, 1.0 - above)
     if haze is not None:
         lower_slab = mix_layers(lower_slab, (haze.tau, haze.omega, haze.g))
     lower = two_stream.scattering_layer(*lower_slab, mu0)

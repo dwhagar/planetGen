@@ -41,17 +41,23 @@ class EditError(Exception):
 
 
 def _star_ids(conn, system_id, system):
-    """`[(star_id, planets), ...]`: the `planets.star_id` each of the
+    """`[(star_id, planets, host_node_id), ...]`: the `planets.star_id` each of the
     system's planet lists is stored under (`None` for a close pair's
-    circumbinary planets)."""
-    members = [(member.db_id, bodies) for member, bodies in system.member_hosts()]    # GEN.332
+    circumbinary planets) and the node a list of an inner pair node's planets
+    goes round (`planets.host_node_id`, GEN.332; `None` for every other list)."""
+    members = [(member.db_id, bodies, None) for member, bodies in system.member_hosts()]    # GEN.332
+    members += [(None, bodies, host.host_node_no) for host, bodies in system.node_planet_hosts()]
     if system.binary_type == "wide":
-        return [(system.primary_star.db_id, system.planets),
-                (system.secondary_star.db_id, system.secondary_planets), *members]
+        return [(system.primary_star.db_id, system.planets, None),
+                (system.secondary_star.db_id, system.secondary_planets, None), *members]
     if system.binary_type == "close":
-        return [(None, system.planets), *members]
+        return [(None, system.planets, None), *members]
     row = conn.execute("SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)).fetchone()
-    return [(row["id"] if row else None, system.planets)]
+    return [(row["id"] if row else None, system.planets, None), *members]
+
+
+_BODY_CHILD_TABLES = ("reflection_spectrum", "interior_layers", "deposit_types", "isotopes", "gases", "life_class_scores", "life")
+"""tuple: The child tables of a planet or moon (`planet_<name>` / `moon_<name>`) that `store.body_child_rows` writes again after an edit."""
 
 
 def _update_body(conn, table, body, assignments, key_values):
@@ -67,13 +73,8 @@ def _update_body(conn, table, body, assignments, key_values):
         (*values, body.db_id),
     )
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
-    conn.execute(f"DELETE FROM {prefix}_reflection_spectrum WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_interior_layers WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_deposit_types WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_isotopes WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_gases WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_life_class_scores WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_life WHERE {id_column} = ?", (body.db_id,))
+    for child in _BODY_CHILD_TABLES:
+        conn.execute(f"DELETE FROM {prefix}_{child} WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
 
 
@@ -114,12 +115,12 @@ def _delete_missing(conn, table, column, owner_id, kept_ids):
         conn.execute(f"DELETE FROM {table} WHERE {column} = ?", (owner_id,))
 
 
-def _save_belt(conn, system_id, star_id, index, belt):
+def _save_belt(conn, system_id, star_id, index, belt, host_node_id=None):
     lower_km = _au_to_km(belt.lower_limit)
     upper_km = _au_to_km(belt.upper_limit)
     distance_km = _au_to_km(belt.distance)
     if getattr(belt, "db_id", None) is None:
-        belt.db_id = store.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id)
+        belt.db_id = store.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id, host_node_id=host_node_id)
         return
     conn.execute(
         "UPDATE asteroid_belts SET star_id = ?, orbital_index = ?, distance_km = ?, lower_limit_km = ?,"
@@ -194,16 +195,17 @@ def save_system_edits(conn, system_id, system, stars=()):
     """
     insolation.refresh_system(system)   # ADM.132: the light each body sums over the stars, from the orbits the edit left
     conn.execute("DELETE FROM effect_ledger WHERE star_system_id = ?", (system_id,))   # GEN.1465: an edited body's shares are no longer the ones generation noted; the ledger stays empty until the system's `refill-effect-ledger`
+    conn.execute("UPDATE system_summary SET ledger_stamp = NULL WHERE star_system_id = ?", (system_id,))   # GEN.1498: not current any more, so `refill-effect-ledger` writes its light and ultraviolet rows again
     store.keep_body_numbers(conn, system_id)   # a body deleted below leaves its number used for good (DB.20)
     kept_planets, kept_belts = [], []
-    for star_id, planets in _star_ids(conn, system_id, system):
+    for star_id, planets, host_node_id in _star_ids(conn, system_id, system):
         for index, body in enumerate(planets):
             if body.body_type == 'a':
-                _save_belt(conn, system_id, star_id, index, body)
+                _save_belt(conn, system_id, star_id, index, body, host_node_id)
                 kept_belts.append(body.db_id)
                 continue
             if getattr(body, "db_id", None) is None:
-                body.db_id = store.insert_planet(conn, body, system_id, star_id, index)
+                body.db_id = store.insert_planet(conn, body, system_id, star_id, index, host_node_id=host_node_id)
                 for moon in body.moons:
                     moon.db_id = None
                 rows = conn.execute("SELECT id FROM moons WHERE planet_id = ? ORDER BY orbital_index",
@@ -212,7 +214,7 @@ def save_system_edits(conn, system_id, system, stars=()):
                     moon.db_id = row["id"]
             else:
                 _update_body(conn, "planets", body, ("star_id", "orbital_index", "parent_type", "parent_id"),
-                             (star_id, index, *store.planet_parent(star_id, system_id)))
+                             (star_id, index, *store.planet_parent(star_id, system_id, host_node_id)))
                 _save_moons(conn, system_id, star_id, body)
             kept_planets.append(body.db_id)
     _delete_missing(conn, "planets", "star_system_id", system_id, kept_planets)
@@ -456,7 +458,7 @@ def empty_sector(conn, sector_id):
         return None
     conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
     counts = delete_sector_birth_contents(conn, sector_id)
-    kept = bool(sector_residents(conn, sector_id)) or _filed_anywhere(conn, sector_id)
+    kept = bool(sector_residents(conn, sector_id)) or bool(restricting_rows(conn, sector_id))      # a row a RESTRICT key still points at stays too
     if kept:
         storage_checksum.mark_sector(conn, sector_id)    # the row stays, its contents are gone: its checksum is out of date
         fingerprint_tree.drop_content(conn, sector_id)   # and so is its leaf: the residents are all it holds (TEST.602)
@@ -482,11 +484,6 @@ def restricting_rows(conn, sector_id):
         if count:
             found[table] = count
     return found
-
-
-def _filed_anywhere(conn, sector_id):
-    """Whether any row of a table whose key would stop the delete still points at the sector."""
-    return bool(restricting_rows(conn, sector_id))
 
 
 def delete_sector_with_contents(conn, sector_id):
@@ -518,15 +515,3 @@ def refresh_nearest_around(conn, center_pc):
     near = store._sectors_near(conn, {0: center_pc}, 2 * half_diagonal + store.NEAREST_SYSTEMS_SEARCH_PC)
     if near:
         store.refresh_nearest_systems(conn, near.keys())
-
-
-def system_sector_center(conn, system_id):
-    """The galaxy-frame center (pc) of a system's sector, or `None`."""
-    row = conn.execute(
-        "SELECT s.center_x_pc AS x, s.center_y_pc AS y, s.center_z_pc AS z FROM star_systems ss"
-        " JOIN sectors s ON s.id = ss.sector_id WHERE ss.id = ?",
-        (system_id,),
-    ).fetchone()
-    if row is None or row["x"] is None:
-        return None
-    return row["x"], row["y"], row["z"]

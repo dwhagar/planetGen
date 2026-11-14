@@ -1,7 +1,7 @@
 """
 GEN.1476: the parts of the block light totals (`galaxy_block_light_parts`). The scatter writers add each batch's light to its cells in the transaction that
 writes the rows, the block light stage rolls the parts up to the rows a rebuild from the objects gives (without reading the two scatter tables), the parts are
-checked before they are used and made again when they differ, a sector build or a clear puts a cell right, the uncharted index takes its cells from them, and
+checked before they are used and made again when they differ, a sector build or a clear puts a cell right, the Sectors list takes the uncharted cells from them (OPS.154), and
 a galaxy made before v239 gets the empty table.
 """
 
@@ -9,7 +9,7 @@ import struct
 
 import pytest
 
-from planetgen.db import block_lights, store, uncharted_index
+from planetgen.db import block_lights, store
 from tests.db_schema_support import load_old_schema
 from tests.test_block_lights import _stored
 
@@ -120,8 +120,8 @@ def test_parts_that_do_not_match_the_scatter_are_made_again_by_the_roll(conn):
     rebuilt = _stored(conn)
     conn.execute("DELETE FROM galaxy_block_light_parts WHERE shell_index = 10")      # a galaxy scattered before the parts, or a prune that missed them
     conn.commit()
-    assert not block_lights.parts_current(conn)
-    _written, used = block_lights.roll(conn)
+    assert not block_lights.parts_current(conn, exact=True)      # the proof counts the objects; the end of a run does not (OPS.152)
+    _written, used = block_lights.roll(conn, exact=True)
     assert not used
     _assert_same(_stored(conn), rebuilt)
     _assert_same(_parts(conn), _from_tables(conn))
@@ -133,7 +133,7 @@ def test_a_sector_build_or_delete_puts_its_cell_right(conn):
     _write(conn, stars, points)
     conn.execute("UPDATE phenomenon_scatter SET built_at = CURRENT_TIMESTAMP WHERE shell_index = 12")      # the sector was built: its phenomena are in the sector now
     conn.commit()
-    assert not block_lights.parts_current(conn)
+    assert not block_lights.parts_current(conn, exact=True)
     block_lights.refresh_chain(conn, (12, 0, 1))
     conn.commit()
     assert (12, 0, 1) not in _parts(conn) and block_lights.parts_current(conn)
@@ -157,14 +157,6 @@ def test_clearing_a_scatter_takes_its_light_out_of_the_parts(conn):
     _assert_same(_parts(conn), _from_tables(conn))
 
 
-def test_the_uncharted_index_takes_its_cells_from_the_parts(conn):
-    stars, points = _rows()
-    _write(conn, stars, points)
-    for shell in uncharted_index.shells_with_objects(conn):
-        assert uncharted_index.cells_without_a_row(conn, shell, from_parts=True) == uncharted_index.cells_without_a_row(conn, shell)
-    assert uncharted_index.shells_with_objects(conn, from_parts=True) == uncharted_index.shells_with_objects(conn)
-
-
 @pytest.mark.fresh_database
 def test_a_v238_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothing(mysql_config):
     load_old_schema(mysql_config, 238)
@@ -186,7 +178,6 @@ def test_a_v238_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothi
 
 def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn, mysql_config):
     from planetgen.generation import run_plan
-
     stars, points = _rows()
     kind_at, mass_at = store.PHENOMENON_SCATTER_COLUMNS.index("kind"), store.PHENOMENON_SCATTER_COLUMNS.index("mass_solar")
     points = [row[:kind_at] + ("hypervelocity-star",) + row[kind_at + 1:mass_at] + (2.0,) + row[mass_at + 1:-1] + (None,) for row in points]      # scattered before the map luminosity existed: a mass, no value
@@ -224,3 +215,49 @@ def test_many_cells_are_put_right_together_and_a_cell_with_no_part_is_left_alone
     conn.commit()
     _assert_same(_parts(conn), _from_tables(conn))
     assert block_lights.parts_current(conn)
+
+
+def test_the_stage_is_one_unit_that_makes_the_totals_and_no_sector_row(conn, mysql_config):
+    """OPS.154: the stage is the roll-up alone; whether it rolls the parts up or makes them again, the totals are the same and no sector row is made."""
+    from planetgen.generation import run_plan
+
+    stars, points = _rows()
+    _write(conn, stars, points)
+    params = {"database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}, "run_id": None}
+    sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+    for rebuild in (False, True):
+        expansion = run_plan.expand_refresh_block_lights(dict(params, rebuild=rebuild))
+        assert len(expansion.units) == 1
+        reports = []
+        result = run_plan.refresh_block_lights_unit(expansion.units[0][0], lambda done, total: reports.append((done, total)))
+        conn.commit()      # a new snapshot: the unit committed on a connection of its own
+        assert result["warning"] is None and result["written"] > 0 and "made" not in result
+        assert reports and reports[-1][0] == reports[-1][1]      # the unit ends its own bar
+        assert conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"] == sectors
+
+
+def test_the_check_at_the_end_of_a_run_reads_no_scatter_table(conn):
+    """OPS.152: the count of the unbuilt stars over `bright_stars` and the scan of `phenomenon_scatter` kept a full galaxy's run silent for hours."""
+    stars, points = _rows()
+    _write(conn, stars, points)
+    block_lights.rebuild(conn, parts=True)
+    conn.execute("INSERT INTO phenomenon_scatter_classes (kind, subtype, placed, built) VALUES ('black-hole', '', ?, 0)", (len(points),))
+    conn.commit()
+    block_lights.rebuild(conn)
+    seen = []
+    execute = conn.execute
+
+    def recording(sql, *args, **kwargs):
+        seen.append(" ".join(str(sql).split()))
+        return execute(sql, *args, **kwargs)
+
+    conn.execute = recording
+    try:
+        assert block_lights.parts_current(conn) and block_lights.totals_current(conn)
+        written, used = block_lights.roll(conn)
+    finally:
+        del conn.execute
+    assert used and written
+    reads = [sql for sql in seen if "FROM bright_stars" in sql or "FROM phenomenon_scatter " in sql or "FROM phenomenon_scatter WHERE" in sql]
+    assert not reads, reads
+

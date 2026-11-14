@@ -22,6 +22,7 @@ This module imports Flask only for the request.
 """
 
 import json
+from xml.sax.saxutils import escape
 import re
 import threading
 import time
@@ -42,6 +43,7 @@ LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "
 DETAIL = frozenset({
     "web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon", "web.uncharted_star",
     "web.object_page", "web.belt_info_page", "web.belt_member_page", "web.field_member_page",
+    "web.irregular_moons_page", "web.irregular_moon_page",
 })
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data",
@@ -295,14 +297,12 @@ def clear_cache():
 
 def sitemap_urls_xml(urls):
     """A `<urlset>` of absolute addresses (`loc` only: Google ignores changefreq and priority)."""
-    from xml.sax.saxutils import escape
     body = "".join(f"<url><loc>{escape(url)}</loc></url>" for url in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>\n')
 
 
 def sitemap_index_xml(urls):
-    from xml.sax.saxutils import escape
     body = "".join(f"<sitemap><loc>{escape(url)}</loc></sitemap>" for url in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</sitemapindex>\n')

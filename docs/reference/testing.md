@@ -404,6 +404,15 @@ observed rates (`src/tests/data/prevalence_occurrence_expectations.json`, kind `
 are read). One live test draws the systems once for both; their reports are `system-census-latest.md` and
 `occurrence-census-latest.md`. A system that raises is the `error` flag, as one over 180 s is `hang`.
 
+Part E on the galaxy's own stars (TEST.395, `src/tests/audit/prevalence_galaxy.py`, `src/tests/test_prevalence_galaxy_census.py`): the
+same observed bands, on the systems of 100 seeded sectors at the reference solar position (`census.fill_region_sector`, about 300
+systems, about 4 minutes on 4 cores), so the host mix is the galaxy's (about 80 percent M dwarfs) and the planets carry their final
+classes and stored life. A host group of 25 stars or more is a cell of its own, widened for its own count; the `galaxy` cell pools every
+group that has a band for the measure and averages the groups' ranges by their stars, so the small groups still count. A flag names its
+cell and measure and carries the known-gap item of its group in the stored occurrence file. The report is
+`occurrence-galaxy-latest.md` and also lists the final class mix and the bodies with life per star (no survey measures a class, so that
+part only reports).
+
 Re-baselining B and E: `python -m tests.audit.prevalence_systems measure` and `build`, `python -m tests.audit.prevalence_occurrence`.
 
 Part C, the star census (TEST.432, `src/tests/audit/prevalence_stars.py`, `src/tests/test_prevalence_stars_census.py`), draws 40,000
@@ -526,6 +535,18 @@ Tests run on MySQL 8.0.19 or later; MariaDB is not supported and a run against i
 has four legs, each with its own Redis container: the whole suite on Python 3.12 against MySQL 8.0 and MySQL 8.4,
 then the `generation` tests alone with 2 workers (MySQL 8.4, Python 3.12) and with 4 workers (MySQL 8.0,
 Python 3.13).
+
+## The cut-neutral check (PERF.260)
+
+A stage that the queue cuts into units may be flagged "dynamic split is byte identical" (`commands.SPLIT_BYTE_IDENTICAL`, OPS.161), which lets the queue engine choose any cut for it. Boss (2026-11-12, 3:09 PM EST): if a flag is ever set when something is not byte identical, the test should fail. `src/tests/test_cut_neutral.py` is that test, and it runs in the merge gate with the rest of the suite.
+
+- **It finds the flagged commands itself.** The flagged commands are read from `commands.REGISTRY` (`cut_neutral_support.flagged_commands`), so a new flag is checked with no list to update.
+- **It runs each at two cut sizes.** `tests/cut_neutral_recipes.py` keeps one `Recipe` per command kind: the knob that cuts the stage (`uncharted_index.UNIT_CELLS`, `run_galaxy.LINK_UNIT_SECTORS`, `warmup.OBJECT_CHUNK` and so on), two values of it, and a `prepare` that puts a small database in the state the stage works on. The harness dumps the whole database, runs the stage at the first cut, puts the database back, runs it at the second, and runs the first again; what the stage stored is every row of every table (clock columns left out), and for a warm-up the tile files and the answers in Redis.
+- **It fails, never warns or skips.** The cuts must store the same bytes, a cut must reproduce itself, the two cuts must make a different number of units and the stage must store something, or the comparison proves nothing. A flagged command with no recipe cannot be run at two cuts and fails until its flag is removed.
+- **A column that is no output of the stage is left out with a reason.** A surrogate key taken in insertion order (`nearest_systems.id`, `sector_paths.id`) is named in the recipe's `ignore_columns` with a note, and the rows that refer to it are compared through a `views` query that joins them, so what a row says about its parent is still checked.
+- **Adding a flag** goes in the pull request that adds the command's recipe (TODO, 2026-11-12). Run `python -m pytest tests/test_cut_neutral.py -s -k each_recipe` to see every recipe's verdict.
+
+The verdicts of 2026-11-12 (`reports/perf260-cut-neutral-2026-11-12.md`): the refresh-block-lights, link-neighbors, settle-sector-paths and fill-map-luminosity stages and the warm-galaxy-nodes and warm-galaxy-deep-nodes stages store the same bytes at two cuts; the warm-sectors, warm-systems and warm-phenomena stages store the same pages, scenes and tile files, and a different set of listing windows (the `limit` and `offset` pages each slice asks for), so they are not byte identical as they stand.
 
 ## Kinds of test
 

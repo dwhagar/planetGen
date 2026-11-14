@@ -101,14 +101,21 @@ class PhaseTally:
             total[key] += int(result.get(key) or 0)
         total["seconds"] += float(result.get("seconds") or 0.0)
 
-    def result(self, name):
-        """What phase `name` did, as the admin page keeps it: `{"state", "built", "cached", "left_out", "seconds",
-        "line"}` with `state` one of `built`, `unchanged`, `stopped` and `nothing` (`None` when none of its families ran)."""
+    def _sums(self, name):
+        """`(built, cached, warmed, left_out, seconds)` added up over phase `name`'s families, or `None` when none of them ran."""
         families = [family for family in self.totals if phase_of(family) == name]
         if not families:
             return None
-        built, cached, warmed, left_out, seconds = (
-            sum(self.totals[family][key] for family in families) for key in ("built", "cached", "warmed", "left_out", "seconds"))
+        return tuple(sum(self.totals[family][key] for family in families)
+                     for key in ("built", "cached", "warmed", "left_out", "seconds"))
+
+    def result(self, name):
+        """What phase `name` did, as the admin page keeps it: `{"state", "built", "cached", "left_out", "seconds",
+        "line"}` with `state` one of `built`, `unchanged`, `stopped` and `nothing` (`None` when none of its families ran)."""
+        sums = self._sums(name)
+        if sums is None:
+            return None
+        built, cached, warmed, left_out, seconds = sums
         if not warmed and not left_out:
             state = "nothing"
         elif not built and not left_out:
@@ -122,11 +129,10 @@ class PhaseTally:
     def line(self, name):
         """The one line for phase `name`: `Phase 2 of 5, built-levels: ...` (`None` when none of its families ran)."""
         number = next(index for index, (phase, _text, _families) in enumerate(PHASES, 1) if phase == name)
-        families = [family for family in self.totals if phase_of(family) == name]
-        if not families:
+        sums = self._sums(name)
+        if sums is None:
             return None
-        built, cached, warmed, left_out, seconds = (
-            sum(self.totals[family][key] for family in families) for key in ("built", "cached", "warmed", "left_out", "seconds"))
+        built, cached, warmed, left_out, seconds = sums
         head = f"{logrecord.counting_text('Phase', number, len(PHASES))}, {name}"
         seconds = self._wall.get(name, seconds)         # the time the phase took, not its units' own seconds added up
         if not warmed and not left_out:
@@ -224,6 +230,11 @@ class WarmupFailed(Exception):
     """A family could not warm what it covers; the message says what."""
 
 
+def _edge_pc(galaxy_shape):
+    """The sector edge the Galaxy Map is laid out on: the galaxy's own, or the default before one is stored."""
+    return galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+
+
 def opening_request(galaxy_shape):
     """
     The node keys the Galaxy Map's first frame needs.
@@ -234,7 +245,7 @@ def opening_request(galaxy_shape):
     Returns:
         list: Node keys, the coarsest first (`galaxymap3d.initial_node_request`).
     """
-    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    edge_pc = _edge_pc(galaxy_shape)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
     return initial_node_request(max_radius, (0.0, 0.0, 0.0), edge_pc, node_bounds_pc(edge_pc, galaxy_shape))
 
@@ -298,7 +309,7 @@ def deep_nodes_to_warm(galaxy_shape, finest_block):
     """
     if finest_block >= NODE_WARM_FLOOR:
         return []
-    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    edge_pc = _edge_pc(galaxy_shape)
     _min_radius, start_radius = view_radius_bounds(edge_pc, galaxy_shape)
     keys = zoom_run_nodes(edge_pc, node_bounds_pc(edge_pc, galaxy_shape), start_radius, finest_block)
     if len(keys) > MAX_WARM_NODES:
@@ -426,13 +437,7 @@ def _warm_cluster_field(visitor, cap):
 
 def _warm_galaxy_nodes(visitor, cap):
     """Warms every node `warm-galaxy-nodes` builds, in this process (`warm_family`, the command's inline twin)."""
-    keys = _populated_nodes(visitor.db)
-    warmed = already = 0
-    for start in range(0, len(keys), NODE_CHUNK):
-        result = fetch_nodes(visitor.db, keys[start:start + NODE_CHUNK])
-        warmed += len(result["nodes"])
-        already += result["cached"]
-    return {"warmed": warmed, "noun": "nodes", "already": already, "left_out": 0}
+    return _warm_node_keys(visitor, _populated_nodes(visitor.db))
 
 
 def _warm_lists(visitor, cap):
@@ -500,7 +505,11 @@ def _warm_search(visitor, cap):
 
 def _warm_galaxy_deep_nodes(visitor, cap):
     """Warms every node `warm-galaxy-deep-nodes` builds, in this process."""
-    keys = deep_nodes_to_warm(apiclient.get_galaxy_shape(visitor.db), get_settings().tile_cache.warm_zoom_floor)
+    return _warm_node_keys(visitor, deep_nodes_to_warm(apiclient.get_galaxy_shape(visitor.db), get_settings().tile_cache.warm_zoom_floor))
+
+
+def _warm_node_keys(visitor, keys):
+    """Fetches the nodes `keys` name, `NODE_CHUNK` at a time, through the cache; the warmer's result (`warmed`, `already` cached)."""
     warmed = already = 0
     for start in range(0, len(keys), NODE_CHUNK):
         result = fetch_nodes(visitor.db, keys[start:start + NODE_CHUNK])
@@ -726,6 +735,12 @@ def _fetch_in_requests(app, args, report):
     return cached, 0
 
 
+def _node_result(family, warmed, cached, built, left_out, seconds, line):
+    """A node unit's result, in the shape every warm unit returns (`warm_family`)."""
+    return {"family": family, "warmed": warmed, "noun": "nodes", "cached": cached, "built": built, "left_out": left_out,
+            "seconds": seconds, "line": line}
+
+
 def _warm_node_chunk(args, report, family):
     """
     The unit of the `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` commands (MAP.260): builds one chunk of the nodes
@@ -745,27 +760,22 @@ def _warm_node_chunk(args, report, family):
     if not count:
         report(stored, stored)
         if stored:
-            return {"family": family, "warmed": stored, "noun": "nodes", "cached": stored, "built": 0, "left_out": 0, "seconds": 0.0,
-                    "line": f"{family}: {stored} nodes warmed (0 built, {stored} already stored)"}
-        return {"family": family, "warmed": 0, "noun": "nodes", "cached": 0, "built": 0, "left_out": 0,
-                "seconds": 0.0, "line": f"{family}: no node to warm" + (
-                    ", no block is stored yet" if family == "galaxy-nodes" else "")}
+            return _node_result(family, stored, stored, 0, 0, 0.0, f"{family}: {stored} nodes warmed (0 built, {stored} already stored)")
+        return _node_result(family, 0, 0, 0, 0, 0.0,
+                            f"{family}: no node to warm" + (", no block is stored yet" if family == "galaxy-nodes" else ""))
     if tilecache.cache_is_full():
         report(count, count)
-        return {"family": family, "warmed": stored, "noun": "nodes", "cached": stored, "built": 0, "left_out": count,
-                "seconds": 0.0,
-                "line": f"{family}: {count} nodes left out, " + (
-                    "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
-                    f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)")}
+        return _node_result(family, stored, stored, 0, count, 0.0, f"{family}: {count} nodes left out, " + (
+            "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
+            f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)"))
     app = app_for()
     cached, left_out = _fetch_in_requests(app, args, report)
     seconds = time.monotonic() - started
     warmed = count - left_out
     built = warmed - cached
-    return {"family": family, "warmed": warmed + stored, "noun": "nodes", "cached": cached + stored, "built": built,
-            "left_out": left_out, "seconds": seconds,
-            "line": f"{family}: {warmed + stored} nodes warmed ({built} built, {cached + stored} already stored) in {seconds:.1f} s"
-                    + (f", {left_out} left out as the cache filled" if left_out else "")}
+    return _node_result(family, warmed + stored, cached + stored, built, left_out, seconds,
+                        f"{family}: {warmed + stored} nodes warmed ({built} built, {cached + stored} already stored) in {seconds:.1f} s"
+                        + (f", {left_out} left out as the cache filled" if left_out else ""))
 
 
 def _node_units(database, keys, family):
@@ -783,7 +793,7 @@ def _node_units(database, keys, family):
             with app_for().test_request_context("/"):
                 stored = tilecache.stored_nodes(database, keys)
         except Exception as exc:  # noqa: BLE001 -- best effort: without the check every node is cut, as before
-            log.debug(f"{family}: the stamp check failed ({exc!r}); every node is cut into units", area="cache")
+            log.debug(f"{family}: the stamp check failed ({exc!r}); every node is cut into units.", area="cache")
     todo = [key for key in keys if key not in stored]
     size = units_module.coarsen(len(todo), NODE_CHUNK)
     units = [({"database": database, "keys": todo[start:start + size]}, ITEM_SECONDS[family] * len(todo[start:start + size]))

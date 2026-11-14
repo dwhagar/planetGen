@@ -50,8 +50,8 @@ each `Star`/`BinaryStarProxy` has a `system_perimeter` (its Hill sphere
 i.e. the radius beyond which the galaxy's own gravity dominates over the
 star's, roughly the same concept that sets the outer edge of the Oort
 cloud). Two systems are required to be at least `program_constants.SECTOR_HILL_SEPARATION_SHARE`
-(half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's center sits deep inside the
-other's sphere. The whole sum is not asked (GEN.1284): at the solar circle the median system's sphere is 1.3 pc in radius (measured
+(0.05, fitted to the Gaia nearest-neighbour distribution in GEN.1534; it was half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's center sits deep inside the
+other's sphere. The whole sum is not asked (GEN.1284, and not half of it either since GEN.1534: the real neighbourhood has 30 percent of its systems within a parsec of another, `tuning.SECTOR_HILL_SEPARATION_SHARE`): at the solar circle the median system's sphere is 1.3 pc in radius (measured
 in the audit galaxy), the mean spacing of systems is 2.2 pc, and real neighbouring spheres overlap (the Sun's nearest neighbour is
 inside its sphere); asking for the whole sum fills 0.6 of a 4 pc sector with spheres, which random placement cannot do, and the
 sector ran out of room and kept 85 percent of the systems its profile expects (78 percent of the mass).
@@ -565,6 +565,30 @@ class _Placed:
                 self.spatial.get_coordinates("galactic", "cartesian"),
                 getattr(phenomenon, "galactic_orbital_speed_kms", None)))
 
+    def distance_to(self, other):
+        """
+        Computes the Euclidean distance, in light-years, to another entry
+        (or a raw `(x, y, z)` position). See `distance_between`.
+
+        Args:
+            other (SectorSystemEntry, SectorPhenomenonEntry, or tuple): The
+                other entry, or a raw `(x, y, z)` position.
+
+        Returns:
+            float: The distance in light-years.
+        """
+        return distance_between(self, other)
+
+    def named_location(self):
+        """
+        Returns this entry's position formatted as a "named location"
+        string. See `format_named_location`.
+
+        Returns:
+            str: The formatted label.
+        """
+        return format_named_location(self.position)
+
     @property
     def position(self):
         """tuple: `(x, y, z)` light-years from the sector's center."""
@@ -598,30 +622,6 @@ class SectorSystemEntry(_Placed):
         self._place(star_system, tuple(position), sector_center_ly, sector_edge_pc, epoch_unix, velocity_ms)
         self.system_config = system_config if system_config is not None else star_system.system_config
         self.preplaced = preplaced
-
-    def distance_to(self, other):
-        """
-        Computes the Euclidean distance, in light-years, to another entry (or
-        a raw `(x, y, z)` position). See `distance_between`.
-
-        Args:
-            other (SectorSystemEntry or tuple): The other entry, or a raw
-                                                `(x, y, z)` position.
-
-        Returns:
-            float: The distance in light-years.
-        """
-        return distance_between(self, other)
-
-    def named_location(self):
-        """
-        Returns this entry's position formatted as a "named location"
-        string. See `format_named_location`.
-
-        Returns:
-            str: The formatted label.
-        """
-        return format_named_location(self.position)
 
     def to_dict(self):
         """
@@ -676,30 +676,6 @@ class SectorPhenomenonEntry(_Placed):
         self.phenomenon_type = phenomenon_type
         self._place(phenomenon, tuple(position), sector_center_ly, sector_edge_pc, epoch_unix)
 
-    def distance_to(self, other):
-        """
-        Computes the Euclidean distance, in light-years, to another entry
-        (or a raw `(x, y, z)` position). See `distance_between`.
-
-        Args:
-            other (SectorPhenomenonEntry, SectorSystemEntry, or tuple): The
-                other entry, or a raw `(x, y, z)` position.
-
-        Returns:
-            float: The distance in light-years.
-        """
-        return distance_between(self, other)
-
-    def named_location(self):
-        """
-        Returns this entry's position formatted as a "named location"
-        string. See `format_named_location`.
-
-        Returns:
-            str: The formatted label.
-        """
-        return format_named_location(self.position)
-
     def to_dict(self):
         """
         Returns a JSON-serializable dict of this entry.
@@ -753,21 +729,30 @@ class _NeighborArrays:
                 self._append(entry.position, entry.phenomenon)
         self.seen_phenomena = len(sector.phenomena)
 
-    def clear_of(self, sector, candidate, min_separation_ly, hill_new):
-        """Whether `candidate` is at least the required distance from every
-        massive neighbour, with the result of
-        `detmath.dist(candidate, position) >= required` for each."""
+    def _distances(self, sector, point, min_separation_ly, hill_new):
+        """`(positions, required, squared)` over the sector's massive neighbours: each one's position, the separation
+        a body of Hill radius `hill_new` needs from it (`min_separation_ly` flat when given) and the squared distance of
+        `point` from it. `None` when the sector holds none."""
         self._refresh(sector)
         n = self.count
         if n == 0:
-            return True
+            return None
         positions = self.positions[:n]
         if min_separation_ly is not None:
             required = np.full(n, float(min_separation_ly))
         else:
             required = program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_new + self.hill[:n])
-        delta = positions - np.asarray(candidate)
-        squared = np.einsum("ij,ij->i", delta, delta)
+        delta = positions - np.asarray(point)
+        return positions, required, np.einsum("ij,ij->i", delta, delta)
+
+    def clear_of(self, sector, candidate, min_separation_ly, hill_new):
+        """Whether `candidate` is at least the required distance from every
+        massive neighbour, with the result of
+        `detmath.dist(candidate, position) >= required` for each."""
+        found = self._distances(sector, candidate, min_separation_ly, hill_new)
+        if found is None:
+            return True
+        positions, required, squared = found
         clear = squared > (required * (1 + _CLEAR_MARGIN)) ** 2
         if clear.all():
             return True
@@ -780,14 +765,10 @@ class _NeighborArrays:
         """The `(position, required)` of every massive neighbour whose Hill sphere a system with Hill radius
         `hill_new` at `position` would overlap, by the same test as `required_separation_ly` and `distance_between`
         (one NumPy pass, then the exact test on the few near enough to matter)."""
-        self._refresh(sector)
-        n = self.count
-        if n == 0:
+        found = self._distances(sector, position, None, hill_new)
+        if found is None:
             return []
-        positions = self.positions[:n]
-        required = program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_new + self.hill[:n])
-        delta = positions - np.asarray(position)
-        squared = np.einsum("ij,ij->i", delta, delta)
+        positions, required, squared = found
         near = np.nonzero(squared <= (required * (1 + _CLEAR_MARGIN)) ** 2)[0]
         found = []
         for i in near:
@@ -961,10 +942,11 @@ class SpaceSector:
         for attempt in range(1, program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS + 1):
             candidate = self._sample_point()
             if self._neighbor_cache.clear_of(self, candidate, min_separation_ly, hill_new):
-                log.debug(f"Sector {self.name!r}: random position {_fmt_position(candidate)} accepted on attempt "
-                          f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in the "
-                          f"{self.edge_ly} ly {'cell' if self.cell is not None else 'cube'}, clear of every massive neighbor's "
-                          f"{'flat ' + str(min_separation_ly) + ' ly' if min_separation_ly is not None else 'Hill sphere'})")
+                if log.debug_log_active():
+                    log.debug(f"Sector {self.name!r}: random position {_fmt_position(candidate)} accepted on attempt "
+                              f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in the "
+                              f"{self.edge_ly} ly {'cell' if self.cell is not None else 'cube'}, clear of every massive neighbor's "
+                              f"{'flat ' + str(min_separation_ly) + ' ly' if min_separation_ly is not None else 'Hill sphere'}).")
                 return candidate
 
         raise ValueError(
@@ -1022,8 +1004,9 @@ class SpaceSector:
         self.entries.append(entry)
         if self.cloud_containers:
             cloudContext.apply_in_sector(self, star_system, position)
-        log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
-                  f"{_fmt_position(position)} (system {len(self.entries)} in this sector)")
+        if log.debug_log_active():
+            log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
+                      f"{_fmt_position(position)} (system {len(self.entries)} in this sector).")
         return entry
 
     def add_preplaced_system(self, star_system, position, system_config=None):
@@ -1057,9 +1040,10 @@ class SpaceSector:
         if not self.contains(position):
             raise ValueError(f"Sector {self.name!r}: pre-placed position {_fmt_position(position)} is outside the sector")
         for neighbor_position, required in self._neighbor_cache.overlapping(self, position, hill_radius_ly(star_system)):
-            log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
-                      f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
-                      f"{_fmt_position(neighbor_position)}; kept at its stored position")
+            if log.debug_log_active():
+                log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
+                          f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
+                          f"{_fmt_position(neighbor_position)}; kept at its stored position.")
         entry = self.add_system(star_system, position=position, system_config=system_config)
         entry.preplaced = True
         return entry
@@ -1162,8 +1146,9 @@ class SpaceSector:
         entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position, sector_center_ly=self.center_galactic_ly,
                                       sector_edge_pc=self.sector_edge_pc, epoch_unix=self.epoch_unix)
         self.phenomena.append(entry)
-        log.debug(f"Sector {self.name!r}: placed {phenomenon_type} {getattr(phenomenon, 'name', '?')!r} at "
-                  f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'})")
+        if log.debug_log_active():
+            log.debug(f"Sector {self.name!r}: placed {phenomenon_type} {getattr(phenomenon, 'name', '?')!r} at "
+                      f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'}).")
         return entry
 
     def _fine_tune_position(self, position, candidate_system,
@@ -1269,8 +1254,9 @@ class SpaceSector:
         if target_count is None:
             expected = self.expected_system_count()
             target_count = _sample_poisson_count(expected)
-            log.debug(f"Sector {self.name!r}: growth target {target_count} systems (Poisson draw around an "
-                      f"expected {expected:.3f})")
+            if log.debug_log_active():
+                log.debug(f"Sector {self.name!r}: growth target {target_count} systems (Poisson draw around an "
+                          f"expected {expected:.3f}).")
 
         half_edge = self.edge_ly / 2
         active_list = [seed]
@@ -1289,13 +1275,15 @@ class SpaceSector:
 
                 position = self._fine_tune_position(position, candidate_system)
                 if position is None:
-                    log.debug(f"Sector {self.name!r}: candidate near {_system_name(parent.star_system)!r} "
-                              f"rejected (no Hill-sphere-clear spot within "
-                              f"{program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS} nudges)")
+                    if log.debug_log_active():
+                        log.debug(f"Sector {self.name!r}: candidate near {_system_name(parent.star_system)!r} "
+                                  f"rejected (no Hill-sphere-clear spot within "
+                                  f"{program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS} nudges).")
                     continue
                 if not self.contains(position):
-                    log.debug(f"Sector {self.name!r}: candidate at {_fmt_position(position)} rejected (outside "
-                              f"the sector's +/-{half_edge} ly bounds)")
+                    if log.debug_log_active():
+                        log.debug(f"Sector {self.name!r}: candidate at {_fmt_position(position)} rejected (outside "
+                                  f"the sector's +/-{half_edge} ly bounds).")
                     continue
 
                 entry = self.add_system(candidate_system, position=position)
@@ -1306,8 +1294,9 @@ class SpaceSector:
 
             if not placed:
                 active_list.remove(parent)
-                log.debug(f"Sector {self.name!r}: retiring {_system_name(parent.star_system)!r} as a growth "
-                          f"parent ({k} candidates in a row failed); {len(active_list)} parents left")
+                if log.debug_log_active():
+                    log.debug(f"Sector {self.name!r}: retiring {_system_name(parent.star_system)!r} as a growth "
+                              f"parent ({k} candidates in a row failed); {len(active_list)} parents left.")
 
         return new_entries
 

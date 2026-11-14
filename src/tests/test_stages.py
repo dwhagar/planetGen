@@ -54,9 +54,9 @@ def _labels(found):
 def test_a_random_start_galaxy_run_has_eighteen_stages_and_skips_none_of_them():
     found = stages.galaxy_stages(_galaxy())
     assert _labels(found) == [
-        ("start", False), ("neighborhood", False), ("link", False), ("mass-clear", False), ("mass", False), ("luminosity", False),
+        ("start", False), ("neighborhood", False), ("link", False), ("mass-clear", False), ("backfill", False), ("mass", False), ("luminosity", False),
         ("phenomena-clear", False), ("phenomena-unindex", False), ("phenomena", False), ("phenomena-index", False), ("nebula-clear", False), ("nebula-draw", False),
-        ("backfill", False), ("population", False), ("territories", False), ("settle", False),
+        ("population", False), ("territories", False), ("settle", False),
         ("run-blocks", False), ("block-lights", False)]
 
 
@@ -115,7 +115,7 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     assert text.startswith("Stage 1 of 18: Generate the starting sector")
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
     assert "Stage 2 of 18: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 5 of 18: Scatter the massive stars -- skipped: no layers" in text
+    assert "Stage 6 of 18: Scatter the massive stars -- skipped: no layers" in text
     assert "Stage 14 of 18: Run the population pass -- skipped: not needed" in text
     assert "Stage 15 of 18: Recompute the territories -- skipped: not needed" in text
     assert "Stage 16 of 18: Save the sector paths" in text
@@ -161,12 +161,12 @@ def test_a_plan_job_lists_its_scatter_steps_stages():
 
 def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     steps = _steps("new_galaxy", {"confirm": "db"})
-    job = {"stages": jobs.job_stages(steps), "step": 6, "finished": False,
+    job = {"stages": jobs.job_stages(steps), "step": 7, "finished": False,
            "progress": {"stage": {"index": 2, "total": 3, "label": "Scatter the massive stars", "skipped": None}}}
     view = generate_page.stage_view(job)
-    assert view["stage_text"] == "Stage 8 of 21: Scatter the massive stars"
+    assert view["stage_text"] == "Stage 9 of 21: Scatter the massive stars"
     states = [s["state"] for s in view["stage_list"]]
-    assert states[:7] == ["done"] * 7 and states[7] == "running" and "waiting" in states
+    assert states[:8] == ["done"] * 8 and states[8] == "running" and "waiting" in states
     assert "skipped" not in states
 
 
@@ -212,7 +212,7 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
     assert history["population"]["skipped"] and history["territories"]["skipped"] and history["settle"]["skipped"] and history["link"]["skipped"] is True
-    assert history["mass"]["stage_n"] == 5 and history["mass"]["stage_total"] == 18
+    assert history["mass"]["stage_n"] == 6 and history["mass"]["stage_total"] == 18
 
 
 def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_config, monkeypatch):
@@ -321,14 +321,11 @@ def test_the_whole_job_stores_its_shells_per_second_over_all_its_layers(control_
     conn = _control(mysql_config)
     try:
         (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
-        rate = generation_stats.job_shells_per_second(conn, {"workers": 2, "mass_limit_sol": 16.0})
-        fallback = generation_stats.job_shells_per_second(conn, {"workers": 2})
     finally:
         conn.close()
     assert job["metrics"]["shells"] == 100 and job["seconds"] > 0
     assert job["metrics"]["shells_per_second"] == pytest.approx(100 / job["seconds"])
-    assert job["settings"]["mass_limit_sol"] == 16.0 and rate == pytest.approx(job["metrics"]["shells_per_second"])
-    assert fallback == pytest.approx(rate)
+    assert job["settings"]["mass_limit_sol"] == 16.0
 
 
 def test_a_run_that_visited_no_layers_still_stores_its_whole_process_row(control_config, monkeypatch):
@@ -346,7 +343,6 @@ def test_a_run_that_visited_no_layers_still_stores_its_whole_process_row(control
         (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
         assert job["metrics"] == {"stages_run": 1, "shells": 0} and job["seconds"] >= 0
         assert generation_stats.stage_history(conn, stages.SCATTER_KEY) == []
-        assert generation_stats.job_shells_per_second(conn) is None
     finally:
         conn.close()
 
@@ -529,7 +525,7 @@ def test_the_new_galaxy_log_counts_every_stage_not_every_step(tmp_path):
               "argv": [sys.executable, "-c", "import os; print(os.environ['PLANETGEN_STAGE_OFFSET'], os.environ['PLANETGEN_STAGE_TOTAL'])"]}
              for step in steps]
     counts = job_runner._step_stage_counts(shown)
-    assert counts == [1, 1, 1, 2, 1, 3, 3, 7, 1, 1] and sum(counts) == 21
+    assert counts == [1, 1, 1, 2, 1, 1, 3, 3, 7, 1] and sum(counts) == 21
     job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
     job_dir.mkdir(parents=True)
     (job_dir / "job.json").write_text(json.dumps({

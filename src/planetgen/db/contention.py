@@ -21,6 +21,7 @@ import time
 
 import pymysql
 
+from planetgen.db import connection_loss, store
 from planetgen.util import log
 
 RETRYABLE_ERRORS = (1213, 1205)
@@ -40,7 +41,7 @@ _rng = random.Random()
 """The waits' own stream (not a generation draw), so waiting never moves a unit's draws (GEN.39, GEN.56)."""
 
 _pressure = 0.0
-"""float: This process's moving average of failed attempts (0 to 1), in a one-element list of the module: see `pressure`."""
+"""float: This process's moving average of failed attempts (0 to 1): see `pressure`."""
 
 
 def pressure():
@@ -95,7 +96,6 @@ class MySQLGate:
 
     def is_closed(self):
         """Whether somebody holds the exclusive grant."""
-        from planetgen.db import store
         probe = store.get_connection(self._config)
         try:
             return probe.execute("SELECT IS_FREE_LOCK(?) AS free", (self.name,)).fetchone()["free"] != 1
@@ -104,7 +104,6 @@ class MySQLGate:
 
     def grant(self, need):
         """Takes the exclusive grant, waiting up to `GRANT_TIMEOUT_S` for another unit's. Returns whether it was granted."""
-        from planetgen.db import store
         from planetgen.queue import unitbeat
         holder = store.get_connection(self._config)
         try:
@@ -182,14 +181,16 @@ def run_with_retries(conn, attempt, gate, label, attempts=ATTEMPTS, gate_object=
         except pymysql.err.OperationalError as exc:
             conn.rollback()
             if not exc.args or exc.args[0] not in RETRYABLE_ERRORS:
+                if exc.args and exc.args[0] in store.LOST_CONNECTION_ERRORS and getattr(conn, "_config", None) is not None:
+                    connection_loss.explain_lost(conn._config, exc)       # OPS.171: why the server dropped it, on the way out
                 raise
             _note(True)
             error = exc.args[0]
             if number == attempts:
                 break
             wait = next_wait(number, wait)
-            log.normal(f"{label}: MySQL error {error} on try {number} of {attempts}; trying again in {wait:.2f} s "
-                       f"(this process's trouble level {_pressure:.2f}).")
+            log.get("generate").notice(f"{label}: MySQL error {error} on try {number} of {attempts}; trying again in {wait:.2f} s "
+                                       f"(this process's trouble level {_pressure:.2f}).")      # OPS.167: an expected, notable event
             time.sleep(wait)
     need = Need("exclusive", gate, label, attempts, error)
     log.normal(f"{need}: asking for it.")
@@ -203,7 +204,7 @@ def run_with_retries(conn, attempt, gate, label, attempts=ATTEMPTS, gate_object=
     except pymysql.err.OperationalError:
         conn.rollback()
         _note(True)
-        log.normal(f"{label}: the granted try failed too.")
+        log.warning(f"{label}: the granted try failed too.")
         raise
     finally:
         gate_object.release()

@@ -42,6 +42,7 @@ _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 
 from planetgen.admin import maintenance  # noqa: E402
 from planetgen.queue import stopall  # noqa: E402
+from planetgen.util import log
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import galaxy_outlines, habitability_symbols, poi_icons  # noqa: E402
@@ -294,6 +295,7 @@ from . import admin_pages  # noqa: E402,F401 -- /login, /logout, /account, /admi
 from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/nodes
 from . import nav_page, nearby_page, sector_page  # noqa: E402,F401 -- /nav, /nearby, /sector/<id>
 from . import belt_info_page, belt_member_page  # noqa: E402,F401 -- /object/<ref>/belt, /object/<ref>/member/<rank>
+from . import irregular_moon_pages  # noqa: E402,F401 -- /object/<ref>/irregular-moons, /object/<ref>/irregular/<rank>
 from . import field_member_page  # noqa: E402,F401 -- /object/<ref>/field-member/<rank>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import queue_page  # noqa: E402,F401 -- /admin/queue
@@ -337,7 +339,8 @@ def _sector_of_system(system_id):
     """The printed ID of the sector holding `system_id`, or `None` (standalone, or not there)."""
     try:
         return apiclient.get_system(_written_database(), system_id).get("sector_id")
-    except Exception:  # noqa: BLE001 -- not found, or no database: the change is then placed more widely
+    except Exception as exc:  # noqa: BLE001 -- not found, or no database: the change is then placed more widely
+        log.swallowed("web/__init__", "_sector_of_system", exc)
         return None
 
 
@@ -388,18 +391,14 @@ def _install_page_cache(app):
         return response
 
 
-def init_app(app, limiter=None):
+def init_app(app):
     """
-    Registers the pages on `app`. Called by `planetgen.web.app.create_app`.
+    Registers the pages on `app`. Called by `planetgen.web.app.create_app`. The pages' per-IP limits are declared on `bp` and its routes
+    (`api.limiter.page_limit`, configured by `RATELIMIT_PAGES`); the API calls they make in-process skip only the API's default limits
+    (`api.limiter.is_in_process_call`).
 
     Args:
         app (flask.Flask): The app.
-        limiter (flask_limiter.Limiter, optional): Unused; kept for
-            callers. The pages' per-IP limits are declared on `bp` and
-            its routes (`api.limiter.page_limit`, configured by
-            `RATELIMIT_PAGES`). The API calls they make in-process skip
-            only the API's default limits; see
-            `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
     # The math check (TEST.63) runs once per process, now: a failure is
@@ -415,6 +414,5 @@ def init_app(app, limiter=None):
     _install_page_cache(app)
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(
-            "The secret key could not be kept in the state folder: using a random key for this "
-            "process. Forms still work, but ones left open across a restart must be resubmitted."
+            "The secret key could not be kept in the state folder, so a random one is used and forms left open across a restart must be resubmitted."
         )

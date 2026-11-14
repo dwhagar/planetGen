@@ -46,6 +46,9 @@ vapor-pressure curve lives; the callers (GEN.452) read it.
   saturation: the status is `above-critical` and the pressure is infinite.
 * **Known departures at the triple point** from the gas table's pressure: SO2 3.8 percent over, benzene 7 percent over,
   acetylene 3.6 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
+* **Sulfur (S2) is held back** (GEN.1564 slice 0): `unread` in the file holds `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent
+  at worst against the gas table's NASA-polynomial vapor pressure over condensed sulfur) and `unread_pressure_pa` serves it, but `species`, `has`
+  and `saturation` do not know it: putting it in `species` makes every caller see a new gas at once. Slice 1 moves it (stand-in SV1).
 * **Hydrogen's solid** is Clausius-Clapeyron from its triple point with a latent heat of sublimation of 1.02 kJ/mol (the
   gas table's 0.90 of vaporisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species
   without a curve raise `UnknownSpecies`.
@@ -60,11 +63,11 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from planetgen import tuning
-from planetgen.physics import elements, gases
+from planetgen.physics import constants, elements, gases
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "saturation_pressure.json")
 
-BAR_TO_PA = 1.0e5
+BAR_TO_PA = constants.BAR_PA
 """float: Pascals in a bar; the Fray and Schmitt polynomials give `ln P` in bar."""
 
 GAS_CONSTANT_J_MOL_K = 8.314
@@ -206,6 +209,28 @@ class Species:
 
 
 @dataclass(frozen=True)
+class LogFit:
+    """
+    A held-back species (GEN.1564 slice 0): `ln(P/Pa) = a + b/T + c ln T` over condensed sulfur, between `from_k` and `to_k`.
+
+    Attributes:
+        formula, name (str): `"S2"`, `"disulfur"`.
+        coefficients (tuple): a, b, c.
+        from_k, to_k (float): The window of the fit; outside it the value is the fit carried on.
+        max_error_percent (float): The largest departure of the fit from the table it was fitted to, in its window.
+        note (str): Where the fit comes from and why it is not in `species`.
+    """
+
+    formula: str
+    name: str
+    coefficients: Tuple[float, ...]
+    from_k: float
+    to_k: float
+    max_error_percent: float
+    note: str
+
+
+@dataclass(frozen=True)
 class Saturation:
     """
     The answer: `pressure_pa` (infinite above the critical point), how far to trust it (`status`, one of `STATUSES`), the
@@ -255,10 +280,16 @@ def _load():
         rows[formula] = Species(formula, row["name"], row["form"], row["selection"], curves, cold_end, span_wagner,
                                 tuple(float(e) for e in row.get("coefficients", ())), row.get("sublimation_kj_mol"), liquid,
                                 row.get("note", ""))
-    return data["cold_unverified_below_k"], rows
+    unread = {formula: LogFit(formula, row["name"], tuple(float(a) for a in row["coefficients"]), float(row["from_k"]), float(row["to_k"]),
+                              float(row["max_error_percent"]), row["note"])
+              for formula, row in data.get("unread", {}).items()}
+    for formula, row in data.get("unread", {}).items():
+        if row["form"] != "log-fit" or len(row["coefficients"]) != 3 or formula in rows:
+            raise ValueError(f"saturation_pressure.json: unread {formula} needs form log-fit, three coefficients and no row in species")
+    return data["cold_unverified_below_k"], rows, unread
 
 
-COLD_UNVERIFIED_BELOW_K, _TABLE = _load()
+COLD_UNVERIFIED_BELOW_K, _TABLE, _UNREAD = _load()
 """float: Below this temperature the answer is `cold-unverified` (model error of the fits in the cold, finding 11)."""
 
 WATER_TRIPLE_POINT_K = 273.16
@@ -429,6 +460,28 @@ def saturation(formula, temperature_k):
     else:
         status = OK
     return Saturation(pressure, status, curve_id, SOLID)
+
+
+def unread_formulas():
+    """The formulas of the held-back curves (GEN.1564 slice 0): in the file, not in `species`, so `has` and `saturation` do not see them."""
+    return tuple(_UNREAD)
+
+
+def unread_pressure_pa(formula, temperature_k):
+    """
+    The pressure of a held-back curve, Pa: `exp(a + b/T + c ln T)`, the fit carried on outside its window (read by the tests until GEN.1564
+    slice 1 moves the row into `species`).
+
+    Raises:
+        UnknownSpecies: There is no held-back curve for `formula`.
+        ValueError: The temperature is not above zero.
+    """
+    if formula not in _UNREAD:
+        raise UnknownSpecies(formula)
+    if not temperature_k > 0:
+        raise ValueError("a temperature must be positive")
+    a, b, c = _UNREAD[formula].coefficients
+    return math.exp(a + b / temperature_k + c * math.log(temperature_k))
 
 
 def pressure_pa(formula, temperature_k):

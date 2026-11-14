@@ -166,10 +166,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     sector_au = tuple(c * to_au for c in sector_center_ly)
     center_au = tuple((c + p) * to_au for c, p in zip(sector_center_ly, position_ly))
 
-    system_speed = getattr(getattr(system, "star", None), "galactic_orbital_speed_kms", None)
-    circular_velocity = galactic_velocity_ms(center_au, system_speed)
-    system_velocity = tuple(velocity_ms) if velocity_ms is not None else _add(circular_velocity,
-                                                                              peculiar_velocity_ms(system))
+    system_velocity = tuple(velocity_ms) if velocity_ms is not None else system_velocity_ms(system, center_au)
     # Every star of a system moves with the system: the pair's bulk motion is one vector (a wide pair's two stars sit
     # up to a few hundredths of a parsec apart, where the rotation curve's tangent turns by about a millionth, 0.06 m/s
     # of 200 km/s; a star taking the tangent at its own place instead would load back, from the one stored vector,
@@ -201,6 +198,8 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     ]
     for member, bodies in system.member_hosts() if hasattr(system, "member_hosts") else ():    # GEN.332
         groups.append((bodies, [], star_centers.get(id(member), center_au), star_velocities.get(id(member), system_velocity)))
+    for _host, bodies in system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else ():    # GEN.332, slice A: round the node's pair, placed at the system's center
+        groups.append((bodies, [], center_au, system_velocity))
     for planets, comets, anchor, anchor_v in groups:
         for planet in planets:
             placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v, report=True)

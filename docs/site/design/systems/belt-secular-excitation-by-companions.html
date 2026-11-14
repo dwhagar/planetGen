@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A companion star's secular excitation of a belt (GEN.1492, design) - planetGen docs</title>
+<meta name="description" content="Status: design for review by TODO; nothing is built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/belt-secular-excitation-by-companions.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/belt-secular-excitation-by-companions.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="a-companion-stars-secular-excitation-of-a-belt-gen1492-design">A companion star's secular excitation of a belt (GEN.1492, design)</h1><p class="meta">docs/design/systems/belt-secular-excitation-by-companions.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#the-question">The question</a></li><li style="margin-left:0px"><a href="#what-the-code-does-today-read-not-assumed">What the code does today (read, not assumed)</a></li><li style="margin-left:0px"><a href="#the-physics">The physics</a></li><li style="margin-left:0px"><a href="#what-it-leaves-out-stated">What it leaves out (stated)</a></li><li style="margin-left:0px"><a href="#build-in-slices-each-small-each-its-own-pr">Build in slices (each small, each its own PR)</a></li><li style="margin-left:0px"><a href="#done-when">Done when</a></li><li style="margin-left:0px"><a href="#questions-for-todo-plain-words">Questions for TODO (plain words)</a></li><li style="margin-left:0px"><a href="#slice-0-result-built-physicsbelt_forcingpy-rows-fe1-to-fe4-of-section-6256-census-testsauditbelt_forcing_censuspy">Slice 0 result (built: physics/belt_forcing.py, rows FE1 to FE4 of section 6.256, census tests/audit/belt_forcing_census.py)</a></li><li style="margin-left:0px"><a href="#slice-1-result-wired-asteroidbelt_force_by_companions-give_secular_planets-starsystem_give_belts_their_planets">Slice 1 result (wired: AsteroidBelt._force_by_companions, give_secular_planets, StarSystem._give_belts_their_planets)</a></li></ul></details>
+<p>Status: design for review by TODO; nothing is built. Written by Lane 22 on 2026-11-09. GEN.1451 (the companion's cut of a disk and its belts, <code>physics/disk_truncation.py</code>) and GEN.1450 (the planets' secular exchange, <code>physics/secular_chain.py</code>) are on main.</p>
+<h2 id="the-question">The question</h2>
+<p>A belt's members get their eccentricity and inclination from one Rayleigh draw whose width depends only on how far out the belt is (<code>belt_roster.rms_eccentricity</code>, <code>E_OVER_I</code>), whatever stars the system holds. A belt a few AU from a star with a companion of a few hundred AU is pushed by the companion's tide: over many orbits the companion's pull averages into a slow exchange that raises every member's eccentricity to a <strong>forced</strong> value that depends on where the belt stands in the companion's orbit, and that the free, drawn eccentricity then adds to as a vector. Today a belt in a close binary looks the same as one round a lone star. GEN.1451 left this out on purpose (row DT4 of section 6.246).</p>
+<h2 id="what-the-code-does-today-read-not-assumed">What the code does today (read, not assumed)</h2>
+<ul>
+<li><code>belt_roster.draw_roster</code> draws each stored member's <code>e</code>, <code>i</code>, node, periapsis and anomaly from the belt's own stream: <code>e = rayleigh(u_e, e_rms)</code>, <code>i = rayleigh(u_i, e_rms / E_OVER_I)</code>, node and periapsis uniform. A scatter population (<code>belt_populations.orbit</code>) may fix the <code>e</code> or scale it. <code>Belt._draw_members</code> stores them in the member rows (GEN.1070). Nothing else in the generator reads <code>e_rms</code>.</li>
+<li><code>radiation_field.companions_of(star)</code> gives each other star as a <code>Companion</code> (<code>axis_au</code>, <code>eccentricity</code>, the star with its mass). A subtree of stars is one point; the orbits are coplanar (the module says so). No orbit of a star carries a mutual inclination.</li>
+<li><code>secular_chain.matrices(a_au, masses_kg, host_mass_kg)</code> gives the apsidal matrix <code>A</code> of a star's planets from Laplace coefficients, and <code>precession_rates</code> their apsidal rates with relativity. It does not include a companion star; the Kozai screen (<code>stability.kozai_verdict</code>, GEN.1447) compares a planet's rates against the companion's.</li>
+<li><code>disk_truncation.star_disk_limit_au</code> already ends a belt where the companion cuts the disk or no orbit holds, so a belt that exists is well inside the companion's orbit (<code>alpha = a / a_c</code> below about 0.3).</li>
+</ul>
+<h2 id="the-physics">The physics</h2>
+<p>For a test body at <code>a</code> round a host of mass <code>M</code> with a companion of mass <code>m'</code> at <code>a_c</code>, eccentricity <code>e'</code>, the first-order secular theory (Murray and Dermott, <em>Solar System Dynamics</em> sections 7.2 and 7.3 [R3220]) gives, with <code>alpha = a / a_c</code>, <code>n</code> the body's mean motion:</p>
+<pre><code>A_c = (n / 4) (m' / M) alpha^2 b_{3/2}^{(1)}(alpha)  ~  (3/4) n (m'/M) alpha^3 (1 - e'^2)^(-3/2)
+B_c = (n / 4) (m' / M) alpha^2 b_{3/2}^{(2)}(alpha) e' ~  (15/16) n (m'/M) alpha^4 e' (1 - e'^2)^(-5/2)
+</code></pre>
+<p><code>A_c</code> is how fast the companion turns the body's periapsis round, <code>B_c</code> the forcing along the companion's periapsis. The body's eccentricity vector is a <strong>free</strong> part, of length <code>e_free</code>, circling at <code>g = A_total</code> round the <strong>forced</strong> part of fixed length</p>
+<pre><code>e_forced = B_c / A_total  ~  (5/4) alpha e' / (1 - e'^2)      for A_total = A_c alone,
+</code></pre>
+<p>and the planets of the star, general relativity and other companions add their own apsidal rates to <code>A_total</code> (<code>secular_chain.precession_rates</code> for the planets, as a body of no mass among them), which <strong>dilutes</strong> the forcing: a belt beside a heavy giant turns its periapsis round faster than the far companion can force it and keeps its own eccentricity. Several companions force independently and their forced vectors add (linear theory); a subtree is one point.</p>
+<p>The member's eccentricity at the star's age is <code>e = | e_free exp(i varpi_free) + e_forced exp(i varpi_c) |</code>, where <code>varpi_free</code> is the member's drawn periapsis and <code>varpi_c</code> the periapsis direction of the companion's orbit, one angle for the system. The semi-major axes are unchanged.</p>
+<h2 id="what-it-leaves-out-stated">What it leaves out (stated)</h2>
+<ul>
+<li>Inclination. The orbits of stars are coplanar in the generator, so the forced inclination is zero; a belt tilted by a companion needs a mutual inclination of the star orbits, which does not exist (propose a separate item). Kozai-Lidov pumping needs the same and stays with GEN.1447.</li>
+<li>First order in <code>e'</code> and <code>alpha</code>: held to <code>alpha &lt; 0.3</code> (which the cut ensures) and <code>e_forced &lt; 0.3</code>; beyond it the member keeps its drawn orbit.</li>
+<li>The orbits of the companion are as they stand today, not as they were while the disk lasted; resonances with the companion and the evection are not modelled.</li>
+<li>Planets are not forced by the companion here (GEN.1450 has no stellar term): that is a separate item and would use the same <code>A_c</code>, <code>B_c</code>.</li>
+</ul>
+<h2 id="build-in-slices-each-small-each-its-own-pr">Build in slices (each small, each its own PR)</h2>
+<ol start="0">
+<li><strong><code>physics/belt_forcing.py</code>, calibration (no output change).</strong> <code>forced_eccentricity(a_au, host_mass_kg, companion, planet_rates)</code> from exact Laplace coefficients (<code>resonant_chains._laplace</code>), <code>companion_rate</code>, and <code>combined_orbit(e_free, varpi_free, forced)</code>. A census over generated systems with companions: the share of belts whose forced eccentricity exceeds the drawn rms, the dilution by giants, and how many members the combination would move past the stability limit. Stand-in rows: FE1 the first-order law (L0, recalled), FE2 the companion's periapsis direction drawn per system (L1), FE3 inclination taken as zero (L0), FE4 the validity limits. Nothing is wired.</li>
+<li><strong>Wire it into <code>Belt._draw_members</code> (lock item).</strong> The members of a belt of a star with companions get the combined <code>e</code> and periapsis; the belt's rms eccentricity is the quadrature sum for anything that reads it. A lone star draws today's numbers (tested exactly). Epoch with <code>--affects fill</code>; the member rows change, the belt's mass and extent do not.</li>
+</ol>
+<h2 id="done-when">Done when</h2>
+<p>A belt in a system with a close companion shows a higher mean eccentricity than the same belt without it, by the ratio the census predicts; a belt beside a heavy giant is changed less; a lone-star system, and any system whose companions are too far to matter (<code>alpha</code> below the registered floor), gives today's numbers; stand-ins are registered in GEN.725 with burn-down lines.</p>
+<h2 id="questions-for-todo-plain-words">Questions for TODO (plain words)</h2>
+<ol>
+<li>The companion's periapsis direction is not stored anywhere; slice 0 draws it per system from a stream of its own. Is that acceptable, or should the star orbit store it (a column and a migration)?</li>
+<li>Planets are not forced by a companion star today. File that as its own item (it would reuse slice 0)?</li>
+<li>Mutual inclination of star orbits does not exist; forced inclination and Kozai pumping wait for it. File that as its own item?</li>
+</ol>
+<h2 id="slice-0-result-built-physicsbelt_forcingpy-rows-fe1-to-fe4-of-section-6256-census-testsauditbelt_forcing_censuspy">Slice 0 result (built: <code>physics/belt_forcing.py</code>, rows FE1 to FE4 of section 6.256, census <code>tests/audit/belt_forcing_census.py</code>)</h2>
+<ul>
+<li><code>companion_rates</code>, <code>planet_rate</code>, <code>forced_vector</code>, <code>combined</code> and <code>periapsis_rad</code> as designed; the forced vector of a far companion matches <code>(5/4) alpha e' / (1 - e'^2)</code> to 3 percent, points along the companion's periapsis, is zero for a circular companion or a lone star, is cut by a giant beside the belt, and adds as a vector for two companions. Nothing is wired, stored or drawn; output is unchanged.</li>
+<li>Census of 300 generated pairs (499 belts of stars with a companion): none lies beyond <code>ALPHA_LIMIT</code>; the median alpha at the belt's middle is 0.013, the median forced eccentricity is 0.023 of the drawn rms (10th and 90th percentile 4e-5 and 0.52), 19 belts (4 percent) are forced harder than their members are drawn, and the star's planets cut the forcing by half or more for 31 percent of the belts (<code>reports/gen1492-belt-forcing-census-2026-11-09.md</code>). Slice 1 therefore changes the members of a minority of belts.</li>
+</ul>
+<h2 id="slice-1-result-wired-asteroidbelt_force_by_companions-give_secular_planets-starsystem_give_belts_their_planets">Slice 1 result (wired: <code>AsteroidBelt._force_by_companions</code>, <code>give_secular_planets</code>, <code>StarSystem._give_belts_their_planets</code>)</h2>
+<ul>
+<li>Each stored member's eccentricity and periapsis are the vector sum of the drawn orbit and the forced vector at the member's own distance, diluted by the star's planets once the orbits are final; a lone star gives today's members exactly (tested), as does a member outside the theory. Tests: <code>tests/test_belt_forced_members.py</code>.</li>
+<li>Census of 300 generated pairs (499 belts of stars with a companion): 116,575 of 146,892 members move, in 497 belts, mostly slightly; 11 belts (2 percent) have their mean eccentricity raised by half or more (<code>reports/gen1492-forced-members-census-2026-11-09.md</code>). The mean eccentricity of the moved belts is 0.317 before and after, since the forced vector has a random direction against the drawn periapsis: the forcing widens the spread and aligns the periapses rather than raising the mean.</li>
+<li>Not done: the belt's stored rms eccentricity (belt-level field) is not recomputed from the forced members; nothing reads it for the members.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
