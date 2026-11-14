@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4068] - 2026-11-14
+
+**Headline:** Resetting the galaxy names the table it is emptying in the beat, so a slow TRUNCATE shows what it waits on.
+
+### Changed
+- **Reset-galaxy steps by table (OPS.206).** Each `TRUNCATE` of the wipe goes through `queue/longsql.run` with the table, its row count and its place in the list ("Emptying scatter_masses (41,000,000 rows), table 31 of 120").
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4067] - 2026-11-14
 
 **Headline:** The clears and drops of the scatters now show one step to a statement, so a TRUNCATE that takes minutes is named instead of the job looking stuck.

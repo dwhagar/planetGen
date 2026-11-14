@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1660 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1662 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,24 +39,24 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Status | Meaning | Rows |
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
-| observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1634 |
+| observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1635 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 190 | 20 | 12 | 1 | 0 | 223 |
+| T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 155 | 64 | 1 | 1 | 0 | 221 |
 | T3 | 114 | 53 | 12 | 9 | 0 | 188 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
-| T5 | 90 | 23 | 6 | 1 | 1 | 121 |
+| T5 | 91 | 23 | 6 | 1 | 1 | 122 |
 | T6 | 217 | 112 | 31 | 76 | 4 | 440 |
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 93 | 35 | 200 |
-| All | 959 | 325 | 81 | 239 | 56 | 1660 |
+| All | 961 | 325 | 81 | 239 | 56 | 1662 |
 
 ## How the labels were given
 
@@ -2913,3 +2913,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | WDC6 | P | T6 | L1 | `tuning.POLLUTANT_VOLATILE_RICH_FRACTION` 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich | 0.1 to 0.4 | polluting belt bodies | polluted white dwarfs whose measured water fractions put the cut elsewhere | the classes of [R1832] | educated guess from physics | predicted only | GEN.1370 | - |
 | WDC7 | P | T6 | L1 | `tuning.POLLUTANT_ELEMENT_SHARES`: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10 | the nickel in the table's ranges; the organics +-0.1 | the alloys and organics of the materials table that have no formula | a measured composition of those solids that differs by 0.1 in any share | per-material element lists in the materials table | the nickel is the middle of the ranges the table states; the organics are a kerogen-like stand-in | predicted only | GEN.1370 | - |
 | WDC8 | P | T3 | L1 | `tuning.POLLUTANT_FORMULAS`: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite) | the end member chosen | the six rows | an analysis of the mineral that differs by more than 0.05 in any element share | member lists in the materials table | the end members are the table's own member lists | predicted only | GEN.1370 | - |
+
+## 6.287 Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AF1 | P | T1 | L0 | `acid_freezing.freezing_point_k`: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K) | none (read, not fitted); the 1 K of the reading | acid mole fraction 0 to 1 at 0.1 MPa; the equilibrium freezing point, below which a solid can be present | a measured freezing point of a sulfuric acid solution more than 2 K from the curve | the Gibbs-energy fit of [R4877] itself (Tables 6 to 8) evaluated for the liquidus, which removes the digitising | read first-hand from the scan of [R4877]; laboratory freezing points of Gable, Betz and Maron and of Kunzler and Giauque | observed in a lab | - | - |
+| AF2 | P | T5 | L0 | `acid_freezing` is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides | none | cloud pressures up to a few bar | a melting-curve slope of the hydrates above 0.1 K per bar | the pressure dependence of the Gibbs-energy functions, if a source prints it | educated guess from physics (the slopes of the ice and acid melting curves) | predicted only | - | - |
