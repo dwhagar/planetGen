@@ -26,11 +26,11 @@ The mass of each sector (`sector_stats.total_mass_kg`, DB.108, `db/sector_mass.p
 bodies stored, so the sums above it read current figures.
 """
 
-from planetgen.db import query, region_stats, sector_mass
-from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
+from planetgen.db import batched, query, region_stats, sector_mass
+from planetgen.galaxy.drill import STORED_LEVELS, chain_blocks  # noqa: F401  (`chain_blocks` is this module's name for it too)
 
-LEVELS = DRILL_LEVELS[:-1]
-"""tuple: The levels stored: every block size above a sector."""
+LEVELS = STORED_LEVELS
+"""tuple: The levels stored: every block size above a sector (`drill.STORED_LEVELS`)."""
 
 FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
@@ -42,12 +42,6 @@ COLUMNS = ("m", "shell_index", "band_index", "wedge_index", "sector_count", "sys
 INSERT = (f"INSERT INTO galaxy_block_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})")
 
 
-def chain_blocks(address):
-    """The blocks above the sector `(shell, band, wedge)`, one per stored level, coarsest first."""
-    shell, band, wedge = address
-    return drill_chain_of(shell, band, wedge)[:len(LEVELS)]
-
-
 def _row(block, sums):
     sectors, systems, expected, stars, age_sum, luminosity, habitable, mass = sums
     return (block.m, block.shell, block.band, block.wedge, int(sectors), int(systems), float(expected), int(stars),
@@ -55,8 +49,8 @@ def _row(block, sums):
 
 
 def clear(conn):
-    """Empties the table."""
-    conn.execute("DELETE FROM galaxy_block_stats")
+    """Empties the table, a batch of rows at a time (`db.batched`, OPS.185), as `block_lights.clear` does."""
+    batched.repeat(conn, "DELETE FROM galaxy_block_stats", label="Emptying the block statistics")
 
 
 def refresh_blocks(conn, blocks):

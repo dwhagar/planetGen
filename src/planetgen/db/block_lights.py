@@ -41,12 +41,12 @@ import math
 import struct
 
 from planetgen.db import batched, query, store
-from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
+from planetgen.galaxy.drill import DRILL_STEP, STORED_LEVELS, DrillBlock, chain_blocks, drill_children, drill_block_sectors, drill_parent  # noqa: F401
 from planetgen.physics import constants
 from planetgen.util.ticker import Ticker
 
-LEVELS = DRILL_LEVELS[:-1]
-"""tuple: The levels stored: every block size above a sector."""
+LEVELS = STORED_LEVELS
+"""tuple: The levels stored: every block size above a sector (`drill.STORED_LEVELS`)."""
 
 FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
@@ -68,12 +68,6 @@ _WRITE_ROWS = 1000
 
 _PC_PER_MPC = 1.0e-3
 _SOL_W = constants.SOLAR_LUMINOSITY
-
-
-def chain_blocks(address):
-    """The blocks above the sector `(shell, band, wedge)`, one per stored level, coarsest first."""
-    shell, band, wedge = address
-    return drill_chain_of(shell, band, wedge)[:len(LEVELS)]
 
 
 def _order(block):
