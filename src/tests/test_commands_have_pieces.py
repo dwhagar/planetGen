@@ -10,8 +10,6 @@ NOT_YET = {
     **dict.fromkeys(("scatter-mass", "scatter-phenomena", "scatter-luminosity", "scatter-band", "draw-nebula-field", "fill-map-luminosity"), "OPS.198"),
     # OPS.200: clears and drops, a step to each statement through ctx.sql
     **dict.fromkeys(("clean-nebula-field", "clear-scatter", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field"), "OPS.200"),
-    # OPS.201: stamped walkers by id range
-    **dict.fromkeys(("rescore-habitability", "refill-effect-ledger"), "OPS.201"),
     # OPS.202: galaxy and sectors
     **dict.fromkeys(("scatter-backfill", "refresh-run-blocks", "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "settle-sector-paths",
                      "generate-unplaced-sector", "generate-system"), "OPS.202"),
