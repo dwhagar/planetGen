@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4116] - 2026-11-14
+
+**Headline:** Dice can now be keyed to a body's birth facts, and a new test names the end-stage streams that still move when a body is nudged.
+
+### Changed
+
+- GEN.1547 (built ahead for Lane 05): `draw.body_stream` and `draw.body_stream_of` (mass, formation distance, star mass); `tidal_q_prime` uses them with the same string, so no draw changes; `test_end_stage_replay.py` replays the end stages on a body moved by a hair (strict xfail until the call sites are switched).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4115] - 2026-11-14
 
 **Headline:** The dice of every planet and moon end stage (air, haze, aerosols, strength, oddities, mineral rows, isotopes, giant settle, Kozai) are now keyed to the body's birth, so remaking or moving a body never re-rolls them.
