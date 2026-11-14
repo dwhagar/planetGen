@@ -26223,8 +26223,13 @@
     },
     "R5248": {
       "kind": "paper",
-      "label": "West et al. 1983",
-      "title": "Barometric pressures at extreme altitudes on Mt. Everest: physiological significance"
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
+    },
+    "R5249": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2018",
+      "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
     }
   }
 }

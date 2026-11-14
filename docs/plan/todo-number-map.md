@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.316 |
+| UX | UX.317 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
 | GEN | GEN.1694 |
@@ -4980,6 +4980,7 @@ Each citation below resolves to one item by its date.
 | UX.313 | (bug) The system page command names its input file like the --output file | none | open |
 | UX.314 | (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system) | none | open |
 | UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
+| UX.316 | Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button | UX.315 | open |
 
 ### Code tags `TODO(<area> #N)`
 

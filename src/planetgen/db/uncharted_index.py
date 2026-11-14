@@ -11,6 +11,9 @@ with the old outline) and for the migration (0247) that sheds the rows an older 
 (`store.uncharted_sector_id`): that row is the planet's address.
 """
 
+from planetgen.db import batched
+from planetgen.util.ticker import Ticker
+
 _UNCHARTED = (
     "(sec.shell_index IS NOT NULL AND NOT EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index "
     "AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index))")
@@ -26,6 +29,7 @@ def clear_unoccupied(conn, on_phase=None, on_progress=None):
     delete is skipped for it by the database's own keys). `on_progress(deleted)` is called after each batch. Returns the rows deleted.
     """
     deleted, last = 0, 0
+    pace = Ticker("Uncharted sector rows nothing lives in, cleared")
     while True:
         ids = [r["id"] for r in conn.execute(
             f"SELECT sec.id FROM sectors sec WHERE sec.id > ? AND {_UNCHARTED} AND {_UNOCCUPIED} ORDER BY sec.id LIMIT ?", (last, CLEAR_CHUNK)).fetchall()]
@@ -34,6 +38,8 @@ def clear_unoccupied(conn, on_phase=None, on_progress=None):
         last = ids[-1]
         deleted += conn.execute(f"DELETE IGNORE FROM sectors WHERE id IN ({', '.join('?' for _ in ids)})", ids).rowcount
         conn.commit()
+        batched.moving()                                  # OPS.185: a chunk is done, the unit that clears them moved
+        pace.tick(deleted)
         if on_progress is not None:
             on_progress(deleted)
     if on_phase is not None and deleted:

@@ -13624,6 +13624,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: all of stages 3 to 5. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
+- [ ] **UX.316 Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button**
+  Boss, 8:41 PM EST on 2026-11-13: "New Galaxy UX notes... Shape and Rogue planets should follow the same design but have no bar so just a checkbox for 'auto' (default) beside the dropdown box.  Move Galaxy Shape under a collapsible header the user should have options visible for neighborhood but it is also collapsable (expanded by default).  All 3 are like the advanced star properties.  However, ALL properties should have the auto / default toggle and question button for help that the main ones do, even the advanced star scatter options". Follow-up of UX.307 and UX.315 (same page and widgets). Do: reuse UX.315's Default checkbox, ? help icon and title layout for every property; dropdowns get the checkbox only; three collapsible sections like the advanced star properties. Lock-free, output unchanged.
+  Version 8.1. Owner (TODO, 2026-11-13): the sliders thread (built UX.307 and UX.315). Prerequisites: UX.315. Related: UX.307, UX.315.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
