@@ -4,7 +4,7 @@
 The temperature-pressure profile of a hot giant's atmosphere (GEN.1577, built by Lane 07 for Lane 14)
 ======================================================================================================
 
-An analytic, semi-grey, irradiated atmosphere in radiative equilibrium: Guillot 2010 [R1715] equation 29, the profile the cloud deck of `hot_cloud_deck` is placed on.
+An analytic, semi-grey, irradiated atmosphere in radiative equilibrium: [R1715] equation 29, the profile the cloud deck of `hot_cloud_deck` is placed on.
 The design note is docs/design/composition/hot-giant-profile.md; this is the module of it.
 
     T^4 = (3 T_int^4 / 4) (2/3 + tau)

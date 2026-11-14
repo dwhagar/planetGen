@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4104] - 2026-11-14
+
+**Headline:** The hot-giant profile cites its source by ID.
+
+### Fixed
+- The hot-giant profile module and its design note write the source as [R1715] instead of by name, so the citation check on main passes (TEST.740).
+
+generation-output: unchanged
+
 ## [8.0.4103] - 2026-11-14
 
 **Headline:** A hot giant's atmosphere can now be given a temperature profile from its light, its own heat and its gravity, ready for the cloud deck to be placed on.
