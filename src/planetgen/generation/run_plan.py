@@ -2619,97 +2619,109 @@ def _expand_stale_systems(params, family):
         {"top": top, "total": stale, "current": total - stale})
 
 
-def rescore_habitability_unit(params, report):
+def rescore_habitability_pieces(params, cursor):
     """
-    The `rescore-habitability` command's unit: re-derives the stored habitability numbers of the systems of ids `low`
-    to `high` (GEN.217) from each body's stored conditions (`store.refresh_habitability`): the flux swing of a body in
-    a double-star system and the whole score (index, six domains, tiers, equipment, note). For a galaxy generated
-    before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts
-    agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but
-    those columns is touched. The unit is one transaction at READ COMMITTED, and the recomputation is the same whenever it
-    is run, so a stopped run is started again and ends in the same place; so is a unit that hit a deadlock or a lock wait
-    timeout against another worker's range (PERF.228, `store.RETRYABLE_ERRORS`), up to `store.SECTOR_SAVE_ATTEMPTS` times.
+    The pieces of a `rescore-habitability` unit (OPS.191, OPS.201): the ids of the systems of ids `low` to `high` that the unit re-scores (every system with `all`, otherwise the ones whose
+    `habitability` stamp is not current, GEN.1479), after the first `cursor` of them. One piece is one system, so the unit's bar counts systems.
+    """
+    return _stale_system_pieces(params, "habitability", "habitability re-score", cursor)
+
+
+def rescore_habitability_piece(params, system_id, ctx):
+    """
+    One piece of the `rescore-habitability` command: re-derives the stored habitability numbers of one system (GEN.217) from each body's stored conditions (`store.refresh_habitability`):
+    the flux swing of a body in a double-star system and the whole score (index, six domains, tiers, equipment, note), and puts the habitable-world count of its sector right again (MAP.143;
+    the block totals follow once, in `conclude_rescore_habitability`). For a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and
+    the facet counts agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but those columns is touched. The piece is one
+    transaction at READ COMMITTED, and the recomputation is the same whenever it is run, so a stopped run is started again and ends in the same place; so is a piece that hit a deadlock or
+    a lock wait timeout against another worker's range (PERF.228, `store.RETRYABLE_ERRORS`), up to `store.SECTOR_SAVE_ATTEMPTS` times.
 
     Returns:
-        dict: `updated`, the bodies updated, and `ids`, how many ids the unit covered (for the bar).
+        int: The bodies updated.
     """
-    return _run_stale_unit(params, "habitability", _rescore_habitability_systems, "habitability re-score", report)
+    return _stale_system_piece(ctx, system_id, "habitability re-score", _rescore_habitability_system)
 
 
-def _rescore_habitability_systems(conn, system_ids, step=lambda done: None):
-    """The work of a `rescore-habitability` unit: the habitability numbers of `system_ids`, the bodies updated; `step(done)` after each system."""
-    updated = 0
-    for done, system_id in enumerate(system_ids, start=1):
-        updated += store.refresh_habitability(conn, system_id)
-        step(done)
-    if system_ids:
-        store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
+def _rescore_habitability_system(conn, system_id):
+    """The work of a `rescore-habitability` piece: the habitability numbers of one system, the bodies updated."""
+    updated = store.refresh_habitability(conn, system_id)
+    store.recount_habitable_worlds(conn, [system_id])    # MAP.143; the block totals follow once, in `conclude_rescore_habitability`
     return updated
 
 
-def _run_stale_unit(params, family, work, what, report):
+def stale_systems_result(params, results):
+    """The result of a unit that walked stamped systems (`rescore-habitability`, `refill-effect-ledger`): `updated`, the sum of its pieces' results, `ids`, how many ids the unit covered, and `systems`, the systems walked."""
+    return {"updated": sum(results), "ids": params["high"] - params["low"] + 1, "systems": len(results)}
+
+
+def _stale_system_pieces(params, family, what, cursor):
     """
-    One unit of a command that walks stamped systems (`rescore_habitability_unit`, `refill_effect_ledger_unit`): the systems of ids `low` to `high` whose `family` stamp is not current
-    (every system with `all`), in one transaction at READ COMMITTED, retried when it hit a deadlock or a lock wait timeout against another worker's range (PERF.228,
-    `store.RETRYABLE_ERRORS`, up to `store.SECTOR_SAVE_ATTEMPTS` times). `work(conn, system_ids, step)` does the writing and returns the count for the bar, calling `step(done)` after each system; `what` names the work in the log.
-    The unit says what it found, reports the systems it has done (`report(done, total)`) and logs its progress through the ticker (OPS.170).
+    The ids of the systems a unit of a command that walks stamped systems (`rescore_habitability_pieces`, `refill_effect_ledger_pieces`) does, after the first `cursor` of them: the systems of ids
+    `low` to `high` whose `family` stamp is not current (every system with `all`). The unit says what it found.
     """
-    config = _mysql_config_of(params)
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        conn.commit()           # a connection that just checked the schema has a transaction open
+        if params.get("all"):
+            system_ids = [row["id"] for row in conn.execute(
+                "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+        else:               # GEN.1479: the systems a formula change or an unfinished run left, not the ones the running code scored
+            condition, values = derived_stamp.stale_condition(family, "sm")
+            system_ids = [row["id"] for row in conn.execute(
+                "SELECT ss.id FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
+                f" WHERE ss.id BETWEEN ? AND ? AND {condition} ORDER BY ss.id", (params["low"], params["high"], *values)).fetchall()]
+    finally:
+        conn.close()
+    phases_text = f"The {what} of {len(system_ids):,} systems (ids {params['low']:,} to {params['high']:,})"
+    log.debug(f"{phases_text} begins.")
+    unitbeat.phase(phases_text[:120])
+    return system_ids[cursor:]
+
+
+def _stale_system_piece(ctx, system_id, what, work):
+    """
+    One piece of a command that walks stamped systems: `work(conn, system_id)` in one transaction at READ COMMITTED (PERF.228: no gap locks between the ranges of other workers), committed through
+    `ctx.commit()`, and done again when it hit a deadlock or a lock wait timeout against another worker's range (`store.RETRYABLE_ERRORS`, up to `store.SECTOR_SAVE_ATTEMPTS` times). Returns what `work` returns.
+    """
     for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
-        conn = store.get_connection(config)
+        conn = ctx.db
         try:
-            conn.commit()           # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
-            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")   # PERF.228: no gap locks between the ranges of other workers
-            if params.get("all"):
-                system_ids = [row["id"] for row in conn.execute(
-                    "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
-            else:               # GEN.1479: the systems a formula change or an unfinished run left, not the ones the running code scored
-                condition, values = derived_stamp.stale_condition(family, "sm")
-                system_ids = [row["id"] for row in conn.execute(
-                    "SELECT ss.id FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
-                    f" WHERE ss.id BETWEEN ? AND ? AND {condition} ORDER BY ss.id", (params["low"], params["high"], *values)).fetchall()]
-            phases_text = f"The {what} of {len(system_ids):,} systems (ids {params['low']:,} to {params['high']:,})"
-            log.debug(f"{phases_text} begins.")
-            unitbeat.phase(phases_text[:120])
-            report(0, max(len(system_ids), 1))
-            updated = work(conn, system_ids, _counting(report, f"{what[:1].upper()}{what[1:]}, systems", len(system_ids)))
-            conn.commit()
-            return {"updated": updated, "ids": params["high"] - params["low"] + 1, "systems": len(system_ids)}
+            conn.commit()           # the next statement starts a transaction, and the level below is the one it runs at
+            conn.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            result = work(conn, system_id)
+            ctx.commit()
+            return result
         except pymysql.err.OperationalError as exc:
             if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
                 raise
-            conn.rollback()         # the whole unit starts over: it recomputes the same numbers whenever it is run
-            log.debug(f"The {what} of systems {params['low']} to {params['high']} hit MySQL error {exc.args[0]}; "
-                      f"trying again ({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
+            conn.rollback()         # the piece starts over: it recomputes the same numbers whenever it is run
+            log.debug(f"The {what} of system {system_id} hit MySQL error {exc.args[0]}; trying again ({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
             time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)     # not a draw: the process id spreads the workers
-        finally:
-            conn.close()
 
 
-def refill_effect_ledger_unit(params, report):
+def refill_effect_ledger_pieces(params, cursor):
     """
-    The `refill-effect-ledger` command's unit (GEN.1498): writes again the light and ultraviolet rows of the effect ledger of the systems of ids `low` to `high` whose
-    `system_summary.ledger_stamp` is not the running code's (`store.refresh_effect_ledger`), so a galaxy drawn before the ledger existed, or before its floor
-    (`tuning.EFFECT_LEDGER_FLOOR`) or its formulas changed, gains the rows a new one would have. Nothing but the ledger and its stamp is written, the rows of the other effects are left
-    as they are, and a system already current is not read at all; the unit is one transaction and the same whenever it is run, so a stopped run is started again.
+    The pieces of a `refill-effect-ledger` unit (OPS.191, OPS.201): the ids of the systems of ids `low` to `high` that the unit refills (every system with `all`, otherwise the ones whose
+    `system_summary.ledger_stamp` is not the running code's), after the first `cursor` of them. One piece is one system.
+    """
+    return _stale_system_pieces(params, "ledger", "ledger refill", cursor)
+
+
+def refill_effect_ledger_piece(params, system_id, ctx):
+    """
+    One piece of the `refill-effect-ledger` command (GEN.1498): writes again the light and ultraviolet rows of the effect ledger of one system (`store.refresh_effect_ledger`), so a galaxy drawn
+    before the ledger existed, or before its floor (`tuning.EFFECT_LEDGER_FLOOR`) or its formulas changed, gains the rows a new one would have. Nothing but the ledger and its stamp is written,
+    the rows of the other effects are left as they are, and a system already current is not listed at all; the piece is one transaction and the same whenever it is run, so a stopped run is
+    started again.
 
     Returns:
-        dict: `updated`, the ledger rows written, `ids`, how many ids the unit covered (for the bar), and `systems`, the systems refilled.
+        int: The ledger rows written.
     """
-    return _run_stale_unit(params, "ledger", _refill_ledger_systems, "ledger refill", report)
-
-
-def _refill_ledger_systems(conn, system_ids, step=lambda done: None):
-    """The work of a `refill-effect-ledger` unit: the light and ultraviolet rows of `system_ids`, the rows written; `step(done)` after each system."""
-    written = 0
-    for done, system_id in enumerate(system_ids, start=1):
-        written += store.refresh_effect_ledger(conn, system_id)
-        step(done)
-    return written
+    return _stale_system_piece(ctx, system_id, "ledger refill", store.refresh_effect_ledger)
 
 
 class HabitabilityFollower(BatchFollower):
-    """The habitability re-score (`rescore_habitability_unit`) as a stage of a run."""
+    """The habitability re-score (`rescore_habitability_piece`) as a stage of a run."""
 
     key = "habitability"
     label = "Habitability"
@@ -2730,7 +2742,7 @@ class HabitabilityFollower(BatchFollower):
 
 
 class EffectLedgerFollower(BatchFollower):
-    """The ledger refill (`refill_effect_ledger_unit`, GEN.1498) as a stage of a run."""
+    """The ledger refill (`refill_effect_ledger_piece`, GEN.1498) as a stage of a run."""
 
     key = "ledger"
     label = "Effect ledger"
@@ -2759,7 +2771,7 @@ def expand_refill_effect_ledger(params):
 def fill_effect_ledger(args):
     """
     Writes again the light and ultraviolet rows of the effect ledger of an existing galaxy (GEN.1498) on the queue: the `refill-effect-ledger` command, a unit per id range of systems
-    (`refill_effect_ledger_unit`).
+    (`refill_effect_ledger_piece`).
 
     Returns:
         int: The rows written.
@@ -2790,7 +2802,7 @@ def conclude_rescore_habitability(params, plan, results, seconds):
 def fill_habitability(args):
     """
     Re-derives the stored habitability numbers of an existing galaxy (GEN.217) on the new queue: the
-    `rescore-habitability` command, a unit per id range of systems (`rescore_habitability_unit`).
+    `rescore-habitability` command, a unit per id range of systems (`rescore_habitability_piece`).
 
     Returns:
         int: The bodies updated.

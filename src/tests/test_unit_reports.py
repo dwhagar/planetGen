@@ -7,6 +7,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation import run_plan
+from planetgen.queue import commands
 from planetgen.util import log
 
 
@@ -106,10 +107,11 @@ def test_the_fill_and_the_stamped_system_units_report_their_ranges(mysql_config)
     with proof.connection(mysql_config) as conn:
         low, high = conn.execute("SELECT MIN(id) AS low, MAX(id) AS high FROM star_systems").fetchone().values()
     params = {"low": low, "high": high, "all": True, "database": _database(mysql_config)}
-    for unit in (run_plan.rescore_habitability_unit, run_plan.refill_effect_ledger_unit):
+    for kind in ("rescore-habitability", "refill-effect-ledger"):
         reports = []
-        result = unit(params, lambda done, total: reports.append((done, total)))
-        assert reports[0][0] == 0 and reports[-1] == (result["systems"], result["systems"]) and result["systems"] > 0, unit.__name__
+        result = commands.run_alone(kind, params, lambda done, total: reports.append((done, total)))      # OPS.201: the engine's loop, one system a piece
+        assert reports[0][0] == 0 and reports[-1] == (result["systems"], result["systems"]) and result["systems"] > 0, kind
+        assert len(reports) == result["systems"] + 1, kind
     reports = []
     run_plan.fill_map_luminosity_unit({"low": 1, "high": 10, "database": _database(mysql_config)}, lambda done, total: reports.append((done, total)))
     assert reports[0] == (0, 3) and reports[-1] == (3, 3)
