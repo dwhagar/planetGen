@@ -166,7 +166,7 @@ class AsteroidField(SmallBody):
         return self._members
 
     FIELD_UNITS = {
-        "name": "text", "field_class": "text", "composition_family": "text", "density": "text", "radius_ly": "ly",
+        "name": "text", "flavor_key": "text", "field_class": "text", "composition_family": "text", "density": "text", "radius_ly": "ly",
         "chondrite_group": "text", "rms_speed_kms": "km_s", "birth_age_yr": "yr", "shape": "text", "origin": "text", "history": "text", "largest_body_kg": "kg",
         **GALACTIC_MOTION_UNITS,
     }
@@ -176,6 +176,9 @@ class AsteroidField(SmallBody):
     `to_dict`/`from_dict`, since it's a list of tuples -- JSON has no
     tuple type -- mirroring `AsteroidBelt.SERIALIZABLE_FIELDS`'s identical
     exclusion)."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
