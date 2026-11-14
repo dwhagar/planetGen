@@ -422,7 +422,8 @@ def _rocky_water(body):
     """
     A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses.
     Under a Class M abundance tier the share `abundance_tier.water_share(body)` of the candidates (rocky planets in the ecosphere) take Earth's class instead
-    (`body._water_dialed`, set on each draw under a tier and never on `science`; a body redrawn by `reconcile_zone` decides again).
+    (`body._water_dialed`, set on each draw under a tier and never on `science`). The zone read is the one the body holds when its bulk is drawn: a planet that
+    `validate_system` later moves outward across a zone edge (`reconcile_zone` gives it the new zone's name, nothing is drawn again) keeps what was decided here.
     """
     mass = getattr(body, "mass", None)
     mass_earth = _kg_to_mearth(mass) if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))

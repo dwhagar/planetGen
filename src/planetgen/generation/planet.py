@@ -524,6 +524,7 @@ class Planet(PlanetaryObject):
         planetPhysics.calculate_surface_gravity(self)
         # Class M tiers, envelope dial: under a tier a share of the ecosphere's rocky planets is a late core (GEN.1323), one draw, made here once. `_late_core` is a stored
         # plain attribute, so the settle at the final age (`refresh_at_final_age`) reads the decision and neither draws again nor brings the envelope back. Science: no draw.
+        # The zone is the one held now: a planet moved across a zone edge later (`validate_system`, `reconcile_zone`) keeps this decision.
         share = abundance_tier.bare_share(self)
         if share > 0.0 and not self._late_core and draw.random() < share:
             self._late_core = True

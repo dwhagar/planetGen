@@ -60,6 +60,14 @@ def test_an_unpinned_plan_stores_no_pins_and_no_mass(mysql_config):
     assert dials.describe_pins(info.pins) == "Shape drawn from the seed"
 
 
+def test_a_class_m_tier_is_read_back_on_the_shape_and_no_pin_reads_science(mysql_config):
+    _save(mysql_config)
+    assert _load(mysql_config)[0].shape.abundance_tier == "science"      # GEN.1704: nothing pinned is the science default
+    _save(mysql_config, class_m="plentiful")
+    info = _load(mysql_config)[0]
+    assert info.shape.abundance_tier == "plentiful" and dials.choice_pinned(info.pins, "class_m") == "plentiful"
+
+
 def test_a_pinned_mass_compactness_and_flatness_round_trip(mysql_config):
     saved, drawn = _save(mysql_config, mass=7.0e9, compactness=0.5, flatness=9.0)
     info, shape_json, central = _load(mysql_config)
