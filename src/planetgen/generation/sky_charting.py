@@ -79,7 +79,7 @@ def observer_cell(observer_pc):
 
 
 RING_COST_ROWS = 2000
-"""int: About how many rows of a ring's sphere are looked at to cost it (`cost_rings`); the sphere of a ring holds some hundred thousand rows at a 7.5 sky."""
+"""int: About how many rows of a ring's sphere are looked at to cost it (`cost_rings`); the sphere of a ring holds some hundred thousand rows at a 7.5 sky (stand-in: a sample size, not a physical value; a cost estimate only, it changes no drawn star)."""
 
 
 def walk_edges_and_ceiling(limits):

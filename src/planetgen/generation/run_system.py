@@ -208,8 +208,7 @@ def build_system_config(args):
 
     if system_config.HABITABLE_WORLD is True and system_config.ASTEROID_BELT is True:
         if system_config.LARGE_STAR is False:
-            log.error("Error: forcing both a habitable world and an asteroid belt requires a large "
-                      "star; -large_star cannot be combined with +habitable_world and +asteroid_belt.")
+            log.error("A habitable world and an asteroid belt together need a large star, so -large_star cannot be combined with +habitable_world and +asteroid_belt.")
             raise SystemExit(1)
         system_config.LARGE_STAR = True
 
@@ -345,7 +344,7 @@ def run_system(args):
     system_config = build_system_config(args)
     conflict = single_system_conflict(system_config)
     if conflict:
-        log.error(f"Error: {conflict}")
+        log.error(f"{conflict[:1].upper()}{conflict[1:]}")
         raise SystemExit(1)
 
     mysql_config = store.mysql_config_from_args(args)
@@ -356,7 +355,7 @@ def run_system(args):
         followed.run_followed(args, [follower], follower.label, workers=1, galaxy=False,
                               kind=runrecord.MAINTENANCE if args.output else runrecord.GENERATION)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the system could not be generated: {exc}")
+        log.error(f"The system could not be generated: {exc}")
         raise SystemExit(1)
     result = follower.result
     if result["warning"]:
@@ -372,7 +371,7 @@ def run_system(args):
                 with open(args.output, "w", encoding="utf-8") as f:
                     f.write(text)
             except OSError as exc:
-                log.error(f"error: the system page could not be written to {args.output}: {exc.strerror or exc}")
+                log.error(f"The system page could not be written to {args.output}: {exc.strerror or exc}")
                 raise SystemExit(1)
             log.normal(f"Wrote system '{result['name']}' to {args.output} (not saved to the database).")
         return

@@ -3,10 +3,17 @@
 // The job strip on every admin page (partials/admin_jobstrip.html, ADM.119, ADM.123, PERF.154): the running job with its
 // stage, bar, elapsed time and a Cancel button, and under it the waiting list in the order it arrived: each waiting job
 // with Discard (and Start now once the job before it failed), each waiting run with its place. Kept current from `/admin/generate/status` (the `strip` field). It polls every few seconds
-// while the tab is visible and not at all while it is hidden. When the job ends the strip says so and links to the
+// while a job runs or waits, once a minute when none does, and not at all while the tab is hidden or the admin is logged out. When the job ends the strip says so and links to the
 // job; the next page load hides it. Without script the strip is the jobs as of the page load.
 
 export const POLL_MS = 3000;
+// PERF.263: with nothing running or waiting the strip asks this rarely (each ask looks the admin up, `/api/auth/me`), and the tab asks again at once when it is shown or focused.
+export const IDLE_POLL_MS = 60000;
+
+// How long to wait before the next ask: quick while a job runs or waits, slow when nothing does.
+export function delayFor(busy) {
+  return busy ? POLL_MS : IDLE_POLL_MS;
+}
 
 // A button that posts `action` for the waiting entry `ticket` to the strip's form address.
 function form(parts, action, ticket, label) {
@@ -92,6 +99,7 @@ export function init(root) {
     try {
       const response = await fetch(root.dataset.statusUrl, { credentials: "same-origin", headers: { Accept: "application/json" } });
       if (response.ok) previous = apply((await response.json()).strip, parts, previous);
+      else if (response.status === 401 || response.status === 403) return;      // logged out: nothing to keep current
     } catch {
       // a dropped connection: try again at the next tick
     }
@@ -99,12 +107,14 @@ export function init(root) {
   }
 
   function schedule() {
-    if (timer === null && !document.hidden) timer = setTimeout(poll, POLL_MS);
+    const busy = previous !== null || !parts.queued.hidden;
+    if (timer === null && !document.hidden) timer = setTimeout(poll, delayFor(busy));
   }
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) { clearTimeout(timer); timer = null; } else poll();
   });
+  window.addEventListener("focus", () => { if (!document.hidden) { clearTimeout(timer); timer = null; poll(); } });
   parts.cancel.addEventListener("submit", (event) => {
     if (!window.confirm(`Cancel "${parts.title.textContent}"?`)) event.preventDefault();
   });

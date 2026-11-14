@@ -26,7 +26,7 @@ def _quantity(value):
 
 @bp.route("/object/<belt_ref>/member/<rank>")
 def belt_member_page(belt_ref, rank):
-    """One stored body of an asteroid belt; a reference that is not a belt, a rank the belt does not keep or one written otherwise than the designation writes it is a 404."""
+    """One body of an asteroid belt at the class D size or larger (stored, or made when asked for, GEN.1674); a reference that is not a belt, a rank the belt does not keep or one written otherwise than the designation writes it is a 404."""
     try:
         kind, printed_id = objectref.parse_public(belt_ref)
         object_uid.parse_rank(rank)
@@ -52,12 +52,13 @@ def belt_member_page(belt_ref, rank):
         title=f"{data['designation']}: a body of {name}",
         section="systems",
         breadcrumbs=crumbs,
-        description=f"{data['designation']}: one of the heaviest bodies of {name}, its mass, size, makeup and orbit.",
+        description=f"{data['designation']}: a body of {name} the size of a class D body or larger, its class, mass, size, makeup and orbit.",
         designation=data["designation"],
         name=name,
         belt_url=item_url(ref),
         belt_info_url=page_url("belt_info_page", belt_ref=ref),
         belt=belt,
+        planet=data.get("planet"),
         member=member,
         composition_text=", ".join(f"{part} {member['composition'][part]['text']}" for part in ("rock", "metal", "water", "ice") if member["composition"][part]["value"] > 0.0),
         orbit=data["orbit"],
