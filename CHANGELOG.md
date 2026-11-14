@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4148] - 2026-11-14
+
+**Headline:** The shell log mask no longer takes the word "pass" for a password name, so "Skipping the population pass: the math check failed." prints whole.
+
+### Fixed
+- `log_mask` in `scripts/logrecord.sh` (SEC.48) matched the bare word `pass` followed by a colon and replaced the word after it with X's, in the shell gate and in the no-Python fallback. It now matches only `password`, `passwd` and `passphrase`, the same names `util/secrets_mask.py` holds. `test_math_gate::test_update_sh_check_math_failure_only_warns` passes again, and a new test pins that ordinary log text goes through unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4147] - 2026-11-14
 
 **Headline:** Adding sectors to a galaxy that was only planned (no star scatter yet) no longer crashes at the backfill step.
