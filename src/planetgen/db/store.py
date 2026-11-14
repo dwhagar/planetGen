@@ -10284,6 +10284,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                 planet.db_id = r["id"]
                 for moon, moon_row in zip(planet.moons, moon_rows):
                     moon.db_id = moon_row["id"]
+                    moon.host_eccentricity = planet.eccentricity    # DB.123: not a column; a moon is told its parent's (`physics.planets`), which the light its air is solved under goes by
                 objects.append(planet)
         return objects
 

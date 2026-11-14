@@ -266,6 +266,21 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_close_binary(mysql
     assert reloaded.comet_count == system.comet_count
 
 
+def test_a_loaded_moon_keeps_the_eccentricity_of_its_host_planet(mysql_config):
+    """DB.123: `host_eccentricity` is no column; the load tells each moon its parent's eccentricity, as generation does, so a moon's air solved again gets the light it had."""
+    system, cfg = _make_system_with_moons_and_belt()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    before = {moon.name: moon.host_eccentricity for obj in system.planets if obj.body_type != "a" for moon in obj.moons}
+    after = {moon.name: moon.host_eccentricity for obj in reloaded.planets if obj.body_type != "a" for moon in obj.moons}
+    assert before and after == before and any(value > 0.0 for value in before.values())
+
+
 def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
 
