@@ -14,7 +14,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.possibility_table import Subject
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import bulk_draw, delivered_water, mixture_rocky as md
+from planetgen.physics import bulk_draw, delivered_water, formation_snow_line, mixture_rocky as md
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 from tests.class_support import draw_planet
@@ -24,7 +24,9 @@ LOW = delivered_water.bracket("low")
 
 
 class _Star:
-    snow_line_au = 2.0
+    """A one-solar-mass star whose stored line is set so that the water snow line the draw reads (`formation_snow_line.water_snow_line_au`, GEN.1678) is 2 AU."""
+    initial_mass_sol = 1.0
+    snow_line_au = 2.0 * formation_snow_line.formation_snow_line_au(1.0, 0.0) / formation_snow_line.viscous_snow_line_au(1.0)
 
 
 class _Body:
