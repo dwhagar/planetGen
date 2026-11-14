@@ -133,7 +133,7 @@ PLAIN = (("gravity", "gravity_g", "g0"), ("surface_temperature", "surface_temper
 def test_a_range_returns_exactly_the_bodies_whose_stored_value_is_in_it(scored_galaxy, table, panel, entity, key, column, stored):
     bodies = [b for b in _rows(scored_galaxy.config, table, [column]) if b[column] is not None]
     values = sorted(b[column] for b in bodies)
-    # TEST.737: three values is the least that tells an inside from an outside (the three sample systems hold three moons with an
+    # TEST.737: three values is the least that tells an inside from an outside (the four sample systems hold three moons with an
     # ocean depth), so a galaxy with fewer fails here instead of skipping its case.
     assert len(values) >= 3, f"the sample galaxy has too few {table} with {column}"
     least, most = values[len(values) // 4], values[3 * len(values) // 4]
