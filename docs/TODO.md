@@ -13156,26 +13156,7 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22 (belts and small bodies), after OPS.161, with Lane 21 for class and composition. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, GEN.1511, GEN.1561, GEN.1673.
   Filed by the TODO thread. Boss approved.
   Decision (Boss, 12:30 PM EST 2026-11-13, card): on demand, from the one generator. A Class D size body's full class is computed when asked for, from the same generator, not stored for every member. Slice 1 released to Lane 22.
-
-- [ ] **UX.308 Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.309, UX.310, UX.311.
-  Filed by the TODO thread.
-
-- [ ] **UX.309 The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.310, UX.311.
-  Filed by the TODO thread.
-
-- [ ] **UX.310 "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.309, UX.311.
-  Filed by the TODO thread.
-
-- [ ] **UX.311 The best-site coldest-to-hottest range says it spans the whole orbit, not a day**
-  Kiamtochen III page review (Boss pasted a Class E planet page, 2026-11-12). Page text only, no generated-output change, no epoch, lock-free. Built together in one PR by the page review thread.
-  Version 8.1. Owner (TODO, 2026-11-12): the page review thread. Prerequisites: none. Related: UX.308, UX.309, UX.310.
-  Filed by the TODO thread.
+  Slice 1 done (PR #6403, Lane 22, 7:18 PM EST 2026-11-13): stored and tail belt members get a page and a class on demand. Left: asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues, and the 2D map's node belts.
 
 - [ ] **GEN.1675 A body's air carries the CO and methane its surface ices give off: gases from the bulk CO and CH4 ice at their saturation vapor pressure at the surface temperature, not an N2-only air**
   Boss, 10:33 PM EST on 2026-11-12 (as the coordinator relayed), item 1 of the Kiamtochen III page diagnosis (thread "Diagnose odd Kiamtochen III planet page"): link the air to the planet's CO and methane ice. A cold body whose bulk composition holds CO or CH4 ice at the surface should have those gases in its air at their saturation vapor pressure at the surface temperature (the same vapor-pressure path the freeze-out step uses), so the air is not N2 only. Reuse the saturation table and freeze-out of GEN.1564 (PR 6235) and the composition rows; no second path. Measure the class and air census before and after. Lock item (output changes), Train 27 or later.
@@ -13308,11 +13289,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): the galaxy sliders thread (built UX.307). Prerequisites: UX.307. Related: UX.307, ADM.127.
   Filed by the TODO thread.
 
-- [ ] **OPS.184 (bug) New galaxy run fails at Stage 3: the skeleton unit is stopped as quiet while it waits for the generator battery's digest (regression of OPS.170)**
-  Boss's live run, 8.0.4043, 5:36 PM EST 2026-11-13: OPS.170 (PR 6300) gave plan_skeleton_unit a 9-phase counter; the phase "Waiting for the generator battery's digest" stays at count 5 for minutes after a release (cold digest in its own process), so the 300 s quiet floor stopped the unit twice. Fix built as PR 6421: the wait is announced to the heartbeat via unitbeat.waiting("generator battery"), 30 minute flag, never quiet. Output unchanged; lock-free; merge alone, Boss's runs are blocked.
-  Version 8.1. Owner (TODO, 2026-11-13): the thread that built PR 6421. Prerequisites: none. Related: OPS.170, OPS.137.
-  Filed by the TODO thread.
-
 - [ ] **OPS.185 Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter**
   Boss, 2026-11-13 evening (as the OPS.184 thread relayed), after the Stage 3 stop (OPS.184): are there other OPS.170 phases with no fine counter? OPS.170 (PR 6300) gave eleven units phase lines through _UnitPhases; a phase that counts once and then works for minutes looks quiet to the heartbeat (300 s floor). Do: list every such phase with its worst-case time on a slow host (4 cores, cold caches); for each that can pass the floor, report real counts (rows, cases, shells) with a bar and ticker as OPS.184 did for the battery digest (unitbeat.moving), never a blanket waiting tag. Output unchanged; lock-free.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 13 (built OPS.170). Prerequisites: OPS.184. Related: OPS.170, OPS.169, OPS.137.
@@ -13353,11 +13329,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 13. Prerequisites: OPS.191, OPS.185, OPS.184. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
-- [ ] **OPS.193 Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s)**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P3 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-
 - [ ] **OPS.194 Job engine stage 1: beatjudge gains busy (no count moved but work did); busy is never stopped, only warned with a stack dump past the learned time**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P4 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: OPS.193. Related: OPS.186, OPS.188, OPS.181, OPS.185.
@@ -13371,11 +13342,6 @@ clears each one.
 - [ ] **OPS.196 Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P6 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 13. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-
-- [ ] **OPS.197 Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P7 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.198 Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity)**
