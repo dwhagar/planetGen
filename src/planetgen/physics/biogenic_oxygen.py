@@ -465,9 +465,9 @@ def rebalance_co2(body):
 
 
 FREEZE_AGAIN_PASSES = 20
-"""int: The most times `store_air` lets the warming and the freeze-out of the new air move each other (the colder air condenses more, the condensed air warms less, and the pair settles in a few passes)."""
+"""int: The most times `store_air` lets the warming and the freeze-out of the new air move each other (the colder air condenses more, the condensed air warms less, and the pair settles in a few passes; derived from the settling, not a physical value)."""
 FREEZE_AGAIN_TOLERANCE = 1.0e-6
-"""float: The relative change of a partial pressure under which the freeze-out has settled. A numerical tolerance, not a physical value."""
+"""float: The relative change of a partial pressure under which the freeze-out has settled. A numerical tolerance, not a physical value (derived: it only sets when the passes stop, GEN.1713 and its air settling)."""
 
 
 def freeze_out_at(body, air, temperature_k):
