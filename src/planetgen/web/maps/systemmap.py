@@ -81,6 +81,9 @@ from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
 from planetgen.web.maps.bodylook import look_json, look_note, planet_look, star_look
+from planetgen.physics import constants
+from planetgen.physics.kepler import true_anomaly_and_distance_elliptical
+from planetgen.physics.state_vectors import state_from_elements
 from planetgen.web.maps.moonorbits import moon_orbit
 from planetgen.web.maps.starmap import _SUN_RADIUS_KM, _rgb_hex, star_color
 from planetgen.web.lib.tabledisplay import (
@@ -88,6 +91,7 @@ from planetgen.web.lib.tabledisplay import (
     to_plain_text,
 )
 
+from planetgen.names.bodies import node_pair_label
 from planetgen.physics import planet_class_text, planet_type
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
@@ -655,8 +659,8 @@ def _leader_line_svg(cx, cy, r_px, direction, gap):
 
 
 def _planet_marker_attrs(row):
-    """A planet marker's attributes: a scene target for a planet with moons."""
-    return _planet_attrs(row, kind="planet", scene_target=f'planet-{row["id"]}' if row.get("moons") else None)
+    """A planet marker's attributes: a scene target for a planet with moons, or (GEN.1086) with only irregular moons."""
+    return _planet_attrs(row, kind="planet", scene_target=moon_scene_target(row))
 
 
 def _body_marker_svgs(markers, placements, css_class, attrs_of, bounds):
@@ -1384,11 +1388,12 @@ def _member_stars_scenes(system, members, facilities, placed):
         if not (x_km or y_km):
             # No stored direction: spread them round the frame instead of stacking them.
             x_km, y_km = math.cos(index * _GOLDEN_ANGLE_RAD), math.sin(index * _GOLDEN_ANGLE_RAD)
-        scene_id = f'star-{member["id"]}'
-        svg, obstacle = _companion_star(system, member, "Member", scene_id, x_km, y_km, placed)
+        scene_id = member.get("scene_id") or f'star-{member["id"]}'
+        role = member.get("map_role", "Member")
+        svg, obstacle = _companion_star(system, member, role, scene_id, x_km, y_km, placed)
         placed.append(obstacle)
         markers.append(svg)
-        attrs = _star_attrs(system, member, "Member")
+        attrs = _star_attrs(system, member, role)
         attrs["self"] = "true"
         scenes.append(_star_scene_svg(
             scene_id, f'Planets of {_star_label(system, member)}', True, member,
@@ -1656,13 +1661,15 @@ def _orbit_path_px(orbit, px_per_km):
     return f'<path class="sysmap-orbit" d="{d}"></path>', (min(xs), min(ys), max(xs), max(ys))
 
 
-def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
+def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True, suffix="", title="Moons of", links=(), irregular=False):
     """One moon system scene (`planet-<id>`, or `planet-<id>-true` at true scale) for a planet with moons; `twin` says the
-    other size is drawn too, which the scene names so the page can offer the switch."""
+    other size is drawn too, which the scene names so the page can offer the switch. `suffix` ("-irregular") names the scene of the
+    planet's irregular moons (GEN.1086), `title` its label, `links` the other scenes of the planet `[(scene id, button words)]` the page
+    offers beside the switch, and `irregular` marks its bodies as irregular moons (their own info, no facilities)."""
     scale = _moon_scene_scale(planet, moons, orbits, true_scale)
     px_per_km = scale["px_per_km"]
-    scene_id = f'planet-{planet["id"]}-true' if true_scale else f'planet-{planet["id"]}'
-    twin_id = f'planet-{planet["id"]}' if true_scale else f'planet-{planet["id"]}-true'
+    scene_id = f'planet-{planet["id"]}{suffix}-true' if true_scale and not suffix else f'planet-{planet["id"]}{suffix}'
+    twin_id = f'planet-{planet["id"]}{suffix}' if true_scale else f'planet-{planet["id"]}{suffix}-true'
 
     orbit_paths = []
     boxes = [_body_box(_CENTER_PX, _CENTER_PX, scale["planet_px"], planet["body_type"], is_self=True)]
@@ -1682,7 +1689,7 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
     facility_hosts = {("planet", planet["id"]): (_CENTER_PX, _CENTER_PX, scale["planet_px"], True)}
     for marker in markers:
         facility_hosts[("moon", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
-    facility_orbits, facility_markers, facility_boxes = _facilities_svg(facilities, facility_hosts, px_per_km)
+    facility_orbits, facility_markers, facility_boxes = _facilities_svg(None if irregular else facilities, facility_hosts, px_per_km)
     bounds = _fit_bounds(boxes + facility_boxes)
 
     center_svg = _body_marker_svg(
@@ -1696,7 +1703,8 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers], bounds=bounds)
     body_svgs = _body_marker_svgs(
-        markers, placements, "sysmap-moon", lambda row: _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name")), bounds)
+        markers, placements, "sysmap-moon",
+        lambda row: _irregular_attrs(row) if irregular else _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name")), bounds)
 
     if not true_scale and scale["enlarge"] > _SAME_SIZE_ENLARGE:
         note = f"Orbits to scale; the planet and moons are drawn {scale['enlarge']:.0f} times their true size."
@@ -1712,28 +1720,99 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
     # what `.hidden` itself reported) -- leaving both this attribute and
     # any `[hidden]` CSS rule permanently out of sync with it.
     return _scene_svg_pair(
-        scene_id, f'Moons of {planet["name"]}', True,
+        scene_id, f'{title} {planet["name"]}', True,
         "".join(orbit_paths) + facility_orbits,
         f'{center_svg}{"".join(body_svgs)}{facility_markers}',
         linear_px_per_km=px_per_km, bounds=bounds,
         extra_attrs=(_host_mass_attr(planet.get("mass_kg")) + (f' data-scale-twin="{esc(twin_id)}"' if twin else "")
                      + f' data-scale-true="{"true" if true_scale else "enlarged"}"'
-                     f' data-scale-note="{esc(note)}" data-enlarge="{scale["enlarge"]:.3f}"'),
+                     f' data-scale-note="{esc(note)}" data-enlarge="{scale["enlarge"]:.3f}"'
+                     + (f' data-scene-links="{esc(json.dumps([{"scene": target, "label": words} for target, words in links]))}"' if links else "")),
     )
+
+
+def moon_scene_target(planet):
+    """The scene a click on `planet` opens: its moon system (`planet-<id>`), or, for a planet that keeps only irregular moons (GEN.1086), their scene (`planet-<id>-irregular`); `None` for neither."""
+    if planet.get("moons"):
+        return f'planet-{planet["id"]}'
+    return f'planet-{planet["id"]}-irregular' if planet.get("irregular_moons") else None
 
 
 def _render_moon_scene(planet, facilities=None):
     """The moon system scenes of `planet`: at an enlarged body size (`planet-<id>`, the default) and at true size
     (`planet-<id>-true`), both with the same orbits at one linear scale (MAP.308); a planet already large against its
-    moons' orbits has the one scene, at true size."""
+    moons' orbits has the one scene, at true size. A planet that also caught irregular moons offers their scene (`_render_irregular_scene`)
+    beside the switch; the irregular moons are far out, so they have a scale of their own and the regular moons are not shrunk to a speck by them."""
     moons = planet.get("moons") or []
     for moon in moons:
         moon["_is_moon"] = True
         moon["_parent_name"] = planet["name"]
+    links = [(f'planet-{planet["id"]}-irregular', "Irregular moons")] if planet.get("irregular_moons") else ()
     orbits = [moon_orbit(planet, moon) for moon in moons]
     if _moon_scene_scale(planet, moons, orbits, False)["enlarge"] <= _SAME_SIZE_ENLARGE:
-        return _moon_scene_svg(planet, moons, orbits, facilities, False, twin=False)   # already at true size: one scene
-    return _moon_scene_svg(planet, moons, orbits, facilities, False) + _moon_scene_svg(planet, moons, orbits, facilities, True)
+        return _moon_scene_svg(planet, moons, orbits, facilities, False, twin=False, links=links)   # already at true size: one scene
+    return _moon_scene_svg(planet, moons, orbits, facilities, False, links=links) + _moon_scene_svg(planet, moons, orbits, facilities, True, links=links)
+
+
+_MOON_MU_KM3_PER_KG_S2 = constants.G * 1.0e-9
+"""float: The gravitational constant in km^3 / (kg s^2), for positions in km and speeds in km/s."""
+_SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
+
+_IRREGULAR_WINDOWS = {"gas": "the gas of the planet's disk", "encounter": "a close encounter between giants", "exchange": "an exchange with a binary"}
+"""dict: The capture window of an irregular moon in the words its info panel uses."""
+
+
+def _irregular_rows(planet):
+    """
+    The irregular moons of `planet` (`planet["irregular_moons"]`, GEN.1086) as moon-like rows the moon scene draws: each at its place on its orbit about the planet at the saved mean anomaly, with the state
+    that gives, so `moon_orbit` draws the ellipse the same way it does a moon's. Their size is their radius, so at the scale of their orbits (a few tenths of the planet's Hill radius) they are always
+    pinned to the smallest marker.
+    """
+    mass = planet.get("mass_kg") or 0.0
+    rows = []
+    for held in planet.get("irregular_moons") or ():
+        mu = _MOON_MU_KM3_PER_KG_S2 * (mass + held["mass_kg"])
+        a, e = held["distance_km"], held["eccentricity"]
+        if not (mu > 0.0 and a > 0.0 and 0.0 <= e < 1.0):
+            continue
+        true_anomaly, _distance = true_anomaly_and_distance_elliptical(math.radians(held["mean_anomaly_deg"]), e, a)
+        position, velocity = state_from_elements(mu, a * (1.0 - e), e, math.radians(held["inclination_deg"]), math.radians(held["ascending_node_deg"]),
+                                                 math.radians(held["arg_periapsis_deg"]), true_anomaly)
+        rows.append({
+            "id": held["rank"], "name": held["designation"] or f'Irregular moon {held["rank"]}', "planet_class": None, "body_type": "r", "radius_km": held["radius_km"], "mass_kg": held["mass_kg"], "distance_km": a,
+            "period_years": 2.0 * math.pi * math.sqrt((a * 1000.0) ** 3 / (constants.G * (mass + held["mass_kg"]))) / _SECONDS_PER_YEAR,
+            "position_x_km": position[0], "position_y_km": position[1], "position_z_km": position[2],
+            "velocity_x_kms": velocity[0], "velocity_y_kms": velocity[1], "velocity_z_kms": velocity[2], "_held": held, "_is_moon": True, "_parent_name": planet["name"],
+            "_planet_ref": f'planet:{planet["uid"]}' if planet.get("uid") else None,
+        })
+    return rows
+
+
+def _irregular_attrs(row):
+    """The info panel's data for one irregular moon marker (kind `irregular`, read by `static/systemmap.js`); `planetref` and `rankhex` fill the page's address template (`data-nav-irregular`, `web/system_pages.body_nav`)."""
+    held = row["_held"]
+    return {
+        "kind": "irregular", "id": held["rank"], "name": row["name"], "bodytype": f"Irregular moon, {'backward' if held['retrograde'] else 'forward'}",
+        "radius": to_plain_text(format_body_radius(row["radius_km"])), "mass": to_plain_text(format_mass(row["mass_kg"])),
+        "distance": to_plain_text(format_body_distance(row["distance_km"])), "period": format_period(row["period_years"]),
+        "caught": _IRREGULAR_WINDOWS.get(held["window"], held["window"]),
+        "composition": ", ".join(f"{part} {held[part + '_fraction'] * 100:.3g} percent" for part in ("rock", "metal", "water", "ice") if held[part + "_fraction"] > 0.0),
+        "parent": row["_parent_name"], "xkm": row["position_x_km"], "ykm": row["position_y_km"], "radiuskm": row["radius_km"], "masskg": row["mass_kg"],
+        "vxkms": row["velocity_x_kms"], "vykms": row["velocity_y_kms"], "planetref": row["_planet_ref"], "rankhex": f'{held["rank"]:04X}',
+    }
+
+
+def _render_irregular_scene(planet):
+    """
+    The scene of the irregular moons of `planet` (`planet-<id>-irregular`, GEN.1086): the planet in the middle and each irregular moon on the orbit about it that was saved (eccentric, inclined, many of them backward),
+    one linear scale for all of them. It is drawn at true size, which is small: the moons are kilometres across on orbits of millions. A planet that also has regular moons offers their scene beside it.
+    """
+    rows = _irregular_rows(planet)
+    if not rows:
+        return ""
+    orbits = [moon_orbit(planet, row) for row in rows]
+    links = [(f'planet-{planet["id"]}', "Moons")] if planet.get("moons") else ()
+    return _moon_scene_svg(planet, rows, orbits, None, True, twin=False, suffix="-irregular", title="Irregular moons of", links=links, irregular=True)
 
 
 # MAP.57: a NaN or infinite number from the database never reaches the
@@ -1753,6 +1832,59 @@ def _is_bad_number(value):
 def finite_row(row):
     """A copy of `row` with every NaN or infinite float set to `None`."""
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
+
+
+def _node_pair_hosts(system, stars, planets, belts=()):
+    """
+    GEN.332, slice A: the inner pair nodes of the tree that hold planets or belts (`planets.host_node_id`, `asteroid_belts.host_node_id`, slice C), each as `(host, its planets, its belts)` where `host` is a
+    copy of the heaviest star of the node's subtree that stands for the pair as one body, as the generator's proxy does: the pair's name
+    (`names.bodies.node_pair_label`), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
+    stars' center of mass, `id` and `scene_id` `node-<n>` and `map_role` "Pair". A node whose stars are not among `stars` (a system stored before the tree) is left out and its
+    planets and belts stay where they were.
+    """
+    by_node, belts_of = {}, {}
+    for planet in planets:
+        if planet.get("host_node_id") is not None:
+            by_node.setdefault(planet["host_node_id"], []).append(planet)
+    for belt in belts:
+        if belt.get("host_node_id") is not None:
+            belts_of.setdefault(belt["host_node_id"], []).append(belt)
+    if not by_node and not belts_of:
+        return []
+    children = {}
+    for node in system.get("orbits") or ():
+        children.setdefault(node.get("parent_node_no"), []).append(node["node_no"])
+
+    def below(node_no):
+        found = [star for star in stars if star.get("parent_node_no") == node_no]
+        for sub in children.get(node_no, ()):
+            found.extend(below(sub))
+        return found
+
+    hosts = []
+    for node_no in sorted(set(by_node) | set(belts_of)):
+        bodies = by_node.get(node_no, [])
+        leaves = below(node_no)
+        light = sum(star["luminosity_w"] or 0.0 for star in leaves)
+        mass = sum(star["mass_kg"] or 0.0 for star in leaves)
+        if len(leaves) < 2 or not (light > 0.0 and mass > 0.0):
+            continue
+        lead = max(leaves, key=lambda star: star["mass_kg"] or 0.0)
+        host = dict(lead)
+        host.update({
+            "name": node_pair_label(system["name"], [star.get("name") or "" for star in leaves], node_no),
+            "mass_kg": mass, "luminosity_w": light, "radius_km": max(star["radius_km"] or 0.0 for star in leaves),
+            "temperature_k": sum((star["luminosity_w"] or 0.0) * (star["temperature_k"] or 0.0) for star in leaves) / light,
+            "offset_x_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_x_au") or 0.0) for star in leaves) / mass,
+            "offset_y_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_y_au") or 0.0) for star in leaves) / mass,
+            "id": f"node-{node_no}", "scene_id": f"node-{node_no}", "map_role": "Pair",    # (an id no page answers to: the panel offers no links for it)
+        })
+        for planet in bodies:
+            planet["_star_temperature_k"] = host["temperature_k"]
+            for moon in planet.get("moons") or []:
+                moon["_star_temperature_k"] = host["temperature_k"]
+        hosts.append((host, bodies, belts_of.get(node_no, [])))
+    return hosts
 
 
 def put_star_temperatures(stars, planets):
@@ -1873,9 +2005,13 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
                 [b for b in belts if b.get("star_id") == star["id"]])
                for star in stars if star.get("role") == "member"]
     member_ids = {star["id"] for star, _, _ in members}
+    node_hosts = _node_pair_hosts(system, stars, planets, belts)    # GEN.332, slices A and C: the planets and belts round an inner pair get a marker and a scene of their own, like a member's
+    node_planet_ids = {id(p) for _, bodies, _ in node_hosts for p in bodies}
+    node_belt_ids = {id(b) for _, _, node_belts in node_hosts for b in node_belts}
+    members.extend(node_hosts)
     stars = [star for star in stars if star["id"] not in member_ids]
-    pair_planets = [p for p in planets if p.get("star_id") not in member_ids]
-    pair_belts = [b for b in belts if b.get("star_id") not in member_ids]
+    pair_planets = [p for p in planets if p.get("star_id") not in member_ids and id(p) not in node_planet_ids]
+    pair_belts = [b for b in belts if b.get("star_id") not in member_ids and id(b) not in node_belt_ids]
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
         scenes = _render_wide_binary_scenes(system, stars, pair_planets, pair_belts, facilities, members)
@@ -1884,6 +2020,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     scenes.extend(
         _render_moon_scene(planet, facilities) for planet in planets if planet.get("moons")
     )
+    scenes.extend(_render_irregular_scene(planet) for planet in planets if planet.get("irregular_moons"))
 
     hint = "Click a star, planet, moon, asteroid belt, or facility for details." if planets or belts or stars else "Nothing to show yet."
     info_panel = ('<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'

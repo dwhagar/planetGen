@@ -25,18 +25,24 @@ import json
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements, life_classes, oddities, planet_classes, planet_type, surface_liquid_world
+from planetgen.physics import constants, elements, life_classes, oddities, planet_classes, planet_type, surface_liquid_world
+from planetgen.physics import unit_registry as units
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
+
+_yr_to_h = units.converter("yr", "h")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
 """str: The data file."""
 
-SCOPES = ("system", "planet")
+MAPPED_SCOPES = ("star", "comet", "black_hole", "neutron_star", "nebula", "remnant", "quasar", "interstellar_comet", "asteroid_field")
+"""tuple: The scopes of the kinds of object that name their own quantities in the data file (`quantities` on the scope's root node)."""
+
+SCOPES = ("system", "planet", "belt", "star", "comet", "black_hole", "neutron_star", "nebula", "remnant", "quasar", "interstellar_comet", "asteroid_field")
 """tuple: The scopes the file holds a tree for."""
 
-QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen")
-"""tuple: The quantities this module adds to the table of `oddities.quantities_of`. `has_ground`, `life_present`, `has_air` and `life_oxygen` are 1 or 0; `life_rung` is 0 to 6 (the
+QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen", "starless", "is_moon", "tidally_locked")
+"""tuple: The quantities this module adds to the table of `oddities.quantities_of`. `has_ground`, `life_present`, `has_air`, `life_oxygen`, `starless` (a rogue planet, whose host is the `StarlessHost` of the ejection), `is_moon` and `tidally_locked` (the spin period within 1 percent of the orbit period) are 1 or 0; `life_rung` is 0 to 6 (the
 rung of the stage ladder, 5 once the multicellular life has animals); `life_medium` and `life_energy` are the place, from 1, of the life's solvent medium in
 `life_classes.SOLVENT_MEDIA` and of its energy source in `life_classes.ENERGY_SOURCES` (water 1, hydrocarbon 2, carbon dioxide 3, sulfuric acid 4, ammonia and water 5; light 1, chemical 2).
 A world without life has none of the last four, so a gate on them fails there (GEN.1431: the life lines read the life, never a class letter)."""
@@ -121,8 +127,46 @@ def _tree():
     return _cache["tree"]
 
 
-def quantities_of(body):
-    """The named quantities the gates read for `body`: the table of `oddities.quantities_of` and `QUANTITIES`. A quantity the body lacks is left out and a gate on it fails."""
+BELT_QUANTITIES = ("belt_mass_earth", "belt_inner_au", "belt_outer_au", "belt_width_ratio", "belt_largest_body_km", "belt_stirred")
+"""tuple: The quantities of the `belt` scope (GEN.1433): the belt's mass in Earth masses, its edges in AU, the outer edge over the inner, its largest body in km, and whether a giant stirs it (1 or 0)."""
+
+
+def _belt_quantities(belt):
+    """The quantities of an asteroid belt, for the ones it has."""
+    found = {}
+    mass, inner, outer = getattr(belt, "mass_kg", None), getattr(belt, "lower_limit", None), getattr(belt, "upper_limit", None)
+    if mass:
+        found["belt_mass_earth"] = mass / constants.EARTH_MASS_TO_KG
+    if inner and outer:
+        found["belt_inner_au"], found["belt_outer_au"], found["belt_width_ratio"] = inner, outer, outer / inner
+    if getattr(belt, "largest_body_km", None):
+        found["belt_largest_body_km"] = belt.largest_body_km
+    if getattr(belt, "stirred", None) is not None:
+        found["belt_stirred"] = 1 if belt.stirred else 0
+    return found
+
+
+def _mapped_quantities(scope, body):
+    """The quantities of a kind of object that names its own in the data file (`quantities` on the scope's root node: name to the attribute it reads, with `per` to divide by a constant of `constants` and `flag` for a yes-or-no attribute)."""
+    trees, _lines = _tree()
+    found = {}
+    for name, spec in (trees[scope].get("quantities") or {}).items():
+        value = getattr(body, spec["attr"], None)
+        if value is None:
+            continue
+        if spec.get("flag"):
+            found[name] = 1 if value else 0
+        else:
+            found[name] = float(value) / (spec["per"] if isinstance(spec.get("per"), (int, float)) else getattr(constants, spec["per"])) if spec.get("per") else float(value)
+    return found
+
+
+def quantities_of(body, scope="planet"):
+    """The named quantities the gates read for `body`: the table of `oddities.quantities_of` and `QUANTITIES` (a belt's are `BELT_QUANTITIES`). A quantity the body lacks is left out and a gate on it fails."""
+    if scope == "belt":
+        return _belt_quantities(body)
+    if scope not in ("system", "planet"):
+        return _mapped_quantities(scope, body)
     found = oddities.quantities_of(body)
     ground = planet_type.has_ground(body) and getattr(body, "surface_liquid", None) not in surface_liquid_world.LAVA_IDS
     found["has_ground"] = 1 if ground else 0
@@ -131,6 +175,11 @@ def quantities_of(body):
     if life:
         found.update(_life_quantities(body))
     found["has_air"] = 1 if (getattr(body, "atmospheric_pressure", None) or 0.0) > 0.0 else 0
+    found["starless"] = 1 if getattr(getattr(body, "star", None), "starless", False) else 0
+    found["is_moon"] = 1 if getattr(body, "is_moon", False) else 0
+    spin_hours, period_years = getattr(body, "rotation_period_hours", None), getattr(body, "period", None)
+    if spin_hours and period_years:
+        found["tidally_locked"] = 1 if abs(abs(spin_hours) - period_years * _yr_to_h(1.0)) < 0.01 * period_years * _yr_to_h(1.0) else 0
     return found
 
 
@@ -153,7 +202,7 @@ def _life_quantities(body):
 def walk(scope, body, off=()):
     """Every line the tree offers `body` in `scope`, as `Option`s in file order (retired lines are never offered)."""
     trees, lines = _tree()
-    found = quantities_of(body) if body is not None else {}
+    found = quantities_of(body, scope) if body is not None else {}
     options = []
 
     def visit(node, multiplier):
@@ -175,8 +224,11 @@ def walk(scope, body, off=()):
 
 def seed_of(scope, body, star=None):
     """The seed of the body's own flavor stream: what is final about the body and its star, nothing about the order the system made its bodies in."""
+    kind = scope.rpartition(":")[2]         # "roll:star" is the roll of the "star" scope
+    if kind in MAPPED_SCOPES:      # the kinds that name their own quantities: what they are, and their name
+        return f"flavor:{scope}:{getattr(body, 'name', None)!r}:{sorted(_mapped_quantities(kind, body).items())!r}"
     star = star if star is not None else getattr(body, "star", None)
-    return (f"flavor:{scope}:{getattr(body, 'is_moon', False)}:{getattr(body, 'mass', None)!r}:{getattr(body, 'radius', None)!r}:"
+    return (f"flavor:{scope}:{getattr(body, 'is_moon', False)}:{getattr(body, 'mass', getattr(body, 'mass_kg', None))!r}:{getattr(body, 'radius', getattr(body, 'upper_limit', None))!r}:"
             f"{getattr(body, 'distance', None)!r}:{getattr(star, 'age', None)!r}:{getattr(star, 'mass', None)!r}")
 
 

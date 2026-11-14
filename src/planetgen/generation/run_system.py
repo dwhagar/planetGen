@@ -168,6 +168,8 @@ def build_system_config(args):
         system_config.STAR_TYPE = args.star_type
     if args.num_orbits is not None:
         system_config.NUM_ORBITS = args.num_orbits
+    if getattr(args, "class_m", None) is not None:
+        system_config.ABUNDANCE_TIER = args.class_m
     if getattr(args, "force_class", None):
         system_config.FORCE_CLASS = args.force_class.upper()
     if getattr(args, "force_life_class", None):

@@ -45,9 +45,11 @@ from typing import Callable, Tuple
 from planetgen.physics import unit_registry as units
 from planetgen.physics.quantity import Quantity
 
-ROCHE_FLUID_COEFFICIENT = 2.44
-"""float: The fluid-body Roche limit, d = 2.44 R (rho_M / rho_m)^(1/3): a self-gravitating satellite
-with no strength comes apart inside it. A rigid body survives closer (1.26), so the fluid limit is the cautious one."""
+ROCHE_FLUID_COEFFICIENT = 2.456
+"""float: The fluid-body Roche limit, d = 2.456 R (rho_M / rho_m)^(1/3) (Roche 1850; [R3220]; the textbooks round it to
+2.44): a self-gravitating satellite with no strength comes apart inside it. A rigid body survives closer
+(`clearance.RIGID_ROCHE_COEFFICIENT`, 1.26), so the fluid limit is the cautious one. The one copy: `orbits` and `rings`
+read it from here. Recalled, T2, L0."""
 
 
 # --- Dimension probes ----------------------------------------------------------------------------------------------
@@ -308,7 +310,7 @@ def hill_radius(distance, planet_mass, star_mass, *, c=SI):
 
 @law("length", primary_radius="length", primary_density="density", satellite_density="density")
 def roche_limit(primary_radius, primary_density, satellite_density, *, c=SI):
-    """The fluid Roche limit, 2.44 R (rho_M / rho_m)^(1/3)."""
+    """The fluid Roche limit, `ROCHE_FLUID_COEFFICIENT` R (rho_M / rho_m)^(1/3)."""
     return ROCHE_FLUID_COEFFICIENT * primary_radius * (primary_density / satellite_density) ** (1 / 3)
 
 

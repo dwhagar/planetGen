@@ -78,8 +78,7 @@ def _mass_earth(radius_km, density_g_cm3):
 
 def _radius_km(mass_earth, density_g_cm3):
     """The radius, km, of a sphere of `mass_earth` and `density_g_cm3`."""
-    volume_m3 = _mearth_to_kg(mass_earth) / (density_g_cm3 * 1000.0)
-    return _m_to_km((3.0 * volume_m3 / (4.0 * math.pi)) ** (1.0 / 3.0))
+    return _m_to_km(relations.sphere_radius(_mearth_to_kg(mass_earth), density_g_cm3 * 1000.0))
 
 
 def _disk_distances_au(count):
