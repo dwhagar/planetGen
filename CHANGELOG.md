@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4099] - 2026-11-14
+
+**Headline:** Queued runs work again: the database step parameters are turned into a connection config by `MySQLConfig.from_args`, which the cleanup rounds called but never defined, so every queued galaxy run stopped at its first step.
+
+### Fixed
+- **`MySQLConfig.from_args` exists.** `queue/wrapper.py`, `queue/units.py` and `db/check.py` (layered-fixes rounds 2-4, PR 6454) call `store.MySQLConfig.from_args(named)` for a step's `database` parameters, but the class had no such method (`AttributeError: type object 'MySQLConfig' has no attribute 'from_args'`), so a queued run failed in the wrapper's database clock. The method builds the config exactly as the three call sites did before the cleanup (host, port, user and database named; the password is the process's settings'). Found by the gate on `test_work_units::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4098] - 2026-11-14
+
+**Headline:** Five main test reds fixed and three stale scripts brought up to date.
+
+### Changed
+
+- TEST.740 (Lane 21 part): an oxygenic world may end under an ice-covered ocean (its oxygen rise burns off the methane greenhouse and the sea can freeze over, as Earth's did in the Huronian glaciation), so `test_only_oxygenic_life_holds_oxygen_it_made_and_only_in_a_sunlit_sea` allows it; `activity.SUN_LOGG` carries its measured tag; `test_a_radius_gets_the_mass_its_composition_needs` passes the rock's FeO share, not the whole composition; the materials rows `tholin` and `insoluble_organic_matter` lose their vocabulary-only tags because the tuning table reads them; `build_fudge_table.py` reads the quantities the class conditions use (`class_fit.SHOULDERS` is gone), `measure_sky_sphere.py` draws a sphere with `luminosity_sphere_batches` and `backfill_cells` (`backfill_sphere` is gone), and `class_census.py` no longer patches the removed age raise.
+
+generation-output: unchanged
+
+## [8.0.4097] - 2026-11-14
+
+**Headline:** Generating one system no longer builds the star sampling tables first, which took about a minute on a fresh checkout.
+
+### Fixed
+- **A one-off system (`planetgen system`, the Generate a system page) starts its worker without warming the bright-star sampling tables (PERF.266).** `units.TABLE_KINDS` listed `generate-system`, so a fresh worker built every population's table before the unit ran, 56 s on a cold table cache (any new code version or checkout), and the system never reads a table (it draws its star from the generator's own laws; no table file is written by a whole system run). The no-database system page test took 138 s from a fresh worker on the Train 26 commit and 76 s now (10 s of that is the worker's start), and the same seed gives the same document before and after. Sector, scatter and neighborhood units still warm the tables. Not a slowdown of generation: the 88 s to 142 s of the gate was the cold table cache of the new code version.
+
 ## [8.0.4096] - 2026-11-14
 
 **Headline:** The one-off system page can ask for a planet class or a life class and shows what came of it.
