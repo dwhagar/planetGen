@@ -69,11 +69,24 @@ def bracket(water_class):
     return low, high
 
 
-def sample_fraction(mass_earth, snow_ratio, rng=draw):
+EARTH_CLASS = "low"
+"""str: Earth's water class (its oceans and the water in its mantle are 0.025 to 0.16 percent of its mass); the class the Class M abundance tier gives (`generation.abundance_tier`)."""
+
+
+def drawn_for_earth(earth_share, rng=draw):
+    """Whether a body is given Earth's class by the Class M abundance tier's water dial: ONE uniform draw against `earth_share`, none at 0 (`science`)."""
+    return earth_share > 0.0 and rng.random() < earth_share
+
+
+def sample_fraction(mass_earth, snow_ratio, rng=draw, earth=False):
     """
     The water mass fraction of a rocky body of `mass_earth` Earth masses that formed at `snow_ratio` snow lines: the class from
     `class_shares`, then a log-uniform share inside it. Two draws (a uniform for the class, one for the share).
+
+    `earth` (the answer of `drawn_for_earth`) takes `EARTH_CLASS` in place of the law's class: no class draw, the share inside it log-uniform as before (one draw).
     """
+    if earth:
+        return log_uniform(*bracket(EARTH_CLASS), rng=rng)
     shares = class_shares(mass_earth, snow_ratio)
     pick = rng.random()
     running = 0.0

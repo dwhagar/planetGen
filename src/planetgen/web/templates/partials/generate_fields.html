@@ -104,7 +104,7 @@
 {%- macro plan_inputs() -%}
 {%- set groups = [("shape", "Galaxy family", true), ("scale", "Size: mass, compactness, density, disk length", true),
                   ("structure", "Structure: flatness, bulge, nuclear", false), ("edge", "Edge of the galaxy", false),
-                  ("halo", "Dark and stellar halo", false), ("census", "Census: star richness and rogue planets", false),
+                  ("halo", "Dark and stellar halo", false), ("census", "Census: star richness, rogue planets and Class M abundance", false),
                   ("pattern", "Spiral arms", false)] -%}
 {%- for key, title, opened in groups %}
 {%- set rows = plan_fields|selectattr("dial", "equalto", key)|list %}

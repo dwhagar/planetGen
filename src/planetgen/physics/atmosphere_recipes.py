@@ -902,6 +902,11 @@ class Recipes:
         if fallback:
             row = table[0][0]
             return GroupDraw(group, row, 1.0, ((row.id if row else "none", 1.0),), drawn, True)
+        wanted = view.get(f"pinned_row_{group}")
+        pinned = next((r for r, p in table if r is not None and r.id == wanted and p > 0.0), None) if wanted is not None else None
+        if pinned is not None:      # the Class M abundance tier gave the body's water class (`delivered_water`): the air takes that class's row, no pick is drawn.
+            # Only a row the pick itself could take (in the table, weight above zero): a row this body cannot hold is never forced, the pick is drawn as usual
+            return GroupDraw(group, pinned, 1.0, ((pinned.id, 1.0),), drawn)
         chosen = draw.choices([r for r, _p in table], weights=[p for _r, p in table], k=1)[0]
         listed = tuple((r.id if r else "none", p) for r, p in table)
         probability = dict(listed)[chosen.id if chosen else "none"]

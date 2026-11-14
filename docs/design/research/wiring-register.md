@@ -230,3 +230,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.saturation.unread_formulas | GEN.1564 | the names of the held-back curves, read by the tests; slice 1 empties it |
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
+| row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |

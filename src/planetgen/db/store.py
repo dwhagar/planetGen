@@ -76,7 +76,7 @@ from planetgen.db import alembic_runner, batched, chart_ledger, derived_stamp, d
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
-from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import resident_mass, component_field as componentField, dials, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
 from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
@@ -9270,6 +9270,9 @@ def get_galaxy_shape(conn, light=False):
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     if pins.get("richness") is not None:     # the Census dial (GEN.607): the mean system mass follows the pinned richness
         shape = with_system_richness(shape, pins["richness"])
+    tier = dials.choice_pinned(pins, "class_m")     # the Census dial's Class M abundance tier: what each system made here takes as its tier
+    if tier is not None:
+        shape = shape._replace(abundance_tier=tier)
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
