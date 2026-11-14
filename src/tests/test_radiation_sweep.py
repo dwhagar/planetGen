@@ -146,13 +146,14 @@ def dose_problems(body, is_moon):
         return problems
     column = rad.column_g_cm2(getattr(body, "atmospheric_pressure", None) or 0.0, getattr(body, "gravity", None))
     cutoff = rad.cutoff_rigidity_gv(getattr(body, "magnetic_moment_a_m2", None) or 0.0, body.radius)
-    low, high = (rad.gcr_dose_msv_yr(column, cutoff, share) for share in tuning.GCR_SOLAR_MODULATION_RANGE)
+    shield, stopping = rad.shielding_of_air(body, column)      # GEN.444: the gases of the air by their own interaction lengths and stopping powers
+    low, high = (rad.gcr_dose_msv_yr(shield, cutoff, share) for share in tuning.GCR_SOLAR_MODULATION_RANGE)
     if not low * (1.0 - 1e-9) <= gcr <= high * (1.0 + 1e-9):
         problems.append(f"cosmic-ray dose {gcr:.4g} is outside {low:.4g} to {high:.4g}, what the column and the field give")
     star = body.star
     free = rad.free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), getattr(body, "_star_distance_au", None), getattr(star, "flare_alpha", None)) \
         + rad.companion_free_sep_msv_yr(star, getattr(body, "_star_distance_au", None))       # GEN.1442: the particles of the other stars too
-    if not math.isclose(sep, rad.sep_dose_msv_yr(free, column, cutoff), rel_tol=1e-6, abs_tol=1e-12):
+    if not math.isclose(sep, rad.sep_dose_msv_yr(free, column, cutoff, stopping), rel_tol=1e-6, abs_tol=1e-12):
         problems.append(f"stellar-particle dose {sep:.4g} is not what the column, the field and the flares give")
     return problems
 
