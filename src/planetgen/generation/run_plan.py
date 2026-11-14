@@ -55,6 +55,7 @@ from planetgen.galaxy.skeleton import (
 from planetgen.generation import plan_outline as planOutline
 from planetgen.generation import followed, run_common
 from planetgen.generation import stages, steps
+from planetgen.util.format import format_duration_seconds
 
 
 BACKFILL_CHUNK_SECTORS = 200
@@ -744,7 +745,7 @@ class _BrightStarBook:
         massive = sum((self.followers[0].counts or {}).values()) if self.followers[0].key == "mass" else 0
         log.normal(
             f"Placed {summary['total']:,} bright stars ({massive:,} born at {self.mass_limit:g} solar masses or more, the rest at least "
-            f"{self.min_luminosity_sol:g} L_sun bright) in {summary['elapsed_s']:.1f}s: "
+            f"{self.min_luminosity_sol:g} L_sun bright) in {format_duration_seconds(summary['elapsed_s'])}: "
             + ", ".join(f"{count:,} {population}" for population, count in summary["counts"].items()) + "."
         )
         log.debug("Bright-star scatter: %s stars, seed %s, threshold %g L_sun, mass limit %g solar masses.", summary["total"], self.seed,
@@ -1847,7 +1848,7 @@ def add_bright_star_band(args):
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     log.normal(
-        f"Added {total:,} bright stars ({target:g} to {current:g} L_sun) in {elapsed:.1f}s: "
+        f"Added {total:,} bright stars ({target:g} to {current:g} L_sun) in {format_duration_seconds(elapsed)}: "
         + ", ".join(f"{count:,} {population}" for population, count in counts.items())
         + f". The star-fill level is now {target:g} L_sun."
     )
@@ -2944,7 +2945,7 @@ def make_block_lights(conn, report, say, rebuild=False):
         written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
     else:
         written, _used = block_lights.roll(conn, on_progress=units, on_phase=say, on_above=above)
-    say(f"Block light totals: {written:,} rows written in {time.monotonic() - begun:,.0f} s.")
+    say(f"Block light totals: {written:,} rows written in {format_duration_seconds(time.monotonic() - begun)}.")
     report(total, total)
     return written
 
@@ -3319,7 +3320,7 @@ class _PhenomenaBook:
             set(self.counts) - set(phenomenon_scatter.EXPECTED_LABELS)) if self.counts.get(label)]
         listed = ": " + ", ".join(f"{self.counts[label]:,} {label}" for label in labels) if labels else ""
         summary = self.summary()
-        log.normal(f"Placed {summary['total']:,} phenomena in {summary['elapsed_s']:.1f}s{listed}; "
+        log.normal(f"Placed {summary['total']:,} phenomena in {format_duration_seconds(summary['elapsed_s'])}{listed}; "
                    f"{self.companions:,} of them have companions.")
 
 
@@ -3675,7 +3676,7 @@ def log_skeleton_summary(args, summary):
     else:
         shells = "no shells (nothing clears the one-star-per-sector threshold)"
     log.normal(
-        f"Skeleton built in {summary['elapsed_s']:.2f}s: {shells}, outer edge = shell "
+        f"Skeleton built in {format_duration_seconds(summary['elapsed_s'])}: {shells}, outer edge = shell "
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:

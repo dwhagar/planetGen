@@ -33,6 +33,7 @@ from planetgen.api.facility_types import bp as facility_types_bp
 from planetgen.api.routes import bp, close_db
 from planetgen.api.version import API_VERSION, API_VERSION_HEADER
 from planetgen.api.workqueue import bp as workqueue_bp
+from planetgen.util.format import format_bytes, format_duration_seconds
 
 
 def _is_api_request():
@@ -206,9 +207,9 @@ def _register_request_logging(app):
     def _log_request_end(response):
         if log.debug_log_active():
             started = g.get("log_request_started")
-            elapsed = f" in {(time.perf_counter() - started) * 1000:.1f}ms" if started is not None else ""
+            elapsed = f" in {format_duration_seconds(time.perf_counter() - started)}" if started is not None else ""
             log.debug(f"API response: {request.method} {request.path} -> {response.status} "
-                      f"({response.calculate_content_length() or 0} bytes){elapsed}")
+                      f"({format_bytes(response.calculate_content_length() or 0)}){elapsed}")
         return response
 
 
@@ -370,7 +371,7 @@ def _register_error_handlers(app):
     @app.errorhandler(413)
     def _handle_too_large(exc):
         # A body over `MAX_CONTENT_LENGTH` (config.py).
-        log.debug(f"Request body too large on {request.method} {request.path}: {request.content_length} bytes.")
+        log.debug(f"Request body too large on {request.method} {request.path}: {format_bytes(request.content_length)}.")
         if _is_api_request():
             return jsonify({"error": "request body too large"}), 413
         return render_error(413, "That request was too large.")

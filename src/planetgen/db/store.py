@@ -124,6 +124,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+from planetgen.util.format import format_duration_seconds
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
 
@@ -1012,11 +1013,11 @@ class Connection:
                 activity_log.event("DB", "statement_timeout", db=self._config.database if self._config else "?",
                                    seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
             if traced:
-                log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: "
+                log.trace(f"SQL failed after {format_duration_seconds(time.perf_counter() - start)}: "
                           f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)
             raise
         if traced:
-            log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
+            log.trace(f"SQL {format_duration_seconds(time.perf_counter() - start)}, {cur.rowcount} row(s): "
                       f"{_sql_for_log(sql, params)}", area="sql", stacklevel=4)
         return _Cursor(cur)
 
@@ -1169,7 +1170,7 @@ class Connection:
                     cur.execute(head + ",".join(chunk))
                 statements += 1
         if log.debug_log_active():
-            log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
+            log.trace(f"SQL batch {format_duration_seconds(time.perf_counter() - start)}: "
                       f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", area="sql", stacklevel=3)
 
     def executemany(self, sql, seq_of_params):
@@ -1189,7 +1190,7 @@ class Connection:
         with statementmark.statement(sql):
             cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
-            log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
+            log.trace(f"SQL executemany {format_duration_seconds(time.perf_counter() - start)}, {len(rows)} parameter "
                       f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
                       stacklevel=3)
         return _Cursor(cur)
@@ -1205,7 +1206,7 @@ class Connection:
         with statementmark.statement(sql):
             cur.execute(sql)
         if log.debug_log_active():
-            log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
+            log.trace(f"SQL literal {format_duration_seconds(time.perf_counter() - start)}, {cur.rowcount} row(s): {sql[:120]}",
                       area="sql", stacklevel=3)
         return _Cursor(cur)
 

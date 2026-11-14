@@ -17,6 +17,7 @@ from planetgen.web.lib import apiclient
 from . import bp
 from .admin_pages import _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb
+from planetgen.util.format import format_duration_seconds
 
 REFRESH_SECONDS = 10
 """int: How often the page reloads itself while an update is waiting or running."""
@@ -52,7 +53,7 @@ def admin_update():
         try:
             if action == "confirm-password":
                 done = apiclient.auth_confirm_password(cookie_header, request.form.get("current_password", ""))
-                return _flash(_see_other(target), message=f"Thank you. You can start an update for {done['minutes']} minutes.")
+                return _flash(_see_other(target), message=f"Thank you. You can start an update for {format_duration_seconds(done['minutes'] * 60)}.")
             if action == "update":
                 apiclient.admin_update_request(cookie_header)
                 return _flash(_see_other(target), message="The update was requested. It starts in a moment; this page "

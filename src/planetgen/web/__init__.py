@@ -35,6 +35,7 @@ import re
 
 from flask import Blueprint, current_app, g, has_app_context, request
 from markupsafe import Markup, escape
+from planetgen.util.format import format_bytes, format_duration_seconds
 
 # src/html/static/, which Apache serves directly.
 _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -255,6 +256,10 @@ def _template_globals():
         # UX.20: every count or measurement a template shows, `num(x)` or
         # `num(x, ",.2f")` -- scientific past 4 whole digits.
         "num": format_number,
+        # UX.318: a size in bytes on the units code's ladder, `bytes_text(x)`: "12.3 kB", "1.4 GB".
+        "bytes_text": format_bytes,
+        # UX.318: seconds on the units code's time ladder, `duration_text(x)`: "45 s", "4.12 minutes".
+        "duration_text": format_duration_seconds,
     }
 
 

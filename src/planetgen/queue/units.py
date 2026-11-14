@@ -43,6 +43,7 @@ from planetgen.datasets import fetch
 from planetgen.db import store
 from planetgen.queue import commands, commandgaps, engine, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 FAILURE_FUNCTION = "planetgen.queue.units.unit_failed"
@@ -264,7 +265,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     peak = peak_resident_mb()
     _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, used.summary())       # OPS.155: what this kind of unit costs, kept for the self-tuning jobs (nothing reads it yet)
     seconds = time.monotonic() - started
-    log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
+    log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {format_duration_seconds(seconds)}", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
     outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak)
@@ -464,12 +465,12 @@ def horse_killed(job, retpid, ret_val, _rusage):
     memory_kill = _killed_by_sigkill(ret_val)
     detail = ""
     if note is not None and memory_kill:
-        detail = f"; it claimed {note['claimed_mb']:,.0f} MB on the memory gate and the most seen was {note['peak_mb']:,.0f} MB"
+        detail = f"; it claimed {format_megabytes(note['claimed_mb'])} on the memory gate and the most seen was {format_megabytes(note['peak_mb'])}"
         bigger = memorygate.grow(conn, note["kind"], job.id, note["claimed_mb"], note["peak_mb"])
         jobprofiles.record(note["kind"], peak_mb=bigger / memorygate.LEARN_MARGIN, outcome="killed_memory")     # OPS.155: a kill is data; its peak is the size the retry was given less the margin (OPS.156 floors the kind there)
         retry = (getattr(job, "retries_left", None) or 0) > 0
-        log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {note['claimed_mb']:,.0f} MB (most seen {note['peak_mb']:,.0f} MB); "
-                    + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))
+        log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {format_megabytes(note['claimed_mb'])} (most seen {format_megabytes(note['peak_mb'])}); "
+                    + (f"it is queued again with a claim of {format_megabytes(bigger)}." if retry else "it has no retry left."))
         if retry:
             return
     if job.func_name in (UNIT_FUNCTION, OPEN_FUNCTION):
