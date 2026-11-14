@@ -235,3 +235,28 @@ def test_the_index_run_records_how_many_uncharted_objects_each_kind_has(scattere
     finally:
         objectindex.forget(database)
         conn.close()
+
+
+def test_a_scattered_class_is_matched_on_its_own_columns_so_the_class_index_serves_it():
+    """`COALESCE(subtype, '') = ?` over the OR of the classes could not use `idx_phenomenon_scatter_class`, so a class whose rows sit late
+    in `phenomenon_scatter` was found by walking the table in id order and the hypervelocity list timed out at 10 s (the `/lists` page, and with
+    it the cache warm-up, answered 504). Every filter by class compares the columns themselves."""
+    import inspect
+
+    assert query.scatter_class_clause({"kind": "hypervelocity-star", "subtype": ""}) == (
+        "(kind = ? AND (subtype IS NULL OR subtype = ''))", ["hypervelocity-star"])
+    assert query.scatter_class_clause({"kind": "black-hole", "subtype": "stellar"}) == ("(kind = ? AND subtype = ?)", ["black-hole", "stellar"])
+    from planetgen.db import uncharted
+    for module in (query, uncharted):
+        assert "COALESCE(subtype, '') = ?" not in inspect.getsource(module), f"{module.__name__} filters a class through a function of its subtype"
+
+
+def test_the_page_of_a_kind_with_two_classes_follows_the_ids_and_the_cursor(scattered):
+    conn = store.get_connection(scattered)
+    try:
+        first = objectlist.list_objects(conn, "black_hole", limit=1)
+        assert len(first["items"]) == 1 and first["next"] is not None and first["total"] == 2
+        second = objectlist.list_objects(conn, "black_hole", limit=1, after=first["next"])
+        assert len(second["items"]) == 1 and second["items"][0]["id"] != first["items"][0]["id"] and second["next"] is None
+    finally:
+        conn.close()

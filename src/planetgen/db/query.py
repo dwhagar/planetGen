@@ -66,6 +66,7 @@ from planetgen.galaxy.spherical import (
 from planetgen.galaxy import enclosed_mass, keepout, mass_chain, shape_draw
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import object_uid
+from planetgen.galaxy import uid as galaxy_uid
 from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.window import check_width, parse_window_key, window_cells
@@ -228,6 +229,113 @@ def refresh_sector_system_counts(conn):
     return cur.rowcount
 
 
+VIRTUAL_PLACEHOLDER_LIMIT = 100_000
+"""int: The most uncharted placeholder rows a galaxy may still hold for its uncharted cells to be listed from the block light parts (OPS.154; stand-in: a guard size, not a
+physical value, it changes no drawn star). More than this and the rows the scatters made are still there (before the migration that deletes them): the cells have rows and the
+walk of the parts that finds the cells without one would read the whole table, so the list is the rows alone, as it was."""
+
+VIRTUAL_SCAN_ROWS = 2000
+"""int: The most cells of the parts a page walks to fill itself when a Quadrant filter drops some (OPS.154; stand-in: a guard size, not a physical value)."""
+
+_VIRTUAL_CELLS = (
+    "SELECT p.shell_index, p.band_index, p.wedge_index FROM galaxy_block_light_parts p WHERE {keyset} "
+    "NOT EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = p.shell_index AND cl.band_index = p.band_index AND cl.wedge_index = p.wedge_index) "
+    "AND NOT EXISTS (SELECT 1 FROM sectors s WHERE s.shell_index = p.shell_index AND s.band_index = p.band_index AND s.wedge_index = p.wedge_index) "
+    "ORDER BY p.shell_index {order}, p.band_index {order}, p.wedge_index {order} LIMIT ? OFFSET ?")
+"""str: The cells that hold a waiting object (a part, GEN.1476), have no chart ledger entry and no sector row (OPS.154): the uncharted cells that need no row of their own."""
+
+
+def virtual_cells_listed(conn):
+    """
+    Whether the uncharted cells with no sector row are listed from the block light parts (OPS.154): the parts table exists and the uncharted placeholder rows are few
+    (`VIRTUAL_PLACEHOLDER_LIMIT`). Counted once under the galaxy's content stamp (`count_uncharted_sector_rows`).
+    """
+    return count_uncharted_sector_rows(conn) <= VIRTUAL_PLACEHOLDER_LIMIT
+
+
+def _virtual_item(conn, address, edge_pc):
+    """One uncharted cell with no sector row as the item `list_sectors` gives a row (OPS.154): its public ID is its sector ID (the designation as a number), `virtual` is true and the rest is worked out from the address."""
+    x, y, z = spherical.sector_position_pc(*address, edge_pc)
+    radius = math.sqrt(x * x + y * y + z * z)
+    edge_mpc = edge_pc * 1000.0
+    return {
+        "id": galaxy_uid.format_sector_uid(galaxy_uid.sector_uid(*address)), "name": spherical.provisional_sector_designation(*address),
+        "edge_mpc": edge_mpc, "edge_ly": milliparsecs_to_ly(edge_mpc), "system_count": 0, "uncharted": True, "virtual": True,
+        "center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": radius, "galactic_radius_ly": pc_to_ly(radius),
+        "shell_index": address[0], "band_index": address[1], "wedge_index": address[2], "placed": True,
+    }
+
+
+def virtual_cells(conn, limit, offset=0, descending=False, quadrants=(), after_address=None):
+    """
+    The uncharted cells that have no sector row, as the items of `list_sectors` (OPS.154), by distance: shell, then band, then wedge (backward for `descending`), read by key from the block
+    light parts so any page costs the same. `after_address` starts after that cell (the keyset), else `offset` cells are skipped. A cell has no systems, so the `systems` and
+    `density` sorts treat it as zero and these follow the rows in key order. `quadrants` keeps the cells in those Quadrants (worked out from each cell's position; a page walks up to
+    `VIRTUAL_SCAN_ROWS` cells to fill itself).
+
+    Returns:
+        list[dict]: At most `limit` items.
+    """
+    edge_pc = galaxy_edge_pc(conn)
+    wanted = set(quadrants) - {"unplaced"}
+    found, scanned, skip = [], 0, offset or 0
+    last = after_address
+    while len(found) < limit and scanned < (VIRTUAL_SCAN_ROWS if wanted else limit):
+        want = limit - len(found) if not wanted else min(500, VIRTUAL_SCAN_ROWS - scanned)
+        keyset, params = ("", [])
+        if last is not None:
+            keyset = f"(p.shell_index, p.band_index, p.wedge_index) {'<' if descending else '>'} (?, ?, ?) AND"
+            params = list(last)
+        rows = conn.execute(_VIRTUAL_CELLS.format(keyset=keyset, order="DESC" if descending else "ASC"), params + [want, skip if last is None else 0]).fetchall()
+        if not rows:
+            break
+        skip = 0
+        for row in rows:
+            address = (row["shell_index"], row["band_index"], row["wedge_index"])
+            last = address
+            scanned += 1
+            if wanted:
+                x, y, _z = spherical.sector_position_pc(*address, edge_pc)
+                if SECTOR_QUADRANTS[spherical.sector_quadrant(x, y) - 1] not in wanted:
+                    continue
+            found.append(_virtual_item(conn, address, edge_pc))
+            if len(found) >= limit:
+                break
+        if len(rows) < want:
+            break
+    return found
+
+
+def virtual_sector_detail(conn, address):
+    """
+    `sector_detail` for an uncharted cell that has no sector row (OPS.154): the cell's place from its address, no systems, no stored phenomena (what the scatters left waiting in it is
+    `GET /api/galaxy/uncharted`'s answer), `uncharted` and `virtual` true, and its public ID (the designation) as `id`.
+    """
+    item = _virtual_item(conn, address, galaxy_edge_pc(conn))
+    return {**{key: item[key] for key in ("id", "name", "edge_mpc", "edge_ly", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "shell_index",
+                                          "band_index", "wedge_index", "placed", "uncharted", "virtual")},
+            "system_count": 0, "star_count": 0, "interstellar_debris_count": 0, "systems": [], "phenomena": [], "neighbors": [],
+            "stats": sector_stats(conn, *address)}
+
+
+def uncharted_cell_has_no_row(conn, address):
+    """Whether the cell `address` holds a waiting object (a part), is not charted and has no sector row: a cell `virtual_cells` lists (OPS.154)."""
+    address = tuple(address)
+    if conn.execute("SELECT 1 FROM galaxy_block_light_parts WHERE shell_index = ? AND band_index = ? AND wedge_index = ? LIMIT 1", address).fetchone() is None:
+        return False
+    if chart_ledger.row(conn, address) is not None:
+        return False
+    return conn.execute("SELECT 1 FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? LIMIT 1", address).fetchone() is None
+
+
+def sector_address_of_uid(printed):
+    """The `(shell, band, wedge)` a printed sector ID names, or `None` for text that is not the designation of a cell of the grid (OPS.154)."""
+    try:
+        return galaxy_uid.sector_address(int(str(printed).strip(), 16))
+    except (ValueError, TypeError):
+        return None
+
+
 def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=(), after=None, coverage="all", show_empty=True):
     """
     Returns every sector, with its edge length (converted to light-years)
@@ -276,12 +384,15 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         raise ValueError(f"unknown sector sort {sort!r}")
     extra = sector_coverage_condition(coverage, show_empty)
     _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
-    if sort in (None, "name", "distance"):
+    after_address = after if isinstance(after, tuple) else None      # OPS.154: the page ended on an uncharted cell that has no row
+    if after_address is not None:
+        rows = []
+    elif sort in (None, "name", "distance"):
         rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after, extra)
     else:
         rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, extra)
     charted = chart_ledger.charted_among(conn, [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in rows if r["shell_index"] is not None])
-    return [
+    items = [
         {
             "id": r["id"], "name": r["name"], "edge_mpc": r["edge_mpc"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
             "system_count": r["system_count"],
@@ -297,15 +408,47 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         }
         for r in rows
     ]
+    if coverage != "charted" and limit is not None and len(items) < limit and virtual_cells_listed(conn):
+        # OPS.154: after the rows, the uncharted cells that hold a waiting object and have no row, by distance. The page that ends among the rows goes on into them.
+        skipped = 0     # an offset that lies past the rows goes on into the cells: the cells it skips are what it is past the rows' end by
+        if after is None and not items and (offset or 0) > 0:
+            skipped = max(0, offset - count_sectors(conn, quadrants, coverage, show_empty, virtual=False))
+        items.extend(virtual_cells(conn, limit - len(items), skipped, descending, quadrants, after_address))
+    return items
 
 
-def count_uncharted_sectors(conn):
+def count_uncharted_sector_rows(conn):
     """
     How many sector rows are uncharted placeholders (MAP.399): placed rows (`shell_index` set) beyond the cells the chart ledger holds. Every charted
     sector has its cell in the ledger (`store.save_sector` records it), so the difference of the two counts is the placeholders, each count read from an index.
+    Kept by `countcache` (OPS.154: it is read on every Sectors list); before the first count it is the table's estimated rows less the ledger's estimated rows (no request counts a table).
     """
-    placed = conn.execute("SELECT COUNT(shell_index) AS n FROM sectors").fetchone()["n"]
-    return max(0, placed - chart_ledger.count(conn))
+    def exact(c):
+        return max(0, c.execute("SELECT COUNT(shell_index) AS n FROM sectors").fetchone()["n"] - chart_ledger.count(c))
+
+    def estimate(c):
+        return max(0, _estimated_rows(c, "sectors") - _estimated_rows(c, "chart_ledger"))
+
+    return _counted(conn, ["count_uncharted_sector_rows"], exact, estimate)
+
+
+def count_virtual_cells(conn):
+    """How many uncharted cells hold a waiting object and have no sector row (OPS.154): the parts of the block lights beyond the chart ledger and the rows. Kept by `countcache`; the estimate is the parts' estimated rows."""
+    def exact(c):
+        return c.execute("SELECT COUNT(*) AS n FROM galaxy_block_light_parts p WHERE NOT EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = p.shell_index "
+                         "AND cl.band_index = p.band_index AND cl.wedge_index = p.wedge_index) AND NOT EXISTS (SELECT 1 FROM sectors s WHERE s.shell_index = p.shell_index "
+                         "AND s.band_index = p.band_index AND s.wedge_index = p.wedge_index)").fetchone()["n"]
+
+    def estimate(c):
+        return _estimated_rows(c, "galaxy_block_light_parts")
+
+    return _counted(conn, ["count_virtual_cells"], exact, estimate)
+
+
+def count_uncharted_sectors(conn):
+    """How many sectors are uncharted (MAP.399): the placeholder rows (`count_uncharted_sector_rows`) and, once those are few, the cells with a waiting object and no row (OPS.154, `count_virtual_cells`)."""
+    rows = count_uncharted_sector_rows(conn)
+    return rows + (count_virtual_cells(conn) if rows <= VIRTUAL_PLACEHOLDER_LIMIT else 0)
 
 
 def sector_is_uncharted(conn, sector):
@@ -512,7 +655,7 @@ def _counted(conn, key, compute, fallback, stamp=None):
     return countcache.cached(conn, [sector_deletions(conn), key], compute, fallback, stamp or galaxy_content_stamp)
 
 
-def count_sectors(conn, quadrants=(), coverage="all", show_empty=True):
+def count_sectors(conn, quadrants=(), coverage="all", show_empty=True, virtual=True):
     """
     Returns the total number of sectors (that pass the same `quadrants`, `coverage` and `show_empty`
     filters as `list_sectors`), ignoring any pagination --
@@ -523,10 +666,13 @@ def count_sectors(conn, quadrants=(), coverage="all", show_empty=True):
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
+        virtual (bool): Add the uncharted cells that have no row (OPS.154, `count_virtual_cells`) to a count of `uncharted` or `all`; not under a Quadrant filter, whose cells are not counted.
 
     Returns:
         int: Total sector count.
     """
+    if virtual and coverage != "charted" and not quadrants and virtual_cells_listed(conn):
+        return count_sectors(conn, quadrants, coverage, show_empty, virtual=False) + count_virtual_cells(conn)
     where, params = _sector_quadrant_filter(quadrants)
     extra = sector_coverage_condition(coverage, show_empty)
     if extra:
@@ -2890,6 +3036,15 @@ def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
     return classes
 
 
+def scatter_class_clause(entry):
+    """`(sql, params)` of one scattered class of `_scattered_classes` as a condition on `phenomenon_scatter`'s own columns, so MySQL can use
+    `idx_phenomenon_scatter_class (kind, subtype, mass_solar)`. a `COALESCE` of the subtype could not: a class whose rows sit late in the
+    table was found by walking it in id order, and the hypervelocity list timed out at 10 s."""
+    if entry["subtype"]:
+        return "(kind = ? AND subtype = ?)", [entry["kind"], entry["subtype"]]
+    return "(kind = ? AND (subtype IS NULL OR subtype = ''))", [entry["kind"]]
+
+
 def parse_scatter_start(text):
     """The jump-by-value start of the Phenomena table (PERF.135) as a scatter id: a whole number of at least 1.
 
@@ -2921,8 +3076,9 @@ def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=F
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
     clauses, params = [], []
     for entry in classes:
-        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
-        params.extend([entry["kind"], entry["subtype"]])
+        clause, values = scatter_class_clause(entry)
+        clauses.append(clause)
+        params.extend(values)
     later = ""
     if first is not None:
         later, params = "id >= ? AND ", [first] + params
@@ -3361,8 +3517,9 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None, start=None):
             classes = _scattered_classes(c, types, descriptors, placed)
             if not classes:
                 return 0
-            clauses = " OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes)
-            marks = [value for entry in classes for value in (entry["kind"], entry["subtype"])]
+            parts = [scatter_class_clause(entry) for entry in classes]
+            clauses = " OR ".join(sql for sql, _ in parts)
+            marks = [value for _, values in parts for value in values]
             return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({clauses})",
                              [first] + marks).fetchone()["n"]
 
@@ -3746,39 +3903,6 @@ def resolve_object(conn, kind, object_id):
     if kind == "star":
         found["keep_out_in_system"] = keep_out_radius(conn, kind, object_id, scale="system")._asdict()    # NAV.54
     return found
-
-
-def nebula_shape(conn, nebula_id):
-    """
-    One nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`): the one
-    stored with it (`nebulae.shape_*` and `nebula_shape_balls`), or, for a
-    nebula saved before v56, the one a fresh save would have stored,
-    drawn from its own properties.
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
-        nebula_id (int): `nebulae.id`.
-
-    Returns:
-        tuple: `(row, shape)`: the nebula's row (a dict) and its `NebulaShape`.
-
-    Raises:
-        ValueError: If no such nebula exists.
-    """
-    from planetgen.galaxy import nebula_shape as shapes
-
-    row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
-    if row is None:
-        raise ValueError(f"no such nebula: {nebula_id!r}")
-    row = _with_printed_uid(row)
-    if row.get("shape_scale") is None:
-        return row, shapes.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"],
-                                            row["temperature_k"], row["extinction_av"])
-    balls = conn.execute(
-        "SELECT ball_index, center_x, center_y, center_z, radius FROM nebula_shape_balls"
-        " WHERE nebula_id = ? ORDER BY ball_index", (nebula_id,)).fetchall()
-    return row, shapes.from_columns(row, [tuple(b[k] for k in ("ball_index", "center_x", "center_y", "center_z", "radius"))
-                                          for b in balls])
 
 
 NEBULA_SURROUNDINGS_STARS = 300

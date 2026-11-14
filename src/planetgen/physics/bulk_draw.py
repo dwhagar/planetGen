@@ -537,12 +537,13 @@ def draw_terrestrial(body, radius_given, mass_given):
     kind = ROCK_KIND_TABLE.draw(origin_of(body), {"c_over_o": ratios.c_over_o}).name
     carbon_rock = kind != "silicate"
     inverse = radius_given and mass_given
-    origin = None if inverse else getattr(body, "moon_origin", None)
+    member = getattr(body, "belt_member", None)
+    origin = None if inverse or member is not None else getattr(body, "moon_origin", None)
     # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
-    water, ice, ice_shares = (0.0, 0.0, None) if origin else _water_and_ice(body)
+    water, ice, ice_shares = (0.0, 0.0, None) if origin or member is not None else _water_and_ice(body)
     feo = draw.uniform(*RANGES["rock_feo"])
     light = core_light_elements()
-    porosity = None if origin else _porosity(body)
+    porosity = None if origin or member is not None else _porosity(body)
     graphite = draw.uniform(*RANGES["graphite_over_rock"]) if carbon_rock else 0.0
 
     if inverse:
@@ -551,6 +552,9 @@ def draw_terrestrial(body, radius_given, mass_given):
 
     ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)
     part = dry_partition(ratios, feo, light, carbon_rock, graphite, _cut_k(body))
+    if member is not None:
+        _take_belt_member(body, member, part, mass_given, carbon_rock)
+        return
     if origin:
         _draw_moon(body, origin, part, mass_given)
         return
@@ -559,6 +563,28 @@ def draw_terrestrial(body, radius_given, mass_given):
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
         rock_mg_si=part.rock_mg_si, porosity=porosity, core_ni=part.core_ni, core_light=part.core_light, carbon_rock=carbon_rock, origin="drawn",
         ice_shares=ice_shares, **_minor_oxides(part))
+    _settle(body, bulk, mass_given)
+
+
+def _take_belt_member(body, member, part, mass_given, carbon_rock):
+    """
+    A belt member promoted to a planet (GEN.1510) keeps what the belt made it of: its rock, metal, water and ice shares (`belt.members`), not a draw of the planet's own, so there is one
+    composition for the body whichever list it is in. Below `compaction.TAPER_END_KG` it also keeps the member's radius and so its density (the porosity is what the shares leave void), as a moon does; heavier, the voids are closed and the structure solver gives the radius. The rock's FeO, Al2O3 and Mg/Si come from the star as for any rocky body. The promoted ones are the heaviest round members.
+    """
+    shares = [member["metal_fraction"], member["rock_fraction"], member["water_fraction"], member["ice_fraction"]]
+    total = math.fsum(shares)
+    metal, rock, water, ice = (share / total for share in shares)
+    bulk = bulk_composition.BulkFractions(
+        metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, core_ni=part.core_ni,
+        core_light=part.core_light, carbon_rock=carbon_rock, origin="drawn", **_minor_oxides(part))
+    radius_km = member.get("radius_km") or 0.0
+    if body.mass < compaction.TAPER_END_KG and radius_km > 0.0:
+        # GEN.1510 (Lane 21's rule, as a moon's: below the taper's end the voids are not closed): the member's own radius and so its own density, the porosity what the stored shares leave void
+        body.radius = radius_km
+        volume_m3 = 4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3
+        grain = bulk_structure.mixing_density_kg_m3(bulk.metal, bulk.rock, bulk.water, bulk.ice, 0.0)
+        _store(body, dataclasses.replace(bulk, porosity=max(0.0, 1.0 - body.mass / volume_m3 / grain)))
+        return
     _settle(body, bulk, mass_given)
 
 
@@ -572,10 +598,14 @@ def _draw_moon(body, origin, part, mass_given):
     if origin == "disk" and system is None:    # a moon built on its own: the disk of a body of its parent's mass
         system = moon_composition.draw_disk_system(body.primary_mass_kg)
     makeup = moon_composition.draw_moon(origin, body.distance * constants.AU_TO_KM, system)
+    ice_shares = None
+    if makeup.ice > 0.0:    # GEN.1603: the other ices of a moon with some are a draw of the comet volatiles, as an icy planet's, not every moon's median
+        percent = _with_nitrogen_ice(body, comet_population.draw_volatiles(RANGES["other_ice_comet_class"]).percent)
+        ice_shares = ice_species.shares_of_percent(percent) or None
     bulk = bulk_composition.BulkFractions(
         metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
         rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, core_ni=part.core_ni, core_light=part.core_light,
-        carbon_rock=False, origin="drawn", **_minor_oxides(part))
+        carbon_rock=False, origin="drawn", ice_shares=ice_shares, **_minor_oxides(part))
     if mass_given:
         # GEN.442: below the taper's end the radius follows from the mass by the same brittle law that gives the mass from the radius
         low, high = compaction.ROCK_FRACTION_RANGE
@@ -652,6 +682,7 @@ def _store_core(body, bulk):
 
 def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite):
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
+    ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)      # GEN.1603: the rock and the core's nickel follow the iron branch, as for a body drawn from its star
     part = dry_partition(ratios, feo, light, carbon_rock, graphite, _cut_k(body))
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
     mass_earth = _kg_to_mearth(body.mass)

@@ -74,6 +74,50 @@
   </div>
 </section>
 {%- endif %}
+{%- if tuning %}
+<section class="panel" id="queue-tuning" aria-labelledby="queue-tuning-heading">
+  <h2 id="queue-tuning-heading">What the queue has learned</h2>
+  <p>For each kind of job the memory it claims at the gate: the typed figure in the code, the figure worked out from what that kind has used on this machine (the job profile), and a figure you fixed. {% if tuning.on %}With enough history the learned figure is the claim; with none the typed one is.{% else %}Learning is switched off (<code>PLANETGEN_SELF_TUNING</code>), so every claim is the typed figure.{% endif %} Fixing a figure holds it until you release it; forgetting a kind deletes its samples and the next run claims from the typed figure and measures again.</p>
+  {%- if tuning.rows %}
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">The claim of each job kind: typed, learned, and fixed</caption>
+    <thead><tr><th scope="col">Kind</th><th scope="col">Typed</th><th scope="col">Learned</th><th scope="col">Fixed</th><th scope="col">Samples</th><th scope="col">Last sample (UTC)</th><th scope="col">Last change</th><th scope="col">Controls</th></tr></thead>
+    <tbody>
+    {%- for row in tuning.rows %}
+    <tr><td><code>{{ row.kind }}</code></td><td>{{ row.typed }}</td><td>{{ row.learned }}</td><td>{{ row.pinned }}</td><td>{{ row.samples }}</td><td>{{ row.last_sample }}</td><td>{{ row.changed }}</td>
+      <td><form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
+        {{ csrf_field() }}<input type="hidden" name="kind" value="{{ row.kind }}">
+        {%- if row.is_pinned %}<button type="submit" name="action" value="tuning-unpin" class="btn btn-secondary">Release</button>{% endif %}
+        <button type="submit" name="action" value="tuning-clear" class="btn btn-danger">Forget</button>
+      </form></td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
+    {{ csrf_field() }}
+    {{ ui_input("kind", "Job kind", "", hint="For example unit:link-neighbors") }}
+    {{ ui_input("mb", "Claim, MB", "", type="number", min=150) }}
+    <button type="submit" name="action" value="tuning-pin" class="btn btn-secondary">Fix the claim</button>
+  </form>
+  {%- if tuning.changes %}
+  <h3>Latest changes</h3>
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">The latest changes the queue made to a figure</caption>
+    <thead><tr><th scope="col">When (UTC)</th><th scope="col">What</th><th scope="col">Kind</th><th scope="col">Was</th><th scope="col">Now</th><th scope="col">Why</th></tr></thead>
+    <tbody>
+    {%- for item in tuning.changes %}
+    <tr><td>{{ utc_time(item.at) }}</td><td>{{ item.what }}</td><td><code>{{ item.kind }}</code></td><td>{{ item.old }}</td><td>{{ item.new }}</td><td>{{ item.reason }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
+</section>
+{%- endif %}
 {%- if held %}
 <section class="panel" id="queue-held" aria-labelledby="queue-held-heading">
   <h2 id="queue-held-heading">Held jobs</h2>

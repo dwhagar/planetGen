@@ -1,6 +1,7 @@
 """The progress `planetgen warm --progress` shows for a stage cut into chunks (cli/warm_progress.py)."""
 
 from planetgen.cli import warm_progress
+from planetgen.util import logrecord
 
 
 def _chunk(warmed=64, built=64, seconds=38.0):
@@ -8,7 +9,7 @@ def _chunk(warmed=64, built=64, seconds=38.0):
             "seconds": seconds, "line": "unused"}
 
 
-def _run(chunks, show=True, each=40.0, own=38.0, cost=None, expected=None):
+def _run(chunks, show=True, each=20.0, own=20.0, cost=None, expected=None):
     lines, now = [], [0.0]
 
     def clock():
@@ -23,14 +24,14 @@ def _run(chunks, show=True, each=40.0, own=38.0, cost=None, expected=None):
     return lines
 
 
-def test_a_progress_line_comes_when_a_minute_and_ten_percent_have_passed():
-    """OPS.99: a chunk every 40 s of a stage of 8 is a line every two chunks (80 s, 25 points), not one per chunk."""
+def test_a_progress_line_comes_when_the_log_cadence_and_ten_percent_have_passed():
+    """OPS.99, OPS.169: a chunk every 20 s of a stage of 8 is a line every two chunks (40 s, past the 30 s log cadence, 25 points), not one per chunk."""
     lines = _run(8)
     progress = [line for line in lines if "%" in line]
-    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 1:20 elapsed"
+    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 40.0 s elapsed"
     assert len(progress) == 3 and progress[2].startswith("galaxy-deep-nodes 75% (6 of 8 chunks)")
-    assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 5:20 over 8 chunks of up to 64 nodes; "
-                         "1 chunk at once, 38.0 s a chunk on its worker; family 2 of 2")
+    assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 2:40 over 8 chunks of up to 64 nodes; "
+                         "1 chunk at once, 20.0 s a chunk on its worker; family 2 of 2")
 
 
 def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
@@ -39,7 +40,7 @@ def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
     first = next(line for line in lines if "%" in line)
     assert "left" not in first and "2 of 8" in first
     later = [line for line in lines if "%" in line][-1]
-    assert "4:00 elapsed, about 1:20 left" in later
+    assert "2:00 elapsed, about 40.0 s left" in later
 
 
 def test_the_closing_line_says_how_many_chunks_run_at_once_and_how_long_a_chunk_takes_on_its_worker():
@@ -121,10 +122,10 @@ def test_the_whole_warm_up_shows_no_time_left_from_fewer_than_a_few_chunks():
     assert progress.overall_left() is None and progress._overall_left_text() == ""
 
 
-def test_clock_text():
-    assert warm_progress.clock_text(65) == "1:05"
-    assert warm_progress.clock_text(3912) == "1:05:12"
-    assert warm_progress.clock_text(None) == "?"
+def test_the_times_in_a_progress_line_are_the_one_duration_form():
+    assert logrecord.duration_text(65) == "1:05"
+    assert logrecord.duration_text(3912) == "1:05:12"
+    assert logrecord.duration_text(None) == "?"
 
 
 def test_a_unit_that_reports_part_of_itself_moves_the_stage_and_the_whole_warm_up():

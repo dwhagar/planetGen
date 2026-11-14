@@ -42,6 +42,7 @@ _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 
 from planetgen.admin import maintenance  # noqa: E402
 from planetgen.queue import stopall  # noqa: E402
+from planetgen.util import log
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import galaxy_outlines, habitability_symbols, poi_icons  # noqa: E402
@@ -338,7 +339,8 @@ def _sector_of_system(system_id):
     """The printed ID of the sector holding `system_id`, or `None` (standalone, or not there)."""
     try:
         return apiclient.get_system(_written_database(), system_id).get("sector_id")
-    except Exception:  # noqa: BLE001 -- not found, or no database: the change is then placed more widely
+    except Exception as exc:  # noqa: BLE001 -- not found, or no database: the change is then placed more widely
+        log.swallowed("web/__init__", "_sector_of_system", exc)
         return None
 
 
@@ -416,6 +418,5 @@ def init_app(app, limiter=None):
     _install_page_cache(app)
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(
-            "The secret key could not be kept in the state folder: using a random key for this "
-            "process. Forms still work, but ones left open across a restart must be resubmitted."
+            "The secret key could not be kept in the state folder, so a random one is used and forms left open across a restart must be resubmitted."
         )

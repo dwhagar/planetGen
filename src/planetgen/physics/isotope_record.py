@@ -50,7 +50,7 @@ from types import SimpleNamespace
 
 from planetgen import tuning
 from planetgen.galaxy import shape_draw
-from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, disk_condensation, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
+from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, disk_condensation, elements, hydrosphere, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
 from planetgen.util import draw
 
 ATTRIBUTE = "isotopes"
@@ -570,7 +570,7 @@ def cosmogenic_rows(body):
 
 def _land_fraction(body):
     """The share of the body's surface that is dry rock the cascade reaches: the ocean (a few meters of water stop it) covers `ocean_fraction` of it."""
-    return min(max(1.0 - float(getattr(body, "ocean_fraction", None) or 0.0), 0.0), 1.0)
+    return min(max(1.0 - hydrosphere.water_cover(body), 0.0), 1.0)       # GEN.1567: ice stops the cascade as water does
 
 
 def _field_relative(body):

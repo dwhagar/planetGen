@@ -12,7 +12,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import binding_energy, body_strength, roundness
+from planetgen.physics import binding_energy, body_strength, roundness, shape_temperature
 from planetgen.util import draw
 
 EARTH = dict(mass=5.972e24, radius=6371.0, density=5.51, water_mass_fraction=0.0002, ice_mass_fraction=0.0, metal_mass_fraction=0.32,
@@ -32,7 +32,9 @@ def test_a_planet_is_round_with_a_strength_inside_its_range_and_a_binding_energy
     out = body_strength.values(_body(**EARTH))
     assert out["roundness_ratio"] > 20.0
     low, high = roundness.RANGES_PA["rock"]
-    assert low * 0.5 < out["yield_strength_pa"] < high * 2.0
+    cold = body_strength.values(_body(**{**EARTH, "surface_temperature": None}))
+    assert low * 0.5 < cold["yield_strength_pa"] < high * 2.0
+    assert 0.0 < out["yield_strength_pa"] < cold["yield_strength_pa"]      # a planet took its shape as hot as its rock could be before it melted (GEN.1201): far weaker than the cold rock
     uniform = binding_energy.uniform_j(EARTH["mass"], EARTH["radius"] * 1000.0)
     assert uniform < out["binding_energy_j"] < 1.3 * uniform       # a core makes it more tightly bound than a uniform ball
 
@@ -49,8 +51,8 @@ def test_a_gas_giant_keeps_only_its_binding_energy():
 
 
 def test_a_body_without_a_mass_or_a_radius_has_none_of_the_three():
-    assert body_strength.values(_body(**{**EARTH, "mass": None})) == dict.fromkeys(body_strength.FIELDS)
-    assert body_strength.values(_body(**{**EARTH, "radius": 0.0})) == dict.fromkeys(body_strength.FIELDS)
+    assert body_strength.values(_body(**{**EARTH, "mass": None})) == dict.fromkeys(body_strength.BODY_FIELDS)
+    assert body_strength.values(_body(**{**EARTH, "radius": 0.0})) == dict.fromkeys(body_strength.BODY_FIELDS)
 
 
 def test_the_quantile_comes_from_the_bodys_own_stream_and_leaves_the_run_stream_alone():
@@ -66,15 +68,30 @@ def test_the_quantile_comes_from_the_bodys_own_stream_and_leaves_the_run_stream_
 
 
 def test_the_strength_follows_the_quantile_between_the_ends_of_its_range():
-    weak, strong = (body_strength.values(_body(**MOON), quantile=q)["yield_strength_pa"] for q in (0.0, 1.0))
+    weak, strong = (body_strength.values(_body(**{**MOON, "surface_temperature": None}), quantile=q)["yield_strength_pa"] for q in (0.0, 1.0))
     low, high = roundness.RANGES_PA["rock"]
     assert weak < strong
     assert low * 0.9 < weak < roundness.ROCK_STRENGTH_PA < strong < high * 1.1
 
 
-def test_the_strength_is_the_cold_strength_whatever_the_surface_temperature():
-    cold, hot = (body_strength.values(_body(**{**MOON, "surface_temperature": t}), quantile=0.5) for t in (30.0, 700.0))
-    assert cold["yield_strength_pa"] == hot["yield_strength_pa"]
+def test_a_body_with_no_surface_temperature_yet_has_the_cold_strength_and_no_shape_temperature():
+    out = body_strength.values(_body(**{**MOON, "surface_temperature": None}), quantile=0.5)
+    assert out["shape_temperature_k"] is None
+    assert out["yield_strength_pa"] == roundness.yield_strength_pa(MOON.get("ice_mass_fraction", 0.0) + MOON.get("water_mass_fraction", 0.0), MOON.get("metal_mass_fraction") or 0.0,
+                                                                   MOON.get("porosity") or 0.0, None, draw=0.5)
+
+
+def test_a_moon_took_its_shape_hot_from_the_heat_of_its_assembly_and_its_rock_is_weaker_for_it():
+    """GEN.1201: the Moon's accretion heat (about 1,500 K) puts it past the 1,000 K where dry olivine creeps below its cold strength; the stored temperature is the engine's input."""
+    cold = body_strength.values(_body(**{**MOON, "surface_temperature": None}), quantile=0.5)
+    hot = body_strength.values(_body(**{**MOON, "surface_temperature": 300.0}), quantile=0.5)
+    assert 1000.0 < hot["shape_temperature_k"] < 3000.0
+    assert hot["yield_strength_pa"] < cold["yield_strength_pa"]
+
+
+def test_a_small_cold_body_keeps_its_surface_temperature_as_its_shape_temperature():
+    out = body_strength.values(_body(**{**SMALL, "surface_temperature": 120.0}), quantile=0.5)
+    assert out["shape_temperature_k"] == pytest.approx(120.0, abs=5.0)
 
 
 def test_a_comet_has_a_density_an_ice_share_and_the_three_values():
@@ -98,15 +115,16 @@ def test_a_generated_system_stores_the_values_wherever_the_body_has_them(mysql_c
         saved = store.save_system(StarSystem(system_config=config, galactic_center_dist_ly=26000.0), config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             for table in ("planets", "moons"):
-                for row in conn.execute(f"SELECT body_type, planet_class, roundness_ratio, yield_strength_pa, binding_energy_j, density_g_cm3 FROM {table} WHERE star_system_id = ?"
+                for row in conn.execute(f"SELECT body_type, planet_class, roundness_ratio, yield_strength_pa, binding_energy_j, shape_temperature_k, density_g_cm3 FROM {table} WHERE star_system_id = ?"
                                         if table == "planets" else
-                                        "SELECT m.planet_class, m.roundness_ratio, m.yield_strength_pa, m.binding_energy_j, m.density_g_cm3 FROM moons m JOIN planets p ON p.id = m.planet_id WHERE p.star_system_id = ?",
+                                        "SELECT m.planet_class, m.roundness_ratio, m.yield_strength_pa, m.binding_energy_j, m.shape_temperature_k, m.density_g_cm3 FROM moons m JOIN planets p ON p.id = m.planet_id WHERE p.star_system_id = ?",
                                         (saved,)).fetchall():
                     seen[table] += 1
                     assert row["binding_energy_j"] is not None and row["binding_energy_j"] > 0.0
                     giant = row["roundness_ratio"] is None     # GEN.1398: giant by body type or envelope, never by the class letter; checked against the conditions below
                     assert (row["roundness_ratio"] is None) == giant
                     assert (row["yield_strength_pa"] is None) == giant
+                    assert (row["shape_temperature_k"] is None) == giant        # GEN.1201: a solid body stores the temperature it took its shape at
             for row in conn.execute("SELECT density_g_cm3, ice_mass_fraction, roundness_ratio, yield_strength_pa, binding_energy_j FROM comets WHERE star_system_id = ?", (saved,)).fetchall():
                 seen["comets"] += 1
                 assert all(value is not None for value in row.values())
@@ -114,6 +132,29 @@ def test_a_generated_system_stores_the_values_wherever_the_body_has_them(mysql_c
                 seen["asteroid_belts"] += 1
                 assert row["density_g_cm3"] is not None and 0.0 <= row["ice_mass_fraction"] <= 1.0
     assert all(seen.values()), seen
+
+
+def test_a_generated_solid_body_has_a_shape_temperature_at_least_its_surface_temperature_and_no_hotter_than_its_ceiling():
+    """GEN.1201: the stored temperature is the one the strength was read at, so the same body made again from its stored values gives the same strength."""
+    config = SystemConfig()
+    config.PLANETS = True
+    checked = 0
+    for seed in range(1000, 1004):
+        draw.set_run_seed(seed)
+        system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue        # a belt or a field
+            for body in [planet, *planet.moons]:
+                if body.roundness_ratio is None:
+                    assert body.shape_temperature_k is None
+                    continue
+                checked += 1
+                assert body.shape_temperature_k >= body.surface_temperature - 1.0e-9
+                assert body.shape_temperature_k <= max(shape_temperature.ceiling_k(body.mass, body.radius * 1000.0), body.surface_temperature) + 1.0e-9
+                again = body_strength.values(body, quantile=body_strength.quantile_of(body))
+                assert again["yield_strength_pa"] == body.yield_strength_pa and again["shape_temperature_k"] == body.shape_temperature_k
+    assert checked
 
 
 def test_a_giant_is_told_by_its_body_type_and_its_envelope_never_by_the_class_letter():

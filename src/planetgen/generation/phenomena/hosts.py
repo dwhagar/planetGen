@@ -24,7 +24,7 @@ The host classes:
 * **remnant**: a neutron star or a black hole. Satellite table `remnant-satellites`; the other pairs are made by
   `multistar` from `MEMBER_STATE_BY_PLACED`.
 * **brown-dwarf**: holds nothing yet (GEN.331 and the disk-limited planets of U7 will add rows).
-* **planet**: a planet, bound or free. Satellite table `planet-satellites` (a free planet's captured companion).
+* **planet**: a planet, bound or free. No satellite table: its moons come from the one moon routine (`Planet.add_moons`), whose outer limit is the Hill radius of a bound planet and, for a free one, the edge `starless_host` sets from what the ejection left (GEN.558), so the chance of a moon is an output.
 * **moon**: holds nothing until the tidal-survival gate row of GEN.579 exists (Boss's cards S5 and S6, 12:10 to
   12:13 AM EDT, 2026-10-18, as the coordinator relayed, which superseded "moons are the lowest level"). Its satellite
   table `moon-satellites` has only the `no satellites` row.
@@ -140,10 +140,6 @@ MILLISECOND_PULSAR_PLANETS = 0.007
 """float: The chance a millisecond pulsar holds planets: the 0.7% of PSR B1257+12-like systems [R4750, R4751]. The magnetars, young pulsars, intermediate-mass and supermassive holes, brown dwarfs, comets and asteroid
 fields hold none; white dwarfs and stars take their planets from the star model."""
 
-ROGUE_PLANET_MOON = 0.2
-"""float: The chance a generated rogue planet kept a captured companion (a design default; GEN.466 will derive it from
-ejection survival)."""
-
 
 def _no_satellites_weight(table_name):
     def weight(subject):
@@ -166,16 +162,6 @@ REMNANT_SATELLITES = pt.REGISTRY.register(pt.Table(
     description="Whether a compact remnant holds planets, by the object key `kind` or `kind:subtype` "
                 "(`system_pass.object_key`)."))
 
-PLANET_SATELLITES = pt.REGISTRY.register(pt.Table(
-    "planet-satellites", 1, [
-        pt.Row("captured moon", ("rogue-planet",), ROGUE_PLANET_MOON,
-               source="design default (docs/design/systems/phenomena-catalogue-and-fill.md section 5)", state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/architecture/unified-star-like-objects.md 3.5)",
-               notes="Zone rule: Roche limit to 0.4895 of the Hill radius, prograde; for a free planet its history "
-                     "sets the limit (derived from ejection survival). Today the moon is a flag (`has_moons`)."),
-        pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), _no_satellites_weight("planet-satellites"),
-               source="the rest of the row above (1 minus the chance of a moon)", state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/architecture/unified-star-like-objects.md 3.5)")],
-    description="Whether a planet holds a moon, by the planet's object key."))
-
 MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
     "moon-satellites", 1, [
         pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), 1.0,
@@ -184,7 +170,7 @@ MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
                      "row passes it, no moon holds anything.")],
     description="Whether a moon holds anything: empty until the tidal-survival row is added."))
 
-REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, PLANET_SATELLITES, MOON_SATELLITES)}
+REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, MOON_SATELLITES)}
 """dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted` in `tests/test_host_tables.py`)."""
 
 HOSTS = (
@@ -195,8 +181,8 @@ HOSTS = (
     HostClass("remnant", "a neutron star or a black hole", None, "remnant-satellites",
               "multistar.MEMBER_STATE_BY_PLACED (its stellar companions, drawn at scatter time)"),
     HostClass("brown-dwarf", "a brown dwarf", None, None, "nothing yet: holds no companion or satellite"),
-    HostClass("planet", "a planet, bound or free", None, "planet-satellites",
-              "RoguePlanet and StarSystem (a bound planet's moons: generate_moons)"),
+    HostClass("planet", "a planet, bound or free", None, None,
+              "Planet.add_moons (generate_moons): a bound planet's outer limit is its Hill radius, a free planet's what the ejection left (starless_host.build_rogue_body)"),
     HostClass("moon", "a moon", None, "moon-satellites",
               "nothing yet: the tidal-survival gate row adds what a moon holds"),
     HostClass("small-body", "a comet or an asteroid field", None, None, "nothing: the gate is closed",
