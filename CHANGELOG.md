@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4123] - 2026-11-14
+
+**Headline:** A cold body's air now carries the carbon monoxide and methane its surface ices give off, at the saturation pressure of the ice at the surface temperature.
+
+### Changed
+- **Surface ice vapor in the air (GEN.1675).** `surface_air.solve` treated only water as a reservoir the air stands in contact with, so a cold body with CO or methane ice held an air with none of that vapor (or none at all). The carbon monoxide and methane ices of the body (`ice_co_mass_fraction`, `ice_ch4_mass_fraction` times its mass) are now reservoirs of `freeze_out` at full humidity (`ICE_HUMIDITY` 1.0, equilibrium with a solid), present only below the triple point of the ice and used up when small. An empty column over a humid reservoir fills to the saturation pressure, a body whose air is only ice vapor is no longer returned airless early, and a gas standing over its own ice is not also held in the clathrate. It reuses the GEN.1564 saturation table and freeze-out; no second path. Nitrogen ice is not included.
+- **A body that gains or loses its air moves no later draw (GEN.1675).** `planets._mantle_redox` took the recipe's redox rows from the unit's stream only for a body with no air, and how many rows the recipe supports follows the temperature and water of the body, so a body flipping to or from an air, or moving a few kelvin, shifted every body drawn after it (traced on a 120-system census system: one moon and a comet set changed with a 1% pressure move). It now takes one 64-bit seed from the unit's stream for every rocky body and draws the rows in a stream of its own (`mantle_redox_diw(..., seed)`). The stream position afterwards no longer depends on the air.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4122] - 2026-11-14
 
 **Headline:** A very young planet with a hydrogen envelope is no longer puffed up past what the radius law was fitted to.
