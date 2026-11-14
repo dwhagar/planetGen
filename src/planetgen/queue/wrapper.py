@@ -379,16 +379,26 @@ def _carry_finished_stage(conn, run_id, index, step, now):
         runrecord.set_conclusion(conn, run_id, index, stored if stored is not None else {})
 
 
+def conclude_and_finish_stage(conn, run_id, index, label=None):
+    """
+    Runs the conclusion of stage `index` and stores the stage's row (`conclude_stage`, `finish_stage`). A failure in the conclusion is the run's failure, said at once with the stage named
+    (`label`, read from the run when not given) and raised: left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage nobody queues. The unit
+    that completes a stage does this (`units._end_stage`), and so does the process that cut a stage with no unit (`_conclude_empty_stage`).
+    """
+    try:
+        took = conclude_stage(conn, run_id, index)
+    except Exception as exc:
+        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {label if label is not None else stage_label(conn, run_id, index)} "
+                                                           f"failed: {type(exc).__name__}: {exc}")
+        raise
+    finish_stage(conn, run_id, index, took)
+
+
 def _conclude_empty_stage(conn, run_id, index, label):
     """A stage whose cut gave no unit (a plan with no shells, say) has no last unit to conclude it, so whichever process cut it
     does: it ended as it began, its `conclude` runs, and its row is stored, as the unit that completes a stage would."""
     runrecord.end_stage(conn, run_id, index)
-    try:
-        took = conclude_stage(conn, run_id, index)
-    except Exception as exc:
-        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {label} failed: {type(exc).__name__}: {exc}")
-        raise
-    finish_stage(conn, run_id, index, took)
+    conclude_and_finish_stage(conn, run_id, index, label)
 
 
 def stage_label(conn, run_id, index):

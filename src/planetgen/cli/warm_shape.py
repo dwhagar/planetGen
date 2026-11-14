@@ -26,18 +26,12 @@ from planetgen.util import log
 def cluster_ages(config):
     """The distinct ages (Gy, to the millionth) of the stored clusters and satellites of every galaxy database."""
     ages = set()
-    for entry in store.list_databases(config):
-        conn = store.get_connection(store.MySQLConfig(
-            host=config.host, port=config.port, user=config.user, password=config.password,
-            database=entry["name"]), ensure_schema=False)
-        try:
-            if not conn.execute("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() "
-                                "AND TABLE_NAME = 'galaxy_components'").fetchone():
-                continue
-            ages.update(round(float(row["age_gy"]), 6) for row in conn.execute("SELECT DISTINCT age_gy FROM galaxy_components").fetchall()
-                        if row["age_gy"] is not None)
-        finally:
-            conn.close()
+    for _name, conn in store.galaxy_connections(config):
+        if not conn.execute("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() "
+                            "AND TABLE_NAME = 'galaxy_components'").fetchone():
+            continue
+        ages.update(round(float(row["age_gy"]), 6) for row in conn.execute("SELECT DISTINCT age_gy FROM galaxy_components").fetchall()
+                    if row["age_gy"] is not None)
     return sorted(ages)
 
 

@@ -280,13 +280,7 @@ def _end_stage(conn, run_id, stage, wrapper):
     once with the stage named; left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage
     nobody queues.
     """
-    try:
-        took = wrapper.conclude_stage(conn, run_id, stage)
-    except Exception as exc:
-        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {wrapper.stage_label(conn, run_id, stage)} "
-                                                           f"failed: {type(exc).__name__}: {exc}")
-        raise
-    wrapper.finish_stage(conn, run_id, stage, took)
+    wrapper.conclude_and_finish_stage(conn, run_id, stage)
     queue_name = wrapper.queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")))
     enqueue_open(conn, run_id, stage + 1, queue_name)
 

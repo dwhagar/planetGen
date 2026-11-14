@@ -1553,6 +1553,20 @@ def list_databases(base_config=None, prefix=None, with_counts=False):
         conn.close()
 
 
+def galaxy_connections(base_config):
+    """
+    Yields `(name, connection)` for every database `list_databases` finds on `base_config`'s server, each opened without the schema check (`ensure_schema=False`) and closed
+    when the loop moves to the next one or ends: the loop `cli.version_history` and `cli.warm_shape` each wrote out. `continue` in the loop is fine.
+    """
+    for entry in list_databases(base_config):
+        conn = get_connection(MySQLConfig(host=base_config.host, port=base_config.port, user=base_config.user, password=base_config.password,
+                                          database=entry["name"]), ensure_schema=False)
+        try:
+            yield entry["name"], conn
+        finally:
+            conn.close()
+
+
 BOOKKEEPING_TABLES = frozenset({"schema_migrations", "alembic_version"})
 """frozenset[str]: The tables `migrate` keeps before any galaxy table exists (`schema_migrations`, `alembic_version`)."""
 

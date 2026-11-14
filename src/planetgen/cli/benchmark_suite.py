@@ -210,18 +210,21 @@ def machine_cpu_seconds():
     return (user + nice + system + irq + softirq) / _clock_ticks()
 
 
-def _processes():
-    """`[(pid, command line)]` of every process that can be read."""
-    found = []
+def _each_process(filename):
+    """`(pid, bytes)` of `/proc/<pid>/<filename>` for every process whose file can be read."""
     for name in os.listdir("/proc"):
         if not name.isdigit():
             continue
         try:
-            with open(f"/proc/{name}/cmdline", "rb") as handle:
-                found.append((int(name), handle.read().replace(b"\0", b" ").decode("utf-8", "replace").strip()))
+            with open(f"/proc/{name}/{filename}", "rb") as handle:
+                yield int(name), handle.read()
         except OSError:
             continue
-    return found
+
+
+def _processes():
+    """`[(pid, command line)]` of every process that can be read."""
+    return [(pid, raw.replace(b"\0", b" ").decode("utf-8", "replace").strip()) for pid, raw in _each_process("cmdline")]
 
 
 def _process_cpu_seconds(pid):
@@ -247,17 +250,7 @@ def _rss_mb(pid):
 
 def _server_pids():
     """The pids of the database server and Redis when they run on this machine."""
-    found = []
-    for name in os.listdir("/proc"):
-        if not name.isdigit():
-            continue
-        try:
-            with open(f"/proc/{name}/comm", encoding="utf-8") as handle:
-                if handle.read().strip() in ("mysqld", "mariadbd", "redis-server"):
-                    found.append(int(name))
-        except OSError:
-            continue
-    return found
+    return [pid for pid, raw in _each_process("comm") if raw.decode("utf-8", "replace").strip() in ("mysqld", "mariadbd", "redis-server")]
 
 
 def _is_generation_process(command):
