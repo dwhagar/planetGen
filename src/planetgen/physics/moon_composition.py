@@ -41,7 +41,9 @@ GIANT = "giant"
 TERRESTRIAL = "terrestrial"
 DWARF_PLANET = "dwarf-planet"
 PARENT_KINDS = (GIANT, TERRESTRIAL, DWARF_PLANET)
-ORIGINS = ("disk", "impact", "captured", "ring", "binary")
+ORIGINS = ("disk", "impact", "captured", "ring", "binary", "exchange")
+CAPTURE_ORBIT_ORIGINS = ("captured", "exchange")
+"""tuple: The origins whose orbit is a captured one (isotropic outside the Kozai band, a thermal eccentricity). `exchange` is a capture of planet size (GEN.1157, `planet_moons`): its orbit is a captured one and its body is made as a planet's, not as an icy rock."""
 
 GIANT_ENVELOPE_FRACTION = 0.01
 """float: A parent with at least this envelope mass fraction is a giant (a parametrisation; an envelope of 1 percent is where a planet
@@ -149,11 +151,11 @@ def draw_inclination_deg(origin):
     uniform number is mapped onto the allowed cosines, so no value is rejected.
 
     Args:
-        origin (str): `disk`, `impact`, `captured`, `ring` or `binary`.
+        origin (str): `disk`, `impact`, `captured`, `ring`, `binary` or `exchange`.
     """
     if origin not in ORIGINS:
         raise ValueError(f"the origin {origin!r} is none of {ORIGINS}")
-    if origin != "captured":
+    if origin not in CAPTURE_ORBIT_ORIGINS:
         return draw.uniform(0.0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
     low, high = (math.radians(angle) for angle in KOZAI_FORBIDDEN_DEG)
     prograde = 1.0 - math.cos(low)          # the cosines from 1 down to cos(low)

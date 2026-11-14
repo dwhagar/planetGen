@@ -28,6 +28,7 @@ BOOKKEEPING_TABLES = {
     "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
     "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
     "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "body_numbers",        # DB.75a: the slot numbers a redraw keeps (written on a first redraw only), read by the redraw, not by a page's loader
     "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }

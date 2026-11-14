@@ -519,15 +519,3 @@ def refresh_nearest_around(conn, center_pc):
     near = store._sectors_near(conn, {0: center_pc}, 2 * half_diagonal + store.NEAREST_SYSTEMS_SEARCH_PC)
     if near:
         store.refresh_nearest_systems(conn, near.keys())
-
-
-def system_sector_center(conn, system_id):
-    """The galaxy-frame center (pc) of a system's sector, or `None`."""
-    row = conn.execute(
-        "SELECT s.center_x_pc AS x, s.center_y_pc AS y, s.center_z_pc AS z FROM star_systems ss"
-        " JOIN sectors s ON s.id = ss.sector_id WHERE ss.id = ?",
-        (system_id,),
-    ).fetchone()
-    if row is None or row["x"] is None:
-        return None
-    return row["x"], row["y"], row["z"]

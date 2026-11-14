@@ -106,10 +106,10 @@ def galaxy_stages(args):
     listed = sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
         BRIGHT_CLEAR_STAGE["mass"],
+        Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
-        Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
         Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),

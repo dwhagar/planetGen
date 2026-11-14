@@ -1026,30 +1026,33 @@ def validate_sectors_args(args, parser):
     args.name = None
 
 
+_REGION_FLAGS = (
+    ("--shell", "shell"), ("--band", "band"), ("--wedge", "wedge"), ("--center-sector", "center_sector"),
+    ("--radius-pc", "radius_pc"), ("--max-shell", "max_shell"), ("--min-start-density", "min_start_density"),
+    ("--region", "region"), ("--shells", "shells"), ("--bands", "bands"), ("--wedges", "wedges"), ("--limit", "limit"),
+)
+"""tuple: `(flag, args attribute)` of every option that names or sizes a region in the sector modes (OPS.178). A mode
+refuses the ones it does not use through `_refuse_other_modes`, in this order."""
+
+
+def _refuse_other_modes(args, parser, mode, allowed=()):
+    """`parser.error` when any `_REGION_FLAGS` option outside `allowed` was given beside `mode` (`"--course"`, ...)."""
+    others = [flag for flag, attribute in _REGION_FLAGS
+              if flag not in allowed and getattr(args, attribute) is not None and getattr(args, attribute) is not False]
+    if others:
+        parser.error(f"{mode} can't be combined with {', '.join(others)}.")
+
+
 def _validate_course(args, parser):
     """Refuses what can't go with `--course` (NAV.48) and shapes `args` like the other modes."""
-    others = [flag for flag, value in (
-        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
-        ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
-        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
-        ("--region", args.region or None),
-        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--limit", args.limit),
-    ) if value is not None]
-    if others:
-        parser.error(f"--course can't be combined with {', '.join(others)}.")
+    _refuse_other_modes(args, parser, "--course")
     args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 
 def _validate_around(args, parser):
     """Checks `--around` (GEN.1128): a start point, a positive `--radius-pc`, whole non-negative `--grow-shells` and a positive `--unit-sectors`,
     nothing that names another region; shapes `args` like the other modes."""
-    others = [flag for flag, value in (
-        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge), ("--center-sector", args.center_sector),
-        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density), ("--limit", args.limit),
-        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--region", args.region or None),
-    ) if value is not None]
-    if others:
-        parser.error(f"--around can't be combined with {', '.join(others)}.")
+    _refuse_other_modes(args, parser, "--around", allowed=("--radius-pc",))
     if args.radius_pc is None:
         parser.error("--around requires --radius-pc.")
     if args.radius_pc <= 0:
@@ -1066,14 +1069,7 @@ def _validate_around(args, parser):
 def _validate_block(args, parser):
     """Checks `--block` (GEN.310): a key of a block of a stage level (`drill.parse_stage_key`), nothing that names another
     region, a `--limit` in range; shapes `args` like the other modes."""
-    others = [flag for flag, value in (
-        ("--band", args.band), ("--wedge", args.wedge), ("--radius-pc", args.radius_pc),
-        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
-        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges),
-        ("--region", args.region or None),
-    ) if value is not None]
-    if others:
-        parser.error(f"--block can't be combined with {', '.join(others)}.")
+    _refuse_other_modes(args, parser, "--block", allowed=("--shell", "--center-sector", "--limit"))
     try:
         block = drill.parse_stage_key(args.block)
     except ValueError as exc:
@@ -1087,14 +1083,8 @@ def _validate_block(args, parser):
 def _validate_span(args, parser):
     """Turns `--shells/--bands/--wedges` into `args.span` (a `Span`) and
     refuses what can't go with a span (ADM.29)."""
-    others = [flag for flag, value in (
-        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
-        ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
-        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
-        ("--region", args.region or None),
-    ) if value is not None]
-    if others:
-        parser.error(f"--shells/--bands/--wedges can't be combined with {', '.join(others)}.")
+    _refuse_other_modes(args, parser, "--shells/--bands/--wedges",
+                        allowed=("--shells", "--bands", "--wedges", "--limit"))
     if args.wedges is not None and (args.shells is None or args.bands is None):
         parser.error("--wedges requires --shells and --bands (one shell, one band).")
     try:

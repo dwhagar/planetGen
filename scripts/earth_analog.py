@@ -33,6 +33,8 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 BASELINE_PATH = os.path.join(ROOT, "scripts", "data", "earth_analog_baseline.json")
 BLOCK = 1
 AGE_GY = 4.6
+DISTANCE_STEP_AU = 1e-9
+"""float: How far each trial moves the planet's orbit (AU), so its oddity streams differ from trial to trial (GEN.1646); about 1e-9 of the orbit, far under anything the air or the climate reads."""
 CHUNK = 25
 """int: Trials per work unit when the run is spread over workers."""
 
@@ -115,6 +117,7 @@ def trials(block, start, count, age_gy=AGE_GY, water="sample", full=False):
     for i in range(start, start + count):
         planet = copy.deepcopy(planet0)      # a fresh body per trial: nothing of the trial before is left on it
         with draw.bound(block * 100000 + i):
+            planet.distance = 1.0 + i * DISTANCE_STEP_AU      # GEN.1646: the oddities' streams are keyed on the body (`oddities.body_key`: star, distance, mass), so one reused planet drew every trial's second climate branch from one stream
             planet.water_mass_fraction = _water(water)
             planet.__dict__.pop("_formation_fractions", None)
             planet.metal_mass_fraction, planet.ice_mass_fraction, planet.envelope_mass_fraction = 0.32, 0.0, 0.0

@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4069] - 2026-11-14
+
+**Headline:** The freezing curve of sulfuric acid droplets is now a function (not yet read by the clouds).
+
+### Changed
+- **Freezing curve of the sulfuric acid hydrates, slice 0 (GEN.1644).** New `physics/acid_freezing.py` with `physics/data/acid_freezing.json`: the temperature below which an aqueous sulfuric acid droplet of a given acid mole fraction (or weight percent) has a solid in it at 0.1 MPa, and which solid it is (ice, the 6.5, 4, 3, 2 and 1 hydrates, or the pure acid), read off the printed calculated curves of [R4877] (Figure 1, to about 1 K) and anchored at the temperatures of its Table 6. Registry rows 6.287:AF1 and AF2 are added. Nothing reads it yet, so no output changes: slice 1 will make the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7).
+generation-output: unchanged
+
+## [8.0.4068] - 2026-11-14
+
+**Headline:** Resetting the galaxy names the table it is emptying in the beat, so a slow TRUNCATE shows what it waits on.
+
+### Changed
+- **Reset-galaxy steps by table (OPS.206).** Each `TRUNCATE` of the wipe goes through `queue/longsql.run` with the table, its row count and its place in the list ("Emptying scatter_masses (41,000,000 rows), table 31 of 120").
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4067] - 2026-11-14
+
+**Headline:** The clears and drops of the scatters now show one step to a statement, so a TRUNCATE that takes minutes is named instead of the job looking stuck.
+
+### Changed
+- **Clears and drops step by statement (OPS.200).** `clear-scatter`, `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes` and `clean-nebula-field` take each statement as a step of the unit's bar, named for the beat (the TRUNCATE, the forgetting of the numbering, each sector update, each index dropped). The phenomenon table's indexes are dropped one statement for each index instead of one for all. `clean-nebula-field` also counts the clouds it checks.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4066] - 2026-11-14
 
 **Headline:** A test that never ran now no longer hides behind its twin: the duplicate pulsar-planet isotope test is deleted.

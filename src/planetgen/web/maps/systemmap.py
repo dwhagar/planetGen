@@ -237,10 +237,6 @@ def _planet_radius_px(radius_km):
     return _log_scale(radius_km, _BODY_RADIUS_LO_KM, _BODY_RADIUS_HI_KM, _PLANET_MIN_R, _PLANET_MAX_R)
 
 
-def _moon_radius_px(radius_km):
-    return _log_scale(radius_km, _BODY_RADIUS_LO_KM, _BODY_RADIUS_HI_KM, _MOON_MIN_R, _MOON_MAX_R)
-
-
 def _star_radius_px(radius_km):
     if not radius_km or radius_km <= 0:
         return _STAR_MIN_R
@@ -808,7 +804,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "radius": to_plain_text(format_body_radius(planet.get("radius_km"))),
         "mass": to_plain_text(format_mass(planet.get("mass_kg"))),
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
-        "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
+        "distance": to_plain_text(format_body_distance(planet["distance_km"])),
         "period": format_period(planet["period_years"]),
         "gravity": format_gravity_g_short(planet["gravity_g"]) if planet["gravity_g"] is not None else "",
         "life": _life_class_text(planet),

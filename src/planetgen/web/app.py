@@ -78,7 +78,7 @@ def create_app(config_object=Config):
     app.register_blueprint(facility_types_bp)
     app.register_blueprint(edits_bp)
     app.register_blueprint(workqueue_bp)
-    web.init_app(app, limiter=limiter)
+    web.init_app(app)
     settings_view.remember_startup()
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)

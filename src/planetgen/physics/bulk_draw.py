@@ -539,6 +539,8 @@ def draw_terrestrial(body, radius_given, mass_given):
     inverse = radius_given and mass_given
     member = getattr(body, "belt_member", None)
     origin = None if inverse or member is not None else getattr(body, "moon_origin", None)
+    if origin == "exchange":    # GEN.1157: a captured moon of planet size is made as any planet is; only its orbit is a captured one
+        origin = None
     # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
     water, ice, ice_shares = (0.0, 0.0, None) if origin or member is not None else _water_and_ice(body)
     feo = draw.uniform(*RANGES["rock_feo"])

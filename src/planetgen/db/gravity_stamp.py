@@ -11,6 +11,7 @@ those sectors' rows (`galaxy.gravity_cache` stores and reads the files).
 
 import numpy as np
 
+from planetgen.db import kind_tables
 from planetgen.galaxy import gravity_cache, gravity_settings
 
 ZONES = 16
@@ -21,7 +22,7 @@ SUBDIVISION = 8
 """int: Point masses along each edge of the cube the smooth galaxy's own stars of one sector are spread through."""
 OWN_SOFTENING_PC = 0.25
 """float: The Plummer softening of those point masses, parsecs (a zone edge at the default grid): they stand for a continuous density."""
-_TABLES = ("star_systems", "black_holes", "neutron_stars")
+_TABLES = ("star_systems", *kind_tables.tables("star_filed"))
 
 
 def sector_row(conn, sector_id):

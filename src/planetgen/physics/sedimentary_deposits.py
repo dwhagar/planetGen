@@ -33,7 +33,6 @@ from dataclasses import dataclass
 from typing import Callable, NamedTuple, Optional
 
 from planetgen.physics import mixture, ore_deposits, phosphorus_budget, surface_composition
-from planetgen.util import draw
 
 BIF, PHOSPHORITE, EVAPORITE, LIMESTONE, CHERT, COAL, KEROGEN = ("banded_iron_formation", "phosphorite", "evaporite", "limestone", "chert", "coal", "kerogen")
 
@@ -217,9 +216,8 @@ def state_of(body):
 
 
 def stream_of(body, kind):
-    """The body's own stream for one type: seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
-    star = getattr(body, "star", None)
-    return draw.Stream(f"sediment:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
+    """The body's own stream for one type (`ore_deposits.body_stream`): seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
+    return ore_deposits.body_stream("sediment", body, kind)
 
 
 def assess(kind, state, stream):

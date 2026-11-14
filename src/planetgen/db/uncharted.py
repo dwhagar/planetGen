@@ -188,22 +188,19 @@ def _scatter_items(conn, kind, limit, after_id, object_class):
     classes = _classes(conn, kind, object_class)
     if not classes:
         return []
-    found = []
+    by_class = {(entry["kind"], entry["subtype"]): entry["descriptor"] for entry in classes}
+    clauses, params = [], []
     for entry in classes:
-        # One class at a time, on its own columns (`kind = ?` and `subtype = ?` or `IS NULL` range on `idx_phenomenon_scatter_class`; a
-        # `COALESCE(subtype, '')` over the OR of every class did not, so MySQL walked the whole table in id order for a class whose rows
-        # sit late in it, and the list timed out). The rows come back by id, so the page is the `limit` smallest of the classes'.
-        clause, params = query.scatter_class_clause(entry)
-        where = ["built_at IS NULL", "uid IS NOT NULL", clause]
-        if after_id is not None:
-            where.append("id > ?")
-            params.append(after_id)
-        rows = conn.execute(
-            "SELECT id, uid, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index, mass_solar"
-            f" FROM phenomenon_scatter WHERE {' AND '.join(where)} ORDER BY id LIMIT ?", [*params, limit]).fetchall()
-        found += [(row["id"], _scatter_item(row, kind, entry["descriptor"])) for row in rows]
-    found.sort(key=lambda pair: pair[0])
-    return [item for _, item in found[:limit]]
+        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
+        params.extend([entry["kind"], entry["subtype"]])
+    later = ""
+    if after_id is not None:
+        later, params = "id > ? AND ", [after_id, *params]
+    rows = conn.execute(
+        "SELECT id, uid, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index, mass_solar"
+        f" FROM phenomenon_scatter WHERE built_at IS NULL AND uid IS NOT NULL AND {later}({' OR '.join(clauses)})"
+        " ORDER BY id LIMIT ?", [*params, limit]).fetchall()
+    return [_scatter_item(row, kind, by_class[(row["kind"], row["subtype"])]) for row in rows]
 
 
 def within(conn, center, distance, kinds):
@@ -280,9 +277,8 @@ def search_rows(conn, types, limit, offset, field_codes=None, scatter_types=None
     if classes and room > 0:
         clauses, params = [], []
         for entry in classes:
-            clause, values = query.scatter_class_clause(entry)
-            clauses.append(clause)
-            params.extend(values)
+            clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
+            params.extend([entry["kind"], entry["subtype"]])
         by_class = {(entry["kind"], entry["subtype"]): entry["type"] for entry in classes}
         for row in conn.execute(
                 "SELECT id, uid, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index FROM phenomenon_scatter"

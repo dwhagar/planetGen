@@ -163,12 +163,6 @@ _body_routes("belt", "belts")
 # ADM.6 and ADM.7: a body's class, a system's star
 # ---------------------------------------------------------------------
 
-def _load_system_of(conn, kind, body_id):
-    row = conn.execute(f"SELECT star_system_id FROM {_BODY_TABLES[kind]} WHERE id = ?", (body_id,)).fetchone()
-    if row is None:
-        raise ApiError(f"no such {kind}: {body_id}", status_code=404)
-    return row["star_system_id"], store.load_star_system(conn, row["star_system_id"])
-
 
 def _removed_rows(system_before_ids, system):
     """The planet, moon and belt rows an edit dropped:

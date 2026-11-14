@@ -128,9 +128,10 @@ COLLISIONAL_DEBRIS_PER_GYR = 0.003
 COLLISIONAL_DEBRIS_MASS_EARTH = 1.0e-4
 """float: The chance per Gyr of a standing belt of rubble from a collision of large bodies, and its mass (BG12 and BG13)."""
 
-Body = collections.namedtuple("Body", ("distance_au", "mass_kg", "eccentricity", "giant", "migrated", "formation_au", "radius_km"), defaults=(0.0, False, False, None, None))
+Body = collections.namedtuple("Body", ("distance_au", "mass_kg", "eccentricity", "giant", "migrated", "formation_au", "radius_km", "clearance_au"), defaults=(0.0, False, False, None, None, None))
 """One body of the planet chain: where it ends, its mass, its eccentricity, whether it is a giant, whether it moved in (the architecture's hot
-Jupiter), where it formed and its radius (km; `JUPITER_RADIUS_KM` for a giant that has none)."""
+Jupiter), where it formed, its radius (km; `JUPITER_RADIUS_KM` for a giant that has none) and the clearance the generator keeps around it
+(`Planet.min_orbit_distance`, AU; `None` where only the mass is known and five Hill radii are worked out from it)."""
 
 Debris = collections.namedtuple("Debris", ("cause", "mass_earth", "distance_au", "eccentricity"), defaults=(0.0,))
 """The event behind a belt of rubble: `cause` is 'destroyed-planet' or 'collisional-debris', `mass_earth` the mass of the belt, `distance_au` the
@@ -219,6 +220,8 @@ def _hill_share(body, star_mass_kg):
 
 def keep_out(body, star_mass_kg):
     """The stretch of distance a belt may not take beside a body: its orbit and five Hill radii (`clearance_ledger.BELT_HILL_RADII`)."""
+    if body.clearance_au is not None:       # GEN.1673: the planet's own clearance, which the spacing pass reads, not a second one worked out from the star's mass at formation
+        return body.distance_au * (1.0 - body.eccentricity) - body.clearance_au, body.distance_au * (1.0 + body.eccentricity) + body.clearance_au
     share = _hill_share(body, star_mass_kg) * clearance_ledger.BELT_HILL_RADII
     return body.distance_au * (1.0 - body.eccentricity - share), body.distance_au * (1.0 + body.eccentricity + share)
 
@@ -501,11 +504,28 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
             candidate["outer_au"] = min(candidate["outer_au"], disk_limit_au)
         candidates = [candidate for candidate in candidates if _fits(candidate["inner_au"], candidate["outer_au"])]
     belts = []
-    for candidate in sorted(candidates, key=lambda c: c["inner_au"]):
+    candidates = _spaced(sorted(candidates, key=lambda c: c["inner_au"]))
+    for candidate in candidates:
         belt = _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability, age_myr)
         if belt.primordial_mass_earth >= MIN_BELT_MASS_EARTH:
             belts.append(belt)
     return belts
+
+
+def _spaced(candidates):
+    """
+    `candidates` (nearest the star first) with each one's inner edge moved out to `tuning.MIN_ASTEROID_BELT_SEPARATION` past the outer edge of the one before it, (a candidate that begins at or just past it; one that overlaps is left to the spacing pass), and a candidate that no longer fits dropped
+    (GEN.1673): belts born from neighbouring stretches (the unfinished tail and the outer disk meet at the growth limit) start the distance apart the spacing pass keeps, so it has no belt left to push.
+    """
+    kept, edge = [], None
+    for candidate in candidates:
+        if edge is not None and edge <= candidate["inner_au"] < edge + tuning.MIN_ASTEROID_BELT_SEPARATION:       # one that overlaps the belt before it is not a neighbour: the spacing pass still sees that
+            candidate = {**candidate, "inner_au": edge + tuning.MIN_ASTEROID_BELT_SEPARATION}
+        if not _fits(candidate["inner_au"], candidate["outer_au"]):
+            continue
+        kept.append(candidate)
+        edge = candidate["outer_au"] if edge is None else max(edge, candidate["outer_au"])
+    return kept
 
 
 def conservation_error(belt):
