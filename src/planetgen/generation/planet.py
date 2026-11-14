@@ -24,7 +24,7 @@ defined separately in `asteroidData`.
 import math
 
 from planetgen import tuning
-from planetgen.generation import habitable_request, irregular_moons, prevalence
+from planetgen.generation import abundance_tier, habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import isotope_record, ore_deposits
 from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
@@ -522,6 +522,11 @@ class Planet(PlanetaryObject):
         planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
+        # Class M tiers, envelope dial: under a tier a share of the ecosphere's rocky planets is a late core (GEN.1323), one draw, made here once. `_late_core` is a stored
+        # plain attribute, so the settle at the final age (`refresh_at_final_age`) reads the decision and neither draws again nor brings the envelope back. Science: no draw.
+        share = abundance_tier.bare_share(self)
+        if share > 0.0 and not self._late_core and draw.random() < share:
+            self._late_core = True
         # GEN.1323: the envelope the planet kept at the star's age now, on a circular orbit (settled again when the age and the orbit are final); before the orbit is
         # shaped, since the tide that wears an eccentricity down reads the radius
         planetPhysics.apply_envelope(self)
