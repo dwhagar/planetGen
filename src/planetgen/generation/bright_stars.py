@@ -1652,6 +1652,7 @@ class FillContext:
         system_config.POPULATION = pick_population(self.densities, rng)
         system_config.AGE_LAW = age_laws_of(self.shape).get(system_config.POPULATION)
         system_config.GALAXY_SHAPE = self.shape
+        system_config.ABUNDANCE_TIER = self.shape.abundance_tier
         system_config.PLACE_TERMS = self.place_terms
         if system_config.POPULATION in POPULATIONS_IN_THE_GATE:
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h

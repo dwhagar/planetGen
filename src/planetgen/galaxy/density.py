@@ -55,12 +55,12 @@ GalaxyShape = namedtuple(
         "bulge_scale_radius_pc", "bulge_amplitude",
         "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
-        "k_norm", "components", "masses", "structure", "system_mass_scale",
+        "k_norm", "components", "masses", "structure", "system_mass_scale", "abundance_tier",
         "family", "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude",
         "spheroid_amplitude", "spheroid_sersic_n", "spheroid_effective_radius_pc", "spheroid_axis_ratio_b",
         "spheroid_axis_ratio_c", "spheroid_orientation_rad", "body_clump_share",
     ],
-    defaults=(None, None, galaxyStructure.REFERENCE_STRUCTURE, 1.0,
+    defaults=(None, None, galaxyStructure.REFERENCE_STRUCTURE, 1.0, "science",
               "spiral", None, None, None, None, None, 0.0, 0.0, 0.0, 1.0, 1.0, (0.0, 0.0, 0.0), 0.0),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
@@ -75,6 +75,9 @@ drawn again from the galaxy's seed; a shape built with no seed has the Milky Way
 `system_mass_scale` is how many times the mean system mass the generator derives (GEN.545) is divided by in this galaxy:
 1 for the derived richness, more when the Census dial (GEN.607) made the galaxy hold more, lighter systems; it is not
 part of the stored row (the plan's pins hold the richness, `with_system_richness` sets it again).
+`abundance_tier` is the galaxy's Class M abundance tier (`generation.abundance_tier.TIERS`; the Census dial `class_m`), `"science"` unless the plan
+pinned another; like the richness it is not part of the stored row (the pins hold it) and each system made in the galaxy takes it as its
+`SystemConfig.ABUNDANCE_TIER`.
 
 The last thirteen fields are the stored family and component numbers (`galaxy_shape`, DB.66, GEN.379). `family` is the
 galaxy's family (`spiral` for every galaxy built so far). The bar's presence, its two axis ratios and angle, and the
@@ -409,7 +412,7 @@ def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     fields = shape._asdict()
-    for name in ("components", "masses", "structure", "system_mass_scale", "spheroid_orientation_rad"):
+    for name in ("components", "masses", "structure", "system_mass_scale", "abundance_tier", "spheroid_orientation_rad"):
         del fields[name]
     for name in FAMILY_COLUMNS:
         fields.pop(name, None)

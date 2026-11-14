@@ -281,7 +281,7 @@ def test_page_renders_summary_and_forms(site, client):
 def test_the_richness_field_is_folded_away_under_its_own_fold(site, client):
     """UX.316: richness sits in the Census fold of the galaxy shape (folded, not open to start with); flatness sits in the Structure fold."""
     html = _task_html(client, "new-galaxy")
-    census = html.index("Census: star richness and rogue planets")
+    census = html.index("Census: star richness, rogue planets and Class M abundance")
     structure = html.index("Structure: flatness, bulge, nuclear")
     assert 'name="richness"' in html and census < html.index('name="richness"') < html.index("</details>", census)
     assert structure < html.index('name="flatness"') < html.index("</details>", structure)

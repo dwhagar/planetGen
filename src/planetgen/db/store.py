@@ -9294,6 +9294,9 @@ def get_galaxy_shape(conn, light=False):
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     if pins.get("richness") is not None:     # the Census dial (GEN.607): the mean system mass follows the pinned richness
         shape = with_system_richness(shape, pins["richness"])
+    tier = dials.choice_pinned(pins, "class_m")     # the Census dial's Class M abundance tier: what each system made here takes as its tier
+    if tier is not None:
+        shape = shape._replace(abundance_tier=tier)
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],

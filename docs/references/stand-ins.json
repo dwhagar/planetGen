@@ -2325,6 +2325,28 @@
           "fields": [
             [
               "The range",
+              "science, sparse, scattered, plentiful, abundant"
+            ],
+            [
+              "Source",
+              "Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census"
+            ]
+          ],
+          "id": "--class-m",
+          "key": "6.3a:--class-m",
+          "kind": "P",
+          "slug": "6-3a-class-m",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": null,
+          "what": "--class-m: science, sparse, scattered, plentiful, abundant"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "The range",
               "1 to 10"
             ],
             [

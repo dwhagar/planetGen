@@ -315,3 +315,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.288:AT2 | no data | - | the share of habitable-zone rocky planets that captured no hydrogen envelope is not measured (no radius survey reaches Earth-size planets at Earth's flux around Sun-like stars); the maker's choice, calibrated by the meter |
 | 6.288:AT3 | no data | - | the share of systems given the habitable request is a setting of the galaxy's maker, not a measured quantity |
 | 6.288:AT4 | no data | - | the Class M rate of each tier is Boss's choice (card, 11:19 PM EST 2026-11-13); nobody knows how common an Earth is |
+| 6.3a:`--class-m` | no data | - | the Class M abundance tier is Boss's choice (card, 11:19 PM EST 2026-11-13) and nobody knows how common an Earth is; the dial values behind each word (6.288:AT1 to AT4) are calibrated by the meter, and the choice itself has no measurement to replace it |

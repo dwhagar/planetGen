@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1666 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1667 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1639 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1640 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 155 | 64 | 1 | 1 | 0 | 221 |
 | T3 | 114 | 53 | 12 | 9 | 0 | 188 |
-| T4 | 85 | 14 | 4 | 22 | 15 | 140 |
+| T4 | 85 | 14 | 4 | 22 | 16 | 141 |
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
 | T6 | 217 | 112 | 31 | 76 | 4 | 440 |
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 94 | 38 | 204 |
-| All | 961 | 325 | 81 | 240 | 59 | 1666 |
+| All | 961 | 325 | 81 | 240 | 60 | 1667 |
 
 ## How the labels were given
 
@@ -162,6 +162,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | `--stellar-halo-share` | 0.001 to 0.3 | bracket | T3 | L0 | the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (the disk-dominated galaxies of [R0329]), read in structure_draw | predicted only | - | - |
 | `--richness` | 1 to 3 systems per solar mass | bracket | T3 | L0 | the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4 | predicted only | - | - |
 | `--rogues` | none, few, normal, many | placeholder | T4 | L3 | Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS) | predicted only | - | no data |
+| `--class-m` | science, sparse, scattered, plentiful, abundant | placeholder | T4 | L4 | Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census | predicted only | - | no data |
 | `--arm-count` | 1 to 10 | placeholder | T4 | L0 | [R1836] counts 1 to 5 or more arms; the ceiling of 10 is a placeholder | predicted only | - | - |
 | `--pitch-angle-deg` | -90 to 90 degrees, at least 1 away from 0 | placeholder | T4 | L0 | [R1836] draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused because a flat pitch divides by zero (density-limits report, 10-21) | predicted only | - | - |
 | `--arm-contrast` | 0 to 1 | placeholder | T4 | L0 | 0 to 1 because the density cannot go negative (theory); the 0.4 default is the first plan's hand value, no source | predicted only | - | - |
