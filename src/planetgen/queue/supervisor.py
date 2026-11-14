@@ -29,6 +29,9 @@ LOCK_NAME = "supervisor.lock"
 TURN_SECONDS = 2.0
 """float: How long the supervisor waits between its turns."""
 
+BUSY_TURN_SECONDS = 1.0
+"""float: The wait between turns while a run is live, so a dead or quiet unit is judged as often as the starter used to (OPS.208)."""
+
 IDLE_SECONDS = 300.0
 """float: How long the supervisor goes on with nothing to watch before it exits; the next submit, poll or timer starts it again."""
 
@@ -142,6 +145,97 @@ class ProcessTable:
         return True
 
 
+RUN_KINDS = (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)
+"""tuple: The kinds of run that can be live; each holds its own active key (`runrecord.active_run`)."""
+
+
+def running_stage(conn, run_id):
+    """
+    The stage of the run whose units are being worked now (its plan is stored and not every unit is done), or `None`: no stage is in flight (the run is between stages, or its next stage has not
+    been cut yet). At most one stage of a run is in flight.
+    """
+    count = len(json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")) or "[]"))
+    for index in range(count):
+        plan = runrecord.read_plan(conn, run_id, index)
+        if plan is None:
+            return None
+        if plan["units"] and conn.scard(runrecord.done_key(run_id, index)) < plan["units"]:
+            return index
+    return None
+
+
+class RunWatches:
+    """
+    OPS.208: the watch of every live run's units, which was the starter's (`unitwatch.UnitWatch`, `unitstuck.Stuck`, OPS.138 and OPS.140) and is the supervisor's now. At each `turn` it finds
+    the stage in flight of each live run, judges the beat of its running units (a change of state logged once, the dead and the quiet acted on after two checks), and drops the watch of a
+    stage that ended or of a run that is over. A run whose starting process is gone is watched all the same (W2 of the audit).
+
+    Args:
+        connection (redis.Redis): The server the runs are on.
+        make (callable, optional): `make(connection, run_id, stage, kind)` builds the watch of one stage (`unitwatch.UnitWatch` with the run's gap history and rates where left out); the
+            simulator passes its own.
+    """
+
+    def __init__(self, connection, make=None):
+        self.connection = connection
+        self.make = make or self._unit_watch
+        self.watches = {}
+
+    @staticmethod
+    def _unit_watch(connection, run_id, stage, kind):
+        from planetgen.queue import commandgaps, unitrates, unitwatch
+        return unitwatch.UnitWatch(connection, run_id, stage, kind, history_of=commandgaps.history_of(connection, run_id), rate_of=unitrates.rate_of(connection, run_id))
+
+    def _kind_of(self, run_id, stage):
+        """The command of the stage, from the steps the run recorded."""
+        key = json.loads(runrecord._s(self.connection.hget(runrecord.run_key(run_id), "stages")))[stage]["key"]
+        return next(item["kind"] for item in runrecord.read_steps(self.connection, run_id) if item["key"] == key)
+
+    def live_runs(self):
+        """The ids of the runs that are live now, one at most for each kind."""
+        found = []
+        for kind in RUN_KINDS:
+            run_id = runrecord.active_run(self.connection, kind)
+            if run_id and runrecord._s(self.connection.hget(runrecord.run_key(run_id), "state")) in runrecord.LIVE_STATES:
+                found.append(run_id)
+        return found
+
+    def turn(self):
+        """
+        Judges the units of every stage in flight, once.
+
+        Returns:
+            list: The `(run_id, stage)` of each stage watched this turn.
+        """
+        wanted = {}
+        for run_id in self.live_runs():
+            stage = running_stage(self.connection, run_id)
+            if stage is not None:
+                wanted[(run_id, stage)] = None
+        for key in [key for key in self.watches if key not in wanted]:
+            self._drop(key)
+        for key in wanted:
+            try:
+                if key not in self.watches:
+                    self.watches[key] = self.make(self.connection, key[0], key[1], self._kind_of(*key))
+                self.watches[key].check()
+            except Exception as exc:  # noqa: BLE001 -- one run's watch failing must not stop the watch of the others, or the supervisor
+                log.swallowed("queue/supervisor", "RunWatches.turn", exc)
+        return sorted(wanted)
+
+    def _drop(self, key):
+        watch = self.watches.pop(key)
+        try:
+            watch.clear()
+        except Exception as exc:  # noqa: BLE001 -- the verdicts are for the page
+            log.swallowed("queue/supervisor", "RunWatches._drop", exc)
+
+    def clear(self):
+        """Drops every watch (the supervisor ends)."""
+        for key in list(self.watches):
+            self._drop(key)
+
+
 class Supervisor:
     """
     The supervisor's loop with its dependencies passed in (OPS.207): `clock` (`now()`, `sleep(seconds)`), `store` (`publish(pid, since, now, turns)`,
@@ -149,7 +243,7 @@ class Supervisor:
     `lines` is called with each line the supervisor logs, in place of the log, for a test.
     """
 
-    def __init__(self, clock, store, table, pid=None, stop=lambda: False, idle_seconds=IDLE_SECONDS, turn_seconds=TURN_SECONDS, lines=None):
+    def __init__(self, clock, store, table, pid=None, stop=lambda: False, idle_seconds=IDLE_SECONDS, turn_seconds=TURN_SECONDS, lines=None, watch=None):
         self.clock = clock
         self.store = store
         self.table = table
@@ -158,6 +252,7 @@ class Supervisor:
         self.idle_seconds = idle_seconds
         self.turn_seconds = turn_seconds
         self.lines = lines
+        self.watch = watch          # OPS.208: `RunWatches` (`turn()`, `clear()`), or `None` for a supervisor that only lives
         self.since = None
         self.turns = 0
         self.idle_since = None
@@ -188,6 +283,11 @@ class Supervisor:
         self.turns += 1
         self.store.publish(self.pid, self.since, now, self.turns)
         busy = bool(self.store.busy())
+        if self.watch is not None:
+            try:
+                self.watch.turn()
+            except Exception as exc:  # noqa: BLE001 -- a turn that failed is the next turn's to do again
+                log.swallowed("queue/supervisor", "Supervisor.turn", exc)
         if self.turns == 1 or self.turns % LOG_EVERY_TURNS == 0:
             self.say(f"The supervisor {self.pid}, turn {self.turns}: {'something to watch' if busy else 'nothing to watch'}.")
         return busy
@@ -213,8 +313,10 @@ class Supervisor:
             elif max_turns is not None and self.turns >= max_turns:
                 reason = "turns"
             else:
-                self.clock.sleep(self.turn_seconds)
+                self.clock.sleep(BUSY_TURN_SECONDS if busy else self.turn_seconds)
                 continue
+            if self.watch is not None:
+                self.watch.clear()
             self.store.retract()
             self.act("ended", {"stopped": "it was asked to stop", "idle": f"nothing to watch for {self.idle_seconds:.0f} s",
                                "turns": "the turn limit"}[reason] + f", after {self.turns} turn(s)")

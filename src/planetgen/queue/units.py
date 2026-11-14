@@ -609,7 +609,7 @@ def _progress(conn, run_id, stage):
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep, on_debug=None, touch=True, watch=None):
+                 sleep=time.sleep, on_debug=None, touch=True):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
@@ -621,22 +621,13 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             started the run does; one that only watches it (`wrapper.follow`, PERF.235) does not, so a run whose own
             process is gone is not taken for a live one on its account.
 
-        watch (unitwatch.UnitWatch, optional): Judges the beat of each running unit at every poll (OPS.138); only the process that started the run has one.
-
     Raises:
         RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
     """
-    try:
-        _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch)
-    finally:
-        if watch is not None:
-            try:
-                watch.clear()
-            except Exception as exc:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
-                log.swallowed("queue/units", "follow_stage", exc)
+    _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch)
 
 
-def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):
+def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch):
     seen = set()
     last_ensure = float("-inf")
 
@@ -669,8 +660,6 @@ def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, s
             for unit, (done, estimate) in _progress(conn, run_id, stage).items():
                 if unit not in seen:
                     on_progress(unit, done, estimate)
-        if watch is not None:
-            watch.check()
         if ensure is not None and clock() - last_ensure >= ENSURE_SECONDS:
             last_ensure = clock()
             ensure()
