@@ -250,7 +250,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 22
+CONTROL_SCHEMA_VERSION = 23
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -261,7 +261,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -6798,6 +6798,26 @@ CLEAR_BRIGHT_STARS_STEPS = 7
 """int: The steps `clear_bright_stars` takes, for the bar of the unit that calls it (OPS.200)."""
 
 
+def bright_stars_hold_nothing(conn):
+    """
+    Whether there is nothing for `clear_bright_stars` to clear (OPS.254): `bright_stars` holds no row and its id counter has never moved, the scatter's threshold, seed and mass limit are not
+    recorded, and no scatter epoch of the mass, luminosity or band pass is. A galaxy made new has none of them, and the clear then costs a few reads instead of the minutes of statements over the
+    block light parts, the sectors' levels and the member trees. `clear_bright_stars` ends with the `TRUNCATE` of `bright_stars` and forgets the record before it, so a clear that was stopped
+    half way has rows left and is done again in full.
+    """
+    if conn.execute("SELECT 1 FROM bright_stars LIMIT 1").fetchone() is not None:
+        return False
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
+    counter = conn.execute("SELECT auto_increment AS n FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'bright_stars'").fetchone()
+    if counter is not None and int(counter["n"] or 1) > 1:
+        return False
+    shape = conn.execute("SELECT 1 FROM galaxy_shape WHERE bright_star_min_luminosity_sol IS NOT NULL OR bright_star_seed IS NOT NULL"
+                         " OR bright_star_mass_limit_sol IS NOT NULL LIMIT 1").fetchone()
+    if shape is not None:
+        return False
+    return conn.execute("SELECT 1 FROM scatter_epochs WHERE kind IN ('mass', 'luminosity', 'band') LIMIT 1").fetchone() is None
+
+
 def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     """
     Empties `bright_stars`, sets every sector's own bright-star level
@@ -6807,9 +6827,12 @@ def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     galaxy starts over. `TRUNCATE` (an implicit commit), since a real
     scatter leaves tens of millions of rows. Each statement is a step of `steps`
     (`CLEAR_BRIGHT_STARS_STEPS` of them), which names it for the beat (OPS.200).
+
+    With nothing to clear (`bright_stars_hold_nothing`: a new galaxy) it reads and leaves. The `TRUNCATE` comes last, so a clear that
+    was stopped before it is not taken for a clear that is done.
     """
-    with steps.sql("Emptying bright_stars"):
-        conn.execute("TRUNCATE TABLE bright_stars")
+    if bright_stars_hold_nothing(conn):
+        return
     from planetgen.db import block_lights
 
     with steps.sql("Taking the star light out of the block parts"):
@@ -6826,6 +6849,8 @@ def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     with steps.sql("Forgetting that the scatter was drawn"):
         forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
+    with steps.sql("Emptying bright_stars"):
+        conn.execute("TRUNCATE TABLE bright_stars")
 
 
 def _forget_bright_levels(conn):

@@ -821,13 +821,15 @@
   },
   "Althaus||etal|2010": {
    "matched": [
-    "10.1007/s00159-010-0033-1"
+    "10.1007/s00159-010-0033-1",
+    "10.1088/0004-637x/717/2/897"
    ],
    "n": 6
   },
   "Althaus||one|2010": {
    "matched": [
-    "10.1007/s00159-010-0033-1"
+    "10.1007/s00159-010-0033-1",
+    "10.1088/0004-637x/717/2/897"
    ],
    "n": 5
   },
@@ -1600,7 +1602,7 @@
   },
   "Atri||etal|2025": {
    "matched": [
-    "arXiv:2606.23483"
+    "10.1017/s1473550425100025"
    ],
    "n": 14
   },
@@ -2572,7 +2574,7 @@
   },
   "Beall||etal|2002": {
    "matched": [
-    "10.1038/35106641"
+    "10.1073/pnas.252649199"
    ],
    "n": 1,
    "searched": true
@@ -4316,19 +4318,22 @@
   },
   "Brewer|Fischer|pair|2016": {
    "matched": [
-    "10.26093/cds/vizier.22250032"
+    "10.26093/cds/vizier.22250032",
+    "10.3847/0067-0049/225/2/32"
    ],
    "n": 88
   },
   "Brewer||etal|2016": {
    "matched": [
-    "10.26093/cds/vizier.22250032"
+    "10.26093/cds/vizier.22250032",
+    "10.3847/0067-0049/225/2/32"
    ],
    "n": 6
   },
   "Brewer||one|2016": {
    "matched": [
-    "10.26093/cds/vizier.22250032"
+    "10.26093/cds/vizier.22250032",
+    "10.3847/0067-0049/225/2/32"
    ],
    "n": 24
   },
@@ -5677,7 +5682,8 @@
   "Chabrier|Baraffe|pair|1997": {
    "evidence": "first author and year agree, and title words appear in the citing sentences: brown, dwarfs, mass, stars",
    "matched": [
-    "10.1017/s0074180900116857"
+    "10.1017/s0074180900116857",
+    "10.48550/arxiv.astro-ph/9704118"
    ],
    "n": 6,
    "searched": true,
@@ -5843,6 +5849,13 @@
    "tried": [
     "crossref"
    ]
+  },
+  "Chambers||one|2020": {
+   "matched": [
+    "10.3847/1538-4357/ab94a4"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
   },
   "Chamel|Haensel|pair|2008": {
    "matched": [
@@ -6218,11 +6231,6 @@
     "10.1126/science.1191127"
    ],
    "n": 4
-  },
-  "Chen||etal|2013": {
-   "matched": [
-    "arXiv:1203.3439"
-   ]
   },
   "Chen||one|1991": {
    "matched": [
@@ -7924,11 +7932,6 @@
     "crossref"
    ]
   },
-  "Cuzzi|Estrada|pair|1998": {
-   "matched": [
-    "10.1006/icar.1997.5863"
-   ]
-  },
   "Cuzzi||etal|2018": {
    "evidence": "first author and year agree, and title words appear in the citing sentences: rings, saturn",
    "matched": [
@@ -8238,6 +8241,7 @@
   "Dartnell||etal|2007": {
    "evidence": "first author and year agree, and the volume and first page appear beside the mention",
    "matched": [
+    "10.1029/2006gl027494",
     "10.5194/bg-4-545-2007"
    ],
    "n": 12,
@@ -8248,6 +8252,7 @@
   },
   "Dartnell||one|2007": {
    "matched": [
+    "10.1029/2006gl027494",
     "10.5194/bg-4-545-2007"
    ],
    "n": 2,
@@ -8604,6 +8609,13 @@
     "arXiv:1506.02809"
    ],
    "n": 2
+  },
+  "Deloye||etal|2007": {
+   "matched": [
+    "10.1111/j.1365-2966.2007.12262.x"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
   },
   "Demarque|Zinn|pair|1994": {
    "evidence": "first author and year agree, and the volume and first page appear beside the mention",
@@ -9850,6 +9862,7 @@
   },
   "Elkins-Tanton|Seager|pair|2008": {
    "matched": [
+    "10.1086/591433",
     "10.1086/592316"
    ],
    "n": 16
@@ -9864,6 +9877,7 @@
   "Elkins-Tanton||one|2008": {
    "matched": [
     "10.1016/j.epsl.2008.03.062",
+    "10.1086/591433",
     "10.1086/592316"
    ],
    "n": 3
@@ -11859,6 +11873,7 @@
   },
   "Gao||etal|2015": {
    "matched": [
+    "10.1088/0004-637x/806/2/249",
     "arXiv:1501.06876"
    ],
    "n": 17
@@ -11889,6 +11904,7 @@
   },
   "Gao||one|2015": {
    "matched": [
+    "10.1088/0004-637x/806/2/249",
     "arXiv:1501.06876"
    ],
    "n": 22
@@ -12109,11 +12125,6 @@
     "10.1111/j.1945-5100.1999.tb01737.x"
    ],
    "n": 1
-  },
-  "Giammichele||etal|2012": {
-   "matched": [
-    "10.1088/0067-0049/199/2/29"
-   ]
   },
   "Giammichele||one|2012": {
    "matched": [
@@ -13883,7 +13894,8 @@
   },
   "Harrison||etal|2021": {
    "matched": [
-    "10.1093/mnras/stab736"
+    "10.1093/mnras/stab736",
+    "10.1177/0146645320911864"
    ],
    "n": 8
   },
@@ -13896,7 +13908,8 @@
   },
   "Harrison||one|2021": {
    "matched": [
-    "10.1093/mnras/stab736"
+    "10.1093/mnras/stab736",
+    "10.1177/0146645320911864"
    ],
    "n": 26
   },
@@ -14001,6 +14014,7 @@
   },
   "Hashimoto||etal|2016": {
    "matched": [
+    "10.1038/ncomms12808",
     "10.26226/morressier.57d6b2b8d462b8028d88d8f0"
    ],
    "n": 10,
@@ -14008,6 +14022,7 @@
   },
   "Hashimoto||one|2016": {
    "matched": [
+    "10.1038/ncomms12808",
     "10.26226/morressier.57d6b2b8d462b8028d88d8f0"
    ],
    "n": 1
@@ -14258,11 +14273,6 @@
    "searched": true,
    "tried": [
     "crossref"
-   ]
-  },
-  "Heiles|Troland|pair|2003": {
-   "matched": [
-    "10.1086/367828"
    ]
   },
   "Heimpel||one|2005": {
@@ -14550,11 +14560,6 @@
    "searched": true,
    "tried": [
     "crossref"
-   ]
-  },
-  "Heuvel||one|2006": {
-   "matched": [
-    "arXiv:astro-ph/0303456"
    ]
   },
   "Heyer|Dame|pair|2015": {
@@ -14861,11 +14866,6 @@
     "crossref"
    ]
   },
-  "Hoening|Spohn|pair|2022": {
-   "matched": [
-    "10.5194/epsc2022-506"
-   ]
-  },
   "Hoffmann|Pauldrach|pair|2003": {
    "evidence": "a record already in the list has this author, year and (for a pair) second author",
    "matched": [
@@ -14873,6 +14873,13 @@
    ],
    "n": 1,
    "searched": true
+  },
+  "Hoffman||etal|2017": {
+   "matched": [
+    "10.1126/sciadv.1600983"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
   },
   "Hoffman||one|1998": {
    "evidence": "the only record in the project's journals with this author and year, and a person read the citing sentence and agreed",
@@ -14982,11 +14989,6 @@
    "searched": true,
    "tried": [
     "crossref"
-   ]
-  },
-  "Hollenbach||one|2015": {
-   "matched": [
-    "10.1088/0004-637x/814/1/13"
    ]
   },
   "Holloway|Blank|pair|1994": {
@@ -16264,11 +16266,6 @@
    ],
    "n": 3
   },
-  "Janson||etal|2012": {
-   "matched": [
-    "10.1088/0004-637x/754/1/44"
-   ]
-  },
   "Janson||one|2013": {
    "matched": [
     "10.1088/0004-637x/774/2/156"
@@ -16834,6 +16831,7 @@
    "evidence": "first author and year agree, and title words appear in the citing sentences: density, number",
    "matched": [
     "10.1086/523619",
+    "10.1086/590047",
     "10.1093/oso/9780199532803.003.0006"
    ],
    "n": 3,
@@ -16846,6 +16844,7 @@
   "Juric||one|2008": {
    "matched": [
     "10.1086/523619",
+    "10.1086/590047",
     "10.1093/oso/9780199532803.003.0006"
    ],
    "n": 3
@@ -18475,6 +18474,13 @@
    ],
    "n": 7
   },
+  "Krivov|Wyatt|pair|2020": {
+   "matched": [
+    "10.1093/mnras/staa2385"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+  },
   "Kronawitter||etal|2000": {
    "matched": [
     "10.1051/aas:2000199"
@@ -19566,11 +19572,6 @@
    ],
    "n": 14
   },
-  "Liebert||etal|2005": {
-   "matched": [
-    "10.1086/425738"
-   ]
-  },
   "Lierle|Schmidt|pair|2025": {
    "matched": [
     "arXiv:2505.23915"
@@ -19681,8 +19682,7 @@
   "Lin||etal|2006": {
    "evidence": "first author and year agree, and a title word (africa) and the journal appear in the citing sentences",
    "matched": [
-    "10.1016/j.epsl.2005.04.049",
-    "10.1029/2004gc000907"
+    "10.1126/science.1127376"
    ],
    "n": 13,
    "searched": true,
@@ -20024,11 +20024,6 @@
    "searched": true,
    "tried": [
     "crossref"
-   ]
-  },
-  "Lorenz||etal|2008": {
-   "matched": [
-    "10.1029/2007gl032118"
    ]
   },
   "Lorenz||etal|2014": {
@@ -20487,6 +20482,13 @@
    ],
    "n": 1
   },
+  "Maher|Chamberlain|pair|2014": {
+   "matched": [
+    "10.1126/science.1250770"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+  },
   "Maiz-Apellaniz||one|2001": {
    "matched": [
     "10.1086/323775"
@@ -20575,12 +20577,14 @@
   },
   "Malik||etal|2024": {
    "matched": [
+    "10.1051/0004-6361/202449292",
     "10.5281/zenodo.10950421"
    ],
    "n": 7
   },
   "Malik||one|2024": {
    "matched": [
+    "10.1051/0004-6361/202449292",
     "10.5281/zenodo.10950421"
    ],
    "n": 11
@@ -21470,11 +21474,6 @@
     "10.1029/jz070i006p01553"
    ],
    "n": 2
-  },
-  "McDonough|Sun|pair|1995": {
-   "matched": [
-    "10.1016/0009-2541(94)00140-4"
-   ]
   },
   "McDonough||one|1992": {
    "matched": [
@@ -22921,7 +22920,8 @@
   },
   "Murray||etal|2013": {
    "matched": [
-    "10.1016/j.ascom.2013.11.001"
+    "10.1016/j.ascom.2013.11.001",
+    "10.3357/asem.3468.2013"
    ],
    "n": 12
   },
@@ -24979,11 +24979,6 @@
    ],
    "n": 2
   },
-  "Parravano|Hollenbach|pair|2015": {
-   "matched": [
-    "10.1088/0004-637x/814/1/13"
-   ]
-  },
   "Parviainen||one|2024": {
    "matched": [
     "10.1051/0004-6361/202347431"
@@ -25191,7 +25186,7 @@
   },
   "Pearl||etal|1990": {
    "matched": [
-    "10.1029/91ja01087"
+    "10.1016/0019-1035(90)90155-3"
    ],
    "n": 4
   },
@@ -26017,11 +26012,6 @@
    ],
    "n": 1
   },
-  "Poppe||one|2016": {
-   "matched": [
-    "10.1016/j.icarus.2015.10.001"
-   ]
-  },
   "Porter||one|1976": {
    "matched": [
     "10.1038/264745a0"
@@ -26595,16 +26585,6 @@
    "n": 1,
    "searched": true
   },
-  "Rappaport|Savonije|pair|1983": {
-   "matched": [
-    "10.1086/161159"
-   ]
-  },
-  "Rappaport||etal|1995": {
-   "matched": [
-    "10.1093/mnras/273.3.731"
-   ]
-  },
   "Rappaport||one|2012": {
    "evidence": "first author and year agree, and title words appear in the citing sentences: period, short",
    "matched": [
@@ -26667,7 +26647,8 @@
   },
   "Raymond||one|2007": {
    "matched": [
-    "10.1086/521587"
+    "10.1086/521587",
+    "10.1089/ast.2006.06-0126"
    ],
    "n": 2,
    "searched": true
@@ -26677,11 +26658,6 @@
     "10.1088/0004-637x/699/2/l88"
    ],
    "n": 1
-  },
-  "Raymond||one|2019": {
-   "matched": [
-    "10.1093/mnrasl/sly219"
-   ]
   },
   "Read||etal|2009": {
    "matched": [
@@ -26850,11 +26826,6 @@
     "10.1029/2001gl014092"
    ],
    "n": 1
-  },
-  "Reid||etal|2014": {
-   "matched": [
-    "10.1088/0004-637x/783/2/130"
-   ]
   },
   "Reid||one|1973": {
    "matched": [
@@ -27274,7 +27245,8 @@
   },
   "Robinson||etal|2024": {
    "matched": [
-    "10.1093/mnras/stae881"
+    "10.1093/mnras/stae881",
+    "10.7488/ds/7723"
    ],
    "n": 29
   },
@@ -27286,7 +27258,8 @@
   },
   "Robinson||one|2024": {
    "matched": [
-    "10.1093/mnras/stae881"
+    "10.1093/mnras/stae881",
+    "10.7488/ds/7723"
    ],
    "n": 11
   },
@@ -28613,8 +28586,7 @@
   },
   "Schwieterman||etal|2018": {
    "matched": [
-    "10.3847/1538-4357/ab05e1",
-    "10.3847/1538-4357/ab1d52"
+    "10.1007/978-3-319-30648-3_69-1"
    ],
    "n": 3
   },
@@ -28628,7 +28600,7 @@
   "Schwieterman||one|2018": {
    "evidence": "a full citation in the text gives the title (A limited habitable zone for complex animal life) and the record's first author, year and title agree",
    "matched": [
-    "10.3847/1538-4357/ab1d52"
+    "10.1007/978-3-319-30648-3_69-1"
    ],
    "n": 5,
    "searched": true,
@@ -29058,6 +29030,7 @@
   },
   "Servais|Chamel|pair|2026": {
    "matched": [
+    "10.1051/0004-6361/202660688",
     "10.5281/zenodo.20085135"
    ],
    "n": 25
@@ -30997,11 +30970,6 @@
    ],
    "n": 1
   },
-  "Tauris|Savonije|pair|1999": {
-   "matched": [
-    "arXiv:astro-ph/9909147"
-   ]
-  },
   "Tauris||one|2015": {
    "evidence": "first author and year agree, and a title word (ejected) and the journal appear in the citing sentences",
    "matched": [
@@ -31396,7 +31364,8 @@
   },
   "Thomas||etal|2005": {
    "matched": [
-    "10.1086/429799"
+    "10.1086/429799",
+    "10.1086/496914"
    ],
    "n": 6
   },
@@ -31409,7 +31378,8 @@
   },
   "Thomas||one|2005": {
    "matched": [
-    "10.1086/429799"
+    "10.1086/429799",
+    "10.1086/496914"
    ],
    "n": 1
   },
@@ -31953,6 +31923,13 @@
     "10.1029/2010jd015148"
    ],
    "n": 1
+  },
+  "Tosi|Spohn|pair|2019": {
+   "matched": [
+    "10.1051/0004-6361/201935091"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
   },
   "Tosi||etal|2017": {
    "matched": [
@@ -32718,6 +32695,20 @@
     "arXiv:1601.05419"
    ],
    "n": 17
+  },
+  "Verbunt|Joss|pair|1983": {
+   "matched": [
+    "10.1086/161569"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+  },
+  "Verbunt|Rappaport|pair|1988": {
+   "matched": [
+    "10.1086/166645"
+   ],
+   "n": 1,
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
   },
   "Verified||one|2026": {
    "matched": [],
@@ -33834,12 +33825,14 @@
   },
   "West||etal|2008": {
    "matched": [
+    "10.1017/s1743921309031986",
     "10.1088/0004-6256/135/3/785"
    ],
    "n": 3
   },
   "West||one|2008": {
    "matched": [
+    "10.1017/s1743921309031986",
     "10.1088/0004-6256/135/3/785"
    ],
    "n": 6
@@ -33849,11 +33842,6 @@
     "10.1029/2012gl053230"
    ],
    "n": 1
-  },
-  "Wetherill|Boss|pair|1996": {
-   "matched": [
-    "10.1006/icar.1996.0019"
-   ]
   },
   "Wetzel||one|2013": {
    "matched": [
@@ -35325,6 +35313,7 @@
   },
   "Zhang||one|2024": {
    "matched": [
+    "10.1017/jfm.2024.132",
     "arXiv:2410.04595"
    ],
    "n": 3
@@ -35332,7 +35321,8 @@
   "Zhang||one|2026": {
    "matched": [
     "10.1051/0004-6361/202557704",
-    "10.3847/1538-3881/ae5952"
+    "10.3847/1538-3881/ae5952",
+    "arXiv:2601.02724"
    ],
    "n": 1
   },
@@ -35507,6 +35497,7 @@
   },
   "Zuluaga||one|2012": {
    "matched": [
+    "10.1016/j.icarus.2011.10.014",
     "arXiv:1204.0275"
    ],
    "n": 1
@@ -142805,6 +142796,33 @@
    "volume": "624",
    "year": 2019
   },
+  "10.1051/0004-6361/201935091": {
+   "authors": [
+    [
+     "Höning",
+     "D."
+    ],
+    [
+     "Tosi",
+     "N."
+    ],
+    [
+     "Spohn",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201935091",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A48",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Carbon cycling and interior evolution of water-covered plate tectonics and stagnant-lid planets",
+   "type": "journal-article",
+   "volume": "627",
+   "year": 2019
+  },
   "10.1051/0004-6361/201935154": {
    "arxiv": "1904.01260",
    "authors": [
@@ -154071,6 +154089,33 @@
    "volume": "274",
    "year": 1983
   },
+  "10.1086/161569": {
+   "authors": [
+    [
+     "Rappaport",
+     "S."
+    ],
+    [
+     "Joss",
+     "P. C."
+    ],
+    [
+     "Verbunt",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/161569",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "713",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "A new technique for calculations of binary stellar evolution, with application to magnetic braking",
+   "type": "journal-article",
+   "volume": "275",
+   "year": 1983
+  },
   "10.1086/161872": {
    "authors": [
     [
@@ -154146,6 +154191,29 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "297",
    "year": 1985
+  },
+  "10.1086/166645": {
+   "authors": [
+    [
+     "Verbunt",
+     "F."
+    ],
+    [
+     "Rappaport",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/166645",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "193",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Mass transfer instabilities due to angular momentum flows in close binaries",
+   "type": "journal-article",
+   "volume": "332",
+   "year": 1988
   },
   "10.1086/166834": {
    "authors": [
@@ -218918,6 +218986,37 @@
    "volume": "381",
    "year": 2007
   },
+  "10.1111/j.1365-2966.2007.12262.x": {
+   "authors": [
+    [
+     "Deloye",
+     "C. J."
+    ],
+    [
+     "Taam",
+     "R. E."
+    ],
+    [
+     "Winisdoerffer",
+     "C."
+    ],
+    [
+     "Chabrier",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2007.12262.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "525",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The thermal evolution of the donors in AM Canum Venaticorum binaries",
+   "type": "journal-article",
+   "volume": "381",
+   "year": 2007
+  },
   "10.1111/j.1365-2966.2007.12291.x": {
    "authors": [
     [
@@ -227857,6 +227956,129 @@
    "volume": "2",
    "year": 2016
   },
+  "10.1126/sciadv.1600983": {
+   "authors": [
+    [
+     "Hoffman",
+     "P. F."
+    ],
+    [
+     "Abbot",
+     "D. S."
+    ],
+    [
+     "Ashkenazy",
+     "Y."
+    ],
+    [
+     "Benn",
+     "D. I."
+    ],
+    [
+     "Brocks",
+     "J. J."
+    ],
+    [
+     "Cohen",
+     "P. A."
+    ],
+    [
+     "Cox",
+     "G. M."
+    ],
+    [
+     "Creveling",
+     "J. R."
+    ],
+    [
+     "Donnadieu",
+     "Y."
+    ],
+    [
+     "Erwin",
+     "D. H."
+    ],
+    [
+     "Fairchild",
+     "I. J."
+    ],
+    [
+     "Ferreira",
+     "D."
+    ],
+    [
+     "Goodman",
+     "J. C."
+    ],
+    [
+     "Halverson",
+     "G. P."
+    ],
+    [
+     "Jansen",
+     "M. F."
+    ],
+    [
+     "Le Hir",
+     "G."
+    ],
+    [
+     "Love",
+     "G. D."
+    ],
+    [
+     "Macdonald",
+     "F. A."
+    ],
+    [
+     "Maloof",
+     "A. C."
+    ],
+    [
+     "Partin",
+     "C. A."
+    ],
+    [
+     "Ramstein",
+     "G."
+    ],
+    [
+     "Rose",
+     "B. E. J."
+    ],
+    [
+     "Rose",
+     "C. V."
+    ],
+    [
+     "Sadler",
+     "P. M."
+    ],
+    [
+     "Tziperman",
+     "E."
+    ],
+    [
+     "Voigt",
+     "A."
+    ],
+    [
+     "Warren",
+     "S. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/sciadv.1600983",
+   "editors": [],
+   "journal": "SciA",
+   "page": "e1600983",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Snowball Earth climate dynamics and Cryogenian geology-geobiology",
+   "type": "journal-article",
+   "volume": "3",
+   "year": 2017
+  },
   "10.1126/sciadv.aao5747": {
    "authors": [
     [
@@ -234247,6 +234469,29 @@
    "publisher": "American Association for the Advancement of Science (AAAS)",
    "src": "crossref",
    "title": "Mars’ Surface Radiation Environment Measured with the Mars Science Laboratory’s Curiosity Rover",
+   "type": "journal-article",
+   "volume": "343",
+   "year": 2014
+  },
+  "10.1126/science.1250770": {
+   "authors": [
+    [
+     "Maher",
+     "K."
+    ],
+    [
+     "Chamberlain",
+     "C. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1250770",
+   "editors": [],
+   "journal": "Science",
+   "page": "1502",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Hydrologic Regulation of Chemical Weathering and the Geologic Carbon Cycle",
    "type": "journal-article",
    "volume": "343",
    "year": 2014
@@ -284731,8 +284976,11 @@
    "year": 2002
   }
  },
- "id_aliases": {},
- "id_next": 5255,
+ "id_aliases": {
+  "R5253": "R5248",
+  "R5254": "R5250"
+ },
+ "id_next": 5261,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286641,6 +286889,7 @@
   "10.1051/0004-6361/201834783": "R1061",
   "10.1051/0004-6361/201834901": "R2637",
   "10.1051/0004-6361/201834913": "R1900",
+  "10.1051/0004-6361/201935091": "R5260",
   "10.1051/0004-6361/201935154": "R3531",
   "10.1051/0004-6361/201935552": "R4906",
   "10.1051/0004-6361/201935710": "R0502",
@@ -286961,9 +287210,11 @@
   "10.1086/161159": "R5077",
   "10.1086/161332": "R4040",
   "10.1086/161495": "R4189",
+  "10.1086/161569": "R5258",
   "10.1086/161872": "R1368",
   "10.1086/162953": "R0229",
   "10.1086/163541": "R0612",
+  "10.1086/166645": "R5256",
   "10.1086/166834": "R0807",
   "10.1086/167192": "R1249",
   "10.1086/167900": "R0651",
@@ -287737,7 +287988,7 @@
   "10.1093/mnras/staa220": "R1116",
   "10.1093/mnras/staa2289": "R3522",
   "10.1093/mnras/staa236": "R4434",
-  "10.1093/mnras/staa2385": "R5253",
+  "10.1093/mnras/staa2385": "R5248",
   "10.1093/mnras/staa2391": "R2021",
   "10.1093/mnras/staa2487": "R3282",
   "10.1093/mnras/staa2615": "R3545",
@@ -288492,6 +288743,7 @@
   "10.1111/j.1365-2966.2007.11613.x": "R4358",
   "10.1111/j.1365-2966.2007.11899.x": "R4003",
   "10.1111/j.1365-2966.2007.12254.x": "R1566",
+  "10.1111/j.1365-2966.2007.12262.x": "R5257",
   "10.1111/j.1365-2966.2007.12291.x": "R3184",
   "10.1111/j.1365-2966.2007.12307.x": "R4387",
   "10.1111/j.1365-2966.2007.12512.x": "R0676",
@@ -288743,6 +288995,7 @@
   "10.1126/sciadv.1400067": "R4222",
   "10.1126/sciadv.1500377": "R0249",
   "10.1126/sciadv.1600285": "R0089",
+  "10.1126/sciadv.1600983": "R5259",
   "10.1126/sciadv.aao5747": "R2492",
   "10.1126/sciadv.aar6297": "R3834",
   "10.1126/sciadv.aas9593": "R0855",
@@ -288794,6 +289047,7 @@
   "10.1126/science.1235989": "R4876",
   "10.1126/science.1237966": "R2819",
   "10.1126/science.1244797": "R1843",
+  "10.1126/science.1250770": "R5255",
   "10.1126/science.1251766": "R2501",
   "10.1126/science.1258686": "R2606",
   "10.1126/science.1261952": "R0088",
@@ -289407,7 +289661,7 @@
   "10.3847/1538-4357/ab8937": "R0286",
   "10.3847/1538-4357/ab9362": "R1660",
   "10.3847/1538-4357/ab9363": "R3662",
-  "10.3847/1538-4357/ab94a4": "R5254",
+  "10.3847/1538-4357/ab94a4": "R5250",
   "10.3847/1538-4357/ab9806": "R3195",
   "10.3847/1538-4357/abac0b": "R1231",
   "10.3847/1538-4357/abad9a": "R1152",

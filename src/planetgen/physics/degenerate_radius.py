@@ -1,7 +1,6 @@
 """
 The radius of a cold degenerate star (a white dwarf, or the helium donor of an AM CVn binary) from its mass alone: the
-zero-temperature mass-radius relation of Eggleton, as Verbunt and Rappaport (1988, ApJ 332, 193, eq. 15) and Rappaport,
-Verbunt and Joss (1983) quote it [second-hand; the fit itself is unpublished]:
+zero-temperature mass-radius relation of Eggleton, as [R5256] (ApJ 332, 193, eq. 15) and [R5258] quote it [second-hand; the fit itself is unpublished]:
 
     R / R_sun = 0.0114 [(M / M_Ch)^(-2/3) - (M / M_Ch)^(2/3)]^(1/2) [1 + 3.5 (M / M_p)^(-2/3) + (M / M_p)^(-1)]^(-2/3)
 
@@ -13,13 +12,13 @@ temperature uses `datasets.white_dwarf_models.radius_solar`, the cooling tracks,
 """
 
 CHANDRASEKHAR_MASS_SOL = 1.44
-"""float: `M_Ch`, solar masses, where the radius of the relation reaches zero."""
+"""float: `M_Ch`, solar masses, where the radius of the relation reaches zero (read from the relation of [R5256], tier T2, GEN.1686)."""
 
 DEGENERACY_MASS_SOL = 0.00057
-"""float: `M_p`, solar masses, below which the body is a planet held up by Coulomb pressure rather than degenerate electrons."""
+"""float: `M_p`, solar masses, below which the body is a planet held up by Coulomb pressure rather than degenerate electrons (read from the relation of [R5256], tier T2, GEN.1686)."""
 
 RADIUS_SCALE_SOL = 0.0114
-"""float: The leading coefficient, solar radii."""
+"""float: The leading coefficient, solar radii (read from the relation of [R5256], tier T2, GEN.1686)."""
 
 
 def zero_temperature_radius_sol(mass_sol):
