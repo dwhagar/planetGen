@@ -21,6 +21,7 @@ Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.75 (rows N
 
 import dataclasses
 
+from planetgen import tuning
 from planetgen.physics import climate_branches, constants, nightside_collapse, oddities, saturation, surface_air
 from planetgen.util import draw
 
@@ -42,13 +43,26 @@ NEAR_WINDOW_MAX_K = 330.0
 """float: A world whose first answer is hotter than this has no snowball branch to find (the ice line cannot be at the equator at that flux): the second solve is not made. Source tier T6, tweak level L1."""
 
 
+def formation_start_k(no_air_temperature_k, *, steam, ice_law):
+    """
+    The temperature the first solve of a body starts from, the branch the body is stored on (GEN.1716: the answer is chosen by this rule on the physics and not by a number a caller passes).
+    A body holding water past its runaway limit (`steam`, `air_final.past_runaway_with_water`) is on the steam branch: it starts at `tuning.RUNAWAY_START_TEMPERATURE_K`. A body with the ice law
+    (`ice_law`) cooled from its formation, so it enters from the warm side (GEN.1696): `WARM_START_K`. Any other body starts from its airless temperature.
+    """
+    if steam:
+        return max(no_air_temperature_k, tuning.RUNAWAY_START_TEMPERATURE_K)      # GEN.1238: the steam branch, not the cool one
+    if ice_law:
+        return max(no_air_temperature_k, WARM_START_K)
+    return no_air_temperature_k
+
+
 @dataclasses.dataclass
 class Context:
-    """What the air step keeps of itself for the rows: the setting it solved, the air it got and the starlight."""
+    """What the air step keeps of itself for the rows: the setting it solved, the air it got, whether it stands past the runaway limit and the starlight."""
 
     setting: object
     air: object
-    start_k: float
+    steam: bool
     starlight_w_m2: float
     distance_au: float
     albedo: float
@@ -95,11 +109,13 @@ def collapse_air(body, row):
 def other_branch(body, row):
     """
     The effect of oddity W20: a bistable world sits on its other branch. See the module text; declines (False) for a world with no ice law, a hot one, one the second start leaves on the
-    same branch, or one whose second solve finds no air.
+    same branch, one past its runaway limit, or one whose second solve finds no air.
     """
     context = getattr(body, CONTEXT_ATTRIBUTE, None)
     if context is None or context.air is None or context.setting.albedo_law is None or getattr(body, "is_moon", False) or getattr(body, CHOICE_ATTRIBUTE, None) is not None:
         return False
+    if context.steam:
+        return False        # GEN.1716: past the runaway limit no ocean can stand; the cool air a cold start finds there is the greenhouse table having no limit (`air_final.past_runaway_with_water`), not a branch
     first = context.air
     if first.temperature_k > NEAR_WINDOW_MAX_K or first.albedo is None:
         return False
