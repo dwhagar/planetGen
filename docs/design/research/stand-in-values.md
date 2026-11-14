@@ -9,6 +9,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 There are 1663 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 =======
 There are 1658 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
@@ -25,6 +26,9 @@ There are 1663 rows below. A row may be a family of values (a recipe table, a se
 =======
 There are 1664 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 >>>>>>> origin/claude/project-thread-x3o4yx
+=======
+There are 1664 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/claude/gen1700-exchange-bound
 
 ## The source tiers
 
@@ -64,6 +68,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1636 |
 =======
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
@@ -82,6 +87,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 =======
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1637 |
 >>>>>>> origin/claude/project-thread-x3o4yx
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1637 |
+>>>>>>> origin/claude/gen1700-exchange-bound
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -101,14 +109,19 @@ The tier says how good the source of a number is; the **evidence status** says w
 <<<<<<< HEAD
 <<<<<<< HEAD
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
+<<<<<<< HEAD
 =======
 | T5 | 91 | 23 | 7 | 1 | 1 | 123 |
 >>>>>>> origin/claude/lane15-gen1713
 | T6 | 217 | 113 | 31 | 76 | 4 | 441 |
+=======
+| T6 | 218 | 114 | 31 | 75 | 4 | 442 |
+>>>>>>> origin/claude/gen1700-exchange-bound
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 <<<<<<< HEAD
 | T9 | 49 | 18 | 5 | 93 | 35 | 200 |
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 | All | 961 | 326 | 81 | 239 | 56 | 1663 |
@@ -138,6 +151,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 =======
 | All | 962 | 326 | 81 | 239 | 56 | 1664 |
 >>>>>>> origin/claude/project-thread-x3o4yx
+=======
+| All | 962 | 327 | 81 | 238 | 56 | 1664 |
+>>>>>>> origin/claude/gen1700-exchange-bound
 
 ## How the labels were given
 
@@ -2954,7 +2970,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | PSM1 | P | T9 | L0 | `planet_moons.PLANET_MOON_MIN_MASS_KG`: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107) | 0.05 to 0.2 Earth mass | every giant | none (a definition) | none | from needed output | predicted only | - | - |
 | PSM2 | D | T1 | L0 | `planet_moons.DISK_TOTAL_RATIO_MAX` 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent) | none (exact) | giants of 0.1 to 3 Jupiter masses, extended to ten ([R5229] restates the extension) | a regular moon system above 6.4e-4 of its planet | a disk model of the planet's own mass (GEN.466) | [R0642, R0643, R5229] (READ) | predicted only | - | - |
 | PSM3 | P | T3 | L2 | `planet_moons.CAPTURE_CHANCE` 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365] | 0.003 to 0.05 | giants beyond about 0.3 au | a survey of several hundred giants that finds none, or several candidates among 70 | an occurrence rate from a larger exomoon survey | [R2365]: one candidate (Kepler-1708 b-i) in 70; the Kepler-1625 b-i signal is disputed [R1900] | predicted only | - | - |
-| PSM4 | P | T6 | L3 | `planet_moons.EXCHANGE_MAX_RATIO` 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2 | 5e-3 to 5e-2 | every capture | a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower | the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners | [R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037] | predicted only | - | replace (GEN.1700) |
+| PSM4 | P | T6 | L1 | `planet_moons.EXCHANGE_ENCOUNTER_HILL_FRACTION` 0.0732: the closest approach of the binary to the parent (`b` of Eq. 1 to 3 of [R5229]) in the parent's Hill radius, the 19.1 Jupiter radii over the 261 of the one worked case, Kepler-1625 b (GEN.1700 replaced the fixed cap `EXCHANGE_MAX_RATIO`, L3) | 0.02 to 0.3 | every capture | an encounter model that gives the distance of closest approach from the planet's own scattering cross-section | the closest approach drawn from the encounter geometry of the binary-capture model | [R5229] (READ: Eq. 1 to 3 and the worked case; the bound reproduces its 5 to 50 Earth-mass partners), [R0037] | predicted only | - | replaced |
+| PSM5 | P | T6 | L0 | `planet_moons.EXCHANGE_V_INFINITY_FRACTION` 1: the speed of the binary relative to the parent at infinity (`v_inf` of Eq. 2) in the parent's own speed round its star, [R5229]'s upper end (30 km/s for Kepler-1625 b, its Keplerian speed), the careful one since a faster encounter needs a heavier partner | 0.03 to 1 | every capture | a measured relative speed of planet-binary encounters in a planetary system | a draw from the system's own velocity dispersion | [R5229] (READ: 1 to 30 km/s tested) | predicted only | - | - |
 
 ## 6.277 Stand-ins of the chain spacing test
 

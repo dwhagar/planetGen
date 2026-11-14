@@ -20,15 +20,16 @@ The moon itself is then made by the ordinary body generator (no special case, sa
 Use:
 
     disk_moon_ceiling_kg(10 * JUPITER_MASS_KG)       # 1.2e25 kg, about two Earth masses
-    exchange_chance(JUPITER_MASS_KG)                 # 0.014
-    draw_exchange_moon(JUPITER_MASS_KG, rng)         # PlanetMoon("exchange", mass) or None
+    exchange_chance(5 * JUPITER_MASS_KG, hill_radius_m, orbital_speed_m_s)         # 0.014, or 0 for a parent no partner can leave a moon to
+    draw_exchange_moon(JUPITER_MASS_KG, hill_radius_m, orbital_speed_m_s, limit_mass_kg, rng)     # PlanetMoon("exchange", mass) or None
 """
 
 import collections
+import math
 
 from planetgen import tuning
 from planetgen.physics import moon_composition
-from planetgen.physics.constants import EARTH_MASS_TO_KG
+from planetgen.physics.constants import EARTH_MASS_TO_KG, G
 
 JUPITER_MASS_KG = moon_composition.JUPITER_MASS_KG
 
@@ -42,9 +43,16 @@ CAPTURE_CHANCE = 1.0 / 70.0
 """float: The share of giants that hold a moon of planet size from exchange capture: one candidate, Kepler-1708 b-i, in the 70 cool giants of the survey [R2365]. A candidate, not a confirmed moon, and
 the survey found no more, so this is a loose upper figure. [Stand-in PSM3, tier "marginal unverified", tweak L2.]"""
 
-EXCHANGE_MAX_RATIO = 1.0e-2
-"""float: The most an exchange-captured moon holds of its parent: the candidate Kepler-1625 b-i is about 5.4e-3 of its planet (17 Earth masses on 10 Jupiter masses, as restated in [R5229]), the
-Earth and Moon 1.2e-2; the binary the planet meets sets the real limit (the bound of Eq. 1 in [R5229], not rebuilt here). [Stand-in PSM4, tier "educated guess from physics", tweak L3.]"""
+EXCHANGE_ENCOUNTER_HILL_FRACTION = 19.1 / 261.0
+"""float: The closest approach of the binary to the parent (`b` of Eq. 1 to 3 of [R5229]) in the parent's Hill radius: the 19.1 Jupiter radii of the worked case of Kepler-1625 b (10 Jupiter masses at 0.87 au round 1.079 solar masses, a Hill
+radius of 261 Jupiter radii). One encounter distance for every parent, since the paper gives one case. [Stand-in PSM4, tier "educated guess from physics", tweak L1, replaces the L3 cap `EXCHANGE_MAX_RATIO` of GEN.1157.]"""
+
+EXCHANGE_V_INFINITY_FRACTION = 1.0
+"""float: The speed of the binary relative to the parent at infinity (`v_inf` of Eq. 2 of [R5229]) in the parent's speed round its star: [R5229] tests 1 to 30 km/s for Kepler-1625 b, 30 km/s being its Keplerian speed, the hardest case
+(a faster encounter needs a heavier partner), so the bound it gives is the careful end. [Stand-in PSM5, tier "educated guess from physics", tweak L0.]"""
+
+APOAPSIS_HILL_FRACTION = 0.5
+"""float: The widest apoapsis a captured moon keeps, in the parent's Hill radius: [R5229] (Eq. 3) takes a stable orbit as one whose apoapsis is under half the Hill radius, the same share `moon_orbit_bounds_km` gives the moons. [Derived, tier T3.]"""
 
 PlanetMoon = collections.namedtuple("PlanetMoon", ("origin", "mass_kg"))
 """A moon of planet size: its `origin` ("exchange") and its mass in kg."""
@@ -61,48 +69,89 @@ def disk_moon_ceiling_kg(parent_mass_kg):
     return DISK_TOTAL_RATIO_MAX * parent_mass_kg
 
 
-def exchange_chance(parent_mass_kg):
-    """The chance that a giant of this mass holds a moon of planet size from exchange capture: `CAPTURE_CHANCE`, or 0 where the ceiling (`exchange_ceiling_kg`) is under
-    `PLANET_MOON_MIN_MASS_KG`, a parent too light to hold one (under about 6 Earth masses)."""
+def encounter_limit_kg(parent_mass_kg, partner_mass_kg, hill_radius_m, orbital_speed_m_s):
+    """
+    Eq. 1 of [R5229], the heaviest mass a parent captures from a binary encounter whose other member leaves with `partner_mass_kg`, kg:
+
+        M_cap < 3 M_p (pi G M_esc / (2 b v_enc dv))^(3/2) - M_esc,
+
+    with the encounter distance `b` a fixed share of the Hill radius (`EXCHANGE_ENCOUNTER_HILL_FRACTION`), the speed at infinity `v_inf` the parent's own speed round the star (`EXCHANGE_V_INFINITY_FRACTION`), the speed at
+    the encounter `v_enc = sqrt(v_esc^2 + v_inf^2)` over the parent's escape speed at `b`, and `dv` the least kick that leaves the moon bound on an orbit whose semimajor axis `a` is half of (half the Hill radius plus `b`)
+    (Eq. 2 and 3 of [R5229]). 0 for a parent with no Hill radius or a partner too light. Checked against [R5229]: a 17 Earth-mass moon of Kepler-1625 b needs a 5 to 50 Earth-mass partner at 1 to 30 km/s.
+    """
+    if not (parent_mass_kg > 0.0 and partner_mass_kg > 0.0 and hill_radius_m > 0.0):
+        return 0.0
+    b = EXCHANGE_ENCOUNTER_HILL_FRACTION * hill_radius_m
+    v_inf = EXCHANGE_V_INFINITY_FRACTION * orbital_speed_m_s
+    v_esc_squared = 2.0 * G * parent_mass_kg / b
+    v_enc = math.sqrt(v_esc_squared + v_inf * v_inf)
+    a = 0.5 * (APOAPSIS_HILL_FRACTION * hill_radius_m + b)
+    kick = v_enc - math.sqrt(G * parent_mass_kg * (2.0 / b - 1.0 / a))
+    if kick <= 0.0:       # no kick is needed: the encounter itself leaves the moon bound, and the equation has no limit
+        return math.inf
+    bound = 3.0 * parent_mass_kg * (math.pi * G * partner_mass_kg / (2.0 * b * v_enc * kick)) ** 1.5 - partner_mass_kg
+    return max(bound, 0.0)
+
+
+def exchange_bound_kg(parent_mass_kg, partner_mass_kg, hill_radius_m, orbital_speed_m_s):
+    """
+    The heaviest moon a parent keeps from a binary encounter, kg: `encounter_limit_kg` (Eq. 1 of [R5229]) of the parent and the partner that leaves, and never more than the partner: the lighter member of a binary is the one
+    kept, the heavier carries off the energy ([R5229] needs a partner of 5 to 50 Earth masses to leave a Neptune-mass moon). 0 for a parent with no Hill radius.
+    """
+    return min(encounter_limit_kg(parent_mass_kg, partner_mass_kg, hill_radius_m, orbital_speed_m_s), max(partner_mass_kg, 0.0))
+
+
+def minimum_partner_kg(parent_mass_kg, hill_radius_m, orbital_speed_m_s):
+    """
+    The lightest partner that lets a parent keep a moon of planet size (`PLANET_MOON_MIN_MASS_KG`), kg, or `None` where even a partner as heavy as the parent cannot (a fast encounter, a tiny Hill sphere).
+    The bound rises with the partner, so a bisection in the logarithm finds it.
+    """
+    if not (parent_mass_kg > 0.0 and hill_radius_m > 0.0):
+        return None
+    low, high = PLANET_MOON_MIN_MASS_KG, parent_mass_kg
+    if high <= low or exchange_bound_kg(parent_mass_kg, high, hill_radius_m, orbital_speed_m_s) < PLANET_MOON_MIN_MASS_KG:
+        return None
+    log_low, log_high = math.log(low), math.log(high)
+    for _ in range(60):
+        middle = 0.5 * (log_low + log_high)
+        if exchange_bound_kg(parent_mass_kg, math.exp(middle), hill_radius_m, orbital_speed_m_s) < PLANET_MOON_MIN_MASS_KG:
+            log_low = middle
+        else:
+            log_high = middle
+    return math.exp(log_high)
+
+
+def exchange_chance(parent_mass_kg, hill_radius_m, orbital_speed_m_s):
+    """The chance that a giant of this mass holds a moon of planet size from exchange capture: `CAPTURE_CHANCE`, or 0 where no partner no heavier than the parent can leave one (`minimum_partner_kg`)."""
     if not parent_mass_kg > 0.0:
         raise ValueError(f"the parent mass {parent_mass_kg!r} is not positive")
-    return CAPTURE_CHANCE if exchange_ceiling_kg(parent_mass_kg) > PLANET_MOON_MIN_MASS_KG else 0.0
+    return CAPTURE_CHANCE if minimum_partner_kg(parent_mass_kg, hill_radius_m, orbital_speed_m_s) is not None else 0.0
 
 
-def exchange_ceiling_kg(parent_mass_kg):
-    """The heaviest exchange-captured moon a parent holds, kg: `EXCHANGE_MAX_RATIO` of the parent."""
-    if not parent_mass_kg > 0.0:
-        raise ValueError(f"the parent mass {parent_mass_kg!r} is not positive")
-    return EXCHANGE_MAX_RATIO * parent_mass_kg
-
-
-def exchange_mass_kg(parent_mass_kg, u):
-    """
-    The mass of an exchange-captured moon, kg, from the uniform `u` in 0..1: `dN/dlogM ~ M^-s` (`tuning.MOON_MASS_FUNCTION_SLOPE`, the generator's own moon-mass law) between
-    `PLANET_MOON_MIN_MASS_KG` and `exchange_ceiling_kg`, by its inverse distribution.
-
-    Raises:
-        ValueError: The parent holds no moon that heavy, or `u` is outside 0..1.
-    """
-    ceiling = exchange_ceiling_kg(parent_mass_kg)
+def _law_mass_kg(low_kg, high_kg, u):
+    """A mass between `low_kg` and `high_kg` from the uniform `u`: `dN/dlogM ~ M^-s` (`tuning.MOON_MASS_FUNCTION_SLOPE`, the generator's own moon-mass law), by its inverse distribution."""
     if not 0.0 <= u <= 1.0:
         raise ValueError(f"the uniform {u!r} is outside 0..1")
-    if ceiling <= PLANET_MOON_MIN_MASS_KG:
-        raise ValueError(f"a parent of {parent_mass_kg!r} kg holds no moon of {PLANET_MOON_MIN_MASS_KG!r} kg")
+    if high_kg <= low_kg:
+        return low_kg
     slope = tuning.MOON_MASS_FUNCTION_SLOPE
-    low_term, high_term = PLANET_MOON_MIN_MASS_KG ** -slope, ceiling ** -slope
+    low_term, high_term = low_kg ** -slope, high_kg ** -slope
     return (low_term + u * (high_term - low_term)) ** (-1.0 / slope)
 
 
-def draw_exchange_moon(parent_mass_kg, rng):
+def draw_exchange_moon(parent_mass_kg, hill_radius_m, orbital_speed_m_s, limit_mass_kg, rng):
     """
-    The moon of planet size a giant of `parent_mass_kg` holds by exchange capture, or `None`. Always two numbers from `rng` (anything with `random()`): the roll against `exchange_chance`,
-    then the mass, so the stream never moves with the parent.
+    The moon of planet size a giant of `parent_mass_kg` holds by exchange capture, or `None`. Always three numbers from `rng` (anything with `random()`): the roll against `exchange_chance`, then the partner of the binary
+    (its mass from the generator's moon-mass law between the lightest partner that leaves a moon of planet size and the parent), then the moon (from the same law between `PLANET_MOON_MIN_MASS_KG` and the bound of the
+    encounter, `exchange_bound_kg`, held to `limit_mass_kg`, the heaviest moon the generator lets the parent hold), so the stream never moves with the parent.
 
     Returns:
-        PlanetMoon or None: The moon, or `None` for no capture (including a parent too light to hold one).
+        PlanetMoon or None: The moon, or `None` for no capture (including a parent no partner can leave a moon to).
     """
-    roll, mass_roll = rng.random(), rng.random()
-    if roll >= exchange_chance(parent_mass_kg):
+    roll, partner_roll, mass_roll = rng.random(), rng.random(), rng.random()
+    lightest = minimum_partner_kg(parent_mass_kg, hill_radius_m, orbital_speed_m_s)
+    if lightest is None or roll >= CAPTURE_CHANCE:
         return None
-    return PlanetMoon("exchange", exchange_mass_kg(parent_mass_kg, mass_roll))
+    partner = _law_mass_kg(lightest, parent_mass_kg, partner_roll)
+    ceiling = min(exchange_bound_kg(parent_mass_kg, partner, hill_radius_m, orbital_speed_m_s), limit_mass_kg)
+    return PlanetMoon("exchange", _law_mass_kg(PLANET_MOON_MIN_MASS_KG, ceiling, mass_roll))

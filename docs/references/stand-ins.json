@@ -64166,18 +64166,18 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1700",
-            "L3, the cap on a captured moon is set above the Kepler-1625 b-i candidate; the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners replaces it"
+            "replaced",
+            "-",
+            "GEN.1700 (merged with this note): the L3 cap of 1e-2 of the parent on a captured moon is gone: the bound of the binary encounter (Eq. 1 to 3 of [R5229]) from the generated parent and partner replaces it; its encounter distance is now one L1 share of the Hill radius from the one worked case"
           ],
           "fields": [
             [
               "What it is",
-              "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+              "planet_moons.EXCHANGE_ENCOUNTER_HILL_FRACTION 0.0732: the closest approach of the binary to the parent (b of Eq. 1 to 3 of [R5229]) in the parent's Hill radius, the 19.1 Jupiter radii over the 261 of the one worked case, Kepler-1625 b (GEN.1700 replaced the fixed cap EXCHANGE_MAX_RATIO, L3)"
             ],
             [
               "The range it moves in",
-              "5e-3 to 5e-2"
+              "0.02 to 0.3"
             ],
             [
               "Where it holds",
@@ -64185,15 +64185,15 @@
             ],
             [
               "What would show it wrong",
-              "a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower"
+              "an encounter model that gives the distance of closest approach from the planet's own scattering cross-section"
             ],
             [
               "What replaces it",
-              "the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners"
+              "the closest approach drawn from the encounter geometry of the binary-capture model"
             ],
             [
               "Evidence",
-              "[R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037]"
+              "[R5229] (READ: Eq. 1 to 3 and the worked case; the bound reproduces its 5 to 50 Earth-mass partners), [R0037]"
             ]
           ],
           "id": "PSM4",
@@ -64202,9 +64202,47 @@
           "slug": "6-276-psm4",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L1",
           "unread": null,
-          "what": "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+          "what": "planet_moons.EXCHANGE_ENCOUNTER_HILL_FRACTION 0.0732: the closest approach of the binary to the parent (b of Eq. 1 to 3 of [R5229]) in the parent's Hill radius, the 19.1 Jupiter radii over the 261 of the one worked case, Kepler-1625 b (GEN.1700 replaced the fixed cap EXCHANGE_MAX_RATIO, L3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.EXCHANGE_V_INFINITY_FRACTION 1: the speed of the binary relative to the parent at infinity (v_inf of Eq. 2) in the parent's own speed round its star, [R5229]'s upper end (30 km/s for Kepler-1625 b, its Keplerian speed), the careful one since a faster encounter needs a heavier partner"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 1"
+            ],
+            [
+              "Where it holds",
+              "every capture"
+            ],
+            [
+              "What would show it wrong",
+              "a measured relative speed of planet-binary encounters in a planetary system"
+            ],
+            [
+              "What replaces it",
+              "a draw from the system's own velocity dispersion"
+            ],
+            [
+              "Evidence",
+              "[R5229] (READ: 1 to 30 km/s tested)"
+            ]
+          ],
+          "id": "PSM5",
+          "key": "6.276:PSM5",
+          "kind": "P",
+          "slug": "6-276-psm5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_moons.EXCHANGE_V_INFINITY_FRACTION 1: the speed of the binary relative to the parent at infinity (v_inf of Eq. 2) in the parent's own speed round its star, [R5229]'s upper end (30 km/s for Kepler-1625 b, its Keplerian speed), the careful one since a faster encounter needs a heavier partner"
         }
       ],
       "slug": "6-276-stand-ins-of-the-moons-of-planet-size-around-the-giants",
