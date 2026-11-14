@@ -327,7 +327,7 @@ def active_run(conn, kind=GENERATION):
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
               steps=None, kind=GENERATION, disregard_missing_data=False, debug="", job=None, galaxy_seed=None,
-              build=None, finishes=None):
+              build=None, finishes=None, owner=None):
     """
     Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
     generation run and one of those may be live together).
@@ -347,6 +347,8 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         galaxy_seed (str, optional): The galaxy's seed as hex and `build` the version key of the code that started the
             run (PERF.182): what a later `Finish run` checks are still the same before it carries on.
         finishes (str, optional): The id of the run this one carries on from (`generation/finish_run.py`).
+        owner (str, optional): Who follows the run (`host:process id`); the process that starts it where left out. The supervisor starts a run for the process that asked (OPS.211) and
+            names that process here.
 
     Returns:
         str: The run id.
@@ -374,7 +376,7 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
         "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "",
         "debug": debug or "", "current": 0, "created": now, "started": now, "updated": now,
-        "finished": "", "error": "", "owner": _owner(), "job": job or "", "galaxy_seed": galaxy_seed or "",
+        "finished": "", "error": "", "owner": owner or this_process(), "job": job or "", "galaxy_seed": galaxy_seed or "",
         "build": build or "", "finishes": finishes or ""})
     if job:
         pipe.rpush(job_runs_key(job), run_id)
@@ -409,12 +411,13 @@ def busy_message(conn, run_id):
 def followed_here(conn, run_id):
     """Whether this very process follows the run `run_id` (a run started inside another run of the same process can
     only wait for itself)."""
-    return (_s(conn.hget(run_key(run_id), "owner")) or "") == _owner() and not holder_is_dead(conn, run_id)
+    return (_s(conn.hget(run_key(run_id), "owner")) or "") == this_process() and not holder_is_dead(conn, run_id)
 
 
-def _owner():
+def this_process():
     """Who follows a run started here: `host:process id`."""
     return f"{socket.gethostname()}:{os.getpid()}"
+
 
 
 def touch(conn, run_id):

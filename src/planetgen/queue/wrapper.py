@@ -26,11 +26,12 @@ import importlib
 import json
 import os
 import time
+from dataclasses import asdict
 
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, units, workers
+from planetgen.queue import commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, supervisor, units, workers
 from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 
@@ -746,6 +747,11 @@ def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     return ensure
 
 
+def ask_supervisor(conn, url):
+    """Makes sure a supervisor is there to start the run that was asked for (OPS.211); the test suite replaces it with one turn of `supervisor.RunStarts`."""
+    supervisor.ensure_started(conn, url)
+
+
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
         build=None, finishes=None):
@@ -802,17 +808,15 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                               unit_seconds=profiletime.unit_seconds(conn, step.kind),        # OPS.159
                               row=(rows or {}).get(step.key)) for step in steps]
     debug = (log.areas_spec() or "all") if log.console_debug() else ""     # a debug run: the workers relay their lines
-    start = lambda: runrecord.start_run(       # noqa: E731
-        conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
-        kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
-        job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
-    if kind == runrecord.GENERATION:
-        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60,
-                                         on_wait=lambda holder, position: report_wait_for(conn, holder, position),
-                                         title=title, who=who, database=database,
-                                         admitted=bool(os.environ.get(JOB_ENV)), nested_guard=True)
-    else:
-        run_id = start()
+    start = dict(           # OPS.211: what the supervisor starts the run with; this process follows the run it starts
+        title=title, stages=[asdict(stage) for stage in stages], who=who, database=database, argv=argv, seed=seed,
+        steps=[step.as_dict() for step in recorded], kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
+        job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes, owner=runrecord.this_process())
+    wait_seconds = get_settings().queue.wait_minutes * 60 if kind == runrecord.GENERATION else 0
+    run_id = runline.start_when_free(conn, start, wait_seconds, lambda: ask_supervisor(conn, url), kind=kind,
+                                     on_wait=lambda holder, position: report_wait_for(conn, holder, position),
+                                     title=title, who=who, database=database,
+                                     admitted=bool(os.environ.get(JOB_ENV)), nested_guard=kind == runrecord.GENERATION)
     beat = runrecord.Heartbeat(conn, run_id)        # the run is followed from here to the end, whatever this process is busy with
     relay = events = None
     stage_at = None

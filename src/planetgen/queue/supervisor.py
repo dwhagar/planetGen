@@ -20,7 +20,7 @@ import sys
 import time
 
 from planetgen.admin import maintenance
-from planetgen.queue import redisqueue, runrecord
+from planetgen.queue import redisqueue, runline, runrecord
 from planetgen.util import log
 
 LOCK_NAME = "supervisor.lock"
@@ -121,8 +121,7 @@ class RedisStore:
 
     def busy(self):
         """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine, or an ask for workers not acted on yet."""
-        from planetgen.queue import runline
-        return bool(self.connection.hlen(nudges_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
+        return bool(self.connection.hlen(nudges_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
             or bool(self.connection.zcard(runline._line_key()))
 
 
@@ -357,6 +356,79 @@ class WorkerStarts:
 
     def clear(self):
         """Nothing to drop: an ask not acted on stays on Redis for the next supervisor."""
+
+
+class RunStarts:
+    """
+    OPS.211: the starting of runs, which each process that wanted one did for itself and is the supervisor's alone now. A process that wants a run leaves its ask (`runline.start_when_free`: a
+    place in the waiting line for a run that waits, a request of its own for one that does not) and follows the run the supervisor started for it. Each turn this answers the asks that do not wait
+    (a run that finds the machine taken is refused, with the run that holds it named) and starts the first run of the line when the machine is free; a run that finds it taken stays in the line.
+
+    Args:
+        connection (redis.Redis): The server the asks are on.
+        start (callable, optional): `start(connection, **arguments)`; `runrecord.start_run` where left out. The simulator passes its own.
+    """
+
+    def __init__(self, connection, start=None):
+        self.connection = connection
+        self.start = start
+        self.supervisor = None
+
+    def attach(self, supervisor):
+        self.supervisor = supervisor
+
+    def _act(self, what, reason):
+        if self.supervisor is not None:
+            self.supervisor.act(what, reason)
+
+    def _begin(self, spec):
+        """Starts the run an ask describes; raises `runrecord.Busy` when the machine is taken."""
+        arguments = dict(spec)
+        arguments["stages"] = [runrecord.Stage(**stage) for stage in arguments["stages"]]
+        return (self.start or runrecord.start_run)(self.connection, **arguments)
+
+    def turn(self):
+        """
+        Answers every ask that does not wait and starts the first waiting run if the machine is free.
+
+        Returns:
+            int: How many runs it started.
+        """
+        started = 0
+        for ticket, spec in runline.direct_starts(self.connection).items():
+            if not runline.take_direct(self.connection, ticket):
+                continue
+            try:
+                run_id = self._begin(spec)
+            except runrecord.Busy as busy:
+                runline.decide(self.connection, ticket, busy=str(busy))
+            except Exception as exc:  # noqa: BLE001 -- the ask is answered with the failure, and the others are still answered
+                log.swallowed("queue/supervisor", "RunStarts.turn", exc)
+                runline.decide(self.connection, ticket, failed=f"the run could not be started: {exc}")
+            else:
+                runline.decide(self.connection, ticket, run_id=run_id)
+                self._act("started a run", f"{spec.get('title') or 'a run'} ({run_id}), asked for without waiting")
+                started += 1
+        waiting = runline.waiting_start(self.connection)
+        if waiting is not None:        # the supervisor of the host is the only one that starts a run, so the ask is not claimed
+            ticket, spec = waiting
+            try:
+                run_id = self._begin(spec)
+            except runrecord.Busy:
+                pass        # it keeps its place; the machine is taken
+            except Exception as exc:  # noqa: BLE001 -- the run that asked is told, and the line goes on
+                log.swallowed("queue/supervisor", "RunStarts.turn", exc)
+                runline.decide(self.connection, ticket, failed=f"the run could not be started: {exc}")
+                runline.leave(self.connection, ticket)
+            else:
+                runline.decide(self.connection, ticket, run_id=run_id)
+                runline.leave(self.connection, ticket)
+                self._act("started a run", f"{spec.get('title') or 'a run'} ({run_id}), first in the line and the machine free")
+                started += 1
+        return started
+
+    def clear(self):
+        """Nothing to drop: an ask not answered stays on Redis for the next supervisor."""
 
 
 class Supervisor:

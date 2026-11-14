@@ -5,11 +5,12 @@ the list is refused when it holds `queue.max_waiting` entries, and an API job sh
 import os
 import socket
 import time
+from dataclasses import asdict
 
 import rq
 import pytest
 
-from planetgen.queue import api_jobs, commands, redisqueue, runline, runrecord, wrapper
+from planetgen.queue import api_jobs, commands, redisqueue, runline, runrecord, supervisor, wrapper
 from planetgen.queue.runrecord import Stage
 from planetgen.util.settings import get_settings
 
@@ -20,8 +21,14 @@ def conn(redis_server, key_prefix, monkeypatch):
     return redisqueue.connect(redis_server)
 
 
-def _take(conn):
-    return lambda: runrecord.start_run(conn, "Waiting", [Stage("mass", "Mass")])
+def _start(title="Waiting"):
+    """What a run asks the supervisor to start (OPS.211): the arguments of `runrecord.start_run`, as `wrapper.run` leaves them."""
+    return {"title": title, "stages": [asdict(Stage("mass", "Mass"))]}
+
+
+def _ask(conn):
+    """Stands for the supervisor: one turn of its duty that starts runs, at every poll of the run that asked."""
+    return lambda: supervisor.RunStarts(conn).turn()
 
 
 class Clock:
@@ -44,7 +51,7 @@ class Clock:
 
 def test_a_free_machine_is_taken_at_once_without_a_place_in_line(conn):
     shown = []
-    run_id = runline.start_when_free(conn, _take(conn), 3600, on_wait=lambda *a: shown.append(a))
+    run_id = runline.start_when_free(conn, _start(), 3600, _ask(conn), on_wait=lambda *a: shown.append(a))
     assert runrecord.active_run(conn) == run_id and shown == [] and runline.entries(conn) == []
 
 
@@ -52,7 +59,7 @@ def test_a_run_waits_for_the_one_that_holds_the_machine_and_then_takes_it(conn):
     holder = runrecord.start_run(conn, "Holder", [Stage("mass", "Mass")])
     shown = []
     clock = Clock(lambda n: runrecord.finish_run(conn, holder, "done") if n == 3 else None)
-    run_id = runline.start_when_free(conn, _take(conn), 3600, on_wait=lambda *a: shown.append(a),
+    run_id = runline.start_when_free(conn, _start(), 3600, _ask(conn), on_wait=lambda *a: shown.append(a),
                                      clock=clock.time, sleep=clock.sleep)
     assert runrecord.active_run(conn) == run_id != holder
     assert shown == [(holder, 1), (None, None)] and runline.entries(conn) == []
@@ -62,7 +69,7 @@ def test_the_wait_ends_after_the_bound_and_names_the_run(conn):
     holder = runrecord.start_run(conn, "Holder", [Stage("mass", "Mass")])
     clock = Clock()
     with pytest.raises(runrecord.Busy) as refused:
-        runline.start_when_free(conn, _take(conn), 120, clock=clock.time, sleep=clock.sleep)
+        runline.start_when_free(conn, _start(), 120, _ask(conn), clock=clock.time, sleep=clock.sleep)
     assert holder in str(refused.value) and "waited 2 minutes" in str(refused.value)
     assert runline.entries(conn) == [] and runrecord.active_run(conn) == holder
 
@@ -71,7 +78,7 @@ def test_a_wait_of_zero_does_not_wait(conn):
     runrecord.start_run(conn, "Holder", [Stage("mass", "Mass")])
     clock = Clock()
     with pytest.raises(runrecord.Busy):
-        runline.start_when_free(conn, _take(conn), 0, clock=clock.time, sleep=clock.sleep)
+        runline.start_when_free(conn, _start(), 0, _ask(conn), clock=clock.time, sleep=clock.sleep)
     assert clock.sleeps == 0
 
 
@@ -87,7 +94,7 @@ def test_the_line_is_first_come_first_served_and_shows_the_place(conn):
             runrecord.finish_run(conn, holder, "done")
 
     clock = Clock(move)
-    run_id = runline.start_when_free(conn, _take(conn), 3600, on_wait=lambda *a: shown.append(a),
+    run_id = runline.start_when_free(conn, _start(), 3600, _ask(conn), on_wait=lambda *a: shown.append(a),
                                      clock=clock.time, sleep=clock.sleep)
     assert [position for _holder, position in shown[:-1]] == [2, 1] and runrecord.active_run(conn) == run_id
 
@@ -96,7 +103,7 @@ def test_a_waiter_that_was_killed_drops_out_of_the_line(conn):
     ticket = runline.join(conn, runline.RUN, "Dead")
     conn.delete(runline._alive_key(ticket))                       # no sign of life
     assert runline.entries(conn) == []
-    run_id = runline.start_when_free(conn, _take(conn), 60)        # not held up by it
+    run_id = runline.start_when_free(conn, _start(), 60, _ask(conn))        # not held up by it
     assert runrecord.active_run(conn) == run_id
 
 
@@ -138,7 +145,7 @@ def test_a_ninth_entry_is_refused_with_the_line_named(conn):
         runline.join(conn, runline.RUN, f"Run {number}", who="boss")
     clock = Clock()
     with pytest.raises(runline.LineFull) as refused:
-        runline.start_when_free(conn, _take(conn), 3600, title="Ninth", clock=clock.time, sleep=clock.sleep)
+        runline.start_when_free(conn, _start(), 3600, _ask(conn), title="Ninth", clock=clock.time, sleep=clock.sleep)
     message = str(refused.value)
     assert "8 are waiting" in message and '"Run 0" (boss)' in message and '"Run 7" (boss)' in message and "holds 8" in message
     assert clock.sleeps == 0 and len(runline.entries(conn)) == 8 and runrecord.active_run(conn) == holder
@@ -158,7 +165,7 @@ def test_a_run_a_job_started_gets_a_place_in_a_full_line(conn, monkeypatch):
     runline.join(conn, runline.JOB, "A job", fields={"root": "/jobs"})
     holder = runrecord.start_run(conn, "Holder", [Stage("mass", "Mass")])
     clock = Clock(lambda n: runrecord.finish_run(conn, holder, "done") if n == 2 else None)
-    run_id = runline.start_when_free(conn, _take(conn), 3600, admitted=True, clock=clock.time, sleep=clock.sleep)
+    run_id = runline.start_when_free(conn, _start(), 3600, _ask(conn), admitted=True, clock=clock.time, sleep=clock.sleep)
     assert runrecord.active_run(conn) == run_id
 
 
@@ -174,7 +181,7 @@ def test_jobs_and_runs_each_keep_their_own_order_and_the_list_shows_both_as_they
 def test_a_run_is_not_held_up_by_a_job_waiting_ahead_of_it(conn):
     """A waiting job waits for the running job; the stage of that job must not wait behind it (no deadlock)."""
     runline.join(conn, runline.JOB, "Waiting job", fields={"root": "/jobs"})
-    run_id = runline.start_when_free(conn, _take(conn), 60)
+    run_id = runline.start_when_free(conn, _start(), 60, _ask(conn))
     assert runrecord.active_run(conn) == run_id
 
 
@@ -182,9 +189,7 @@ def test_a_run_started_inside_a_run_of_the_same_process_fails_instead_of_waiting
     """ADM.136: the second run would wait at position 1 behind the first, which its own process is following."""
     runrecord.start_run(conn, "Generate job", [runrecord.Stage("a", "A")])
     with pytest.raises(runrecord.Busy, match="would wait for itself"):
-        runline.start_when_free(
-            conn, lambda: runrecord.start_run(conn, "Nested", [runrecord.Stage("a", "A")]), 600, title="Nested",
-            nested_guard=True)
+        runline.start_when_free(conn, _start("Nested"), 600, _ask(conn), title="Nested", nested_guard=True)
 
 
 def _left_behind(conn, pid=None):
@@ -202,7 +207,7 @@ def test_a_run_left_by_a_process_that_lives_on_is_freed_and_the_next_run_starts(
     holder = _left_behind(conn)
     assert runrecord._pid_alive(os.getppid()) and runrecord.holder_is_dead(conn, holder)
     clock = Clock()
-    run_id = runline.start_when_free(conn, _take(conn), 3600, clock=clock.time, sleep=clock.sleep, nested_guard=True)
+    run_id = runline.start_when_free(conn, _start(), 3600, _ask(conn), clock=clock.time, sleep=clock.sleep, nested_guard=True)
     assert runrecord.active_run(conn) == run_id != holder
     left = runrecord.read_run(conn, holder)
     assert left["state"] == "failed" and "process was gone" in left["error"]
@@ -215,7 +220,7 @@ def test_a_run_that_is_followed_is_not_freed_however_long_it_takes(conn):
     assert not runrecord.holder_is_dead(conn, holder)
     clock = Clock()
     with pytest.raises(runrecord.Busy, match="waited"):
-        runline.start_when_free(conn, _take(conn), 600, clock=clock.time, sleep=clock.sleep)
+        runline.start_when_free(conn, _start(), 600, _ask(conn), clock=clock.time, sleep=clock.sleep)
     assert runrecord.read_run(conn, holder)["state"] == "running"
 
 
