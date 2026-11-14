@@ -50,6 +50,14 @@ def is_post_agb_pair(star):
                and member.temperature >= tuning.PLANETARY_NEBULA_CENTRAL_MIN_TEMPERATURE_K for member in members)
 
 
+def is_diskless_black_hole(star):
+    """Whether `star` is a black hole (a `phenomena.compact_remnant.BlackHole`) with no accretion disk (GEN.1648). Its progenitor's disk was gone long before the collapse, the
+    engulfment of the supergiant took everything inside several AU, and no planet of a black hole is known, so such a hole holds no planets and no belts unless a run asks for them
+    (`PLANETS` true). A black hole with a disk keeps the generic path, which puts the snow line out where its luminosity puts it."""
+    from planetgen.generation.phenomena.compact_remnant import BlackHole
+    return isinstance(star, BlackHole) and not star.has_accretion_disk
+
+
 def post_agb_disk(primary, inner_au):
     """Gives `primary` the disk descriptor of a planetary nebula's close pair: a mass log-uniform in
     `POST_AGB_DISK_MASS_RANGE_SOLAR`, the circumbinary stability limit `inner_au` for an inner edge and an outer edge

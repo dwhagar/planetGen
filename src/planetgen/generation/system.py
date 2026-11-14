@@ -1387,6 +1387,8 @@ class StarSystem:
             return pulsar_planets.generate(self.system_config, star, habitable_zone, orbit_ceiling_au)
         if remnant_orbits.is_post_agb_pair(star):
             return []  # a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318)
+        if remnant_orbits.is_diskless_black_hole(star) and self.system_config.PLANETS is not True:
+            return []  # GEN.1648: no disk survives the progenitor and no planet of a black hole is known; the generic path put some at 0.1 to 0.6 AU from the mass alone
 
         planets = []
         plan, system_objects = self._plan_architecture(star, orbit_ceiling_au)
@@ -1488,11 +1490,12 @@ class StarSystem:
         Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
         `validate_system` has settled the planets, so a belt stands in the gap the planets really leave, and the spacing is checked again with the belts in. A `SLOTS` list names its belts
         itself, `NUM_ORBITS` is the whole count of bodies and `MAX_PLANETS` False the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), `ASTEROID_BELT` False has
-        none, `PLANETS` False has no bodies, and a pulsar's disk or a planetary nebula's pair holds none.
+        none, `PLANETS` False has no bodies, a pulsar's disk or a planetary nebula's pair holds none, and neither does a black hole with no disk (GEN.1648).
         """
         config = self.system_config
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
-        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
+        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)
+                or (remnant_orbits.is_diskless_black_hole(star) and config.PLANETS is not True)):
             return
         scatter = next((architecture.disk_scatter for planned, architecture in getattr(self, "architectures", ()) if planned is star), 1.0)     # the disk the planets grew in (GEN.1261)
         belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
