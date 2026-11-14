@@ -30,8 +30,8 @@ from planetgen.util.user_agent import user_agent
 
 FILE = "gaia_dr3_25pc.csv"
 
-QUERY = ("SELECT source_id, ra, dec, parallax, parallax_error, pmra, pmdec, phot_g_mean_mag, bp_rp FROM gaiadr3.gaia_source "
-         "WHERE parallax > 40 AND parallax_over_error > 10 ORDER BY source_id")
+QUERY = ("SELECT g.source_id, g.ra, g.dec, g.parallax, g.parallax_error, g.pmra, g.pmdec, g.phot_g_mean_mag, g.bp_rp FROM gaiadr3.gaia_source AS g "
+         "WHERE g.parallax > 40 AND g.parallax_over_error > 10 ORDER BY g.source_id")
 """str: The ADQL query that makes the file: every DR3 source nearer than 25 pc (parallax over 40 mas) whose parallax is measured to better than 10 sigma."""
 
 URL = "https://gea.esac.esa.int/tap-server/tap/sync?" + urllib.parse.urlencode({"REQUEST": "doQuery", "LANG": "ADQL", "FORMAT": "csv", "QUERY": QUERY})
