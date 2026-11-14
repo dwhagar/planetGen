@@ -79,8 +79,10 @@ def _calls_in_order(source, names):
     import ast
 
     alias = {"planetPhysics": "planets", "planetLife": "life"}
+    import textwrap
+
     found = []
-    for node in sorted((n for n in ast.walk(ast.parse(source)) if isinstance(n, ast.Call)), key=lambda n: (n.lineno, n.col_offset)):
+    for node in sorted((n for n in ast.walk(ast.parse(textwrap.dedent(source))) if isinstance(n, ast.Call)), key=lambda n: (n.lineno, n.col_offset)):
         func = node.func
         if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
             name = f"{alias.get(func.value.id, func.value.id)}.{func.attr}"
