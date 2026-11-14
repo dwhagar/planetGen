@@ -109,7 +109,7 @@ import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.util import draw, logpaths, logrecord
+from planetgen.util import draw, logpaths, logrecord, secrets_mask
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -300,6 +300,9 @@ class LineFormatter(logging.Formatter):
                 + f".{int(record.msecs):03d}" + time.strftime("%z", local))
 
     def format(self, log_record):
+        return secrets_mask.mask_text(self._format(log_record))        # SEC.48: the last stop; a line that reaches any file or screen is masked
+
+    def _format(self, log_record):
         if self.form == "debug":
             if not hasattr(log_record, "area"):
                 log_record.area = _area_of(log_record)        # a record no filter has stamped (a handler made outside `configure`)
@@ -325,6 +328,36 @@ class LineFormatter(logging.Formatter):
         if log_record.exc_info and not log_record.exc_text:
             log_record.exc_text = self.formatException(log_record.exc_info)
         return f"{text}\n{log_record.exc_text}" if log_record.exc_text else text
+
+
+def _mask_exception(log_record):
+    """Fixes the masked text of the exception and the stack a record carries (`exc_text`, `stack_info`), which every formatter then writes as it is."""
+    if log_record.exc_info and log_record.exc_info[0] is not None and not log_record.exc_text:
+        log_record.exc_text = logging.Formatter().formatException(log_record.exc_info)
+    if log_record.exc_text:
+        log_record.exc_text = secrets_mask.mask_text(log_record.exc_text)
+    if log_record.stack_info:
+        log_record.stack_info = secrets_mask.mask_text(log_record.stack_info)
+
+
+_make_record = logging.getLogRecordFactory()
+
+
+def _masked_record(*args, **kwargs):
+    """The log record factory (SEC.48): every record any logger makes, the program's or a library's, has its message, exception and stack masked
+    the moment it is made, so no handler, however it is built, can write a secret."""
+    log_record = _make_record(*args, **kwargs)
+    try:
+        if log_record.args:
+            log_record.msg, log_record.args = log_record.getMessage(), None
+        log_record.msg = secrets_mask.mask_text(log_record.msg) if isinstance(log_record.msg, str) else log_record.msg
+        _mask_exception(log_record)
+    except Exception:  # noqa: BLE001 -- a record that cannot be masked is still logged; the formatters mask again
+        pass
+    return log_record
+
+
+logging.setLogRecordFactory(_masked_record)
 
 
 def record_of(log_record):
@@ -431,7 +464,7 @@ class _CallbackHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            self.callback(record.getMessage(), record.levelname.lower())
+            self.callback(secrets_mask.mask_text(record.getMessage()), record.levelname.lower())
         except Exception:  # noqa: BLE001 -- the line is lost, the program goes on
             pass
 
@@ -676,8 +709,9 @@ def record_error(component, message, exc_info=None, **fields):
     handler = _error_handler
     if handler is None:
         return
-    record = logging.LogRecord(f"planetgen.{component}", logging.ERROR, "", 0, message, None, exc_info)
-    record.fields = fields
+    record = logging.LogRecord(f"planetgen.{component}", logging.ERROR, "", 0, secrets_mask.mask_text(str(message)), None, exc_info)
+    record.fields = secrets_mask.mask_fields(fields)
+    _mask_exception(record)
     handler.handle(record)
 
 
@@ -822,7 +856,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
     _logger.setLevel(logging.DEBUG if (debug_log or _relay_handler is not None) else console_level)
     _sync_tracing()
     if debug_log and not was_active:
-        _logger.debug("Debug log opened (planetGen %s, Python %s, argv=%r, cwd=%s, uid=%s)",
+        _logger.debug("Debug log opened (planetGen %s, Python %s, argv=%r, cwd=%s, uid=%s).",
                       _package_version(), sys.version.split()[0], _redacted_argv(), os.getcwd(),
                       os.getuid() if hasattr(os, "getuid") else "n/a")
 
@@ -1374,7 +1408,7 @@ class _RelayHandler(logging.Handler):
         self._thread.start()
 
     def emit(self, record):
-        line = self.format(record)
+        line = secrets_mask.mask_text(self.format(record))
         with self._guard:
             self._lines.append(line)
             full = len(self._lines) >= _RELAY_BATCH
@@ -1489,6 +1523,7 @@ class RelayReader:
 
 def write_line(text):
     """Writes a line another process already formatted to the console and to the `--debug FILE` mirror."""
+    text = secrets_mask.mask_text(text)
     if _console_debug:
         _console_handler.write(text)
     for handler in _logger.handlers:
@@ -1642,23 +1677,17 @@ def exception(message, *args, **kwargs):
 
 def choice(description, chosen, reason):
     """Debug-only convenience for narrating a randomized/algorithmic decision: what was chosen and why."""
-    _logger.debug(f"{description}: chose {chosen!r} ({reason})", stacklevel=2)
+    if _logger.isEnabledFor(logging.DEBUG):     # the repr of a large choice is not built when nothing records it
+        _logger.debug("%s: chose %r (%s).", description, chosen, reason, stacklevel=2)
 
 
 @contextmanager
 def timed_phase(label):
     """
-    Debug-only convenience for timing one named phase of generation:
-    logs `"{label}: {elapsed}ms"` at DEBUG severity when the `with` block
-    exits, so `--debug`'s own timestamped output doubles as a per-phase
-    profile with no separate instrumentation needed -- a benchmark can
-    either read the timestamps directly or just parse the elapsed value
-    already printed in the message.
-
-    Formats the elapsed time whether or not DEBUG is enabled (matching
-    every other call in this module, which never checks the level
-    itself) -- a `time.perf_counter()` delta and an f-string are cheap
-    enough that gating on `isEnabledFor` isn't worth the extra branch.
+    Debug-only convenience for timing one named phase of generation: writes `Phase <label> took <duration>.` at DEBUG
+    severity when the `with` block exits (the duration in the one form, `logrecord.duration_text`), with the phase and
+    its exact milliseconds on the record as `phase` and `elapsed_ms` for a benchmark to read, so `--debug`'s timestamped
+    output doubles as a per-phase profile with no separate instrumentation.
 
     Args:
         label (str): A short description of the phase being timed.
@@ -1669,7 +1698,9 @@ def timed_phase(label):
     finally:
         elapsed_ms = (time.perf_counter() - start) * 1000
         # stacklevel 3: past contextlib's __exit__ to the `with` statement.
-        _logger.debug(f"{label}: {elapsed_ms:.3f}ms", stacklevel=3)
+        # The message carries the one duration form; the exact milliseconds ride on the record for a profile to read.
+        _logger.debug("Phase %s took %s.", label, logrecord.duration_text(elapsed_ms / 1000),
+                      stacklevel=3, extra={"phase": label, "elapsed_ms": elapsed_ms})
 
 
 # Sensible default so anything that imports planetgen modules directly

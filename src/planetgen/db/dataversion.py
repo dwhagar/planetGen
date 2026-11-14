@@ -154,7 +154,7 @@ def bump(database, *tags):
         try:
             _client().delete(key(database))
         except (redis.RedisError, OSError):
-            log.warning(f"the page cache's data versions were not updated ({exc}); "
+            log.warning(f"The page cache's data versions were not updated ({exc}); "
                         "cached pages may be stale until Redis answers.", stderr=True)
             return False
         log.warning(f"Redis refused the page cache's data versions ({exc}); every cached page was made stale "
