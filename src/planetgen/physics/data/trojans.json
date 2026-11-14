@@ -14,11 +14,11 @@
       "tweak": "L0",
       "basis": "the secondary plus the trojan under about 4 percent of the host, as TROY III [R0248] uses it per docs/design/research/oddity-rates.md WR10; the paper's own text for the rule was not read"
     },
-    "tadpole_limit_deg": {
+    "tadpole_nearest_approach_deg": {
       "value": 23.9,
       "tier": "T2",
       "tweak": "L0",
-      "basis": "[R3220]: the libration amplitude past which a small-mass tadpole becomes a horseshoe (recalled, not opened)"
+      "basis": "the smallest angle from the secondary a tadpole reaches: the root of 4 s^3 - 5 s + 1 = 0 with s = sin(sigma/2), where the integral f(sigma) = (1 + 4 s^3) / (2 s) of the planar theory equals 2.5, its value at the edge of the tadpole zone (Eq. 3 and 4 of [R5245], read; the same 23.9 degrees [R3220] gives, recalled). It is a distance from the secondary, not a libration amplitude; the libration amplitude of the same orbit, half the range of the angle between this and 180 degrees, is the tadpole limit of `trojans.py` (78.05 degrees, GEN.1647)"
     },
     "leading_share_range": {
       "value": [
@@ -60,22 +60,22 @@
       "basis": "no source: a swarm needs its giant inside this fraction of 1/margin of the companion-star stability limit (Holman and Wiegert, `Star.a_crit_au`), because a tadpole librates over a wider range of distance than the planet's own orbit does; a margin of 2 keeps a swarm for a giant inside half the limit"
     },
     "libration_sigma_deg": {
-      "value": 10.0,
-      "tier": "T4",
-      "tweak": "L4",
-      "basis": "the Rayleigh scale of the libration amplitude of a swarm's bodies, below the tadpole limit: the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled, not read); a lane fits it to the catalogue"
+      "value": 13.0,
+      "tier": "T2",
+      "tweak": "L2",
+      "basis": "the Rayleigh scale of the libration amplitude of a swarm's bodies, below the tadpole limit: the scale with the mean of the debiased Jupiter Trojan law of the libration integral is 13.0 degrees (L4 13.3, L5 12.5; Table 3 of [R5245]) and the Neptune Trojans give 12 to 15 [R5244]; a draw cut at the tadpole limit then has the Jupiter mean of 16.3 degrees (GEN.1643, scripts/fit_trojan_scales.py)"
     },
     "swarm_ecc_sigma": {
       "value": 0.06,
-      "tier": "T4",
-      "tweak": "L4",
-      "basis": "the Rayleigh scale of the mean eccentricity of a swarm's bodies, cut at ecc_max: the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled, not read)"
+      "tier": "T2",
+      "tweak": "L1",
+      "basis": "the Rayleigh scale of the proper eccentricity of a swarm's bodies, cut at ecc_max: the scale with the mean of the debiased Jupiter Trojan law is 0.058 (L4 0.047, L5 0.074; Table 3 of [R5245]) and the Neptune Trojans give 0.045 [R5244]; 0.06 is inside both (GEN.1643, scripts/fit_trojan_scales.py)"
     },
     "swarm_inclination_sigma_deg": {
       "value": 12.0,
-      "tier": "T4",
-      "tweak": "L4",
-      "basis": "the Rayleigh scale of the mean inclination of a swarm's bodies to the secondary's plane, cut at inclination_max_deg: the Jupiter Trojans reach 40 degrees, most lie under 20 (recalled, not read)"
+      "tier": "T2",
+      "tweak": "L1",
+      "basis": "the Rayleigh scale of the inclination of a swarm's bodies to the secondary's plane, cut at inclination_max_deg: the scale with the mean of the debiased Jupiter Trojan law of the proper sine of inclination is 11.7 degrees (L4 10.7, L5 13.2; Table 3 of [R5245]) and the Neptune Trojans give 14, 12 to 16 [R5244]; 12 is inside both (GEN.1643, scripts/fit_trojan_scales.py)"
     }
   }
 }

@@ -1,0 +1,9 @@
+**Headline:** The three spreads of a trojan swarm now come from the Jupiter and Neptune Trojans, and a tadpole orbit is no longer cut at the wrong angle; nothing in the generator draws a swarm yet.
+
+### Changed
+
+- GEN.1643 (slice 1): `trojan_swarm.LIBRATION_SIGMA_DEG` 10 to 13 degrees (the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration, 13.0; the Neptune Trojans give 12 to 15). `ECC_SIGMA` 0.06 and `INCLINATION_SIGMA_DEG` 12 stay (the fit gives 0.058 and 11.7). Stand-ins TJ9 (tier T2, tweak L2), TJ10 and TJ11 (T2, L1) leave the burn-down register. Fit: `scripts/fit_trojan_scales.py`; report `reports/gen1643-trojan-scales-2026-11-12.md`.
+- GEN.1647: `trojans.TADPOLE_LIMIT_DEG` was 23.9, which is the nearest a tadpole comes to the secondary, not a libration amplitude. It is now the amplitude at the edge of the tadpole zone, (180 - 23.9) / 2 = 78.05 degrees, derived from the new `TADPOLE_NEAREST_APPROACH_DEG` 23.9; the swarm draw is cut at it and `trojans.motion` splits tadpole from horseshoe at it. With it the generated mean amplitude is 16.3 degrees against the Jupiter Trojans' 16.2, and about a fifth of the bodies librate wider than 23.9 degrees, as the real ones do. Row TJ3 of section 6.121 is corrected.
+- `trojan_swarm.draw_regions` and `trojans.motion` are read by no generation step yet (GEN.1151 wires the swarm), so no planet, moon or swarm in the output moves.
+
+generation-output: unchanged
