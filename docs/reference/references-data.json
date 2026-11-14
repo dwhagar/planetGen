@@ -76540,6 +76540,33 @@
    "volume": "124",
    "year": 1996
   },
+  "10.1006/icar.1996.5628": {
+   "authors": [
+    [
+     "Fegley",
+     "B."
+    ],
+    [
+     "Zolotov",
+     "M. Y."
+    ],
+    [
+     "Lodders",
+     "K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1996.5628",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "416",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The Oxidation State of the Lower Atmosphere and Surface of Venus",
+   "type": "journal-article",
+   "volume": "125",
+   "year": 1997
+  },
   "10.1006/icar.1996.5637": {
    "authors": [
     [
@@ -284653,6 +284680,7 @@
  "id_aliases": {},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  "id_next": 5250,
 =======
  "id_next": 5249,
@@ -284660,6 +284688,9 @@
 =======
  "id_next": 5251,
 >>>>>>> origin/claude/lane15-gen1713
+=======
+ "id_next": 5252,
+>>>>>>> origin/claude/lane21-gen1670
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -284757,6 +284788,7 @@
   "10.1006/icar.1996.0113": "R3316",
   "10.1006/icar.1996.0117": "R1584",
   "10.1006/icar.1996.0190": "R3565",
+  "10.1006/icar.1996.5628": "R5251",
   "10.1006/icar.1996.5637": "R5218",
   "10.1006/icar.1996.5653": "R2730",
   "10.1006/icar.1997.5705": "R1978",

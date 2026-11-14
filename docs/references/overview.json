@@ -6,16 +6,16 @@
   "papers": {
     "books": 31,
     "datasets": 26,
-    "entries": 5152,
+    "entries": 5153,
     "with_arxiv": 1529,
-    "with_doi": 4915,
+    "with_doi": 4916,
     "without_doi": 237
   },
   "stand_ins": {
     "by_tier": {
       "T1": 224,
       "T2": 221,
-      "T3": 188,
+      "T3": 189,
       "T4": 140,
       "T5": 122,
       "T6": 441,
@@ -24,10 +24,17 @@
       "T9": 200
     },
     "by_tweak": {
+<<<<<<< HEAD
       "L0": 961,
       "L1": 326,
       "L2": 81,
       "L3": 239,
+=======
+      "L0": 960,
+      "L1": 326,
+      "L2": 83,
+      "L3": 238,
+>>>>>>> origin/claude/lane21-gen1670
       "L4": 56
     },
     "rows": 1663
@@ -117,7 +124,7 @@
     },
     "fitted_to_a_result": {
       "percent": 23,
-      "rows": 376
+      "rows": 377
     },
     "read_from_a_source": {
       "percent": 27,
@@ -125,7 +132,7 @@
     },
     "unverified": {
       "percent": 20,
-      "rows": 328
+      "rows": 329
     }
   }
 }
