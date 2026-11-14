@@ -19,7 +19,7 @@ gives an eccentricity for wide young pairs, so none is drawn).
 **The tide.** In the frame of a donor's circular orbit a body of mass m holds a companion inside `(G m / (4 Omega A)) ** (1/3)` (Oort's constants, `rogue_drift`), about 35,000 AU for two
 Jupiters: far outside the observed range, so the cap only matters for a pair of a much lighter mass or the dense inner galaxy's own constants.
 
-Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.290.
+Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.291.
 """
 
 import math
