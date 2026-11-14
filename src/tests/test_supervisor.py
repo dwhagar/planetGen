@@ -1,6 +1,7 @@
 """OPS.207: the supervisor process (`planetgen/queue/supervisor.py`): one per host by a file lock, a sign of life in Redis, its loop driven by a fake clock, store
 and process table, and started on demand by a submit, a status poll and the warm-up."""
 
+import socket
 import subprocess
 import sys
 
@@ -223,3 +224,50 @@ def test_the_supervisor_runs_each_of_its_duties_every_turn_and_one_failing_does_
     loop, _ = _supervisor(clock, FakeStore(busy=lambda now: True, clock=clock), duties=(Duty("a", fail=True), Duty("b")))
     loop.run(max_turns=2)
     assert seen == ["a", "b", "a", "b", "clear a", "clear b"]
+
+
+def _finished_stage(conn, ended_at):
+    """A run whose stage 0 was completed by its only unit at `ended_at` and whose end never queued the next opening (the unit's process was killed in it)."""
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
+    runrecord.begin_stage(conn, run_id, 0)
+    runrecord.set_stage_plan(conn, run_id, 0, 1, 1.0, {"units": 1, "detail": {}})
+    assert runrecord.unit_done(conn, run_id, 0, 0, now=ended_at).advance
+    return run_id
+
+
+def test_the_reconciler_ends_a_stage_that_finished_and_never_advanced_after_its_grace_and_says_so(conn):
+    run_id = _finished_stage(conn, ended_at=1000.0)
+    repaired, acts = [], []
+    now = [1010.0]
+
+    def repair(connection, rid):
+        repaired.append(rid)
+        return [0]
+
+    reconciler = supervisor.Reconciler(conn, clock=lambda: now[0], repair=repair)
+    loop = supervisor.Supervisor(FakeClock(), supervisor.RedisStore(conn), supervisor.ProcessTable(), pid=77, lines=acts.append, duties=(reconciler,))
+    assert reconciler.turn() == [] and repaired == [], "10 s after the last unit: the unit's own process is still at it"
+    now[0] = 1031.0
+    assert reconciler.turn() == [(run_id, 0)] and repaired == [run_id]
+    assert any("ended stage 1" in line and "had not queued the next stage" in line for line in acts)
+    assert loop.duties == (reconciler,)
+
+
+def test_the_reconciler_leaves_a_stage_a_process_is_ending_now_and_marks_every_live_run_watched(conn):
+    run_id = _finished_stage(conn, ended_at=1000.0)
+    conn.set(runrecord.ending_key(run_id, 0), 1)
+    repaired = []
+    reconciler = supervisor.Reconciler(conn, clock=lambda: 9999.0, repair=lambda c, r: repaired.append(r) or [0])
+    assert reconciler.turn() == [] and repaired == []
+    assert conn.exists(runrecord.supervised_key(run_id)), "the run has a follower that is not its starter"
+
+
+def test_a_run_the_supervisor_watches_is_not_taken_over_when_its_starting_process_is_gone(conn):
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1)])
+    conn.hset(runrecord.run_key(run_id), "owner", f"{socket.gethostname()}:999999999")          # a process id that is not running
+    conn.delete(runrecord.alive_key(run_id))
+    assert runrecord.holder_is_dead(conn, run_id), "without the supervisor the run is taken for a dead one, as before"
+    conn.set(runrecord.supervised_key(run_id), "1", ex=15)
+    assert not runrecord.holder_is_dead(conn, run_id), "OPS.210: with it, the run carries on"
+    runrecord.finish_run(conn, run_id, "done")
+    assert runrecord.holder_is_dead(conn, run_id), "a run that is over is never held"
