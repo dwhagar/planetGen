@@ -35,8 +35,7 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import bulk_structure, constants, formation, metallicity, planet_mass, unit_registry as units
-from planetgen.physics import scatter as scatter_rule
+from planetgen.physics import bulk_structure, constants, planet_mass, scatter as scatter_rule, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -45,7 +44,7 @@ _EARTH_KG = constants.EARTH_MASS_TO_KG
 _G = constants.G
 _DAY_S = 86400.0
 _SOLAR_BLACKBODY_1AU_K = 278.3      # a blackbody at 1 AU from the Sun ([R2726: Table 10])
-_YEAR_S = 365.25 * _DAY_S
+_YEAR_S = constants.SECONDS_PER_YEAR
 
 SURVIVAL_K_OFFSET = 0.6
 SURVIVAL_K_SLOPE = 0.5
@@ -279,8 +278,9 @@ def migration_probability(fe_h):
 
 def _clear_split(seeds, star_mass_kg):
     """
-    `(kept, swept, thrown)` for `seeds`: `_clear_around_giants` with its losses kept. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
-    or within `GIANT_CLEARING_SPACING` mutual Hill radii of a giant that moved in, and `thrown` is `_scatter_split`'s.
+    `(kept, swept, thrown)` for `seeds`: the planets a giant scattered, kept as losses. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
+    (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, [R4897]) or within `GIANT_CLEARING_SPACING` mutual Hill
+    radii of a giant that moved in (a giant that did not move clears nothing), and `thrown` is `_scatter_split`'s.
     """
     moved = [s for s in seeds if s.runaway and s.migrated]
     hot = [s for s in moved if s.distance_au < tuning.GIANT_HOT_ORBIT_AU]
@@ -303,15 +303,6 @@ def _clear_split(seeds, star_mass_kg):
     return kept, swept, thrown
 
 
-def _clear_around_giants(seeds, star_mass_kg):
-    """
-    `seeds` without the planets a giant scattered: those inside `GIANT_CLEARING_SPACING` mutual Hill radii of a giant that moved in, and
-    every planet inside a hot Jupiter's orbit (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, Zhu and Dong
-    2021). A giant that did not move clears nothing.
-    """
-    return _clear_split(seeds, star_mass_kg)[0]
-
-
 def _scatter_split(seeds, star_mass_kg):
     """
     `(kept, thrown)`: `seeds` (in order of distance) without the lighter of any neighbouring pair closer than `GIANT_CLEARING_SPACING` mutual Hill radii that
@@ -332,11 +323,6 @@ def _scatter_split(seeds, star_mass_kg):
         else:
             i += 1
     return kept, thrown
-
-
-def _scatter_crowded_giants(seeds, star_mass_kg):
-    """`seeds` without the lighter of any crowded pair that holds a giant (`_scatter_split`)."""
-    return _scatter_split(seeds, star_mass_kg)[0]
 
 
 def sublimation_au(luminosity_w):
@@ -524,6 +510,7 @@ def losses(architecture):
 
     if lost.capped:
         result.append(Loss("capped", lost.capped, lost.capped_kg, lost.capped_kg, None, None, None, None, None, None, None, False, 0.0, 1.0, 0.0))
+
     def scatterer(seed, recorded):
         """The planet that scatters `seed` (GEN.1456): the one of the highest Safronov number among those whose reach band holds the body, the neighbour the clearing recorded (`recorded`) among them and the first on a tie; every planet of the system acts on it, not the neighbour alone."""
         reaching = [p for p in architecture.planets if p is not recorded and _reaches(p, seed.distance_au, star_solar)]

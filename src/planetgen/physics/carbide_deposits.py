@@ -21,7 +21,6 @@ Both are `absent_by_state` on a body whose rock is silicate (nothing here is dra
 from typing import NamedTuple
 
 from planetgen.physics import bulk_draw, constants, ore_deposits, sedimentary_deposits as sd
-from planetgen.util import draw
 
 MOISSANITE, COHENITE = "moissanite_crust", "cohenite_metal"
 CARBIDE_IDS = (MOISSANITE, COHENITE)
@@ -98,8 +97,8 @@ def state_of(body):
 
 
 def stream_of(body, kind):
-    """The body's own stream for one type: seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
-    return draw.Stream(f"carbide:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(getattr(body, 'star', None), 'age', None)!r}")
+    """The body's own stream for one type (`ore_deposits.body_stream`): seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
+    return ore_deposits.body_stream("carbide", body, kind)
 
 
 def generate(body):

@@ -47,6 +47,10 @@ factor; a brown dwarf at the deuterium limit is 1.2 times it."""
 MASSES_EARTH = tuple(_kg_to_mearth(_mjup_to_kg(m)) for m in tables.MASSES_MJ)
 """tuple: The table's masses in Earth masses."""
 
+_LOG_MASSES = [math.log(m) for m in MASSES_EARTH]
+_LOG_DISTANCES = [math.log(d) for d in tables.DISTANCES_AU]
+_LOG_AGES = [math.log(a) for a in tables.AGES_GY]
+
 INFLATION_BINS = (
     # (lowest mass in Jupiter masses, A in Jupiter radii per dex, log10 of the threshold flux in W/m^2)
     (0.37, 0.70, 5.52),
@@ -127,7 +131,7 @@ def _cell(age_index, distance_index, mass_index, core_earth):
 
 def _at_mass(age_index, distance_index, mass_earth, core_earth):
     """The radius at one age and distance node: log-linear in mass, continued past the last column."""
-    logs = [math.log(m) for m in MASSES_EARTH]
+    logs = _LOG_MASSES
     x = math.log(max(mass_earth, MASSES_EARTH[0]))
     if x > logs[-1]:
         low = _cell(age_index, distance_index, len(logs) - 2, core_earth)
@@ -155,10 +159,8 @@ def radius_rj(mass_earth, core_mass_earth, flux_earth, age_gy):
     if flux_earth <= 0.0 or age_gy <= 0.0:
         raise GiantRadiusError("the flux and the age must be positive")
     log_distance = -0.5 * math.log(flux_earth)
-    distances = [math.log(d) for d in tables.DISTANCES_AU]
-    ages = [math.log(a) for a in tables.AGES_GY]
-    di, dshare = _bracket(distances, log_distance)
-    ai, ashare = _bracket(ages, math.log(age_gy))
+    di, dshare = _bracket(_LOG_DISTANCES, log_distance)
+    ai, ashare = _bracket(_LOG_AGES, math.log(age_gy))
     total = 0.0
     for age_node, aw in ((ai, 1.0 - ashare), (ai + 1, ashare)):
         for distance_node, dw in ((di, 1.0 - dshare), (di + 1, dshare)):

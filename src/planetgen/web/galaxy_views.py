@@ -40,7 +40,7 @@ from planetgen.api.limiter import page_limit
 from planetgen.admin import maintenance
 
 from . import bp, glance
-from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
+from .helpers import crumb, current_admin, db_name, generate_target, json_error as _json_error, page_url, render_page, trusted_html
 
 _ID_PLACEHOLDER = 987654321987
 """int: Stands in for a sector id while building the map's sector-link
@@ -254,9 +254,43 @@ def _course_from_args():
         return None
 
 
-def _json_error(message, status):
-    response = jsonify({"error": message})
-    response.status_code = status
+MAP_FAILURE = "The map could not be loaded. Please try again shortly."
+"""str: What a map data route answers when the API failed."""
+
+
+def _fetched(fetch, what, failure=MAP_FAILURE):
+    """`(fetch()'s payload, None)`, or `(None, the error response)`: a malformed request (`TileRequestError`) a 400, an unknown
+    object a 404, any other API failure a 502 saying `failure` (logged as "while fetching <what>"), each as `{"error": ...}`."""
+    try:
+        return fetch(), None
+    except TileRequestError as exc:
+        return None, _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return None, _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching {what}: {exc}")
+        return None, _json_error(failure, 502)
+
+
+def _tile_json(fetch, what, failure=MAP_FAILURE, cache_control="no-store"):
+    """The JSON answer of a map data route: `fetch()`'s payload with `Cache-Control: no-store` (or `cache_control`), or the error
+    response `_fetched` makes."""
+    payload, error = _fetched(fetch, what, failure)
+    if error is not None:
+        return error
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = cache_control
+    return response
+
+
+def _packed_bytes(fetch, what, failure, cache_control):
+    """The answer of a route that sends the API's base64 `data` as the stored bytes (`static/nebulavolume.js` reads them), or the
+    error response `_fetched` makes."""
+    found, error = _fetched(fetch, what, failure)
+    if error is not None:
+        return error
+    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = cache_control
     return response
 
 
@@ -271,15 +305,10 @@ def galaxy_nodes():
     node_keys = [key for key in (request.args.get("keys") or "").split(",") if key]
     known_stamp = request.args.get("stamp") or None
     db_name_asked = db_name()
-    try:
-        body = fetch_nodes_wire(db_name_asked, node_keys, known_stamp)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching galaxy nodes: {exc}")
-        return _json_error("The nodes could not be loaded. Please try again shortly.", 502)
+    body, error = _fetched(lambda: fetch_nodes_wire(db_name_asked, node_keys, known_stamp), "galaxy nodes",
+                           "The nodes could not be loaded. Please try again shortly.")
+    if error is not None:
+        return error
     response = Response(body, mimetype=tilepack.MIMETYPE)
     response.headers["Cache-Control"] = "no-store"
     app = current_app._get_current_object()
@@ -378,19 +407,10 @@ def galaxy_stage():
     the galaxy). Returns `tilecache.fetch_stage`'s payload; a malformed
     key is a 400, an API failure a 502, both as `{"error": ...}` JSON.
     """
-    try:
+    def fetch():
         payload = fetch_stage(db_name(), request.args.get("at") or None)
-        payload = _with_nebula_cover(payload, db_name(), request.args.get("at") or None)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a galaxy stage: {exc}")
-        return _json_error("The map could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+        return _with_nebula_cover(payload, db_name(), request.args.get("at") or None)
+    return _tile_json(fetch, "a galaxy stage")
 
 
 galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -406,20 +426,11 @@ def galaxy_window():
     `tilecache.fetch_window`'s payload; a malformed key or width is a 400, an
     API failure a 502, both as `{"error": ...}` JSON.
     """
-    try:
+    def fetch():
         payload = fetch_window(db_name(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW)
-        payload = _with_nebula_cover(payload, db_name(), request.args.get("at") or "",
-                                     request.args.get("g") or DEFAULT_WINDOW)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a galaxy window: {exc}")
-        return _json_error("The map could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+        return _with_nebula_cover(payload, db_name(), request.args.get("at") or "",
+                                 request.args.get("g") or DEFAULT_WINDOW)
+    return _tile_json(fetch, "a galaxy window")
 
 
 galaxy_window.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -433,18 +444,9 @@ def galaxy_near():
     it to look, parsecs. Returns `tilecache.fetch_near`'s payload, the generated sectors with the ids a scene is fetched by; a
     malformed number is a 400, an API failure a 502, both as `{"error": ...}` JSON.
     """
-    try:
-        payload = fetch_near(db_name(), request.args.get("x"), request.args.get("y"), request.args.get("z"), request.args.get("r") or 0)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching the sectors near a point: {exc}")
-        return _json_error("The map could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+    def fetch():
+        return fetch_near(db_name(), request.args.get("x"), request.args.get("y"), request.args.get("z"), request.args.get("r") or 0)
+    return _tile_json(fetch, "the sectors near a point")
 
 
 galaxy_near.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -461,13 +463,10 @@ def galaxy_locate():
     q = (request.args.get("q") or "").strip()[:200]
     if not q:
         return jsonify({"matches": []})
-    try:
-        matches = apiclient.get_galaxy_locate(db_name(), q)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while looking up a name for the galaxy map: {exc}")
-        return _json_error("The lookup failed. Please try again shortly.", 502)
+    matches, error = _fetched(lambda: apiclient.get_galaxy_locate(db_name(), q), "a name for the galaxy map",
+                              "The lookup failed. Please try again shortly.")
+    if error is not None:
+        return error
     return jsonify({"matches": matches})
 
 
@@ -516,17 +515,9 @@ def galaxy_nebula_alone_volume(nebula_id):
     `GET /api/nebulae/<id>/volume` sampled them from the model's density. An unknown nebula is a 404 and an API failure a 502, both as
     `{"error": ...}` JSON.
     """
-    try:
-        found = apiclient.get_nebula_volume(db_name(), nebula_id)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a nebula's volume: {exc}")
-        return _json_error("The nebula could not be loaded. Please try again shortly.", 502)
-    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
     # The points follow the nebula's own properties and the galaxy's stored shape, so they do not change.
-    response.headers["Cache-Control"] = "private, max-age=3600"
-    return response
+    return _packed_bytes(lambda: apiclient.get_nebula_volume(db_name(), nebula_id), "a nebula's volume",
+                         "The nebula could not be loaded. Please try again shortly.", "private, max-age=3600")
 
 
 galaxy_nebula_alone_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -545,16 +536,9 @@ def galaxy_cloud_volume():
         radius = finite_float(request.args.get("radius_pc", ""))
     except ValueError:
         return _json_error("x, y, z and radius_pc must be numbers.", 400)
-    try:
-        found = apiclient.get_cloud_volume(db_name(), center[0], center[1], center[2], radius, request.args.get("family") or "")
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a cloud's volume: {exc}")
-        return _json_error("The cloud could not be loaded. Please try again shortly.", 502)
-    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
-    response.headers["Cache-Control"] = "private, max-age=3600"      # the points follow the sphere and the galaxy's stored shape
-    return response
+    return _packed_bytes(      # the points follow the sphere and the galaxy's stored shape, so they are kept an hour
+        lambda: apiclient.get_cloud_volume(db_name(), center[0], center[1], center[2], radius, request.args.get("family") or ""),
+        "a cloud's volume", "The cloud could not be loaded. Please try again shortly.", "private, max-age=3600")
 
 
 galaxy_cloud_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
@@ -569,13 +553,10 @@ def galaxy_system_nearest(system_id):
     page's "Nearest:" line names (`db.query.system_detail`). An unknown system is a 404 and an API failure a 502, both
     as `{"error": ...}` JSON.
     """
-    try:
-        detail = apiclient.get_system(db_name(), system_id)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a system's nearest neighbors: {exc}")
-        return _json_error("The nearest systems could not be loaded. Please try again shortly.", 502)
+    detail, error = _fetched(lambda: apiclient.get_system(db_name(), system_id), "a system's nearest neighbors",
+                             "The nearest systems could not be loaded. Please try again shortly.")
+    if error is not None:
+        return error
     nearest = [
         {"id": near["id"], "name": near["name"], "distance_ly": near["distance_ly"], "url": page_url("system", system_id=near["id"])}
         for near in detail.get("nearest_neighbors") or []
@@ -596,16 +577,8 @@ def galaxy_nebula_surroundings(nebula_id):
     it. An unknown nebula is a 404 and an API failure a 502, both as
     `{"error": ...}` JSON.
     """
-    try:
-        payload = apiclient.get_nebula_surroundings(db_name(), nebula_id)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a nebula's surroundings: {exc}")
-        return _json_error("The nebula's surroundings could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+    return _tile_json(lambda: apiclient.get_nebula_surroundings(db_name(), nebula_id), "a nebula's surroundings",
+                      "The nebula's surroundings could not be loaded. Please try again shortly.")
 
 
 galaxy_nebula_surroundings.json_only = True  # not a page: tests/test_web_a11y.py skips it

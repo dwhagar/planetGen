@@ -142,9 +142,9 @@ class WideBinaryPair:
         self.max_separation_au = wide_pair_limit_au(system_config, primary, secondary)
         """float: The widest axis the pair's place allowed when it was drawn (not saved)."""
         if orbit is None:
+            born_primary = place_terms.born_mass_solar(primary)
             self.separation_au = sample_wide_binary_separation_au(
-                self.max_separation_au, place_terms.born_mass_solar(primary),
-                place_terms.born_mass_solar(primary) + place_terms.born_mass_solar(secondary), inner_boost)
+                self.max_separation_au, born_primary, born_primary + place_terms.born_mass_solar(secondary), inner_boost)
             self.eccentricity = sample_wide_binary_eccentricity()
         else:
             self.separation_au = _km_to_au(orbit.separation_km)

@@ -44,6 +44,7 @@ from planetgen import tuning
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import accessory_minerals, comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 # ---------------------------------------------------------------------------------------------------------------------
 # The kinds the tables are gated by (never a Solar System body)
@@ -300,8 +301,9 @@ def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DI
     return _from_taxa(kind, names, weights, concentration, {"temperature_k": temperature_k, "al26_ratio": al26_ratio}, host=host)
 
 
-METAL_ROWS = ("kamacite", "taenite", "schreibersite")
-"""tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis."""
+METAL_AXIS_ROWS = ("kamacite", "taenite", "schreibersite")
+"""tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis (a subset of
+`METAL_ROWS`, the group map's reading of a chondrite's metal grains)."""
 
 REFRACTORY_ROWS = ("spinel", "anorthite", "melilite", "hibonite", "perovskite")
 """tuple: The rows that stand for the refractory inclusions (calcium-aluminium-rich) of its refractory axis."""
@@ -328,7 +330,7 @@ def group_axes(components):
     forsterite = components.get("forsterite", 0.0) / (materials.material("forsterite").molar_mass * 1000.0)
     olivine_volume = percent(("fayalite", "forsterite"))
     iron = 100.0 * fayalite / (fayalite + forsterite) if olivine_volume >= 100.0 * OLIVINE_MIN_VOLUME else None
-    return iron, percent(METAL_ROWS), percent(REFRACTORY_ROWS), percent(MATRIX_ROWS)
+    return iron, percent(METAL_AXIS_ROWS), percent(REFRACTORY_ROWS), percent(MATRIX_ROWS)
 
 
 def chondrite_group(components):
@@ -485,8 +487,7 @@ def draw_comet(period_class=None, interstellar=False, ice_ratios=None):
         SmallBodyMakeup: With `detail` holding `refractory_ice_ratio`, `organic_share`, `volatiles` (percent of water by number),
         `carbon_chain_depleted` and `ice_fraction`.
     """
-    low, high = REFRACTORY_ICE_RATIO_RANGE
-    delta = math.exp(draw.uniform(math.log(low), math.log(high)))
+    delta = log_uniform(*REFRACTORY_ICE_RATIO_RANGE)
     organic = min(max(draw.gauss(*ORGANIC_SHARE), 0.0), 1.0)
     porosity = draw.uniform(*COMET_POROSITY_RANGE)
     volatiles = comet_population.draw_volatiles(COMET_DYNAMICAL_CLASS.get(period_class, period_class), interstellar=interstellar,
@@ -551,8 +552,7 @@ def draw_icy_body(kind=DWARF_PLANET):
     possibility = ICY_TABLE.draw(kind)
     rock = _truncated_normal(*ROCK_FRACTION_LAWS[possibility.name])
     components = {"forsterite": rock * 0.5, "enstatite": rock * 0.5, "water_ice": 1.0 - rock}
-    low, high = KUIPER_POROSITY_RANGE
-    return _makeup(kind, components, draw.uniform(low, high), detail={"row": possibility.name, "rock_fraction": rock},
+    return _makeup(kind, components, draw.uniform(*KUIPER_POROSITY_RANGE), detail={"row": possibility.name, "rock_fraction": rock},
                    size_dependent=True)
 
 

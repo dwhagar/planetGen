@@ -43,6 +43,7 @@ from planetgen.physics import unit_registry as units
 
 _km_to_m = units.converter("km", "m")
 _m_to_km = units.converter("m", "km")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 YERKES_CLASS_NAMES = {
@@ -681,5 +682,3 @@ def star_params(initial_mass_sol, age_gy, state):
 
 # Last, because `pre_main_sequence` reads the main-sequence relations above.
 from planetgen.physics import pre_main_sequence  # noqa: E402
-
-_msun_to_kg = units.converter("Msun", "kg")

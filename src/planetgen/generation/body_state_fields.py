@@ -19,7 +19,6 @@ Use:
     present_fields(Planet)                 # the stored fields a remake must work out again
 """
 
-from planetgen.generation.planet import Planet
 from planetgen.generation.stellar_object import StellarObject
 from planetgen.physics import bulk_composition, core_composition, giant_interior, interior_heat, moon_composition, radiogenic
 

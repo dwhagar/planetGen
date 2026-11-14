@@ -213,7 +213,7 @@ ROCK_OXIDE_ELEMENTS = {"rock_na2o_fraction": "Na", "rock_k2o_fraction": "K", "ro
 CORE_ELEMENTS = {"core_ni_fraction": "Ni", "core_s_fraction": "S", "core_si_fraction": "Si", "core_o_fraction": "O", "core_c_fraction": "C", "core_h_fraction": "H"}
 """dict: The light-element column of a core and the element it holds."""
 
-_EARTH_G = 9.80665
+_EARTH_G = constants.EARTH_GRAVITY
 AVOGADRO = constants.AVOGADRO
 _GY_S = radiogenic.GY_S
 
@@ -445,8 +445,7 @@ def stream_of(body, key):
     seed = getattr(body, "isotope_seed", None)
     if seed is not None:
         return draw.Stream(f"isotopes:{key}:{seed}")          # a small body (GEN.1487) has no mass and orbit of its own to seed from: its row names the stream
-    star = getattr(body, "star", None)
-    return draw.Stream(f"isotopes:{key}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
+    return draw.body_stream_of(f"isotopes:{key}", body, slot=str(bool(getattr(body, "is_moon", False))))      # GEN.1547: keyed to the body's birth, not its radius, orbit or the star's age
 
 
 def fe60_mean(body):
@@ -799,6 +798,7 @@ def mantle_sheet_rows(rows):
         ratio = SOLAR_XE_136_OVER_130 + excess
         add("136Xe/130Xe", "Xenon-136 over xenon-130 of the mantle's gas", f"136Xe/130Xe {ratio:.4g}", ratio)
     return shown
+
 
 def _one_row_per_isotope(rows):
     """

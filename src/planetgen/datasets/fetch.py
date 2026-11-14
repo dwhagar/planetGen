@@ -29,6 +29,7 @@ serves bytes it built itself, with the sha256 computed from them.
 """
 
 import contextlib
+import functools
 import hashlib
 import http.client
 import json
@@ -41,6 +42,8 @@ import urllib.request
 from dataclasses import dataclass
 
 from planetgen import tuning
+import numpy as np
+
 from planetgen.util import log
 from planetgen.util.user_agent import user_agent
 
@@ -303,11 +306,8 @@ def folder(dataset):
 
 
 def _sha256_of(path):
-    digest = hashlib.sha256()
     with open(path, "rb") as handle:
-        for block in iter(lambda: handle.read(CHUNK_BYTES), b""):
-            digest.update(block)
-    return digest.hexdigest()
+        return _sha256_of_open(handle)
 
 
 _VERIFIED = {}
@@ -416,6 +416,13 @@ def locate(dataset):
         archive = [piece for piece in dataset.pieces if piece.transient] or list(dataset.pieces)
         return Located(dataset, None, reason, tuple((piece, reason) for piece in archive))
     return Located(dataset, where)
+
+
+@functools.lru_cache(maxsize=8)
+def load_arrays(path):
+    """The arrays of the `.npz` file at `path` (a derived file) as a dict by name, read once per process."""
+    with np.load(path) as stored:
+        return {name: np.array(stored[name]) for name in stored.files}
 
 
 class DataMissing(LookupError):

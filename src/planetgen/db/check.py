@@ -367,8 +367,9 @@ def _pointer_orphans(ctx, table, table_column, id_column):
     if not _table_exists(ctx, table):
         return []
     problems = []
+    tables = {t.lower() for t in ctx.tables()}
     for kind in [row["k"] for row in ctx.rows(f"SELECT DISTINCT `{table_column}` AS k FROM `{table}`")]:
-        if kind not in {t.lower() for t in ctx.tables()}:
+        if kind not in tables:
             problems.append(Problem(f"{table} points into {kind!r}, which is not a table."))
             continue
         rows = ctx.rows(
@@ -652,8 +653,7 @@ def scope_of(args):
 
 
 def _config_of(args):
-    named = args["database"]
-    return store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+    return store.MySQLConfig.from_args(args["database"])
 
 
 def _unit(name, args, report):

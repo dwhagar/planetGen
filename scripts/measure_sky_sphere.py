@@ -2,7 +2,7 @@
 # scripts/measure_sky_sphere.py
 
 """
-Times the sphere draw of the star backfill against the cell draw (VIEW.41): `bright_stars.backfill_sphere` against `backfill_cells` over
+Times the sphere draw of the star backfill against the cell draw (VIEW.41): `bright_stars.luminosity_sphere_batches` with `backfill_cells` against `backfill_cells` over
 `enumerate_sectors_within_radius`, band by band, for an observer in the galactic plane.
 
 Read-only: it builds a galaxy shape from a seed in memory and writes no database. Run it as
@@ -46,8 +46,10 @@ def timed_cells(shape, center, radius, edge_pc, e_value, low, high, seed):
 def timed_sphere(shape, center, radius, edge_pc, e_value, low, high, seed):
     """`(seconds, stars)` of the sphere draw of one band."""
     t = time.perf_counter()
-    rows = sorted(bs.backfill_sphere(shape, center, radius, edge_pc, e_value, low, high, seed, mass_range=(None, MASS_LIMIT_SOL)))
-    return time.perf_counter() - t, rows
+    rows = []
+    for addresses, memo in bs.luminosity_sphere_batches(shape, center, radius, edge_pc, e_value, low, high, seed, mass_range=(None, MASS_LIMIT_SOL)):       # TEST.740: backfill_sphere became the walk of the sphere's cells and `backfill_cells`
+        rows.extend(bs.backfill_cells(shape, addresses, edge_pc, e_value, low, high, seed, mass_range=(None, MASS_LIMIT_SOL), memo=memo))
+    return time.perf_counter() - t, sorted(rows)
 
 
 def main(argv=None):

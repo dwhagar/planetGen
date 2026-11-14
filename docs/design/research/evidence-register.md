@@ -46,3 +46,4 @@ The note says what the source saw, so the next reader can check it. A row's owne
 | 6.238:UC16 | predicted only | predicted or computed only; nobody has seen it |
 | 6.238:UC17 | predicted only | predicted or computed only; nobody has seen it |
 | 6.238:UC18 | predicted only | predicted or computed only; nobody has seen it |
+| 6.287:AF1 | observed in a lab | the freezing points the curve is read from are laboratory measurements (Gable, Betz and Maron; Kunzler and Giauque) |

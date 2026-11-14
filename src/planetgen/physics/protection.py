@@ -18,7 +18,6 @@ and solar-storm doses need a shelter, not a suit.
 Everything here is a pure function of a `habitability.World`.
 """
 
-from dataclasses import replace
 
 from planetgen.physics import atmosphere, equipment, habitability, latitude_bands, regional_temperature
 from planetgen.physics.habitability import (
@@ -113,11 +112,11 @@ def air_need(world):
         need = ("mask", "a breathing mask with supplied oxygen", reaches)
     elif o2 > limit("inspired_o2_chronic_kpa"):
         need = ("suit", "an environment suit with its own air", f"{_kpa(o2)} of oxygen reaches the lungs, more than months of breathing allow")
-    too_much = [(gas, kpa) for gas, kpa, band in gas_inputs(world) if habitability.band_score(kpa, band, log=True) < 1.0]
+    scores = [(gas, habitability.band_score(kpa, band, log=True)) for gas, kpa, band in gas_inputs(world)]
+    too_much = [gas for gas, score in scores if score < 1.0]
     if too_much:
-        names = join_words(_gas(gas) for gas, _kpa_value in too_much)
-        worst_score = min(habitability.band_score(kpa, band, log=True) for _g, kpa, band in gas_inputs(world))
-        if worst_score < 0.4:
+        names = join_words(_gas(gas) for gas in too_much)
+        if min(score for _gas_name, score in scores) < 0.4:
             return "suit", "an environment suit with its own air", f"{names} is far past what a filter can take out"
         if need[0] in ("none", "mask"):
             return "scrubber", "a mask with a scrubber", f"{names} is above its long-term limit"

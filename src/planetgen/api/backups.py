@@ -56,6 +56,12 @@ def _archive_view(archive):
     }
 
 
+def _refused_view(errors):
+    """`settings._view`'s shape for a plan that could not be made: nothing changed, `errors` say why."""
+    return {"ok": False, "changes": [], "errors": errors, "shadowed": {}, "restart": [],
+            "file_hash": settings_writer.file_hash(), "saved": False, "backup": None, "audit_errors": []}
+
+
 def _can_download():
     return config_routes.writer_role() in ("owner", "host")
 
@@ -112,8 +118,7 @@ def show_backup(name):
         try:
             diff = config_routes._view(settings_writer.plan_restore(name, role=config_routes.writer_role()))
         except settings_writer.SettingsWriteError as exc:
-            diff = {"ok": False, "changes": [], "errors": {"": str(exc)}, "shadowed": {}, "restart": [],
-                    "file_hash": settings_writer.file_hash(), "saved": False, "backup": None, "audit_errors": []}
+            diff = _refused_view({"": str(exc)})
     return jsonify({"archive": _archive_view(archive), "verified": checked.ok, "problems": checked.problems,
                     "diff": diff, "can_download": _can_download(), "file_hash": settings_writer.file_hash()})
 
@@ -175,9 +180,7 @@ def import_settings():
     body = parse_body(SettingsImport, require_json_body())
     changes, errors = settings_writer.import_changes(body.document, role=config_routes.writer_role())
     if errors:
-        return jsonify({"ok": False, "changes": [], "errors": errors, "shadowed": {}, "restart": [],
-                        "file_hash": settings_writer.file_hash(), "saved": False, "backup": None,
-                        "audit_errors": [], "request": {}})
+        return jsonify({**_refused_view(errors), "request": {}})
     try:
         if body.check_only:
             result = settings_writer.plan(changes, role=config_routes.writer_role())

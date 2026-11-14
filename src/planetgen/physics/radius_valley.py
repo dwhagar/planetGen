@@ -42,6 +42,7 @@ from typing import NamedTuple
 from planetgen.physics import bulk_structure, envelope_capture, envelope_escape, kepler_recovery
 from planetgen.physics import constants as physical_constants
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 PLANETS = 4000
 """int: Planets per survey."""
@@ -77,7 +78,7 @@ MIN_PLANETS_PER_BIN = 40
 
 G = physical_constants.G
 M_EARTH = physical_constants.EARTH_MASS_TO_KG
-R_EARTH = physical_constants.EARTH_RADIUS_KM * 1000.0
+R_EARTH = physical_constants.EARTH_RADIUS_M
 M_SUN = physical_constants.SOLAR_MASS_TO_KG
 R_SUN = physical_constants.SOLAR_RADIUS_M
 MAX_RADIUS_RATIO = 0.07
@@ -99,7 +100,7 @@ class Candidate(NamedTuple):
 def planet(f_env0, host_range=HOST_MASS_RANGE_SOLAR):
     """One planet of the survey, drawn: a `Candidate`."""
     host = draw.uniform(*host_range)
-    period = math.exp(draw.uniform(math.log(PERIOD_RANGE_D[0]), math.log(PERIOD_RANGE_D[1])))
+    period = log_uniform(*PERIOD_RANGE_D)
     core_mass = CORE_MASS_MEDIAN_EARTH * math.exp(CORE_MASS_SIGMA * draw.gauss())
     start = min(f_env0 * math.exp(ENVELOPE_SIGMA * draw.gauss()), envelope_escape.MAX_ENVELOPE)
     a_au = (G * host * M_SUN * (period * 86400.0) ** 2 / (4.0 * math.pi ** 2)) ** (1.0 / 3.0) / AU

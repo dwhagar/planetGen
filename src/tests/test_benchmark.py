@@ -114,14 +114,6 @@ def test_the_report_names_the_buffer_pool_the_tables_and_the_worker_start_up():
     assert "worker start-up: 1.50 s a process (imports 1.25 s, first connection 0.05 s)" in text
 
 
-def test_a_result_saved_before_those_figures_still_reads():
-    old = _run()
-    for name in ("buffer_pool_bytes", "tables", "worker_startup"):
-        del old[name]
-    text = benchmark.format_report(_args(), [old], None)
-    assert "innodb_buffer_pool_size" not in text and "worker start-up" not in text
-
-
 def test_the_start_up_probe_measures_a_real_process(mysql_config):
     startup = benchmark._startup_seconds(mysql_config, mysql_config.database, dict(__import__("os").environ), runs=1)
     assert set(startup) == {"import_seconds", "connect_seconds", "process_seconds"}

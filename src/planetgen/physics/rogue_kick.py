@@ -126,10 +126,6 @@ def closest_approach_m(u, host_mass_kg, distance_au, planet_mass_kg, ejected_mas
     return hill * _closest_approach_median_hill(planet_mass_kg) * math.exp(CLOSEST_APPROACH_SIGMA_LN * z)
 
 
-
-
-
-
 def isotropic_direction(u_cos, u_phi):
     """A direction uniform on the sphere `(outward, along the rotation, up)` from two uniform numbers, 0 to 1."""
     if not (0.0 <= u_cos <= 1.0 and 0.0 <= u_phi <= 1.0):

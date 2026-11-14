@@ -22,6 +22,7 @@ from bisect import bisect_left, bisect_right
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import (
+    block_key_parts,
     STAGE_LEVELS, DrillBlock, block_radius, cell_colatitude, drill_band_count, drill_wedge_count, format_drill_key,
     stage_parent,
 )
@@ -45,13 +46,7 @@ def parse_window_key(key):
     Raises:
         ValueError: On anything else.
     """
-    parts = str(key or "").split(".")
-    if len(parts) != 4:
-        raise ValueError(f"not a block key: {key!r}")
-    try:
-        m, shell, band, wedge = (int(p) for p in parts)
-    except ValueError:
-        raise ValueError(f"not a block key: {key!r}") from None
+    m, shell, band, wedge = block_key_parts(key)
     if m not in STAGE_LEVELS:
         raise ValueError(f"block size must be one of {STAGE_LEVELS}, got {m}")
     if shell < 0:
@@ -146,6 +141,9 @@ def _wedge_candidates(count, lon0, half_width):
     return sorted({w % count for w in range(first, last + 1)})
 
 
+def _angle(cosine):
+    """The angle whose cosine is `cosine`, clamped to [0, pi]."""
+    return math.pi if cosine <= -1 else (0.0 if cosine >= 1 else math.acos(cosine))
 def cells_in_ball(m, center_pc, reach_pc, edge_pc):
     """
     The cells of level `m` (a block size, or 1 for sectors) whose center lies
@@ -162,7 +160,7 @@ def cells_in_ball(m, center_pc, reach_pc, edge_pc):
             psi, cos_need = math.pi, -1.0
         else:
             cos_need = (radius * radius + rho0 * rho0 - reach_pc * reach_pc) / (2 * radius * rho0)
-            psi = math.pi if cos_need <= -1 else (0.0 if cos_need >= 1 else math.acos(cos_need))
+            psi = _angle(cos_need)
         # Block rows are wide: look one row's width beyond the cap for rows whose center may still be inside.
         slack = math.pi / drill_band_count(m, shell) if m > 1 else math.pi / max(1, spherical.band_range(shell)[1] * 2 + 1)
         for band, colat in _bands(m, shell, theta0 - psi - slack, theta0 + psi + slack):
@@ -172,7 +170,7 @@ def cells_in_ball(m, center_pc, reach_pc, edge_pc):
                 wedges = range(count)
             else:
                 cos_lon = (cos_need - math.cos(colat) * math.cos(theta0)) / denominator
-                half = math.pi if cos_lon <= -1 else (0.0 if cos_lon >= 1 else math.acos(cos_lon))
+                half = _angle(cos_lon)
                 step = TWO_PI / count
                 wedges = _wedge_candidates(count, lon0, half + step)
             for wedge in wedges:

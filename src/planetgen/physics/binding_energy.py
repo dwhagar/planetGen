@@ -38,9 +38,9 @@ Use:
 
 from planetgen.physics import constants, interior_heat
 from planetgen.physics import unit_registry as units
+from planetgen.util.checks import finite_domain
 
 _kg_to_msun = units.converter("kg", "Msun")
-from planetgen.util.checks import finite_domain
 
 INFINITE = -1.0
 """float: What a black hole stores for its binding energy: -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30). Never a real energy, which is always above zero."""

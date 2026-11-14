@@ -31,7 +31,7 @@ from planetgen.web.lib import xfetch
 from planetgen._version import __version__
 
 from .authz import audit, require_admin
-from .common import ApiError, get_control_db, require_json_body
+from .common import ApiError, get_control_db, iso_utc, require_json_body
 from .loginguard import with_store
 from .version import API_VERSION
 from .schemas import LockoutLift, NamingKeyChange, parse_body
@@ -98,8 +98,6 @@ def _redis_health():
 def _database_disk(conn, config):
     """The drive holding the database's data directory (never the boot drive, unless the data is there),
     for the stats page: `{"measured", "path", "mount", "total_bytes", "free_bytes", "source", "note"}`."""
-    from planetgen.generation import stats as generationStats
-
     disk = generationStats.database_disk(conn, config.host, config.database)
     if isinstance(disk, generationStats.DiskSpace):
         return {"measured": True, "path": disk.path, "mount": disk.mount, "where": disk.where(),
@@ -158,7 +156,8 @@ def stats():
     instead of an error page.
     """
     started = time.perf_counter()
-    db_name = _resolve_requested_db_config().database
+    config = _resolve_requested_db_config()
+    db_name = config.database
     body = {"api": _api_process_info(), "mysql": None, "database": {"name": db_name, "reachable": False},
             "redis": _redis_health()}
 
@@ -171,7 +170,6 @@ def stats():
         return jsonify(body)
 
     body["mysql"] = adminStats.server_info(conn)
-    config = _resolve_requested_db_config()
     body["database"] = _DATABASE_FIGURES.get_or_build(db_name, lambda: _database_figures(conn, config, db_name))
     body["query_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return jsonify(body)
@@ -203,8 +201,7 @@ def login_failures():
     rows = auth.recent_login_failures(get_control_db(), limit=limit)
     return jsonify({"items": [{
         **row,
-        # UTC (the connection's zone), with an explicit offset.
-        "created_at": row["created_at"].isoformat() + "Z" if row["created_at"] else None,
+        "created_at": iso_utc(row["created_at"]),
     } for row in rows]})
 
 
@@ -291,13 +288,13 @@ def reset_generation_stats():
 
 
 def _naming_view(database, stored):
+    stored = stored or {}
     return {
-        "database": database, "key": stored["key"] if stored else None,
-        "codec_version": stored["codec_version"] if stored else None,
+        "database": database, "key": stored.get("key"), "codec_version": stored.get("codec_version"),
         "current_codec_version": naming_key.CODEC_VERSION,
-        "drawn_at": stored["drawn_at"].isoformat() if stored and stored["drawn_at"] else None,
-        "changed_at": stored["changed_at"].isoformat() if stored and stored["changed_at"] else None,
-        "changed_by": stored["changed_by"] if stored else None,
+        "drawn_at": stored["drawn_at"].isoformat() if stored.get("drawn_at") else None,
+        "changed_at": stored["changed_at"].isoformat() if stored.get("changed_at") else None,
+        "changed_by": stored.get("changed_by"),
     }
 
 
