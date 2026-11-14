@@ -70,6 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
+from planetgen.db import statementmark
 from planetgen.db import alembic_runner, batched, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
@@ -974,7 +975,8 @@ class Connection:
         traced = log.debug_log_active()
         start = time.perf_counter()
         try:
-            cur.execute(sql.replace("?", "%s"), params)
+            with statementmark.statement(sql):
+                cur.execute(sql.replace("?", "%s"), params)
         except Exception as exc:
             if isinstance(exc, pymysql.err.OperationalError) and exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
                 # PERF.64: the page only says "took too long"; the log says which statement.
@@ -1127,13 +1129,15 @@ class Connection:
                         1153, f"A {table} row of {row_size} bytes doesn't fit the server's "
                               f"max_allowed_packet ({budget + _PACKET_MARGIN} bytes); nothing was sent for it")
                 if chunk and (len(chunk) >= _BATCH_ROWS or size + row_size > budget):
-                    cur.execute(head + ",".join(chunk))
+                    with statementmark.statement(head):
+                        cur.execute(head + ",".join(chunk))
                     statements += 1
                     chunk, size = [], len(head)
                 chunk.append(text)
                 size += row_size
             if chunk:
-                cur.execute(head + ",".join(chunk))
+                with statementmark.statement(head):
+                    cur.execute(head + ",".join(chunk))
                 statements += 1
         if log.debug_log_active():
             log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
@@ -1153,7 +1157,8 @@ class Connection:
         cur = self._conn.cursor()
         rows = list(seq_of_params)
         start = time.perf_counter()
-        cur.executemany(sql.replace("?", "%s"), rows)
+        with statementmark.statement(sql):
+            cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
             log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
                       f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
@@ -1168,7 +1173,8 @@ class Connection:
         self.flush()
         cur = self._conn.cursor()
         start = time.perf_counter()
-        cur.execute(sql)
+        with statementmark.statement(sql):
+            cur.execute(sql)
         if log.debug_log_active():
             log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
                       area="sql", stacklevel=3)
@@ -1196,7 +1202,8 @@ class Connection:
             if statement:
                 if log.debug_log_active():
                     log.trace(f"SQL script statement: {statement[:200]}", area="sql")
-                self._conn.cursor().execute(statement)
+                with statementmark.statement(statement):
+                    self._conn.cursor().execute(statement)
         self._conn.commit()
 
     def lock_until_commit(self, name, timeout_s=NAMED_LOCK_TIMEOUT_S):

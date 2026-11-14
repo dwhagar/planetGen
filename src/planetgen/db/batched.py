@@ -15,7 +15,7 @@ works never looks quiet.
 from planetgen.util import ticker
 
 BATCH_ROWS = 100_000
-"""int: How many rows one batch of `repeat` changes before it commits and says where it is (stand-in BAT1: a few seconds of a statement on the tables of a
+"""int: How many rows one batch of `repeat` changes before it commits and says where it is (defined by the program, not a physical value: a few seconds of a statement on the tables of a
 real galaxy, short enough that a reader of the table never waits and long enough that the commits are no cost)."""
 
 

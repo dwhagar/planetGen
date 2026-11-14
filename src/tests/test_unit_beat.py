@@ -159,6 +159,49 @@ def test_code_deep_in_a_unit_tags_a_wait_through_the_module_and_does_nothing_out
     assert unitbeat._current is None
 
 
+def test_the_record_carries_the_evidence_of_work_besides_the_counter(conn, run_id):
+    """OPS.193: processor seconds, bytes read and written, and the statement the unit is in, so a unit that does not move its counter can still be seen to work."""
+    from planetgen.db import statementmark
+    beat = unitbeat.UnitBeat(conn, run_id, 0, 0)
+    quiet = beat.record()
+    assert quiet["cpu_s"] >= 0.0 and quiet["io_read"] >= 0 and quiet["io_write"] >= 0
+    assert "sql" not in quiet and "sql_since" not in quiet, "no statement out, no field"
+    sum(n * n for n in range(300_000))
+    with statementmark.labelled("clear the scatter"), statementmark.statement("DELETE FROM scatter_masses"):
+        busy = beat.record()
+    assert busy["sql"] == "clear the scatter"
+    assert busy["beat"] - 5.0 < busy["sql_since"] <= busy["beat"], "the statement began on the server clock, a moment before the beat"
+    assert busy["cpu_s"] >= quiet["cpu_s"]
+    with statementmark.statement("SELECT   1\n  FROM dual"):
+        assert beat.record()["sql"] == "SELECT 1 FROM dual"
+    assert statementmark.running() is None
+
+
+def test_the_statement_mark_names_the_longest_running_statement_and_clears_on_error():
+    from planetgen.db import statementmark
+    seen = []
+
+    def other():
+        with statementmark.statement("UPDATE b SET x = 1"):
+            seen.append(statementmark.running())
+            gate.wait(5)
+
+    gate = threading.Event()
+    with pytest.raises(RuntimeError):
+        with statementmark.statement("SELECT 1"):
+            thread = threading.Thread(target=other)
+            thread.start()
+            while not seen:
+                time.sleep(0.01)
+            assert statementmark.running()[0] == "SELECT 1", "the one that has waited longest"
+            raise RuntimeError("boom")
+    assert statementmark.running()[0] == "UPDATE b SET x = 1"
+    gate.set()
+    thread.join()
+    assert statementmark.running() is None
+    assert len(statementmark.shorten("x " * 100)) == statementmark.LABEL_CHARS
+
+
 def test_progress_the_counter_does_not_show_starts_the_quiet_clock_again(conn, run_id):
     """OPS.184: a phase that counts only its cases, with sampling tables worked out inside one, tells the heartbeat it moves."""
     clock = [100.0]
@@ -171,3 +214,25 @@ def test_progress_the_counter_does_not_show_starts_the_quiet_clock_again(conn, r
         assert beat.record()["moved"] == pytest.approx(beat.record()["beat"], abs=1.0)
         assert beat.longest_gap() >= 300.0
     unitbeat.moving()                           # outside a unit: nothing happens
+
+def test_the_record_says_when_the_evidence_last_moved(conn, run_id, monkeypatch):
+    """OPS.194: `active` is absent until the processor time or bytes move by more than a beat's own use, or a statement is out; it then ages with the clock."""
+    from planetgen.db import statementmark
+    clock = _Clock()
+    figures = {"cpu_s": 1.0, "io_read": 1000, "io_write": 1000}
+    monkeypatch.setattr(unitbeat, "evidence", lambda now: dict(figures))
+    beat = unitbeat.UnitBeat(conn, run_id, 0, 0, clock=clock)
+    assert "active" not in beat.record(), "the first look has nothing to compare with"
+    clock.now += 10.0
+    figures["io_read"] += 300
+    assert "active" not in beat.record(), "a beat's own few hundred bytes are not work"
+    clock.now += 10.0
+    figures["cpu_s"] += 0.5
+    assert beat.record()["active"] == pytest.approx(beat.record()["beat"], abs=0.5)
+    clock.now += 30.0
+    still = beat.record()
+    assert still["beat"] - still["active"] == pytest.approx(30.0, abs=0.5), "no new work: the stamp ages"
+    clock.now += 5.0
+    figures["sql"] = "SELECT 1"
+    assert beat.record()["beat"] - beat.record()["active"] == pytest.approx(0.0, abs=0.5), "a statement out is work"
+    assert unitbeat.beat_of(beat.record()).active is not None
