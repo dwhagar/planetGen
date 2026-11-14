@@ -14,9 +14,9 @@ surface, and the sinks that take gas back.
   drawn). `PROCESSING_ENERGY_J_PER_KG` is the one calibrated number: it makes an Earth twin of the interior model give the surface
   carbon of the Earth (1e22 mol), and Venus (about the same carbon in its air) is the check.
 * *Carbonate-silicate cycle.* With liquid water at the surface, silicate weathering and volcanic outgassing balance
-  [R4596]; the continental law of [R2628] (PMC7708846) with their ranges
-  gives the CO2 pressure of the balance (`carbonate_pco2_bar`). The temperature depends on the pressure through the greenhouse, so
-  the caller passes it as a function.
+  [R4596]; the land law of [R2628] with the limits of [R2875] and the seafloor sink (`continental_weathering`, GEN.1713) gives the
+  CO2 pressure of the balance, and `balance_root_bar` finds it for every sink. The temperature depends on the pressure through the
+  greenhouse, so the caller passes it as a function.
 * *Ocean.* Water vapor is capped by the saturation pressure and sulfur gases are taken up by an ocean; both are the callers' (they
   have the temperature).
 
@@ -65,12 +65,6 @@ DEGAS_EFFICIENCY_HALOGEN = (0.05, 0.5, "log")
 with the water (GEN.524 part 2). Stand-in, tier 6 (a marginal educated guess, the bracket of hydrogen's)."""
 
 # --- the carbonate-silicate cycle -------------------------------------------------------------------------------------------
-
-WEATHERING_ALPHA = (0.1, 0.5, "uniform")
-"""tuple: The exponent of the CO2 pressure in the silicate weathering rate ([R2628: Table 1], geologic constraints)."""
-
-WEATHERING_T_E_K = (10.0, 40.0, "uniform")
-"""tuple: The e-folding temperature of the weathering rate, K ([R2628: Table 1], laboratory and Phanerozoic constraints)."""
 
 OUTGASSING_EXPONENT = (1.0, 2.0, "uniform")
 """tuple: The exponent of the heat flow in the volcanic outgassing flux ([R2628: Table 1])."""
@@ -141,47 +135,25 @@ def air_mass_kg(pressure_pa_, gravity_m_s2, radius_m):
     return pressure_pa_ * 4.0 * math.pi * radius_m ** 2 / gravity_m_s2
 
 
-def draw_cycle(constants):
-    """`(alpha, t_e_k, m)` of the weathering law, drawn and recorded in `constants`."""
-    return (bracket(constants, "weathering_alpha", WEATHERING_ALPHA), bracket(constants, "weathering_t_e_k", WEATHERING_T_E_K),
-            bracket(constants, "outgassing_exponent", OUTGASSING_EXPONENT))
-
-
-def carbonate_pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_of, alpha, t_e_k, exponent):
+def balance_root_bar(supply_bar, excess):
     """
-    The CO2 pressure at which silicate weathering takes as much as the volcanoes give (the stable root).
-
-    The weathering rate is `rho f_land (p / p_mod)^alpha exp((Ts - Ts_mod) / T_e)` ([R2628: Eq. 4]) and the outgassing
-    `F_mod (q / q_E)^m`; both scale with the area, so it cancels, and the Earth is the steady state at `p_mod` and `Ts_mod` by
-    construction. The surface temperature `Ts(p)` rises with the pressure, so the weathering rate does too and the root is unique.
+    The CO2 pressure at which a sink takes as much as the volcanoes give (the stable root), for every sink of the carbonate cycle.
 
     Args:
-        supply_bar (float): The CO2 the volcanoes have delivered, as a pressure: all of it if weathering cannot keep up.
-        heat_flux_w_m2 (float): The body's heat flow `q`.
-        land_fraction (float): The share of the surface above sea level.
-        temperature_of (callable): `Ts(p_bar)`, the surface temperature with that much CO2 in the air.
-        alpha, t_e_k, exponent (float): The law's draws (`draw_cycle`).
+        supply_bar (float): The CO2 the volcanoes have delivered, as a pressure: all of it if the sink cannot keep up.
+        excess (callable): `excess(p_bar)`, the sink's rate minus the outgassing, in units of the modern outgassing; it rises with the pressure
+            (the surface temperature is held, so every sink rises with the CO2 in the air, or stays level).
 
     Returns:
-        float: The CO2 pressure, bar: at most `supply_bar` (a world with little CO2 has it all taken to the floor of weathering
-        only when the rate there exceeds the outgassing).
+        float: The CO2 pressure, bar: at most `supply_bar`; the floor `MIN_PCO2_BAR` when the sink takes everything even at the floor.
     """
     if supply_bar <= MIN_PCO2_BAR:
         return max(supply_bar, 0.0)
-    outgassing = max(heat_flux_w_m2 / HEAT_FLUX_EARTH_W_M2, 0.0) ** exponent
-    land = max(land_fraction / LAND_FRACTION_EARTH, 1e-6)
-
-    def excess(p_bar):
-        weathering = land * (p_bar / CO2_MODERN_BAR) ** alpha * math.exp((temperature_of(p_bar) - TS_MODERN_K) / t_e_k)
-        return weathering - outgassing
-
-    if outgassing <= 0.0:
-        return MIN_PCO2_BAR
     if excess(supply_bar) <= 0.0:
         return supply_bar
-    low, high = math.log(MIN_PCO2_BAR), math.log(supply_bar)
     if excess(MIN_PCO2_BAR) >= 0.0:
         return MIN_PCO2_BAR
+    low, high = math.log(MIN_PCO2_BAR), math.log(supply_bar)
     for _ in range(80):
         middle = 0.5 * (low + high)
         if excess(math.exp(middle)) > 0.0:
