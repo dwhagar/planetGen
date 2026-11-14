@@ -1792,7 +1792,7 @@ def _irregular_attrs(row):
     return {
         "kind": "irregular", "id": held["rank"], "name": row["name"], "bodytype": f"Irregular moon, {'backward' if held['retrograde'] else 'forward'}",
         "radius": to_plain_text(format_body_radius(row["radius_km"])), "mass": to_plain_text(format_mass(row["mass_kg"])),
-        "distance": to_plain_text(format_body_distance(row["distance_km"], True)), "period": format_period(row["period_years"]),
+        "distance": to_plain_text(format_body_distance(row["distance_km"])), "period": format_period(row["period_years"]),
         "caught": _IRREGULAR_WINDOWS.get(held["window"], held["window"]),
         "composition": ", ".join(f"{part} {held[part + '_fraction'] * 100:.3g} percent" for part in ("rock", "metal", "water", "ice") if held[part + "_fraction"] > 0.0),
         "parent": row["_parent_name"], "xkm": row["position_x_km"], "ykm": row["position_y_km"], "radiuskm": row["radius_km"], "masskg": row["mass_kg"],
