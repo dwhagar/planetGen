@@ -9,7 +9,8 @@ what comes out held against a stored baseline, so a change to the air, water, li
 
 The analog: a generated G2V system (seed 4001) supplies a rocky planet object; the star is set to the Sun (1 Msun, 3.828e26 W, 5772 K, age `--age`, default 4.6 Gy, snow line 2.7 AU) and
 the planet to Earth (late accretion 0.7 percent, `impact_history.LATE_ACCRETED_PERCENT_EARTH`; 5.972e24 kg, 6371 km, 1 g, 5514 kg/m3, 1 AU, e 0.0167, metal 0.32, tilt 23.4, day 24 h). Each trial draws the bulk water, then calls
-`planets.calculate_atmospheric_conditions`, `planets.apply_class`, `life.apply_life_data` and `planets.apply_class` as the system build does, on its own draw seed `BLOCK * 100000 + i`.
+the system's own steps in the generator's order (`_generate`: the air, the prepared class, then the tail of `planets.generate_spin`: day and night, field, dose, colour, score; then `StarSystem._finish_planet`: the thermal
+history, the final-age refresh, the class, the star's induced field, the life, which classes the body again itself) on a fresh copy of the planet, on its own draw seed `BLOCK * 100000 + i` (TEST.739; `test_earth_analog.py` holds the order to the generator's source).
 `--water` is `sample` (default: `delivered_water.sample_fraction` at 1 AU and a 2.7 AU snow line), a Bern class (`low`, `high`, `dry`, `rich`), or a fixed bulk water mass fraction.
 
 The comparison is paired: trial i draws the same seed in the baseline and now, so with no change to the generator every trial comes out the same and the table shows no movement. It
@@ -80,17 +81,39 @@ def _water(water):
     return float(water)
 
 
+def _generate(planet):
+    """The steps the generator runs on a rocky planet, in its order, on one body (TEST.739): `Planet.__init__` (the air, the prepared class), the tail of `planets.generate_spin` (the spin itself is held at the Earth's), then
+    `StarSystem._finish_planet`. The light the life step reads (`energy_flux_w_m2`) is written by the dose and score steps, so the order is the result. `test_earth_analog.py` compares these calls with the generator's source."""
+    from planetgen.generation import life
+    from planetgen.physics import body_colour, daylight, habitability_world, interior_heat, magnetism, planets, radiation
+
+    planets.calculate_atmospheric_conditions(planet)
+    planets.prepare_class(planet)
+    daylight.generate(planet)
+    magnetism.generate_field(planet, interior_heat.core_of(planet))
+    radiation.generate_dose(planet)
+    body_colour.generate(planet)
+    habitability_world.generate(planet, planets.internal_heat_flux_w_m2(planet))
+    interior_heat.update_heat(planet)
+    planets.refresh_at_final_age(planet)
+    planets.apply_class(planet)
+    magnetism.generate_stellar_induction(planet)
+    life.apply_life_data(planet)
+
+
 def trials(block, start, count, age_gy=AGE_GY, water="sample", full=False):
     """Trials `start` to `start + count - 1` of `block` as rows. A row holds the water, the class, the hydrosphere, the temperature (K), the pressure (Pa), the ocean cover, the life
     class and the groups of Class M's conditions that fail; `full` adds the classifier's quantities (the form of `run`). A trial that raises holds `error`."""
-    from planetgen.generation import life
-    from planetgen.physics import atmosphere, class_fit, planets
+    import copy
+
+    from planetgen.physics import atmosphere, class_fit
     from planetgen.util import draw
 
-    planet, class_m = _setup(age_gy)
+    planet0, class_m = _setup(age_gy)
     to_group = {quantity: group for group, quantities in GROUPS.items() for quantity in quantities}
     rows = []
     for i in range(start, start + count):
+        planet = copy.deepcopy(planet0)      # a fresh body per trial: nothing of the trial before is left on it
         with draw.bound(block * 100000 + i):
             planet.water_mass_fraction = _water(water)
             planet.__dict__.pop("_formation_fractions", None)
@@ -98,10 +121,7 @@ def trials(block, start, count, age_gy=AGE_GY, water="sample", full=False):
             planet.rock_mass_fraction = 1 - 0.32 - planet.water_mass_fraction
             row = {"i": i, "w": planet.water_mass_fraction}
             try:
-                planets.calculate_atmospheric_conditions(planet)
-                planets.apply_class(planet)
-                life.apply_life_data(planet)
-                planets.apply_class(planet)
+                _generate(planet)
             except Exception as error:      # a trial that raises is a finding, kept in the row
                 row["error"] = f"{type(error).__name__}: {error}"[:120]
                 rows.append(row)
