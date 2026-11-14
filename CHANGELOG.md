@@ -2,6 +2,22 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4147] - 2026-11-14
+
+**Headline:** Adding sectors to a galaxy that was only planned (no star scatter yet) no longer crashes at the backfill step.
+
+### Fixed
+- **Add sectors after a plan-and-stop crashed the backfill (OPS.256).** The backfill's expansion costed the sky tiers (`run_galaxy._sky_units`, `sky_charting.cost_rings`) from the galaxy's scatter limits, and a galaxy with no star scatter has none, so the luminosity ceiling was 0.0 and the draw raised `luminosity threshold 0.0 Lsun must be at least the brightest white dwarf`. `run_galaxy.expand_backfill_bright_stars` now leaves the sky out when no scatter ran (there is no level to chart a sky under), plans the sectors' own backfill as before, and the run's log says "No sky tiers are drawn" with the reason. A sky is drawn by a later backfill once a scatter has run.
+
+## [8.0.4146] - 2026-11-14
+
+**Headline:** A New galaxy run on an empty database no longer spends minutes clearing what is not there.
+
+### Fixed
+- **OPS.254 (bug), output unchanged.** The reset step of a New galaxy (`planetgen reset`, the Generate page) truncated all 111 tables, 36 seconds on Boss's run, when one held a row. It now leaves a table alone that holds no row and whose id counter was never used, and still truncates a table that holds rows or whose counter has moved, so the next galaxy numbers from 1 as before. "Clear the earlier bright stars" (129 seconds on that run, with no bright star to clear) now reads five things and leaves when `bright_stars` is empty and unused and the scatter's threshold, seed, mass limit and epochs are not recorded (`store.bright_stars_hold_nothing`); a clear that has something to clear runs every step as before, with the `TRUNCATE` of `bright_stars` last so a clear that was stopped half way is done again in full.
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4145] - 2026-11-14
 
 **Headline:** The sources named in notes, docs and code are now cited by their registry IDs, so the citation and constants checks pass again.
