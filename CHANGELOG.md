@@ -2,6 +2,77 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4166] - 2026-11-14
+
+**Headline:** The habitability re-score and the effect ledger refill now run on the engine's loop, one system a piece, so their bars count systems and a cancel or a pause lands between two systems.
+
+### Changed
+
+- OPS.201: `rescore-habitability` and `refill-effect-ledger` move from their own unit functions to `pieces` and `do` (OPS.191): `rescore_habitability_pieces` and `refill_effect_ledger_pieces` list the systems of the unit's id range that are stale (every system with `all`), and `rescore_habitability_piece` and `refill_effect_ledger_piece` do one system each, in its own transaction at READ COMMITTED, committed through `ctx.commit()`. The unit's result is the same dict as before (`updated`, `ids`, `systems`, from `stale_systems_result`). What changes for a person: the unit's bar counts systems (it used to move every hundred), a cancel is honoured after the system in hand instead of after the whole range, and a run stopped in the middle keeps the systems it finished, which the next run skips because their stamps are current. A deadlock or lock wait timeout (PERF.228) now starts one system over instead of the whole range. The old unit functions are deleted, with the free-text line the unit wrote in step with its own count; the line naming the range stays until the second level of the beat (OPS.192) takes it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4165] - 2026-11-14
+
+**Headline:** every way a generation job starts now takes the 30-day job limit.
+
+### Fixed
+
+- OPS.255: OPS.255: every command of the generator in a Generate job (finish the last run, sector, system, warm, check-db, backfill and the rest, not only galaxy, plan and run-job) takes the 30-day RQ ceiling, so no way of starting a run on the queue is ended by a clock of a smaller galaxy's recorded time.
+
+## [8.0.4164] - 2026-11-14
+
+**Headline:** a galaxy run that starts with a database wipe no longer clears scatters that hold nothing.
+
+### Changed
+
+- OPS.257: A galaxy run that starts with a database wipe no longer clears the scatters: a clearing stage whose target holds nothing (the phenomena and the nebula field) is left out of the plan and listed as skipped, by every route (the web's New galaxy, the CLI scatter and galaxy, run-job). The bright-star clear stays, since it stores the scatter's limits, and finds nothing to clear in a few reads.
+
+## [8.0.4163] - 2026-11-14
+
+**Headline:** A command can now hand the queue its pieces and let the engine run the loop, so the count, the stop and the pause between two pieces are the same for every command that does.
+
+### Changed
+
+- OPS.191: `commands.CommandSpec` gains `pieces(params, cursor)` (the list of the pieces of one unit after a cursor) and `do(params, piece, ctx)` (one piece), and `gather(params, results)` for a unit whose result is not the list of its pieces' results. The new `queue/engine.py` runs the loop for such a command: it writes pieces done of pieces in all into the unit's beat before the first piece and after each, ends the unit between two pieces when the run is canceled or ended (`units._do_unit` leaves such a unit undone and says so in the debug log), and holds it between two pieces while the queues are paused, shown on the Queue page as waiting on `pause` (a solo hold lets its own unit through). Every piece is handed `ctx`: the unit's database connection (opened on first use, closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (OPS.195's `longsql.run`) and `ctx.moving()`. A converted command commits only through `ctx.commit()`, a plain commit until the ledger stores the cursor (OPS.219).
+- No command is converted yet: each runs as before until the item of its family lands. `commands.run_alone` goes through the engine, which runs a command with its own `unit` function exactly as it did.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4162] - 2026-11-14
+
+**Headline:** The three spreads of a trojan swarm now come from the Jupiter and Neptune Trojans, and a tadpole orbit is no longer cut at the wrong angle; nothing in the generator draws a swarm yet.
+
+### Changed
+
+- GEN.1643 (slice 1): `trojan_swarm.LIBRATION_SIGMA_DEG` 10 to 13 degrees (the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration, 13.0; the Neptune Trojans give 12 to 15). `ECC_SIGMA` 0.06 and `INCLINATION_SIGMA_DEG` 12 stay (the fit gives 0.058 and 11.7). Stand-ins TJ9 (tier T2, tweak L2), TJ10 and TJ11 (T2, L1) leave the burn-down register. Fit: `scripts/fit_trojan_scales.py`; report `reports/gen1643-trojan-scales-2026-11-12.md`.
+- GEN.1647: `trojans.TADPOLE_LIMIT_DEG` was 23.9, which is the nearest a tadpole comes to the secondary, not a libration amplitude. It is now the amplitude at the edge of the tadpole zone, (180 - 23.9) / 2 = 78.05 degrees, derived from the new `TADPOLE_NEAREST_APPROACH_DEG` 23.9; the swarm draw is cut at it and `trojans.motion` splits tadpole from horseshoe at it. With it the generated mean amplitude is 16.3 degrees against the Jupiter Trojans' 16.2, and about a fifth of the bodies librate wider than 23.9 degrees, as the real ones do. Row TJ3 of section 6.121 is corrected.
+- `trojan_swarm.draw_regions` and `trojans.motion` are read by no generation step yet (GEN.1151 wires the swarm), so no planet, moon or swarm in the output moves.
+
+generation-output: unchanged
+
+## [8.0.4161] - 2026-11-14
+
+**Headline:** The System Map now draws a planet's irregular moons on their own tilted, stretched orbits, many going backward, with an info panel and a link to each body's page.
+
+### Changed
+
+- GEN.1086 (slice 2): a planet that caught irregular moons has a scene of its own on the System Map (`planet-<id>-irregular`), opened from the planet when it has no regular moons, or by an "Irregular moons" button beside the moon system scene (and a "Moons" button back). The moons are tens of millions of kilometers out, so they have a scale of their own and the regular moons are not squeezed into a speck. Each body is drawn at its saved place on its saved orbit (eccentric, inclined, forward or backward); clicking one shows its type, radius, mass, distance, period, makeup and the window it was caught through, with a View button to its page.
+- `GET /api/systems/<id>`: each planet has `irregular_moons` (an empty list when it keeps none); a new key, the API version stays. The planet's own page links to the irregular scene when it keeps only irregular moons.
+- Not yet: the 3D view, and the clearance ledger taking the irregular zone as occupied space (the rest of GEN.1086).
+
+generation-output: unchanged
+
+## [8.0.4160] - 2026-11-14
+
+**Headline:** The cache warm-up commands now run through the queue engine's loop, so the Queue page counts their pieces and a cancel or a pause takes hold between two of them.
+
+### Changed
+
+- OPS.205: the ten `warm-*` commands (`warm-cluster-field`, `warm-object-index`, `warm-galaxy-map`, `warm-galaxy-nodes`, `warm-galaxy-deep-nodes`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-search`) and `end-map-rebuild-maintenance` give the engine `pieces` and `do` (OPS.191) in place of a `unit` function that loops for itself. A cluster-field unit is one piece per age; a node unit is one piece per chunk of 64 nodes; a sector, system or phenomenon unit is one piece per 50 objects of its slice; the object index is one piece per kind of object; the page families and the map-rebuild reopening are one piece each. The pages, lists and objects a piece visits are counted as the unit's second level (OPS.192), and the unit's result keeps the shape it had. Nothing a warm-up writes changes: no generation change, no migration, no epoch.
+
 ## [8.0.4159] - 2026-11-14
 
 **Headline:** A guard test now keeps every queue command on the engine's loop, so no new command can go silent by writing a loop of its own.
