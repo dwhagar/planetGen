@@ -4,9 +4,9 @@
 Rogue planets that stay a pair (GEN.332, slice D)
 ==================================================
 
-Free-floating planetary-mass objects are seen in pairs. The JWST survey of the Trapezium ([R3467], Pearson and McCaughrean 2023) found 540 candidates of 0.7 to 13 Jupiter masses, 40 of
-them in binaries and 2 in triplets, so about 9 percent of the systems of free planets are bound, at projected separations of 28 to 384 AU. The count is disputed (Luhman 2024 and 2025 find
-most of the pairs are reddened background sources), so 9 percent is an upper figure for a young cluster and not a settled one. A pair does not last: [Portegies Zwart and Hochart 2024]
+Free-floating planetary-mass objects are seen in pairs. The JWST survey of the Trapezium [R3467] found 540 candidates of 0.7 to 13 Jupiter masses, 40 of
+them in binaries and 2 in triplets, so about 9 percent of the systems of free planets are bound, at projected separations of 28 to 384 AU. The count is disputed ([R5261] and 2025 find
+most of the pairs are reddened background sources), so 9 percent is an upper figure for a young cluster and not a settled one. A pair does not last: [[R5262]]
 predict about 2 percent of the planet-planet pairs a cluster makes survive 10 Myr, so a pair of an old galaxy is a rare survivor. All three are read second hand (Boss's source rule, 2026-10-24).
 
 **What this module gives.** The share of a young rogue's ejection that leaves it bound to a companion (`bound_share`), the separation of the two (`separation_au`: log-uniform inside the
@@ -30,11 +30,11 @@ from planetgen.util.checks import finite_domain
 OBSERVED_SHARE = 0.09
 """float: The share of the systems of free planets that are bound pairs or triplets in the young Trapezium sample ([R3467], 42 of about 500 systems; also quoted as 8 percent). Source tier T3, tweak level L1."""
 SURVIVAL_AT_REFERENCE = 0.02
-"""float: The share of a cluster's planet-planet pairs still bound after `REFERENCE_MYR` (Portegies Zwart and Hochart 2024, second hand). Source tier T3, tweak level L0."""
+"""float: The share of a cluster's planet-planet pairs still bound after `REFERENCE_MYR` ([R5262], second hand). Source tier T3, tweak level L0."""
 REFERENCE_MYR = 10.0
 """float: The age at which `SURVIVAL_AT_REFERENCE` is given, Myr. Source tier T3, tweak level L0."""
 SEPARATION_RANGE_AU = (28.0, 384.0)
-"""tuple: The projected separations of the observed pairs, AU ([R3467]). A projection is smaller than the true separation by a factor near one, which is not undone. Source tier T3, tweak level L0."""
+"""tuple: The projected separations of the observed pairs, AU [R3467]. A projection is smaller than the true separation by a factor near one, which is not undone. Source tier T3, tweak level L0."""
 
 _KM_S_KPC_TO_PER_S = 1.0e3 / (1.0e3 * constants.PARSEC_M)
 """float: One km/s/kpc in 1/s."""

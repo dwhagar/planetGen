@@ -449,7 +449,7 @@ FIELDS = (
     F('ejection_speed_kms', 'DOUBLE', unit='km_s', c="v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note", t='r'),
     F('rogue_note', 'TEXT', c="v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note", t='r'),
     F('pair_event_index', 'INT', unit='index', c="v260 (GEN.332): the event index (same donor) of the companion it left its donor bound to, NULL for a rogue that left alone, each of the two rows naming the other", t='r'),
-    F('pair_separation_au', 'DOUBLE', unit='AU', c="v260 (GEN.332): the distance to its companion, AU (the circular orbit of the pair), NULL without one", t='r'),
+    F('pair_separation_au', 'DOUBLE', unit='au', c="v260 (GEN.332): the distance to its companion, AU (the circular orbit of the pair), NULL without one", t='r'),
     F('pair_period_yr', 'DOUBLE', unit='yr', c="v260 (GEN.332): the period of the pair round each other, years, NULL without a companion", t='r'),
 )
 """tuple: Every column of the body tables, in the order a new database holds them."""

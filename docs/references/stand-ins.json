@@ -26993,7 +26993,7 @@
           "fields": [
             [
               "What it is",
-              "oddity W20 history draw 0.5, with air_branches.COLD_START_K 200, WARM_START_K 320, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the airless start does not find, and the tests that two answers are two branches"
+              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
             ],
             [
               "The range it moves in",
@@ -27024,7 +27024,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "oddity W20 history draw 0.5, with air_branches.COLD_START_K 200, WARM_START_K 320, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the airless start does not find, and the tests that two answers are two branches"
+          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
         }
       ],
       "slug": "6-75-stand-ins-of-the-nightside-collapse-of-a-locked-planet-s-air",
@@ -65971,7 +65971,7 @@
             ],
             [
               "The range it moves in",
-              "0.01 to 0.10: Luhman 2024 and 2025 find most of the pairs are reddened background sources and keep one good candidate"
+              "0.01 to 0.10: [R5261] and 2025 find most of the pairs are reddened background sources and keep one good candidate"
             ],
             [
               "Where it holds",
@@ -65987,7 +65987,7 @@
             ],
             [
               "Evidence",
-              "[R3467] (second hand), Luhman 2024 (AJ 168, 230) and 2025 (MNRAS 542, L126), second hand"
+              "[R3467] (second hand), [R5261] and 2025 (MNRAS 542, L126), second hand"
             ]
           ],
           "id": "RPP1",
@@ -66025,7 +66025,7 @@
             ],
             [
               "Evidence",
-              "Portegies Zwart and Hochart 2024 (second hand); Parker, Goodwin and Diamond 2025 (arXiv:2505.00762, second hand) give a dense and a sparse bound"
+              "[R5262] (second hand); [R5263] (second hand) give a dense and a sparse bound"
             ]
           ],
           "id": "RPP2",
