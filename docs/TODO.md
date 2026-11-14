@@ -13367,7 +13367,7 @@ clears each one.
 
 - [ ] **UX.317 (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too)**
   Boss, relayed by the Generate sliders thread (2026-11-14, after UX.316 merged in PR 6441): the page looks messy. Do: (1) every property title in bold with its unit as a small subtitle under it (for example "Stellar mass" over "solar masses"), not inline units that wrap unevenly; (2) line up the box tops and slider bars across each row so the grid is clean, the Shape and Rogue planets rows included. Applies to every fold. Keep the Auto checkbox, the ? help, the folds and the defaults as merged. Lock-free, output unchanged, template and CSS only.
-  Version 8.1. Owner (TODO, 2026-11-14): Generate sliders thread. Prerequisites: UX.316. Related: UX.307, UX.315, UX.316.
+  Version 8.1. Owner (TODO, 2026-11-14): New galaxy page layout thread (PR 6459). Prerequisites: UX.316. Related: UX.307, UX.315, UX.316.
   Filed by the TODO thread.
 
 - [ ] **GEN.1701 Check the continental weathering law against Earth and the published low-CO2 limit: warm land worlds draw CO2 to near zero (Earth copies median 4 Pa, real warm planets 0 to 0.12 Pa)**
@@ -13397,12 +13397,37 @@ clears each one.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level.
-  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, GEN.1704, GEN.1705. Related: GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, GEN.1704, GEN.1705, GEN.1708. Related: GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1707 Two-threshold oxygen law: oxygen rises first to a plateau when the reductant sink falls below the source, then to the balance level when the sink falls below a third of the source**
   Boss, 11:23 PM EST on 2026-11-13 in the project chat: "approved", on the oxygen research result (/mnt/project-files/reports/oxygen-plateau-and-second-rise-2026-11-14.md, thread "Find why no Class M or Blue worlds"). Do: in biogenic_oxygen, the first rise goes to a plateau of about 0.6 kPa (educated guess, L1) when the reductant sink drops below the source; the second rise goes to the balance level when the sink drops below a third of the source (factor 3 educated guess, L1; heat-flow exponent about 2 is Earth-fitted, L3). The plateau lasts about tau times ln 3, about 1.75 Gyr on Earth numbers. No land plants built in. Register the stand-ins in GEN.725 with tier and tweak level. Changes output (epoch) and lowers Class M yield; a fidelity fix. Lock item.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 21. Prerequisites: none. Related: GEN.1704, GEN.1706, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1708 (bug) The Bern water law is read in the wrong snow-line unit since GEN.1611, so rocky planets sit about 1.7 times too far out on the law and are born too wet**
+  Found by the water research thread (/mnt/project-files/reports/water-rich-hz-births-2026-11-14.md, sections 2 and 7), cause traced by the thread "Find why no Class M or Blue worlds"; filed as a bug under Boss's rule of 10:43 PM EST 11-13 ("automatically send all bug fixes to TODO to fix"). The law (physics/delivered_water.py, rows b1 to b4) was fitted with x = a_form / a_snow, a_snow = 2.69 AU at 1 Lsun of present light (docs/design/composition/volatile-delivery-formation-distance.md). GEN.1611 (physics/formation_snow_line.py, star.py about line 279) made star.snow_line_au the line of the light the disk saw, about 1.61 AU at 1 Lsun, and bulk_draw._snow_ratio divides by it, so a planet at 1 AU is read at x = 0.62 to 0.68, not 0.37: a layered fix (the line moved, the law's unit did not). On the 75 measured habitable-zone planets, re-reading the law: rich 65 to 32 percent, dry or low 13 to 36 percent, land-and-sea window 5 to 13 percent. Do: read the law against the line it was fitted with (rescale to 2.69 AU times the square root of the present main-sequence light, about x times 0.60 for a Sun-like star), keeping the star's 0.2 dex scatter, the law's shape and the brackets; star.snow_line_au and the icy/rocky test stay as GEN.1611 made them; the air's b rows read the same ratio and move together. Changes output (epoch), lock item. It touches delivered_water.sample_fraction and bulk_draw._rocky_water, which the Class M tier branch (claude/project-thread-ji8qfe) is editing: start after the tier PR merges or coordinate through the Class M thread.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 21 (owner of GEN.1611). Prerequisites: none. Related: GEN.1611, GEN.1704, GEN.1706.
+  Filed by the TODO thread.
+
+- [ ] **PERF.266 (bug) planetgen system got about 55 s slower in a day: the no-database system page test took 88 s on main 75ef1017e and 142 s on 92855b9c7, past its 120 s limit**
+  Lane 03 gate, 11:29 PM EST 11-13: test_web_generate::test_system_page_generates_the_page_without_a_database fails alone (-n 0) on main 92855b9c7 with "generator took longer than 120 seconds" (142 s); it passed on 75ef1017e in 88 s earlier the same day. Do: bisect the merges between the two commits (Train 26 PR 6402 is the likely range), find the step that slowed, and fix it without raising the limit. Lock-free unless the fix changes output.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15 (performance), Lane 03 helps bisect. Prerequisites: none. Related: TEST.740.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1709 Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star)**
+  From the hydrogen envelope research (thread "Find why no Class M or Blue worlds", /mnt/project-files/reports/hydrogen-envelopes-habitable-zone-2026-11-14.md, section 7; the envelope law itself passed its check, so no fix there). Measured, not yet traced. The generated counts are inside the low error bars of [R0572: Table 5] but 2 to 4 times under the middle, and would move the Class M rate more than envelopes do. Do: count per star, not per system; check the orbit spacing and planet count laws in that band; report before any change. A fix found is a lock item.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 11 (census). Prerequisites: none. Related: GEN.1704, GEN.1706.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1710 (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently**
+  From the hydrogen envelope research (thread "Find why no Class M or Blue worlds", /mnt/project-files/reports/hydrogen-envelopes-habitable-zone-2026-11-14.md, section 7; the envelope law itself passed its check, so no fix there). Measured, not yet traced. 0 exceptions in 7,043 planets to the 0.5 percent ground rule; the 155 planets with 0.1 to 0.5 percent left have a median 0.05 bar and no hydrogen in the air. Do: trace where the 0.5 percent cut lives, make one rule own it (reuse envelope_escape), and keep the hydrogen of a thin envelope in the air or say why not. Lock item if output changes.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 22. Prerequisites: none. Related: GEN.1711.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1711 Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3)**
+  From the hydrogen envelope research (thread "Find why no Class M or Blue worlds", /mnt/project-files/reports/hydrogen-envelopes-habitable-zone-2026-11-14.md, section 7; the envelope law itself passed its check, so no fix there). Measured, not yet traced. It does not change whether they have ground. Do: check EC1 against the inferred birth envelopes and replace or narrow it with a sourced value; register the result in GEN.725. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 22. Prerequisites: none. Related: GEN.1710, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
