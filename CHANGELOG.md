@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4144] - 2026-11-14
+
+**Headline:** The system page's map now draws a belt that circles an inner pair of stars in that pair's own scene, beside the planets of the pair.
+
+### Changed
+
+- GEN.332, slice C display: `web/maps/systemmap.py` (`_node_pair_hosts`) groups the belts that carry `host_node_id` (slice C stores a belt of an inner pair node's circumbinary disk with no star) with the planets of the same node, so the pair's marker and its `node-<n>` scene hold them. A node that has a belt and no planet gets its marker and scene as well. Before, such a belt was drawn in the whole-system scene round the system's own pair, at a distance that belongs to the inner pair. A system stored before the tree keeps its belts where they were.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4143] - 2026-11-14
 
 **Headline:** The stale composition strings of the planet classes are gone; a class is its letter and its kind.
