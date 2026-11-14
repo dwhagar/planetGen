@@ -278,11 +278,13 @@ def test_page_renders_summary_and_forms(site, client):
     assert '<a href="/admin/generate" data-destination="generate" aria-current="page">Generate</a>' in html
 
 
-def test_the_richness_field_is_folded_away_under_advanced(site, client):
+def test_the_richness_field_is_folded_away_under_its_own_fold(site, client):
+    """UX.316: richness sits in the Census fold of the galaxy shape (folded, not open to start with); flatness sits in the Structure fold."""
     html = _task_html(client, "new-galaxy")
-    fold = html.index('<details class="generate-advanced">')
-    assert 'name="richness"' in html and html.index('name="richness"') > fold
-    assert html.index('name="flatness"') < fold
+    census = html.index("Census: star richness and rogue planets")
+    structure = html.index("Structure: flatness, bulge, nuclear")
+    assert 'name="richness"' in html and census < html.index('name="richness"') < html.index("</details>", census)
+    assert structure < html.index('name="flatness"') < html.index("</details>", structure)
 
 
 def test_page_shows_the_bright_star_scatter(site, client):
