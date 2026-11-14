@@ -319,6 +319,23 @@ def _held_view(held):
     return {"total": held["total"], "shown": len(rows), "rows": rows}
 
 
+def _mb_text(value):
+    return f"{value:,.0f} MB" if value else ""
+
+
+def _tuning_view(body):
+    """The panel of what the queue has learned per job kind (OPS.158), or `None` when there is nothing to show: for each kind the typed claim, the claim from the job profile, a pin, the samples and
+    the newest change; and the latest changes the engine and the admins made."""
+    if not body or not (body.get("kinds") or body.get("changes")):
+        return None
+    rows = [{"kind": row["kind"], "typed": _mb_text(row.get("typed_mb")), "learned": _mb_text(row.get("figure_mb")), "pinned": _mb_text(row.get("pinned_mb")), "is_pinned": bool(row.get("pinned_mb")),
+             "samples": f"{row.get('samples') or 0:,}", "last_sample": row.get("last_sample") or "",
+             "changed": (row["changed"]["reason"] if row.get("changed") else "")} for row in body["kinds"]]
+    changes = [{"at": _iso(item["at"]), "what": item["what"], "kind": item["kind"], "old": f"{item['old']:,.0f}" if item.get("old") is not None else "none", "new": f"{item['new']:,.0f}",
+                "reason": item["reason"]} for item in body["changes"]]
+    return {"on": body.get("self_tuning", True), "rows": rows, "changes": changes}
+
+
 def _beating_view(body):
     """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
     jobs = (body or {}).get("jobs") or []
@@ -355,7 +372,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = held = beating = None
+    workers = warm = held = beating = tuning = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -370,6 +387,10 @@ def admin_queue():
         except apiclient.ApiError:
             beating = None
         try:
+            tuning = _tuning_view(apiclient.admin_work_tuning(cookie_header))
+        except apiclient.ApiError:
+            tuning = None
+        try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
             warm = None
@@ -383,7 +404,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating, tuning=tuning,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -410,7 +431,7 @@ def _stage_rows(run):
     } for number, stage in enumerate(run["stages"], 1)]
 
 
-UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
+UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "busy": "Busy", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
 """dict: The words for the states `beatjudge` gives a running unit (OPS.138), in the order the summary lists them."""
 
 UNIT_ROWS_SHOWN = 200
@@ -687,6 +708,19 @@ def admin_queue_action():
             else:
                 state = apiclient.admin_work_workers(cookie_header, count=count, ludicrous=action == "workers-ludicrous")
                 message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
+        elif action in ("tuning-pin", "tuning-unpin", "tuning-clear"):
+            kind = (request.form.get("kind") or "").strip()
+            try:
+                mb = float(request.form.get("mb") or "") if action == "tuning-pin" else None
+            except ValueError:
+                mb = None
+            if not kind or (action == "tuning-pin" and mb is None):
+                error = "Name the job kind and, to fix it, the claim in megabytes."
+            else:
+                apiclient.admin_work_tuning_set(cookie_header, action.removeprefix("tuning-"), kind, mb)
+                message = (f"{kind} now claims {mb:,.0f} MB until the pin is released." if action == "tuning-pin"
+                           else f"{kind} is decided by the job profile again." if action == "tuning-unpin"
+                           else f"What was learned for {kind} is forgotten; its next run claims from the typed table.")
         elif action in FILL_COMMANDS:
             message, error = _start_fill(admin, cookie_header, action)
             if message:

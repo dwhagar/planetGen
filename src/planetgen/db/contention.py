@@ -21,6 +21,7 @@ import time
 
 import pymysql
 
+from planetgen.db import connection_loss, store
 from planetgen.util import log
 
 RETRYABLE_ERRORS = (1213, 1205)
@@ -182,14 +183,16 @@ def run_with_retries(conn, attempt, gate, label, attempts=ATTEMPTS, gate_object=
         except pymysql.err.OperationalError as exc:
             conn.rollback()
             if not exc.args or exc.args[0] not in RETRYABLE_ERRORS:
+                if exc.args and exc.args[0] in store.LOST_CONNECTION_ERRORS and getattr(conn, "_config", None) is not None:
+                    connection_loss.explain_lost(conn._config, exc)       # OPS.171: why the server dropped it, on the way out
                 raise
             _note(True)
             error = exc.args[0]
             if number == attempts:
                 break
             wait = next_wait(number, wait)
-            log.normal(f"{label}: MySQL error {error} on try {number} of {attempts}; trying again in {wait:.2f} s "
-                       f"(this process's trouble level {_pressure:.2f}).")
+            log.get("generate").notice(f"{label}: MySQL error {error} on try {number} of {attempts}; trying again in {wait:.2f} s "
+                                       f"(this process's trouble level {_pressure:.2f}).")      # OPS.167: an expected, notable event
             time.sleep(wait)
     need = Need("exclusive", gate, label, attempts, error)
     log.normal(f"{need}: asking for it.")
@@ -203,7 +206,7 @@ def run_with_retries(conn, attempt, gate, label, attempts=ATTEMPTS, gate_object=
     except pymysql.err.OperationalError:
         conn.rollback()
         _note(True)
-        log.normal(f"{label}: the granted try failed too.")
+        log.warning(f"{label}: the granted try failed too.")
         raise
     finally:
         gate_object.release()

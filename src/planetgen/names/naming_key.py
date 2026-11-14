@@ -34,6 +34,7 @@ import re
 from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.galaxy import object_uid
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
+from planetgen.util import log
 
 CODEC_VERSION = 2
 """int: The codec's version; see the module docstring. 2: local names from the Object ID (GEN.1255)."""
@@ -342,7 +343,8 @@ def uid_of_typed_name(typed, key=None):
     name, _comma, sector = typed.partition(",")
     try:
         return uid_of_local_name(name, sector, key)
-    except Exception:  # noqa: BLE001 -- the codec rejects what it can't read
+    except Exception as exc:  # noqa: BLE001 -- the codec rejects what it can't read
+        log.swallowed("names/naming_key", "uid_of_typed_name", exc)
         return None
 
 

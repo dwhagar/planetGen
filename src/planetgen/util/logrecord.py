@@ -34,7 +34,7 @@ import math
 import re
 import time
 
-from planetgen.util import stagemark
+from planetgen.util import secrets_mask, stagemark
 
 SEVERITIES = ("debug", "info", "notice", "warning", "error", "critical")
 """tuple: The severities, least severe first: the RFC 5424 levels, named as the syslog standard names them."""
@@ -148,8 +148,8 @@ class Record:
         self.ms = int(ms)
         self.severity = severity
         self.component = component
-        self.message = str(message)
-        self.fields = fields
+        self.message = secrets_mask.mask_text(str(message))                  # SEC.48: no record holds a key, token or password
+        self.fields = secrets_mask.mask_fields(fields)
 
     @classmethod
     def at(cls, epoch, severity, component, message, /, **fields):
@@ -415,6 +415,28 @@ def counting_text(word, number, total):
     if word not in COUNTING_WORDS:
         raise ValueError(f"no counting word {word!r}; the words are {', '.join(COUNTING_WORDS)}")
     return f"{word} {number} of {total}"
+
+
+def duration_text(seconds):
+    """
+    How long something took, in the one form a log line uses (OPS.173; logging standard, "Message text", rule 3): under a second `340 ms`, under a minute `12.3 s`, then `4:07`, and `1:05:12` from an
+    hour. `?` when the time is not known (`None`, not a number or negative). The field that carries the same figure for a tool is `seconds=`, always in seconds, never this text.
+
+    Args:
+        seconds (float): A length of time in seconds.
+    """
+    if seconds is None or seconds != seconds or seconds < 0:
+        return "?"
+    millis = round(seconds * 1000)
+    if millis < 1000:
+        return f"{millis} ms"
+    tenths = round(seconds * 10) / 10
+    if tenths < 60:
+        return f"{tenths:.1f} s"
+    whole = int(round(seconds))
+    hours, rest = divmod(whole, 3600)
+    minutes, secs = divmod(rest, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
 
 
 def _zone_name(moment):

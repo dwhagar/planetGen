@@ -246,7 +246,8 @@ def population_status():
     if status is None:
         try:
             status = apiclient.get_population_status(db_name())
-        except Exception:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+        except Exception as exc:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+            log.swallowed("web/helpers", "population_status", exc)
             status = dict(apiclient.POPULATION_NONE)
         g.web_population = status
     return status
@@ -296,5 +297,5 @@ def _with_help_links(html):
     try:
         return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
     except Exception:    # a missing link must never take a page down
-        log.exception("the help links could not be added to %s", request.path)
+        log.exception("The help links could not be added to %s.", request.path)
         return html
