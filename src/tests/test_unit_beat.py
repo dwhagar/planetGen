@@ -214,3 +214,25 @@ def test_progress_the_counter_does_not_show_starts_the_quiet_clock_again(conn, r
         assert beat.record()["moved"] == pytest.approx(beat.record()["beat"], abs=1.0)
         assert beat.longest_gap() >= 300.0
     unitbeat.moving()                           # outside a unit: nothing happens
+
+def test_the_record_says_when_the_evidence_last_moved(conn, run_id, monkeypatch):
+    """OPS.194: `active` is absent until the processor time or bytes move by more than a beat's own use, or a statement is out; it then ages with the clock."""
+    from planetgen.db import statementmark
+    clock = _Clock()
+    figures = {"cpu_s": 1.0, "io_read": 1000, "io_write": 1000}
+    monkeypatch.setattr(unitbeat, "evidence", lambda now: dict(figures))
+    beat = unitbeat.UnitBeat(conn, run_id, 0, 0, clock=clock)
+    assert "active" not in beat.record(), "the first look has nothing to compare with"
+    clock.now += 10.0
+    figures["io_read"] += 300
+    assert "active" not in beat.record(), "a beat's own few hundred bytes are not work"
+    clock.now += 10.0
+    figures["cpu_s"] += 0.5
+    assert beat.record()["active"] == pytest.approx(beat.record()["beat"], abs=0.5)
+    clock.now += 30.0
+    still = beat.record()
+    assert still["beat"] - still["active"] == pytest.approx(30.0, abs=0.5), "no new work: the stamp ages"
+    clock.now += 5.0
+    figures["sql"] = "SELECT 1"
+    assert beat.record()["beat"] - beat.record()["active"] == pytest.approx(0.0, abs=0.5), "a statement out is work"
+    assert unitbeat.beat_of(beat.record()).active is not None

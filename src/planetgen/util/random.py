@@ -22,12 +22,6 @@ def log_uniform(low, high, rng=draw):
     return math.exp(rng.uniform(math.log(low), math.log(high)))
 
 
-def power_law_share(low, high, slope):
-    """The unnormalized weight of [low, high] under dN/dlogM ~ M^-slope
-    (`slope` > 0): `low^-slope - high^-slope`."""
-    return low ** -slope - high ** -slope
-
-
 def sample_power_law(low, high, slope):
     """A value in [low, high] drawn from dN/dlogM ~ M^-slope (`slope` > 0)
     by inverting its cumulative distribution: one `draw.random()`."""

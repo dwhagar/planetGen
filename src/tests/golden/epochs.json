@@ -879,6 +879,12 @@
       "first_release": "8.0.3993",
       "reason": "Train 25: GEN.1589 air, 1641 belts, 1580 ionization ceiling, Class M edges and fixes, 1546 age floor, 1550 young disks, 1556 Cassini, 1267 nebula, 1201 shape, and the rest of the list",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 148,
+      "first_release": "8.0.4076",
+      "reason": "Train 26: the layered-fix stack, the habitability rating fix (GEN.1676), belt spacing (GEN.1673), promoted belt planets settle (GEN.1668), breakup cap on tide-balanced spin (GEN.1576), galaxy run order and luminous floor (GEN.1680, GEN.1681); OPS.154 part 2 writes no placeholder sector rows",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }

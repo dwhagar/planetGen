@@ -139,9 +139,7 @@ def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, stream
             radius = np.cbrt(cube_low[pick] + uniform[1] * (cube_high[pick] - cube_low[pick]))
             cos_colat = cos_low[pick] + uniform[2] * (cos_high[pick] - cos_low[pick])
             lon = uniform[3] * (2.0 * math.pi)
-            in_plane = radius * np.sqrt(np.maximum(0.0, 1.0 - cos_colat * cos_colat))
-            mpc = np.stack([np.rint(in_plane * np.cos(lon) * MPC_PER_PC), np.rint(in_plane * np.sin(lon) * MPC_PER_PC),
-                            np.rint(radius * cos_colat * MPC_PER_PC)]).astype(np.int64)
+            mpc = phenomenon_scatter.points_mpc(radius, cos_colat, lon)
             weight = _weights(kind, subtype, mpc[0] / MPC_PER_PC, mpc[1] / MPC_PER_PC, mpc[2] / MPC_PER_PC, shape)
             if check and np.any(weight > bound[pick] * (1.0 + 1e-9)):
                 worst = int(np.argmax(weight / bound[pick]))

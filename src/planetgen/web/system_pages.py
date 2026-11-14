@@ -54,7 +54,7 @@ from . import bp, habitability_symbol_row, tables
 from . import edit_actions, field_member_page, glance, item_pages, system_facilities, system_ledger, system_species
 from .class_pages import class_url
 from .helpers import (
-    bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
+    bookmark, crumb, current_admin, db_name, json_error as _json_error, page_url, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
 from .nearby_page import DEFAULT_DISTANCE_PC, nearby_url
@@ -166,16 +166,9 @@ def _inside_link(phenomenon_type, phenomenon_id, name):
                                           phenomenon_id=phenomenon_id)}
 
 
-def _phenomenon_inside(detail):
-    """`_inside_link` for a phenomenon's own `inside_nebula_id`/
-    `inside_remnant_id`, or `None` in open space. The cloud's name costs
-    one more lookup."""
-    for column, kind in (("inside_nebula_id", "nebula"), ("inside_remnant_id", "supernova_remnant")):
-        cloud_id = detail.get(column)
-        if cloud_id is not None:
-            cloud = apiclient.get_phenomenon(db_name(), kind, cloud_id)
-            return _inside_link(kind, cloud_id, cloud["name"])
-    return None
+def _inside_badge(inside):
+    """`_inside_link` for an `inside` cloud (`type`, `id`, `name`), or `None` in open space."""
+    return _inside_link(inside["type"], inside["id"], inside["name"]) if inside else None
 
 
 def _phenomenon_inside_cloud(detail):
@@ -228,8 +221,6 @@ def _code_buttons(system_id, code_fmt):
     return buttons
 
 
-
-
 def _territory(db, system_id):
     """`{"name", "url", "color"}` of the polity whose territory this
     system is in, or `None` (also before population has made any)."""
@@ -267,12 +258,6 @@ def system_scene(system_id):
 
 
 system_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
-
-
-def _json_error(message, status):
-    response = jsonify({"error": message})
-    response.status_code = status
-    return response
 
 
 @bp.route("/system/<uid:system_id>/sky")
@@ -344,9 +329,9 @@ def _course_in_system(system_id):
 
     try:
         return system_course(system_id, from_raw, to_raw)
+    except apiclient.NotFoundError:
+        return None  # an endpoint the database no longer has: no course, not a 404 page
     except apiclient.ApiError as exc:
-        if isinstance(exc, apiclient.NotFoundError):
-            return None  # an endpoint the database no longer has: no course, not a 404 page
         log.exception(f"API error while plotting a course for the system view: {exc}")
         return None
     except ValueError:
@@ -409,7 +394,7 @@ def system(system_id):
         system=detail,
         former=formerly.view(detail.get("former_designations")),
         badges=_badges(detail),
-        inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
+        inside=_inside_badge(inside),
         location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"), inside),
         nav_links=links,
         nearby_url=nearby_url(endpoint("system", system_id)),
@@ -559,6 +544,13 @@ _SCATTER_ORIGINS = {
 }
 
 
+def _sector_link(detail):
+    """`{"name", "url"}` of the sector a phenomenon's row names, or `None` for one in no sector."""
+    if detail.get("sector_id") is None:
+        return None
+    return {"name": detail.get("sector_name") or "Sector", "url": page_url("sector", sector_id=detail["sector_id"])}
+
+
 def _uncharted_fields(detail):
     """`[(label, text, url)]` for an uncharted phenomenon's data table (MAP.211): what the scatter drew and
     nothing it has not. A star's own spectral class, mass and luminosity are drawn when its sector is made."""
@@ -612,9 +604,6 @@ def uncharted_phenomenon(scatter_id):
         return redirect(page_url("phenomenon", phenomenon_type=target["kind"], phenomenon_id=target["id"]), code=302)
     label = TYPE_LABELS.get(detail["type"], detail["type"])
     name = (detail.get("name_with_sector") or f"{label} (uncharted)") if not detail["built"] else f"{label} (generated)"      # UX.259
-    sector = None
-    if detail.get("sector_id") is not None:
-        sector = {"name": detail.get("sector_name") or "Sector", "url": page_url("sector", sector_id=detail["sector_id"])}
     return render_page(
         "uncharted_phenomenon.html",
         title=name,
@@ -623,7 +612,7 @@ def uncharted_phenomenon(scatter_id):
         description=f"{name}, scattered across this galaxy and not yet generated.",
         type_label=label,
         distance=measured_html("pc", detail["distance_from_core_pc"]),
-        sector=sector,
+        sector=_sector_link(detail),
         built_note=None if not detail["built"] else
         "Its sector has been generated, but this record could not be matched to what was made from it.",
         fields=_uncharted_fields(detail),
@@ -718,6 +707,9 @@ def _comet_composition_text(components):
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
 _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", _quantity("Gyr"))
 
+_SPEED_IF_KNOWN = (_SPEED[0], _SPEED[1], _optional(_SPEED[2]))
+_PERIOD_IF_KNOWN = (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2]))
+"""The same rows for a compact object, whose galactic orbit may be unknown (`None`)."""
 _EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic center)",
                     _quantity("m"))
 """The derived row of a compact object's page (GEN.154): see `_derived_fields`."""
@@ -750,8 +742,7 @@ FIELD_SPECS = {
         ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         _EINSTEIN_RADIUS,
-        (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
-        (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
+        _SPEED_IF_KNOWN, _PERIOD_IF_KNOWN,
     ],
     "neutron_star": [
         ("mass_solar", "Mass", _solar_mass),
@@ -763,8 +754,7 @@ FIELD_SPECS = {
         ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         _EINSTEIN_RADIUS,
-        (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
-        (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
+        _SPEED_IF_KNOWN, _PERIOD_IF_KNOWN,
     ],
     "supernova_remnant": [
         ("remnant_class", "Class", _cloud_class_text),
@@ -928,8 +918,6 @@ def object_tree(ref):
 object_tree.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-
-
 def _phenomenon_facts(phenomenon_type, detail):
     """The paragraph under "About" on a phenomenon page (UX.185): the sentences the generator's description says about the
     kind, built from the stored row (`describe/stored_phenomena.py`); empty for a kind with none."""
@@ -962,15 +950,9 @@ def phenomenon(phenomenon_type, phenomenon_id):
     detail = apiclient.get_phenomenon(db_name(), phenomenon_type, phenomenon_id)
     type_label = TYPE_LABELS[phenomenon_type]
 
-    distance = None
     radius_pc = detail.get("galactic_radius_pc")
-    if radius_pc is not None:
-        distance = measured_html("pc", radius_pc)
-    sector = None
-    if detail.get("sector_id") is not None:
-        sector = {"name": detail.get("sector_name") or "Sector",
-                  "url": page_url("sector", sector_id=detail["sector_id"])}
-
+    distance = measured_html("pc", radius_pc) if radius_pc is not None else None
+    inside = _phenomenon_inside_cloud(detail)
     kind = view_kind(phenomenon_type)
     if kind == "render":
         map_html = render_phenomenon_view_panel(phenomenon_type, detail)
@@ -992,13 +974,12 @@ def phenomenon(phenomenon_type, phenomenon_id):
         type_label=type_label,
         former=formerly.view(detail.get("former_designations")),
         distance=distance,
-        sector=sector,
+        sector=_sector_link(detail),
         octant=detail.get("quadrant"),
         nearest_html=trusted_html(nearest_systems_html(detail["nearest"], _system_url))
         if detail.get("nearest") else None,
-        inside=_phenomenon_inside(detail),
-        location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"),
-                                            _phenomenon_inside_cloud(detail)),
+        inside=_inside_badge(inside),
+        location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"), inside),
         contents=_phenomenon_contents(phenomenon_type, detail["id"]),
         field_members=field_member_page.field_members_panel(f"asteroid_field:{detail['id']}") if phenomenon_type == "asteroid_field" else None,
         nav_links=phenomenon_nav[0],

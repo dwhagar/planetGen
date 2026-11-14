@@ -33,6 +33,11 @@ def _position_au(km):
     return tuple(_km_to_au(value) for value in km)
 
 
+def _shifted(position, offset):
+    """`position` moved by `offset`, both AU triples."""
+    return tuple(position[axis] + offset[axis] for axis in range(3))
+
+
 def _au(km):
     """A distance in km as AU, or `None` for a body that has none stored."""
     return None if km is None else _km_to_au(km)
@@ -92,8 +97,7 @@ def _rows(conn, system_id, scene):
     rings = {r["id"]: r["ring_mass_kg"] for r in conn.execute("SELECT id, ring_mass_kg FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()}
     for planet in scene["planets"]:
         parent, offset = anchors.of(planet["orbit"]["around"])
-        position = _position_au(planet["position_km"])
-        position = tuple(position[axis] + offset[axis] for axis in range(3))
+        position = _shifted(_position_au(planet["position_km"]), offset)
         orbit = planet["orbit"]
         add(planet["ref"], parent, "planet", planet["name"], planet["mass_kg"] or 0.0, position, planet["radius_km"], _au(orbit["distance_km"]), orbit["eccentricity"],
             orbit["inclination_deg"], status="planet")
@@ -131,8 +135,8 @@ def _rows(conn, system_id, scene):
     comets = {r["id"]: r["mass_kg"] for r in conn.execute("SELECT id, mass_kg FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()}
     for comet in scene["comets"]:
         parent, offset = anchors.of(comet["orbit"]["around"])
-        position = _position_au(comet["position_km"])
-        add(comet["ref"], parent, "comet", comet["name"], comets.get(comet["id"]) or 0.0, tuple(position[axis] + offset[axis] for axis in range(3)), comet["radius_km"], status="comet")
+        add(comet["ref"], parent, "comet", comet["name"], comets.get(comet["id"]) or 0.0, _shifted(_position_au(comet["position_km"]), offset), comet["radius_km"],
+            status="comet")
     return rows, belt_mass, names
 
 

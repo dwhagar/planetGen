@@ -30,12 +30,10 @@ The one-bar temperature that decides helium rain is the effective temperature (s
 import math
 
 from planetgen import tuning
-from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, composition_text, constants, giant_interior, giant_radius,
-                               orbit_elements, rogue_surface)
+from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, composition_text, constants, eclipses, giant_interior,
+                               giant_radius, orbit_elements, radiation_field, rogue_surface, unit_registry as units)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
-from planetgen.physics import eclipses, radiation_field
-from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 

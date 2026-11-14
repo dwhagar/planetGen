@@ -41,7 +41,6 @@ CLUSTER_BELT_SHARE = 0.32
 read. IF21, tier T3, L1."""
 BELT_UNIT_UPPER = 1.0
 
-SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
 PC_PER_YEAR_AT_ONE_MS = rogue_collision.PC_PER_YEAR_AT_ONE_MS
 
 HostedBelt = collections.namedtuple("HostedBelt", "speed_ms age_yr belt_radius_m")

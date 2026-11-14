@@ -34,6 +34,8 @@ from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.physics import unit_registry as units
 
 _m_to_km = units.converter("m", "km")
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 def format_comet_composition_summary(composition):
@@ -280,8 +282,5 @@ class InterstellarComet(SmallBody):
         return format_comet_composition_summary(self.composition)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
-
-_kg_to_msun = units.converter("kg", "Msun")
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(RoguePlanet, "rogue-planet")
 object_timing.track(InterstellarComet, "interstellar-comet")

@@ -44,7 +44,7 @@ import re
 
 from planetgen import tuning
 from planetgen.galaxy import containment, frame
-from planetgen.physics import hii, main_sequence
+from planetgen.physics import constants, hii, main_sequence
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import detmath, draw
 from planetgen.generation import fill_stages
@@ -55,7 +55,7 @@ rest of the dict is for generation."""
 
 _HOST_COUNT = re.compile(r"(\w+) x(\d+)")
 
-SOLAR_LUMINOSITY_W = 3.828e26
+SOLAR_LUMINOSITY_W = constants.SOLAR_LUMINOSITY
 """float: Watts in one solar luminosity (IAU 2015 nominal)."""
 
 _PC_CM = 3.0857e18

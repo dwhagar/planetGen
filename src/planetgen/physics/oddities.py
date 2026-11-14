@@ -41,9 +41,8 @@ import os
 import re
 from dataclasses import dataclass
 
-from planetgen.physics import constants
-
 from planetgen import tuning
+from planetgen.physics import constants
 
 EFFECTS = {}
 """dict: The effect functions by name, `function(body, row) -> None`, which change the one input of the row's lever on the body; registered by the module

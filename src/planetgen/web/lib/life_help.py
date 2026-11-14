@@ -18,6 +18,7 @@ from planetgen.physics import life_class_text, life_classes, life_readings
 from planetgen.physics.life_readings import ABUNDANCE_BANDS
 from planetgen.web.lib import help_registry
 from planetgen.web.lib.help_registry import Child, Term
+from planetgen.util.format import whole_or_general
 from planetgen.util.wordlist import join_words
 
 TOPICS = (
@@ -48,8 +49,7 @@ SUPPLY_WORDS = {
 """dict: The fuel or oxidant a class needs delivered, by the rule file's `supply.quantity`."""
 
 
-def _number(value):
-    return f"{value:,.0f}" if float(value).is_integer() else f"{value:g}"
+_number = whole_or_general
 
 
 def _pressure(pa):

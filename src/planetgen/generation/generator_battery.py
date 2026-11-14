@@ -108,10 +108,7 @@ class BatteryDigest:
 
     def first_difference(self, other):
         """The first case, in the order of `CASES`, whose full digest differs from `other`'s, or `None`."""
-        for name in CASES:
-            if self.cases[name].full != other.cases[name].full:
-                return name
-        return None
+        return first_difference(cases_of(self), cases_of(other))
 
 
 def tree(value, seen=None):
@@ -304,7 +301,7 @@ def kept_battery_digest(progress=None):
 
 
 DIGEST_POLL_SECONDS = 2.0
-"""float: How often the wait for the digest process reads what it has done (OPS.184)."""
+"""float: How often the wait for the digest process reads what it has done (OPS.184). Defined by the program, not a physical value."""
 
 
 def _digest_in_process():

@@ -47,7 +47,7 @@ ENVELOPE_STEP = 0.03
 MAX_STEPS = 4000
 """int: A bound on the steps of one integration (numerical; a planet that has not settled by then counts as stripped)."""
 
-_GY_S = 1e9 * constants.SECONDS_PER_YEAR
+_GY_S = constants.SECONDS_PER_GY
 
 
 def equilibrium_temperature_k(insolation):

@@ -83,11 +83,17 @@ def _limits(info):
     return found
 
 
-def _source(path, meta, document, environ):
+def source_of(path, meta, document, environ):
+    """Where the value of the option `path` comes from: `("environment", VARIABLE)` when its variable overrides it,
+    else `("config.json", None)` when the file sets it, else `("default", None)` (`planetgen config get` names the variable)."""
     var = meta.get("x-env")
     if var and (environ.get(var) not in (None, "") or (meta.get("x-env-empty") and var in environ)):
-        return "environment"
-    return "config.json" if settings_writer._get(document, path)[0] else "default"
+        return "environment", var
+    return ("config.json" if settings_writer._get(document, path)[0] else "default"), None
+
+
+def _source(path, meta, document, environ):
+    return source_of(path, meta, document, environ)[0]
 
 
 def describe(role="admin", environ=None, reauth=False):
@@ -139,6 +145,7 @@ def describe(role="admin", environ=None, reauth=False):
         effective = settings._lookup(in_use, path)
         default = settings.field_default(info)
         section, _dot, name = path.rpartition(".")
+        source = _source(path, meta, document, environ)
         options.append({
             "path": path,
             "section": section,
@@ -161,10 +168,10 @@ def describe(role="admin", environ=None, reauth=False):
             "value": None if secret else (list(value) if kind == "list" else value),
             "effective": None if secret else (list(effective) if kind == "list" else effective),
             "is_set": bool(value) if secret else None,
-            "source": _source(path, meta, document, environ),
+            "source": source,
             "env": meta.get("x-env") or "",
             "restart": bool(meta["x-restart"]),
-            "overridden": _source(path, meta, document, environ) == "environment",
+            "overridden": source == "environment",
             "secret": secret,
             "editable": bool(meta["x-editable"]),
             "min_role": meta["x-min_role"],

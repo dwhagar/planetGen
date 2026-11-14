@@ -99,10 +99,7 @@ def cancel_run(conn, run_id, who=None, now=None):
     if run is None or run["state"] not in runrecord.LIVE_STATES:
         return None
     runrecord.request_cancel(conn, run_id, now)
-    stopped = stop_units(conn, run)
-    runrecord.finish_run(conn, run_id, "canceled", error=f"canceled by {who}" if who else "canceled", now=now)
-    write_log(conn, run_id)
-    return stopped
+    return _end(conn, run, "canceled", f"canceled by {who}" if who else "canceled", now)
 
 
 def is_clearable(conn, run, now=None):
@@ -122,10 +119,14 @@ def clear_run(conn, run_id, who=None, now=None):
     run = runrecord.read_run(conn, run_id)
     if not is_clearable(conn, run, now):
         return None
+    return _end(conn, run, "failed", f"cleared by {who}: it showed no sign of life" if who else "cleared: it showed no sign of life", now, killed=True)
+
+
+def _end(conn, run, state, error, now, killed=False):
+    """Stops the run's units, ends the run in `state` with `error` and writes its log; returns what `stop_units` stopped."""
     stopped = stop_units(conn, run)
-    runrecord.finish_run(conn, run_id, "failed", error=f"cleared by {who}: it showed no sign of life" if who
-                         else "cleared: it showed no sign of life", now=now, killed=True)
-    write_log(conn, run_id)
+    runrecord.finish_run(conn, run["id"], state, error=error, now=now, killed=killed)
+    write_log(conn, run["id"])
     return stopped
 
 

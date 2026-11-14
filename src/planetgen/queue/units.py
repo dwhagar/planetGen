@@ -174,17 +174,29 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         dict: `seconds` the unit took, or `skipped`.
     """
     conn = rq.get_current_job().connection
-    state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
-    if runrecord._s(state) != "running" or conn.sismember(runrecord.done_key(run_id, stage), unit):
+    live, wanted = _run_settings(conn, run_id)
+    if not live or conn.sismember(runrecord.done_key(run_id, stage), unit):
         return {"skipped": True}
+    return _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost))
+
+
+def _run_settings(conn, run_id):
+    """`(live, debug areas)` of the run for a job of it: whether it is running, and, having set the worker's GEN.599 switch to the run's
+    (`fetch.set_disregard_missing_data`), the debug areas its workers relay (`""` for an ordinary run)."""
+    state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
+    if runrecord._s(state) != "running":
+        return False, ""
     fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))      # GEN.599: the run's own switch, in every worker
-    wanted = runrecord._s(debug)
+    return True, runrecord._s(debug) or ""
+
+
+def _relayed(conn, run_id, wanted, work):
+    """`work()`, with what it logs relayed to the process that started the run for a debug run (`wanted`, the areas: this worker's stdout
+    goes nowhere, so the starter prints the lines as they arrive)."""
     if not wanted:
-        return _do_unit(conn, run_id, stage, unit, kind, args, cost)
-    # A debug run (`--debug`, or debug mode in config.json): this worker's stdout goes nowhere, so what the unit
-    # logs is relayed to the process that started the run, which prints it as it arrives.
+        return work()
     with log.relayed(conn, runrecord.debug_key(run_id), "" if wanted == "all" else wanted):
-        return _do_unit(conn, run_id, stage, unit, kind, args, cost)
+        return work()
 
 
 def _proportional_mb(pid):
@@ -306,15 +318,10 @@ def open_stage(run_id, index):
         dict: `opened`, or `skipped`.
     """
     conn = rq.get_current_job().connection
-    state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
-    if runrecord._s(state) != "running":
+    live, wanted = _run_settings(conn, run_id)
+    if not live:
         return {"skipped": True}
-    fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))
-    wanted = runrecord._s(debug)
-    if not wanted:
-        return _open_stage(conn, run_id, index)
-    with log.relayed(conn, runrecord.debug_key(run_id), "" if wanted == "all" else wanted):
-        return _open_stage(conn, run_id, index)
+    return _relayed(conn, run_id, wanted, lambda: _open_stage(conn, run_id, index))
 
 
 def _open_stage(conn, run_id, index):
@@ -345,9 +352,11 @@ def _short(value, limit=300):
 
 
 TABLE_KINDS = frozenset({"scatter-mass", "scatter-luminosity", "scatter-backfill", "scatter-band", "generate-start-sector",
-                         "generate-neighborhood", "generate-sectors", "generate-unplaced-sector", "generate-system"})
+                         "generate-neighborhood", "generate-sectors", "generate-unplaced-sector"})
 """frozenset: The commands whose units draw stars from the bright-star sampling tables (PERF.226), so a worker builds the tables
-before it forks a horse for one (`warm_unit`) and keeps them; any other unit runs in a worker without them."""
+before it forks a horse for one (`warm_unit`) and keeps them; any other unit runs in a worker without them. `generate-system` is not one
+(PERF.266): a one-off system draws its star from the generator's own laws and never reads a sampling table, and building them all at the
+worker's start took 56 s on a cold table cache (a fresh checkout) for nothing."""
 
 
 def tables_held():
@@ -400,8 +409,7 @@ def warm_shape(unit_args):
     """A `warm` function for the units that read the galaxy's shape first thing (`unit_args["database"]`): reads it, so
     the worker holds its component field (`warm_unit`). The connection is closed and its pool dropped before the fork,
     so no socket is shared with a horse."""
-    named = unit_args["database"]
-    config = store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+    config = store.MySQLConfig.from_args(unit_args["database"])
     try:
         conn = store.get_connection(config)
         try:
@@ -459,31 +467,33 @@ def horse_killed(job, retpid, ret_val, _rusage):
                     + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))
         if retry:
             return
-    if job.func_name == UNIT_FUNCTION:
-        run_id, stage, unit = job.args[:3]
-        log.process_ended("queue", f"The process running unit {unit} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
+    if job.func_name in (UNIT_FUNCTION, OPEN_FUNCTION):
         from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
-        runrecord.finish_run(conn, run_id, "failed",
-                             error=f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} was killed: "
-                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
-    elif job.func_name == OPEN_FUNCTION:
         run_id, index = job.args[:2]
-        log.process_ended("queue", f"The process opening stage {index} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
-        from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
-        runrecord.finish_run(conn, run_id, "failed",
-                             error=f"the opening of stage {wrapper.stage_name(conn, run_id, index)} was killed: "
-                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
+        if job.func_name == UNIT_FUNCTION:
+            unit = job.args[2]
+            doing, what = f"running unit {unit} of run {run_id}", f"unit {unit} of stage {wrapper.stage_name(conn, run_id, index)}"
+        else:
+            doing, what = f"opening stage {index} of run {run_id}", f"the opening of stage {wrapper.stage_name(conn, run_id, index)}"
+        log.process_ended("queue", f"The process {doing}, pid {retpid},", status, deliberate=(), pid=retpid)
+        runrecord.finish_run(conn, run_id, "failed", error=f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
     else:
         log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
 
 
 def _killed_by_sigkill(status):
     """Whether a work horse's wait status says SIGKILL, what the kernel's out-of-memory killer sends."""
+    return _signal_number(status) == signal.SIGKILL
+
+
+def _signal_number(status):
+    """The signal a work horse's wait status says ended it (a negative status is the signal already; a raw wait status keeps it in the low bits),
+    0 for a process that exited, `None` for a status that is no number."""
     try:
         number = int(status)
     except (TypeError, ValueError):
-        return False
-    return (-number if number < 0 else number & 0x7f) == signal.SIGKILL
+        return None
+    return -number if number < 0 else number & 0x7f
 
 
 def _ended_with(status):
@@ -492,11 +502,7 @@ def _ended_with(status):
     out-of-memory killer sends; SIGTERM is a request to end, sent by something that stopped it on purpose (a stop-all, a cancel, a
     memory guard such as earlyoom), which is not the kernel's out-of-memory killer. A status that is no signal is the exit code.
     """
-    try:
-        number = int(status)
-    except (TypeError, ValueError):
-        return f"status {status}"
-    number = -number if number < 0 else number & 0x7f      # a negative one is a signal already; a raw wait status: the low bits are the signal that ended the process, 0 when it exited
+    number = _signal_number(status)
     if not number:
         return f"status {status}"
     try:
@@ -575,7 +581,7 @@ def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, s
             on_debug()
         if len(seen) >= units:
             return
-        state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
+        state = runrecord.run_state(conn, run_id)
         if state not in runrecord.LIVE_STATES:
             drain()         # the last units may have finished between the two reads
             if on_debug is not None:

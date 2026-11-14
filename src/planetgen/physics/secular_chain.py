@@ -45,8 +45,6 @@ import numpy as np
 
 from planetgen.physics import constants, resonant_chains
 
-_SOLAR_MASS_KG = 1.98847e30
-"""float: Only to take the solar mass out of the relativistic term; the star's own mass enters through `constants.G`."""
 MAXIMUM_EIGEN_IMAGINARY_SHARE = 1.0e-6
 """float: The most the eigenvalues of `A` or `B` may have as an imaginary part, as a share of the largest: the matrices are similar to symmetric ones, so a larger share is a numerical fault."""
 

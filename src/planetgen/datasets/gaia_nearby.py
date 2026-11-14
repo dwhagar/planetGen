@@ -30,8 +30,8 @@ from planetgen.util.user_agent import user_agent
 
 FILE = "gaia_dr3_25pc.csv"
 
-QUERY = ("SELECT source_id, ra, dec, parallax, parallax_error, pmra, pmdec, phot_g_mean_mag, bp_rp FROM gaiadr3.gaia_source "
-         "WHERE parallax > 40 AND parallax_over_error > 10 ORDER BY source_id")
+QUERY = ("SELECT g.source_id, g.ra, g.dec, g.parallax, g.parallax_error, g.pmra, g.pmdec, g.phot_g_mean_mag, g.bp_rp FROM gaiadr3.gaia_source AS g "
+         "WHERE g.parallax > 40 AND g.parallax_over_error > 10 ORDER BY g.source_id")
 """str: The ADQL query that makes the file: every DR3 source nearer than 25 pc (parallax over 40 mas) whose parallax is measured to better than 10 sigma."""
 
 URL = "https://gea.esac.esa.int/tap-server/tap/sync?" + urllib.parse.urlencode({"REQUEST": "doQuery", "LANG": "ADQL", "FORMAT": "csv", "QUERY": QUERY})
@@ -182,7 +182,7 @@ MIRRORS = (
         {"REQUEST": "doQuery", "LANG": "ADQL", "FORMAT": "csv", "MAXREC": "100000", "QUERY": QUERY})),
     fetch.Mirror("VizieR (Gaia DR3, I/355)", get=_vizier(_vizier_columns(
         "I/355/gaiadr3", ("Source", "RA_ICRS", "DE_ICRS", "Plx", "e_Plx", "pmRA", "pmDE", "Gmag", "BP-RP"), " AND Plx/e_Plx > 10")), convert=vizier_to_file, accept=accept_rows),
-    fetch.Mirror("VizieR (the Gaia Catalogue of Nearby Stars, I/360)", get=_vizier(_vizier_columns(
+    fetch.Mirror("VizieR (the Gaia nearby-star catalog GCNS, I/360)", get=_vizier(_vizier_columns(
         "I/360/gcnsmain", ("GaiaEDR3", "RA_ICRS", "DE_ICRS", "Plx", "e_Plx", "pmRA", "pmDE", "Gmag", "BP-RP"))), convert=vizier_to_file, accept=accept_rows),
 )
 """tuple: What is tried, in order, when the archive's own synchronous query fails or is capped (OPS.183, Boss: have all four and if one fails go to the next). The first two give the file byte for byte

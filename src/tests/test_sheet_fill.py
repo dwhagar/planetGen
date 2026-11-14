@@ -234,13 +234,13 @@ def test_a_runner_up_class_applies_only_where_a_second_class_fits_the_body():
         assert sheet.applies(kind, "C", "runner_up_class")
 
 
-def test_the_tilt_range_applies_only_to_a_free_spinning_planet_of_the_spacing_pass():
-    """GEN.1535: `settle_obliquity` stores the range for a planet that spins freely; a moon, a locked or resonant planet and a belt member promoted to a planet have none."""
+def test_the_tilt_range_applies_only_to_a_free_spinning_planet():
+    """GEN.1535, GEN.1668: `settle_obliquity` stores the range for a planet that spins freely, a belt member made a planet among them; a moon, a locked or resonant planet has none."""
     free = {"rotation_period_hours": 24.0, "period_years": 1.0}
     locked = {"rotation_period_hours": 8766.0, "period_years": 1.0}
     resonant = {"rotation_period_hours": 8766.0 / 1.5, "period_years": 1.0}
     for key in ("obliquity_min_deg", "obliquity_max_deg"):
         assert sheet.applies("planet", "M", key, free) and sheet.applies("planet", "M", key)
         assert not sheet.applies("planet", "M", key, locked) and not sheet.applies("planet", "M", key, resonant)
-        assert not sheet.applies("planet", "D", key, {**free, "belt_order": 2})
+        assert sheet.applies("planet", "D", key, {**free, "belt_order": 2}) and not sheet.applies("planet", "D", key, {**locked, "belt_order": 2})
         assert not sheet.applies("moon", "C", key, free) and not sheet.applies("moon", "C", key)

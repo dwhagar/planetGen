@@ -12,40 +12,20 @@ MySQL settings as every other script (`config.json`, `PLANETGEN_MYSQL_*`,
 `--mysql-*`). Written to the activity log as `DB totp.reset`.
 """
 
-import argparse
 import sys
 
-import pymysql
-
 from planetgen.admin import activity_log, auth
-from planetgen.db.store import add_mysql_connection_args, control_mysql_config, get_control_connection, \
-    mysql_config_from_args
-from planetgen.util import log
+from planetgen.cli import admin_account_command
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Turn off this admin's two-factor sign-in, for a lost phone.")
-    parser.add_argument("user", metavar="USER", help="The admin's username.")
-    add_mysql_connection_args(parser)
-    log.add_debug_arguments(parser)
-    args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
-    try:
-        conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
-    except pymysql.MySQLError as exc:
-        log.error(f"The control database could not be opened ({exc}).")
-        return 1
-    try:
-        row = conn.execute("SELECT id FROM admin_users WHERE username = ?", (args.user,)).fetchone()
-        if row is None:
-            parser.error(f"no admin named {args.user!r}.")
-        was_on = auth.disable_totp(conn, row["id"])
-        activity_log.event("DB", "totp.reset", user=activity_log.login_name(), target=f"user:{args.user}")
-        activity_log.console_call("cli/reset-two-factor", target=f"user:{args.user}")
-        print(f"Two-factor sign-in for {args.user} is off{'' if was_on else ' (it was not set up)'}.")
-        return 0
-    finally:
-        conn.close()
+    return admin_account_command.run(argv, "Turn off this admin's two-factor sign-in, for a lost phone.", "cli/reset-two-factor", _reset)
+
+
+def _reset(conn, user_id, username):
+    was_on = auth.disable_totp(conn, user_id)
+    activity_log.event("DB", "totp.reset", user=activity_log.login_name(), target=f"user:{username}")
+    return f"Two-factor sign-in for {username} is off{'' if was_on else ' (it was not set up)'}."
 
 
 if __name__ == "__main__":

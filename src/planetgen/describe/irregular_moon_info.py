@@ -36,11 +36,6 @@ def designation_rank(moon):
     return moon.rank + 1
 
 
-def stored_rank(designation_rank_number):
-    """The stored `moon_rank` that the rank written in a designation names."""
-    return designation_rank_number - 1
-
-
 def _period_yr(distance_km, mass_kg):
     mu = constants.G * mass_kg
     seconds = 2.0 * math.pi * math.sqrt((distance_km * 1000.0) ** 3 / mu)
