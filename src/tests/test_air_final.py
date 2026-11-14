@@ -9,7 +9,7 @@ or the ice-albedo law's own answer when the setting has one.
 
 import types
 
-from planetgen.physics import air_final, surface_air
+from planetgen.physics import air_branches, air_final, surface_air
 
 
 def _moon():
@@ -40,3 +40,16 @@ def test_a_body_past_its_runaway_limit_with_water_starts_the_solver_hot(monkeypa
     air_final.make(_moon(), types.SimpleNamespace(albedo_law=None), 255.0, 1361.0, 1.0, 0.3, False, 1e-3)
     air_final.make(_moon(), types.SimpleNamespace(albedo_law=None), 255.0, 1361.0, 1.0, 0.3, False, None)
     assert starts[0] > 255.0 and starts[1] == 255.0
+
+
+def test_a_body_with_the_ice_law_enters_the_solver_from_the_warm_side_and_a_giant_or_a_body_without_the_law_does_not(monkeypatch):
+    """GEN.1696: a planet cooled from its formation, so a world that can be warm or frozen is solved from the warm side."""
+    starts = []
+    monkeypatch.setattr(surface_air, "solve", lambda setting, start_k: starts.append(start_k))
+    monkeypatch.setattr(surface_air, "airless_state", lambda law, starlight, start: (start, 0.3))
+    air_final.make(_moon(), types.SimpleNamespace(albedo_law="law"), 255.0, 1361.0, 1.0, 0.3, False, 1e-3)
+    air_final.make(_moon(), types.SimpleNamespace(albedo_law="law"), 255.0, 1361.0, 1.0, 0.3, True, 1e-3)
+    air_final.make(_moon(), types.SimpleNamespace(albedo_law=None), 255.0, 1361.0, 1.0, 0.3, False, 1e-3)
+    assert starts == [air_branches.WARM_START_K, 255.0, 255.0]
+    air_final.make(_moon(), types.SimpleNamespace(albedo_law="law"), 400.0, 1361.0, 1.0, 0.3, False, 1e-3)
+    assert starts[-1] == 400.0      # a body already hotter than the warm side keeps its own start

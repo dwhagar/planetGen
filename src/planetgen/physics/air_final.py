@@ -63,7 +63,7 @@ def past_runaway_with_water(planet, starlight_w_m2, surface_w):
 
 def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, albedo, giant, surface_w, dry_ground=False, no_air_internal_w_m2=0.0):
     """
-    The air of `planet` as it ends: solved from the start temperature the body's water gives (`past_runaway_with_water`), replaced by the air of an oddity of lever L7 when a row names the body
+    The air of `planet` as it ends: solved from the start temperature the body's water gives (`past_runaway_with_water`, or the warm side for a body with the ice law, GEN.1696), replaced by the air of an oddity of lever L7 when a row names the body
     (`air_branches`), or the airless state when it keeps none (`surface_air.airless_state`, the ice-albedo law's own answer). Keeps on the planet, as before and not stored, the replay of the
     late accretion (`_air_replay`, GEN.1493), the retention cap of the first solve (`_retention_cap_pa`, GEN.1340) and the carbon sink of the air kept (`_co2_sink`, GEN.1309 A).
 
@@ -85,6 +85,8 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     start_k = no_air_temperature_k
     if past_runaway_with_water(planet, starlight_w_m2, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `past_runaway_with_water`)
+    elif setting.albedo_law is not None and not giant:
+        start_k = max(start_k, air_branches.WARM_START_K)           # GEN.1696: a body with the ice law cooled from its formation, so it enters from the warm side
     air = surface_air.solve(setting, start_k)
     if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
         planet._air_replay = (*planet._air_replay[:3], (setting, air.late_state, air.late, air.degassed))
