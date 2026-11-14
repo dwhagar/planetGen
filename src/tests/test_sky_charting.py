@@ -312,6 +312,72 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
     assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == []
 
 
+@pytest.fixture
+def plan_only_galaxy(mysql_config, monkeypatch):
+    """The toy galaxy after a plan-and-stop: its shape and outline are stored and no star scatter ever ran (OPS.256)."""
+    _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE * 5)
+    monkeypatch.setattr(sky_charting, "CELL_PAD_PC", 2.0 * EDGE_PC)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.bright_star_scatter_settings(conn) is None
+        yield conn
+    finally:
+        conn.close()
+
+
+def test_a_galaxy_with_no_scatter_has_no_sky_tiers_and_no_made_up_ceiling(plan_only_galaxy):
+    """OPS.256, at the cause: the limits say no scatter ran (`scatter_ran`), `plan` then holds no tier (so nothing is costed, owed or drawn), and `walk_edges_and_ceiling` refuses to hand back a 0.0
+    luminosity ceiling that every ring's cost and draw would then read as a threshold of 0 Lsun."""
+    conn = plan_only_galaxy
+    skeleton = store.get_galaxy_shape(conn)
+    limits = store.scatter_limits_of(conn, skeleton)
+    assert not limits.scatter_ran
+    center, tiers = sky_charting.plan(SPHERE_CENTER, 7.5, skeleton.edge_pc, limits=limits, skeleton=skeleton)
+    assert tiers.luminosity == () and tiers.rings == () and tiers.dropped == ()
+    assert sky_charting.owed_tiers(tiers, ledger_module.read(conn), center) == []
+    with pytest.raises(ValueError, match="no star scatter yet"):
+        sky_charting.walk_edges_and_ceiling(limits)
+
+
+def test_charting_the_sky_of_a_galaxy_with_no_scatter_draws_nothing(plan_only_galaxy):
+    """OPS.256: `chart` (the sky unit, run by a worker, a retry or a resume whatever expanded it) ends clean with nothing drawn, rather than raising a luminosity threshold of 0.0."""
+    before = _stored_stars(plan_only_galaxy)
+    result = sky_charting.chart(plan_only_galaxy, SPHERE_CENTER, 7.5)
+    plan_only_galaxy.commit()
+    assert result["tiers"] == [] and result["stars"] == 0 and result["cells"] == 0
+    assert _stored_stars(plan_only_galaxy) == before and not ledger_module.read(plan_only_galaxy).draws
+
+
+def test_a_sky_unit_of_a_scatter_that_was_cleared_since_it_was_cut_ends_clean(plan_only_galaxy, mysql_config):
+    """OPS.256: a queued sky unit (its params hold only the cell centre and the limit) that runs after the scatter was cleared is the retry/resume path; it draws nothing and says so."""
+    from planetgen.generation import run_galaxy
+    named = {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}
+    result = run_galaxy.backfill_bright_stars_unit({"database": named, "items": [], "sky": {"center": list(SPHERE_CENTER), "limit": 7.5}}, lambda done, total: None)
+    assert result["sky"]["spheres"] == 0 and result["sky"]["stars"] == 0
+
+
+@pytest.mark.parametrize("entry", ["since", "center_pc"])
+def test_every_backfill_entry_of_a_plan_only_galaxy_runs_with_the_default_sky(plan_only_galaxy, mysql_config, monkeypatch, entry):
+    """OPS.256: the backfill stage (`_backfill_on_queue`) is the one door of `run_backfill` (CLI `backfill`, the web Add sectors and New galaxy job steps: `since`), of the one-sector API fill and of a
+    galaxy run's fill around a sector (`center_pc`); each is asked for the default sky (7.5) and must end with the sectors' own backfill drawn and no sky."""
+    from planetgen.generation import run_galaxy
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests import first_fill
+    from tests.test_bright_star_scatter import _database_now
+    first_fill.without_the_deepest_floor(monkeypatch)
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    args.sky_limit = 7.5          # what the deployment's `queue.sky_limit` default asks for (the test settings leave it off)
+    address = (3, 0, 4)
+    started = _database_now(mysql_config)
+    position = sector_position_pc(*address, EDGE_PC)
+    run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
+    assert sky_charting.limit_of(args) == 7.5
+    summary = run_galaxy._backfill_on_queue(args, started, center_pc=position if entry == "center_pc" else None)
+    assert summary["sectors"] >= 1
+    assert not ledger_module.read(plan_only_galaxy).draws
+
+
 def test_a_charted_cell_is_built_out_to_its_spheres_and_a_half_chart_is_not(galaxy):
     """VIEW.42: `built_to_pc` (the sky route's) reads the ledger: 0 before a chart and with only the luminosity chain, the sphere's reach once the luminosity bands reach the rings' 50 Lsun and the rings reach the lightest mass."""
     conn = galaxy
