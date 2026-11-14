@@ -412,22 +412,6 @@ def _finish_stats(args):
     _RUN_STATS.clear()
 
 
-def write_text_output(path, text, what):
-    """Writes `text` to `path` as `--output` takes it: `-` is stdout (the text ending in one newline), else the file, whole.
-    Returns whether a file was written (false for stdout); a file that cannot be written logs the error (`what` names the text,
-    "the description") and exits with 1."""
-    if path == "-":
-        sys.stdout.write(text if text.endswith("\n") else text + "\n")
-        return False
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(text)
-    except OSError as exc:
-        log.error(f"error: {what} could not be written to {path}: {exc.strerror or exc}")
-        raise SystemExit(1)
-    return True
-
-
 def _interactive():
     return sys.stdin.isatty() and sys.stdout.isatty()
 

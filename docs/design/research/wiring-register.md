@@ -37,6 +37,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | function | planetgen.physics.equilibrium_edges.h2_dissociation_temperature | by design | the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation |
+| module | planetgen.physics.hot_giant_profile | GEN.1577 | the Guillot semi-grey profile of a hot giant's atmosphere; the hot-giant regime wiring (GEN.994) calls `profile_function` for the cloud deck and deletes this line |
+| row | 6.288:HGP1 | GEN.1577 | `hot_giant_profile.KAPPA_THERMAL_M2_KG`, not read until the hot-giant wiring calls the profile |
+| row | 6.288:HGP2 | GEN.1577 | `hot_giant_profile.GAMMA_AT_2000_K`, not read until the hot-giant wiring calls the profile |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
@@ -97,7 +100,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
-| row | 6.126:RN1 | GEN.1684 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
 | row | 6.126:RN2 | GEN.1684 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1201 wires the module |
 | row | 6.126:RN4 | GEN.1684 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1201 wires the module |
 | module | planetgen.physics.ice_types | GEN.1684 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
@@ -228,4 +230,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.saturation.unread_formulas | GEN.1564 | the names of the held-back curves, read by the tests; slice 1 empties it |
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
-| row | 6.288:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
+| row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |

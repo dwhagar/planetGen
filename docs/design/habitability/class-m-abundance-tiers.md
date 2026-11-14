@@ -78,7 +78,7 @@ Two makers of systems inside a galaxy build their config without the galaxy's sh
 | Plentiful | 1 | 1 | 0.5 |
 | Abundant | 1 | 1 | 1 |
 
-These are first-pass values from the estimates of the report (every candidate given Earth's water gives about 1 Class M world per 500 Sun-like systems; 1 per 100 needs the envelopes gone as well; the two top tiers need the request). They are registered as stand-ins of tier T9, tweak level L4 (`docs/design/research/gap-filling-plan.md` section 6.288).
+These are first-pass values from the estimates of the report (every candidate given Earth's water gives about 1 Class M world per 500 Sun-like systems; 1 per 100 needs the envelopes gone as well; the two top tiers need the request). They are registered as stand-ins of tier T9, tweak level L4 (`docs/design/research/gap-filling-plan.md` section 6.289).
 
 Calibration is by the meter: `scripts/class_census.py` draws a seeded sample of Sun-like systems under a tier and prints the funnel (candidates, right mass, ground, gravity, water cover, liquid water, Class M, Blue) and the rate of Class M and Blue worlds per 1,000 systems with its interval, beside the tier's target. The values are set again (GEN.1706) after GEN.1694 to GEN.1698 merge, because those fixes change the rate under every tier.
 
