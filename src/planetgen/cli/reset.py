@@ -63,7 +63,7 @@ from planetgen.db import dataversion
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.queue import commands, longsql, redisqueue, runrecord, units, wrapper
 from planetgen.util import log
 from planetgen.util.format import counted
 
@@ -212,7 +212,7 @@ def wipe(config, report=None):
                     exact_rows += held
                 else:
                     estimated_rows += held
-                conn.execute(f"TRUNCATE TABLE {table}")
+                longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(tables)}", config=config)
                 if report is not None:
                     report(number, len(tables))
         finally:
