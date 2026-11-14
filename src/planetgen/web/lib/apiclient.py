@@ -1480,6 +1480,12 @@ def admin_work_held(cookie_header):
     return body
 
 
+def admin_work_supervisor(cookie_header):
+    """`GET /api/admin/work/supervisor` -- whether the supervisor is alive, since when, its last turn and its latest acts with their reasons (OPS.214)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/supervisor", cookie_header=cookie_header)
+    return body
+
+
 def admin_work_tuning(cookie_header):
     """`GET /api/admin/work/tuning` -- what the queue has learned per job kind and its latest changes (OPS.158)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/work/tuning", cookie_header=cookie_header)

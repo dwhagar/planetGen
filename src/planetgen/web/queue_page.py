@@ -336,6 +336,23 @@ def _tuning_view(body):
     return {"on": body.get("self_tuning", True), "rows": rows, "changes": changes}
 
 
+def _supervisor_view(body, now=None):
+    """
+    The panel of the supervisor process (OPS.214): whether it is alive, since when, how long since its last turn and its latest acts with their reasons. `None` when the API gave nothing,
+    so the page loads without it.
+    """
+    if not body:
+        return None
+    now = time.time() if now is None else now
+    acts = [{"at": act["at"], "what": act["what"], "reason": act.get("reason") or ""} for act in body.get("recent", [])]
+    if not body.get("alive"):
+        return {"alive": False, "state": "Not running. It starts again by itself when work arrives or this page is polled.", "acts": acts}
+    since, turn_at = body["since"], body["turn_at"]
+    return {"alive": True, "pid": body["pid"], "since": since, "up": _duration(max(now - since, 0.0)), "turn": _duration(max(now - turn_at, 0.0)),
+            "turns": f"{body['turns']:,}", "acts": acts,
+            "state": ""}
+
+
 def _beating_view(body):
     """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
     jobs = (body or {}).get("jobs") or []
@@ -372,7 +389,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = held = beating = tuning = None
+    workers = warm = held = beating = tuning = supervisor = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -386,6 +403,10 @@ def admin_queue():
             beating = _beating_view(apiclient.admin_work_jobs(cookie_header))
         except apiclient.ApiError:
             beating = None
+        try:
+            supervisor = _supervisor_view(apiclient.admin_work_supervisor(cookie_header))
+        except apiclient.ApiError:
+            supervisor = None
         try:
             tuning = _tuning_view(apiclient.admin_work_tuning(cookie_header))
         except apiclient.ApiError:
@@ -404,7 +425,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating, tuning=tuning,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating, tuning=tuning, supervisor=supervisor,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )

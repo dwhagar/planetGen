@@ -14,6 +14,7 @@ lock, publishes that it is alive and since when, logs its turns, and exits after
 """
 
 import fcntl
+import json
 import os
 import sys
 import time
@@ -36,6 +37,12 @@ ALIVE_SECONDS = 15
 
 STARTING_SECONDS = 20
 """int: How long a caller's claim to be starting the supervisor holds off the other callers."""
+
+RECENT_KEPT = 20
+"""int: How many of its latest acts the supervisor keeps for the Queue page (OPS.214)."""
+
+RECENT_SECONDS = 7 * 86400
+"""int: How long the list of its latest acts is kept after the last one."""
 
 LOG_EVERY_TURNS = 30
 """int: The turns between the supervisor's own lines in the log (a turn that changes nothing is not worth a line each)."""
@@ -69,6 +76,11 @@ def alive_key():
     return runrecord._k("supervisor", "alive")
 
 
+def recent_key():
+    """The list of the supervisor's latest acts, newest first, each a JSON `{"at", "what", "reason"}` (OPS.214): what it did and why, in words."""
+    return runrecord._k("supervisor", "recent")
+
+
 def starting_key():
     """The string a caller sets to say it is starting the supervisor, so the callers that follow do not."""
     return runrecord._k("supervisor", "starting")
@@ -90,6 +102,14 @@ class RedisStore:
     def retract(self):
         """Takes the sign of life down, as the supervisor does when it ends."""
         self.connection.delete(alive_key())
+
+    def note(self, now, what, reason=""):
+        """Adds an act to the list the Queue page shows (OPS.214): what the supervisor did and why."""
+        pipe = self.connection.pipeline()
+        pipe.lpush(recent_key(), json.dumps({"at": now, "what": what, "reason": reason}))
+        pipe.ltrim(recent_key(), 0, RECENT_KEPT - 1)
+        pipe.expire(recent_key(), RECENT_SECONDS)
+        pipe.execute()
 
     def busy(self):
         """Whether there is anything for a supervisor to watch: a live run, or a run waiting for the machine."""
@@ -148,6 +168,13 @@ class Supervisor:
         else:
             log.debug(text, area="queue")
 
+    def act(self, what, reason=""):
+        """Says what the supervisor did and why: in the log and, where the store keeps them, in the list the Queue page shows (OPS.214). Later items call it for each thing they do."""
+        self.say(f"The supervisor {self.pid}: {what}" + (f" ({reason})" if reason else "") + ".")
+        note = getattr(self.store, "note", None)
+        if note is not None:
+            note(self.clock.now(), what, reason)
+
     def turn(self):
         """One turn: publishes the sign of life, then notes whether there is anything to watch. Nothing else yet (OPS.208 and the items after it add the watch).
 
@@ -157,7 +184,7 @@ class Supervisor:
         now = self.clock.now()
         if self.since is None:
             self.since = now
-            self.say(f"The supervisor {self.pid} starts.")
+            self.act("started", "something asked for one")
         self.turns += 1
         self.store.publish(self.pid, self.since, now, self.turns)
         busy = bool(self.store.busy())
@@ -189,8 +216,27 @@ class Supervisor:
                 self.clock.sleep(self.turn_seconds)
                 continue
             self.store.retract()
-            self.say(f"The supervisor {self.pid} ends after {self.turns} turn(s): {reason}.")
+            self.act("ended", {"stopped": "it was asked to stop", "idle": f"nothing to watch for {self.idle_seconds:.0f} s",
+                               "turns": "the turn limit"}[reason] + f", after {self.turns} turn(s)")
             return reason
+
+
+def overview(connection):
+    """
+    What the Queue page and `GET /api/admin/work/supervisor` show of the supervisor (OPS.214): `alive`, and while it is, its `pid`, `since` and `turn_at` (Unix seconds) and `turns`; and
+    `recent`, its latest acts newest first, each `at`, `what`, `reason`.
+    """
+    fields = {runrecord._s(k): runrecord._s(v) for k, v in connection.hgetall(alive_key()).items()}
+    recent = []
+    for raw in connection.lrange(recent_key(), 0, RECENT_KEPT - 1):
+        try:
+            recent.append(json.loads(runrecord._s(raw)))
+        except ValueError:
+            continue
+    body = {"alive": bool(fields), "recent": recent}
+    if fields:
+        body.update(pid=int(fields["pid"]), since=float(fields["since"]), turn_at=float(fields["turn_at"]), turns=int(fields["turns"]))
+    return body
 
 
 def is_alive(connection):
