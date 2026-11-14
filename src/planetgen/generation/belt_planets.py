@@ -60,7 +60,7 @@ def in_ring(belt, member):
 
 def clear_of_planets(star, member, order, planets):
     """
-    True when `member` stands `tuning.MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii (Gladman 1993, `orbits.mutual_hill_radius_au`) from every planet of `planets` that did not come from the belt `order`, as the planets of the star stand from each other
+    True when `member` stands `tuning.MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii ([R1583], `orbits.mutual_hill_radius_au`) from every planet of `planets` that did not come from the belt `order`, as the planets of the star stand from each other
     (`validation.min_distance_after_au`): a body of the ring keeps that room from the planets beside it, and one that is closer stays a member. The planets of its own belt are the ring and are not asked.
     """
     for planet in planets:

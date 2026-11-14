@@ -1,5 +1,5 @@
 """
-The carbon balance of a world with land and an ocean (GEN.1713, `planetgen.physics.continental_weathering`): the weathering law of Graham and Pierrehumbert 2020 with its limits,
+The carbon balance of a world with land and an ocean (GEN.1713, `planetgen.physics.continental_weathering`): the weathering law of [R1660] with its limits,
 normalised to the Earth, and the seafloor sink beside it.
 """
 

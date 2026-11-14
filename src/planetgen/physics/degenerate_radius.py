@@ -1,7 +1,6 @@
 """
 The radius of a cold degenerate star (a white dwarf, or the helium donor of an AM CVn binary) from its mass alone: the
-zero-temperature mass-radius relation of Eggleton, as Verbunt and Rappaport (1988, ApJ 332, 193, eq. 15) and Rappaport,
-Verbunt and Joss (1983) quote it [second-hand; the fit itself is unpublished]:
+zero-temperature mass-radius relation of Eggleton, as [R5256] (ApJ 332, 193, eq. 15) and [R5258] quote it [second-hand; the fit itself is unpublished]:
 
     R / R_sun = 0.0114 [(M / M_Ch)^(-2/3) - (M / M_Ch)^(2/3)]^(1/2) [1 + 3.5 (M / M_p)^(-2/3) + (M / M_p)^(-1)]^(-2/3)
 

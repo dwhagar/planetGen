@@ -230,7 +230,7 @@ def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_ow
 
 
 def test_a_frozen_world_with_the_ice_law_keeps_the_carbon_the_volcanoes_give_and_a_warm_one_does_not():
-    """GEN.1697: weathering all but stops under the ice, so the carbon builds up until it melts it (Hoffman et al. 2017)."""
+    """GEN.1697: weathering all but stops under the ice, so the carbon builds up until it melts it [R5259]."""
     law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
     held = _ocean_setting(0.7, 1.4e21)
     iced = dataclasses.replace(held, albedo_law=law, starlight_w_m2=1360.0)      # the energy limit of the runoff reads the starlight the ice law lets in

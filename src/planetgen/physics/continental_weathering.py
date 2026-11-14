@@ -7,8 +7,8 @@ The carbon balance of a world with land and an ocean: continental silicate weath
 Volcanoes give CO2; two sinks take it back; the air holds the pressure at which they balance (`surface_pressure.balance_root_bar`). This
 module is the balance of a body with land and an ocean that is not sealed (`waterworld_carbon.sink_kind`).
 
-* *Land.* The weathering law of Graham and Pierrehumbert 2020 [R1660: Eqs. 24, 40 to 44, Table 1], the form of Maher and Chamberlain 2014 that
-  adds to the kinetic rate of the Walker law (Walker, Hays and Kasting 1981; Lehmer et al. 2020 [R2628]) the three limits that a rate has
+* *Land.* The weathering law of [R1660] [R1660: Eqs. 24, 40 to 44, Table 1], the form of [R5255] that
+  adds to the kinetic rate of the Walker law ([R2628, R4596] [R2628]) the three limits that a rate has
   on real ground. Per unit of land
 
       w = alpha / { [k_ref exp((T - T_ref) / T_e) (p / p_ref)^beta]^-1 + m A t_s + alpha [q Lambda p^n]^-1 }.
@@ -20,8 +20,8 @@ module is the balance of a body with land and an ocean that is not sealed (`wate
   latent heat allows (Eqs. 41 to 44). On a hot world that limit, not the Clausius-Clapeyron rise, sets the rain, and so the weathering.
 * *Seafloor.* The dissolution of basalt in the pore water of the ocean floor (`waterworld_carbon.seafloor_rate_over_modern`, [R2489]),
   at the modern share of the volcanoes' CO2 (`waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING`, 0.45 / 6.6). Its limit is the supply of
-  fresh crust, which is the spreading term `(q / q_E)^beta` already in that law (Chambers 2020 [R5254]: "limited by the supply of fresh
-  oceanic crust, and proportional to the seafloor spreading rate"; Hoening, Tosi and Spohn 2019 give no further cap).
+  fresh crust, which is the spreading term `(q / q_E)^beta` already in that law ([R5250] [R5254]: "limited by the supply of fresh
+  oceanic crust, and proportional to the seafloor spreading rate"; [R5260] give no further cap).
 * *The balance.* In units of the modern outgassing, with `s` the seafloor share,
 
       (1 - s) (land / land_E) w_rel(p, T) + s r_sea(p, T, q) = (q / q_E)^m,
@@ -44,7 +44,7 @@ import math
 from planetgen.physics import surface_pressure, waterworld_carbon
 from planetgen.physics.mixture_base import bracket
 
-# --- Graham and Pierrehumbert 2020, Table 1 (read) -----------------------------------------------------------------------------------
+# --- [R1660: Table 1] (read) -----------------------------------------------------------------------------------
 
 THERMODYNAMIC_CONSTANT_MOL_M3 = 1.4
 """float: `Lambda`, the dissolved load the runoff holds at one bar of CO2, mol per cubic metre (1.4e-3 mol per litre, Table 1; READ, tier 1)."""
