@@ -204,18 +204,6 @@ def _has_liquid_sea(body):
     return bool(name) and name != "water" and not _is_melt(name) and bool(getattr(body, "surface_liquid_fraction", None))
 
 
-def _axis(body):
-    axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-    return None if any(value is None for value in axis) else axis
-
-
-def _normal(body, planet=None):
-    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
-    if planet is not None:
-        return spin.moon_orbit_normal(body, planet)
-    return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
-
-
 def _retrograde(axis, normal):
     """Whether an orbit with this normal goes round the other way from the spin about `axis`."""
     return sum(a * n for a, n in zip(axis, normal)) < 0.0
@@ -239,7 +227,7 @@ def compute(body, parent=None, extra=()):
     hydrosphere = getattr(body, "hydrosphere", None)
     star = getattr(body, "star", None)
     rotation = getattr(body, "rotation_period_hours", None)
-    axis = _axis(body)
+    axis = spin.spin_axis_of(body)
     free_sea = hydrosphere in ("surface ocean", "ice-covered ocean") or _has_liquid_sea(body)
     if not free_sea or star is None or not rotation or rotation <= 0.0 or axis is None:
         return out
@@ -247,15 +235,18 @@ def compute(body, parent=None, extra=()):
     host = parent if parent is not None else body
     rate = 2.0 * math.pi / (rotation * 3600.0)
     raisers = [Raiser.of(getattr(star, "name", None) or "star", star.mass, host.distance * constants.AU_TO_M, mass, getattr(host, "eccentricity", 0.0) or 0.0,
-                         _retrograde(axis, _normal(host)))]
+                         _retrograde(axis, spin.orbit_normal_of(host)))]
     if parent is not None:
         raisers.append(Raiser.of("planet", parent.mass, body.distance * constants.AU_TO_M, mass, getattr(body, "eccentricity", 0.0) or 0.0,
-                                 _retrograde(axis, _normal(body, parent))))
+                                 _retrograde(axis, spin.orbit_normal_of(body, parent))))
     for moon in getattr(body, "moons", None) or ():
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
-                                 _retrograde(axis, _normal(moon, body))))
-    for raiser in extra:
-        raisers.append(Raiser(raiser.name, raiser.mass_kg, raiser.distance_m, raiser.eccentricity, -abs(raiser.orbital_rate_rad_s) if _retrograde(axis, _normal(body, parent)) else abs(raiser.orbital_rate_rad_s)))
+                                 _retrograde(axis, spin.orbit_normal_of(moon, body))))
+    if extra:
+        against_spin = _retrograde(axis, spin.orbit_normal_of(body, parent))       # the other bodies go round the body's own orbit normal
+        for raiser in extra:
+            rate_rad_s = abs(raiser.orbital_rate_rad_s)
+            raisers.append(Raiser(raiser.name, raiser.mass_kg, raiser.distance_m, raiser.eccentricity, -rate_rad_s if against_spin else rate_rad_s))
     liquid = _liquid_of(body)
     try:
         tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")

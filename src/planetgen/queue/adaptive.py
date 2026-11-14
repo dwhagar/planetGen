@@ -231,7 +231,7 @@ def adapt(conn, cap, queued, host=None, held=None, now=None):
     try:
         return _adapt(conn, cap, queued, host, held, _now(now))
     except Exception as exc:  # noqa: BLE001 -- an optimisation must never keep a run from getting workers
-        log.debug("adaptive worker control failed: %s", exc, area="queue")
+        log.debug("The adaptive worker control failed: %s", exc, area="queue")
         return cap
 
 
@@ -245,13 +245,14 @@ def _adapt(conn, cap, queued, host, held, now):
         conn.delete(_key("state"))              # the cap is the limit: nothing to hold back
         state, limit = {}, None
     if pressure(host) and (bulk or queued):
-        lower(conn, f"the host has {host.available_mb:,.0f} MB available, under {PRESSURE_SHARE * memorygate.reserve_mb(host):,.0f} MB (the gate keeps "
-                    f"{memorygate.reserve_mb(host):,.0f} MB back)", now=now)
+        reserve = memorygate.reserve_mb(host)
+        lower(conn, f"the host has {host.available_mb:,.0f} MB available, under {PRESSURE_SHARE * reserve:,.0f} MB (the gate keeps {reserve:,.0f} MB back)", now=now)
         limit = limit_of(conn)
     elif limit is not None and limit < cap:
         live = len(workers.staying_bulk_workers(conn))
-        last = max(float(state.get("lowered_at", 0.0)), float(state.get("memory_wait_at", 0.0)), float(state.get("raised_at", 0.0)))
-        quiet = now - max(float(state.get("lowered_at", 0.0)), float(state.get("memory_wait_at", 0.0)))
+        lowered, waited, raised = (float(state.get(name, 0.0)) for name in ("lowered_at", "memory_wait_at", "raised_at"))
+        last = max(lowered, waited, raised)
+        quiet = now - max(lowered, waited)
         biggest = max([holder.claim.mb for holder in bulk] or [float(workers.BULK_WORKER_MEMORY_MB)])
         unrealised = sum(max(0.0, holder.claim.mb - holder.held_mb) for holder in held if holder.claim.lane not in memorygate.SHORT_LANES)
         free = host.available_mb - memorygate.reserve_mb(host) - unrealised

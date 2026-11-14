@@ -132,3 +132,8 @@ Commit each file came from:
 - v250: after GEN.558's migration 0250 (rogue_planets.has_moons dropped), before GEN.1267 drop of the nebula shape table and columns (0251)
 - v251: after GEN.1267's migration 0251 (nebula shape dropped), before GEN.1201 shape_temperature_k column (0252)
 - v252: after GEN.1201's migration 0252 (shape_temperature_k column), before OPS.180 chart ledger repair (0253, no schema change)
+- v253: after OPS.180's migration 0253 (chart ledger repair, no schema change), before OPS.154 placeholder sector rows deleted (0254, no schema change)
+- v254: after OPS.154's migration 0254 (no schema change), before DB.122 collision_count column (0255)
+- v255: after DB.122's migration 0255 (collision_count column), before DB.124 small body makeup (0256) (made by running the migrations on v252 and dumping the tables, so it has no comments)
+- v256: after DB.124's migration 0256 (small body makeup), before DB.75 body_numbers table (0257) (made the same way)
+- v257: after DB.75a's migration 0257 (body_numbers table), before GEN.332 slice C asteroid_belts.host_node_id column (0258) (main's schema.sql with its comment and blank lines removed)

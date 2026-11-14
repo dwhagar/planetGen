@@ -26220,6 +26220,28 @@
       "kind": "web",
       "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
       "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5248": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
+    },
+    "R5249": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2018",
+      "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
+    },
+<<<<<<< HEAD
+    "R5250": {
+      "kind": "paper",
+      "label": "Catling et al. 2007",
+      "title": "Anaerobic methanotrophy and the rise of atmospheric oxygen"
+=======
+    "R5251": {
+      "kind": "paper",
+      "label": "Fegley et al. 1997",
+      "title": "The Oxidation State of the Lower Atmosphere and Surface of Venus"
+>>>>>>> origin/claude/lane21-gen1670
     }
   }
 }

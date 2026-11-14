@@ -235,9 +235,12 @@ def _reference_young_share(shape):
 def _young_and_old_against_the_solar_circle(populations, shape):
     """`(young, old)`, the young stars' share of the place's stars and the share that is not young, each divided by
     the same share around the solar circle (`_reference_young_share`): 1 and 1 for the solar circle's mix."""
-    reference = _reference_young_share(shape)
     young_share = (populations["young"].share + populations["satellite_young"].share
                    + sum(populations[name].share for name in _YOUNG_OPEN_CLUSTER_POPULATIONS))
+    return _against_reference(young_share, _reference_young_share(shape))
+def _against_reference(young_share, reference):
+    """`(young, old)`: `young_share` and `1 - young_share` each over the same share at the reference ring (0 where the
+    reference leaves nothing to divide by)."""
     young = 0.0 if reference <= 0.0 else young_share / reference
     old = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
     return young, old
@@ -270,10 +273,8 @@ def supernova_progenitor_factor(young_share, shape):
     """
     if young_share <= 0.0:
         return 0.0
-    reference = _reference_young_share(shape)
     chance = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
-    young_ratio = 0.0 if reference <= 0.0 else young_share / reference
-    old_ratio = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
+    young_ratio, old_ratio = _against_reference(young_share, _reference_young_share(shape))
     return (1.0 - chance) * young_ratio + chance * old_ratio
 
 
@@ -431,7 +432,8 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
     mix = {name: max(value, 0.0) for name, value in galaxyDensity.population_densities(position_pc, shape).items()}
     density = max(galaxyDensity.relative_density(position_pc, shape), 0.0)
     total = sum(mix.values())
-    distance_ly = pc_to_ly(math.sqrt(sum(c * c for c in position_pc)))
+    radius_pc = math.sqrt(sum(c * c for c in position_pc))
+    distance_ly = pc_to_ly(radius_pc)
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     populations = {
         name: PopulationProfile(
@@ -445,7 +447,7 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
     medium, n_cm3 = _ambient(position_pc, shape, cold, bubble)
     gas = GasProfile(cold_fraction=cold, ambient=medium, ambient_density_cm3=n_cm3,
                      mass_solar=n_cm3 * tuning.GAS_SOLAR_MASS_PER_PC3_PER_CM3 * volume, superbubble=bubble)
-    rho = dark_matter_density(math.sqrt(sum(c * c for c in position_pc)), shape)
+    rho = dark_matter_density(radius_pc, shape)
     return SectorProfile(
         address=None if address is None else tuple(address), position_pc=position_pc, edge_pc=edge_pc,
         volume_pc3=volume, shape=shape, region=_region(mix), density=density,

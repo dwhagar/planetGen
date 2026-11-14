@@ -78,6 +78,11 @@ def _radius_au_of_km(radius_km):
     return _m_to_au(_km_to_m(radius_km))
 
 
+def _radius_au_of_sol(radius_sol):
+    """A radius in solar radii as AU."""
+    return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
+
+
 def _kind_of(yerkes):
     """The member kind of a star of this Yerkes class (a contracting star's is its stage)."""
     if yerkes == pre_main_sequence.PROTOSTAR:
@@ -90,7 +95,7 @@ def _kind_of(yerkes):
 def _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed):
     """The record of a substellar member: the L, T or Y type its cooling gives at the age (GEN.252), and the radius the same laws fix."""
     dwarf = brown_dwarf.state(initial_mass_solar, age_yr / 1.0e9)
-    radius = _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M)
+    radius = _radius_au_of_sol(dwarf["radius_sol"])
     return MemberRecord("brown-dwarf", dwarf["spectral_type"], initial_mass_solar, initial_mass_solar, radius, radius,
                         initial_mass_solar, dwarf["temperature_k"], dwarf["luminosity_sol"], age_yr, fe_h, seed)
 
@@ -106,7 +111,7 @@ def _largest_radius_au(initial_mass_solar, age_yr, fe_h, present_radius_au):
     except ValueError:
         return present_radius_au
     tip_sol = line.radius_max_sol(age_yr / 1.0e9)
-    return max(present_radius_au, _m_to_au(tip_sol * constants.SOLAR_RADIUS_M))
+    return max(present_radius_au, _radius_au_of_sol(tip_sol))
 
 
 def progenitor_tip_au(initial_mass_solar, fe_h=0.0):
@@ -147,8 +152,7 @@ def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False,
     largest = radius if kind in YOUNG_KINDS else _largest_radius_au(mass, age_yr, fe_h, radius)
     if white_dwarf_mass_sol is not None and kind == "white-dwarf":
         # A helium core: the giant gave up its envelope at the lobe it filled, on the red giant branch, and never grew past it.
-        largest = max(radius, _m_to_au(helium_core_white_dwarf.giant_radius_rsun(white_dwarf_mass_sol, fe_h)
-                                       * constants.SOLAR_RADIUS_M))
+        largest = max(radius, _radius_au_of_sol(helium_core_white_dwarf.giant_radius_rsun(white_dwarf_mass_sol, fe_h)))
     return MemberRecord(kind, yerkes, state["mass_sol"], mass, radius, largest, mass, params["temperature_k"],
                         state["luminosity_sol"], age_yr, fe_h, seed, tuple(sorted(params.items())))
 

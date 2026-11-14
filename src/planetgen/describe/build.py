@@ -153,9 +153,7 @@ def _star_facts(star):
         fact("hab", "Habitable zone", "Between ", _au(star.habitable_zone[0]), " and ", _au(star.habitable_zone[1])),
         fact("orbit", "Galactic orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
     ]
-    if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
-        offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        rows.append(fact("wobble", "Planetary wobble", _au(offset), " from its nominal position, pulled by its own planets"))
+    rows += _wobble_row(star)
     if star.disk_kind:
         rows.append(fact("disk", "Disk", _star_disk_text(star)))
     rows.append(fact("loc", "Location", star.name))
@@ -317,14 +315,16 @@ def _star_section(star, children=()):
                    children)
 
 
+def _barycenter_offsets(*members):
+    """`"<name>: <distance>"` for each `(star, (x, y, z) in AU)`: how far each star of a pair sits from the barycenter."""
+    return [inline(f"{member.name}: ", _au(_offset(*parts))) for member, parts in members]
+
+
 def _close_pair_section(pair):
     primary, secondary = pair._primary, pair._secondary
-    offsets = []
-    for member, parts in ((primary, (pair.binary_primary_position_x, pair.binary_primary_position_y,
-                                     pair.binary_primary_position_z)),
-                          (secondary, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
-                                       pair.binary_secondary_position_z))):
-        offsets.append(inline(f"{member.name}: ", _au(_offset(*parts))))
+    offsets = _barycenter_offsets(
+        (primary, (pair.binary_primary_position_x, pair.binary_primary_position_y, pair.binary_primary_position_z)),
+        (secondary, (pair.binary_secondary_position_x, pair.binary_secondary_position_y, pair.binary_secondary_position_z)))
     rows = [
         fact("type", "Type", pair.type),
         fact("mass", "Mass", _mass(pair.mass)),
@@ -344,9 +344,9 @@ def _close_pair_section(pair):
 
 def _wide_pair_section(pair):
     primary, secondary = pair.primary, pair.secondary
-    offsets = [inline(f"{member.name}: ", _au(_offset(*parts))) for member, parts in (
+    offsets = _barycenter_offsets(
         (primary, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
-        (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))]
+        (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))
     rows = [
         fact("separation", "Stellar separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
              " at periapsis to ", _au(pair.apoapsis_au), " at apoapsis"),
@@ -555,10 +555,13 @@ def _equipment_block(planet):
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
         rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
     if getattr(planet, "temp_site_coldest_k", None) is not None:           # GEN.1266: the temperatures the gear is chosen for, and the worst of the world
-        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k)))
+        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k), ", over the whole orbit and not a single day"))      # UX.311
         rows.append(fact("worst-range", "Worst conditions anywhere", _kelvin(planet.temp_coldest_k), " to ", _kelvin(planet.temp_hottest_k)))
         if planet.temp_site_longest_out_days:
-            rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            if getattr(planet, "temp_site_livable_time", None):
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            else:      # UX.310: a site that is never livable is indoors for the whole orbit, which is no "longest stay"
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", "All the time: even the best site is never livable without gear"))
         if planet.temp_livable_belt_only:
             rows.append(fact("belt-only", "Where a person can live", "Only the terminator belt"))
     return facts("Survival equipment", rows) if rows else None
@@ -750,14 +753,8 @@ def _overview_sentences(system):
     if system.moon_count > 0:
         segments.append(f"{system.moon_count} moon{'s' if system.moon_count > 1 else ''}")
     if segments:
-        if len(segments) == 1:
-            joined = segments[0]
-        elif len(segments) == 2:
-            joined = f"{segments[0]} and {segments[1]}"
-        else:
-            joined = ", ".join(segments[:-1]) + f", and {segments[-1]}"
-        sentences.append(f"This system contains {joined}.")
-    elif system.planet_count == 0 and system.belt_count == 0 and system.comet_count == 0 and system.moon_count == 0:
+        sentences.append(f"This system contains {join_words(segments)}.")
+    else:
         sentences.append("There are no stellar objects in this system.")
 
     habitable = _habitable_count(system)
@@ -795,6 +792,12 @@ def _member_sections(system):
     return [_star_section(star, [_body_section(body) for body in bodies]) for star, bodies in system.member_hosts()]
 
 
+def _node_sections(system):
+    """The pairs of the inner nodes of the tree that hold planets, each a `pair` section named for its stars with the planets round it (GEN.332, slice A)."""
+    return [section("pair", None, system.node_label(host), [], [_body_section(body) for body in bodies])
+            for host, bodies in system.node_planet_hosts()]
+
+
 def describe(system):
     """
     The Document of `system` (a `StarSystem`): one `system` section holding the overview, whose children are
@@ -817,6 +820,7 @@ def describe(system):
         children += _member_sections(system)    # GEN.631: the stars beyond the pair
     else:
         children = [_star_section(system.star)]
+    children += _node_sections(system)
     if system.binary_type != "wide":
         children += [_body_section(body) for body in system.planets]
         children += [_comet_section(comet) for comet in system.comets]

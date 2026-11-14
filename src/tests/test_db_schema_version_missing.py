@@ -68,5 +68,5 @@ def test_a_recorded_old_version_is_refused(mysql_config):
     finally:
         conn.close()
     store._schema_ensured.discard(mysql_config._key())
-    with pytest.raises(store.SchemaTooOldError, match="v55"):
+    with pytest.raises(store.SchemaTooOldError, match=r"v55.*legacy/bump_database_to_8_0\.py"):
         store.migrate_database(mysql_config)

@@ -10,7 +10,8 @@ metal core. They are worked out when the sheet is made and are not columns (the 
 body with no metal or rock share, a star with no [Fe/H] or age, or a kind that is not a planet or moon.
 """
 
-from planetgen.physics import constants, heavy_elements, stellar_composition
+from planetgen.describe import host_star
+from planetgen.physics import heavy_elements, stellar_composition
 
 ROWS = (
     ("heavy_ree_rock_ppm", "Rare earths in the rock", "rare earths", 0),
@@ -42,16 +43,12 @@ def _star_and_body(conn, kind, object_id):
         return None, None
     if body is None or host is None:
         return None, None
-    columns = "mass_kg, metallicity_fe_h, age_gy, star_system_id"
-    star = conn.execute(f"SELECT {columns} FROM stars WHERE id = ?", (host["star_id"],)).fetchone() if host["star_id"] else None
-    if star is None and host["star_system_id"]:
-        star = conn.execute(f"SELECT {columns} FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (host["star_system_id"],)).fetchone()
-    return star, body
+    return host_star.of(conn, host, "mass_kg, metallicity_fe_h, age_gy, star_system_id"), body
 
 
 def rows(conn, kind, object_id):
     """The derived heavy-element rows of a planet or moon, `(group, key, label, value, raw)` each (see the module text)."""
-    from planetgen.describe import model, sheet            # the sheet imports this module's neighbours, so it is read late
+    from planetgen.describe import sheet            # the sheet imports this module's neighbours, so it is read late
     star, body = _star_and_body(conn, kind, object_id)
     if star is None or body is None or star["metallicity_fe_h"] is None or star["age_gy"] is None or not star["mass_kg"]:
         return []

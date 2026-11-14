@@ -81,8 +81,7 @@ def apply_caps_off(mode):
 
 
 class ForcedYoung:
-    """Every random primary star gets an age of 0.5 to 50 Myr, log-uniform, drawn from a generator the system's seed resets, and the age raise for planets is off
-    (a star with temperate bodies would otherwise go back to billions of years); this process only."""
+    """Every random primary star gets an age of 0.5 to 50 Myr, log-uniform, drawn from a generator the system's seed resets (GEN.1546 removed the age raise for planets, so nothing sends a star with temperate bodies back to billions of years); this process only."""
 
     def __init__(self):
         import random
@@ -96,7 +95,6 @@ class ForcedYoung:
             return 10 ** self.random.uniform(math.log10(5e-4), math.log10(0.05))
         star.sample_star_age_gy = young
         stellar_evolution.sample_star_age_gy = young
-        star.Star.adjust_age_for_planets = lambda self_, *args, **kwargs: None
 
     def seed(self, seed):
         self.random.seed(seed)

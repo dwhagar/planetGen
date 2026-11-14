@@ -190,7 +190,7 @@ def load_table(document):
     return StrengthTable(strengths, factor, mixing, porosity, temperature, rubble, ranges)
 
 
-_GAS_KJ_MOL_K = 8.314462618e-3
+_GAS_KJ_MOL_K = constants.GAS_CONSTANT * 1e-3
 
 
 def _creep_stress_mpa(regime, rate, kelvin):
@@ -308,6 +308,9 @@ TABLE = _read_table()
 SPHERICITY_FACTOR = TABLE.sphericity_factor
 """float: The longest axis of a body counted round is at most this times its mean radius ([R2703] 10 percent bump; their Eq. 9). [Stand-in RN1, tier T1, tweak L0.]"""
 
+_BUMP_COEFFICIENT = stress_coefficient(SPHERICITY_FACTOR)
+"""float: `K` of the table's sphericity: the stress of a bump is `K G rho^2 R^2`."""
+
 ICE_STRENGTH_PA = TABLE.strengths_pa["ice"]
 """float: The default yield strength of ice at the scale of a body, Pa (1 MPa, the creep strength of pure ice near 158 K; the Lineweaver and Norman fit is 0.4 to 3 MPa). [Stand-in RN2, tier T2, tweak L1.]"""
 
@@ -385,7 +388,7 @@ def round_radius_m(density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0
     if not density_kg_m3 > 0.0:
         raise ValueError("the density must be positive")
     sigma = yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, draw, ice_factor)
-    return math.sqrt(sigma / (stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2))
+    return math.sqrt(sigma / (_BUMP_COEFFICIENT * constants.G * density_kg_m3 ** 2))
 
 
 @finite_domain()
@@ -433,7 +436,7 @@ def rubble_round_radius_m(density_kg_m3, ice_fraction=0.0, metal_fraction=0.0, p
     if not density_kg_m3 > 0.0:
         raise ValueError("the density must be positive")
     ice, metal, voids = _share(ice_fraction, "ice fraction"), _share(metal_fraction, "metal fraction"), _share(porosity, "porosity")
-    bump = stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2
+    bump = _BUMP_COEFFICIENT * constants.G * density_kg_m3 ** 2
     table = _table_at(draw)
     cohesive, friction = RUBBLE_RULES[table.rubble["rule"]](table)
     reaches = []
@@ -464,7 +467,7 @@ def roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction=0.0, p
     if structure not in STRUCTURES:
         raise ValueError(f"unknown structure {structure!r}")
     if structure == "rubble":
-        bump = stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2 * radius_m ** 2
+        bump = _BUMP_COEFFICIENT * constants.G * density_kg_m3 ** 2 * radius_m ** 2
         return math.sqrt(bump / rubble_strength_pa(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, heated, draw))
     return radius_m / round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, draw, ice_factor)
 

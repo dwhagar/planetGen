@@ -233,13 +233,31 @@ def species_of(stored):
     return tuple(part for part in (stored or "").split(",") if part)
 
 
-def sentence(stored):
-    """The stored text as words for a page: the names of the species the chain gave the air, with the ones that are only candidates marked, e.g. `sulfuric acid water droplets: observed in a planet (Venus); sulfur dioxide gas: observed in a planet (Venus)`."""
+V3_GASES = (("HCl", "hydrogen chloride"), ("HF", "hydrogen fluoride"), ("OCS", "carbonyl sulfide"), ("CO", "carbon monoxide"))
+"""tuple: The gases V3 names, `(formula, words)` (the V3 gate opens when any one is above its floor, so a page names only those that are, UX.309)."""
+
+
+def _v3_name(air):
+    """V3's name for an air (`air`: gas-table formula to partial pressure): the gases of `V3_GASES` above their floor, else the whole set's name."""
+    total = sum(air.values())
+    floor = number("chlorine_min_share") if total > 0.0 else None
+    if floor is None:
+        return None
+    held = [words for formula, words in V3_GASES if air.get(formula, 0.0) / total >= (floor if formula in ("HCl", "HF") else number("reductant_min_share"))]
+    if not held:
+        return None
+    return (held[0] if len(held) == 1 else ", ".join(held[:-1]) + " and " + held[-1]) + (" gas" if len(held) == 1 else " gases")
+
+
+def sentence(stored, air=None):
+    """The stored text as words for a page: the names of the species the chain gave the air, with the ones that are only candidates marked, e.g. `sulfuric acid water droplets: observed in a planet (Venus); sulfur dioxide gas: observed in a planet (Venus)`.
+    Given the body's `air` (gas-table formula to Pa), V3 names only the gases that are above their floor (UX.309), not the four of the set."""
     names = []
     for species_id in species_of(stored):
         row = SPECIES.get(species_id)
         if row is not None:
-            names.append(f"{row['name']}: {row['status']}")
+            name = _v3_name(air) if species_id == "V3" and air else None
+            names.append(f"{name or row['name']}: {row['status']}")
     return "; ".join(names)
 
 
@@ -289,10 +307,13 @@ SPREAD_LIMIT_SIGMA = 2.0
 """float: How far, in stated sigmas, the draw may move the band (the tails past two sigma are not used)."""
 
 
+_SPREAD_LOW = NormalDist().cdf(-SPREAD_LIMIT_SIGMA)
+"""float: The unit below which (and above one minus which) `_shift_sigmas` holds the draw."""
+
+
 def _shift_sigmas(unit):
     """A normal deviate in sigmas for `unit` in [0, 1), held to `SPREAD_LIMIT_SIGMA` either way."""
-    low = NormalDist().cdf(-SPREAD_LIMIT_SIGMA)
-    return NormalDist().inv_cdf(min(max(unit, low), 1.0 - low))
+    return NormalDist().inv_cdf(min(max(unit, _SPREAD_LOW), 1.0 - _SPREAD_LOW))
 
 
 def absorber_band(cloud_tau_550, so2_share, wavelengths_um, draw=0.5):

@@ -155,6 +155,20 @@ OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
+# The viscous-disk snow line the water of a rocky body is read against (GEN.1678, `formation_snow_line.viscous_snow_line_au`): Mulders, Ciesla, Min and Pascucci 2015 ([R3193]) Eq. 2
+# with the accretion rate of Eq. 4, Mdot = 3e-8 (M / Msun)^1.81 (t / Myr)^-1.5 Msun/yr (the exponents and the 3e-8 are read; Eq. 4 holds for times well past the viscous time),
+# the age they set the line at (1 Myr, section 2.5), the gas-to-dust ratio 66 (section 2.3), alpha 0.01 (section 2.5) and the ice sublimation temperature 160 K (section 2).
+VISCOUS_DISK_AGE_MYR = 1.0
+VISCOUS_DISK_MDOT_PREFACTOR_SOL_YR = 3.0e-8
+VISCOUS_DISK_MDOT_MASS_EXPONENT = 1.81
+VISCOUS_DISK_MDOT_TIME_EXPONENT = -1.5
+VISCOUS_DISK_GAS_TO_DUST = 66.0
+VISCOUS_DISK_ALPHA = 0.01
+VISCOUS_DISK_ICE_K = 160.0
+# The Rosseland opacity of the disk's dust, cm2/g: the paper gives 570 for small (interstellar) grains and 20 for large ones (section 2.3) and the grain size of a disk is not known; this is
+# the geometric mean of the two, the centre of their range (sqrt(570 x 20) = 107): a Sun-like star's line is 2.4 au (3.5 au with small grains, 1.6 with large). A planetGen stand-in
+# (tier T6, tweak L1: inside the range of the source).
+VISCOUS_DISK_OPACITY_CM2_G = 107.0
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
@@ -241,6 +255,9 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
+# How well a body must match the class it was given for the class to count as an outcome (GEN.1315): a requested class is met, and a Class M world is counted, only by a body whose stored
+# `class_match` (1 for a full fit, `1 - total / (values * largest cap)` for a fudged one, `class_fit.match_of`) is at least this. Below it the class is shown with its match but is not an outcome.
+CLASS_MATCH_THRESHOLD = 0.5
 # How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
@@ -280,13 +297,13 @@ PLANET_MIN_MASS_KG = 1.0e21
 # planetGen stand-ins (tier "educated guess from physics", level L3) until a moon-formation law is wired:
 # moon masses follow dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE between the lightest moon the generator makes and a share of the
 # parent's mass. Regular satellites of the giants are at most a few 1e-4 of the parent (Titan 2.4e-4 of Saturn; Ganymede 7.8e-5
-# of Jupiter), so the giants' cap is 1e-3; a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
+# of Jupiter), so the giants' cap is the most a circumplanetary disk can hold of its parent, 6.4e-4 (`physics/planet_moons.DISK_TOTAL_RATIO_MAX`, [R0643]; GEN.1157; a capture moon of planet size is drawn apart);
+# a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
 # Pluto), which is also the largest `physics/planets.moon_size_limits` allows.
 MOON_MASS_FUNCTION_SLOPE = 0.5
 # The lightest moon generated (about an Enceladus, 250 km across): the generator leaves the swarm of smaller captured rocks to the belts and
 # rings. A planetGen stand-in (tier L3): the old class draw built moons of 500 km and more, 1.1 per planet.
 MOON_MIN_MASS_KG = 1.0e20
-MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
 # GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
@@ -309,7 +326,7 @@ DELIVERED_WATER_RICH_MAX = 0.5
 ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
-# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
+# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock takes the albedo of its ground (`physics/ground_albedo`, rows GA1 to GA3); a body with surface water
 # (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) draws the albedo of its ice-free state, ocean and cloud. The ice is not drawn: the
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
@@ -943,7 +960,7 @@ BLACK_HOLE_MAP_BRIGHTNESS = 0.8
 MASSLESS_MARKER_MASS_SOL = 1.0
 # The Sun's effective temperature (IAU 2015 nominal), anchoring
 # Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
-SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
+SUN_EFFECTIVE_TEMPERATURE_K = _physical_constants.SOLAR_TEMPERATURE_K
 
 # White dwarfs: final mass from the initial-final mass relation of
 # [R0961], ApJ 866:21 [R0961], the MIST-based fit, equations 4 to 6, read; luminosity from Mestel
@@ -3105,11 +3122,6 @@ whose host star has no stored composition (a rogue planet)."""
 RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
 """float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
 
-RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
-"""tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
-inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies [R3293], not a measured
-spread (radiation-model.md R15, part E 3.3)."""
-
 INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (9.3e7, 1.9e11)
 """tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly (GEN.1185). [R1716] take 2.6e10 to 5.3e13 with an
 activation energy of 200 to 300 kJ/mol ([R1716] section 2.2.3; READ); the activation range moved up to the diffusion-creep values of the laboratory
@@ -4215,13 +4227,15 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 9000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 18000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
 filled in near generated sectors by the backfill (luminosity tiers, then the
-mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
+mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day, 9000 after, and 18000 on
+2026-11-13 (Boss: twice as high; a survey of the default galaxy put the luminosity pass at 24,794 stars at 9000 and 5,983 at
+18000, see reports/generation-order-2026-11-13/report.md). The user
 picks it from the ladder in `generation/luminosity_floor.py`, from
 `BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
 already scattered keeps the level it was scattered at. The value a scatter

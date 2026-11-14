@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -151,12 +151,13 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
     age_s = 4.5 * sa.GY_S
     wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0, LAND, {})(inventory)
-    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
+    dry_setting = dataclasses.replace(setting, water_kg=0.0)    # GEN.1562 N6: a layer of water over the full depth makes the sulfate sink wet whether or not an ocean stands
+    dry = sa._shares(dry_setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
     base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
     assert 0.0 < wet["S"] < base                        # the sinks take most of it
     assert wet["S"] == pytest.approx(base * lifetimes.wet_s / age_s, rel=1e-6)   # the steady-state burden of a day or so
@@ -175,7 +176,7 @@ def test_the_shares_the_surface_holds_start_from_the_heat_released_times_each_el
     assert {element: efficiencies[element] for element in ("C", "Ar", "S")} == {"C": 1.0, "Ar": 1.0, "S": 0.5}
     assert surface_pressure.DEGAS_EFFICIENCY_N[0] <= efficiencies["N"] <= surface_pressure.DEGAS_EFFICIENCY_N[1]       # GEN.1584: nitrogen is drawn
     assert design["degas_efficiency_n"] == efficiencies["N"]
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     for released_j in (1.0e30, 0.0):
         setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=released_j, heat_flux_w_m2=0.0614,
@@ -193,7 +194,7 @@ def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
     draw.set_run_seed(27)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0, "N": 0.0}         # an inventory far larger than the crust this heat built
     shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, {})(inventory)
@@ -207,13 +208,36 @@ def _ocean_setting(ocean_cover, water_kg, released_j=1.0e30, released_at_seal_j=
                       subject_of=None, **fields)
 
 
-def _carbon_share(setting, water_world, temperature_k=288.0):
+def _carbon_share(setting, water_world, temperature_k=288.0, carbon=1.0e-2):
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
-    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": 1.0e-2})["C"]
+    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": carbon})["C"]
+
+
+def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_own_law():
+    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole land."""
+    law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    held = _ocean_setting(0.7, 1.4e21)
+    iced = dataclasses.replace(held, albedo_law=law)
+    assert sa._weathering_land(held, 200.0) == pytest.approx(0.3)
+    assert sa._weathering_land(iced, 310.0) == pytest.approx(0.3)
+    assert sa._weathering_land(iced, 200.0) == 0.0
+    middle = sa._weathering_land(iced, 0.5 * (law.free_above_k + law.covered_below_k))
+    assert 0.0 < middle < 0.3 and middle == pytest.approx(0.3 * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+
+
+def test_a_frozen_world_with_the_ice_law_keeps_the_carbon_the_volcanoes_give_and_a_warm_one_does_not():
+    """GEN.1697: weathering all but stops under the ice, so the carbon builds up until it melts it (Hoffman et al. 2017)."""
+    law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    held = _ocean_setting(0.7, 1.4e21)
+    iced = dataclasses.replace(held, albedo_law=law, starlight_w_m2=1360.0)      # the energy limit of the runoff reads the starlight the ice law lets in
+    open_ = sa.WaterWorld(False, sa.waterworld_carbon.draw_waterworld({}), sa.waterworld_carbon.draw_seafloor_law({}))
+    assert _carbon_share(iced, open_, 260.0, 1.0) > _carbon_share(held, open_, 260.0, 1.0)      # (at 230 K the runoff is nil with or without the ice: the law has no rain there)
+    assert _carbon_share(iced, open_, 230.0, 1.0) == pytest.approx(_carbon_share(held, open_, 230.0, 1.0), rel=1e-6)    # all of what the volcanoes give stays
+    assert _carbon_share(iced, open_, 310.0, 1.0) == pytest.approx(_carbon_share(held, open_, 310.0, 1.0))
 
 
 def test_the_water_world_is_sealed_only_when_its_ocean_floor_reaches_the_seal_pressure():
@@ -245,7 +269,7 @@ def test_volcanoes_bring_up_no_more_hydrogen_than_the_mantle_holds_as_water():
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"H": 5.0, "C": 0.0, "S": 0.0, "N": 0.0}       # moles per 100 g of the mantle: 0.9 percent of the mantle's mass as water
     def share(mantle_water_kg):
@@ -513,7 +537,7 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         return real(subject, result, column_bar)
 
     monkeypatch.setattr(sa.mixture_escape, "apply", recording)
-    for seed in (1, 3, 7):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
+    for seed in (2, 3, 5):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
         columns.clear()
         planet = _earth_like_planet(seed)
         assert planet.atmospheric_pressure > 0.0, seed
@@ -603,7 +627,7 @@ def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cyc
     draw.set_run_seed(30)       # (GEN.1584: the nitrogen draw moved the stream; at this setting the cycle takes nearly all of the added carbon, and the sign of what is left, 1e-19, depends on the seed)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     setting = _ocean_setting(0.7, 1.4e21)
     inventory = {"C": 1.0e-2, "N": 1.0e-3}
@@ -626,3 +650,68 @@ def test_the_earth_twin_late_accretion_leaves_the_nitrogen_the_earth_has_and_ven
         n2_kg = sorted(_n2_kg(_late(setting, seed)[0], setting) for seed in range(40))
         assert n2_kg[0] < observed < n2_kg[-1]                                                         # inside the spread
         assert observed / factor < n2_kg[len(n2_kg) // 2] < observed * factor
+
+
+# GEN.1675: the air carries the vapor of the surface ices of carbon monoxide and methane.
+
+def test_an_ice_is_a_reservoir_only_below_its_triple_point():
+    moles = {"CO": 1.0e18, "CH4": 2.0e18, "N2": 0.0}
+    assert set(sa._ices_at(moles, 44.0)) == {"CO", "CH4"}
+    assert set(sa._ices_at(moles, 80.0)) == {"CH4"}       # CO melts at 68 K, methane at 91 K
+    assert sa._ices_at(moles, 100.0) == {}                # above both triple points neither ice is left
+    assert sa._ices_at({"CO": 0.0}, 40.0) == {}           # an empty reservoir is no reservoir
+
+
+def test_an_empty_column_over_a_surface_ice_fills_to_the_saturation_pressure_of_the_ice():
+    temperature = 44.0
+    left, condensed, remaining = sa.freeze_out({}, EARTH_G, EARTH_AREA, temperature, {"CO": (sa.ICE_HUMIDITY, _moles_for_bar("CO", 1.0))})
+    partial = _partials(left)
+    assert partial["CO"] == pytest.approx(saturation.pressure_pa("CO", temperature), rel=1e-6)
+    assert condensed["CO"] < 0.0                           # the ice gave moles to the air
+    assert remaining["CO"] == pytest.approx(_moles_for_bar("CO", 1.0) + condensed["CO"], rel=1e-9)
+
+
+def test_a_small_ice_is_used_up_and_the_air_over_it_holds_all_of_it():
+    small = _moles_for_bar("CO", 1.0e-6)
+    left, _, remaining = sa.freeze_out({}, EARTH_G, EARTH_AREA, 44.0, {"CO": (sa.ICE_HUMIDITY, small)})
+    assert left["CO"] == pytest.approx(small, rel=1e-9)
+    assert remaining["CO"] == pytest.approx(0.0, abs=1e-6 * small)
+
+
+def test_the_ice_a_body_holds_is_its_mass_fraction_times_its_mass_and_a_body_with_none_has_none():
+    body = types.SimpleNamespace(mass=1.0e22, ice_co_mass_fraction=0.01, ice_ch4_mass_fraction=None)
+    assert sa.surface_ice_kg(body) == {"CO": pytest.approx(1.0e20)}
+    assert sa.surface_ice_kg(types.SimpleNamespace(mass=1.0e22)) == {}
+
+
+def test_a_gas_standing_over_its_own_ice_is_not_held_in_the_clathrate_as_well():
+    floor = clathrate_brine.dissociation_pressure_pa("CH4", 100.0)
+    air = {"CH4": 10.0 * floor, "N2": 1.0e3}
+    held = sa._hold_in_hydrate(air, 100.0, _setting(), 1.0e6, standing={"CH4": 1.0})
+    assert held["CH4"] == air["CH4"]
+
+
+def test_the_mantle_redox_takes_one_draw_from_the_unit_whatever_the_recipe_takes():
+    """A body that gains or loses its air, or whose temperature moves the recipe to a different set of rows, moves no draw of the bodies after it."""
+    from planetgen.physics import planets
+
+    class Air:
+        mixture = types.SimpleNamespace(redox_diw=-1.0)
+
+    calls = []
+    taken = []
+    real = sa.mantle_redox_diw
+    sa.mantle_redox_diw = lambda *args: taken.append(args[-1]) or 0.5
+    try:
+        for air in (None, Air()):
+            with draw.bound(5):
+                planets._mantle_redox(object(), air, 1.0, False)
+                calls.append(draw.random())
+    finally:
+        sa.mantle_redox_diw = real
+    assert calls[0] == calls[1]        # the same stream position afterwards with or without an air
+    assert len(taken) == 1
+
+
+def test_an_airless_mixture_has_no_column_of_its_own_to_freeze_out():
+    assert sa._column_moles(types.SimpleNamespace(moles=None, mole_fractions={}), 1.0e22) == {}

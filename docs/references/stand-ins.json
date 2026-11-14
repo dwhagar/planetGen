@@ -2849,7 +2849,7 @@
           "fields": [
             [
               "Evidence",
-              "READ (Venus's 20 ppm of water, a TEST point)"
+              "READ (Venus's 20 ppm of water, a TEST point); GEN.1670 moved the bracket from 1e-5 to 1e-3 down to 1e-6 to 1e-4, because the air held at the crust buffer (AM100) carries its hydrogen as water, not as H2, and the median of the draws then sits at 4e-5 of water in the air, as Venus's 2 to 3e-5 does"
             ],
             [
               "What it is",
@@ -2857,7 +2857,7 @@
             ],
             [
               "The range it moves in",
-              "1e-5 to 1e-3, log"
+              "1e-6 to 1e-4, log"
             ],
             [
               "Where it holds",
@@ -2878,7 +2878,7 @@
           "slug": "6-7-am1",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L0",
+          "tweak": "L2",
           "unread": null,
           "what": "mixture_evolved.WATER_RESIDUAL"
         },
@@ -4407,7 +4407,7 @@
           "fields": [
             [
               "Evidence",
-              "SECOND-HAND ([R1343]: sulfation of the surface rock removes the SO2 of Venus in about 1.9 million years; a factor of three either side)"
+              "SECOND-HAND ([R1343]: sulfation of the surface rock removes the SO2 of Venus in about 1.9 million years; a later estimate quoted by [R0157]: 20 million; GEN.1562 N1 widened the bracket to hold both)"
             ],
             [
               "What it is",
@@ -4415,27 +4415,27 @@
             ],
             [
               "The range it moves in",
-              "5e5 to 5e6 years, log"
+              "2e6 to 2e7 years, log, at 735 K (Venus's surface); scaled by temperature in AM97"
             ],
             [
               "Where it holds",
-              "bodies without liquid water at the surface (the lifetime is the Venus rate at its surface temperature, not a rate law)"
+              "bodies without liquid water at the surface"
             ],
             [
               "What would show it wrong",
-              "test_sulfur_balance::test_a_dry_world_keeps_more_than_a_wet_one_for_the_longer_lifetime"
+              "test_sulfur_balance::test_the_dry_lifetime_range_holds_the_two_published_figures"
             ],
             [
               "What replaces it",
-              "a rate law of sulfation against temperature and surface rock"
+              "a measured sulfation rate on basalt below 873 K"
             ]
           ],
           "id": "AM46",
           "key": "6.7:AM46",
           "kind": "B",
           "slug": "6-7-am46",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
           "what": "sulfur_balance.DRY_LIFETIME_YEARS"
@@ -6325,6 +6325,162 @@
           "tweak": "L0",
           "unread": null,
           "what": "mixture_lava.OXYGEN_SHARE_MAX"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "SECOND-HAND ([R1343], through a quoted rate 10^19.64 exp(-15248/T) molecules cm-2 s-1, Ea 126.8 +/- 5.4 kJ/mol; the arithmetic checked: 15248 K x 8.314 = 126.8 kJ/mol, 4.4e10 at 735 K against the quoted 4.6e10; GEN.1562 N2) EXTRAPOLATED: the lab runs were 873 to 1123 K, so below that the scaling is an extension, and under about 450 K another route (water films on grains) would take over"
+            ],
+            [
+              "What it is",
+              "sulfur_balance.SULFATION_ACTIVATION_K"
+            ],
+            [
+              "The range it moves in",
+              "15248 K, fixed (+/- 4 percent); 735 K; the dry lifetime at a surface temperature T is the AM46 lifetime times exp(15248 (1/T - 1/735)): 5e5 times at 450 K"
+            ],
+            [
+              "Where it holds",
+              "a dry body cooler than Venus"
+            ],
+            [
+              "What would show it wrong",
+              "test_sulfur_balance::test_a_cooler_dry_surface_sulfates_slower_by_the_activation_energy_of_the_rate_law"
+            ],
+            [
+              "What replaces it",
+              "measured sulfation of basalt and calcite by SO2 at 300 to 700 K"
+            ]
+          ],
+          "id": "AM97",
+          "key": "6.7:AM97",
+          "kind": "B",
+          "slug": "6-7-am97",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sulfur_balance.SULFATION_ACTIVATION_K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "SECOND-HAND ([R2735]: more than 1e-3 of the Earth's ocean, 2.75 m over the globe, is incompatible with a sustained sulfuric acid haze; the stoichiometry SO2 + H2O to H2SO4 is one water per sulfur; GEN.1562 N6)"
+            ],
+            [
+              "What it is",
+              "sulfur_balance.WATER_LAYER_FULL_M"
+            ],
+            [
+              "The range it moves in",
+              "2.75 m of global water layer, fixed (0.055 m is the lower figure of a summary, not opened)"
+            ],
+            [
+              "Where it holds",
+              "a body with no ocean: under the layer its oxidized sulfur is removed by water only as far as one mole per mole of water, the rest meets AM46 and AM97"
+            ],
+            [
+              "What would show it wrong",
+              "test_sulfur_balance::test_water_removes_at_most_one_mole_of_sulfur_per_mole_of_water_and_the_rest_meets_the_dry_lifetime"
+            ],
+            [
+              "What replaces it",
+              "a photochemical lifetime of SO2 in an air with almost no water vapour"
+            ]
+          ],
+          "id": "AM98",
+          "key": "6.7:AM98",
+          "kind": "B",
+          "slug": "6-7-am98",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "sulfur_balance.WATER_LAYER_FULL_M"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the redox shift of the rocky bodies is chosen so that about half of them are oxidized (GEN.1562 N4); no source measures the split of rocky mantles by oxygen fugacity across a galaxy of worlds, only the Earth's upper mantle at IW+3.5 to IW+4 and the recipe draw, so a measured population would have to replace it"
+          ],
+          "fields": [
+            [
+              "Evidence",
+              "CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; raised from 1.0 to 1.4 dex by GEN.1670 at TODO's request, to 50 percent at or over IW+2.5 and so about 40 to 60 percent of the rocky bodies oxidized: tuned to that statistic; GEN.1562 N4)"
+            ],
+            [
+              "What it is",
+              "mixture_rocky.REDOX_SHIFT_DEX"
+            ],
+            [
+              "The range it moves in",
+              "+1.4 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "test_sulfur_balance::test_the_redox_shift_is_applied_to_the_magma_ocean_and_the_later_mantle"
+            ],
+            [
+              "What replaces it",
+              "measured fO2 of more mantles than the Earth's and the Moon's"
+            ]
+          ],
+          "id": "AM99",
+          "key": "6.7:AM99",
+          "kind": "B",
+          "slug": "6-7-am99",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L2",
+          "unread": null,
+          "what": "mixture_rocky.REDOX_SHIFT_DEX"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "READ (the abstract of [R5251]: Venus's air at 0 km, 735 K, holds 10^-21.7 to 10^-20.0 bar of oxygen, 'indistinguishable, within the uncertainties of the thermodynamic data, from the magnetite-hematite phase boundary'; on the repo's iron-wuestite fit that is IW+9.1 to IW+10.8); carried to the cooler surface temperatures as a constant offset, which the source does not reach"
+            ],
+            [
+              "What it is",
+              "mixture_evolved.AIR_BUFFER_DIW"
+            ],
+            [
+              "The range it moves in",
+              "IW+9.1 to IW+10.8, uniform; the held level is the larger of this and the body's redox"
+            ],
+            [
+              "Where it holds",
+              "Venus-like and Mars-like air (rows j1, j2)"
+            ],
+            [
+              "What would show it wrong",
+              "test_atmosphere_mixture_evolved::test_a_warm_venus_like_air_holds_the_crust_buffer_and_keeps_sulfur_dioxide"
+            ],
+            [
+              "What replaces it",
+              "what holds sulfur under about 700 K (photochemical sulfate; not found in the sources read) and the buffer's own temperature slope"
+            ]
+          ],
+          "id": "AM100",
+          "key": "6.7:AM100",
+          "kind": "B",
+          "slug": "6-7-am100",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_evolved.AIR_BUFFER_DIW"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -12569,6 +12725,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 2 kPa; the full range of the sources 0.02 to 5 kPa"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life whose R is still over S / 3"
+            ],
+            [
+              "What would show it wrong",
+              "a measured plateau of an oxygenated world, or Earth's mid-Proterozoic oxygen proved above 5 kPa or under 0.02 kPa"
+            ],
+            [
+              "What replaces it",
+              "a model of the oxygen, phosphorus and carbon cycles with the world's own land and ocean"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the models put Earth's plateau at 0.06 to 0.25 of today's oxygen [R5252] against at most 0.001 from chromium isotopes, so 0.03 sits inside the models' lowest values and the proxies' highest"
+            ]
+          ],
+          "id": "BO11",
+          "key": "6.21:BO11",
+          "kind": "P",
+          "slug": "6-21-bo11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4 (the model's own: burial's dependence on bottom-water oxygen varied 10 to 40 percent)"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life that have crossed the first rise"
+            ],
+            [
+              "What would show it wrong",
+              "a measured world that holds the plateau after R is under S / 4, or a model in which the second step needs a different ratio"
+            ],
+            [
+              "What replaces it",
+              "a model of the world's own phosphorus recycling"
+            ],
+            [
+              "Evidence",
+              "READ ([R5252], full text: the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for deep-ocean ventilation, a ratio of 3); one model, so it is tier 3"
+            ]
+          ],
+          "id": "BO12",
+          "key": "6.21:BO12",
+          "kind": "P",
+          "slug": "6-21-bo12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
         }
       ],
       "slug": "6-21-stand-ins-of-the-life-timeline-and-the-biogenic-oxygen",
@@ -12629,7 +12861,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, MOON_GIANT_PARENT_MAX_MASS_RATIO 1e-3, MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
+              "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, the giants' cap planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4 (GEN.1157, row PSM2; it was 1e-3), MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
             ],
             [
               "The range it moves in",
@@ -12660,7 +12892,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, MOON_GIANT_PARENT_MAX_MASS_RATIO 1e-3, MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
+          "what": "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, the giants' cap planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4 (GEN.1157, row PSM2; it was 1e-3), MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
         },
         {
           "burn_down": null,
@@ -16241,6 +16473,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "aerosols.haze_grain (the aggregate grows until it falls out as fast as it coagulates: the Smoluchowski half-time 3 eta / (4 k T n) of the column's number equals the Stokes fall time; one layer, monodisperse, Brownian, continuum kernel, no electric charge)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "SECOND-HAND ([R0156] section 4.1, the quoted lines: \"the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s\"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11"
+            ],
+            [
+              "The range it moves in",
+              "the two ends of the range: the haze gate is 0 below 1e11 and 1 above 3e11 (linear between), times the ratio gate"
+            ],
+            [
+              "Where it holds",
+              "hazes of methane airs"
+            ],
+            [
+              "What would show it wrong",
+              "a haze in a model air whose methane source is under 1e11 molecules per cm2 per s"
+            ],
+            [
+              "What replaces it",
+              "[R0156] read in full; a photochemical model of the air"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_a_trace_of_methane_makes_no_haze_however_high_its_ratio_to_carbon_dioxide"
+            ]
+          ],
+          "id": "HZ4",
+          "key": "6.33:HZ4",
+          "kind": "P",
+          "slug": "6-33-hz4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "SECOND-HAND ([R0156] section 4.1, the quoted lines: \"the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s\"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4"
+            ],
+            [
+              "The range it moves in",
+              "fixed; a hazy air's lifetime is shorter, so the haze gate of HZ4 is a little strict (the lowest methane of the hazy runs of [R0156], about 36 Pa, gives 2.5e10 molecules per cm2 per s against 1e11)"
+            ],
+            [
+              "Where it holds",
+              "anoxic airs; an oxygen-bearing air has a lifetime of years and is gated off by its CH4/CO2 ratio already"
+            ],
+            [
+              "What would show it wrong",
+              "a lifetime that depends on the star's far ultraviolet (no law found; a Segura-type lifetime study not read)"
+            ],
+            [
+              "What replaces it",
+              "the lifetime from the star's UV flux and the air's column"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_the_methane_source_flux_is_the_column_over_its_lifetime"
+            ]
+          ],
+          "id": "HZ5",
+          "key": "6.33:HZ5",
+          "kind": "P",
+          "slug": "6-33-hz5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4"
         },
         {
           "burn_down": null,
@@ -21340,9 +21648,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1016",
-            "the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it"
+            "no data",
+            "-",
+            "the criterion holds only for q_out up to 5; GEN.1028 enforces the range, and GEN.1016 (built, Train 25) uses the quadruple fit and the 3+1 criterion beyond it; a fit of C over a wider q_out from the N-body papers would replace the hand value"
           ],
           "fields": [
             [
@@ -21583,7 +21891,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.492",
+          "unread": null,
           "what": "potassium_depletion.CLASS_MASS_EARTH 0.03: the mass that separates the two classes (the gap in the table runs from the Moon, 0.0123, to Mercury, 0.0553)"
         },
         {
@@ -21621,7 +21929,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.492",
+          "unread": null,
           "what": "potassium_depletion.MAX_DEPLETION 1.0 and no undepleted channel: no body keeps more potassium than CI chondrites, and none is drawn near 1 more often than the normal gives"
         }
       ],
@@ -35939,7 +36247,7 @@
           "fields": [
             [
               "What it is",
-              "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
+              "sky_tiers.BLOCK_VISIT_BUDGET 1.5e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, under two hours of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7 with the scatter's floor at 7,500 Lsun and 1.35e8 at its 18,000 Lsun default (GEN.1680), so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
             ],
             [
               "The range it moves in",
@@ -35970,7 +36278,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
+          "what": "sky_tiers.BLOCK_VISIT_BUDGET 1.5e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, under two hours of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7 with the scatter's floor at 7,500 Lsun and 1.35e8 at its 18,000 Lsun default (GEN.1680), so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
         },
         {
           "burn_down": null,
@@ -36099,7 +36407,7 @@
           "fields": [
             [
               "What it is",
-              "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
+              "sky_tiers.RING_MIN_YIELD 0.005 (0.01 until GEN.1486): every ring is drawn as far as this share of its stars (weights SKT6) is bright enough to show (no farther than a 50 Lsun star), so it draws 200 stars or fewer for each one that shows; 1.4 times fewer stars drawn than before (the rings under 1 solar mass at 0.01, the others over the sphere of a 50 Lsun star), and about 1 percent of the stars that would show are not drawn (Boss's choice of the measured 0.001 to 0.01)"
             ],
             [
               "The range it moves in",
@@ -36130,7 +36438,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
+          "what": "sky_tiers.RING_MIN_YIELD 0.005 (0.01 until GEN.1486): every ring is drawn as far as this share of its stars (weights SKT6) is bright enough to show (no farther than a 50 Lsun star), so it draws 200 stars or fewer for each one that shows; 1.4 times fewer stars drawn than before (the rings under 1 solar mass at 0.01, the others over the sphere of a 50 Lsun star), and about 1 percent of the stars that would show are not drawn (Boss's choice of the measured 0.001 to 0.01)"
         },
         {
           "burn_down": [
@@ -61755,6 +62063,44 @@
           "what": "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (UNCAPPED_CLIP_LN); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities"
         },
         {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLASS_MATCH_THRESHOLD 0.5: a class counts as an outcome (a requested class is met, a Class M world is counted) only for a body whose stored class_match is at least this; the match is 1 for a full fit and 1 - total / (values * largest cap) for a fudged one"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "requests for a class and the count of Class M worlds"
+            ],
+            [
+              "What would show it wrong",
+              "a requested class whose bodies at 0.5 to 0.6 read as plainly another class to a person (a Class M world 0.5 from a Class H)"
+            ],
+            [
+              "What replaces it",
+              "the match the player reads: a threshold chosen with the part 2 cap sweep once GEN.1309 is in"
+            ],
+            [
+              "Evidence",
+              "the plan's suggestion (design-drafts, F4); a fudged body is 1 minus its distance over the cap, so 0.5 is half the cap"
+            ]
+          ],
+          "id": "FT5",
+          "key": "6.261:FT5",
+          "kind": "P",
+          "slug": "6-261-ft5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CLASS_MATCH_THRESHOLD 0.5: a class counts as an outcome (a requested class is met, a Class M world is counted) only for a body whose stored class_match is at least this; the match is 1 for a full fit and 1 - total / (values * largest cap) for a fudged one"
+        },
+        {
           "burn_down": [
             "no data",
             "-",
@@ -63739,7 +64085,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.PLANET_MOON_MIN_MASS_KG: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107)"
         },
         {
@@ -63777,7 +64123,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent)"
         },
         {
@@ -63815,13 +64161,13 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
         },
         {
           "burn_down": [
             "replace",
-            "GEN.1157",
+            "GEN.1700",
             "L3, the cap on a captured moon is set above the Kepler-1625 b-i candidate; the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners replaces it"
           ],
           "fields": [
@@ -63857,7 +64203,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
         }
       ],
@@ -64619,7 +64965,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside"
         },
         {
@@ -64657,7 +65003,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.WD_CENTRAL_OXYGEN_RANGE (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to"
         },
         {
@@ -64695,7 +65041,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.WD_NEON22_PER_CNO 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core"
         },
         {
@@ -64733,7 +65079,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.POLLUTANT_CORE_RICH_METAL_FRACTION 0.5: a fragment with at least this mass fraction of metal grains is core-rich"
         },
         {
@@ -64771,7 +65117,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.POLLUTANT_CRUST_RICH_FACTOR 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich"
         },
         {
@@ -64809,7 +65155,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.POLLUTANT_VOLATILE_RICH_FRACTION 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich"
         },
         {
@@ -64847,7 +65193,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.POLLUTANT_ELEMENT_SHARES: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10"
         },
         {
@@ -64885,12 +65231,134 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1370",
+          "unread": null,
           "what": "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "white_dwarf_core.accreted_taxon: a polluted white dwarf accreted one stored belt member of its system, picked in proportion to its mass by the star's own draw (StarDraws.u_pollutant), and its composition is its taxon's mix of the materials table"
+            ],
+            [
+              "The range it moves in",
+              "the weights by mass or by mass to the one half"
+            ],
+            [
+              "Where it holds",
+              "polluted white dwarfs whose system stores belt members"
+            ],
+            [
+              "What would show it wrong",
+              "a polluted white dwarf whose system holds a belt but whose spectrum shows a body unlike any member"
+            ],
+            [
+              "What replaces it",
+              "the scattered mass and the member each belt throws inward (belt_history.mass_loss, not stored)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the heavier a member, the more likely it is the one that is disrupted; the scattered mass of the belt is not stored)"
+            ]
+          ],
+          "id": "WDC9",
+          "key": "6.286:WDC9",
+          "kind": "P",
+          "slug": "6-286-wdc9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "white_dwarf_core.accreted_taxon: a polluted white dwarf accreted one stored belt member of its system, picked in proportion to its mass by the star's own draw (StarDraws.u_pollutant), and its composition is its taxon's mix of the materials table"
         }
       ],
       "slug": "6-286-stand-ins-of-the-white-dwarf-core-and-the-accreted-pollutant",
       "title": "Stand-ins of the white dwarf core and the accreted pollutant"
+    },
+    {
+      "key": "6.287",
+      "number": "6.287",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "acid_freezing.freezing_point_k: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K)"
+            ],
+            [
+              "The range it moves in",
+              "none (read, not fitted); the 1 K of the reading"
+            ],
+            [
+              "Where it holds",
+              "acid mole fraction 0 to 1 at 0.1 MPa; the equilibrium freezing point, below which a solid can be present"
+            ],
+            [
+              "What would show it wrong",
+              "a measured freezing point of a sulfuric acid solution more than 2 K from the curve"
+            ],
+            [
+              "What replaces it",
+              "the Gibbs-energy fit of [R4877] itself (Tables 6 to 8) evaluated for the liquidus, which removes the digitising"
+            ],
+            [
+              "Evidence",
+              "read first-hand from the scan of [R4877]; laboratory freezing points of Gable, Betz and Maron and of Kunzler and Giauque"
+            ]
+          ],
+          "id": "AF1",
+          "key": "6.287:AF1",
+          "kind": "P",
+          "slug": "6-287-af1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "acid_freezing.freezing_point_k: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "acid_freezing is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "cloud pressures up to a few bar"
+            ],
+            [
+              "What would show it wrong",
+              "a melting-curve slope of the hydrates above 0.1 K per bar"
+            ],
+            [
+              "What replaces it",
+              "the pressure dependence of the Gibbs-energy functions, if a source prints it"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the slopes of the ice and acid melting curves)"
+            ]
+          ],
+          "id": "AF2",
+          "key": "6.287:AF2",
+          "kind": "P",
+          "slug": "6-287-af2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "acid_freezing is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides"
+        }
+      ],
+      "slug": "6-287-stand-ins-of-the-freezing-curve-of-the-sulfuric-acid-hydrates-gen-1644",
+      "title": "Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)"
     }
   ]
 }

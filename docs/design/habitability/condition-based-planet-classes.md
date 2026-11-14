@@ -43,7 +43,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | M | Temperate world | the rest (air, liquid water 20 to 95 percent); M, H, O, P and R reach 2 g, V's line (GEN.1306, registry AW3; 1.25 g before); M, H, O, P and R judge oxygen (16 to 35.5 kPa) and carbon dioxide (under 1 kPa) by pressure, not share (GEN.1321, registry OP1) |
 | R | Hothouse world | M's too hot (GEN.1221): mean 312 to 345 K, hottest region 315 K or more, coldest 295 K or more, wet bulb 31 C or more, liquid water phase, and the oxygen, air, gravity and carbon dioxide ranges of M |
 | U | Methane-ethane world | methane-ethane liquid stable at the pressure and temperature (91 to 130 K, 50 to 500 kPa), methane 1 percent or more of the air, 0.05 to 2 g (GEN.1221) |
-| Y | Sulfuric acid world | sulfuric acid liquid stable at the pressure and temperature (300 to 350 K), pressure 3 kPa or more, sulfur dioxide 3 percent or more of the air, 0.5 to 2 g (GEN.1221) |
+| Y | Sulfuric acid world | sulfuric acid liquid stable at the pressure and temperature (300 to 350 K), pressure 3 kPa or more, sulfur dioxide 3 percent or more of the air, 0.5 to 2 g (GEN.1221) Fringe physics (GEN.1562): the support in the literature [R0043, R0232] is for warm, water-depleted, sulfur-rich worlds with acid pools or ionic liquid, not for acid oceans; the name stays, the physics is T8 |
 | X | Ammonia-water world | no air; a liquid cover of 20 percent or more, ammonia 10 percent or more of the water's mass, 190 to 240 K, 0.05 to 2 g (GEN.1258) |
 
 The table is in the order of the file. The order no longer decides anything (the best fit does; a tie goes to the class with more conditions, then to the letter), and R, U, X, Y and Z, which the rule file did not have when this table was written, are listed after M with their conditions as `planet_class_fit.json` holds them. Each row carries a one-sentence reading and its `basis` ("design: ..."). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.
@@ -67,6 +67,7 @@ A body that meets every condition of a class takes that class and scores 1. Othe
 * The match is `1 - total move / (values moved * 1 width)` (registry CP2); a body that fits fully scores 1.
 * A body no class reaches by 1 width has its gravity and air-amount edges relaxed (digit 9), and if that still fails it takes the nearest class with a match of 0.
 * The planet sheet says which values were moved and by how much (`class_fudge_values`, `class_fudge_amount`).
+* What reads a class reads its match with it (GEN.1315, `physics/class_outcome`, registry FT5): a request for a class is met, and a Class M world is counted, only by a body whose `class_match` is at least `tuning.CLASS_MATCH_THRESHOLD` (0.5); the search takes a range on `class_match` (`planet_min_class_match=0.5`). The habitable count and the bar on habitable worlds never read a letter: they read the PHI-6 score and the life of the finished body (GEN.1387, GEN.1397).
 
 ## What is built and what is next
 

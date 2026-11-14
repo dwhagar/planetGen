@@ -69,8 +69,10 @@ asteroid_belts = sa.Table(
     sa.Column('origin_history', sa.Text(), nullable=True),
     sa.Column('origin_sentence', sa.Text(), nullable=True),
     sa.Column('scatter_fates', sa.Text(), nullable=True),
+    sa.Column('makeup', sa.Text(), nullable=True),
     sa.Column('largest_body_km', mysql.DOUBLE(), nullable=True),
     sa.Column('history_text', sa.Text(), nullable=True),
+    sa.Column('host_node_id', mysql.SMALLINT(), nullable=True),
     sa.Index('idx_asteroid_belts_density', 'density'),
     sa.Index('idx_asteroid_belts_parent', 'parent_type', 'parent_id'),
     sa.Index('idx_asteroid_belts_star_id', 'star_id'),
@@ -283,6 +285,19 @@ body_history = sa.Table(
 )
 
 
+body_numbers = sa.Table(
+    'body_numbers',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('slot_key', sa.String(96), primary_key=True, nullable=False),
+    sa.Column('body_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Index('uq_body_numbers_number', 'star_system_id', 'body_number', unique=True),
+    sa.CheckConstraint('(`body_number` between 1 and 4095)', name='body_numbers_chk_1'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_body_numbers_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 bright_stars = sa.Table(
     'bright_stars',
     metadata,
@@ -454,6 +469,7 @@ comets = sa.Table(
     sa.Column('roundness_ratio', mysql.DOUBLE(), nullable=True),
     sa.Column('yield_strength_pa', mysql.DOUBLE(), nullable=True),
     sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
+    sa.Column('makeup', sa.Text(), nullable=True),
     sa.Column('parent_type', sa.String(16), server_default=sa.text("'system'"), nullable=False),
     sa.Column('parent_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('idx_comets_next_update_due', 'next_update_due'),
@@ -1506,6 +1522,7 @@ moons = sa.Table(
     sa.Column('class_fudge_values', sa.String(120), nullable=True),
     sa.Column('class_fudge_amount', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('collision_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
     sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('obliquity_min_deg', mysql.DOUBLE(), nullable=True),
@@ -2583,6 +2600,7 @@ planets = sa.Table(
     sa.Column('class_fudge_values', sa.String(120), nullable=True),
     sa.Column('class_fudge_amount', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('collision_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
     sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('obliquity_min_deg', mysql.DOUBLE(), nullable=True),
@@ -3335,6 +3353,7 @@ rogue_planets = sa.Table(
     sa.Column('class_fudge_values', sa.String(120), nullable=True),
     sa.Column('class_fudge_amount', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('collision_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
     sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('obliquity_min_deg', mysql.DOUBLE(), nullable=True),

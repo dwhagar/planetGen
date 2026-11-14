@@ -58,7 +58,7 @@ import redis
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, runline, runrecord
 from planetgen.web.lib.privatedir import ensure_private_dir
-from planetgen.util import log, stagemark
+from planetgen.util import log, secrets_mask, stagemark
 from planetgen.util.settings import get_settings
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -150,7 +150,7 @@ def jobs_dir():
                 ensure_private_dir(candidate)
         except OSError as exc:
             if index > 0:
-                log.debug("jobs: not using %s: %s", candidate, exc)
+                log.debug("Not using %s as the jobs folder: %s.", candidate, exc)
             continue
         if os.access(candidate, os.W_OK | os.X_OK):
             return candidate
@@ -400,15 +400,22 @@ def remaining_steps(job_id, root=None):
     return (job, remaining) if remaining else None
 
 
+def _known_job_dir(root, job_id):
+    """The folder of a job that exists (its `job.json` is there) under `root` (the jobs folder by default), else `None`."""
+    path = _job_dir(root or jobs_dir(), job_id)
+    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+        return None
+    return path
+
+
 def log_tail(job_id, max_bytes=64 * 1024, root=None):
     """
     The last `max_bytes` of a job's output, as text, with rich's carriage
     return redraws collapsed to their final state. `None` for an unknown
     job.
     """
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         with open(os.path.join(path, "output.log"), "rb") as f:
@@ -427,9 +434,8 @@ def log_tail(job_id, max_bytes=64 * 1024, root=None):
 
 def log_size(job_id, root=None):
     """The size in bytes of a job's `output.log` (0 before the first output); `None` for an unknown job."""
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         return os.path.getsize(os.path.join(path, "output.log"))
@@ -450,9 +456,8 @@ def read_log(job_id, offset=0, max_bytes=64 * 1024, root=None):
             replaced) starts again from 0. `("", offset)` when there is
             nothing new; `None` for an unknown job.
     """
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         with open(os.path.join(path, "output.log"), "rb") as f:
@@ -581,7 +586,7 @@ def release_lock(job_id):
         with _redis_errors():
             _connection().register_script(_RELEASE)(keys=[_lock_key()], args=[job_id])
     except OSError as exc:
-        log.warning("jobs: could not free the lock for job %s: %s", job_id, exc)
+        log.warning("The lock for job %s could not be freed: %s.", job_id, exc)
 
 
 def free_lock():
@@ -714,7 +719,7 @@ def _spawn(path):
     try:
         connection.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise OSError(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise OSError(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                       f"start Redis to run jobs: {exc}") from exc
     name = QUEUE_PREFIX + job_id
     redisqueue.queue(name, connection).enqueue(
@@ -748,7 +753,7 @@ def cancel_runs(job_id, who=None):
         return sum(runcontrol.cancel_run(connection, run_id, who=who) is not None
                    for run_id in runrecord.job_runs(connection, job_id))
     except Exception as exc:  # noqa: BLE001 -- the runner's own stop still follows
-        log.debug("Cancel of job %s: its runs were not canceled (%s)", job_id, exc)
+        log.debug("Cancel of job %s: its runs were not canceled (%s).", job_id, exc)
         return 0
 
 
@@ -823,7 +828,7 @@ def cancel_job(job_id, root=None, who=None):
     except OSError:
         return False
     cancel_runs(job_id, who)        # after the file: the step that finds its run stopped is then a canceled one, not a failed one
-    log.debug("Cancel requested for job %s (runner pid %s)", job_id, pid)
+    log.debug("Cancel requested for job %s (runner pid %s).", job_id, pid)
     return True
 
 

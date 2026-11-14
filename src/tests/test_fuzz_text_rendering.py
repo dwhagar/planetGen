@@ -364,9 +364,9 @@ def test_star_formatters_never_raise_on_finite_values(value):
         assert "<sup>" not in tabledisplay.to_plain_text(out)
 
 
-@given(value=nonzero_finite, is_moon=st.booleans())
-def test_format_body_distance_never_raises_on_finite_values(value, is_moon):
-    out = tabledisplay.format_body_distance(value, is_moon)
+@given(value=nonzero_finite)
+def test_format_body_distance_never_raises_on_finite_values(value):
+    out = tabledisplay.format_body_distance(value)
     assert out.endswith((" km", " m", " cm", " mm", " AU", " ly", " ly)", " AU)", " km)", " m)"))
 
 
@@ -382,7 +382,7 @@ def test_format_period_never_raises(years):
 @example(value=5e-324)   # 10**-324 == 0.0 made the old coefficient a division by zero
 def test_formatters_survive_non_finite_and_subnormal_values(value):
     for formatter in (tabledisplay.format_mass, tabledisplay.format_luminosity,
-                      tabledisplay.format_star_radius, lambda v: tabledisplay.format_body_distance(v, True)):
+                      tabledisplay.format_star_radius, tabledisplay.format_body_distance):
         assert isinstance(formatter(value), str)
 
 

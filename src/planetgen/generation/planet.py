@@ -207,6 +207,7 @@ class Planet(PlanetaryObject):
 
     _deferred_climate = None
     """tuple or None: `(moon_count, distance_override)` of a body built with `defer_climate` whose air and moons `finish_climate` still owes (GEN.1282)."""
+    _motion_done = False
 
     SERIALIZABLE_FIELDS = [
         "is_moon", "zone", "atm_molar_density", "gravity",
@@ -317,6 +318,30 @@ class Planet(PlanetaryObject):
     class-level default. See this class's `__init__` for the full
     explanation of what this field means.
     """
+
+    TRANSIENT_STATE = ("_co2_sink",)
+    """tuple[str]: Attributes kept on a body while it is built and never stored (`planets._co2_sink`: a sink that holds a closure over the body), which a pickle of the body leaves out
+    (`__getstate__`) so that a sector can be sent to another process; a copy made in the same process keeps them (`__copy__`, `__deepcopy__`)."""
+
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        for name in self.TRANSIENT_STATE:
+            if name in state:
+                state[name] = None
+        return state
+
+    def __copy__(self):
+        clone = object.__new__(type(self))
+        clone.__dict__.update(self.__dict__)
+        return clone
+
+    def __deepcopy__(self, memo):
+        import copy
+        clone = object.__new__(type(self))
+        memo[id(self)] = clone
+        for name, value in self.__dict__.items():
+            clone.__dict__[name] = value if name in self.TRANSIENT_STATE else copy.deepcopy(value, memo)
+        return clone
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
@@ -482,14 +507,11 @@ class Planet(PlanetaryObject):
         self.primary_mass_kg = primary_mass_kg
         # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds does not draw the body again: the finished body
         # is judged on its conditions at the end of the system and dropped if it is one (GEN.1397).
-        given_mass, given_radius = self.mass, self.radius
         self._deferred_climate = None
         if defer_climate and system_config.HABITABLE_WORLD is not False:
-            self.mass, self.radius = given_mass, given_radius
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             self._deferred_climate = (moon_count, distance_override)
             return
-        self.mass, self.radius = given_mass, given_radius
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.prepare_class(self)
@@ -507,54 +529,86 @@ class Planet(PlanetaryObject):
         # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
         planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
 
-    def _finish_motion_and_moons(self, primary_mass_kg, moon_count):
+    def _finish_motion_and_moons(self, primary_mass_kg, moon_count, bare_moons=False):
         """What `__init__` does after the air and the prepared class (`planets.prepare_class`): the motion, whose spin makes the latitude bands, the class (GEN.1587: judged on the bands, which M, O, H, P and R
         read, so a request for one of them can be met), the age the body was made at and the moons."""
-        planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        if self._motion_done:       # GEN.1548: the orbit state was made earlier (`finish_motion`); the spin, which reads the air, is made now
+            planetPhysics.generate_spin(self, primary_mass_kg)
+        else:
+            planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
         planetPhysics.classify(self)
         self._age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
-            self.add_moons(moon_count)
+            self.add_moons(moon_count, bare=bare_moons)
+
+    def finish_motion(self):
+        """
+        Gives a body built with `defer_climate` its orbit's orientation, position and velocity (`planets.generate_orbit_state`, GEN.1548), which need only its mass and orbit, so the planets' own
+        orbit work (secular exchange, resonant chains) can run before any air is made. A body that is not deferred, or is done, does nothing.
+        """
+        if self._deferred_climate is None or self._motion_done:
+            return
+        self._motion_done = True
+        planetPhysics.generate_orbit_state(self, self.primary_mass_kg)
 
     def finish_climate(self):
         """
-        Makes the air, the class, the motion and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now.
-        Called by `StarSystem.validate_system` once the spacing has settled the orbits; a body that is not deferred does nothing.
+        Makes the air, the class and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now (and its motion first, if
+        `finish_motion` has not). Called by `StarSystem._settle_to_final_age` once the planets' orbit work is done; a body that is not deferred does nothing.
         """
         if self._deferred_climate is None:
             return
+        self.finish_motion()
         moon_count, distance_override = self._deferred_climate
         self._deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.prepare_class(self)
-        self._finish_motion_and_moons(self.primary_mass_kg, moon_count)
+        self._finish_motion_and_moons(self.primary_mass_kg, moon_count, bare_moons=not self.is_moon)
 
-    def add_moons(self, moon_count=None):
+    def finish_moons(self):
+        """
+        Makes the air, class and spin of the moons `add_moons(bare=True)` left bare (GEN.1548), each on the orbit it has now: the Kozai pumping and the tide have worn it by the time this
+        is called, so the air is made once. Then what follows the moons' spin (no draws): their day and night shares and the tides of the seas. Moons that were made whole are left.
+        """
+        bare = [moon for moon in self.moons if planetPhysics.is_bare(moon)]
+        if not bare:
+            return
+        for moon in bare:
+            moon.finish_climate()
+        for moon in self.moons:
+            daylight.generate(moon, self)
+        ocean_tides.generate(self)
+        for moon in self.moons:
+            ocean_tides.generate(moon, self)
+
+    def add_moons(self, moon_count=None, bare=False):
         """
         Generates this planet's moons: an exact `moon_count` (0 for none) or, with `None`, whatever `system_config.MOONS` and the
         satellite draw allow. Called by `__init__`, and by a request that drew the planet bare (`DEFER_MOONS`) and keeps it.
-        Never for a moon.
+        Never for a moon. With `bare` the moons are built without their air (GEN.1548: `finish_moons` makes it once their orbits are settled).
         """
         if self.is_moon:
             return
         if moon_count is not None:
-            planetPhysics.generate_moons(self, moon_count=moon_count)
+            planetPhysics.generate_moons(self, moon_count=moon_count, bare=bare)
         elif self.system_config.MOONS is not False and (
                 self.system_config.MOONS is True
                 or self._draw_moons()):
-            planetPhysics.generate_moons(self)
+            planetPhysics.generate_moons(self, bare=bare)
         # GEN.959: the moons' history with the planet's spin (outward drift, the fall of a moon into a ring, the planet's day), from its birth spin
         if self.moons and getattr(self, "_birth_spin", None) is not None:
             planetPhysics.generate_spin(self, self.star.mass, birth=self._birth_spin)
         # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
         daylight.generate(self)
         for moon in self.moons:
-            daylight.generate(moon, self)
+            if not planetPhysics.is_bare(moon):
+                daylight.generate(moon, self)
         # GEN.1034: the open-ocean equilibrium tide of a world with a sea, from its star and its moons (no draws)
         ocean_tides.generate(self)
         for moon in self.moons:
-            ocean_tides.generate(moon, self)
+            if not planetPhysics.is_bare(moon):
+                ocean_tides.generate(moon, self)
 
     @property
     def giant_kind(self):

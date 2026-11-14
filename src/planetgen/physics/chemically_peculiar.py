@@ -22,7 +22,9 @@ stored mass, temperature and age and is not a column.
 
 import math
 from collections import namedtuple
+from statistics import NormalDist
 
+from planetgen.physics import constants
 from planetgen.util import draw
 
 AP = "Ap"
@@ -54,7 +56,7 @@ AP_POLAR_FIELD_GAUSS = (300.0, 3.0e4)
 """tuple: The polar field of an Ap star, gauss, drawn log-uniform between. [Stand-in PEC9, tier T4, tweak L0: dipole fields of 300 G to 34 kG (Babcock's star
 at 34 kG); the lower edge is the survey's detection floor.]"""
 
-SOLAR_RADIUS_KM = 695700.0
+SOLAR_RADIUS_KM = constants.SOLAR_RADIUS_M / 1000.0
 
 DWARF_CLASS = "V"
 """str: The Yerkes class of the stars that may be peculiar: the main-sequence dwarfs."""
@@ -81,7 +83,6 @@ def rotation_period_hours(kind, radius_rsun, u):
     if kind == AP:
         low, high = (math.log(days) for days in AP_PERIOD_RANGE_DAYS)
         center, width = math.log(AP_PERIOD_MEDIAN_DAYS), AP_PERIOD_SIGMA_LN
-        from statistics import NormalDist
         cut_low, cut_high = NormalDist().cdf((low - center) / width), NormalDist().cdf((high - center) / width)
         z = NormalDist().inv_cdf(cut_low + min(max(u, 1.0e-12), 1.0 - 1.0e-12) * (cut_high - cut_low))
         return 24.0 * math.exp(center + width * z)

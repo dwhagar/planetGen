@@ -609,6 +609,7 @@ The map panels and their data.
 | `generateplace.js` | The Add sectors form's choices: shows the one panel of the choice made (ADM.108). |
 | `generatestarmix.js` | The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45). |
 | `generatelevers.js` | The Generate task pages' shape dials: the line under them (disc crest, planned-star share, outline) read from `/admin/generate/shape-report` (GEN.617, ADM.124). |
+| `leversliders.js` | The Generate task pages' galaxy measures as sliders: a tick box and the typed box in one row above a bar that rests at where Auto sits in the row's range (`Lever.slider_default`) and sticks to it; unticked is Auto (blank box, no flag). |
 | `generatesize.js` | The line under the Add sectors and Check forms: the sectors, systems, stars, database growth and time the run would make, read a moment after each change from `/admin/generate/task/<key>/size` (ADM.126); the palette adds the same figures to a typed command. |
 | `adminshell.js` | The admin shell's density switch: compact by default, the choice kept in the browser (ADM.92). |
 | `adminpalette.js` | The Ctrl+K palette, its typed commands and the keyboard set (ADM.120, ADM.121, ADM.122). |
@@ -852,7 +853,8 @@ Alembic revision (`planetgen/db/migrations/versions/`, run through
 `planetgen.db.alembic_runner`) above the stored version, in order. A revision's
 id is its schema version, so `SCHEMA_VERSION` is the head revision's number.
 Databases older than v130 (the baseline) are refused with `SchemaTooOldError`
-rather than migrated, and so is a database with tables but no recorded version
+rather than migrated (Boss's hard cut, DB.127: no database structure before 8.0 is accepted; `legacy/bump_database_to_8_0.py` brings
+one up to the baseline on request, DB.126), and so is a database with tables but no recorded version
 (`SchemaVersionMissingError`). `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A change to a `sectors` column rebuilds the whole table, because the FULLTEXT index on `sectors.name` rules out
 `ALGORITHM=INSTANT` (DB.84): such changes are batched into as few revisions as possible, each saying in its docstring

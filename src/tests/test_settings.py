@@ -242,6 +242,9 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209, PERF.250; the test suite sets it; "
                                       "unset, an install keeps it in the folder of its kept star tables, /var/cache/planetgen/band-tables, "
                                       "which update.sh makes; set but empty, none is kept)",
+    "PLANETGEN_ESA_USER": "optional registered ESA archive account for the Gaia nearby-star download (OPS.183, datasets/gaia_nearby.py); "
+                          "a credential read at setup only, never stored in the settings file",
+    "PLANETGEN_ESA_PASSWORD": "the password of that ESA account (OPS.183); a credential, masked in every log (SEC.48), never stored in the settings file",
 }
 
 

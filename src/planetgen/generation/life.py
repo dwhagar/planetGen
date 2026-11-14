@@ -31,8 +31,8 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_classes, planet_type, radiation, surface_liquid_world, trace_air
-from planetgen.physics import carbide_deposits, hydrothermal_deposits, sedimentary_deposits
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -84,7 +84,7 @@ def _remake_ground_if_thawed(planet, before):
     from planetgen.physics import planets, surface_composition
     if planet.body_type in ("g", "a") or (planet.surface_temperature or 0.0) <= (before.surface_temperature or 0.0):
         return
-    if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= 273.15:
+    if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= constants.CELSIUS_ZERO_K:
         planets.refresh_at_final_age(planet)
         planets.apply_class(planet)         # GEN.1590: the cover the thaw left is not the cover the class was read with
 
@@ -112,7 +112,8 @@ def _apply(planet, keep_stored, key, barred):
         return None
     row = life_classes.describe(chosen.id)
     if kept:
-        log.debug(f"Life class: kept {row.id}, still supported")
+        if log.debug_log_active():
+            log.debug(f"Life class: kept {row.id}, still supported.")
     else:
         log.choice("Life class", row.id, f"the supported class with the most net primary production ({chosen.npp:.3g} of Earth's); "
                    f"{sum(1 for s in scores.values() if s.score > 0)} classes are supported")
@@ -141,7 +142,8 @@ def _apply(planet, keep_stored, key, barred):
     if not (final.get(row.id) and final[row.id].score > 0):
         if row.id in final and "solvent" in final[row.id].failed:
             # Its own air (the greenhouse gas it drew down) took the liquid it lives in: a class cannot live without its solvent (GEN.1298)
-            log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it")
+            if log.debug_log_active():
+                log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it.")
             return row.id
         # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
         # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
@@ -153,8 +155,7 @@ def _apply(planet, keep_stored, key, barred):
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
         planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS), max_stage=complexity.top_stage))
     planet.life_complexity = complexity.index
-    animals = planet.life_stage in ("multicellularity", "technological_civilization")
-    planet.life_animal_grade = complexity.grade if animals else 0
+    planet.life_animal_grade = _animal_grade(complexity, planet.life_stage)
     log.choice("Life complexity", f"{complexity.index:.3g} x Earth's net primary production",
                f"oxidant yield {complexity.oxidant_yield:.2f} of 1, temperature rate factor {complexity.rate_factor:.2f}, "
                f"animal grade {complexity.grade} of 3, highest stage {complexity.top_stage}")
@@ -213,12 +214,18 @@ def _date(planet, cands):
     for cand, one in zip(cands, living):
         if cand.ages is not None:
             continue
-        at_start = cand.row.oxidant != "o2" or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
+        at_start = _oxidant_at_start(planet, cand.row)
         delay = None if rise is None else max(0.0, rise - one.producers_gyr)
         cand.ages = life_timeline.schedule(cand.waits, factor, delay, at_start)
         log.choice("Evolutionary schedule", ", ".join("never" if age is None else f"{age:.3g} Gyr" for age in cand.ages),
                    f"class {cand.row.id}, hard steps at temperature rate factor {factor:.3g}, oxygen "
                    f"{'not needed' if cand.row.oxidant != 'o2' else 'from the start' if at_start else 'after the rise at ' + str(rise) + ' Gyr'}")
+
+
+def _oxidant_at_start(planet, row):
+    """Whether a class of `row` has its oxidant from the start: it breathes something other than oxygen, or the air already holds enough for
+    complex cells (`biogenic_oxygen.EUKARYOTE_MINIMUM_PA`)."""
+    return row.oxidant != "o2" or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
 
 
 def _begun(planet, cand):
@@ -244,22 +251,26 @@ def _settle(planet, cands, key):
     """
     while len(cands) > 1:
         trial = _trial_copy(planet)
-        _store_schedule(trial, cands)
-        with draw.bound(draw.Stream(f"{key}:air")):
-            _build_air(trial, cands)
+        _air_on(trial, cands, key)
         final = life_classes.score_classes(trial)
         poisoned = [c for c in cands[1:] if not (final.get(c.row.id) and final[c.row.id].score > 0)]
         if not poisoned:
-            _store_schedule(planet, cands)
-            with draw.bound(draw.Stream(f"{key}:air")):
-                _build_air(planet, cands)
+            _air_on(planet, cands, key)
             return cands
         smallest = min(poisoned, key=lambda c: (c.share, c.row.id))
-        log.debug(f"Life class: {smallest.row.id} dropped, the air of the other classes poisons it")
+        if log.debug_log_active():
+            log.debug(f"Life class: {smallest.row.id} dropped, the air of the other classes poisons it.")
         cands = _redate(planet, [c for c in cands if c is not smallest])
     _store_schedule(planet, cands)
     _build_air(planet, cands)
     return cands
+
+
+def _air_on(body, cands, key):
+    """Stores the dominant class's schedule on `body` and builds the air its classes make, on the body's own air stream."""
+    _store_schedule(body, cands)
+    with draw.bound(draw.Stream(f"{key}:air")):
+        _build_air(body, cands)
 
 
 def _store_schedule(planet, cands):
@@ -309,11 +320,16 @@ def _living_entries(planet, cands, final, key):
             complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), planet.surface_temperature, anoxic)
             state = evolution.get_evolutionary_state(planet.star, cand.ages, max_stage=complexity.top_stage)
             stage, milestone, system_age = state["stage"], state["milestone_age_gyr"], state["system_age_gyr"]
-            grade = complexity.grade if stage in ("multicellularity", "technological_civilization") else 0
+            grade = _animal_grade(complexity, stage)
             complexity_index = complexity.index
         entries.append({"life_class": row.id, "share": cand.share, "stage": stage, "milestone_age_gyr": milestone, "system_age_gyr": system_age,
                         "animal_grade": grade, "complexity": complexity_index, "ages": list(cand.ages)})
     return entries
+
+
+def _animal_grade(complexity, stage):
+    """The animal grade of life at `stage`: the complexity's once the life is multicellular, else 0."""
+    return complexity.grade if stage in ("multicellularity", "technological_civilization") else 0
 
 
 def _lifeless(planet, scores, why):
@@ -371,9 +387,8 @@ def _draw_waits(planet, row, stream=None):
     factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
     waits = None
     if stream is None and planet.star.system_config.INTELLIGENT_LIFE is True:
-        needs_oxygen = row.oxidant == "o2"
-        at_start = (not needs_oxygen) or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
-        delay = biogenic_oxygen.profile_of(planet).delay_gyr if needs_oxygen and row.releases_oxygen else None
+        at_start = _oxidant_at_start(planet, row)
+        delay = biogenic_oxygen.profile_of(planet).delay_gyr if row.oxidant == "o2" and row.releases_oxygen else None
         waits = life_timeline.raised_waits(planet.star.age, factor, delay, at_start)
     if waits is None:
         waits = life_timeline.unit_waits(stream)
@@ -415,13 +430,18 @@ def _build_oxygen(planet, living):
     return True
 
 
+def _air_stream_key(planet):
+    """The stream the doses are made again on after life changed the air: the body's own, so the run's draws do not move."""
+    return f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"
+
+
 def _trace_gases(planet):
     """Gives the air its trace gases (`trace_air.apply`, GEN.524) and, when they changed it, makes the doses and the ultraviolet index of the air again: they
     read the air, and the trace gases shift it by parts in a thousand. The same stream as `_rebuild` takes, so the draws do not move."""
     before = atmosphere.gas_partials_pa(planet)
     trace_air.apply(planet)
     if planet_type.has_ground(planet) and getattr(planet, "uv_surface_index", None) is not None and atmosphere.gas_partials_pa(planet) != before:
-        with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
+        with draw.bound(_air_stream_key(planet)):
             radiation.generate_dose(planet)
 
 
@@ -435,7 +455,7 @@ def _rebuild(planet, remake_water=False):
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
     surface_liquid_world.generate(planet)
-    with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
+    with draw.bound(_air_stream_key(planet)):
         radiation.generate_dose(planet)
     body_colour.generate(planet)
     if remake_water:
@@ -499,14 +519,14 @@ def decide_flavor_text(planet):
     with draw.bound(draw.Stream(flavor_tree.seed_of("roll", planet))):       # the body's own stream: the roll does not depend on the order the bodies were made in
         rolled = draw.random()
     if not (rolled < tuning.FLAVOR_CHANCE_PLANET and system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
-        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
+        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached).")
         return
 
     # The tree (GEN.1430) gathers every line whose gates pass on the body's stored conditions (a ground to stand on or none, molten all over, multicellular or technological life),
     # never the class letter (GEN.1399: the class is decided last), takes out the ids already used in the system and draws one by weight.
     option = flavor_tree.draw_line("planet", planet, system_config.used_flavor_ids)
     if option is None:
-        log.debug("Planet flavor text: none (the tree offers no line this body has not already shown in its system)")
+        log.debug("Planet flavor text: none (the tree offers no line this body has not already shown in its system).")
         return
     log.choice("Planet flavor text", option.text, f"line: {option.id}")
     planet.flavor_key = option.id

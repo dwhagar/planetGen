@@ -31,7 +31,7 @@ import redis
 
 from planetgen.datasets import fetch
 from planetgen.queue import commandgaps, commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
-from planetgen.util import log, logrecord
+from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 
 
@@ -62,16 +62,8 @@ def step_for(args, key, label, params):
     the request does not select it (a luminosity redo with no scatter stored yet needs the massive stars too) is added
     to the list in its place, before the luminosity pass; arguments from neither command give a list of that step.
     """
-    from planetgen.generation import stages
-    command = getattr(args, "command", None)
-    listing = steps_for(command, args) if command in commands.STAGED_COMMANDS else []
-    found = next((step for step in listing if step.key == key), None)
-    step = commands.Step(key, commands.KIND_OF_STAGE[key], found.label if found else label,
-                         {**(found.params if found else stages.stage_settings(key, args)), **params})
-    if found is not None:
-        return step, [step if item.key == key else item for item in listing]
-    later = next((index for index, item in enumerate(listing) if item.key == "luminosity"), len(listing))
-    return step, listing[:later] + [step] + listing[later:]
+    steps, listing = plan_steps(args, [(key, label, params)])
+    return steps[0], listing
 
 
 def plan_steps(args, parts, settings=None):
@@ -121,8 +113,7 @@ def _ensure_cluster_field(params):
     try:
         from planetgen.db import store
         from planetgen.galaxy import field_job
-        field_job.ensure_file(store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
-                                                database=named["database"]))
+        field_job.ensure_file(store.MySQLConfig.from_args(named))
     except Exception as exc:  # noqa: BLE001 -- the workers meet the same problem themselves
         log.warning(f"The cluster field could not be made ahead of the stage: {exc}")
 
@@ -154,8 +145,13 @@ def _clear_the_floor_for_the_opening(conn, run_id):
     the run of 2026-11-08 held 15 workers at 15,128 MB of 15,992 when the cut of the stage after the block lights was killed. The
     run's `ensure` starts the next stage's workers again once the cut is done (`_await_plan` holds it back until then).
     """
-    if queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))) == redisqueue.BULK_QUEUE:
+    if queue_of(run_kind(conn, run_id)) == redisqueue.BULK_QUEUE:
         workers.shed_bulk(conn, 1)
+
+
+def run_kind(conn, run_id):
+    """The kind of the run (`runrecord.KINDS`), as its record holds it."""
+    return runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))
 
 
 def _say_opening(conn, run_id, index, text, held):
@@ -168,7 +164,7 @@ def _say_opening(conn, run_id, index, text, held):
 
 
 def _open(conn, run_id, index):
-    stages = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    stages = runrecord.declared_stages(conn, run_id)
     key = stages[index]["key"]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id) if item["key"] == key)
     started = time.time()       # the stage's time counts from before it was cut: reading the galaxy is part of it
@@ -197,10 +193,8 @@ def _open(conn, run_id, index):
     if not expansion.units and commands.conclude_function(step.kind) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
-    units.enqueue_units(conn, run_id, index, step.kind, expansion.units,
-                        queue_name=queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))),
-                        expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
-                        .get("expected_seconds"))
+    units.enqueue_units(conn, run_id, index, step.kind, expansion.units, queue_name=queue_of(run_kind(conn, run_id)),
+                        expected_seconds=stages[index].get("expected_seconds"))
     return len(expansion.units)
 
 
@@ -252,13 +246,17 @@ class Unresolved(LookupError):
     """A deferred parameter whose value is not there (yet)."""
 
 
+def _stage_index(conn, run_id, marker, doing):
+    """The index of the stage a deferred marker names (`marker["stage"]`), or `Unresolved` when the run has none (`doing` says what for)."""
+    keys = [runrecord._s(item["key"]) for item in runrecord.declared_stages(conn, run_id)]
+    if marker["stage"] not in keys:
+        raise Unresolved(f"the run has no stage {marker['stage']!r} to {doing}")
+    return keys.index(marker["stage"])
+
+
 def _stage_clock(conn, run_id, marker):
     """The clock stage `marker["stage"]` recorded when it opened (`runrecord.set_opened_clock`)."""
-    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
-    keys = [runrecord._s(item["key"]) for item in declared]
-    if marker["stage"] not in keys:
-        raise Unresolved(f"the run has no stage {marker['stage']!r} to take the clock of")
-    clock = runrecord.opened_clock(conn, run_id, keys.index(marker["stage"]))
+    clock = runrecord.opened_clock(conn, run_id, _stage_index(conn, run_id, marker, "take the clock of"))
     if clock is None:
         raise Unresolved(f"stage {marker['stage']!r} has not opened, so it has no clock")
     return clock
@@ -272,11 +270,7 @@ def plan_detail(key, field):
 
 def _plan_field(conn, run_id, marker):
     """The `marker["field"]` of the plan summary stage `marker["stage"]` recorded (`runrecord.set_stage_plan`)."""
-    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
-    keys = [runrecord._s(item["key"]) for item in declared]
-    if marker["stage"] not in keys:
-        raise Unresolved(f"the run has no stage {marker['stage']!r} to read the plan of")
-    plan = runrecord.read_plan(conn, run_id, keys.index(marker["stage"]))
+    plan = runrecord.read_plan(conn, run_id, _stage_index(conn, run_id, marker, "read the plan of"))
     detail = (plan or {}).get("detail") or {}
     if marker["field"] not in detail:
         raise Unresolved(f"stage {marker['stage']!r} has not planned {marker['field']!r}")
@@ -399,7 +393,7 @@ def _conclude_empty_stage(conn, run_id, index, label):
 
 def stage_label(conn, run_id, index):
     """The label stage `index` of the run was declared with, `None` past the last."""
-    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    declared = runrecord.declared_stages(conn, run_id)
     return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
 
 
@@ -429,7 +423,7 @@ def stage_name(conn, run_id, index):
 
 def _stage_step(conn, run_id, index):
     """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
-    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
+    declared = runrecord.declared_stages(conn, run_id)[index]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)
                 if item["key"] == declared["key"])
     return declared, commands.Step(step.key, step.kind, step.label, resolve_params(conn, run_id, step.params))
@@ -459,8 +453,7 @@ def conclude_stage(conn, run_id, index):
     hook = commands.conclude_function(step.kind)
     if hook is None:
         return 0.0
-    record = {runrecord._s(name): runrecord._s(value)
-              for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
+    record = runrecord.text_hash(conn.hgetall(runrecord.stage_key(run_id, index)))
     plan = runrecord.read_plan(conn, run_id, index)
     began = time.time()
     conclusion = hook(step.params, plan["detail"], _stage_results(conn, run_id, index),
@@ -482,8 +475,7 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
     from planetgen.generation import stages
     try:
         declared, step = _stage_step(conn, run_id, index)
-        record = {runrecord._s(name): runrecord._s(value)
-                  for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
+        record = runrecord.text_hash(conn.hgetall(runrecord.stage_key(run_id, index)))
         _log_long_unit(conn, run_id, index, step, declared, float(record.get("longest_unit") or 0.0))
         _log_peak_memory(conn, run_id, index, step, declared, float(record.get("peak_mb") or 0.0))
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
@@ -546,7 +538,7 @@ def _mysql_config(named):
     """The `MySQLConfig` a step's `database` parameters name (`database_args`); the password is this process's
     settings'."""
     from planetgen.db import store
-    return store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+    return store.MySQLConfig.from_args(named)
 
 
 def expected_seconds(step, row):
@@ -576,9 +568,9 @@ def advance(conn, run_id, index):
     when the last stage is one of them. Called by the unit that completes the stage before (the barrier), and by
     the starter for the first. A run that is no longer running (canceling, canceled, failed) queues nothing.
     """
-    if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
+    if runrecord.run_state(conn, run_id) != "running":
         return
-    count = len(json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages"))))
+    count = len(runrecord.declared_stages(conn, run_id))
     while index < count:
         if _expand(conn, run_id, index):
             return
@@ -588,41 +580,37 @@ def advance(conn, run_id, index):
 
 def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
-    last_ensure = float("-inf")
-    while True:
-        if touch:
-            runrecord.touch(conn, run_id)
-        if on_debug is not None:
-            on_debug()
-        plan = runrecord.read_plan(conn, run_id, index)
-        if plan is not None:
-            return plan
-        state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
-        if state not in runrecord.LIVE_STATES:
-            error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
-            raise units.RunStopped(error or f"the run {state} before stage {index} was queued")
-        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS and runrecord.opening(conn, run_id) is None:
-            last_ensure = clock()
-            ensure()
-        sleep(units.POLL_SECONDS)
+    return _await(conn, run_id, index, runrecord.read_plan, "queued", ensure, clock, sleep, on_debug, touch,
+                  unless_opening=True)
 
 
 def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """What stage `index`'s conclusion found (`conclude_stage`), once the unit that completed the stage has made it."""
+    return _await(conn, run_id, index, runrecord.conclusion, "concluded", ensure, clock, sleep, on_debug, touch)
+
+
+def _await(conn, run_id, index, read, verb, ensure, clock, sleep, on_debug, touch, unless_opening=False):
+    """
+    Polls `read(conn, run_id, index)` every `units.POLL_SECONDS` until it answers, touching the run's record (`touch`) and
+    calling `on_debug` each time; `RunStopped` ("the run <state> before stage <index> was <verb>") once the run is no
+    longer live. Every `units.ENSURE_SECONDS` it calls `ensure` (a check that the stage's work is still queued), except,
+    with `unless_opening`, while a worker is opening a stage.
+    """
     last_ensure = float("-inf")
     while True:
         if touch:
             runrecord.touch(conn, run_id)
         if on_debug is not None:
             on_debug()
-        found = runrecord.conclusion(conn, run_id, index)
+        found = read(conn, run_id, index)
         if found is not None:
             return found
-        state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
+        state = runrecord.run_state(conn, run_id)
         if state not in runrecord.LIVE_STATES:
             error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
-            raise units.RunStopped(error or f"the run {state} before stage {index} was concluded")
-        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS:
+            raise units.RunStopped(error or f"the run {state} before stage {index} was {verb}")
+        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS and (
+                not unless_opening or runrecord.opening(conn, run_id) is None):
             last_ensure = clock()
             ensure()
         sleep(units.POLL_SECONDS)
@@ -647,7 +635,7 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
     try:
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url): {exc}") from exc
+        raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url): {exc}") from exc
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     for index in range(len(steps)):
         plan = _await_plan(conn, run_id, index, None, touch=False)
@@ -687,12 +675,8 @@ def report_wait_for(conn, holder, position):
         return
     log.normal(runrecord.busy_message(conn, holder))
     job = os.environ.get(JOB_ENV)
-    if job and _s(conn.hget(runrecord.run_key(holder), "job")) == job:
+    if job and runrecord._s(conn.hget(runrecord.run_key(holder), "job")) == job:
         log.normal(f"Run {holder} belongs to this same job: it is not another job's run.")
-
-
-def _s(value):
-    return value.decode("utf-8") if isinstance(value, bytes) else value
 
 
 def report_wait(holder, position):
@@ -796,7 +780,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     try:
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                                      f"start Redis to run this: {exc}") from exc
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]

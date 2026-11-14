@@ -114,6 +114,12 @@ OXIDATION_TIME_GY = (0.1, 1.5, "log")
 the e-folding time of the oxidation (studies put the Earth's upper mantle at its present redox by about 3.5 Ga;
 bracket, GEN.482)."""
 
+REDOX_SHIFT_DEX = 1.4
+"""float: How far, log10 units of oxygen fugacity, the redox of the magma-ocean stage and of the later upper mantle (`a1`, `a2`) is moved up for the rocky bodies (GEN.1562 N4). The draw of the recipe
+puts 24 percent of rocky bodies at `atmosphere.REDOX_OXIDIZED_DELTA_IW` (IW+2.5) or over and 31 percent at or under IW; sulfate and SO2 stand over about FMQ-1 and the Earth's upper mantle is IW+3.5
+to IW+4, so a rocky body that is half oxidized is as likely as a reduced one. A shift of 1.0 put about 44 percent at or over IW+2.5; 1.4 makes half (GEN.1670). The building blocks' and the white
+dwarf debris's redox (`a3`, `a4`, measured) is not moved. Tier 9, tweak level 2: tuned so that the rocky bodies are about half oxidized, which the sources do not fix."""
+
 MIN_EQUILIBRIUM_K = 300.0
 """float: The least temperature that every species of `species_thermo` is fitted for (the sulfur and phosphorus gases start at 300 K)."""
 
@@ -149,12 +155,13 @@ def draw_redox(subject, recipe, constants):
     if "a3" in values and "a1" not in values:
         return values["a3"]
     if "a1" not in values:
-        return values.get("a2")
-    first = values["a1"]
+        later = values.get("a2")
+        return None if later is None else later + REDOX_SHIFT_DEX
+    first = values["a1"] + REDOX_SHIFT_DEX
     if "a2" in values and subject.get("long_lived_geology"):
         tau = bracket(constants, "oxidation_time_gy", OXIDATION_TIME_GY)
         progress = 1.0 - math.exp(-max(subject["age_gy"], 0.0) / tau)
-        return first + (max(values["a2"], first) - first) * progress
+        return first + (max(values["a2"] + REDOX_SHIFT_DEX, first) - first) * progress
     return first
 
 
