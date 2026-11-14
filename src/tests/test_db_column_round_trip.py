@@ -91,7 +91,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
-        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
+        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flux_variation", "ice_shell_thickness_km",
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
@@ -191,6 +191,18 @@ NULL_IN_THIS_GALAXY = {
         "id", "moon_id", "layer_index", "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth",
         "top_radius_fraction", "bottom_radius_fraction", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x",
         "nh3_ice", "ch4_ice")},
+    # GEN.1433: a rogue planet shows a flavor line with the planet chance, so a small galaxy may hold none.
+    ("rogue_planets", "flavor_key"): CHANCE,
+    ("asteroid_belts", "flavor_key"): CHANCE,
+    ("asteroid_fields", "flavor_key"): CHANCE,
+    ("black_holes", "flavor_key"): CHANCE,
+    ("interstellar_comets", "flavor_key"): CHANCE,
+    ("nebulae", "flavor_key"): CHANCE,
+    ("quasars", "flavor_key"): CHANCE,
+    ("supernova_remnants", "flavor_key"): CHANCE,
+    ("stars", "flavor_key"): CHANCE,
+    ("comets", "flavor_key"): CHANCE,
+    ("neutron_stars", "flavor_key"): CHANCE,
     # The same for a planet: whether any planet of this small galaxy bears life is chance.
     **{("planets", column): CHANCE for column in
        ("evolutionary_pace", "flavor_key", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",
