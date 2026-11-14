@@ -165,6 +165,11 @@ def opened_key(run_id, index):
     return _k("run", run_id, f"s{index}", "opened")
 
 
+def supervised_key(run_id):
+    """OPS.210: set by the supervisor at each turn for each live run it watches, expiring a few turns later: while it is up, the run has a follower that is not the process that started it."""
+    return _k("run", run_id, "supervised")
+
+
 def events_key(run_id):
     return _k("run", run_id, "events")
 
@@ -413,7 +418,7 @@ def _pid_alive(pid):
 
 def holder_is_dead(conn, run_id):
     """
-    Whether nothing follows the run `run_id` any more, so the run can never end by itself: its record is gone or already over; or
+    Whether nothing follows the run `run_id` any more, so the run can never end by itself (a run the supervisor watches is never one, OPS.210): its record is gone or already over; or
     its `alive` key has run out (the process that follows a run says so every few seconds while it does, `Heartbeat`), which also
     catches a process that is still running but no longer follows the run (a long-lived worker or a reused process id that left its
     run behind, ADM.136); or it started on this host and its process id is not running (found at once, without waiting for the
@@ -423,6 +428,8 @@ def holder_is_dead(conn, run_id):
     state = _s(conn.hget(run_key(run_id), "state")) or ""
     if state and state not in LIVE_STATES:
         return True
+    if conn.exists(supervised_key(run_id)):
+        return False        # OPS.210: the supervisor watches the run and carries it on whatever became of the process that started it, so a new run does not take it over
     host, _, pid = owner.rpartition(":")
     if state and host == socket.gethostname() and pid.isdigit() and not _pid_alive(int(pid)):
         return True

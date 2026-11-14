@@ -169,6 +169,16 @@ def running_stage(conn, run_id):
     return None
 
 
+def live_runs(connection):
+    """The ids of the runs that are live now, one at most for each kind."""
+    found = []
+    for kind in RUN_KINDS:
+        run_id = runrecord.active_run(connection, kind)
+        if run_id and runrecord._s(connection.hget(runrecord.run_key(run_id), "state")) in runrecord.LIVE_STATES:
+            found.append(run_id)
+    return found
+
+
 class RunWatches:
     """
     OPS.208: the watch of every live run's units, which was the starter's (`unitwatch.UnitWatch`, `unitstuck.Stuck`, OPS.138 and OPS.140) and is the supervisor's now. At each `turn` it finds
@@ -198,12 +208,7 @@ class RunWatches:
 
     def live_runs(self):
         """The ids of the runs that are live now, one at most for each kind."""
-        found = []
-        for kind in RUN_KINDS:
-            run_id = runrecord.active_run(self.connection, kind)
-            if run_id and runrecord._s(self.connection.hget(runrecord.run_key(run_id), "state")) in runrecord.LIVE_STATES:
-                found.append(run_id)
-        return found
+        return live_runs(self.connection)
 
     def turn(self):
         """
@@ -239,6 +244,75 @@ class RunWatches:
         """Drops every watch (the supervisor ends)."""
         for key in list(self.watches):
             self._drop(key)
+
+
+SUPERVISED_SECONDS = 15
+"""int: How long a run counts as watched by the supervisor after a turn that saw it (`runrecord.supervised_key`): several turns, so one slow turn is not a death."""
+
+REPAIR_GRACE_SECONDS = 30.0
+"""float: How long a stage may stand finished without its end having queued the next opening before the supervisor ends it (OPS.186): the unit that ends a stage is normally at it at once, and
+a conclusion can take a while, so a lease (`runrecord.ending_key`) still held is waited for however long it is."""
+
+
+class Reconciler:
+    """
+    OPS.210: each turn, and first thing when the supervisor starts, compares what the run records say with what is so and corrects it, and says so in the supervisor's acts (OPS.214).
+
+    * Every live run is marked as watched (`runrecord.supervised_key`), so a new run does not take over a run whose starting process is gone (`runrecord.holder_is_dead`): the run
+      goes on without it, its stages advancing from the units, and ends by itself.
+    * A stage that finished (its last unit counted it) and whose end never queued the next opening (that unit's process was killed, or Redis failed it), found after `REPAIR_GRACE_SECONDS`, is ended
+      by `units.repair_unended_stages` (OPS.186): the conclusion not yet done is done, the opening not yet queued is queued, each once.
+
+    Args:
+        connection (redis.Redis): The server the runs are on.
+        clock (callable, optional): `clock() -> Unix seconds`; the wall clock where left out.
+        repair (callable, optional): `repair(connection, run_id) -> [stages]`; `units.repair_unended_stages` where left out. The simulator passes its own.
+    """
+
+    def __init__(self, connection, clock=time.time, repair=None):
+        self.connection = connection
+        self.clock = clock
+        self.repair = repair
+        self.supervisor = None
+
+    def attach(self, supervisor):
+        """The supervisor that runs this duty, so what it corrects goes into the supervisor's acts."""
+        self.supervisor = supervisor
+
+    def _act(self, what, reason):
+        if self.supervisor is not None:
+            self.supervisor.act(what, reason)
+
+    def turn(self):
+        """
+        Marks the live runs watched and ends the stages that stand finished without their end.
+
+        Returns:
+            list: The `(run_id, stage)` of each stage it ended.
+        """
+        from planetgen.queue import units
+        repair = self.repair or units.repair_unended_stages
+        repaired = []
+        for run_id in live_runs(self.connection):
+            self.connection.set(runrecord.supervised_key(run_id), "1", ex=SUPERVISED_SECONDS)
+            for stage in units.unended_stages(self.connection, run_id):
+                finished = runrecord._s(self.connection.hget(runrecord.stage_key(run_id, stage), "ended"))
+                if finished and self.clock() - float(finished) < REPAIR_GRACE_SECONDS:
+                    continue
+                if self.connection.exists(runrecord.ending_key(run_id, stage)):
+                    continue            # a process is ending it now
+                try:
+                    done = repair(self.connection, run_id)
+                except Exception as exc:  # noqa: BLE001 -- a stage that could not be ended now is ended at the next turn, or fails the run through the unit's own failure
+                    log.swallowed("queue/supervisor", "Reconciler.turn", exc)
+                    continue
+                repaired.extend((run_id, index) for index in done)
+                if done:
+                    self._act(f"ended stage {stage + 1} of run {run_id}", "it had finished and its end had not queued the next stage")
+        return repaired
+
+    def clear(self):
+        """Nothing to drop."""
 
 
 class WorkerStarts:
@@ -301,7 +375,11 @@ class Supervisor:
         self.idle_seconds = idle_seconds
         self.turn_seconds = turn_seconds
         self.lines = lines
-        self.duties = tuple(duties)      # what it does each turn (OPS.208, OPS.209): objects with `turn()` and `clear()`, `RunWatches` and `WorkerStarts`
+        self.duties = tuple(duties)      # what it does each turn (OPS.208 to OPS.210): objects with `turn()`, `clear()` and, if they say what they did, `attach(supervisor)`
+        for duty in self.duties:
+            attach = getattr(duty, "attach", None)
+            if attach is not None:
+                attach(self)
         self.since = None
         self.turns = 0
         self.idle_since = None
