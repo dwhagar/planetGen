@@ -22,7 +22,7 @@ def airy_world():
             body = copy.deepcopy(body)
             bo.store_air(body, {"N2": 78000.0, "O2": 20000.0, "CO2": 300.0, "Ar": 900.0})
             return body
-    pytest.skip("no world with air in these seeds")
+    pytest.fail("(TEST.737) no world with air in these seeds")
 
 
 @pytest.fixture

@@ -33,7 +33,7 @@ def system(site_db):
     finally:
         conn.close()
     if found is None or found[3] == 0:
-        pytest.skip("the sample galaxy holds no system with planets")
+        pytest.fail("(TEST.737) the sample galaxy holds no system with planets")
     return found
 
 

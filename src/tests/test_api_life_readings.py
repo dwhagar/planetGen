@@ -31,7 +31,7 @@ def _save_with_life(mysql_config, scores):
                     conn.close()
                 if rows:
                     return rows[0]["id"]
-    pytest.skip("no rocky planet in these draws")
+    pytest.fail("(TEST.737) no rocky planet in these draws")
 
 
 def test_a_living_planet_has_the_four_kinds_with_their_words(client, mysql_config):

@@ -26,7 +26,7 @@ def _system_with_a_tide():
             system = StarSystem(system_config=cfg)
         if any(getattr(m, "tidal_flux_w_m2", None) for p in system.planets if p.body_type != "a" for m in p.moons):
             return system, cfg
-    pytest.skip("no icy moon under ice in 120 seeds")
+    pytest.fail("(TEST.737) no icy moon under ice in 120 seeds")
 
 
 def test_a_saved_moon_keeps_its_tide(mysql_config):

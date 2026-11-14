@@ -1,7 +1,7 @@
 # tests/scored_site.py
 
 """
-UX.214, UX.232: a small database served over HTTP for the tests that follow search results: one sector holding three
+UX.214, UX.232: a small database served over HTTP for the tests that follow search results: one sector holding four
 generated systems (fixed seeds, so the run is repeatable and fast), whose planets and moons are then given scores that
 cover every PHI-6 colour, every domain colour and every life score, so each filter and each sort has bodies to pick and
 order. `scored_galaxy` is the fixture; it holds the database config and the server's address.
@@ -26,8 +26,8 @@ from tests.conftest import _test_server_kwargs
 from tests.habitability_site import EDGE_MPC, HABITABLE_ADDRESS, _config_for
 from tests.served import served
 
-SEEDS = (11, 12, 13)
-"""tuple: The seed of each of the three systems."""
+SEEDS = (11, 12, 13, 25)
+"""tuple: The seed of each of the four systems (the fourth holds two moons with an ocean depth, so the three the search-values test needs are there: TEST.737)."""
 
 PHI4_CYCLE = (1.2, 0.9, 0.5, 0.1)
 """tuple: The overall PHI-6 score given to the bodies in turn: Blue, Green, Yellow, Red."""

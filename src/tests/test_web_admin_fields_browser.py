@@ -88,7 +88,7 @@ def test_the_facility_form_filters_hosts_by_placement_and_posts_its_preview(brow
     try:
         page.goto(f"{base_url}/system/{sample_params['system_id']}", wait_until="load")
         if not page.locator("#admin-facility-place").count():
-            pytest.skip("the sample system offers no facility form")
+            pytest.fail("(TEST.737) the sample system offers no facility form")
         for _ in range(40):
             if page.evaluate("typeof document.getElementById('admin-facility-place').show === 'function'"):
                 break

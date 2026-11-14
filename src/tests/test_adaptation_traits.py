@@ -164,7 +164,7 @@ def test_a_stored_trait_set_is_one_the_text_reads_and_only_a_living_body_has_it(
 def _living(bodies):
     found = [body for body in bodies if body.life_class and body.body_type != "g"]
     if not found:
-        pytest.skip("no body with life in these seeds")
+        pytest.fail("(TEST.737) no body with life in these seeds")
     return found[0]
 
 

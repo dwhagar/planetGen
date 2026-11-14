@@ -150,7 +150,7 @@ def test_a_body_that_supports_a_class_is_found_by_the_class_and_not_by_another(s
     class_scores = _class_scores(scored_galaxy.config, "planets")
     supported = {(name, class_id) for name, scores in class_scores.items() for class_id in scores}
     if not supported:
-        pytest.skip("the sample galaxy stored no planet class scores")
+        pytest.fail("(TEST.737) the sample galaxy stored no planet class scores")
     name, class_id = sorted(supported)[0]
     assert name in {row["name"] for row in _found(scored_galaxy.config, "planets", "supports", f"{class_id}:1")}
     others = [c.id for c in __import__("planetgen.physics.life_classes", fromlist=["CLASSES"]).CLASSES

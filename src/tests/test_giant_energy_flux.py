@@ -18,7 +18,7 @@ def _giants():
             system = StarSystem(SystemConfig())
         found += [planet for planet in system.planets if planet.body_type == "g"]
     if not found:
-        pytest.skip("no giant in the sample systems")
+        pytest.fail("(TEST.737) no giant in the sample systems")
     return found
 
 

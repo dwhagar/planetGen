@@ -28,7 +28,7 @@ def _ocean_world(host_star):
         planet = class_support.draw_planet(host_star, (inner + outer) / 2.0, seed)
         if planet.hydrosphere == "surface ocean" and getattr(planet, "_surface_w", None):
             return planet
-    pytest.skip("no ocean world among the first 60 seeds")
+    pytest.fail("(TEST.737) no ocean world among the first 60 seeds")
 
 
 def _heat(planet, kelvin, pascal):

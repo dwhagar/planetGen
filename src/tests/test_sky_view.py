@@ -98,9 +98,11 @@ def test_a_generated_white_dwarf_system_names_its_sun_on_every_planet():
         config = SystemConfig()
         config.BINARY_SYSTEM = False
         config.STAR_TYPE = "M2VII"
+        config.PLANETS = True
+        config.MAX_PLANETS = True      # TEST.737: asked for, so the draw always holds planets and the test cannot pass by finding none
         system = StarSystem(system_config=config)
         if system.planets:
             texts = _sky_texts(describe(system))
             assert texts and all("Its sun is a white dwarf" in text for text in texts)
             return
-    pytest.skip("no white dwarf system with planets in six draws")
+    pytest.fail("(TEST.737) no white dwarf system with planets in six draws")

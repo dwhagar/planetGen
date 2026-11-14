@@ -210,7 +210,7 @@ def test_an_icy_body_on_an_orbit_so_round_the_tide_underflows_stores_zero():
             interior_heat.update_heat(body)
             assert body.tidal_flux_w_m2 == 0.0
             return
-    pytest.skip("no icy body on an orbit in these seeds")
+    pytest.fail("(TEST.737) no icy body on an orbit in these seeds")
 
 
 def test_the_solidus_runs_through_the_three_points_it_was_made_from():

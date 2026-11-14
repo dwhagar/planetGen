@@ -182,7 +182,7 @@ def test_a_body_past_the_survival_limit_but_inside_the_stable_orbit_validates():
         if validation.orbit_ceiling_au(star) > survival * 2:
             break
     else:
-        pytest.skip("no star with a stable orbit past the survival limit drawn")
+        pytest.fail("(TEST.737) no star with a stable orbit past the survival limit drawn")
     system.planets[:] = [planet_at(star, survival * 1.5, GIANT_EARTH)]
     assert not any("beyond" in p.message for p in validation.check_star_system(system))
 
