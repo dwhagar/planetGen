@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4051] - 2026-11-14
+
+**Headline:** A planet's mass table now adds up to the whole body, because the water share is in it.
+
+### Changed
+- **The planet page review of Kiamtochen III (UX.308 to UX.311).** The Composition mass table now includes the water share, so metal, rock, water and the other ices add up to 100 percent (the ice row is "Other ices (not water)"). The Venus sulfur-cloud gas line names only the gases the air actually holds. A site that is never livable says so instead of repeating the length of the orbit, and the best-site temperature range says it covers the whole orbit and not a day.
+
+generation-affects: none
+
 ## [8.0.4050] - 2026-11-14
 
 **Headline:** Every body of a belt at the class D size or larger now has a page and a class when you ask for it, however many the belt holds, made on the spot by the same generator that makes the planets and never stored.
