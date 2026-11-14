@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, spin,
-                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
+                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -1178,9 +1178,15 @@ CHEMISTRY_ROWS = {
     "chemistry_alpha_fe": ("Alpha enhancement [alpha/Fe]", "dex"),
     "chemistry_metal_fraction": ("Metal mass fraction", "mass fraction"),
     "chemistry_dredge_up_helium": ("Helium added by the first dredge-up", "mass fraction"),
+    "chemistry_core_oxygen": ("Central oxygen", "mass fraction"),
+    "chemistry_core_carbon": ("Central carbon", "mass fraction"),
+    "chemistry_core_neon22": ("Central neon-22", "mass fraction"),
+    "chemistry_pollutant_class": ("Accreted body", "words"),
+    "chemistry_pollutant_ratios": ("Accreted body element ratios to magnesium", "words"),
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
-disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
+disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added; for a carbon-oxygen white dwarf
+the central oxygen, carbon and neon-22 and, for a polluted one with a belt, the class and element ratios of the belt body it accreted (GEN.1370). They are worked out from the stored
 class, mass, [Fe/H], and age when the sheet is made and are not columns."""
 
 CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
@@ -1216,9 +1222,15 @@ def _star_makeup(conn, row):
         return None
 
 
+def _chemistry_row(key, value, raw):
+    return {"key": key, "label": CHEMISTRY_ROWS[key][0], "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False,
+            "source": source_of("star", key), "show_absent": False}
+
+
 def _chemistry_rows(makeup):
     """
-    The chemistry rows of a star (UX.254, from `_star_makeup`): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the first dredge-up added.
+    The chemistry rows of a star (UX.254, from `_star_makeup`): its disk population, [alpha/Fe], the metal mass fraction it formed with, for a red giant the helium the first dredge-up added and for a carbon-oxygen
+    white dwarf the central oxygen, carbon and neon-22 (GEN.1370).
     """
     if makeup is None:
         return []
@@ -1229,8 +1241,38 @@ def _chemistry_rows(makeup):
     if "dredge_up" in makeup.detail:
         rise = makeup.detail["dredge_up"].delta_y
         items.append(("chemistry_dredge_up_helium", [model.qty("fraction", rise)], rise))
-    return [{"key": key, "label": CHEMISTRY_ROWS[key][0], "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False,
-             "source": source_of("star", key), "show_absent": False} for key, value, raw in items]
+    core = makeup.detail.get("core_fractions")
+    if core is not None:
+        items += [("chemistry_core_oxygen", [model.qty("fraction", core.oxygen)], core.oxygen),
+                  ("chemistry_core_carbon", [model.qty("fraction", core.carbon)], core.carbon),
+                  ("chemistry_core_neon22", [model.qty("fraction", core.neon22)], core.neon22)]
+    return [_chemistry_row(key, value, raw) for key, value, raw in items]
+
+
+_POLLUTANT_WORDS = {white_dwarf_core.PRIMITIVE: "Primitive rock", white_dwarf_core.CORE_RICH: "Core-rich (iron and nickel)",
+                    white_dwarf_core.CRUST_RICH: "Crust-rich (calcium and aluminum)", white_dwarf_core.VOLATILE_RICH: "Volatile-rich (water and other ice)"}
+"""dict: What the class of a polluting body is called on the sheet (`white_dwarf_core.CLASSES`)."""
+
+
+def _pollutant_rows(conn, row, makeup):
+    """
+    The class and element ratios of the belt body a polluted white dwarf accreted (GEN.1370): one stored member of the belts of its system, picked in proportion to its mass by the star's own
+    draw (`white_dwarf_core.accreted_taxon`), read as its taxon's mix of materials. None for a star that is not a polluted white dwarf or whose system stores no belt member.
+    """
+    if makeup is None or not makeup.detail.get("polluted") or row["star_system_id"] is None:
+        return []
+    members = [(found["mass_kg"], found["taxon"]) for found in conn.execute(
+        "SELECT belt_members.mass_kg, belt_members.taxon FROM belt_members JOIN asteroid_belts ON asteroid_belts.id = belt_members.belt_id "
+        "WHERE asteroid_belts.star_system_id = ? ORDER BY asteroid_belts.id, belt_members.member_rank", (row["star_system_id"],)).fetchall()]
+    taxon = white_dwarf_core.accreted_taxon(members, makeup.draws.u_pollutant)
+    if taxon is None:
+        return []
+    found = white_dwarf_core.pollutant_of_taxon(taxon)
+    ratios = ", ".join(f"{symbol}/Mg {value:.3g}" for symbol, value in found.ratios_to_mg.items() if symbol != "Mg")
+    rows = [_chemistry_row("chemistry_pollutant_class", [_POLLUTANT_WORDS[found.kind]], None)]
+    if ratios:
+        rows.append(_chemistry_row("chemistry_pollutant_ratios", [ratios], None))
+    return rows
 
 
 def _star_isotope_rows(makeup, row):
@@ -1417,6 +1459,8 @@ def _star_identity_provider(conn, kind, object_id, row):
 def _star_composition_provider(conn, kind, object_id, row):
     makeup = _star_makeup(conn, row)
     for sheet_row in _chemistry_rows(makeup):
+        yield "composition", sheet_row
+    for sheet_row in _pollutant_rows(conn, row, makeup):
         yield "composition", sheet_row
     for key, label, text, ratio in _star_isotope_rows(makeup, row):
         yield "composition", _text_row(key, label, text, ratio)
