@@ -15,7 +15,7 @@ WAITING, RUNNING, DONE = "waiting", "running", "done"
 def stage_state(stage):
     if stage["started"] is None:
         return WAITING
-    return DONE if stage["ended"] is not None or (stage["units"] and stage["done"] >= stage["units"]) else RUNNING
+    return DONE if runeta.finished(stage) else RUNNING
 
 
 def stage_view(stage, run_over, now):

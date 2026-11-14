@@ -46,7 +46,6 @@ _MYR_PER_GYR = 1.0e3
 _BISECTIONS = 50
 
 
-@functools.lru_cache(maxsize=4096)
 @functools.lru_cache(maxsize=1 << 14)
 def _terms(zeta):
     """`a1` to `a10` at this `zeta`, and the share `x` of the base-of-giant-branch time the main sequence takes."""

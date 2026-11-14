@@ -70,7 +70,7 @@ LARGE_TILT_DEG = 60.0
 """float: The tilt over which the design calls a tilt large (G1)."""
 
 _G = constants.G
-_R_EARTH_M = constants.EARTH_RADIUS_KM * 1.0e3
+_R_EARTH_M = constants.EARTH_RADIUS_M
 _M_EARTH = constants.EARTH_MASS_TO_KG
 
 
@@ -153,8 +153,6 @@ def final_period_h(mass_earth, radius_earth, ratio, cos_alpha, spin_fraction=PRE
     breakup = math.sqrt(_G * mass / radius ** 3)
     omega = min(spin_fraction * breakup * math.sqrt(1.0 + ratio * ratio + 2.0 * ratio * cos_alpha), breakup)
     return 2.0 * math.pi / omega / 3600.0
-
-
 
 
 def combined_tilt_deg(initial_tilt_deg, turn_deg, cos_azimuth):

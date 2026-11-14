@@ -439,36 +439,54 @@ def galaxy_map_url(origin, destination):
     return page_url("galaxy", course=f"{origin},{destination}")
 
 
-def _galaxy_points(origin, destination, result):
+def _course_ends(from_raw, to_raw):
+    """The resolved origin and destination of a course, or `None` when either can't be navigated.
+
+    Raises:
+        apiclient.NotFoundError: For an endpoint that doesn't exist.
     """
-    The stops of a galaxy-scope course as the Galaxy Map draws them: `(points, names)`, `points` being
-    `[{name, role, url, x, y, z, hopUnknown}]` in galaxy-frame parsecs and `names` the route's node names.
-    """
-    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
-    points = []
-    for point in _waypoints(origin, destination, result, names):
-        x, y, z = point["position"]
-        points.append({
-            "name": point["name"], "role": point["role"], "url": _point_url(point),
-            "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
-            "hopUnknown": bool(point.get("hop_unknown")),  # NAV.36: the hop that arrives here is a jump through unknown space
-        })
-    return points, names
+    origin = _resolve(*parse_endpoint(from_raw))
+    destination = _resolve(*parse_endpoint(to_raw))
+    if _unavailable_reason(origin) or _unavailable_reason(destination):
+        return None
+    return origin, destination
 
 
-def _sector_points(origin, destination, result, center_pc):
-    """
-    NAV.22: the stops of a course inside one sector as the Galaxy Map draws them in that sector: `(points, names)` as `_galaxy_points`
-    gives for a galaxy-scope course. The API gives a sector-scope course's positions in the sector's own axes in light-years, so each is
-    turned into the galaxy frame (parsecs) from the sector's center.
-    """
-    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+def _adjusted_nav(origin, destination):
+    """`GET /api/nav` with the adjusted course for two resolved endpoints, or `None` when the two exist but can't be navigated
+    together (the API's 400); any other error is raised."""
+    try:
+        return apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
+    except apiclient.ApiError as exc:
+        if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
+            raise
+        return None
+
+
+def _names_of(result, origin, destination):
+    """`_route_names` for a course between two resolved endpoints."""
+    return _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+
+
+def _bends(adjusted):
+    """Whether an adjusted course leaves the straight line (it has a tangent point)."""
+    return any(point["kind"] == "tangent_in" for point in adjusted["waypoints"])
+
+
+def _course_points(origin, destination, result, center_pc=None):
+    """The stops of a course as the Galaxy Map draws them: `(points, names)`, `points` being `[{name, role, url, x, y, z, hopUnknown}]`
+    in galaxy-frame parsecs and `names` the route's node names. A galaxy-scope course's positions are light-years in the galaxy frame;
+    a course inside one sector (NAV.22) gives them in the sector's own axes, and `center_pc`, the sector's center, turns each into
+    the galaxy frame."""
+    names = _names_of(result, origin, destination)
     points = []
     for point in _waypoints(origin, destination, result, names):
-        x, y, z = frame.local_to_galaxy_pc(center_pc, tuple(ly_to_pc(c) for c in point["position"]))
+        x, y, z = (ly_to_pc(c) for c in point["position"])
+        if center_pc is not None:
+            x, y, z = frame.local_to_galaxy_pc(center_pc, (x, y, z))
         points.append({
             "name": point["name"], "role": point["role"], "url": _point_url(point), "x": x, "y": y, "z": z,
-            "hopUnknown": bool(point.get("hop_unknown")),
+            "hopUnknown": bool(point.get("hop_unknown")),  # NAV.36: the hop that arrives here is a jump through unknown space
         })
     return points, names
 
@@ -510,16 +528,13 @@ def galaxy_course_through(raws):
     marks = [None] * len(ends)  # the index in `points` of each waypoint
     direct_ly = route_ly = 0.0
     for k, (origin, destination) in enumerate(zip(ends, ends[1:])):
-        try:
-            result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
-        except apiclient.ApiError as exc:
-            if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
-                raise
+        result = _adjusted_nav(origin, destination)
+        if result is None:
             return None  # two waypoints that can't be navigated together
         direct_ly += result["direct"]["distance_ly"]
         route_ly += result["route"]["distance_ly"] if result["route"] else result["direct"]["distance_ly"]
         if result["scope"] == "galaxy":
-            leg, _names = _galaxy_points(origin, destination, result)
+            leg, _names = _course_points(origin, destination, result)
         elif result["scope"] == "sector" and result.get("adjusted") is not None:
             # Both ends are in one sector: the galaxy-frame ends of the straight line stand in for the leg.
             start, finish = result["adjusted"]["waypoints"][0]["p"], result["adjusted"]["waypoints"][-1]["p"]
@@ -579,15 +594,12 @@ def galaxy_course(from_raw, to_raw):
     Raises:
         apiclient.NotFoundError: For an endpoint that doesn't exist.
     """
-    origin = _resolve(*parse_endpoint(from_raw))
-    destination = _resolve(*parse_endpoint(to_raw))
-    if _unavailable_reason(origin) or _unavailable_reason(destination):
+    ends = _course_ends(from_raw, to_raw)
+    if ends is None:
         return None
-    try:
-        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
-    except apiclient.ApiError as exc:
-        if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
-            raise
+    origin, destination = ends
+    result = _adjusted_nav(origin, destination)
+    if result is None:
         return None  # the two endpoints exist but can't be navigated together
     nav_url_here = nav_url(_param_of(origin), _param_of(destination))
     if result["scope"] == "system":
@@ -603,9 +615,9 @@ def galaxy_course(from_raw, to_raw):
         center = tuple(found.get(f"center_{axis}_pc") for axis in "xyz")
         if None in center:
             return {"scope": "sector", "points": [], "navUrl": nav_url_here, "sector": sector}
-        points, names = _sector_points(origin, destination, result, center)
+        points, names = _course_points(origin, destination, result, center)
     else:
-        points, names = _galaxy_points(origin, destination, result)
+        points, names = _course_points(origin, destination, result)
     direct = result["direct"]
     route = result["route"]
     stops = _route_stops(route, names) if route and route["path"] else []
@@ -650,15 +662,12 @@ def system_course(system_id, from_raw, to_raw):
     Raises:
         apiclient.NotFoundError: For an endpoint that doesn't exist.
     """
-    origin = _resolve(*parse_endpoint(from_raw))
-    destination = _resolve(*parse_endpoint(to_raw))
-    if _unavailable_reason(origin) or _unavailable_reason(destination):
+    ends = _course_ends(from_raw, to_raw)
+    if ends is None:
         return None
-    try:
-        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
-    except apiclient.ApiError as exc:
-        if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
-            raise
+    origin, destination = ends
+    result = _adjusted_nav(origin, destination)
+    if result is None:
         return None
     drawn = []
     for leg in result.get("legs") or []:
@@ -673,7 +682,7 @@ def system_course(system_id, from_raw, to_raw):
             "kind": leg["kind"], "label": LEG_LABELS[leg["kind"]], "from": names.get(start, start), "to": names.get(end, end),
             "points": points, "aimed": list(adjusted["aimed_at"]) if adjusted and adjusted.get("moving_end") else None,
             "length_au": _km_to_au(length_km),
-            "bent": bool(adjusted and any(point["kind"] == "tangent_in" for point in adjusted["waypoints"])),
+            "bent": bool(adjusted and _bends(adjusted)),
             "avoided": [adjusted["names"].get(ref, ref) for ref in adjusted["avoided"]] if adjusted else [],
         })
     if not drawn:
@@ -684,9 +693,6 @@ def system_course(system_id, from_raw, to_raw):
 READOUT_WARP_FACTORS = (1, 9)
 """tuple: The warp factors whose travel times the Galaxy Map's course
 readout shows."""
-
-
-CHART_ERROR_PREFIX = re.compile(r"^planetGen API error \(\d+\): ")
 
 
 @bp.route("/nav/chart")
@@ -725,7 +731,7 @@ def nav_chart():
         if exc.status_code != 400:
             raise
         return render_page("nav_chart.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
-                           error=CHART_ERROR_PREFIX.sub("", str(exc)), course_url=course_url, **page)
+                           error=apiclient.message_of(exc), course_url=course_url, **page)
     bypass = plan.get("bypass")
     return render_page(
         "nav_chart.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination, plan=plan,
@@ -821,7 +827,7 @@ def _bent_lines(result):
     lines = []
     route = result.get("route") or {}
     for adjusted in [result.get("adjusted"), *[hop.get("adjusted") for hop in route.get("hops") or []]]:
-        if adjusted and any(point["kind"] == "tangent_in" for point in adjusted["waypoints"]):
+        if adjusted and _bends(adjusted):
             lines.append([list(point) for point in adjusted["polyline"]])
     return lines
 
@@ -845,7 +851,7 @@ def _adjusted_view(result, names):
         return None
     labels = adjusted.get("names") or {}
     around = [_ref_link(ref, labels) for ref in adjusted["avoided"] + adjusted["ignored_below_resolution"]]
-    bent = any(point["kind"] == "tangent_in" for point in adjusted["waypoints"])
+    bent = _bends(adjusted)
     rows = [("Straight line", format_distance_ly(adjusted["straight_length_ly"]))]
     if bent:
         percent = 100.0 * adjusted["extra_ly"] / adjusted["straight_length_ly"] if adjusted["straight_length_ly"] else 0.0
@@ -942,7 +948,7 @@ def nav():
         # The two endpoints exist but do not support NAV together (e.g.
         # different sectors without galaxy placement): a message on the
         # page, not an error page.
-        message = re.sub(r"^planetGen API error \(\d+\): ", "", str(exc))
+        message = apiclient.message_of(exc)
         return render_page("nav.html", title=title, breadcrumbs=crumbs, origin=origin, error=message,
                            start_over=nav_url(_param_of(origin)), **page)
 
@@ -950,7 +956,7 @@ def nav():
     title = f"Course: {origin['name']} \u2192 {destination['name']}"
     crumbs = [crumb("Nav", "nav"), crumb(f"{origin['name']} \u2192 {destination['name']}")]
     route = result["route"]
-    names = _route_names(route, {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+    names = _names_of(result, origin, destination)
     direct = result["direct"]
     in_system = result["scope"] == "system"
     map_html = "" if in_system else render_nav_map_panel(

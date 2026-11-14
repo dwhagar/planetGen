@@ -32,7 +32,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.galaxy import object_uid
-from planetgen.physics import belt_history, belt_ledger, belt_member, body_status, compaction, scatter, unit_registry
+from planetgen.physics import belt_history, belt_ledger, belt_member, body_status, body_strength, compaction, scatter, unit_registry
 from planetgen.physics import small_body_composition as sbc
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import format_number
@@ -184,7 +184,7 @@ def body_entry(record, rank, member, held, placement, neighbours, belts):
     """
     others = body_status.zone_mass_kg(placement.distance_au, member.mass_kg, record.star_mass_solar, neighbours, belts)
     ice = member.makeup.water + member.makeup.ice
-    state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others)
+    state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others, ice_type=body_strength.ice_type_of_makeup(member.makeup))      # GEN.1684
     return {
         "rank": rank,
         "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),
@@ -244,13 +244,13 @@ def _raw_mass_and_count(law, belt_mass_kg, low_kg, high_kg):
     """The size law's expected count and mass between two masses (a log-spaced sum of `m dN`)."""
     step = (high_kg / low_kg) ** (1.0 / INTEGRAL_STEPS)
     mass, r = 0.0, low_kg
-    n_low = belt_ledger.count_above(law, belt_mass_kg, low_kg)
+    n_first = n_low = belt_ledger.count_above(law, belt_mass_kg, low_kg)
     for _ in range(INTEGRAL_STEPS):
         upper = r * step
         n_high = belt_ledger.count_above(law, belt_mass_kg, upper)
         mass += max(n_low - n_high, 0.0) * math.sqrt(r * upper)
         r, n_low = upper, n_high
-    return belt_ledger.count_above(law, belt_mass_kg, low_kg) - belt_ledger.count_above(law, belt_mass_kg, high_kg), mass
+    return n_first - belt_ledger.count_above(law, belt_mass_kg, high_kg), mass
 
 
 def _smallest_stored(ledger, bodies):
@@ -343,7 +343,7 @@ def build(record, bodies=None):
     bins = _bins(record, raw_bins, scale, shares)
     area = math.pi * (record.outer_au ** 2 - record.inner_au ** 2)
     factor = [{"above": _q(d, "km"), "objects": _q(_count_above(record, bodies, d, scale, smallest, smallest_kg) / area, "au-2")} for d in DENSITY_DIAMETERS_KM]
-    listed = math.fsum(m for m in ledger.masses_kg)
+    listed = math.fsum(ledger.masses_kg)
     in_bins = math.fsum(b["mass"]["value"] for b in bins)
     return {
         "belt": {"designation": object_uid.format_id(record.belt_id), "inner": _q(record.inner_au, "au"), "outer": _q(record.outer_au, "au"),

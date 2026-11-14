@@ -32,8 +32,7 @@ takes the numbers) and a test can ask of a stored system (`verdicts` takes the `
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, stability
-from planetgen.physics import quadruple_stability as quad
+from planetgen.physics import constants, quadruple_stability as quad, stability
 
 
 @dataclass(frozen=True)

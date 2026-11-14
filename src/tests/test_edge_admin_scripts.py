@@ -256,7 +256,7 @@ def test_reset_wipes_content_keeps_migrations_and_id_counters(seeded, monkeypatc
     assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
     conn = store.get_connection(seeded)
     try:
-        for table in reset._content_tables(conn, seeded.database):
+        for table in reset._table_estimates(conn, seeded.database):
             assert conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0, table
     finally:
         conn.close()
@@ -278,7 +278,7 @@ def test_reset_reports_its_tables_to_the_progress_file(seeded, monkeypatch, tmp_
     body = json.loads(path.read_text())
     conn = store.get_connection(seeded)
     try:
-        tables = len(reset._content_tables(conn, seeded.database))
+        tables = len(reset._table_estimates(conn, seeded.database))
     finally:
         conn.close()
     assert body["completed"] == body["total"] == tables
@@ -311,7 +311,7 @@ def test_resetting_an_already_empty_database_is_harmless(seeded, monkeypatch):
 def test_reset_leaves_views_and_other_databases_alone(seeded, mysql_config, monkeypatch):
     conn = store.get_connection(seeded)
     try:
-        tables = reset._content_tables(conn, seeded.database)
+        tables = list(reset._table_estimates(conn, seeded.database))
     finally:
         conn.close()
     assert "schema_migrations" not in tables

@@ -253,12 +253,33 @@ MAX_MEMBER_RANK = 16 ** 8 - 1
 """int: The largest rank a belt member has (eight hex digits)."""
 
 
+def _check_rank(rank):
+    if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= MAX_MEMBER_RANK:
+        raise ValueError(f"a member rank is a whole number from 1 to {MAX_MEMBER_RANK}, got {rank!r}")
+
+
+def _rank_text(rank):
+    """A rank as a designation writes it: hex, zero-padded to `MEMBER_RANK_DIGITS`."""
+    return f"{rank:0{MEMBER_RANK_DIGITS}X}"
+
+
+def _member_text(parent_id, rank, layout):
+    return f"{format_id(parent_id, layout)}{MEMBER_SEPARATOR}{_rank_text(rank)}"
+
+
+def _split_member(text, what, holder):
+    """`(head, tail)` of a member designation `<ID>.<rank hex>`, upper-cased; `what` and `holder` name the designation and its ID in the error."""
+    head, point, tail = str(text).strip().upper().partition(MEMBER_SEPARATOR)
+    if not point or MEMBER_SEPARATOR in tail:
+        raise ValueError(f"a {what} designation is <{holder} ID>{MEMBER_SEPARATOR}<rank hex>, got {text!r}")
+    return head, tail
+
+
 def _check_member(belt_id, rank, layout):
     _check("object ID", belt_id, layout.total_bits)
     if body_of(belt_id, layout) == 0:
         raise ValueError(f"{format_id(belt_id, layout)} is a system's own ID, not a belt's (a belt is a body of the system)")
-    if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= MAX_MEMBER_RANK:
-        raise ValueError(f"a member rank is a whole number from 1 to {MAX_MEMBER_RANK}, got {rank!r}")
+    _check_rank(rank)
 
 
 def designation(belt_id, rank, layout=LAYOUT):
@@ -275,7 +296,7 @@ def designation(belt_id, rank, layout=LAYOUT):
         ValueError: A belt ID that is a system's own, or a rank outside 1 to `MAX_MEMBER_RANK`.
     """
     _check_member(belt_id, rank, layout)
-    return f"{format_id(belt_id, layout)}{MEMBER_SEPARATOR}{rank:0{MEMBER_RANK_DIGITS}X}"
+    return _member_text(belt_id, rank, layout)
 
 
 def parse_designation(text, layout=LAYOUT):
@@ -286,16 +307,14 @@ def parse_designation(text, layout=LAYOUT):
     Raises:
         ValueError: Text that is not exactly a belt's ID, a point and a canonical rank.
     """
-    head, point, tail = str(text).strip().upper().partition(MEMBER_SEPARATOR)
-    if not point or MEMBER_SEPARATOR in tail:
-        raise ValueError(f"a member designation is <belt ID>{MEMBER_SEPARATOR}<rank hex>, got {text!r}")
+    head, tail = _split_member(text, "member", "belt")
     belt_id = parse_id(head, layout)
     if not re.fullmatch(r"[0-9A-F]+", tail):
         raise ValueError(f"a member rank is hex digits, got {tail!r} in {text!r}")
     rank = int(tail, 16)
     _check_member(belt_id, rank, layout)
-    if tail != f"{rank:0{MEMBER_RANK_DIGITS}X}":
-        raise ValueError(f"the rank of {text!r} is written {rank:0{MEMBER_RANK_DIGITS}X}")
+    if tail != _rank_text(rank):
+        raise ValueError(f"the rank of {text!r} is written {_rank_text(rank)}")
     return belt_id, rank
 
 
@@ -310,7 +329,7 @@ def parse_rank(text):
     if not re.fullmatch(r"[0-9A-F]+", written):
         raise ValueError(f"a member rank is hex digits, got {text!r}")
     rank = int(written, 16)
-    if not 1 <= rank <= MAX_MEMBER_RANK or written != f"{rank:0{MEMBER_RANK_DIGITS}X}":
+    if not 1 <= rank <= MAX_MEMBER_RANK or written != _rank_text(rank):
         raise ValueError(f"a member rank is written as the designation writes it ({MEMBER_RANK_DIGITS} hex digits at least, from 1), got {text!r}")
     return rank
 
@@ -326,9 +345,8 @@ def field_designation(field_id, rank, layout=LAYOUT):
     _check("object ID", field_id, layout.total_bits)
     if body_of(field_id, layout) != 0:
         raise ValueError(f"{format_id(field_id, layout)} is a body of a system, not a field's own ID")
-    if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= MAX_MEMBER_RANK:
-        raise ValueError(f"a member rank is a whole number from 1 to {MAX_MEMBER_RANK}, got {rank!r}")
-    return f"{format_id(field_id, layout)}{MEMBER_SEPARATOR}{rank:0{MEMBER_RANK_DIGITS}X}"
+    _check_rank(rank)
+    return _member_text(field_id, rank, layout)
 
 
 def parse_field_designation(text, layout=LAYOUT):
@@ -337,9 +355,7 @@ def parse_field_designation(text, layout=LAYOUT):
     Raises:
         ValueError: Text that is not exactly a field's ID, a point and a canonical rank.
     """
-    head, point, tail = str(text).strip().upper().partition(MEMBER_SEPARATOR)
-    if not point or MEMBER_SEPARATOR in tail:
-        raise ValueError(f"a field member designation is <field ID>{MEMBER_SEPARATOR}<rank hex>, got {text!r}")
+    head, tail = _split_member(text, "field member", "field")
     field_id = parse_id(head, layout)
     if body_of(field_id, layout) != 0:
         raise ValueError(f"{head} is a body of a system, not a field's own ID")

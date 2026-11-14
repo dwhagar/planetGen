@@ -29,7 +29,7 @@ import numpy as np
 from planetgen.datasets import fetch, methane_visible
 from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, photometry, two_stream
 
-REFERENCE_BAR_PA = 1.0e5
+REFERENCE_BAR_PA = constants.BAR_PA
 """float: The radius level of a giant (decision 9), Pa; the reference level is never deeper."""
 
 DEEP_ALBEDO = 0.03

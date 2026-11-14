@@ -52,7 +52,6 @@ Usage:
 """
 
 import argparse
-import signal
 import sys
 from collections import namedtuple
 
@@ -63,8 +62,8 @@ from planetgen.db import dataversion
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
-from planetgen.util import log
+from planetgen.queue import commands, longsql, redisqueue, runrecord, units, wrapper
+from planetgen.util import log, process
 from planetgen.util.format import counted
 
 _EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
@@ -75,43 +74,32 @@ VIEW) needs no equivalent entry here; `SHOW FULL TABLES ... BASE TABLE`
 already excludes it."""
 
 
-def _content_tables(conn, database):
-    """
-    Returns the live list of tables to truncate: every `BASE TABLE` in
-    `database` except `_EXCLUDED_TABLES` -- see this module's own
-    docstring for why this is discovered rather than hand-maintained.
-    Reads `information_schema.tables` (a clean, explicitly-named
-    `table_name`/`table_type` result) rather than `SHOW FULL TABLES`
-    (whose table-name column is instead named after the database itself,
-    `Tables_in_<db>`, awkward to read generically).
-
-    Args:
-        conn (planetgen.db.store.Connection): An open connection.
-        database (str): The database name to list tables from --
-            `information_schema` spans every database on the server, so
-            this must be explicit rather than implied by the connection.
-
-    Returns:
-        list[str]: Table names, in whatever order the query returned them
-            (irrelevant here -- `FOREIGN_KEY_CHECKS` is disabled for the
-            whole truncate pass below, so no table's own foreign keys can
-            block truncating it regardless of order).
-    """
-    return list(_table_estimates(conn, database))
-
-
 def _table_estimates(conn, database):
-    """Returns `{table: estimated_row_count}` for every table `_content_tables`
-    names. The estimate is `information_schema.tables.table_rows`, which
+    """`{table: estimated_row_count}`; see `_table_facts`."""
+    return {name: facts[0] for name, facts in _table_facts(conn, database).items()}
+
+
+def _table_facts(conn, database):
+    """The facts of every table to truncate: every `BASE TABLE` in `database` (which
+    must be named, `information_schema` spanning every database on the server) except `_EXCLUDED_TABLES`, discovered
+    live rather than hand-maintained (this module's docstring says why), in whatever order the query returns them
+    (`FOREIGN_KEY_CHECKS` is off for the whole truncate pass, so order cannot matter). The estimate is `information_schema.tables.table_rows`, which
     InnoDB keeps from its statistics -- free, where an exact `COUNT(*)` reads
     the whole table (minutes across a galaxy's tables, the slow part of a
-    reset before this)."""
+    reset before this).
+
+    Returns:
+        dict: `{table: (estimated_row_count, counter_moved)}`: `counter_moved` is whether the table's id counter (`AUTO_INCREMENT`) stands above 1, which a table that
+            holds no row can still do once rows were made and deleted, and which only `TRUNCATE` puts back (OPS.254). The statistics are read fresh (`information_schema_stats_expiry`
+            0), as a cached counter of 1 would let a moved one be left alone.
+    """
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
     rows = conn.execute(
-        "SELECT table_name AS name, table_rows AS n FROM information_schema.tables "
+        "SELECT table_name AS name, table_rows AS n, auto_increment AS counter FROM information_schema.tables "
         "WHERE table_schema = ? AND table_type = 'BASE TABLE'",
         (database,),
     ).fetchall()
-    return {row["name"]: int(row["n"] or 0) for row in rows if row["name"] not in _EXCLUDED_TABLES}
+    return {row["name"]: (int(row["n"] or 0), int(row["counter"] or 1) > 1) for row in rows if row["name"] not in _EXCLUDED_TABLES}
 
 
 def _purge_page_cache(database):
@@ -200,7 +188,8 @@ def wipe(config, report=None):
     """
     conn = get_connection(config)
     try:
-        estimates = _table_estimates(conn, config.database)
+        facts = _table_facts(conn, config.database)
+        estimates = {name: found[0] for name, found in facts.items()}
         tables = list(estimates)
         exact_rows = estimated_rows = with_rows = 0
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
@@ -212,7 +201,8 @@ def wipe(config, report=None):
                     exact_rows += held
                 else:
                     estimated_rows += held
-                conn.execute(f"TRUNCATE TABLE {table}")
+                if held or facts[table][1]:         # OPS.254: a table with no row and an id counter never used has nothing to clear
+                    longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(tables)}", config=config)
                 if report is not None:
                     report(number, len(tables))
         finally:
@@ -307,13 +297,6 @@ def reset_database(config, dry_run=False, assume_yes=False):
     return True
 
 
-def _stop_on_sigterm():
-    """Makes SIGTERM (Cancel on the Generate page) end the run as canceled in Redis, as Ctrl+C does."""
-    def on_term(_signum, _frame):
-        raise KeyboardInterrupt
-    signal.signal(signal.SIGTERM, on_term)
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Wipe every generated sector/system/galaxy row from the configured planetGen "
@@ -331,7 +314,7 @@ def main():
     log.apply_debug_arguments(args, parser, errors_to_stderr=True)
 
     config = mysql_config_from_args(args)
-    _stop_on_sigterm()
+    process.interrupt_on_sigterm()
     try:
         did_reset = reset_database(config, dry_run=args.dry_run, assume_yes=args.yes)
     except (pymysql.MySQLError, SchemaTooNewError, redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:

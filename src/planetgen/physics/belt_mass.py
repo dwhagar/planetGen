@@ -33,10 +33,10 @@ import math
 
 from planetgen.physics import collision_outcome, constants, planet_mass
 from planetgen.physics import unit_registry as units
+from planetgen.util.checks import finite_domain
 
 _kg_to_msun = units.converter("kg", "Msun")
 _mearth_to_kg = units.converter("Mearth", "kg")
-from planetgen.util.checks import finite_domain
 
 GRAIN_DENSITY_KG_M3 = 2700.0
 """float: The planetesimals' bulk density in Wyatt et al.'s model (their section 2.3, the nominal 2700 kg/m^3). [Stand-in BM1, tier T1, tweak L0.]"""

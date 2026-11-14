@@ -36,7 +36,7 @@ from typing import Optional, Sequence, Tuple
 
 from planetgen.physics import constants
 
-PLANCK_J_S = 2 * math.pi * constants.REDUCED_PLANCK
+PLANCK_J_S = constants.PLANCK_CONSTANT
 """float: The Planck constant, J s (exact in the SI)."""
 
 SECOND_RADIATION_CONSTANT_M_K = PLANCK_J_S * constants.SPEED_OF_LIGHT_M_S / constants.BOLTZMANN

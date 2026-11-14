@@ -223,6 +223,21 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_wide_binary(mysql_
 
     assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
     assert {c.name for c in reloaded.secondary_comets} == {c.name for c in system.secondary_comets}
+
+
+def test_a_wide_pairs_star_words_come_back_from_the_names_its_stars_carry(mysql_config):
+    """DB.125: `star_words` is no column; the load reads the two words from the star names (`<first word> <word>`), and a reloaded pair names its planets as it did."""
+    system, cfg = _make_wide_binary_system_with_comets()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    assert system.star_words and reloaded.star_words == tuple(system.star_words)
+    names = lambda planets: [planet.name for planet in planets if planet.body_type != 'a']      # a belt is a body of the list and has no name
+    assert names(reloaded.secondary_planets) == names(system.secondary_planets)
     assert reloaded.comet_count == system.comet_count
 
 
@@ -264,6 +279,21 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_close_binary(mysql
     assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
     assert reloaded.secondary_comets == []
     assert reloaded.comet_count == system.comet_count
+
+
+def test_a_loaded_moon_keeps_the_eccentricity_of_its_host_planet(mysql_config):
+    """DB.123: `host_eccentricity` is no column; the load tells each moon its parent's eccentricity, as generation does, so a moon's air solved again gets the light it had."""
+    system, cfg = _make_system_with_moons_and_belt()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    before = {moon.name: moon.host_eccentricity for obj in system.planets if obj.body_type != "a" for moon in obj.moons}
+    after = {moon.name: moon.host_eccentricity for obj in reloaded.planets if obj.body_type != "a" for moon in obj.moons}
+    assert before and after == before and any(value > 0.0 for value in before.values())
 
 
 def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql_config):
@@ -1592,7 +1622,7 @@ def test_bright_star_web_queries(mysql_config):
         assert stats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
         status = queryDb.bright_star_scatter_status(conn)
         assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
-        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
+        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 18000.0
         assert queryDb.bright_stars_in_sector(conn, 3, 0, 0) == []
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
@@ -1626,7 +1656,7 @@ def test_bright_star_web_queries(mysql_config):
         status = queryDb.bright_star_scatter_status(conn)
         limits = status.pop("limits")
         assert status == {"scattered": True, "min_luminosity_sol": 100.0, "seed": 9,
-                          "default_min_luminosity_sol": 9000.0}
+                          "default_min_luminosity_sol": 18000.0}
         # The core follows the galaxy-wide limits (GEN.333 / UX.116) until its own are set.
         assert limits["core_follows"] is True
         assert limits["core_min_luminosity_sol"] == pytest.approx(100.0 * tuning.CORE_TIER_FACTOR)

@@ -150,12 +150,12 @@ def field_at(host, distance_au):
     The `Field` on a body at `distance_au` (the circle of its mean flux round the host, `orbit_elements.flux_distance_au`; a moon's is its planet's) from the
     star `host` and the companions attached to it.
     """
-    sources = _geometry(host, distance_au)
+    sources = [(member_no, _per_au(star), factor) for member_no, star, factor in _geometry(host, distance_au)]
     bands = {}
     for name in Field.__dataclass_fields__:
         parts = {}
-        for member_no, star, factor in sources:
-            value = _per_au(star)[name]
+        for member_no, per_au, factor in sources:
+            value = per_au[name]
             if value is not None:
                 parts[member_no] = value * factor
         bands[name] = Band(sum(parts.values()), parts)

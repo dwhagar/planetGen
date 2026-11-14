@@ -56,6 +56,10 @@ _EMPTY_TABLE_ROWS = {
     "moon_interior_layers": (
         "INSERT INTO moon_interior_layers (moon_id, layer_index, kind, state, top_pressure_gpa, bottom_pressure_gpa, mass_earth, top_radius_fraction, bottom_radius_fraction, hydrogen, helium, iron, rock, water_liquid, ice_x, nh3_ice, ch4_ice)"
         " VALUES ((SELECT MIN(id) FROM moons), 0, 'molecular_envelope', 'molecular_fluid', 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0)"),
+    # DB.75: a system keeps its body numbers only once its content has been drawn again.
+    "body_numbers": (
+        "INSERT INTO body_numbers (star_system_id, slot_key, body_number)"
+        " VALUES ((SELECT MIN(id) FROM star_systems), 'planet:primary:0', 1)"),
     # Admin-defined (POP.10); none in a generated galaxy.
     "facility_types": "INSERT INTO facility_types (name, kind) VALUES ('Test type', 'colony')",
     "facility_type_fields": (

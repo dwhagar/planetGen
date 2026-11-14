@@ -853,7 +853,8 @@ Alembic revision (`planetgen/db/migrations/versions/`, run through
 `planetgen.db.alembic_runner`) above the stored version, in order. A revision's
 id is its schema version, so `SCHEMA_VERSION` is the head revision's number.
 Databases older than v130 (the baseline) are refused with `SchemaTooOldError`
-rather than migrated, and so is a database with tables but no recorded version
+rather than migrated (Boss's hard cut, DB.127: no database structure before 8.0 is accepted; `legacy/bump_database_to_8_0.py` brings
+one up to the baseline on request, DB.126), and so is a database with tables but no recorded version
 (`SchemaVersionMissingError`). `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A change to a `sectors` column rebuilds the whole table, because the FULLTEXT index on `sectors.name` rules out
 `ALGORITHM=INSTANT` (DB.84): such changes are batched into as few revisions as possible, each saying in its docstring

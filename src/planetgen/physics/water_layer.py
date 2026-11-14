@@ -166,17 +166,21 @@ def integrate(mass_kg, radius_km, s_from, s_to, *, covered=1.0, pressure_pa=SURF
     h = (s_to - s_from) / steps
     s, pressure, depth = s_from, pressure_pa, depth_m
     nodes = []
+
+    def node(s, pressure, depth, pressure_rate):
+        """`(s, pressure, depth, gravity)`: the gravity is the pressure rate `g q` over the spread `q`."""
+        return (s, pressure, depth, pressure_rate / (radius_m / (radius_m - depth)) ** 2)
+
     for _ in range(steps):
         k1 = _rates(pressure, depth, s, mass_kg, radius_m, covered, area_m2)
-        nodes.append((s, pressure, depth, k1[0] / (radius_m / (radius_m - depth)) ** 2))
+        nodes.append(node(s, pressure, depth, k1[0]))
         k2 = _rates(pressure + 0.5 * h * k1[0], depth + 0.5 * h * k1[1], s + 0.5 * h, mass_kg, radius_m, covered, area_m2)
         k3 = _rates(pressure + 0.5 * h * k2[0], depth + 0.5 * h * k2[1], s + 0.5 * h, mass_kg, radius_m, covered, area_m2)
         k4 = _rates(pressure + h * k3[0], depth + h * k3[1], s + h, mass_kg, radius_m, covered, area_m2)
         pressure += h * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]) / 6.0
         depth += h * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]) / 6.0
         s += h
-    last = _rates(pressure, depth, s, mass_kg, radius_m, covered, area_m2)[0]
-    nodes.append((s, pressure, depth, last / (radius_m / (radius_m - depth)) ** 2))
+    nodes.append(node(s, pressure, depth, _rates(pressure, depth, s, mass_kg, radius_m, covered, area_m2)[0]))
     return nodes
 
 

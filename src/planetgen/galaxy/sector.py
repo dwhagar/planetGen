@@ -565,6 +565,30 @@ class _Placed:
                 self.spatial.get_coordinates("galactic", "cartesian"),
                 getattr(phenomenon, "galactic_orbital_speed_kms", None)))
 
+    def distance_to(self, other):
+        """
+        Computes the Euclidean distance, in light-years, to another entry
+        (or a raw `(x, y, z)` position). See `distance_between`.
+
+        Args:
+            other (SectorSystemEntry, SectorPhenomenonEntry, or tuple): The
+                other entry, or a raw `(x, y, z)` position.
+
+        Returns:
+            float: The distance in light-years.
+        """
+        return distance_between(self, other)
+
+    def named_location(self):
+        """
+        Returns this entry's position formatted as a "named location"
+        string. See `format_named_location`.
+
+        Returns:
+            str: The formatted label.
+        """
+        return format_named_location(self.position)
+
     @property
     def position(self):
         """tuple: `(x, y, z)` light-years from the sector's center."""
@@ -598,30 +622,6 @@ class SectorSystemEntry(_Placed):
         self._place(star_system, tuple(position), sector_center_ly, sector_edge_pc, epoch_unix, velocity_ms)
         self.system_config = system_config if system_config is not None else star_system.system_config
         self.preplaced = preplaced
-
-    def distance_to(self, other):
-        """
-        Computes the Euclidean distance, in light-years, to another entry (or
-        a raw `(x, y, z)` position). See `distance_between`.
-
-        Args:
-            other (SectorSystemEntry or tuple): The other entry, or a raw
-                                                `(x, y, z)` position.
-
-        Returns:
-            float: The distance in light-years.
-        """
-        return distance_between(self, other)
-
-    def named_location(self):
-        """
-        Returns this entry's position formatted as a "named location"
-        string. See `format_named_location`.
-
-        Returns:
-            str: The formatted label.
-        """
-        return format_named_location(self.position)
 
     def to_dict(self):
         """
@@ -676,30 +676,6 @@ class SectorPhenomenonEntry(_Placed):
         self.phenomenon_type = phenomenon_type
         self._place(phenomenon, tuple(position), sector_center_ly, sector_edge_pc, epoch_unix)
 
-    def distance_to(self, other):
-        """
-        Computes the Euclidean distance, in light-years, to another entry
-        (or a raw `(x, y, z)` position). See `distance_between`.
-
-        Args:
-            other (SectorPhenomenonEntry, SectorSystemEntry, or tuple): The
-                other entry, or a raw `(x, y, z)` position.
-
-        Returns:
-            float: The distance in light-years.
-        """
-        return distance_between(self, other)
-
-    def named_location(self):
-        """
-        Returns this entry's position formatted as a "named location"
-        string. See `format_named_location`.
-
-        Returns:
-            str: The formatted label.
-        """
-        return format_named_location(self.position)
-
     def to_dict(self):
         """
         Returns a JSON-serializable dict of this entry.
@@ -753,21 +729,30 @@ class _NeighborArrays:
                 self._append(entry.position, entry.phenomenon)
         self.seen_phenomena = len(sector.phenomena)
 
-    def clear_of(self, sector, candidate, min_separation_ly, hill_new):
-        """Whether `candidate` is at least the required distance from every
-        massive neighbour, with the result of
-        `detmath.dist(candidate, position) >= required` for each."""
+    def _distances(self, sector, point, min_separation_ly, hill_new):
+        """`(positions, required, squared)` over the sector's massive neighbours: each one's position, the separation
+        a body of Hill radius `hill_new` needs from it (`min_separation_ly` flat when given) and the squared distance of
+        `point` from it. `None` when the sector holds none."""
         self._refresh(sector)
         n = self.count
         if n == 0:
-            return True
+            return None
         positions = self.positions[:n]
         if min_separation_ly is not None:
             required = np.full(n, float(min_separation_ly))
         else:
             required = program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_new + self.hill[:n])
-        delta = positions - np.asarray(candidate)
-        squared = np.einsum("ij,ij->i", delta, delta)
+        delta = positions - np.asarray(point)
+        return positions, required, np.einsum("ij,ij->i", delta, delta)
+
+    def clear_of(self, sector, candidate, min_separation_ly, hill_new):
+        """Whether `candidate` is at least the required distance from every
+        massive neighbour, with the result of
+        `detmath.dist(candidate, position) >= required` for each."""
+        found = self._distances(sector, candidate, min_separation_ly, hill_new)
+        if found is None:
+            return True
+        positions, required, squared = found
         clear = squared > (required * (1 + _CLEAR_MARGIN)) ** 2
         if clear.all():
             return True
@@ -780,14 +765,10 @@ class _NeighborArrays:
         """The `(position, required)` of every massive neighbour whose Hill sphere a system with Hill radius
         `hill_new` at `position` would overlap, by the same test as `required_separation_ly` and `distance_between`
         (one NumPy pass, then the exact test on the few near enough to matter)."""
-        self._refresh(sector)
-        n = self.count
-        if n == 0:
+        found = self._distances(sector, position, None, hill_new)
+        if found is None:
             return []
-        positions = self.positions[:n]
-        required = program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_new + self.hill[:n])
-        delta = positions - np.asarray(position)
-        squared = np.einsum("ij,ij->i", delta, delta)
+        positions, required, squared = found
         near = np.nonzero(squared <= (required * (1 + _CLEAR_MARGIN)) ** 2)[0]
         found = []
         for i in near:

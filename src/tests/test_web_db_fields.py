@@ -143,9 +143,12 @@ def test_phenomenon_inside_links_its_cloud(monkeypatch):
 
     monkeypatch.setattr(system_pages.apiclient, "get_phenomenon", fake_get)
     with create_app(_Config).test_request_context("/phenomenon/rogue_planet/1"):
-        assert system_pages._phenomenon_inside({"inside_nebula_id": None, "inside_remnant_id": None}) is None
-        inside = system_pages._phenomenon_inside({"inside_nebula_id": None, "inside_remnant_id": 7})
+        assert system_pages._phenomenon_inside_cloud({"inside_nebula_id": None, "inside_remnant_id": None}) is None
+        assert system_pages._inside_badge(None) is None
+        cloud = system_pages._phenomenon_inside_cloud({"inside_nebula_id": None, "inside_remnant_id": 7})
+        inside = system_pages._inside_badge(cloud)
     assert calls == [("supernova_remnant", 7)]
+    assert cloud == {"type": "supernova_remnant", "id": 7, "name": "Crab"}
     assert inside["name"] == "Crab" and inside["url"].endswith("/phenomenon/supernova_remnant/7")
 
 

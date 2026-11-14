@@ -107,8 +107,7 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
         numpy.ndarray: One bound per band.
     """
     inner, z_near, z_far = band_geometry(shell, high_band, edge_pc)
-    outer = spherical.shell_bounds_pc(shell, edge_pc)[1]
-    r_in = spherical.shell_bounds_pc(shell, edge_pc)[0]
+    r_in, outer = spherical.shell_bounds_pc(shell, edge_pc)
     return extent_majorants(shape, inner, z_near, z_far, fractions, outer, r_near=r_in)
 
 

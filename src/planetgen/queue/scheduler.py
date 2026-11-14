@@ -107,6 +107,11 @@ def priority(ticket, now, used):
     return weight(ticket.claim) + AGING_RATE * max(0.0, now - ticket.since) - FAIR_PENALTY * share
 
 
+def _decayed(row, now):
+    """A kind's stored use (`{"v": core-seconds, "t": when}`) at `now`, with the half-life applied."""
+    return float(row["v"]) * 0.5 ** (max(0.0, now - float(row["t"])) / USAGE_HALF_LIFE)
+
+
 def usage(conn, now=None):
     """The system time each kind has used lately, core-seconds, with the half-life applied (`{kind: seconds}`)."""
     now = time.time() if now is None else now
@@ -114,7 +119,7 @@ def usage(conn, now=None):
     for kind, raw in conn.hgetall(memorygate._key("usage")).items():
         try:
             row = json.loads(memorygate._decode(raw))
-            found[memorygate._decode(kind)] = float(row["v"]) * 0.5 ** (max(0.0, now - float(row["t"])) / USAGE_HALF_LIFE)
+            found[memorygate._decode(kind)] = _decayed(row, now)
         except (ValueError, KeyError, TypeError):
             continue
     return found
@@ -128,7 +133,7 @@ def charge(conn, kind, core_seconds, now=None):
         old = 0.0
         if raw is not None:
             row = json.loads(memorygate._decode(raw))
-            old = float(row["v"]) * 0.5 ** (max(0.0, now - float(row["t"])) / USAGE_HALF_LIFE)
+            old = _decayed(row, now)
         conn.hset(memorygate._key("usage"), kind, json.dumps({"v": old + max(0.0, core_seconds), "t": now}))
     except Exception as exc:  # noqa: BLE001 -- bookkeeping
         log.swallowed("queue/scheduler", "charge", exc)
@@ -142,8 +147,7 @@ def tickets(conn, now=None):
         name = memorygate._decode(name)
         try:
             row = json.loads(memorygate._decode(raw))
-            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
-            ticket = Ticket(name, claim, float(row["since"]), int(row["pid"]), row["host"])
+            ticket = Ticket(name, memorygate.claim_of(row), float(row["since"]), int(row["pid"]), row["host"])
             expires = float(row["expires"])
         except (ValueError, KeyError, TypeError):
             conn.hdel(memorygate._key("tickets"), name)
