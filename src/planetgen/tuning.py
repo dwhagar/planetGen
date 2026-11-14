@@ -155,6 +155,20 @@ OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
+# The viscous-disk snow line the water of a rocky body is read against (GEN.1678, `formation_snow_line.viscous_snow_line_au`): Mulders, Ciesla, Min and Pascucci 2015 ([R3193]) Eq. 2
+# with the accretion rate of Eq. 4, Mdot = 3e-8 (M / Msun)^1.81 (t / Myr)^-1.5 Msun/yr (the exponents and the 3e-8 are read; Eq. 4 holds for times well past the viscous time),
+# the age they set the line at (1 Myr, section 2.5), the gas-to-dust ratio 66 (section 2.3), alpha 0.01 (section 2.5) and the ice sublimation temperature 160 K (section 2).
+VISCOUS_DISK_AGE_MYR = 1.0
+VISCOUS_DISK_MDOT_PREFACTOR_SOL_YR = 3.0e-8
+VISCOUS_DISK_MDOT_MASS_EXPONENT = 1.81
+VISCOUS_DISK_MDOT_TIME_EXPONENT = -1.5
+VISCOUS_DISK_GAS_TO_DUST = 66.0
+VISCOUS_DISK_ALPHA = 0.01
+VISCOUS_DISK_ICE_K = 160.0
+# The Rosseland opacity of the disk's dust, cm2/g: the paper gives 570 for small (interstellar) grains and 20 for large ones (section 2.3) and the grain size of a disk is not known; this is
+# the geometric mean of the two, the centre of their range (sqrt(570 x 20) = 107): a Sun-like star's line is 2.4 au (3.5 au with small grains, 1.6 with large). A planetGen stand-in
+# (tier T6, tweak L1: inside the range of the source).
+VISCOUS_DISK_OPACITY_CM2_G = 107.0
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
@@ -241,6 +255,9 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
+# How well a body must match the class it was given for the class to count as an outcome (GEN.1315): a requested class is met, and a Class M world is counted, only by a body whose stored
+# `class_match` (1 for a full fit, `1 - total / (values * largest cap)` for a fudged one, `class_fit.match_of`) is at least this. Below it the class is shown with its match but is not an outcome.
+CLASS_MATCH_THRESHOLD = 0.5
 # How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
@@ -309,7 +326,7 @@ DELIVERED_WATER_RICH_MAX = 0.5
 ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
-# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
+# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock takes the albedo of its ground (`physics/ground_albedo`, rows GA1 to GA3); a body with surface water
 # (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) draws the albedo of its ice-free state, ocean and cloud. The ice is not drawn: the
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).

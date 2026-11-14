@@ -67,6 +67,7 @@ A body that meets every condition of a class takes that class and scores 1. Othe
 * The match is `1 - total move / (values moved * 1 width)` (registry CP2); a body that fits fully scores 1.
 * A body no class reaches by 1 width has its gravity and air-amount edges relaxed (digit 9), and if that still fails it takes the nearest class with a match of 0.
 * The planet sheet says which values were moved and by how much (`class_fudge_values`, `class_fudge_amount`).
+* What reads a class reads its match with it (GEN.1315, `physics/class_outcome`, registry FT5): a request for a class is met, and a Class M world is counted, only by a body whose `class_match` is at least `tuning.CLASS_MATCH_THRESHOLD` (0.5); the search takes a range on `class_match` (`planet_min_class_match=0.5`). The habitable count and the bar on habitable worlds never read a letter: they read the PHI-6 score and the life of the finished body (GEN.1387, GEN.1397).
 
 ## What is built and what is next
 

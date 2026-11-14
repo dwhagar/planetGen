@@ -291,7 +291,7 @@ def kind_of(body):
 
 def body_key(body):
     """
-    A key for `body` that no other body shares and that needs no draw: the star's key, whether it is a moon, the orbit's distance and the mass. A body made
+    A key for `body` that no other body shares and that needs no draw: the star's key, whether it is a moon, the distance it formed at and the mass. A body made
     again with the same star, orbit and mass gets the same key, so its oddities do not move.
     """
     from planetgen.physics import radiogenic
@@ -299,7 +299,8 @@ def body_key(body):
     star = getattr(body, "star", None)
     star_key = radiogenic._star_key(star) if star is not None else None
     parent = getattr(body, "primary_mass_kg", None) if getattr(body, "is_moon", False) else None
-    return f"{star_key!r}:{int(bool(getattr(body, 'is_moon', False)))}:{getattr(body, 'distance', None)!r}:{getattr(body, 'mass', None)!r}:{parent!r}"
+    formed = getattr(body, "formation_distance_au", None)      # where it formed, not where it orbits now (GEN.1547): a body that moves keeps its oddities
+    return f"{star_key!r}:{int(bool(getattr(body, 'is_moon', False)))}:{(getattr(body, 'distance', None) if formed is None else formed)!r}:{getattr(body, 'mass', None)!r}:{parent!r}"
 
 
 def quantities_of(body):

@@ -2849,7 +2849,7 @@
           "fields": [
             [
               "Evidence",
-              "READ (Venus's 20 ppm of water, a TEST point)"
+              "READ (Venus's 20 ppm of water, a TEST point); GEN.1670 moved the bracket from 1e-5 to 1e-3 down to 1e-6 to 1e-4, because the air held at the crust buffer (AM100) carries its hydrogen as water, not as H2, and the median of the draws then sits at 4e-5 of water in the air, as Venus's 2 to 3e-5 does"
             ],
             [
               "What it is",
@@ -2857,7 +2857,7 @@
             ],
             [
               "The range it moves in",
-              "1e-5 to 1e-3, log"
+              "1e-6 to 1e-4, log"
             ],
             [
               "Where it holds",
@@ -2878,7 +2878,7 @@
           "slug": "6-7-am1",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L0",
+          "tweak": "L2",
           "unread": null,
           "what": "mixture_evolved.WATER_RESIDUAL"
         },
@@ -6335,7 +6335,7 @@
             ],
             [
               "What it is",
-              "sulfur_balance.SULFATION_ACTIVATION_K and SULFATION_REFERENCE_K"
+              "sulfur_balance.SULFATION_ACTIVATION_K"
             ],
             [
               "The range it moves in",
@@ -6362,7 +6362,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "sulfur_balance.SULFATION_ACTIVATION_K and SULFATION_REFERENCE_K"
+          "what": "sulfur_balance.SULFATION_ACTIVATION_K"
         },
         {
           "burn_down": null,
@@ -6411,7 +6411,7 @@
           "fields": [
             [
               "Evidence",
-              "CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; GEN.1562 N4)"
+              "CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; raised from 1.0 to 1.4 dex by GEN.1670 at TODO's request, to 50 percent at or over IW+2.5 and so about 40 to 60 percent of the rocky bodies oxidized: tuned to that statistic; GEN.1562 N4)"
             ],
             [
               "What it is",
@@ -6419,7 +6419,7 @@
             ],
             [
               "The range it moves in",
-              "+1.0 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies; 1.4 makes half"
+              "+1.4 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies"
             ],
             [
               "Where it holds",
@@ -6440,9 +6440,47 @@
           "slug": "6-7-am99",
           "tier": "T9",
           "tier_code": "T9",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
           "what": "mixture_rocky.REDOX_SHIFT_DEX"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "READ (the abstract of [R5251]: Venus's air at 0 km, 735 K, holds 10^-21.7 to 10^-20.0 bar of oxygen, 'indistinguishable, within the uncertainties of the thermodynamic data, from the magnetite-hematite phase boundary'; on the repo's iron-wuestite fit that is IW+9.1 to IW+10.8); carried to the cooler surface temperatures as a constant offset, which the source does not reach"
+            ],
+            [
+              "What it is",
+              "mixture_evolved.AIR_BUFFER_DIW"
+            ],
+            [
+              "The range it moves in",
+              "IW+9.1 to IW+10.8, uniform; the held level is the larger of this and the body's redox"
+            ],
+            [
+              "Where it holds",
+              "Venus-like and Mars-like air (rows j1, j2)"
+            ],
+            [
+              "What would show it wrong",
+              "test_atmosphere_mixture_evolved::test_a_warm_venus_like_air_holds_the_crust_buffer_and_keeps_sulfur_dioxide"
+            ],
+            [
+              "What replaces it",
+              "what holds sulfur under about 700 K (photochemical sulfate; not found in the sources read) and the buffer's own temperature slope"
+            ]
+          ],
+          "id": "AM100",
+          "key": "6.7:AM100",
+          "kind": "B",
+          "slug": "6-7-am100",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_evolved.AIR_BUFFER_DIW"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -12687,6 +12725,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 2 kPa; the full range of the sources 0.02 to 5 kPa"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life whose R is still over S / 3"
+            ],
+            [
+              "What would show it wrong",
+              "a measured plateau of an oxygenated world, or Earth's mid-Proterozoic oxygen proved above 5 kPa or under 0.02 kPa"
+            ],
+            [
+              "What replaces it",
+              "a model of the oxygen, phosphorus and carbon cycles with the world's own land and ocean"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the models put Earth's plateau at 0.06 to 0.25 of today's oxygen [R5252] against at most 0.001 from chromium isotopes, so 0.03 sits inside the models' lowest values and the proxies' highest"
+            ]
+          ],
+          "id": "BO11",
+          "key": "6.21:BO11",
+          "kind": "P",
+          "slug": "6-21-bo11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4 (the model's own: burial's dependence on bottom-water oxygen varied 10 to 40 percent)"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life that have crossed the first rise"
+            ],
+            [
+              "What would show it wrong",
+              "a measured world that holds the plateau after R is under S / 4, or a model in which the second step needs a different ratio"
+            ],
+            [
+              "What replaces it",
+              "a model of the world's own phosphorus recycling"
+            ],
+            [
+              "Evidence",
+              "READ ([R5252], full text: the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for deep-ocean ventilation, a ratio of 3); one model, so it is tier 3"
+            ]
+          ],
+          "id": "BO12",
+          "key": "6.21:BO12",
+          "kind": "P",
+          "slug": "6-21-bo12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
         }
       ],
       "slug": "6-21-stand-ins-of-the-life-timeline-and-the-biogenic-oxygen",
@@ -16359,6 +16473,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "aerosols.haze_grain (the aggregate grows until it falls out as fast as it coagulates: the Smoluchowski half-time 3 eta / (4 k T n) of the column's number equals the Stokes fall time; one layer, monodisperse, Brownian, continuum kernel, no electric charge)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "SECOND-HAND ([R0156] section 4.1, the quoted lines: \"the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s\"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11"
+            ],
+            [
+              "The range it moves in",
+              "the two ends of the range: the haze gate is 0 below 1e11 and 1 above 3e11 (linear between), times the ratio gate"
+            ],
+            [
+              "Where it holds",
+              "hazes of methane airs"
+            ],
+            [
+              "What would show it wrong",
+              "a haze in a model air whose methane source is under 1e11 molecules per cm2 per s"
+            ],
+            [
+              "What replaces it",
+              "[R0156] read in full; a photochemical model of the air"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_a_trace_of_methane_makes_no_haze_however_high_its_ratio_to_carbon_dioxide"
+            ]
+          ],
+          "id": "HZ4",
+          "key": "6.33:HZ4",
+          "kind": "P",
+          "slug": "6-33-hz4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "SECOND-HAND ([R0156] section 4.1, the quoted lines: \"the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s\"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4"
+            ],
+            [
+              "The range it moves in",
+              "fixed; a hazy air's lifetime is shorter, so the haze gate of HZ4 is a little strict (the lowest methane of the hazy runs of [R0156], about 36 Pa, gives 2.5e10 molecules per cm2 per s against 1e11)"
+            ],
+            [
+              "Where it holds",
+              "anoxic airs; an oxygen-bearing air has a lifetime of years and is gated off by its CH4/CO2 ratio already"
+            ],
+            [
+              "What would show it wrong",
+              "a lifetime that depends on the star's far ultraviolet (no law found; a Segura-type lifetime study not read)"
+            ],
+            [
+              "What replaces it",
+              "the lifetime from the star's UV flux and the air's column"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_the_methane_source_flux_is_the_column_over_its_lifetime"
+            ]
+          ],
+          "id": "HZ5",
+          "key": "6.33:HZ5",
+          "kind": "P",
+          "slug": "6-33-hz5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4"
         },
         {
           "burn_down": null,
@@ -61871,6 +62061,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (UNCAPPED_CLIP_LN); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLASS_MATCH_THRESHOLD 0.5: a class counts as an outcome (a requested class is met, a Class M world is counted) only for a body whose stored class_match is at least this; the match is 1 for a full fit and 1 - total / (values * largest cap) for a fudged one"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "requests for a class and the count of Class M worlds"
+            ],
+            [
+              "What would show it wrong",
+              "a requested class whose bodies at 0.5 to 0.6 read as plainly another class to a person (a Class M world 0.5 from a Class H)"
+            ],
+            [
+              "What replaces it",
+              "the match the player reads: a threshold chosen with the part 2 cap sweep once GEN.1309 is in"
+            ],
+            [
+              "Evidence",
+              "the plan's suggestion (design-drafts, F4); a fudged body is 1 minus its distance over the cap, so 0.5 is half the cap"
+            ]
+          ],
+          "id": "FT5",
+          "key": "6.261:FT5",
+          "kind": "P",
+          "slug": "6-261-ft5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CLASS_MATCH_THRESHOLD 0.5: a class counts as an outcome (a requested class is met, a Class M world is counted) only for a body whose stored class_match is at least this; the match is 1 for a full fit and 1 - total / (values * largest cap) for a fudged one"
         },
         {
           "burn_down": [

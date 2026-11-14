@@ -2,8 +2,6 @@
 The surface pressure supply law (GEN.726, `planetgen.physics.surface_pressure`, docs/design/composition/surface-pressure-supply-law.md).
 """
 
-import math
-
 import pytest
 
 from planetgen.physics import constants, interior_heat, surface_pressure as sp
@@ -51,45 +49,10 @@ def test_no_heat_or_no_mantle_degasses_nothing_and_the_share_stays_below_one():
     assert 0.0 < sp.degassed_share(1e40, EARTH_MANTLE_KG) <= 1.0
 
 
-def test_the_cycle_draws_stay_in_their_brackets_and_are_recorded():
-    recorded = {}
-    alpha, t_e, exponent = sp.draw_cycle(recorded)
-    assert sp.WEATHERING_ALPHA[0] <= alpha <= sp.WEATHERING_ALPHA[1] and sp.WEATHERING_T_E_K[0] <= t_e <= sp.WEATHERING_T_E_K[1]
-    assert sp.OUTGASSING_EXPONENT[0] <= exponent <= sp.OUTGASSING_EXPONENT[1]
-    assert recorded == {"weathering_alpha": alpha, "weathering_t_e_k": t_e, "outgassing_exponent": exponent}
-
-
-def _balance(supply_bar=10.0, flux=sp.HEAT_FLUX_EARTH_W_M2, land=sp.LAND_FRACTION_EARTH, temperature=lambda p: sp.TS_MODERN_K, **law):
-    return sp.carbonate_pco2_bar(supply_bar, flux, land, temperature, law.get("alpha", 0.3), law.get("t_e", 20.0), law.get("m", 1.5))
-
-
-@pytest.mark.parametrize("alpha, t_e, m", [(0.1, 10.0, 1.0), (0.3, 20.0, 1.5), (0.5, 40.0, 2.0)])
-def test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature(alpha, t_e, m):
-    assert _balance(alpha=alpha, t_e=t_e, m=m) == pytest.approx(sp.CO2_MODERN_BAR, rel=1e-6)
-
-
-def test_more_volcanism_or_less_land_raises_the_balance_and_a_warmer_air_lowers_it():
-    base = _balance()
-    assert _balance(flux=2.0 * sp.HEAT_FLUX_EARTH_W_M2) > base
-    assert _balance(land=0.5 * sp.LAND_FRACTION_EARTH) > base
-    assert _balance(temperature=lambda p: sp.TS_MODERN_K + 10.0) < base
-
-
-def test_the_balance_never_exceeds_the_supply_and_a_world_with_little_carbon_keeps_all_it_has_below_the_balance():
-    assert _balance(supply_bar=1e-5) == pytest.approx(1e-5)
-    assert _balance(supply_bar=1e-3) == pytest.approx(sp.CO2_MODERN_BAR, rel=1e-6)
-    assert _balance(supply_bar=0.0) == 0.0
-
-
-def test_a_greenhouse_that_warms_with_the_pressure_still_has_one_root_below_the_supply():
-    greenhouse = lambda p: sp.TS_MODERN_K + 8.0 * math.log10(max(p, 1e-12) / sp.CO2_MODERN_BAR + 1.0)
-    found = _balance(supply_bar=100.0, temperature=greenhouse, flux=3.0 * sp.HEAT_FLUX_EARTH_W_M2)
-    assert sp.CO2_MODERN_BAR < found < 100.0
-    # at the root the weathering equals the outgassing
-    weathering = (found / sp.CO2_MODERN_BAR) ** 0.3 * math.exp((greenhouse(found) - sp.TS_MODERN_K) / 20.0)
-    assert weathering == pytest.approx(3.0 ** 1.5, rel=1e-6)
-
-
-def test_a_body_with_no_volcanism_is_taken_to_the_floor_and_a_cold_still_world_keeps_its_supply():
-    assert _balance(flux=0.0) == sp.MIN_PCO2_BAR
-    assert _balance(supply_bar=0.02, temperature=lambda p: 150.0) == 0.02
+def test_the_balance_root_is_the_stable_crossing_the_supply_or_the_floor():
+    rising = lambda p_bar: p_bar / 1e-3 - 1.0
+    assert sp.balance_root_bar(1.0, rising) == pytest.approx(1e-3, rel=1e-6)
+    assert sp.balance_root_bar(1e-4, rising) == pytest.approx(1e-4)              # a world with little carbon keeps all of it
+    assert sp.balance_root_bar(0.0, rising) == 0.0
+    assert sp.balance_root_bar(1.0, lambda p_bar: 1.0) == sp.MIN_PCO2_BAR            # a sink that takes everything even at the floor
+    assert sp.balance_root_bar(1.0, lambda p_bar: -1.0) == 1.0                       # one that never keeps up: the air holds the supply

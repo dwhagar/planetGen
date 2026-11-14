@@ -25,7 +25,7 @@ import math
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
 from planetgen.physics import planet_moons
-from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -200,8 +200,9 @@ def formation_distance_au(planet):
 
 
 def formed_beyond_snow_line(planet):
-    """Whether `planet` formed at or beyond its star's snow line (False for a star with none)."""
-    line = getattr(getattr(planet, "star", None), "snow_line_au", None)
+    """Whether `planet` formed at or beyond its star's snow line (False for a star with none): the water snow line (`formation_snow_line.water_snow_line_au`, GEN.1679), the one the water is read against."""
+    star = getattr(planet, "star", None)
+    line = None if star is None else formation_snow_line.water_snow_line_au(star)
     return line is not None and formation_distance_au(planet) >= line
 
 
@@ -293,6 +294,11 @@ def generate_planet_properties(planet, zone_override=None):
 ECCENTRICITY_SETTLE_TOLERANCE = 1e-4
 """float: A planet or captured moon whose eccentricity at the star's final age is within this of the one drawn keeps its orbit (`settle_orbit`);
 below it the orbit cannot be told apart. A stand-in, registry row OE14."""
+
+
+def is_bare(body):
+    """Whether `body` was built without its air, class, spin and moons (`Planet(defer_climate=True)`, GEN.1282) and `Planet.finish_climate` still owes them (GEN.1548)."""
+    return getattr(body, "_deferred_climate", None) is not None
 
 
 def settle_orbit(planet):
@@ -509,6 +515,8 @@ def settle_envelope(planet):
     """
     if not apply_envelope(planet):
         return False
+    if is_bare(planet):      # GEN.1548: the air is not made yet, so there is none to make again
+        return True
     remake_end_stages(planet, planet)
     planet._age_drawn = planet.star.age
     return True
@@ -524,6 +532,12 @@ def settle_giant(planet):
         bool: Whether the giant's radius moved.
     """
     moved = giant_draw.settle(planet)
+    if is_bare(planet):      # GEN.1548: a body whose air waits has only its radius to settle; the air is made once, on the orbit and the radius it keeps
+        planet._air_stale = False
+        if moved:
+            planet.volume = (4 / 3) * math.pi * planet.radius ** 3
+            calculate_surface_gravity(planet)
+        return moved
     stale = bool(getattr(planet, "_air_stale", False))       # the secular exchange moved the orbit and with it the mean light (GEN.1505)
     planet._air_stale = False
     if not moved and not stale:
@@ -668,8 +682,12 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * eclipses.kept_share(planet.light_factor)     # GEN.1441: the host's light and every other star's, by position
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
-    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
-                                                      getattr(planet.star, "temperature", None)))
+    dry_ground = planet_type.has_ground(planet) and climate_draws.is_dry_ground(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit)      # GEN.684 A: a dry rock's albedo is its ground's, not a draw
+    if dry_ground:
+        albedo = ground_albedo.fresh_bond_albedo(planet)
+    else:
+        albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
+                                                          getattr(planet.star, "temperature", None)))
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
@@ -683,9 +701,11 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     heat = interior_heat.update_heat(planet)
     giant = not planet_type.has_ground(planet)      # GEN.1334: a giant, or a rocky planet under a deep envelope, has no surface; the air is solved at its 1 bar level
     own_heat_w_m2 = (getattr(planet, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(planet, "tidal_flux_w_m2", None) or 0.0)
+    no_air_internal_w_m2 = 0.0
     if getattr(planet.star, "starless", False) and not giant and own_heat_w_m2 > 0.0:
         # GEN.1111: a body with no star (an ejected one) lives on its own heat, which is a flux through its surface; under a star it is below a part in
         # a thousand of the absorbed flux for an ordinary rocky planet and is left out, so a lit planet is as it was (a giant's is added by its setting)
+        no_air_internal_w_m2 = own_heat_w_m2
         surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit, internal_flux_w_m2=own_heat_w_m2)
     surface_w = None if giant else hydrosphere.draw_surface_water(planet)
     planet._surface_w = surface_w                   # GEN.839: kept for `refresh_at_final_age`, not stored
@@ -697,7 +717,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
                                      heat=heat, surface_w=surface_w, water_lost=water_lost)
     # GEN.1657: the start temperature, the oddities of the air and the airless state are the solver's own step (`air_final`); the body stores what comes out
-    final = air_final.make(planet, setting, surface_temperature_no_atmosphere, solar_output_at_orbit, distance, albedo, giant, surface_w)
+    final = air_final.make(planet, setting, surface_temperature_no_atmosphere, solar_output_at_orbit, distance, albedo, giant, surface_w,
+                           dry_ground=dry_ground, no_air_internal_w_m2=no_air_internal_w_m2)
     planet.surface_temperature = final.temperature_k
     planet.atmospheric_pressure = final.pressure_pa
     planet.atm_molar_density, planet.atm_density, planet.scale_height = final.molar_density_kg_mol, final.density_kg_m3, final.scale_height_km
@@ -817,10 +838,12 @@ def refresh_at_final_age(body):
 
 def _mantle_redox(planet, air, distance, water_lost):
     """The mantle redox (log10 above iron-wuestite) of a rocky body: the air mixture's when it has one, else (no air, or an envelope's
-    mixture, which has none) the recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
+    mixture, which has none) the recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`). One 64-bit seed is taken from the
+    unit's stream either way, so a body that gains or loses its air moves no draw of the bodies after it."""
+    seed = draw.getrandbits(64)
     if air is not None and air.mixture.redox_diw is not None:
         return air.mixture.redox_diw
-    return surface_air.mantle_redox_diw(planet, distance, water_lost)
+    return surface_air.mantle_redox_diw(planet, distance, water_lost, seed)
 
 
 def internal_heat_flux_w_m2(planet):
@@ -868,7 +891,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     planet._orbit_birth = birth  # not stored: `settle_orbit` takes the tides again once the star's age is final (GEN.985)
 
 
-def generate_orbital_motion_properties(planet, primary_mass_kg):
+def generate_orbit_state(planet, primary_mass_kg):
     """
     Sets a planet's (or moon's) 3D orbital orientation, position, orbital
     speed, and rotation period.
@@ -938,9 +961,17 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
         arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
         mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
 
-    generate_spin(planet, primary_mass_kg)
     true_anomaly_rad, _ = kepler.true_anomaly_and_distance_elliptical(mean_anomaly_rad, planet.eccentricity, planet.distance)
     update_orbital_position(planet, arg_periapsis_deg + math.degrees(true_anomaly_rad), arg_periapsis_deg)
+
+
+def generate_orbital_motion_properties(planet, primary_mass_kg):
+    """
+    `generate_orbit_state` and then `generate_spin`: the orbit's orientation and the body's place on it, and its day (GEN.1548 split them: the orbit state needs only the mass and the orbit, so the
+    planets' pull on each other can be worked out on it before any air exists, and the spin reads the air, so it comes after).
+    """
+    generate_orbit_state(planet, primary_mass_kg)
+    generate_spin(planet, primary_mass_kg)
 
 
 def apply_orbit_oddities(planet):
@@ -995,7 +1026,7 @@ def remake_after_orbit_change(planet):
     """`follow_orbit_change` and, for a rocky planet, its air, class and spin made again at once (the tide of the orbit is a heat source, `remake_end_stages`). Used by `finish_orbit_oddities`,
     after which nothing moves the orbit again."""
     follow_orbit_change(planet)
-    if planet.body_type == "t":
+    if planet.body_type == "t" and not is_bare(planet):
         remake_end_stages(planet, planet)
 
 
@@ -1669,7 +1700,7 @@ MOON_REJECTION_LIMIT = 5
 """int: How many moons in a row `generate_moons` may discard for being larger than their parent can hold before it stops."""
 
 
-def generate_moons(planet, moon_count=None):
+def generate_moons(planet, moon_count=None, bare=False):
     """
     Generates a system of moons for the given planet.
 
@@ -1687,6 +1718,8 @@ def generate_moons(planet, moon_count=None):
             stops once `moon_count` moons exist, even if more room remains;
             if the planet doesn't have room for `moon_count` moons, fewer
             than requested may be generated.
+        bare (bool, optional): Builds each moon without its air, class and spin (`Planet(defer_climate=True)`, GEN.1548) but with its orbit's state, for `Planet.finish_moons` to
+            finish once the orbits are settled.
     """
     if moon_count == 0:
         return
@@ -1766,7 +1799,7 @@ def generate_moons(planet, moon_count=None):
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           mass=moon_mass, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
-                          moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
+                          moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity, defer_climate=bare)
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
             draw.redrawn("moon.too_large")
             rejected += 1
@@ -1774,6 +1807,8 @@ def generate_moons(planet, moon_count=None):
                 break
             continue
         rejected = 0
+        if bare:
+            new_moon.finish_motion()      # GEN.1548: its place on its orbit now (the reflex, the Kozai pumping and the tide read it); the air waits
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
         if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more

@@ -76540,6 +76540,33 @@
    "volume": "124",
    "year": 1996
   },
+  "10.1006/icar.1996.5628": {
+   "authors": [
+    [
+     "Fegley",
+     "B."
+    ],
+    [
+     "Zolotov",
+     "M. Y."
+    ],
+    [
+     "Lodders",
+     "K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1996.5628",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "416",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The Oxidation State of the Lower Atmosphere and Surface of Venus",
+   "type": "journal-article",
+   "volume": "125",
+   "year": 1997
+  },
   "10.1006/icar.1996.5637": {
    "authors": [
     [
@@ -184501,6 +184528,30 @@
    "volume": "493",
    "year": 2020
   },
+  "10.1093/mnras/staa2385": {
+   "arxiv": "2008.07406",
+   "authors": [
+    [
+     "Krivov",
+     "A. V."
+    ],
+    [
+     "Wyatt",
+     "M. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/staa2385",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "718",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Solution to the debris disc mass problem: planetesimals are born small?",
+   "type": "journal-article",
+   "volume": "500",
+   "year": 2020
+  },
   "10.1093/mnras/staa2391": {
    "authors": [
     [
@@ -255266,6 +255317,7 @@
    "year": 2020
   },
   "10.3847/1538-4357/ab9362": {
+   "arxiv": "2004.14058",
    "authors": [
     [
      "Graham",
@@ -255330,6 +255382,26 @@
    "title": "Photochemistry of Anoxic Abiotic Habitable Planet Atmospheres: Impact of New H 2 O Cross Sections",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "896",
+   "year": 2020
+  },
+  "10.3847/1538-4357/ab94a4": {
+   "arxiv": "2005.09092",
+   "authors": [
+    [
+     "Chambers",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/ab94a4",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "96",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Effect of Seafloor Weathering on Planetary Habitability",
+   "type": "journal-article",
    "volume": "896",
    "year": 2020
   },
@@ -284606,7 +284678,19 @@
   }
  },
  "id_aliases": {},
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
  "id_next": 5250,
+=======
+ "id_next": 5249,
+>>>>>>> origin/claude/lane14-gen1561
+=======
+ "id_next": 5251,
+>>>>>>> origin/claude/lane15-gen1713
+=======
+ "id_next": 5252,
+>>>>>>> origin/claude/lane21-gen1670
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -284704,6 +284788,7 @@
   "10.1006/icar.1996.0113": "R3316",
   "10.1006/icar.1996.0117": "R1584",
   "10.1006/icar.1996.0190": "R3565",
+  "10.1006/icar.1996.5628": "R5251",
   "10.1006/icar.1996.5637": "R5218",
   "10.1006/icar.1996.5653": "R2730",
   "10.1006/icar.1997.5705": "R1978",
@@ -287610,6 +287695,7 @@
   "10.1093/mnras/staa220": "R1116",
   "10.1093/mnras/staa2289": "R3522",
   "10.1093/mnras/staa236": "R4434",
+  "10.1093/mnras/staa2385": "R5248",
   "10.1093/mnras/staa2391": "R2021",
   "10.1093/mnras/staa2487": "R3282",
   "10.1093/mnras/staa2615": "R3545",
@@ -289277,6 +289363,7 @@
   "10.3847/1538-4357/ab8937": "R0286",
   "10.3847/1538-4357/ab9362": "R1660",
   "10.3847/1538-4357/ab9363": "R3662",
+  "10.3847/1538-4357/ab94a4": "R5250",
   "10.3847/1538-4357/ab9806": "R3195",
   "10.3847/1538-4357/abac0b": "R1231",
   "10.3847/1538-4357/abad9a": "R1152",
@@ -290498,10 +290585,12 @@
   "arxiv:2004.07274": "R0636",
   "arxiv:2004.08972": "R0439",
   "arxiv:2004.09586": "R0889",
+  "arxiv:2004.14058": "R1660",
   "arxiv:2005.00482": "R0750",
   "arxiv:2005.03055": "R3453",
   "arxiv:2005.03573": "R4822",
   "arxiv:2005.05283": "R2869",
+  "arxiv:2005.09092": "R5250",
   "arxiv:2005.11939": "R1513",
   "arxiv:2005.14671": "R0353",
   "arxiv:2006.00645": "R0957",
@@ -290524,6 +290613,7 @@
   "arxiv:2008.01968": "R0766",
   "arxiv:2008.05513": "R4528",
   "arxiv:2008.05992": "R1152",
+  "arxiv:2008.07406": "R5248",
   "arxiv:2008.07469": "R0308",
   "arxiv:2008.08430": "R0373",
   "arxiv:2008.09700": "R1866",

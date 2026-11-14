@@ -11,6 +11,7 @@ from the host's mass, where its tide and its light are the ambient floor; the ho
 distance takes it out of every one of them.
 """
 
+from planetgen.generation import life
 from planetgen.generation.planet import Planet
 from planetgen.physics import clearance_ledger, constants, rogue_moons
 
@@ -121,4 +122,6 @@ def build_rogue_body(system_config, host, event, moon_count=None):
     planet = Planet(system_config, host, host.habitable_zone, FAR_AU, mass=event.mass_kg, moon_count=0, formation_distance_au=event.formation_au)
     planet.hill_radius = event.moon_limit_km / clearance_ledger.moon_hill_fraction(0.0)[0]
     planet.add_moons(moon_count)
+    for body in (planet, *planet.moons):
+        life.decide_flavor_text_alone(body)      # GEN.1433: a rogue planet and its moons show a line of the starless branch
     return planet

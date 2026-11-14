@@ -663,6 +663,7 @@ NOT_SHOWN = {
                    "orbital_index")),
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
+        "host_node_id": "the orbit tree node; bookkeeping",
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
         "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the belt's information page lists the shares (`belt_page.fates_list`)",
@@ -714,6 +715,9 @@ NOT_SHOWN = {
         **{f"velocity_{axis}_kms": "a component of its galactic motion; the orbit rows summarize it" for axis in "xyz"},
     },
 }
+
+for _kind in ("star", "belt", "comet", "nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant", "interstellar_comet", "quasar"):
+    NOT_SHOWN[_kind]["flavor_key"] = "which flavor line the page says after \"Sensors show\" (GEN.1433); the page prints the line, so the id is bookkeeping"
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
 
 
