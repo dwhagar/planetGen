@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4108] - 2026-11-14
+
+**Headline:** a spelling fix in a code comment (no change to any output).
+
+### Changed
+
+- `hot_giant_profile.py`: one British spelling in a docstring made the American-spelling test red on main.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4107] - 2026-11-14
 
 **Headline:** A sector page now keeps one wireframe fixed round its own sector with an icon on the middle of each edge that opens the sector beside it, and the stars of one wide binary or multiple system are joined by dashed links and named once on the Galaxy Map.
