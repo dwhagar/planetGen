@@ -948,7 +948,6 @@ planetgen.physics.radiative_convective:SURFACE_TOLERANCE_K
 planetgen.physics.radiative_kernel:PATH_FLOOR
 planetgen.physics.radiative_kernel:PATH_TINY
 planetgen.physics.radiogenic:BULK_SILICATE_EARTH_AL2O3_FRACTION
-planetgen.physics.radiogenic:CI_CHONDRITE_K_OVER_U
 planetgen.physics.radius_valley:AGE_GY
 planetgen.physics.radius_valley:BIN_EDGES_D
 planetgen.physics.radius_valley:HISTOGRAM_BINS

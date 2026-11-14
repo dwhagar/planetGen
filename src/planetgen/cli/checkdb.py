@@ -21,13 +21,12 @@ uses).
 """
 
 import json
-import signal
 import sys
 
 from planetgen.db import check as db_check, store
 from planetgen.generation import run_common
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
-from planetgen.util import log
+from planetgen.util import log, process
 
 
 def add_check_db_arguments(parser):
@@ -58,13 +57,6 @@ def add_check_db_arguments(parser):
     parser.add_argument("--estimate-only", action="store_true",
                         help="With the systems check: print the time estimate and stop (the Generate page uses it).")
     store.add_mysql_connection_args(parser)
-
-
-def _stop_on_sigterm():
-    """Makes SIGTERM end the run as canceled in Redis, as Ctrl+C does."""
-    def on_term(_signum, _frame):
-        raise KeyboardInterrupt
-    signal.signal(signal.SIGTERM, on_term)
 
 
 def _confirm_systems(args, config, scope):
@@ -110,7 +102,7 @@ def run_check_db(args):
                                    "wide_binaries": args.wide_binaries})
         if not _confirm_systems(args, config, scope):
             return
-    _stop_on_sigterm()
+    process.interrupt_on_sigterm()
     results = []
 
     def on_result(index, _unit, result):

@@ -11,7 +11,7 @@ that type's fields, an affiliation and five ratings.
 
 from planetgen.db import storage_checksum
 from planetgen.population import facility_ratings as ratings
-from planetgen.population.facility_types import FacilityTypeError, definition_fields, get_type, parse_value, value_column
+from planetgen.population.facility_types import FacilityTypeError, definition_fields, parse_value, require_type, value_column
 
 MAX_NOTE_LENGTH = 4000
 """int: The longest `ratings_note`."""
@@ -19,17 +19,16 @@ MAX_NOTE_LENGTH = 4000
 
 def _resolve_type(conn, kind, attrs, current):
     """The type a facility ends up with: `(type_id or None, changed)`; checks it exists, is active and fits `kind`."""
+    held = (current or {}).get("type_id")
     if "type_id" not in attrs:
-        return (current or {}).get("type_id"), False
+        return held, False
     type_id = attrs["type_id"]
     if type_id is None:
-        return None, (current or {}).get("type_id") is not None
-    found = get_type(conn, type_id)
-    if found is None:
-        raise FacilityTypeError(f"no such facility type: {type_id}", status=404)
+        return None, held is not None
+    found = require_type(conn, type_id)
     if found["kind"] != kind:
         raise FacilityTypeError(f"{found['name']!r} is a {found['kind']} type; this facility is a {kind}")
-    changed = type_id != (current or {}).get("type_id")
+    changed = type_id != held
     if changed and not found["active"]:
         raise FacilityTypeError(f"{found['name']!r} is retired")
     return type_id, changed

@@ -18,6 +18,7 @@ from planetgen.web.lib.datatable import parse_state, view
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset
 
 from . import bp
+from .helpers import json_error as _json_error
 
 TABLES = {}
 """dict[str, Table]: Every registered table by name."""
@@ -55,12 +56,6 @@ def _whole(raw, default, lowest):
         return max(lowest, int(raw))
     except (TypeError, ValueError):
         return default
-
-
-def _json_error(message, status):
-    response = jsonify({"error": message})
-    response.status_code = status
-    return response
 
 
 @bp.route("/table/<name>")

@@ -175,7 +175,7 @@ def join(conn, type_, title, who=None, database=None, kind=None, fields=None, fo
         "queued_at": now, "seq": seq, **{key: "" if value is None else str(value) for key, value in (fields or {}).items()}})
     conn.expire(_entry_key(ticket), KEEP_SECONDS)
     if type_ == RUN:
-        conn.set(_alive_key(ticket), "1", ex=ALIVE_SECONDS)
+        sign_of_life(conn, ticket)
     return ticket
 
 

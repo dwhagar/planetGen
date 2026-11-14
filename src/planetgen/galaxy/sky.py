@@ -211,7 +211,9 @@ def star_colours(temperature_k):
     return np.stack([np.interp(x, log_t, rows[:, k]) for k in range(3)], axis=1)
 
 
-def _extinction(observer_pc, direction, distance_pc, dust):
+def extinction_av(observer_pc, direction, distance_pc, dust):
+    """The dust `A_V` from `observer_pc` to each of the points `distance_pc` away along `direction` (`(n, 3)` unit vectors),
+    `DUST_CHUNK` at a time (`sky_photometry.galactic_extinction_av` with the `dust` overrides)."""
     out = np.empty(len(distance_pc))
     for start in range(0, len(distance_pc), DUST_CHUNK):
         sl = slice(start, start + DUST_CHUNK)
@@ -260,31 +262,24 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
     if len(index) == 0:
         return nothing
 
-    position = np.asarray(stars.position_pc, dtype=float)[index]
-    epoch = np.asarray(stars.epoch_unix, dtype=float)[index].copy()
+    def column(name):
+        return np.asarray(getattr(stars, name), dtype=float)[index]
+    position = column("position_pc")
+    epoch = column("epoch_unix").copy()
     no_epoch = ~np.isfinite(epoch)
     report["unknown_epoch"] = int(no_epoch.sum())
     epoch[no_epoch] = at_unix
-    velocity = np.asarray(stars.velocity_kms, dtype=float)[index].copy()
+    velocity = column("velocity_kms").copy()
     unknown = ~np.all(np.isfinite(velocity), axis=1)
     report["unbuilt_velocity"] = int(unknown.sum())
     if unknown.any():
-        if circular_speed_kms is None:
-            pot = galacticPotential.current()
-            circular_speed_kms = lambda radius: galacticPotential.circular_speed_kms(pot, radius)
-        velocity[unknown] = unbuilt_velocity_kms(position[unknown], np.asarray(stars.uid)[index][unknown], galaxy_key, circular_speed_kms)
-
-    # The observer at each star's own epoch, so that star(t) - observer(t) is what retarded_offsets works out.
+        velocity[unknown] = unbuilt_velocity_kms(position[unknown], np.asarray(stars.uid)[index][unknown], galaxy_key,
+                                                 circular_speed_function(circular_speed_kms))
     obs_position = np.asarray(observer.position_pc, dtype=float).reshape(3)
-    obs_velocity = np.asarray(observer.velocity_kms, dtype=float).reshape(3)
-    obs_epoch = float(observer.epoch_unix)
-    obs_at_star = obs_position[None, :] + _km_to_pc_per_s(obs_velocity)[None, :] * (epoch - obs_epoch)[:, None]
-    offsets, light_time_s = light_travel.retarded_offsets(
-        _pc_to_m(position - obs_at_star), _km_to_m(velocity) , _km_to_m(obs_velocity), at_unix - epoch)
+    offsets, light_time_s = apparent_offsets(observer, position, velocity, epoch, at_unix)
     light_time_years = light_time_s / _yr_to_s(1.0)
 
-    age = np.asarray(stars.age_years, dtype=float)[index]
-    phase_end = np.asarray(stars.phase_end_age_years, dtype=float)[index]
+    age, phase_end = column("age_years"), column("phase_end_age_years")
     seen, formed, other_phase = light_travel.seen_age(age * _yr_to_s(1.0), light_time_s, phase_end * _yr_to_s(1.0))
     formed = formed | ~np.isfinite(age)
     other_phase &= np.isfinite(age)
@@ -293,13 +288,12 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
 
     distance = _m_to_pc(np.sqrt(np.sum(offsets * offsets, axis=1)))
     usable = formed & (distance > 0.0)
-    luminosity = np.asarray(stars.luminosity_sol, dtype=float)[index]
-    temperature = np.asarray(stars.temperature_k, dtype=float)[index]
+    luminosity, temperature = column("luminosity_sol"), column("temperature_k")
     clear = np.full(len(index), np.inf)
     clear[usable] = sky_photometry.apparent_magnitude(luminosity[usable], temperature[usable], distance[usable])
     candidate = np.nonzero(clear <= limit)[0]                      # dust only dims, so a star fainter than the limit without it stays out
     direction = offsets[candidate] / (distance[candidate, None] * _pc_to_m(1.0))
-    a_v = _extinction(obs_position, direction, distance[candidate], dust) if len(candidate) else np.empty(0)
+    a_v = extinction_av(obs_position, direction, distance[candidate], dust) if len(candidate) else np.empty(0)
     magnitude = clear[candidate] + a_v
     bright = magnitude <= limit
     chosen = candidate[bright]
@@ -324,6 +318,23 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
 def _km_to_pc_per_s(velocity_kms):
     """A velocity in km/s as parsecs a second."""
     return _m_to_pc(_km_to_m(np.asarray(velocity_kms, dtype=float)))
+def circular_speed_function(circular_speed_kms=None):
+    """`circular_speed_kms` (a function of the radius in parsecs, arrays, giving km/s), or the running galaxy's potential's
+    (`galaxy.potential.current`) when `None`: what the stand-in velocities turn with."""
+    if circular_speed_kms is not None:
+        return circular_speed_kms
+    pot = galacticPotential.current()
+    return lambda radius: galacticPotential.circular_speed_kms(pot, radius)
+def apparent_offsets(observer, position_pc, velocity_kms, epoch_unix, at_unix):
+    """`(offsets_m, light_time_s)` of `light_travel.retarded_offsets` for objects at `position_pc` (`(n, 3)`) moving at
+    `velocity_kms` (`(n, 3)`) at their own `epoch_unix` (`(n,)`), seen by `observer` (a `sky.Observer`) at `at_unix`: the
+    observer is first brought to each object's own epoch, so that object(t) - observer(t) is what the light time is worked
+    out from."""
+    obs_position = np.asarray(observer.position_pc, dtype=float).reshape(3)
+    obs_velocity = np.asarray(observer.velocity_kms, dtype=float).reshape(3)
+    obs_at_object = obs_position[None, :] + _km_to_pc_per_s(obs_velocity)[None, :] * (epoch_unix - float(observer.epoch_unix))[:, None]
+    return light_travel.retarded_offsets(_pc_to_m(position_pc - obs_at_object), _km_to_m(velocity_kms), _km_to_m(obs_velocity),
+                                         at_unix - epoch_unix)
 
 
 def sky_from(observer, source, at_unix, limit=DEFAULT_LIMIT, galaxy_key="", circular_speed_kms=None, dust=None, max_distance_pc=MAX_DISTANCE_PC):
