@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4095] - 2026-11-14
+
+**Headline:** The fourth layered-fixes cleanup, from a read of every code section: the physics constants come from one table, and the helpers each package wrote two to sixteen times (host-star lookups, bracketing on a grid, npz loaders, hash loops, SQL position columns, FITS card parsing, name joins) are one function each; five real bugs found on the way are fixed, and nothing the generator draws or the pages show changes.
+
+### Fixed
+- **The system page could write over its own input.** `web/system_page` named its temporary input file the same as the `--output` file, so a run with both on the same path lost the input.
+- **A course inside a system gave a 404 page.** `web/system_pages._course_in_system` raised `NotFoundError` where the page expected a plain refusal.
+- **Secure sessions were logged as anonymous.** `api/calllog` read `SESSION_COOKIE_NAME` instead of `session_cookie_name()`, so a `__Host-` session cookie was never found.
+- **A failed stage write left its temporary file.** `queue/progress_file.set_stage` now removes the temporary file on every error path.
+- **A rearranger message read "comes laterrearranger".** Two string literals in `admin/plans.py` lacked their joining space.
+- **Unused imports** in `describe/sheet.py`, `describe/heavy_rows.py`, `admin/edits.py`, `admin/plans.py`, `cli/benchmark_suite.py`, `datasets/isochrones.py` and others are gone.
+
+### Changed
+- **Physics constants come from `physics/constants`.** About 340 hand-copied values across the physics package (G, the solar mass, radius and temperature, the astronomical unit, seconds per year, molar masses) read the one table; each fold was checked by running the same snippet before and after.
+- **The describe package.** `describe/host_star.py` is the one lookup of a body's star (by `star_id`, else the first star of its system), used by the clock, heavy-element, influx, sky-size and sheet rows; the sheet's strength, spin, habitability, ring and at-a-glance row sets are written once; `build.py` shares `_wobble_row`, `_barycenter_offsets` and `join_words`.
+- **The datasets package.** `datasets/axes.py` holds `bracket`, `cumulative_integral` and `cell_means` (the isochrone, track, ozone, CIA and stellar-spectra readers each had a copy); `fetch.load_arrays` is the one `.npz` loader (four copies); `fetch._sha256_of` reuses `_sha256_of_open`; `evolved_tracks.Grid._blend` serves `light` and `landmark_fracs` with the same float32-then-float64 arithmetic; `ir_ktables._card_value` parses a FITS card once; `isochrones` imports `evolved_tracks` at the top.
+- **The names package.** The codec's permute and unpermute share `_map_digits`, encode and decode share `_digits_per_word`; `naming_key._sector_hex` writes a sector's 14 digits once; `wordsalad._join` is the one prefix-and-suffix seam rule; `generate_sector_name` draws its two words in one expression. The names drawn under fixed streams are identical.
+- **The population package.** `model` shares `_POSITION_MPC` and `_position_pc` (two position queries), `_founding_row` (one `government_for` per polity), `_where` and `_one_species`; `facility_types.require_type` is public and `facility_attrs` uses it instead of its own 404.
+- **The backup package.** `core` shares `_hash_stream`, `_no_backup`, `_write_error` and `_ISO`; the archive writer resolves each source path once; `parts` shares `_coverage` and the busy message, and the parity restore resolves its folder once.
+- **The cli and admin packages.** `cli/generate` shares `WORKERS_HELP`, `_validate_workers`, `_validate_num_orbits`, `_validate_radius_pc`, `_validate_flavor_chances` and `_shape_like_sector`; `cli/benchmark.connection_args` and `GENERATE` serve the benchmark suite too; `util/process.interrupt_on_sigterm` replaces three SIGTERM handlers (`reset`, `checkdb`, `datasets`); `cli/config` shares `_write_as_host` and `settings_view.source_of`; `admin/auth` shares `_insert_audit_row` and the login-failure placeholders; `admin/edits.finish_new_planet` and `name_moons` serve `admin/plans`; `admin/updateguard` shares `_iso`, `_not_updating` and `stop_reason.open_shared_file`; `admin/maintenance._write_error`.
+- **The generation, galaxy, db, web, api, queue and util packages** each had their twice-written helpers folded the same way (listed in the pull request).
+
+- **Left out after Train 26:** the folds in the files Train 26 rewrote (`api/workqueue`, `db/column_units`, `db/store`, `db/nebula_volumes`, `describe/sheet`, `galaxy/nebula_density`, `generation/component_pass`, `planet`, `remnant_orbits`, `run_phenomenon`, `run_plan`, `run_system`, `sky_tiers`, `stellar_object`, `system`, `binary`, `physics/aerosols`, `greenhouse_table`, `mixture_rocky`, `planets`, `radiogenic`, `surface_air`, `queue/api_jobs`, `warmphases`, `web/lib/estimatecache`, `web/queue_page`) keep main's text; the shared helpers those folds would have called (`datasets/axes`, `describe/host_star`, `run_common.write_text_output`) stay for the files that use them.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4094] - 2026-11-14
 
 **Headline:** The third layered-fixes cleanup: the same code written two to six times across the queue, the admin tools, the web pages, the maps, the galaxy model, the physics and the store is one function each (the process-alive check alone had six copies, two of them without the zombie fix the others carried), with nothing the generator, the API or the pages produce changed.
