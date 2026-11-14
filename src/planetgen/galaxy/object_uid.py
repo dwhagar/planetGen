@@ -299,6 +299,17 @@ def designation(belt_id, rank, layout=LAYOUT):
     return _member_text(belt_id, rank, layout)
 
 
+def irregular_designation(planet_id, moon_rank, belt_id=None, belt_rank=None, layout=LAYOUT):
+    """
+    The designation of an irregular moon of a planet (GEN.1086): `<planet ID>.<rank hex>` with the rank the stored `moon_rank` plus one (a designation's rank starts at 1 and the stored rank at 0 for the
+    heaviest), or, for a body that was a stored member of an inner belt, the designation it had there, `<belt ID>.<rank hex>` with the belt's rank (`belt_id` and `belt_rank` both given).
+    A pure function of the numbers, like `designation`.
+    """
+    if belt_id is not None and belt_rank is not None:
+        return designation(belt_id, belt_rank, layout)
+    return designation(planet_id, moon_rank + 1, layout)
+
+
 def parse_designation(text, layout=LAYOUT):
     """
     `(belt_id, rank)` of a member designation: the belt's ID read by `parse_id` and the rank in hex. The case is not significant; the rank has the digits

@@ -103,6 +103,21 @@ def test_the_pages_show_the_list_and_the_body_and_link_each_way(client, planet):
     assert 'id="irregular-example"' in text and "bodyview.js" in text
 
 
+def test_the_system_detail_and_the_system_page_carry_the_irregular_moons_to_the_map(client, planet):
+    """The System Map's irregular scene (`planet-<id>-irregular`) is built from `irregular_moons` of the planet in `GET /api/systems/<id>`."""
+    ref, _row_id, uid, _belt = planet
+    printed = ref.partition(":")[2]    # a body's id in the detail and in the map's scene names is its printed ID
+    system_ref = next(p["ref"] for p in client.get(f"/api/objects/{ref}").get_json()["parents"] if p["kind"] == "system")
+    detail = client.get(f"/api/systems/{system_ref.partition(':')[2]}").get_json()
+    found = next((p for p in detail["planets"] if p["id"] == printed), None)
+    assert found is not None
+    assert [m["rank"] for m in found["irregular_moons"]] == [rank + 1 for rank in RANKS]
+    assert found["irregular_moons"][1]["retrograde"] is True and found["irregular_moons"][0]["designation"] == object_uid.designation(uid, 1)
+    assert all(p["irregular_moons"] == [] for p in detail["planets"] if p["id"] != printed)
+    page = client.get(f"/system/{system_ref.partition(':')[2]}").get_data(as_text=True)
+    assert f'data-scene="planet-{printed}-irregular"' in page and 'data-kind="irregular"' in page and 'data-nav-irregular="' in page
+
+
 def test_the_planet_page_links_its_irregular_moons(client, planet):
     ref = planet[0]
     assert f'href="/object/{ref}/irregular-moons"' in client.get(f"/object/{ref}").get_data(as_text=True)

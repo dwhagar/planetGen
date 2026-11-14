@@ -435,6 +435,10 @@ connectivity to that specific schema rather than the default one.
   `rank`, `moon` (the entry above), `orbit` (the six elements about the planet, the `closest_distance`, `farthest_distance`, `period`, `retrograde` and `hill_fraction`),
   `planet` and the `previous` (heavier) and `next` (lighter) neighbours as `{rank, designation}`; ranks can have gaps where a smaller body was lost. A new route, so the API
   version stays. A reference that is not a planet, a rank not written canonically, or a body the planet does not keep is a `404`.
+- `GET /api/systems/<id>` (GEN.1086) — each planet also has `irregular_moons`, the bodies it caught, heaviest first (an empty list for a planet that keeps none), each `{rank, designation,
+  window, mass_kg, radius_km, density_g_cm3, taxon, rock_fraction, metal_fraction, water_fraction, ice_fraction, distance_km, eccentricity, inclination_deg, ascending_node_deg,
+  arg_periapsis_deg, mean_anomaly_deg, retrograde}` with the orbit about the planet as saved; the System Map draws its irregular-moon scene from them. A new key, so the API version
+  stays.
 - `GET /api/objects/<ref>/belt-members/<rank>` — one body an asteroid belt keeps individually (GEN.1070, `describe/belt_member_info.py`), `rank` written as the
   designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry of `bodies` in the belt's information page:
   mass, diameter, density, `taxon`, composition, `status`, `population`), `orbit` (`semi_major_axis`, `eccentricity`, `inclination`, `ascending_node`,
