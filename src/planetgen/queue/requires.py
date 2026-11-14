@@ -248,7 +248,7 @@ def drop_held(connection, queue_name):
             job.delete()
         dropped += 1
     if dropped:
-        log.normal(f"dropped: {dropped} job(s) held in {queue_name} for a requirement")
+        log.normal(f"Dropped {dropped} job(s) held in {queue_name} for a requirement.")
     return dropped
 
 

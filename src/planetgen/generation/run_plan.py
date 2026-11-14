@@ -44,6 +44,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util import logrecord
 from planetgen.util import step_timer as stepTimer
+from planetgen.util import ticker
 from planetgen.util.ticker import Pulse, Ticker, stamp
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.density import relative_density
@@ -310,6 +311,74 @@ def skeleton_params(args, mysql_config):
     return params
 
 
+class _UnitPhases:
+    """
+    The phases of a unit that works in a few steps without a count of its own (OPS.170, the standard's rule 6): `next(text)` says the
+    phase begins (a log line with the time since the unit began, the unit's phase for the heartbeat, and the unit's `report` moved to the
+    steps done) and `finish()` reports the unit whole. `say` also gets the line, for a unit that keeps its lines for the stage's result.
+
+    Args:
+        report (callable): The unit's `report(done, estimate)`.
+        total (int): How many phases the unit has.
+        say (callable, optional): Gets each line too.
+        loud (bool): False for one of a stage's many units (a range of ids): its lines are debug records, and the stage's bar and the heartbeat carry the progress.
+    """
+
+    def __init__(self, report, total, say=None, loud=True):
+        self.report, self.total, self.done, self._say, self._loud = report, total, 0, say, loud
+        self.began = time.monotonic()
+
+    def next(self, text):
+        line = ticker.stamp(text, self.began)
+        (log.normal if self._loud else log.debug)(line)
+        unitbeat.phase(text[:120])
+        if self._say is not None:
+            self._say(line)
+        self.report(self.done, self.total)
+        self.done += 1
+
+    def within(self, fraction):
+        """The phase begun last is `fraction` (0 to under 1) done: the unit's count moves between two phases, for one that is long and counts its own work."""
+        self.report(max(self.done - 1, 0) + min(max(fraction, 0.0), 0.999), self.total)
+
+    def finish(self):
+        self.report(self.total, self.total)
+
+
+def _battery_waiter(phases):
+    """
+    `on_progress` for the wait on the generator battery's digest process (OPS.184): the bar moves a case at a time, the ticker says the cases and the sampling tables built so far
+    (the cold digest of a new code key is mostly tables), and the unit's heartbeat is told whenever a table was built, so a process that still works never looks quiet and one that
+    does not does.
+    """
+    pace = Ticker("Generator battery digest, cases", total=len(generatorBattery.CASES))
+    seen = []
+
+    def step(cases, total, tables):
+        if seen and seen[-1] == (cases, tables):
+            return
+        seen.append((cases, tables))
+        del seen[:-1]
+        phases.within(cases / total if total else 0.0)
+        unitbeat.moving()
+        pace.tick(cases, detail=f"{tables:,} sampling tables built")
+    return step
+
+
+def _counting(report, label, total, every=100):
+    """
+    `step(done)` for a unit that walks `total` things (OPS.170): moves the unit's `report` every `every` of them and, through the ticker (OPS.169), says
+    `Label: 4,000 of 200,000 done (2%), ...` every `PROGRESS_LOG_SECONDS`, so a long unit shows a bar and a line instead of only the heartbeat.
+    """
+    pace = Ticker(label, total=total)
+
+    def step(done):
+        if done % every == 0 or done == total:
+            report(done, max(total, 1))
+            pace.tick(done)
+    return step
+
+
 def expand_plan_skeleton(params):
     """The `plan-skeleton` command's stage: one unit, the whole skeleton, given the command's parameters."""
     return commands.Expansion([(params, 1.0)], {})
@@ -328,7 +397,7 @@ def plan_skeleton_unit(params, report):
 
     Args:
         params (dict): `skeleton_params`.
-        report (callable): Unused: the unit is one step.
+        report (callable): `report(done, 9)` as each of the unit's nine phases begins (OPS.170), each also a log line and the unit's phase.
 
     Returns:
         dict: `summary` (`outer_shell_index`, `reach_shell_index`, `shell_count`, `total_candidate_sectors`,
@@ -343,6 +412,7 @@ def plan_skeleton_unit(params, report):
     lines = []
     say = lines.append
     timer = stepTimer.StepTimer()
+    phases = _UnitPhases(report, 9)
     edge_pc = run_common._edge_pc()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
     threshold_rho = 1.0 / e_value
@@ -364,6 +434,7 @@ def plan_skeleton_unit(params, report):
                              f"a different --seed needs a wiped galaxy.")
         # A new outline invalidates every pre-placed bright star (schema v43) and with it the phenomena and the nebula
         # field drawn on the old one: a plan alone leaves them to the scatters, which draw them again (PERF.121).
+        phases.next("Clearing the scatters the old outline drew")
         with timer.step("clearing the scatters the old outline drew"):
             store.clear_bright_stars(conn)
             store.clear_phenomenon_scatter(conn)
@@ -379,6 +450,7 @@ def plan_skeleton_unit(params, report):
         # process of its own while the rest of the plan runs, instead of waited for at the end (PERF.176).
         finish_battery = generatorBattery.start_running_digest() if galaxy_seed != stored_seed else None
         shape_args = types.SimpleNamespace(**{name: dials.restored(params.get(name)) for name in SKELETON_OPTIONS})
+        phases.next("Building the galaxy's outline")
         built = planOutline.build(shape_args, galaxy_seed, edge_pc, reach_shell_index)
         shape, drawn, found, young, dwarfs = built.shape, built.drawn, built.clusters, built.young, built.satellites
         say(
@@ -391,6 +463,7 @@ def plan_skeleton_unit(params, report):
             f"lowest density kept {threshold_rho:.6f} x the local average"
         )
         say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")
+        phases.next("Working out the outline's report")
         with timer.step("the report lines (pins, halo, outline)"):
             halo_line, halo_warning = shapeDraw.halo_report(drawn)
             made = planOutline.report(built)
@@ -403,6 +476,7 @@ def plan_skeleton_unit(params, report):
         if made.empty:
             raise ValueError(planOutline.EMPTY_OUTLINE_REASON)
         timer.steps.extend(built.timer.steps)
+        phases.next("Storing the clusters and satellites")
         with timer.step("storing the clusters and satellites"):
             store.replace_galaxy_components(conn, found + young, kind="cluster")
             store.replace_galaxy_components(conn, dwarfs, kind="satellite")
@@ -417,11 +491,14 @@ def plan_skeleton_unit(params, report):
     extents, outer_shell_index, edge_confirmed = built.extents, built.outer_shell_index, built.edge_confirmed
     elapsed = built.elapsed_s
 
+    phases.next("Storing the shells")
     with timer.step("storing the shells"):
         store.replace_galaxy_shells(extents, config=mysql_config)
     if finish_battery is not None:
+        phases.next("Waiting for the generator battery's digest")
         with timer.step("the generator battery's digest, as far as it was waited for"):
-            finish_battery()
+            finish_battery(_battery_waiter(phases))
+    phases.next("Storing the galaxy's shape")
     with timer.step("storing the shape"):
         galaxy_seed = store.save_galaxy_shape(
             shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
@@ -434,6 +511,7 @@ def plan_skeleton_unit(params, report):
             pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(shape_args, drawn),
             pins=shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc),
         )
+    phases.next("Storing the containers")
     with timer.step("storing the containers"):
         say(_store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index))
     core_floor = params.get("core_min_luminosity")
@@ -456,8 +534,10 @@ def plan_skeleton_unit(params, report):
     else:
         source = "drawn at random"
     say(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
+    phases.next("Drawing the naming key")
     with timer.step("the naming key"):
         say(_draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed))
+    phases.finish()
     timer.steps.append(("the rest of the unit (the checks, the report, the limits)",
                         max(0.0, time.perf_counter() - unit_started - timer.total())))
     if params.get("timing"):
@@ -492,7 +572,27 @@ def _store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index):
     return f"Stored {clusters:,} globular clusters and {len(made) - clusters:,} superbubbles as containers."
 
 
-class SkeletonFollower(followed.Follower):
+class UnitBarFollower(followed.Follower):
+    """
+    A stage of one unit whose own reports (`report(done, estimate)`, OPS.170) move a share-done bar: drawn only if the unit runs past
+    `tuning.PROGRESS_BAR_SECONDS` (`steps.Step`, UX.289), full when the unit is back. A subclass names the stage's `key` and `label`.
+    """
+
+    bar = None
+
+    def on_plan(self, plan):
+        self.bar = self.hold(steps.Step(self.label, None, 1.0, args=self.args, progress=self.progress, percent=True, record=False, predicted=0.0))
+
+    def on_progress(self, unit, done, estimate):
+        if self.bar is not None:
+            self.bar.update(completed=min(done / max(estimate, 1e-9), 1.0), total=1.0)
+
+    def on_result(self, unit, result):
+        if self.bar is not None:
+            self.bar.update(completed=1.0, total=1.0)
+
+
+class SkeletonFollower(UnitBarFollower):
     """
     The galaxy skeleton as a stage of a run (PERF.106, PERF.202): the `plan-skeleton` command builds it in one unit
     (`plan_skeleton_unit`) and this side logs what the unit says. The skeleton stage is only that unit, so the unit that
@@ -513,6 +613,7 @@ class SkeletonFollower(followed.Follower):
         return skeleton_params(self.args, store.mysql_config_from_args(self.args))
 
     def on_result(self, unit, result):
+        super().on_result(unit, result)
         for line in result["lines"]:
             log.normal(line)
         self.summary = result["summary"]
@@ -608,8 +709,8 @@ class _BrightStarBook:
             f"{self.min_luminosity_sol:g} L_sun bright) in {summary['elapsed_s']:.1f}s: "
             + ", ".join(f"{count:,} {population}" for population, count in summary["counts"].items()) + "."
         )
-        log.debug(f"bright-star scatter: {summary['total']} stars, seed {self.seed}, threshold {self.min_luminosity_sol:g} L_sun, "
-                  f"mass limit {self.mass_limit:g} solar masses")
+        log.debug("Bright-star scatter: %s stars, seed %s, threshold %g L_sun, mass limit %g solar masses.", summary["total"], self.seed,
+                  self.min_luminosity_sol, self.mass_limit)
 
 
 def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=""):
@@ -736,13 +837,15 @@ def clear_bright_stars_unit(params, report):
     limits `clear_floor_sol` and `clear_limit_sol` name (`store.clear_bright_star_pass`). No `clear`, nothing is emptied.
 
     Returns:
-        dict: `cleared`, what was emptied (`"all"`, `"luminosity"` or `None`).
+        dict: `cleared`, what was emptied (`"all"`, `"luminosity"` or `None`); the unit says the phase and reports the step (OPS.170).
     """
     clear = params.get("clear")
     if clear is None:
         return {"cleared": None}
+    phases = _UnitPhases(report, 1)
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        phases.next("Emptying the bright stars" if clear == "all" else "Emptying the luminosity pass of the bright stars")
         if clear == "all":
             store.clear_bright_stars(conn)
         else:
@@ -750,10 +853,11 @@ def clear_bright_stars_unit(params, report):
                 store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]))
     finally:
         conn.close()
+    phases.finish()
     return {"cleared": clear}
 
 
-class ClearBrightStarsFollower(followed.Follower):
+class ClearBrightStarsFollower(UnitBarFollower):
     """
     The emptying of the earlier bright stars as a stage of a run (OPS.123): the `clear-bright-stars` command, one unit, before the
     first pass of the scatter. It reads the same deferred settings as that pass (`bright_star_followers`), so what it empties is
@@ -1671,7 +1775,7 @@ def add_bright_star_band(args):
         + ", ".join(f"{count:,} {population}" for population, count in counts.items())
         + f". The star-fill level is now {target:g} L_sun."
     )
-    log.debug(f"bright-star band: {total} stars, seed {seed}, {target:g} to {current:g} L_sun")
+    log.debug("Bright-star band: %s stars, seed %s, %g to %g L_sun.", total, seed, target, current)
     return {"counts": counts, "total": total, "elapsed_s": elapsed,
             "from_luminosity_sol": current, "to_luminosity_sol": target}
 
@@ -2059,6 +2163,8 @@ def scatter_phenomena_unit(unit_args, report):
     A `scatter-phenomena` unit (PERF.106): the shells `_phenomenon_shells_task` draws and writes for a run of shells,
     from plain JSON arguments; the galaxy's shape and components come from the database as `scatter_shells_unit`'s do.
 
+    The unit reports the runs of shells it has drawn and written (`report(done, runs)`) and says its progress through the ticker (OPS.170).
+
     Returns:
         dict: `_phenomenon_shells_task`'s, plus `seconds` the unit took.
     """
@@ -2076,7 +2182,8 @@ def scatter_phenomena_unit(unit_args, report):
         "reach": unit_args["reach"], "components": _galaxy_components(mysql_config) if unit_args["component_parts"] else None,
         "component_parts": unit_args["component_parts"],
         "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1, "seed": unit_args["seed"],
-        "min_mass_solar": unit_args["min_mass_solar"], "skip": {tuple(address) for address in unit_args["skip"]}})
+        "min_mass_solar": unit_args["min_mass_solar"], "skip": {tuple(address) for address in unit_args["skip"]},
+        "report": report})
     result["seconds"] = time.monotonic() - started
     placed = sum(result["counts"].values())
     weight = unit_args["weight"]
@@ -2188,11 +2295,14 @@ def draw_nebula_field_unit(params, report):
     finally:
         conn.close()
     drawn = []
+    phases = _UnitPhases(report, params["count"], loud=params["count"] > 1)      # a unit of one slab is one of many: the stage's bar carries it
     for i in range(params["i"], params["i"] + params["count"]):
+        phases.next(f"Drawing slab {i:,} of the nebula field")
         drawn.append({**_nebula_field_task({
             "mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape, "i": i,
             "radius_pc": params["radius_pc"], "half_height_pc": params["half_height_pc"], "edge_pc": params["edge_pc"],
             "outer_shell": params["outer_shell"]}), "slab": i})
+    phases.finish()
     return {"written": sum(result["written"] for result in drawn), "slab": params["i"], "count": params["count"],
             "drawn": drawn}
 
@@ -2277,19 +2387,22 @@ def empty_nebula_field_unit(params, report):
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
     """
+    phases = _UnitPhases(report, 1)
     conn = store.get_connection(_mysql_config_of(params))
     try:
         if store.get_galaxy_shape(conn) is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
         emptied = bool(_outline(conn))
         if emptied:
+            phases.next("Emptying the nebula field")
             store.clear_nebula_field(conn)
     finally:
         conn.close()
+    phases.finish()
     return {"emptied": emptied}
 
 
-class EmptyNebulaFieldFollower(followed.Follower):
+class EmptyNebulaFieldFollower(UnitBarFollower):
     """The emptying of the nebula field table as a stage of a run (OPS.123): the `empty-nebula-field` command, one unit, before the draw."""
 
     key = "nebula-clear"
@@ -2368,20 +2481,25 @@ def fill_map_luminosity_unit(params, report):
     Returns:
         dict: `filled`, the rows filled, and `ids`, how many ids the unit covered (for the bar).
     """
+    phases = _UnitPhases(report, 3, loud=False)      # one of many units: the stage's bar carries the progress
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        phases.next(f"Finding the cells of ids {params['low']:,} to {params['high']:,} that get a value")
         # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
         # block light stage rolls the parts up instead of making them again from every object.
         cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
             "SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL"
             " AND map_luminosity_sol IS NULL AND built_at IS NULL", (params["low"], params["high"])).fetchall()]
+        phases.next("Filling the map luminosity")
         cursor = conn.execute(
             f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
             " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
             (params["low"], params["high"]))
         if cells:
+            phases.next(f"Putting the parts of {len(cells):,} cells right")
             block_lights.sync_cells(conn, cells)
         conn.commit()
+        phases.finish()
         return {"filled": cursor.rowcount, "ids": params["high"] - params["low"] + 1}
     finally:
         conn.close()
@@ -2505,24 +2623,26 @@ def rescore_habitability_unit(params, report):
     Returns:
         dict: `updated`, the bodies updated, and `ids`, how many ids the unit covered (for the bar).
     """
-    return _run_stale_unit(params, "habitability", _rescore_habitability_systems, "re-score")
+    return _run_stale_unit(params, "habitability", _rescore_habitability_systems, "habitability re-score", report)
 
 
-def _rescore_habitability_systems(conn, system_ids):
-    """The work of a `rescore-habitability` unit: the habitability numbers of `system_ids`, the bodies updated."""
+def _rescore_habitability_systems(conn, system_ids, step=lambda done: None):
+    """The work of a `rescore-habitability` unit: the habitability numbers of `system_ids`, the bodies updated; `step(done)` after each system."""
     updated = 0
-    for system_id in system_ids:
+    for done, system_id in enumerate(system_ids, start=1):
         updated += store.refresh_habitability(conn, system_id)
+        step(done)
     if system_ids:
         store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
     return updated
 
 
-def _run_stale_unit(params, family, work, what):
+def _run_stale_unit(params, family, work, what, report):
     """
     One unit of a command that walks stamped systems (`rescore_habitability_unit`, `refill_effect_ledger_unit`): the systems of ids `low` to `high` whose `family` stamp is not current
     (every system with `all`), in one transaction at READ COMMITTED, retried when it hit a deadlock or a lock wait timeout against another worker's range (PERF.228,
-    `store.RETRYABLE_ERRORS`, up to `store.SECTOR_SAVE_ATTEMPTS` times). `work(conn, system_ids)` does the writing and returns the count for the bar; `what` names the work in the log.
+    `store.RETRYABLE_ERRORS`, up to `store.SECTOR_SAVE_ATTEMPTS` times). `work(conn, system_ids, step)` does the writing and returns the count for the bar, calling `step(done)` after each system; `what` names the work in the log.
+    The unit says what it found, reports the systems it has done (`report(done, total)`) and logs its progress through the ticker (OPS.170).
     """
     config = _mysql_config_of(params)
     for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
@@ -2538,7 +2658,11 @@ def _run_stale_unit(params, family, work, what):
                 system_ids = [row["id"] for row in conn.execute(
                     "SELECT ss.id FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
                     f" WHERE ss.id BETWEEN ? AND ? AND {condition} ORDER BY ss.id", (params["low"], params["high"], *values)).fetchall()]
-            updated = work(conn, system_ids)
+            phases_text = f"The {what} of {len(system_ids):,} systems (ids {params['low']:,} to {params['high']:,})"
+            log.debug(f"{phases_text} begins.")
+            unitbeat.phase(phases_text[:120])
+            report(0, max(len(system_ids), 1))
+            updated = work(conn, system_ids, _counting(report, f"{what[:1].upper()}{what[1:]}, systems", len(system_ids)))
             conn.commit()
             return {"updated": updated, "ids": params["high"] - params["low"] + 1, "systems": len(system_ids)}
         except pymysql.err.OperationalError as exc:
@@ -2562,12 +2686,16 @@ def refill_effect_ledger_unit(params, report):
     Returns:
         dict: `updated`, the ledger rows written, `ids`, how many ids the unit covered (for the bar), and `systems`, the systems refilled.
     """
-    return _run_stale_unit(params, "ledger", _refill_ledger_systems, "ledger refill")
+    return _run_stale_unit(params, "ledger", _refill_ledger_systems, "ledger refill", report)
 
 
-def _refill_ledger_systems(conn, system_ids):
-    """The work of a `refill-effect-ledger` unit: the light and ultraviolet rows of `system_ids`, the rows written."""
-    return sum(store.refresh_effect_ledger(conn, system_id) for system_id in system_ids)
+def _refill_ledger_systems(conn, system_ids, step=lambda done: None):
+    """The work of a `refill-effect-ledger` unit: the light and ultraviolet rows of `system_ids`, the rows written; `step(done)` after each system."""
+    written = 0
+    for done, system_id in enumerate(system_ids, start=1):
+        written += store.refresh_effect_ledger(conn, system_id)
+        step(done)
+    return written
 
 
 class HabitabilityFollower(BatchFollower):
@@ -2753,8 +2881,7 @@ def refresh_block_lights(mysql_config, args=None):
             with run_common._generation_progress() as progress:
                 log.set_console(progress.console)
                 try:
-                    log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept; "
-                               "made again from every pre-placed object only when they do not match)...")
+                    log.normal("Making the block light totals for the Galaxy Map from the parts the scatters kept (made again only when they do not match)...")
                     ticker = Ticker("Making the block light totals", total=1.0, percent=True)
                     with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
@@ -2795,7 +2922,7 @@ def fill_block_totals(args):
         conn.commit()
         counted = galaxy_counts.rebuild(conn)    # DB.121: the sectors' counts and the galaxy's running totals
         log.normal(f"Made the stored counts of {counted:,} sectors and the galaxy's totals.")
-        lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
+        lights, uncharted = make_block_lights(conn, lambda done, total: log.debug("Block light totals: %.0f of %.0f.", done, total), log.normal,
                                               getattr(args, "generation_run_id", None), rebuild=True)      # MAP.402; the repair makes the parts again too (GEN.1476)
     finally:
         conn.close()
@@ -3322,11 +3449,14 @@ def empty_phenomenon_scatter_unit(params, report):
     Returns:
         dict: `emptied`, always true.
     """
+    phases = _UnitPhases(report, 1)
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        phases.next("Emptying the phenomenon scatter")
         store.clear_phenomenon_scatter(conn)
     finally:
         conn.close()
+    phases.finish()
     return {"emptied": True}
 
 
@@ -3344,15 +3474,18 @@ def drop_phenomenon_indexes_unit(params, report):
     Returns:
         dict: `dropped`, always true.
     """
+    phases = _UnitPhases(report, 1)
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        phases.next("Taking the indexes off the phenomenon scatter")
         store.drop_phenomenon_scatter_indexes(conn)
     finally:
         conn.close()
+    phases.finish()
     return {"dropped": True}
 
 
-class EmptyPhenomenonScatterFollower(followed.Follower):
+class EmptyPhenomenonScatterFollower(UnitBarFollower):
     """
     The emptying of the earlier phenomenon scatter as a stage of a run (OPS.123): the `empty-phenomenon-scatter` command, one unit,
     the first of the scatter. It reads the same deferred settings as the shells (`_phenomena_settings`), so a scatter that is refused
@@ -3370,7 +3503,7 @@ class EmptyPhenomenonScatterFollower(followed.Follower):
         return {"settings": self._settings}
 
 
-class DropPhenomenonIndexesFollower(followed.Follower):
+class DropPhenomenonIndexesFollower(UnitBarFollower):
     """The taking off of the phenomenon table's indexes as a stage of a run (OPS.123): the `drop-phenomenon-indexes` command, one unit."""
 
     key = "phenomena-unindex"
@@ -3492,7 +3625,10 @@ def _phenomenon_shells_task(payload):
             these, slices = componentPass.chosen(payload["components"], payload["component_parts"])
             runs.append(componentPass.scatter_phenomena(
                 these, edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass, shape=shape, slices=slices))
-        for rows in runs:
+        report = payload.get("report")      # the unit's `report(done, total)`: a run of shells at a time (OPS.170)
+        pace = Ticker("Phenomena drawn, runs", total=len(runs))
+        unitbeat.phase(f"Drawing {len(runs):,} runs of shells"[:120])
+        for number, rows in enumerate(runs, start=1):
             for row in rows:
                 label = phenomenon_scatter.class_label(row[3], row[4])
                 counts[label] = counts.get(label, 0) + 1
@@ -3503,6 +3639,10 @@ def _phenomenon_shells_task(payload):
                                                                           label="Phenomenon scatter").systems
                     write_seconds += time.perf_counter() - started
                     batch = []
+                    pace.tick(number - 1, f"{sum(counts.values()):,} phenomena so far")
+            if report is not None:
+                report(number, len(runs))
+            pace.tick(number, f"{sum(counts.values()):,} phenomena so far")
         started = time.perf_counter()
         if batch:
             systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
@@ -3542,11 +3682,8 @@ def log_skeleton_summary(args, summary):
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
-        log.warning(
-            f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
-            f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
-            f"parameters really do produce a galaxy this large."
-        )
+        log.warning(f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}), so the galaxy's true edge was not reached. "
+                    f"Re-run with a larger --edge, or none.")
 
 
 SCATTER_NAMES = {"mass": "massive-star", "luminosity": "bright-star", "phenomena": "phenomena",
@@ -3683,8 +3820,10 @@ def clear_scatter_unit(params, report):
     """
     part = params["part"]
     name = SCATTER_NAMES[part]
+    phases = _UnitPhases(report, 3)
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        phases.next(f"Checking what the {name} scatter holds")
         if not store.scatter_stored(conn, part):
             store.forget_scatter_epoch(conn, ("luminosity", "band") if part == "luminosity" else part)   # drawn, and empty
             conn.commit()
@@ -3692,6 +3831,7 @@ def clear_scatter_unit(params, report):
         if part == "mass" and store.scatter_stored(conn, "luminosity"):
             raise RuntimeError("The bright stars are split from the massive stars at the mass limit -- run "
                                "'planetgen clear-scatter --luminosity' first.")
+        phases.next(f"Emptying the {name} scatter")
         if part in ("mass", "luminosity"):
             if store.bright_star_mass_limit(conn) is None:      # no mass pass to split the stars at: they all go
                 store.clear_bright_stars(conn)
@@ -3704,11 +3844,13 @@ def clear_scatter_unit(params, report):
     finally:
         conn.close()
     if part != "nebula-field":
+        phases.next("Making the block light totals again")
         refresh_block_lights(_mysql_config_of(params))
+    phases.finish()
     return {"part": part, "lines": [f"Cleared the {name} scatter."]}
 
 
-class ClearScatterFollower(followed.Follower):
+class ClearScatterFollower(UnitBarFollower):
     """
     The clearing of one scatter's stored rows as a stage of a run (Boss's F7, PERF.121, PERF.202): the `clear-scatter`
     command does it in one unit (`clear_scatter_unit`, which refuses when the bright stars are split from the massive
@@ -3721,6 +3863,7 @@ class ClearScatterFollower(followed.Follower):
         self.key, self.label = stages.CLEAR_STAGE[kind].key, stages.CLEAR_STAGE[kind].label
 
     def on_result(self, unit, result):
+        super().on_result(unit, result)
         for line in result["lines"]:
             log.normal(line)
 

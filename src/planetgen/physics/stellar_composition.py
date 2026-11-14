@@ -133,9 +133,8 @@ class StarDraws:
 def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group=None):
     """
     The key of a star's draws (the stream is `abundance:` plus this): `group` (a system's primary, or `cluster:{seed}`) if
-    given, else `bright:{seed}`, else the star's `uid`, else the star's birth mass and distance from the galactic center (as their `repr`). The age is not in the key: a star's age rises
-    once, after its planets are made (`Star.adjust_age_for_planets`), and the star's makeup and every planet's host ratios must read the
-    same draws before and after (GEN.984).
+    given, else `bright:{seed}`, else the star's `uid`, else the star's birth mass and distance from the galactic center (as their `repr`). The age is not in the key: a star's age is fixed when the star is made (GEN.1546, it rose once after its planets before), and the star's makeup and every planet's host ratios must read the
+    same draws whatever the age (GEN.984).
 
     Raises:
         StarMakeupError: Nothing identifies the star.

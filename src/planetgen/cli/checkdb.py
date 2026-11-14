@@ -120,7 +120,7 @@ def run_check_db(args):
         wrapper.run("Database check", steps, lambda index, plan: None, on_result, database=config.database,
                     argv=sys.argv[1:], kind=runrecord.CHECK)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the database check could not run: {exc}")
+        log.error(f"The database check could not run: {exc}")
         raise SystemExit(db_check.EXIT_UNCHECKED)
     report = db_check.Report(results)
     for line in report.lines():

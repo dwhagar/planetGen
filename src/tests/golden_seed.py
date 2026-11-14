@@ -42,7 +42,7 @@ GALAXY_ARGUMENTS = ("--shells", "1", "--num-systems", "4")
 """tuple: The `planetgen galaxy` arguments (before `--workers`) that build the golden galaxy: shell 1 with four
 systems a sector, then the run's own scatter of the bright stars and the phenomena, its backfill and its settle."""
 
-ROSETTA_CASES = ("phenomenon", "nebula-shape", "unit-seed")
+ROSETTA_CASES = ("phenomenon", "nebula-contour", "unit-seed")
 """tuple: The battery cases written out in full."""
 
 
