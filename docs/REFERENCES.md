@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5126 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5127 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -1428,6 +1428,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r1342"></a>**R1342** Fegley, B. & Palme, H. 1985, Evidence for oxidizing conditions in the solar nebula from Mo and W depletions in refractory inclusions in carbonaceous chondrites, E&PSL, 72, 311, doi:10.1016/0012-821x(85)90055-x. [paper](https://doi.org/10.1016/0012-821x(85)90055-x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/0012-821x(85)90055-x/abstract)
 - <a id="paper-r1343"></a>**R1343** Fegley, B. & Prinn, R. G. 1989, Estimation of the rate of volcanism on Venus from reaction rate measurements, Nature, 337, 55, doi:10.1038/337055a0. [paper](https://doi.org/10.1038/337055a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/337055a0/abstract)
 - <a id="paper-r1344"></a>**R1344** Fegley, B. & Schaefer, L. 2012, Chemistry of the Earth's Earliest Atmosphere, arXiv:1210.0270. [paper](https://arxiv.org/abs/1210.0270) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:1210.0270/abstract)
+- <a id="paper-r5251"></a>**R5251** Fegley, B., Zolotov, M. Y., & Lodders, K. 1997, The Oxidation State of the Lower Atmosphere and Surface of Venus, Icarus, 125, 416, doi:10.1006/icar.1996.5628. [paper](https://doi.org/10.1006/icar.1996.5628) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1006/icar.1996.5628/abstract)
 - <a id="paper-r5158"></a>**R5158** Fei, H. 2021, Water Content of the Dehydration Melting Layer in the Topmost Lower Mantle, GeoRL, 48, e2020GL090973, doi:10.1029/2020gl090973. [paper](https://doi.org/10.1029/2020gl090973) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2020gl090973/abstract)
 - <a id="paper-r1345"></a>**R1345** Feistel, R. & Wagner, W. 2007, Sublimation pressure and sublimation enthalpy of H2O ice Ih between 0 and 273.16 K, GeCoA, 71, 36, doi:10.1016/j.gca.2006.08.034. [paper](https://doi.org/10.1016/j.gca.2006.08.034) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.gca.2006.08.034/abstract)
 - <a id="paper-r1346"></a>**R1346** Feldmeier, J. J., Ciardullo, R., Jacoby, G. H., & Durrell, P. R. 2004, Intracluster Planetary Nebulae in the Virgo Cluster. III. Luminosity of the Intracluster Light and Tests of the Spatial Distribution, ApJ, 615, 196, doi:10.1086/424372, arXiv:astro-ph/0407274. [paper](https://doi.org/10.1086/424372) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/424372/abstract)

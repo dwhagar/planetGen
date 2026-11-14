@@ -2849,7 +2849,7 @@
           "fields": [
             [
               "Evidence",
-              "READ (Venus's 20 ppm of water, a TEST point)"
+              "READ (Venus's 20 ppm of water, a TEST point); GEN.1670 moved the bracket from 1e-5 to 1e-3 down to 1e-6 to 1e-4, because the air held at the crust buffer (AM100) carries its hydrogen as water, not as H2, and the median of the draws then sits at 4e-5 of water in the air, as Venus's 2 to 3e-5 does"
             ],
             [
               "What it is",
@@ -2857,7 +2857,7 @@
             ],
             [
               "The range it moves in",
-              "1e-5 to 1e-3, log"
+              "1e-6 to 1e-4, log"
             ],
             [
               "Where it holds",
@@ -2878,7 +2878,7 @@
           "slug": "6-7-am1",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L0",
+          "tweak": "L2",
           "unread": null,
           "what": "mixture_evolved.WATER_RESIDUAL"
         },
@@ -6335,7 +6335,7 @@
             ],
             [
               "What it is",
-              "sulfur_balance.SULFATION_ACTIVATION_K and SULFATION_REFERENCE_K"
+              "sulfur_balance.SULFATION_ACTIVATION_K"
             ],
             [
               "The range it moves in",
@@ -6362,7 +6362,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "sulfur_balance.SULFATION_ACTIVATION_K and SULFATION_REFERENCE_K"
+          "what": "sulfur_balance.SULFATION_ACTIVATION_K"
         },
         {
           "burn_down": null,
@@ -6411,7 +6411,7 @@
           "fields": [
             [
               "Evidence",
-              "CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; GEN.1562 N4)"
+              "CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; raised from 1.0 to 1.4 dex by GEN.1670 at TODO's request, to 50 percent at or over IW+2.5 and so about 40 to 60 percent of the rocky bodies oxidized: tuned to that statistic; GEN.1562 N4)"
             ],
             [
               "What it is",
@@ -6419,7 +6419,7 @@
             ],
             [
               "The range it moves in",
-              "+1.0 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies; 1.4 makes half"
+              "+1.4 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies"
             ],
             [
               "Where it holds",
@@ -6440,9 +6440,47 @@
           "slug": "6-7-am99",
           "tier": "T9",
           "tier_code": "T9",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
           "what": "mixture_rocky.REDOX_SHIFT_DEX"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "READ (the abstract of [R5251]: Venus's air at 0 km, 735 K, holds 10^-21.7 to 10^-20.0 bar of oxygen, 'indistinguishable, within the uncertainties of the thermodynamic data, from the magnetite-hematite phase boundary'; on the repo's iron-wuestite fit that is IW+9.1 to IW+10.8); carried to the cooler surface temperatures as a constant offset, which the source does not reach"
+            ],
+            [
+              "What it is",
+              "mixture_evolved.AIR_BUFFER_DIW"
+            ],
+            [
+              "The range it moves in",
+              "IW+9.1 to IW+10.8, uniform; the held level is the larger of this and the body's redox"
+            ],
+            [
+              "Where it holds",
+              "Venus-like and Mars-like air (rows j1, j2)"
+            ],
+            [
+              "What would show it wrong",
+              "test_atmosphere_mixture_evolved::test_a_warm_venus_like_air_holds_the_crust_buffer_and_keeps_sulfur_dioxide"
+            ],
+            [
+              "What replaces it",
+              "what holds sulfur under about 700 K (photochemical sulfate; not found in the sources read) and the buffer's own temperature slope"
+            ]
+          ],
+          "id": "AM100",
+          "key": "6.7:AM100",
+          "kind": "B",
+          "slug": "6-7-am100",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_evolved.AIR_BUFFER_DIW"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
