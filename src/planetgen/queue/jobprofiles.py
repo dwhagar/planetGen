@@ -4,7 +4,7 @@
 What each kind of job costs in memory and time, kept as samples in the control database (OPS.155, the first piece of the self-tuning jobs in
 `docs/design/operations/self-tuning-jobs.md`).
 
-**Record only.** Nothing reads these rows yet, so no run changes: the gate's claim, the worker counts, the splits and the ETA still come from the typed tables and
+**Record only.** Nothing reads these rows but the readers named below, so no run changes until they are built: the gate's claim, the worker counts, the splits and the ETA still come from the typed tables and
 the Redis hashes. The rows are there so the data gathers while the readers (OPS.156 to OPS.160) are built.
 
 * **Peak and average.** Memory, time and processor each have both. A unit's come from a `usage.Usage` the unit's beat thread feeds while it runs; a gated job's from the gate's heartbeat; a stage's
@@ -160,6 +160,24 @@ def peaks(kind, limit=30, conn=None):
     try:
         return list(conn.execute("SELECT peak_mb, outcome, host_memory_mb, host_cores, generator_epoch FROM job_profiles WHERE kind = ? AND peak_mb IS NOT NULL"
                                  " ORDER BY id DESC LIMIT ?", (kind, int(limit))).fetchall())
+    finally:
+        if own:
+            conn.close()
+
+
+def unit_rows(kind, limit=60, conn=None):
+    """
+    The newest `limit` finished rows of `kind` that hold seconds per item (newest first), as dicts with the items, size bucket, peak MB and the machine shape and epoch that measured
+    them: the reading of `splitprofile` (OPS.161). Raises on a database that cannot answer, and the caller falls back.
+    """
+    own = conn is None
+    if own:
+        from planetgen.db import store
+        conn = store.get_control_connection()
+    try:
+        return list(conn.execute("SELECT items, size_bucket, seconds_per_item, peak_mb, host_memory_mb, host_cores, generator_epoch FROM job_profiles"
+                                 " WHERE kind = ? AND outcome = 'done' AND seconds_per_item IS NOT NULL AND items IS NOT NULL ORDER BY id DESC LIMIT ?",
+                                 (kind, int(limit))).fetchall())
     finally:
         if own:
             conn.close()
