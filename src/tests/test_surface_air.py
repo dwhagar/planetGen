@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -208,13 +208,36 @@ def _ocean_setting(ocean_cover, water_kg, released_j=1.0e30, released_at_seal_j=
                       subject_of=None, **fields)
 
 
-def _carbon_share(setting, water_world, temperature_k=288.0):
+def _carbon_share(setting, water_world, temperature_k=288.0, carbon=1.0e-2):
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
-    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": 1.0e-2})["C"]
+    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": carbon})["C"]
+
+
+def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_own_law():
+    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole land."""
+    law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    held = _ocean_setting(0.7, 1.4e21)
+    iced = dataclasses.replace(held, albedo_law=law)
+    assert sa._weathering_land(held, 200.0) == pytest.approx(0.3)
+    assert sa._weathering_land(iced, 310.0) == pytest.approx(0.3)
+    assert sa._weathering_land(iced, 200.0) == 0.0
+    middle = sa._weathering_land(iced, 0.5 * (law.free_above_k + law.covered_below_k))
+    assert 0.0 < middle < 0.3 and middle == pytest.approx(0.3 * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+
+
+def test_a_frozen_world_with_the_ice_law_keeps_the_carbon_the_volcanoes_give_and_a_warm_one_does_not():
+    """GEN.1697: weathering all but stops under the ice, so the carbon builds up until it melts it (Hoffman et al. 2017)."""
+    law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    held = _ocean_setting(0.7, 1.4e21)
+    iced = dataclasses.replace(held, albedo_law=law)
+    open_ = sa.WaterWorld(False, sa.waterworld_carbon.draw_waterworld({}), sa.waterworld_carbon.draw_seafloor_law({}))
+    assert _carbon_share(iced, open_, 230.0, 1.0) > _carbon_share(held, open_, 230.0, 1.0)
+    assert _carbon_share(iced, open_, 230.0, 1.0) == pytest.approx(_carbon_share(iced, open_, 230.0), rel=1e-6)    # all of what the volcanoes give stays
+    assert _carbon_share(iced, open_, 310.0, 1.0) == pytest.approx(_carbon_share(held, open_, 310.0, 1.0))
 
 
 def test_the_water_world_is_sealed_only_when_its_ocean_floor_reaches_the_seal_pressure():

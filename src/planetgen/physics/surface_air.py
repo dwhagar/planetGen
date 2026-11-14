@@ -430,9 +430,21 @@ def _weathers(setting, water_left, temperature_k):
     """Whether silicate weathering takes carbon at this step: the body has surface water that has not all gone to vapor, and its surface is
     under the critical temperature of water. The cold side is not gated: the weathering law falls off exponentially with the temperature
     (`surface_pressure.carbonate_pco2_bar`), and a hard gate at the freezing point would make the carbon of a frozen world jump to all that
-    has been degassed in one step instead of building up until it thaws."""
+    has been degassed in one step instead of building up until it thaws. The land it works on shrinks with the ice cover instead (`_weathering_land`, GEN.1697)."""
     return (not setting.giant and setting.ocean_cover > 0.0 and water_left > 0.0
             and temperature_k < surface_pressure.LIQUID_WATER_K[1])
+
+
+def _weathering_land(setting, temperature_k):
+    """
+    The share of the surface continental weathering works on at `temperature_k` (GEN.1697): the land (`1 - ocean_cover`) less what the ice has covered, by the ice share of the body's own
+    albedo law (`climate_branches.IceAlbedoLaw.ice_fraction`, the one that sets its albedo at that temperature). Under a global ice sheet there is no rain on bare rock, so the volcanic CO2
+    builds up and melts it (Hoffman et al. 2017). A body with no ice law keeps its whole land.
+    """
+    land = 1.0 - setting.ocean_cover
+    if setting.albedo_law is None:
+        return land
+    return land * (1.0 - setting.albedo_law.ice_fraction(temperature_k))
 
 
 def _dissolve_sulfur(moles, temperature_k, setting):
@@ -606,7 +618,7 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             def kept_at(ts_k):
                 """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at)."""
                 if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
-                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover, lambda p_bar: ts_k, *cycle)
+                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, _weathering_land(setting, ts_k), lambda p_bar: ts_k, *cycle)
                 if kind == waterworld_carbon.SEAFLOOR_WEATHERING:
                     return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[2])
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
