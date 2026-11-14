@@ -48,6 +48,7 @@ def _quiet(monkeypatch):
     sleeps, lines = [], []
     monkeypatch.setattr(contention.time, "sleep", sleeps.append)
     monkeypatch.setattr(log, "normal", lines.append)
+    monkeypatch.setattr(log.Logger, "notice", lambda self, message, /, **fields: lines.append(message))      # OPS.167: the retry line is a notable event of the component logger, not a normal line
     monkeypatch.setattr(contention, "_pressure", 0.0)
     return sleeps, lines
 

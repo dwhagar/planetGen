@@ -49,6 +49,12 @@ class CommandSpec:
     unit by nature, which the ceiling does not hold; any other queued command is cut into units and declares in
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
     unit that runs longer than the ceiling anyway is written to the run's log.
+
+    **The engine owns the loop of a command with `pieces` and `do` (OPS.191, `queue/engine.py`).** Instead of a `unit` function that loops, counts and checks for itself, the command gives
+    `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: 0 until the ledger stores it, OPS.219), and `do(args, piece, ctx)`, which
+    does one piece and returns a JSON-able result or `None`. The engine counts pieces done of pieces in all into the unit's beat and honours a cancel and a pause between two pieces; `ctx` is the one
+    object a piece is handed (`engine.Context`: the database, `ctx.commit()`, `ctx.sql`). The unit's result is the list of the pieces' results in order, or, when the command gives
+    `gather(args, results, ctx)`, what that makes of them (`ctx.state` is what the pieces left for it). `pieces` and `do` replace `unit`: a command has one or the other. A command with `unit` runs as before until its family converts it.
     """
 
     kind: str
@@ -61,10 +67,21 @@ class CommandSpec:
     conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
+    pieces: tuple = None
+    do: tuple = None
+    gather: tuple = None
+
+    def __post_init__(self):
+        if (self.pieces is None) != (self.do is None):
+            raise ValueError(f"command {self.kind!r}: `pieces` and `do` go together")
+        if self.pieces is not None and self.unit is not None:
+            raise ValueError(f"command {self.kind!r}: a unit is its own `unit` function or the engine's loop over `pieces` and `do`, not both")
+        if self.gather is not None and self.pieces is None:
+            raise ValueError(f"command {self.kind!r}: `gather` makes the result of the engine's loop, so it needs `pieces`")
 
     @property
     def inline(self):
-        return self.unit is None
+        return self.unit is None and self.pieces is None
 
 
 @dataclass
@@ -111,7 +128,8 @@ REGISTRY = _commands(
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=10),
     CommandSpec("plan-skeleton", "Plan the galaxy's density skeleton: one unit",
-                unit=("planetgen.generation.run_plan", "plan_skeleton_unit"),
+                pieces=("planetgen.generation.run_plan", "skeleton_pieces"), do=("planetgen.generation.run_plan", "plan_skeleton_do"),
+                gather=("planetgen.generation.run_plan", "plan_skeleton_result"),
                 expand=("planetgen.generation.run_plan", "expand_plan_skeleton"), whole=True),
     CommandSpec("scatter-phenomena", "Scatter the phenomena: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_phenomena_unit"),
@@ -120,7 +138,8 @@ REGISTRY = _commands(
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6),
     CommandSpec("finish-phenomena", "End the phenomena scatter: the special phenomena, the indexes and the record, one unit",
-                unit=("planetgen.generation.run_plan", "finish_phenomena_unit"),
+                pieces=("planetgen.generation.run_plan", "finish_phenomena_pieces"), do=("planetgen.generation.run_plan", "finish_phenomena_do"),
+                gather=("planetgen.generation.run_plan", "finish_phenomena_result"),
                 expand=("planetgen.generation.run_plan", "expand_finish_phenomena"), whole=True),
     CommandSpec("scatter-luminosity", "Scatter the bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
@@ -139,7 +158,8 @@ REGISTRY = _commands(
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=30),
     CommandSpec("refresh-block-lights", "Make the Galaxy Map's block light totals again: one unit",
-                unit=("planetgen.generation.run_plan", "refresh_block_lights_unit"),
+                pieces=("planetgen.generation.run_plan", "refresh_block_lights_pieces"), do=("planetgen.generation.run_plan", "refresh_block_lights_do"),
+                gather=("planetgen.generation.run_plan", "refresh_block_lights_result"),
                 expand=("planetgen.generation.run_plan", "expand_refresh_block_lights"), whole=True),
     CommandSpec("refresh-run-blocks", "Bring the Galaxy Map's block totals up to what a galaxy run stored: one unit",
                 unit=("planetgen.generation.run_galaxy", "refresh_run_blocks_unit"),
@@ -411,8 +431,39 @@ def unit_function(kind):
     """
     command = REGISTRY[kind]
     if command.unit is None:
-        raise ValueError(f"command {kind!r} is inline: it has no units yet")
+        raise ValueError(f"command {kind!r} is inline: it has no units yet" if command.pieces is None
+                         else f"command {kind!r} runs through the engine's loop (`engine.run`), not a unit function")
     return _function(command.unit)
+
+
+def pieces_function(kind):
+    """The function that lists the pieces of a unit of `kind` after a cursor (`CommandSpec.pieces`), or `None` for a command that has its own `unit` function.
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.pieces is None else _function(command.pieces)
+
+
+def do_function(kind):
+    """The function that does one piece of a unit of `kind` (`CommandSpec.do`), or `None`.
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.do is None else _function(command.do)
+
+
+def gather_function(kind):
+    """The function that makes a unit's result of its pieces' results (`CommandSpec.gather`), or `None` (the list of them is the result).
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.gather is None else _function(command.gather)
 
 
 def _hook(kind, name):
@@ -581,4 +632,5 @@ def run_alone(kind, args, report=None):
     Returns:
         The unit's JSON-able result.
     """
-    return unit_function(kind)(args, report or (lambda done, estimate: None))
+    from planetgen.queue import engine         # the engine reads the registry, so it imports this file
+    return engine.run(kind, args, report or (lambda done, estimate: None))
