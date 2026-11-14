@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import albedo_color, atmosphere, climate_branches, climate_draws, cloud_albedo, constants, giant_draw, greenhouse, ionization, orbit_elements, surface_air
+from planetgen.physics import albedo_color, atmosphere, climate_branches, climate_draws, cloud_albedo, constants, giant_draw, greenhouse, ground_albedo, ionization, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -85,6 +85,8 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
             assert planet.greenhouse_factor == 0.0
         if planet.body_type == "t":
             low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
+            if climate_draws.is_dry_ground(planet.body_type, planet.water_mass_fraction, flux):
+                low, high = 0.0, ground_albedo.fresh_bond_albedo(planet)      # GEN.684 A: a dry rock draws nothing; its fresh ground albedo is the ceiling (weathering only darkens)
             # GEN.972: the draw is the ice-free albedo; the ice raises it, to the covered value at most
             covered = albedo_color.shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", getattr(planet.star, "temperature", None))[0]
             # GEN.974: the cloud moves it either way by its amount term (a warm world is darker than it drew, a cold one brighter) and a locked one gains its deck

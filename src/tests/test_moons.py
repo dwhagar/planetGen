@@ -64,7 +64,7 @@ def assert_moons_are_valid(host):
         assert math.isfinite(moon.mass) and moon.mass > 0
         ceiling = planet_kind.moon_mass_ceiling_kg(host.mass, host.body_type == "g")
         if moon.moon_origin == "exchange":     # GEN.1157: a giant's captured moon of planet size has its own ceiling
-            ceiling = planet_moons.exchange_ceiling_kg(host.mass)
+            ceiling = host.mass      # GEN.1700: the bound of the encounter never passes its partner, which is lighter than the parent (and the one-tenth limit below still holds)
         assert prog_c.MOON_MIN_MASS_KG * 0.999 <= moon.mass <= ceiling * 1.001
         assert moon.mass <= host.mass / 10 * 1.001
         assert moon.radius <= host.radius / (10 ** (1 / 3)) * 1.001

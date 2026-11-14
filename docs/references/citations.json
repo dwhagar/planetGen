@@ -26230,6 +26230,31 @@
       "kind": "paper",
       "label": "Boyajian et al. 2018",
       "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
+    },
+    "R5250": {
+      "kind": "paper",
+      "label": "Catling et al. 2007",
+      "title": "Anaerobic methanotrophy and the rise of atmospheric oxygen"
+    },
+    "R5251": {
+      "kind": "paper",
+      "label": "Fegley et al. 1997",
+      "title": "The Oxidation State of the Lower Atmosphere and Surface of Venus"
+    },
+    "R5252": {
+      "kind": "paper",
+      "label": "Alcott et al. 2019",
+      "title": "Stepwise Earth oxygenation is an inherent property of global biogeochemical cycling"
+    },
+    "R5253": {
+      "kind": "paper",
+      "label": "Krivov and Wyatt 2020",
+      "title": "Solution to the debris disc mass problem: planetesimals are born small?"
+    },
+    "R5254": {
+      "kind": "paper",
+      "label": "Chambers 2020",
+      "title": "The Effect of Seafloor Weathering on Planetary Habitability"
     }
   }
 }
