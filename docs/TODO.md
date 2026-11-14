@@ -13280,9 +13280,10 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1715, GEN.1696.
   Filed by the TODO thread.
 
-- [ ] **UX.318 (bug) The job progress ticker shows "0.0 per s" for slow steps (e.g. Stage 5 at about 200 s a sector), so a working run reads as stalled**
+- [ ] **UX.318 (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand**
+  Boss, 3:06 PM EST on 2026-11-14 (standing rule): "make sure the generation logging system uses our units code, so that it always displays helpful units. If the sectors / second is 0.0 that's not helpful, so intead change it to seconds per sector, also memory limits sometimes say bytes, sometimes MB, sometimes GB, it's very inconsistent, it should use our unit system that is specifically designed for that." Do: audit every place that formats a rate, duration, size or memory by hand (logs, tickers and progress bars, the Queue page, warnings, job reports, shell scripts' log lines) and list them in the PR; route each through the units code (one formatter per kind, reused); a rate under one per second flips to time per item; a guard test that fails on a hand-formatted unit in those modules. Text only, no train; lock-free.
   Lane 13, 12:24 PM EST on 2026-11-14, from OPS.256; seen in Boss's New galaxy log (/mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log: "Neighborhood: 97 of 109 done (89%), 0.0 per s"). Do: show slow rates as time per item ("1 per 3 min 20 s") or per minute or hour, whichever reads with a nonzero figure; one formatter for the ticker and the Queue page.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: none. Related: OPS.253, PERF.267.
+  Version 8.1. Owner (TODO, 2026-11-14): the layered-fix thread (Fable). Prerequisites: none. Related: OPS.253, PERF.267.
   Filed by the TODO thread.
 
 - [ ] **SEC.50 (bug) The log masker hides ordinary words: update.sh logs "Skipping the population pass: XXXXXX math check failed." for "the math check failed"**
