@@ -27,6 +27,8 @@ pytestmark = [pytest.mark.real_queue, pytest.mark.fresh_database, pytest.mark.sl
 
 SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 KILL_WITHIN_SECONDS = 1500
+KILL_TEST_TIMEOUT_SECONDS = 7200
+"""int: The test makes two galaxies in a row, and a four-core box needs about 20 minutes for one (Lane 23's run: 22 of 36 sectors after 13.5 min), more than the suite's 900 s."""
 
 
 @pytest.fixture
@@ -107,6 +109,7 @@ def _killer(conn, killed, stop):
         time.sleep(0.02)
 
 
+@pytest.mark.timeout(KILL_TEST_TIMEOUT_SECONDS)
 def test_a_galaxy_whose_stage_end_was_killed_is_the_galaxy_an_undisturbed_run_makes(mysql_config, host):
     from tests.db_schema_support import scratch_database
     undisturbed = _galaxy(mysql_config)
