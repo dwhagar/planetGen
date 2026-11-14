@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1663 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1664 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,14 +40,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1636 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1637 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 191 | 20 | 12 | 1 | 0 | 224 |
+| T1 | 192 | 20 | 12 | 1 | 0 | 225 |
 | T2 | 155 | 64 | 1 | 1 | 0 | 221 |
 | T3 | 114 | 53 | 12 | 9 | 0 | 188 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 93 | 35 | 200 |
-| All | 961 | 326 | 81 | 239 | 56 | 1663 |
+| All | 962 | 326 | 81 | 239 | 56 | 1664 |
 
 ## How the labels were given
 
@@ -518,6 +518,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DW1 | P | T2 | L1 | physics/data/ngpps_formation_water.json classes dry, low, high, rich as the water of a rocky body (the Bern population synthesis law of the recipes b1 to b4: class by mass and snow lines formed at, GEN.849) | the model's own fit bands | masses 0.5 to 30 Earth masses, 0.03 to 4 snow lines (held to the range outside it) | test_delivered_water; a measured water class share of rocky planets against distance outside the fit bands | the Bern model refit to a larger population | Bern NGPPS ([R1268, R1269], [R0602]) through the second-hand fit of GEN.802; the class edges are the nearest mapping of [R3378] | predicted only | - | - |
 | DW2 | P | T7 | L1 | tuning.DELIVERED_WATER_DRY_MIN 1e-6 (the lowest water share of the dry class; Venus and Mercury are far under Earth's 2.3e-4 in oceans) | 1e-7 to 1e-5 | rocky bodies in the dry class | test_delivered_water::test_the_brackets_tile_the_range_from_the_dry_floor_to_the_rich_cap; a measured dry-class body under 1e-7 of its mass | a magma-ocean degassing model of the dry bodies | educated guess from physics (the old DRY range floor, kept) | predicted only | - | - |
 | DW3 | P | T7 | L1 | tuning.DELIVERED_WATER_RICH_MAX 0.5 (the largest water share a rocky body draws; the rich class is log-uniform from the hycean limit 0.1 to it) | 0.3 to 0.6 | rocky bodies in the rich class | test_delivered_water::test_the_brackets_tile_the_range_from_the_dry_floor_to_the_rich_cap; a measured rocky planet holding over 60 percent water | a refractory-cap model of the water worlds [R4335] | educated guess from physics (water-rich bodies of the Bern model end near 0.5) | predicted only | - | - |
+| DW4 | P | T1 | L0 | delivered_water.LAW_SNOW_LINE_AU 2.69: the snow line the law's x is measured in, for one solar luminosity; the stored star line (1.6 AU for a Sun-like star, the disk-era line of `formation_snow_line`) is read in it through `law_snow_ratio` (GEN.1708) | none (a unit of the fitted law); the draw's own scatter of the line (0.2 dex) stays | rocky bodies of a star with a stored snow line | test_delivered_water::test_a_distance_is_read_in_the_snow_line_the_law_was_fitted_in; a refit of the Bern law in the generator's own snow line | the Bern law refit in the generator's stored snow line | READ ([R0600] and the model's own note in `ngpps_formation_water.json`: x = a_form / a_snow with a_snow = 2.69 AU at 1 solar luminosity); the stored line is 1.59 AU at the Sun-like star's disk-era luminosity, so x at 1 AU is 0.37, not 0.62 | predicted only | - | - |
 | IS1 | P | T7 | L1 | ice_species.COMET_CLASS jupiter_family and `median_shares()` (the split of a body's non-water ice by species when it was not drawn species by species: the comet volatiles at the medians of the population) | the other comet classes (CO and CO2 differ by a factor of 2 to 3) | moons, giants and small bodies with ice | test_ice_species::test_an_ice_with_no_given_split_takes_the_medians_and_no_ice_holds_zeros; a measured moon ice mix far from a comet's (Triton and Pluto are mostly nitrogen) | a draw of the species from the body's formation zone (`comet_ice_budget`, GEN.595 wiring) | educated guess from physics (comets are the nearest measured icy bodies) | predicted only | - | - |
 | CC4 | P | T6 | L3 | tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16) | each range edge 0.05 | all hosts | test_climate_draws::albedo regime tests; a measured Bond albedo of an ocean world outside 0.2 to 0.45 | a ground and cloud albedo from composition (GEN.414, GEN.462) | RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges) | predicted only | - | replace (GEN.684) |
 | CC5 | P | T7 | L1 | tuning.GIANT_MIN_RADIUS_KM 15000 (a radius given alone names a giant from here; a given mass above 20 Earth masses names one too) | 12000 to 20000 | given inputs only | test_planet_kind::test_a_given_radius_names_the_kind_and_the_mass_wins | the radius law of the envelope (GEN.822) | RECALLED (Uranus and Neptune 25000 km; a 4 Earth radius sub-Neptune 25000 km; the edge between rocky and gas-rich near 1.7 Earth radii) | predicted only | - | - |

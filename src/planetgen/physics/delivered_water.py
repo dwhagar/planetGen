@@ -26,7 +26,7 @@ import os
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import elements
+from planetgen.physics import elements, formation_snow_line
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -46,6 +46,33 @@ ROWS = dict(zip(("b1", "b2", "b3", "b4"), CLASSES))
 MASS_RANGE_EARTH = tuple(_MODEL["model"]["mass_range_earth"])
 X_RANGE = tuple(_MODEL["model"]["x_range"])
 """tuple: The population's masses (Earth masses) and distances (snow lines), where the law was fitted."""
+
+
+LAW_SNOW_LINE_AU = 2.69
+"""float: The snow line the law's x is measured in, AU, for a star of one solar luminosity: the Bern population's own (`ngpps_formation_water.json`, "x = a_form / a_snow with a_snow = 2.69 AU at 1 solar luminosity"; [R0600]). The generator's stored line is the disk-era
+line of `formation_snow_line` (1.6 AU for a Sun-like star), so a distance is read in this unit through `law_snow_ratio` (GEN.1708). Tier 1 (a unit of the fitted law), tweak level 0."""
+
+
+def law_snow_ratio(distance_au, snow_line_au):
+    """
+    The `x` the law takes for a body formed `distance_au` from a star whose stored snow line is `snow_line_au`: the distance in the law's own snow line (`LAW_SNOW_LINE_AU`, scaled with the star as the
+    stored line scales). A Sun-like star's stored line is `formation_snow_line.formation_snow_line_au` of one solar mass (1.59 AU) where the law's is 2.69 AU, so the ratio is the distance over the stored line
+    times about 0.59; the star's own scatter (`formation.draw_snow_line_au`) and the line's change with the star's mass stay in the ratio. `None` for no line or distance.
+    """
+    if not snow_line_au or distance_au is None:
+        return None
+    return distance_au / snow_line_au * _sun_like_line_au() / LAW_SNOW_LINE_AU
+
+
+def _sun_like_line_au():
+    """The snow line, AU, of a Sun-like star's disk (one solar mass, solar [Fe/H], unscattered): the stored line the law's 2.69 AU stands for."""
+    global _SUN_LIKE_LINE_AU
+    if _SUN_LIKE_LINE_AU is None:
+        _SUN_LIKE_LINE_AU = formation_snow_line.formation_snow_line_au(1.0, 0.0)
+    return _SUN_LIKE_LINE_AU
+
+
+_SUN_LIKE_LINE_AU = None
 
 
 def _clamp(value, low, high):

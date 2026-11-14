@@ -12937,6 +12937,44 @@
           "fields": [
             [
               "What it is",
+              "delivered_water.LAW_SNOW_LINE_AU 2.69: the snow line the law's x is measured in, for one solar luminosity; the stored star line (1.6 AU for a Sun-like star, the disk-era line of formation_snow_line) is read in it through law_snow_ratio (GEN.1708)"
+            ],
+            [
+              "The range it moves in",
+              "none (a unit of the fitted law); the draw's own scatter of the line (0.2 dex) stays"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of a star with a stored snow line"
+            ],
+            [
+              "What would show it wrong",
+              "test_delivered_water::test_a_distance_is_read_in_the_snow_line_the_law_was_fitted_in; a refit of the Bern law in the generator's own snow line"
+            ],
+            [
+              "What replaces it",
+              "the Bern law refit in the generator's stored snow line"
+            ],
+            [
+              "Evidence",
+              "READ ([R0600] and the model's own note in ngpps_formation_water.json: x = a_form / a_snow with a_snow = 2.69 AU at 1 solar luminosity); the stored line is 1.59 AU at the Sun-like star's disk-era luminosity, so x at 1 AU is 0.37, not 0.62"
+            ]
+          ],
+          "id": "DW4",
+          "key": "6.22:DW4",
+          "kind": "P",
+          "slug": "6-22-dw4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "delivered_water.LAW_SNOW_LINE_AU 2.69: the snow line the law's x is measured in, for one solar luminosity; the stored star line (1.6 AU for a Sun-like star, the disk-era line of formation_snow_line) is read in it through law_snow_ratio (GEN.1708)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "ice_species.COMET_CLASS jupiter_family and median_shares() (the split of a body's non-water ice by species when it was not drawn species by species: the comet volatiles at the medians of the population)"
             ],
             [

@@ -412,10 +412,9 @@ def _subject(body, ratios):
 
 
 def _snow_ratio(body):
-    """The distance `body` formed at in its star's snow lines, or `None` when it has no star line or distance to say."""
+    """The distance `body` formed at in the snow lines of the water law (`delivered_water.law_snow_ratio`, GEN.1708), or `None` when it has no star line or distance to say."""
     line = getattr(getattr(body, "star", None), "snow_line_au", None)
-    distance = _formation_distance_au(body)
-    return None if not line or distance is None else distance / line
+    return delivered_water.law_snow_ratio(_formation_distance_au(body), line)
 
 
 def _rocky_water(body):

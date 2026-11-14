@@ -26,7 +26,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import (activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, eclipses, giant_draw,
+from planetgen.physics import (activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, delivered_water, eclipses, giant_draw,
                                giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, radiation_field, unit_registry as units)
 from planetgen.physics.mixture_base import MixtureError
 
@@ -147,7 +147,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     quantities["runaway_ratio"] = runaway_ratio(insolation, star.temperature)
     snow_line = getattr(star, "snow_line_au", None)
     if snow_line:
-        quantities["snow_ratio"] = distance_au / snow_line
+        quantities["snow_ratio"] = delivered_water.law_snow_ratio(distance_au, snow_line)       # GEN.1708: in the snow line the law was fitted in
         if kind_of_body(body) == "giant" and not quantities["is_moon"]:     # GEN.1363 part C: the disk a giant formed in gives its C/O
             formation_au = getattr(body, "formation_distance_au", None) or body.distance
             ratios = bulk_draw.ice_forming_ratios(star)

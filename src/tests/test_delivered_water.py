@@ -103,3 +103,13 @@ def test_a_body_with_no_mass_is_drawn_at_the_middle_of_the_models_masses():
     body.mass = None
     water, _ice, _shares = bulk_draw._water_and_ice(body)
     assert 0.0 < water <= tuning.DELIVERED_WATER_RICH_MAX
+
+
+def test_a_distance_is_read_in_the_snow_line_the_law_was_fitted_in():
+    """GEN.1708: the law's x is in the Bern 2.69 AU line, not in the stored disk-era line (1.6 AU for a Sun-like star): 1 AU round a Sun-like star is 0.37, not 0.62."""
+    from planetgen.physics import formation_snow_line
+    sun_like = formation_snow_line.formation_snow_line_au(1.0, 0.0)
+    assert delivered_water.law_snow_ratio(1.0, sun_like) == pytest.approx(1.0 / delivered_water.LAW_SNOW_LINE_AU)
+    assert delivered_water.law_snow_ratio(1.0, sun_like) == pytest.approx(0.37, abs=0.01)
+    assert delivered_water.law_snow_ratio(2.0, 2.0 * sun_like) == pytest.approx(delivered_water.law_snow_ratio(1.0, sun_like))     # the star's own line scatter and mass scaling stay in the ratio
+    assert delivered_water.law_snow_ratio(1.0, None) is None and delivered_water.law_snow_ratio(None, 1.6) is None
