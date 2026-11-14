@@ -6818,6 +6818,7 @@ def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     was stopped before it is not taken for a clear that is done.
     """
     if bright_stars_hold_nothing(conn):
+        steps.nothing("No bright stars are stored, nothing to clear")
         return
     from planetgen.db import block_lights
 
