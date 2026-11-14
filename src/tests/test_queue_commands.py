@@ -82,7 +82,7 @@ def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_
 def test_only_a_registered_command_with_units_can_be_queued_and_every_command_has_a_summary(monkeypatch):
     for kind, command in commands.REGISTRY.items():
         assert command.kind == kind and command.summary
-        assert (command.unit is None) == (command.expand is None), "a command has both its unit and its cut, or neither"
+        assert command.inline == (command.expand is None), "a command has both its unit (its own function, or the engine's pieces and do) and its cut, or neither"
     with pytest.raises(ValueError):
         commands.build_steps("phenomenon", _args(["galaxy"]))
     monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
