@@ -191,7 +191,7 @@ and any name lists, and `requirements.lock`. The word list itself goes in
 the settings file (section 7).
 
 The OS, architecture and Python digits do not cover everything that moves
-a float. Generation also uses numpy and scipy (`galaxy/nebula_shape.py`,
+a float. Generation also uses numpy and scipy (`galaxy/gradient_noise.py`,
 `physics/sector_path.py`, `physics/kepler.py`), scikit-image (marching cubes)
 and astropy (`physics/constants.py`), the lock pins a different version of
 each per Python leg, and the C maths library and BLAS kernel depend on the
@@ -268,7 +268,7 @@ full key text living on the `generation_runs` row. Detail:
   others. Generation code uses `planetgen/util/detmath.py` (`hypot`, `dist`,
   `fsum`) instead, `test_reproducible_draws.py`'s scan flags the builtins,
   astropy-derived constants become literals, and `@` (BLAS) leaves
-  `nebula_shape.py` and `sector_path.py`. The change alters stored values, so it
+  `gradient_noise.py` and `sector_path.py`. The change alters stored values, so it
   bumps the epoch. It must land before TEST.77 or that test fails on 3.9.
   Rules and measurements: [generation-determinism.md](generation-determinism.md)
   sections 2 and 3.

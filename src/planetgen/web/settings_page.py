@@ -32,6 +32,7 @@ import re
 from flask import request, url_for
 
 from planetgen.util import settings_view
+from planetgen.util.format import counted
 from planetgen.web.lib import apiclient
 
 from . import bp
@@ -116,6 +117,14 @@ def duration_text(value, unit):
     return " ".join(parts) if parts else f"{seconds:g} seconds"
 
 
+def _option_text(option, key):
+    """The text of an option's `key` value (`"default"`, `"effective"`, `"value"`): a list one line per item; nothing for a secret."""
+    if option["secret"]:
+        return ""
+    value = option[key]
+    return "\n".join(value or []) if option["kind"] == "list" else _text(value)
+
+
 def _lines(text):
     return [line.strip() for line in text.replace("\r", "").split("\n") if line.strip()]
 
@@ -160,7 +169,7 @@ def collect(options, form):
                 changes[path] = raw
             continue
         if form.get(RESET_FIELD + path):
-            submitted[path] = _text(option["default"]) if kind != "list" else "\n".join(option["default"] or [])
+            submitted[path] = "\n".join(option["default"] or []) if kind == "list" else _text(option["default"])
             if in_file:
                 changes[path] = {"reset": True}
             continue
@@ -233,12 +242,8 @@ def _form_page(view, submitted=None, errors=None, message=None, error=None, stat
     for option in (option for group in view["groups"] for option in group["options"]):
         option["shown"] = _shown(option, submitted)
         option["error"] = errors.get(option["path"], "")
-        option["default_text"] = ("\n".join(option["default"] or []) if option["kind"] == "list"
-                                  else _text(option["default"])) if not option["secret"] else ""
-        option["effective_text"] = ("\n".join(option["effective"] or []) if option["kind"] == "list"
-                                    else _text(option["effective"])) if not option["secret"] else ""
-        option["value_text"] = ("\n".join(option["value"] or []) if option["kind"] == "list"
-                                else _text(option["value"])) if not option["secret"] else ""
+        for key in ("default", "effective", "value"):
+            option[f"{key}_text"] = _option_text(option, key)
         option["search_text"] = _search_text(option)
         if option["control"] == "slider" and option["slider"]:
             option["slider_spec"] = _slider(option)
@@ -293,7 +298,7 @@ def _review_page(view, plan, hidden, confirm_url=None, heading="These changes wi
 def _saved_message(result, view):
     titles = _titles(view)
     count = len(result["changes"])
-    text = f"Saved {count} {'setting' if count == 1 else 'settings'}."
+    text = f"Saved {count} {counted('setting', count)}."
     if result["backup"]:
         text += f" The old file is kept in the backup {result['backup']}."
     restart = [titles.get(path, path) for path in result["restart"]]
@@ -428,9 +433,9 @@ def admin_settings_update():
         return _flash(_see_other(url_for("web.admin_settings")),
                       message="config.json already has every setting this version needs.")
     count = len(result["added"])
-    text = f"Added {count} {'setting' if count == 1 else 'settings'} to config.json"
+    text = f"Added {count} {counted('setting', count)} to config.json"
     if result["removed"]:
-        text += f" and took out {len(result['removed'])} stale {'key' if len(result['removed']) == 1 else 'keys'}"
+        text += f" and took out {len(result['removed'])} stale {counted('key', len(result['removed']))}"
     text += "; every other value is as it was."
     if result["backup"]:
         text += f" The old file is kept in the backup {result['backup']}."

@@ -130,6 +130,12 @@ connectivity to that specific schema rather than the default one.
   known to be in (no rogue planet filed in them, no waiting star, no unbuilt scattered phenomenon), which are left out by default; it has no effect on `charted`.
   `total` counts the sectors listed and `charted_total`, `uncharted_total` and `empty_total` count each kind whatever is listed; the answer echoes `coverage` and
   `show_empty`. Another `coverage` is a 400. Changed: the default listing no longer includes the uncharted placeholders.
+  OPS.154: a cell that holds a waiting object (a bright star or an unbuilt scattered phenomenon) and has no chart-ledger entry needs no sector row of its own: with `coverage=uncharted|all`
+  the listing goes on, after the rows, into those cells by distance (shell, band, wedge; read by key from the block light parts), once the uncharted placeholder rows are few
+  (at most 100,000). Such an item has `virtual: true` and the cell's sector ID as `id` (its designation, which `GET /api/sectors/<id>` and `after=<sector ID>` accept though no row has it);
+  it has no systems (the `systems` and `density` sorts count it as zero, so these follow the rows) and the `quadrant` filter of the library function works from the cell's position.
+  `uncharted_total` and `total` include these cells. A cell with a row (a rogue planet's) is listed once, as its row.
+  Migration 0254 deletes the placeholder rows nothing lives in and no stage makes them, so these cells are all of the waiting cells that no rogue planet holds a row for. A sector search (`sector_q`) with `coverage=uncharted|all` finds such a cell when the whole designation is typed (`virtual: true`).
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,

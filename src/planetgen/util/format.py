@@ -361,6 +361,11 @@ def format_temperature_k(kelvin, companions=True):
     return format_quantity(ladders.TEMPERATURE, kelvin, companions)
 
 
+def whole_or_general(value):
+    """A limit as a help page prints it: a whole number with thousands separators (`1,000`), any other number as `g` writes it (`0.25`)."""
+    return f"{value:,.0f}" if float(value).is_integer() else f"{value:g}"
+
+
 def three_figures_or_tiny(value):
     """`_three_figures`, but scientific below a thousandth, where a
     unit would otherwise run to a row of zeros (UX.81)."""

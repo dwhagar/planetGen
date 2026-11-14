@@ -239,6 +239,11 @@ CHAIN_MAX_PUSH = 2.0
 because the gap in mutual Hill radii saturates with the distance; a rule that is met only by moving a planet more than this far out is taken as unmet by any distance, and the pairwise rule stands (the same
 as a window no distance closes). Without the cap a window whose best attainable spacing is just under `CHAIN_K_EFF` pushed a planet from 2.2 to 18.5 AU when one eccentricity moved by a part in a thousand.
 A stand-in (registry CH4, tier T4, tweak L1)."""
+CHAIN_MAX_GAP_K = 40.0
+"""float: The widest gap, in mutual Hill radii between the two semi-major axes (as the belt rule measures a gap, not edge to edge as the floor does), the chain rule may open to hold a window's effective spacing. The belt rule reads a gap this wide as a belt (`belt_origin.GAP_SPACING_K`, BG1), so a push that
+would open one is the chain rule making belts, not holding a chain: the window is taken as unmet and the pairwise rule stands (the same as a window no distance closes). The effective spacing is the mean less half the
+spread, so beside one wide gap the next planet was pushed to gaps of 43 to 60 (seed 22: 1.263 to 1.815 AU) and the share of neighbour pairs at 40 or more rose from 7 to 16 percent, the extra belts of Train 24 (G2V
+belts 1.21 to 1.73). A stand-in (registry CH5, tier T4, tweak L1); it equals BG1 and a test pins that."""
 
 
 def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg, start_au):
@@ -253,7 +258,7 @@ def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass
 
     The effective spacing is not monotone in the distance: it is the mean of the gaps less half their spread, so a planet put farther out beside a window with one wide gap can lower it. The
     first distance that holds it, within `CHAIN_MAX_PUSH` times `start_au`, is found by stepping out by `CHAIN_SCAN_STEP` and bisecting the step that crosses; a window that no such distance closes
-    leaves the pairwise rule (see `CHAIN_MAX_PUSH`).
+    leaves the pairwise rule (see `CHAIN_MAX_PUSH`), and so does one whose first distance opens a gap of `CHAIN_MAX_GAP_K` or more.
     """
     need = tuning.CHAIN_WINDOW - 1
     if not tuning.CHAIN_K_EFF > 0.0 or len(inner_planets) < need:
@@ -278,6 +283,8 @@ def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass
     for _ in range(60):
         middle = 0.5 * (low + high)
         low, high = (middle, high) if spacing(middle) < tuning.CHAIN_K_EFF else (low, middle)
+    if edge_gap_hill_radii(last[0], 0.0, last[2], high, 0.0, new_mass_kg, central_mass_kg) >= CHAIN_MAX_GAP_K:
+        return start_au                                  # holding the window would open a gap the belt rule reads as a belt: leave the pairwise rule (CH5)
     return high
 
 

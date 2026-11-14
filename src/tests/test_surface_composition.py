@@ -76,16 +76,16 @@ def test_ocean_world_has_ocean_and_salts():
 
 
 def test_ice_needs_cold_enough_surface():
-    warm = sc.draw_surface(earth(surface_temperature_k=300.0, hydrosphere="ice", ocean_fraction=0.9))
+    warm = sc.draw_surface(earth(surface_temperature_k=300.0, hydrosphere="ice", ice_cover_fraction=0.9))
     assert sc.ICE not in warm.mix and "water_ice" not in warm.components
-    cold = sc.draw_surface(earth(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.9))
+    cold = sc.draw_surface(earth(surface_temperature_k=250.0, hydrosphere="ice", ice_cover_fraction=0.9))
     assert cold.mix[sc.ICE] == pytest.approx(0.9)
     assert "water_ice" in cold.components
 
 
 def test_ice_rich_frozen_body_is_all_ice():
     result = sc.draw_surface(earth(surface_temperature_k=100.0, pressure_pa=0.0, water_mass_fraction=0.4,
-                                   rock_mass_fraction=0.6, hydrosphere="ice", ocean_fraction=0.2))
+                                   rock_mass_fraction=0.6, hydrosphere="ice", ice_cover_fraction=0.2))
     assert result.mix == {sc.ICE: 1.0}
     assert set(result.components) == {"water_ice"}
 
@@ -94,11 +94,11 @@ def test_other_ices_stand_only_where_cold_enough():
     shares = {"n2_ice": 0.6, "ch4_ice": 0.4}
     cold = sc.draw_surface(earth(surface_temperature_k=30.0, pressure_pa=1.0, water_mass_fraction=0.3,
                                  ice_mass_fraction=0.2, rock_mass_fraction=0.5, volatile_shares=shares, hydrosphere="ice",
-                                 ocean_fraction=0.1))
+                                 ice_cover_fraction=0.1))
     assert {"water_ice", "n2_ice", "ch4_ice"} <= set(cold.components)
     warm = sc.draw_surface(earth(surface_temperature_k=120.0, pressure_pa=1.0, water_mass_fraction=0.3,
                                  ice_mass_fraction=0.2, rock_mass_fraction=0.5, volatile_shares=shares, hydrosphere="ice",
-                                 ocean_fraction=0.1))
+                                 ice_cover_fraction=0.1))
     assert "n2_ice" not in warm.components and "ch4_ice" not in warm.components
     assert "water_ice" in warm.components
 
@@ -237,7 +237,7 @@ def test_albedo_is_between_the_ground_types():
     assert 0.0 < covered <= 1.0
     for value in bands.values():
         assert 0.0 <= value <= 1.0
-    snow = sc.draw_surface(earth(surface_temperature_k=200.0, hydrosphere="ice", ocean_fraction=1.0))
+    snow = sc.draw_surface(earth(surface_temperature_k=200.0, hydrosphere="ice", ice_cover_fraction=1.0))
     snow_bands, _ = sc.band_albedo(snow)
     assert snow_bands["alb_050_060"] > bands["alb_050_060"]
 

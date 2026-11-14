@@ -40,13 +40,15 @@ import numpy as np
 
 from planetgen.physics import albedo_color, climate_branches, climate_draws, constants, daylight, habitability, latitude_bands, regional_temperature, ring_darkening, seasonal_swing, sky_suns, surface_cycle
 
-KELVIN = 273.15
+KELVIN = constants.CELSIUS_ZERO_K
 MOST_OF_THE_TIME = 0.5
 """float: A place counts in the livable area when it is livable at least this share of the time ("livable most of the time", Boss 7:32 PM EST 11-04). Source tier T9, tweak level L0 (a definition)."""
 NEARLY_ALWAYS = 0.9
 """float: The share of the time a place is livable for `area_most` (the research note, "at least 90 percent of the time"). Source tier T9, tweak level L0 (a definition)."""
 TIE_TOLERANCE = 1.0e-3
 """float: Cells whose livable time is within this of the best tie for the best site (a hundredth of a percent is a step or two of a year). Source tier T6, tweak level L0 (numerical)."""
+EXTREME_TIE_K = 1.0e-6
+"""float: Samples whose temperatures differ by less than this are the same extreme (a mirror-symmetric world gives two of them that differ in the last bits). Source tier T9, tweak level L0 (numerical)."""
 DAY_SIDE_DEG = 60.0
 """float: A cell of a world that turns once an orbit is on the day side within this angle of the point under the star. Source tier T9, tweak level L0 (a definition: a quarter of the surface)."""
 NIGHT_SIDE_DEG = 120.0
@@ -151,9 +153,9 @@ def wet_bulb_ceiling_c(relative_humidity, limit_c=None):
     if relative_humidity is None:
         return math.inf
     limit_c = habitability.WET_BULB_CRIT_C if limit_c is None else limit_c
-    if habitability.wet_bulb_c(50.0, relative_humidity) < limit_c:
+    if habitability.wet_bulb_c(WET_BULB_TOP_C, relative_humidity) < limit_c:
         return math.inf
-    low, high = -20.0, 50.0
+    low, high = -20.0, WET_BULB_TOP_C
     for _ in range(60):
         middle = 0.5 * (low + high)
         if habitability.wet_bulb_c(middle, relative_humidity) < limit_c:
@@ -187,7 +189,10 @@ def longest_out_days(livable, step_days):
 def _extreme(series, mask, hottest):
     """The coldest (or hottest) sample of the series among the cells and steps where `mask` is true, as an `Extreme`."""
     temperature = np.where(mask, series.temperature_k, np.inf if not hottest else -np.inf)
-    flat = int(np.argmax(temperature) if hottest else np.argmin(temperature))
+    best = float(temperature.max() if hottest else temperature.min())
+    # a world with a mirror symmetry (an orbit with its spin axis in the plane of the perihelion) has two places and times with the one extreme, equal to the last
+    # bits: the first of those in the grid's order is the one, so the number a stored world gives and the one a re-score of it gives are the same
+    flat = int(np.flatnonzero((temperature >= best - EXTREME_TIE_K) if hottest else (temperature <= best + EXTREME_TIE_K))[0])
     row, column, step = np.unravel_index(flat, temperature.shape)
     return Extreme(float(temperature[row, column, step]), int(row), int(column), float(series.grid.latitude_deg[row]), float(series.grid.longitude_deg[column]),
                    float(series.time_days[step]))
@@ -199,11 +204,29 @@ def _range(temperature, selector):
     return (float(chosen.min()), float(chosen.max())) if chosen.size else (math.nan, math.nan)
 
 
-def sector_masks(series):
-    """The `[row, column]` masks of the sectors of the sky of the star, `{name: mask}`, by the angle from the point under the star (latitude 0, longitude 0)."""
+def _substellar_angle_deg(series):
+    """The `[row, column]` angle of each cell from the point under the star (latitude 0, longitude 0), degrees."""
     latitude = np.radians(series.grid.latitude_deg)[:, None]
     longitude = np.radians(series.grid.longitude_deg)[None, :]
-    angle = np.degrees(np.arccos(np.clip(np.cos(latitude) * np.cos(longitude), -1.0, 1.0)))
+    return np.degrees(np.arccos(np.clip(np.cos(latitude) * np.cos(longitude), -1.0, 1.0)))
+
+
+def _cell_weights(series):
+    """The `[row, column]` area weight of each cell: `grid.row_weight / columns` (equal area along a row)."""
+    rows, columns = series.temperature_k.shape[:2]
+    return np.repeat(series.grid.row_weight / columns, columns).reshape(rows, columns)
+
+
+def _latitude_band_masks(series):
+    """`[row, column]` masks of the seven bands of latitude (`latitude_bands.NAMES`), north to south."""
+    columns = series.temperature_k.shape[1]
+    index = np.repeat(np.array([band_of_latitude(lat) for lat in series.grid.latitude_deg])[:, None], columns, axis=1)
+    return [index == number for number in range(latitude_bands.BAND_COUNT)]
+
+
+def sector_masks(series):
+    """The `[row, column]` masks of the sectors of the sky of the star, `{name: mask}`, by the angle from the point under the star (latitude 0, longitude 0)."""
+    angle = _substellar_angle_deg(series)
     return {SECTORS[0]: angle < DAY_SIDE_DEG, SECTORS[1]: (angle >= DAY_SIDE_DEG) & (angle <= NIGHT_SIDE_DEG), SECTORS[2]: angle > NIGHT_SIDE_DEG}
 
 
@@ -214,7 +237,7 @@ def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     """
     temperature = series.temperature_k
     rows, columns, steps = temperature.shape
-    weights = np.repeat(series.grid.row_weight / columns, columns).reshape(rows, columns)
+    weights = _cell_weights(series)
     celsius = temperature - KELVIN
     band = habitability.TEMPERATURE_BAND if band is None else band
     ceiling = wet_bulb_ceiling_c(relative_humidity, wet_bulb_limit)
@@ -237,10 +260,7 @@ def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     area_most_of_time = float(np.sum(most * weights) / total)
     livable_time = float(np.sum(place_time * most * weights) / (area_most_of_time * total)) if area_most_of_time > 0.0 else 0.0
 
-    by_band = []
-    for index in range(latitude_bands.BAND_COUNT):
-        selector = np.repeat(np.array([band_of_latitude(lat) == index for lat in series.grid.latitude_deg])[:, None], columns, axis=1)
-        by_band.append(_range(temperature, selector))
+    by_band = [_range(temperature, selector) for selector in _latitude_band_masks(series)]
     by_column = tuple(_range(temperature[:, [c], :], np.ones((rows, 1), dtype=bool)) for c in range(columns))
     phase = (series.time_days % series.orbital_days) / series.orbital_days
     quarter = np.minimum((phase * QUARTERS).astype(int), QUARTERS - 1)
@@ -257,7 +277,13 @@ def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     best = float(place_time.max())
     tied = np.argwhere(place_time >= best - TIE_TOLERANCE)
     swing = temperature.max(axis=2) - temperature.min(axis=2)
-    row, column = min((tuple(cell) for cell in tied), key=lambda cell: (swing[cell], cell))
+    blue_time = blue.mean(axis=2)
+    middle = 0.5 * (band[3] + band[4])
+    # the swings of two cells are the same to a millionth of a kelvin when the world has a mirror symmetry (or no swing at all): the tie then goes to the cell that is comfortable (blue) the
+    # larger share of the time, then to the one whose mean is nearest the middle of the blue band, then to the first of the grid, not to the last bits of a float, so a re-score of a stored
+    # world finds the site the first one did
+    row, column = min((tuple(cell) for cell in tied), key=lambda cell: (round(float(swing[cell]), 6), -round(float(blue_time[cell]), 6),
+                                                                      round(abs(float(celsius[cell].mean()) - middle), 6), cell))
     cell_series = temperature[row, column]
     site = BestSite(int(row), int(column), float(series.grid.latitude_deg[row]), float(series.grid.longitude_deg[column]), float(place_time[row, column]),
                     float(cell_series.min()), float(cell_series.max()), longest_out_days(livable[row, column], series.step_days), float(cell_series.mean()))
@@ -382,7 +408,7 @@ def _inputs(values):
             (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY, values.get("ground_ocean_fraction") or 0.0, ring, water, values.get("sky_suns") or None)
 
 
-_YEAR_H = 8766.0
+_YEAR_H = constants.HOURS_PER_YEAR
 """float: Hours in a year of 365.25 days, the unit of the orbital period `temperature_series` takes (`period_years` is stored in years)."""
 
 
@@ -457,14 +483,9 @@ def fields(read):
 def _band_masks(series):
     """`[row, column]` masks of the seven bands, north to south: by latitude, or for a world that turns once an orbit the rings by the angle from the point under the star
     (`latitude_bands.RING_NAMES`)."""
-    rows, columns = series.temperature_k.shape[:2]
-    if not math.isfinite(series.solar_days):
-        latitude = np.radians(series.grid.latitude_deg)[:, None]
-        longitude = np.radians(series.grid.longitude_deg)[None, :]
-        angle = np.degrees(np.arccos(np.clip(np.cos(latitude) * np.cos(longitude), -1.0, 1.0)))
-        index = np.minimum((angle // latitude_bands.BAND_WIDTH_DEG).astype(int), latitude_bands.BAND_COUNT - 1)
-    else:
-        index = np.repeat(np.array([band_of_latitude(lat) for lat in series.grid.latitude_deg])[:, None], columns, axis=1)
+    if math.isfinite(series.solar_days):
+        return _latitude_band_masks(series)
+    index = np.minimum((_substellar_angle_deg(series) // latitude_bands.BAND_WIDTH_DEG).astype(int), latitude_bands.BAND_COUNT - 1)
     return [index == number for number in range(latitude_bands.BAND_COUNT)]
 
 
@@ -477,7 +498,7 @@ def band_climate(series):
     """
     temperature = series.temperature_k
     rows, columns, steps = temperature.shape
-    weights = np.repeat(series.grid.row_weight / columns, columns).reshape(rows, columns)
+    weights = _cell_weights(series)
     mean = temperature.mean(axis=2)
     if math.isfinite(series.solar_days):
         # PERF.249: a world that turns many times per sample (a hypergiant's planet) has more solar days than samples; the windows past the last sample are empty and were

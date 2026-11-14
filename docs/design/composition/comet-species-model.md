@@ -1,6 +1,6 @@
 # The comet species model (GEN.1005, k7)
 
-Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the Aux 3 lane. Sections 4 and 5 (GEN.1021 and GEN.1022, Lane 13) are modules not yet wired: the swap of rows k5 and k7 rides one train with one epoch. `src/planetgen/physics/comet_species.py`; tests in `src/tests/test_comet_species.py`; registry rows CK1 to CK6 (section 6.59 of the gap-filling plan); the row is `atmosphere-k:k7`, still a flagged stand-in, replaced by GEN.1021.
+Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the Aux 3 lane. Section 4 (GEN.1021) is wired: row k7 draws the seven species log-uniform between the comets measured (the 67P calibration, rows CK1, CK2, CK5 and CK6, is retired). Section 5 (GEN.1022) is wired too: row k5 stores its draw as `co_over_h2o` and row k7 draws N2, Ar, Kr and Xe about the ice formation temperature that implies. `src/planetgen/physics/comet_species.py`; tests in `src/tests/test_comet_species.py`; registry rows CK1 to CK6 (section 6.59 of the gap-filling plan); the row is `atmosphere-k:k7`, no longer a stand-in since GEN.1021.
 
 ## 1. What replaces what
 
@@ -55,4 +55,4 @@ Tests (never inputs): the median comet gives the warm end and Hale-Bopp the cold
 
 Limits. The temperature is a latent: Ciesla and others 2018 show that the trapping also depends on the deposition rate and the partial pressure. Hale-Bopp's CO/H2O is recalled, not opened (CY1). Comets warmer than the median all take the warm-end values (plus residuals). The sulfur of OCS and SO2 plus the population's H2S is still not conserved across rows.
 
-Wiring (a later part, rides a train with one epoch): rows k5 and k7 draw the CO/H2O first and then each latent species from `latent_species_over_h2o` with one standard normal each (a new draw kind in `atmosphere_recipes`), and OCS, SO2 and O2 from `bracket_over_h2o` as `loguniform` rows; `TRAPPED_OVER_NEBULAR`, `UNSCALED_OVER_H2O`, `median_over_h2o`, `sigma_dex` and rows CK1, CK2, CK5 and CK6 go, with their burn-down lines. The stored comet columns move for every comet, so the epoch is named in the note.
+Wiring (GEN.1022, done): row k5 `sets` `co_over_h2o`; row k7 draws N2 and Ar log-normal about `comet_ice_formation.latent_log10` with `residual_dex` as the width, krypton about the argon drawn just before it (`comet_tie_log10('Kr', draw_Ar)`) and xenon about the krypton, and OCS, SO2 and O2 log-uniform between their brackets (GEN.1021). A species of a row with several reads the ones drawn before it as `draw_<name>`. The draw count is unchanged. A caller that drew no k5 leaves `co_over_h2o` at the population median.

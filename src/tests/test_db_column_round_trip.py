@@ -28,6 +28,7 @@ BOOKKEEPING_TABLES = {
     "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
     "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
     "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "body_numbers",        # DB.75a: the slot numbers a redraw keeps (written on a first redraw only), read by the redraw, not by a page's loader
     "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }
@@ -74,6 +75,13 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "light_factor"): CHANCE,
     ("moons", "light_factor"): "a moon keeps all its planet's light (GEN.1484)",
     ("rogue_planets", "light_factor"): "a rogue planet has no star (GEN.1484)",
+    # GEN.1535: the range a free-spinning planet's tilt wanders over, kept only for a planet that has modes (a sibling or a companion) and spins free
+    ("planets", "obliquity_min_deg"): CHANCE,
+    ("planets", "obliquity_max_deg"): CHANCE,
+    ("moons", "obliquity_min_deg"): "a moon's tilt is not worked for a range (GEN.1535)",
+    ("moons", "obliquity_max_deg"): "a moon's tilt is not worked for a range (GEN.1535)",
+    ("rogue_planets", "obliquity_min_deg"): "a rogue planet has no star (GEN.1535)",
+    ("rogue_planets", "obliquity_max_deg"): "a rogue planet has no star (GEN.1535)",
     # The latitude bands are stored only for a rogue planet whose air was solved (about 1 Earth mass or less); the rest hold the placeholder 100 kPa, no star and no bands. The
     # moved sample of the Train 21 galaxy holds 13 rocky rogues, all heavier than 2 Earth masses, so it is chance whether one is light enough (main's holds 2 of 29).
     **{("rogue_planets", name): CHANCE for name in (*regional_temperature.FIELDS, *SOLVED_AIR_ONLY)},
@@ -83,7 +91,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
-        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
+        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flux_variation", "ice_shell_thickness_km",
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
@@ -183,6 +191,18 @@ NULL_IN_THIS_GALAXY = {
         "id", "moon_id", "layer_index", "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth",
         "top_radius_fraction", "bottom_radius_fraction", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x",
         "nh3_ice", "ch4_ice")},
+    # GEN.1433: a rogue planet shows a flavor line with the planet chance, so a small galaxy may hold none.
+    ("rogue_planets", "flavor_key"): CHANCE,
+    ("asteroid_belts", "flavor_key"): CHANCE,
+    ("asteroid_fields", "flavor_key"): CHANCE,
+    ("black_holes", "flavor_key"): CHANCE,
+    ("interstellar_comets", "flavor_key"): CHANCE,
+    ("nebulae", "flavor_key"): CHANCE,
+    ("quasars", "flavor_key"): CHANCE,
+    ("supernova_remnants", "flavor_key"): CHANCE,
+    ("stars", "flavor_key"): CHANCE,
+    ("comets", "flavor_key"): CHANCE,
+    ("neutron_stars", "flavor_key"): CHANCE,
     # The same for a planet: whether any planet of this small galaxy bears life is chance.
     **{("planets", column): CHANCE for column in
        ("evolutionary_pace", "flavor_key", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",
@@ -240,6 +260,7 @@ NULL_IN_THIS_GALAXY = {
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
+    ("asteroid_belts", "host_node_id"): "a belt round an inner pair node (GEN.332, slice C), told by a system with such a node",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
     # A moon of a free planet names its rogue planet; whether this galaxy's rogue planets (the ones its donors threw out, which depend on the
@@ -288,7 +309,7 @@ NEVER_READ = {
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
-        ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
+        ("system_owners", "star_system_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
     **{("irregular_moons", column): CHANCE for column in (
@@ -414,7 +435,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
                       for part in ("", "/owner", "/facilities")]
             pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
-            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]
+            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/volume" for i in ids("nebulae")]
             pages += [f"/api/facilities/{pid('facility', i, conn)}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
             pages += [f"/api/polities/{i}" for i in ids("polities")]

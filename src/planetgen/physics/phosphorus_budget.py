@@ -36,7 +36,7 @@ EARTH_LAND_FRACTION = 0.29
 """float: The Earth's land share of its surface."""
 EARTH_OCEAN_VOLUME_M3 = 1.335e18
 """float: The Earth's ocean, cubic metres."""
-EARTH_AREA_M2 = 4.0 * math.pi * (constants.EARTH_RADIUS_KM * 1e3) ** 2
+EARTH_AREA_M2 = 4.0 * math.pi * constants.EARTH_RADIUS_M ** 2
 """float: The Earth's surface, square metres."""
 
 PHOSPHIDE_MIDPOINT_DIW = -3.0

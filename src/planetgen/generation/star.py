@@ -23,7 +23,7 @@ import re
 from planetgen.generation import forced_star, helium_core_draw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import (activity, age_metallicity, formation, imf, metallicity, pre_main_sequence,
+from planetgen.physics import (activity, age_metallicity, formation, formation_snow_line, imf, metallicity, pre_main_sequence,
                               spin, stellar_state, stellar_wind)
 from planetgen.util import draw
 from planetgen.util import log
@@ -36,9 +36,8 @@ from planetgen.util.checks import finite_domain
 from planetgen.physics import unit_registry as units
 
 _percm3_to_perm3 = units.converter("cm-3", "m-3")
-_km_to_m = units.converter("km", "m")
 _m_to_au = units.converter("m", "au")
-_m_to_km = units.converter("m", "km")
+_kg_to_msun = units.converter("kg", "Msun")
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -274,9 +273,10 @@ class Star(StellarObject):
         # GEN.786 and GEN.785: its evolutionary state and, for a white dwarf, the age since it stopped burning (no draw).
         stellar_state.set_state(self)
         # GEN.458: this star's own snow line, drawn once around the blackbody position and stored; its stream is its
-        # own, like the [Fe/H] above, so no older draw moves.
-        self.snow_line_au = formation.draw_snow_line_au(
-            self.luminosity, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
+        # own, like the [Fe/H] above, so no older draw moves. GEN.1611: the position is that of the luminosity its disk saw
+        # (its initial mass at the age the disk was there), not of the light it has today.
+        self.snow_line_au = formation_snow_line.draw_for_star(
+            self, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
@@ -297,7 +297,7 @@ class Star(StellarObject):
         its mass-radius relation). Also fixes `age`/`lifespan` (read by
         `__init__`),
         `initial_mass_sol` (a binary secondary's mass is a fraction of it)
-        and `phase_end_age_gy` (`adjust_age_for_planets` keeps the age
+        and `phase_end_age_gy` (the age the star is drawn at stays
         inside the present phase).
 
         `+large_star` truncates the IMF at `LARGE_STAR_MIN_MASS_SOL`, and a
@@ -317,8 +317,10 @@ class Star(StellarObject):
                 fe_h = birth_fe_h(draw, population, fe_h_peaks, self.galactic_center_dist_ly)
             age = age_gy if age_gy is not None else age_metallicity.tilted_age(
                 fe_h, population, lambda: sample_star_age_gy(age_bias), draw)
-            state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
-                                galactic_center_dist_ly=self.galactic_center_dist_ly)
+            def evolved(mass_sol):
+                return evolve_star(mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
+                                   galactic_center_dist_ly=self.galactic_center_dist_ly)
+            state = evolved(initial_mass_sol)
             # A companion of a specified-type primary takes a fraction of
             # that star's present mass, which can be heavy enough to have
             # collapsed already at the pair's age. Lighten it until it is
@@ -327,19 +329,20 @@ class Star(StellarObject):
             while state is None and initial_mass_sol > imf.lowest_mass_sol():
                 draw.redrawn("star.mass_lightened")
                 initial_mass_sol = max(initial_mass_sol * 0.8, imf.lowest_mass_sol())
-                state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
-                                    galactic_center_dist_ly=self.galactic_center_dist_ly)
+                state = evolved(initial_mass_sol)
         if state is None:
             # No companion given.
             habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
             max_luminosity_sol = getattr(self.system_config, "MAX_STAR_LUMINOSITY_SOL", None)
             max_mass_sol = getattr(self.system_config, "MAX_STAR_MASS_SOL", None)
-            try:
-                initial_mass_sol, age, state = sample_living_star(
-                    age_bias, self.system_config.LARGE_STAR, habitable_host=habitable_host,
+            def living(large_star):
+                return sample_living_star(
+                    age_bias, large_star, habitable_host=habitable_host,
                     population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
                     fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
                     fe_h=fe_h)
+            try:
+                initial_mass_sol, age, state = living(self.system_config.LARGE_STAR)
             except ValueError:
                 if not (self.system_config.LARGE_STAR and (max_luminosity_sol is not None
                                                            or max_mass_sol is not None)):
@@ -349,11 +352,7 @@ class Star(StellarObject):
                 # massive stars were pre-placed allows; this one stays an
                 # ordinary star.
                 log.choice("Large star", "dropped", "none within the sector's star limits")
-                initial_mass_sol, age, state = sample_living_star(
-                    age_bias, None, habitable_host=habitable_host,
-                    population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
-                    fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
-                    fe_h=fe_h)
+                initial_mass_sol, age, state = living(None)
 
         state = helium_core_draw.with_helium_core(state, initial_mass_sol, age)
         self._apply_params(star_params(initial_mass_sol, age, state))
@@ -464,36 +463,6 @@ class Star(StellarObject):
                                           f"{state['temperature_k']:.0f} K")
 
 
-def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets, members=()):
-    """
-    Settles one shared age for a binary pair's two stars (GEN.53): old
-    enough for every planet each star hosts (judged by that star's own
-    evolutionary scales), and no older than either star's generated state
-    allows. The primary's `adjust_age_for_planets` does the work, bounded
-    by the companion's `age_ceiling_gy`; the companion then takes the
-    result. Both stars start at the same age (the companion is born with
-    the primary), so neither moves outside what it was generated as.
-
-    Args:
-        primary (Star): The heavier star.
-        secondary (Star): Its companion.
-        primary_planets (list): Bodies judged against the primary's scales.
-        secondary_planets (list): Bodies judged against the companion's (a
-            close pair passes its circumbinary planets for both).
-        members (list of tuple): `(star, planets)` for each further star of the system (GEN.332): they share the age
-            too, so their planets set a minimum and their states a ceiling like the companion's.
-    """
-    min_required = max([secondary.planet_age_requirement_gy(secondary_planets),
-                        *(star.planet_age_requirement_gy(bodies) for star, bodies in members)])
-    ceiling = min([secondary.age_ceiling_gy(), *(star.age_ceiling_gy() for star, _ in members)])
-    primary.adjust_age_for_planets(primary_planets, min_required_age_gy=min_required, age_ceiling_gy=ceiling)
-    secondary.age = primary.age
-    for star, _ in members:
-        star.age = primary.age
-
-
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
-_kg_to_msun = units.converter("kg", "Msun")
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Star, "star")

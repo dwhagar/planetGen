@@ -17,7 +17,6 @@ can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/un
 """
 
 import json
-import time
 
 from planetgen.queue import beatjudge, runrecord, taskprogress, unitbeat, unitstuck
 from planetgen.util import log
@@ -107,6 +106,8 @@ class UnitWatch:
             return
         where = f" in {beat.phase}" if beat.phase else ""
         message = f"unit {unit} is {verdict.state}{where}: {verdict.reason}"
+        if verdict.state == beatjudge.BUSY and verdict.severity and self.stuck is not None:
+            message += f"; nothing is stopped, its stack is below\n{self.stuck.stack_of(unit)}"
         error = verdict.state in (beatjudge.DEAD, beatjudge.QUIET) or verdict.severity == beatjudge.SUSPECT
         runrecord.log(self.conn, self.run_id, message, "error" if error else "warning" if verdict.severity or verdict.state == beatjudge.LOOPING else "info", "unit-state",
                       stage=self.stage, unit=unit)
@@ -114,11 +115,7 @@ class UnitWatch:
             self._to_error_log(f"run {self.run_id} stage {self.stage}: {message}", unit)
 
     def _to_error_log(self, message, unit):
-        if self.record_error is not None:
-            self.record_error(message, unit=unit)
-            return
-        from planetgen.util import log
-        log.record_error("queue", message, unit=unit)
+        unitstuck.to_error_log(self.record_error, message, unit)
 
     def _stored_rate(self):
         """The items a second recorded for this stage's command (`rate_of`), `None` where there is none."""
@@ -137,8 +134,9 @@ class UnitWatch:
         stale = {int(unit) for unit in self.conn.hkeys(key)} - set(verdicts)
         if stale:
             pipe.hdel(key, *sorted(stale))
+        agreed = set(self.agreed())
         for unit, verdict in verdicts.items():
-            pipe.hset(key, unit, json.dumps(view(verdict, found[unit], now, unit in self.agreed(), stored_rate)))
+            pipe.hset(key, unit, json.dumps(view(verdict, found[unit], now, unit in agreed, stored_rate)))
         pipe.execute()
 
 
@@ -147,16 +145,10 @@ def view(verdict, beat, now, agreed=False, stored_rate=None):
     return {"state": verdict.state, "severity": verdict.severity, "reason": verdict.reason, "actionable": verdict.actionable, "agreed": bool(agreed),
             "counter": verdict.counter, "rate": verdict.rate, "projected_finish_seconds": verdict.projected_finish_seconds, "still_seconds": verdict.still_seconds,
             "over_limit": verdict.over_limit, "phase": beat.phase, "waiting_on": beat.waiting_on, "done": beat.done, "estimate": beat.estimate,
-            "restarts": beat.restarts, "resident_mb": beat.resident_mb, "beat_age_seconds": max(now - beat.beat, 0.0), "running_seconds": max(now - beat.started, 0.0),
+            "restarts": beat.restarts, "resident_mb": beat.resident_mb, "sql": beat.sql, "sql_seconds": None if beat.sql_since is None or not beat.sql else max(now - beat.sql_since, 0.0), "beat_age_seconds": max(now - beat.beat, 0.0), "running_seconds": max(now - beat.started, 0.0),
             "progress": taskprogress.as_dict(taskprogress.progress(beat.done, beat.estimate, beat.started, now, stored_rate))}
 
 
 def read(conn, run_id, stage):
     """`{unit: view}` as the follower last published it (empty where it has not)."""
-    out = {}
-    for unit, raw in conn.hgetall(runrecord.unitstate_key(run_id, stage)).items():
-        try:
-            out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
-        except (ValueError, TypeError):
-            continue
-    return out
+    return runrecord.unit_json_hash(conn, runrecord.unitstate_key(run_id, stage))

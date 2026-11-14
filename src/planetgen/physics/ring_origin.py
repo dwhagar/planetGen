@@ -100,6 +100,9 @@ class Planet:
     star_mass_kg: float
 
 
+_SATURN = Planet(**SATURN)
+
+
 @dataclass(frozen=True)
 class FallenMoon:
     """A moon that fell inside the Roche limit: its mass and when, years after the planet formed."""
@@ -132,6 +135,15 @@ class RingOrigin:
     from_comets_kg: float
 
 
+def _poisson(expected):
+    """A Poisson count of mean `expected` from the unit's stream (Knuth's product of uniforms: one draw more than the count)."""
+    count, product, limit = 0, draw.random(), math.exp(-expected)
+    while product > limit:
+        count += 1
+        product *= draw.random()
+    return count
+
+
 def _density_kg_m3(planet):
     return planet.mass_kg / (4.0 / 3.0 * math.pi * (planet.radius_km * 1000.0) ** 3)
 
@@ -154,16 +166,12 @@ def comet_passage_rate_per_gyr(planet, cold=True):
     """The rate, per Gyr, of ring-making comets passing inside the Roche limit: `COMET_PASSAGES_PER_GYR` scaled from Saturn by the cross-section; 0 inside `RING_MIN_DISTANCE_AU`."""
     if planet.distance_au < RING_MIN_DISTANCE_AU:
         return 0.0
-    return COMET_PASSAGES_PER_GYR * cross_section_m2(planet, cold) / cross_section_m2(Planet(**SATURN), True)
+    return COMET_PASSAGES_PER_GYR * cross_section_m2(planet, cold) / cross_section_m2(_SATURN, True)
 
 
 def draw_comet_passages(planet, age_yr, cold=True):
     """The comets that passed inside the Roche limit over `age_yr`: their number is Poisson at the rate above, each with a time uniform over the age and a log-uniform mass. Draws from the unit's stream."""
-    expected = comet_passage_rate_per_gyr(planet, cold) * age_yr / 1.0e9
-    count, product, limit = 0, draw.random(), math.exp(-expected)
-    while product > limit:
-        count += 1
-        product *= draw.random()
+    count = _poisson(comet_passage_rate_per_gyr(planet, cold) * age_yr / 1.0e9)
     return tuple(CometPassage(log_uniform(*COMET_MASS_KG_RANGE), draw.uniform(0.0, age_yr)) for _ in range(count))
 
 
@@ -188,19 +196,18 @@ def meteoroid_flux_kg_m2_s(planet, cold=True):
         inner, outer = annulus_m(body, cold)
         v_inf = COMET_ENCOUNTER_FRACTION * math.sqrt(constants.G * body.star_mass_kg / (body.distance_au * constants.AU_TO_M))
         return 1.0 + 2.0 * constants.G * body.mass_kg / (0.5 * (inner + outer)) / v_inf ** 2
-    saturn = Planet(**SATURN)
-    return (METEOROID_FLUX_KG_M2_S * (saturn.distance_au / planet.distance_au) ** METEOROID_FLUX_EXPONENT
-            * focusing(planet) / focusing(saturn))
+    return (METEOROID_FLUX_KG_M2_S * (_SATURN.distance_au / planet.distance_au) ** METEOROID_FLUX_EXPONENT
+            * focusing(planet) / focusing(_SATURN))
 
 
 @functools.lru_cache(maxsize=4096)
 def _loss_terms(planet, cold):
     """`(k, b)` of `dM/dt = -k M^2 - b`: the spreading coefficient (per kg per year) and the erosion rate (kg per year) of the planet's ring."""
-    saturn = Planet(**SATURN)
-    sigma_saturn = SATURN_RING_MASS_KG / annulus_area_m2(saturn, True)
-    r_ratio_squared = (annulus_m(planet, cold)[1] / annulus_m(saturn, True)[1]) ** 2
-    k = 1.0 / (RING_SPREAD_TIME_YR * r_ratio_squared * sigma_saturn * annulus_area_m2(planet, cold))
-    b = EROSION_YIELD * meteoroid_flux_kg_m2_s(planet, cold) * annulus_area_m2(planet, cold) * constants.SECONDS_PER_YEAR
+    sigma_saturn = SATURN_RING_MASS_KG / annulus_area_m2(_SATURN, True)
+    r_ratio_squared = (annulus_m(planet, cold)[1] / annulus_m(_SATURN, True)[1]) ** 2
+    area = annulus_area_m2(planet, cold)
+    k = 1.0 / (RING_SPREAD_TIME_YR * r_ratio_squared * sigma_saturn * area)
+    b = EROSION_YIELD * meteoroid_flux_kg_m2_s(planet, cold) * area * constants.SECONDS_PER_YEAR
     return k, b
 
 
@@ -220,10 +227,7 @@ def spread(mass_kg, since_yr, planet, cold=True):
 
 def draw_feeders(planet):
     """The small moonlets inside `FEEDER_MAX_DISTANCE_RADII` radii of a giant (`FeederMoon`s): a Poisson `FEEDER_MEAN_COUNT` of them, each with a log-uniform radius and a uniform distance. Draws from the unit's stream."""
-    count, product, limit = 0, draw.random(), math.exp(-FEEDER_MEAN_COUNT)
-    while product > limit:
-        count += 1
-        product *= draw.random()
+    count = _poisson(FEEDER_MEAN_COUNT)
     return tuple(FeederMoon(log_uniform(*FEEDER_RADIUS_KM_RANGE), planet.radius_km * draw.uniform(*FEEDER_DISTANCE_RADII_RANGE)) for _ in range(count))
 
 

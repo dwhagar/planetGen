@@ -8,7 +8,7 @@ FORM_LEVEL = 0.35
 MAX_DETAIL = 8
 
 
-def density(points, field, detail):
+def density(points, field, detail, anchors=None):
     x, y, z = points[:, 0], points[:, 1], points[:, 2]
     shift = 0.0 if field == "gas" else 1.7
     lumps = np.sin(0.055 * x + 0.7 + shift) * np.cos(0.071 * y - 0.4) * np.sin(0.047 * z + 1.3) + 0.5 * np.sin(0.031 * (x + y) + shift)

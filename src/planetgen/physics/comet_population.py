@@ -94,7 +94,7 @@ class Species:
         low = _phi((math.log10(self.lo_percent) - mu) / self.sigma_dex)
         high = _phi((math.log10(self.hi_percent) - mu) / self.sigma_dex)
         q = min(max(low + draw.random() * (high - low), 1e-16), 1.0 - 1e-16)
-        x = mu + self.sigma_dex * statistics.NormalDist().inv_cdf(q)
+        x = mu + self.sigma_dex * _NORMAL.inv_cdf(q)
         return min(max(10.0 ** x, self.lo_percent), self.hi_percent)
 
     def cdf(self, percent):
@@ -203,6 +203,7 @@ def _parse(data):
 
 
 _DATA, CARBON_OXIDES, SPECIES = _load()
+_NORMAL = statistics.NormalDist()
 SOURCES = _DATA["sources"]
 """dict: Source key -> citation."""
 

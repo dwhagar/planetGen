@@ -67,8 +67,8 @@ def _machine(conn):
         pool = None
         try:
             pool = int(conn.execute("SELECT @@innodb_buffer_pool_size AS b").fetchone()["b"] / (1024 * 1024))
-        except Exception:       # noqa: BLE001 -- an unknown pool size is stored empty
-            pass
+        except Exception as exc:        # noqa: BLE001 -- an unknown pool size is stored empty
+            log.swallowed("queue", "reading the MySQL buffer pool size for a job profile", exc)
         _state["machine"] = (int(host.total_mb), int(host.cores), pool)
     return _state["machine"]
 
@@ -144,8 +144,8 @@ def record(kind, items=None, seconds=None, peak_mb=None, outcome="done", conn=No
         if own and conn is not None:
             try:
                 conn.close()
-            except Exception:       # noqa: BLE001
-                pass
+            except Exception as exc:        # noqa: BLE001
+                log.swallowed("queue", "closing the control connection of a job profile", exc)
 
 
 def peaks(kind, limit=30, conn=None):

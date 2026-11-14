@@ -56,7 +56,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import (atmosphere, bulk_structure, constants, core_heat, giant_heat, icy_tide, magnetism, moon_orbits, radiogenic,
+from planetgen.physics import (bulk_structure, constants, core_heat, giant_heat, icy_tide, magnetism, moon_orbits, radiogenic,
                                spin_torques, tidal_heating, tidal_rheology, unit_registry as units)
 from planetgen.util import draw
 
@@ -77,7 +77,7 @@ STAGNANT, MOBILE = "stagnant", magnetism.LID_MOBILE
 
 GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K)."""
-GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
+GY_S = constants.SECONDS_PER_GY
 """float: Seconds in a gigayear."""
 
 MANTLE_DENSITY = 3500.0
@@ -123,8 +123,9 @@ TIDE_SAMPLES = 8
 STEP_LIMIT_GY = 0.05
 """float: The longest time step, Gy."""
 FIRST_STEP_GY = 1.0e-4
-CORE_STRIDE = 4          # the box's steps to one of the core's (GEN.838)
 """float: The first, Gy; steps grow by `STEP_GROWTH` until `STEP_LIMIT_GY` or the cooling rate asks for less."""
+CORE_STRIDE = 4
+"""int: The box's steps to one of the core's (GEN.838)."""
 STEP_GROWTH = 1.15
 """float: The factor steps grow by."""
 
@@ -299,9 +300,10 @@ def mantle_of(mass_kg, radius_km, rock):
 def cmb_pressure_gpa(mass_kg, radius_km, rock):
     """The pressure at the base of the mantle, GPa, of a body of `mass_kg` and `radius_km` made of `rock` (`core_heat.cmb_pressure_gpa`); 0 for a body with no
     core or no silicate."""
-    if mass_kg * rock.metal <= 0.0 or mantle_of(mass_kg, radius_km, rock) is None:
+    mantle = mantle_of(mass_kg, radius_km, rock) if mass_kg * rock.metal > 0.0 else None
+    if mantle is None:
         return 0.0
-    dry_m = dry_radius_km(mass_kg, radius_km, rock) * 1000.0
+    dry_m = mantle.dry_m
     metal_kg, silicate_kg = mass_kg * rock.metal, mass_kg * rock.silicate
     return core_heat.cmb_pressure_gpa(metal_kg, silicate_kg, dry_m * (metal_kg / (metal_kg + silicate_kg)) ** 0.5, dry_m)
 
@@ -620,7 +622,7 @@ def surface_of(body):
 
 def generate_lid(body):
     """
-    Sets `lid_regime` on a rocky planet or moon: one draw, `MOBILE` when it falls under `magnetism.mobile_lid_chance` (a liquid surface
+    Sets `lid_regime` on a rocky planet or moon: one throw from a stream of the body's own (GEN.1591: no draw of the run's stream, the same throw every time it is made again), `MOBILE` when it falls under `magnetism.mobile_lid_chance` (a liquid surface
     ocean to lubricate the plates, and a mass between 0.5 and 5 Earth masses at 0.6, heavier at 0.3: the literature is unsettled), else
     `STAGNANT`. Call after the hydrosphere. A body with no stored content (a gas giant) has `None` and draws nothing. The magnetic field
     and the ground dose read the stored regime, so the three agree (they each drew their own coin before GEN.721).
@@ -629,8 +631,9 @@ def generate_lid(body):
         body.lid_regime = None
         return
     mass_earth = _kg_to_mearth(body.mass)
-    mobile = draw.random() < magnetism.mobile_lid_chance(body, mass_earth)
-    body.lid_regime = MOBILE if mobile else STAGNANT
+    formed = getattr(body, "formation_distance_au", None) or getattr(body, "distance", None)
+    coin = draw.Stream(f"lid-regime:{float(body.mass)!r}:{float(formed or 0.0)!r}:{float(getattr(getattr(body, 'star', None), 'mass', 0.0) or 0.0)!r}").random()      # GEN.1591: the body's own coin, so a body made again keeps the throw it had and only the chance (its ocean) can change its regime
+    body.lid_regime = MOBILE if coin < magnetism.mobile_lid_chance(body, mass_earth) else STAGNANT
 
 
 def heat_of(body):

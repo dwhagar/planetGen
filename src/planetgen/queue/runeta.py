@@ -65,7 +65,8 @@ def _run_rate(run, now):
     return done / (now - started)
 
 
-def _finished(stage):
+def finished(stage):
+    """Whether the stage has ended, or every one of its units is done."""
     return stage["ended"] is not None or (stage["units"] and stage["done"] >= stage["units"])
 
 
@@ -80,7 +81,7 @@ def _rough_remaining(stage, now):
     """`(seconds, ROUGH, False)`: `roughtime`'s guess for a stage nothing is known about, less the time it has run
     (held at `OVERRUN_FRACTION` of the guess while it outlasts it)."""
     workers = stage.get("workers") or 1
-    guess = roughtime.stage_seconds(stage["units"] or None, workers if workers > 1 else None)
+    guess = roughtime.stage_seconds(stage["units"] or None, workers if workers > 1 else None, stage.get("unit_seconds"))     # OPS.159: the job profile's unit time before the typed one
     if stage["started"] is None:
         return guess, ROUGH, False
     return max(guess - max(now - stage["started"], 0.0), OVERRUN_FRACTION * guess), ROUGH, False
@@ -88,7 +89,7 @@ def _rough_remaining(stage, now):
 
 def _stage_remaining(stage, now, run_rate):
     """`(seconds or None, source or None, stalled)` for one stage."""
-    if _finished(stage):
+    if finished(stage):
         return 0.0, None, False
     cost_left = max((stage["cost_total"] or 0.0) - stage["cost_done"], 0.0)
     prior = stage.get("prior_rate")
@@ -101,9 +102,7 @@ def _stage_remaining(stage, now, run_rate):
             return float(expected), EARLIER_RUNS, False
         if prior and cost_left:
             return cost_left / prior, "recorded", False
-        if run_rate and cost_left:
-            return cost_left / run_rate, THIS_RUN, False
-        return _rough_remaining(stage, now)
+        return _untimed(stage, now, run_rate, cost_left)
     elapsed = max(now - stage["started"], 0.0)
     live = stage["u"] / stage["t"] if stage.get("t") else None
     rate = progress_rate.blended_rate(live, stage["done"], prior, elapsed)
@@ -117,6 +116,11 @@ def _stage_remaining(stage, now, run_rate):
         return seconds, "recorded" if recorded else "live", stalled
     if expected:
         return max(expected - elapsed, OVERRUN_FRACTION * expected), EARLIER_RUNS, False
+    return _untimed(stage, now, run_rate, cost_left)
+
+
+def _untimed(stage, now, run_rate, cost_left):
+    """A stage with no rate and no history: the run's rate so far on the cost left, else `roughtime`'s guess."""
     if run_rate and cost_left:
         return cost_left / run_rate, THIS_RUN, False
     return _rough_remaining(stage, now)
@@ -141,9 +145,9 @@ def estimate(run, now):
         total += seconds
         if stage_source == ROUGH:
             rough_total += seconds
-        if not _finished(stage) and not current_seen:
+        if not finished(stage) and not current_seen:
             current_seen, source, stalled = True, stage_source, stage_stalled
-    if partial and total == 0.0 and not all(_finished(stage) for stage in run["stages"]):
+    if partial and total == 0.0 and not all(finished(stage) for stage in run["stages"]):
         return Eta(partial=True)
     low, high = progress_rate.eta_range(total) or (None, None)
     if rough_total:       # the guessed part of the total is wide, the rest keeps the usual range

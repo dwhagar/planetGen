@@ -26,12 +26,10 @@ SURFACE_REGIMES = ("brown-dwarf",)
 SURFACE_REGIME_LABELS = {"brown-dwarf": "No solid surface (1 bar level)"}
 """dict: A regime's display label."""
 
-BAR_TO_PA = 1e5
+BAR_TO_PA = constants.BAR_PA
 
 
-
-def _sigma():
-    return constants.STEFAN_BOLTZMANN_CONSTANT
+_SIGMA = constants.STEFAN_BOLTZMANN_CONSTANT
 
 
 def _giant_luminosity_w(mass_kg, age_gy):
@@ -44,7 +42,7 @@ def _giant_luminosity_w(mass_kg, age_gy):
     deuterium_jup = mass_boundaries.jupiter("deuterium_burning_limit")
     jupiter_l = pc.ROGUE_JUPITER_INTERNAL_FLUX_W_M2 * 4 * math.pi * (phys.JUPITER_RADIUS_KM * 1000.0) ** 2
     neptune_mass_kg, neptune_radius_m = 1.024e26, 2.4764e7
-    neptune_l = _sigma() * pc.ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K ** 4 * 4 * math.pi * neptune_radius_m ** 2
+    neptune_l = _SIGMA * pc.ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K ** 4 * 4 * math.pi * neptune_radius_m ** 2
 
     def brown_dwarf_l(m_kg, t_gy):
         return brown_dwarf.luminosity_sol(_kg_to_msun(m_kg), t_gy) * phys.SOLAR_LUMINOSITY
@@ -68,13 +66,13 @@ def giant_internal_flux_w_m2(mass_kg, radius_km, age_gy):
     flux = _giant_luminosity_w(mass_kg, age_gy) / (4 * math.pi * (radius_km * 1000.0) ** 2)
     flux *= ice_giant_heat.suppression(_kg_to_mearth(mass_kg))        # GEN.1033: an ice giant with a stable composition gradient leaks little
     cap_k = substellar_ceiling.cap_k(_kg_to_msun(mass_kg), age_gy)
-    return min(flux, _sigma() * cap_k ** 4)
+    return min(flux, _SIGMA * cap_k ** 4)
 
 
 def effective_temperature_k(flux_w_m2):
     """Step 2: T_eff = ((F_int + sigma T_CMB^4) / sigma)^(1/4)."""
     cmb = constants.COSMIC_BACKGROUND_TEMPERATURE_K
-    return ((flux_w_m2 + _sigma() * cmb ** 4) / _sigma()) ** 0.25
+    return ((flux_w_m2 + _SIGMA * cmb ** 4) / _SIGMA) ** 0.25
 
 
 def surface_gravity_m_s2(mass_kg, radius_km):
@@ -95,8 +93,6 @@ def giant_photosphere_pressure_pa(gravity_m_s2):
     return (2 / 3) * gravity_m_s2 / kappa
 
 
-
-
 def giant_temperature_at_k(t_eff_k, gravity_m_s2, pressure_pa):
     """A giant's temperature at `pressure_pa`: the gray radiative profile
     T^4 = (3/4) T_eff^4 (tau + 2/3) above the photosphere, the adiabat
@@ -106,8 +102,6 @@ def giant_temperature_at_k(t_eff_k, gravity_m_s2, pressure_pa):
         tau = (2 / 3) * pressure_pa / photosphere_pa
         return t_eff_k * (0.75 * (tau + 2 / 3)) ** 0.25
     return adiabat_temperature_k(t_eff_k, photosphere_pa, pressure_pa)
-
-
 
 
 def rogue_surface_conditions(mass_kg, radius_km, age_gy=None, rng=draw):

@@ -268,6 +268,19 @@ def _number(value, percent):
     return f"{value:,.12g}"
 
 
+def quantity_entry(name):
+    """`(label, unit, percent)` of a class quantity as the class table names it: the words, the unit (empty for none) and whether a value is shown as a percent (a gas share)."""
+    if name.startswith("share_"):
+        gas = name[len("share_"):]
+        entry = DOCUMENT["quantities"]["share_<gas>"]
+        return entry["label"].replace("<gas>", atmosphere.species_name(gas)), "", True
+    if name.startswith("phase_"):
+        entry = DOCUMENT["quantities"]["phase_<family>"]
+        return entry["label"].replace("<family>", name[len("phase_"):].replace("_", "-")), "", False
+    entry = DOCUMENT["quantities"][name]
+    return entry["label"], entry.get("unit", ""), entry.get("percent", False)
+
+
 def condition_words(condition, measure=None):
     """
     A rule condition as plain words, e.g. `surface pressure below 10 Pa` or `oxygen share of the air at least 10 percent`.
@@ -279,16 +292,7 @@ def condition_words(condition, measure=None):
             page gives a number that follows the visitor's unit setting (UX.295). Defaults to None.
     """
     name = condition["quantity"]
-    if name.startswith("share_"):
-        gas = name[len("share_"):]
-        entry = DOCUMENT["quantities"]["share_<gas>"]
-        label, unit, percent = entry["label"].replace("<gas>", atmosphere.species_name(gas)), "", True
-    elif name.startswith("phase_"):
-        entry = DOCUMENT["quantities"]["phase_<family>"]
-        label, unit, percent = entry["label"].replace("<family>", name[len("phase_"):].replace("_", "-")), "", False
-    else:
-        entry = DOCUMENT["quantities"][name]
-        label, unit, percent = entry["label"], entry.get("unit", ""), entry.get("percent", False)
+    label, unit, percent = quantity_entry(name)
     suffix = f" {unit}" if unit else ""
 
     def number(value):
@@ -303,7 +307,7 @@ def condition_words(condition, measure=None):
     if "equals" in condition and name.startswith("phase_") and condition["equals"] == 1.0:
         parts.append(f"the {name[len('phase_'):].replace('_', '-')} family's liquid is a liquid at the surface temperature and pressure")
     elif "equals" in condition and name == "groundwater_present" and condition["equals"] == 1.0:
-        parts.append("liquid groundwater under a dry surface")
+        parts.append("liquid water under a dry surface, or a water table under the land of a world with a small sea")
     elif "equals" in condition:
         parts.append(f"{label} is {condition['equals']}")
     if "not_equals" in condition:

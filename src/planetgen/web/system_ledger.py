@@ -8,16 +8,15 @@ ledger from the typed tables; this builds the rows.
 
 import math
 
+from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_number
-from planetgen.web.lib.tabledisplay import format_body_distance, format_mass, format_star_radius
+from planetgen.web.lib.tabledisplay import format_body_distance, format_mass
 
 from .helpers import page_url
 
 SHOWN_KINDS = ("star", "planet", "moon", "ring", "comet")
 """tuple: The kinds the table lists one row each; the bodies of a belt are summed in the belt table."""
-
-_AU_KM = 149597870.7
 
 
 def _link(entry):
@@ -61,7 +60,7 @@ def panel(db, system_id):
             continue
         bodies.append({"name": entry["name"], "url": _link(entry), "kind": entry["kind"].capitalize(), "parent": names.get(entry["parent"]) if entry["parent"] else None,
                        "mass": format_mass(entry["mass_kg"]) if entry["mass_kg"] else "–",
-                       "distance": format_body_distance(entry["distance_from_barycenter_au"] * _AU_KM)})
+                       "distance": format_body_distance(entry["distance_from_barycenter_au"] * AU_TO_KM)})
     belts = []
     for belt in data["belts"]:
         residual = belt["residual"]

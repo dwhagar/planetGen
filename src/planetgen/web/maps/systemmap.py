@@ -82,12 +82,13 @@ from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
 from planetgen.web.maps.bodylook import look_json, look_note, planet_look, star_look
 from planetgen.web.maps.moonorbits import moon_orbit
-from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
+from planetgen.web.maps.starmap import _SUN_RADIUS_KM, _rgb_hex, star_color
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_radius, format_period, format_luminosity, format_mass, format_star_radius,
     to_plain_text,
 )
 
+from planetgen.names.bodies import node_pair_label
 from planetgen.physics import planet_class_text, planet_type
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
@@ -209,10 +210,9 @@ def _hex_to_rgb01(hex_color):
 
 def _darken_hex(hex_color, amount):
     r, g, b = _hex_to_rgb01(hex_color)
-    h, l, s = colorsys.rgb_to_hls(r, g, b)
-    l = max(0.0, l - amount)
-    r, g, b = colorsys.hls_to_rgb(h, l, s)
-    return "#{:02x}{:02x}{:02x}".format(round(r * 255), round(g * 255), round(b * 255))
+    hue, light, sat = colorsys.rgb_to_hls(r, g, b)
+    light = max(0.0, light - amount)
+    return _rgb_hex(colorsys.hls_to_rgb(hue, light, sat))
 
 
 def _text_color_for(hex_color):
@@ -235,10 +235,6 @@ def _log_scale(value_km, lo_km, hi_km, min_px, max_px):
 
 def _planet_radius_px(radius_km):
     return _log_scale(radius_km, _BODY_RADIUS_LO_KM, _BODY_RADIUS_HI_KM, _PLANET_MIN_R, _PLANET_MAX_R)
-
-
-def _moon_radius_px(radius_km):
-    return _log_scale(radius_km, _BODY_RADIUS_LO_KM, _BODY_RADIUS_HI_KM, _MOON_MIN_R, _MOON_MAX_R)
 
 
 def _star_radius_px(radius_km):
@@ -300,9 +296,7 @@ def _radial_px(distance_km, lo_km, hi_km):
         return 0.0
     if hi_km <= lo_km:
         return _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
-    distance_km = max(lo_km, min(hi_km, distance_km))
-    frac = (math.log10(distance_km) - math.log10(lo_km)) / (math.log10(hi_km) - math.log10(lo_km))
-    return _MIN_RADIUS_PX + frac * _RADIUS_SPREAD_PX
+    return _log_scale(distance_km, lo_km, hi_km, _MIN_RADIUS_PX, _MIN_RADIUS_PX + _RADIUS_SPREAD_PX)
 
 
 def _orbit_radius_km(planet):
@@ -661,6 +655,30 @@ def _leader_line_svg(cx, cy, r_px, direction, gap):
     return f'<line class="sysmap-label-leader" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}"></line>'
 
 
+def _planet_marker_attrs(row):
+    """A planet marker's attributes: a scene target for a planet with moons."""
+    return _planet_attrs(row, kind="planet", scene_target=f'planet-{row["id"]}' if row.get("moons") else None)
+
+
+def _body_marker_svgs(markers, placements, css_class, attrs_of, bounds):
+    """The marker SVG of each of `markers` (`cx`, `cy`, `r`, `row`) with its label where `placements` (one per marker, `None` for
+    a label left out) puts it; `attrs_of(row)` gives the marker's attributes."""
+    out = []
+    for marker, placement in zip(markers, placements):
+        row = marker["row"]
+        out.append(_body_marker_svg(
+            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
+            css_class, attrs_of(row),
+            label_direction=(placement["direction"] if placement else "below"),
+            label_pushed=bool(placement and placement["pushed"]),
+            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
+            show_label=(placement is not None),
+            has_life=bool(row.get("life_stage")),
+            bounds=bounds,
+        ))
+    return out
+
+
 def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False,
                       label_direction="below", label_pushed=False, show_label=True, has_life=False,
                       label_shift=(0.0, 0.0), bounds=_DEFAULT_BOUNDS):
@@ -754,8 +772,9 @@ def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
     star_attrs["look"] = look_json(star_look(star))
     half_w = _label_half_width_px(name)
     label_x, anchor = cx, "middle"
-    if _slide_into_view(cx - half_w, cx + half_w, bounds):
-        label_x, anchor = _edge_anchor(_slide_into_view(cx - half_w, cx + half_w, bounds), bounds)
+    shift = _slide_into_view(cx - half_w, cx + half_w, bounds)
+    if shift:
+        label_x, anchor = _edge_anchor(shift, bounds)
     return (
         f'<g class="sysmap-body sysmap-star" tabindex="0" role="button"{_data_attrs(star_attrs)} '
         f'aria-label="{esc(name)}">'
@@ -808,7 +827,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "radius": to_plain_text(format_body_radius(planet.get("radius_km"))),
         "mass": to_plain_text(format_mass(planet.get("mass_kg"))),
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
-        "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
+        "distance": to_plain_text(format_body_distance(planet["distance_km"])),
         "period": format_period(planet["period_years"]),
         "gravity": format_gravity_g_short(planet["gravity_g"]) if planet["gravity_g"] is not None else "",
         "life": _life_class_text(planet),
@@ -975,18 +994,14 @@ def _facilities_svg(facilities, hosts, scale):
         if host is None:
             continue
         cx, cy, r_px, centered = host
-        if facility["host_type"] == "asteroid_belt":
+        if facility["host_type"] == "asteroid_belt" or facility["placement"] != "orbital":
             radius_px = r_px
-        elif facility["placement"] != "orbital":
-            radius_px = r_px
-        elif centered:
-            on_scale = (facility["orbit_distance_km"] or 0.0) * scale if isinstance(scale, (int, float)) \
-                else _radial_px(facility["orbit_distance_km"], *scale)
-            radius_px = max(on_scale, r_px + _FACILITY_HOST_GAP_PX)
-            orbits.append(_facility_orbit_svg(cx, cy, radius_px))
-            boxes.append(_circle_box(cx, cy, radius_px))
         else:
             radius_px = r_px + _FACILITY_HOST_GAP_PX
+            if centered:
+                on_scale = (facility["orbit_distance_km"] or 0.0) * scale if isinstance(scale, (int, float)) \
+                    else _radial_px(facility["orbit_distance_km"], *scale)
+                radius_px = max(on_scale, radius_px)
             orbits.append(_facility_orbit_svg(cx, cy, radius_px))
             boxes.append(_circle_box(cx, cy, radius_px))
         fx, fy = _facility_point(cx, cy, radius_px, facility)
@@ -1113,6 +1128,14 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
     return orbits_svg + bodies_svg
 
 
+def _scene_distances_km(planets, belts):
+    """Every real distance a scene's log scale must hold (`_radial_scale_bounds`): each planet's orbit radius and both edges of each belt."""
+    distances = [_orbit_radius_km(planet) for planet in planets]
+    for belt in belts:
+        distances.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
+    return distances
+
+
 def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacles=(),
                     facilities=None):
     """
@@ -1164,13 +1187,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     Returns:
         str: A complete `<svg class="sysmap-svg">` scene.
     """
-    local_r_list = []
-    for planet in planets:
-        local_r_list.append(_orbit_radius_km(planet))
-    for belt in belts:
-        local_r_list.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
-    lo, hi = _radial_scale_bounds(local_r_list)
-
+    lo, hi = _radial_scale_bounds(_scene_distances_km(planets, belts))
     star_r = _star_radius_px(star["radius_km"])
     orbit_paths = []
     # Kept OUT of orbit_paths (which _scene_svg_pair puts in the
@@ -1217,21 +1234,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     placements = _label_sides_2d(
         [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects, bounds=bounds,
     )
-    body_svgs = []
-    for marker, placement in zip(planet_markers, placements):
-        row = marker["row"]
-        scene_target = f'planet-{row["id"]}' if row.get("moons") else None
-        attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
-        body_svgs.append(_body_marker_svg(
-            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-planet", attrs,
-            label_direction=(placement["direction"] if placement else "below"),
-            label_pushed=bool(placement and placement["pushed"]),
-            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
-            show_label=(placement is not None),
-            has_life=bool(row.get("life_stage")),
-            bounds=bounds,
-        ))
+    body_svgs = _body_marker_svgs(planet_markers, placements, "sysmap-planet", _planet_marker_attrs, bounds)
 
     return _scene_svg_pair(
         scene_id, aria_label, hidden,
@@ -1254,10 +1257,10 @@ def _star_label(system, star):
     return star.get("name") or system["name"]
 
 
-def _wide_binary_star_attrs(system, star, role, scene_target=None):
-    """Shared `star_attrs` dict for `_star_scene_svg`'s own star marker, in
-    either of a wide (S-type) pair's two scenes, and in a further star's
-    (`role` "Member") own scene."""
+def _star_attrs(system, star, role, scene_target=None, xkm=0.0, ykm=0.0):
+    """The `star_attrs` dict of a star marker (`_star_marker_svg`): in its own scene, in either of a wide (S-type) pair's two scenes,
+    in a further star's (`role` "Member") own scene, and in the whole-system scene of a single star or a close pair, where `xkm`/`ykm`
+    are its real km from the shared barycenter."""
     attrs = {
         "kind": "star", "id": star["id"], "name": _star_label(system, star),
         "role": role,
@@ -1276,7 +1279,7 @@ def _wide_binary_star_attrs(system, star, role, scene_target=None):
         # companion marker it draws *inside the other star's* scene,
         # where the real separation (not 0, 0) is what a "measure
         # distance" click needs.
-        "xkm": 0.0, "ykm": 0.0,
+        "xkm": xkm, "ykm": ykm,
         "masskg": star["mass_kg"],
     }
     if scene_target is not None:
@@ -1341,8 +1344,8 @@ def _companion_star(system, star, role, scene_target, x_km, y_km, placed):
     # land its *label* on top of the companion's name underneath it.
     reach = radius + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2
     cx, cy = _companion_position(x_km, y_km, reach, placed)
-    attrs = _wide_binary_star_attrs(system, star, role, scene_target=scene_target)
-    # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
+    attrs = _star_attrs(system, star, role, scene_target=scene_target)
+    # Override the "own scene" (0, 0) default `_star_attrs`
     # sets -- this marker represents the star at its real position
     # *relative to the scene's origin*, and that real separation is exactly
     # what a "measure distance" click needs, decoupled from `cx`/`cy`'s own
@@ -1382,11 +1385,12 @@ def _member_stars_scenes(system, members, facilities, placed):
         if not (x_km or y_km):
             # No stored direction: spread them round the frame instead of stacking them.
             x_km, y_km = math.cos(index * _GOLDEN_ANGLE_RAD), math.sin(index * _GOLDEN_ANGLE_RAD)
-        scene_id = f'star-{member["id"]}'
-        svg, obstacle = _companion_star(system, member, "Member", scene_id, x_km, y_km, placed)
+        scene_id = member.get("scene_id") or f'star-{member["id"]}'
+        role = member.get("map_role", "Member")
+        svg, obstacle = _companion_star(system, member, role, scene_id, x_km, y_km, placed)
         placed.append(obstacle)
         markers.append(svg)
-        attrs = _wide_binary_star_attrs(system, member, "Member")
+        attrs = _star_attrs(system, member, role)
         attrs["self"] = "true"
         scenes.append(_star_scene_svg(
             scene_id, f'Planets of {_star_label(system, member)}', True, member,
@@ -1447,10 +1451,10 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None, m
     primary_scene = _star_scene_svg(
         "system", f'System map for {system["name"]}', False,
         primary, primary_planets, primary_belts,
-        _wide_binary_star_attrs(system, primary, "Primary"),
+        _star_attrs(system, primary, "Primary"),
         extra_svg=companion_marker_svg + members_svg, extra_obstacles=obstacles, facilities=facilities,
     )
-    secondary_attrs = _wide_binary_star_attrs(system, secondary, "Secondary")
+    secondary_attrs = _star_attrs(system, secondary, "Secondary")
     secondary_attrs["self"] = "true"
     secondary_scene = _star_scene_svg(
         secondary_scene_id, f'Planets of {_star_label(system, secondary)}', True,
@@ -1484,13 +1488,8 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
     else:
         star_pos_km = {}
 
-    local_r_list = [math.hypot(*star_pos_km[star["id"]]) for star in stars] if is_binary else []
-    for planet in planets:
-        local_r_list.append(_orbit_radius_km(planet))
-    for belt in belts:
-        local_r_list.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
-
-    lo, hi = _radial_scale_bounds(local_r_list)
+    star_distances_km = [math.hypot(*star_pos_km[star["id"]]) for star in stars] if is_binary else []
+    lo, hi = _radial_scale_bounds(star_distances_km + _scene_distances_km(planets, belts))
 
     # Phase 1: place and relax the star(s) alone. A close binary's tiny
     # real separation (as little as ~0.05 AU) routinely log-compresses to
@@ -1584,42 +1583,16 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
         star = marker["star"]
         is_primary = marker["is_primary"]
         sx, sy = star_pos_km[star["id"]]
-        star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star, {
-            "kind": "star",
-            "id": star["id"],
-            "name": _star_label(system, star),
-            "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
-            "type": star["star_type"], "temp": _star_temp_text(star),
-            "mass": to_plain_text(format_mass(star["mass_kg"])),
-            "radius": to_plain_text(format_star_radius(star["radius_km"])),
-            "lum": to_plain_text(format_luminosity(star["luminosity_w"])),
-            "radiuskm": star["radius_km"],
-            # Real km (a close binary's own true, small separation from
-            # the shared barycenter -- (0, 0) for a single star, per
-            # `star_pos_km`'s own construction above), not this marker's
-            # drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
-            # identical `xkm`/`ykm`.
-            "xkm": sx, "ykm": sy,
-            "masskg": star["mass_kg"],
-        }, bounds))
+        # Real km (a close binary's own true, small separation from the shared barycenter -- (0, 0) for a single star, per
+        # `star_pos_km`'s own construction above), not this marker's drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
+        # identical `xkm`/`ykm`.
+        role = ("Primary" if is_primary else "Secondary") if is_binary else "Single"
+        star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star,
+                                          _star_attrs(system, star, role, xkm=sx, ykm=sy), bounds))
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
                                  seed_rects=[o["label_rect"] for o in obstacles] or None, bounds=bounds)
-    body_svgs = []
-    for marker, placement in zip(planet_markers, placements):
-        row = marker["row"]
-        scene_target = f'planet-{row["id"]}' if row.get("moons") else None
-        attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
-        body_svgs.append(_body_marker_svg(
-            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-planet", attrs,
-            label_direction=(placement["direction"] if placement else "below"),
-            label_pushed=bool(placement and placement["pushed"]),
-            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
-            show_label=(placement is not None),
-            has_life=bool(row.get("life_stage")),
-            bounds=bounds,
-        ))
+    body_svgs = _body_marker_svgs(planet_markers, placements, "sysmap-planet", _planet_marker_attrs, bounds)
 
     return [_scene_svg_pair(
         "system", f'System map for {system["name"]}', False,
@@ -1724,24 +1697,10 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
     )
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers], bounds=bounds)
-    body_svgs = []
-    for marker, placement in zip(markers, placements):
-        row = marker["row"]
-        attrs = _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name"))
-        body_svgs.append(_body_marker_svg(
-            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-moon", attrs,
-            label_direction=(placement["direction"] if placement else "below"),
-            label_pushed=bool(placement and placement["pushed"]),
-            label_shift=(placement["shift"] if placement else (0.0, 0.0)),
-            show_label=(placement is not None),
-            has_life=bool(row.get("life_stage")),
-            bounds=bounds,
-        ))
+    body_svgs = _body_marker_svgs(
+        markers, placements, "sysmap-moon", lambda row: _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name")), bounds)
 
-    if true_scale:
-        note = "Everything at its true size and distance."
-    elif scale["enlarge"] > 1.05:
+    if not true_scale and scale["enlarge"] > _SAME_SIZE_ENLARGE:
         note = f"Orbits to scale; the planet and moons are drawn {scale['enlarge']:.0f} times their true size."
     else:
         note = "Everything at its true size and distance."
@@ -1796,6 +1755,55 @@ def _is_bad_number(value):
 def finite_row(row):
     """A copy of `row` with every NaN or infinite float set to `None`."""
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
+
+
+def _node_pair_hosts(system, stars, planets):
+    """
+    GEN.332, slice A: the inner pair nodes of the tree that hold planets (`planets.host_node_id`), each as `(host, its planets)` where `host` is a
+    copy of the heaviest star of the node's subtree that stands for the pair as one body, as the generator's proxy does: the pair's name
+    (`names.bodies.node_pair_label`), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
+    stars' center of mass, `id` and `scene_id` `node-<n>` and `map_role` "Pair". A node whose stars are not among `stars` (a system stored before the tree) is left out and its
+    planets stay where they were.
+    """
+    by_node = {}
+    for planet in planets:
+        if planet.get("host_node_id") is not None:
+            by_node.setdefault(planet["host_node_id"], []).append(planet)
+    if not by_node:
+        return []
+    children = {}
+    for node in system.get("orbits") or ():
+        children.setdefault(node.get("parent_node_no"), []).append(node["node_no"])
+
+    def below(node_no):
+        found = [star for star in stars if star.get("parent_node_no") == node_no]
+        for sub in children.get(node_no, ()):
+            found.extend(below(sub))
+        return found
+
+    hosts = []
+    for node_no, bodies in sorted(by_node.items()):
+        leaves = below(node_no)
+        light = sum(star["luminosity_w"] or 0.0 for star in leaves)
+        mass = sum(star["mass_kg"] or 0.0 for star in leaves)
+        if len(leaves) < 2 or not (light > 0.0 and mass > 0.0):
+            continue
+        lead = max(leaves, key=lambda star: star["mass_kg"] or 0.0)
+        host = dict(lead)
+        host.update({
+            "name": node_pair_label(system["name"], [star.get("name") or "" for star in leaves], node_no),
+            "mass_kg": mass, "luminosity_w": light, "radius_km": max(star["radius_km"] or 0.0 for star in leaves),
+            "temperature_k": sum((star["luminosity_w"] or 0.0) * (star["temperature_k"] or 0.0) for star in leaves) / light,
+            "offset_x_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_x_au") or 0.0) for star in leaves) / mass,
+            "offset_y_au": sum((star["mass_kg"] or 0.0) * (star.get("offset_y_au") or 0.0) for star in leaves) / mass,
+            "id": f"node-{node_no}", "scene_id": f"node-{node_no}", "map_role": "Pair",    # (an id no page answers to: the panel offers no links for it)
+        })
+        for planet in bodies:
+            planet["_star_temperature_k"] = host["temperature_k"]
+            for moon in planet.get("moons") or []:
+                moon["_star_temperature_k"] = host["temperature_k"]
+        hosts.append((host, bodies, []))
+    return hosts
 
 
 def put_star_temperatures(stars, planets):
@@ -1916,8 +1924,11 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
                 [b for b in belts if b.get("star_id") == star["id"]])
                for star in stars if star.get("role") == "member"]
     member_ids = {star["id"] for star, _, _ in members}
+    node_hosts = _node_pair_hosts(system, stars, planets)    # GEN.332, slice A: the planets round an inner pair get a marker and a scene of their own, like a member's
+    node_planet_ids = {id(p) for _, bodies, _ in node_hosts for p in bodies}
+    members.extend(node_hosts)
     stars = [star for star in stars if star["id"] not in member_ids]
-    pair_planets = [p for p in planets if p.get("star_id") not in member_ids]
+    pair_planets = [p for p in planets if p.get("star_id") not in member_ids and id(p) not in node_planet_ids]
     pair_belts = [b for b in belts if b.get("star_id") not in member_ids]
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
@@ -1928,16 +1939,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         _render_moon_scene(planet, facilities) for planet in planets if planet.get("moons")
     )
 
-    if planets or belts or stars:
-        info_panel = (
-            '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
-            '<p class="hint">Click a star, planet, moon, asteroid belt, or facility for details.</p></aside>'
-        )
-    else:
-        info_panel = (
-            '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
-            '<p class="hint">Nothing to show yet.</p></aside>'
-        )
+    hint = "Click a star, planet, moon, asteroid belt, or facility for details." if planets or belts or stars else "Nothing to show yet."
+    info_panel = ('<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
+                  f'<p class="hint">{hint}</p></aside>')
 
     # One shared WebGL canvas, sized to cover the whole `.sysmap-viewport`
     # and drawn BETWEEN each scene's two sibling `<svg>`s -- below the

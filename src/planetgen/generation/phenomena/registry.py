@@ -41,6 +41,11 @@ Columns (`Kind`):
     sector_roll: `True` when `generate_sector_phenomena` rolls the kind
         for a sector that was not pre-scattered (draw order is registry
         order).
+    rate_source: For a `sector_roll` kind, where its mean per star comes from (GEN.1663): `tuning` (its `rate` key
+        in `tuning.PHENOMENON_DENSITY_PC3`, times the sector profile's factor) or `remnant density` (the
+        metallicity-dependent share of the massive stars, `galaxy.remnant_density`); `None` for a kind not rolled.
+    aged_by_population: `True` for a kind whose age follows the population the sector's fill gives it (GEN.553):
+        it is made with `FillContext.apply_population`.
     builder: A `module:attr` path to what makes the kind. Every
         `sector_roll` builder takes `(config, galactic_center_dist_ly)`.
     host: The kind's host class (a name in `phenomena/hosts.py`): what can accompany and orbit it (GEN.552), or `None`
@@ -71,8 +76,12 @@ GATES = ("stellar density", "nebula field", "hot stars", "young stars", "none")
 """tuple: The valid `Kind.gate` values."""
 
 COLUMNS = ("kind", "family", "status", "rate", "gate", "mode", "scatter_pass", "sector_roll", "builder",
-           "host", "carries", "page_class", "marker", "phenomenon_type", "evidence_note")
+           "host", "carries", "page_class", "marker", "phenomenon_type", "evidence_note", "rate_source",
+           "aged_by_population")
 """tuple: Every column of a row, in order; the completeness test reads it."""
+
+RATE_SOURCES = ("tuning", "remnant density")
+"""tuple: The valid `Kind.rate_source` values of a `sector_roll` kind."""
 
 
 @dataclass(frozen=True)
@@ -93,6 +102,8 @@ class Kind:
     marker: str | None
     phenomenon_type: str | None
     evidence_note: str
+    rate_source: str | None = None
+    aged_by_population: bool = False
 
 
 _P = "planetgen.generation.phenomena.builders:"
@@ -107,10 +118,11 @@ KINDS = (
          "The bright and massive stars placed by the bright-star scatter (bright_stars.py)."),
     Kind("black-hole", "compact-remnant", "built", None, "stellar density", "scatter", "band-density",
          True, _P + "build_black_hole", "remnant", (), "black-hole", None, "black-hole",
-         "About 1e8 in the Galaxy; the metallicity-dependent share of the massive stars (galaxy.remnant_density)."),
+         "About 1e8 in the Galaxy; the metallicity-dependent share of the massive stars (galaxy.remnant_density).",
+         rate_source="remnant density", aged_by_population=True),
     Kind("neutron-star", "compact-remnant", "built", "neutron-star", "stellar density", "scatter", "band-density",
          True, _P + "build_neutron_star", "remnant", (), None, None, "neutron-star",
-         "About 1e9 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3."),
+         "About 1e9 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3.", rate_source="remnant density", aged_by_population=True),
     Kind("black-hole-core", "compact-remnant", "built", None, "none", "component", None, False,
          None, None, (), None, None, None,
          "The collapsed core of a core-collapse supernova remnant (a name of its own)."),
@@ -122,25 +134,26 @@ KINDS = (
          "Emission and reflection nebulae grow around a sector's own hot stars (add_star_hosted_nebulae)."),
     Kind("planetary-nebula", "nebula", "built", "planetary-nebula", "stellar density", "scatter", "band-density",
          True, _P + "build_planetary_nebula", "star-like", ("star-system",), None, None, "nebula",
-         "About 20,000 in the Galaxy [R1460]; built around its own white dwarf."),
+         "About 20,000 in the Galaxy [R1460]; built around its own white dwarf.", rate_source="tuning"),
     Kind("molecular-cloud", "nebula", "built", "molecular-cloud", "nebula field", "field", None, True,
          _P + "build_molecular_cloud", None, (), None, None, "nebula",
-         "Giant molecular clouds [R2320], from the seeded nebula field."),
+         "Giant molecular clouds [R2320], from the seeded nebula field.", rate_source="tuning"),
     Kind("supernova-remnant", "nebula", "built", "supernova-remnant", "stellar density", "scatter", "band-density",
          True, _P + "build_supernova_remnant", None, ("neutron-star-core", "black-hole-core"), "supernova-remnant", None, "supernova-remnant",
-         "About 3,000 in the Galaxy [R1675]; a core-collapse remnant may hold a compact core."),
+         "About 3,000 in the Galaxy [R1675]; a core-collapse remnant may hold a compact core.", rate_source="tuning"),
     Kind("rogue-planet", "small-body", "built", None, "none", "component", None, False,
          None, "planet", (), "rogue-planet", None, "rogue-planet",
          "Made by the system that threw it out (ejection_events and rogue_yield) and saved where it landed; no rate of its own."),
     Kind("brown-dwarf", "small-body", "built", "brown-dwarf", "stellar density", "fill", None, True,
          _P + "build_brown_dwarf", "brown-dwarf", (), None, None, "rogue-planet",
-         "0.025 to 0.035 per pc^3 [R2374]; saved as a `rogue_planets` row of the brown-dwarf bin."),
+         "0.025 to 0.035 per pc^3 [R2374]; saved as a `rogue_planets` row of the brown-dwarf bin.",
+         rate_source="tuning", aged_by_population=True),
     Kind("comet", "small-body", "built", "comet", "stellar density", "fill", None, True,
          _P + "build_comet", "small-body", (), "comet", None, "comet",
-         "Notable interstellar comets kept as rows, a design rate."),
+         "Notable interstellar comets kept as rows, a design rate.", rate_source="tuning"),
     Kind("asteroid-field", "small-body", "built", "asteroid-field", "none", "fill", None, True,
          _P + "build_asteroid_field", "small-body", (), "asteroid-field", None, "asteroid-field",
-         "The rate of the one source a sector rolls, a collision of two rogue planets (about 7e-21 standing per pc^3, `collision_field`); the other physical sources are not rolled (a belt unbound by a supernova is hosted by its remnant, the Rogues top-up adds its own). A field spreads at the speed of its pieces and retires past a light year (`field_dispersal`); a hand-made one is given a speed and an age."),
+         "The rate of the one source a sector rolls, a collision of two rogue planets (about 7e-21 standing per pc^3, `collision_field`); the other physical sources are not rolled (a belt unbound by a supernova is hosted by its remnant, the Rogues top-up adds its own). A field spreads at the speed of its pieces and retires past a light year (`field_dispersal`); a hand-made one is given a speed and an age.", rate_source="tuning"),
     Kind("quasar", "nucleus", "built", None, "none", "scatter", "nucleus", False,
          _P + "build_quasar", None, (), None, None, "quasar",
          "One per galaxy, at the nucleus, with QUASAR_ACTIVE_NUCLEUS_CHANCE."),

@@ -16,8 +16,10 @@ from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
 
-ICY_SEEDS = (5, 10, 15, 19, 25, 39)
-"""The seeds whose systems hold ice-covered oceans (the life pass moves many moons in, so a short range of seeds holds few)."""
+ICY_SEEDS = tuple(range(64))
+"""The seeds searched, in order, for systems with ice-covered oceans (the life pass moves many moons in, so a short range of seeds holds few, and what a seed draws
+moves when the generator does: TEST.714, a case is searched for, not pinned to the seeds that once held it). `icy` yields lazily, so a test reads only as many
+systems as it needs."""
 
 
 def bodies(seeds):
@@ -40,14 +42,19 @@ def shell_km(body):
 
 def icy(seeds):
     # a body with little water has a brine whose eutectic (drawn again at the refresh) is where its shell melts, not the 273.15 K `shell_km` takes
-    return [body for body in bodies(seeds) if body.hydrosphere == "ice-covered ocean" and body.ocean_class != "chloride brine"
-            and body._surface_w >= hydrosphere.BRINE_MAX_WATER_FRACTION and body.ice_shell_km and body.internal_heat_flux_w_m2]
+    return (body for body in bodies(seeds) if body.hydrosphere == "ice-covered ocean" and body.ocean_class != "chloride brine"
+            and body._surface_w >= hydrosphere.BRINE_MAX_WATER_FRACTION and body.ice_shell_km and body.internal_heat_flux_w_m2)
 
 
 def test_the_stored_ice_shell_is_the_one_the_stored_final_age_heat_gives():
-    found = icy(ICY_SEEDS)
+    found, lifeless = [], []
+    for body in icy(ICY_SEEDS):
+        found.append(body)
+        if getattr(body, "life_class", None) is None:    # life changes the air after the refresh, by a few kelvin the shell does not follow
+            lifeless.append(body)
+        if len(found) > 10 and len(lifeless) > 5:
+            break
     assert len(found) > 10
-    lifeless = [body for body in found if getattr(body, "life_class", None) is None]    # life changes the air after the refresh, by a few kelvin the shell does not follow
     assert len(lifeless) > 5
     for body in lifeless:
         assert body.ice_shell_km == pytest.approx(shell_km(body), rel=1e-9), (body.planet_class, body.internal_heat_flux_w_m2)

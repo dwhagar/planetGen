@@ -125,6 +125,11 @@ def emission_seed(galaxy_seed, host_position_pc):
     return _point_seed(galaxy_seed, "emission-members", host_position_pc)
 
 
+def _moved(point_pc, offset_pc):
+    """`point_pc` moved by `offset_pc`, parsecs, as a tuple."""
+    return tuple(point_pc[i] + offset_pc[i] for i in range(3))
+
+
 class CloudMember:
     """One protostar of a field cloud: its galaxy-frame point `position_pc`, its initial mass `mass_sol`, its age
     `age_yr` and the `seed` its system is built from."""
@@ -176,7 +181,7 @@ def cloud_members(galaxy_seed, nebula, center_pc):
                 break
         mass = imf.sample(None, tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL, rng)
         age = rng.uniform(0.0, tuning.PROTOSTAR_MAX_AGE_YR)
-        members.append(CloudMember(tuple(center_pc[i] + offset[i] for i in range(3)), mass, age, f"{base}:{n}"))
+        members.append(CloudMember(_moved(center_pc, offset), mass, age, f"{base}:{n}"))
     return members
 
 
@@ -283,7 +288,7 @@ def emission_members(galaxy_seed, nebula, host_name, host_position_pc):
         for _ in range(count):
             mass = _member_mass(name, nebula.age_myr, rng)
             offset = _plummer_offset(radius_pc, half_mass_pc, rng)
-            members.append(CloudMember(tuple(host_position_pc[i] + offset[i] for i in range(3)), mass,
+            members.append(CloudMember(_moved(host_position_pc, offset), mass,
                                        nebula.age_myr * 1.0e6, f"{base}:{len(members)}"))
     return members
 

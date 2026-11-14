@@ -34,7 +34,7 @@ import math
 import re
 import time
 
-from planetgen.util import stagemark
+from planetgen.util import secrets_mask, stagemark
 
 SEVERITIES = ("debug", "info", "notice", "warning", "error", "critical")
 """tuple: The severities, least severe first: the RFC 5424 levels, named as the syslog standard names them."""
@@ -148,8 +148,8 @@ class Record:
         self.ms = int(ms)
         self.severity = severity
         self.component = component
-        self.message = str(message)
-        self.fields = fields
+        self.message = secrets_mask.mask_text(str(message))                  # SEC.48: no record holds a key, token or password
+        self.fields = secrets_mask.mask_fields(fields)
 
     @classmethod
     def at(cls, epoch, severity, component, message, /, **fields):
@@ -182,9 +182,18 @@ class Record:
         return f"Record({self.ms}, {self.severity!r}, {self.component!r}, {self.message!r}, {self.fields!r})"
 
 
+def _moment(ms, tz=None):
+    """The `datetime` of `ms` milliseconds since the epoch in the zone `tz` (the computer's own when `None`)."""
+    return (_EPOCH + datetime.timedelta(milliseconds=ms)).astimezone(tz)
+
+
+def _local_text(moment):
+    return f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}"
+
+
 def _stamp(ms):
     """`"2026-10-24T14:40:00.123-0400"` for `ms` milliseconds since the epoch: the computer's local time with the offset of its zone (OPS.97)."""
-    moment = (_EPOCH + datetime.timedelta(milliseconds=ms)).astimezone()
+    moment = _moment(ms)
     return moment.strftime("%Y-%m-%dT%H:%M:%S") + f".{moment.microsecond // 1000:03d}" + moment.strftime("%z")
 
 
@@ -203,8 +212,7 @@ def _ms_of(stamp):
 
 def local_text(seconds):
     """`"2026-10-24 14:40:00 EDT"` for `seconds` since the epoch: the local time labelled with its zone, as the display line writes it."""
-    moment = (_EPOCH + datetime.timedelta(seconds=seconds)).astimezone()
-    return f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}"
+    return _local_text(_moment(seconds * 1000))
 
 
 _ESCAPES = {"\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r", "\t": "\\t"}
@@ -453,8 +461,7 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     """
     parts = []
     if times:
-        moment = (_EPOCH + datetime.timedelta(milliseconds=record.ms)).astimezone(tz)
-        parts.append(f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}")
+        parts.append(_local_text(_moment(record.ms, tz)))
     parts.append(f"{record.severity.upper():<8}")
     if component:
         parts.append(f"{record.component}:")

@@ -141,7 +141,7 @@ def test_a_giant_keeps_no_starlight_while_its_moons_and_a_rocky_planet_do():
 
 def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
     """GEN.785: the rate is worked out from the star's place in the galaxy (`activity.set_galactic_hazard`) and stored with the star; a system
-    built with no place is rated where such a system is taken to be (`scales.default_galactocentric_ly`), so every star has one."""
+    built with no place has none (GEN.1694: it was rated at `scales.default_galactocentric_ly`, which always flagged its ozone)."""
     from planetgen.db import store
     from planetgen.generation.config import SystemConfig
     from planetgen.galaxy import scales
@@ -162,8 +162,7 @@ def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
         finally:
             conn.close()
     assert rates[True] and all(rate is not None and rate > 0.0 for rate in rates[True])
-    default_rate = activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly())
-    assert rates[False] and all(rate == default_rate for rate in rates[False])
+    assert rates[False] and all(rate is None for rate in rates[False])
 
 
 def test_star_and_comet_rules():
@@ -232,3 +231,15 @@ def test_a_runner_up_class_applies_only_where_a_second_class_fits_the_body():
         assert not sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": None})
         assert sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": 0.4})
         assert sheet.applies(kind, "C", "runner_up_class")
+
+
+def test_the_tilt_range_applies_only_to_a_free_spinning_planet():
+    """GEN.1535, GEN.1668: `settle_obliquity` stores the range for a planet that spins freely, a belt member made a planet among them; a moon, a locked or resonant planet has none."""
+    free = {"rotation_period_hours": 24.0, "period_years": 1.0}
+    locked = {"rotation_period_hours": 8766.0, "period_years": 1.0}
+    resonant = {"rotation_period_hours": 8766.0 / 1.5, "period_years": 1.0}
+    for key in ("obliquity_min_deg", "obliquity_max_deg"):
+        assert sheet.applies("planet", "M", key, free) and sheet.applies("planet", "M", key)
+        assert not sheet.applies("planet", "M", key, locked) and not sheet.applies("planet", "M", key, resonant)
+        assert sheet.applies("planet", "D", key, {**free, "belt_order": 2}) and not sheet.applies("planet", "D", key, {**locked, "belt_order": 2})
+        assert not sheet.applies("moon", "C", key, free) and not sheet.applies("moon", "C", key)

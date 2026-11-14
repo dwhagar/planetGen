@@ -22,7 +22,7 @@ REGISTRY = json.load(open(os.path.join(elements.DATA_DIRECTORY, "partial_pressur
 PRESSURE = tuple(REGISTRY["pressure_quantities"])
 SHARE = tuple(REGISTRY["share_quantities"])
 GAS_OF = {"o2_partial_pa": "o2", "co2_partial_pa": "co2", "share_o2": "o2", "share_co2": "co2"}
-TABLE_KEY = {"planet_class_fit.json": "classes", "life_classes.json": "classes", "age_needs.json": "rows"}
+TABLE_KEY = {"planet_class_fit.json": "classes", "life_classes.json": "classes"}
 
 
 def _document(filename):

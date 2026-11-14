@@ -28,7 +28,7 @@ def _territories_summary(counts):
 
 
 def expand_population(params):
-    """The `run-population` command's stage: one unit, the whole pass."""
+    """The `run-population` command's stage: one unit, the whole pass (`run-territories` cuts its stage the same way)."""
     return commands.Expansion([(params, 1.0)], {})
 
 
@@ -49,9 +49,7 @@ def population_unit(params, report):
     return {**counts, "lines": [f"Population: {_population_summary(counts)}"]}
 
 
-def expand_territories(params):
-    """The `run-territories` command's stage: one unit, the whole pass."""
-    return commands.Expansion([(params, 1.0)], {})
+expand_territories = expand_population
 
 
 def territories_unit(params, report):

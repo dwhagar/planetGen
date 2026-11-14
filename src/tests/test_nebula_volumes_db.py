@@ -31,7 +31,7 @@ class _Model:
     """The pieces of `galaxy.nebula_density` the reader asks for, with the stand-in density."""
     FORM_LEVEL = stand_in.FORM_LEVEL
     MAX_DETAIL = stand_in.MAX_DETAIL
-    density_at = staticmethod(lambda seed, shape, points, field, detail: stand_in.density(points, field, detail))
+    density_at = staticmethod(lambda seed, shape, points, field, detail, anchors=None: stand_in.density(points, field, detail, anchors))
 
 
 @pytest.fixture

@@ -78,7 +78,7 @@ def create_app(config_object=Config):
     app.register_blueprint(facility_types_bp)
     app.register_blueprint(edits_bp)
     app.register_blueprint(workqueue_bp)
-    web.init_app(app, limiter=limiter)
+    web.init_app(app)
     settings_view.remember_startup()
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)
@@ -260,13 +260,7 @@ def _warn_if_unshared_ratelimit_storage(app):
     """
     if app.config.get("RATELIMIT_STORAGE_URI") == "memory://":
         app.logger.warning(
-            "Flask-Limiter and the login lockouts are counting in memory: "
-            "rate limits are tracked per worker process, not shared across "
-            "them. This is correct for a single-process deployment (Flask's "
-            "dev server, or mod_wsgi/gunicorn with exactly one worker) but "
-            "silently under-enforces limits by roughly a factor of the "
-            "worker count otherwise -- leave ratelimit.storage_uri empty in "
-            "config.json to count on the Redis server (redis.url)."
+            "Rate limits and lockouts count in memory per worker, so more than one worker under-enforces them; leave ratelimit.storage_uri empty to use Redis."
         )
 
 
@@ -309,6 +303,12 @@ def _register_error_handlers(app):
 
     from planetgen.web.errors import RETRY_AFTER_SECONDS, busy_page, render_error, timeout_page, unexpected_error_message
 
+    def _retry_later_json(message, status):
+        """The API's answer when the database could not serve the request in time: the error and when to try again."""
+        response = jsonify({"error": message})
+        response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+        return response, status
+
     @app.errorhandler(pymysql.err.OperationalError)
     def _handle_statement_timeout(exc):
         # PERF.17: a read that ran past `mysql.statement_timeout_seconds`
@@ -318,17 +318,13 @@ def _register_error_handlers(app):
             # ADM.53: a row a long job holds locked; the request gave up after `WEB_LOCK_WAIT_SECONDS`.
             log.debug(f"Row lock wait on {request.method} {request.path}: {exc}")
             if _is_api_request():
-                response = jsonify({"error": "BUSY: the database is busy with another job; try again shortly"})
-                response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
-                return response, 503
+                return _retry_later_json("BUSY: the database is busy with another job; try again shortly", 503)
             return busy_page()
         if not (exc.args and exc.args[0] in store.STATEMENT_TIMEOUT_ERRORS):
             return _handle_internal_error(exc)
         log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")
         if _is_api_request():
-            response = jsonify({"error": "QUERY_TIMEOUT: the database took too long to answer"})
-            response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
-            return response, 504
+            return _retry_later_json("QUERY_TIMEOUT: the database took too long to answer", 504)
         return timeout_page()
 
     @app.errorhandler(400)
@@ -365,16 +361,16 @@ def _register_error_handlers(app):
         # propagates to the root logger, which the debug log listens on).
         g.error_logged = True
         if _is_api_request():
-            app.logger.exception("Unhandled exception in API request: %s %s (route %s)", request.method, request.path, request.endpoint or "-")
+            app.logger.exception("Unhandled exception in API request: %s %s (route %s).", request.method, request.path, request.endpoint or "-")
             return jsonify({"error": "internal server error"}), 500
-        app.logger.exception("Unhandled exception while building a page: %s %s (route %s)", request.method, request.path, request.endpoint or "-")
-        log.exception(f"Unhandled exception while building {request.path}")
+        app.logger.exception("Unhandled exception while building a page: %s %s (route %s).", request.method, request.path, request.endpoint or "-")
+        log.exception(f"Unhandled exception while building {request.path}.")
         return render_error(500, unexpected_error_message())
 
     @app.errorhandler(413)
     def _handle_too_large(exc):
         # A body over `MAX_CONTENT_LENGTH` (config.py).
-        log.debug(f"Request body too large on {request.method} {request.path}: {request.content_length} bytes")
+        log.debug(f"Request body too large on {request.method} {request.path}: {request.content_length} bytes.")
         if _is_api_request():
             return jsonify({"error": "request body too large"}), 413
         return render_error(413, "That request was too large.")

@@ -46,6 +46,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.names.wordsalad import generate_sector_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.random import log_uniform
+from planetgen.util.ticker import Ticker
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation.phenomena import registry
 from planetgen.generation.star_labels import describe_types, star_label
@@ -71,9 +72,17 @@ galaxy-placed sector the "molecular-cloud" roll gives way to the galaxy's
 cloud field (`nebulaField`, GEN.47). Diffuse gas (classes A-B) fills about
 half the disk, so it is the background, not generated."""
 
-POPULATION_AGED_KINDS = ("brown-dwarf", "neutron-star", "black-hole")
-"""tuple: The kinds whose age follows the population the sector's fill gives them (GEN.553): they are made with
-`FillContext.apply_population` and take their age from that population's window and age law."""
+POPULATION_AGED_KINDS = registry.kinds(aged_by_population=True)
+"""tuple: The kinds whose age follows the population the sector's fill gives them (GEN.553, the registry's
+`aged_by_population` column): they are made with `FillContext.apply_population` and take their age from that
+population's window and age law."""
+
+_SECTOR_ROLL = {row.kind: row for row in registry.rows(sector_roll=True)}
+
+
+def _rolled(kind):
+    """The registry row of a kind `generate_sector_phenomena` rolls, or `None` for one the registry lacks (a test's own)."""
+    return _SECTOR_ROLL.get(kind)
 
 
 def iter_sector_configs(args):
@@ -202,27 +211,29 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
     kind_factors = kind_factors or {}
 
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
-        if kind == "molecular-cloud" and cloud_field is not None:
+        row = _rolled(kind)      # GEN.1663: what differs between the kinds is read from the registry's columns
+        from_field = row is not None and row.gate == "nebula field"      # the molecular clouds
+        if from_field and cloud_field is not None:
             if sector.cloud_field != cloud_field:
                 cloudContext.begin(sector, cloud_field, nebula_field.clouds_reaching(*cloud_field))
             fill_stages.count(sector, fill_stages.NEBULAE, kind, len(sector.field_nebulae))
             continue
-        if scattered and kind in phenomenon_scatter.SCATTERED_KINDS:
+        if scattered and row is not None and row.scatter_pass == "band-density":
             continue
         # Each kind draws from a stream of its own (stage E), so adding a kind moves no other kind's draws.
-        stage = fill_stages.NEBULAE if kind == "molecular-cloud" else fill_stages.PER_STAR_KINDS
+        stage = fill_stages.NEBULAE if from_field else fill_stages.PER_STAR_KINDS
         with fill_stages.stage(sector, stage, kind):
-            rate = (remnant_density.rate_per_star(kind_factors, kind) if kind in remnant_density.KINDS
+            rate = (remnant_density.rate_per_star(kind_factors, kind) if row is not None and row.rate_source == "remnant density"
                     else program_constants.phenomenon_rate_per_star(kind) * kind_factors.get(kind, 1.0))
             count = _sample_poisson_count(rate * star_count)
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon_config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
-                if kind in POPULATION_AGED_KINDS and fill is not None:
+                if row is not None and row.aged_by_population and fill is not None:
                     fill.apply_population(phenomenon_config)   # GEN.553: its age follows its population
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
-                if kind == "planetary-nebula":
+                if row is not None and "star-system" in row.carries:      # a planetary nebula: built around its own system
                     entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
                     if entry is not None:
                         new_entries.append(entry)
@@ -347,6 +358,11 @@ def _build_member(sector, args, local, mass_sol, age_yr, seed, galactic_center_d
     return entry
 
 
+def _local_ly(center_pc, point_pc):
+    """A galaxy-frame point, pc, as the sector-local light-year position of the sector centered at `center_pc`."""
+    return tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, point_pc))
+
+
 def _member_fe_h(member, galactic_center_dist_ly):
     """The birth [Fe/H] `_build_member` gives the member's star: its evolution under the member's own seed (the draw is the one the build makes first)."""
     with draw.bound(member.seed):
@@ -382,7 +398,7 @@ def add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_
             continue    # a brown dwarf or remnant is not a star a system is built around
         point_pc = tuple(member.position_pc[i] + (mate.offset_au[i] - home[i]) / physical_constants.AU_PER_PARSEC
                          for i in range(3))
-        local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, point_pc))
+        local = _local_ly(center_pc, point_pc)
         entry = _build_member(sector, args, local, mate.initial_mass_solar, member.age_yr,
                               f"{member.seed}:group:{mate.member_no}", galactic_center_dist_ly, label)
         if entry is not None:
@@ -419,7 +435,7 @@ def _add_members(sector, args, members, center_pc, galactic_center_dist_ly, labe
             tree = nebula_contents.member_group(member, fe_h=_member_fe_h(member, galactic_center_dist_ly))
         if live:
             entries.extend(add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_ly, "group-mate"))
-        local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
+        local = _local_ly(center_pc, member.position_pc)
         entry = _build_member(sector, args, local, member.mass_sol, member.age_yr, member.seed, galactic_center_dist_ly,
                               label, member_tree=_group_plan(tree))
         if entry is None:
@@ -573,7 +589,7 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly, mass_solar=None)
             fill_stages.count(sector, fill_stages.FLAGS, "quasar")
             return sector.add_phenomenon(Quasar(nucleus_config, black_hole_mass_solar=mass_solar), "quasar",
                                          position=position)
-        log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
+        log.debug("Sector %r: galactic nucleus is quiescent (supermassive black hole, no quasar).", sector.name)
         black_hole = BlackHole(nucleus_config, mass_class="supermassive", mass_solar=mass_solar)
         fill_stages.count(sector, fill_stages.FLAGS, "black-hole")
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
@@ -603,15 +619,16 @@ def add_scattered_phenomena(sector, args, fill):
             star adds a system entry instead).
     """
     new_entries = []
+    cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
+    type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
+    ambient_density_cm3 = _bubble_density(fill)
     for row in fill.phenomenon_rows:
         position = brightStars.local_position_ly(row, fill.center_pc)
         radius_pc = math.sqrt(sum((row[axis] / brightStars.MPC_PER_PC) ** 2
                                   for axis in ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
         dist_ly = pc_to_ly(radius_pc)
-        cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
-        type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
         entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut,
-                                                                    type_ia_share, _bubble_density(fill), fill))
+                                                                    type_ia_share, ambient_density_cm3, fill))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -942,19 +959,15 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 # from here), so stop generating and placing altogether
                 # rather than pay for `total - i - 1` more full
                 # StarSystem generations just to discard them too.
-                log.normal(
-                    f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
-                    f"{total} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
-                    f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
-                    f"rather than the full requested count."
-                )
+                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands (edge {round(sector.edge_ly, 1)} ly).")
                 break
 
+    profile = getattr(fill, "profile", None)
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered,
-                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None),
-                                  type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None),
+                                  kind_factors=getattr(profile, "kind_factors", None),
+                                  type_ia_share=getattr(profile, "type_ia_share", None),
                                   ambient_density_cm3=_bubble_density(fill),
                                   neighbour_hosts=getattr(fill, "emission_hosts", ()), fill=fill)
         if scattered and fill.below_cut is not None:
@@ -997,11 +1010,12 @@ def _summary_star_label(star):
     return star_label(getattr(star, "type", None), getattr(star, "yerkes_class", None))
 
 
-def _log_summary(text):
+def _log_summary(text, say=None):
     """Logs a multi-line summary one line per record, so each line gets
-    the debug log's timestamp, process and source prefix (OPS.9)."""
+    the debug log's timestamp, process and source prefix (OPS.9). `say` is `log.normal` unless a bulk run gives `log.debug` (OPS.172)."""
+    say = log.normal if say is None else say
     for line in text.splitlines():
-        log.normal(line)
+        say(line)
 
 
 def sector_generation_summary_lines(sector, args_used):
@@ -1056,7 +1070,7 @@ def sector_generation_summary_lines(sector, args_used):
         )
         lines.append(f"    Phenomena: {phenomena_str}")
 
-    stars = sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
+    stars = sector_star_count(sector)
     planets = sum(len(entry.star_system.all_planets) if hasattr(entry.star_system, "all_planets") else
                   len(getattr(entry.star_system, "planets", None) or ())
                   + len(getattr(entry.star_system, "secondary_planets", None) or ()) for entry in sector.entries)
@@ -1080,6 +1094,8 @@ class UnplacedSectorsFollower(followed.Follower):
     def __init__(self, args):
         super().__init__(args)
         self.label = commands.build_steps("sector", args)[0].label
+        self._ticker = Ticker("Sectors saved", total=getattr(args, "num_sectors", None) or None)
+        self._saved = 0
 
     def params(self):
         return commands.build_steps("sector", self.args)[0].params
@@ -1087,20 +1103,22 @@ class UnplacedSectorsFollower(followed.Follower):
     def on_result(self, unit, result):
         args = self.args
         mysql_config = store.mysql_config_from_args(args)
-        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
+        elsewhere = result["pid"] != os.getpid()
         for saved in result["sectors"]:
-            if elsewhere:
-                run_common.RUN_COUNTS["sectors"] += 1
-                run_common.RUN_COUNTS["systems"] += saved["systems"]
-                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
-            run_common._record_sector(args, saved, saved["seconds"])
+            run_common._count_reported(args, saved, elsewhere)
             phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
-            log.normal(
+            log.debug(      # a run of thousands would bury its stage lines; the ticker carries the progress (OPS.172)
                 f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "
                 f"{saved['systems']} systems{phenomena_note}, "
                 f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
             )
-            _log_summary(saved["summary"])
+            _log_summary(saved["summary"], log.debug)
+            self._saved += 1
+            self._ticker.tick(self._saved)
+
+    def on_done(self, conclusion):
+        if self._saved:
+            self._ticker.finish(self._saved)
 
 
 def run_sector(args):
@@ -1141,7 +1159,7 @@ def run_sector(args):
     try:
         followed.run_followed(args, [follower], follower.label, galaxy=False)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the sectors could not be generated: {exc}")
+        log.error(f"The sectors could not be generated: {exc}")
         raise SystemExit(1) from exc
 
     if args.num_sectors > 1:

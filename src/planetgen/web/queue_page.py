@@ -431,7 +431,7 @@ def _stage_rows(run):
     } for number, stage in enumerate(run["stages"], 1)]
 
 
-UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
+UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "busy": "Busy", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
 """dict: The words for the states `beatjudge` gives a running unit (OPS.138), in the order the summary lists them."""
 
 UNIT_ROWS_SHOWN = 200
@@ -472,6 +472,7 @@ def _unit_rows(run, units):
             "severity": unit.get("severity") or "",
             "phase": phase,
             "counter": counter,
+            "progress": unit.get("progress"),
             "rate": "" if not rate else (f"{rate:,.1f} a second" if rate >= 1 else f"{1 / rate:,.1f} s each"),
             "left": _duration(left) if left is not None else "",
             "beat": _duration(unit.get("beat_age_seconds")),

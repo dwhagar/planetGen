@@ -21,6 +21,7 @@ compared with the strength spread of 76 to 81 percent); the indices are held at 
 scaled, not solved. Registry rows CF1 to CF5.
 """
 
+import functools
 import json
 import os
 
@@ -47,6 +48,7 @@ RADII_UM = np.array(DOCUMENT["radii_um"], dtype=float)
 PERCENTS = [int(p) for p in DOCUMENT["weight_percent"]]
 
 
+@functools.lru_cache(maxsize=None)
 def _table(percent, key):
     return np.array([row[key] for row in DOCUMENT["optics"][str(percent)]], dtype=float)
 

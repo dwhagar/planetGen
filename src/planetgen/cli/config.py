@@ -38,7 +38,7 @@ import os
 import sys
 
 from planetgen.admin import auth
-from planetgen.util import log, logpaths, settings, settings_writer
+from planetgen.util import log, logpaths, settings, settings_view, settings_writer
 
 DOCS_PATH = os.path.join(logpaths.PROJECT_ROOT, "docs", "reference", "config.md")
 EXAMPLE_PATH = os.path.join(logpaths.PROJECT_ROOT, "config.json.example")
@@ -134,8 +134,7 @@ def _open_audit(args):
         from planetgen.db.store import control_mysql_config, get_control_connection, mysql_config_from_args
         conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
     except Exception as exc:  # noqa: BLE001 -- pymysql errors, a missing config, anything: the save still goes ahead
-        log.warning(f"warning: the control database could not be reached ({exc}); the change is in the activity "
-              "log but not in the admin audit table.")
+        log.warning(f"The control database could not be reached ({exc}), so the change is in the activity log but not in the admin audit table.")
         return None, lambda: None
     who = _actor()
 
@@ -147,7 +146,7 @@ def _open_audit(args):
 
 def _show_result(result, verb):
     for option, message in result.errors.items():
-        log.error(f"error: {option + ': ' if option else ''}{message}")
+        log.error(f"The setting{' ' + option if option else ''} was refused: {message}")
     if result.errors:
         return 1
     if not result.changes:
@@ -164,15 +163,14 @@ def _show_result(result, verb):
     if result.restart:
         print("These need a restart to take effect: " + ", ".join(result.restart))
     for line in result.audit_errors:
-        log.warning(f"warning: audit row not written: {line}")
+        log.warning(f"The audit row was not written: {line}")
     return 0
 
 
 def _source(option, meta, config, environ):
-    variable = meta.get("x-env")
-    if variable and (environ.get(variable) or (meta.get("x-env-empty") and variable in environ)):
-        return f"environment ({variable})"
-    return "config.json" if settings_writer._get(config, option)[0] else "default"
+    """Where the option's value comes from (`settings_view.source_of`), naming the variable when it is the environment."""
+    source, variable = settings_view.source_of(option, meta, config, environ)
+    return f"environment ({variable})" if variable else source
 
 
 def run_get(option):
@@ -184,7 +182,7 @@ def run_get(option):
         return 1
     rows = [(path, meta) for path, _info, meta in settings.iter_fields() if option in (None, path)]
     if not rows:
-        log.error(f"error: {option} is not a setting")
+        log.error(f"{option} is not a setting.")
         return 1
     for path, meta in rows:
         value = settings._lookup(current, path)
@@ -193,28 +191,26 @@ def run_get(option):
     return 0
 
 
-def run_save(args, changes, verb):
+def _write_as_host(args, verb, write):
+    """Runs `write(audit)` (a save or a restore, as the host) with the audit log open, and shows what it did."""
     audit, close = _open_audit(args)
     try:
-        result = settings_writer.save(changes, _actor(), role="host", audit=audit)
+        result = write(audit)
     except settings_writer.SettingsWriteError as exc:
-        log.error(f"error: {exc}")
+        log.error(f"The settings could not be {verb.lower()}: {exc}")
         return 1
     finally:
         close()
     return _show_result(result, verb)
 
 
+def run_save(args, changes, verb):
+    return _write_as_host(args, verb, lambda audit: settings_writer.save(changes, _actor(), role="host", audit=audit))
+
+
 def run_restore(args):
-    audit, close = _open_audit(args)
-    try:
-        result = settings_writer.restore(args.backup, _actor(), role="host", audit=audit)
-    except settings_writer.SettingsWriteError as exc:
-        log.error(f"error: {exc}")
-        return 1
-    finally:
-        close()
-    return _show_result(result, "Restored")
+    return _write_as_host(args, "Restored",
+                          lambda audit: settings_writer.restore(args.backup, _actor(), role="host", audit=audit))
 
 
 def main(argv=None):

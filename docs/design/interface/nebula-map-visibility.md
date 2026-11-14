@@ -28,7 +28,7 @@ Status: partly built (2026-10-15). Built: the `nebula_field` table (DB.24, #1317
 | Supernova remnants, classes R to W | shells | `phenomenon_scatter` kind `supernova-remnant`, `supernova_remnants` once built | same | 306 scatter rows at quarter scale (about 20,000 at default) [R scaling]; `supernova_remnants` empty in the test galaxy |
 | Diffuse gas, classes A and B | not generated | | | 0 |
 
-Per record the map receives: `type`, `id`, `name`, `descriptor` (the family), `class`, `radius_pc`, `x/y/z` (`galaxy_clouds_in_box`). A shape (`nebula_shape`: axes, warp, iso level) is served separately per nebula and fetched when the nebula is big enough on screen (`NEBULA_MESH_MIN_PX`). Families and look: diffuse `#e3a6c8`, emission `#ff6f91`, reflection `#6fa8ff`, planetary `#5be8c9`, dark `#1c1c24`, remnants orange with a blue rim (`NEBULA_LOOKS`, `cloudTexture`).
+Per record the map receives: `type`, `id`, `name`, `descriptor` (the family), `class`, `radius_pc`, `x/y/z` (`galaxy_clouds_in_box`). (Historical: the GEN.75 metaball shape, `nebula_shape`, was served per nebula; MAP.142 part 4 retired the mesh and GEN.1267 removed the shape. A nebula is now the density contour of `galaxy/nebula_density.py`, drawn by `galaxy/nebula_volume.py` and tested by `nebula_density.inside`.) Families and look: diffuse `#e3a6c8`, emission `#ff6f91`, reflection `#6fa8ff`, planetary `#5be8c9`, dark `#1c1c24`, remnants orange with a blue rim (`NEBULA_LOOKS`, `cloudTexture`).
 
 The scatter rows (planetary nebulae, remnants) are not drawn at all today: the tile's scattered points are only black holes, neutron stars and quasars (`SCATTERED_POINT_CLASSES`).
 

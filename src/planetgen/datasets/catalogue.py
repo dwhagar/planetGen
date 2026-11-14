@@ -12,13 +12,13 @@ item that reads it; every entry needs its verified source (docs/design/research/
 (section 6.6). The generator requires every dataset here but the ones marked `required` False (GEN.590): `missing` is the check bulk generation starts with.
 """
 
-from planetgen.datasets import (baraffe_isochrones, fetch, harris_clusters, hhe_eos, hitran_cia, hyg_stars, ir_ktables, isochrones, mamajek_sequence,
+from planetgen.datasets import (baraffe_isochrones, fetch, gaia_nearby, harris_clusters, hhe_eos, hitran_cia, hyg_stars, ir_ktables, isochrones, mamajek_sequence,
                                 methane_visible, neutron_star_matter, noaa_proton_events, ozone_uv, stellar_spectra, white_dwarf_models)
 
 ALL = (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET, ir_ktables.DATASET, hitran_cia.DATASET,
        harris_clusters.DATASET, noaa_proton_events.DATASET, baraffe_isochrones.DATASET, stellar_spectra.DATASET, mamajek_sequence.DATASET, hhe_eos.DATASET,
-       methane_visible.DATASET, hyg_stars.DATASET)
-"""tuple: Every `fetch.Dataset` the setup step downloads, in the order it downloads them (the HYG catalogue of the sky calibration, VIEW.30, is the one a test alone reads: `required` False)."""
+       methane_visible.DATASET, hyg_stars.DATASET, gaia_nearby.DATASET)
+"""tuple: Every `fetch.Dataset` the setup step downloads, in the order it downloads them (the HYG catalogue of the sky calibration, VIEW.30, and the Gaia sample the placement share is fitted to, GEN.1534, are the two a test or a fit alone reads: `required` False)."""
 
 
 def missing():

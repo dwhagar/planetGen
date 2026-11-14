@@ -153,6 +153,25 @@ sl-option[hidden] {
   grid-column: 1 / -1;
 }
 
+/* UX.317: the New galaxy page's properties (the lever sliders and the fields leversliders.js and fielddefaults.js dress the
+   same way) are each a subgrid of four rows (title, Default tick box with its box, bar, hint) shared with their
+   neighbours on the same line, so the tops of the boxes and the bars line up whatever the titles' line counts. A
+   property with no bar (a dropdown) leaves its bar row empty. */
+.aligned-fields .search-fields:not(.scatter-limits) > :is(.lever-slider, .default-field):not(.ui-field-check) {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 4;
+  row-gap: 0.3rem;
+  align-content: start;
+  margin-bottom: 0.75rem;
+  min-width: 0;
+}
+
+:is(.lever-slider, .default-field) > :is(.lever-slider-title, .default-title) { grid-row: 1; }
+:is(.lever-slider, .default-field) > :is(.lever-slider-head, .default-row) { grid-row: 2; }
+:is(.lever-slider, .default-field) > :is(.lever-slider-range, .limit-slider-row) { grid-row: 3; }
+:is(.lever-slider, .default-field) > :is(.field-hint, [data-lever-help-text]) { grid-row: 4; }
+
 /* A dialog's form is in the page until the element is defined. */
 sl-dialog:not(:defined) {
   display: none;

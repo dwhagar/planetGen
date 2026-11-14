@@ -162,3 +162,21 @@ def test_an_empty_body_or_an_unknown_material_is_an_error():
         core.pollutant({})
     with pytest.raises(materials.UnknownMaterial):
         core.pollutant({"no_such_mineral": 1.0})
+
+
+# --- the accreted body -------------------------------------------------------------------------------------------
+
+def test_the_accreted_member_is_picked_in_proportion_to_its_mass():
+    members = [(1.0, "C"), (3.0, "S"), (0.0, "M")]
+    picks = [core.accreted_taxon(members, (i + 0.5) / 1000) for i in range(1000)]
+    assert picks.count("C") == 250 and picks.count("S") == 750 and "M" not in picks
+    assert core.accreted_taxon(members, 0.999999) == "S" and core.accreted_taxon(members, 0.0) == "C"
+    assert core.accreted_taxon([], 0.5) is None and core.accreted_taxon([(0.0, "C")], 0.5) is None
+
+
+def test_every_taxon_of_a_belt_has_a_pollutant():
+    kinds = {taxon: core.pollutant_of_taxon(taxon).kind for taxon in sb.TAXA}
+    assert set(kinds.values()) <= set(core.CLASSES)
+    assert kinds["M"] == core.CORE_RICH and kinds["S"] == core.PRIMITIVE
+    for taxon in sb.TAXA:
+        assert core.pollutant_of_taxon(taxon).unassigned < 1e-9, taxon

@@ -38,7 +38,7 @@ import os
 from collections import namedtuple
 
 from planetgen.physics import bulk_structure, constants, elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, positive_number
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "mantle_reservoirs.json")
 """str: The data file."""
@@ -64,10 +64,7 @@ def load(path=DATA_FILE):
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the mantle reservoir table {path}: {error}") from error
 
-    def positive(value, what):
-        if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or value <= 0:
-            raise DataError(f"{what} must be a positive number, not {value!r}")
-        return float(value)
+    positive = positive_number      # GEN.1667: the shared check
 
     edges = document.get("boundaries_gpa") or {}
     top, bottom = positive(edges.get("transition_top"), "the top of the transition zone"), positive(edges.get("transition_bottom"), "its bottom")
