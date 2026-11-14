@@ -215,7 +215,7 @@ def oxygen_rise_gyr(body, living):
 def oxygen_state(body, living):
     """
     The oxygen the classes of `living` have made on `body` by the star's age (GEN.1213): `(rise_gyr, target_mol)`, `(None, 0.0)` when none has: the rise
-    of `oxygen_rise_gyr` is older than the star, or never comes. Then the air holds the balance of the summed source and the sinks.
+    of `oxygen_rise_gyr` is older than the star, or never comes. Then the air holds the plateau, or the balance of the summed source and the sinks once the reductant sink has fallen far enough (`biogenic_oxygen.stage_target_mol`, GEN.1707).
     """
     star_age = getattr(getattr(body, "star", None), "age", None)
     rise = oxygen_rise_gyr(body, living)
@@ -223,7 +223,8 @@ def oxygen_state(body, living):
         return None, 0.0
     pairs = _oxygenic(body, living)
     extra = 2.0 * standing_methane_mol(body, living, rise)
-    return rise, biogenic_oxygen.profile_of(body, sum(share for _, share in pairs), extra).steady_mol
+    profile = biogenic_oxygen.profile_of(body, sum(share for _, share in pairs), extra)
+    return rise, biogenic_oxygen.stage_target_mol(body, profile)
 
 
 def _producing(body, living, rose):

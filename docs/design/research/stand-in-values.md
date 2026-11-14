@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1663 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1665 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1636 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1638 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 155 | 64 | 1 | 1 | 0 | 221 |
-| T3 | 114 | 53 | 12 | 9 | 0 | 188 |
+| T3 | 114 | 54 | 12 | 9 | 0 | 189 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
-| T6 | 217 | 113 | 31 | 76 | 4 | 441 |
+| T6 | 217 | 114 | 31 | 76 | 4 | 442 |
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 93 | 35 | 200 |
-| All | 961 | 326 | 81 | 239 | 56 | 1663 |
+| All | 961 | 328 | 81 | 239 | 56 | 1665 |
 
 ## How the labels were given
 
@@ -507,6 +507,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BO8 | P | T7 | L3 | biogenic_oxygen.REDOX_DECADE_PER_UNIT 0.25 and REDOX_FACTOR_RANGE (0.2, 5): a mantle one log unit more reduced puts out and stores 10 ** 0.25 times the reductants | 0.1 to 0.5 | rocky bodies | test_biogenic_oxygen.test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range | a mantle gas model | design | predicted only | - | no data |
 | BO9 | P | T5 | L0 | biogenic_oxygen.REDUCED_GASES: the oxygen each reduced gas takes and the oxides it leaves | none (stoichiometry) | air with H2, CO, CH4, NH3, H2S, C2H6 | test_biogenic_oxygen.test_burning_takes_the_oxygen_the_reduced_gases_want_and_leaves_their_oxides | the chemistry of the full air solver | design (the water goes to the ocean, the sulfur of H2S to the sulfate of the sea) | predicted only | - | - |
 | BO10 | P | T4 | L0 | biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (`interior_heat.heat_at`), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of `RISE_STEP_GYR` (0.25 Gyr) | 0.1 to 0.5 Gyr step | rocky bodies with a stored thermal history | a measured reductant flux of the early Earth far from 2 to 2.5 times today's, or an Archean heat flow of a different ratio | an inventory of the sinks by age (ferrous iron, sulfides, volcanic gases) | design, from the proportionality of R to the heat that `reductant_flux` already uses; the early heat flow is the model's own thermal history ([R1716] box model), 2 to 3 times today's when the biomarkers appear, as the convection laws give for Earth | predicted only | - | - |
+| BO11 | P | T6 | L1 | biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707) | 0.2 to 2 kPa; the full range of the sources 0.02 to 5 kPa | worlds with oxygenic life whose R is still over S / 3 | a measured plateau of an oxygenated world, or Earth's mid-Proterozoic oxygen proved above 5 kPa or under 0.02 kPa | a model of the oxygen, phosphorus and carbon cycles with the world's own land and ocean | educated guess from physics: the models put Earth's plateau at 0.06 to 0.25 of today's oxygen [R5252] against at most 0.001 from chromium isotopes, so 0.03 sits inside the models' lowest values and the proxies' highest | predicted only | - | - |
+| BO12 | P | T3 | L1 | biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707) | 2 to 4 (the model's own: burial's dependence on bottom-water oxygen varied 10 to 40 percent) | worlds with oxygenic life that have crossed the first rise | a measured world that holds the plateau after R is under S / 4, or a model in which the second step needs a different ratio | a model of the world's own phosphorus recycling | READ ([R5252], full text: the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for deep-ocean ventilation, a ratio of 3); one model, so it is tier 3 | predicted only | - | - |
 
 ## 6.22 Stand-ins of the class cut-over
 

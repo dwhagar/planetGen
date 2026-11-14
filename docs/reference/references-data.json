@@ -235835,6 +235835,33 @@
    "volume": "366",
    "year": 2019
   },
+  "10.1126/science.aax6459": {
+   "authors": [
+    [
+     "Alcott",
+     "L. J."
+    ],
+    [
+     "Mills",
+     "B. J. W."
+    ],
+    [
+     "Poulton",
+     "S. W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.aax6459",
+   "editors": [],
+   "journal": "Science",
+   "page": "1333",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Stepwise Earth oxygenation is an inherent property of global biogeochemical cycling",
+   "type": "journal-article",
+   "volume": "366",
+   "year": 2019
+  },
   "10.1126/science.aay6620": {
    "arxiv": "2003.05576",
    "authors": [
@@ -284606,7 +284633,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5250,
+ "id_next": 5253,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -288711,6 +288738,7 @@
   "10.1126/science.aau2465": "R1663",
   "10.1126/science.aav7272": "R1087",
   "10.1126/science.aax3901": "R1154",
+  "10.1126/science.aax6459": "R5252",
   "10.1126/science.aay6620": "R3008",
   "10.1126/science.abb3091": "R2677",
   "10.1126/science.abc1796": "R1229",

@@ -175,6 +175,19 @@ def test_the_fire_limit_of_an_air_with_nothing_else_is_zero():
     assert bo._fire_limit_mol(_Body(), {"O2": 5.0}) == 0.0
 
 
+def test_the_oxygen_stands_at_the_plateau_until_the_reductant_sink_is_a_third_of_the_source(monkeypatch):
+    """GEN.1707: the first rise holds `PLATEAU_PA`, never more than the balance; the second, once R is under S over `SECOND_RISE_RATIO`, holds the balance."""
+    body = _Body()
+    column = 1.0e5 / (9.80665 * 0.028) * bo.area_m2(body)       # about 1 bar of nitrogen, mol
+    monkeypatch.setattr(bo, "air_moles", lambda b: {"N2": column})
+    balance = bo._fire_limit_mol(body, {"N2": column})
+    plateau = bo.stage_target_mol(body, bo.Profile(10.0, 4.0, 1.0, balance, 2.0e4, 1.0))        # R / S = 0.4: over a third
+    assert bo.partials_pa(body, {"N2": column, "O2": plateau})["O2"] == pytest.approx(bo.PLATEAU_PA, rel=1e-6)
+    assert bo.stage_target_mol(body, bo.Profile(10.0, 3.0, 1.0, balance, 2.0e4, 1.0)) == pytest.approx(balance)        # R / S = 0.3: under a third
+    assert bo.stage_target_mol(body, bo.Profile(10.0, 4.0, 1.0, 0.5 * plateau, 5.0e2, 1.0)) == pytest.approx(0.5 * plateau)       # a balance under the plateau stays under it
+    assert bo.stage_target_mol(body, bo.NONE) == 0.0
+
+
 def test_the_oxygen_rises_after_the_delay_and_not_before(monkeypatch):
     monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0: bo.Profile(2.0 * share, 1.0, 4.0e9 + extra_store_mol, 3.0, 2.0e4, 4.0))
     assert bo.rise_age_gyr(None, [(0.5, 1.0)]) == pytest.approx(4.5)
