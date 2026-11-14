@@ -48,7 +48,7 @@ def draw_core_mass_sol(initial_mass_sol, fe_h, rng=draw):
                                      inside_weight, rng.random())
     if period_d is None:
         return None
-    axis = stability.axis_au(period_d / 365.25, total)
+    axis = stability.axis_au(period_d / constants.DAYS_PER_YEAR, total)
     return helium_core_white_dwarf.overflow_core_mass_sol(initial_mass_sol, companion, axis, 0.0, fe_h)
 
 

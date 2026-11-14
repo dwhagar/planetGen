@@ -94,7 +94,7 @@ def test_probes_follow_the_arithmetic():
     ("rotation_rate", (86164.1,), 7.2921e-5, 1e-4),
     ("rotation_period", (7.2921e-5,), 86164.1, 1e-4),
     ("hill_radius", (constants.AU_M, constants.EARTH_MASS_TO_KG, constants.SOLAR_MASS_TO_KG), 1.4967e9, 2e-3),
-    ("roche_limit", (6.371e6, 5514.0, 3344.0), 2.44 * 6.371e6 * (5514.0 / 3344.0) ** (1 / 3), 1e-12),
+    ("roche_limit", (6.371e6, 5514.0, 3344.0), relations.ROCHE_FLUID_COEFFICIENT * 6.371e6 * (5514.0 / 3344.0) ** (1 / 3), 1e-12),
     ("sphere_volume", (6.371e6,), 1.0833e21, 1e-3),
     ("mean_density", (constants.EARTH_MASS_TO_KG, 6.371e6), 5514.0, 1e-3),
     ("luminosity", (constants.SOLAR_RADIUS_M, 5772.0), 3.828e26, 1e-2),
