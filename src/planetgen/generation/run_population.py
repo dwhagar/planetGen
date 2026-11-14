@@ -70,7 +70,7 @@ def population_do(params, piece, ctx):
     return _under_the_lock(ctx, lambda: model.do_population_piece(ctx.db, piece))
 
 
-def population_gather(params, results):
+def population_gather(params, results, ctx):
     """
     What the unit returns: the counts of the pass and `lines`, what the run says about it (this unit may run in a worker, so the process that started the run
     logs them).
@@ -93,7 +93,7 @@ def territories_do(params, piece, ctx):
     return _under_the_lock(ctx, lambda: model.do_territories_piece(ctx.db, piece, ctx))
 
 
-def territories_gather(params, results):
+def territories_gather(params, results, ctx):
     """
     What the unit returns: `polities`, `owned_systems` and `lines`.
     """
