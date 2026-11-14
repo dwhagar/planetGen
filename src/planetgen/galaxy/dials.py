@@ -148,12 +148,16 @@ class Lever:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             return f"{value!r} is not a finite number"
         if not self.minimum <= value <= self.maximum or (self.min_abs is not None and abs(value) < self.min_abs):
-            return (f"{value:g} is outside {self.range_text()}{self._abs_text()} "
+            return (f"{value:g} is outside {self.allowed_text()} "
                     f"({self.source}; {self.status})")
         return None
 
     def _abs_text(self):
         return f", at least {self.min_abs:g} away from 0" if self.min_abs is not None else ""
+
+    def allowed_text(self):
+        """The allowed values with the distance from 0 a row keeps: what a refusal, the help and the docs name."""
+        return self.range_text() + self._abs_text()
 
     def units_text(self):
         """How to type a `length` row, for the text under its box: the number with its unit straight after it, with
@@ -225,7 +229,7 @@ class Lever:
     def help_text(self):
         """The row's `--help` line: what it does, the range with its source, and what Auto is."""
         advanced = " Advanced." if self.advanced else ""
-        return (f"{self.help} Allowed: {self.range_text()}{self._abs_text()} "
+        return (f"{self.help} Allowed: {self.allowed_text()} "
                 f"({self.source}; {self.status}). Default Auto: {self.auto_text}.{advanced}")
 
 
@@ -542,8 +546,7 @@ def docs_table():
     labels = dict(DIALS)
     for row in LEVERS:
         flag = f"`{row.flag}`" + (" (advanced)" if row.advanced else "")
-        allowed = row.range_text() + row._abs_text()
-        lines.append(f"| {labels[row.dial]} | {flag} | {row.law} | {allowed} | {row.auto_text} | "
+        lines.append(f"| {labels[row.dial]} | {flag} | {row.law} | {row.allowed_text()} | {row.auto_text} | "
                      f"{row.source} ({row.status}) |")
     return "\n".join(lines)
 
@@ -574,7 +577,7 @@ def registry_block():
     """The registry rows for the shape dials' ranges in `docs/design/research/gap-filling-plan.md` (GEN.609): one per lever."""
     lines = [REGISTRY_BEGIN, "| Lever | Range | Label | Tier | Tweak | Source |", "|---|---|---|---|---|---|"]
     for row in LEVERS:
-        lines.append(f"| `{row.flag}` | {row.range_text()}{row._abs_text()} | {row.status} | {TIER_OF_STATUS[row.status]} | {row.tweak} | {row.source} |")
+        lines.append(f"| `{row.flag}` | {row.allowed_text()} | {row.status} | {TIER_OF_STATUS[row.status]} | {row.tweak} | {row.source} |")
     lines.append(REGISTRY_END)
     return "\n".join(lines)
 

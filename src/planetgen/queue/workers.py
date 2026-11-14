@@ -32,6 +32,7 @@ from rq import command, worker_registration
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, runrecord, stopall, work
 from planetgen.util import log
+from planetgen.util import process
 
 WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
@@ -168,17 +169,8 @@ def niceness(queue_names):
     return INTERACTIVE_NICENESS if redisqueue.INTERACTIVE_QUEUE in queue_names else work.WORKER_NICENESS
 
 
-def process_exists(pid):
-    """Whether a process with this id is running here (a process of another user counts as running)."""
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except OSError:
-        return False
-    return True
+process_exists = process.pid_alive
+"""Whether a process with this id is running here (`util.process.pid_alive`; a test patches this name)."""
 
 
 def live_workers(queue):
@@ -288,9 +280,10 @@ def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
         cap = count or maintenance_cap(connection, mysql_host)
     else:
-        cap = count or lane_cap(queue_name) or wanted(connection, mysql_host)
+        asked = wanted(connection, mysql_host)
+        cap = count or lane_cap(queue_name) or asked
         if queue_name == redisqueue.BULK_QUEUE:
-            cap = min(cap, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
+            cap = min(cap, max(1, asked - maintenance_share(connection, mysql_host)))
             from planetgen.queue import adaptive
             cap = adaptive.adapt(connection, cap, waiting)           # the cap, lowered while the host is short of memory
     live = live_worker_count(queue)

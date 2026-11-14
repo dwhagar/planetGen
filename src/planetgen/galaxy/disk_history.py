@@ -289,6 +289,12 @@ def _history_of(shape):
     return history(stellar_mass * thin_share, length, disk_speed_kms(stellar_mass))
 
 
+def _thin_disk_windows():
+    """Each disk population's age window, Gy: the population ranges with `old` as the thin disk's own window (GEN.1025: the
+    thick disk's stars reach 13 Gy and are mixed in afterwards)."""
+    return {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISK_OLD_WINDOW_GY}
+
+
 @functools.lru_cache(maxsize=64)
 def population_age_laws(shape):
     """
@@ -304,7 +310,7 @@ def population_age_laws(shape):
     """
     from planetgen.galaxy import thick_ages
     found = history_of(shape)
-    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISK_OLD_WINDOW_GY}
+    ages = _thin_disk_windows()
     laws = {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
     laws["old"] = thick_ages.old_age_law(shape, laws["old"])    # GEN.1025: the thick disk's stars reach 13 Gy
     return laws
@@ -323,7 +329,7 @@ def population_shares(shape):
         dict: Population name -> share.
     """
     found = history_of(shape)
-    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISK_OLD_WINDOW_GY}    # GEN.1025: the thin disk's own window
+    ages = _thin_disk_windows()
     shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())
     return {name: value / total for name, value in shares.items()}

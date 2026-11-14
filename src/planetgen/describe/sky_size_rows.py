@@ -24,6 +24,7 @@ Stand-ins are the rows SZ1 and SZ2 of section 6.280 of the gap plan.
 
 import math
 
+from planetgen.describe import host_star
 from planetgen.physics import constants, daylight, orbit_elements, sky_view
 from planetgen.util.format import three_figures_or_tiny
 
@@ -59,11 +60,7 @@ def _row(key, label, degrees):
 
 
 def _host_star(conn, planet):
-    if planet["star_id"]:
-        star = conn.execute("SELECT radius_km FROM stars WHERE id = ?", (planet["star_id"],)).fetchone()
-        if star is not None:
-            return star
-    return conn.execute("SELECT radius_km FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (planet["star_system_id"],)).fetchone()
+    return host_star.of(conn, planet, "radius_km")
 
 
 def _sun_row(conn, planet):

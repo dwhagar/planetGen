@@ -76,13 +76,15 @@ def plan_system_course(scene, keep_outs, start, end, speed_kms, departure_years=
     end_ref = end.get("ref")
     moves = end_ref in positions
     end_at = _position(end, positions)
-    result = avoid.plan_course(start_at, end_at, _spheres(keep_outs, positions, end_ref, end_at), frame="system", unit="km")
+    def plan(aimed_at):
+        return avoid.plan_course(start_at, aimed_at, _spheres(keep_outs, positions, end_ref, aimed_at), frame="system", unit="km")
+    result = plan(end_at)
     for _step in range(tuning.COURSE_SYSTEM_AIM_STEPS if moves else 0):
         travel_years = result["length"] / speed_kms / _SECONDS_PER_YEAR
         aimed = np.asarray(positions_at(scene, departure_years + travel_years)[end_ref], dtype=float)
         moved = float(np.linalg.norm(aimed - end_at))
         end_at = aimed
-        result = avoid.plan_course(start_at, end_at, _spheres(keep_outs, positions, end_ref, end_at), frame="system", unit="km")
+        result = plan(end_at)
         if moved <= 1.0e-6 * max(result["length"], 1.0) or math.isclose(moved, 0.0):
             break
     travel_s = result["length"] / speed_kms

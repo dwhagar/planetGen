@@ -4164,7 +4164,7 @@ The vapor pressure of disulfur over condensed sulfur, held in `physics/data/satu
 
 ### 6.286 Stand-ins of the white dwarf core and the accreted pollutant (GEN.1370)
 
-`physics/white_dwarf_core.py` gives a carbon-oxygen white dwarf its central oxygen and 22Ne and reads the elements and class of a polluting body from its stored materials (N16 of the 8.1 real-material set). Pure and unwired.
+`physics/white_dwarf_core.py` gives a carbon-oxygen white dwarf its central oxygen and 22Ne and reads the elements and class of a polluting body from its stored materials (N16 of the 8.1 real-material set). Read by `star_makeup` (the core) and the property sheet (the core and the accreted body) since the lock wiring of GEN.1370.
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -4176,6 +4176,7 @@ The vapor pressure of disulfur over condensed sulfur, held in `physics/data/satu
 | WDC6 | P | T6 | L1 | `tuning.POLLUTANT_VOLATILE_RICH_FRACTION` 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich | 0.1 to 0.4 | polluting belt bodies | polluted white dwarfs whose measured water fractions put the cut elsewhere | the classes of [R1832] | educated guess from physics |
 | WDC7 | P | T6 | L1 | `tuning.POLLUTANT_ELEMENT_SHARES`: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10 | the nickel in the table's ranges; the organics +-0.1 | the alloys and organics of the materials table that have no formula | a measured composition of those solids that differs by 0.1 in any share | per-material element lists in the materials table | the nickel is the middle of the ranges the table states; the organics are a kerogen-like stand-in |
 | WDC8 | P | T3 | L1 | `tuning.POLLUTANT_FORMULAS`: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite) | the end member chosen | the six rows | an analysis of the mineral that differs by more than 0.05 in any element share | member lists in the materials table | the end members are the table's own member lists |
+| WDC9 | P | T6 | L1 | `white_dwarf_core.accreted_taxon`: a polluted white dwarf accreted one stored belt member of its system, picked in proportion to its mass by the star's own draw (`StarDraws.u_pollutant`), and its composition is its taxon's mix of the materials table | the weights by mass or by mass to the one half | polluted white dwarfs whose system stores belt members | a polluted white dwarf whose system holds a belt but whose spectrum shows a body unlike any member | the scattered mass and the member each belt throws inward (`belt_history.mass_loss`, not stored) | educated guess from physics (the heavier a member, the more likely it is the one that is disrupted; the scattered mass of the belt is not stored) |
 
 ### 6.287 Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)
 

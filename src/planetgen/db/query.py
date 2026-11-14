@@ -54,7 +54,6 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
-from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.frame import binary_companion_offset_pc
@@ -2437,6 +2436,9 @@ def _center_distance_ly(row):
     )
 
 
+_FACILITY_HOST_COLUMNS = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
+                          "asteroid_field": "asteroid_field_id", "space": "sector_id"}
+"""dict: A facility's `host_type` -> the column of `facilities` that names its host."""
 _FACILITY_SELECT = """
     SELECT f.*,
            COALESCE(st.name, p.name, m.name, af.name, sec.name) AS host_name,
@@ -2460,9 +2462,7 @@ def _facility_dict(row):
         "orbit_distance_km", "orbit_period_years", "orbital_speed_kms", "orbit_phase_deg", "description",
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "host_name",
     )}
-    host_columns = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
-                    "asteroid_field": "asteroid_field_id", "space": "sector_id"}
-    facility["host_id"] = row[host_columns[row["host_type"]]]
+    facility["host_id"] = row[_FACILITY_HOST_COLUMNS[row["host_type"]]]
     for key in ("type_id", "type_name", "type_icon", "affiliation_polity_id", "affiliation_name"):
         facility[key] = row[key]
     facility.update(facility_ratings.describe(row))
@@ -3032,6 +3032,11 @@ def parse_scatter_start(text):
     return number
 
 
+def _scatter_class_clauses(classes):
+    """`(sql, params)` picking the `phenomenon_scatter` rows of the scattered `classes` (`_scattered_classes`): one
+    `(kind, subtype)` term each, joined with OR."""
+    return (" OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes),
+            [value for entry in classes for value in (entry["kind"], entry["subtype"])])
 def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=False):
     """`limit` unbuilt scatter rows from `offset` among the `classes`, in id order, shaped like the Phenomena rows
     (`scattered` True, named "Uncharted <kind> <shell>.<band>.<wedge>"). With `after` (a scatter row id) the page
@@ -3040,17 +3045,14 @@ def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=F
     if not classes:
         return []
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
-    clauses, params = [], []
-    for entry in classes:
-        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
-        params.extend([entry["kind"], entry["subtype"]])
+    class_sql, params = _scatter_class_clauses(classes)
     later = ""
     if first is not None:
         later, params = "id >= ? AND ", [first] + params
     if after is not None:
         later, params, offset = "id > ? AND " + later, [after] + params, 0
     query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index,"
-             f" member_count, system_mass_solar, uid FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) "
+             f" member_count, system_mass_solar, uid FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({class_sql}) "
              f"ORDER BY id{' DESC' if last else ''}")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
@@ -3482,9 +3484,8 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None, start=None):
             classes = _scattered_classes(c, types, descriptors, placed)
             if not classes:
                 return 0
-            clauses = " OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes)
-            marks = [value for entry in classes for value in (entry["kind"], entry["subtype"])]
-            return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({clauses})",
+            class_sql, marks = _scatter_class_clauses(classes)
+            return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({class_sql})",
                              [first] + marks).fetchone()["n"]
 
         return _counted(conn, ["count_phenomena", list(types), list(descriptors), placed, first], exact_tail,
@@ -3776,8 +3777,7 @@ def resolve_object(conn, kind, object_id):
                   "name, host_type, star_system_id, star_id, planet_id, moon_id, asteroid_belt_id, asteroid_field_id, "
                   "sector_id, center_x_pc, center_y_pc, center_z_pc")
         name = row["name"]
-        host_column = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
-                       "asteroid_field": "asteroid_field_id", "space": "sector_id"}[row["host_type"]]
+        host_column = _FACILITY_HOST_COLUMNS[row["host_type"]]
         if row["star_system_id"] is not None:
             parents, positions = system_parents_and_positions(row["star_system_id"])
             host_kind, host_table = {"star": ("star", "stars"), "planet": ("planet", "planets"), "moon": ("moon", "moons"),
@@ -4186,8 +4186,6 @@ def nearest_systems(conn, object_table, object_ids):
     return found
 
 
-_PHENOMENON_TYPE_TABLES = {type_label: table for table, type_label, _descriptor, _radius in _PHENOMENON_TABLES}
-"""dict: `_PHENOMENON_TABLES`' type label -> table."""
 
 
 def _sector_reach_pc(sector, edge_pc):
@@ -4320,7 +4318,7 @@ def phenomena_near_sector(conn, sector_id):
     for match in matches:
         by_type.setdefault(match["type"], []).append(match["id"])
     for kind, ids in by_type.items():
-        stored = nearest_systems(conn, _PHENOMENON_TYPE_TABLES[kind], ids)
+        stored = nearest_systems(conn, _PHENOMENON_TYPE_TO_TABLE[kind], ids)
         for match in matches:
             if match["type"] == kind:
                 match["nearest"] = stored.get(match["id"], [])
@@ -5681,7 +5679,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     )
     if unfilled_only:
         box += " AND star_system_id IS NULL"
-    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    box_params = _scatter_box_params(lo, hi)
 
     # Rows read each way, assuming stars spread evenly over the sectors: the
     # address path reads the box's longitudes of the bands it reaches, the
@@ -6081,21 +6079,31 @@ included, and the optimizer then often scans the table (3.6 million rows for a 2
 shell, with the bands the box reaches there, reads only those. It was 64."""
 
 
+def _scatter_address_clause(bands):
+    """`(where, params)` picking the `phenomenon_scatter` rows filed in `bands` (`(shell, first band, last band)` each, from
+    `_bright_star_bands`): one shell range when there are more than `SCATTERED_MAX_SHELL_RANGES`, else a term a band."""
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
+        return "shell_index BETWEEN ? AND ?", [bands[0][0], bands[-1][0]]
+    return ("(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")",
+            [v for band in bands for v in band])
+
+
+def _scatter_box_params(lo, hi):
+    """The six bounds of the box `[lo, hi)` (parsecs) as the milliparsec integers the scatter tables store positions in, in the
+    order `x >= ? AND x < ? AND y ... AND z ...` wants them."""
+    return [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+
+
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse node lists those too), so "Charted only" dims the others (MAP.111)."""
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
         return []
-    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
-        where_address = "shell_index BETWEEN ? AND ?"
-        address_params = [bands[0][0], bands[-1][0]]
-    else:
-        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
-        address_params = [v for band in bands for v in band]
+    where_address, address_params = _scatter_address_clause(bands)
     kinds = " OR ".join("(kind = ? AND subtype <=> ?)" for _ in classes)
     kind_params = [v for cls in classes for v in cls[:2]]
-    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    box_params = _scatter_box_params(lo, hi)
     rows = conn.execute(
         f"""
         SELECT id, kind, subtype, built_at, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
@@ -6152,15 +6160,10 @@ def galaxy_scattered_nebulae_in_box(conn, lo, hi, edge_pc, limit):
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
         return []
-    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
-        where_address = "shell_index BETWEEN ? AND ?"
-        address_params = [bands[0][0], bands[-1][0]]
-    else:
-        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
-        address_params = [v for band in bands for v in band]
+    where_address, address_params = _scatter_address_clause(bands)
     kinds = " OR ".join("kind = ?" for _ in SCATTERED_NEBULA_CLASSES)
     kind_params = [cls[0] for cls in SCATTERED_NEBULA_CLASSES]
-    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    box_params = _scatter_box_params(lo, hi)
     rows = conn.execute(
         f"""
         SELECT id, kind, position_x_mpc, position_y_mpc, position_z_mpc
@@ -7258,22 +7261,24 @@ def _body_facet_rows(facet, conn):
     return [{"v": value, "c": n} for value, n in sorted(galaxy_counts.facet(conn, facet).items())]
 
 
+def _class_facet(conn, facet, word):
+    """The planet-class facet options of the stored `facet` counts (`class` or `moon_class`), labelled `Class X <word>`."""
+    return [{"value": row["v"], "label": f"Class {row['v']} {word}", "count": row["c"],
+             "tooltip": PLANET_CLASSES.get(row["v"], {}).get("description")} for row in _body_facet_rows(facet, conn)]
+
+
+def _body_type_facet(conn, facet):
+    """The body-type facet options of the stored `facet` counts (`body` or `moon_body`)."""
+    return [{"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
+            for row in _body_facet_rows(facet, conn)]
+
+
 def _search_facet_class(conn):
-    rows = _body_facet_rows("class", conn)
-    opts = []
-    for row in rows:
-        info = PLANET_CLASSES.get(row["v"], {})
-        opts.append({"value": row["v"], "label": f"Class {row['v']} Planet", "count": row["c"],
-                     "tooltip": info.get("description")})
-    return opts
+    return _class_facet(conn, "class", "Planet")
 
 
 def _search_facet_body(conn):
-    rows = _body_facet_rows("body", conn)
-    return [
-        {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
-        for row in rows
-    ]
+    return _body_type_facet(conn, "body")
 
 
 def _life_class_label(class_id):
@@ -7399,21 +7404,11 @@ def _equipment_clause(alias, tags, clauses, params):
 
 
 def _search_facet_moon_class(conn):
-    rows = _body_facet_rows("moon_class", conn)
-    opts = []
-    for row in rows:
-        info = PLANET_CLASSES.get(row["v"], {})
-        opts.append({"value": row["v"], "label": f"Class {row['v']} Moon", "count": row["c"],
-                     "tooltip": info.get("description")})
-    return opts
+    return _class_facet(conn, "moon_class", "Moon")
 
 
 def _search_facet_moon_body(conn):
-    rows = _body_facet_rows("moon_body", conn)
-    return [
-        {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
-        for row in rows
-    ]
+    return _body_type_facet(conn, "moon_body")
 
 
 def _search_facet_moon_life(conn):
@@ -7462,10 +7457,9 @@ def _search_phenomenon_class_label(type_label, value):
 
 def _search_facet_phenomenon_class(conn):
     options = []
-    tables = dict((type_label, table) for table, type_label in _search_phenomenon_tables())
     for type_label, column in _SEARCH_PHENOMENON_CLASS_COLUMNS.items():
         counts = {row["v"]: row["c"] for row in conn.execute(
-            f"SELECT {column} AS v, COUNT(*) AS c FROM {tables[type_label]} GROUP BY v ORDER BY v").fetchall()}
+            f"SELECT {column} AS v, COUNT(*) AS c FROM {_PHENOMENON_TYPE_TO_TABLE[type_label]} GROUP BY v ORDER BY v").fetchall()}
         if type_label == "nebula":      # MAP.400: the field clouds no sector has stored are nebulae of class M and N
             for row in conn.execute("SELECT nebula_class AS v, COUNT(*) AS c FROM nebula_field WHERE is_stored = 0"
                                     " GROUP BY v").fetchall():

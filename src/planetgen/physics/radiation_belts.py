@@ -71,7 +71,7 @@ STOP_COLUMN_G_CM2 = 2.0
 """float: The air column, g/cm2, that cuts the belts' dose by a factor of e (MeV electrons go about 1 g/cm2 and tens of MeV protons 1 to 3)."""
 EARTH_STANDOFF_RP = magnetism.EARTH_STANDOFF_RP
 EARTH_WIND_PA = magnetism.EARTH_WIND_PA
-EARTH_RADIUS_M = constants.EARTH_RADIUS_KM * 1000.0
+EARTH_RADIUS_M = constants.EARTH_RADIUS_M
 
 
 @dataclass(frozen=True)

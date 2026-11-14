@@ -182,6 +182,11 @@ def _densities_at(points, z, shape):
     return [{population: column[i] for population, column in columns.items()} for i in range(len(points))]
 
 
+def _ring_points(plane, count):
+    """`count` points `(x, y)` evenly spaced round a circle of radius `plane`, each at the middle of its arc."""
+    return [(plane * math.cos(theta), plane * math.sin(theta)) for theta in ((k + 0.5) * 2 * math.pi / count for k in range(count))]
+
+
 def _band_bins(shell_index, band_index, high_band, shape, edge_pc, bins=ANGLE_BINS):
     """
     Per band `-high_band .. high_band` of a shell, the population densities at the band's centreline
@@ -193,9 +198,7 @@ def _band_bins(shell_index, band_index, high_band, shape, edge_pc, bins=ANGLE_BI
         wedges = wedge_count(shell_index, band)
         count = min(wedges, bins)
         plane, z = band_center_pc(shell_index, band, edge_pc)
-        points = [(plane * math.cos(theta), plane * math.sin(theta))
-                  for theta in ((k + 0.5) * 2 * math.pi / count for k in range(count))]
-        out.append((wedges, _densities_at(points, z, shape)))
+        out.append((wedges, _densities_at(_ring_points(plane, count), z, shape)))
     return out
 
 
@@ -224,13 +227,22 @@ def _draw_point_in_cell(rng, shell_index, band_index, wedge, edge_pc):
     cos_colat = rng.uniform(math.cos(south), math.cos(north))
     lon = rng.uniform(start, end)
     plane = radius * math.sqrt(max(0.0, 1.0 - cos_colat * cos_colat))
-    point = (plane * math.cos(lon), plane * math.sin(lon), radius * cos_colat)
-    return tuple(round(value * MPC_PER_PC) for value in point)
+    return _mpc((plane * math.cos(lon), plane * math.sin(lon), radius * cos_colat))
+
+
+def _mpc(point_pc):
+    """A galaxy-frame point in parsecs as the stored point, whole milliparsecs."""
+    return tuple(round(value * MPC_PER_PC) for value in point_pc)
+
+
+def _pc(point):
+    """A stored point (whole milliparsecs) in parsecs."""
+    return tuple(value / MPC_PER_PC for value in point)
 
 
 def _stored_in_cell(stored, shell_index, band_index, wedge, edge_pc):
     """Whether a stored point (whole milliparsecs) is still in the cell after rounding."""
-    return sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (shell_index, band_index, wedge)
+    return sector_address_at(_pc(stored), edge_pc) == (shell_index, band_index, wedge)
 
 
 def _finite_or_none(value):
@@ -287,6 +299,15 @@ def rotation_period_hours(seed, params):
     with draw.bound(draw.Stream(seed ^ SPIN_SEED_MIX)):
         return spin.star_rotation_period_hours(params["mass_kg"], params["radius_km"], params["temperature_k"],
                                                params["age_gy"], params["yerkes_class"])
+
+
+def _placed_row(rng, shell_index, band_index, wedge, population, params, edge_pc):
+    """The row of a star of `params` at a point of its cell drawn from `rng`, or `None` when `SLOT_REDRAWS` points all rounded out of the cell."""
+    for _ in range(SLOT_REDRAWS):
+        point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
+        if point is not None:
+            return _row(shell_index, band_index, wedge, point, population, params, rng)
+    return None
 
 
 def _row(shell_index, band_index, wedge, point, population, params, rng, cluster_id=None):
@@ -408,10 +429,8 @@ def sampled_band_expectations(shape, shell_index, high_band, edge_pc, expected_a
         wedges = wedge_count(shell_index, band)
         bins = min(wedges, angle_bins)
         plane, z = band_center_pc(shell_index, band, edge_pc)
-        points = [(plane * math.cos(theta), plane * math.sin(theta))
-                  for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
         band_expected = 0.0
-        found = _densities_at(points, z, shape)
+        found = _densities_at(_ring_points(plane, bins), z, shape)
         here = fractions[scatterLimits.tier_of_densities(found)] if by_tier else fractions
         for densities in found:
             band_expected += sum(densities[population] * here[population] for population in SCATTERED_POPULATIONS)
@@ -466,6 +485,22 @@ def _capacity(shape, address, fractions, expected_at_density_1, edge_pc):
     expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
                 * sum(center[population] * fractions[population] for population in SCATTERED_POPULATIONS))
     return object_first.sector_capacity(expected)
+
+
+def _weights_at(point, here, shape):
+    """`(weights, wanted)` of a candidate at the stored `point`: each scattered population's density there times its share `here`, and their sum."""
+    densities = _densities(_pc(point), shape)
+    weights = [densities[population] * here[population] for population in SCATTERED_POPULATIONS]
+    return weights, sum(weights)
+
+
+def _take(kept, address, shape, here, expected_at_density_1, edge_pc):
+    """Counts one more kept object in the sector at `address` in `kept`; False, counting nothing, when the sector holds its capacity (`_capacity`) already."""
+    held = kept.get(address, 0)
+    if held and held >= _capacity(shape, address, here, expected_at_density_1, edge_pc):
+        return False
+    kept[address] = held + 1
+    return True
 
 
 def _pick_population(rng, weights, wanted):
@@ -534,9 +569,7 @@ def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fracti
         wedge = min(int(rng.random() * wedges), wedges - 1)
         point = _draw_point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
         here = by_tier[tier_of_band[pick]]
-        densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
-        weights = [densities[population] * here[population] for population in SCATTERED_POPULATIONS]
-        wanted = sum(weights)
+        weights, wanted = _weights_at(point, here, shape)
         if check and wanted > bounds[pick] * (1.0 + 1e-9):
             raise AssertionError(f"majorant violated in band {band_index} of shell {shell_index}: "
                                  f"{wanted} > {bounds[pick]}")
@@ -545,10 +578,8 @@ def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fracti
         address = (shell_index, band_index, wedge)
         if address in skip_addresses or not _stored_in_cell(point, shell_index, band_index, wedge, edge_pc):
             continue
-        held = kept.get(address, 0)
-        if held and held >= _capacity(shape, address, here, expected_at_density_1, edge_pc):
+        if not _take(kept, address, shape, here, expected_at_density_1, edge_pc):
             continue
-        kept[address] = held + 1
         taken += 1
         yield band_index, wedge, point, _pick_population(rng, weights, wanted), tier_of_band[pick]
     if on_candidates is not None:
@@ -731,26 +762,21 @@ def _reach_spots(shape, groups, high_band, edge_pc, expected_at_density_1, by_ti
         cos_colat = rng.uniform(cos_low[pick], cos_high[pick])
         lon = rng.uniform(0.0, 2.0 * math.pi)
         plane = radius * math.sqrt(max(0.0, 1.0 - cos_colat * cos_colat))
-        point = tuple(round(value * MPC_PER_PC) for value in (plane * math.cos(lon), plane * math.sin(lon),
-                                                                radius * cos_colat))
-        address = sector_address_at(tuple(value / MPC_PER_PC for value in point), edge_pc)
+        point = _mpc((plane * math.cos(lon), plane * math.sin(lon), radius * cos_colat))
+        address = sector_address_at(_pc(point), edge_pc)
         shell_index, band_index, wedge = address
         if not shells_low[pick] <= shell_index <= shells_high[pick] or abs(band_index) <= high_band:
             continue
         tier = 0 if tier_of is None else tier_of(shell_index, band_index)
         here = by_tier[tier]
-        densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
-        weights = [densities[population] * here[population] for population in SCATTERED_POPULATIONS]
-        wanted = sum(weights)
+        weights, wanted = _weights_at(point, here, shape)
         if check and wanted > bounds[pick] * (1.0 + 1e-9):
             raise AssertionError(f"majorant violated in group {pick} of shell {shell_index}: "
                                  f"{wanted} > {bounds[pick]}")
         if rng.random() * bounds[pick] >= wanted or address in skip_addresses:
             continue
-        held = kept.get(address, 0)
-        if held and held >= _capacity(shape, address, here, expected_at_density_1, edge_pc):
+        if not _take(kept, address, shape, here, expected_at_density_1, edge_pc):
             continue
-        kept[address] = held + 1
         taken += 1
         yield shell_index, band_index, wedge, point, _pick_population(rng, weights, wanted), tier
     if on_candidates is not None:
@@ -764,18 +790,27 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
     carries on from it."""
     by_tier = fractions if tiered is not None else [fractions]
     tier_of = None if tiered is None else tiered.limits.tier_at
-    placed = {(tier, population): [] for population in SCATTERED_POPULATIONS for tier in range(len(pass_bands))}
+    placed = _placed_spots(pass_bands)
+    for shell_index, band_index, wedge, point, population, tier in _reach_spots(
+            shape, groups, high_band, edge_pc, expected_at_density_1, by_tier, tier_of, rng, skip_addresses,
+            check=check, on_candidates=_candidate_progress(on_progress, base), coarse=coarse):
+        placed[(tier, population)].append((shell_index, band_index, wedge, point))
+    yield from draw_placed(placed, pass_bands, rng, on_progress, base, age_laws_of(shape))
 
+
+def _placed_spots(pass_bands, populations=SCATTERED_POPULATIONS):
+    """An empty `placed` for `draw_placed`: a list per tier of `pass_bands` and scattered population."""
+    return {(tier, population): [] for population in populations for tier in range(len(pass_bands))}
+
+
+def _candidate_progress(on_progress, base=0.0):
+    """The `on_candidates` callback that reports the placing half of a draw's progress to `on_progress` (PERF.4), from `base` on:
+    the stars kept so far count half each, and the estimate is the kept stars scaled up by the share of candidates tried."""
     def candidates_done(done, total, taken):
         if on_progress is not None and total:
             estimate = taken * total / done if done else float(total)
             on_progress(base + taken / 2, base + max(estimate, float(taken)))
-
-    for shell_index, band_index, wedge, point, population, tier in _reach_spots(
-            shape, groups, high_band, edge_pc, expected_at_density_1, by_tier, tier_of, rng, skip_addresses,
-            check=check, on_candidates=candidates_done, coarse=coarse):
-        placed[(tier, population)].append((shell_index, band_index, wedge, point))
-    yield from draw_placed(placed, pass_bands, rng, on_progress, base, age_laws_of(shape))
+    return candidates_done
 
 
 def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=None, fe_h_peaks=None, cluster_id=None):
@@ -876,32 +911,13 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         fractions = tier_fractions_of(tiered, age_laws)
         tiers = tiered.tiers_in(shell_index, high_band)
         pass_bands = list(tiered.bands)
-    placed = {(tier, population): [] for population in SCATTERED_POPULATIONS for tier in range(len(pass_bands))}
-
-    def candidates_done(done, total, taken):
-        if on_progress is not None and total:
-            estimate = taken * total / done if done else float(total)
-            on_progress(taken / 2, max(estimate, float(taken)))
-
+    placed = _placed_spots(pass_bands)
     for band_index, wedge, point, population, tier in _spots(
             shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
-            check=check, on_candidates=candidates_done, tiers=tiers):
-        placed[(tier, population)].append((band_index, wedge, point))
+            check=check, on_candidates=_candidate_progress(on_progress), tiers=tiers):
+        placed[(tier, population)].append((shell_index, band_index, wedge, point))
     total_placed = sum(len(spots) for spots in placed.values())
-    drawn = 0
-    for population in SCATTERED_POPULATIONS:
-        for tier, band in enumerate(pass_bands):
-            spots = placed[(tier, population)]
-            if not spots:
-                continue
-            stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
-                                        max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range,
-                                        age_laws=age_laws, fe_h_source=spot_fe_h(population, spots, rng))
-            for (band_index, wedge, point), params in zip(spots, stars):
-                drawn += 1
-                if on_progress is not None:
-                    on_progress((total_placed + drawn) / 2, total_placed)
-                yield _row(shell_index, band_index, wedge, point, population, params, rng)
+    yield from draw_placed(placed, pass_bands, rng, on_progress, 0.0, age_laws)
     if reach:
         groups = object_first.ReachGroups.for_shell(shell_index, high_band, edge_pc)
         yield from _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1,
@@ -1006,8 +1022,7 @@ def _backfill_bands(shape, addresses, edge_pc, expected_at_density_1, seed, band
             if candidates is not None and not candidates:
                 continue          # a sparse block that put no star in this cell: its densities are never read
             densities, volume = _cell_densities(memo, shape, address, edge_pc)
-            means = {population: expected_at_density_1 * volume * densities[population] * shares[population]
-                     for population in SCATTERED_POPULATIONS}
+            means = _band_means(expected_at_density_1, volume, densities, shares)
             if not any(mean > 0.0 for mean in means.values()):
                 continue
             center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
@@ -1026,13 +1041,9 @@ def _backfill_bands(shape, addresses, edge_pc, expected_at_density_1, seed, band
                 if not count:
                     continue
                 for params in band.sample(count, population, rng, center_fe_h(population, center, rng)):
-                    for _ in range(SLOT_REDRAWS):
-                        point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
-                        if point is not None:
-                            row = _row(shell_index, band_index, wedge, point, population, params, rng)
-                            if band.keep(row):
-                                yield row
-                            break
+                    row = _placed_row(rng, shell_index, band_index, wedge, population, params, edge_pc)
+                    if row is not None and band.keep(row):
+                        yield row
 
 
 BLOCK_WEDGES = 256
@@ -1098,6 +1109,11 @@ def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, 
     return bound_of(bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1), shares)
 
 
+def _band_means(expected_at_density_1, volume, densities, shares):
+    """The stars a cell expects of each scattered population in a band: `expected_at_density_1 * volume * density * share`."""
+    return {population: expected_at_density_1 * volume * densities[population] * shares[population] for population in SCATTERED_POPULATIONS}
+
+
 def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
     """
     The stars a cell expects in a luminosity band, summed over the populations: what `backfill_cells` draws its Poisson
@@ -1113,7 +1129,7 @@ def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
     shell_index, band_index, wedge = address
     densities = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
     volume = volume_ratio(shell_index, band_index, edge_pc)
-    return sum(expected_at_density_1 * volume * densities[population] * shares[population] for population in SCATTERED_POPULATIONS)
+    return sum(_band_means(expected_at_density_1, volume, densities, shares).values())
 
 
 def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
@@ -1213,8 +1229,7 @@ def candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, k
     if found is None:
         def rate_of(cell):
             densities, volume = _cell_densities(memo, shape, (shell_index, band_index, cell), edge_pc)
-            return sum(expected_at_density_1 * volume * densities[population] * shares[population]
-                       for population in SCATTERED_POPULATIONS)
+            return sum(_band_means(expected_at_density_1, volume, densities, shares).values())
 
         found = {}
         for candidate in block_candidates(seed, shell_index, band_index, chunk, key, bound, rate_of):
@@ -1282,11 +1297,9 @@ def _candidate_rows(candidates, address, means, seed, key, edge_pc, star_of):
                 break
         rng = candidate_stream(seed, shell_index, band_index, wedge // BLOCK_WEDGES, key, candidate.index)
         for params in star_of(chosen, rng):
-            for _ in range(SLOT_REDRAWS):
-                point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
-                if point is not None:
-                    yield _row(shell_index, band_index, wedge, point, chosen, params, rng)
-                    break
+            row = _placed_row(rng, shell_index, band_index, wedge, chosen, params, edge_pc)
+            if row is not None:
+                yield row
 
 
 def mass_band_edges(mass_limit_sol, ring_masses=None):

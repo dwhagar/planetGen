@@ -219,10 +219,7 @@ def bulge_to_total(shape):
     """The bulge's mass over the bulge's and the thin and thick disks', in the model's units (the share
     `shape_draw.bulge_amplitude_for` solves the bulge's amplitude from)."""
     terms = model_terms(shape)
-    thin = shape.arm_level * 2.0 * math.pi * shape.disk_scale_length_pc ** 2 * 2.0 * shape.disk_scale_height_pc
-    thick = (terms["thick_disk_amplitude"] * 2.0 * math.pi * terms["thick_disk_scale_length_pc"] ** 2
-             * 2.0 * terms["thick_disk_scale_height_pc"])
-    return terms["bulge_mass"] / (terms["bulge_mass"] + thin + thick)
+    return terms["bulge_mass"] / (terms["bulge_mass"] + _thin_disk_units(shape) + thick_disk_units(shape))
 
 
 @functools.lru_cache(maxsize=64)
@@ -260,8 +257,7 @@ def model_terms(shape):
     scale_z = structure.bar_axis_ratio_z * shape.bulge_scale_radius_pc
     bulge_mass = shape.bulge_amplitude * shape.bulge_scale_radius_pc * scale_y * scale_z * BULGE_UNIT_INTEGRAL
     thick_amplitude = thick_disk_amplitude(shape)
-    main_mass = (bulge_mass + _disk_mass(shape.arm_level, length, shape.disk_scale_height_pc)
-                 + _disk_mass(thick_amplitude, thick_length, thick_height))
+    main_mass = bulge_mass + _thin_disk_units(shape) + _disk_mass(thick_amplitude, thick_length, thick_height)
     # The model's units per solar mass of the visible stars (the galaxy's stars less the stellar halo's): the nuclear
     # cluster (GEN.402) and the nuclear disk (GEN.628) are drawn in solar masses and enter the model through it.
     per_solar = main_mass / (structure.stellar_mass_solar * (1.0 - structure.halo_stellar_ratio))
@@ -419,13 +415,15 @@ def shape_with_terms(shape):
     return {**fields, **model_terms(shape), **halo_terms(shape)}
 
 
+def _arm_angle(radius_pc, shape):
+    """The azimuth of an arm's crest at `radius_pc`: the logarithmic spiral through the reference point."""
+    return (shape.spiral_reference_angle_rad
+            + math.log(radius_pc / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
+
+
 def _interarm_angle(radius_pc, shape):
     """The azimuth of the inter-arm minimum at `radius_pc`."""
-    theta_arm = (
-        shape.spiral_reference_angle_rad
-        + math.log(radius_pc / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
-    )
-    return theta_arm + math.pi / shape.arm_count
+    return _arm_angle(radius_pc, shape) + math.pi / shape.arm_count
 
 
 def _nuclear_cluster(radius_pc, terms):
@@ -442,9 +440,8 @@ def _nuclear_cluster_array(radius_pc, terms):
     radius_pc = np.asarray(radius_pc, dtype=float)
     if not terms["nuclear_cluster_mass"]:
         return np.zeros_like(radius_pc)
-    r = np.maximum(radius_pc, terms["nuclear_cluster_softening_pc"])
-    scale = terms["nuclear_cluster_scale_pc"]
-    return terms["nuclear_cluster_mass"] * scale / (2.0 * math.pi * r * (r + scale) ** 3)
+    return _cluster_density_at(np.maximum(radius_pc, terms["nuclear_cluster_softening_pc"]), terms["nuclear_cluster_mass"],
+                               terms["nuclear_cluster_scale_pc"])
 
 
 def _nuclear_disk(r_cyl, z, terms):
@@ -504,15 +501,6 @@ def _thick_disk(r_cyl, z, shape, terms):
             * _vertical(z, terms["thick_disk_scale_height_pc"]))
 
 
-def _components(position_pc, shape):
-    """`(bulge, thin disk without arms, thick disk, arm cosine)` at a
-    point, unnormalized."""
-    x, y, z = position_pc
-    terms = model_terms(shape)
-    r_cyl = detmath.hypot(x, y)
-    thin = math.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
-    return _bulge(x, y, z, shape, terms), thin, _thick_disk(r_cyl, z, shape, terms), _arm_cosine(x, y, shape)
-
 
 COMPONENT_NAMES = ("thin_disk", "thick_disk", "bulge", "halo", "nuclear_cluster", "nuclear_disk")
 """tuple: The density model's components, in the order `density_components` lists them (GEN.379)."""
@@ -565,12 +553,21 @@ def _arm_cosine(x, y, shape):
     r_cyl = detmath.hypot(x, y)
     if r_cyl <= 1e-9:
         return 0.0
-    theta = math.atan2(y, x)
-    theta_arm = (
-        shape.spiral_reference_angle_rad
-        + math.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
-    )
-    return math.cos(shape.arm_count * (theta - theta_arm))
+    return math.cos(shape.arm_count * (math.atan2(y, x) - _arm_angle(r_cyl, shape)))
+
+
+def _disk_weights(z, arm_cos, recent, shape):
+    """How the thin disk is shared among its populations at height `z` (one, or an array) and arm cosine `arm_cos`: each
+    population's share of star formation, its own vertical profile and arm contrast, and the recent factor `recent` for
+    the young ones (`population_densities`). The weights are relative; the caller divides by their sum."""
+    weights = {}
+    for name, ratio in population_height_ratios(shape).items():
+        height = shape.disk_scale_height_pc * ratio
+        share = starFormation.disk_population_share(name, shape)
+        weights[name] = (share * _vertical_any(z, height) / height
+                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
+                         * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
+    return weights
 
 
 def population_densities(position_pc, shape):
@@ -607,13 +604,7 @@ def population_densities(position_pc, shape):
     halo = shape.k_norm * values.halo
 
     recent = starFormation.recent_factor(detmath.hypot(position_pc[0], position_pc[1]), shape)
-    weights = {}
-    for name, ratio in population_height_ratios(shape).items():
-        height = shape.disk_scale_height_pc * ratio
-        share = starFormation.disk_population_share(name, shape)
-        weights[name] = (share * _vertical(z, height) / height
-                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
-                         * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
+    weights = _disk_weights(z, arm_cos, recent, shape)
     total = sum(weights.values())
     if total <= 0.0:
         # Far enough off the plane that every profile underflows: the
@@ -660,15 +651,21 @@ def component_arrays(x, y, z, shape):
     up = z / terms["bulge_scale_z_pc"]
     in_plane = along * along + across * across
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(in_plane * in_plane + up ** 4))
-    with np.errstate(divide="ignore", invalid="ignore"):
-        theta_arm = (shape.spiral_reference_angle_rad
-                     + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
-        arm_cos = np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
+    arm_cos = arm_cosine_array(x, y, shape)
     return ArrayValues(
         r_cyl=r_cyl, thin_profile=thin, thick_disk=thick, bulge=bulge, arm_cosine=arm_cos,
         halo=_halo(r_cyl, z, halo_terms(shape)),
         nuclear_cluster=_nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms),
         nuclear_disk=_nuclear_disk_array(r_cyl, z, terms))
+
+
+def arm_cosine_array(x, y, shape):
+    """`_arm_cosine` at arrays `x`, `y`: 0 at the center, where the arms are undefined."""
+    r_cyl = np.hypot(x, y)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        theta_arm = (shape.spiral_reference_angle_rad
+                     + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
+        return np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
 
 
 def population_densities_array(x, y, z, shape):
@@ -688,13 +685,7 @@ def population_densities_array(x, y, z, shape):
     halo = shape.k_norm * values.halo
 
     recent = starFormation.recent_factor(r_cyl, shape)
-    weights = {}
-    for name, ratio in population_height_ratios(shape).items():
-        height = shape.disk_scale_height_pc * ratio
-        share = starFormation.disk_population_share(name, shape)
-        weights[name] = (share * _vertical_any(z, height) / height
-                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
-                         * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
+    weights = _disk_weights(z, arm_cos, recent, shape)
     total = sum(weights.values())
     # Every profile underflowed: the thickest (old) disk is all that's left.
     empty = total <= 0.0
@@ -763,6 +754,11 @@ def integrated_masses(shape, steps=40):
     }
 
 
+def _thin_disk_units(shape):
+    """The thin disk's systems in the model's unnormalized units (its arm level over its scale lengths; the arms average out)."""
+    return _disk_mass(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc)
+
+
 def thick_disk_units(shape):
     """The thick disk's systems in the model's unnormalized units (the part of `population_units`'s `old` that is not the thin disk's)."""
     terms = model_terms(shape)
@@ -777,7 +773,7 @@ def population_units(shape):
     clusters and satellite galaxies are not here: their systems come on top of the model (`shape.components`).
     """
     terms = model_terms(shape)
-    thin = _disk_mass(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc)
+    thin = _thin_disk_units(shape)
     thick = thick_disk_units(shape)
     return {
         "young": thin * starFormation.disk_population_share("young", shape),
@@ -845,8 +841,7 @@ def density_components(shape):
     terms, halo = model_terms(shape), halo_terms(shape)
     total = total_mass(shape)
     per_solar = shape.structure.stellar_mass_solar / total
-    thin_mass = _disk_mass(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc)
-    thick_mass = _disk_mass(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"], terms["thick_disk_scale_height_pc"])
+    thin_mass, thick_mass = _thin_disk_units(shape), thick_disk_units(shape)
     rows = (
         ("thin_disk", "disk", shape.arm_level, thin_mass,
          {"scale_length_pc": shape.disk_scale_length_pc, "scale_height_pc": shape.disk_scale_height_pc,

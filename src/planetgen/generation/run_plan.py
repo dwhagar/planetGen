@@ -32,7 +32,6 @@ from planetgen.generation import containers as generationContainers
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
-from planetgen.generation import stats as generationStats
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed
 from planetgen.galaxy import dials
@@ -3053,13 +3052,7 @@ def clean_nebula_field(args):
     Returns:
         dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
     """
-    try:
-        return followed.run_planned(args, planned_clean_nebula_field(args))
-    except units.RunStopped as exc:
-        marker = "RuntimeError: "
-        if marker not in str(exc):
-            raise
-        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+    return _refusals_as_errors(lambda: followed.run_planned(args, planned_clean_nebula_field(args)))
 
 
 def planned_clean_nebula_field(args):
@@ -3076,13 +3069,7 @@ def redraw_nebula_field(args):
     Returns:
         int: The rows written (0 for a galaxy with no outline).
     """
-    try:
-        return followed.run_planned(args, planned_nebula_field(args))
-    except units.RunStopped as exc:
-        marker = "RuntimeError: "
-        if marker not in str(exc):
-            raise
-        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+    return _refusals_as_errors(lambda: followed.run_planned(args, planned_nebula_field(args)))
 
 
 def planned_nebula_field(args):
@@ -3834,13 +3821,7 @@ class ClearScatterFollower(UnitBarFollower):
 
 def clear_scatter(args):
     """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged."""
-    try:
-        followed.run_planned(args, planned_clear_scatter(args))
-    except units.RunStopped as exc:
-        marker = "RuntimeError: "
-        if marker not in str(exc):
-            raise
-        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+    _refusals_as_errors(lambda: followed.run_planned(args, planned_clear_scatter(args)))
 
 
 def planned_clear_scatter(args):

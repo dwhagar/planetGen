@@ -97,12 +97,17 @@ def given(instance):
     return instance.model_dump(exclude_unset=True)
 
 
+def _at_most(value, limit):
+    """`value`, or a `ValueError` when it is longer than `limit` (a `None` passes)."""
+    if value is not None and len(value) > limit:
+        raise ValueError(f"'name' must be at most {limit} characters")
+    return value
+
+
 def _name(value):
     if not value.strip():
         raise ValueError("'name' must be a non-empty string")
-    if len(value) > MAX_NAME_LENGTH:
-        raise ValueError(f"'name' must be at most {MAX_NAME_LENGTH} characters")
-    return value
+    return _at_most(value, MAX_NAME_LENGTH)
 
 
 class SectorCreate(Body):
@@ -148,9 +153,7 @@ class SystemRename(Rename):
     @field_validator("name")
     @classmethod
     def _short(cls, value):
-        if len(value) > SYSTEM_NAME_MAX_LENGTH:
-            raise ValueError(f"'name' must be at most {SYSTEM_NAME_MAX_LENGTH} characters")
-        return value
+        return _at_most(value, SYSTEM_NAME_MAX_LENGTH)
 
 
 class BodyRename(Rename):
@@ -159,9 +162,7 @@ class BodyRename(Rename):
     @field_validator("name")
     @classmethod
     def _short(cls, value):
-        if len(value) > MAX_NAME_LENGTH:
-            raise ValueError(f"'name' must be at most {MAX_NAME_LENGTH} characters")
-        return value
+        return _at_most(value, MAX_NAME_LENGTH)
 
 
 class SystemRecipe(Body):
@@ -186,9 +187,7 @@ class SystemRecipe(Body):
     @field_validator("name")
     @classmethod
     def _recipe_name(cls, value):
-        if value is not None and len(value) > SYSTEM_NAME_MAX_LENGTH:
-            raise ValueError(f"'name' must be at most {SYSTEM_NAME_MAX_LENGTH} characters")
-        return value
+        return _at_most(value, SYSTEM_NAME_MAX_LENGTH)
 
     @field_validator("num_orbits")
     @classmethod

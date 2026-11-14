@@ -25,7 +25,7 @@ rows takes this same tree over.
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import unit_registry as units
+from planetgen.physics import unit_registry as units, vec3
 from planetgen.physics.kepler import comet_orbital_state, wrapped_turn_deg
 
 _km_to_au = units.converter("km", "au")
@@ -80,14 +80,6 @@ def node_relative_au(node, unix):
     return (state["position_x_au"], state["position_y_au"], state["position_z_au"])
 
 
-def _add(a, b):
-    return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
-
-
-def _scaled(vector, factor):
-    return (vector[0] * factor, vector[1] * factor, vector[2] * factor)
-
-
 def star_offsets_au(masses_solar, slots, nodes, unix, dark=()):
     """
     The offsets from the barycenter, in AU, of the stars of a system with a tree of `nodes`, in the order of
@@ -137,7 +129,7 @@ def member_offsets_au(members, nodes, unix):
                     pending.append(child)
                 else:
                     fly = tuple(c * (unix - node.epoch_unix) * _KM_PER_S_TO_AU_PER_S for c in (child.velocity_kms or (0.0, 0.0, 0.0)))
-                    offsets[child.member_no] = _add(center, _add(child.offset_au or (0.0, 0.0, 0.0), fly))
+                    offsets[child.member_no] = vec3.add(center, vec3.add(child.offset_au or (0.0, 0.0, 0.0), fly))
             continue
         low, high = slots.get(0), slots.get(1)
         if low is None or high is None:
@@ -145,9 +137,9 @@ def member_offsets_au(members, nodes, unix):
         mass_low, mass_high = low[1].mass_solar, high[1].mass_solar
         relative = node_relative_au(node, unix)
         total = mass_low + mass_high
-        places = ((low, _scaled(relative, -mass_high / total)), (high, _scaled(relative, mass_low / total)))
+        places = ((low, vec3.scale(relative, -mass_high / total)), (high, vec3.scale(relative, mass_low / total)))
         for (kind, child), shift in places:
-            place = _add(center, shift)
+            place = vec3.add(center, shift)
             if kind == "node":
                 centers[child.node_no] = place
                 pending.append(child)

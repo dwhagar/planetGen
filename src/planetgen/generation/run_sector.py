@@ -358,6 +358,11 @@ def _build_member(sector, args, local, mass_sol, age_yr, seed, galactic_center_d
     return entry
 
 
+def _local_ly(center_pc, point_pc):
+    """A galaxy-frame point, pc, as the sector-local light-year position of the sector centered at `center_pc`."""
+    return tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, point_pc))
+
+
 def _member_fe_h(member, galactic_center_dist_ly):
     """The birth [Fe/H] `_build_member` gives the member's star: its evolution under the member's own seed (the draw is the one the build makes first)."""
     with draw.bound(member.seed):
@@ -393,7 +398,7 @@ def add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_
             continue    # a brown dwarf or remnant is not a star a system is built around
         point_pc = tuple(member.position_pc[i] + (mate.offset_au[i] - home[i]) / physical_constants.AU_PER_PARSEC
                          for i in range(3))
-        local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, point_pc))
+        local = _local_ly(center_pc, point_pc)
         entry = _build_member(sector, args, local, mate.initial_mass_solar, member.age_yr,
                               f"{member.seed}:group:{mate.member_no}", galactic_center_dist_ly, label)
         if entry is not None:
@@ -430,7 +435,7 @@ def _add_members(sector, args, members, center_pc, galactic_center_dist_ly, labe
             tree = nebula_contents.member_group(member, fe_h=_member_fe_h(member, galactic_center_dist_ly))
         if live:
             entries.extend(add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_ly, "group-mate"))
-        local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
+        local = _local_ly(center_pc, member.position_pc)
         entry = _build_member(sector, args, local, member.mass_sol, member.age_yr, member.seed, galactic_center_dist_ly,
                               label, member_tree=_group_plan(tree))
         if entry is None:
@@ -614,15 +619,16 @@ def add_scattered_phenomena(sector, args, fill):
             star adds a system entry instead).
     """
     new_entries = []
+    cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
+    type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
+    ambient_density_cm3 = _bubble_density(fill)
     for row in fill.phenomenon_rows:
         position = brightStars.local_position_ly(row, fill.center_pc)
         radius_pc = math.sqrt(sum((row[axis] / brightStars.MPC_PER_PC) ** 2
                                   for axis in ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
         dist_ly = pc_to_ly(radius_pc)
-        cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
-        type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
         entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut,
-                                                                    type_ia_share, _bubble_density(fill), fill))
+                                                                    type_ia_share, ambient_density_cm3, fill))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -956,11 +962,12 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands (edge {round(sector.edge_ly, 1)} ly).")
                 break
 
+    profile = getattr(fill, "profile", None)
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered,
-                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None),
-                                  type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None),
+                                  kind_factors=getattr(profile, "kind_factors", None),
+                                  type_ia_share=getattr(profile, "type_ia_share", None),
                                   ambient_density_cm3=_bubble_density(fill),
                                   neighbour_hosts=getattr(fill, "emission_hosts", ()), fill=fill)
         if scattered and fill.below_cut is not None:
@@ -1063,7 +1070,7 @@ def sector_generation_summary_lines(sector, args_used):
         )
         lines.append(f"    Phenomena: {phenomena_str}")
 
-    stars = sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
+    stars = sector_star_count(sector)
     planets = sum(len(entry.star_system.all_planets) if hasattr(entry.star_system, "all_planets") else
                   len(getattr(entry.star_system, "planets", None) or ())
                   + len(getattr(entry.star_system, "secondary_planets", None) or ()) for entry in sector.entries)
@@ -1096,13 +1103,9 @@ class UnplacedSectorsFollower(followed.Follower):
     def on_result(self, unit, result):
         args = self.args
         mysql_config = store.mysql_config_from_args(args)
-        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
+        elsewhere = result["pid"] != os.getpid()
         for saved in result["sectors"]:
-            if elsewhere:
-                run_common.RUN_COUNTS["sectors"] += 1
-                run_common.RUN_COUNTS["systems"] += saved["systems"]
-                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
-            run_common._record_sector(args, saved, saved["seconds"])
+            run_common._count_reported(args, saved, elsewhere)
             phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
             log.debug(      # a run of thousands would bury its stage lines; the ticker carries the progress (OPS.172)
                 f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "

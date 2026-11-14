@@ -87,8 +87,13 @@ LAVA_DEFAULT = "basalt_melt"
 MAGMA_OCEAN = "peridotite_magma"
 LAVA_IDS = (*(liquid for _ground, liquid in LAVA_OF_GROUND), LAVA_DEFAULT, MAGMA_OCEAN)
 """tuple: Every liquid id that is a lava; the depth of one is not known."""
-LAVA_MIN_PRESSURE_PA = 1.0e5
+LAVA_MIN_PRESSURE_PA = constants.BAR_PA
 """float: A lava surface holds in its own vapor, so its window is checked at least at this pressure."""
+
+
+def _gravity_m_s2(body):
+    """The body's surface gravity, m/s2, from its stored `gravity` in g (0 for none)."""
+    return (body.gravity or 0.0) * constants.EARTH_GRAVITY
 
 
 def _liquid_water(body):
@@ -129,7 +134,7 @@ def _seas(body, temperature_k, pressure_pa):
     """`[(liquid id, surface mass per square metre in kg), ...]` of the seas a cold or temperate body could hold, best first (`surface_liquids.candidates`)."""
     partials = mixture.partial_pressures_pa(body)
     reservoir = _reservoir(body)
-    gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
+    gravity = _gravity_m_s2(body)
     area_m2 = 4.0 * math.pi * (body.radius * 1000.0) ** 2
     out = []
     for pick in surface_liquids.candidates(temperature_k, pressure_pa, partials, reservoir):
@@ -241,7 +246,7 @@ def _main_liquid(body):
         return
     liquid_id, mass_per_m2 = seas[0]
     liquid_id = _named_by_its_bulk(body, liquid_id, temperature, pressure)
-    found = _cover(liquid_id, mass_per_m2, temperature, (body.gravity or 0.0) * constants.EARTH_GRAVITY)
+    found = _cover(liquid_id, mass_per_m2, temperature, _gravity_m_s2(body))
     if found is not None:
         body.surface_liquid, body.surface_liquid_fraction = liquid_id, found[0]
         body.surface_liquid_depth_km = found[1]
@@ -282,7 +287,7 @@ def _second_liquid(body):
     temperature, pressure = body.surface_temperature or 0.0, body.atmospheric_pressure or 0.0
     if room <= 0.0 or not temperature > 0.0 or not pressure > 0.0:
         return
-    gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
+    gravity = _gravity_m_s2(body)
     for liquid_id, mass_per_m2 in _seas(body, temperature, pressure):
         if liquid_id == main:
             continue

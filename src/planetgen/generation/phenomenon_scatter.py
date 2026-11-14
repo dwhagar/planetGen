@@ -312,6 +312,14 @@ def _gas_weight(x, y, z, shape):
     return gas * (1.0 - cluster)
 
 
+def points_mpc(radius, cos_colat, lon):
+    """Points at spherical `radius` (pc), cosine of colatitude `cos_colat` and longitude `lon` (arrays) as three rows of whole
+    milliparsecs (int64)."""
+    in_plane = radius * np.sqrt(np.maximum(0.0, 1.0 - cos_colat * cos_colat))
+    return np.stack([np.rint(in_plane * np.cos(lon) * MPC_PER_PC), np.rint(in_plane * np.sin(lon) * MPC_PER_PC),
+                     np.rint(radius * cos_colat * MPC_PER_PC)]).astype(np.int64)
+
+
 def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, streams, rates, skip_addresses,
                min_mass_solar):
     """
@@ -380,9 +388,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
         # Uniform over the cell's volume: the cube of the radius and the cosine of the colatitude are uniform.
         radius = np.cbrt(r_low ** 3 + uniform[3] * (r_high ** 3 - r_low ** 3))
         cos_colat = cos_south[band_row] + uniform[4] * (cos_north[band_row] - cos_south[band_row])
-        in_plane = radius * np.sqrt(np.maximum(0.0, 1.0 - cos_colat * cos_colat))
-        mpc = np.stack([np.rint(in_plane * np.cos(lon) * MPC_PER_PC), np.rint(in_plane * np.sin(lon) * MPC_PER_PC),
-                        np.rint(radius * cos_colat * MPC_PER_PC)]).astype(np.int64)
+        mpc = points_mpc(radius, cos_colat, lon)
         band_index = bands[band_row]
         kept = _stored_in_cells(mpc, shell_index, band_index, wedge, wedge_count, edge_pc)
         masses = _masses(kind, subtype, min_mass_solar, uniform[5])

@@ -146,7 +146,7 @@ def strength_over_orbital_rate(mass_kg, radius_m, distance_au, star_mass_kg, sta
         _check(value, name)
     if surface_pressure_pa <= 0.0:
         return 0.0
-    cut = min(1.0, surface_pressure_pa / (FULL_TIDE_PRESSURE_BAR * 1.0e5))
+    cut = min(1.0, surface_pressure_pa / (FULL_TIDE_PRESSURE_BAR * constants.BAR_PA))
     return (VENUS_STRENGTH * cut * (star_luminosity_w / constants.SOLAR_LUMINOSITY) * (radius_m / VENUS_RADIUS_M)
             * (distance_au / VENUS_DISTANCE_AU) ** 2.5 * (_kg_to_msun(star_mass_kg)) ** -1.5 * (VENUS_MASS_KG / mass_kg))
 

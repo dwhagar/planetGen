@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import abundance_tier, possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
-                               disk_condensation, elements, hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
+                               disk_condensation, elements, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
                                volatile_depletion)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -79,12 +79,12 @@ RANGES = {
 """
 
 IRON_SCATTER_DEX = 0.05
+"""float: The scatter of a star-matched planet's Fe/Mg about its star's, dex (a normal draw): GEN.512 (`docs/design/composition/iron-branch-tuning.md`
+section 3 gives the tuning and the bracket)."""
 CORE_LIGHT_MEDIAN = 0.08
 """float: The median of the light elements' share of a core's metal (the Earth's 0.05 to 0.10 with the weight of the lighter cores of Mars; stand-in BC18, tier T7, tweak L2)."""
 CORE_LIGHT_SCATTER_DEX = 0.25
 """float: The width of the lognormal of that share, in dex: 0.2 dex covers 0.05 to 0.13 and misses the high half of Mars's 0.07 to 0.20, so the widest-range rule takes 0.25 (stand-in BC18)."""
-"""float: The scatter of a star-matched planet's Fe/Mg about its star's, dex (a normal draw): GEN.512 (`docs/design/composition/iron-branch-tuning.md`
-section 3 gives the tuning and the bracket)."""
 IRON_ENRICHED_WEIGHT = 0.01
 """float: The weight of the iron-enriched branch against 1 minus it for the star-matched branch (GEN.512, tuned to 1 of 21 planets 2 sigma
 iron-rich in a homogeneous sample, an upper limit)."""
@@ -320,12 +320,16 @@ def _minor_oxides(part):
     return {f"rock_{name.lower()}": oxides.get(name) for name in mantle_oxides.OXIDE_NAMES}
 
 
+def _formation_distance_au(body):
+    """The distance `body` formed at: its stored `formation_distance_au` (a moon's is its parent's), else where it is now; None for neither."""
+    distance = getattr(body, "formation_distance_au", None)
+    return getattr(body, "distance", None) if distance is None else distance
+
+
 def _cut_k(body):
     """The volatility cut of the zone `body` formed in (`volatile_depletion.cut_temperature_k`), or None (the Earth's cut) for a body with no star, distance or luminosity."""
     star = getattr(body, "star", None)
-    distance = getattr(body, "formation_distance_au", None)
-    if distance is None:
-        distance = getattr(body, "distance", None)
+    distance = _formation_distance_au(body)
     luminosity = getattr(star, "luminosity", None)
     if not distance or not luminosity or distance <= 0.0 or luminosity <= 0.0:
         return None
@@ -399,9 +403,7 @@ def origin_of(body):
     `body.formation_distance_au`, the parent's for a moon); a body with no snow line to compare, or no distance, is rocky.
     """
     line = getattr(getattr(body, "star", None), "snow_line_au", None)
-    distance = getattr(body, "formation_distance_au", None)
-    if distance is None:
-        distance = getattr(body, "distance", None)
+    distance = _formation_distance_au(body)
     return ICY if line is not None and distance is not None and distance >= line else ROCKY
 
 
@@ -412,9 +414,7 @@ def _subject(body, ratios):
 def _snow_ratio(body):
     """The distance `body` formed at in its star's snow lines, or `None` when it has no star line or distance to say."""
     line = getattr(getattr(body, "star", None), "snow_line_au", None)
-    distance = getattr(body, "formation_distance_au", None)
-    if distance is None:
-        distance = getattr(body, "distance", None)
+    distance = _formation_distance_au(body)
     return None if not line or distance is None else distance / line
 
 
@@ -449,10 +449,7 @@ def _icy_water_range(body):
 
 def formation_temperature_k(body):
     """The disk temperature at the body's formation distance: the water condensation temperature at the star's snow line, falling as the square root of the distance."""
-    distance = getattr(body, "formation_distance_au", None)
-    if distance is None:
-        distance = body.distance
-    return condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(body.star.snow_line_au / distance)
+    return condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(body.star.snow_line_au / _formation_distance_au(body))
 
 
 def _water_and_ice(body):
@@ -642,13 +639,14 @@ def _draw_moon(body, origin, part, mass_given):
     _store(body, dataclasses.replace(bulk, porosity=max(0.0, 1.0 - mass_kg / volume_m3 / grain)))
 
 
-def _x_fe(bulk):
-    return bulk_structure.x_fe_from_feo_mass_fraction(bulk.rock_feo) if bulk.rock_feo else 0.0
+def _x_fe(rock_feo):
+    """The iron number fraction of the mantle's silicate for the structure solver, 0 for a rock with no FeO."""
+    return bulk_structure.x_fe_from_feo_mass_fraction(rock_feo) if rock_feo else 0.0
 
 
 def _settle(body, bulk, mass_given):
     """Sets the mass (or the radius, where the mass is given) of `body` from `bulk`, and stores the composition."""
-    x_fe = _x_fe(bulk)
+    x_fe = _x_fe(bulk.rock_feo)
     if mass_given:
         body.radius = bulk_structure.structure(bulk, body.mass, x_fe=x_fe).radius_km
     else:
@@ -694,7 +692,7 @@ def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock,
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
     ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)      # GEN.1603: the rock and the core's nickel follow the iron branch, as for a body drawn from its star
     part = dry_partition(ratios, feo, light, carbon_rock, graphite, _cut_k(body))
-    x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
+    x_fe = _x_fe(part.rock_feo)
     mass_earth = _kg_to_mearth(body.mass)
     radius_earth = body.radius / constants.EARTH_RADIUS_KM
     wet = water + ice

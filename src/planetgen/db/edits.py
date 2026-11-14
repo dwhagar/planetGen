@@ -54,6 +54,10 @@ def _star_ids(conn, system_id, system):
     return [(row["id"] if row else None, system.planets)]
 
 
+_BODY_CHILD_TABLES = ("reflection_spectrum", "interior_layers", "deposit_types", "isotopes", "gases", "life_class_scores", "life")
+"""tuple: The child tables of a planet or moon (`planet_<name>` / `moon_<name>`) that `store.body_child_rows` writes again after an edit."""
+
+
 def _update_body(conn, table, body, assignments, key_values):
     """UPDATEs one `planets`/`moons` row from `body` and rewrites its
     reflection spectrum rows."""
@@ -67,13 +71,8 @@ def _update_body(conn, table, body, assignments, key_values):
         (*values, body.db_id),
     )
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
-    conn.execute(f"DELETE FROM {prefix}_reflection_spectrum WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_interior_layers WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_deposit_types WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_isotopes WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_gases WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_life_class_scores WHERE {id_column} = ?", (body.db_id,))
-    conn.execute(f"DELETE FROM {prefix}_life WHERE {id_column} = ?", (body.db_id,))
+    for child in _BODY_CHILD_TABLES:
+        conn.execute(f"DELETE FROM {prefix}_{child} WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
 
 
@@ -457,7 +456,7 @@ def empty_sector(conn, sector_id):
         return None
     conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
     counts = delete_sector_birth_contents(conn, sector_id)
-    kept = bool(sector_residents(conn, sector_id)) or _filed_anywhere(conn, sector_id)
+    kept = bool(sector_residents(conn, sector_id)) or bool(restricting_rows(conn, sector_id))      # a row a RESTRICT key still points at stays too
     if kept:
         storage_checksum.mark_sector(conn, sector_id)    # the row stays, its contents are gone: its checksum is out of date
         fingerprint_tree.drop_content(conn, sector_id)   # and so is its leaf: the residents are all it holds (TEST.602)
@@ -483,11 +482,6 @@ def restricting_rows(conn, sector_id):
         if count:
             found[table] = count
     return found
-
-
-def _filed_anywhere(conn, sector_id):
-    """Whether any row of a table whose key would stop the delete still points at the sector."""
-    return bool(restricting_rows(conn, sector_id))
 
 
 def delete_sector_with_contents(conn, sector_id):

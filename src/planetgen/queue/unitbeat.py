@@ -193,8 +193,9 @@ class UnitBeat:
         finally:
             with self._lock:
                 self._waiting = before
-                self._waited += max(self.clock() - began, 0.0)
-                self._waited_total += max(self.clock() - began, 0.0)
+                waited = max(self.clock() - began, 0.0)
+                self._waited += waited
+                self._waited_total += waited
 
     # --- the record and its thread ---------------------------------------------------------------------------
 

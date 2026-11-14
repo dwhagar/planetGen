@@ -24,7 +24,7 @@ from planetgen.physics import constants
 
 CLOUD_FEEDBACK_W_M2_PER_K = 0.42
 """float: The cloud feedback of the Earth at 288 K, W/m2 per K (IPCC AR6 2021, table 7.10, central value; very likely range -0.10 to +0.94). Row CA1."""
-REFERENCE_SOLAR_CONSTANT_W_M2 = 1361.0
+REFERENCE_SOLAR_CONSTANT_W_M2 = constants.SOLAR_CONSTANT_W_M2
 """float: The starlight the albedo feedback is sized against (the Earth's, 1,361 W/m2: the flux that gives a feedback in W/m2 per K its albedo per K). Row CA1."""
 BETA_PER_K = CLOUD_FEEDBACK_W_M2_PER_K * 4.0 / REFERENCE_SOLAR_CONSTANT_W_M2
 """float: The albedo lost per kelvin of warming, 1.2e-3 per K: the feedback of `CLOUD_FEEDBACK_W_M2_PER_K` is `-BETA x S / 4`. Row CA1."""

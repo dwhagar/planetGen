@@ -384,12 +384,17 @@ def is_stirred(body, star_mass_kg, lower_au, upper_au):
     return bool(upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach)
 
 
+def migration_path_au(body, star_mass_kg):
+    """The stretch a giant that moved swept: between where it formed and where it ended, a chaotic half-width each side."""
+    half = chaotic_half_width_au(body, star_mass_kg)
+    return min(body.formation_au, body.distance_au) - half, max(body.formation_au, body.distance_au) + half
+
+
 def moved_through(body, lower_au, upper_au, star_mass_kg):
-    """Whether a giant that moved (`migrated`) passed through the stretch: between where it formed and where it ended, a chaotic half-width each side."""
+    """Whether a giant that moved (`migrated`) passed through the stretch (`migration_path_au`)."""
     if not (body.giant and body.migrated and body.formation_au):
         return False
-    half = chaotic_half_width_au(body, star_mass_kg)
-    path = (min(body.formation_au, body.distance_au) - half, max(body.formation_au, body.distance_au) + half)
+    path = migration_path_au(body, star_mass_kg)
     return bool(upper_au >= path[0] and lower_au <= path[1])
 
 
@@ -443,8 +448,7 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
     movers = [body for body in chain if moved_through(body, lower, upper, star_mass_kg)]
     if movers:
         survival = instability_survival(u)
-        half = chaotic_half_width_au(movers[0], star_mass_kg)
-        path = (min(movers[0].formation_au, movers[0].distance_au) - half, max(movers[0].formation_au, movers[0].distance_au) + half)
+        path = migration_path_au(movers[0], star_mass_kg)
         swept = sum(mass(a, b) for a, b in _clip(remaining, *path)) * scale
         scattered = swept * (1.0 - survival)
         history.append(Event("instability-depletion", scattered, movers[0].distance_au,
@@ -461,7 +465,7 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
     left = primordial - cleared - scattered
     fields = {key: value for key, value in candidate.items() if key not in ("cause", "co", "mass_earth")}
     fields.setdefault("snow_line_au", formation_snow_line_au)
-    fields.setdefault("event_au", fields.get("event_au", 0.5 * (lower + upper)))
+    fields.setdefault("event_au", 0.5 * (lower + upper))
     fields.setdefault("inner_neighbour_au", lower)
     fields.setdefault("outer_neighbour_au", upper)
     parts = [_text(candidate["cause"], **fields)]
