@@ -12876,13 +12876,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
   Filed by the TODO thread.
 
-- [ ] **PERF.260 Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Hard test (Boss, 3:09 PM EST on 2026-11-12: "Write a test that verifies if a flag is ever set when something is not byte identical (test) then it should fail."): a test in the merge gate that collects every job and stage carrying the "dynamic split is byte identical" flag, runs each at two different cut sizes, and fails if any output differs. It fails, never warns or skips; a stage that cannot be run at two cut sizes in the test fails too, until its flag is removed. A newly flagged job is picked up automatically, with no list to update by hand.
-  Filed by the TODO thread.
-
 - [ ] **PERF.261 Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Then block lights, link, settle and warm-up chunks; the typed constants stay as default and clamp.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: PERF.260, OPS.161. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
@@ -13104,11 +13097,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23 (GEN.1464 part A), in Train 25. Prerequisites: none. Related: GEN.1464, GEN.1661.
   Filed by the TODO thread.
 
-- [ ] **SEC.48 Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters**
-  Boss, 5:02 PM EST on 2026-11-12: "mask keys and credentials in logs with the first 4 characters and the last 2 characters and the rest are X's". Do: one masking helper in the log layer (util/log, logrecord) applied to every record at every level (normal, debug, error, error.log, job logs, warm-up log and the Queue page stream): API keys, integration keys, session and reset tokens, passwords, database and Redis URLs with credentials, and secrets from config.json, found by field name and by known value. Shape: abcdXXXXXXXXyz (a value of 6 characters or fewer is all X's, so nothing is revealed). Test: a test that fails if any key, token or password appears unmasked in any log output, run over the log fixtures and a sample of real log calls. Output unchanged; lock-free, merges directly.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: SEC.47, SEC.33, OPS.168.
-  Filed by the TODO thread.
-
 - [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
   Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: MAP.426.
@@ -13303,11 +13291,6 @@ clears each one.
 - [ ] **ADM.154 (bug) Admin plans page text read "comes laterrearranger"**
   From the Fable layered-fixes scan (2026-11-13): a real bug, already fixed in the scan's round 4 (changes/layered-fixes-round-4.patch.md); this item retires when that PR merges.
   Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, round 4 PR. Prerequisites: none.
-  Filed by the TODO thread.
-
-- [ ] **OPS.183 Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap**
-  The setup download of nearby Gaia stars (datasets/gaia_nearby.py, GEN.1534: the gea.esac.esa.int TAP sync query, parallax over 40 and parallax_over_error over 10) hits the anonymous 2,000-row cap. Boss (3:09 PM EST 2026-11-13, as the coordinator relayed): "Have all 4 and if one fails it goes to the next". Do: try in order, moving to the next on failure or on a capped result: (1) the same ESA server's async TAP endpoint; (2) the Heidelberg ARI Gaia TAP mirror; (3) VizieR TAP with MAXREC raised; (4) the GCNS catalogue (VizieR I/360) downloaded and filtered locally. Log which source served and the row count; fail setup only if all four fail. Optional: use a registered ESA account when its credentials are set (mask them in logs per SEC.48). Runs at setup (update.sh); raw data stays out of the repo. Tests with each source stubbed to fail in turn.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 05. Prerequisites: none. Related: GEN.1534, SEC.48.
   Filed by the TODO thread.
 
 - [ ] **PERF.264 The mass and luminosity scatter passes share the component sector addresses in their planning step**
