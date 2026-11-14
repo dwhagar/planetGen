@@ -45,9 +45,6 @@
   "moon-satellites": {
    "no satellites": "the rest of the row above it (1 minus the chance of a moon)"
   },
-  "planet-satellites": {
-   "no satellites": "the rest of the captured-moon row above it (1 minus the chance of a moon)"
-  },
   "satellite-share": {
    "belt rubble pile with a satellite": "the binary fraction measured in near-Earth and main-belt asteroids, modelled by [R2131] (a measured small-body binary fraction replaces it)"
   },

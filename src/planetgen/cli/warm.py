@@ -208,7 +208,8 @@ def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic, data
     try:
         conn = redisqueue.connect()
         conn.ping()
-    except Exception:       # noqa: BLE001 -- the run itself says that no Redis answers
+    except Exception as exc:       # noqa: BLE001 -- the run itself says that no Redis answers
+        log.swallowed("cli/warm", "_settle_with_other_runs", exc)
         return
     if origin == warm_log.AUTOMATIC:
         _wait_for_generation(conn, database, sleep)
@@ -244,7 +245,8 @@ def _make_room_after_busy(origin, sleep=time.sleep, clock=time.monotonic):
         if holder is None or not _holder_is_warm_up(conn, holder):
             return False
         _cancel_other_warm_up(conn, holder, sleep, clock)
-    except Exception:       # noqa: BLE001 -- no Redis: the start says so
+    except Exception as exc:       # noqa: BLE001 -- no Redis: the start says so
+        log.swallowed("cli/warm", "_make_room_after_busy", exc)
         return False
     return True
 
@@ -500,7 +502,7 @@ def _warm_on_change(args):
         log.normal(f"This warm-up was canceled by {SUPERSEDED_BY}; the update's run warms everything this one would have.")
         return
     except Failed as exc:
-        log.error(f"error: the cache warm-up after a change stopped: {exc}")
+        log.error(f"The cache warm-up after a change stopped: {exc}")
         raise SystemExit(1)
     log.normal(f"The warm-up after a change ran {rounds} time{'' if rounds == 1 else 's'}.")
 
@@ -517,7 +519,7 @@ def run_warm(args):
         try:
             _follow(args)
         except Failed as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
+            log.error(f"The cache warm-up stopped: {exc}")
             raise SystemExit(1)
         except KeyboardInterrupt:
             log.normal("Stopped watching. The warm-up goes on; `planetgen warm --follow` watches it again.")
@@ -534,7 +536,7 @@ def run_warm(args):
             log.warning(f"The cache warm-up was canceled by {SUPERSEDED_BY}. What it stored is kept.")
             raise SystemExit(1)
         except Failed as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
+            log.error(f"The cache warm-up stopped: {exc}")
             raise SystemExit(1)
     except Stopped as stop:
         _say_stopped(stop.reason, stop.status)

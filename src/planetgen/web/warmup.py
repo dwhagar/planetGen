@@ -783,7 +783,7 @@ def _node_units(database, keys, family):
             with app_for().test_request_context("/"):
                 stored = tilecache.stored_nodes(database, keys)
         except Exception as exc:  # noqa: BLE001 -- best effort: without the check every node is cut, as before
-            log.debug(f"{family}: the stamp check failed ({exc!r}); every node is cut into units", area="cache")
+            log.debug(f"{family}: the stamp check failed ({exc!r}); every node is cut into units.", area="cache")
     todo = [key for key in keys if key not in stored]
     size = units_module.coarsen(len(todo), NODE_CHUNK)
     units = [({"database": database, "keys": todo[start:start + size]}, ITEM_SECONDS[family] * len(todo[start:start + size]))

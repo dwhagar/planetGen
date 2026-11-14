@@ -30,8 +30,8 @@ import time
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commandgaps, commands, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
-from planetgen.util import log
+from planetgen.queue import commandgaps, commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
+from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 
 
@@ -406,7 +406,7 @@ def stage_label(conn, run_id, index):
 def stop_line(run_id, stage_at, stage_count, exc, message, stopped):
     """OPS.163: the severity, text and fields of the line a generation run that stopped early logs. It says why and at which stage it stopped; a cancel (Ctrl+C,
     a SIGTERM) is a notice and not an error, the rule of `log.DELIBERATE_SIGNALS`."""
-    where = "" if stage_at is None else f" at stage {stage_at + 1} of {stage_count}"
+    where = "" if stage_at is None else f" at {logrecord.counting_text('Stage', stage_at + 1, stage_count)}"
     cause = "canceled" if stopped else type(exc).__name__
     reason = message if stopped else f"{cause}: {message}"
     fields = {"run_id": run_id, "cause": cause}
@@ -421,7 +421,8 @@ def stage_name(conn, run_id, index):
     number only where the run record cannot say (a run already gone from Redis)."""
     try:
         label = stage_label(conn, run_id, index)
-    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+    except Exception as exc:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        log.swallowed("queue/wrapper", "stage_name", exc)
         label = None
     return label or str(index)
 
@@ -564,7 +565,8 @@ def expected_seconds(step, row):
             return stats.stage_seconds(conn, step.key, row["settings"])
         finally:
             conn.close()
-    except Exception:  # noqa: BLE001 -- a time that cannot be read is a stage with none recorded
+    except Exception as exc:  # noqa: BLE001 -- a time that cannot be read is a stage with none recorded
+        log.swallowed("queue/wrapper", "expected_seconds", exc)
         return None
 
 
@@ -645,7 +647,7 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
     try:
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url): {exc}") from exc
+        raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url): {exc}") from exc
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     for index in range(len(steps)):
         plan = _await_plan(conn, run_id, index, None, touch=False)
@@ -709,19 +711,39 @@ def report_wait(holder, position):
             job.meta["waiting"] = None if holder is None else {"run": holder, "position": position,
                                                                "text": waiting_text(holder, position)}
             job.save_meta()
-    except Exception:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
-        pass
+    except Exception as exc:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
+        log.swallowed("queue/wrapper", "report_wait", exc)
 
 
-def stage_ensure(conn, url, kind, step_kind, workers_count=None):
+def _note_cap(conn, step_kind, cap, run_id):
+    """OPS.157: logs the stage's worker cap when it is not the one the typed table gives (once per run and stage kind), and starts the adaptive limit where the last run of the kind settled."""
+    from planetgen.queue import adaptive, profileclaim
+    try:
+        typed = workers.stage_worker_cap(step_kind)
+        if typed is not None and cap != typed and conn.set(memorygate_key(f"capnote:{run_id}:{step_kind}"), "1", nx=True, ex=86400):
+            profileclaim.log_change(conn, "workers", f"unit:{step_kind}", typed, cap, f"the claim from the job profile is {workers.stage_worker_mb(step_kind, conn, run_id) or 0:,.0f} MB, the typed table {workers.stage_worker_mb(step_kind):,.0f} MB; run {run_id}",
+                                    run=run_id)
+        adaptive.start_limit(conn, step_kind, cap)
+    except Exception as exc:        # noqa: BLE001 -- a note is never worth a run
+        log.debug(f"Self-tuning: the worker cap of {step_kind} was not noted ({exc}).", area="queue")
+
+
+def memorygate_key(name):
+    from planetgen.queue import memorygate
+    return memorygate._key(name)
+
+
+def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     """
     The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
     the stage's workers can take in memory (`workers.stage_worker_cap`), and, on the bulk queue, the live workers over
     that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
     scatter at once. A stage with ordinary workers is not limited.
     """
-    cap = workers.stage_worker_cap(step_kind)
+    cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
     count = workers_count if cap is None else min(workers_count or cap, cap)
+    if cap is not None:
+        _note_cap(conn, step_kind, cap, run_id)
 
     def ensure():
         if cap is not None and queue_of(kind) == redisqueue.BULK_QUEUE:
@@ -774,7 +796,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     try:
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                                      f"start Redis to run this: {exc}") from exc
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]
@@ -783,6 +805,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                               expected_seconds=(expected_seconds(step, (rows or {}).get(step.key))
                                                 or times.get(step.key, {}).get("seconds")),
                               worker_rate=times.get(step.key, {}).get("worker_rate"),
+                              unit_seconds=profiletime.unit_seconds(conn, step.kind),        # OPS.159
                               row=(rows or {}).get(step.key)) for step in steps]
     debug = (log.areas_spec() or "all") if log.console_debug() else ""     # a debug run: the workers relay their lines
     start = lambda: runrecord.start_run(       # noqa: E731
@@ -803,7 +826,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         beat.start()
         # ADM.136: everything after the machine is taken is inside the try, so a failure of the set-up ends the run instead of leaving it
         # for a process that no longer follows it (a worker that lives on holds the machine for ever)
-        ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
+        ensures = [stage_ensure(conn, url, kind, step.kind, workers_count, run_id) for step in steps]
         relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
         on_debug = relay.drain if relay else None
         log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "

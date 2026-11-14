@@ -39,11 +39,11 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
 
 import math
 import struct
-import time
 
 from planetgen.db import query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
 from planetgen.physics import constants
+from planetgen.util.ticker import Ticker
 
 LEVELS = DRILL_LEVELS[:-1]
 """tuple: The levels stored: every block size above a sector."""
@@ -444,9 +444,6 @@ def _unit_rows(conn, shells):
     return [row for batch in _unit_batches(conn, shells) for row in batch]
 
 
-PROGRESS_SAY_SECONDS = 30.0
-"""float: How long a long loop of the block light work goes without saying where it is (`on_phase`)."""
-
 ABOVE_ROLL_SHARE = 0.8
 """float: The share of `_above_unit`'s progress that adding up the stored rows takes (the rest is writing the rows made)."""
 
@@ -520,7 +517,7 @@ def rebuild(conn, on_progress=None, on_phase=None, on_above=None, parts=False, f
     def note_parts(shell, found):
         _write_parts(conn, [tuple(address) + tuple(_part_row(sums)) for address, sums in sorted(found.items())])
 
-    last_said = time.monotonic()
+    ticker = Ticker("Block light totals, units", total=len(units), say=on_phase) if on_phase is not None else None
     for done, unit in enumerate(sorted(units), start=1):
         for batch in _unit_batches(conn, units[unit], from_parts=from_parts, on_found=note_parts if parts else None):
             _write_rows(conn, batch)
@@ -528,9 +525,8 @@ def rebuild(conn, on_progress=None, on_phase=None, on_above=None, parts=False, f
         conn.commit()
         if on_progress is not None:
             on_progress(done, len(units))
-        if on_phase is not None and time.monotonic() - last_said >= PROGRESS_SAY_SECONDS:
-            last_said = time.monotonic()
-            on_phase(f"Block light totals: unit {done:,} of {len(units):,} done, {written:,} rows written.")
+        if ticker is not None:
+            ticker.tick(done, f"{written:,} rows written")
     if on_phase is not None:
         on_phase("Adding up the levels above the units...")
     written += _above_unit(conn, on_above)
