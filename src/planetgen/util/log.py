@@ -109,7 +109,7 @@ import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.util import draw, logpaths, logrecord
+from planetgen.util import draw, logpaths, logrecord, secrets_mask
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -300,6 +300,9 @@ class LineFormatter(logging.Formatter):
                 + f".{int(record.msecs):03d}" + time.strftime("%z", local))
 
     def format(self, log_record):
+        return secrets_mask.mask_text(self._format(log_record))        # SEC.48: the last stop; a line that reaches any file or screen is masked
+
+    def _format(self, log_record):
         if self.form == "debug":
             if not hasattr(log_record, "area"):
                 log_record.area = _area_of(log_record)        # a record no filter has stamped (a handler made outside `configure`)
@@ -325,6 +328,36 @@ class LineFormatter(logging.Formatter):
         if log_record.exc_info and not log_record.exc_text:
             log_record.exc_text = self.formatException(log_record.exc_info)
         return f"{text}\n{log_record.exc_text}" if log_record.exc_text else text
+
+
+def _mask_exception(log_record):
+    """Fixes the masked text of the exception and the stack a record carries (`exc_text`, `stack_info`), which every formatter then writes as it is."""
+    if log_record.exc_info and log_record.exc_info[0] is not None and not log_record.exc_text:
+        log_record.exc_text = logging.Formatter().formatException(log_record.exc_info)
+    if log_record.exc_text:
+        log_record.exc_text = secrets_mask.mask_text(log_record.exc_text)
+    if log_record.stack_info:
+        log_record.stack_info = secrets_mask.mask_text(log_record.stack_info)
+
+
+_make_record = logging.getLogRecordFactory()
+
+
+def _masked_record(*args, **kwargs):
+    """The log record factory (SEC.48): every record any logger makes, the program's or a library's, has its message, exception and stack masked
+    the moment it is made, so no handler, however it is built, can write a secret."""
+    log_record = _make_record(*args, **kwargs)
+    try:
+        if log_record.args:
+            log_record.msg, log_record.args = log_record.getMessage(), None
+        log_record.msg = secrets_mask.mask_text(log_record.msg) if isinstance(log_record.msg, str) else log_record.msg
+        _mask_exception(log_record)
+    except Exception:  # noqa: BLE001 -- a record that cannot be masked is still logged; the formatters mask again
+        pass
+    return log_record
+
+
+logging.setLogRecordFactory(_masked_record)
 
 
 def record_of(log_record):
@@ -431,7 +464,7 @@ class _CallbackHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            self.callback(record.getMessage(), record.levelname.lower())
+            self.callback(secrets_mask.mask_text(record.getMessage()), record.levelname.lower())
         except Exception:  # noqa: BLE001 -- the line is lost, the program goes on
             pass
 
@@ -676,8 +709,9 @@ def record_error(component, message, exc_info=None, **fields):
     handler = _error_handler
     if handler is None:
         return
-    record = logging.LogRecord(f"planetgen.{component}", logging.ERROR, "", 0, message, None, exc_info)
-    record.fields = fields
+    record = logging.LogRecord(f"planetgen.{component}", logging.ERROR, "", 0, secrets_mask.mask_text(str(message)), None, exc_info)
+    record.fields = secrets_mask.mask_fields(fields)
+    _mask_exception(record)
     handler.handle(record)
 
 
@@ -1374,7 +1408,7 @@ class _RelayHandler(logging.Handler):
         self._thread.start()
 
     def emit(self, record):
-        line = self.format(record)
+        line = secrets_mask.mask_text(self.format(record))
         with self._guard:
             self._lines.append(line)
             full = len(self._lines) >= _RELAY_BATCH
@@ -1489,6 +1523,7 @@ class RelayReader:
 
 def write_line(text):
     """Writes a line another process already formatted to the console and to the `--debug FILE` mirror."""
+    text = secrets_mask.mask_text(text)
     if _console_debug:
         _console_handler.write(text)
     for handler in _logger.handlers:

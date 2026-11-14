@@ -34,7 +34,7 @@ import math
 import re
 import time
 
-from planetgen.util import stagemark
+from planetgen.util import secrets_mask, stagemark
 
 SEVERITIES = ("debug", "info", "notice", "warning", "error", "critical")
 """tuple: The severities, least severe first: the RFC 5424 levels, named as the syslog standard names them."""
@@ -148,8 +148,8 @@ class Record:
         self.ms = int(ms)
         self.severity = severity
         self.component = component
-        self.message = str(message)
-        self.fields = fields
+        self.message = secrets_mask.mask_text(str(message))                  # SEC.48: no record holds a key, token or password
+        self.fields = secrets_mask.mask_fields(fields)
 
     @classmethod
     def at(cls, epoch, severity, component, message, /, **fields):
