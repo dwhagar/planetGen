@@ -15,9 +15,6 @@ NOT_YET = {
                      "generate-unplaced-sector", "generate-system"), "OPS.202"),
     # OPS.203: population
     **dict.fromkeys(("run-population", "run-territories"), "OPS.203"),
-    # OPS.204: the checks
-    **dict.fromkeys(("check-math", "check-datasets", "check-revision", "check-tables", "check-tables-extended", "check-orphans", "check-ids", "check-values", "check-counts",
-                     "check-version-keys", "check-storage", "check-systems", "check-object-index"), "OPS.204"),
     # OPS.206: reset
     "reset-galaxy": "OPS.206",
 }
