@@ -361,6 +361,11 @@ class MySQLConfig:
         self.password = password if password is not None else defaults.password
         self.database = database if database is not None else defaults.database
 
+    @classmethod
+    def from_args(cls, named):
+        """The config a step's `database` parameters name (`host`, `port`, `user`, `database`; the password is this process's settings')."""
+        return cls(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+
     def _key(self):
         """A hashable identity for this config, used to key the pool
         cache below -- two `MySQLConfig` instances with the same

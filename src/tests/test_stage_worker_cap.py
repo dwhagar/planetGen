@@ -122,7 +122,7 @@ def test_a_worker_holds_the_star_tables_only_for_the_units_that_draw_stars(monke
     holds them is started over (its unit put back) before a unit that needs none."""
     from planetgen.queue import units
     assert units.TABLE_KINDS <= set(commands.REGISTRY)
-    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity", "rescore-habitability", "scatter-phenomena"):
+    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity", "rescore-habitability", "scatter-phenomena", "generate-system"):   # PERF.266: a one-off system reads no sampling table
         assert kind not in units.TABLE_KINDS
 
     class Job:
