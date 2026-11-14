@@ -8,5 +8,4 @@
 - **A star placed in no galaxy has no rate** (`lethal_event_rate_per_gyr` is empty, shown as none on its page) and so no galactic ozone loss; it was rated at the distance a system with no place is taken at.
 - Tests: the rate profile in the galaxy's scales, the chance and its determinism, the star with no place, the flag from a chance of 1.
 
-generation-output: changed
 generation-affects: fill
