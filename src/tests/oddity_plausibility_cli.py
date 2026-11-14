@@ -47,7 +47,7 @@ GIVE_UP_AFTER_MISSES = 3
 TEMPERATURE_SLACK = 1.01
 """float: The slack on the radiative balance of an airless body (floating point and the choice of the sub-stellar flux, which is the most it gets)."""
 ENVELOPE_LAW_FLOOR_G_CM3 = 0.02
-"""float: The lightest bulk density of a rocky planet under a hydrogen envelope, g/cm3: the envelope law ([R2741]) held at its youngest age (GEN.1672) gives 0.025 for a 3 Earth mass planet with the 20 percent envelope the generator draws at most, so the super-puff edge (0.03) is not a floor for it."""
+"""float: The lightest bulk density of a rocky planet under a hydrogen envelope, g/cm3: the envelope law [R2741] held at its youngest age (GEN.1672) gives 0.025 for a 3 Earth mass planet with the 20 percent envelope the generator draws at most, so the super-puff edge (0.03) is not a floor for it."""
 TIDAL_ENERGY_FRACTION = 1.0
 """float: The share of the orbital energy of the planet that tidal heating over the age of the system may spend (design 5, general invariant 1)."""
 VOLATILE_ALLOWANCE = 0.09
