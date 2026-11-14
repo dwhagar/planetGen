@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4066] - 2026-11-14
+
+**Headline:** A test that never ran now no longer hides behind its twin: the duplicate pulsar-planet isotope test is deleted.
+
+### Fixed
+- **TEST.732: `test_isotope_record.py` defined `test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record` twice with the same body, so Python kept the second and the first never ran.** The first copy is deleted. A scan of every `def test_` in `src/tests` (module level and inside classes) finds no other name defined twice in one scope. Tests only; no generated output moves.
+
+generation-affects: none
+
 ## [8.0.4065] - 2026-11-14
 
 **Headline:** The population stream test now picks a world at the technological stage, so it no longer ends up with a world that cannot hold a species.
