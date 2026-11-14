@@ -16,9 +16,9 @@ from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
 
-def _body(temperature=290.0, pressure=101325.0, hydrosphere="surface ocean", planet_class="C", moons=(), body_type="t"):
+def _body(temperature=290.0, pressure=101325.0, hydrosphere="surface ocean", planet_class="C", moons=(), body_type="t", ocean_fraction=0.71):
     return types.SimpleNamespace(surface_temperature=temperature, atmospheric_pressure=pressure, hydrosphere=hydrosphere,
-                                 planet_class=planet_class, moons=list(moons), body_type=body_type)
+                                 planet_class=planet_class, moons=list(moons), body_type=body_type, ocean_fraction=ocean_fraction)
 
 
 def test_a_temperate_world_with_air_and_a_sea_meets_the_request_whatever_its_class_letter():
@@ -28,18 +28,24 @@ def test_a_temperate_world_with_air_and_a_sea_meets_the_request_whatever_its_cla
 
 @pytest.mark.parametrize("change", [
     {"temperature": 250.0}, {"temperature": 340.0}, {"temperature": None},
-    {"pressure": 5000.0}, {"pressure": None}, {"hydrosphere": "ice-covered ocean"}, {"hydrosphere": "hycean"},
+    {"pressure": 5000.0}, {"pressure": 40000.0}, {"pressure": 300000.0}, {"pressure": None},
+    {"ocean_fraction": 0.1}, {"ocean_fraction": 0.97}, {"ocean_fraction": 1.0}, {"ocean_fraction": 0.0}, {"ocean_fraction": None}, {"hydrosphere": "ice-covered ocean"}, {"hydrosphere": "hycean"},
     {"hydrosphere": None}, {"body_type": "g"},
 ])
 def test_a_world_missing_any_condition_does_not_meet_it_even_in_a_class_that_can_carry_life(change):
     assert not hr.meets(_body(planet_class="M", **change))
 
 
-def test_the_edges_of_the_range_and_the_pressure_floor_count():
+def test_the_edges_of_the_temperature_pressure_and_water_cover_ranges_count():
     low, high = tuning.REQUEST_TEMPERATURE_K
     assert hr.meets(_body(temperature=low)) and hr.meets(_body(temperature=high))
-    assert hr.meets(_body(pressure=tuning.REQUEST_MIN_PRESSURE_PA))
-    assert not hr.meets(_body(pressure=tuning.REQUEST_MIN_PRESSURE_PA - 1.0))
+    low_pa, high_pa = tuning.REQUEST_PRESSURE_PA
+    assert hr.meets(_body(pressure=low_pa)) and hr.meets(_body(pressure=high_pa))
+    assert not hr.meets(_body(pressure=low_pa - 1.0)) and not hr.meets(_body(pressure=high_pa + 1.0))
+    low_cover, high_cover = tuning.REQUEST_WATER_COVER
+    assert hr.meets(_body(ocean_fraction=low_cover)) and hr.meets(_body(ocean_fraction=high_cover))
+    assert not hr.meets(_body(ocean_fraction=low_cover - 0.001)) and not hr.meets(_body(ocean_fraction=high_cover + 0.001))
+    assert tuning.REQUEST_PRESSURE_PA == (50000.0, 250000.0) and tuning.REQUEST_WATER_COVER == (0.20, 0.95)
 
 
 def test_a_moon_counts_and_a_belt_is_skipped():
@@ -74,6 +80,7 @@ class _Draw:
         self.moons = []
         self.surface_temperature = 290.0
         self.atmospheric_pressure = 101325.0
+        self.ocean_fraction = 0.71
         self.hydrosphere = "surface ocean" if draw.random() < type(self).share else "dry"
         type(self).seen.append((distance, kwargs.get("mass")))
 
@@ -180,7 +187,7 @@ def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_reque
     plain.BINARY_SYSTEM = False
     draw.set_run_seed(0)
     assert StarSystem(system_config=plain).habitable_request is None
-    moon = types.SimpleNamespace(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean", moons=[])
+    moon = types.SimpleNamespace(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean", ocean_fraction=0.7, moons=[])
     giant = types.SimpleNamespace(body_type="g", moons=[moon])
     holder = types.SimpleNamespace(system_config=types.SimpleNamespace(HABITABLE_WORLD=True), all_planets=[giant])
     assert StarSystem.habitable_request_status(holder) == "aim"
@@ -209,7 +216,7 @@ def test_a_barred_habitable_world_leaves_no_habitable_body_anywhere_in_the_syste
 def test_a_system_that_bars_habitable_worlds_keeps_out_a_body_that_meets_the_request_or_is_rated_habitable():
     """GEN.1275 on the bar of GEN.1250, GEN.1387: one test for both (`StarSystem._barred`); the class letter decides neither, and life on a world a human
     cannot live on is not barred."""
-    meets = dict(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean")
+    meets = dict(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean", ocean_fraction=0.7)
     cold = dict(body_type="t", surface_temperature=120.0, atmospheric_pressure=1.0e5, hydrosphere="ice")
     assert StarSystem._barred(types.SimpleNamespace(planet_class="D", **meets))
     assert StarSystem._barred(types.SimpleNamespace(planet_class="D", phi4=0.9, **cold))

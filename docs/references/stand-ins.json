@@ -13367,11 +13367,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15) and REQUEST_HYDROSPHERES (\"surface ocean\",) (the conditions a request for a habitable world asks of a finished body, GEN.916)"
+              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
             ],
             [
               "The range it moves in",
-              "the range edges are the liquid-water range at the surface"
+              "temperature edges are the liquid-water range at the surface (verified physics); cover 10 to 30 percent low edge and 90 to 99 percent high edge"
             ],
             [
               "Where it holds",
@@ -13379,26 +13379,26 @@
             ],
             [
               "What would show it wrong",
-              "a request met by a body outside 273 to 323 K or without a surface ocean"
+              "a request met by a body outside 273 to 323 K, without a surface ocean, or with under 20 or over 95 percent of its surface under water"
             ],
             [
               "What replaces it",
-              "none needed"
+              "the PHI-6 domains of habitable requests"
             ],
             [
               "Evidence",
-              "the liquid range of water at the surface (verified physics)"
+              "design (the cover range asks for a world with both land and sea: Earth 71 percent; the temperature range is the liquid range of water at the surface)"
             ]
           ],
           "id": "CC11",
           "key": "6.22:CC11",
-          "kind": "D",
+          "kind": "P",
           "slug": "6-22-cc11",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
           "unread": null,
-          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15) and REQUEST_HYDROSPHERES (\"surface ocean\",) (the conditions a request for a habitable world asks of a finished body, GEN.916)"
+          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
         },
         {
           "burn_down": null,
@@ -13443,11 +13443,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air)"
+              "tuning.REQUEST_PRESSURE_PA (50000, 250000) (the total air pressure of a world that meets a request for a habitable world, 50 to 250 kPa, GEN.1702; the floor was 10 kPa)"
             ],
             [
               "The range it moves in",
-              "pressure 5 to 20 kPa"
+              "low edge 30 to 70 kPa; high edge 150 to 400 kPa"
             ],
             [
               "Where it holds",
@@ -13455,7 +13455,7 @@
             ],
             [
               "What would show it wrong",
-              "a request met by a body with under 10 kPa of air"
+              "a request met by a body with under 50 or over 250 kPa of air"
             ],
             [
               "What replaces it",
@@ -13463,18 +13463,18 @@
             ],
             [
               "Evidence",
-              "design (the pressure floor is the generator's own)"
+              "design (a breathable pressure range around Earth's 101 kPa: Boss's card 11:18 PM EST 2026-11-13)"
             ]
           ],
           "id": "CC12",
           "key": "6.22:CC12",
           "kind": "P",
           "slug": "6-22-cc12",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
           "unread": null,
-          "what": "tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air)"
+          "what": "tuning.REQUEST_PRESSURE_PA (50000, 250000) (the total air pressure of a world that meets a request for a habitable world, 50 to 250 kPa, GEN.1702; the floor was 10 kPa)"
         },
         {
           "burn_down": null,
@@ -35595,38 +35595,38 @@
           "fields": [
             [
               "What it is",
-              "The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history"
+              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
             ],
             [
               "The range it moves in",
-              "none"
+              "temperature edges are the liquid-water range at the surface (verified physics); cover 10 to 30 percent low edge and 90 to 99 percent high edge"
             ],
             [
               "Where it holds",
-              "all bodies"
+              "every request for a habitable world"
             ],
             [
               "What would show it wrong",
-              "a two-way coupled model whose mantle cools differently"
+              "a request met by a body outside 273 to 323 K, without a surface ocean, or with under 20 or over 95 percent of its surface under water"
             ],
             [
               "What replaces it",
-              "a coupled core and mantle box"
+              "the PHI-6 domains of habitable requests"
             ],
             [
               "Evidence",
-              "design (the stored heat flow and Urey ratio stay as they were)"
+              "design (the cover range asks for a world with both land and sea: Earth 71 percent; the temperature range is the liquid range of water at the surface)"
             ]
           ],
           "id": "CC11",
           "key": "6.136:CC11",
           "kind": "P",
           "slug": "6-136-cc11",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
           "unread": null,
-          "what": "The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history"
+          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
         }
       ],
       "slug": "6-136-stand-ins-of-the-core-s-thermal-history",
