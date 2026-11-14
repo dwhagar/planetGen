@@ -1,6 +1,6 @@
 # tests/test_hot_giant_profile.py
 
-"""GEN.1577: the Guillot 2010 semi-grey profile of a hot giant's atmosphere (`physics/hot_giant_profile.py`), held to the worked example of the research (part 03 section 5.1)."""
+"""GEN.1577: the [R1715] semi-grey profile of a hot giant's atmosphere (`physics/hot_giant_profile.py`), held to the worked example of the research (part 03 section 5.1)."""
 
 import math
 
