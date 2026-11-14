@@ -306,11 +306,14 @@ def field_extent_pc(edge_pc, extents):
     return radius * edge_pc + margin, height * edge_pc + margin
 
 
-def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
+def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc, on_column=None):
     """
     The `nebula_field` rows of field cells with first index `i` inside the cylinder (`field_extent_pc`): tuples
     `(cell_i, cell_j, cell_k, n, class, radius_ly, x, y, z, *composition)` of the kept clouds of `TABLE_CLASSES`, cells in index
     order, the composition the values of `nebula_columns.FIELD_COLUMNS` (GEN.1277), worked out from the cloud's own density and its place.
+
+    `on_column(done, total)`, when given, is called after each column of cells (a second index `j`) is walked, so a slab of many cells that holds few clouds still says
+    how far it has got (OPS.185).
     """
     edge = tuning.NEBULA_FIELD_CELL_PC
     k_low, k_high = math.floor(-half_height_pc / edge), math.floor(half_height_pc / edge)
@@ -322,7 +325,8 @@ def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
     if gap_x > radius_pc:
         return
     reach_y = math.sqrt(max(radius_pc * radius_pc - gap_x * gap_x, 0.0))
-    for j in range(math.floor(-reach_y / edge), math.floor(reach_y / edge) + 1):
+    columns = range(math.floor(-reach_y / edge), math.floor(reach_y / edge) + 1)
+    for done, j in enumerate(columns, start=1):
         for k in range(k_low, k_high + 1):
             index = (i, j, k)
             for n, nebula, center in cell_draw(galaxy_seed, shape, index):
@@ -330,3 +334,5 @@ def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
                     with nebula_columns.in_galaxy(galaxy_seed or FALLBACK_SEED, shape):
                         composition = nebula_columns.field_values(nebula.nebula_class, nebula.density_cm3, nebula.radius_ly, center)
                     yield (i, j, k, n, nebula.nebula_class, nebula.radius_ly, *center, *composition)
+        if on_column is not None:
+            on_column(done, len(columns))
