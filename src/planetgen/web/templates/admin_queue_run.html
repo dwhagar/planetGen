@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% from "partials/log_lines.html" import colored_log %}
+{% from "partials/task_bar.html" import task_bar %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <section class="panel" aria-labelledby="run-heading">
@@ -63,7 +64,7 @@
         <td>{{ unit.unit }}</td>
         <td><span class="badge unit-{{ unit.state }}{% if unit.severity %} unit-{{ unit.severity }}{% endif %}" title="{{ unit.reason }}">{{ unit.state_label }}</span>{% if unit.stop %} <span class="hint">to be stopped</span>{% endif %}</td>
         <td>{{ unit.phase }}</td>
-        <td>{{ unit.counter }}</td>
+        <td>{{ unit.counter }}{{ task_bar(unit.progress, "Unit " ~ unit.unit) }}</td>
         <td>{{ unit.rate }}</td>
         <td>{{ unit.left }}</td>
         <td>{{ unit.beat }} ago</td>
