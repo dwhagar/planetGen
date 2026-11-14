@@ -1,0 +1,232 @@
+# planetgen/queue/supervisor.py
+
+"""
+The supervisor (OPS.207, S1 of the job engine's stage 2): one process per host that, in the stages that follow, makes every decision about the queue
+(`docs/design/operations/job-engine.md`, `/mnt/project-files/reports/job-engine-design-2026-11-13.md` section 3.2). Here it only lives: it takes the host's
+lock, publishes that it is alive and since when, logs its turns, and exits after an idle spell. Nothing it does changes a run.
+
+* One per host, by a kernel file lock (`flock`) on `supervisor.lock` in the state folder (`maintenance.state_dir`). The kernel frees the lock the moment
+  the process ends, however it ends, so a dead supervisor never blocks the next.
+* Started on demand and detached (`ensure_started`) by any submit (`workers.ensure_workers`), any status poll (the Queue page) and the maintenance
+  warm-up's start; a sign of life in Redis (`alive_key`) says it need not be, and a short claim (`starting_key`) keeps a burst of callers from starting two.
+* Its loop takes everything it touches as arguments (`Supervisor`: a clock, a store, a process table, the question "is there anything to watch?"), so the
+  engine simulator (`/mnt/project-files/engine/stage0/enginesim.py`, OPS.212) can drive the real loop with a fake clock and fake store.
+"""
+
+import fcntl
+import os
+import sys
+import time
+
+from planetgen.admin import maintenance
+from planetgen.queue import redisqueue, runrecord
+from planetgen.util import log
+
+LOCK_NAME = "supervisor.lock"
+"""str: The file in the state folder the supervisor holds a lock on while it lives."""
+
+TURN_SECONDS = 2.0
+"""float: How long the supervisor waits between its turns."""
+
+IDLE_SECONDS = 300.0
+"""float: How long the supervisor goes on with nothing to watch before it exits; the next submit, poll or timer starts it again."""
+
+ALIVE_SECONDS = 15
+"""int: How long the sign of life lasts after a turn writes it: several turns, so one slow turn is not a death."""
+
+STARTING_SECONDS = 20
+"""int: How long a caller's claim to be starting the supervisor holds off the other callers."""
+
+LOG_EVERY_TURNS = 30
+"""int: The turns between the supervisor's own lines in the log (a turn that changes nothing is not worth a line each)."""
+
+
+def lock_path():
+    """The file the supervisor's lock is taken on."""
+    return os.path.join(maintenance.state_dir(), LOCK_NAME)
+
+
+def take_lock(path=None):
+    """
+    Takes the host's supervisor lock without waiting.
+
+    Returns:
+        file or None: The open file that holds the lock (keep it open for as long as the lock is wanted), or `None` when another process holds it.
+    """
+    path = path or lock_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    handle = open(path, "a+", encoding="ascii")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    return handle
+
+
+def alive_key():
+    """The hash the supervisor publishes its sign of life in: `pid`, `since` (Unix seconds), `turn_at`, `turns`; it expires `ALIVE_SECONDS` after a turn."""
+    return runrecord._k("supervisor", "alive")
+
+
+def starting_key():
+    """The string a caller sets to say it is starting the supervisor, so the callers that follow do not."""
+    return runrecord._k("supervisor", "starting")
+
+
+class RedisStore:
+    """What the supervisor reads and writes in Redis: its sign of life."""
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def publish(self, pid, since, now, turns):
+        """Writes the sign of life: who, since when, the time of this turn and the count of turns."""
+        pipe = self.connection.pipeline()
+        pipe.hset(alive_key(), mapping={"pid": pid, "since": since, "turn_at": now, "turns": turns})
+        pipe.expire(alive_key(), ALIVE_SECONDS)
+        pipe.execute()
+
+    def retract(self):
+        """Takes the sign of life down, as the supervisor does when it ends."""
+        self.connection.delete(alive_key())
+
+    def busy(self):
+        """Whether there is anything for a supervisor to watch: a live run, or a run waiting for the machine."""
+        from planetgen.queue import runline
+        return any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
+            or bool(self.connection.zcard(runline._line_key()))
+
+
+class SystemClock:
+    """The wall clock; the simulator gives a fake with the same two calls."""
+
+    def now(self):
+        return time.time()
+
+    def sleep(self, seconds):
+        time.sleep(seconds)
+
+
+class ProcessTable:
+    """The host's processes as the supervisor asks about them; the simulator gives a fake."""
+
+    def alive(self, pid):
+        """Whether process `pid` exists."""
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
+
+
+class Supervisor:
+    """
+    The supervisor's loop with its dependencies passed in (OPS.207): `clock` (`now()`, `sleep(seconds)`), `store` (`publish(pid, since, now, turns)`,
+    `retract()`, `busy()`), `table` (`alive(pid)`), the process id it publishes, and `stop`, a callable that says the process was asked to end.
+    `lines` is called with each line the supervisor logs, in place of the log, for a test.
+    """
+
+    def __init__(self, clock, store, table, pid=None, stop=lambda: False, idle_seconds=IDLE_SECONDS, turn_seconds=TURN_SECONDS, lines=None):
+        self.clock = clock
+        self.store = store
+        self.table = table
+        self.pid = os.getpid() if pid is None else pid
+        self.stop = stop
+        self.idle_seconds = idle_seconds
+        self.turn_seconds = turn_seconds
+        self.lines = lines
+        self.since = None
+        self.turns = 0
+        self.idle_since = None
+
+    def say(self, text):
+        if self.lines is not None:
+            self.lines(text)
+        else:
+            log.debug(text, area="queue")
+
+    def turn(self):
+        """One turn: publishes the sign of life, then notes whether there is anything to watch. Nothing else yet (OPS.208 and the items after it add the watch).
+
+        Returns:
+            bool: Whether there is anything to watch.
+        """
+        now = self.clock.now()
+        if self.since is None:
+            self.since = now
+            self.say(f"The supervisor {self.pid} starts.")
+        self.turns += 1
+        self.store.publish(self.pid, self.since, now, self.turns)
+        busy = bool(self.store.busy())
+        if self.turns == 1 or self.turns % LOG_EVERY_TURNS == 0:
+            self.say(f"The supervisor {self.pid}, turn {self.turns}: {'something to watch' if busy else 'nothing to watch'}.")
+        return busy
+
+    def run(self, max_turns=None):
+        """
+        Runs turns until it is asked to stop, has been idle for `idle_seconds`, or has run `max_turns`.
+
+        Returns:
+            str: Why it ended: `stopped`, `idle` or `turns`.
+        """
+        while True:
+            busy = self.turn()
+            now = self.clock.now()
+            if busy:
+                self.idle_since = None
+            elif self.idle_since is None:
+                self.idle_since = now
+            if self.stop():
+                reason = "stopped"
+            elif self.idle_since is not None and now - self.idle_since >= self.idle_seconds:
+                reason = "idle"
+            elif max_turns is not None and self.turns >= max_turns:
+                reason = "turns"
+            else:
+                self.clock.sleep(self.turn_seconds)
+                continue
+            self.store.retract()
+            self.say(f"The supervisor {self.pid} ends after {self.turns} turn(s): {reason}.")
+            return reason
+
+
+def is_alive(connection):
+    """Whether a supervisor's sign of life is up."""
+    return bool(connection.exists(alive_key()))
+
+
+def supervisor_argv(url=None, python=None):
+    """The command line that starts a supervisor."""
+    return [python or sys.executable, "-m", "planetgen.cli.supervisor", *(["--url", url] if url else [])]
+
+
+def _spawn(argv):
+    """Starts the supervisor process, detached, in the repository's folder (the test suite replaces this: a test never starts a process of the engine)."""
+    from planetgen.queue import workers
+    redisqueue.start_detached(argv, workers.REPO_DIR)
+
+
+def ensure_started(connection=None, url=None, start=None):
+    """
+    Starts a supervisor, detached, unless one is alive or another caller is starting one now. Cheap for the caller that finds one alive (one Redis
+    read), so a submit, a status poll and a timer each call it. Never raises: a supervisor that could not be started is the next call's to start.
+
+    Args:
+        start (callable, optional): What starts the process, given the command line; default `redisqueue.start_detached` in the repository's folder.
+
+    Returns:
+        bool: Whether this call started one.
+    """
+    try:
+        connection = connection or redisqueue.connect(url)
+        if is_alive(connection) or not connection.set(starting_key(), os.getpid(), nx=True, ex=STARTING_SECONDS):
+            return False
+        argv = supervisor_argv(url)
+        (start or _spawn)(argv)
+        return True
+    except Exception as exc:  # noqa: BLE001 -- the engine's own bookkeeping never fails the submit or the page that asked
+        log.swallowed("queue/supervisor", "ensure_started", exc)
+        return False

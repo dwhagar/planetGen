@@ -30,7 +30,7 @@ import rq
 from rq import command, worker_registration
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, runrecord, stopall, work
+from planetgen.queue import redisqueue, runrecord, stopall, supervisor, work
 from planetgen.util import log
 from planetgen.util import process
 
@@ -242,6 +242,7 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
         return 0        # PERF.186: no worker starts while everything is stopped
     url = url or redisqueue.redis_url()
     connection = connection or redisqueue.connect(url)
+    supervisor.ensure_started(connection, url)          # OPS.207: every submit wakes the supervisor
     names = lane_of(queue_name)
     queue = redisqueue.queue(names[0], connection)
     waiting = sum(redisqueue.queue(name, connection).count for name in names)

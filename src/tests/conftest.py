@@ -633,6 +633,15 @@ def _run_queue_inline(monkeypatch, request):
 
 
 @pytest.fixture(autouse=True)
+def _no_test_starts_a_supervisor(monkeypatch):
+    """OPS.207: a submit, a status poll and the warm-up's start each call `supervisor.ensure_started`; in a test none of them starts the host's supervisor process.
+    A test of the supervisor passes its own `start`."""
+    from planetgen.queue import supervisor
+    monkeypatch.setattr(supervisor, "_spawn", lambda argv: None)
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _no_test_process_is_replaced(monkeypatch):
     """
     TEST.713: `os.execv` in a test process would replace the process: a pytest-xdist node that ran a real queue worker's `prepare_execution` (the worker starts itself over for a unit
