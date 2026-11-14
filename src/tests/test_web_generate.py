@@ -1503,6 +1503,26 @@ def test_generate_py_phenomenon_output_writes_a_file_and_no_database(tmp_path):
     assert bad.returncode != 0 and "--sector-id" in bad.stderr
 
 
+def test_system_request_passes_a_class_request_on_and_refuses_a_bad_one():
+    spec = system_page.system_request({"force_class": "o", "force_life_class": "4C"})
+    assert "--force-class=O" in spec["argv"] and "--force-life-class=4c" in spec["argv"] and spec["asks"] is True
+    assert system_page.system_request({})["asks"] is False
+    for form, word in (({"force_class": "Q"}, "not a planet class"), ({"force_life_class": "12"}, "not a life class"),
+                       ({"force_class": "O", "system_file": '{"slots": [{"type": "planet", "planet_class": "M"}]}'}, "slots")):
+        with pytest.raises(generate_page.FormError, match=word):
+            system_page.system_request(form)
+    with pytest.raises(generate_page.FormError, match="force class"):
+        system_page.system_request({"result_kind": "comet", "force_class": "O"})
+
+
+def test_system_page_shows_what_came_of_a_class_request(site, client):
+    resp = _post_system(client, name="Askd", force_class="O", star_type="G2V", stars="1", num_orbits="1")
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200, html
+    assert 'name="force_class"' in html and 'name="force_life_class"' in html
+    assert "Class O asked for:" in html
+
+
 # --- Upper bounds (SEC.18) ----------------------------------
 
 from planetgen.generation import limits as generationLimits  # noqa: E402
