@@ -1,5 +1,0 @@
-**Headline:** The cache warm-up commands now run through the queue engine's loop, so the Queue page counts their pieces and a cancel or a pause takes hold between two of them.
-
-### Changed
-
-- OPS.205: the ten `warm-*` commands (`warm-cluster-field`, `warm-object-index`, `warm-galaxy-map`, `warm-galaxy-nodes`, `warm-galaxy-deep-nodes`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-search`) and `end-map-rebuild-maintenance` give the engine `pieces` and `do` (OPS.191) in place of a `unit` function that loops for itself. A cluster-field unit is one piece per age; a node unit is one piece per chunk of 64 nodes; a sector, system or phenomenon unit is one piece per 50 objects of its slice; the object index is one piece per kind of object; the page families and the map-rebuild reopening are one piece each. The pages, lists and objects a piece visits are counted as the unit's second level (OPS.192), and the unit's result keeps the shape it had. Nothing a warm-up writes changes: no generation change, no migration, no epoch.
