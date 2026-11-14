@@ -13,7 +13,7 @@ import pytest
 
 from planetgen.db import edits as editStore
 from planetgen.db import store
-from planetgen.describe import build
+from planetgen.describe import build, model
 from planetgen.generation import validation
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation.config import SystemConfig
@@ -46,6 +46,18 @@ def _with_node_planets(stars=3):
     pytest.fail(f"no {stars}-star system with a planet round an inner pair node in the first draws")
 
 
+def _with_node_belt(stars=3):
+    """A system of `stars` stars with a belt round one of its inner pair nodes (GEN.332, slice C)."""
+    for seed in range(300):
+        tree, _cfg = _system(seed, stars, planets=False)
+        if not tree.node_hosts:
+            continue
+        system, cfg = _system(seed, stars)
+        if any(body.body_type == "a" for bodies in system.node_planets for body in bodies):
+            return system, cfg
+    pytest.fail(f"no {stars}-star system with a belt round an inner pair node in 300 draws")
+
+
 def _four_star_system_with_a_pair_of_pairs():
     for seed in range(300):
         tree, _cfg = _system(seed, 4, planets=False)
@@ -62,7 +74,6 @@ def test_a_pair_node_has_planets_of_its_own():
         for body in bodies:
             if body.body_type != "a":
                 assert body.star is host
-        assert all(body.body_type != "a" for body in bodies), "a belt at a node needs asteroid_belts.host_node_id"
     assert {id(body) for bodies in system.node_planets for body in bodies} <= set(map(id, system.all_planets))
     planets, belts, _moons = system.count_objects()
     assert planets + belts == len(system.all_planets)
@@ -229,3 +240,71 @@ def test_the_system_page_map_draws_a_nodes_planets_in_a_scene_of_their_own(mysql
         for body in bodies:
             if body.body_type != "a":
                 assert body.name in html
+
+
+def test_a_pair_node_holds_the_belts_its_chain_leaves():
+    system, _cfg = _with_node_belt()
+    for host, bodies in system.node_planet_hosts():
+        zone = system.ledger.zone((planet_zones.P_TYPE, host.host_node_no))
+        for belt in (body for body in bodies if body.body_type == "a"):
+            assert belt.lower_limit >= zone.inner_au * (1 - validation.RELATIVE_TOLERANCE), "a circumbinary belt starts beyond the pair's stability limit"
+            assert belt.upper_limit > belt.lower_limit
+    assert validation.check_star_system(system) == []
+    planets, belts, _moons = system.count_objects()
+    assert belts >= 1 and planets + belts == len(system.all_planets)
+
+
+def test_a_saved_system_reads_back_with_a_nodes_belts(mysql_config):
+    system, cfg = _with_node_belt()
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = store.insert_star_system(conn, system, cfg)
+        conn.commit()
+        loaded = store.load_star_system(conn, system_id)
+        rows = conn.execute("SELECT star_id, host_node_id, parent_type, parent_id FROM asteroid_belts WHERE star_system_id = ? AND host_node_id IS NOT NULL", (system_id,)).fetchall()
+        others = conn.execute("SELECT COUNT(*) AS n FROM asteroid_belts WHERE star_system_id = ? AND host_node_id IS NULL", (system_id,)).fetchone()["n"]
+    finally:
+        conn.close()
+    stored = sum(1 for bodies in system.node_planets for body in bodies if body.body_type == "a")
+    assert len(rows) == stored > 0
+    for row in rows:
+        assert row["star_id"] is None and row["parent_type"] == "node" and row["parent_id"] == row["host_node_id"]
+    assert others == sum(1 for body in system.planets if body.body_type == "a") + sum(1 for bodies in system.member_planets for body in bodies if body.body_type == "a")
+    assert [[(body.body_type, round(body.distance, 6)) for body in bodies] for bodies in loaded.node_planets] == \
+        [[(body.body_type, round(body.distance, 6)) for body in bodies] for bodies in system.node_planets]
+    assert (loaded.planet_count, loaded.belt_count, loaded.moon_count) == system.count_objects()
+    assert [body.body_type for body in loaded.planets] == [body.body_type for body in system.planets]
+
+
+def test_an_edit_save_keeps_a_nodes_belts(mysql_config):
+    system, cfg = _with_node_belt()
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = store.insert_star_system(conn, system, cfg)
+        conn.commit()
+        editStore.save_system_edits(conn, system_id, store.load_star_system(conn, system_id))
+        conn.commit()
+        after = conn.execute("SELECT COUNT(*) AS n, MIN(parent_type) AS kind FROM asteroid_belts WHERE star_system_id = ? AND host_node_id IS NOT NULL", (system_id,)).fetchone()
+    finally:
+        conn.close()
+    assert after["n"] == sum(1 for bodies in system.node_planets for body in bodies if body.body_type == "a") and after["kind"] == "node"
+
+
+def test_the_dict_form_keeps_a_nodes_belts():
+    system, _cfg = _with_node_belt()
+    data = json.loads(json.dumps(system.to_dict()))
+    loaded = StarSystem.from_dict(data)
+    assert [[body.body_type for body in bodies] for bodies in loaded.node_planets] == [[body.body_type for body in bodies] for bodies in system.node_planets]
+    assert loaded.to_dict() == system.to_dict()
+
+
+def test_the_description_lists_a_nodes_belts_under_its_pair():
+    system, _cfg = _with_node_belt()
+    system.assign_names("Voranthis")
+    document = build.describe(system)
+    pairs = [part for part in model.sections(document) if part["kind"] == "pair"]
+    held = {part["title"]: [child["kind"] for child in part["children"]] for part in pairs}
+    for host, bodies in system.node_planet_hosts():
+        kinds = held[system.node_label(host)]
+        assert len(kinds) == len(bodies)
+        assert kinds.count("belt") == sum(1 for body in bodies if body.body_type == "a") > 0 or not any(body.body_type == "a" for body in bodies)

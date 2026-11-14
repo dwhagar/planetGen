@@ -72,6 +72,7 @@ asteroid_belts = sa.Table(
     sa.Column('makeup', sa.Text(), nullable=True),
     sa.Column('largest_body_km', mysql.DOUBLE(), nullable=True),
     sa.Column('history_text', sa.Text(), nullable=True),
+    sa.Column('host_node_id', mysql.SMALLINT(), nullable=True),
     sa.Index('idx_asteroid_belts_density', 'density'),
     sa.Index('idx_asteroid_belts_parent', 'parent_type', 'parent_id'),
     sa.Index('idx_asteroid_belts_star_id', 'star_id'),
