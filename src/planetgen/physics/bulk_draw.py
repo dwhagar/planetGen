@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
-                               disk_condensation, elements, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
+                               disk_condensation, elements, formation_snow_line, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
                                volatile_depletion)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -402,7 +402,8 @@ def origin_of(body):
     `ICY` for a body that formed beyond its star's snow line, else `ROCKY`. A moon takes its parent's (the distance it formed at is
     `body.formation_distance_au`, the parent's for a moon); a body with no snow line to compare, or no distance, is rocky.
     """
-    line = getattr(getattr(body, "star", None), "snow_line_au", None)
+    star = getattr(body, "star", None)
+    line = None if star is None else formation_snow_line.water_snow_line_au(star)      # GEN.1679: the line the water is read against too (GEN.1678)
     distance = _formation_distance_au(body)
     return ICY if line is not None and distance is not None and distance >= line else ROCKY
 
@@ -412,8 +413,9 @@ def _subject(body, ratios):
 
 
 def _snow_ratio(body):
-    """The distance `body` formed at in its star's snow lines, or `None` when it has no star line or distance to say."""
-    line = getattr(getattr(body, "star", None), "snow_line_au", None)
+    """The distance `body` formed at in its star's water snow lines (`formation_snow_line.water_snow_line_au`, GEN.1678), or `None` when it has no star line or distance to say."""
+    star = getattr(body, "star", None)
+    line = None if star is None else formation_snow_line.water_snow_line_au(star)
     distance = _formation_distance_au(body)
     return None if not line or distance is None else distance / line
 
@@ -568,7 +570,8 @@ def draw_terrestrial(body, radius_given, mass_given):
 def _take_belt_member(body, member, part, mass_given, carbon_rock):
     """
     A belt member promoted to a planet (GEN.1510) keeps what the belt made it of: its rock, metal, water and ice shares (`belt.members`), not a draw of the planet's own, so there is one
-    composition for the body whichever list it is in. Below `compaction.TAPER_END_KG` it also keeps the member's radius and so its density (the porosity is what the shares leave void), as a moon does; heavier, the voids are closed and the structure solver gives the radius. The rock's FeO, Al2O3 and Mg/Si come from the star as for any rocky body. The promoted ones are the heaviest round members.
+    composition for the body whichever list it is in. Below `compaction.TAPER_END_KG` it also keeps the member's porosity: what its radius leaves void of the grains' own density (as a moon's; none where the member is denser than the grains' mix), and its radius is then the structure model's for that composition, as every planet's is (GEN.1692: the radius a planet has is `bulk_structure.structure` of its stored
+    composition and mass, held to a millionth by `tests/audit/sweep_bulk.py`; keeping the member's radius whatever the porosity gave a few bodies a radius 0.1 to 2 percent under it). Heavier, the voids are closed and the structure solver decides.
     """
     shares = [member["metal_fraction"], member["rock_fraction"], member["water_fraction"], member["ice_fraction"]]
     total = math.fsum(shares)
@@ -578,11 +581,10 @@ def _take_belt_member(body, member, part, mass_given, carbon_rock):
         core_light=part.core_light, carbon_rock=carbon_rock, origin="drawn", **_minor_oxides(part))
     radius_km = member.get("radius_km") or 0.0
     if body.mass < compaction.TAPER_END_KG and radius_km > 0.0:
-        # GEN.1510 (Lane 21's rule, as a moon's: below the taper's end the voids are not closed): the member's own radius and so its own density, the porosity what the stored shares leave void
-        body.radius = radius_km
+        # GEN.1510 (Lane 21's rule, as a moon's: below the taper's end the voids are not closed): the porosity the member's radius leaves, and then the radius the structure model gives it (GEN.1692)
         volume_m3 = 4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3
         grain = bulk_structure.mixing_density_kg_m3(bulk.metal, bulk.rock, bulk.water, bulk.ice, 0.0)
-        _store(body, dataclasses.replace(bulk, porosity=max(0.0, 1.0 - body.mass / volume_m3 / grain)))
+        _settle(body, dataclasses.replace(bulk, porosity=max(0.0, 1.0 - body.mass / volume_m3 / grain)), True)
         return
     _settle(body, bulk, mass_given)
 

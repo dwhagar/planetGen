@@ -81,7 +81,7 @@ temperature; the share of the sulfur the melt keeps is `surface_pressure.DEGAS_E
 
 ## Where the carbon of a world with no land goes (GEN.814)
 
-Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
+Silicate weathering (`continental_weathering.pco2_bar`) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
 findings of `reports/air-fixed-point-findings-2026-10-24.md` (finding 3) have 31 of 40 water-rich worlds hot (median 1470 K). The model is
 `physics/waterworld_carbon.py`, af[R2381, R2489] (Nat. Commun. 8, 15423).
 `sink_kind(sealed, land_fraction)` is the dispatch the air solve takes: sealed seafloor, then ocean chemistry; else land, then the

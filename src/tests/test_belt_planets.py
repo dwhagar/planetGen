@@ -6,6 +6,8 @@ members and mass, exempt from the slot spacing, and stored with the belt they ca
 """
 
 
+import types
+
 import pytest
 
 from planetgen import tuning
@@ -54,7 +56,7 @@ def test_a_belt_promotes_at_most_the_limit_of_its_heaviest_round_members(promote
     per_belt = {}
     for body in made:
         per_belt.setdefault(body.belt_order, []).append(body)
-    assert made and all(len(planets) <= tuning.BELT_PLANETS_PER_BELT for planets in per_belt.values())
+    assert made and all(len(planets) <= tuning.BELT_PLANETS_PER_BELT for planets in per_belt.values())      # GEN.1561: a member over the oligarch mass would be an exception; none is drawn in these seeds
     for planets in per_belt.values():
         assert all(planet.planet_class is not None for planet in planets)
 
@@ -76,6 +78,36 @@ def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_syste
         total = sum(shares.values())
         for name, share in shares.items():
             assert getattr(body, f"{name}_mass_fraction") == pytest.approx(share / total, abs=1e-6)
+
+
+def test_a_promoted_planet_stays_inside_the_ring_of_its_belt(promoted_system):
+    """The orbit's closest and farthest points are between the belt's limits, so no promoted planet crosses what the generator cleared round the belt; a member on a long ellipse out of the ring stays a member."""
+    _seed, system = promoted_system
+    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    for body in _promoted(system):
+        belt = belts[body.belt_order]
+        assert body.distance * (1.0 - body.eccentricity) >= belt.lower_limit * (1.0 - 1e-9)
+        assert body.distance * (1.0 + body.eccentricity) <= belt.upper_limit * (1.0 + 1e-9)
+
+
+def test_a_member_whose_orbit_leaves_the_ring_is_not_chosen():
+    belt = types.SimpleNamespace(lower_limit=2.0, upper_limit=4.0, members=[
+        {"rank": 1, "status": "dwarf planet", "mass_kg": 3e21, "distance_au": 3.0, "eccentricity": 0.2},
+        {"rank": 2, "status": "dwarf planet", "mass_kg": 5e21, "distance_au": 3.0, "eccentricity": 0.5},
+        {"rank": 3, "status": "dwarf planet", "mass_kg": 4e21, "distance_au": 2.1, "eccentricity": 0.0}])
+    assert [member["rank"] for member in belt_planets.chosen(belt, 10)] == [3, 1]
+
+
+def test_a_member_beside_a_planet_stays_a_member_unless_the_planet_is_of_its_belt():
+    star = types.SimpleNamespace(mass=2.0e30)
+    member = {"rank": 1, "mass_kg": 1e21, "distance_au": 3.0}
+    near = types.SimpleNamespace(body_type="t", belt_order=None, mass=6e24, distance=3.1)
+    far = types.SimpleNamespace(body_type="t", belt_order=None, mass=6e24, distance=5.0)
+    sibling = types.SimpleNamespace(body_type="t", belt_order=0, mass=1e21, distance=3.001)
+    belt = types.SimpleNamespace(body_type="a", belt_order=None, mass=1e21, distance=3.05)
+    assert not belt_planets.clear_of_planets(star, member, 0, [near])
+    assert belt_planets.clear_of_planets(star, member, 0, [far, sibling, belt])
+    assert not belt_planets.clear_of_planets(star, member, 1, [sibling])
 
 
 def test_the_planets_stand_in_distance_order_and_are_numbered_in_it(promoted_system):
@@ -159,3 +191,52 @@ def test_settling_only_some_planets_leaves_the_others_as_they_are(promoted_syste
     assert planet_physics.settle_obliquity(system.planets, system.star.mass, only=[]) == 0
     assert planet_physics.settle_moon_tilts(system.planets, system.star.mass, only=[]) == 0
     assert before == [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.planets if body.body_type != 'a']
+
+
+def test_a_belts_largest_body_is_the_largest_member_it_still_holds(promoted_system):
+    """GEN.1561: the figure was the drawn belt's, a planet once a member is promoted."""
+    _seed, system = promoted_system
+    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    taken = {body.belt_order for body in _promoted(system)}
+    assert taken
+    for order in taken:
+        belt = belts[order]
+        left = [2.0 * member["radius_km"] for member in belt.members if member["status"] != "moon"]
+        assert belt.largest_body_km == pytest.approx(max(left, default=0.0), rel=1e-12)
+
+
+def test_a_member_over_the_oligarch_mass_is_promoted_whatever_the_limit(promoted_system, monkeypatch):
+    """GEN.1561 (Boss, 10:06 PM EST 11-12): the ten is a cost limit; a round member heavier than the isolation mass of its stretch is a planet."""
+    seed, system = promoted_system
+    monkeypatch.setattr(tuning, "BELT_PLANETS_PER_BELT", 1)
+    monkeypatch.setattr(belt_planets, "oligarch_cap_kg", lambda star, belt: float("inf"))
+    capped = _promoted(_system(seed))
+    assert capped and max(sum(1 for b in capped if b.belt_order == order) for order in {b.belt_order for b in capped}) == 1
+    monkeypatch.setattr(belt_planets, "oligarch_cap_kg", lambda star, belt: 0.0)
+    over = _promoted(_system(seed))
+    assert len(over) > len(capped) and {(b.belt_order, b.belt_rank) for b in capped} <= {(b.belt_order, b.belt_rank) for b in over}
+    monkeypatch.setattr(tuning, "BELT_PLANETS_PER_BELT", 0)
+    assert not _promoted(_system(seed))           # a limit of zero still promotes nothing
+
+
+def test_the_oligarch_mass_of_a_belt_is_the_isolation_mass_of_its_stretch(promoted_system):
+    _seed, system = promoted_system
+    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    for belt in belts.values():
+        cap = belt_planets.oligarch_cap_kg(system.star, belt)
+        assert cap > 0.0 and cap == pytest.approx(belt_planets.oligarch_cap_kg(system.star, belt))
+        assert all(member["mass_kg"] <= cap for member in belt.members if member["status"] != "moon")       # none is left over it
+
+
+def test_a_promoted_body_under_the_taper_has_the_radius_of_the_structure_model_even_where_its_member_was_denser_than_its_grains(promoted_system):
+    """GEN.1692: below `compaction.TAPER_END_KG` the planet keeps the member's porosity but takes the radius the structure model gives it, as every planet does (`tests/audit/sweep_bulk.py`, 1e-6); a member
+    denser than the grains' zero-pressure mix (porosity clamped to none) used to keep its own, smaller radius."""
+    from tests.audit import sweep, sweep_bulk
+    rule = next(rule for rule in sweep_bulk.RULES if rule.name == "radius-from-structure")
+    _seed, system = promoted_system
+    order, belt = next(iter(belt_planets.irregular_moons.belts_of(system.planets).items()))
+    light = [member for member in belt.members if member["mass_kg"] < compaction.TAPER_END_KG and member["radius_km"] > 0.0]
+    assert light, "the belt has members under the taper's end"
+    for member in (light[0], dict(light[0], radius_km=0.7 * light[0]["radius_km"])):       # as the belt drew it, and denser than any grain mix could be
+        planet = belt_planets.planet_of(system, system.star, belt, order, member)
+        assert rule.check(sweep.Entry(planet, None, None, "x")) == []

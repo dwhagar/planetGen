@@ -128,6 +128,16 @@ def close_pair_label(primary_name, secondary_name):
     return f"{primary_name} & {secondary_name}"
 
 
+def node_pair_label(system_name, star_names, node_no):
+    """
+    The name of the pair of stars at an inner node of a system's tree (GEN.332, slice A), as the Washington Double Star catalogue writes
+    a pair: the system's name and the letters of the node's stars together (`Voranthis CD`; a star and a pair about it are
+    `Voranthis ABC`), `Voranthis node N` for stars named some other way.
+    """
+    letters = [name[len(system_name) + 1:] for name in star_names if name.startswith(f"{system_name} ")]
+    return f"{system_name} {''.join(sorted(letters))}" if letters and len(letters) == len(star_names) else f"{system_name} node {node_no}"
+
+
 def name_bodies(prefix, bodies):
     """
     Names every planet in `bodies` (one star's orbit-ordered planet/belt

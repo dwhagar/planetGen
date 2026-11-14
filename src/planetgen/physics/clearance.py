@@ -66,7 +66,7 @@ MOON_PROGRADE_HILL_FRACTION = 0.4895
 
 RIGID_ROCHE_COEFFICIENT = 1.26
 """float: A rigid satellite breaks up inside `1.26 R (rho_host / rho_body)^(1/3)` of its host (Roche 1849, in [R3220]);
-the fluid coefficient 2.44 would flag a rocky body the generator is entitled to place."""
+the fluid coefficient 2.456 would flag a rocky body the generator is entitled to place."""
 
 IRREGULAR_PROGRADE_HILL_FRACTION = 0.4
 """float: A prograde irregular moon is stable out to this share of its planet's Hill radius, time averaged (surveys give 0.4 to 0.5; GEN.1076)."""
@@ -390,6 +390,8 @@ def _audit_planets(planets, tree):
     for members in by_host.values():
         members.sort(key=lambda item: item[1])
         for (inner, a_in, e_in, host), (outer, a_out, e_out, _host) in zip(members, members[1:]):
+            if _of_one_belt(inner, outer):
+                continue
             where = f"planets {inner['id']} and {outer['id']}"
             if a_in * (1.0 + e_in) >= a_out * (1.0 - e_out):
                 out.append(Violation("planet-crossing", where, a_in * (1.0 + e_in), a_out * (1.0 - e_out), "AU"))
@@ -475,6 +477,22 @@ def _audit_irregular_moons(irregulars, moons, planets, tree):
     return out
 
 
+def _of_one_belt(first, second):
+    """True for two planets promoted from the same belt (GEN.1510): a belt's members share one ring and cross each other's orbits, which is what makes them a belt, so the planets' own clearing (crossing, spacing) does not apply between them. `belt_order` is the belt's number among the belts of its star, and two planets of one host with the same number came from the same belt."""
+    order = first.get("belt_order")
+    return order is not None and order == second.get("belt_order")
+
+
+def _came_from(planet, belt, belts, tree):
+    """True when `planet` was promoted from `belt` (GEN.1510): its `belt_order` is the belt's place, nearest first, among the belts of its host, so the planet is a member of that ring and is allowed to reach into it. A planet that came from another belt, or from none, still must stay out."""
+    order = planet.get("belt_order")
+    if order is None:
+        return False
+    host = _host_of(belt, tree)
+    ring = sorted((other for other in belts if _host_of(other, tree) == host), key=lambda other: other.get("distance_km", other["lower_limit_km"]))
+    return 0 <= order < len(ring) and ring[order] is belt
+
+
 def _audit_belts(belts, planets, tree):
     out = []
     for belt in belts:
@@ -485,7 +503,7 @@ def _audit_belts(belts, planets, tree):
             out.append(Violation("belt-planet", where, lower, upper, "AU", detail="an empty annulus"))
             continue
         for planet in planets:
-            if _host_of(planet, tree) != host:
+            if _host_of(planet, tree) != host or _came_from(planet, belt, belts, tree):
                 continue
             a_au = planet["distance_km"] / AU_KM
             e = planet.get("eccentricity") or 0.0
@@ -510,9 +528,9 @@ def audit(rows):
     Args:
         rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`; a dark member of the tree, GEN.1013, is a row
             too, with `dark` true: it weighs in the tree and takes up room, and no planet goes round it), `nodes` (the `orbit_nodes` columns),
-            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `moons` (`id`, `planet_id`,
+            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, and `belt_order` for a planet promoted from an asteroid belt, GEN.1510, which may be left out), `moons` (`id`, `planet_id`,
             `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `lower_limit_km`,
-            `upper_limit_km`) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
+            `upper_limit_km`, and `distance_km` to order a star's belts nearest first, else the lower limit does) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
 
     Returns:
         list[Violation]: Empty for a system with room for every body.
@@ -540,13 +558,13 @@ def stored_rows(conn, system_id):
         " arg_periapsis_deg, mean_anomaly_deg, period_years, kind, interaction, flags FROM orbit_nodes WHERE star_system_id = ?"
         " ORDER BY node_no", (system_id,)).fetchall()]
     planets = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, distance_km, eccentricity, radius_km, mass_kg FROM planets WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, distance_km, eccentricity, radius_km, mass_kg, belt_order FROM planets WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     moons = [dict(row) for row in conn.execute(
         "SELECT id, planet_id, distance_km, eccentricity, radius_km, mass_kg FROM moons WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     belts = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, distance_km, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     irregular_moons = [dict(row) for row in conn.execute(
         "SELECT i.planet_id, i.moon_rank, i.distance_km, i.eccentricity, i.inclination_deg FROM irregular_moons i JOIN planets p ON p.id = i.planet_id"

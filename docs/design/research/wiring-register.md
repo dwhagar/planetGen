@@ -21,7 +21,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.disk_drift.cold_finger_enrichment | by design | the rise of the ice-to-rock ratio just outside a line when part of the vapor goes back out (design note 2.4): reported and read by the tests, not by the generator (GEN.1473) |
 | row | 6.242:DE4 | by design | the viscous gas flux constants of the water drift model; the disc mass cancels in the enrichment ratio the generator reads, so the constants are kept for the tests and the note (GEN.1473) |
-| function | planetgen.physics.planet_zones.host_members | by design | which stars the planets of a zone go round: the reference the radiation field's choice of host is held to (`test_radiation_field.py`); the generator reads the host from the body itself (GEN.1559) |
 | function | planetgen.physics.eclipses.orbiting_the_star | by design | the mean share of a star's light a sibling planet inside the observer's orbit covers: read by the tests and the census, and by the effect ledger when it keeps the light eclipsed by planets (GEN.1465); only a close pair's eclipses are applied to the light (GEN.1484) |
 | function | planetgen.physics.eclipses.orbiting_the_observer | by design | the same for a moon in front of a star for its planet: read by the tests and the census, and by the effect ledger (GEN.1465); a moon of a circumbinary planet reads its planet's light without the pair's factor (GEN.1484) |
 | function | planetgen.physics.venus_spin.retrograde_possible | by design | whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself |
@@ -37,10 +36,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | function | planetgen.physics.equilibrium_edges.h2_dissociation_temperature | by design | the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation |
+
+
+
 | module | planetgen.physics.hot_giant_profile | GEN.1577 | the Guillot semi-grey profile of a hot giant's atmosphere; the hot-giant regime wiring (GEN.994) calls `profile_function` for the cloud deck and deletes this line |
 | row | 6.288:HGP1 | GEN.1577 | `hot_giant_profile.KAPPA_THERMAL_M2_KG`, not read until the hot-giant wiring calls the profile |
 | row | 6.288:HGP2 | GEN.1577 | `hot_giant_profile.GAMMA_AT_2000_K`, not read until the hot-giant wiring calls the profile |
-| module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
@@ -100,16 +101,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
-| row | 6.126:RN2 | GEN.1684 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1201 wires the module |
-| row | 6.126:RN4 | GEN.1684 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1201 wires the module |
-| module | planetgen.physics.ice_types | GEN.1684 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
-| function | planetgen.physics.roundness.is_round | GEN.1684 | whether a stored roundness ratio is round (1 or more); the wiring step that stores the ratio and the pages that read it call it |
-| row | 6.126:RN11 | GEN.1684 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
+| row | 6.126:RN2 | by design | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, the named copies of the default strengths of `data/roundness_strengths.json`; the engine reads them through `TABLE` (and through `ice_strength_pa` for the strength a kind of ice is a factor of, GEN.1684), the tests and the notes read the constants |
+| row | 6.126:RN4 | by design | `roundness.METAL_STRENGTH_PA`, the named copy of the metal strength of `data/roundness_strengths.json`; the engine reads it through `TABLE`, the tests and the notes read the constant |
+| row | 6.126:RN11 | by design | `roundness.ROCK_CREEP_COLUMNS`, the named copy of the olivine creep columns of `data/roundness_strengths.json`; the engine reads them through `TABLE.temperature` (GEN.1201 gives each body the shape-set temperature it is read at), the tests and the notes read the constant |
 | column | binary_epoch_unix | by design | the daily orbit update (`store.advance_*`) reads and writes the pair's clock; nothing outside the store needs it |
 | column | binary_next_update_due | by design | the daily orbit update (`store.advance_*`) schedules the pair's next step from it; nothing outside the store needs it |
 | column | dynamical_state | GEN.291 | `planets` and `moons`: every body is `bound`; the unbind and capture test of GEN.291 is what sets `unbound` |
 | column | formed_at | GEN.346 | `asteroid_fields.formed_at`, the epoch an event-made field formed; written when a collision makes a field |
-| column | host_node_id | GEN.332 | `planets.host_node_id`, the orbit node a planet orbits; NULL (its star) until circumbinary and S-type planets are placed at nodes |
 | column | origin_event_id | GEN.346 | `asteroid_fields.origin_event_id`, the orbital event that made the field; written when a collision makes a field |
 | function | planetgen.galaxy.cellkey.cell_keys | by design | the numpy twin of `cell_key`; the tests hold `sphere_runs` and the stored key to it on many points at once, the generator keys one point at a time |
 | function | planetgen.galaxy.cellkey.sql_cell_key | by design | the text of the MySQL generated column's expression; `schema.sql` holds it written out and the schema test compares the two, so the column cannot drift from the Python key |
@@ -142,7 +140,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.collision_outcome.conservation_error | by design | the mass and momentum check of a collision outcome; the tests and the census run it, the generator never needs it |
 | function | planetgen.physics.comet_admission.observed_sampler | by design | the simulated observed sample of the comet admission selection model: the simulated side of the `comet_admission` selection model, run by test_comet_admission through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
 | function | planetgen.physics.comet_admission.expected_measured | by design | the expected count the comet admission model measures: the simulated side of the `comet_admission` selection model, run by test_comet_admission through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
-| function | planetgen.physics.compaction.taper_weight | GEN.1684 | the taper of the compaction law in log mass; `body_status.roundness` calls it, and that module is wired with the roundness engine |
+| function | planetgen.physics.compaction.taper_weight | by design | the taper of the porosity in log mass (decision S9): the module's statement of the law, held by the tests to `scripts/build_compaction_table.py`, which integrates the table `compacted_density_kg_m3` reads with its own copy so the reference integration stays independent of the code it checks |
 | function | planetgen.physics.elements.isotopic_mass_fraction | by design | the isotope mass fraction the published specific activities are checked against, read by test_elements |
 | function | planetgen.physics.field_kernel.accelerations | GEN.105 | the pull at an object's exact place; the update's motion vector reads the gravitational field there (the numba kernel `sector_path` loads) |
 | function | planetgen.physics.giant_tilt.large_tilt_chance | by design | the expected share of ice giants tilted over 60 degrees that `MERGER_SHARE` gives, the check of the tilt draw; read by test_giant_tilt, never by the generator |
@@ -226,7 +224,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.potassium_depletion.depletion_of | by design | the depletion of one of the six table bodies by name, which the tests hold the table to; generation draws from `draw_depletion` |
 | module | planetgen.physics.kozai_planets | GEN.1645 | the Kozai-Lidov screen of a planet by a companion star or an outer sibling (lock-free slice 0); the wiring in `StarSystem._kozai_pumping` (waits for the stored companion planes of GEN.1500) applies the outcome to the planet's eccentricity and inclination and drops a planet the maximum puts inside the star, and is a lock item |
 | row | 6.284:KZP2 | GEN.1645 | read when `StarSystem._kozai_pumping` runs the planet case |
-| function | planetgen.physics.saturation.unread_pressure_pa | GEN.1564 | the held-back S2 vapor pressure curve (stand-in SV1); slice 1 moves the row into `species` and the freeze-out reads it through `saturation` |
-| function | planetgen.physics.saturation.unread_formulas | GEN.1564 | the names of the held-back curves, read by the tests; slice 1 empties it |
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |

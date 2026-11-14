@@ -135,7 +135,7 @@ def _planets(star, count=8):
     from tests import class_support
     found = []
     for seed in range(count):
-        planet = class_support.draw_planet(star, 1.6, seed, SystemConfig(), mass=1.0 * 5.97e24, zone_override="c", moon_count=0)
+        planet = class_support.draw_planet(star, 1.0, seed, SystemConfig(), mass=1.0 * 5.97e24, zone_override="c", moon_count=0)      # 1 AU: at 1.6 AU an Earth-mass body of the sun is an ice-covered stagnant lid on every seed since train 27, so no wet mobile body is found
         hd.generate(planet)
         found.append(planet)
     return found

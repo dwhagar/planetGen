@@ -189,6 +189,8 @@ def reconcile_moved_planet(planet):
     if getattr(planet, "_deferred_climate", None) is not None:
         # GEN.1282: a planet built without its climate has no air or moons to make again; `finish_climate` makes them at this distance.
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+        if getattr(planet, "_motion_done", False):
+            planetPhysics.update_orbital_position(planet)      # GEN.1548: its position and velocity were made at the old distance (`finish_motion`)
         return
     planetPhysics.calculate_atmospheric_conditions(planet)
     planetPhysics.prepare_class(planet)
@@ -577,11 +579,12 @@ def _member_hosts(system):
 def star_lists(system):
     """`(star, planets)` for each star that holds its own planet list:
     the system's star (a single star, or a close pair's merged proxy),
-    then a wide pair's secondary, then each further star of the tree (GEN.332)."""
+    then a wide pair's secondary, then each further star of the tree (GEN.332), then the proxy of each inner pair node of the tree with its planets."""
     lists = [(system.star, system.planets)]
     if getattr(system, "binary_type", None) == "wide":
         lists.append((system.secondary_star, system.secondary_planets))
     lists.extend(_member_hosts(system))
+    lists.extend(system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else [])
     return lists
 
 

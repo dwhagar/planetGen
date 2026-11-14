@@ -93,8 +93,8 @@ def test_a_generated_belt_keeps_members_heaviest_first_inside_its_limits():
     belt = _generated_belt()
     members = belt.members
     assert members and len(members) <= belt_ledger.LEDGER_MAX_BODIES
-    first = members[0]["rank"]          # GEN.1510: the heaviest round bodies became planets and keep their ranks, so the members left start after them
-    assert first >= 1 and [member["rank"] for member in members] == list(range(first, first + len(members)))
+    ranks = [member["rank"] for member in members]          # GEN.1510, GEN.1693: a body that became a planet keeps its rank and leaves a gap (one inside its ring and clear of the other plane is not always the heaviest), so the ranks left rise without a repeat
+    assert ranks[0] >= 1 and ranks == sorted(set(ranks))
     masses = [member["mass_kg"] for member in members]
     assert masses == sorted(masses, reverse=True)
     assert sum(masses) < belt.mass_kg * 1.0000001

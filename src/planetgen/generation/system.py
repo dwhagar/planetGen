@@ -24,7 +24,7 @@ import re
 
 from planetgen.generation import irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
+from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, node_pair_label, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
@@ -32,7 +32,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
+from planetgen.physics import class_outcome, flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
@@ -97,7 +97,10 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 7 -> 8 to add `dark_members` (GEN.1013): the brown dwarfs, neutron stars and black holes that hang in the tree but
 # are not stars of `stars`, a list of dicts (`stored_trees.DarkMember`). A pre-v8 save has no key and reads as none.
-SERIALIZATION_SCHEMA_VERSION = 8
+#
+# Bumped 8 -> 9 to add `node_planets` (GEN.332, slice A): the circumbinary planets of the inner pair nodes of a tree, a list of
+# `{"node_no", "planets"}` dicts. A pre-v9 save has no key and reads as none.
+SERIALIZATION_SCHEMA_VERSION = 9
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -185,6 +188,16 @@ class StarSystem:
     """tuple of list: The planets and belts of each of `member_stars`, in that order (GEN.332): bodies in the S-type window
     round the member (`physics.planet_zones`), drawn like a wide pair's secondary's and never under a `SLOTS` list or a
     forced habitable world. Empty for a system with no members. Members have no comets yet."""
+
+    node_hosts = ()
+    """tuple of BinaryStarProxy: The inner pair nodes of the tree that hold circumbinary planets (GEN.332, slice A), each a proxy of the
+    pair's two stars with `host_node_no` the node's number (`_make_node_hosts`): a `close` node other than the system's own pair whose
+    two children are both stars and whose P-type window exists. Derived from the tree and the stars, made again by `build_ledger`."""
+
+    node_planets = ()
+    """list of list: The planets of each of `node_hosts`, in that order (GEN.332, slice A): bodies in the P-type window of the node
+    (`physics.planet_zones`), drawn from a stream of the node's own so no other draw of the system moves, never under a `SLOTS` list
+    or a forced habitable world. Planets only: a belt at a node needs `asteroid_belts.host_node_id`."""
 
     star_slots = None
     """tuple or None: Where each star of `stars` hangs in `orbit_nodes`, as `(node_no, slot)` in `stars` order (slot 0 or
@@ -424,6 +437,7 @@ class StarSystem:
                     self._validate_cross_star_clearance()
 
                 self.member_planets = [self._generate_member_planets(member) for member in self.member_stars]
+                self.node_planets = [self._generate_node_planets(host) for host in self.node_hosts]
 
                 habitable_stands = self._habitable_request_stands()      # draws once under a request, so it runs on every attempt
             if habitable_stands and self._belt_found() and self._forced_class_present():
@@ -510,11 +524,16 @@ class StarSystem:
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
             for obj in self.all_planets:
-                if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
+                if obj.body_type == 'a': # An asteroid belt carries no life data; it shows a line of the tree's belt scope (GEN.1433).
+                    planetLife.decide_flavor_text_alone(obj, "belt")
                     continue
                 self._finish_planet(obj)
                 for moon in obj.moons:
                     self._finish_moon(moon, obj)
+            for star in self.stars:
+                planetLife.decide_flavor_text_alone(star, "star")      # GEN.1433: a star and a comet show a line of their own scopes, like a belt
+            for comet in (*self.comets, *getattr(self, "secondary_comets", ())):
+                planetLife.decide_flavor_text_alone(comet, "comet")
             self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so what the config asked for is judged once, on the finished bodies.
             self.unmet_requirements = self._unmet_requirements()
@@ -589,8 +608,9 @@ class StarSystem:
     @property
     def all_planets(self):
         """list: Every planet and belt of the system: the primary's (or a close pair's), the wide secondary's, then each
-        member star's."""
-        return [*self.planets, *self.secondary_planets, *(body for bodies in self.member_planets for body in bodies)]
+        member star's, then each inner pair node's."""
+        return [*self.planets, *self.secondary_planets, *(body for bodies in self.member_planets for body in bodies),
+                *(body for bodies in self.node_planets for body in bodies)]
 
     def apply_cloud(self, cloud, point_pc, rng=draw):
         """
@@ -615,6 +635,15 @@ class StarSystem:
     def member_hosts(self):
         """`[(star, planets)]` for each of `member_stars`."""
         return list(zip(self.member_stars, self.member_planets or [[] for _ in self.member_stars]))
+
+    def node_label(self, host):
+        """The name of the pair of an inner pair node `host` (GEN.332, slice A) as the Washington Double Star catalogue writes a pair: the system's name and the letters of the
+        node's stars together (`Voranthis CD`; the three stars of a pair and a star about it are `Voranthis ABC`), `Voranthis node N` for stars named some other way."""
+        return node_pair_label(self.name, [star.name for star in host.leaf_stars], host.host_node_no)
+
+    def node_planet_hosts(self):
+        """`[(proxy, planets)]` for each of `node_hosts` (GEN.332, slice A): the pair of stars a pair node's planets go round and the planets."""
+        return list(zip(self.node_hosts, self.node_planets or [[] for _ in self.node_hosts]))
 
     def _tree_members(self):
         """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
@@ -645,6 +674,8 @@ class StarSystem:
 
     def _ledger_host(self, star):
         """The `(kind, number)` of the ledger host that is `star`: a close pair's proxy is its pair node, any other star its number."""
+        if getattr(star, "host_node_no", None) is not None:
+            return planet_zones.P_TYPE, star.host_node_no       # the proxy of an inner pair node (`_make_node_hosts`)
         if self.binary_type == "close" and star is self.star:
             return planet_zones.P_TYPE, self.pair_node_no()
         return planet_zones.S_TYPE, next((number for number, other in enumerate(self.stars) if other is star), 0)
@@ -670,18 +701,61 @@ class StarSystem:
         """
         self._ledger = None
         radiation_field.attach(self.star, ())
+        self.node_hosts = ()
         if not self.orbit_nodes or (len(self.stars) < 2 and not self.dark_members):
             return
         ledger = self.ledger
+        self.node_hosts = self._make_node_hosts(ledger)
         hosts = [(planet_zones.S_TYPE, number, star) for number, star in enumerate(self.stars)
                  if self.binary_type != "close" or number >= 2]
         if self.binary_type == "close":
             hosts.append((planet_zones.P_TYPE, self.pair_node_no(), self.star))
+        hosts.extend((planet_zones.P_TYPE, proxy.host_node_no, proxy) for proxy in self.node_hosts)
         for kind, number, star in hosts:
             limit = ledger.stability_limit_au((kind, number))
             if limit is not None:
                 star.a_crit_au = limit
             self._attach_sources(ledger, kind, number, star)
+
+    def _make_node_hosts(self, ledger):
+        """
+        The proxies of the inner pair nodes that hold circumbinary planets (GEN.332, slice A): every `close` node of the tree other than
+        the system's own pair (the proxy `star` serves that one) whose subtree holds stars only (no dark member and no `group` or `wide`
+        node below it) and whose P-type window exists. Each is a `BinaryStarProxy` of the node's two sides on the node's stored orbit, with
+        `host_node_no` the node's number; a side that is a node is the proxy of that node (the system's own proxy where it is the system's
+        pair), so a pair of pairs is a proxy of two proxies. It merges their mass and light as the system's own pair does. The proxy draws
+        nothing the stream bound here does not settle. A node with a dark member or a wide pair below it has no planets yet.
+        """
+        if self.star_slots is None:
+            return ()
+        own = self.pair_node_no()
+        nodes = {node.node_no: node for node in self.orbit_nodes}
+        sub_nodes = {number: [node.node_no for node in self.orbit_nodes if node.parent_node_no == number] for number in nodes}
+        star_children = {number: [index for index, (parent, _slot) in enumerate(self.star_slots) if parent == number] for number in nodes}
+        dark_nodes = {dark.parent_node_no for dark in self.dark_members}
+
+        def clean(number):
+            return (nodes[number].kind == "close" and number not in dark_nodes and len(star_children[number]) + len(sub_nodes[number]) == 2
+                    and all(clean(sub) for sub in sub_nodes[number]))
+
+        proxies = {}
+
+        def proxy_of(number):
+            if number == own and self.binary_type == "close":
+                return self.star
+            if number not in proxies:
+                first, second = [*(self.stars[index] for index in star_children[number]), *(proxy_of(sub) for sub in sub_nodes[number])]
+                lead = self.primary_star
+                with draw.bound(draw.Stream(f"node-host:{number}:{first.mass!r}:{second.mass!r}:{nodes[number].separation_km!r}")):
+                    # (a star loaded from the database has no galactic distance: it takes the default, which only the Hill ceiling reads)
+                    proxy = BinaryStarProxy(self.system_config, first, second, galactic_center_dist_ly=getattr(lead, "galactic_center_dist_ly", None),
+                                            galactic_orbital_phase_deg=lead.galactic_orbital_phase_deg, orbit=nodes[number])
+                proxy.host_node_no = number
+                proxies[number] = proxy
+            return proxies[number]
+
+        return tuple(proxy_of(node.node_no) for node in self.orbit_nodes
+                     if node.node_no != own and clean(node.node_no) and ledger.zone((planet_zones.P_TYPE, node.node_no)).exists)
 
     def _attach_sources(self, ledger, kind, number, star):
         """Gives `star` the other radiating objects its bodies see, each with the orbit it moves in against the host (GEN.1441, `radiation_field`): the
@@ -755,7 +829,8 @@ class StarSystem:
         try:
             places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix + epoch_shift_s)
             if kind == planet_zones.P_TYPE:
-                pair = [member for member in ledger.members if member.parent_node_no == number]
+                below = set(planet_zones.host_members(ledger.zone((kind, number)), ledger.nodes, ledger.members))
+                pair = [member for member in ledger.members if member.member_no in below]
                 total = sum(member.mass_solar for member in pair)
                 origin = tuple(sum(member.mass_solar * places[member.member_no][axis] for member in pair) / total for axis in range(3))
             else:
@@ -829,6 +904,8 @@ class StarSystem:
         for index, member in enumerate(self.member_stars):    # C, D, ... after the pair's A and B (GEN.631)
             member.name = f"{system_name} {chr(ord(CLOSE_PAIR_LETTERS[1]) + 1 + index)}"
             hosts.append((member.name, self.member_planets[index] if self.member_planets else []))    # GEN.332
+        for host, bodies in self.node_planet_hosts():    # GEN.332, slice A: a pair node's planets take the pair's name (`Voranthis CD I`)
+            hosts.append((self.node_label(host), bodies))
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
@@ -1315,6 +1392,8 @@ class StarSystem:
             return pulsar_planets.generate(self.system_config, star, habitable_zone, orbit_ceiling_au)
         if remnant_orbits.is_post_agb_pair(star):
             return []  # a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318)
+        if remnant_orbits.is_diskless_black_hole(star) and self.system_config.PLANETS is not True:
+            return []  # GEN.1648: no disk survives the progenitor and no planet of a black hole is known; the generic path put some at 0.1 to 0.6 AU from the mass alone
 
         planets = []
         plan, system_objects = self._plan_architecture(star, orbit_ceiling_au)
@@ -1416,11 +1495,12 @@ class StarSystem:
         Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
         `validate_system` has settled the planets, so a belt stands in the gap the planets really leave, and the spacing is checked again with the belts in. A `SLOTS` list names its belts
         itself, `NUM_ORBITS` is the whole count of bodies and `MAX_PLANETS` False the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), `ASTEROID_BELT` False has
-        none, `PLANETS` False has no bodies, and a pulsar's disk or a planetary nebula's pair holds none.
+        none, `PLANETS` False has no bodies, a pulsar's disk or a planetary nebula's pair holds none, and neither does a black hole with no disk (GEN.1648).
         """
         config = self.system_config
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
-        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
+        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)
+                or (remnant_orbits.is_diskless_black_hole(star) and config.PLANETS is not True)):
             return
         scatter = next((architecture.disk_scatter for planned, architecture in getattr(self, "architectures", ()) if planned is star), 1.0)     # the disk the planets grew in (GEN.1261)
         belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
@@ -1442,6 +1522,8 @@ class StarSystem:
         The cold debris disk of a main-sequence star (GEN.1071): the dust of its outer-disk belt, when a survey would find it (`debris_dust`). The star's `disk_kind` is then "debris" and the disk's edges are
         the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
         """
+        if any(star is host for host in self.node_hosts):       # GEN.332 slice C: the belt row at an inner pair node is the disk; the dust note stays the star's own (a star of the pair may hold another disk)
+            return
         holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
         if holder.disk_kind not in (None, debris_dust.DEBRIS_KIND):                  # GEN.1550: a young star's own class 0, I or II disk (`pre_main_sequence.draw_disk`) is not this method's to clear
             return
@@ -1550,6 +1632,29 @@ class StarSystem:
             validation.trim_to_orbit_ceiling(bodies, ceiling_au)
         return bodies
 
+    def _generate_node_planets(self, host):
+        """
+        The planets of an inner pair node (GEN.332, slice A): the same draw as a member's, round the node's proxy `host` and inside the
+        P-type window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world, and with the belts the chain leaves
+        (`_add_belts`, GEN.332 slice C: a circumbinary disk is a belt row hosted at the node, `asteroid_belts.host_node_id`). The draw comes from a stream keyed by the node, its two stars and its orbit, so a system without such a
+        node draws exactly what it drew before and one with a node draws the same planets whatever else the system holds.
+        """
+        node = self.orbit_nodes[host.host_node_no]
+        first, second = host.stars
+        key = (f"node-planets:{host.host_node_no}:{first.mass!r}:{second.mass!r}:{first.age!r}:{first.metallicity_fe_h!r}"
+               f":{node.separation_km!r}:{node.eccentricity!r}")
+        with draw.bound(draw.Stream(key)):
+            ceiling_au = self._orbit_ceiling_au(host)
+            bodies = self._generate_planets(host, host.habitable_zone, ceiling_au, apply_guarantees=False)
+            self.validate_system(bodies)
+            validation.trim_to_orbit_ceiling(bodies, ceiling_au)
+            self._add_belts(bodies, host, ceiling_au, apply_guarantees=False)
+            self._apply_star_history(bodies, host)
+            if remnant_orbits.widen_for_mass_loss(bodies, host, self._explicit_request()):
+                self.validate_system(bodies)
+                validation.trim_to_orbit_ceiling(bodies, ceiling_au)
+        return bodies
+
     def _orbit_ceiling_au(self, star):
         """
         The AU distance beyond which `_generate_planets` stops placing
@@ -1589,7 +1694,7 @@ class StarSystem:
         around it, and its giant phase is no part of what was specified.
         """
         radius_au = 0.0
-        for member in getattr(star, "stars", None) or [star]:
+        for member in getattr(star, "leaf_stars", None) or getattr(star, "stars", None) or [star]:
             yerkes = getattr(member, "yerkes_class", None)
             if yerkes in ("VII", "D"):
                 if explicit_request and member.initial_mass_sol is None:
@@ -1672,7 +1777,7 @@ class StarSystem:
     def _forced_class_present(self):
         """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""
         letter = self.system_config.FORCE_CLASS
-        return not letter or any(getattr(planet, "planet_class", None) == letter for planet in self.planets)
+        return not letter or any(class_outcome.has_class(planet, letter) for planet in self.planets)
 
     def _too_young_for_planets(self, star):
         """Whether `star` is younger than `tuning.PLANET_MIN_STAR_AGE_GY`, so it holds a debris disk (belts) and no planets, unless the config asks for a class or lists its slots."""
@@ -1855,6 +1960,8 @@ class StarSystem:
             "orbit_nodes": [dataclasses.asdict(node) for node in self.orbit_nodes],
             "member_stars": [star.to_dict() for star in self.member_stars],
             "member_planets": [[obj.to_dict() for obj in bodies] for bodies in self.member_planets],
+            "node_planets": [{"node_no": host.host_node_no, "planets": [obj.to_dict() for obj in bodies]}
+                             for host, bodies in self.node_planet_hosts()],
             "star_slots": [list(place) for place in self.star_slots] if self.star_slots is not None else None,
             "dark_members": [dataclasses.asdict(member) for member in self.dark_members],
         }
@@ -1970,6 +2077,8 @@ class StarSystem:
         system.member_planets = [_load_objects(bodies, member) for member, bodies in zip(
             system.member_stars, data.get("member_planets") or [[] for _ in system.member_stars])]
         system.build_ledger()
+        by_node = {entry["node_no"]: entry["planets"] for entry in data.get("node_planets") or ()}
+        system.node_planets = [_load_objects(by_node.get(host.host_node_no, []), host) for host in system.node_hosts]
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
@@ -2064,7 +2173,7 @@ class StarSystem:
                 # core that finished growing after the gas disk went (rare in the population, so a request is its only way to it)
                 given["late_core"] = (attempt - tuning.CLASS_REQUEST_FREE_ATTEMPTS) % tuning.CLASS_REQUEST_LATE_CORE_EVERY == tuning.CLASS_REQUEST_LATE_CORE_EVERY - 1
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
-            if planet.planet_class == planet_class:
+            if class_outcome.has_class(planet, planet_class):      # GEN.1315: the class with a match that counts, not a poor fit of it
                 break
             draw.redrawn("planet.request_missed")
         else:
@@ -2253,7 +2362,7 @@ class StarSystem:
                 for body in (planet, *planet.moons):
                     if habitability.is_habitable(getattr(body, "phi4", None)):
                         hab_count += 1
-                    if body.planet_class == "M":
+                    if class_outcome.has_class(body, "M"):      # GEN.1315: a Class M world is one that matches M well enough to count
                         m_count += 1
         return hab_count, m_count
 
@@ -2365,17 +2474,21 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            for obj in self.all_planets:    # GEN.1548: a body built bare has its position and velocity now, for the planets' pull on each other
+                if obj.body_type != 'a':
+                    obj.finish_motion()
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
-            self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
             self._give_belts_their_planets()    # GEN.1492: the apsidal rate of the planets beside each belt, which dilutes a companion star's forcing of its members
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":
                 resonant_chains.give_forced_eccentricities(self.secondary_planets, self.secondary_star.mass)
+            # GEN.1548: the orbit and the size of every planet, before any air: a body built bare (GEN.1282) takes the tide, the forced eccentricity, the giant's radius and the envelope
+            # and has no air to make again; one built whole (a system that bars habitable worlds, GEN.1397) is made again as it always was
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # a belt is not a body
                     continue
-                self._settle_body(obj)
+                self._settle_body(obj, refinish=False)      # GEN.1548: the rocky bodies are made again below, once their air is final
             # An eccentricity the settle pass raised or the oddities forced (a resonant chain's, W5) can close the gap the spacing pass left exactly at its rule; where the final check would now refuse a
             # star's planets, the pass is run once more on that star (it moves nothing where the rule holds, so a system that passes is untouched).
             respaced = False
@@ -2389,6 +2502,23 @@ class StarSystem:
                     respaced = True
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
+            # GEN.1548: the orbits are final, so the air, class and spin of the bodies built bare are made now, once, and their moons (bare, with their orbits) with them
+            for obj in self.all_planets:
+                if obj.body_type != 'a':
+                    obj.finish_climate()
+            self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
+            for obj in self.all_planets:
+                if obj.body_type == 'a':
+                    continue
+                for moon in obj.moons:
+                    if planetPhysics.settle_orbit(moon):
+                        if log.debug_log_active():
+                            log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
+                obj.finish_moons()      # GEN.1548: the moons built bare take their air, class and spin on the orbit the tide left
+                made = planetPhysics.refinish_rocky(obj)
+                if made:
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
             for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
                 moved = planetPhysics.settle_obliquity(planets, star.mass)
                 if moved:
@@ -2398,7 +2528,7 @@ class StarSystem:
                     log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state.")
 
     @staticmethod
-    def _settle_body(obj):
+    def _settle_body(obj, refinish=True):
         """The settle pass for one planet and its moons (`_settle_to_final_age`; and, for a belt member made a planet, `_settle_promoted`): the giant sized again, the tides of the orbit, the envelope, the oddities of a resonant chain and the end stages of a rocky body made again."""
         if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
             log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr.")
@@ -2413,6 +2543,8 @@ class StarSystem:
             log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km.")
         if planetPhysics.finish_orbit_oddities(obj):
             log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors.")
+        if not refinish:
+            return
         made = planetPhysics.refinish_rocky(obj)
         if made:
             log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
@@ -2480,7 +2612,7 @@ class StarSystem:
         if self.system_config.HABITABLE_WORLD is not False:
             return False
         dropped = 0
-        for planets in (self.planets, self.secondary_planets, *self.member_planets):
+        for planets in (self.planets, self.secondary_planets, *self.member_planets, *self.node_planets):
             for planet in list(planets):
                 if planet.body_type == "a":
                     continue
@@ -2638,9 +2770,6 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
-        for body in planets:   # GEN.1282: the planets built without their climate get it at the distance the spacing left them
-            if body.body_type != 'a':
-                body.finish_climate()
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 

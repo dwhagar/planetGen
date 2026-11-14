@@ -161,13 +161,15 @@ class AsteroidBelt:
 
     SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg", "chondrite_group", "origin", "co_causes",
                            "formation_snow_line_au", "primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth", "stirred", "origin_history",
-                           "origin_sentence", "scatter_fates", "largest_body_km", "history"]
+                           "origin_sentence", "scatter_fates", "largest_body_km", "history", "flavor_key"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
     `from_dict`, since it's a list of tuples -- JSON has no tuple type) and `makeup`.
     """
 
+    flavor_key = None
+    """str or None: The id of the flavor line the belt shows (`life.decide_flavor_text_alone`, GEN.1433), a line of the `belt` scope of `physics/data/flavor_tree.json`."""
     origin = None
     co_causes = ()
     formation_snow_line_au = None
@@ -373,6 +375,12 @@ class AsteroidBelt:
         belt.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
         belt._members = data.get("members") or []      # a belt read back keeps the members it was saved with, and none it was not (it is not drawn again)
         return belt
+
+    @property
+    def flavor_text(self):
+        """The flavor line `flavor_key` names (`life.flavor_line`), or `None`."""
+        from planetgen.generation import life
+        return life.flavor_line(self.flavor_key)
 
     def get_composition_summary(self):
         """

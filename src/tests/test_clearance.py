@@ -188,6 +188,22 @@ def test_a_belt_holding_a_planets_orbit_or_past_the_stability_limit_is_found():
     assert "belt-s-type" in _kinds(wide)
 
 
+def test_the_planets_of_one_belt_are_part_of_its_ring_and_do_not_clear_each_other_or_it():
+    """GEN.1510: planets promoted from a belt (`belt_order`) share the belt's ring: they cross each other and sit in it. A planet from another belt, or none, does not get that."""
+    base = _pair(axis_au=300.0)
+    ring = {"id": 1, "star_id": 1, "distance_km": 3.0 * AU_KM, "lower_limit_km": 2.5 * AU_KM, "upper_limit_km": 3.5 * AU_KM}
+    members = _with_planets(base, {"distance_km": 2.8 * AU_KM, "eccentricity": 0.1, "belt_order": 0}, {"distance_km": 3.0 * AU_KM, "eccentricity": 0.1, "belt_order": 0}, belts=[ring])
+    assert clearance.audit(members) == []
+    other_belt = _with_planets(base, {"distance_km": 2.8 * AU_KM, "belt_order": 1}, belts=[ring])
+    assert "belt-planet" in _kinds(other_belt)
+    plain = _with_planets(base, {"distance_km": 2.8 * AU_KM, "belt_order": None}, belts=[ring])
+    assert "belt-planet" in _kinds(plain)
+    crossing = _with_planets(base, {"distance_km": 1.0 * AU_KM, "eccentricity": 0.5}, {"distance_km": 1.4 * AU_KM, "belt_order": 0})
+    assert "planet-crossing" in _kinds(crossing)
+    cross_belts = _with_planets(base, {"distance_km": 1.0 * AU_KM, "eccentricity": 0.5, "belt_order": 0}, {"distance_km": 1.4 * AU_KM, "belt_order": 1})
+    assert "planet-crossing" in _kinds(cross_belts)
+
+
 def test_the_irregular_limits_are_the_generators():
     """GEN.1086: the verifier's own copies of the stable shares of the Hill radius and of the Kozai band equal the generator's."""
     from planetgen.physics import irregular_zone, moon_composition

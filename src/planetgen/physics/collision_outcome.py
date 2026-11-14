@@ -32,7 +32,7 @@ S (star) and X (neutron star or black hole):
   and a disruption (`x >= 1`: both destroyed, one field of `M_tot` with a hero body of the largest remnant). With
   `ALWAYS_DESTROY_TERRESTRIAL` every contact is the last, with no hero body.
 - T or G or B + S or X (or the fluid and rigid Roche test on X): absorbed by the larger kind (S or X); a body whose pass
-  is inside the Roche limit of a neutron star or black hole (1.26 rigid, 2.44 fluid, section 2.3) is a `tidal_disruption`;
+  is inside the Roche limit of a neutron star or black hole (1.26 rigid, 2.456 fluid, section 2.3) is a `tidal_disruption`;
   no debris either way.
 - T + G or B: absorbed by the giant, which grows by the mass and keeps its momentum.
 - G or B + G or B: a `giant_merger` that loses `f = clamp(Q_R / (2 Q*_RD), 0.01, 0.5)` of its mass as gas (no field),

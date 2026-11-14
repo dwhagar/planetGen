@@ -65,11 +65,11 @@ def test_a_tail_body_is_the_same_whenever_it_is_asked_for_and_does_not_depend_on
 
 
 def test_a_stored_rank_is_the_stored_member_and_a_rank_the_belt_does_not_hold_is_none(case):
-    system, _order, belt, settled = case
+    system, order, belt, settled = case
     stored = belt.members[0]
     assert od.member_of_rank(belt, system.star, system.system_config, stored["rank"]) is stored
     assert od.member_of_rank(belt, system.star, system.system_config, od.individual_count(settled) * 4 + 10) is None
-    promoted = {body.belt_rank for body in system.planets if getattr(body, "belt_rank", None) is not None}
+    promoted = {body.belt_rank for body in system.planets if getattr(body, "belt_rank", None) is not None and getattr(body, "belt_order", None) == order}      # this belt's own promoted bodies: another belt of the system has its own ranks
     assert all(od.member_of_rank(belt, system.star, system.system_config, rank) is None for rank in promoted)
 
 

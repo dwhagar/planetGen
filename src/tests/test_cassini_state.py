@@ -53,8 +53,8 @@ def test_a_one_to_one_body_has_no_c22_term_and_a_resonant_one_has():
 
 
 def test_an_icy_body_and_a_hot_rocky_one_relax_and_a_cold_rocky_one_does_not():
-    icy = SimpleNamespace(star=SimpleNamespace(snow_line_au=2.0), formation_distance_au=5.0, distance=5.0)
-    rocky = SimpleNamespace(star=SimpleNamespace(snow_line_au=2.0), formation_distance_au=0.4, distance=0.4)
+    icy = SimpleNamespace(star=SimpleNamespace(snow_line_au=2.0, mass=constants.SOLAR_MASS_TO_KG), formation_distance_au=5.0, distance=5.0)
+    rocky = SimpleNamespace(star=SimpleNamespace(snow_line_au=2.0, mass=constants.SOLAR_MASS_TO_KG), formation_distance_au=0.4, distance=0.4)
     assert bulk_draw.origin_of(icy) == bulk_draw.ICY
     assert cs.is_relaxed(icy, 0.0) and cs.is_relaxed(rocky, 2.5) and not cs.is_relaxed(rocky, 0.05)
 
@@ -70,7 +70,7 @@ EARTH = SimpleNamespace(mass=5.972e24, radius=6371.0, period=1.0, rotation_perio
 
 def _moon(planet, mass, radius, a_km, inclination, formation_au):
     return SimpleNamespace(mass=mass, radius=radius, distance=a_km * 1e3 / constants.AU_TO_M, eccentricity=0.0, orbital_inclination_deg=inclination, body_type="t",
-                           star=SimpleNamespace(snow_line_au=2.7), formation_distance_au=formation_au)
+                           star=SimpleNamespace(snow_line_au=2.7, mass=constants.SOLAR_MASS_TO_KG), formation_distance_au=formation_au)
 
 
 def test_the_fluid_figure_of_jupiter_is_an_upper_bound_of_its_j2_and_the_moons_node_regresses_in_18_6_years():

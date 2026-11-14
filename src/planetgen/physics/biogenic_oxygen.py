@@ -39,7 +39,7 @@ change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum, surface_air
 from planetgen.util import log
 
 EARTH_O2_MOL = 3.7e19
@@ -99,6 +99,15 @@ MINIMUM_PA = 1.0
 
 EUKARYOTE_MINIMUM_PA = 200.0
 """float: The oxygen, Pa, the air must hold for the wait for complex cells to start (about 1 percent of Earth's: [R3084]; T3, L0)."""
+
+PLATEAU_PA = 600.0
+"""float: The oxygen partial pressure of the plateau, Pa: where the oxygen stands after the first rise (the reductant sink `R` under the source `S`) until the second (GEN.1707). The models of Earth's
+plateau put it at 0.06 to 0.25 of today's oxygen, where the proxies say at most 0.001 (`docs/design/research/` oxygen plateau report: 0.001 to 0.25, 0.02 to 5 kPa); 0.03 of Earth's 21 kPa is 0.6 kPa. Tier 6 (educated guess from physics), tweak level 1."""
+
+SECOND_RISE_RATIO = 3.0
+"""float: The oxygen rises again to the balance level once the reductant sink `R` is under this share of the source `S`, 1 over the ratio (GEN.1707): the deep ocean and the shelf stop recycling phosphorus
+and the oxygen gets a second jump. A single model's number (the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for the second, [R5252]); the model's
+own range for how strongly burial depends on bottom-water oxygen is 10 to 40 percent. Tier 3, tweak level 1."""
 
 REBALANCE_BRACKETS = 40
 """int: The most times `rebalance_co2` doubles the CO2 pressure while it looks for one the sink holds less than (GEN.1589: the bracket of the root; it stops at the retention cap)."""
@@ -267,14 +276,38 @@ def _fire_limit_mol(body, moles):
     rest = sum(amount for formula, amount in moles.items() if formula != "O2")
     if rest <= 0.0:
         return 0.0
-    share = mixture_oxygen.ABIOTIC_O2_MAX
-    by_share = share / (1.0 - share) * rest
+    by_share = mixture_oxygen.ABIOTIC_O2_MAX / (1.0 - mixture_oxygen.ABIOTIC_O2_MAX) * rest
+    return min(by_share, _oxygen_mol_at(body, moles, mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA))
+
+
+def _oxygen_mol_at(body, moles, pascal):
+    """
+    The oxygen, mol, that makes its partial pressure `pascal` on `body` among the other gases of `moles` (formula to mol), 0 when they hold nothing.
+
+    With `n` mol of oxygen among `rest` mol of other gases of weight `weight` kg, the partial pressure is `n / (n + rest)` of `(weight + n m) g / A`, which `pascal`
+    equals where `m n^2 + (weight - c A / g) n - c A rest / g = 0` (`c` the pressure).
+    """
+    rest = sum(amount for formula, amount in moles.items() if formula != "O2")
+    if rest <= 0.0:
+        return 0.0
     weight = sum(amount * gases.gas(formula).molar_mass for formula, amount in moles.items() if formula != "O2")
     molar = gases.gas("O2").molar_mass
-    cap = mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA * area_m2(body) / (body.gravity * constants.EARTH_GRAVITY)       # kg of column weight the cap equals
+    cap = pascal * area_m2(body) / (body.gravity * constants.EARTH_GRAVITY)       # kg of column weight the pressure equals
     b = weight - cap
-    by_pressure = (-b + math.sqrt(b * b + 4.0 * molar * cap * rest)) / (2.0 * molar)
-    return min(by_share, by_pressure)
+    return (-b + math.sqrt(b * b + 4.0 * molar * cap * rest)) / (2.0 * molar)
+
+
+def stage_target_mol(body, profile):
+    """
+    The oxygen, mol, that the air of `body` holds at the star's age (GEN.1707), given its `profile` (the balance at the summed source) at the reductant sink `R` the body has now: the balance level `steady_mol` once `R` is
+    under `S / SECOND_RISE_RATIO` (the second rise), and until then the plateau at `PLATEAU_PA` (never more than the balance). The sink falls with the interior's heat, so a body that is old enough has crossed both.
+    """
+    if profile.steady_mol <= 0.0:
+        return 0.0
+    if profile.reductant_mol_yr <= profile.source_mol_yr / SECOND_RISE_RATIO:
+        return profile.steady_mol
+    burnt, _ = burn(air_moles(body))
+    return min(profile.steady_mol, _oxygen_mol_at(body, burnt, PLATEAU_PA))
 
 
 def partials_pa(body, moles):
@@ -431,16 +464,69 @@ def rebalance_co2(body):
     return True
 
 
+FREEZE_AGAIN_PASSES = 20
+"""int: The most times `store_air` lets the warming and the freeze-out of the new air move each other (the colder air condenses more, the condensed air warms less, and the pair settles in a few passes)."""
+FREEZE_AGAIN_TOLERANCE = 1.0e-6
+"""float: The relative change of a partial pressure under which the freeze-out has settled. A numerical tolerance, not a physical value."""
+
+
+def freeze_out_at(body, air, temperature_k):
+    """
+    `air` (formula to partial pressure, Pa) once the gases that stand above their saturation pressure at `temperature_k` have condensed (GEN.1564): the same
+    `surface_air.freeze_out` the first solve uses, on the moles of the column. A gas with no curve, or above its critical temperature, is left alone. The water
+    of the body's ocean (`_ocean_moles`) is the reservoir of the vapor, as in the first solve: it brings the vapor to its humidity from either side, so a sea
+    that is not frozen over keeps its air wet at a colder temperature; no other gas has a reservoir here.
+    """
+    gravity = body.gravity * constants.EARTH_GRAVITY
+    area = area_m2(body)
+    weight = sum(pascal * gases.gas(formula).molar_mass for formula, pascal in air.items())
+    total_pa = sum(air.values())
+    if weight <= 0.0 or total_pa <= 0.0:
+        return air
+    mean_molar_mass = weight / total_pa
+    moles = {formula: pascal * area / (gravity * mean_molar_mass) for formula, pascal in air.items()}
+    ocean_moles = _ocean_moles(body, area)
+    reservoirs = {"H2O": (surface_air.RELATIVE_HUMIDITY, ocean_moles)} if ocean_moles > 0.0 else None
+    left, _, _ = surface_air.freeze_out(moles, gravity, area, temperature_k, reservoirs)
+    left = {formula: count for formula, count in left.items() if count > 0.0}
+    column = sum(left.values())
+    if column <= 0.0:
+        return {}
+    pressure = sum(count * gases.gas(formula).molar_mass for formula, count in left.items()) * gravity / area
+    return {formula: count / column * pressure for formula, count in left.items()}
+
+
+def _ocean_moles(body, area):
+    """Moles of water in the body's ocean (its cover times its mean depth, at liquid water's density), 0 for a body with no sea."""
+    depth_km = getattr(body, "ocean_depth_km", None) or 0.0
+    cover = getattr(body, "ocean_fraction", None) or 0.0
+    if getattr(body, "hydrosphere", None) not in ("surface ocean", "hycean", "ice-covered ocean") or depth_km <= 0.0 or cover <= 0.0:
+        return 0.0
+    return cover * area * depth_km * 1000.0 * constants.LIQUID_WATER_DENSITY_KG_M3 / gases.gas("H2O").molar_mass
+
+
 def store_air(body, air):
     """
     Gives `body` the air `air` (formula to partial pressure, Pa): the warming and surface temperature that mixture gives under the starlight the
     body absorbed (the closure of `surface_air`, so the stored greenhouse factor still follows from the stored air, haze included: GEN.1589), and the total pressure,
     molar mass, density and scale height of the new mixture. The doses, aerosols, colour and score that read the air are the caller's to make
     again (`generation.life`).
+
+    The new air has a new temperature, and at it a gas may stand above its saturation pressure: the freeze-out of the first solve is run again at that
+    temperature (`freeze_out_at`, GEN.1564), and the warming of the air that is left, until the pair settles. A hydrogen-rich air keeps its gases (the
+    first solve does not freeze a giant either).
     """
     gravity = body.gravity * constants.EARTH_GRAVITY
     radiated = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
     warming = _warming(body, air, gravity, radiated)
+    for _ in range(FREEZE_AGAIN_PASSES):
+        frozen = freeze_out_at(body, air, warming.surface_temperature_k)
+        if not frozen:
+            break
+        if all(abs(frozen.get(formula, 0.0) - pascal) <= FREEZE_AGAIN_TOLERANCE * max(pascal, MINIMUM_PA) for formula, pascal in air.items()):
+            break
+        air = frozen
+        warming = _warming(body, air, gravity, radiated)
     state = atmosphere_state.air_state(air, warming.surface_temperature_k, gravity)
     body.surface_temperature = warming.surface_temperature_k
     body.greenhouse_factor = warming.factor

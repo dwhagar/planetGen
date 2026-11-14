@@ -136,3 +136,5 @@ Commit each file came from:
 - v254: after OPS.154's migration 0254 (no schema change), before DB.122 collision_count column (0255)
 - v255: after DB.122's migration 0255 (collision_count column), before DB.124 small body makeup (0256) (made by running the migrations on v252 and dumping the tables, so it has no comments)
 - v256: after DB.124's migration 0256 (small body makeup), before DB.75 body_numbers table (0257) (made the same way)
+- v257: after DB.75a's migration 0257 (body_numbers table), before GEN.332 slice C asteroid_belts.host_node_id column (0258) (main's schema.sql with its comment and blank lines removed)
+- v258: after GEN.332 slice C's migration (asteroid_belts.host_node_id column, numbered 0258 when the train renumbers it), before GEN.1433 flavor_key columns (0259) (train 27's schema.sql with its comment and blank lines removed)

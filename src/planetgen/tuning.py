@@ -155,6 +155,20 @@ OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
+# The viscous-disk snow line the water of a rocky body is read against (GEN.1678, `formation_snow_line.viscous_snow_line_au`): Mulders, Ciesla, Min and Pascucci 2015 ([R3193]) Eq. 2
+# with the accretion rate of Eq. 4, Mdot = 3e-8 (M / Msun)^1.81 (t / Myr)^-1.5 Msun/yr (the exponents and the 3e-8 are read; Eq. 4 holds for times well past the viscous time),
+# the age they set the line at (1 Myr, section 2.5), the gas-to-dust ratio 66 (section 2.3), alpha 0.01 (section 2.5) and the ice sublimation temperature 160 K (section 2).
+VISCOUS_DISK_AGE_MYR = 1.0
+VISCOUS_DISK_MDOT_PREFACTOR_SOL_YR = 3.0e-8
+VISCOUS_DISK_MDOT_MASS_EXPONENT = 1.81
+VISCOUS_DISK_MDOT_TIME_EXPONENT = -1.5
+VISCOUS_DISK_GAS_TO_DUST = 66.0
+VISCOUS_DISK_ALPHA = 0.01
+VISCOUS_DISK_ICE_K = 160.0
+# The Rosseland opacity of the disk's dust, cm2/g: the paper gives 570 for small (interstellar) grains and 20 for large ones (section 2.3) and the grain size of a disk is not known; this is
+# the geometric mean of the two, the center of their range (sqrt(570 x 20) = 107): a Sun-like star's line is 2.4 au (3.5 au with small grains, 1.6 with large). A planetGen stand-in
+# (tier T6, tweak L1: inside the range of the source).
+VISCOUS_DISK_OPACITY_CM2_G = 107.0
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
@@ -241,6 +255,9 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
+# How well a body must match the class it was given for the class to count as an outcome (GEN.1315): a requested class is met, and a Class M world is counted, only by a body whose stored
+# `class_match` (1 for a full fit, `1 - total / (values * largest cap)` for a fudged one, `class_fit.match_of`) is at least this. Below it the class is shown with its match but is not an outcome.
+CLASS_MATCH_THRESHOLD = 0.5
 # How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
@@ -254,10 +271,15 @@ CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 after it take a mass log-uniform over this range in Earth masses, so a class the disk rarely makes at that slot (an ice giant at a cold
 one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
-# class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
-# any (10 kPa), and the water a surface ocean.
+# class letter. The surface temperature range is the liquid-water range, the water a surface ocean, and (GEN.1702, Boss's card "Yes, add land and
+# pressure", 11:18 PM EST 2026-11-13) the ocean covers 20 to 95 percent of the surface, so there is land and there is sea, under an air of 50 to 250 kPa.
 REQUEST_TEMPERATURE_K = (273.15, 323.15)
-REQUEST_MIN_PRESSURE_PA = 10000.0
+REQUEST_WATER_COVER = (0.20, 0.95)
+"""tuple[float]: The share of the surface (`ocean_fraction`, the liquid sea) a world that meets a request for a habitable world has under water: some land and
+some sea. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC11)."""
+REQUEST_PRESSURE_PA = (50000.0, 250000.0)
+"""tuple[float]: The total air pressure range, in pascals, of a world that meets a request for a habitable world (50 to 250 kPa: Earth's 101 kPa to about 2.5 times it;
+replaces the floor of 10 kPa). A planetGen stand-in (tier "from needed output", tweak L3; registry row CC12)."""
 REQUEST_HYDROSPHERES = ("surface ocean",)
 REQUEST_PLANET_DRAW_BUDGET = 60
 """int: How many planets a request for a habitable world may draw again in all, over every try of one system (`StarSystem._planet_in_ecosphere`):
@@ -309,7 +331,7 @@ DELIVERED_WATER_RICH_MAX = 0.5
 ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
-# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
+# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock takes the albedo of its ground (`physics/ground_albedo`, rows GA1 to GA3); a body with surface water
 # (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) draws the albedo of its ice-free state, ocean and cloud. The ice is not drawn: the
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
@@ -2105,11 +2127,8 @@ AM_CVN_PERIOD_MINUTES = (5.0, 65.0)
 
 AM_CVN_DONOR_MASS_RANGE_SOL = (0.009, 0.13)
 """tuple: The mass of an AM CVn helium donor, log-uniform, solar masses. A stand-in that gives the periods of
-`AM_CVN_PERIOD_MINUTES` with the radius law below; a draw whose period falls outside is made again."""
-
-AM_CVN_DONOR_RADIUS_SOL_AT_0_05 = 0.03
-"""float: The radius of a 0.05 solar mass degenerate helium donor, solar radii; other masses scale as the mass to the power
--1/3 (a stand-in for the semi-degenerate donors of AM CVn systems)."""
+`AM_CVN_PERIOD_MINUTES` with the zero-temperature radius law (`physics.degenerate_radius`); a draw whose period falls
+outside is made again."""
 
 ACCRETING_FILL_FACTOR = 1.05
 """float: How far a cataclysmic variable's or AM CVn's donor fills its Roche lobe (1 is exactly full); a pair at this
