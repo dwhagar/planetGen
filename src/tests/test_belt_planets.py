@@ -138,3 +138,24 @@ def test_a_promoted_planet_is_stored_with_its_belt_and_rank(promoted_system, mys
     assert sorted((b.belt_order, b.belt_rank) for b in _promoted(loaded)) == sorted(stored)
     distances = [row["distance_km"] for row in rows]
     assert distances == sorted(distances)
+
+
+def test_a_free_spinning_promoted_planet_has_the_range_its_tilt_wanders_over(promoted_system):
+    """GEN.1668: the settle pass the promoted planets were missing gives a free-spinning one the tilt range of `settle_obliquity` (GEN.1535)."""
+    from planetgen.physics import spin
+    _seed, system = promoted_system
+    free = [body for body in _promoted(system)
+            if body.rotation_period_hours and body.period and spin.spin_state(body.rotation_period_hours, body.period)[0] == "free"]
+    for body in free:
+        assert body.obliquity_min_deg is not None and body.obliquity_max_deg is not None, body.name
+        assert body.obliquity_min_deg <= body.obliquity_max_deg + 1e-9
+
+
+def test_settling_only_some_planets_leaves_the_others_as_they_are(promoted_system):
+    """GEN.1668: `only=` names the planets `settle_obliquity` and `settle_moon_tilts` judge; with none named, nothing moves."""
+    from planetgen.physics import planets as planet_physics
+    _seed, system = promoted_system
+    before = [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.planets if body.body_type != 'a']
+    assert planet_physics.settle_obliquity(system.planets, system.star.mass, only=[]) == 0
+    assert planet_physics.settle_moon_tilts(system.planets, system.star.mass, only=[]) == 0
+    assert before == [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.planets if body.body_type != 'a']

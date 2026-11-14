@@ -39,7 +39,7 @@ from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
 from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "comet_admission.json")
@@ -94,12 +94,6 @@ class Model:
     retrieved: str
 
 
-def _finite(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"{owner}: {value!r} is not a finite number")
-    return float(value)
-
-
 def load(path=DATA_FILE):
     """Reads and checks the fitted model at `path`."""
     try:
@@ -112,7 +106,7 @@ def load(path=DATA_FILE):
         comets, measured = raw.get("comets"), raw.get("measured")
         if raw.get("group") not in GROUPS or not isinstance(comets, int) or not isinstance(measured, int) or not 0 <= measured <= comets:
             raise DataError(f"admission cell {raw!r} is not a group and a count")
-        low, high = _finite("q_min_au", raw.get("q_min_au")), _finite("q_max_au", raw.get("q_max_au"))
+        low, high = finite_number("q_min_au", raw.get("q_min_au")), finite_number("q_max_au", raw.get("q_max_au"))
         if not 0 < low < high:
             raise DataError(f"admission cell {raw!r} has no perihelion range")
         cells.append(Cell(raw["group"], low, high, comets, measured))
@@ -125,10 +119,10 @@ def load(path=DATA_FILE):
         raw = (document.get("distance") or {}).get(kind)
         if raw is None:
             raise DataError(f"the distance model has no {kind}")
-        scatter = _finite(f"{kind} scatter", raw.get("scatter"))
+        scatter = finite_number(f"{kind} scatter", raw.get("scatter"))
         if scatter <= 0:
             raise DataError(f"{kind}: the scatter {scatter} is not positive")
-        distance[kind] = Distance(_finite(f"{kind} intercept", raw.get("intercept")), _finite(f"{kind} slope", raw.get("slope")), scatter,
+        distance[kind] = Distance(finite_number(f"{kind} intercept", raw.get("intercept")), finite_number(f"{kind} slope", raw.get("slope")), scatter,
                                   int(raw.get("rows", 0)), int(raw.get("comets", 0)))
     return Model(cells=tuple(cells), distance=distance, known_comets=int(document.get("known_comets", 0)),
                  measured_comets=int(document.get("measured_comets", 0)), source=document.get("source", ""),

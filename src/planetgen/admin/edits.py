@@ -18,7 +18,7 @@ returned `EditResult` says what moved and what is still wrong.
 from collections import namedtuple
 
 from planetgen.generation import validation
-from planetgen.physics import constants, daylight, magnetism, planet_kind, planets as planetPhysics, radiation
+from planetgen.physics import daylight, magnetism, planet_kind, planets as planetPhysics, radiation
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
 from planetgen.generation.planet import Planet
@@ -67,18 +67,35 @@ def find_body(system, kind, body_id):
     raise BodyNotFound(f"no such {kind}: {body_id}")
 
 
-def _name_moons(planet):
+def name_moons(planet):
     """Names a planet's moons `<planet name><letter>`, in orbital order."""
     planet.moons.sort(key=lambda m: m.distance)
     for index, moon in enumerate(planet.moons):
         moon.name = f"{planet.name}{moon_letters(index)}"
 
 
-def _finish(system, summary):
+def finish(system, summary):
     """Stabilizes the edited system and wraps up the `EditResult`."""
     report = validation.stabilize_star_system(system)
-    warnings = [f"{p.body}: {p.message}." for p in report.problems]
-    return EditResult(summary, report.moved, report.reclassified, report.removed, warnings)
+    return EditResult(summary, report.moved, report.reclassified, report.removed, _warnings(report))
+
+
+def _warnings(report):
+    """A stabilize report's problems as plain sentences."""
+    return [f"{p.body}: {p.message}." for p in report.problems]
+
+
+def finish_new_planet(planet):
+    """What a freshly generated planet needs before it joins a system: its moons named, their radiation from the planet's
+    belts (GEN.983), life on it and them, and the fields the star induces in it (GEN.981) and it in its moons."""
+    name_moons(planet)
+    for moon in planet.moons:
+        radiation.apply_parent_belts(moon, planet)
+    for body in [planet] + planet.moons:
+        validation.reapply_life(body)
+    magnetism.generate_stellar_induction(planet)
+    for moon in planet.moons:
+        magnetism.generate_induced_field(moon, planet)
 
 
 def regenerate_planet(system, planet, owner):
@@ -90,16 +107,9 @@ def regenerate_planet(system, planet, owner):
     fresh = Planet(system.system_config, planet.star, planet.star.habitable_zone, planet.distance)
     fresh.name = planet.name
     fresh.db_id = planet.db_id
-    _name_moons(fresh)
-    for moon in fresh.moons:
-        radiation.apply_parent_belts(moon, fresh)  # GEN.983
-    for body in [fresh] + fresh.moons:
-        validation.reapply_life(body)
-    magnetism.generate_stellar_induction(fresh)  # GEN.981
-    for moon in fresh.moons:
-        magnetism.generate_induced_field(moon, fresh)
+    finish_new_planet(fresh)
     owner[owner.index(planet)] = fresh
-    return _finish(system, f"Regenerated {planet.name}: now class {fresh.planet_class} "
+    return finish(system, f"Regenerated {planet.name}: now class {fresh.planet_class} "
                            f"with {len(fresh.moons)} moon{'' if len(fresh.moons) == 1 else 's'}.")
 
 
@@ -134,7 +144,7 @@ def regenerate_moon(system, moon, planet):
     validation.reapply_life(fresh)
     planet.moons[planet.moons.index(moon)] = fresh
     validation.refresh_planet_reflex(planet)
-    return _finish(system, f"Regenerated {moon.name}: now class {fresh.planet_class}.")
+    return finish(system, f"Regenerated {moon.name}: now class {fresh.planet_class}.")
 
 
 def regenerate_belt(system, belt, owner):
@@ -144,7 +154,7 @@ def regenerate_belt(system, belt, owner):
     fresh = AsteroidBelt(system.system_config, star, belt.distance, belt.lower_limit, belt.upper_limit)
     fresh.db_id = belt.db_id
     owner[owner.index(belt)] = fresh
-    return _finish(system, f"Regenerated the asteroid belt: now {fresh.density}, "
+    return finish(system, f"Regenerated the asteroid belt: now {fresh.density}, "
                            f"{fresh.get_composition_summary()}.")
 
 
@@ -159,7 +169,7 @@ def remove_body(system, body, owner):
         owner.moons.remove(body)
         validation.refresh_planet_reflex(owner, force=True)
     label = body.name if getattr(body, "name", None) else "the asteroid belt"
-    return _finish(system, f"Removed {label}.")
+    return finish(system, f"Removed {label}.")
 
 
 def regenerate_body(system, kind, body, owner):
@@ -295,10 +305,9 @@ def change_star(system, star_type):
         _rescale_comet(comet, factor, mass_ratio, _kg_to_msun(new.mass))
 
     report = validation.stabilize_star_system(system, allow_removal=True)
-    warnings = [f"{p.body}: {p.message}." for p in report.problems]
     removed = report.removed + dropped_moons
     summary = f"The star is now {new.type}; orbits were scaled by {factor:.3g}."
     if removed:
         summary += f" No room for {len(removed)} bod{'y' if len(removed) == 1 else 'ies'}: " \
                    f"{', '.join(removed)} removed."
-    return EditResult(summary, report.moved, report.reclassified, removed, warnings), new
+    return EditResult(summary, report.moved, report.reclassified, removed, _warnings(report)), new

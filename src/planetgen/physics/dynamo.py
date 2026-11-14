@@ -25,7 +25,9 @@ Every number that is not a published value is a stand-in in the gap registry (do
 import math
 from dataclasses import dataclass
 
-VACUUM_PERMEABILITY = 4e-7 * math.pi
+from planetgen.physics import constants
+
+VACUUM_PERMEABILITY = constants.VACUUM_PERMEABILITY
 """float: mu0, T m/A."""
 
 DIPOLE_COEFFICIENT = 0.2

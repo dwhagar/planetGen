@@ -38,7 +38,7 @@ near a fractional luminosity of 1e-5 but the belts the generator builds are all 
 
 import math
 
-from planetgen.physics import belt_mass
+from planetgen.physics import belt_mass, constants
 from planetgen.util.checks import finite_domain
 
 DEBRIS_KIND = "debris"
@@ -57,7 +57,7 @@ DETECTABLE_FRACTIONAL_LUMINOSITY = 5.0e-5
 """float: The fractional luminosity, dust over star, a survey finds around a star of `REFERENCE_TEMPERATURE_K`, at which the generator's disks are as common as the surveys' (the real survey limit is near 1e-5).
 [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]"""
 
-REFERENCE_TEMPERATURE_K = 5772.0
+REFERENCE_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
 """float: The Sun's effective temperature, K: the star `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit for. [Stand-in DU5, tier T1, tweak L0.]"""
 
 DETECTION_TEMPERATURE_EXPONENT = 3.0

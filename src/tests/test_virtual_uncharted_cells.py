@@ -164,3 +164,22 @@ def test_a_cell_that_has_a_row_is_listed_once(galaxy):
         assert [i for i in items if (i["shell_index"], i["band_index"], i["wedge_index"]) == (9, 2, 7)][0].get("virtual") is None
     finally:
         conn.close()
+
+
+def _search(conn, term, scope=None):
+    options = {} if scope is None else {"sector_scope": scope}
+    return query.search(conn, {"sector_q": term}, {facet: set() for facet in query.SEARCH_TAG_FACETS}, **options)["results"]["sectors"]
+
+
+def test_a_designation_typed_whole_finds_the_cell_that_has_no_row(galaxy):
+    """OPS.154 part 2: search by name reaches a cell with no row by its designation (with uncharted sectors asked for), and only then."""
+    conn = store.get_connection(galaxy)
+    try:
+        address = WAITING[0]
+        found = _search(conn, _uid(address), ("uncharted", True))
+        assert [row["id"] for row in found["rows"]] == [_uid(address)] and found["total"] == 1 and found["rows"][0]["virtual"] is True
+        assert _search(conn, _uid(address))["rows"] == []      # charted sectors only, as it was
+        assert _search(conn, _uid((9, 2, 6)), ("uncharted", True))["rows"] == []      # a cell with no part
+        assert _search(conn, _uid(CHARTED[0]), ("uncharted", True))["rows"] == []      # charted
+    finally:
+        conn.close()
