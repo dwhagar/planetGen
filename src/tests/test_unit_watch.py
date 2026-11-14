@@ -96,20 +96,41 @@ def test_a_redis_that_cannot_answer_for_one_poll_changes_nothing(conn, run_id, m
     assert watch.check() == first and len(_lines(conn, run_id)) == 1
 
 
-def test_follow_stage_checks_the_watch_at_every_poll_and_clears_it_after(conn, run_id):
+def test_the_supervisor_judges_the_stage_in_flight_of_a_live_run_each_turn_and_drops_the_watch_when_it_ends(conn, run_id, monkeypatch):
+    """OPS.208: the watch moved from the process that started the run to the supervisor (`supervisor.RunWatches`)."""
+    from planetgen.queue import supervisor
+    runrecord.begin_stage(conn, run_id, 0)
+    runrecord.set_stage_plan(conn, run_id, 0, 1, 1.0, {"units": 1, "detail": {}})
     calls = []
 
     class _Watch:
         def check(self):
             calls.append("check")
-            if len(calls) == 2:
-                runrecord.unit_done(conn, run_id, 0, 0, seconds=1.0)
-                conn.hset(runrecord.results_key(run_id, 0), 0, json.dumps({"ok": 1}))
 
         def clear(self):
             calls.append("clear")
 
+    monkeypatch.setattr(runrecord, "read_steps", lambda c, r: [{"key": "test", "kind": "test"}])
+    watches = supervisor.RunWatches(conn, make=lambda c, r, stage, kind: _Watch())
+    assert supervisor.running_stage(conn, run_id) == 0
+    assert watches.turn() == [(run_id, 0)] and watches.turn() == [(run_id, 0)] and calls == ["check", "check"]
+    runrecord.unit_done(conn, run_id, 0, 0, seconds=1.0)
+    assert supervisor.running_stage(conn, run_id) is None
+    assert watches.turn() == [] and calls == ["check", "check", "clear"]
+
+
+def test_a_failing_watch_does_not_stop_the_supervisors_turn(conn, run_id, monkeypatch):
+    from planetgen.queue import supervisor
     runrecord.begin_stage(conn, run_id, 0)
-    got = []
-    units.follow_stage(conn, run_id, 0, 1, lambda unit, result: got.append(unit), sleep=lambda s: None, watch=_Watch())
-    assert got == [0] and calls == ["check", "check", "clear"]
+    runrecord.set_stage_plan(conn, run_id, 0, 1, 1.0, {"units": 1, "detail": {}})
+    monkeypatch.setattr(runrecord, "read_steps", lambda c, r: [{"key": "test", "kind": "test"}])
+
+    class _Broken:
+        def check(self):
+            raise ConnectionError("down")
+
+        def clear(self):
+            pass
+
+    watches = supervisor.RunWatches(conn, make=lambda c, r, stage, kind: _Broken())
+    assert watches.turn() == [(run_id, 0)], "the failure is logged and the turn goes on"

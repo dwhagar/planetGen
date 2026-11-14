@@ -30,7 +30,7 @@ import time
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commandgaps, commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
+from planetgen.queue import commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, units, workers
 from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 
@@ -858,7 +858,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                    ensure, on_debug=on_debug, watch=unitwatch.UnitWatch(conn, run_id, index, steps[index].kind, history_of=commandgaps.history_of(conn, run_id), rate_of=unitrates.rate_of(conn, run_id)))
+                    ensure, on_debug=on_debug)
             if commands.spec(steps[index].kind).conclude is not None:
                 conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)
             if on_stage_done is not None:
