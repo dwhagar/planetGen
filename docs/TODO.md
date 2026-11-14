@@ -13138,7 +13138,8 @@ clears each one.
 
 - [ ] **OPS.218 Job engine stage 3: open, conclude and finish become jobs with edges; units._end_stage and the prepare, conclude and finish hooks deleted; absorbs OPS.123 and the hook part of OPS.129; split per hook kind**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size L. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.216, OPS.217. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.216, OPS.217. Related: OPS.191, OPS.207, OPS.212, OPS.253.
+  Must also carry the run's own lines (stage rows, "Backfilled N stars", shell lines) when the starter is gone (Lane 06, 2026-11-14, from OPS.253): today those come from the starter's on_plan, on_result and on_stage_done callbacks, so a run whose starter died advances and ends without them. Once conclude and finish run as jobs under the supervisor, the supervisor writes them. PR 6490 (OPS.211) only logs that the starter stopped.
   Filed by the TODO thread.
 
 - [ ] **OPS.219 Job engine stage 3: checkpoints (ctx.commit stores the last finished piece's cursor; a retry or resume starts after it)**
