@@ -19,8 +19,8 @@ from contextlib import contextmanager
 LABEL_CHARS = 80
 """int: The longest label shown for a statement's own text."""
 
-_marks = {}         # thread id -> (text, labelled, monotonic seconds at the start)
-_given = {}         # thread id -> the label a `labelled` block gave
+_marks = {}         # thread id -> (text, label, progress function, monotonic seconds at the start)
+_given = {}         # thread id -> (the label a `labelled` block gave, the function that reads its progress or `None`)
 clock = time.monotonic
 
 
@@ -35,7 +35,7 @@ class statement:
     def __enter__(self):
         self._ident = ident = threading.get_ident()
         self._before = _marks.get(ident)
-        _marks[ident] = (self._sql, _given.get(ident), clock())
+        _marks[ident] = (self._sql, *_given.get(ident, (None, None)), clock())
 
     def __exit__(self, *exc_info):
         if self._before is None:
@@ -46,11 +46,14 @@ class statement:
 
 
 @contextmanager
-def labelled(label):
-    """The statements this thread sends inside the block are shown as `label`."""
+def labelled(label, progress=None):
+    """
+    The statements this thread sends inside the block are shown as `label`. `progress`, if given, is a function the beat calls for `(done, estimated)` work of the statement now
+    out (MySQL's stage events, where the account may read them: OPS.195), or `None`.
+    """
     ident = threading.get_ident()
     before = _given.get(ident)
-    _given[ident] = str(label)
+    _given[ident] = (str(label), progress)
     try:
         yield
     finally:
@@ -67,12 +70,13 @@ def shorten(sql):
 
 
 def running():
-    """`(label, seconds)` of the statement that has run longest in this process, or `None` when no thread is in one."""
+    """`(label, seconds, progress)` of the statement that has run longest in this process (`progress` is a function or `None`), or `None` when no thread is in one."""
     now = clock()
     oldest = None
-    for text, given, started in list(_marks.values()):
-        if oldest is None or started < oldest[2]:
-            oldest = (text, given, started)
+    for mark in list(_marks.values()):
+        if oldest is None or mark[3] < oldest[3]:
+            oldest = mark
     if oldest is None:
         return None
-    return (oldest[1] or shorten(oldest[0]), max(now - oldest[2], 0.0))
+    return (oldest[1] or shorten(oldest[0]), max(now - oldest[3], 0.0), oldest[2])
+

@@ -89,11 +89,20 @@ def evidence(now_server):
     What the unit is doing besides moving its counter (OPS.193): `cpu_s` (processor seconds of this process and the children it waited for), `io_read` and `io_write` (bytes), and, while a
     statement is out, `sql` (its label) and `sql_since` (server-clock seconds when it was sent). The judge (OPS.194) calls a unit whose counter stands still but whose figures move `busy`.
     """
+    from planetgen.util import log
     read, written = io_bytes()
     made = {"cpu_s": round(usageModule.cpu_seconds(), 2), "io_read": read, "io_write": written}
     sent = statementmark.running()
     if sent is not None:
         made["sql"], made["sql_since"] = sent[0], now_server - sent[1]
+        if sent[2] is not None:
+            try:
+                found = sent[2]()
+            except Exception as exc:        # noqa: BLE001 -- a reading of the server that fails must not stop the beat
+                log.swallowed("queue", "reading the progress of a statement for the beat", exc)
+                found = None
+            if found:
+                made["sql_done"], made["sql_estimated"] = found
     return made
 
 
