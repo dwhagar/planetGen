@@ -104,6 +104,12 @@ PLANET_SOLIDS_STELLAR_MASS_EXPONENT = 1.2
 # so that a Sun-like star has about 0.8 planets of 1 to 20 Earth masses inside 0.45 AU and an M dwarf about 1 (Petigura et al.
 # 2018; [R1156]: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
 PLANET_INNER_DISK_STEEPENING = 0.75
+# The terrestrial zone (GEN.1560): from this distance to the star's snow line the solids the oligarchs are built from are this many times the rest of the disk's (`planet_mass.solids_surface_density_gcm2`).
+# `PLANET_DISK_SOLIDS_ENHANCEMENT` is fitted to the giants beyond the snow line; the Kepler systems' extrasolar nebula needs several times the minimum-mass solids at 1 AU ([R0771], recalled),
+# and the giant-impact stage below then merges the oligarchs it builds. A planetGen stand-in (tier T6, tweak L3) fitted with `GIANT_IMPACT_SPACING` to the share of Sun-like stars with an Earth-sized
+# planet in the habitable zone ([R0572]: 0.37 to 0.60 for 0.5 to 1.5 Earth radii).
+PLANET_ROCKY_ZONE_SOLIDS_BOOST = 4.0
+PLANET_ROCKY_ZONE_START_AU = 0.45
 # Beyond this distance the cores of the outer disk have not had time to assemble before the gas and the planetesimals are gone:
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
@@ -146,7 +152,7 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
-# The age, in Gy, at which the luminosity an evolved star's disk saw is read from its track (GEN.1611, `formation_snow_line`): the disk is gone in 3 to 10 Myr
+# The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
@@ -199,6 +205,13 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 # The share of the mass of two oligarchs that collide which stays in the planet; the rest is debris (Pu and Wu 2015 expect a destructive
 # collision at the relative speeds of the compact systems and cannot predict the outcome). A planetGen stand-in (tier T4, tweak L0).
 COLLISION_MASS_RETENTION = 0.9
+# The spacing, in mutual Hill radii of the pair, the planets of the terrestrial zone are left at by the giant-impact stage (`planet_architecture.giant_impacts`, GEN.1560). 0 turns the stage off.
+# N-body runs of protoplanets 10 Hill radii apart end in a few planets, two of them Earth-sized, after 100 Myr [R2431]. A planetGen stand-in (tier T6, tweak L3) fitted with the boost above to [R0572].
+GIANT_IMPACT_SPACING = 25.0
+# The giant-impact stage ends at this distance, AU, or the snow line when that is nearer: protoplanets farther out, round A stars whose snow line lies at 10 AU and more, do not finish merging in the
+# age of the disk (the timescale grows steeply with distance, [R2431]), and merging them pulled the outermost planet in, which moved the outer disk and the debris disks of A stars from 10 to 27 of 40.
+# A planetGen stand-in (tier T6, tweak L3), registry PA17.
+GIANT_IMPACT_END_AU = 3.0
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
 # a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
@@ -267,13 +280,13 @@ PLANET_MIN_MASS_KG = 1.0e21
 # planetGen stand-ins (tier "educated guess from physics", level L3) until a moon-formation law is wired:
 # moon masses follow dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE between the lightest moon the generator makes and a share of the
 # parent's mass. Regular satellites of the giants are at most a few 1e-4 of the parent (Titan 2.4e-4 of Saturn; Ganymede 7.8e-5
-# of Jupiter), so the giants' cap is 1e-3; a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
+# of Jupiter), so the giants' cap is the most a circumplanetary disk can hold of its parent, 6.4e-4 (`physics/planet_moons.DISK_TOTAL_RATIO_MAX`, [R0643]; GEN.1157; a capture moon of planet size is drawn apart);
+# a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
 # Pluto), which is also the largest `physics/planets.moon_size_limits` allows.
 MOON_MASS_FUNCTION_SLOPE = 0.5
 # The lightest moon generated (about an Enceladus, 250 km across): the generator leaves the swarm of smaller captured rocks to the belts and
 # rings. A planetGen stand-in (tier L3): the old class draw built moons of 500 km and more, 1.1 per planet.
 MOON_MIN_MASS_KG = 1.0e20
-MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
 # GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
@@ -305,6 +318,10 @@ ALBEDO_WET_RANGE = (0.25, 0.40)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
 # --- Star System Generation Parameters ---
+BELT_PLANETS_PER_BELT = 10
+"""int: How many of a belt's round members become planets (GEN.1510, Boss 2026-11-10: the heaviest ten of each belt). The rest stay members, with the status `dwarf planet` or `minor body`. A planet
+costs about a tenth of a second to make, so the cap bounds the generation time of a system (about +30 percent at ten, `reports/belt-bodies-as-planets-2026-11-09.md` section 3)."""
+
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
@@ -546,12 +563,15 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
-SECTOR_HILL_SEPARATION_SHARE = 0.5
-"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192). A galactic Hill
-sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
-overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
-sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
-of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
+SECTOR_HILL_SEPARATION_SHARE = 0.05
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192, fitted to Gaia in GEN.1534). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood overlaps them freely:
+in the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, 958 systems within 15 pc, 0.074 systems per cubic parsec) 30 percent of the systems have a neighbour nearer than 1 pc and the
+median nearest neighbour is 1.33 pc, which is what no exclusion at all gives (1.31 pc, 27 percent), while the old half of the sum (1.3 pc between two median systems) forbade every
+neighbour under 1 pc and moved the median to 1.65 pc. `scripts/fit_sector_separation.py` places systems at that density by the galaxy's own rejection and compares the nearest-neighbour
+distribution with the sample's: the Kolmogorov-Smirnov distance is inside the 95 percent band (0.044) for shares up to 0.075, 0.045 at 0.1 and past it from 0.15 (0.086 at 0.2, 0.38 at 0.5).
+0.05 is the middle of the shares the data allow and keeps a mild exclusion; the nearby clustering of real wide pairs and moving groups is not reproduced by any share. Every sector keeps
+every system it is asked for (GEN.1284 found 424 of 424 at the old half, and a smaller share has more room)."""
 
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
@@ -630,11 +650,8 @@ ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 # consensus) -- an absolute ceiling on any star's age: no star is older, however
 # long its own track could keep it shining (an M dwarf's runs to trillions of years).
 UNIVERSE_AGE_GY = 13.8
-UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO = 0.85
 OLD_STAR_AGE_LIFESPAN_RATIO = 1/3
 YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
-MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
-WHITE_DWARF_AGE_ADDITION_GY = 5
 # The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
 # the proto-solar Z of the composition scale, [R0168] (stellar-
 # composition.md D1). A solar mass lasts 10.2 Gy at it.
@@ -926,7 +943,7 @@ BLACK_HOLE_MAP_BRIGHTNESS = 0.8
 MASSLESS_MARKER_MASS_SOL = 1.0
 # The Sun's effective temperature (IAU 2015 nominal), anchoring
 # Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
-SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
+SUN_EFFECTIVE_TEMPERATURE_K = _physical_constants.SOLAR_TEMPERATURE_K
 
 # White dwarfs: final mass from the initial-final mass relation of
 # [R0961], ApJ 866:21 [R0961], the MIST-based fit, equations 4 to 6, read; luminosity from Mestel
@@ -1082,8 +1099,7 @@ RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
 
 RUNAWAY_START_TEMPERATURE_K = 1500.0
 """float: The temperature the air's fixed point starts from for a body with surface water under starlight past its runaway greenhouse limit (GEN.1238), so it
-finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K,
-`surface_air.MAX_SURFACE_TEMPERATURE_K`). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
+finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
 
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
@@ -2322,7 +2338,7 @@ PLANET_CLASSES = {
 
 # Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
 # names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers the paces a star's lifespan allows
-# (`stellar_object.supported_evolutionary_scales`, `age_needs`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
+# (`stellar_object.supported_evolutionary_scales`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
@@ -3088,11 +3104,6 @@ whose host star has no stored composition (a rogue planet)."""
 
 RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
 """float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
-
-RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
-"""tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
-inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies [R3293], not a measured
-spread (radiation-model.md R15, part E 3.3)."""
 
 INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (9.3e7, 1.9e11)
 """tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly (GEN.1185). [R1716] take 2.6e10 to 5.3e13 with an
@@ -4199,13 +4210,15 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 9000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 18000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
 filled in near generated sectors by the backfill (luminosity tiers, then the
-mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
+mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day, 9000 after, and 18000 on
+2026-11-13 (Boss: twice as high; a survey of the default galaxy put the luminosity pass at 24,794 stars at 9000 and 5,983 at
+18000, see reports/generation-order-2026-11-13/report.md). The user
 picks it from the ladder in `generation/luminosity_floor.py`, from
 `BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
 already scattered keeps the level it was scattered at. The value a scatter

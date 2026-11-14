@@ -258,7 +258,8 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`navigation.py`](../../../src/planetgen/galaxy/navigation.py) | Pure math for the NAV feature: the course (distance, bearing, mark) between two absolute 3D positions, and warp and fold travel times along that distance. |
 | [`nodecut.py`](../../../src/planetgen/galaxy/nodecut.py) | Which sector-block nodes the Galaxy Map fetches and draws for a camera (MAP.261): the blocks opened by projected size, the hand-over weights, the budget; `static/galaxynodecut.js` is its twin. |
 | [`nebula_field.py`](../../../src/planetgen/galaxy/nebula_field.py) | Dark-family nebulae (giant molecular clouds, dark clouds, Bok globules and star-forming cores, classes M-Q) are tens of light-years across, far bigger than a 13 ly sector. |
-| [`nebula_shape.py`](../../../src/planetgen/galaxy/nebula_shape.py) | A nebula's irregular shape: a few warped metaballs, its triangle mesh and its containment test (GEN.75). |
+| [`gradient_noise.py`](../../../src/planetgen/galaxy/gradient_noise.py) | 3D gradient noise from a seeded permutation table, for the nebula density's warp and filaments. |
+| [`nebula_density.py`](../../../src/planetgen/galaxy/nebula_density.py) | The density a nebula is drawn from and held by; `inside` is the containment test (GEN.1267, MAP.365). |
 | [`object_uid.py`](../../../src/planetgen/galaxy/object_uid.py) | The object ID (GEN.170, docs/design/architecture/object-id-options.md section 0): one fixed-length ID for every object in the galaxy, made of where it was born and which birth it was. |
 | [`objectref.py`](../../../src/planetgen/galaxy/objectref.py) | One reference form for every object (NAV.7): `<kind>:<id>`. |
 | [`region.py`](../../../src/planetgen/galaxy/region.py) | Regions of the sector grid for the generation commands (a neighborhood, a ball round a sector, a course's cells), described as ranges of shells, bands and wedges. |
@@ -608,6 +609,7 @@ The map panels and their data.
 | `generateplace.js` | The Add sectors form's choices: shows the one panel of the choice made (ADM.108). |
 | `generatestarmix.js` | The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45). |
 | `generatelevers.js` | The Generate task pages' shape dials: the line under them (disc crest, planned-star share, outline) read from `/admin/generate/shape-report` (GEN.617, ADM.124). |
+| `leversliders.js` | The Generate task pages' galaxy measures as sliders: a tick box and the typed box in one row above a bar that rests at where Auto sits in the row's range (`Lever.slider_default`) and sticks to it; unticked is Auto (blank box, no flag). |
 | `generatesize.js` | The line under the Add sectors and Check forms: the sectors, systems, stars, database growth and time the run would make, read a moment after each change from `/admin/generate/task/<key>/size` (ADM.126); the palette adds the same figures to a typed command. |
 | `adminshell.js` | The admin shell's density switch: compact by default, the choice kept in the browser (ADM.92). |
 | `adminpalette.js` | The Ctrl+K palette, its typed commands and the keyboard set (ADM.120, ADM.121, ADM.122). |
@@ -851,7 +853,8 @@ Alembic revision (`planetgen/db/migrations/versions/`, run through
 `planetgen.db.alembic_runner`) above the stored version, in order. A revision's
 id is its schema version, so `SCHEMA_VERSION` is the head revision's number.
 Databases older than v130 (the baseline) are refused with `SchemaTooOldError`
-rather than migrated, and so is a database with tables but no recorded version
+rather than migrated (Boss's hard cut, DB.127: no database structure before 8.0 is accepted; `legacy/bump_database_to_8_0.py` brings
+one up to the baseline on request, DB.126), and so is a database with tables but no recorded version
 (`SchemaVersionMissingError`). `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A change to a `sectors` column rebuilds the whole table, because the FULLTEXT index on `sectors.name` rules out
 `ALGORITHM=INSTANT` (DB.84): such changes are batched into as few revisions as possible, each saying in its docstring

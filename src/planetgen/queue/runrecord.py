@@ -55,6 +55,7 @@ from dataclasses import asdict, dataclass
 from planetgen.util import log as debug_log
 from planetgen.util import logrecord
 from planetgen.util import log as planetgen_log
+from planetgen.util import process
 
 PREFIX = "planetgen"
 """str: Every key starts with this."""
@@ -104,6 +105,8 @@ class Stage:
         prior_rate (float, optional): Cost units per second recorded for this kind of work (`R0`).
         worker_rate (float, optional): Cost units per worker second this server recorded for the stage's last runs
             (`stagetimes`), which `runeta` turns into a rate once the units are known (PERF.184).
+        unit_seconds (float, optional): What the job profile says a unit of the stage's command takes on this machine (OPS.159, `profiletime`), which the untimed
+            estimate (`roughtime`) uses in place of its typed 20 s.
         workers (int): Workers the stage runs on, for the ETA's time constant.
         row (dict, optional): The `generation_stage_runs` row the unit that completes the stage writes (PERF.106:
             `command`, `n`, `total`, `label` and `settings`; `generation.stages.hand_over_open_stage`); none for a
@@ -117,6 +120,7 @@ class Stage:
     expected_seconds: float = None
     prior_rate: float = None
     worker_rate: float = None
+    unit_seconds: float = None
     workers: int = 1
     row: dict = None
 
@@ -215,6 +219,21 @@ def _now(now):
 
 def _s(value):
     return value.decode("utf-8") if isinstance(value, bytes) else value
+
+
+def text_hash(fields):
+    """A Redis hash's `{field: value}` as text (`_s` on both)."""
+    return {_s(key): _s(value) for key, value in fields.items()}
+
+
+def declared_stages(conn, run_id):
+    """The run's stage list as `start_run` stored it (and `set_stage_plan` keeps it): `[]` for an unknown run."""
+    return json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
+
+
+def run_state(conn, run_id):
+    """The run's state (`running`, `canceling`, `done`, `failed`, `canceled`), or `None` for an unknown run."""
+    return _s(conn.hget(run_key(run_id), "state"))
 
 
 _UNIT_DONE = """
@@ -353,7 +372,7 @@ def busy_message(conn, run_id):
     """
     if not run_id:
         return "another run is running"
-    record = {_s(k): _s(v) for k, v in (conn.hgetall(run_key(run_id)) or {}).items()}
+    record = text_hash(conn.hgetall(run_key(run_id)) or {})
     if not record:
         return f"run {run_id} is running"
     started = record.get("started") or ""
@@ -381,14 +400,19 @@ def touch(conn, run_id):
     conn.set(alive_key(run_id), "1", ex=ALIVE_SECONDS)
 
 
-def _pid_alive(pid):
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
-        return True         # of another user: running
-    return True
+_pid_alive = process.pid_alive
+
+
+def unit_json_hash(conn, key):
+    """`{unit: value}` of the Redis hash `key` whose fields are unit numbers and values JSON (the stuck-unit records, the
+    unit views); a field that is not a number or not JSON is left out."""
+    out = {}
+    for unit, raw in conn.hgetall(key).items():
+        try:
+            out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
+        except (ValueError, TypeError):
+            continue
+    return out
 
 
 def holder_is_dead(conn, run_id):
@@ -400,7 +424,7 @@ def holder_is_dead(conn, run_id):
     `alive` key to run out).
     """
     owner = _s(conn.hget(run_key(run_id), "owner")) or ""
-    state = _s(conn.hget(run_key(run_id), "state")) or ""
+    state = run_state(conn, run_id) or ""
     if state and state not in LIVE_STATES:
         return True
     host, _, pid = owner.rpartition(":")
@@ -481,7 +505,7 @@ def set_stage_plan(conn, run_id, index, units, cost, plan, now=None):
     before the units are queued, so no unit can finish against the old count.
     """
     now = _now(now)
-    declared = json.loads(_s(conn.hget(run_key(run_id), "stages")))
+    declared = declared_stages(conn, run_id)
     declared[index]["units"] = int(units)
     declared[index]["cost"] = float(cost)
     pipe = conn.pipeline()
@@ -512,7 +536,7 @@ def conclusion(conn, run_id, index):
 def stored_conclusion(conn, run_id, key):
     """What the end of the stage `key` of run `run_id` found (`conclusion`), `None` when the run has no such stage or the stage
     was not concluded (a run carries on from a run's finished stages with theirs, PERF.182)."""
-    declared = json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
+    declared = declared_stages(conn, run_id)
     for index, stage in enumerate(declared):
         if _s(stage["key"]) == key:
             return conclusion(conn, run_id, index)
@@ -551,7 +575,7 @@ def begin_stage(conn, run_id, index, now=None):
     pipe.hset(stage_key(run_id, index), mapping={"started": now, "last": now})
     pipe.hset(run_key(run_id), mapping={"current": index, "updated": now})
     pipe.execute()
-    declared = json.loads(conn.hget(run_key(run_id), "stages"))
+    declared = declared_stages(conn, run_id)
     log(conn, run_id, logrecord.stage_start(index + 1, len(declared), _s(declared[index]["label"])),
         kind=logrecord.STAGE_START, now=now, stage=index, stages=len(declared))
 
@@ -583,7 +607,7 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_
         UnitDone: `advance` is true for the one unit that completed the stage.
     """
     now = _now(now)
-    stage = json.loads(conn.hget(run_key(run_id), "stages"))[index]
+    stage = declared_stages(conn, run_id)[index]
     if cost is None:
         cost = stage["cost"] / max(stage["units"], 1)
     script = conn.register_script(_UNIT_DONE)
@@ -595,7 +619,7 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_
     if advance:
         started = conn.hget(stage_key(run_id, index), "started")
         seconds_taken = max(now - float(_s(started)), 0.0) if started else 0.0
-        declared = json.loads(conn.hget(run_key(run_id), "stages"))
+        declared = declared_stages(conn, run_id)
         peak = float(_s(conn.hget(stage_key(run_id, index), "peak_mb")) or 0.0)
         log(conn, run_id, logrecord.stage_finish(index + 1, len(declared), seconds_taken, peak_mb=peak),
             kind=logrecord.STAGE_FINISH, now=now, stage=index, stages=len(declared), seconds=round(seconds_taken, 1),
@@ -623,7 +647,7 @@ def _record_stage_time(conn, run_id, index, key):
     effort: an estimate's memory is not worth failing a unit for."""
     from planetgen.queue import stagetimes
     try:
-        counters = {_s(k): _s(v) for k, v in conn.hgetall(stage_key(run_id, index)).items()}
+        counters = text_hash(conn.hgetall(stage_key(run_id, index)))
         started, ended = counters.get("started"), counters.get("ended")
         if started is None or ended is None:
             return
@@ -638,7 +662,7 @@ def request_cancel(conn, run_id, now=None):
     """Marks a live run as canceling (the unit that completes a stage then queues no next stage). Returns
     whether it was live."""
     now = _now(now)
-    if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
+    if run_state(conn, run_id) not in LIVE_STATES:
         return False
     conn.hset(run_key(run_id), mapping={"state": "canceling", "updated": now})
     log(conn, run_id, "cancel requested", kind="run.canceling", now=now)
@@ -646,7 +670,7 @@ def request_cancel(conn, run_id, now=None):
 
 
 def is_canceling(conn, run_id):
-    return _s(conn.hget(run_key(run_id), "state")) == "canceling"
+    return run_state(conn, run_id) == "canceling"
 
 
 KILLED_FIELD = "killed"
@@ -675,7 +699,7 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
     if state not in FINAL_STATES:
         raise ValueError(f"a run ends as one of {FINAL_STATES}")
     now = _now(now)
-    if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
+    if run_state(conn, run_id) not in LIVE_STATES:
         return False
     conn.hset(run_key(run_id), mapping={"state": state, "finished": now, "updated": now, "error": error or ""})
     if killed or state == "canceled":
@@ -707,7 +731,7 @@ def _log_unrun_dependents(conn, run_id, state, now):
     try:
         from planetgen.queue import commands
         steps = [commands.Step.from_dict(item) for item in read_steps(conn, run_id)]
-        declared = json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
+        declared = declared_stages(conn, run_id)
         index_of = {_s(item["key"]): index for index, item in enumerate(declared)}
         for position, step in enumerate(steps):
             if step.key not in index_of or conn.hget(stage_key(run_id, index_of[step.key]), "started") is not None:
@@ -726,7 +750,7 @@ def _log_unrun_dependents(conn, run_id, state, now):
 def _keys_of(conn, run_id, every=False):
     """The keys the run keeps for `KEEP_SECONDS` once it is over (the stage count comes from the record), and with
     `every` the ones that expire by themselves too (the banner figure, the sign of life, the debug stream)."""
-    stages = len(json.loads(conn.hget(run_key(run_id), "stages") or "[]"))
+    stages = len(declared_stages(conn, run_id))
     keys = [run_key(run_id), events_key(run_id), gaps_key(run_id), rates_key(run_id)]
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
@@ -743,7 +767,7 @@ def delete_run(conn, run_id):
     Returns:
         bool: Whether it was deleted.
     """
-    state = _s(conn.hget(run_key(run_id), "state"))
+    state = run_state(conn, run_id)
     if state is None or state in LIVE_STATES:
         return False
     conn.delete(*_keys_of(conn, run_id, every=True))
@@ -764,7 +788,7 @@ def read_events(conn, run_id, after="0", count=500):
     """The events after stream id `after` (`"0"` for all), oldest first: `[(id, {field: value})]` with text
     values. Follow a run by passing the last id seen."""
     rows = conn.xrange(events_key(run_id), min="(" + after if after != "0" else "-", max="+", count=count)
-    return [(_s(entry_id), {_s(k): _s(v) for k, v in fields.items()}) for entry_id, fields in rows]
+    return [(_s(entry_id), text_hash(fields)) for entry_id, fields in rows]
 
 
 EVENT_FIELD_NAMES = ("stage", "stages", "unit", "seconds")
@@ -813,7 +837,6 @@ def write_log_file(conn, run_id, directory, keep=20):
     Writes the run's events to `<directory>/<run id>.log` (the live log, kept at the run's end), then removes
     the oldest `.log` files beyond the newest `keep`. Returns the path.
     """
-    import os
     os.makedirs(directory, exist_ok=True)
     path = os.path.join(directory, f"{run_id}.log")
     with open(path, "w", encoding="utf-8") as handle:
@@ -835,9 +858,7 @@ def read_run(conn, run_id):
     stage with its counters merged in (numbers, `None` where not set yet), and `galaxy_seed`, `build` and `finishes`
     (PERF.182: `None` for a run that recorded none), `killed` and `killed_reason` (OPS.144). `None` for an unknown run.
     """
-    pipe = conn.pipeline()
-    pipe.hgetall(run_key(run_id))
-    record = {_s(k): _s(v) for k, v in pipe.execute()[0].items()}
+    record = text_hash(conn.hgetall(run_key(run_id)))
     if not record:
         return None
     declared = json.loads(record.get("stages") or "[]")        # a partial or legacy hash has none: no stages, not a crash
@@ -858,7 +879,7 @@ def read_run(conn, run_id):
         run[name] = float(record[name]) if record.get(name) else None
     fetched = pipe.execute()
     for index, stage in enumerate(declared):
-        counters = {_s(k): _s(v) for k, v in fetched[2 * index].items()}
+        counters = text_hash(fetched[2 * index])
         stage = dict(stage)
         stage["unit_states"] = _unit_states(fetched[2 * index + 1])
         for name in _STAGE_NUMBERS:

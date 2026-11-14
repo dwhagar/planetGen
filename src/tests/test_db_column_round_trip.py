@@ -28,6 +28,7 @@ BOOKKEEPING_TABLES = {
     "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
     "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
     "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "body_numbers",        # DB.75a: the slot numbers a redraw keeps (written on a first redraw only), read by the redraw, not by a page's loader
     "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }
@@ -74,6 +75,13 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "light_factor"): CHANCE,
     ("moons", "light_factor"): "a moon keeps all its planet's light (GEN.1484)",
     ("rogue_planets", "light_factor"): "a rogue planet has no star (GEN.1484)",
+    # GEN.1535: the range a free-spinning planet's tilt wanders over, kept only for a planet that has modes (a sibling or a companion) and spins free
+    ("planets", "obliquity_min_deg"): CHANCE,
+    ("planets", "obliquity_max_deg"): CHANCE,
+    ("moons", "obliquity_min_deg"): "a moon's tilt is not worked for a range (GEN.1535)",
+    ("moons", "obliquity_max_deg"): "a moon's tilt is not worked for a range (GEN.1535)",
+    ("rogue_planets", "obliquity_min_deg"): "a rogue planet has no star (GEN.1535)",
+    ("rogue_planets", "obliquity_max_deg"): "a rogue planet has no star (GEN.1535)",
     # The latitude bands are stored only for a rogue planet whose air was solved (about 1 Earth mass or less); the rest hold the placeholder 100 kPa, no star and no bands. The
     # moved sample of the Train 21 galaxy holds 13 rocky rogues, all heavier than 2 Earth masses, so it is chance whether one is light enough (main's holds 2 of 29).
     **{("rogue_planets", name): CHANCE for name in (*regional_temperature.FIELDS, *SOLVED_AIR_ONLY)},
@@ -288,7 +296,7 @@ NEVER_READ = {
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
-        ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
+        ("system_owners", "star_system_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
     **{("irregular_moons", column): CHANCE for column in (
@@ -414,7 +422,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
                       for part in ("", "/owner", "/facilities")]
             pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
-            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]
+            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/volume" for i in ids("nebulae")]
             pages += [f"/api/facilities/{pid('facility', i, conn)}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
             pages += [f"/api/polities/{i}" for i in ids("polities")]

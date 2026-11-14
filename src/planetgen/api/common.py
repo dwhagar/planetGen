@@ -19,6 +19,23 @@ CONTROL_DATABASE_UNAVAILABLE = "database unavailable"
 reached -- the same words as `routes.DATABASE_UNAVAILABLE`."""
 
 
+def truth(raw, name, absent=None):
+    """A `true`/`false` query parameter (`1`, `true`, `yes` / `0`, `false`, `no`): `absent` when it is not given, else an `ApiError`."""
+    if raw is None:
+        return absent
+    value = raw.strip().lower()
+    if value in ("1", "true", "yes"):
+        return True
+    if value in ("0", "false", "no"):
+        return False
+    raise ApiError(f"{name} must be true or false, got {raw!r}")
+
+
+def iso_utc(value):
+    """A stored UTC time (the connection's zone) as ISO text with an explicit `Z`, or `None` for none."""
+    return value.isoformat() + "Z" if value else None
+
+
 class ApiError(Exception):
     """
     Raised by a route to end the request with a JSON `{"error": ...}` body
@@ -79,6 +96,16 @@ def require_json_body():
             not a usable request body here).
     """
     body = request_json()
+    if not isinstance(body, dict):
+        raise ApiError("request body must be a JSON object")
+    return body
+
+
+def optional_json_body():
+    """The request's JSON object, or `{}` when no body was sent; a body that is not an object is an `ApiError`."""
+    body = request_json()
+    if body is None:
+        return {}
     if not isinstance(body, dict):
         raise ApiError("request body must be a JSON object")
     return body

@@ -12,8 +12,9 @@ Both rows act on the air the solver has just made (`planets.calculate_atmospheri
   the airless branch of the solver. The pressure the gas keeps is a tiny share of the air (`Collapse.residual_pressure_pa`) and is not stored; the cap on the night side is not stored yet.
 * **W20, the other branch.** A world with surface water has the ice-albedo feedback (GEN.972, `climate_branches`), and in a band of starlight it holds two stable climates: a warm one and a
   snowball. The solver starts from the airless temperature and finds one of them. The row is the history draw between them: when it rolls and the air is cool enough to be near the window, the air is solved
-  again from the opposite start (a snowball start for a warm answer, a warm one for a cold answer) on a stream of its own, and the other answer is kept if it is a distinct
-  one (`MIN_BRANCH_GAP_K` away, and a different ice cover). Nothing is drawn from the run's stream.
+  again from the opposite start (a snowball start for a warm answer, a warm one for a cold answer), and the other answer is kept if it is a distinct
+  one (`MIN_BRANCH_GAP_K` away, and a different ice cover). It is the same world, so the second solve repeats every draw of the first (`Air.entry_state`: the inventory, the efficiencies,
+  the sink cycle and the late accretion) and only the start temperature differs (GEN.1646). Nothing is drawn from the run's stream.
 
 Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.75 (rows NEB7 and NEB8).
 """
@@ -102,6 +103,8 @@ def other_branch(body, row):
     middle = 0.5 * (climate_branches.ICE_COVERED_BELOW_K + climate_branches.ICE_FREE_ABOVE_K)
     start = COLD_START_K if first.temperature_k > middle else WARM_START_K
     with draw.bound(oddities.stream(f"{row.id}:air", oddities.body_key(body))):
+        if first.entry_state is not None:     # GEN.1646: the other branch is the same world, so every draw of the first solve is repeated and only the start temperature differs
+            draw.setstate(first.entry_state)
         other = surface_air.solve(context.setting, start)
     if other is None or not other.partials_pa or other.albedo is None:
         return False

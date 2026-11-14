@@ -275,6 +275,7 @@ planetgen.generation.companion_classes:CLOSE_RANGE_AU
 planetgen.generation.companion_classes:_GRID_POINTS
 planetgen.generation.component_pass:KEPT_SAMPLE_POINTS
 planetgen.generation.component_pass:PHENOMENON_SLICE_ROWS
+planetgen.generation.component_pass:SAMPLE_PLACES_KEPT
 planetgen.generation.component_pass:STAR_SLICE_STARS
 planetgen.generation.fill_order:BLOCK_EDGES
 planetgen.generation.fill_order:JUMP_EDGES
@@ -947,7 +948,6 @@ planetgen.physics.radiative_convective:SURFACE_TOLERANCE_K
 planetgen.physics.radiative_kernel:PATH_FLOOR
 planetgen.physics.radiative_kernel:PATH_TINY
 planetgen.physics.radiogenic:BULK_SILICATE_EARTH_AL2O3_FRACTION
-planetgen.physics.radiogenic:CI_CHONDRITE_K_OVER_U
 planetgen.physics.radius_valley:AGE_GY
 planetgen.physics.radius_valley:BIN_EDGES_D
 planetgen.physics.radius_valley:HISTOGRAM_BINS

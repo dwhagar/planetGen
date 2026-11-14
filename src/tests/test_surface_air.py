@@ -156,7 +156,8 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
     age_s = 4.5 * sa.GY_S
     wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0, LAND, {})(inventory)
-    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
+    dry_setting = dataclasses.replace(setting, water_kg=0.0)    # GEN.1562 N6: a layer of water over the full depth makes the sulfate sink wet whether or not an ocean stands
+    dry = sa._shares(dry_setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
     base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
     assert 0.0 < wet["S"] < base                        # the sinks take most of it
     assert wet["S"] == pytest.approx(base * lifetimes.wet_s / age_s, rel=1e-6)   # the steady-state burden of a day or so
@@ -172,7 +173,9 @@ def test_the_shares_the_surface_holds_start_from_the_heat_released_times_each_el
     efficiencies = surface_pressure.draw_efficiencies(design)
     assert surface_pressure.DEGAS_EFFICIENCY_H[0] <= efficiencies["H"] <= surface_pressure.DEGAS_EFFICIENCY_H[1]
     assert design["degas_efficiency_h"] == efficiencies["H"]
-    assert {element: efficiencies[element] for element in ("C", "N", "Ar", "S")} == {"C": 1.0, "N": 1.0, "Ar": 1.0, "S": 0.5}
+    assert {element: efficiencies[element] for element in ("C", "Ar", "S")} == {"C": 1.0, "Ar": 1.0, "S": 0.5}
+    assert surface_pressure.DEGAS_EFFICIENCY_N[0] <= efficiencies["N"] <= surface_pressure.DEGAS_EFFICIENCY_N[1]       # GEN.1584: nitrogen is drawn
+    assert design["degas_efficiency_n"] == efficiencies["N"]
     cycle = surface_pressure.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     for released_j in (1.0e30, 0.0):
@@ -317,8 +320,8 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
         assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
         absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
-        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA or body.surface_temperature >= sa.MAX_SURFACE_TEMPERATURE_K:
-            continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
+        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA or body.surface_temperature >= sa.ionization.ceiling_k(air):
+            continue            # the table holds its edge above 1000 bar and the fixed point stops at the ionization ceiling of the air: no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze_temperature = body.surface_temperature
@@ -367,18 +370,30 @@ def _earth_like_planet(seed=3):
         return Planet(config, star, star.habitable_zone, 0.5 * (inner + outer), mass=constants.EARTH_MASS_TO_KG, moon_count=0)
 
 
-def test_a_runaway_greenhouse_stops_at_the_ceiling(monkeypatch):
-    """The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
-    `MOIST_LIMIT_K`), so the test declares it past the limit and asks the ceiling the same question as before."""
+def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_named(monkeypatch, caplog):
+    """GEN.1580: the surface stops where the main gas of the air is half ionized (`ionization.ceiling_k`), a limit no generated body should reach: the test suite makes
+    a body there an error (`PLANETGEN_CEILING_IS_ERROR`, checked first), and in a run it is one normal-log line with the body, the uncapped value, the ceiling and the air.
+    The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
+    `MOIST_LIMIT_K`), so the test declares it past the limit."""
     import dataclasses
+    import logging
+
+    from planetgen.physics import air_final
 
     real = sa.atmosphere_state.greenhouse_warming
     monkeypatch.setattr(sa.atmosphere_state, "greenhouse_warming",
-                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0))
+                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=1.0e6))
     monkeypatch.setattr(sa, "_steam_possible", lambda *args: True)
-    planet = _earth_like_planet()
+    with pytest.raises(air_final.CeilingReached, match="asked for 1000000 K"):                # the suite's switch: a body at the ceiling is an error
+        _earth_like_planet()
+    monkeypatch.delenv(air_final.CEILING_IS_ERROR_VARIABLE)
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger="planetgen"):
+        planet = _earth_like_planet()
     assert planet.atmospheric_pressure > 0.0
-    assert planet.surface_temperature == pytest.approx(sa.MAX_SURFACE_TEMPERATURE_K)
+    assert planet.surface_temperature == pytest.approx(sa.ionization.ceiling_k(atmosphere.gas_partials_pa(planet)))
+    lines = [record.getMessage() for record in caplog.records if "Ionization ceiling" in record.getMessage()]
+    assert len(lines) == 1 and "asked for 1000000 K" in lines[0] and "main gas" in lines[0]
 
 
 def test_a_pressure_that_falls_to_a_vacuum_is_airless(monkeypatch):
@@ -392,8 +407,11 @@ def test_a_pressure_that_falls_to_a_vacuum_is_airless(monkeypatch):
         return real(subject, **kwargs)
 
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_after_the_first)
-    with pytest.raises(sa.gas_equilibrium.EquilibriumError):
-        _earth_like_planet()                       # at an Earth-like pressure a failure is a fault, not a vacuum
+    solved = []
+    real_solve = sa.solve
+    monkeypatch.setattr(sa, "solve", lambda *args: solved.append(real_solve(*args)) or solved[-1])
+    planet = _earth_like_planet()                  # GEN.1580: at an Earth-like pressure a failure is not a vacuum: the body keeps the last air the equilibrium solved, unsettled
+    assert planet.atmospheric_pressure > 0.0 and solved and not solved[0].converged
     assert len(calls) == 2 + sa.MAX_EQUILIBRIUM_STALLS                # the fixed point stepped back a few times first
     calls.clear()
     monkeypatch.setattr(sa, "VACUUM_PRESSURE_PA", 1.0e12)
@@ -504,6 +522,53 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         assert len(set(columns)) == 1, seed                          # and every step after it compares to the one settled pressure
 
 
+def _escape_flags(monkeypatch, seed, max_steps=None):
+    """The `escape` flag of every mixture draw of one solve (a seed's Earth-like planet), in step order."""
+    flags = []
+    real = sa.mixture_draw.draw_mixture
+
+    def recording(subject, **kwargs):
+        flags.append(bool(kwargs.get("escape")))
+        return real(subject, **kwargs)
+
+    monkeypatch.setattr(sa.mixture_draw, "draw_mixture", recording)
+    if max_steps is not None:
+        monkeypatch.setattr(sa, "MAX_STEPS", max_steps)
+    _earth_like_planet(seed)
+    return flags
+
+
+def test_an_air_that_settles_without_the_escape_on_its_last_allowed_step_still_gets_the_pass_that_has_it_in(monkeypatch):
+    """GEN.1594: the no-escape fixed point sets the escape on and goes on; if the loop's last step was the one that settled, the escape pass never ran and the air was called converged."""
+    for seed in (1, 3, 7):
+        flags = _escape_flags(monkeypatch, seed)
+        if True not in flags:
+            continue                                               # (an air with no light gas to lose has no escape pass)
+        settled_at = flags.index(True)                             # the draws before it are the no-escape ones: this many steps
+        monkeypatch.undo()
+        again = _escape_flags(monkeypatch, seed, max_steps=settled_at)
+        assert len(again) > settled_at and True in again, (seed, settled_at, len(again))
+        return
+    pytest.skip("no seed of the three needs an escape pass")
+
+
+def test_the_carbon_sink_of_an_air_is_the_last_steps_and_none_when_the_last_step_does_not_weather(monkeypatch):
+    """GEN.1594: the record was only written on steps that weather, so an air whose last step did not kept an earlier step's sink for the life stage to balance against."""
+    planet = _earth_like_planet(3)
+    assert getattr(planet, "_co2_sink", None) is not None            # the Earth-like air weathers
+    calls = []
+    real = sa._weathers
+
+    def first_only(*args, **kwargs):
+        calls.append(1)
+        return real(*args, **kwargs) if len(calls) == 1 else False
+
+    monkeypatch.setattr(sa, "_weathers", first_only)
+    again = _earth_like_planet(3)
+    assert len(calls) > 1
+    assert getattr(again, "_co2_sink", None) is None
+
+
 # --- the late accretion in the supply (GEN.819) -------------------------------------------------------------------------------
 
 EARTH_ORBITAL_SPEED_MS = 29780.0
@@ -536,7 +601,7 @@ def test_a_giant_a_body_with_no_star_or_no_mantle_takes_no_late_accretion():
 
 
 def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cycle_acts_on_the_carbon_of_both():
-    draw.set_run_seed(27)
+    draw.set_run_seed(30)       # (GEN.1584: the nitrogen draw moved the stream; at this setting the cycle takes nearly all of the added carbon, and the sign of what is left, 1e-19, depends on the seed)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)

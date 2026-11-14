@@ -63,7 +63,7 @@ def chain_of(planets):
         formed = planet.formation_distance_au or planet.distance
         giant = planet.body_type == 'g'
         moved = giant and max(formed / planet.distance, planet.distance / formed) >= MIGRATED_RATIO
-        chain.append(belt_origin.Body(planet.distance, planet.mass, planet.eccentricity or 0.0, giant, moved, formed, planet.radius))
+        chain.append(belt_origin.Body(planet.distance, planet.mass, planet.eccentricity or 0.0, giant, moved, formed, planet.radius, getattr(planet, "min_orbit_distance", None) or None))
     return sorted(chain, key=lambda body: body.distance_au)
 
 
@@ -116,7 +116,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     edge_au = disk_edge_au if disk_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
     origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
                                 debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability,
-                                disk_limit_au=disk_truncation.star_disk_limit_au(star))
+                                disk_limit_au=disk_truncation.star_disk_limit_au(star), age_myr=star.age * 1.0e3)
     found = []
     for origin in origins:
         lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
@@ -155,7 +155,7 @@ def hand_on(bodies, star):
     inner = [belt for belt in belts if belt.origin != "outer-disk"]
     for disk in disks:
         gone = units.convert(disk.cleared_mass_earth + disk.scattered_mass_earth, "Mearth", "kg")
-        theta = scatter.safronov_number(units.convert(disk.scatter_giant_kg, "kg", "Mearth"), units.convert(disk.scatter_giant_radius_km, "km", "Rearth"), disk.scatter_giant_au, units.convert(star.mass, "kg", "Msun"))
+        theta = scatter.safronov_number(_kg_to_mearth(disk.scatter_giant_kg), units.convert(disk.scatter_giant_radius_km, "km", "Rearth"), disk.scatter_giant_au, units.convert(star.mass, "kg", "Msun"))
         disk.swept_kg = swept_hand_on.hand_on(gone, theta)
         if disk.swept_kg is None or not disk.swept_kg["implanted"] > 0.0 or not inner:
             continue

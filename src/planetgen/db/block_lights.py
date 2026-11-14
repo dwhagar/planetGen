@@ -40,7 +40,7 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
 import math
 import struct
 
-from planetgen.db import query, store
+from planetgen.db import batched, query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
 from planetgen.physics import constants
 from planetgen.util.ticker import Ticker
@@ -81,8 +81,8 @@ def _order(block):
 
 
 def clear(conn):
-    """Empties the table."""
-    conn.execute("DELETE FROM galaxy_block_lights")
+    """Empties the table, a batch of rows at a time (`db.batched`, OPS.185): a real galaxy holds millions of blocks."""
+    batched.repeat(conn, "DELETE FROM galaxy_block_lights", label="Emptying the block light totals")
 
 
 _STAR_SUMS = (
@@ -345,8 +345,9 @@ def clear_parts(conn):
 def forget_parts(conn, kind):
     """The scatter of `kind` (`stars` or `points`) was cleared: its sums leave the parts, and a cell left with no object leaves with them."""
     names = SUMS[:6] if kind == "stars" else SUMS[6:]
-    conn.execute("UPDATE galaxy_block_light_parts SET " + ", ".join(f"{name} = 0" for name in names))
-    conn.execute("DELETE FROM galaxy_block_light_parts WHERE star_count = 0 AND point_count = 0")
+    batched.repeat(conn, "UPDATE galaxy_block_light_parts SET " + ", ".join(f"{name} = 0" for name in names) + " WHERE " + " OR ".join(f"{name} <> 0" for name in names),
+                   label=f"Taking the {kind} out of the block light parts")       # OPS.185: a batch of cells at a time, each said and counted
+    batched.repeat(conn, "DELETE FROM galaxy_block_light_parts WHERE star_count = 0 AND point_count = 0", label="Dropping the block light parts left empty")
 
 
 def sync_cells(conn, addresses):
@@ -382,9 +383,8 @@ def _object_shells(conn):
     return sorted(shells)
 
 
-def _roll(cells, address, sums, parents):
-    """Notes the sums of the sector cell at `address` in its level-`DRILL_STEP` block in `cells` (`{m: {DrillBlock: [sums]}}`); `parents` memoises a block's
-    parent. A block combines what was noted in it when it is complete (`_complete`), and that is noted in its parent."""
+def _roll(cells, address, sums):
+    """Notes the sums of the sector cell at `address` in its level-`DRILL_STEP` block in `cells` (`{m: {DrillBlock: [sums]}}`). A block combines what was noted in it when it is complete (`_complete`), and that is noted in its parent."""
     level3 = drill_parent((1,) + tuple(address))
     cells[level3.m].setdefault(level3, []).append(sums)
 
@@ -418,7 +418,6 @@ def _unit_batches(conn, shells, on_shell=None, from_parts=False, on_found=None):
     sectors (PERF.187). `on_shell(shell)` is called before each shell is read. With `from_parts` the cells' sums are the parts' (GEN.1476), not
     a grouped read of the two object tables; `on_found(shell, found)` gets each shell's `{address: sums}` (the rebuild writes the parts with it)."""
     cells = {m: {} for m in sorted(LEVELS) if m <= UNIT_LEVEL}
-    parents = {}
     previous = None
     for shell in shells:
         if previous is not None:
@@ -427,12 +426,11 @@ def _unit_batches(conn, shells, on_shell=None, from_parts=False, on_found=None):
                     yield _complete(cells, level)
         if on_shell is not None:
             on_shell(shell)
-        parents.clear()
         found = _part_sums(conn, shell) if from_parts else _object_sums(conn, "shell_index = ?", (shell,), by_address=True)
         if on_found is not None:
             on_found(shell, found)
         for address, sums in found.items():
-            _roll(cells, address, sums, parents)
+            _roll(cells, address, sums)
         previous = shell
     for level in cells:
         if cells[level]:
@@ -443,6 +441,8 @@ def _unit_rows(conn, shells):
     """All the rows of one unit (see `_unit_batches`), for callers that want them together."""
     return [row for batch in _unit_batches(conn, shells) for row in batch]
 
+PROGRESS_SAY_SECONDS = 30.0
+"""float: How long a long loop of the block light work goes without saying where it is (`on_phase`)."""
 
 ABOVE_ROLL_SHARE = 0.8
 """float: The share of `_above_unit`'s progress that adding up the stored rows takes (the rest is writing the rows made)."""

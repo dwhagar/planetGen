@@ -79,10 +79,6 @@ EXTINCTION_STEPS = 512
 """int: Samples along a line of sight. The sech^2 layer is 134 pc thick, so 60 pc steps at 30 kpc still sample it."""
 
 
-def _log10(value):
-    return np.log10(np.asarray(value, dtype=float))
-
-
 def _flower(log_t):
     """Flower's fit on an array of log10 T already inside its range."""
     out = np.empty_like(log_t)
@@ -94,6 +90,13 @@ def _flower(log_t):
             out[mask] = sum(coefficient * x ** power for power, coefficient in enumerate(coefficients))
         start = upper
     return out
+
+
+_COOL_LOG_T, _COOL_BC = (np.log10(np.array(COOL_BC_TABLE_K_MAG)[:, 0]), np.array(COOL_BC_TABLE_K_MAG)[:, 1])
+"""ndarray: The cool table's log10 temperatures and corrections, for the interpolation."""
+
+_FIT_TOP_BC = float(_flower(np.array([np.log10(FIT_TOP_K)]))[0])
+"""float: Flower's fit at `FIT_TOP_K`, where the hot tail starts."""
 
 
 def _planck_term(temperature_k):
@@ -119,13 +122,11 @@ def bolometric_correction(temperature_k):
     cool, hot = t < COOL_BELOW_K, t > FIT_TOP_K
     middle = ~(cool | hot)
     if cool.any():
-        rows = np.array(COOL_BC_TABLE_K_MAG)
-        out[cool] = np.interp(np.log10(t[cool]), np.log10(rows[:, 0]), rows[:, 1])
+        out[cool] = np.interp(np.log10(t[cool]), _COOL_LOG_T, _COOL_BC)
     if middle.any():
         out[middle] = _flower(np.log10(t[middle]))
     if hot.any():
-        top = float(_flower(np.array([np.log10(FIT_TOP_K)]))[0])
-        out[hot] = top - 2.5 * (_planck_term(t[hot]) - _planck_term(FIT_TOP_K))
+        out[hot] = _FIT_TOP_BC - 2.5 * (_planck_term(t[hot]) - _planck_term(FIT_TOP_K))
     return out if out.ndim else float(out)
 
 

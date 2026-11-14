@@ -41,8 +41,7 @@ takes by `(1 - A) / 0.8`. Heat of condensation, a night-side ocean and obliquity
 import dataclasses
 import math
 
-from planetgen.physics import constants
-from planetgen.physics import saturation
+from planetgen.physics import constants, saturation
 from planetgen.util.checks import finite_domain
 
 SOLAR_CONSTANT_W_M2 = 1366.0

@@ -35,7 +35,7 @@ item (GEN.481 volatile delivery, GEN.482 redox, GEN.492 radioisotopes) that repl
 
 import math
 
-from planetgen.physics import dry_carbon, elements, gas_equilibrium
+from planetgen.physics import dry_carbon, elements, gas_equilibrium, nitrogen_budget
 from planetgen.physics import oxygen_fugacity as fo2
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, NotApplicable, atoms_of, bracket, finish, require
@@ -76,7 +76,10 @@ INVENTORY = {
     # 2012 Table 2: N/C 0.013, S/C 1.7) and the CI chondrites (N/C 0.04, S/C 0.6) are inside; open, GEN.481. The nitrogen bracket
     # runs from 0.005 to 0.1: [R0357: Table S1] gives N/C 0.020 for the bulk silicate Earth (C/N 49 plus or minus 9), 0.059
     # for the CI chondrites, 0.074 for the air of Venus and 0.055 for the air of Mars, and its log-middle 0.022 is the Earth's (GEN.813).
-    "nitrogen_per_carbon": (5e-3, 0.1, "log"),
+    # GEN.1584: the bracket is now the DELIVERED ratio, 0.012 (Kargel and Lewis) to 0.23, log-middle 0.053 (the CI chondrites' 0.059); the nitrogen specific degassing share
+    # (`surface_pressure.DEGAS_EFFICIENCY_N`, 0.3 to 0.55) brings the nitrogen at the surface back to the Earth's, and `nitrogen_budget.mantle_retention` takes the metal's share off a
+    # more oxidized body (stand-ins NB1 to NB4).
+    "nitrogen_per_carbon": (0.012, 0.23, "log"),
     "sulfur_per_carbon": (0.1, 3.0, "log"),
     # Potassium of the rock (weight percent), for the 40Ar: the bulk silicate Earth 0.024, the continental crust 2.1: open, GEN.492.
     "potassium_wt_percent": (0.005, 0.1, "log"),
@@ -110,6 +113,12 @@ OXIDATION_TIME_GY = (0.1, 1.5, "log")
 """tuple: The time a body with long-lived geology takes to move its mantle from the magma-ocean redox to the later upper mantle's:
 the e-folding time of the oxidation (studies put the Earth's upper mantle at its present redox by about 3.5 Ga;
 bracket, GEN.482)."""
+
+REDOX_SHIFT_DEX = 1.0
+"""float: How far, log10 units of oxygen fugacity, the redox of the magma-ocean stage and of the later upper mantle (`a1`, `a2`) is moved up for the rocky bodies (GEN.1562 N4). The draw of the recipe
+puts 24 percent of rocky bodies at `atmosphere.REDOX_OXIDIZED_DELTA_IW` (IW+2.5) or over and 31 percent at or under IW; sulfate and SO2 stand over about FMQ-1 and the Earth's upper mantle is IW+3.5
+to IW+4, so a rocky body that is half oxidized is as likely as a reduced one. A shift of 1.0 puts about 44 percent at or over IW+2.5 (1.4 would make half). The building blocks' and the white
+dwarf debris's redox (`a3`, `a4`, measured) is not moved. Tier 9, tweak level 3: chosen so that the rocky bodies are about half oxidized, which the sources do not fix."""
 
 MIN_EQUILIBRIUM_K = 300.0
 """float: The least temperature that every species of `species_thermo` is fitted for (the sulfur and phosphorus gases start at 300 K)."""
@@ -146,12 +155,13 @@ def draw_redox(subject, recipe, constants):
     if "a3" in values and "a1" not in values:
         return values["a3"]
     if "a1" not in values:
-        return values.get("a2")
-    first = values["a1"]
+        later = values.get("a2")
+        return None if later is None else later + REDOX_SHIFT_DEX
+    first = values["a1"] + REDOX_SHIFT_DEX
     if "a2" in values and subject.get("long_lived_geology"):
         tau = bracket(constants, "oxidation_time_gy", OXIDATION_TIME_GY)
         progress = 1.0 - math.exp(-max(subject["age_gy"], 0.0) / tau)
-        return first + (max(values["a2"], first) - first) * progress
+        return first + (max(values["a2"] + REDOX_SHIFT_DEX, first) - first) * progress
     return first
 
 
@@ -173,7 +183,15 @@ def _water_and_carbon_wt_percent(recipe, constants):
     return water, water * bracket(constants, "co2_over_h2o_rich", INVENTORY["co2_over_h2o_rich"])
 
 
-def rocky_inventory(subject, recipe, constants):
+def _metal_retention(subject, redox_diw):
+    """The factor the metal's share of the nitrogen puts on the inventory (`nitrogen_budget.mantle_retention`, GEN.1584): 1 for a body whose metal and rock shares are not known."""
+    metal, rock = subject.get("metal_mass_fraction"), subject.get("rock_mass_fraction")
+    if not metal or not rock:
+        return 1.0
+    return nitrogen_budget.mantle_retention(redox_diw, metal / rock)
+
+
+def rocky_inventory(subject, recipe, constants, redox_diw=None):
     """
     The element budget of the outgassing stage, atoms per 100 g of body: hydrogen and carbon from the delivered water and carbon
     dioxide, nitrogen and sulfur per carbon atom, and the argon the potassium of the rock has made by the body's age.
@@ -181,7 +199,7 @@ def rocky_inventory(subject, recipe, constants):
     water, carbon_dioxide = _water_and_carbon_wt_percent(recipe, constants)
     hydrogen = 2.0 * water / AMU_G_MOL["H2O"]
     carbon = carbon_dioxide / AMU_G_MOL["CO2"]
-    nitrogen = carbon * bracket(constants, "nitrogen_per_carbon", INVENTORY["nitrogen_per_carbon"])
+    nitrogen = carbon * bracket(constants, "nitrogen_per_carbon", INVENTORY["nitrogen_per_carbon"]) * _metal_retention(subject, redox_diw)
     sulfur = carbon * bracket(constants, "sulfur_per_carbon", INVENTORY["sulfur_per_carbon"])
     potassium = bracket(constants, "potassium_wt_percent", INVENTORY["potassium_wt_percent"]) / AMU_G_MOL["K"]
     degassed = bracket(constants, "argon_degassed", INVENTORY["argon_degassed"])
@@ -232,10 +250,11 @@ def volcanic_gas(subject, recipe, constants, supply=None):
     redox = draw_redox(subject, recipe, constants)
     if redox is None:
         raise MixtureError(f"no redox row applies to the class {subject.body_class!r}: it has no mantle to outgas")
-    inventory = rocky_inventory(subject, recipe, constants)
+    inventory = rocky_inventory(subject, recipe, constants, redox_diw=recipe.values.get("a1", redox))      # GEN.1584: the metal took its nitrogen at the magma ocean's redox, not the later mantle's
     magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
     budget = cap_halogens(surface_budget(inventory, supply), constants)
-    volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
+    volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic),
+                                      lower_held_o2=True)
     return volcanic, redox, inventory
 
 
@@ -271,7 +290,7 @@ def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True)
     if volcanic is not None and held_diw is None and temperature == volcanic.temperature_k:
         return volcanic
     held = None if held_diw is None else fo2.log_fo2(held_diw, temperature)
-    return gas_equilibrium.solve(cap_halogens(atoms, constants), temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
+    return gas_equilibrium.solve(cap_halogens(atoms, constants), temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held, lower_held_o2=True)
 
 
 def outgassed_mixture(subject, recipe=None, supply=None):

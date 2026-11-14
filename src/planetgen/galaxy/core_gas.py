@@ -132,14 +132,20 @@ def young_density(r_cyl, z, core):
             * _sech_squared(z / (2.0 * core.height_pc)))
 
 
+def _ring_array(radial_gap, z_abs, core):
+    """The ring's young-star density on arrays: the Gaussian of `radial_gap` from the ring's radius times the `sech^2`
+    profile at height `z_abs` (not negative), the same curve as `young_density` without the overflow of `cosh`."""
+    e = np.exp(-2.0 * np.minimum(z_abs / (2.0 * core.height_pc), 350.0))
+    vertical = np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
+    return core.young_density * np.exp(-0.5 * (radial_gap / core.sigma_pc) ** 2) * vertical
+
+
 def young_density_array(r_cyl, z, core):
     """`young_density` on arrays (`z` one height or an array that broadcasts against `r_cyl`)."""
     r_cyl = np.asarray(r_cyl, dtype=float)
     if not core.young_density:
         return np.zeros(np.broadcast(r_cyl, np.asarray(z)).shape)
-    e = np.exp(-2.0 * np.minimum(np.abs(np.asarray(z, dtype=float)) / (2.0 * core.height_pc), 350.0))
-    vertical = np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
-    return core.young_density * np.exp(-0.5 * ((r_cyl - core.radius_pc) / core.sigma_pc) ** 2) * vertical
+    return _ring_array(r_cyl - core.radius_pc, np.abs(np.asarray(z, dtype=float)), core)
 
 
 def young_bound(inner, outer, z_near, core):
@@ -152,6 +158,4 @@ def young_bound(inner, outer, z_near, core):
     if not core.young_density:
         return np.zeros(np.broadcast(inner, outer, z_near).shape)
     gap = np.maximum(np.maximum(inner - core.radius_pc, core.radius_pc - outer), 0.0)
-    e = np.exp(-2.0 * np.minimum(z_near / (2.0 * core.height_pc), 350.0))
-    vertical = np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
-    return core.young_density * np.exp(-0.5 * (gap / core.sigma_pc) ** 2) * vertical
+    return _ring_array(gap, z_near, core)

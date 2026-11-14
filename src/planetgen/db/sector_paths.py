@@ -159,7 +159,7 @@ def _bodies(conn, sector_id, center):
                                                       row["position_z_mpc"] / 1000.0))
         bodies.append(("star_systems", row["id"], tuple(c * _PC for c in point),
                        tuple(row[f"velocity_{axis}_kms"] * 1000.0 for axis in "xyz")))
-    for table in (name for name in kind_tables.tables("path") if name != "star_systems"):
+    for table in (name for name in PATH_TABLES if name != "star_systems"):
         for row in conn.execute(
             f"SELECT id, center_x_pc, center_y_pc, center_z_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
             f" FROM {table}"
@@ -268,11 +268,8 @@ def _save_paths(conn, sector_id, results):
         for start in range(0, len(object_ids), _ROWS_PER_LOOKUP):
             chunk = object_ids[start:start + _ROWS_PER_LOOKUP]
             marks = ", ".join("?" for _ in chunk)
-            stale = [row["id"] for row in conn.execute(
-                f"SELECT id FROM sector_paths WHERE object_table = ? AND object_id IN ({marks})",
-                (table, *chunk)).fetchall()]
-            for path_id in stale:
-                conn.execute("DELETE FROM sector_paths WHERE id = ?", (path_id,))
+            _delete_paths(conn, f"SELECT id FROM sector_paths WHERE object_table = ? AND object_id IN ({marks})",
+                          (table, *chunk))
     conn.executemany(
         "INSERT INTO sector_paths (sector_id, object_table, object_id, exited, duration_years)"
         " VALUES (?, ?, ?, ?, ?)",

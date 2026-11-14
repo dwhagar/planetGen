@@ -69,10 +69,6 @@ def _mass_sol(mass_kg):
     return mass_kg / constants.SOLAR_MASS_TO_KG
 
 
-def _yr(seconds):
-    return seconds / constants.SECONDS_PER_YEAR
-
-
 def _interpolate_log(points, x):
     """`y` at `x` from `(x, y)` points, linear in `x` and in `log y`, held at the ends."""
     if x <= points[0][0]:
@@ -88,24 +84,28 @@ def is_compact(yerkes_class):
     return bool(yerkes_class) and yerkes_class.strip().startswith(COMPACT_CLASSES_PREFIXES)
 
 
+def _is_giant(star):
+    """Whether the star's Yerkes class is one of `spin.GIANT_CLASSES`."""
+    return (star.yerkes_class or "").strip() in spin.GIANT_CLASSES
+
+
 def has_convective_envelope(star):
     """Whether the star's tide is the convective one: a giant, or a dwarf of the mass and temperature below the radiative limit."""
-    cls = (star.yerkes_class or "").strip()
-    if cls in spin.GIANT_CLASSES:
+    if _is_giant(star):
         return True
     return _mass_sol(star.mass) <= RADIATIVE_MASS_SOL and spin.kraft_weight(star.temperature) < 0.5
 
 
 def envelope_mass_share(star):
     """The convective envelope's share of the star's mass."""
-    if (star.yerkes_class or "").strip() in spin.GIANT_CLASSES:
+    if _is_giant(star):
         return GIANT_ENVELOPE_MASS_SHARE
     return _interpolate_log(ENVELOPE_MASS_SHARE, _mass_sol(star.mass))
 
 
 def apsidal_constant(star):
     """The star's apsidal motion constant `k2` (see `APSIDAL_CONSTANT_*`)."""
-    if (star.yerkes_class or "").strip() in spin.GIANT_CLASSES:
+    if _is_giant(star):
         return APSIDAL_CONSTANT_GIANT
     mass = _mass_sol(star.mass)
     if mass >= KT_MASS_POINTS[-1][0]:

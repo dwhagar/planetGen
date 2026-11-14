@@ -26181,6 +26181,26 @@
       "label": "Metcalfe 2003",
       "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate"
     },
+    "R5240": {
+      "kind": "paper",
+      "label": "McGinn et al. 2003",
+      "title": "Inorganic Carbon Limitation and Light Control the Expression of Transcripts Related to the CO2-Concentrating Mechanism in the Cyanobacterium Synechocystis sp. Strain PCC6803"
+    },
+    "R5241": {
+      "kind": "paper",
+      "label": "Birmingham and Colman 1979",
+      "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae"
+    },
+    "R5242": {
+      "kind": "paper",
+      "label": "Noyelles and Lhotka 2013",
+      "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury"
+    },
+    "R5243": {
+      "kind": "paper",
+      "label": "Correia and Rodríguez 2013",
+      "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES"
+    },
     "R5244": {
       "kind": "paper",
       "label": "Lin et al. 2021",
@@ -26190,6 +26210,26 @@
       "kind": "paper",
       "label": "Vokrouhlický et al. 2024",
       "title": "Orbital and absolute magnitude distribution of Jupiter Trojans"
+    },
+    "R5246": {
+      "kind": "paper",
+      "label": "Saha 1920",
+      "title": "LIII. Ionization in the solar chromosphere"
+    },
+    "R5247": {
+      "kind": "web",
+      "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+      "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5248": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
+    },
+    "R5249": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2018",
+      "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
     }
   }
 }

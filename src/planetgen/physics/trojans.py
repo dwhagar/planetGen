@@ -94,6 +94,11 @@ def stable(host_mass, secondary_mass, trojan_mass=0.0):
     return mass_parameter(host_mass, secondary_mass) < MU_CRIT and (secondary_mass + trojan_mass) / (host_mass + secondary_mass + trojan_mass) < MU_CRIT
 
 
+def _ramp_share(x):
+    """The surviving share at `x` times the limit: 0 at `x <= 1`, then `1 - exp(-STABLE_RAMP (x - 1))` (TJ7)."""
+    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+
+
 def neighbour_stable_share(host_mass, secondary_mass, secondary_au, neighbour_mass, neighbour_au):
     """
     The share of the swarm of a secondary at `secondary_au` that survives another giant or a companion of `neighbour_mass` at `neighbour_au` (GEN.1455; masses in one unit, distances in AU, a
@@ -103,8 +108,7 @@ def neighbour_stable_share(host_mass, secondary_mass, secondary_au, neighbour_ma
     if neighbour_mass <= 0.0 or host_mass <= 0.0 or neighbour_au <= 0.0 or secondary_au <= 0.0:
         return 1.0
     hill = ((secondary_mass + neighbour_mass) / (3.0 * host_mass)) ** (1.0 / 3.0) * 0.5 * (secondary_au + neighbour_au)
-    x = abs(neighbour_au - secondary_au) / (HILL_SEPARATION_K * hill)
-    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+    return _ramp_share(abs(neighbour_au - secondary_au) / (HILL_SEPARATION_K * hill))
 
 
 def star_limit_stable_share(secondary_au, stability_limit_au):
@@ -115,8 +119,7 @@ def star_limit_stable_share(secondary_au, stability_limit_au):
     """
     if not stability_limit_au or stability_limit_au <= 0.0 or secondary_au <= 0.0:
         return 1.0
-    x = stability_limit_au / (STAR_LIMIT_MARGIN * secondary_au)
-    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+    return _ramp_share(stability_limit_au / (STAR_LIMIT_MARGIN * secondary_au))
 
 
 def surviving_share(host_mass, secondary_mass, secondary_au, neighbours, stability_limit_au=None):

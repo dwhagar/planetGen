@@ -529,6 +529,35 @@ def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_f
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
 
 
+def test_the_other_branch_is_the_same_world_with_the_same_inventory_and_draws():
+    """GEN.1646: the second solve of W20 repeats every draw of the first (design constants, mixture seed, late accretion); only the start temperature differs."""
+    from planetgen.physics import surface_air
+    from tests.fuzz_support import first_seed_with
+
+    def run(number):
+        airs = []
+        real = surface_air.solve
+
+        def spy(setting, start_temperature_k):
+            air = real(setting, start_temperature_k)
+            airs.append(air)
+            return air
+
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setattr(surface_air, "solve", spy)
+            planet = _planet_at("G2V", 1.2, f"w20-G2V-{number}", force=("W20",))
+        return planet, airs
+
+    # TEST.714: a draw key whose planet has a second branch, found by search (the draws behind a key move with every change to the generator)
+    _seed, (planet, airs) = first_seed_with(run, lambda both: "W20" in both[0].oddities and len(both[1]) >= 2, seeds=range(60), what="a G2V planet with a second climate branch")
+    assert "W20" in planet.oddities and len(airs) >= 2
+    first, second = airs[0], airs[1]
+    assert first.entry_state is not None and second.entry_state == first.entry_state
+    assert second.constants == first.constants and second.late == first.late
+    assert second.mixture.inventory == first.mixture.inventory
+    assert second.temperature_k != first.temperature_k      # a different branch of the same world
+
+
 def test_a_world_with_no_second_branch_is_not_named_for_one():
     hot = _planet_at("G2V", 0.4, "w20-hot", force=("W20",))
     assert "W20" not in hot.oddities
@@ -604,12 +633,15 @@ def test_the_dial_at_zero_gives_the_same_system_as_the_dial_at_one_wherever_noth
     from planetgen.util import draw
 
     compared = 0
-    for number in range(12):
+    for number in range(60):          # a search for four systems that rolled none (TEST.714): the share of those moves with the draws
+        if compared >= 4:
+            break
         made = {}
         for dial in (0.0, 1.0):
             with draw.bound(f"isolation:{number}"):
                 config = SystemConfig()
                 config.STAR_TYPE, config.WEIRDNESS_DIAL = "G2V", dial
+                config.ASTEROID_BELT = False          # GEN.1510: a belt's promoted bodies are extra bodies that roll for an oddity too, so a system with belts seldom rolls none
                 made[dial] = StarSystem(system_config=config)
         assert not any(getattr(body, "oddities", ()) for body in _bodies_of(made[0.0])), "the dial at 0 rolls nothing"
         if not any(getattr(body, "oddities", ()) for body in _bodies_of(made[1.0])):

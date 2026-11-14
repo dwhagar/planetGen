@@ -36,6 +36,9 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 _KM_S = unit_registry.unit("km_s").factor
 """float: Metres a second in a kilometre a second."""
 
+_AU_PER_YEAR = physical_constants.SECONDS_PER_YEAR / physical_constants.AU_M
+"""float: What a speed in m/s is multiplied by to read it in AU a year."""
+
 PLAIN = ("text", "ratio", "count", "index", "flag", "dex", "unit-vector", "id")
 """tuple: What a field declares in place of a unit when it holds no quantity: a name or a label (`text`), a plain
 number (`ratio`), a whole number (`count`, `index`, `id`), a yes or no (`flag`), a logarithmic scale (`dex`) or one
@@ -170,12 +173,22 @@ class MassObject:
             ValueError: With no position or velocity yet, or for a body
                 moving straight at or away from its primary.
         """
-        if self.spatial is None or self.spatial.get_velocity_vector("system") is None:
+        state = self._state_au_per_year()
+        if state is None:
             raise ValueError("the body has no position and velocity yet")
-        to_au_per_year = physical_constants.SECONDS_PER_YEAR / physical_constants.AU_M
+        return state_vectors.elements_from_state(*state, self.orbit_mu_au3_per_year2())
+
+    def _velocity_m_s(self):
+        """The body's velocity relative to its primary, m/s, or `None` for a body with no position or velocity yet."""
+        return None if self.spatial is None else self.spatial.get_velocity_vector("system")
+
+    def _state_au_per_year(self):
+        """`(position AU, velocity AU/yr)` relative to the primary, or `None` for a body with no velocity yet."""
+        velocity = self._velocity_m_s()
+        if velocity is None:
+            return None
         position = self.spatial.get_coordinates("system", "cartesian")
-        velocity = tuple(v * to_au_per_year for v in self.spatial.get_velocity_vector("system"))
-        return state_vectors.elements_from_state(position, velocity, self.orbit_mu_au3_per_year2())
+        return position, tuple(v * _AU_PER_YEAR for v in velocity)
 
     def projected_orbit_au(self, count=128):
         """
@@ -207,13 +220,11 @@ class MassObject:
             ValueError: For a body with neither a state vector nor a galactic orbit.
         """
         years = seconds / physical_constants.SECONDS_PER_YEAR
-        if self.spatial is not None and self.spatial.get_velocity_vector("system") is not None:
-            to_au_per_year = physical_constants.SECONDS_PER_YEAR / physical_constants.AU_M
-            position = self.spatial.get_coordinates("system", "cartesian")
-            velocity = tuple(v * to_au_per_year for v in self.spatial.get_velocity_vector("system"))
-            position, velocity = universal_step(position, velocity, self.orbit_mu_au3_per_year2(), years)
+        state = self._state_au_per_year()
+        if state is not None:
+            position, velocity = universal_step(*state, self.orbit_mu_au3_per_year2(), years)
             self.set_position_au(*position)
-            self.set_velocity_kms(*(v / to_au_per_year / _KM_S for v in velocity))
+            self.set_velocity_kms(*(v / _AU_PER_YEAR / _KM_S for v in velocity))
             return
         period_gy = getattr(self, "galactic_orbital_period_gy", None)
         if period_gy:
@@ -240,7 +251,7 @@ class MassObject:
     def speed_kms(self):
         """The body's speed, km/s: the length of its velocity relative to its primary, or, for a body that goes round the
         galaxy with no such vector, its circular galactic speed; `None` with neither."""
-        if self.spatial is not None and self.spatial.get_velocity_vector("system") is not None:
+        if self._velocity_m_s() is not None:
             return self.spatial.get_speed("system") / _KM_S
         return getattr(self, "galactic_orbital_speed_kms", None)
 
@@ -254,9 +265,9 @@ class MassObject:
         if axis is None:
             return None
         normal = spin.GALACTIC_POLE
-        if self.spatial is not None and self.spatial.get_velocity_vector("system") is not None:
-            normal = spin.orbit_normal_from_state(self.spatial.get_coordinates("system", "cartesian"),
-                                                  self.spatial.get_velocity_vector("system"))
+        velocity = self._velocity_m_s()
+        if velocity is not None:
+            normal = spin.orbit_normal_from_state(self.spatial.get_coordinates("system", "cartesian"), velocity)
         return spin.obliquity_between(axis, normal)
 
     def kinematic_record(self, scale="system"):
@@ -268,8 +279,9 @@ class MassObject:
         point = self.spatial
         if point is not None:
             position = point.get_coordinates("system", "cartesian")
-            if point.get_velocity_vector("system") is not None:
-                velocity = tuple(v / _KM_S for v in point.get_velocity_vector("system"))
+            velocity_m_s = point.get_velocity_vector("system")
+            if velocity_m_s is not None:
+                velocity = tuple(v / _KM_S for v in velocity_m_s)
             mass, mu, epoch = point.mass_kg, point.mu, point.epoch_unix
         speed = self.speed_kms()
         if epoch is not None and speed is not None:

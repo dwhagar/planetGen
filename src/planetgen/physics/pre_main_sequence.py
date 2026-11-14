@@ -33,6 +33,7 @@ from planetgen import tuning
 from planetgen.datasets import isochrones
 from planetgen.physics import constants, main_sequence, unit_registry as units
 from planetgen.util import draw
+from planetgen.util.random import log_uniform as _log_uniform
 
 _msun_to_kg = units.converter("Msun", "kg")
 
@@ -104,7 +105,7 @@ def _track_constants(mass_sol, fe_h=0.0):
 def _track(mass_sol, fe_h=0.0):
     """The constants of `_track_constants` and `scale`, the factor that stretches the model's time onto the radius-settled time (GEN.1174)."""
     track = dict(_track_constants(mass_sol, fe_h))
-    own_yr = _s_to_yr(track["t1"] + track["t2"])
+    own_yr = _track_own_yr(mass_sol, fe_h)
     track["scale"] = radius_settled_yr(mass_sol, fe_h, own_yr=own_yr) / own_yr if own_yr > 0.0 else 1.0
     return track
 
@@ -218,10 +219,6 @@ def sublimation_radius_au(luminosity_sol):
     metres = math.sqrt(luminosity_sol * constants.SOLAR_LUMINOSITY
                        / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT * tuning.DISK_DUST_SUBLIMATION_K ** 4))
     return _m_to_au(metres)
-
-
-def _log_uniform(low, high, rng):
-    return math.exp(rng.uniform(math.log(low), math.log(high)))
 
 
 def draw_disk(mass_sol, age_yr, luminosity_sol, rng=draw):

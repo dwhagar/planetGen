@@ -49,7 +49,7 @@ VERTICAL_FREQUENCY_KM_S_KPC = 76.0
 LINEAR_LIMIT_PC = 1500.0
 """float: The separation up to which the linear equations are taken as good (the design note's "1 to 2 kpc"). Source tier T6, tweak level L1."""
 
-_KM_S_TO_PC_MYR = 1.0e3 * constants.SECONDS_PER_YEAR * 1.0e6 / constants.PARSEC_M
+_KM_S_TO_PC_MYR = 1.0e3 * constants.SECONDS_PER_MYR / constants.PARSEC_M
 _MYR_TO_KPC_PER_KM_S = _KM_S_TO_PC_MYR / 1.0e3
 
 
@@ -197,10 +197,6 @@ def ring_drift(kick_km_s, time_myr, galactocentric_radius_pc, galaxy=SOLAR_NEIGH
     wrapped = angle - 2.0 * math.pi * turns
     shift = 1.0e3 * kick_km_s[1] * galaxy.guiding_radius_shift_per_kick_kpc_per_km_s
     return RingDrift(here.x_pc, here.z_pc, wrapped, int(turns), shift)
-
-
-
-
 
 
 def kick_from_direction(speed_km_s, direction):
