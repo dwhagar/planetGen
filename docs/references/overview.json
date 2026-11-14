@@ -18,7 +18,7 @@
       "T3": 189,
       "T4": 140,
       "T5": 122,
-      "T6": 441,
+      "T6": 442,
       "T7": 120,
       "T8": 7,
       "T9": 200
@@ -26,7 +26,7 @@
     "by_tweak": {
 <<<<<<< HEAD
       "L0": 961,
-      "L1": 326,
+      "L1": 328,
       "L2": 81,
       "L3": 239,
 =======
@@ -37,7 +37,7 @@
 >>>>>>> origin/claude/lane21-gen1670
       "L4": 56
     },
-    "rows": 1663
+    "rows": 1665
   },
   "tiers": [
     [
@@ -119,8 +119,8 @@
       "rows": 200
     },
     "educated_guess_from_physics": {
-      "percent": 41,
-      "rows": 690
+      "percent": 42,
+      "rows": 691
     },
     "fitted_to_a_result": {
       "percent": 23,
