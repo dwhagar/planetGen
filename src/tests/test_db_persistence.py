@@ -236,7 +236,8 @@ def test_a_wide_pairs_star_words_come_back_from_the_names_its_stars_carry(mysql_
     finally:
         conn.close()
     assert system.star_words and reloaded.star_words == tuple(system.star_words)
-    assert [planet.name for planet in reloaded.secondary_planets] == [planet.name for planet in system.secondary_planets]
+    names = lambda planets: [planet.name for planet in planets if planet.body_type != 'a']      # a belt is a body of the list and has no name
+    assert names(reloaded.secondary_planets) == names(system.secondary_planets)
     assert reloaded.comet_count == system.comet_count
 
 
