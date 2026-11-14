@@ -94,8 +94,8 @@ hand, not opened beyond the quoted lines. [Stand-in, tier confident unverified, 
 HAZE_FULL_FLUX_CM2_S = 3.0e11
 """float: The methane source flux at which the haze is fully made, molecules per cm2 per s: the high end of the same range ([R0156] section 4.1). [Stand-in, tier confident unverified, tweak L0.]"""
 METHANE_LIFETIME_YR = 1.0e4
-"""float: The photochemical lifetime of methane in an anoxic air, years ([R5250], citing Pavlov and Zahnle: about 10^4 years; a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv). The star's
-ultraviolet is not in it (no law of the lifetime in the star's flux was found; the Segura et al. 2005 reference was not read). [Stand-in, tier confident unverified, tweak L0.]"""
+"""float: The photochemical lifetime of methane in an anoxic air, years ([R5250]: about 10^4 years; a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv). The star's
+ultraviolet is not in it (no law of the lifetime in the star's flux was found). [Stand-in, tier confident unverified, tweak L0.]"""
 HAZE_H2_CUT = 0.1
 """float: The share of the production left in hydrogen-rich air ([R1097], about a tenth)."""
 HAZE_H2_FRACTION = 0.3

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1659 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1661 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1632 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1634 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,7 +48,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
-| T2 | 153 | 63 | 1 | 1 | 0 | 218 |
+| T2 | 155 | 63 | 1 | 1 | 0 | 220 |
 | T3 | 115 | 53 | 12 | 9 | 0 | 189 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 92 | 35 | 199 |
-| All | 960 | 324 | 81 | 238 | 56 | 1659 |
+| All | 962 | 324 | 81 | 238 | 56 | 1661 |
 
 ## How the labels were given
 
@@ -658,6 +658,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | HZ1 | P | T3 | L1 | aerosols.HAZE_MONOMER_RADIUS_UM (0.03, 0.1): the radius of the monomers of a haze aggregate (Titan's about 0.05 from Huygens [R4392, R4394], second hand through the [R0156] haze model; lab tholin 0.03 to 0.1) | the span itself | hazes of methane airs | a measured monomer radius outside it | a haze microphysics model [R2584] | test_aerosols::test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns | predicted only | - | - |
 | HZ2 | P | T3 | L1 | aerosols.HAZE_FRACTAL_DIMENSION 2.0 (aggregates grown by cluster-cluster coagulation, 1.8 to 2.2; Titan's about 2: [R4392, R4394], second hand) | 1.8 to 2.2 | hazes of methane airs | a measured dimension under 1.7 or over 2.3 | the aggregate model of a haze microphysics code | test_aerosols::test_the_grain_is_where_it_falls_out_as_fast_as_it_coagulates | predicted only | - | - |
 | HZ3 | P | T6 | L0 | aerosols.haze_grain (the aggregate grows until it falls out as fast as it coagulates: the Smoluchowski half-time 3 eta / (4 k T n) of the column's number equals the Stokes fall time; one layer, monodisperse, Brownian, continuum kernel, no electric charge) | the closure within a factor of 3 in radius | hazes of methane airs | Titan's measured depth 9.6 from its production 1e-14 to 3.5e-14 g per cm2 per s more than a factor of 3 off | a bin-resolved coagulation and settling model | test_aerosols::test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns | predicted only | - | - |
+| HZ4 | P | T2 | L0 | SECOND-HAND ([R0156] section 4.1, the quoted lines: "the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11 | the two ends of the range: the haze gate is 0 below 1e11 and 1 above 3e11 (linear between), times the ratio gate | hazes of methane airs | a haze in a model air whose methane source is under 1e11 molecules per cm2 per s | [R0156] read in full; a photochemical model of the air | test_aerosols::test_a_trace_of_methane_makes_no_haze_however_high_its_ratio_to_carbon_dioxide | predicted only | - | - |
+| HZ5 | P | T2 | L0 | SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4 | fixed; a hazy air's lifetime is shorter, so the haze gate of HZ4 is a little strict (the lowest methane of the hazy runs of [R0156], about 36 Pa, gives 2.5e10 molecules per cm2 per s against 1e11) | anoxic airs; an oxygen-bearing air has a lifetime of years and is gated off by its CH4/CO2 ratio already | a lifetime that depends on the star's far ultraviolet (no law found; a Segura-type lifetime study not read) | the lifetime from the star's UV flux and the air's column | test_aerosols::test_the_methane_source_flux_is_the_column_over_its_lifetime | predicted only | - | - |
 | SL6 | P | T6 | L0 | photolysis.shielded_column_mol_m2 (light is absorbed in one layer, the column of optical depth 1 at the species' mean UV cross section of Hu, [R2026] table 6, so a thick air is photolysed only in that column; GEN.982) | the column within a factor of 2 (Hu's critical pressure 126 Pa at 1 ppm methane against 1 / sigma giving 260 Pa) | H2O, NH3, CH4, CO2, H2S in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the 3e9 to 1e10 molecules per cm2 per s that the column gives | a photochemical column model with the species' cross sections by wavelength | test_photolysis::test_the_methane_the_sun_can_break_over_the_earths_area_is_within_the_range_of_the_anoxic_methane_fluxes | predicted only | - | - |
 | SL4 | P | T5 | L0 | stellar_spectra: the grids are solar metallicity; the models hold no chromosphere (SP2 adds it); a giant cooler than 3500 K reads the log g 4.5 dwarf; the part of a bin the grid does not reach takes the blackbody and the bins are renormalised to one (closure 0.97 to 1.00) | none | stars of 2300 to 50000 K | a metal-poor or metal-rich star whose ultraviolet differs from the solar-metallicity model by more than 0.2 dex | metallicity-dependent grids (ATLAS9 and PHOENIX both have them; a larger download) | test_stellar_library_real::test_the_library_covers_the_temperatures_the_generator_makes_stars_at | predicted only | - | - |
 
