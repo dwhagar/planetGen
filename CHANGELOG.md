@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4145] - 2026-11-14
+
+**Headline:** The sources named in notes, docs and code are now cited by their registry IDs, so the citation and constants checks pass again.
+
+### Changed
+- Six more sources are in the reference list ([R5255] to [R5260]) and every place that wrote one by name now writes its ID (DOC.99).
+- Thirty constants from the last train carry the tag of their source (the weathering law, the viscous-disk snow line, the degenerate-radius relation, the hot-giant redistribution factor, sulfur's melting point), the design index lists the hot-giant note, and the meter's variable is spelled the American way. No value changed.
+
+generation-output: unchanged
+
 ## [8.0.4144] - 2026-11-14
 
 **Headline:** The system page's map now draws a belt that circles an inner pair of stars in that pair's own scene, beside the planets of the pair.
