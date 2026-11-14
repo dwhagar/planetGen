@@ -13301,6 +13301,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: none. Related: OPS.254.
   Filed by the TODO thread.
 
+- [ ] **OPS.258 Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test**
+  Boss, 5:24 PM EST on 2026-11-14 (as the coordinator relayed): no per-train golden renewal; golden renewed once at the 8.1 release; pinned galaxy test stays as smoke test. Do: change scripts/train.py and the train procedure so a train runs the pinned galaxy smoke test and the changed-only gate but does not renew or compare goldens that its epoch moves (a golden compare that only an epoch moves is skipped with a line saying so, not loosened); add the one golden renewal to the 8.1 release gate (SEC.33, TEST.261 list); update the lane rules and train docs. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

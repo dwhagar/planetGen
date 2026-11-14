@@ -29,6 +29,8 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 | 22 Belts | 6428 GEN.1693 (Train 27), then PERF.261 | OPS.215 (migrations), 221, 222, 226, 228-231, 235, 243, 249, 250 |
 | 23 Tides, spin, moons | Review ready | OPS.201, 204, then OPS.241, 242 |
 
+GOLDEN (Boss, 5:24 PM EST on 2026-11-14): no golden renewal per train; the golden files are renewed once, at the 8.1 release. The pinned galaxy test stays as the trains' smoke test. Train Manager builds the change (OPS.258); until then a train renews nothing it does not have to.
+
 JOB ENGINE (Boss 6:35 PM, 6:57 PM and 7:52 PM EST 2026-11-13): stages 1 to 6 are OPS.191-252, merged one at a time on the lane's changed-only green, in dependency order, by TODO; the engine trains are dropped ("de-train the queue fixing code"). Merge order and lanes: /mnt/project-files/reports/job-engine-trains-2026-11-13.md. A converted command commits only through ctx.commit(). Watch list (OPS.218, 228, 237, 239, 240, 242, 243): if the golden galaxy cannot stay identical, the lane stops and reports to TODO; it never rewrites the golden for these.
 
 
