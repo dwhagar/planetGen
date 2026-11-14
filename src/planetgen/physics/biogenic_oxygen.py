@@ -106,7 +106,7 @@ plateau put it at 0.06 to 0.25 of today's oxygen, where the proxies say at most 
 
 SECOND_RISE_RATIO = 3.0
 """float: The oxygen rises again to the balance level once the reductant sink `R` is under this share of the source `S`, 1 over the ratio (GEN.1707): the deep ocean and the shelf stop recycling phosphorus
-and the oxygen gets a second jump. A single model's number (the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for the second, Alcott, Mills and Poulton 2019 [R5252]); the model's
+and the oxygen gets a second jump. A single model's number (the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for the second, [R5252]); the model's
 own range for how strongly burial depends on bottom-water oxygen is 10 to 40 percent. Tier 3, tweak level 1."""
 
 REBALANCE_BRACKETS = 40

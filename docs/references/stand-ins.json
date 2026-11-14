@@ -12687,6 +12687,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 2 kPa; the full range of the sources 0.02 to 5 kPa"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life whose R is still over S / 3"
+            ],
+            [
+              "What would show it wrong",
+              "a measured plateau of an oxygenated world, or Earth's mid-Proterozoic oxygen proved above 5 kPa or under 0.02 kPa"
+            ],
+            [
+              "What replaces it",
+              "a model of the oxygen, phosphorus and carbon cycles with the world's own land and ocean"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the models put Earth's plateau at 0.06 to 0.25 of today's oxygen [R5252] against at most 0.001 from chromium isotopes, so 0.03 sits inside the models' lowest values and the proxies' highest"
+            ]
+          ],
+          "id": "BO11",
+          "key": "6.21:BO11",
+          "kind": "P",
+          "slug": "6-21-bo11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.PLATEAU_PA 600: the oxygen partial pressure a world holds after the first rise (the reductant sink R under the source S) and before the second, 0.03 of Earth's 21 kPa (GEN.1707)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4 (the model's own: burial's dependence on bottom-water oxygen varied 10 to 40 percent)"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life that have crossed the first rise"
+            ],
+            [
+              "What would show it wrong",
+              "a measured world that holds the plateau after R is under S / 4, or a model in which the second step needs a different ratio"
+            ],
+            [
+              "What replaces it",
+              "a model of the world's own phosphorus recycling"
+            ],
+            [
+              "Evidence",
+              "READ ([R5252], full text: the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for deep-ocean ventilation, a ratio of 3); one model, so it is tier 3"
+            ]
+          ],
+          "id": "BO12",
+          "key": "6.21:BO12",
+          "kind": "P",
+          "slug": "6-21-bo12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
         }
       ],
       "slug": "6-21-stand-ins-of-the-life-timeline-and-the-biogenic-oxygen",
