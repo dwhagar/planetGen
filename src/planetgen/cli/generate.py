@@ -394,6 +394,11 @@ def add_system_arguments(parser):
     parser.add_argument('--age', type=str, choices=['young', 'old'],
                         help="Specify the age of the star system (young or old).")
 
+    # Class M abundance tier (the galaxy's Census dial, for one system)
+    parser.add_argument('--class-m', type=dials.lever("class_m").parse, metavar="{" + ",".join(dials.lever("class_m").choices) + "}",
+                        help="Make the system under this Class M abundance tier (a galaxy carries its own, set when it is planned). "
+                             "Default: science, which moves nothing.")
+
     _add_flavor_arguments(parser)
 
 

@@ -79,12 +79,12 @@ def test_the_later_mantle_is_never_more_reduced_than_the_magma_ocean_surface_of_
 
 def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidized_one_carbon_dioxide_and_sulfur_dioxide():
     reduced, oxidized = [], []
-    for seed in range(40):
+    for seed in range(120):       # GEN.1670: the shift to 1.4 leaves two reduced draws (under IW+1.4) in 120, not in 40
         result = mixture(seed, long_lived_geology=False, ts_k=1000.0, pressure_bar=1.0)
         fractions = result.mole_fractions
         (reduced if result.redox_diw < md.REDOX_SHIFT_DEX else oxidized if result.redox_diw > 3.0 else []).append(fractions)
     assert reduced
-    assert all(f.get("CO", 0.0) > f.get("CO2", 0.0) * 0.3 for f in reduced)
+    assert all(f.get("CO", 0.0) > f.get("CO2", 0.0) * 0.1 for f in reduced)       # GEN.1670: 0.1 was 0.3 when the shift was 1.0 and the reduced draws were at most IW+1; at IW+1.4 the ratio is 0.15
     for seed in range(40):
         with draw.bound(seed):
             result = md.outgassed_mixture(subject(mass_earth=3.0, ts_k=1000.0))

@@ -40,6 +40,9 @@ class StellarObject(LazySaladName, MassObject):
     for.
     """
 
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
+
     def __init__(self, system_config, name=None, galactic_center_dist_ly=None):
         """
         Args:
@@ -59,7 +62,7 @@ class StellarObject(LazySaladName, MassObject):
         "heliosphere_radius": "au", **GALACTIC_MOTION_UNITS,
         "a_crit_au": "au", "reflex_offset_x": "au", "reflex_offset_y": "au", "reflex_offset_z": "au",
         "rotation_period_hours": "h", **spin.SPIN_UNITS, **activity.STAR_ACTIVITY_UNITS, "metallicity_fe_h": "dex",
-        "snow_line_au": "au", "nuclear_arrival_age_gy": "Gyr", **pre_main_sequence.DISK_UNITS,
+        "snow_line_au": "au", "nuclear_arrival_age_gy": "Gyr", **pre_main_sequence.DISK_UNITS, "flavor_key": "text",
     }
     """
     Every attribute set by `__init__`/`generate_star`, excluding `system_config` (a shared back-reference threaded

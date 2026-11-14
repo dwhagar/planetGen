@@ -213,6 +213,22 @@ def test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorde
         redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
 
 
+@pytest.mark.parametrize("command, limit", [
+    (["galaxy"], jobs.JOB_CEILING_SECONDS), (["plan"], jobs.JOB_CEILING_SECONDS), (["run-job", json.dumps([{"command": "plan", "argv": []}, {"command": "galaxy", "argv": []}])], jobs.JOB_CEILING_SECONDS),
+    (["check-db"], jobs.JOB_FLOOR_SECONDS)])
+def test_a_job_that_runs_on_the_queue_is_never_ended_by_a_clock_of_a_smaller_galaxy_s_recorded_time(jobs_root, redis_server, limits, monkeypatch, command, limit):
+    """OPS.255: a New galaxy run could lose its starter when RQ's limit (ten times an estimate recorded on a smaller galaxy) ended the job and the runner stopped its step; a job with a run on the queue
+    takes the ceiling, since the run's watch judges its units by their progress. A job with no run on the queue keeps the limit its recorded time gives."""
+    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
+    steps = [{"label": "x", "argv": [sys.executable, *jobs.GENERATE_COMMAND, *command]}]
+    job_id = jobs.start_job("galaxy", "Timed", steps, root=jobs_root)
+    try:
+        assert [(name, timeout) for name, _func, timeout in limits] == [(jobs.QUEUE_PREFIX + job_id, limit)]
+    finally:
+        jobs.release_lock(job_id)
+        redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
+
+
 def test_a_jobs_expected_seconds_are_the_sum_of_what_its_steps_took_before(monkeypatch, tmp_path):
     steps = [{"label": "Reset", "argv": ["reset"]}, {"label": "Other", "argv": ["other"]}]
     control = object()
@@ -257,6 +273,10 @@ def test_a_job_the_queue_ends_for_its_limit_stops_its_step_and_says_why(tmp_path
         signal.signal(signal.SIGINT, old[1])
     state = json.loads((job_dir / "state.json").read_text(encoding="utf-8"))
     assert state["status"] == "failed" and "past its time limit" in state["error"]
+    # OPS.255: the log says so too, as the failure of the stage the job was at
+    log_text = (job_dir / "output.log").read_text(encoding="utf-8")
+    assert "failed after" in log_text and "past its time limit" in log_text
+    assert "past its time limit" in (job_dir / job_runner.RECORDS_FILE).read_text(encoding="utf-8")
     pid = int(marker.read_text(encoding="utf-8"))
     for _ in range(100):
         try:
