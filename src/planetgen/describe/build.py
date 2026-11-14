@@ -555,10 +555,13 @@ def _equipment_block(planet):
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
         rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
     if getattr(planet, "temp_site_coldest_k", None) is not None:           # GEN.1266: the temperatures the gear is chosen for, and the worst of the world
-        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k)))
+        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k), ", over the whole orbit and not a single day"))      # UX.311
         rows.append(fact("worst-range", "Worst conditions anywhere", _kelvin(planet.temp_coldest_k), " to ", _kelvin(planet.temp_hottest_k)))
         if planet.temp_site_longest_out_days:
-            rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            if getattr(planet, "temp_site_livable_time", None):
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            else:      # UX.310: a site that is never livable is indoors for the whole orbit, which is no "longest stay"
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", "All the time: even the best site is never livable without gear"))
         if planet.temp_livable_belt_only:
             rows.append(fact("belt-only", "Where a person can live", "Only the terminator belt"))
     return facts("Survival equipment", rows) if rows else None
@@ -596,7 +599,7 @@ def _sky_sentences(sky):
     host, others = sky[0], sky[1:]
     sentences = []
     if getattr(host.star, "state", None) in sky_view.COMPACT_STATES:
-        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'} and {_degrees(host.angular_deg)} wide.")
+        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'}, and {_degrees(host.angular_deg)} wide.")
     for number, body in enumerate(others):
         colour = f"{body.colour} " if body.colour else ""
         if body.role == "sun":

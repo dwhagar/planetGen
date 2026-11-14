@@ -38,6 +38,12 @@ from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy import spherical
+
+
+@pytest.fixture(autouse=True)
+def _strong_exclusion(monkeypatch):
+    """GEN.1534: the placement share is 0.05 (fitted to Gaia), too weak to fill a sector with the stub systems of these tests; they pin what happens when a sector runs out of room, so they keep half the sum of the Hill radii apart as before."""
+    monkeypatch.setattr(prog, "SECTOR_HILL_SEPARATION_SHARE", 0.5)
 from planetgen.galaxy.spherical import SectorCell
 from planetgen.galaxy.sector import SpaceSector
 

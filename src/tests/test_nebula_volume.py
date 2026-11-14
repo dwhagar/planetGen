@@ -166,7 +166,7 @@ def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
     for x, y, z, r in clouds[:8]:
         volume = rules.sample_group(
             [_nebula(float(x), float(y), float(z), float(r))], None,
-            lambda p, f, d: nebula_density.density_at(seed, shape, p, f, d), nebula_density.FORM_LEVEL, nebula_density.MAX_DETAIL, FAMILIES)
+            lambda p, f, d, a: nebula_density.density_at(seed, shape, p, f, d, a), nebula_density.FORM_LEVEL, nebula_density.MAX_DETAIL, FAMILIES)
         assert len(volume.ix) > 100
         spots = _positions(volume)
         cells = {(int(math.floor(a / volume.spacing_pc)), int(math.floor(b / volume.spacing_pc))) for a, b in spots[:, :2]}
@@ -178,7 +178,7 @@ def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
 def test_each_family_has_its_own_edge_width_and_the_extent_is_the_half_strength_contour():
     """MAP.142: a ramp of density from 0 to 1 across 40 pc is faded by each family over its own width, all half strong where the density is
     the model's FORM_LEVEL; the fade is longest for a reflection nebula and shortest for a dark one (a shell's is narrower still)."""
-    ramp = lambda points, field, detail: np.clip((points[:, 0] + 20.0) / 40.0, 0.0, 1.0).astype(np.float32)
+    ramp = lambda points, field, detail, anchors=None: np.clip((points[:, 0] + 20.0) / 40.0, 0.0, 1.0).astype(np.float32)
     widths = {}
     for family in ("reflection", "diffuse", "emission", "dark"):
         volume = rules.sample_group([_nebula(0.0, 0.0, 0.0, 70.0, family)], None, ramp, FORM, MAX_DETAIL, FAMILIES, level=4)

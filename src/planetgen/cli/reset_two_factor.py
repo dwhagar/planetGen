@@ -33,7 +33,7 @@ def main(argv=None):
     try:
         conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
     except pymysql.MySQLError as exc:
-        log.error(f"error: could not open the control database ({exc}).")
+        log.error(f"The control database could not be opened ({exc}).")
         return 1
     try:
         row = conn.execute("SELECT id FROM admin_users WHERE username = ?", (args.user,)).fetchone()

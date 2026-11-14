@@ -197,11 +197,11 @@ platform's last-bit noise cannot move it across a sector face except at a face i
 
 
 def centroid_mpc(nebula, center_pc):
-    """The center of the space `nebula` fills, as whole milliparsecs `(x, y, z)` in the galaxy frame (GEN.176)."""
-    offset = nebula.get_shape().interior_centroid()
-    radius_pc = ly_to_pc(nebula.radius_ly)
+    """The center of the space `nebula` fills, as whole milliparsecs `(x, y, z)` in the galaxy frame (GEN.176): the center of its sphere
+    (GEN.1267: the metaball shape whose interior centroid it used is gone, and a cloud's contour is the density the map draws, which has no
+    stored center of its own)."""
     step = CENTROID_ROUND_MPC
-    return tuple(int(round((center_pc[axis] + offset[axis] * radius_pc) * 1000.0 / step)) * step for axis in range(3))
+    return tuple(int(round(center_pc[axis] * 1000.0 / step)) * step for axis in range(3))
 
 
 def birth_sector(nebula, center_pc, edge_pc):

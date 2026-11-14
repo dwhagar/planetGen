@@ -35,7 +35,7 @@ def test_a_mars_like_body_has_a_thin_carbon_dioxide_nitrogen_air_without_water()
     assert found
     for result in found:
         x = result.mole_fractions
-        assert x["CO2"] > 0.9 and 0.0 < x["N2"] < 0.1 and x.get("H2O", 0.0) < 1e-3
+        assert x["CO2"] > 0.85 and 0.0 < x["N2"] < 0.12 and x.get("H2O", 0.0) < 1e-3       # GEN.1584: the delivered nitrogen per carbon is higher (no melt share is applied here: that is the supply's), so the nitrogen share is up to 0.12
         assert x.get("CO", 0.0) < 0.1 * x["CO2"]
 
 

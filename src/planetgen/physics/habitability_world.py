@@ -265,9 +265,13 @@ def groundwater(values):
     return "reachable" if (values.get("aquifer_depth_km") or 0.0) <= tuning.AQUIFER_REACH_KM else "deep"
 
 
+LIQUID_WATER_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
+"""tuple: The hydrospheres that hold liquid water at the surface or under an ice lid (all of which have a water table under any land they leave)."""
+
+
 def solvent(values):
     """"water", "hydrocarbon" or `None`: the stable liquid life would use."""
-    if values.get("hydrosphere") in ("surface ocean", "brine seep", "hycean", "ice-covered ocean") or groundwater(values) != "none":
+    if values.get("hydrosphere") in LIQUID_WATER_STATES or groundwater(values) != "none":
         return "water"
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")
@@ -337,7 +341,7 @@ def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2, comp
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
     if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none" or not luminosity_w or not distance_au:
         return chemical
-    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2) * (values.get("light_factor") or 1.0)       # GEN.1484
+    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2) * (1.0 if values.get("light_factor") is None else values["light_factor"])       # GEN.1484, GEN.1606: a factor of 0 keeps no light
     return max(light, chemical)
 
 

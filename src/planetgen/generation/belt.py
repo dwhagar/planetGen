@@ -111,6 +111,17 @@ def _present_state(star_mass_kg, snow_line_au, age_gy, metal_ratio, distance, lo
     return (0.0 if settled is None else settled.largest_km), mass_kg, density, settled
 
 
+def member_row(body, entry):
+    """The member row (`AsteroidBelt.members`) of a belt page `body` entry (`belt_page.body_entry`) and its roster `entry` (`belt_roster.Entry`): the one place a row is made, for a stored member and for a body drawn on demand (`belt_ondemand`, GEN.1674)."""
+    composition = body["composition"]
+    return {
+        "rank": body["rank"], "mass_kg": body["mass"]["value"], "radius_km": body["diameter"]["value"] / 2.0, "distance_au": body["distance"]["value"],
+        "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
+        "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
+        "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
+        "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag}
+
+
 _STARS = weakref.WeakKeyDictionary()
 """The star each belt of this run was made around (`AsteroidBelt.shorten_to` reads it). Kept apart from the belt so it is never one of its stored attributes."""
 
@@ -205,6 +216,7 @@ class AsteroidBelt:
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
+            self.cleared_spans = tuple(origin.cleared_spans)
             self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, lit_luminosity_w(star, lower_limit, upper_limit), star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
@@ -213,6 +225,8 @@ class AsteroidBelt:
 
     _members = None
     _secular_planets = ((), ())
+    cleared_spans = ()
+    """tuple: The `(low, high)` stretches of the belt the giants cleared (GEN.1092, `belt_origin.BeltOrigin.cleared_spans`); the members are not placed in them. Not stored: a belt read back keeps the members it was saved with."""
 
     def give_secular_planets(self, axes_au, masses_kg):
         """
@@ -264,18 +278,10 @@ class AsteroidBelt:
         stream = draw.Stream(f"belt-members:{self.distance!r}:{self.lower_limit!r}:{star.mass!r}")
         populations = None if self.scatter_fates is None else belt_populations.member_weights(self.scatter_fates)
         entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream,
-                                          populations, self.scatter_giant_au)
+                                          populations, self.scatter_giant_au, self.cleared_spans)
         record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), lit_luminosity_w(star, self.lower_limit, self.upper_limit),
                                       star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
-        rows = []
-        for body, entry in zip(belt_page.member_bodies(record), entries):
-            composition = body["composition"]
-            rows.append({
-                "rank": body["rank"], "mass_kg": body["mass"]["value"], "radius_km": body["diameter"]["value"] / 2.0, "distance_au": body["distance"]["value"],
-                "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
-                "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
-                "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
-                "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag})
+        rows = [member_row(body, entry) for body, entry in zip(belt_page.member_bodies(record), entries)]
         return self._force_by_companions(star, rows)
 
     def receive(self, mass_kg, sentence=None):

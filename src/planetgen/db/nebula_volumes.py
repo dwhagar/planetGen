@@ -71,8 +71,8 @@ def group_volume(conn, key, model=None):
         from planetgen.galaxy import nebula_density as model
     seed, shape = skeleton.galaxy_seed, skeleton.shape
 
-    def density(points, field, detail):
-        return model.density_at(seed, shape, points, field, detail)
+    def density(points, field, detail, anchors):
+        return model.density_at(seed, shape, points, field, detail, anchors)
 
     volume = nebula_volume.sample_group(
         nebulae, inside_block(block, skeleton.edge_pc), density, model.FORM_LEVEL, model.MAX_DETAIL, nebula_blocks.FAMILIES)
@@ -107,8 +107,8 @@ def single_nebula_volume(conn, nebula_id, model=None):
         from planetgen.galaxy import nebula_density as model
     seed, shape = skeleton.galaxy_seed, skeleton.shape
 
-    def density(points, field, detail):
-        return model.density_at(seed, shape, points, field, detail)
+    def density(points, field, detail, anchors):
+        return model.density_at(seed, shape, points, field, detail, anchors)
 
     cloud = {"class": row["nebula_class"], "type": "nebula"}
     nebula = {"key": f"nebula:{nebula_id}", "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
@@ -153,8 +153,8 @@ def sphere_volume(conn, center_pc, radius_pc, family, model=None):
         from planetgen.galaxy import nebula_density as model
     seed, shape = skeleton.galaxy_seed, skeleton.shape
 
-    def density(points, field, detail):
-        return model.density_at(seed, shape, points, field, detail)
+    def density(points, field, detail, anchors):
+        return model.density_at(seed, shape, points, field, detail, anchors)
 
     sphere = {"key": "sphere", "x": float(center_pc[0]), "y": float(center_pc[1]), "z": float(center_pc[2]),
               "radius_pc": float(radius_pc), "family": family}
