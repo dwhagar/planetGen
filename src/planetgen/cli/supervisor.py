@@ -43,7 +43,7 @@ def main(argv=None):
         signal.signal(number, lambda *_: stopping.append(True))
     log.debug("The supervisor %s starts with release %s.", os.getpid(), _version.__version__, area="queue")
     connection = redisqueue.connect(args.url)
-    reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), watch=supervisor.RunWatches(connection),
+    reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=(supervisor.RunWatches(connection), supervisor.WorkerStarts(connection)),
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
     log.debug("The supervisor exits: %s.", reason, area="queue")
     lock.close()

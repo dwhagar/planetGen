@@ -44,13 +44,10 @@ the last start: counted with the live ones so a burst of jobs doesn't start more
 is short of memory or busy can take far longer than a few seconds to import and register, and a window shorter than
 that starts a second worker for the same need, and a third (PERF.181)."""
 
-DECIDING_KEY = "planetgen:workers:deciding"
-DECIDING_SECONDS = 20
-"""The Redis lock, one for the host, held by the caller that counts the workers and starts the missing ones. Callers come from
-every thread of the web app (each map request that queues a tile), so several counted "none starting" at the same
-moment and each started the whole cap: about 130 workers of 125 MB took a 16 GB host on 2026-10-24 and the kernel
-killed MySQL (PERF.181). A caller that does not get the lock leaves the starting to the one that has it. The lock is
-the host's, not the queue's, so the cap on all the host's workers (`host_worker_cap`) is checked and used up in one place."""
+"""
+OPS.209: the host-wide lock between callers that counted and started workers (PERF.181) is gone: only the supervisor starts workers (`start_workers`, acting on the nudges of `ensure_workers`),
+one process in one thread, so two callers cannot count "none starting" at the same moment and each start the whole cap (the 2026-10-24 incident that PERF.181 closed).
+"""
 
 WORKER_COMMAND = "planetgen.cli.worker"
 """str: What every planetgen worker process has in its command line."""
@@ -226,12 +223,27 @@ def reserved_places(queue_name):
 
 def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
     """
+    Asks for workers for the waiting jobs of the queue `queue_name` (OPS.209): leaves a nudge for the supervisor (`supervisor.nudge`), which is the only process that starts, sheds
+    or lends workers (`start_workers`), and starts the supervisor if none is alive. Cheap and safe to call from a web thread, the command line or an enqueuer, at every poll if need be.
+    The arguments are the ones `start_workers` takes.
+
+    Returns:
+        int: 0; the supervisor starts the workers a moment later.
+    """
+    url = url or redisqueue.redis_url()
+    connection = connection or redisqueue.connect(url)
+    supervisor.nudge(connection, queue_name, url=url, mysql_host=mysql_host, count=count)
+    return 0
+
+
+def start_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
+    """
     Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than the queue's cap in
     all (those serving the queue and alive, and those started a moment ago and not registered yet). The cap is
     `count` when given (a run's own `--workers`, PERF.97, which leaves the admin's count alone), else the lane's
     (`lane_cap`, `maintenance_cap`), else `wanted`; the bulk queue's is never more than `wanted` less the maintenance
     lane's workers (`maintenance_share`), and an ask for the maintenance lane's workers sheds the bulk workers over
-    that (`shed_bulk`).
+    that (`shed_bulk`). Called by the supervisor only (OPS.209), which acts on the nudges `ensure_workers` leaves: one process decides, so there is no lock between deciders.
 
     Returns:
         int: How many were started.
@@ -242,18 +254,12 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
         return 0        # PERF.186: no worker starts while everything is stopped
     url = url or redisqueue.redis_url()
     connection = connection or redisqueue.connect(url)
-    supervisor.ensure_started(connection, url)          # OPS.207: every submit wakes the supervisor
     names = lane_of(queue_name)
     queue = redisqueue.queue(names[0], connection)
     waiting = sum(redisqueue.queue(name, connection).count for name in names)
     if not waiting:
         return 0
-    if not connection.set(DECIDING_KEY, str(os.getpid()), nx=True, ex=DECIDING_SECONDS):
-        return 0            # another caller is counting and starting on this host (PERF.181)
-    try:
-        need = _start_missing(queue, names, connection, url, mysql_host, count, waiting)
-    finally:
-        connection.delete(DECIDING_KEY)
+    need = _start_missing(queue, names, connection, url, mysql_host, count, waiting)
     if names[0] == redisqueue.MAINTENANCE_QUEUE:
         shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
     return max(0, need)

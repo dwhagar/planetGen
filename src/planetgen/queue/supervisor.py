@@ -84,6 +84,11 @@ def recent_key():
     return runrecord._k("supervisor", "recent")
 
 
+def nudges_key():
+    """The hash of the asks for workers (OPS.209): queue name -> JSON `{"url", "mysql_host", "count"}` of the latest ask; the supervisor takes them all at each turn."""
+    return runrecord._k("supervisor", "nudges")
+
+
 def starting_key():
     """The string a caller sets to say it is starting the supervisor, so the callers that follow do not."""
     return runrecord._k("supervisor", "starting")
@@ -115,9 +120,9 @@ class RedisStore:
         pipe.execute()
 
     def busy(self):
-        """Whether there is anything for a supervisor to watch: a live run, or a run waiting for the machine."""
+        """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine, or an ask for workers not acted on yet."""
         from planetgen.queue import runline
-        return any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
+        return bool(self.connection.hlen(nudges_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
             or bool(self.connection.zcard(runline._line_key()))
 
 
@@ -236,6 +241,50 @@ class RunWatches:
             self._drop(key)
 
 
+class WorkerStarts:
+    """
+    OPS.209: the starting of workers, which every enqueuer, web thread and starter did for itself (behind a host-wide lock) and is the supervisor's alone now. Each turn it takes the asks for workers
+    (`nudge`) and acts on each with `workers.start_workers`, which holds the rules: the caps, the lanes, the memory limit, shedding and lending. Two asks for one queue before a turn are one:
+    the later wins.
+
+    Args:
+        connection (redis.Redis): The server the asks are on.
+        start (callable, optional): `start(queue_name, connection, url, mysql_host, count)`; `workers.start_workers` where left out. The simulator passes its own.
+    """
+
+    def __init__(self, connection, start=None):
+        self.connection = connection
+        self.start = start
+
+    def take(self):
+        """The asks waiting, taken and cleared in one step: a list of `(queue_name, ask)`."""
+        pipe = self.connection.pipeline(transaction=True)
+        pipe.hgetall(nudges_key())
+        pipe.delete(nudges_key())
+        asks, _ = pipe.execute()
+        return [(runrecord._s(name), json.loads(runrecord._s(raw))) for name, raw in asks.items()]
+
+    def turn(self):
+        """
+        Acts on every ask for workers.
+
+        Returns:
+            int: How many workers it started.
+        """
+        from planetgen.queue import workers
+        start = self.start or workers.start_workers
+        started = 0
+        for queue_name, ask in self.take():
+            try:
+                started += start(queue_name, self.connection, ask.get("url"), ask.get("mysql_host"), ask.get("count")) or 0
+            except Exception as exc:  # noqa: BLE001 -- one queue's start failing leaves the others, and its next ask
+                log.swallowed("queue/supervisor", "WorkerStarts.turn", exc)
+        return started
+
+    def clear(self):
+        """Nothing to drop: an ask not acted on stays on Redis for the next supervisor."""
+
+
 class Supervisor:
     """
     The supervisor's loop with its dependencies passed in (OPS.207): `clock` (`now()`, `sleep(seconds)`), `store` (`publish(pid, since, now, turns)`,
@@ -243,7 +292,7 @@ class Supervisor:
     `lines` is called with each line the supervisor logs, in place of the log, for a test.
     """
 
-    def __init__(self, clock, store, table, pid=None, stop=lambda: False, idle_seconds=IDLE_SECONDS, turn_seconds=TURN_SECONDS, lines=None, watch=None):
+    def __init__(self, clock, store, table, pid=None, stop=lambda: False, idle_seconds=IDLE_SECONDS, turn_seconds=TURN_SECONDS, lines=None, duties=()):
         self.clock = clock
         self.store = store
         self.table = table
@@ -252,7 +301,7 @@ class Supervisor:
         self.idle_seconds = idle_seconds
         self.turn_seconds = turn_seconds
         self.lines = lines
-        self.watch = watch          # OPS.208: `RunWatches` (`turn()`, `clear()`), or `None` for a supervisor that only lives
+        self.duties = tuple(duties)      # what it does each turn (OPS.208, OPS.209): objects with `turn()` and `clear()`, `RunWatches` and `WorkerStarts`
         self.since = None
         self.turns = 0
         self.idle_since = None
@@ -283,10 +332,10 @@ class Supervisor:
         self.turns += 1
         self.store.publish(self.pid, self.since, now, self.turns)
         busy = bool(self.store.busy())
-        if self.watch is not None:
+        for duty in self.duties:
             try:
-                self.watch.turn()
-            except Exception as exc:  # noqa: BLE001 -- a turn that failed is the next turn's to do again
+                duty.turn()
+            except Exception as exc:  # noqa: BLE001 -- a turn that failed is the next turn's to do again, and one duty failing leaves the others
                 log.swallowed("queue/supervisor", "Supervisor.turn", exc)
         if self.turns == 1 or self.turns % LOG_EVERY_TURNS == 0:
             self.say(f"The supervisor {self.pid}, turn {self.turns}: {'something to watch' if busy else 'nothing to watch'}.")
@@ -315,8 +364,8 @@ class Supervisor:
             else:
                 self.clock.sleep(BUSY_TURN_SECONDS if busy else self.turn_seconds)
                 continue
-            if self.watch is not None:
-                self.watch.clear()
+            for duty in self.duties:
+                duty.clear()
             self.store.retract()
             self.act("ended", {"stopped": "it was asked to stop", "idle": f"nothing to watch for {self.idle_seconds:.0f} s",
                                "turns": "the turn limit"}[reason] + f", after {self.turns} turn(s)")
@@ -339,6 +388,20 @@ def overview(connection):
     if fields:
         body.update(pid=int(fields["pid"]), since=float(fields["since"]), turn_at=float(fields["turn_at"]), turns=int(fields["turns"]))
     return body
+
+
+def nudge(connection, queue_name, url=None, mysql_host=None, count=None):
+    """
+    Asks the supervisor for workers for the queue `queue_name` (OPS.209: `workers.ensure_workers`) and starts the supervisor if none is alive. Never raises into the caller: an ask that was not
+    left is the next poll's to leave again.
+    """
+    try:
+        connection.hset(nudges_key(), queue_name, json.dumps({"url": url, "mysql_host": mysql_host, "count": count}))
+        connection.expire(nudges_key(), RECENT_SECONDS)
+    except Exception as exc:  # noqa: BLE001 -- the engine's own bookkeeping never fails the submit that asked
+        log.swallowed("queue/supervisor", "nudge", exc)
+        return
+    ensure_started(connection, url)
 
 
 def is_alive(connection):
