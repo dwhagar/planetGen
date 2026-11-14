@@ -71,7 +71,7 @@ import sqlalchemy.pool
 
 from planetgen.admin import activity_log
 from planetgen.db import statementmark
-from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
+from planetgen.db import alembic_runner, batched, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
@@ -81,7 +81,7 @@ from planetgen.physics import nebula_columns as nebulaColumns, oddities, phospho
 from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
-from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
+from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
@@ -6719,7 +6719,7 @@ BRIGHT_STAR_COLUMNS = (
 `insert_bright_stars` expects each row's values."""
 
 
-CLEAR_BRIGHT_STARS_STEPS = 10
+CLEAR_BRIGHT_STARS_STEPS = 7
 """int: The steps `clear_bright_stars` takes, for the bar of the unit that calls it (OPS.200)."""
 
 
@@ -6743,20 +6743,26 @@ def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
         scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
     with steps.sql("Deleting the bright stars' member systems"):
         scatter_systems.delete_all_member_trees(conn, "bright_stars")
-    with steps.sql("Putting the sectors' bright-star level back"):
-        conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
-    with steps.sql("Putting the sectors' level before the fill back"):
-        conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
-    with steps.sql("Forgetting the sectors' bright-star mass"):
-        conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
-    with steps.sql("Emptying sky_tier_draws"):
-        conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
+    with steps.sql("Putting the sectors' bright-star levels back"):
+        _forget_bright_levels(conn)
     with steps.sql("Forgetting the scatter's threshold and seed"):
         conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                      " bright_star_mass_limit_sol = NULL")
     with steps.sql("Forgetting that the scatter was drawn"):
         forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
+
+
+def _forget_bright_levels(conn):
+    """
+    What the sectors and the star draw remember of bright stars that are gone: each sector's own level back to untouched (-1; the level a delete would put
+    back is forgotten too), its bright mass, and the spheres the draw kept (VIEW.25). Each is a batched statement (`db.batched`, OPS.185) over a table of millions of
+    rows, so the unit that clears the stars says the rows it has been through and never goes quiet.
+    """
+    batched.repeat(conn, "UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0", label="Forgetting the sectors' bright star levels")
+    batched.repeat(conn, "UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0", label="Forgetting the sectors' levels before the fill")
+    batched.repeat(conn, "UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL", label="Forgetting the sectors' bright star masses")
+    batched.repeat(conn, "DELETE FROM sky_tier_draws", label="Forgetting the spheres the star draw kept")
 
 
 def delete_unbuilt_bright_stars(conn, address):
@@ -6798,7 +6804,7 @@ NO_MASS_LIMIT_SOL = 1.0e300
 """float: A mass limit above any star, for a clear that finds none recorded."""
 
 
-CLEAR_BRIGHT_STAR_PASS_STEPS = 9
+CLEAR_BRIGHT_STAR_PASS_STEPS = 6
 """int: The most steps `clear_bright_star_pass` takes (OPS.200; the stars between the two limits are a step only when there are any)."""
 
 
@@ -6827,15 +6833,15 @@ def clear_bright_star_pass(conn, part, limits, steps=statementmark.LABELS_ONLY):
     low, high = min(masses), max(masses)
     if part == "mass":
         with steps.sql("Deleting the member systems of the massive stars"):
-            scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
+            scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
         with steps.sql("Deleting the massive stars"):
-            conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,))
+            batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,), label="Emptying the mass pass of the bright stars")
         forget = "bright_star_mass_limit_sol = NULL"
     else:
         with steps.sql("Deleting the member systems of the lighter stars"):
-            scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
+            scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
         with steps.sql("Deleting the lighter stars"):
-            conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,))
+            batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,), label="Emptying the luminosity pass of the bright stars")
         forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
     if low < high:
         between = conn.execute(
@@ -6847,14 +6853,8 @@ def clear_bright_star_pass(conn, part, limits, steps=statementmark.LABELS_ONLY):
                 row["id"] for row in between
                 if (row["initial_mass_sol"] >= masses[tiers[(row["shell_index"], row["band_index"], row["wedge_index"])]])
                 == (part == "mass")])
-    with steps.sql("Putting the sectors' bright-star level back"):
-        conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
-    with steps.sql("Putting the sectors' level before the fill back"):
-        conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
-    with steps.sql("Forgetting the sectors' bright-star mass"):
-        conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
-    with steps.sql("Emptying sky_tier_draws"):
-        conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
+    with steps.sql("Putting the sectors' bright-star levels back"):
+        _forget_bright_levels(conn)
     with steps.sql("Forgetting what the removed pass recorded"):
         conn.execute(f"UPDATE galaxy_shape SET {forget}")
     with steps.sql("Forgetting that the pass was drawn"):
@@ -7069,6 +7069,7 @@ def insert_nebula_field(conn, rows, batch_size=5000):
             conn.execute_literal(head + ",".join(batch))
             written += len(batch)
             batch = []
+            batched.moving()          # OPS.185: a batch of clouds is in, the unit moved
     if batch:
         conn.execute_literal(head + ",".join(batch))
         written += len(batch)
@@ -7300,9 +7301,13 @@ def drop_phenomenon_scatter_indexes(conn, steps=statementmark.LABELS_ONLY):
         present = {row["name"] for row in conn.execute(
             "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
             " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
-    for name in [name for name in PHENOMENON_SCATTER_INDEXES if name in present]:
+    gone = [name for name in PHENOMENON_SCATTER_INDEXES if name in present]
+    pace = ticker.Ticker("Phenomenon scatter indexes taken off", total=len(gone))
+    for number, name in enumerate(gone, start=1):         # one statement an index, so there is something to count (OPS.185), as `add_phenomenon_scatter_indexes` does
         with steps.sql(f"Dropping the index {name} of phenomenon_scatter"):
             conn.execute(f"ALTER TABLE phenomenon_scatter DROP INDEX {name}")
+        batched.moving()
+        pace.tick(number, detail=name)
 
 
 def missing_phenomenon_scatter_indexes(conn):
