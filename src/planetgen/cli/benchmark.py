@@ -311,21 +311,18 @@ def _megabytes(count):
 
 def _setup_lines(run):
     """The report lines about the machine a run was made on: the buffer pool, the largest tables and the worker
-    start-up cost (nothing for a result saved before they were recorded)."""
-    lines = []
-    if run.get("buffer_pool_bytes") is not None:
-        lines.append(f"  innodb_buffer_pool_size: {_megabytes(run['buffer_pool_bytes'])}")
-    tables = run.get("tables") or []
+    start-up cost (every result records all three)."""
+    lines = [f"  innodb_buffer_pool_size: {_megabytes(run['buffer_pool_bytes'])}"]
+    tables = run["tables"]
     if tables:
         total = sum(table["data_bytes"] + table["index_bytes"] for table in tables)
         lines.append(f"  tables: {len(tables)}, {_megabytes(total)} in all; the largest:")
         for table in tables[:TABLES_LISTED]:
             lines.append(f"    {table['table'][:36]:36} {table['rows']:>10,} rows  data {_megabytes(table['data_bytes']):>11}"
                          f"  indexes {_megabytes(table['index_bytes']):>11}")
-    startup = run.get("worker_startup")
-    if startup:
-        lines.append(f"  worker start-up: {startup['process_seconds']:.2f} s a process (imports {startup['import_seconds']:.2f} s, "
-                     f"first connection {startup['connect_seconds']:.2f} s), median of {STARTUP_RUNS}")
+    startup = run["worker_startup"]
+    lines.append(f"  worker start-up: {startup['process_seconds']:.2f} s a process (imports {startup['import_seconds']:.2f} s, "
+                 f"first connection {startup['connect_seconds']:.2f} s), median of {STARTUP_RUNS}")
     return lines
 
 
