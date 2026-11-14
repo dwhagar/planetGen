@@ -65,3 +65,25 @@ def test_bad_inputs_are_refused():
         hgp.temperature_k(1.0, **dict(HD209458, gamma=-1.0))
     with pytest.raises(ValueError):
         hgp.internal_temperature_k(-1.0)
+
+
+def test_the_profile_function_is_a_profile_the_cloud_curves_can_be_met_on():
+    """GEN.1577 with GEN.994: `profile_function` is a function of the pressure in bar giving K and rising with depth, the form `hot_condensates.cloud_temperature_k` (the condensation
+    temperature of a cloud species at a pressure) is met against: a colder planet's profile crosses a curve deeper, a hotter one's higher or not at all."""
+    from planetgen.physics import hot_condensates as condensates, stellar_abundances as abundances
+    host = abundances.composition(0.0, {})
+    grid = [10.0 ** (exponent / 4.0) for exponent in range(-24, 13)]
+
+    def meets(species, **changes):
+        """The pressure of the last grid point where the profile is warmer than the species' curve (None: it is cooler everywhere, or warmer everywhere)."""
+        profile = hgp.profile_function(**dict(HD209458, **changes))
+        gaps = [profile(pressure) - condensates.cloud_temperature_k(species, pressure, host) for pressure in grid]
+        deepest_warm = [pressure for pressure, gap in zip(grid, gaps) if gap >= 0.0]
+        return deepest_warm[-1] if deepest_warm else None
+
+    assert hgp.profile_function(**HD209458)(10.0) > hgp.profile_function(**HD209458)(1.0) > hgp.profile_function(**HD209458)(1.0e-3)
+    for species in condensates.CLOUD_SPECIES:
+        cold, medium, hot = (meets(species, equilibrium_k=k) for k in (900.0, 1469.0, 2000.0))
+        assert (cold or 0.0) <= (medium or 0.0) <= (hot or 0.0), species
+    # HD 209458 b is warmer than the zinc sulfide curve at every pressure of the grid and cooler than the chromium curve at the deepest
+    assert meets("ZnS") == grid[-1] and meets("Cr") < grid[-1]

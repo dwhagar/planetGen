@@ -18,7 +18,7 @@ equilibrium temperature `T_eq` of a planet that shares the light round the whole
 What it gives: a profile that rises with depth to a deep isotherm at `T_irr`-and-`gamma` set `((3/4) f T_irr^4 (2/3 + 1/(gamma sqrt 3)))^(1/4)` (for `T_int` = 0), a cool skin at the
 top (`skin_k`), and, when `gamma` is large (strong visible absorbers, TiO and VO), a temperature that falls with depth: the inversion. Pressure runs over the whole range the deck
 searches (1e-6 to 1e3 bar). Above about 10 bar real collision-induced and electron opacity make `kappa` grow with pressure, so the constant opacity underestimates the deep
-temperature [R1715]; the deck's lowest clouds (chromium, manganese sulfide) can sit there, which is why the deep end is a stand-in (PF3) and the caller may floor the result with the
+temperature [R1715]; the deck's lowest clouds (chromium, manganese sulfide) can sit there, which is why the deep end is a stand-in (HGP3) and the caller may floor the result with the
 interior's adiabat. Pure functions: no draw, nothing stored, no call into the generator.
 
 Use (the caller composes the inputs from what is already built):
@@ -33,11 +33,11 @@ import math
 from planetgen.physics import constants
 
 KAPPA_THERMAL_M2_KG = 1.0e-3
-"""float: The constant thermal (infrared) opacity, m2/kg (Guillot's 1e-2 cm2/g for HD 209458 b). Stand-in PF1, tier T2, tweak L0."""
+"""float: The constant thermal (infrared) opacity, m2/kg (Guillot's 1e-2 cm2/g for HD 209458 b). Stand-in HGP1, tier T2, tweak L0."""
 
 GAMMA_AT_2000_K = 0.6
 """float: The visible-to-thermal opacity ratio at an irradiation temperature of 2,000 K; `gamma` follows `GAMMA_AT_2000_K * sqrt(T_irr / 2000 K)` (Guillot's
-`kappa_v = 6e-3 sqrt(T_irr / 2000 K)` cm2/g over `kappa_th` = 1e-2 cm2/g). Stand-in PF2, tier T2, tweak L0."""
+`kappa_v = 6e-3 sqrt(T_irr / 2000 K)` cm2/g over `kappa_th` = 1e-2 cm2/g). Stand-in HGP2, tier T2, tweak L0."""
 
 HEAT_REDISTRIBUTION = 0.25
 """float: `f`, the share of the starlight spread over the planet: 1 for the substellar point, 1/2 for the dayside, 1/4 for the whole globe (Guillot's `f`)."""

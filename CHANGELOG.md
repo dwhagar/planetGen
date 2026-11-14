@@ -2,6 +2,149 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4069] - 2026-11-14
+
+**Headline:** The freezing curve of sulfuric acid droplets is now a function (not yet read by the clouds).
+
+### Changed
+- **Freezing curve of the sulfuric acid hydrates, slice 0 (GEN.1644).** New `physics/acid_freezing.py` with `physics/data/acid_freezing.json`: the temperature below which an aqueous sulfuric acid droplet of a given acid mole fraction (or weight percent) has a solid in it at 0.1 MPa, and which solid it is (ice, the 6.5, 4, 3, 2 and 1 hydrates, or the pure acid), read off the printed calculated curves of [R4877] (Figure 1, to about 1 K) and anchored at the temperatures of its Table 6. Registry rows 6.287:AF1 and AF2 are added. Nothing reads it yet, so no output changes: slice 1 will make the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7).
+generation-output: unchanged
+
+## [8.0.4068] - 2026-11-14
+
+**Headline:** Resetting the galaxy names the table it is emptying in the beat, so a slow TRUNCATE shows what it waits on.
+
+### Changed
+- **Reset-galaxy steps by table (OPS.206).** Each `TRUNCATE` of the wipe goes through `queue/longsql.run` with the table, its row count and its place in the list ("Emptying scatter_masses (41,000,000 rows), table 31 of 120").
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4067] - 2026-11-14
+
+**Headline:** The clears and drops of the scatters now show one step to a statement, so a TRUNCATE that takes minutes is named instead of the job looking stuck.
+
+### Changed
+- **Clears and drops step by statement (OPS.200).** `clear-scatter`, `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes` and `clean-nebula-field` take each statement as a step of the unit's bar, named for the beat (the TRUNCATE, the forgetting of the numbering, each sector update, each index dropped). The phenomenon table's indexes are dropped one statement for each index instead of one for all. `clean-nebula-field` also counts the clouds it checks.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4066] - 2026-11-14
+
+**Headline:** A test that never ran now no longer hides behind its twin: the duplicate pulsar-planet isotope test is deleted.
+
+### Fixed
+- **TEST.732: `test_isotope_record.py` defined `test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record` twice with the same body, so Python kept the second and the first never ran.** The first copy is deleted. A scan of every `def test_` in `src/tests` (module level and inside classes) finds no other name defined twice in one scope. Tests only; no generated output moves.
+
+generation-affects: none
+
+## [8.0.4065] - 2026-11-14
+
+**Headline:** The population stream test now picks a world at the technological stage, so it no longer ends up with a world that cannot hold a species.
+
+### Changed
+- **`test_the_same_world_gets_the_same_species_whatever_its_row_ids` takes its world from the pinned civilized candidates (TEST.700) instead of hunting.** Its helper accepted any world with a stored timeline, but only the `technological_civilization` stage holds a species (`has_civilization`) and the homeworld must pass the placement limits, so the pass made no species and the test asserted on an empty result; a random hunt for a better world ran past the 900 s timeout at the gate. The helper now tries the candidate numbers in `tests/data/civilized_pins.json` (each makes the same system every time), takes the first whose homeworld gets a species, and fails in two minutes naming the refresh command when none does. It does not skip. On current main all three pins (37, 47, 142) are refused a species ("the air cannot be breathed", class G, life class 1), so it fails until the air fix (GEN.1589) merges and the pins are refreshed.
+
+generation-affects: none
+
+## [8.0.4064] - 2026-11-14
+
+**Headline:** A sector save writes its systems' summaries, stamps, ledger and history rows in a few statements again, and a sector can be pickled for another process again.
+
+### Changed
+- **The sector save no longer flushes its insert batch for every system.** GEN.1478 (`system_summary.refresh`), GEN.1479 (`stamp_habitability`), GEN.1498 (`stamp_ledger`), GEN.1465 (`insert_effect_ledger`) and GEN.1497 (`insert_body_history`) each ran a statement per system that sends the held rows first (`Connection.flush`), so a sector of 8 systems wrote 146 INSERTs where `test_db_batching` wants a few. `_insert_sector_rows` now collects the system ids (`Connection.deferred_summary`) and writes the summaries and the two stamps once after the last system; `effect_ledger` and `body_history` are held back with the other child rows (`BATCH_CHILD_TABLES`) when the connection batches. A save outside a sector save writes them at once, as before. The sector's 8 systems now take 47 INSERTs, the rest being the statements of the tables with thousands of rows (500 rows each, `_BATCH_ROWS`). Nothing stored changes.
+- **A planet can be pickled with its carbon sink.** GEN.1309 A keeps `planet._co2_sink` (a closure over the body) until the life stage has used it; `pickle.dumps` of a sector failed on it (`test_parallel_writers_with_the_same_names_finish_cleanly`). `Planet.__getstate__` leaves the transient `_co2_sink` out of a pickle; `__copy__` and `__deepcopy__` keep it, so `life._trial_copy` and any in-process copy see it as before.
+- `test_db_batching`: the statement bound counts the extra statements of the tables with many rows (a belt's members, the isotope records), which grew with GEN.1492 and GEN.1377.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4063] - 2026-11-14
+
+**Headline:** A wide pair loaded from the database keeps its two star words, so editing or renaming it names its planets as before.
+
+### Changed
+- **`star_words` of a wide pair survive a save and load (DB.125).** `store.load_star_system` set `star_words` to nothing, so the next `assign_names` on a loaded wide pair drew two new words and renamed its stars and the planets of the secondary. The two words are not a column: `assign_names` names the stars `<first word> <primary word>` and `<first word> <secondary word>` (GEN.62), so the load reads them back from the two stored star names with the new `names.bodies.wide_pair_star_words` (which reuses `wide_pair_first_word`). Names of another shape (a pair renamed by hand) give nothing, as before. No migration, no column; stored data is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4062] - 2026-11-14
+
+**Headline:** A moon loaded from the database keeps its host planet's eccentricity, so its air solved again gets the light it had.
+
+### Changed
+- **`host_eccentricity` of a moon survives a save and load (DB.123).** The field is not a column and came back as 0.0, so an edit that solved a loaded moon's air again (`physics.planets.calculate_atmospheric_conditions`, which takes the light of a moon from its parent's orbit, GEN.727) used a circular parent orbit and got another temperature than generation did. Generation tells each moon its parent's eccentricity (`moon.host_eccentricity = planet.eccentricity`); `store.load_star_system` now does the same for each loaded moon from the loaded planet, so no column and no migration are needed. A moon of a rogue planet has no star and keeps 0.0. Stored data is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4061] - 2026-11-14
+
+**Headline:** Every property on the New galaxy page has a Default tick box and a ? help button, and the galaxy shape and first neighborhood fold away.
+
+### Changed
+- **The galaxy shape and the first neighborhood are collapsible sections, open to start with**, like the advanced star properties. The plan-only page's galaxy shape folds the same way.
+- **Shape, Rogue planets, the first neighborhood boxes, the bright star limits, the prevalence and star mix shares and the star cap get the Default toggle and ? help the galaxy measures have.** Each shows its title, a ? button beside it that opens the help text, and an unlabeled tick box beside the box, ticked to start: a blank property stays blank and is drawn by the seed, and one with a usual value shows it read-only (its bar disabled). Unticking frees it. The core limits keep their own "follow the galaxy-wide limits" box.
+
+- **The galaxy shape is split into folds by dial**: the galaxy family and the size rows are open to start with; structure, edge, halo, census (richness and rogue planets) and spiral arms are closed. The advanced shape rows sit with their dial.
+- **All the help text on the New galaxy page is behind a ? button**: each property's, each section's and each tick box's. Only warnings and computed figures stay showing.
+
+generation-affects: none
+
+## [8.0.4060] - 2026-11-14
+
+**Headline:** Two leftover back-compatibility paths for results and rows saved before 8.0 are gone.
+
+### Changed
+- **TEST.736.** `radiation.total_dose_msv_yr` now requires the belt part (every stored body has one, 0.0 outside a belt) instead of reading a missing one as zero, and the benchmark report no longer tolerates a result saved before the buffer pool, table sizes and worker start-up were recorded. Their two tests that kept the old behaviour alive are dropped and the belt-part assertions stay. Nothing generated changes.
+generation-output: unchanged
+
+## [8.0.4059] - 2026-11-14
+
+**Headline:** The long clears of a plan and a scatter (the bright stars, the phenomena, the nebula field and the block light totals) now go a batch of rows at a time and say how many they have done, so a slow machine never shows them as quiet.
+
+### Changed
+
+- OPS.185: the units of OPS.170 that can pass the 300 s quiet floor on a slow host now work in steps that move the unit's heartbeat and say a real count, as OPS.184 did for the generator battery's digest. New `db/batched.py` (`repeat`: a `DELETE` or an `UPDATE` run a batch of rows at a time, each batch committed, `unitbeat.moving()` and a `Ticker` line with the rows so far) is used for the sectors' bright star levels, the spheres the star draw kept (`sky_tier_draws`), the bright stars of one pass, the Galaxy Map's block light totals and parts, and the members and nodes of the scattered stars; `scatter_systems.delete_member_trees_scanning` finds the rows of a pass a chunk of ids at a time and removes their member trees, where one `DELETE` over a join was minutes; `uncharted_index.clear_unoccupied` and the nebula field's inserts tell the unit after each chunk; the nebula field's slab says the column of cells it has walked (`nebula_field.table_rows(on_column)`); the phenomenon scatter's indexes come off one statement each, counted. No `waiting` tag is used. The `plan-skeleton`, `clear-bright-stars`, `empty-phenomenon-scatter`, `drop-phenomenon-indexes`, `clear-scatter` and `draw-nebula-field` units go through these.
+- The phases that cannot pass the floor (a few rows written, an outline of tens of thousands of cheap calls, one range of 200,000 ids, a block light roll that already counts) are left alone; the reasons are in the pull request's audit table.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4058] - 2026-11-14
+
+**Headline:** Two design notes for a chaotic three-sun zone and a dimming star are added to the research tree; nothing in the generator changes.
+
+### Changed
+- **Design notes for the chaotic triple-star zone and the dimming star (GEN.1437).** The notes say what the generator already holds for each case, what a planet or star would store, how to check it, and the build items each needs. Documentation only; generated output is unchanged.
+
+## [8.0.4057] - 2026-11-14
+
+**Headline:** The mass pass and the luminosity pass of one run look up the clusters' and satellites' sector addresses once, with no change to any generated star.
+
+### Changed
+- **The planning of the two bright-star passes shares the components' sample addresses.** Each pass's planning asks, for every cluster and satellite, which sector 256 sample positions lie in (`component_pass.kept_stars`, 5 million `sector_address_at` calls on the default galaxy, most of the 69 s serial planning step of a pass). The places depend on the component alone, not on the pass, so they are now kept by the digest of the positions (`component_pass._sample_places`) and the second pass finds them. The expected stars, the units and the stars drawn are unchanged (PERF.264).
+
+## [8.0.4056] - 2026-11-14
+
+**Headline:** The Sectors list no longer counts the chart ledger table on a request that has no stored answer yet; it uses the storage engine's estimate, as every other count does.
+
+### Fixed
+- **No table-wide count on a request (OPS.154).** The estimate that `count_uncharted_sector_rows` returns before its first stored count ran `SELECT COUNT(*) FROM chart_ledger`; it now reads the ledger's estimated rows, like the sectors table beside it. `test_count_cache.py::test_a_request_never_counts_the_table_itself_when_the_answer_is_not_there` was red on main since PR 6308 and passes again. The stored (exact) count is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4055] - 2026-11-14
+
+**Headline:** Four tests that went red on main this evening pass again; no behavior changes.
+
+### Fixed
+- **Main reds after OPS.183, OPS.184 and OPS.175 (TODO sweep).** The ESA account variables of the Gaia download (OPS.183) are named in the settings test with their reason; the generator battery's digest poll interval (OPS.184) says it is defined by the program; the VizieR source name reads "catalog"; the settings writer test reads the new refusal wording of OPS.175. generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4054] - 2026-11-14
 
 **Headline:** A long database statement of a command shows in the beat with its label and start, and the stage events of MySQL are used where the account may read them.

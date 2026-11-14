@@ -278,11 +278,13 @@ def test_page_renders_summary_and_forms(site, client):
     assert '<a href="/admin/generate" data-destination="generate" aria-current="page">Generate</a>' in html
 
 
-def test_the_richness_field_is_folded_away_under_advanced(site, client):
+def test_the_richness_field_is_folded_away_under_its_own_fold(site, client):
+    """UX.316: richness sits in the Census fold of the galaxy shape (folded, not open to start with); flatness sits in the Structure fold."""
     html = _task_html(client, "new-galaxy")
-    fold = html.index('<details class="generate-advanced">')
-    assert 'name="richness"' in html and html.index('name="richness"') > fold
-    assert html.index('name="flatness"') < fold
+    census = html.index("Census: star richness and rogue planets")
+    structure = html.index("Structure: flatness, bulge, nuclear")
+    assert 'name="richness"' in html and census < html.index('name="richness"') < html.index("</details>", census)
+    assert structure < html.index('name="flatness"') < html.index("</details>", structure)
 
 
 def test_page_shows_the_bright_star_scatter(site, client):
@@ -2220,3 +2222,30 @@ def test_every_number_and_length_row_is_a_slider_with_a_tick_box_and_a_sticky_au
     assert "/static/leversliders.js" in html
     # The sliders add nothing to the plan: the tick boxes are not levers, and a blank box is Auto.
     assert generate_page.plan_argv({"mass_default": "1", "mass": ""}) == []
+
+
+def test_the_new_galaxy_page_gives_every_property_the_default_toggle_and_collapsible_sections(site, client):
+    """Boss, 2026-11-13: the galaxy shape and the first neighborhood are collapsible and open to start with, and the script
+    that adds each property's Default tick box and ? help runs over them and the advanced star properties."""
+    html = _task_html(client, "new-galaxy")
+    assert "data-default-toggles" in html and "/static/fielddefaults.js" in html
+    assert re.search(r'<details class="generate-advanced generate-section" open>\s*<summary>Galaxy shape</summary>', html)
+    assert re.search(r'<details class="generate-advanced generate-section" open>\s*<summary>First neighborhood</summary>', html)
+    assert html.index("data-default-toggles") < html.index("<summary>Galaxy shape</summary>") < html.index("Advanced: bright stars")
+    # A field that starts with its usual value says what Default is, so the toggle can put it back.
+    assert re.search(r'name="prevalence_moons"[^>]*data-auto="', html) and re.search(r'name="max_stars"[^>]*data-auto="', html)
+    assert 'data-limit-slider data-auto=' in html
+    assert "data-default-toggles" in _task_html(client, "plan-only")
+
+
+def test_the_galaxy_shape_is_split_into_a_fold_for_each_dial_with_the_scale_open(site, client):
+    """Boss, 2026-11-13: the galaxy shape was very heavy. Each dial's rows (the advanced ones with them) are a fold of their own;
+    the family and the size rows are open to start with, the rest closed."""
+    html = _task_html(client, "new-galaxy")
+    folds = re.findall(r'<details class="generate-advanced generate-subsection"( open)?>\s*<summary>([^<]+)</summary>', html)
+    titles = [title for _opened, title in folds]
+    assert [t.split(":")[0] for t in titles] == ["Galaxy family", "Size", "Structure", "Edge of the galaxy", "Dark and stellar halo", "Census", "Spiral arms"]
+    assert [bool(opened) for opened, _title in folds] == [True, True, False, False, False, False, False]
+    for row in dials.LEVERS:
+        assert html.count(f'data-lever="{row.name}"') >= 1, row.name
+    assert "Advanced shape options" not in html

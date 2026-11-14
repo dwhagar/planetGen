@@ -71,7 +71,7 @@ import sqlalchemy.pool
 
 from planetgen.admin import activity_log
 from planetgen.db import statementmark
-from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
+from planetgen.db import alembic_runner, batched, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
@@ -81,7 +81,7 @@ from planetgen.physics import nebula_columns as nebulaColumns, oddities, phospho
 from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
-from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
+from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
@@ -98,7 +98,7 @@ from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word, wide_pair_star_words
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -625,7 +625,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -936,6 +936,7 @@ class Connection:
         self._batch_levels = {}
         self.prereserved_names = None
         self.deferred_name_confirmations = None
+        self.deferred_summary = None    # a sector save's list of the system ids whose summary and stamp are written once, after the last system
         self.claim_connection = None
         """`Connection` or `None`: a second connection of the same database on which `reserve_system_names` claims
         names in their own short transactions (PERF.49), so the registry's row locks are not held to this
@@ -4759,7 +4760,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     with object_rows.logged_rows() as saved:
         star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
         insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
-        stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code
+        if getattr(conn, "deferred_summary", None) is None:
+            stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code (a sector save stamps all its systems at once)
         insert_body_history(conn, star_system_id, star_system, saved)
     return star_system_id
 
@@ -4783,7 +4785,13 @@ def insert_body_history(conn, star_system_id, star_system, saved):
     columns = body_history.ROW_FIELDS
     if rows:
         marks = ", ".join("?" for _ in columns)
-        conn.executemany(f"INSERT INTO body_history ({', '.join(columns)}) VALUES ({marks})", [tuple(row[name] for name in columns) for row in rows])
+        sql = f"INSERT INTO body_history ({', '.join(columns)}) VALUES ({marks})"
+        values = [tuple(row[name] for name in columns) for row in rows]
+        if getattr(conn, "_batch", None) is not None:      # held back with the other child rows in a sector save, as `insert_effect_ledger`'s are
+            for params in values:
+                conn.execute(sql, params)
+        else:
+            conn.executemany(sql, values)
     return len(rows)
 
 
@@ -4807,7 +4815,13 @@ def insert_effect_ledger(conn, star_system_id, ledger, saved, floor=None):
     columns = effect_ledger.ROW_FIELDS
     if rows:
         marks = ", ".join("?" for _ in columns)
-        conn.executemany(f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({marks})", [tuple(row[name] for name in columns) for row in rows])
+        sql = f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({marks})"
+        values = [tuple(row[name] for name in columns) for row in rows]
+        if getattr(conn, "_batch", None) is not None:     # a sector save holds the rows back with the other child rows, one statement for all its systems (an `executemany` would flush them for every system)
+            for params in values:
+                conn.execute(sql, params)
+        else:
+            conn.executemany(sql, values)
     return len(rows)
 
 
@@ -5046,8 +5060,11 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     for comet in star_system.secondary_comets:
         insert_comet(conn, comet, star_system_id, star_id=secondary_star_id)
 
-    system_summary.refresh(conn, [star_system_id])  # GEN.1478: what the rows just written add up to
-    stamp_habitability(conn, [star_system_id])      # GEN.1479: its bodies were just scored by this code
+    if getattr(conn, "deferred_summary", None) is not None:     # a sector save writes them once for all its systems (`_insert_sector_rows`): each one here would flush the batch
+        conn.deferred_summary.append(star_system_id)
+    else:
+        system_summary.refresh(conn, [star_system_id])  # GEN.1478: what the rows just written add up to
+        stamp_habitability(conn, [star_system_id])      # GEN.1479: its bodies were just scored by this code
     return star_system_id
 
 
@@ -6719,29 +6736,50 @@ BRIGHT_STAR_COLUMNS = (
 `insert_bright_stars` expects each row's values."""
 
 
-def clear_bright_stars(conn):
+CLEAR_BRIGHT_STARS_STEPS = 7
+"""int: The steps `clear_bright_stars` takes, for the bar of the unit that calls it (OPS.200)."""
+
+
+def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     """
     Empties `bright_stars`, sets every sector's own bright-star level
     (`sector_stats`, v53, GEN.44) back to untouched (-1; a filled sector
     stays at 0, and the level a delete would put back is forgotten too)
     and forgets the scatter's threshold and seed -- a plan re-run or a new
     galaxy starts over. `TRUNCATE` (an implicit commit), since a real
-    scatter leaves tens of millions of rows.
+    scatter leaves tens of millions of rows. Each statement is a step of `steps`
+    (`CLEAR_BRIGHT_STARS_STEPS` of them), which names it for the beat (OPS.200).
     """
-    conn.execute("TRUNCATE TABLE bright_stars")
+    with steps.sql("Emptying bright_stars"):
+        conn.execute("TRUNCATE TABLE bright_stars")
     from planetgen.db import block_lights
 
-    block_lights.forget_parts(conn, "stars")      # GEN.1476: their light leaves the parts with them
-    scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
-    scatter_systems.delete_all_member_trees(conn, "bright_stars")
-    conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
-    conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
-    conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
-    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
-    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
-                 " bright_star_mass_limit_sol = NULL")
-    forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
+    with steps.sql("Taking the star light out of the block parts"):
+        block_lights.forget_parts(conn, "stars")      # GEN.1476: their light leaves the parts with them
+    with steps.sql("Forgetting the star numbering"):
+        scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
+    with steps.sql("Deleting the bright stars' member systems"):
+        scatter_systems.delete_all_member_trees(conn, "bright_stars")
+    with steps.sql("Putting the sectors' bright-star levels back"):
+        _forget_bright_levels(conn)
+    with steps.sql("Forgetting the scatter's threshold and seed"):
+        conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
+                     " bright_star_mass_limit_sol = NULL")
+    with steps.sql("Forgetting that the scatter was drawn"):
+        forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
+
+
+def _forget_bright_levels(conn):
+    """
+    What the sectors and the star draw remember of bright stars that are gone: each sector's own level back to untouched (-1; the level a delete would put
+    back is forgotten too), its bright mass, and the spheres the draw kept (VIEW.25). Each is a batched statement (`db.batched`, OPS.185) over a table of millions of
+    rows, so the unit that clears the stars says the rows it has been through and never goes quiet.
+    """
+    batched.repeat(conn, "UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0", label="Forgetting the sectors' bright star levels")
+    batched.repeat(conn, "UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0", label="Forgetting the sectors' levels before the fill")
+    batched.repeat(conn, "UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL", label="Forgetting the sectors' bright star masses")
+    batched.repeat(conn, "DELETE FROM sky_tier_draws", label="Forgetting the spheres the star draw kept")
 
 
 def delete_unbuilt_bright_stars(conn, address):
@@ -6783,7 +6821,11 @@ NO_MASS_LIMIT_SOL = 1.0e300
 """float: A mass limit above any star, for a clear that finds none recorded."""
 
 
-def clear_bright_star_pass(conn, part, limits):
+CLEAR_BRIGHT_STAR_PASS_STEPS = 6
+"""int: The most steps `clear_bright_star_pass` takes (OPS.200; the stars between the two limits are a step only when there are any)."""
+
+
+def clear_bright_star_pass(conn, part, limits, steps=statementmark.LABELS_ONLY):
     """
     Deletes one pass of the star scatter and leaves the other (GEN.196):
     `part` "mass" removes the stars born at their band's mass limit or more (the mass
@@ -6807,28 +6849,33 @@ def clear_bright_star_pass(conn, part, limits):
         masses = [found.mass_limit_sol for found in limits.tiers]
     low, high = min(masses), max(masses)
     if part == "mass":
-        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
-        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,))
+        with steps.sql("Deleting the member systems of the massive stars"):
+            scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
+        with steps.sql("Deleting the massive stars"):
+            batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,), label="Emptying the mass pass of the bright stars")
         forget = "bright_star_mass_limit_sol = NULL"
     else:
-        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
-        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,))
+        with steps.sql("Deleting the member systems of the lighter stars"):
+            scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
+        with steps.sql("Deleting the lighter stars"):
+            batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,), label="Emptying the luminosity pass of the bright stars")
         forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
     if low < high:
         between = conn.execute(
             "SELECT id, shell_index, band_index, wedge_index, initial_mass_sol FROM bright_stars"
             " WHERE initial_mass_sol >= ? AND initial_mass_sol < ?", (low, high)).fetchall()
         tiers = _cell_tiers(limits, {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in between})
-        _delete_bright_stars_by_id(conn, [
-            row["id"] for row in between
-            if (row["initial_mass_sol"] >= masses[tiers[(row["shell_index"], row["band_index"], row["wedge_index"])]])
-            == (part == "mass")])
-    conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
-    conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
-    conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
-    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
-    conn.execute(f"UPDATE galaxy_shape SET {forget}")
-    forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
+        with steps.sql("Deleting the stars between the two limits"):
+            _delete_bright_stars_by_id(conn, [
+                row["id"] for row in between
+                if (row["initial_mass_sol"] >= masses[tiers[(row["shell_index"], row["band_index"], row["wedge_index"])]])
+                == (part == "mass")])
+    with steps.sql("Putting the sectors' bright-star levels back"):
+        _forget_bright_levels(conn)
+    with steps.sql("Forgetting what the removed pass recorded"):
+        conn.execute(f"UPDATE galaxy_shape SET {forget}")
+    with steps.sql("Forgetting that the pass was drawn"):
+        forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()
 
 
@@ -6979,19 +7026,31 @@ def estimated_rows(conn, table):
     return int(row["n"] or 0) if row else 0
 
 
-def clear_phenomenon_scatter(conn):
+CLEAR_PHENOMENON_SCATTER_STEPS = 7
+"""int: The steps `clear_phenomenon_scatter` takes (OPS.200)."""
+
+
+def clear_phenomenon_scatter(conn, steps=statementmark.LABELS_ONLY):
     """Empties `phenomenon_scatter` and forgets the scatter's seed -- a
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
-    commit), since a real scatter leaves over a hundred million rows."""
-    conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    commit), since a real scatter leaves over a hundred million rows.
+    Each statement is a step of `steps` (`CLEAR_PHENOMENON_SCATTER_STEPS`), named for the beat."""
+    with steps.sql("Emptying phenomenon_scatter"):
+        conn.execute("TRUNCATE TABLE phenomenon_scatter")
     from planetgen.db import block_lights
 
-    block_lights.forget_parts(conn, "points")      # GEN.1476: their light leaves the parts with them
-    scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
-    scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
-    conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
-    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
-    forget_scatter_epoch(conn, "phenomena")
+    with steps.sql("Taking the point light out of the block parts"):
+        block_lights.forget_parts(conn, "points")      # GEN.1476: their light leaves the parts with them
+    with steps.sql("Forgetting the phenomenon numbering"):
+        scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
+    with steps.sql("Deleting the phenomena's member systems"):
+        scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
+    with steps.sql("Emptying phenomenon_scatter_classes"):
+        conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
+    with steps.sql("Forgetting the scatter's seed"):
+        conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
+    with steps.sql("Forgetting that the scatter was drawn"):
+        forget_scatter_epoch(conn, "phenomena")
     conn.commit()
 
 
@@ -7000,10 +7059,16 @@ NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radi
 """tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order): the place, then the composition (GEN.1277)."""
 
 
-def clear_nebula_field(conn):
+CLEAR_NEBULA_FIELD_STEPS = 2
+"""int: The steps `clear_nebula_field` takes (OPS.200)."""
+
+
+def clear_nebula_field(conn, steps=statementmark.LABELS_ONLY):
     """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
-    conn.execute("TRUNCATE TABLE nebula_field")
-    forget_scatter_epoch(conn, "nebula-field")
+    with steps.sql("Emptying nebula_field"):
+        conn.execute("TRUNCATE TABLE nebula_field")
+    with steps.sql("Forgetting that the field was drawn"):
+        forget_scatter_epoch(conn, "nebula-field")
     conn.commit()
 
 
@@ -7021,6 +7086,7 @@ def insert_nebula_field(conn, rows, batch_size=5000):
             conn.execute_literal(head + ",".join(batch))
             written += len(batch)
             batch = []
+            batched.moving()          # OPS.185: a batch of clouds is in, the unit moved
     if batch:
         conn.execute_literal(head + ",".join(batch))
         written += len(batch)
@@ -7244,15 +7310,21 @@ def insert_phenomenon_scatter(conn, rows, batch_size=5000):
     return written
 
 
-def drop_phenomenon_scatter_indexes(conn):
+def drop_phenomenon_scatter_indexes(conn, steps=statementmark.LABELS_ONLY):
     """Drops the secondary indexes of `phenomenon_scatter` that exist, so a scatter's many inserts do not keep them
-    up to date row by row; `add_phenomenon_scatter_indexes` builds them again from the finished table."""
-    present = {row["name"] for row in conn.execute(
-        "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
-        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
+    up to date row by row; `add_phenomenon_scatter_indexes` builds them again from the finished table. Looking
+    them up and each index dropped are steps of `steps` (at most `1 + len(PHENOMENON_SCATTER_INDEXES)`, OPS.200)."""
+    with steps.sql("Looking up the phenomenon table's indexes"):
+        present = {row["name"] for row in conn.execute(
+            "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
+            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
     gone = [name for name in PHENOMENON_SCATTER_INDEXES if name in present]
-    if gone:
-        conn.execute("ALTER TABLE phenomenon_scatter " + ", ".join(f"DROP INDEX {name}" for name in gone))
+    pace = ticker.Ticker("Phenomenon scatter indexes taken off", total=len(gone))
+    for number, name in enumerate(gone, start=1):         # one statement an index, so there is something to count (OPS.185), as `add_phenomenon_scatter_indexes` does
+        with steps.sql(f"Dropping the index {name} of phenomenon_scatter"):
+            conn.execute(f"ALTER TABLE phenomenon_scatter DROP INDEX {name}")
+        batched.moving()
+        pace.tick(number, detail=name)
 
 
 def missing_phenomenon_scatter_indexes(conn):
@@ -8125,6 +8197,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     # in `deferred_name_confirmations` for one upsert at the end.
     conn.prereserved_names = {}
     conn.deferred_name_confirmations = []
+    conn.deferred_summary = []
     conn.uid_issuer = _uid_issuer_for_sector(conn, sector_id, galaxy_position)
     try:
         # Every placed phenomenon is named by its Object ID (GEN.1256),
@@ -8181,6 +8254,11 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
                 built_scatter_ids.append(entry.scatter_id)
             _save_progressed(conn)
 
+        summarized, conn.deferred_summary = conn.deferred_summary, None
+        if summarized:      # GEN.1478, GEN.1479: what the systems' rows add up to and the stamp of the code that scored them, one statement for the sector
+            system_summary.refresh(conn, summarized)
+            stamp_habitability(conn, summarized)
+            stamp_ledger(conn, summarized)      # GEN.1498
         healed = confirm_system_names(conn, conn.deferred_name_confirmations)
         if healed:
             seen = set()
@@ -8192,6 +8270,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     finally:
         conn.prereserved_names = None
         conn.deferred_name_confirmations = None
+        conn.deferred_summary = None
     if cluster_links:       # GEN.359: every star of a system built from a cluster's star points to the cluster
         conn.executemany("UPDATE stars SET cluster_id = ? WHERE star_system_id = ?", cluster_links)
         name_clusters(conn, [cluster_id for cluster_id, _system_id in cluster_links])
@@ -10201,6 +10280,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star.db_id = primary_row["id"]
         secondary_star.db_id = secondary_row["id"]
         system.stars = [star, secondary_star]
+        system.star_words = wide_pair_star_words(row["name"], star.name, secondary_star.name)    # DB.125: not a column, the two star names hold them
     else:
         system.primary_star = star
         system.stars = [star]
@@ -10274,6 +10354,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                 planet.db_id = r["id"]
                 for moon, moon_row in zip(planet.moons, moon_rows):
                     moon.db_id = moon_row["id"]
+                    moon.host_eccentricity = planet.eccentricity    # DB.123: not a column; a moon is told its parent's (`physics.planets`), which the light its air is solved under goes by
                 objects.append(planet)
         return objects
 
