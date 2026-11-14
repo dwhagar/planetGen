@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.317 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1694 |
+| GEN | GEN.1699 |
 | PERF | PERF.266 |
 | DB | DB.131 |
 | API | API.49 |
 | ADM | ADM.155 |
 | SEC | SEC.50 |
-| TEST | TEST.739 |
+| TEST | TEST.740 |
 | USR | USR.33 |
 | OPS | OPS.253 |
 | DOC | DOC.121 |
@@ -3991,6 +3991,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1691 | Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice | none | open |
 | GEN.1692 | (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main | none | open |
 | GEN.1693 | (bug) Promoted belt members cross a neighbouring planet or reach into the next belt (secular forcing lifts e to 0.5), so test_clearance is red on main (34 of 95 seeds) | none | open |
+| GEN.1694 | (bug) The galactic ozone-loss flag is always on: activity.lethal_event_rate_per_gyr uses Milky Way constants, treats an event rate as a permanent state, and the default galactic distance (4,228 ly) gives 164.7 per Gyr against the limit of 10, so every oxygen world keeps 10 percent of its ozone and no world is ever Blue | none | open |
+| GEN.1695 | (bug) The methane haze gate (aerosols.haze_gate) opens on the CH4/CO2 ratio alone, so 16 ppm of methane blocks 91 percent of sunlight and freezes a 304 K ocean | none | open |
+| GEN.1696 | (bug) The climate solve starts from the airless temperature (air_final.py:83), so a world with a warm and a frozen climate for the same air always gets the frozen one | none | open |
+| GEN.1697 | (bug) Continental weathering keeps running under a global ice sheet (surface_air._weathers, surface_pressure.carbonate_pco2_bar), so volcanic CO2 never builds up to thaw a snowball | none | open |
+| GEN.1698 | (bug) Sulfur vapor (S2) has no condensation limit (surface_air.saturation_limit_pa returns none; the GEN.1564 slice 0 curve is still unread), so habitable-zone planets carry 10 to 960 bar of S2 and H2S | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4808,6 +4813,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | open |
 | TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | open |
 | TEST.738 | Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale | none | open |
+| TEST.739 | (bug) scripts/earth_analog.py (TEST.726) runs the generation steps in the wrong order on one reused body, so its Class M figures (0.6 and 1.75 percent) are wrong; the generator's rate is 2.5 percent (20 of 800) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
