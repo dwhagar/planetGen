@@ -50,6 +50,7 @@ class Context:
         self.kind, self.args, self.report, self.cursor = kind, args, report, cursor
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
+        self.scratch = {}
         self._db = None
         self._checked_at = None
 
@@ -69,6 +70,15 @@ class Context:
             from planetgen.db import store
             self._db = store.get_connection(self.config)
         return self._db
+
+    def kept(self, name, make):
+        """
+        What the unit works out once and every piece reads (the galaxy's shape, a table of components): `make()` the first time `name` is asked for, the same value after, until the unit ends
+        (`scratch` is the unit's own, so a value never outlives it and a later unit reads the database afresh).
+        """
+        if name not in self.scratch:
+            self.scratch[name] = make()
+        return self.scratch[name]
 
     def commit(self):
         """
