@@ -234,9 +234,17 @@ NON_OPTION_VARIABLES = {
                                   "where install.sh puts them; the test suite points it at a temporary folder)",
     "PLANETGEN_MEMORY_GATE": "`0` turns the memory/load gate off for one process, so every claim is admitted at once (PERF.254, queue/memorygate.py; a switch for a "
                              "benchmark or a debugging run, not a site setting: the gate is the rule on every install)",
+    "PLANETGEN_SELF_TUNING": "`0` turns the learned claims off for one process, so every claim is the typed figure (OPS.156, queue/profileclaim.py; a switch for a "
+                             "benchmark or a debugging run, not a site setting)",
+    "PLANETGEN_JOB_PROFILES": "`0` turns the job profile writers off for one process (OPS.155, queue/jobprofiles.py; a switch for a benchmark or a test, not a site setting)",
+    "PLANETGEN_CEILING_IS_ERROR": "`1` makes a body held at the ionization ceiling of its air an error (GEN.1580, physics/air_final.py); the test suite sets it so a "
+                                 "seeded sweep that makes one fails, a run leaves it unset and logs the body instead",
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209, PERF.250; the test suite sets it; "
                                       "unset, an install keeps it in the folder of its kept star tables, /var/cache/planetgen/band-tables, "
                                       "which update.sh makes; set but empty, none is kept)",
+    "PLANETGEN_ESA_USER": "optional registered ESA archive account for the Gaia nearby-star download (OPS.183, datasets/gaia_nearby.py); "
+                          "a credential read at setup only, never stored in the settings file",
+    "PLANETGEN_ESA_PASSWORD": "the password of that ESA account (OPS.183); a credential, masked in every log (SEC.48), never stored in the settings file",
 }
 
 

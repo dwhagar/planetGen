@@ -74,6 +74,7 @@ def problems(config):
 
 def main(argv):
     import redis
+    from planetgen.util import secrets_mask
 
     try:
         client = redis.Redis.from_url(argv[1], socket_connect_timeout=3, socket_timeout=5, decode_responses=True)
@@ -94,7 +95,7 @@ def main(argv):
     if not found:
         print("Redis settings: append-only file on, noeviction, memory limit set, loopback only, a user of its own")
         return 0
-    print(f"warning: the Redis server at {argv[1]} has settings planetGen doesn't want:", file=sys.stderr)
+    print(f"warning: the Redis server at {secrets_mask.mask_text(argv[1])} has settings planetGen doesn't want:", file=sys.stderr)
     for what, line in found:
         print(f"  - {what}.", file=sys.stderr)
         print("    Add to your Redis config:", file=sys.stderr)

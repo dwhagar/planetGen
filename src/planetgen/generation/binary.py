@@ -21,7 +21,7 @@ from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import detmath, draw
 from planetgen.util.serialization import fields_from_dict
-from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from planetgen.generation.star import Star
 from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
 from planetgen.generation.stellar_object import StellarObject
 from planetgen.galaxy import enclosed_mass, scales
@@ -371,21 +371,6 @@ class BinaryStarProxy(StellarObject):
         proxy.habitable_zone = tuple(data["habitable_zone"])
         proxy.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
         return proxy
-
-    def adjust_age_for_planets(self, planets, members=()):
-        """
-        Settles one shared age for both constituent stars that suits the
-        system's circumbinary planets (see `adjust_pair_age_for_planets`),
-        and gives the proxy that age too; its `lifespan` stays the longer
-        of the two stars'.
-
-        Args:
-            planets (list): A list of `Planet` objects in the system.
-            members (list of tuple): `(star, planets)` of the system's further stars (GEN.332).
-        """
-        adjust_pair_age_for_planets(self._primary, self._secondary, planets, planets, members)
-        self.age = self._primary.age
-        self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
     @staticmethod
     @finite_domain()

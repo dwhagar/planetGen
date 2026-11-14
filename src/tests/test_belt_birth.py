@@ -176,3 +176,17 @@ def test_a_stretch_the_giants_cleared_of_everything_is_no_belt(monkeypatch):
         for seed in range(1, 8):
             draw.set_run_seed(seed)
             assert not _belts(StarSystem(system_config=_config()))
+
+
+def test_the_members_of_a_belt_are_not_placed_where_its_giants_cleared_it():
+    """GEN.1092: `cleared_spans` of a belt reach its roster. The belt is given a span across the middle of its stretch (the origin's own spans are tested in test_belt_origin), and members that stayed on their cold orbits (no scatter tag) never sit in it."""
+    with draw.bound(4400):
+        system = StarSystem(system_config=_config())
+    belt = next(belt for belt in _belts(system) if belt.origin is not None)
+    width = belt.upper_limit - belt.lower_limit
+    span = (belt.lower_limit + 0.3 * width, belt.lower_limit + 0.7 * width)
+    belt.cleared_spans = (span,)
+    belt._members = None
+    free = [member for member in belt.members if member["scatter_tag"] is None]
+    assert free, "the belt has no member on a cold orbit to check"
+    assert not any(span[0] < member["distance_au"] < span[1] for member in free), span

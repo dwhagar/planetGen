@@ -87023,6 +87023,30 @@
    "volume": "48",
    "year": 2011
   },
+  "10.1016/j.asr.2013.09.024": {
+   "arxiv": "1211.7027",
+   "authors": [
+    [
+     "Noyelles",
+     "B."
+    ],
+    [
+     "Lhotka",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.asr.2013.09.024",
+   "editors": [],
+   "journal": "AdSpR",
+   "page": "2085",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury",
+   "type": "journal-article",
+   "volume": "52",
+   "year": 2013
+  },
   "10.1016/j.asr.2016.08.043": {
    "arxiv": "1612.02446",
    "authors": [
@@ -153061,6 +153085,25 @@
    "volume": "21",
    "year": 2017
   },
+  "10.1080/14786441008636148": {
+   "authors": [
+    [
+     "Saha",
+     "M. N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1080/14786441008636148",
+   "editors": [],
+   "journal": "The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science",
+   "page": "472",
+   "publisher": "Informa UK Limited",
+   "src": "crossref",
+   "title": "LIII. Ionization in the solar chromosphere",
+   "type": "journal-article",
+   "volume": "40",
+   "year": 1920
+  },
   "10.1080/14786443109461710": {
    "authors": [
     [
@@ -168956,6 +168999,30 @@
    "title": "THE FALSE POSITIVE RATE OF KEPLER AND THE OCCURRENCE OF PLANETS",
    "type": "journal-article",
    "volume": "766",
+   "year": 2013
+  },
+  "10.1088/0004-637x/767/2/128": {
+   "arxiv": "1304.1425",
+   "authors": [
+    [
+     "Correia",
+     "A. C. M."
+    ],
+    [
+     "Rodríguez",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/767/2/128",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "128",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES",
+   "type": "journal-article",
+   "volume": "767",
    "year": 2013
   },
   "10.1088/0004-637x/768/1/45": {
@@ -197302,6 +197369,218 @@
    "volume": "465",
    "year": 2016
   },
+  "10.1093/mnras/stw218": {
+   "arxiv": "1509.03622",
+   "authors": [
+    [
+     "Boyajian",
+     "T. S."
+    ],
+    [
+     "LaCourse",
+     "D. M."
+    ],
+    [
+     "Rappaport",
+     "S. A."
+    ],
+    [
+     "Fabrycky",
+     "D."
+    ],
+    [
+     "Fischer",
+     "D. A."
+    ],
+    [
+     "Gandolfi",
+     "D."
+    ],
+    [
+     "Kennedy",
+     "G. M."
+    ],
+    [
+     "Korhonen",
+     "H."
+    ],
+    [
+     "Liu",
+     "M. C."
+    ],
+    [
+     "Moor",
+     "A."
+    ],
+    [
+     "Olah",
+     "K."
+    ],
+    [
+     "Vida",
+     "K."
+    ],
+    [
+     "Wyatt",
+     "M. C."
+    ],
+    [
+     "Best",
+     "W. M. J."
+    ],
+    [
+     "Brewer",
+     "J."
+    ],
+    [
+     "Ciesla",
+     "F."
+    ],
+    [
+     "Csák",
+     "B."
+    ],
+    [
+     "Deeg",
+     "H. J."
+    ],
+    [
+     "Dupuy",
+     "T. J."
+    ],
+    [
+     "Handler",
+     "G."
+    ],
+    [
+     "Heng",
+     "K."
+    ],
+    [
+     "Howell",
+     "S. B."
+    ],
+    [
+     "Ishikawa",
+     "S. T."
+    ],
+    [
+     "Kovács",
+     "J."
+    ],
+    [
+     "Kozakis",
+     "T."
+    ],
+    [
+     "Kriskovics",
+     "L."
+    ],
+    [
+     "Lehtinen",
+     "J."
+    ],
+    [
+     "Lintott",
+     "C."
+    ],
+    [
+     "Lynn",
+     "S."
+    ],
+    [
+     "Nespral",
+     "D."
+    ],
+    [
+     "Nikbakhsh",
+     "S."
+    ],
+    [
+     "Schawinski",
+     "K."
+    ],
+    [
+     "Schmitt",
+     "J. R."
+    ],
+    [
+     "Smith",
+     "A. M."
+    ],
+    [
+     "Szabo",
+     "G."
+    ],
+    [
+     "Szabo",
+     "R."
+    ],
+    [
+     "Viuho",
+     "J."
+    ],
+    [
+     "Wang",
+     "J."
+    ],
+    [
+     "Weiksnar",
+     "A."
+    ],
+    [
+     "Bosch",
+     "M."
+    ],
+    [
+     "Connors",
+     "J. L."
+    ],
+    [
+     "Goodman",
+     "S."
+    ],
+    [
+     "Green",
+     "G."
+    ],
+    [
+     "Hoekstra",
+     "A. J."
+    ],
+    [
+     "Jebson",
+     "T."
+    ],
+    [
+     "Jek",
+     "K. J."
+    ],
+    [
+     "Omohundro",
+     "M. R."
+    ],
+    [
+     "Schwengeler",
+     "H. M."
+    ],
+    [
+     "Szewczyk",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stw218",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3988",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Planet Hunters IX. KIC 8462852 – where's the flux?",
+   "type": "journal-article",
+   "volume": "457",
+   "year": 2016
+  },
   "10.1093/mnras/stw2213": {
    "authors": [
     [
@@ -216332,6 +216611,60 @@
    "type": "journal-article",
    "volume": "112",
    "year": 2025
+  },
+  "10.1104/pp.019349": {
+   "authors": [
+    [
+     "McGinn",
+     "P. J."
+    ],
+    [
+     "Price",
+     "G. D."
+    ],
+    [
+     "Maleszka",
+     "R."
+    ],
+    [
+     "Badger",
+     "M. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1104/pp.019349",
+   "editors": [],
+   "journal": "Plant Physiology",
+   "page": "218",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Inorganic Carbon Limitation and Light Control the Expression of Transcripts Related to the CO2-Concentrating Mechanism in the Cyanobacterium Synechocystis sp. Strain PCC6803",
+   "type": "journal-article",
+   "volume": "132",
+   "year": 2003
+  },
+  "10.1104/pp.64.5.892": {
+   "authors": [
+    [
+     "Birmingham",
+     "B. C."
+    ],
+    [
+     "Colman",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1104/pp.64.5.892",
+   "editors": [],
+   "journal": "Plant Physiol.",
+   "page": "892",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae",
+   "type": "journal-article",
+   "volume": "64",
+   "year": 1979
   },
   "10.1107/s0021889809027897": {
    "authors": [
@@ -260291,6 +260624,854 @@
    "volume": "852",
    "year": 2018
   },
+  "10.3847/2041-8213/aaa405": {
+   "arxiv": "1801.00732",
+   "authors": [
+    [
+     "Boyajian",
+     "T. S."
+    ],
+    [
+     "Alonso",
+     "R."
+    ],
+    [
+     "Ammerman",
+     "A."
+    ],
+    [
+     "Armstrong",
+     "D."
+    ],
+    [
+     "Ramos",
+     "A. A."
+    ],
+    [
+     "Barkaoui",
+     "K."
+    ],
+    [
+     "Beatty",
+     "T. G."
+    ],
+    [
+     "Benkhaldoun",
+     "Z."
+    ],
+    [
+     "Benni",
+     "P."
+    ],
+    [
+     "O. Bentley",
+     "R."
+    ],
+    [
+     "Berdyugin",
+     "A."
+    ],
+    [
+     "Berdyugina",
+     "S."
+    ],
+    [
+     "Bergeron",
+     "S."
+    ],
+    [
+     "Bieryla",
+     "A."
+    ],
+    [
+     "Blain",
+     "M. G."
+    ],
+    [
+     "Blanco",
+     "A. C."
+    ],
+    [
+     "Bodman",
+     "E. H. L."
+    ],
+    [
+     "Boucher",
+     "A."
+    ],
+    [
+     "Bradley",
+     "M."
+    ],
+    [
+     "Brincat",
+     "S. M."
+    ],
+    [
+     "Brink",
+     "T. G."
+    ],
+    [
+     "Briol",
+     "J."
+    ],
+    [
+     "Brown",
+     "D. J. A."
+    ],
+    [
+     "Budaj",
+     "J."
+    ],
+    [
+     "Burdanov",
+     "A."
+    ],
+    [
+     "Cale",
+     "B."
+    ],
+    [
+     "Carbo",
+     "M. A."
+    ],
+    [
+     "García",
+     "R. C."
+    ],
+    [
+     "Clark",
+     "W. J."
+    ],
+    [
+     "Clayton",
+     "G. C."
+    ],
+    [
+     "Clem",
+     "J. L."
+    ],
+    [
+     "Coker",
+     "P. H."
+    ],
+    [
+     "Cook",
+     "E. M."
+    ],
+    [
+     "Copperwheat",
+     "C. M."
+    ],
+    [
+     "Curtis",
+     "J. L."
+    ],
+    [
+     "Cutri",
+     "R. M."
+    ],
+    [
+     "Cseh",
+     "B."
+    ],
+    [
+     "Cynamon",
+     "C. H."
+    ],
+    [
+     "Daniels",
+     "A. J."
+    ],
+    [
+     "Davenport",
+     "J. R. A."
+    ],
+    [
+     "Deeg",
+     "H. J."
+    ],
+    [
+     "Lorenzo",
+     "R. D."
+    ],
+    [
+     "Jaeger",
+     "T. D."
+    ],
+    [
+     "Desrosiers",
+     "J. B."
+    ],
+    [
+     "Dolan",
+     "J."
+    ],
+    [
+     "Dowhos",
+     "D. J."
+    ],
+    [
+     "Dubois",
+     "F."
+    ],
+    [
+     "Durkee",
+     "R."
+    ],
+    [
+     "Dvorak",
+     "S."
+    ],
+    [
+     "Easley",
+     "L."
+    ],
+    [
+     "Edwards",
+     "N."
+    ],
+    [
+     "Ellis",
+     "T. G."
+    ],
+    [
+     "Erdelyi",
+     "E."
+    ],
+    [
+     "Ertel",
+     "S."
+    ],
+    [
+     "Farfán",
+     "R. G."
+    ],
+    [
+     "Farihi",
+     "J."
+    ],
+    [
+     "Filippenko",
+     "A. V."
+    ],
+    [
+     "Foxell",
+     "E."
+    ],
+    [
+     "Gandolfi",
+     "D."
+    ],
+    [
+     "Garcia",
+     "F."
+    ],
+    [
+     "Giddens",
+     "F."
+    ],
+    [
+     "Gillon",
+     "M."
+    ],
+    [
+     "González-Carballo",
+     "J. L."
+    ],
+    [
+     "González-Fernández",
+     "C."
+    ],
+    [
+     "Hernández",
+     "J. I. G."
+    ],
+    [
+     "Graham",
+     "K. A."
+    ],
+    [
+     "Greene",
+     "K. A."
+    ],
+    [
+     "Gregorio",
+     "J."
+    ],
+    [
+     "Hallakoun",
+     "N."
+    ],
+    [
+     "Hanyecz",
+     "O."
+    ],
+    [
+     "Harp",
+     "G. R."
+    ],
+    [
+     "Henry",
+     "G. W."
+    ],
+    [
+     "Herrero",
+     "E."
+    ],
+    [
+     "Hildbold",
+     "C. F."
+    ],
+    [
+     "Hinzel",
+     "D."
+    ],
+    [
+     "Holgado",
+     "G."
+    ],
+    [
+     "Ignácz",
+     "B."
+    ],
+    [
+     "Ilyin",
+     "I."
+    ],
+    [
+     "Ivanov",
+     "V. D."
+    ],
+    [
+     "Jehin",
+     "E."
+    ],
+    [
+     "Jermak",
+     "H. E."
+    ],
+    [
+     "Johnston",
+     "S."
+    ],
+    [
+     "Kafka",
+     "S."
+    ],
+    [
+     "Kalup",
+     "C."
+    ],
+    [
+     "Kardasis",
+     "E."
+    ],
+    [
+     "Kaspi",
+     "S."
+    ],
+    [
+     "Kennedy",
+     "G. M."
+    ],
+    [
+     "Kiefer",
+     "F."
+    ],
+    [
+     "Kielty",
+     "C. L."
+    ],
+    [
+     "Kessler",
+     "D."
+    ],
+    [
+     "Kiiskinen",
+     "H."
+    ],
+    [
+     "Killestein",
+     "T. L."
+    ],
+    [
+     "King",
+     "R. A."
+    ],
+    [
+     "Kollar",
+     "V."
+    ],
+    [
+     "Korhonen",
+     "H."
+    ],
+    [
+     "Kotnik",
+     "C."
+    ],
+    [
+     "Könyves-Tóth",
+     "R."
+    ],
+    [
+     "Kriskovics",
+     "L."
+    ],
+    [
+     "Krumm",
+     "N."
+    ],
+    [
+     "Krushinsky",
+     "V."
+    ],
+    [
+     "Kundra",
+     "E."
+    ],
+    [
+     "Lachapelle",
+     "F. R."
+    ],
+    [
+     "LaCourse",
+     "D."
+    ],
+    [
+     "Lake",
+     "P."
+    ],
+    [
+     "Lam",
+     "K."
+    ],
+    [
+     "Lamb",
+     "G. P."
+    ],
+    [
+     "Lane",
+     "D."
+    ],
+    [
+     "Lau",
+     "M. W."
+    ],
+    [
+     "Lewin",
+     "P."
+    ],
+    [
+     "Lintott",
+     "C."
+    ],
+    [
+     "Lisse",
+     "C."
+    ],
+    [
+     "Logie",
+     "L."
+    ],
+    [
+     "Longeard",
+     "N."
+    ],
+    [
+     "Villanueva",
+     "M. L."
+    ],
+    [
+     "Ludington",
+     "E. W."
+    ],
+    [
+     "Mainzer",
+     "A."
+    ],
+    [
+     "Malo",
+     "L."
+    ],
+    [
+     "Maloney",
+     "C."
+    ],
+    [
+     "Mann",
+     "A."
+    ],
+    [
+     "Mantero",
+     "A."
+    ],
+    [
+     "Marengo",
+     "M."
+    ],
+    [
+     "Marchant",
+     "J."
+    ],
+    [
+     "Martínez González",
+     "M. J."
+    ],
+    [
+     "Masiero",
+     "J. R."
+    ],
+    [
+     "Mauerhan",
+     "J. C."
+    ],
+    [
+     "McCormac",
+     "J."
+    ],
+    [
+     "McNeely",
+     "A."
+    ],
+    [
+     "Meng",
+     "H. Y. A."
+    ],
+    [
+     "Miller",
+     "M."
+    ],
+    [
+     "Molnar",
+     "L. A."
+    ],
+    [
+     "Morales",
+     "J. C."
+    ],
+    [
+     "Morris",
+     "B. M."
+    ],
+    [
+     "Muterspaugh",
+     "M. W."
+    ],
+    [
+     "Nespral",
+     "D."
+    ],
+    [
+     "Nugent",
+     "C. R."
+    ],
+    [
+     "Nugent",
+     "K. M."
+    ],
+    [
+     "Odasso",
+     "A."
+    ],
+    [
+     "O’Keeffe",
+     "D."
+    ],
+    [
+     "Oksanen",
+     "A."
+    ],
+    [
+     "O’Meara",
+     "J. M."
+    ],
+    [
+     "Ordasi",
+     "A."
+    ],
+    [
+     "Osborn",
+     "H."
+    ],
+    [
+     "Ott",
+     "J. J."
+    ],
+    [
+     "Parks",
+     "J. R."
+    ],
+    [
+     "Perez",
+     "D. R."
+    ],
+    [
+     "Petriew",
+     "V."
+    ],
+    [
+     "Pickard",
+     "R."
+    ],
+    [
+     "Pál",
+     "A."
+    ],
+    [
+     "Plavchan",
+     "P."
+    ],
+    [
+     "Pollacco",
+     "D."
+    ],
+    [
+     "Nuñez",
+     "F. P."
+    ],
+    [
+     "J. Pozuelos",
+     "F."
+    ],
+    [
+     "Rau",
+     "S."
+    ],
+    [
+     "Redfield",
+     "S."
+    ],
+    [
+     "Relles",
+     "H."
+    ],
+    [
+     "Ribas",
+     "I."
+    ],
+    [
+     "Richards",
+     "J."
+    ],
+    [
+     "Saario",
+     "J. L. O."
+    ],
+    [
+     "Safron",
+     "E. J."
+    ],
+    [
+     "Sallai",
+     "J. M."
+    ],
+    [
+     "Sárneczky",
+     "K."
+    ],
+    [
+     "Schaefer",
+     "B. E."
+    ],
+    [
+     "Schumer",
+     "C. F."
+    ],
+    [
+     "Schwartzendruber",
+     "M."
+    ],
+    [
+     "Siegel",
+     "M. H."
+    ],
+    [
+     "Siemion",
+     "A. P. V."
+    ],
+    [
+     "Simmons",
+     "B. D."
+    ],
+    [
+     "Simon",
+     "J. D."
+    ],
+    [
+     "Simón-Díaz",
+     "S."
+    ],
+    [
+     "Sitko",
+     "M. L."
+    ],
+    [
+     "Socas-Navarro",
+     "H."
+    ],
+    [
+     "Sódor",
+     "Á."
+    ],
+    [
+     "Starkey",
+     "D."
+    ],
+    [
+     "Steele",
+     "I. A."
+    ],
+    [
+     "Stone",
+     "G."
+    ],
+    [
+     "Strassmeier",
+     "K. G."
+    ],
+    [
+     "Street",
+     "R. A."
+    ],
+    [
+     "Sullivan",
+     "T."
+    ],
+    [
+     "Suomela",
+     "J."
+    ],
+    [
+     "Swift",
+     "J. J."
+    ],
+    [
+     "Szabó",
+     "G. M."
+    ],
+    [
+     "Szabó",
+     "R."
+    ],
+    [
+     "Szakáts",
+     "R."
+    ],
+    [
+     "Szalai",
+     "T."
+    ],
+    [
+     "Tanner",
+     "A. M."
+    ],
+    [
+     "Toledo-Padrón",
+     "B."
+    ],
+    [
+     "Tordai",
+     "T."
+    ],
+    [
+     "Triaud",
+     "A. H. M. J."
+    ],
+    [
+     "Turner",
+     "J. D."
+    ],
+    [
+     "Ulowetz",
+     "J. H."
+    ],
+    [
+     "Urbanik",
+     "M."
+    ],
+    [
+     "Vanaverbeke",
+     "S."
+    ],
+    [
+     "Vanderburg",
+     "A."
+    ],
+    [
+     "Vida",
+     "K."
+    ],
+    [
+     "Vietje",
+     "B. P."
+    ],
+    [
+     "Vinkó",
+     "J."
+    ],
+    [
+     "Braun",
+     "K. V."
+    ],
+    [
+     "Waagen",
+     "E. O."
+    ],
+    [
+     "Walsh",
+     "D."
+    ],
+    [
+     "Watson",
+     "C. A."
+    ],
+    [
+     "Weir",
+     "R. C."
+    ],
+    [
+     "Wenzel",
+     "K."
+    ],
+    [
+     "Plaza",
+     "C. W."
+    ],
+    [
+     "Williamson",
+     "M. W."
+    ],
+    [
+     "Wright",
+     "J. T."
+    ],
+    [
+     "Wyatt",
+     "M. C."
+    ],
+    [
+     "Zheng",
+     "W."
+    ],
+    [
+     "Zsidi",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/2041-8213/aaa405",
+   "editors": [],
+   "journal": "ApJL",
+   "page": "L8",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The First Post- Kepler Brightness Dips of KIC 8462852",
+   "type": "journal-article",
+   "volume": "853",
+   "year": 2018
+  },
   "10.3847/2041-8213/aaab57": {
    "authors": [
     [
@@ -283425,7 +284606,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5246,
+ "id_next": 5250,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283917,6 +285098,7 @@
   "10.1016/j.asr.2009.08.013": "R3043",
   "10.1016/j.asr.2010.12.023": "R0222",
   "10.1016/j.asr.2011.06.009": "R0221",
+  "10.1016/j.asr.2013.09.024": "R5242",
   "10.1016/j.asr.2016.08.043": "R0173",
   "10.1016/j.asr.2017.05.014": "R3919",
   "10.1016/j.asr.2020.10.029": "R3178",
@@ -285610,6 +286792,7 @@
   "10.1080/03147538708712456": "R0933",
   "10.1080/10409230490496577": "R3648",
   "10.1080/13669877.2017.1304975": "R1618",
+  "10.1080/14786441008636148": "R5246",
   "10.1080/14786443109461710": "R0729",
   "10.1080/19466315.2026.2658638": "R3529",
   "10.1086/107463": "R0593",
@@ -286057,6 +287240,7 @@
   "10.1088/0004-637x/766/2/136": "R4980",
   "10.1088/0004-637x/766/2/76": "R5091",
   "10.1088/0004-637x/766/2/81": "R1459",
+  "10.1088/0004-637x/767/2/128": "R5243",
   "10.1088/0004-637x/768/1/45": "R3266",
   "10.1088/0004-637x/769/1/6": "R2027",
   "10.1088/0004-637x/770/1/23": "R4919",
@@ -286722,6 +287906,7 @@
   "10.1093/mnras/stw2134": "R0361",
   "10.1093/mnras/stw2161": "R1129",
   "10.1093/mnras/stw2162": "R3953",
+  "10.1093/mnras/stw218": "R5248",
   "10.1093/mnras/stw2213": "R3572",
   "10.1093/mnras/stw2363": "R2293",
   "10.1093/mnras/stw238": "R3526",
@@ -287109,6 +288294,8 @@
   "10.1103/revmodphys.97.025002": "R3117",
   "10.1103/sbrn-z9sn": "R2235",
   "10.1103/tz74-d3kh": "R2221",
+  "10.1104/pp.019349": "R5240",
+  "10.1104/pp.64.5.892": "R5241",
   "10.1107/s0021889809027897": "R1425",
   "10.1107/s0365110x59002419": "R3353",
   "10.1107/s0365110x59002420": "R3354",
@@ -288188,6 +289375,7 @@
   "10.3847/2041-8213/aa9989": "R4426",
   "10.3847/2041-8213/aaa2f8": "R1086",
   "10.3847/2041-8213/aaa401": "R3746",
+  "10.3847/2041-8213/aaa405": "R5249",
   "10.3847/2041-8213/aaab57": "R0836",
   "10.3847/2041-8213/aaae67": "R1124",
   "10.3847/2041-8213/aab272": "R0134",
@@ -288653,6 +289841,7 @@
   "arxiv:1211.2816": "R2975",
   "arxiv:1211.5401": "R0216",
   "arxiv:1211.6520": "R5198",
+  "arxiv:1211.7027": "R5242",
   "arxiv:1212.2654": "R2271",
   "arxiv:1212.2980": "R2479",
   "arxiv:1301.0365": "R2032",
@@ -288673,6 +289862,7 @@
   "arxiv:1303.5632": "R2058",
   "arxiv:1303.6283": "R0877",
   "arxiv:1303.6286": "R2505",
+  "arxiv:1304.1425": "R5243",
   "arxiv:1304.2909": "R4919",
   "arxiv:1304.3714": "R4915",
   "arxiv:1304.6083": "R3211",
@@ -288869,6 +290059,7 @@
   "arxiv:1508.07308": "R1279",
   "arxiv:1509.00427": "R1399",
   "arxiv:1509.00735": "R1687",
+  "arxiv:1509.03622": "R5248",
   "arxiv:1509.05796": "R0498",
   "arxiv:1509.06743": "R1102",
   "arxiv:1509.07863": "R1814",
@@ -289077,6 +290268,7 @@
   "arxiv:1712.06636": "R0028",
   "arxiv:1712.06987": "R1727",
   "arxiv:1712.08234": "R1207",
+  "arxiv:1801.00732": "R5249",
   "arxiv:1801.00748": "R2381",
   "arxiv:1801.02489": "R0134",
   "arxiv:1801.02821": "R1124",
@@ -289944,6 +291136,7 @@
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
+  "web:https://physics.nist.gov/physrefdata/asd/ionenergy.html": "R5247",
   "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
   "web:https://shoelace.style/": "R5033",
   "web:https://tanstack.com/table/": "R5034",
@@ -290483,6 +291676,15 @@
    "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
    "url": "https://arxiv.org/abs/1109.3511",
    "year": "2012"
+  },
+  {
+   "checked": "2026-11-12",
+   "identifier": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+   "kind": "web page",
+   "name": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+   "provider": "NIST",
+   "url": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+   "year": "2024"
   }
  ]
 }
