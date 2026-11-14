@@ -2,6 +2,41 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4057] - 2026-11-14
+
+**Headline:** The mass pass and the luminosity pass of one run look up the clusters' and satellites' sector addresses once, with no change to any generated star.
+
+### Changed
+- **The planning of the two bright-star passes shares the components' sample addresses.** Each pass's planning asks, for every cluster and satellite, which sector 256 sample positions lie in (`component_pass.kept_stars`, 5 million `sector_address_at` calls on the default galaxy, most of the 69 s serial planning step of a pass). The places depend on the component alone, not on the pass, so they are now kept by the digest of the positions (`component_pass._sample_places`) and the second pass finds them. The expected stars, the units and the stars drawn are unchanged (PERF.264).
+
+## [8.0.4056] - 2026-11-14
+
+**Headline:** The Sectors list no longer counts the chart ledger table on a request that has no stored answer yet; it uses the storage engine's estimate, as every other count does.
+
+### Fixed
+- **No table-wide count on a request (OPS.154).** The estimate that `count_uncharted_sector_rows` returns before its first stored count ran `SELECT COUNT(*) FROM chart_ledger`; it now reads the ledger's estimated rows, like the sectors table beside it. `test_count_cache.py::test_a_request_never_counts_the_table_itself_when_the_answer_is_not_there` was red on main since PR 6308 and passes again. The stored (exact) count is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4055] - 2026-11-14
+
+**Headline:** Four tests that went red on main this evening pass again; no behavior changes.
+
+### Fixed
+- **Main reds after OPS.183, OPS.184 and OPS.175 (TODO sweep).** The ESA account variables of the Gaia download (OPS.183) are named in the settings test with their reason; the generator battery's digest poll interval (OPS.184) says it is defined by the program; the VizieR source name reads "catalog"; the settings writer test reads the new refusal wording of OPS.175. generation-output: unchanged
+generation-affects: none
+
+## [8.0.4054] - 2026-11-14
+
+**Headline:** A long database statement of a command shows in the beat with its label and start, and the stage events of MySQL are used where the account may read them.
+
+### Changed
+- **One helper for a long statement (OPS.195).** `queue/longsql.run(conn, statement, label)` sends the statement and names it in the beat while it runs (`db/statementmark.py`, the unit's phase). Where the database account can read MySQL's current stage events the beat also carries the work done and estimated for the statement; the account the install creates cannot, so this is checked once and stays off.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4053] - 2026-11-14
 
 **Headline:** The beat of a running job now carries proof that it is working, so a long database statement no longer looks like a job that stopped.
