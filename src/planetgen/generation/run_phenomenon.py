@@ -12,6 +12,10 @@ them.
 """
 
 
+import json
+import sys
+
+from planetgen import describe
 from planetgen.db import store
 from planetgen import tuning as program_constants
 from planetgen.util import draw
@@ -87,6 +91,23 @@ def generate_phenomenon(phenomenon_type, system_config, anchor_system, name=None
     raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
 
 
+def _write_description(phenomenon, args):
+    """Writes the phenomenon's (or its anchored system's) description in `args.format` to `args.output` ('-' is stdout)."""
+    document = (describe.describe(phenomenon) if isinstance(phenomenon, StarSystem)
+                else describe.describe_phenomenon(phenomenon))
+    text = json.dumps(document) if args.format == describe.DOCUMENT_FORMAT else describe.render(document, args.format)
+    if args.output == "-":
+        sys.stdout.write(text if text.endswith("\n") else text + "\n")
+        return
+    try:
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(text)
+    except OSError as exc:
+        log.error(f"The description could not be written to {args.output}: {exc.strerror or exc}")
+        raise SystemExit(1)
+    log.normal(f"Wrote {TYPE_LABELS.get(args.type, 'phenomenon')} '{phenomenon.name}' to {args.output} (not saved to the database).")
+
+
 def run_phenomenon(args):
     """
     Generates one exotic phenomenon and saves it to the database.
@@ -103,7 +124,7 @@ def run_phenomenon(args):
         try:
             store.get_sector_galaxy_position(conn, args.sector_id)
         except ValueError as exc:
-            log.error(f"Error: --sector-id {args.sector_id}: {exc}")
+            log.error(f"Bad --sector-id {args.sector_id}: {exc}")
             raise SystemExit(1) from exc
         finally:
             conn.close()
@@ -113,6 +134,9 @@ def run_phenomenon(args):
         system_config.NUM_ORBITS = args.num_orbits
 
     phenomenon = generate_phenomenon(phenomenon_type, system_config, args.anchor_system, name=args.name)
+
+    if args.output:      # UX.298: described and written, never saved (the same as `planetgen system --output`)
+        return _write_description(phenomenon, args)
 
     mysql_config = store.mysql_config_from_args(args)
     phenomenon_id = store.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config,

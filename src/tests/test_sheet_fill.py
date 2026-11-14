@@ -179,6 +179,14 @@ def test_star_and_comet_rules():
     assert sheet.applies("comet", "comet", "eccentricity", {"orbit_type": "parabolic"})
 
 
+def test_the_values_a_class_fudged_are_empty_for_a_full_fit():
+    """GEN.1314: `class_fudge_values` lists the quantities moved to fit the class, so a body that fits with none moved leaves it empty."""
+    for kind in ("planet", "moon"):
+        assert not sheet.applies(kind, "M", "class_fudge_values", {"roundness_ratio": 1.0, "class_fudge_amount": None})
+        assert not sheet.applies(kind, "M", "class_fudge_values", {"roundness_ratio": 1.0, "class_fudge_amount": 0.0})
+        assert sheet.applies(kind, "M", "class_fudge_values", {"roundness_ratio": 1.0, "class_fudge_amount": 0.4})
+
+
 def test_every_open_gap_names_a_column_of_its_kind_and_an_item():
     for (kind, key), item in sheet.OPEN_GAPS.items():
         assert key in {spec.key for spec in sheet.SPECS[kind]}, f"{kind} has no column {key}"
@@ -224,3 +232,15 @@ def test_a_runner_up_class_applies_only_where_a_second_class_fits_the_body():
         assert not sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": None})
         assert sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": 0.4})
         assert sheet.applies(kind, "C", "runner_up_class")
+
+
+def test_the_tilt_range_applies_only_to_a_free_spinning_planet_of_the_spacing_pass():
+    """GEN.1535: `settle_obliquity` stores the range for a planet that spins freely; a moon, a locked or resonant planet and a belt member promoted to a planet have none."""
+    free = {"rotation_period_hours": 24.0, "period_years": 1.0}
+    locked = {"rotation_period_hours": 8766.0, "period_years": 1.0}
+    resonant = {"rotation_period_hours": 8766.0 / 1.5, "period_years": 1.0}
+    for key in ("obliquity_min_deg", "obliquity_max_deg"):
+        assert sheet.applies("planet", "M", key, free) and sheet.applies("planet", "M", key)
+        assert not sheet.applies("planet", "M", key, locked) and not sheet.applies("planet", "M", key, resonant)
+        assert not sheet.applies("planet", "D", key, {**free, "belt_order": 2})
+        assert not sheet.applies("moon", "C", key, free) and not sheet.applies("moon", "C", key)

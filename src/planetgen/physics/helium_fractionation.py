@@ -7,7 +7,8 @@ Helium enrichment of an envelope that loses hydrogen first (GEN.1045, W16 of doc
 Audit of `envelope_escape` (GEN.822): it follows the *mass* of a hydrogen-helium envelope that the XUV removes (the hydro-based rate of Kubyshkina
 et al. 2018), and its composition never changes: the envelope is solar at every step, so a planet that has lost 95 percent of its envelope
 still has a solar mix and the helium-dominated air of Hu et al. 2015 and [R2839] cannot come out of it. This module adds the missing
-step as a pure function of the loss history. It changes nothing in `envelope_escape` and no generated output.
+step as a pure function of the loss history. `envelope_escape` itself is unchanged (its mass history is the one this reads, `trace`); `envelope_capture.helium_share` runs it for a planet that lost half of
+its envelope or more (GEN.1527), the envelope mixture takes the helium it gives (`mixture_giant.giant_mixture`) and oddity W16 names the planets that end at 0.4 or over.
 
 Hydrogen drags helium out only while the escape flux is large enough; a smaller flux lets hydrogen leave and helium stay. With the homopause
 (where molecular diffusion takes over from mixing) at `HOMOPAUSE_RADIUS_OVER_TRANSIT` times the transit radius and at a temperature T:
@@ -37,7 +38,7 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, envelope_escape, unit_registry as units
+from planetgen.physics import bulk_structure, constants, envelope_escape, oddities, unit_registry as units
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 
@@ -176,3 +177,13 @@ def helium_fraction_from_history(core_mass_earth, history, insolation, start=SOL
 def is_helium_enhanced(helium_mass_fraction):
     """Whether the envelope is helium-enhanced (Y of 0.4 or more)."""
     return helium_mass_fraction >= MIN_HELIUM_FOR_ENHANCED
+
+
+@oddities.register("helium_enriched")
+def helium_enriched(body, row):
+    """
+    The effect of oddity W16 (GEN.1527): a planet whose envelope lost hydrogen first and ended at a helium mass share of `MIN_HELIUM_FOR_ENHANCED` or more. The share was worked out when the
+    envelope was made (`envelope_capture.helium_share`) and the envelope mixture of the air took it (`mixture_giant.giant_mixture`), so nothing on the body changes here: the row
+    names it, so that the page says why the gas is helium-rich. A share under the line (the row's gate holds the same number) is declined.
+    """
+    return None if is_helium_enhanced(getattr(body, "_envelope_helium_y", None) or 0.0) else False

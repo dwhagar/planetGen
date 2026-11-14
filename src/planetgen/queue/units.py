@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat, unitrates
+from planetgen.queue import commands, commandgaps, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -216,21 +216,41 @@ def resident_mb():
     return _proportional_mb(os.getpid()) + _proportional_mb(os.getppid())
 
 
+def _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, figures):
+    """
+    OPS.155: the unit's row in `job_profiles` (items, worked seconds, memory and processor, peak and average) and its figures in the stage's usage hash, which the stage's own row is
+    worked out from when the stage ends (`runrecord._record_stage_time`). Best effort: a profile is not worth a unit.
+    """
+    if not jobprofiles.enabled():
+        return
+    try:
+        jobprofiles.record(f"unit:{kind}", items=finished, seconds=worked, peak_mb=peak, avg_mb=figures["mem_avg_mb"], cpu_peak=figures["cpu_peak"], cpu_avg=figures["cpu_avg"],
+                           seconds_peak=worked, seconds_avg=worked)
+        conn.hset(runrecord.usage_key(run_id, stage), unit, json.dumps({"seconds": worked, "wall": figures["seconds"], "peak_mb": peak, "avg_mb": figures["mem_avg_mb"],
+                                                                      "cpu_peak": figures["cpu_peak"], "cpu_seconds": figures["cpu_seconds"]}))
+        conn.expire(runrecord.usage_key(run_id, stage), runrecord.KEEP_SECONDS)
+    except Exception as exc:        # noqa: BLE001
+        log.debug(f"Job profiles: unit {unit} of stage {stage} of run {run_id} was not profiled ({exc}).", area="queue")
+
+
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
-    with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit)) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
+    used = usage.Usage(resident_mb)         # OPS.155: the memory and processor of this unit, peak and average
+    with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit), usage=used) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
         result = commands.unit_function(kind)(args, report)
         gap = report.longest_gap()
         finished, worked = report.totals()
     commandgaps.note(conn, run_id, kind, gap)       # OPS.135
     unitrates.note(conn, run_id, kind, finished, worked)        # PERF.147: how fast this command's units work, for the ETA of a unit's bar
+    peak = peak_resident_mb()
+    _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, used.summary())       # OPS.155: what this kind of unit costs, kept for the self-tuning jobs (nothing reads it yet)
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
-    outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak_resident_mb())
+    outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak)
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
     log.trace(f"unit {unit} of stage {stage} of run {run_id} recorded; "
               f"{'it completes the stage: the next is queued' if outcome.advance else f'{outcome.done} unit(s) done'}",
@@ -372,8 +392,8 @@ def warm_unit(job):
             warm_star_tables()
         if spec.warm is not None:
             commands.warm_function(kind)(args)
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("queue/units", "warm_unit", exc)
 
 
 def warm_shape(unit_args):
@@ -402,8 +422,13 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
                   f"{exc_value}); the run goes on.")
         return
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
+    stage_name = wrapper.stage_name(connection, run_id, stage)
+    # OPS.162: the failure reaches error.log with the run, stage, unit and kind beside the traceback (RQ's own copy has none of them)
+    log.record_error("queue", f"Unit {unit} of stage {stage_name} failed: {exc_type.__name__}: {exc_value}",
+                     exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit,
+                     kind=job.args[3] if len(job.args) > 3 else "?")
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
+                         error=f"unit {unit} of stage {stage_name} failed: "
                                f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
@@ -428,6 +453,7 @@ def horse_killed(job, retpid, ret_val, _rusage):
     if note is not None and memory_kill:
         detail = f"; it claimed {note['claimed_mb']:,.0f} MB on the memory gate and the most seen was {note['peak_mb']:,.0f} MB"
         bigger = memorygate.grow(conn, note["kind"], job.id, note["claimed_mb"], note["peak_mb"])
+        jobprofiles.record(note["kind"], peak_mb=bigger / memorygate.LEARN_MARGIN, outcome="killed_memory")     # OPS.155: a kill is data; its peak is the size the retry was given less the margin (OPS.156 floors the kind there)
         retry = (getattr(job, "retries_left", None) or 0) > 0
         log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {note['claimed_mb']:,.0f} MB (most seen {note['peak_mb']:,.0f} MB); "
                     + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))
@@ -525,8 +551,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
         if watch is not None:
             try:
                 watch.clear()
-            except Exception:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
-                pass
+            except Exception as exc:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
+                log.swallowed("queue/units", "follow_stage", exc)
 
 
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):
