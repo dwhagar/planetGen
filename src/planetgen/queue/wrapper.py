@@ -250,7 +250,7 @@ def _stage_index(conn, run_id, marker, doing):
     """The index of the stage a deferred marker names (`marker["stage"]`), or `Unresolved` when the run has none (`doing` says what for)."""
     keys = [runrecord._s(item["key"]) for item in runrecord.declared_stages(conn, run_id)]
     if marker["stage"] not in keys:
-        raise Unresolved(f"the run has no stage {marker['stage']!r} to {doing}")
+        raise Unresolved(f"{marker['stage']!r} is not among the run's stages (needed to {doing})")
     return keys.index(marker["stage"])
 
 

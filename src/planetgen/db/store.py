@@ -3087,8 +3087,9 @@ def _insert_child_rows(conn, table, id_column, owner_id, rows, fields):
         return
     columns = ", ".join(fields)
     marks = ", ".join("?" for _ in range(len(fields) + 1))
-    conn.executemany(f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})",
-                     [(owner_id, *(row[name] for name in fields)) for row in rows])
+    sql = f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})"
+    for row in rows:        # one `execute` each: the connection holds these INSERTs back and writes them with the system's others (`executemany` flushes the held-back batch for every body)
+        conn.execute(sql, (owner_id, *(row[name] for name in fields)))
 
 
 BODY_OWNERS = {"planet": ("planet", "planet_id"), "moon": ("moon", "moon_id"), "rogue_planet": ("rogue_planet", "rogue_planet_id")}

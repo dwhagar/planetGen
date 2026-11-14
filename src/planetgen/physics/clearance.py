@@ -310,6 +310,9 @@ def _host_of(row, tree):
     star_id = row.get("star_id")
     if star_id is not None and star_id in tree.stars:
         return ("star", tree.stars[star_id])
+    node_no = row.get("host_node_id")
+    if node_no is not None and node_no in tree.nodes:      # GEN.332: a body about an inner pair of a nested tree names the node it goes round, so it is held to that pair's limits, not to those of the one pair the tree has on top
+        return ("pair", tree.nodes[node_no])
     pairs = [node for node in tree.nodes.values()
              if all(kind == "star" and not row.get("dark") for kind, row in tree.children.get(node["node_no"], {}).values())
              and len(tree.children.get(node["node_no"], {})) == 2]
@@ -528,8 +531,8 @@ def audit(rows):
     Args:
         rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`; a dark member of the tree, GEN.1013, is a row
             too, with `dark` true: it weighs in the tree and takes up room, and no planet goes round it), `nodes` (the `orbit_nodes` columns),
-            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, and `belt_order` for a planet promoted from an asteroid belt, GEN.1510, which may be left out), `moons` (`id`, `planet_id`,
-            `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `lower_limit_km`,
+            `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`, `host_node_id` for a planet about an inner pair node, GEN.332, and `belt_order` for a planet promoted from an asteroid belt, GEN.1510, which may be left out), `moons` (`id`, `planet_id`,
+            `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `host_node_id` as for a planet, `lower_limit_km`,
             `upper_limit_km`, and `distance_km` to order a star's belts nearest first, else the lower limit does) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
 
     Returns:
@@ -558,13 +561,13 @@ def stored_rows(conn, system_id):
         " arg_periapsis_deg, mean_anomaly_deg, period_years, kind, interaction, flags FROM orbit_nodes WHERE star_system_id = ?"
         " ORDER BY node_no", (system_id,)).fetchall()]
     planets = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, distance_km, eccentricity, radius_km, mass_kg, belt_order FROM planets WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, host_node_id, distance_km, eccentricity, radius_km, mass_kg, belt_order FROM planets WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     moons = [dict(row) for row in conn.execute(
         "SELECT id, planet_id, distance_km, eccentricity, radius_km, mass_kg FROM moons WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     belts = [dict(row) for row in conn.execute(
-        "SELECT id, star_id, distance_km, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
+        "SELECT id, star_id, host_node_id, distance_km, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
     irregular_moons = [dict(row) for row in conn.execute(
         "SELECT i.planet_id, i.moon_rank, i.distance_km, i.eccentricity, i.inclination_deg FROM irregular_moons i JOIN planets p ON p.id = i.planet_id"

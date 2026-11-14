@@ -117,6 +117,16 @@ def test_no_planet_goes_round_a_dark_member_and_a_lone_star_with_one_is_the_plan
     assert host[0] == "star" and host[1]["id"] == 1
 
 
+def test_a_body_about_an_inner_pair_node_of_a_nested_tree_is_held_to_the_node_it_names():
+    """GEN.332: a planet or belt with a `host_node_id` goes round that node, and the verifier holds it to that node's limits; without one it goes round the tree's one pair of stars."""
+    rows = _triple(inner_au=1.0, outer_au=30.0)
+    tree = clearance._Tree(rows["stars"], rows["nodes"])
+    assert clearance._host_of({"star_id": None}, tree)[1]["node_no"] == 0
+    assert clearance._host_of({"star_id": None, "host_node_id": 1}, tree)[1]["node_no"] == 1
+    assert clearance._host_of({"star_id": None, "host_node_id": 7}, tree)[1]["node_no"] == 0, "a node the tree does not have is as no node"
+    assert clearance._host_of({"star_id": 1, "host_node_id": 1}, tree)[0] == "star", "a star the body names wins"
+
+
 def test_a_node_that_does_not_clear_its_children_holds_them_inside_each_other():
     assert "overlap" in _kinds(_triple(inner_au=1.0, outer_au=0.4, e_out=0.0))
     assert "overlap" not in _kinds(_triple(inner_au=1.0, outer_au=3.0, e_out=0.0))

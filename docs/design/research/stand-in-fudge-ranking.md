@@ -37,7 +37,7 @@ A class edge is a line on a finished quantity (a temperature, a pressure, a grav
 
 ## The stand-ins, largest share of any quantity first
 
-Every stand-in that makes at least 1 percent of the variance of a class quantity (25 of the 1568 registry rows that have a constant and a knob to move). The shares column names each quantity it moves and its share.
+Every stand-in that makes at least 1 percent of the variance of a class quantity (25 of the 1584 registry rows that have a constant and a knob to move). The shares column names each quantity it moves and its share.
 
 | Rank | Id | Section | Tier | Tweak | Score | Largest share | Width falls by | Shares of the quantities it moves | What it is |
 |---|---|---|---|---|---|---|---|---|---|
