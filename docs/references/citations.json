@@ -26220,6 +26220,16 @@
       "kind": "web",
       "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
       "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5248": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
+    },
+    "R5249": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2018",
+      "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
     }
   }
 }
