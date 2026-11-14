@@ -31,7 +31,7 @@ from planetgen.physics import body_status
 from planetgen.util import draw, log
 
 TRIES_PER_PLANET = 2
-"""int: How many members a belt tries, at most, for each planet it may promote (`promote`)."""
+"""int: How many members a belt tries, at most, for each planet it may promote (`promote`). A stand-in search bound (it limits the work, it is not a physical quantity)."""
 
 ROUND_STATUSES = (body_status.DWARF_PLANET, body_status.PLANET)
 """tuple: The statuses of a member that is round (`body_status`): the ones that can be promoted."""

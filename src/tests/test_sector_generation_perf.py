@@ -56,8 +56,6 @@ pytestmark = pytest.mark.skipif(
            "(pytest -s src/tests/test_sector_generation_perf.py, add -s to see the report)",
 )
 
-# Matches exactly what `log.timed_phase` emits: "<label>: <elapsed>ms".
-_PHASE_LINE = re.compile(r"^(?P<label>.+): (?P<ms>[\d.]+)ms$")
 # Collapses per-system/per-attempt labels ("generate system 7/35",
 # "planet generation attempt 2") down to one bucket per phase so the
 # report aggregates across every system/attempt instead of listing each
@@ -87,9 +85,10 @@ class _PhaseCapture(logging.Handler):
         self.samples = defaultdict(list)
 
     def emit(self, record):
-        match = _PHASE_LINE.match(record.getMessage())
-        if match:
-            self.samples[_normalize_label(match.group("label"))].append(float(match.group("ms")))
+        # `log.timed_phase` writes the phase and its exact milliseconds on the record (the message has the one duration form).
+        phase, elapsed_ms = getattr(record, "phase", None), getattr(record, "elapsed_ms", None)
+        if phase is not None and elapsed_ms is not None:
+            self.samples[_normalize_label(phase)].append(float(elapsed_ms))
 
 
 def _sector_args(num_systems, name):

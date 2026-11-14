@@ -104,6 +104,8 @@ class Stage:
         prior_rate (float, optional): Cost units per second recorded for this kind of work (`R0`).
         worker_rate (float, optional): Cost units per worker second this server recorded for the stage's last runs
             (`stagetimes`), which `runeta` turns into a rate once the units are known (PERF.184).
+        unit_seconds (float, optional): What the job profile says a unit of the stage's command takes on this machine (OPS.159, `profiletime`), which the untimed
+            estimate (`roughtime`) uses in place of its typed 20 s.
         workers (int): Workers the stage runs on, for the ETA's time constant.
         row (dict, optional): The `generation_stage_runs` row the unit that completes the stage writes (PERF.106:
             `command`, `n`, `total`, `label` and `settings`; `generation.stages.hand_over_open_stage`); none for a
@@ -117,6 +119,7 @@ class Stage:
     expected_seconds: float = None
     prior_rate: float = None
     worker_rate: float = None
+    unit_seconds: float = None
     workers: int = 1
     row: dict = None
 

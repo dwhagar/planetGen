@@ -60,7 +60,7 @@ def record_all(config, progress=None):
 def _record_with_bar(config):
     """`record_all` with a bar on a terminal (the cases done and the time left), a line per case without one."""
     if not sys.stdout.isatty():
-        return record_all(config, progress=lambda done, total: log.normal(f"{done} of {total} generator test cases done") if done else None)
+        return record_all(config, progress=lambda done, total: log.normal(f"{done} of {total} generator test cases done.") if done else None)
     from rich.progress import BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeRemainingColumn
     with Progress(TextColumn("  generator test cases"), BarColumn(), MofNCompleteColumn(), TimeRemainingColumn(), transient=True) as bar:
         task = bar.add_task("cases", total=None)
@@ -107,7 +107,7 @@ def main():
     try:
         recorded = _record_with_bar(config)
     except Exception as exc:  # noqa: BLE001
-        log.error(f"error: {exc}")
+        log.error(f"The version history could not be recorded: {exc}")
         sys.exit(1)
     for name, done in recorded:
         print(f"Recorded version key {done.key} for {name}. {done.output}")

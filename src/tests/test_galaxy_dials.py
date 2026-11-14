@@ -193,3 +193,18 @@ def test_the_sectors_command_takes_the_rogues_level_only_with_around():
     parser = generate.build_parser()[0]
     args = parser.parse_args(["sectors", "--around", "0", "0", "0", "--radius-pc", "5", "--rogues", "many"])
     assert args.rogues == "many"
+
+
+# --- the slider's resting place ---------------------------------------------------------------------------------
+
+def test_every_number_row_has_a_slider_default_inside_its_range():
+    for row in dials.LEVERS:
+        if row.kind == "enum":
+            assert row.slider_default is None, row.name
+            continue
+        assert row.slider_default is not None, row.name
+        assert row.problem(row.slider_default) is None, row.name
+        if row.log:
+            assert row.minimum > 0, row.name
+        if row.auto_value is not None:
+            assert row.slider_default == row.auto_value, row.name
