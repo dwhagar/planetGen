@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4110] - 2026-11-14
+
+**Headline:** a Generate job that runs on the queue is no longer ended by RQ's time limit (ten times what earlier, smaller galaxies recorded), which would stop the starter of a run that is still working.
+
+### Fixed
+
+- OPS.255: Such a job takes the 30-day ceiling, since the run's watch judges its units by their progress. When RQ or the runner ends any job, the job's log and records now say so as the failure of the stage it was at.
+
 ## [8.0.4109] - 2026-11-14
 
 **Headline:** A galaxy now carries a Class M abundance setting: Science (the default, which changes nothing), Sparse, Scattered, Plentiful or Abundant.
