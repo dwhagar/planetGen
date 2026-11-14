@@ -14,7 +14,7 @@ surface, and the sinks that take gas back.
   drawn). `PROCESSING_ENERGY_J_PER_KG` is the one calibrated number: it makes an Earth twin of the interior model give the surface
   carbon of the Earth (1e22 mol), and Venus (about the same carbon in its air) is the check.
 * *Carbonate-silicate cycle.* With liquid water at the surface, silicate weathering and volcanic outgassing balance
-  [R4596]; the land law of [R2628] with the limits of [R2875] and the seafloor sink (`continental_weathering`, GEN.1713) gives the
+  [R4596]; the land law of [R2628] with the limits of [R1660] and the seafloor sink (`continental_weathering`, GEN.1713) gives the
   CO2 pressure of the balance, and `balance_root_bar` finds it for every sink. The temperature depends on the pressure through the
   greenhouse, so the caller passes it as a function.
 * *Ocean.* Water vapor is capped by the saturation pressure and sulfur gases are taken up by an ocean; both are the callers' (they
