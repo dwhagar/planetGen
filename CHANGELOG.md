@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4096] - 2026-11-14
+
+**Headline:** The one-off system page can ask for a planet class or a life class and shows what came of it.
+
+### Changed
+- **Ask for a class and Ask for a life class on the one-off system page (UX.302).** Two boxes under Options send `--force-class` and `--force-life-class` (GEN.1620). The result shows a line for each request above the system: which body holds the class and how well its conditions fit, or that none came out. A bad letter or life class, or a class letter together with a system file's slots, is refused on the form, and a rogue planet or comet result refuses them as it does the other star-only options. The check of a class request moved from the command line to `generation/run_system.py` so the page and the command share it.
+
+generation-output: unchanged
+
 ## [8.0.4095] - 2026-11-14
 
 **Headline:** The fourth layered-fixes cleanup, from a read of every code section: the physics constants come from one table, and the helpers each package wrote two to sixteen times (host-star lookups, bracketing on a grid, npz loaders, hash loops, SQL position columns, FITS card parsing, name joins) are one function each; five real bugs found on the way are fixed, and nothing the generator draws or the pages show changes.
