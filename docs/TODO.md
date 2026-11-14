@@ -13286,29 +13286,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): the layered-fix thread (Fable). Prerequisites: none. Related: OPS.253, PERF.267.
   Filed by the TODO thread.
 
-- [ ] **SEC.50 (bug) The log masker hides ordinary words: update.sh logs "Skipping the population pass: XXXXXX math check failed." for "the math check failed"**
-  Seen by the layered-fix thread and TODO, 12:26 PM EST on 2026-11-14: test_math_gate::test_update_sh_check_math_failure_only_warns is red on main because the SEC.48 masker (src/planetgen/util/secrets_mask.py) masks "the" after "pass:". Do: find which rule matched (a name rule or a registered value) and narrow it so only real secret names and values are masked, keeping Boss's format (first 4, last 2, the rest X); test that ordinary log text passes through unchanged. Do not loosen the math-gate test.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: SEC.48, TEST.740.
-  Filed by the TODO thread.
-
-- [ ] **TEST.743 (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704**
-  Seen by the layered-fix thread, 12:24 PM EST on 2026-11-14 (red on main, needs the DB variables). GEN.1704 (PR 6469, Class M abundance tiers) added abundance_tier; the stored-skeleton serializer or its test was not updated. Do: carry the tier through the skeleton serialization at its cause; test green.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: none. Related: GEN.1704, TEST.740.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1717 (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300)**
   Lane 15, 12:54 PM EST on 2026-11-14, from GEN.1716 (reports/gen1716-start-dependence-measure-2026-11-14.md): on main already; looks like opacity feeding back on temperature with nothing to stop it. Do: trace the feedback, compare with published sub-Neptune 1 bar temperatures for the same irradiation (radiative-convective models), and fix at the cause so the envelope's temperature comes from its physics; measure first, report before building. Lock item.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 11. Prerequisites: none. Related: GEN.1716.
-  Filed by the TODO thread.
-
-- [ ] **TEST.744 (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900)**
-  Lane 13, 2:01 PM EST on 2026-11-14 (seen on plain main while gating its job-engine stack). Candidates by area: OPS.254 (PR 6508, clearing units), OPS.255 (PR 6502, job limits), OPS.256 (PRs 6511, 6517, sky limits), Train 27. Do: bisect each red to its PR and have that PR's lane fix it at the cause; never loosen a test.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: TEST.740.
-  Filed by the TODO thread.
-
-- [ ] **TEST.745 Remove the stray root script m.py and guard the repo root against stray .py files**
-  Lane 03, 2:42 PM EST on 2026-11-14, answering Boss's question "what is m.py in root": a 19-line throwaway measuring script (samples 100 bodies per seed on 8 seeds with class_sweep_cli and dumps them to JSON) committed by accident with GEN.1309 A (5802d1484, 2026-11-08); nothing references it. Do: git rm m.py; add a guard test that fails when a .py file other than setup.py sits in the repo root. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1309.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
