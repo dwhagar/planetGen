@@ -3979,8 +3979,10 @@ ROGUE_HOST_ONLY_COLUMNS = frozenset({
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
 """tuple: The `Field`s of a planet that a rogue planet shares (every one but the orbit round a host)."""
 
-ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note")
-"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note."""
+ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note",
+                          "pair_event_index", "pair_separation_au", "pair_period_yr")
+"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note; and the companion it
+left bound to, its event index and the circular orbit of the two (GEN.332, slice D), all `None` for a rogue that left alone."""
 
 
 def _from_context(column):
@@ -4104,7 +4106,9 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
             row_ids.append(insert_rogue_body(
                 conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
                 event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
-                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note))
+                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note,
+                pair_event_index=rogue.pair.partner_index if rogue.pair else None, pair_separation_au=rogue.pair.separation_au if rogue.pair else None,
+                pair_period_yr=rogue.pair.period_yr if rogue.pair else None))
             if rogue.event.index in kept_uids:
                 row_kept[row_ids[-1]] = kept_uids[rogue.event.index]
         if row_ids:
