@@ -953,8 +953,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 # from here), so stop generating and placing altogether
                 # rather than pay for `total - i - 1` more full
                 # StarSystem generations just to discard them too.
-                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands.",
-                           edge_ly=round(sector.edge_ly, 1))
+                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands (edge {round(sector.edge_ly, 1)} ly).")
                 break
 
     with log.timed_phase("generate_sector_phenomena"):

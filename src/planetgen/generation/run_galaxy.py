@@ -1945,8 +1945,7 @@ def _neighborhood_center(args):
         conn.close()
 
     if center_position is None:
-        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.",
-                  sector_id=args.center_sector)
+        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.")
         raise SystemExit(1)
     return (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
 
