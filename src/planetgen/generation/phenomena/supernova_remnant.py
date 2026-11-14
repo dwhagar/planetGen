@@ -118,7 +118,7 @@ class SupernovaRemnant(LazySaladName):
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "remnant_class", "morphology", "age_years", "radius_ly", "progenitor_type",
+        "name", "flavor_key", "remnant_class", "morphology", "age_years", "radius_ly", "progenitor_type",
         "dominant_species", "density_cm3", "temperature_k", "extinction_av", "compact_offset_ly",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
@@ -131,6 +131,9 @@ class SupernovaRemnant(LazySaladName):
     `nebulaData.Nebula`'s identical `galactic_orbital_*` fields' docstring
     -- a supernova remnant is likewise still gravitationally part of the
     galaxy despite being bound to no star."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
