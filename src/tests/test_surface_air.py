@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -151,7 +151,7 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
     age_s = 4.5 * sa.GY_S
@@ -176,7 +176,7 @@ def test_the_shares_the_surface_holds_start_from_the_heat_released_times_each_el
     assert {element: efficiencies[element] for element in ("C", "Ar", "S")} == {"C": 1.0, "Ar": 1.0, "S": 0.5}
     assert surface_pressure.DEGAS_EFFICIENCY_N[0] <= efficiencies["N"] <= surface_pressure.DEGAS_EFFICIENCY_N[1]       # GEN.1584: nitrogen is drawn
     assert design["degas_efficiency_n"] == efficiencies["N"]
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     for released_j in (1.0e30, 0.0):
         setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=released_j, heat_flux_w_m2=0.0614,
@@ -194,7 +194,7 @@ def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
     draw.set_run_seed(27)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0, "N": 0.0}         # an inventory far larger than the crust this heat built
     shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, {})(inventory)
@@ -208,13 +208,36 @@ def _ocean_setting(ocean_cover, water_kg, released_j=1.0e30, released_at_seal_j=
                       subject_of=None, **fields)
 
 
-def _carbon_share(setting, water_world, temperature_k=288.0):
+def _carbon_share(setting, water_world, temperature_k=288.0, carbon=1.0e-2):
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
-    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": 1.0e-2})["C"]
+    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": carbon})["C"]
+
+
+def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_own_law():
+    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole land."""
+    law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    held = _ocean_setting(0.7, 1.4e21)
+    iced = dataclasses.replace(held, albedo_law=law)
+    assert sa._weathering_land(held, 200.0) == pytest.approx(0.3)
+    assert sa._weathering_land(iced, 310.0) == pytest.approx(0.3)
+    assert sa._weathering_land(iced, 200.0) == 0.0
+    middle = sa._weathering_land(iced, 0.5 * (law.free_above_k + law.covered_below_k))
+    assert 0.0 < middle < 0.3 and middle == pytest.approx(0.3 * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+
+
+def test_a_frozen_world_with_the_ice_law_keeps_the_carbon_the_volcanoes_give_and_a_warm_one_does_not():
+    """GEN.1697: weathering all but stops under the ice, so the carbon builds up until it melts it (Hoffman et al. 2017)."""
+    law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    held = _ocean_setting(0.7, 1.4e21)
+    iced = dataclasses.replace(held, albedo_law=law, starlight_w_m2=1360.0)      # the energy limit of the runoff reads the starlight the ice law lets in
+    open_ = sa.WaterWorld(False, sa.waterworld_carbon.draw_waterworld({}), sa.waterworld_carbon.draw_seafloor_law({}))
+    assert _carbon_share(iced, open_, 260.0, 1.0) > _carbon_share(held, open_, 260.0, 1.0)      # (at 230 K the runoff is nil with or without the ice: the law has no rain there)
+    assert _carbon_share(iced, open_, 230.0, 1.0) == pytest.approx(_carbon_share(held, open_, 230.0, 1.0), rel=1e-6)    # all of what the volcanoes give stays
+    assert _carbon_share(iced, open_, 310.0, 1.0) == pytest.approx(_carbon_share(held, open_, 310.0, 1.0))
 
 
 def test_the_water_world_is_sealed_only_when_its_ocean_floor_reaches_the_seal_pressure():
@@ -246,7 +269,7 @@ def test_volcanoes_bring_up_no_more_hydrogen_than_the_mantle_holds_as_water():
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"H": 5.0, "C": 0.0, "S": 0.0, "N": 0.0}       # moles per 100 g of the mantle: 0.9 percent of the mantle's mass as water
     def share(mantle_water_kg):
@@ -514,7 +537,7 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         return real(subject, result, column_bar)
 
     monkeypatch.setattr(sa.mixture_escape, "apply", recording)
-    for seed in (1, 3, 7):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
+    for seed in (2, 3, 5):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
         columns.clear()
         planet = _earth_like_planet(seed)
         assert planet.atmospheric_pressure > 0.0, seed
@@ -604,7 +627,7 @@ def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cyc
     draw.set_run_seed(30)       # (GEN.1584: the nitrogen draw moved the stream; at this setting the cycle takes nearly all of the added carbon, and the sign of what is left, 1e-19, depends on the seed)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     setting = _ocean_setting(0.7, 1.4e21)
     inventory = {"C": 1.0e-2, "N": 1.0e-3}
