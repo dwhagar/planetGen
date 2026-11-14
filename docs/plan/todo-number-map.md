@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.318 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1713 |
+| GEN | GEN.1714 |
 | PERF | PERF.267 |
 | DB | DB.131 |
 | API | API.49 |
@@ -4010,7 +4010,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1709 | Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star) | none | open |
 | GEN.1710 | (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently | none | open |
 | GEN.1711 | Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3) | none | open |
-| GEN.1712 | Measure-first: how far would the source model's seafloor weathering and carbonate source lift CO2 on warm land-and-sea worlds (300 to 330 K), and what share would then clear the 2 Pa life floor | none | open |
+| GEN.1712 | Measure-first: how far would the source model's seafloor weathering and carbonate source lift CO2 on warm land-and-sea worlds (300 to 330 K), and what share would then clear the 2 Pa life floor | none | closed as a true result (Lane 15, reports/gen1712-seafloor-sink-measure-2026-11-14.md, 12:07 AM EST 11-14): the seafloor sink lowers warm CO2; the build with limits is GEN.1713 |
+| GEN.1713 | Full carbon balance for the CO2 law: add seafloor dissolution beside continental weathering, each sink held to its published limit, then census CO2 on warm land-and-sea worlds | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
