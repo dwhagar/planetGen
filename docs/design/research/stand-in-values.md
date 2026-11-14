@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1662 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1666 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1635 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1639 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 217 | 112 | 31 | 76 | 4 | 440 |
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 49 | 18 | 5 | 93 | 35 | 200 |
-| All | 961 | 325 | 81 | 239 | 56 | 1662 |
+| T9 | 49 | 18 | 5 | 94 | 38 | 204 |
+| All | 961 | 325 | 81 | 240 | 59 | 1666 |
 
 ## How the labels were given
 
@@ -2920,3 +2920,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | AF1 | P | T1 | L0 | `acid_freezing.freezing_point_k`: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K) | none (read, not fitted); the 1 K of the reading | acid mole fraction 0 to 1 at 0.1 MPa; the equilibrium freezing point, below which a solid can be present | a measured freezing point of a sulfuric acid solution more than 2 K from the curve | the Gibbs-energy fit of [R4877] itself (Tables 6 to 8) evaluated for the liquidus, which removes the digitising | read first-hand from the scan of [R4877]; laboratory freezing points of Gable, Betz and Maron and of Kunzler and Giauque | observed in a lab | - | - |
 | AF2 | P | T5 | L0 | `acid_freezing` is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides | none | cloud pressures up to a few bar | a melting-curve slope of the hydrates above 0.1 K per bar | the pressure dependence of the Gibbs-energy functions, if a source prints it | educated guess from physics (the slopes of the ice and acid melting curves) | predicted only | - | - |
+
+## 6.288 Stand-ins of the Class M abundance tiers
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AT1 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (`low` of `delivered_water`) and not from the Bern law at their formation distance | each share 0 to 1 | galaxies made under a tier other than Science; rocky planets in the ecosphere, never moons | the meter (`scripts/class_census.py`) reading a Class M rate outside a factor of 2 of the tier's target | a formation law that gives habitable-zone planets Earth's water at a known rate (the research on water-rich births) | needed output: no source says how often a habitable-zone planet is as dry as Earth; forcing the class on 35 measured systems raised land-and-sea planets from 2 to 14 (report section 3) | predicted only | - | - |
+| AT2 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (`Planet(late_core=True)`, GEN.1323) | each share 0 to 1 | as AT1 | as AT1 | an envelope law checked against the observed radius distribution at habitable-zone fluxes (the research on hydrogen envelopes) | needed output: 34 of 75 right-mass candidates keep an envelope (report section 3); the share that should is not known | predicted only | - | - |
+| AT3 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by `tuning.REQUEST_ODDS` (row CC10) and forces nothing | each share 0 to 1 | galaxies made under Plentiful or Abundant | as AT1 | none: the strength of a request is the maker's choice | needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate | predicted only | - | - |
+| AT4 | P | T9 | L3 | `abundance_tier.TARGET_SYSTEMS_PER_CLASS_M` (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy | each target by a factor of 3 (the choice Boss was given) | the calibration only | none: a setting of the galaxy's maker | none | Boss, card "Set the target Class M rate of each tier", 11:19 PM EST 2026-11-13 | predicted only | - | - |
