@@ -36,7 +36,7 @@ def test_a_plan_stops_at_the_edge_and_stores_it_as_a_pin(mysql_config, capsys):
     run_cli("plan", ["--edge=40pc", "--nuclear-amplitude", "0", "--seed",
                      "00112233445566778899AABBCCDDEEFF"] + mysql_argv(mysql_config))
     out = capsys.readouterr().out
-    assert "WARNING: the galactic plane still qualified at the --edge (40pc)" in out
+    assert "warning: The galactic plane still qualified at the --edge (40pc)" in out
     conn = store.get_connection(mysql_config)
     try:
         stored = store.get_galaxy_shape(conn)

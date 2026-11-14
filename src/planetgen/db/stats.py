@@ -27,6 +27,7 @@ admin request would stall the whole site (see `docs/deployment/apache.md`):
 from planetgen.db import store
 from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERALS_BY_VALUE
 from planetgen.names.uniqueness import strip_decoration
+from planetgen.util import log
 
 NAME_REGISTRIES = (
     ("sector", "sector_name_registry", "occurrence_count > 1"),
@@ -71,8 +72,8 @@ def server_info(conn):
     info = {"version": None, "uptime_seconds": None, "threads_connected": None}
     try:
         info["version"] = conn.execute("SELECT VERSION() AS v").fetchone()["v"]
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("db/stats", "server_info", exc)
     try:
         rows = conn.execute(
             "SHOW GLOBAL STATUS WHERE Variable_name IN ('Uptime', 'Threads_connected')"
@@ -82,8 +83,8 @@ def server_info(conn):
             info["uptime_seconds"] = int(status["Uptime"])
         if "Threads_connected" in status:
             info["threads_connected"] = int(status["Threads_connected"])
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("db/stats", "server_info", exc)
     return info
 
 
@@ -92,7 +93,8 @@ def schema_version(conn):
     has ever run against it (no `schema_migrations` table yet)."""
     try:
         row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
-    except Exception:
+    except Exception as exc:
+        log.swallowed("db/stats", "schema_version", exc)
         return None
     return row["version"] if row else None
 
@@ -130,7 +132,8 @@ def exact_counts(conn):
     for table in ("sectors", "star_systems"):
         try:
             counts[table] = conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
-        except Exception:
+        except Exception as exc:
+            log.swallowed("db/stats", "exact_counts", exc)
             counts[table] = None
     return counts
 
@@ -157,7 +160,8 @@ def bright_star_counts(conn):
         span = conn.execute("SELECT MIN(id) AS lo, MAX(id) AS hi FROM bright_stars").fetchone()
         filled = conn.execute(
             "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL").fetchone()["n"]
-    except Exception:
+    except Exception as exc:
+        log.swallowed("db/stats", "bright_star_counts", exc)
         return None
     placed = 0 if span["hi"] is None else int(span["hi"]) - int(span["lo"]) + 1
     return {"placed": placed, "filled": int(filled), "unfilled": placed - int(filled)}
@@ -181,7 +185,8 @@ def density_stats(conn):
             " COALESCE(SUM(bright_level_sol > 0 OR (bright_level_sol <> 0 AND bright_mass_sol IS NOT NULL)), 0)"
             " AS backfilled FROM sector_stats").fetchone()
         ratio, fills = store.galaxy_density_ratio(conn)
-    except Exception:
+    except Exception as exc:
+        log.swallowed("db/stats", "density_stats", exc)
         return None
     return {"measured": int(row["measured"]), "backfilled": int(row["backfilled"]),
             "ratio": None if ratio is None else float(ratio), "fills": fills}
@@ -204,8 +209,8 @@ def timestamp_stats(conn):
             row = conn.execute(f"SELECT created_at FROM {table} ORDER BY id DESC LIMIT 1").fetchone()
             newest = row["created_at"] if row else None
             last_modified = conn.execute(f"SELECT MAX(modified_at) AS t FROM {table}").fetchone()["t"]
-        except Exception:
-            pass
+        except Exception as exc:
+            log.swallowed("db/stats", "timestamp_stats", exc)
         result.append({
             "table": table,
             "newest_created_at": _format_time(newest),
@@ -230,7 +235,8 @@ def name_collision_summary(conn):
         try:
             summary[level] = conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE {collided}").fetchone()["n"]
             selects.append(f"SELECT base_name FROM {table} WHERE {collided}")
-        except Exception:
+        except Exception as exc:
+            log.swallowed("db/stats", "name_collision_summary", exc)
             summary[level] = None
     if selects:
         summary["distinct_base_names"] = conn.execute(

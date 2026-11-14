@@ -47,6 +47,7 @@ except ImportError:  # pragma: no cover
 
 from planetgen._version import __version__
 from planetgen.admin import activity_log
+from planetgen.util import log
 
 FORMAT = 1
 MANIFEST = "manifest.json"
@@ -643,5 +644,6 @@ def restore(name, parts=None, context=None, directory=None):
             context.audit("backup.restore", f"backup:{name}", json.dumps({"parts": report.restored,
                                                                           "skipped": report.skipped}))
         except Exception as exc:  # noqa: BLE001 -- the restore is done; say so, don't undo it
+            log.swallowed("backup/core", "restore", exc)
             activity_log.event("DB", "backup.audit_failed", user=context.who, error=str(exc)[:200])
     return report

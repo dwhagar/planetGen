@@ -147,5 +147,5 @@ def test_a_belt_stands_in_a_gap_never_on_a_planets_orbit():
         for belt in belts:
             seen += 1
             assert belt.origin in belt_origin.CAUSES
-            assert not any(belt.lower_limit < body.distance < belt.upper_limit for body in system.planets if body.body_type != 'a')
+            assert not any(belt.lower_limit < body.distance < belt.upper_limit for body in system.planets if body.body_type != 'a' and body.belt_rank is None)      # GEN.1510: a belt member promoted to a planet stays inside its belt's ring
     assert seen

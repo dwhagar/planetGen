@@ -25,7 +25,8 @@ fractions of H2O, CO2, CH4, NH3, SO2, H2S, CO, HCN (GEN.852), N2, O2, H2 and He 
 `ir`) and of the weak ones (`weak`), which the model gives stand-in bands (IR1, IR2); of the mean molar mass; the heat-capacity ratio at `T_e`; and the share of the
 absorbed sunlight a haze takes aloft with the logarithm of the pressure it takes it at over the surface pressure (GEN.851 below). A feature outside the fitted range is
 held at its edge, as the k-tables hold their edge beyond 100 K and 100 bar; the table is fitted up to a surface pressure of 1e8 Pa (1000 bar), above which the model
-does not converge, and the output is capped at 4000 K.
+does not converge. The model's surface stops at 4000 K, so the fit ends there; since GEN.1580 the table no longer clamps its output at 4000 K: above it the warming is the same
+log ratio of the air and the flux, an extrapolation (registry IR18), and the surface of an air stops where its main gas is half ionized (`ionization.ceiling_k`, CC7).
 
 ## The fit
 
@@ -159,6 +160,10 @@ own (`aerosols.haze_stream_of`, seeded by the mass, radius and distance, which a
 (the tholin's absorption at each wavelength over the star's blackbody, on a slant path of 2) and the pressure where half of it is taken from the top, in the haze's mass profile. Those two
 go to the table. `generate_aerosols` makes the same haze of the final air (the life stage may have changed the air since, and the stored depth then follows the air, not the temperature).
 A hazy air is cooler at the ground than the same air clear (the anti-greenhouse of Titan): `test_haze_in_the_air.py`.
+
+## Minor gases (GEN.1588)
+
+The fit was made on airs whose minor gases are absent or at least a few parts in a hundred thousand of the air, so between the two the network invented a slope: ten parts per million of hydrogen cyanide added 76 K to Earth's air, a part in a hundred million of ozone 10 K, a trace of helium up to 100 K, and a trace of ammonia or hydrogen took the greenhouse away. `warming` now reads each gas other than water, carbon dioxide, methane, nitrogen and oxygen (`TRACE_EXEMPT`: the gases the fit saw at every share) that stands under `TRACE_FULL_SHARE` (1e-3 of the air) by its share over that share of what the table says it adds to the air without the minor gases, the optically thin limit, where the effect goes with the column. A gas at the share counts in full and a gas at zero not at all, so the answer is continuous where a gas crosses the share (only the small interaction between two traces steps). Registry row IR18 (tier T5, tweak L3, hand-chosen against the sweep). The better answer is a refit on airs with minor gases from 1e-9 up (`scripts/fit_greenhouse_table.py`); until then the table's own answer for a gas above 1e-3 stands, helium and hydrogen cyanide included, whose full-share effects are still larger than the physics gives.
 
 ## What moves
 

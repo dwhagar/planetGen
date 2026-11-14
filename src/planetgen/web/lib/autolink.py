@@ -33,6 +33,8 @@ from html import escape, unescape
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
 
+from planetgen.util import log
+
 LIMIT = 2
 """int: How many links to a term's help page a page should hold."""
 
@@ -204,7 +206,8 @@ def _unit_pattern():
     try:
         from planetgen.physics import unit_registry
         symbols = {unit.symbol for unit in unit_registry.UNITS.values()}
-    except Exception:    # the linker works without the registry, with the extra symbols only
+    except Exception as exc:    # the linker works without the registry, with the extra symbols only
+        log.swallowed("web/lib/autolink", "_unit_pattern", exc)
         symbols = set()
     symbols = sorted((symbols - NOT_UNITS) | set(EXTRA_UNITS), key=len, reverse=True)
     return "|".join(re.escape(symbol) for symbol in symbols if symbol)
