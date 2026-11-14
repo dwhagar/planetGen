@@ -413,9 +413,18 @@ def _objects(visitor, fetch, cap, start=0):
             return
 
 
+def _say(visitor, done, total):
+    """The family's count inside its one piece (`visitor.report`, the second level of the unit's beat), where it has one."""
+    if visitor.report is not None:
+        visitor.report(done, total)
+
+
 def _warm_galaxy_map(visitor, cap):
+    _say(visitor, 0, 2)
     opening = warm_opening_view(visitor.db)
+    _say(visitor, 1, 2)
     visitor.visit("/galaxy")
+    _say(visitor, 2, 2)
     return {"warmed": opening["nodes"], "noun": "nodes", "already": opening["cached"], "left_out": 0}
 
 
@@ -446,8 +455,9 @@ def _warm_lists(visitor, cap):
     paths += [f"/lists/{kind}" for kind in KIND_LABELS]   # UX.141: a keyset page costs the same at any depth
     status = apiclient.get_population_status(visitor.db)   # the pages are not there before the population pass
     paths += [path for kind, path in (("polities", "/polities"), ("species", "/species")) if status.get(kind)]
-    for path in paths:
+    for number, path in enumerate(paths, 1):
         visitor.visit(path)
+        _say(visitor, number, len(paths))
     return {"warmed": visitor.pages, "noun": "pages", "left_out": 0}
 
 
@@ -499,7 +509,9 @@ def _warm_phenomena(visitor, cap, window=None):
 
 
 def _warm_search(visitor, cap):
+    _say(visitor, 0, 1)
     visitor.visit("/search")
+    _say(visitor, 1, 1)
     return {"warmed": visitor.pages, "noun": "pages", "left_out": 0}
 
 
@@ -535,7 +547,8 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None, report
         config (MySQLConfig, optional): The database to build the app on when `app` is not given.
         window (dict, optional): For an object family, the slice of its listing to warm (`{"offset", "count", "left_out"}`): one
             unit of the family's stage (PERF.180). Without it the whole listing up to the cap.
-        report (callable, optional): `report(done, estimate)`, called as the objects of a slice are warmed (the unit's progress).
+        report (callable, optional): `report(done, estimate)`, called as the objects of a slice, the pages of the lists or the steps of the opening view are
+            warmed (the second level of the unit's beat).
 
     Returns:
         dict: `family`, `warmed`, `noun`, `cached` (answers that were already cached), `built`, `left_out` (objects
@@ -563,12 +576,14 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None, report
 
 
 def _warm_unit(family, args, report=None):
-    """One family's unit of a warm run: warms it and leaves a line in the activity log, the result's line of it. A unit that is a
-    slice of an object family (`args["offset"]`, PERF.180) leaves no line of its own: the stage's `finish` leaves one for all."""
+    """One family's work for the arguments of a unit (or of one piece of it): warms it and leaves a line in the activity log, the result's line of it. A slice of an object
+    family (`args["offset"]`, PERF.180) leaves no line of its own: the stage's `finish` leaves one for all."""
     window = None if "offset" not in args else {key: args[key] for key in ("offset", "count", "left_out")}
+    options = {} if window is None else {"window": window}
+    if report is not None:
+        options["report"] = report
     try:
-        result = warm_family(args["database"], family, args.get("cap"),
-                             **({} if window is None else {"window": window, "report": report}))
+        result = warm_family(args["database"], family, args.get("cap"), **options)
     except Exception as exc:
         activity_log.event("GEN", "warm.failed", db=args["database"], family=family, error=str(exc)[:300])
         raise
@@ -586,59 +601,160 @@ def _expand_family(params):
     return commands.Expansion([(unit, 1.0)], {})
 
 
-def warm_galaxy_map_unit(args, report):
-    """The unit of the `warm-galaxy-map` command (PERF.127): the Galaxy Map's opening view, shape, sectors and phenomena."""
-    return _warm_unit("galaxy-map", args)
+# --- The pieces of the warm commands (OPS.205): the engine (`queue/engine.py`) owns the loop of each unit --------------------------------------------------------------
+
+def _second_level(ctx, name):
+    """The `report(done, estimate)` a family gives while it works, as the unit's second-level count (OPS.192): a bar under the unit's own with the real numbers, the rate and the time left."""
+    seen = {"total": None, "done": 0}
+
+    def report(done, estimate):
+        if estimate != seen["total"]:
+            ctx.step(name, estimate)
+            seen["total"], seen["done"] = estimate, 0
+        if done > seen["done"]:
+            ctx.advance(done - seen["done"])
+            seen["done"] = done
+    return report
 
 
-def warm_lists_unit(args, report):
-    """The unit of the `warm-lists` command: the first page of every list, and its counts."""
-    return _warm_unit("lists", args)
+def pieces_of_one(args, cursor):
+    """The pieces of a unit that is one family of a few pages (the opening view, the lists, the search page): one, which counts what it visits inside it (`_second_level`)."""
+    return [{}][cursor:]
 
 
-def warm_sectors_unit(args, report):
-    """The unit of the `warm-sectors` command: every sector page, up to `args["cap"]`."""
-    return _warm_unit("sectors", args, report)
+def gather_first(args, results):
+    """The unit's result of a unit of one piece: the piece's."""
+    return results[0]
 
 
-def warm_systems_unit(args, report):
-    """The unit of the `warm-systems` command: every system page, up to `args["cap"]`."""
-    return _warm_unit("systems", args, report)
+def do_warm_galaxy_map(args, piece, ctx):
+    """The one piece of `warm-galaxy-map` (PERF.127): the Galaxy Map's opening view, shape, sectors and phenomena, counted in its three steps."""
+    return _warm_unit("galaxy-map", args, _second_level(ctx, "Warming the opening view"))
 
 
-def warm_phenomena_unit(args, report):
-    """The unit of the `warm-phenomena` command: every phenomenon page, up to `args["cap"]`."""
-    return _warm_unit("phenomena", args, report)
+def do_warm_lists(args, piece, ctx):
+    """The one piece of `warm-lists`: the first page of every list, and its counts, counted a page at a time."""
+    return _warm_unit("lists", args, _second_level(ctx, "Warming the lists"))
 
 
-def warm_search_unit(args, report):
-    """The unit of the `warm-search` command: the search page."""
-    return _warm_unit("search", args)
+def do_warm_search(args, piece, ctx):
+    """The one piece of `warm-search`: the search page."""
+    return _warm_unit("search", args, _second_level(ctx, "Warming the search page"))
 
 
-def warm_object_index_unit(args, report):
+pieces_warm_galaxy_map = pieces_warm_lists = pieces_warm_search = pieces_of_one
+gather_warm_galaxy_map = gather_warm_lists = gather_warm_search = gather_first
+
+
+PIECE_OBJECTS = 50
+"""int: How many objects of a unit's slice one piece of `warm-sectors`, `warm-systems` and `warm-phenomena` warms (OPS.205): the engine counts pieces done of pieces, and a piece counts its
+objects inside it. Defined by the program: the slice of `OBJECT_CHUNK` objects is five of them."""
+
+
+def _pieces_of_objects(args, cursor):
+    """The pieces of an object unit: its slice cut in pieces of `PIECE_OBJECTS`, each the `offset` and `count` of a part of it (the first carries the objects the cap leaves out); an empty
+    slice is one piece that says so; a unit with no slice (`offset` absent) is one piece, the whole family."""
+    if "offset" not in args:
+        return [{}][cursor:]
+    offset, count, left_out = args["offset"], args["count"], args.get("left_out", 0)
+    if count <= 0:
+        return [{"offset": offset, "count": 0, "left_out": left_out}][cursor:]
+    pieces = [{"offset": start, "count": min(PIECE_OBJECTS, offset + count - start), "left_out": left_out if start == offset else 0}
+              for start in range(offset, offset + count, PIECE_OBJECTS)]
+    return pieces[cursor:]
+
+
+def _do_objects(family, args, piece, ctx):
+    return _warm_unit(family, {**args, **piece}, _second_level(ctx, f"Warming {_OBJECT_NOUNS[family]}"))
+
+
+_OBJECT_NOUNS = {"sectors": "sectors", "systems": "systems", "phenomena": "phenomena"}
+
+
+def _gather_objects(family, args, results):
+    """The unit's result of the results of its pieces: what `warm_family` gives for the whole slice, added up."""
+    if len(results) == 1:                      # a unit of one piece (a slice of 50 objects or fewer): the piece's own result says it all
+        return results[0]
+    warmed, cached = sum(r["warmed"] for r in results), sum(r.get("cached", 0) for r in results)
+    built, left_out = sum(r.get("built", 0) for r in results), sum(r.get("left_out", 0) for r in results)
+    seconds = sum(r.get("seconds", 0.0) for r in results)
+    noun = results[0].get("noun", _OBJECT_NOUNS[family]) if results else _OBJECT_NOUNS[family]
+    return {"family": family, "warmed": warmed, "noun": noun, "left_out": left_out, "chunk": sum(r.get("chunk", 0) for r in results),
+            "cached": cached, "built": built, "seconds": seconds,
+            "line": f"{family}: {warmed} {noun} warmed ({built} answers built, {cached} already cached, {left_out} left out by the cap) in {seconds:.1f} s"}
+
+
+def pieces_warm_sectors(args, cursor):
+    """The pieces of a unit of `warm-sectors`: parts of its slice of the sector listing."""
+    return _pieces_of_objects(args, cursor)
+
+
+def do_warm_sectors(args, piece, ctx):
+    """One piece of `warm-sectors`: every sector page of a part of the slice, up to the cap."""
+    return _do_objects("sectors", args, piece, ctx)
+
+
+def gather_warm_sectors(args, results):
+    return _gather_objects("sectors", args, results)
+
+
+def pieces_warm_systems(args, cursor):
+    """The pieces of a unit of `warm-systems`: parts of its slice of the system listing."""
+    return _pieces_of_objects(args, cursor)
+
+
+def do_warm_systems(args, piece, ctx):
+    """One piece of `warm-systems`: every system page of a part of the slice."""
+    return _do_objects("systems", args, piece, ctx)
+
+
+def gather_warm_systems(args, results):
+    return _gather_objects("systems", args, results)
+
+
+def pieces_warm_phenomena(args, cursor):
+    """The pieces of a unit of `warm-phenomena`: parts of its slice of the phenomenon listing."""
+    return _pieces_of_objects(args, cursor)
+
+
+def do_warm_phenomena(args, piece, ctx):
+    """One piece of `warm-phenomena`: every phenomenon page of a part of the slice."""
+    return _do_objects("phenomena", args, piece, ctx)
+
+
+def gather_warm_phenomena(args, results):
+    return _gather_objects("phenomena", args, results)
+
+
+def pieces_warm_object_index(args, cursor):
+    """The pieces of `warm-object-index` (PERF.140): one per kind of object the index holds, so the engine counts the kinds done of all of them."""
+    return list(objectindex.KINDS)[cursor:]
+
+
+def do_warm_object_index(args, kind, ctx):
     """
-    The unit of the `warm-object-index` command (PERF.140): refreshes the object index (builds the kinds that have no
-    record of a run), or with `index_mode` `build` writes every object again. Reports like a page family: the rows
-    are what was warmed, the rows it wrote are what it built.
+    One piece of `warm-object-index`: refreshes the index of one kind of object (builds the kind that has no record of a run), or with `index_mode` `build` writes every object of
+    it again. Returns what `objectindex` says of the kind.
     """
-    started = time.monotonic()
     database = args["database"]
     try:
         conn = store.get_connection(store.MySQLConfig(database=database), ensure_schema=False)
         try:
             build = args.get("index_mode") == "build"
-            found = (objectindex.build if build else objectindex.refresh)(conn, database=database)
+            return (objectindex.build if build else objectindex.refresh)(conn, kinds=[kind], database=database)[kind]
         finally:
             conn.close()
     except Exception as exc:
         activity_log.event("GEN", "warm.failed", db=database, family="object-index", error=str(exc)[:300])
         raise
-    rows = sum(kind["rows"] for kind in found.values())
-    written = sum(kind["changed"] + kind["removed"] for kind in found.values())
-    seconds = time.monotonic() - started
-    activity_log.event("GEN", "warm.family", db=database, family="object-index", warmed=rows, left_out=0,
-                       seconds=round(seconds, 1))
+
+
+def gather_warm_object_index(args, results):
+    """The unit's result from the kinds'. Reports like a page family: the rows are what was warmed, the rows it wrote are what it built."""
+    rows = sum(kind["rows"] for kind in results)
+    written = sum(kind["changed"] + kind["removed"] for kind in results)
+    seconds = sum(kind.get("seconds", 0.0) for kind in results)
+    activity_log.event("GEN", "warm.family", db=args["database"], family="object-index", warmed=rows, left_out=0, seconds=round(seconds, 1))
     return {"family": "object-index", "warmed": rows, "noun": "objects", "cached": max(rows - written, 0),
             "built": written, "left_out": 0, "seconds": seconds,
             "line": (f"object-index: {rows:,} objects indexed ({written:,} rows written, {max(rows - written, 0):,} "
@@ -713,64 +829,53 @@ expand_warm_galaxy_map = expand_warm_lists = _expand_family
 expand_warm_search = _expand_family
 
 
-def _fetch_in_requests(app, args, report):
-    """
-    Builds the unit's `args["keys"]` with `fetch_nodes`, `NODE_CHUNK` keys per call, the most one request holds. A unit
-    holds more keys than that on a big galaxy, when the stage's cut is made coarser to stay within `units.MAX_UNITS`
-    (`units.coarsen`). The cache is looked at before each call after the first: once it is full the rest of the unit is
-    left out, as a unit that finds it full at the start leaves out all of its keys.
-
-    Returns:
-        tuple: `(cached, left_out)`: how many keys were already stored and how many were not built.
-    """
-    keys = args["keys"]
-    cached = 0
-    for start in range(0, len(keys), NODE_CHUNK):
-        if start and tilecache.cache_is_full():
-            report(start, len(keys))
-            return cached, len(keys) - start
-        with app.test_request_context("/"):
-            cached += fetch_nodes(args["database"], keys[start:start + NODE_CHUNK], ahead=True)["cached"]
-        report(min(start + NODE_CHUNK, len(keys)), len(keys))
-    return cached, 0
-
-
 def _node_result(family, warmed, cached, built, left_out, seconds, line):
     """A node unit's result, in the shape every warm unit returns (`warm_family`)."""
     return {"family": family, "warmed": warmed, "noun": "nodes", "cached": cached, "built": built, "left_out": left_out,
             "seconds": seconds, "line": line}
 
 
-def _warm_node_chunk(args, report, family):
+def _pieces_of_nodes(args, cursor):
     """
-    The unit of the `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` commands (MAP.260): builds one chunk of the nodes
-    into the disk cache, the same call the map's own request makes (`tilecache.fetch_nodes`), so what it stores is what
-    a visitor is served. A node that is already stored and current is not built again.
+    The pieces of a unit of `warm-galaxy-nodes` or `warm-galaxy-deep-nodes` (MAP.260, OPS.205): its `args["keys"]` in chunks of `NODE_CHUNK`, the most one request holds. A unit holds more
+    keys than one chunk on a big galaxy, when the stage's cut is made coarser to stay within `units.MAX_UNITS` (`units.coarsen`). A unit with no key has no piece.
+    """
+    keys = args["keys"]
+    return [keys[start:start + NODE_CHUNK] for start in range(0, len(keys), NODE_CHUNK)][cursor:]
 
-    Args:
-        args (dict): `database` (the site's) and `keys` (the chunk: `NODE_CHUNK` node keys, or a whole multiple of that on a galaxy too big for
-            the stage's unit cap, see `units.coarsen`); `stored`, on the stage's first unit, the nodes the stage's opening found stored and current and left out of every
-            unit's keys (PERF.257), which count as warmed and already stored here.
-        report (callable): Called with `(done, estimate)` when the chunk is built.
-        family (str): The family the chunk belongs to, for its line.
+
+def _do_node_chunk(args, keys, ctx):
+    """
+    One piece: builds the chunk of nodes into the disk cache, the same call the map's own request makes (`tilecache.fetch_nodes`), so what it stores is what a visitor is served. A node
+    that is already stored and current is not built again. The cache is looked at before each chunk: once it is full the chunk is left out, as are the rest of the unit's.
     """
     started = time.monotonic()
+    if tilecache.cache_is_full():
+        return {"count": len(keys), "cached": 0, "left_out": len(keys), "full": True, "seconds": 0.0}
+    with app_for().test_request_context("/"):
+        cached = fetch_nodes(args["database"], keys, ahead=True)["cached"]
+    return {"count": len(keys), "cached": cached, "left_out": 0, "full": False, "seconds": time.monotonic() - started}
+
+
+def _gather_nodes(family, args, results):
+    """
+    The unit's result of its chunks': `args["stored"]`, on the stage's first unit, is the nodes the stage's opening found stored and current and left out of every unit's keys (PERF.257), which
+    count as warmed and already stored here.
+    """
     count = len(args["keys"])
     stored = int(args.get("stored", 0))
     if not count:
-        report(stored, stored)
         if stored:
             return _node_result(family, stored, stored, 0, 0, 0.0, f"{family}: {stored} nodes warmed (0 built, {stored} already stored)")
         return _node_result(family, 0, 0, 0, 0, 0.0,
                             f"{family}: no node to warm" + (", no block is stored yet" if family == "galaxy-nodes" else ""))
-    if tilecache.cache_is_full():
-        report(count, count)
+    left_out = sum(result["left_out"] for result in results)
+    if left_out == count and results[0]["full"]:
         return _node_result(family, stored, stored, 0, count, 0.0, f"{family}: {count} nodes left out, " + (
             "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
             f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)"))
-    app = app_for()
-    cached, left_out = _fetch_in_requests(app, args, report)
-    seconds = time.monotonic() - started
+    cached = sum(result["cached"] for result in results)
+    seconds = sum(result["seconds"] for result in results)
     warmed = count - left_out
     built = warmed - cached
     return _node_result(family, warmed + stored, cached + stored, built, left_out, seconds,
@@ -806,14 +911,32 @@ def _node_units(database, keys, family):
     return units or [({"database": database, "keys": []}, NODE_SECONDS)], len(stored)    # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
 
 
-def warm_galaxy_nodes_unit(args, report):
-    """The unit of the `warm-galaxy-nodes` command (MAP.260): one chunk of the built levels' nodes."""
-    return _warm_node_chunk(args, report, "galaxy-nodes")
+def pieces_warm_galaxy_nodes(args, cursor):
+    """The pieces of a unit of `warm-galaxy-nodes` (MAP.260): chunks of the built levels' nodes."""
+    return _pieces_of_nodes(args, cursor)
 
 
-def warm_galaxy_deep_nodes_unit(args, report):
-    """The unit of the `warm-galaxy-deep-nodes` command: one chunk of the zoom run's deep nodes."""
-    return _warm_node_chunk(args, report, "galaxy-deep-nodes")
+def do_warm_galaxy_nodes(args, keys, ctx):
+    """One piece of `warm-galaxy-nodes`: one chunk of the built levels' nodes."""
+    return _do_node_chunk(args, keys, ctx)
+
+
+def gather_warm_galaxy_nodes(args, results):
+    return _gather_nodes("galaxy-nodes", args, results)
+
+
+def pieces_warm_galaxy_deep_nodes(args, cursor):
+    """The pieces of a unit of `warm-galaxy-deep-nodes`: chunks of the zoom run's deep nodes."""
+    return _pieces_of_nodes(args, cursor)
+
+
+def do_warm_galaxy_deep_nodes(args, keys, ctx):
+    """One piece of `warm-galaxy-deep-nodes`: one chunk of the zoom run's deep nodes."""
+    return _do_node_chunk(args, keys, ctx)
+
+
+def gather_warm_galaxy_deep_nodes(args, results):
+    return _gather_nodes("galaxy-deep-nodes", args, results)
 
 
 def expand_warm_galaxy_nodes(params):
@@ -854,9 +977,14 @@ def finish_warm_galaxy_deep_nodes(params, plan, results, seconds):
     return _finish_nodes(params, results, seconds, "galaxy-deep-nodes")
 
 
-def end_map_rebuild_unit(args, report):
+def pieces_end_map_rebuild(args, cursor):
+    """The one piece of `end-map-rebuild-maintenance`: opening the site is one step."""
+    return ["reopen"][cursor:]
+
+
+def do_end_map_rebuild(args, piece, ctx):
     """
-    The unit of the `end-map-rebuild-maintenance` command: opens the site if the sector-grid switch closed it
+    The piece of the `end-map-rebuild-maintenance` command: opens the site if the sector-grid switch closed it
     (`maintenance.SECTOR_SWITCH`, UX.112), the Galaxy Map being back on the new grid. An admin's own maintenance, and one
     with another cause, stays.
 
@@ -867,6 +995,9 @@ def end_map_rebuild_unit(args, report):
     if maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild"):
         return {"reopened": True, "line": "Maintenance mode is off: the Galaxy Map is rebuilt."}
     return {"reopened": False, "line": "Maintenance mode was not the map rebuild's, so it is left as it is."}
+
+
+gather_end_map_rebuild = gather_first
 
 
 def expand_end_map_rebuild(params):
