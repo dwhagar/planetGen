@@ -11,6 +11,7 @@ import copy
 import pytest
 
 from planetgen.generation import tuning_harness as th
+from planetgen.generation import possibility_table as pt
 from planetgen.physics.atmosphere_recipes import RECIPES, Recipes
 
 CHECKED = [t.id for t in th.TARGETS if t.role == "target" and t.subject is not None and t.selection_model is None]
@@ -180,12 +181,19 @@ def test_the_carbon_dioxide_and_monoxide_ratios_follow_the_comet_database_and_a_
     assert not th.check_target(th.TARGETS.get("k4-sd"), recipes=narrow, n=3000).passed
 
 
-def test_the_species_with_a_population_follow_it_and_the_single_comet_species_stay_flagged():
+def test_the_species_with_a_population_follow_it_and_the_others_sit_between_the_comets_measured():
     dists = RECIPES.entry("k7").spec["dists"]
     assert dists["CH4"]["mu"] == "log10(0.0068)" and dists["CH4"]["sigma"] == 0.33
-    assert {name: d["sigma"] for name, d in dists.items() if name in ("N2", "O2", "Xe")} == {"N2": "comet_species_sigma()", "O2": "comet_species_sigma()", "Xe": "comet_species_sigma()"}
-    assert dists["N2"]["mu"].startswith("log10(comet_species_median('N2', n_over_c, ar_over_c, s_over_c))")
-    assert "one comet" in RECIPES.entry("k7").limit and RECIPES.entry("k7").replacement == "GEN.1021"
+    for name in ("O2", "OCS", "SO2"):
+        assert dists[name]["kind"] == "loguniform", name
+        assert dists[name]["lo"] == f"comet_species_low('{name}', n_over_c, ar_over_c, s_over_c)"
+        assert dists[name]["hi"] == f"comet_species_high('{name}', n_over_c, ar_over_c, s_over_c)"
+    for name in ("N2", "Ar"):                                   # about the formation temperature of the comet's ice, read off its CO/H2O (GEN.1022)
+        assert dists[name]["mu"] == f"comet_latent_log10('{name}', co_over_h2o, n_over_c, ar_over_c, s_over_c)"
+        assert dists[name]["sigma"] == f"comet_residual_dex('{name}')"
+    assert dists["Kr"]["mu"] == "comet_tie_log10('Kr', draw_Ar)" and dists["Xe"]["mu"] == "comet_tie_log10('Xe', draw_Kr)"
+    assert RECIPES.entry("k5").spec["sets"] == "co_over_h2o"
+    assert "formation" in RECIPES.entry("k7").limit and RECIPES.entry("k7").state != pt.STAND_IN
 
 
 # --- host-star rotation track (GEN.523) --------------------------------------------------------------------------------------

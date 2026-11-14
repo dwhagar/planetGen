@@ -270,7 +270,7 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing",
                   "planetgen.physics.resonant_chains", "planetgen.physics.orbit_oddities",
                   "planetgen.physics.disintegrating_planet", "planetgen.physics.rings",
-                  "planetgen.physics.air_branches", "planetgen.physics.giant_tilt", "planetgen.physics.hycean_candidate", "planetgen.physics.helium_fractionation")
+                  "planetgen.physics.air_branches", "planetgen.physics.giant_tilt", "planetgen.physics.hycean_candidate", "planetgen.physics.helium_fractionation", "planetgen.physics.obliquity_variation")
 """tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
 
 

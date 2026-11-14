@@ -264,7 +264,7 @@ def _update(args, config):
     try:
         conn = get_connection(config)
     except Exception as exc:
-        log.error(f"could not open the database ({exc}).")
+        log.error(f"The database could not be opened ({exc}).")
         sys.exit(1)
 
     cancel = _Cancel()

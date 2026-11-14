@@ -59,7 +59,7 @@ def starlight_w_m2(body):
     if not luminosity or not body.distance:
         return 0.0
     distance_au = orbit_elements.flux_distance_au(body.distance, body.host_eccentricity if body.is_moon else body.eccentricity)
-    return (luminosity / (4.0 * math.pi * (distance_au * constants.AU_TO_M) ** 2) + radiation_field.companion_light_w_m2(star, distance_au)) * (eclipses.light_factor_of(body) or 1.0)     # GEN.1441, GEN.1484
+    return (luminosity / (4.0 * math.pi * (distance_au * constants.AU_TO_M) ** 2) + radiation_field.companion_light_w_m2(star, distance_au)) * eclipses.kept_share(eclipses.light_factor_of(body))     # GEN.1441, GEN.1484
 
 
 def thermal_tide_of(body, star_raiser):

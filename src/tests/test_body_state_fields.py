@@ -9,7 +9,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import planets as planet_physics
+from planetgen.physics import envelope_share, planets as planet_physics
 from planetgen.util import draw
 
 
@@ -44,6 +44,8 @@ def test_the_planet_keeps_its_composition_and_orbit_draws_and_remakes_the_air():
         assert fields.is_birth(Planet, field), field
 
 
+AIR_SHARE_FIELDS = (*envelope_share.SOLIDS, "envelope_mass_fraction", "envelope_helium_fraction", "envelope_z_fraction")
+"""tuple: The birth fields that the share of the air moves (`envelope_share.fill`)."""
 ORBIT_DRAWS = ("distance", "eccentricity", "orbital_inclination_deg", "orbital_ascending_node_deg", "host_eccentricity")
 
 
@@ -73,6 +75,9 @@ def test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_pr
                 for field in fields.birth_fields(Planet):
                     if field in ORBIT_DRAWS:
                         continue            # the orbit the test moved; a moon's own orbit follows its parent's change a little (`follow_orbit_change`): the orbit draws keep their first values in GEN.582's draw record
+                    if field in AIR_SHARE_FIELDS:       # the air's share comes out of the solid fractions (`envelope_share.fill`), so an air that appears or goes at the new distance moves them a little
+                        assert getattr(body, field, None) == pytest.approx(before[id(body)][field], abs=1e-6), (seed, body.name, field)
+                        continue
                     assert getattr(body, field, None) == before[id(body)][field], (seed, body.name, field)
                 moved |= {field for field in fields.present_fields(Planet) if getattr(body, field, None) != before[id(body)][field]}
     assert tested >= 3

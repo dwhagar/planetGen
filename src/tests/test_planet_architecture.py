@@ -343,3 +343,38 @@ def test_the_multiplicity_kepler_would_have_seen_matches_the_survey():
     # the orientations of one system are not independent skies: the sample is the systems, so the counts are put per orientation
     chi2, dof = po.multiplicity_chi2({k: v / orientations for k, v in counts.items()})
     assert chi2 < 5.0 * dof + 10.0, (chi2, dof, counts)
+
+
+def test_gen1560_the_giant_impact_stage_merges_the_closest_pair_until_the_zone_is_spaced_out():
+    star = 1.989e30
+    earth = 5.972e24
+    zone = [[0.7, 0.2 * earth, 1], [0.8, 0.2 * earth, 1], [1.2, 0.3 * earth, 1], [1.3, 0.25 * earth, 1]]
+    outside = [[0.2, 3.0 * earth, 1]] + zone + [[5.0, 12.0 * earth, 1]]
+    out = pa.giant_impacts([list(b) for b in outside], star, 2.7, 0.45, 25.0)
+    assert out[0] == outside[0] and out[-1] == outside[-1]                        # the inner system and the bodies past the snow line are left alone
+    inside = out[1:-1]
+    assert 1 <= len(inside) < len(zone)
+    for first, second in zip(inside, inside[1:]):
+        assert pa.spacing_k(first[0], first[1], second[0], second[1], star) >= 25.0
+    kept = sum(b[1] for b in inside) / sum(b[1] for b in zone)
+    assert tuning.COLLISION_MASS_RETENTION ** (len(zone) - len(inside)) - 1e-9 <= kept <= tuning.COLLISION_MASS_RETENTION + 1e-9      # each merge keeps its share of the pair
+    assert sum(b[2] for b in inside) == len(zone)                                  # the number of oligarchs each holds adds up
+    assert pa.giant_impacts([list(b) for b in outside], star, 2.7, 0.45, 0.0) == outside      # 0 turns the stage off
+
+
+def test_gen1560_the_terrestrial_zone_has_earth_sized_planets_at_about_the_surveyed_rate():
+    """[R0572]: 0.37 to 0.60 planets of 0.5 to 1.5 Earth radii in the habitable zone of a Sun-like star; the stage leaves them Earth-mass, not Mars-mass (median 0.26 before)."""
+    earth = 5.972e24
+    habitable = zone = 0
+    masses = []
+    for index in range(300):
+        architecture = pa.build(1.989e30, 2.7, 1.0, 0.0, 60.0, stream=draw.Stream(f"gen1560:{index}"))
+        for seed in architecture.planets:
+            mass = seed.mass_kg / earth
+            if seed.runaway or mass >= 20.0:
+                continue
+            habitable += 0.95 <= seed.distance_au <= 1.7 and 0.077 <= mass <= 4.5
+            if 0.75 <= seed.distance_au <= 2.0:
+                masses.append(mass)
+    assert 0.37 <= habitable / 300 <= 0.70
+    assert sorted(masses)[len(masses) // 2] >= 0.5
