@@ -104,6 +104,12 @@ PLANET_SOLIDS_STELLAR_MASS_EXPONENT = 1.2
 # so that a Sun-like star has about 0.8 planets of 1 to 20 Earth masses inside 0.45 AU and an M dwarf about 1 (Petigura et al.
 # 2018; [R1156]: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
 PLANET_INNER_DISK_STEEPENING = 0.75
+# The terrestrial zone (GEN.1560): from this distance to the star's snow line the solids the oligarchs are built from are this many times the rest of the disk's (`planet_mass.solids_surface_density_gcm2`).
+# `PLANET_DISK_SOLIDS_ENHANCEMENT` is fitted to the giants beyond the snow line; the Kepler systems' extrasolar nebula needs several times the minimum-mass solids at 1 AU ([R0771], recalled),
+# and the giant-impact stage below then merges the oligarchs it builds. A planetGen stand-in (tier T6, tweak L3) fitted with `GIANT_IMPACT_SPACING` to the share of Sun-like stars with an Earth-sized
+# planet in the habitable zone ([R0572]: 0.37 to 0.60 for 0.5 to 1.5 Earth radii).
+PLANET_ROCKY_ZONE_SOLIDS_BOOST = 4.0
+PLANET_ROCKY_ZONE_START_AU = 0.45
 # Beyond this distance the cores of the outer disk have not had time to assemble before the gas and the planetesimals are gone:
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
@@ -146,6 +152,9 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
+# The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
+# (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
+FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
@@ -196,9 +205,16 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 # The share of the mass of two oligarchs that collide which stays in the planet; the rest is debris (Pu and Wu 2015 expect a destructive
 # collision at the relative speeds of the compact systems and cannot predict the outcome). A planetGen stand-in (tier T4, tweak L0).
 COLLISION_MASS_RETENTION = 0.9
+# The spacing, in mutual Hill radii of the pair, the planets of the terrestrial zone are left at by the giant-impact stage (`planet_architecture.giant_impacts`, GEN.1560). 0 turns the stage off.
+# N-body runs of protoplanets 10 Hill radii apart end in a few planets, two of them Earth-sized, after 100 Myr [R2431]. A planetGen stand-in (tier T6, tweak L3) fitted with the boost above to [R0572].
+GIANT_IMPACT_SPACING = 25.0
+# The giant-impact stage ends at this distance, AU, or the snow line when that is nearer: protoplanets farther out, round A stars whose snow line lies at 10 AU and more, do not finish merging in the
+# age of the disk (the timescale grows steeply with distance, [R2431]), and merging them pulled the outermost planet in, which moved the outer disk and the debris disks of A stars from 10 to 27 of 40.
+# A planetGen stand-in (tier T6, tweak L3), registry PA17.
+GIANT_IMPACT_END_AU = 3.0
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
-# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L3) to 0.6 percent of Sun-like stars
+# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
 # ([R4897], read) and 0.27 percent of early M dwarfs ([R1504], read).
 GIANT_MIGRATION_SHARE = 0.0092
 GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT = 2.2
@@ -302,6 +318,10 @@ ALBEDO_WET_RANGE = (0.25, 0.40)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
 # --- Star System Generation Parameters ---
+BELT_PLANETS_PER_BELT = 10
+"""int: How many of a belt's round members become planets (GEN.1510, Boss 2026-11-10: the heaviest ten of each belt). The rest stay members, with the status `dwarf planet` or `minor body`. A planet
+costs about a tenth of a second to make, so the cap bounds the generation time of a system (about +30 percent at ten, `reports/belt-bodies-as-planets-2026-11-09.md` section 3)."""
+
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
@@ -321,6 +341,16 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # parent is a single-body Hill-sphere question, not a mutual one -- see
 # `Planet.min_orbit_distance`/`physics.planets.generate_moons`).
 MUTUAL_HILL_RADII_SEPARATION = 10
+
+# Chains of planets need more than the pairwise floor (GEN.1521). Lane 04's N-body spot-check (GEN.1468, reports/gen1468-nbody-screens-2026-11-09.md)
+# found the pairwise screen holds for pairs but three chains of four or more small planets, every pair at 10.0 to 11.4 mutual Hill radii, scattered within
+# 2e4 years. Pu and Wu 2015 ([R5231]; ApJ 807, 44) integrate seven-planet systems and find the minimum spacing for 1e9 years of stability is about 10 mutual Hill
+# radii on circular orbits and about 12 on orbits of eccentricity about 0.02, and that a system with gaps of mean K and spread sigma survives like one of
+# equal gaps K_eff = K - 0.5 sigma (their Eq. 10). A planet that would be the fourth in a run of `CHAIN_WINDOW` planets is held to
+# `CHAIN_K_EFF` for K_eff over the gaps of its window, measured as the pairwise floor is (the inner body's apoapsis to the outer body's periapsis).
+# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.277.]
+CHAIN_WINDOW = 4
+CHAIN_K_EFF = 12.0
 
 # Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
 # to carry more solid mass around more massive stars, and steeply so --
@@ -351,8 +381,8 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
 # law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way, inside the
-# factor 2 to 3 the observed lines move.
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
+# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
 SNOW_LINE_SCATTER_DEX = 0.2
 SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 
@@ -533,12 +563,15 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
-SECTOR_HILL_SEPARATION_SHARE = 0.5
-"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192). A galactic Hill
-sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
-overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
-sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
-of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
+SECTOR_HILL_SEPARATION_SHARE = 0.05
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192, fitted to Gaia in GEN.1534). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood overlaps them freely:
+in the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, 958 systems within 15 pc, 0.074 systems per cubic parsec) 30 percent of the systems have a neighbour nearer than 1 pc and the
+median nearest neighbour is 1.33 pc, which is what no exclusion at all gives (1.31 pc, 27 percent), while the old half of the sum (1.3 pc between two median systems) forbade every
+neighbour under 1 pc and moved the median to 1.65 pc. `scripts/fit_sector_separation.py` places systems at that density by the galaxy's own rejection and compares the nearest-neighbour
+distribution with the sample's: the Kolmogorov-Smirnov distance is inside the 95 percent band (0.044) for shares up to 0.075, 0.045 at 0.1 and past it from 0.15 (0.086 at 0.2, 0.38 at 0.5).
+0.05 is the middle of the shares the data allow and keeps a mild exclusion; the nearby clustering of real wide pairs and moving groups is not reproduced by any share. Every sector keeps
+every system it is asked for (GEN.1284 found 424 of 424 at the old half, and a smaller share has more room)."""
 
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
@@ -617,11 +650,8 @@ ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 # consensus) -- an absolute ceiling on any star's age: no star is older, however
 # long its own track could keep it shining (an M dwarf's runs to trillions of years).
 UNIVERSE_AGE_GY = 13.8
-UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO = 0.85
 OLD_STAR_AGE_LIFESPAN_RATIO = 1/3
 YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
-MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
-WHITE_DWARF_AGE_ADDITION_GY = 5
 # The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
 # the proto-solar Z of the composition scale, [R0168] (stellar-
 # composition.md D1). A solar mass lasts 10.2 Gy at it.
@@ -1069,8 +1099,7 @@ RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
 
 RUNAWAY_START_TEMPERATURE_K = 1500.0
 """float: The temperature the air's fixed point starts from for a body with surface water under starlight past its runaway greenhouse limit (GEN.1238), so it
-finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K,
-`surface_air.MAX_SURFACE_TEMPERATURE_K`). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
+finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
 
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
@@ -1317,6 +1346,19 @@ STELLAR_SOLAR_LOG_EPS = {
     "Li": 3.25, "P": 5.41, "Ti": 4.97, "V": 3.90, "Cr": 5.62, "Mn": 5.42, "Co": 4.94, "Cu": 4.18, "Zn": 4.56}
 """dict: Element symbol to A21 log eps (H = 12); the 14 elements that make 99.7 percent of Z, the nine of GEN.1360 (Li, P, Ti, V, Cr, Mn, Co,
 Cu, Zn; Li is the CI-chondrite value, the others the photosphere), and Eu, Th and U."""
+STELLAR_HEAVY_LOG_EPS = {
+    "Sr": 2.83, "Y": 2.21, "Zr": 2.59, "Ba": 2.27, "La": 1.11, "Ce": 1.58, "Pr": 0.75, "Nd": 1.42, "Sm": 0.95, "Gd": 1.08, "Tb": 0.31, "Dy": 1.10,
+    "Ho": 0.48, "Er": 0.93, "Tm": 0.11, "Yb": 0.85, "Lu": 0.10, "Os": 1.35, "Ir": 1.32, "Pt": 1.61, "Au": 0.91, "Pb": 1.95}
+"""dict: GEN.1371: the heavy elements of the s- and r-process split, A21 Table 2 log eps (H = 12; Ir and Pt are the CI-chondrite value the table adopts, the rest the photosphere); Eu, Th and U are above.
+Tier T1 (read), tweak L0."""
+STELLAR_HEAVY_R_FRACTION = {
+    "Sr": 0.11, "Y": 0.08, "Zr": 0.18, "Ba": 0.15, "La": 0.25, "Ce": 0.18, "Pr": 0.49, "Nd": 0.42, "Sm": 0.67, "Gd": 0.85, "Tb": 0.93, "Dy": 0.88,
+    "Ho": 0.92, "Er": 0.83, "Tm": 0.83, "Yb": 0.68, "Lu": 0.79, "Os": 0.91, "Ir": 0.99, "Pt": 0.95, "Au": 0.94, "Pb": 0.19}
+"""dict: GEN.1371: the share of each element's solar abundance made by the r-process, as recalled from [R5228] (Table 10) and the papers that quote it (the Eu 0.97 and Ba 0.15 of the research
+note agree); the rest is the s-process. Tier T3 (Marginal Unverified, second hand), tweak L0; each value is flagged for upgrade if the table is supplied."""
+STELLAR_S_PROCESS_XFE = (0.030, -0.076, 0.149)
+"""tuple: `(a, b, sigma)`: [s/Fe] = a + b [Fe/H] with scatter sigma (dex), the s-process proxy, the [R0535] fit of [Y/Fe] against [Fe/H] for all 1,615 dwarfs (`research/real-material-data-1`
+section 1.2); the one trend in hand for the s-process, taken for Ba and every other s-process element. Tier T5, tweak L1."""
 STELLAR_PROTO_NO_OFFSET = ("Li",)
 """tuple: The elements whose log eps is already proto-solar, not photospheric, so the diffusion offset (`STELLAR_PROTO_METAL_OFFSET_DEX`) is not
 added: Li, taken from the CI chondrites (meteorites hold the unmixed, undepleted material)."""
@@ -1443,6 +1485,41 @@ STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
 STELLAR_WD_ONE_CORE_MIN_SOL = 1.05
 """float: A white dwarf above this mass has an oxygen-neon core [R0085]."""
 STELLAR_WD_DA_SHARE = 0.80
+# The core of a carbon-oxygen white dwarf and what a polluted one accreted (GEN.1370, `physics.white_dwarf_core`).
+WD_CENTRAL_OXYGEN_BY_MASS_SOL = ((0.5249, 0.788), (0.5701, 0.686), (0.5932, 0.704), (0.6096, 0.723), (0.6323, 0.755), (0.6598, 0.730),
+                                 (0.7051, 0.661), (0.7670, 0.655), (0.8373, 0.641), (0.8779, 0.620))
+"""tuple: `(white dwarf mass in solar masses, central oxygen mass fraction)` of the ten carbon-oxygen models of [R5238: Table 1], after the
+Rayleigh-Taylor mixing (the column `X_O(RT)`), progenitors of 1 to 5 solar masses at Z = 0.01. Linear in the mass between the points and
+held outside them. The values rise to a peak near 0.63 solar masses (a 2.25 solar mass progenitor) and fall to 0.62 at 0.88. [Stand-in WDC1.]"""
+WD_CENTRAL_OXYGEN_RANGE = (0.61, 0.84)
+"""tuple: The lowest and highest central oxygen mass fraction of the two helium-atmosphere white dwarf pulsators fitted by asteroseismology,
+CBS 114 and GD 358 [R5239]; the central fraction is held to it. [Stand-in WDC2.]"""
+WD_NEON22_PER_CNO = 1.0
+"""float: The 22Ne atoms made per carbon, nitrogen and oxygen atom of the progenitor: every one of the three ends as 22Ne (14N, then 18O, then 22Ne in
+the helium burning that follows the CNO cycle). The progenitor's CNO is its birth composition's. [Stand-in WDC3.]"""
+POLLUTANT_CORE_RICH_METAL_FRACTION = 0.5
+"""float: A body accreted by a white dwarf is a fragment of a core when at least this share of its grains is metal: the 8 of 202 polluted systems of
+[R1832] that need an iron, nickel and chromium rich fragment are the extreme end of a distribution of mostly chondritic bodies. [Stand-in WDC4.]"""
+POLLUTANT_CRUST_RICH_FACTOR = 2.0
+"""float: A rock with no such metal is a fragment of a crust when its (Ca + Al) over Mg is at least this many times the proto-solar one: the single
+crust-rich system of [R1832] has calcium and aluminium well above chondritic. [Stand-in WDC5.]"""
+POLLUTANT_VOLATILE_RICH_FRACTION = 0.2
+"""float: A body is volatile-rich (a comet-like or water-rich fragment) when its water and ice make at least this share of its grains. [Stand-in WDC6.]"""
+POLLUTANT_ELEMENT_SHARES = {
+    "kamacite": {"Fe": 0.94, "Ni": 0.06}, "taenite": {"Fe": 0.72, "Ni": 0.28},
+    "complex_organics": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "insoluble_organic_matter": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03},
+    "kerogen": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "tholin": {"C": 0.55, "N": 0.25, "H": 0.10, "O": 0.10},
+}
+"""dict: The element mass fractions of the materials-table rows that have no formula and are not minerals. The alloys take the middle of the
+nickel ranges the table states (kamacite 5 to 7 percent, taenite 25 to 31 percent by mass); the organic solids are mostly carbon with the
+oxygen, hydrogen and nitrogen of a kerogen-like solid, and tholin is nitrogen-rich. [Stand-in WDC7.]"""
+POLLUTANT_FORMULAS = {
+    "cronstedtite": "Fe4SiO9H4", "saponite": "CaMg24Si28Al4O80(OH)16", "tochilinite": "Fe27S30Mg25O50H50", "hibonite": "CaAl12O19",
+    "melilite": "Ca2Al2SiO7", "schreibersite": "Fe2NiP",
+}
+"""dict: An end-member formula for the belt materials whose table row names a solid solution (the table keeps the member lists, not one formula):
+cronstedtite with its iron(III), saponite without its hydration water (eight formula units, to whole subscripts), tochilinite from its 6 Fe0.9 S and 5 Mg(OH)2 (five units), hibonite as the calcium end
+member, melilite as gehlenite and schreibersite as two iron to one nickel (the table states (Fe,Ni)3P). [Stand-in WDC8.]"""
 # The layers of a white dwarf whose core the downloaded sequences do not hold (GEN.743, `physics.white_dwarf_layers`).
 WD_ONE_CORE_MASS_FRACTIONS = {"oxygen": 0.55, "neon": 0.30, "trace": 0.15}
 """dict: The mass fractions of an oxygen-neon core: 16O about 0.55 and 20Ne about 0.30 [R0627] (Sect. 2.2, read); the
@@ -2261,7 +2338,7 @@ PLANET_CLASSES = {
 
 # Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
 # names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers the paces a star's lifespan allows
-# (`stellar_object.supported_evolutionary_scales`, `age_needs`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
+# (`stellar_object.supported_evolutionary_scales`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years

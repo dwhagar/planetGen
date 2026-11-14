@@ -175,7 +175,7 @@ class SupernovaRemnant(LazySaladName):
                            f"({tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE})")
         elif not is_type_ia:
             log.debug("Core-collapse compact remnant: none visible/detectable "
-                       "(roll failed SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE)")
+                       "(roll failed SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE).")
 
         self.remnant_class = choose_weighted_class(
             remnant_classes_for(self.progenitor_type, kind), "Supernova remnant class")

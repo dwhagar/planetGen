@@ -1,99 +1,9 @@
 {
   "title": "Planet and moon classes as percent matches: every class's own positive conditions (GEN.1205)",
   "version": 2,
-  "status": "design (GEN.1205): read by nothing in the app yet. physics/class_fit.py loads and checks it; the shadow scorer (GEN.1206) and the best-fit classifier (GEN.1207) read it. planet_classes.json still decides every stored letter.",
-  "how": "A class is described by its own conditions; no row relies on an earlier row having said no. `air` is a hard gate (true: pressure 10 Pa or more; false: under 10 Pa; null: giants). `kind` t or g is a hard gate. Every condition is graded: membership 1 inside the edge and a linear fall to 0 across the shoulder beyond it (`shoulders`, per quantity). The class match is the geometric mean of its conditions' memberships; the best match wins; a tie goes to the class with more conditions, then to the letter.",
+  "status": "physics/class_fit.py loads and checks it with fudge_table.json (GEN.1313); the best-fit classifier (GEN.1207) and the fudge rule (GEN.1314) read it.",
+  "how": "A class is described by its own conditions; no row relies on an earlier row having said no. `air` is a hard gate (true: pressure 10 Pa or more; false: under 10 Pa; null: giants). `kind` t or g is a hard gate. Every condition is graded: membership 1 inside the edge and a linear fall to 0 across the shoulder beyond it; the shoulder of an edge is its width in fudge_table.json. A body takes the class that needs the fewest values moved to fit, then the smallest total move (in those widths), then the one with more conditions, then the letter; a class that needs a value moved past the cap tiers of class_fit.CAP_TIERS is not eligible.",
   "gate_pressure_pa": 10.0,
-  "shoulders": {
-    "mass_earth": {
-      "relative": 0.4,
-      "basis": "CF1"
-    },
-    "gravity_g": {
-      "relative": 0.1,
-      "basis": "CF2"
-    },
-    "temperature_k": {
-      "absolute": 10.0,
-      "basis": "CF3"
-    },
-    "pressure_pa": {
-      "relative": 0.3,
-      "basis": "CF4"
-    },
-    "ocean_fraction": {
-      "absolute": 0.05,
-      "basis": "CF5"
-    },
-    "water_mass_fraction": {
-      "relative": 0.5,
-      "basis": "CF6"
-    },
-    "o2_partial_pa": {
-      "relative": 0.25,
-      "floor": 500.0,
-      "basis": "CF7"
-    },
-    "co2_partial_pa": {
-      "relative": 0.25,
-      "floor": 200.0,
-      "basis": "CF7"
-    },
-    "share_co2": {
-      "relative": 0.25,
-      "floor": 0.002,
-      "basis": "CF7"
-    },
-    "share_h2": {
-      "relative": 0.25,
-      "floor": 0.005,
-      "basis": "CF7"
-    },
-    "share_so2": {
-      "relative": 0.25,
-      "floor": 0.002,
-      "basis": "CF7"
-    },
-    "reducing_share": {
-      "relative": 0.25,
-      "floor": 0.005,
-      "basis": "CF7"
-    },
-    "hottest_region_k": {
-      "absolute": 5.0,
-      "basis": "DM1"
-    },
-    "coldest_region_k": {
-      "absolute": 5.0,
-      "basis": "DM1"
-    },
-    "day_temperature_k": {
-      "absolute": 5.0,
-      "basis": "DM1"
-    },
-    "night_temperature_k": {
-      "absolute": 5.0,
-      "basis": "DM1"
-    },
-    "wet_bulb_c": {
-      "absolute": 3.0,
-      "basis": "DM2"
-    },
-    "relative_humidity": {
-      "absolute": 0.1,
-      "basis": "DM3"
-    },
-    "share_ch4": {
-      "relative": 0.25,
-      "floor": 0.005,
-      "basis": "CF7"
-    },
-    "ammonia_water_mass_fraction": {
-      "absolute": 0.03,
-      "basis": "DM8"
-    }
-  },
-  "shoulder_note": "relative: the shoulder is that share of the edge value (at least `floor` when given); absolute: the shoulder in the quantity's own unit. A shoulder of zero would make a hard edge.",
   "classes": [
     {
       "letter": "T",
@@ -641,14 +551,14 @@
         },
         {
           "quantity": "ocean_fraction",
-          "min": 0.8
+          "min": 0.95
         },
         {
           "quantity": "phase_water",
           "equals": 1.0
         }
       ],
-      "note": "M's too wet (GEN.1221, GEN.1342): mean 275 to 312 K (M's floor to the old ceiling), equator at most 315 K, poles at least 250 K, wet bulb under 31 C, water over 80 percent of the surface; up to 2 g (GEN.1306, registry AW3)"
+      "note": "M's too wet (GEN.1221, GEN.1342): mean 275 to 312 K (M's floor to the old ceiling), equator at most 315 K, poles at least 250 K, wet bulb under 31 C, liquid water over 95 percent of the surface (GEN.1570, Boss's edge: a global ocean with at most islands, registry CL6); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "H",
@@ -799,7 +709,7 @@
         },
         {
           "quantity": "wet_bulb_c",
-          "lt": 28.0
+          "lt": 31.0
         },
         {
           "quantity": "ocean_fraction",
@@ -807,14 +717,14 @@
         },
         {
           "quantity": "ocean_fraction",
-          "lt": 0.8
+          "lt": 0.95
         },
         {
           "quantity": "phase_water",
           "equals": 1.0
         }
       ],
-      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 80 percent, oxygen 16 to 35.5 kPa (GEN.1321: a pressure, so a thick air with that much oxygen counts); up to 2 g (GEN.1306, registry AW3)"
+      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 95 percent (GEN.1570: ocean and continents, up to a global ocean with islands), oxygen 16 to 35.5 kPa (GEN.1321: a pressure, so a thick air with that much oxygen counts); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "R",

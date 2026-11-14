@@ -26,9 +26,9 @@ def test_the_moon_covers_a_small_share_of_the_suns_light_and_touches_it_rarely()
     assert 1.0e-4 < touched < 2.0e-4
 
 
-def test_venus_crosses_the_sun_for_earth_eight_times_in_243_years():
+def test_venus_crosses_the_sun_for_earth_four_times_in_243_years():
     covered, touched = eclipses.orbiting_the_star(SUN_R, 1.0, 1.0, 6051.8, 0.723, 0.6152, 3.39, KM)
-    assert touched == pytest.approx(8 * 6.0 / (243.0 * 8766.0), rel=0.5)      # about six hours each
+    assert touched == pytest.approx(4 * 6.0 / (243.0 * 8766.0), rel=0.5)      # about six hours each
     assert 0.0 < covered < touched
 
 
@@ -98,3 +98,8 @@ def test_two_unequal_stars_lose_the_light_of_the_star_behind_in_proportion_to_it
     assert unequal > 0.0
     assert unequal < same                         # the faint star has little light to lose and the big one's disk is covered only by a small disk
     assert eclipses.pair_light_lost(big, small, 0.2, 0.0426, 1.0, 0.0, KM) == eclipses.pair_light_lost(small, big, 0.2, 0.0426, 1.0, 0.0, KM)
+
+
+def test_gen1606_a_factor_of_zero_keeps_no_light_and_none_keeps_all():
+    from planetgen.physics import eclipses
+    assert eclipses.kept_share(None) == 1.0 and eclipses.kept_share(0.0) == 0.0 and eclipses.kept_share(0.8) == 0.8

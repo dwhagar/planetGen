@@ -4,6 +4,7 @@ started by the wrapper, `planetgen/queue/wrapper.py`, PERF.118).
 The autouse `_run_queue_inline` fixture gives each test a queue and key prefix of its own and runs the waiting units
 in this process when `ensure_workers` is called."""
 
+import re
 import socket
 import subprocess
 import sys
@@ -916,7 +917,8 @@ def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_unit
         paths = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
     finally:
         db.close()
-    assert saved > 0 and out.count("Saved sector '") == saved, "each charted sector logged once, as it was saved"
+    assert saved > 0 and "Saved sector '" not in out, "OPS.172: a sector's own line is a debug line, not one per sector at normal"
+    assert re.search(rf"\b{saved:,} of {saved:,} done \(100%\)", out), "the stage's closing line counts the sectors it saved"
     assert paths > 0 and "Linked " in out
 
 

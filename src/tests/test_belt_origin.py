@@ -260,12 +260,13 @@ def test_a_debris_event_of_another_name_is_refused_and_a_dust_belt_is_dropped():
 # --- giants clear and stir ------------------------------------------------------------------------------------------------------------------
 
 def test_the_chaotic_zone_and_the_kirkwood_gaps_of_a_jupiter_are_where_the_physics_puts_them():
-    jupiter = giant(5.2, 1.898e27)
+    """The Solar System is the test, never an input: the clearing is `resonance_gaps` (GEN.1092), and Jupiter's 3:1, 5:2, 7:3 and 2:1 fall where the paper puts them."""
+    jupiter = giant(5.2, 1.898e27, 0.048)
     assert bo.chaotic_half_width_au(jupiter, SUN) == pytest.approx(0.93, abs=0.02)
-    distances = {ratio: distance for ratio, distance in bo.resonance_distances_au(jupiter)}
-    assert distances[(3, 1)] == pytest.approx(2.50, abs=0.01) and distances[(5, 2)] == pytest.approx(2.82, abs=0.01)
-    assert distances[(7, 3)] == pytest.approx(2.96, abs=0.01) and distances[(2, 1)] == pytest.approx(3.28, abs=0.01)
-    assert distances[(4, 1)] == pytest.approx(2.06, abs=0.01)
+    spans = bo.cleared_spans(jupiter, SUN, 1.5, 4.0)
+    for middle in (2.50, 2.82, 2.956, 3.28):
+        assert any(low <= middle <= high for low, high in spans), middle
+    assert not any(low <= 2.65 <= high for low, high in spans), "between the gaps the belt is not cleared"
 
 
 def test_a_belt_inside_the_chaotic_zone_of_a_giant_is_cleared_whole_and_a_belt_far_away_is_not_touched():
@@ -279,27 +280,30 @@ def test_a_belt_inside_the_chaotic_zone_of_a_giant_is_cleared_whole_and_a_belt_f
     assert belts
 
 
-def test_the_resonance_gaps_take_a_share_of_a_belt_inside_the_giant_and_none_outside_it():
+def test_the_resonance_gaps_take_a_share_of_a_belt_inside_the_giant_and_only_the_exterior_resonances_outside_it():
     chain = [rocky(1.0), giant(5.2)]
     (belt,) = [b for b in build(chain) if b.origin == "snow-line-bump"]
-    assert 0.1 < belt.cleared_earth / belt.primordial_mass_earth < 0.6 and belt.stirred
+    assert 0.0 < belt.cleared_earth / belt.primordial_mass_earth < 0.2 and belt.stirred
+    assert belt.cleared_spans and all(belt.inner_au <= low < high <= belt.outer_au for low, high in belt.cleared_spans)
     assert belt.history[0].cause == "giant-stirring" and "5.2 AU cleared" in belt.sentence
     beyond = bo.cleared_spans(chain[1], STAR, 8.0, 12.0)
-    assert [span for span in beyond if span[0] > 6.5] == []
+    assert any(low <= 8.25 <= high for low, high in beyond), "past the giant only its exterior resonances clear (the 2:1 is at 8.25 AU), not a chaotic zone"
+    assert not any(low <= 10.0 <= high for low, high in beyond)
 
 
 def test_a_heavier_giant_clears_more_of_the_same_belt():
     def share(mass):
-        (belt,) = [b for b in build([rocky(1.0), giant(5.2, mass)]) if b.inner_au <= SNOW <= b.outer_au]
+        (belt,) = [b for b in build([rocky(1.0), giant(5.2, mass)]) if b.origin == "snow-line-bump"]
         return belt.cleared_earth / belt.primordial_mass_earth
-    assert share(JUPITER) > share(0.3 * JUPITER) > share(0.1 * JUPITER)
+    assert share(2.0 * JUPITER) > share(JUPITER) > share(0.3 * JUPITER) > 0.0
 
 
-def test_a_belt_a_giant_only_stirs_loses_nothing_and_says_so():
+def test_a_belt_a_giant_only_stirs_loses_only_the_resonances_and_says_so():
     chain = [rocky(1.0), giant(5.2), giant(30.0, 1.0e26, 0.01)]
     (disk,) = [b for b in build(chain) if b.origin == "outer-disk"]
-    assert disk.cleared_earth == 0.0 and disk.stirred and disk.history[0].text == "The giant at 30 AU stirs it."
-    assert disk.mass_earth == disk.primordial_mass_earth
+    assert disk.stirred and disk.history[0].cause == "giant-stirring"
+    assert 0.0 <= disk.cleared_earth < 0.3 * disk.primordial_mass_earth, "the resonances past the giant take a minor share of the disk it stirs"
+    assert disk.mass_earth == pytest.approx(disk.primordial_mass_earth - disk.cleared_earth)
 
 
 # --- a moving giant sweeps ------------------------------------------------------------------------------------------------------------------

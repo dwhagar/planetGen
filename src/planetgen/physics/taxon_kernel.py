@@ -55,7 +55,7 @@ MELT_ENERGY_J_PER_KG = 1.2e6
 
 ACCRETION_SPREAD_MYR = 3.0
 """float: The spread of the accretion times of the planetesimals of one zone, after the isotope formed: the irons of the Solar System accreted under 0.5 Myr and the
-chondrites over 2 Myr (recalled). [Stand-in TK5, tier T4, tweak L3.]"""
+chondrites over 2 Myr (recalled); 3 Myr sits inside the 1.8 to 4 Myr of [R2677] and gives the melted share of 0.54 at the Solar System's ratio. [Stand-in TK5, tier T4, tweak L2.]"""
 
 ALUMINIUM_26_MEAN_LIFE_MYR = 1.035
 """float: The mean life of aluminium-26 in Myr (`birth_radioisotopes.MEAN_LIFE_YR`)."""

@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>One System rule: a central object, members that can be systems themselves, and the barycenter as the origin - planetGen docs</title>
+<title>One System rule: a central object, members that can be systems themselves, and the barycentre as the origin - planetGen docs</title>
 <meta name="description" content="Status: plan (decided).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
@@ -48,21 +48,21 @@ main{padding:16px 16px 60px}}
 <p><strong>Boss, 12:03 AM EDT (project chat):</strong> &quot;a System should be unified rules around the central object for the system (the same way we do for binary stars now) and each object in the system other than the central object has the ability to be another system where for that system the object is the new central object, down to the level of a small object which do not get the capability to have satellites. Since all objects in the system should follow the same physics, the center of the space will be the gravitational center, even though the 'central object' might move around the 3D space of the system, it doesn't have to be in the origin of the coordinate plane, the origin of the plane should be the gravitational center.&quot;</p>
 <p>Evidence tags: <strong>[M]</strong> measured in the repository (count, grep, line read), <strong>[C]</strong> computed here by arithmetic, <strong>[E]</strong> my estimate, <strong>[R]</strong> recalled and unverified (a lane must verify before use). Nothing is copied from the Solar System or the Milky Way; the examples are generic mass ratios.</p>
 <h2 id="decided-bosss-card-taps-as-the-coordinator-relayed">Decided (Boss's card taps, as the coordinator relayed)</h2>
-<p>S1 to S9 (12:10 to 12:15 AM EDT on 2026-10-18), all on the recommended option: a member's stored orbit attaches to its (sub-system's) barycenter about the parent's central object; the central object's offset is derived on read; the central object is the most massive member and comparable-mass pairs stay binary nodes; a node takes a central child and any number of members; the no-satellite line is a labelled stand-in size cut of 1 km plus the fit and stability checks; moons can have satellites through the same gate plus a tidal-survival gate row; the point class's system frame is the top-level barycenter plus a local frame; stored values change in the 8.4 revision; a System is a view.</p>
+<p>S1 to S9 (12:10 to 12:15 AM EDT on 2026-10-18), all on the recommended option: a member's stored orbit attaches to its (sub-system's) barycentre about the parent's central object; the central object's offset is derived on read; the central object is the most massive member and comparable-mass pairs stay binary nodes; a node takes a central child and any number of members; the no-satellite line is a labelled stand-in size cut of 1 km plus the fit and stability checks; moons can have satellites through the same gate plus a tidal-survival gate row; the point class's system frame is the top-level barycentre plus a local frame; stored values change in the 8.4 revision; a System is a view.</p>
 <p>S10 to S18 (12:30 to 12:32 AM EDT on 2026-10-18), all on the recommended option: S10 the original values are the origin values (birth mass, age, [Fe/H], composition, formation distance) plus the orbit-geometry draws, and the present state is recomputed about the new primary; S11 the heaviest is found by the total mass of each branch (a sub-system counts as the sum of its parts), ties under 1e-9 relative keep the draw order; S12 when the heaviest changes in simulated time the step runs once at the event (merger, capture, ejection), state-preserving, so no body jumps; S13 trajectories are an analytic two-body orbit per frame with mu including the member's own mass, and the outer system's tide is a stability gate (Hill fraction, triple and Kozai screens); S14 a frame request names any of the named frames or any other point, found through the lowest common ancestor; S15 a point has a live parent link with a versioned cache and the copied anchors and the three <code>carry_*</code> calls go; S16 the point holds a kinematic record (position, velocity, spin axis and rate, mass with mu, epoch and next-due) with identity, radius and age beside it in the core; S17 spin is a unit axis plus an angular rate in rad/s; S18 speed, axial tilt, galactic orbital period and phase, rotation period and a* become derived and their columns are dropped in the 8.4 revision with DB.73.</p>
 <h2 id="1-short-answer">1. Short answer</h2>
-<p>Yes, and the binary-star code already does most of it. The multi-star tree (<code>physics/system_tree.py</code>) is exactly this rule for two children: the origin is the pair's barycenter, each child sits either side of it in proportion to the other's mass, and a child can be another node. What does not follow it is everything below the stars: planets and moons are stored relative to their parent's <strong>center</strong>, the central object sits at the origin with its motion kept in separate &quot;wobble&quot; columns, a wide binary puts the first star at the origin, and a close binary puts the barycenter there. Three conventions, one rule wanted.</p>
-<p>The design in one paragraph: <strong>a System is not a new stored thing. It is every body that has a parent link to one host, taken together, with the host as central object. The only stored point is the top-level system's barycenter (as in a scatter row); every other position is stored relative to its parent, as the rows hold it, and the barycenter and the central object's offset from it are derived on read, never stored.</strong> The offset of the central object is one formula, <code>-sum(M_i r_i) / M_total</code>, which for one member is the binary formula already in the code. A member can be a body or a sub-system; a sub-system's stored orbit is the orbit of its barycenter about the parent's central object. Whether a body can host a system is decided by a gate (a size line, a stability check, an age check), not by a fixed depth.</p>
+<p>Yes, and the binary-star code already does most of it. The multi-star tree (<code>physics/system_tree.py</code>) is exactly this rule for two children: the origin is the pair's barycentre, each child sits either side of it in proportion to the other's mass, and a child can be another node. What does not follow it is everything below the stars: planets and moons are stored relative to their parent's <strong>centre</strong>, the central object sits at the origin with its motion kept in separate &quot;wobble&quot; columns, a wide binary puts the first star at the origin, and a close binary puts the barycentre there. Three conventions, one rule wanted.</p>
+<p>The design in one paragraph: <strong>a System is not a new stored thing. It is every body that has a parent link to one host, taken together, with the host as central object. The only stored point is the top-level system's barycentre (as in a scatter row); every other position is stored relative to its parent, as the rows hold it, and the barycentre and the central object's offset from it are derived on read, never stored.</strong> The offset of the central object is one formula, <code>-sum(M_i r_i) / M_total</code>, which for one member is the binary formula already in the code. A member can be a body or a sub-system; a sub-system's stored orbit is the orbit of its barycentre about the parent's central object. Whether a body can host a system is decided by a gate (a size line, a stability check, an age check), not by a fixed depth.</p>
 <p>Boss's refinements of 12:23 and 12:24 AM EDT (heaviest object becomes primary before validation, everything recomputed from original values; the point object converts between frames on demand) are in sections 10 to 12, and Boss's third (12:25 AM EDT, the point also stores motion and spin) in section 13, which also gathers the three in one table.</p>
-<p>Foundation for 8.1: five conventions and two small edits to items already filed (GEN.552, GEN.315), no code of the new rule itself (section 5). The stored-value change (planet states become barycenter states) rides the 8.4 revision with DB.73 and one epoch.</p>
+<p>Foundation for 8.1: five conventions and two small edits to items already filed (GEN.552, GEN.315), no code of the new rule itself (section 5). The stored-value change (planet states become barycentre states) rides the 8.4 revision with DB.73 and one epoch.</p>
 <h2 id="2-the-rule-in-plain-terms">2. The rule in plain terms</h2>
 <ul>
 <li><strong>System:</strong> one host plus every body whose parent is that host. <strong>Central object:</strong> the host. <strong>Member:</strong> a body that orbits the central object, or a sub-system (a member that has members of its own).</li>
-<li><strong>A sub-system acts as one body for the system above it.</strong> Its mass is the sum of its parts; the thing that orbits the central object is its barycenter.</li>
-<li><strong>Origin:</strong> a system's coordinates have their origin at the system's barycenter, B = (M_c r_c + sum M_i r_i) / M_total. Positions inside it are measured from B.</li>
-<li><strong>Positions stored:</strong> each member's state (position and velocity) is stored <strong>relative to the central object</strong> (for a sub-system, of its barycenter), as the scatter tree and the planet rows already do.</li>
+<li><strong>A sub-system acts as one body for the system above it.</strong> Its mass is the sum of its parts; the thing that orbits the central object is its barycentre.</li>
+<li><strong>Origin:</strong> a system's coordinates have their origin at the system's barycentre, B = (M_c r_c + sum M_i r_i) / M_total. Positions inside it are measured from B.</li>
+<li><strong>Positions stored:</strong> each member's state (position and velocity) is stored <strong>relative to the central object</strong> (for a sub-system, of its barycentre), as the scatter tree and the planet rows already do.</li>
 <li><strong>Positions derived:</strong> with <code>rel_i</code> the stored relative position of member i, the central object is at <code>r_c = -sum(M_i rel_i) / M_total</code> and member i is at <code>r_i = r_c + rel_i</code>, both measured from B. For one member this is <code>r_c = -m/(M+m) rel</code>, the close-pair formula in <code>system_tree.py:16</code>.</li>
-<li><strong>Recursion:</strong> the position of a body in the galaxy is the top system's barycenter plus the sum of the offsets down its chain of parents. No level needs to know about the levels above.</li>
+<li><strong>Recursion:</strong> the position of a body in the galaxy is the top system's barycentre plus the sum of the offsets down its chain of parents. No level needs to know about the levels above.</li>
 <li><strong>End of the recursion:</strong> a body that fails the hosting gate (section 4.4) has no members and is a leaf.</li>
 </ul>
 <p>Size of the effect <strong>[C]</strong>, generic ratios: a member of 1e-3 of the central mass at 5 AU moves the central object 0.005 AU (747,000 km), about a radius of a star of 7e5 km; a moon of 1e-2 of its planet at 400,000 km moves the planet 3,960 km. Real offsets, small against the orbit, large against the body: which is why they must be exact in the position and not a separate &quot;wobble&quot;.</p>
@@ -79,12 +79,12 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>Single star with planets</td>
-<td>the star's center; its motion is a separate <code>reflex_offset_x/y/z_km</code> on <code>stars</code> and <code>planets</code> (schema v20), computed by <code>orbits.calculate_reflex_offset</code> (pairwise pulls summed) and mirrored in SQL by <code>store.advance_orbital_phases</code></td>
+<td>the star's centre; its motion is a separate <code>reflex_offset_x/y/z_km</code> on <code>stars</code> and <code>planets</code> (schema v20), computed by <code>orbits.calculate_reflex_offset</code> (pairwise pulls summed) and mirrored in SQL by <code>store.advance_orbital_phases</code></td>
 <td><code>generation/system.py:432-452</code></td>
 </tr>
 <tr>
 <td>Close binary</td>
-<td>the pair's barycenter; stars at <code>binary_primary_position_*</code> and <code>binary_secondary_position_*</code> (km)</td>
+<td>the pair's barycentre; stars at <code>binary_primary_position_*</code> and <code>binary_secondary_position_*</code> (km)</td>
 <td><code>physics/body_positions.py</code> (built; <code>web/maps/systemscene._star_around</code> does not call it yet, MAP.253 wires it)</td>
 </tr>
 <tr>
@@ -94,28 +94,28 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Scattered multi-star tree</td>
-<td>the barycenter of each node; children either side in proportion to the other's mass; nodes nest</td>
+<td>the barycentre of each node; children either side in proportion to the other's mass; nodes nest</td>
 <td><code>physics/system_tree.py</code> (144 lines), scatter rows only</td>
 </tr>
 </tbody>
 </table></div>
-<p>Planets and moons (<code>parent_type</code> in star, planet or system; <code>parent_id</code>; <code>host_node_id</code> for a circumbinary planet): the state vector is relative to the parent's <strong>center</strong>, and a moon is added to its planet's position (<code>body_positions.positions_at</code>). A planet's mass is never in any barycenter except through the reflex columns.</p>
+<p>Planets and moons (<code>parent_type</code> in star, planet or system; <code>parent_id</code>; <code>host_node_id</code> for a circumbinary planet): the state vector is relative to the parent's <strong>centre</strong>, and a moon is added to its planet's position (<code>body_positions.positions_at</code>). A planet's mass is never in any barycentre except through the reflex columns.</p>
 <p>Counts <strong>[M]</strong>:</p>
 <ul>
-<li>Files: <code>physics/system_tree.py</code> 144 lines; <code>physics/body_positions.py</code> 116; its browser twin <code>html/static/orbitpositions.js</code> 314; <code>web/maps/systemscene.py</code> 194 (<code>_star_around</code>, three branches); <code>web/maps/systemmap.py</code> 1,853 (9 barycenter mentions); <code>generation/binary.py</code> 478 and <code>wide_binary.py</code> 371 (7 and 4 mentions); <code>physics/orbits.py</code> 510 (the reflex function, about 50 lines); <code>physics/insolation.py</code> 96 (the circumbinary centroid); <code>generation/system.py</code> 2,213; <code>db/store.py</code> 9,646.</li>
+<li>Files: <code>physics/system_tree.py</code> 144 lines; <code>physics/body_positions.py</code> 116; its browser twin <code>html/static/orbitpositions.js</code> 314; <code>web/maps/systemscene.py</code> 194 (<code>_star_around</code>, three branches); <code>web/maps/systemmap.py</code> 1,853 (9 barycentre mentions); <code>generation/binary.py</code> 478 and <code>wide_binary.py</code> 371 (7 and 4 mentions); <code>physics/orbits.py</code> 510 (the reflex function, about 50 lines); <code>physics/insolation.py</code> 96 (the circumbinary centroid); <code>generation/system.py</code> 2,213; <code>db/store.py</code> 9,646.</li>
 <li>Tables: <code>star_systems</code> 71 columns, 27 orbit or position columns, 9 of them <code>binary_{primary,secondary,mutual}_position_{x,y,z}_km</code>; <code>stars</code> 53 (3 reflex, <code>parent_node_id</code> never written); <code>planets</code> 118 (18 orbit or position columns, 3 reflex, <code>host_node_id</code>); <code>moons</code> 115 (17); <code>comets</code> 36 (22); <code>scatter_nodes</code> 18 and <code>orbit_nodes</code> 21 (<code>orbit_nodes</code> never written).</li>
 <li>Names across <code>src/planetgen</code>: <code>parent_type</code> 18 lines in 7 files; <code>parent_id</code> 49 in 10; <code>binary_primary_position</code> 32 in 6; <code>binary_secondary_position</code> 32 in 6; <code>binary_mutual_position</code> 55 in 8; <code>secondary_mass_fraction</code> 40 in 7; <code>host_node_id</code> 5 in 3; <code>scatter_nodes</code> 23 in 8; <code>orbit_nodes</code> 13 in 4; <code>star_id</code> 246 in 18.</li>
 <li>The point class: <code>SpatialPosition3D</code> has three frames, galactic, sector and system, and the system frame is &quot;offset from the center of the body's nearest star&quot; (<code>physics/position.py</code>, module docstring), which is a fourth convention for the origin.</li>
 </ul>
-<p>What the docstring of <code>calculate_reflex_offset</code> says is worth keeping: a lot of physics (insolation, Hill sphere, tidal locking) depends on the stored relative vector being the <strong>true separation</strong>, not a barycenter-reduced one. The new rule keeps that: members stay stored relative to the central object, so those consumers do not change.</p>
+<p>What the docstring of <code>calculate_reflex_offset</code> says is worth keeping: a lot of physics (insolation, Hill sphere, tidal locking) depends on the stored relative vector being the <strong>true separation</strong>, not a barycentre-reduced one. The new rule keeps that: members stay stored relative to the central object, so those consumers do not change.</p>
 <h2 id="4-the-design">4. The design</h2>
 <h3 id="41-what-is-stored-and-what-is-derived">4.1 What is stored and what is derived</h3>
 <ul>
-<li><strong>Stored truth:</strong> the state (position, velocity, epoch) of each body relative to its parent link, in the unit and frame the column declares (the point-in-space rule: kept as given). For a top-level system, the barycenter's point, velocity and epoch in the sector grid (the scatter row, the <code>star_systems</code> row).</li>
-<li><strong>Derived:</strong> the barycenter of every sub-system, every central object's offset, and every absolute position, all on first read and cached; marking stale on any change. This is the lazy pattern of <code>SpatialPosition3D._sync</code> and <code>_fresh</code> (PERF.46), and card Q1 of the unit design already decided it for units.</li>
+<li><strong>Stored truth:</strong> the state (position, velocity, epoch) of each body relative to its parent link, in the unit and frame the column declares (the point-in-space rule: kept as given). For a top-level system, the barycentre's point, velocity and epoch in the sector grid (the scatter row, the <code>star_systems</code> row).</li>
+<li><strong>Derived:</strong> the barycentre of every sub-system, every central object's offset, and every absolute position, all on first read and cached; marking stale on any change. This is the lazy pattern of <code>SpatialPosition3D._sync</code> and <code>_fresh</code> (PERF.46), and card Q1 of the unit design already decided it for units.</li>
 <li><strong>Gone when derived:</strong> <code>stars.reflex_offset_*</code> and <code>planets.reflex_offset_*</code> (6 columns), <code>binary_primary/secondary/mutual_position_*</code> (9 columns), the correlated SQL updates for the wobble in <code>advance_orbital_phases</code>, and the <code>orbit_nodes</code> copy for nodes that become parent links. Their values become reads of one function. Nothing is lost: a read of a star's position gives the same number the wobble columns held, to the precision of the sum.</li>
 </ul>
-<h3 id="42-keeping-the-barycenter-in-step">4.2 Keeping the barycenter in step</h3>
+<h3 id="42-keeping-the-barycentre-in-step">4.2 Keeping the barycentre in step</h3>
 <div class="table"><table>
 <thead>
 <tr>
@@ -142,21 +142,21 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>The system moves in the galaxy</td>
-<td>Only the top barycenter's point and velocity change (the nightly update, as in the code); nothing inside is written.</td>
+<td>Only the top barycentre's point and velocity change (the nightly update, as in the code); nothing inside is written.</td>
 </tr>
 <tr>
 <td>A sub-system's own member moves</td>
-<td>Only its own parent-relative state changes. The ancestors' sums change only if the sub-system's total mass or barycenter-relative offset does; the barycenter of a sub-system does not move when its members orbit, which is why nothing above needs rewriting.</td>
+<td>Only its own parent-relative state changes. The ancestors' sums change only if the sub-system's total mass or barycentre-relative offset does; the barycentre of a sub-system does not move when its members orbit, which is why nothing above needs rewriting.</td>
 </tr>
 </tbody>
 </table></div>
-<p>The last row is the useful property: the barycenter of a sub-system is conserved under its own internal motion, so a deeper level can be advanced without touching the level above.</p>
+<p>The last row is the useful property: the barycentre of a sub-system is conserved under its own internal motion, so a deeper level can be advanced without touching the level above.</p>
 <h3 id="43-how-it-fits-the-hybrid-massobject-and-the-point-class">4.3 How it fits the hybrid MassObject and the point class</h3>
 <ul>
 <li><strong>E1 (approved):</strong> a body has <code>parent</code> as data. A System is the group of rows sharing a parent. It needs no class of its own and no table of its own: a <code>system(host)</code> function groups by the parent link and returns the cached sums. A body that has members gets a cached <code>SystemSummary</code> (total mass, sum of mass-weighted relative positions, member count), not a stored profile.</li>
-<li><strong>Point in space:</strong> <code>SpatialPosition3D</code> keeps its three frames and gains the parent-relative truth as an option: the &quot;system&quot; frame of the code becomes &quot;offset from the barycenter of the top-level system of this body&quot; (was the nearest star), and a &quot;local&quot; frame is the offset from the immediate parent's barycenter, from which the others are derived by walking the chain. The point class already does the same walk for sector and galactic frames; this adds one more anchor level. The class stays the one place that knows frames and forms.</li>
+<li><strong>Point in space:</strong> <code>SpatialPosition3D</code> keeps its three frames and gains the parent-relative truth as an option: the &quot;system&quot; frame of the code becomes &quot;offset from the barycentre of the top-level system of this body&quot; (was the nearest star), and a &quot;local&quot; frame is the offset from the immediate parent's barycentre, from which the others are derived by walking the chain. The point class already does the same walk for sector and galactic frames; this adds one more anchor level. The class stays the one place that knows frames and forms.</li>
 <li><strong>Units:</strong> the offset sum is a sum of <code>Quantity</code> lengths in the declared native units; the sum is done in the unit the parent column declares (km or AU), so a 10 m body 10,000 AU from its parent keeps its metre (precision table in the unit note).</li>
-<li><strong>Precision for the 10 m floor:</strong> a moon of a 10 m body has an offset of about a body radius or less, so the sums have to be formed from <strong>relative</strong> numbers, never from absolute galactic positions (a double at 8 kpc has a spacing of 32,768 m <strong>[C]</strong>). That is why the stored truth is parent-relative and the only large number is the top barycenter.</li>
+<li><strong>Precision for the 10 m floor:</strong> a moon of a 10 m body has an offset of about a body radius or less, so the sums have to be formed from <strong>relative</strong> numbers, never from absolute galactic positions (a double at 8 kpc has a spacing of 32,768 m <strong>[C]</strong>). That is why the stored truth is parent-relative and the only large number is the top barycentre.</li>
 </ul>
 <h3 id="44-the-line-below-which-a-body-has-no-satellites">4.4 The line below which a body has no satellites</h3>
 <p>I first expected the geometry to set it, and it does not <strong>[C]</strong>. With the project's own stable-zone fraction (<code>MOON_PROGRADE_STABLE_HILL_FRACTION</code> = 0.4895 of the Hill radius) and a density of 2000 kg/m3, a body of any size down to the 10 m floor has a stable zone many times its own radius:</p>
@@ -194,7 +194,7 @@ main{padding:16px 16px 60px}}
 <p>So the gate has three parts, in this order:</p>
 <ol>
 <li><strong>A satellite must fit:</strong> the smallest satellite is the 10 m floor, and a satellite must not outweigh its host by more than the system's mass-ratio limit (a tunable; equal-mass pairs are allowed only through the node form of the binary tree).</li>
-<li><strong>A stable orbit must exist:</strong> inside 0.4895 Hill radius of the host at its pericenter, outside the host radius plus the satellite radius (and outside the Roche limit for a fluid body), and passing the existing hierarchical stability checks (<code>physics/stability.py</code>, <code>is_triple_stable</code>) when the satellite is comparable in mass.</li>
+<li><strong>A stable orbit must exist:</strong> inside 0.4895 Hill radius of the host at its pericentre, outside the host radius plus the satellite radius (and outside the Roche limit for a fluid body), and passing the existing hierarchical stability checks (<code>physics/stability.py</code>, <code>is_triple_stable</code>) when the satellite is comparable in mass.</li>
 <li><strong>A chance that it exists at all:</strong> a gated table (GEN.472 format) of the share of bodies of each size class that have one or more satellites. This is where the real line is, and its values are research: observed binary and multiple asteroid fractions are known for small bodies <strong>[R]</strong> ([R2873], Science; [R3604], Icarus; the order of 15% of near-Earth asteroids over 0.3 km are binaries, recalled and unverified). Until a lane verifies and sources it, the table ships as a labelled stand-in (Boss's gap-plan decision 3, &quot;ship as placeholders&quot;) with a stand-in size cut (card S5), replaced when GEN.566 (size-frequency research) gives the law.</li>
 </ol>
 <h3 id="45-moons-of-moons">4.5 Moons of moons</h3>
@@ -206,9 +206,9 @@ main{padding:16px 16px 60px}}
 <ol>
 <li><strong>GEN.552 (host registry, 8.1 phase 3, Core 4):</strong> its text says &quot;Moons are the lowest level, so no host class lists a moon among its orbiters&quot;. Change it to: a host class row exists for a moon (and for a small body: a row whose orbiter table is empty by the gate), and the registry carries a <code>may_host</code> gate per row. The cost is one row in a table that is being written anyway; the later edit would be a change to a registry already shipped. Also: the recursion in <code>populate(host, depth)</code> (section 3.3 of the unified note, &quot;three working depths&quot;) ends by the gate, not by a depth of three.</li>
 <li><strong>GEN.315 and GEN.264 (Core 3):</strong> keep the interface host-neutral as the item already asks, and in addition return each body's state <strong>relative to its parent link</strong> plus the node, and compute offsets through <strong>one</strong> function (<code>physics/system_tree.member_offsets_au</code>, generalised so a node can hold a central child and several members, n = 1 being the pair of the code). Also keep the <code>orbit_nodes</code> copy as it is; it is the same table the later system view reads.</li>
-<li><strong>Stored-position convention (a rule for every 8.1 item that stores a position):</strong> never store an absolute sector or galactic position for anything inside a system; store the parent-relative state and let the barycenter be the system's row point. This is already how the scatter rows and the planets are stored, so the rule is a statement, not work. The 8.1 items it protects: GEN.317, GEN.130, GEN.327, GEN.273.</li>
+<li><strong>Stored-position convention (a rule for every 8.1 item that stores a position):</strong> never store an absolute sector or galactic position for anything inside a system; store the parent-relative state and let the barycentre be the system's row point. This is already how the scatter rows and the planets are stored, so the rule is a statement, not work. The 8.1 items it protects: GEN.317, GEN.130, GEN.327, GEN.273.</li>
 <li><strong>The reflex columns and the three binary position triples:</strong> leave them alone in 8.1; they go in the 8.4 revision with DB.73 and DB.67 to DB.71 (one revision, order agreed by Cores 1 and 4). No new code reads them in 8.1.</li>
-<li><strong>No frame change in <code>SpatialPosition3D</code> in 8.1.</strong> The &quot;local&quot; frame and the barycenter system frame arrive in 8.4 with GEN.565.</li>
+<li><strong>No frame change in <code>SpatialPosition3D</code> in 8.1.</strong> The &quot;local&quot; frame and the barycentre system frame arrive in 8.4 with GEN.565.</li>
 </ol>
 <p>That list changes two existing item texts and adds one convention; it adds no 8.1 work item.</p>
 <h2 id="6-items-for-the-todo-thread-to-number">6. Items, for the TODO thread to number</h2>
@@ -216,26 +216,26 @@ main{padding:16px 16px 60px}}
 <ul>
 <li><strong>SY1 (8.1 phase 3, no behaviour change, no epoch): edit GEN.552 and GEN.315/264 as in section 5 points 1 and 2.</strong> Core 4 for GEN.552, Core 3 for GEN.315. Cost: text edits; the generalised <code>member_offsets_au</code> is Core 3's file.</li>
 <li><strong>SY2 (8.1, convention): the stored-position rule of section 5 point 3</strong>, written into <code>docs/design/</code> and the header of <code>physics/position.py</code>, with a test that lists every table that stores a body position and fails if one stores an absolute position of a body inside a system. Core 1 (it owns <code>point_columns.py</code>). <strong>Built (TEST.241):</strong> the rule is in the header of <code>physics/position.py</code>, <code>db/point_columns.py</code> names the tables with a parent link (<code>BODY_PARENT_COLUMNS</code>) and the four that keep a free galactic point with their reason and way out (<code>ABSOLUTE_WITH_A_PARENT</code>: bright_stars, black_holes, neutron_stars, facilities), and <code>tests/test_parent_relative_positions.py</code> fails if a table with a parent link stores its point in another frame.</li>
-<li><strong>SY3 (8.4): <code>system(host)</code>, the one function</strong> that groups by the parent link and returns the barycenter sums, offsets and valid-system check. Core 4, with the MassObject core (GEN.565). Depends on SY1, GEN.565.</li>
+<li><strong>SY3 (8.4): <code>system(host)</code>, the one function</strong> that groups by the parent link and returns the barycentre sums, offsets and valid-system check. Core 4, with the MassObject core (GEN.565). Depends on SY1, GEN.565.</li>
 <li><strong>SY4 (8.4): central-object offsets replace the wobble.</strong> Remove <code>reflex_offset_*</code> (6 columns), <code>calculate_reflex_offset</code>, and the SQL mirror in <code>advance_orbital_phases</code>; <code>binary_*_position_*</code> (9 columns) read from <code>system(host)</code>. Part of the DB.73 revision; bumps the epoch. Core 1 for the storage, Core 4 for the physics.</li>
-<li><strong>SY5 (8.4): stored planet and moon states become the state of the barycenter of the body and its own members</strong> (the rule of S1). A re-expression of existing rows from their moons; values change in the last digits, so it is one epoch with SY4. Core 4.</li>
-<li><strong>SY6 (8.4): the point class gets the local frame and the barycenter system frame</strong> (section 4.3) and loses &quot;nearest star&quot; as the system anchor. Depends on SY3, the unit class. Core 4 or Core 5.</li>
+<li><strong>SY5 (8.4): stored planet and moon states become the state of the barycentre of the body and its own members</strong> (the rule of S1). A re-expression of existing rows from their moons; values change in the last digits, so it is one epoch with SY4. Core 4.</li>
+<li><strong>SY6 (8.4): the point class gets the local frame and the barycentre system frame</strong> (section 4.3) and loses &quot;nearest star&quot; as the system anchor. Depends on SY3, the unit class. Core 4 or Core 5.</li>
 <li><strong>SY7 (8.4): map and scene.</strong> <code>systemscene._star_around</code>, <code>body_positions.positions_at</code>, the browser twin <code>orbitpositions.js</code>, and the <code>systemmap.py</code> branches use the parent chain; the three conventions of section 3 go. Core 2 for the browser, Core 4 for Python. The pair must stay in step (<code>tests/test_js_unit.py</code> checks them against each other).</li>
 <li><strong>SY8 (8.4): the hosting gate.</strong> <code>can_host(body)</code> in three parts (section 4.4) and the gated table of the satellite share by size class, as labelled stand-in rows. Core 4. Depends on GEN.552 and GEN.472 (built).</li>
 </ul>
 <p><strong>As built (GEN.761).</strong> The moon draw reads the gate. <code>planets.generate_moons</code> asks <code>can_host(hosting_host(planet))</code> first and returns for a host it refuses (the planets of the generator are on circular orbits, a gas or ice giant is fluid). <code>Planet._draw_moons</code> takes the chance that a planet has moons from <code>hosting_gate.satellite_share</code> where the table has rows for its population and size, else the even chance it had. Only a class D body (50 to 500 km in radius, the generator's small bodies) has a population: <code>planets.hosting_population</code> calls it <code>inner-small-body</code> in the hot or habitable zone, <code>belt-small-body</code> in the cold zone short of <code>HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES</code> (10) snow lines of the star, and <code>trans-neptunian-cold</code> or <code>trans-neptunian-hot</code> beyond, split at <code>HOSTING_COLD_MAX_INCLINATION_DEG</code> (5 degrees, the cut behind the table's 22% and 5.5%). A class D body is 100 to 1000 km across, so it takes the large-body rows: 5% inner or belt, 22% cold, 5.5% hot, against the even chance before. A directed moon count (<code>moon_count</code>, the <code>MOONS</code> directive) skips the chance and still goes through the gate. Moons never host: the draw builds no moon of a moon, and the table has no row for one. The two new knobs are stand-ins (kind P), bracketed in <code>tuning.py</code>.</p>
 <ul>
 <li><strong>SY9 (research, can start at no code risk): the size-frequency and binary fraction of small bodies, and the survival of sub-satellites of moons.</strong> Joins GEN.566 (U15a). Verify the [R] items of sections 4.4 and 4.5 first.</li>
-<li><strong>SY10 (tests): invariants for any system at any time.</strong> <code>sum(M_i r_i) = 0</code> about the barycenter; adding a member and removing it returns the other positions exactly; a parent change leaves every absolute position unchanged; a sub-system's barycenter does not move when its members orbit; the single-member case equals the existing close-pair formula bit for bit. With SY3.</li>
+<li><strong>SY10 (tests): invariants for any system at any time.</strong> <code>sum(M_i r_i) = 0</code> about the barycentre; adding a member and removing it returns the other positions exactly; a parent change leaves every absolute position unchanged; a sub-system's barycentre does not move when its members orbit; the single-member case equals the existing close-pair formula bit for bit. With SY3.</li>
 <li><strong>SY11 (docs): <code>database-schema.md</code>, the system view in <code>docs/design/</code>, and the header of <code>system_tree.py</code>.</strong></li>
 </ul>
 <p>Estimated size <strong>[E]</strong>: SY3 and SY6 about 300 to 500 new lines with tests; SY4, SY5 and SY7 remove 300 to 600 lines (the wobble code, the three scene branches and their JS twin, 15 columns). Net roughly zero to a few hundred lines saved; the value is one rule instead of four, the central object's true position, and sub-satellites without a special case.</p>
 <h2 id="7-cards">7. Cards</h2>
 <p><strong>S1. What does a member's stored orbit attach to?</strong></p>
 <ol>
-<li>The member's barycenter (for a sub-system) about the parent's central object, two-body, as the scatter tree already stores it; a planet's stored state is then the barycenter of the planet and its moons. <strong>Recommended.</strong> One rule at every level; the moon-mass shift is tiny (section 2).</li>
-<li>The member's own central body about the central object, as planets are stored in the code; the sub-system's barycenter is derived. Smallest change to stored rows; the tree and the planets stay two rules.</li>
-<li>Everything relative to the top barycenter (N-body style). Truest to &quot;origin is the gravitational center&quot;, but every member's row then changes whenever any sibling changes, and the orbital update (8.3) loses its analytic step.</li>
+<li>The member's barycentre (for a sub-system) about the parent's central object, two-body, as the scatter tree already stores it; a planet's stored state is then the barycentre of the planet and its moons. <strong>Recommended.</strong> One rule at every level; the moon-mass shift is tiny (section 2).</li>
+<li>The member's own central body about the central object, as planets are stored in the code; the sub-system's barycentre is derived. Smallest change to stored rows; the tree and the planets stay two rules.</li>
+<li>Everything relative to the top barycentre (N-body style). Truest to &quot;origin is the gravitational centre&quot;, but every member's row then changes whenever any sibling changes, and the orbital update (8.3) loses its analytic step.</li>
 </ol>
 <p><strong>S<sub>2</sub>. Where does the central object's own offset live?</strong></p>
 <ol>
@@ -247,7 +247,7 @@ main{padding:16px 16px 60px}}
 <ol>
 <li>The most massive member of the system (the first drawn on a tie); a pair of comparable masses is a two-body node of the existing binary tree. <strong>Recommended.</strong></li>
 <li>The generator's placed object (the head of the scatter row), whatever its mass. Simple; wrong when the placed object is the lighter star.</li>
-<li>Always none: the barycenter only, every member offset (like the existing <code>group</code> node), for every system. Uniform; loses the meaning of &quot;orbits the central object&quot; for planets.</li>
+<li>Always none: the barycentre only, every member offset (like the existing <code>group</code> node), for every system. Uniform; loses the meaning of &quot;orbits the central object&quot; for planets.</li>
 </ol>
 <p>The <code>group</code> node (a young non-hierarchical system) stays as it is under any option.</p>
 <p><strong>S4. How many members does a system node take?</strong></p>
@@ -270,8 +270,8 @@ main{padding:16px 16px 60px}}
 </ol>
 <p><strong>S7. What does the point class's &quot;system&quot; frame measure from?</strong></p>
 <ol>
-<li>The barycenter of the top-level system, with a new &quot;local&quot; frame from the immediate parent's barycenter; both derived by walking the parent chain. <strong>Recommended.</strong></li>
-<li>The barycenter of the top-level system only; callers derive the local frame themselves. Smaller class; every caller repeats the walk.</li>
+<li>The barycentre of the top-level system, with a new &quot;local&quot; frame from the immediate parent's barycentre; both derived by walking the parent chain. <strong>Recommended.</strong></li>
+<li>The barycentre of the top-level system only; callers derive the local frame themselves. Smaller class; every caller repeats the walk.</li>
 <li>The nearest star, as in the code. Keeps the fourth convention; contradicts the new rule.</li>
 </ol>
 <p><strong>S<sub>8</sub>. When do the stored values change?</strong></p>
@@ -289,7 +289,7 @@ main{padding:16px 16px 60px}}
 <h2 id="8-limits-and-risks">8. Limits and risks</h2>
 <ul>
 <li><strong>The dynamics stay Keplerian.</strong> The rule fixes where things are; each orbit still evolves as a two-body orbit about its central object (as in the code), so mutual perturbations between members are not modelled. The superposition of the central object's offset is exact for the positions given and approximate as a dynamical model for comparable masses, which is why comparable pairs are nodes (section 4.6).</li>
-<li><strong>Mass change moves the barycenter</strong> (section 4.2). Mass loss and evolved stars are the orbital update's problem (8.3), not this rule's.</li>
+<li><strong>Mass change moves the barycentre</strong> (section 4.2). Mass loss and evolved stars are the orbital update's problem (8.3), not this rule's.</li>
 <li><strong>Bit-identical output is not kept</strong> for SY4 and SY5 (the stored states of planets and the star positions change in low digits); they ride one epoch.</li>
 <li><strong>Precision of the sum:</strong> forming sums from relative numbers, never from absolute positions, is a rule of the implementation; a test with a 10 m body 10,000 AU from its parent covers it.</li>
 <li><strong>Three [R] items</strong> (binary asteroid fraction, the order of 15% of near-Earth asteroids over 0.3 km; radiation torques shedding satellites from small bodies; tidal stripping of sub-satellites of moons) are recalled and unverified; none is used by any number in the design except as a pointer for SY9 to verify.</li>
@@ -298,7 +298,7 @@ main{padding:16px 16px 60px}}
 <h2 id="9-evidence">9. Evidence</h2>
 <p>[M] figures were counted from the repository at 6df95ad with grep, line counts and a read of <code>system_tree.py</code>, <code>body_positions.py</code>, <code>systemscene.py</code>, <code>orbits.py:405-470</code>, <code>position.py</code>, the schema columns of <code>star_systems</code>, <code>stars</code>, <code>planets</code>, <code>moons</code>, <code>comets</code>, <code>scatter_nodes</code> and <code>orbit_nodes</code>, and the filed text of GEN.550, GEN.552, GEN.315 and GEN.264; none was run against a database. [C] figures are arithmetic from the stated constants (the Hill table, the two offset examples, the double-precision spacing). [E] figures are the weakest. The design assumes the decisions already taken on the unified plan (hybrid MassObject, host registry, GEN.552 in 8.1 phase 3, the 8.4 revision carrying DB.73 and DB.67 to DB.71) and the unit design (lazy derived forms, parent-relative storage).</p>
 <h2 id="10-the-primary-first-rule-boss-1223-am-edt">10. The primary-first rule (Boss, 12:23 AM EDT)</h2>
-<p><strong>Boss:</strong> &quot;Any 2 objects that orbit each other will follow the same rule. First off, structurally, before a system (star system, moon system, etc...) before that system is validated, the heaviest object in the system needs to become the primary object. All other objects in the system are recalculated based on this new reality based on their original values. The center for any system is the barycenter is always the origin, wherever it is. The central object is always the heaviest and so will be closest to the center, but all positions will be updated and trajectories updated based on the gravitational gradient in their frame. So objects orbiting a planet don't need to worry about following the star, they follow the planet and the planet follows the star because we're using relative coordinates.&quot;</p>
+<p><strong>Boss:</strong> &quot;Any 2 objects that orbit each other will follow the same rule. First off, structurally, before a system (star system, moon system, etc...) before that system is validated, the heaviest object in the system needs to become the primary object. All other objects in the system are recalculated based on this new reality based on their original values. The center for any system is the barycentre is always the origin, wherever it is. The central object is always the heaviest and so will be closest to the center, but all positions will be updated and trajectories updated based on the gravitational gradient in their frame. So objects orbiting a planet don't need to worry about following the star, they follow the planet and the planet follows the star because we're using relative coordinates.&quot;</p>
 <h3 id="101-what-the-code-does-already-for-stars-m">10.1 What the code does already for stars <strong>[M]</strong></h3>
 <ul>
 <li>The scatter tree builder ranks every pair by mass: <code>multistar._Builder.place</code> (line 620) swaps <code>left</code> and <code>right</code> when <code>self.mass(left) &lt; self.mass(right)</code>, so <strong>slot 0 is always the heavier branch</strong>, and the branch mass is the sum of its leaves (a sub-system counts as one body).</li>
@@ -310,11 +310,11 @@ main{padding:16px 16px 60px}}
 <ol>
 <li><strong>Collect</strong> the members with their original values (10.3).</li>
 <li><strong>Rank</strong> the members by total branch mass (a sub-system counts as the sum of its parts). The heaviest is the central object. A tie (relative difference under 1e-9) keeps the draw order, so the step is stable and never flips back and forth.</li>
-<li><strong>Nest</strong> by distance: members that sat inside the stable zone of the demoted body stay with it as a sub-system (they then orbit it, and it orbits the new central object); members outside the pair's orbit become members of the new central object's system, around the pair's barycenter; members in between are in the unstable gap, and validation moves or drops them (the outermost-first rule that already exists).</li>
+<li><strong>Nest</strong> by distance: members that sat inside the stable zone of the demoted body stay with it as a sub-system (they then orbit it, and it orbits the new central object); members outside the pair's orbit become members of the new central object's system, around the pair's barycentre; members in between are in the unstable gap, and validation moves or drops them (the outermost-first rule that already exists).</li>
 <li><strong>Recompute</strong> everything that depends on the primary from the original values (10.3), never from the first pass's results.</li>
 <li><strong>Validate</strong> (stability, spacing, Hill and Kozai screens) as in the code.</li>
 </ol>
-<p><strong>Two-body case.</strong> Re-primarying a pair changes nothing physical <strong>[C]</strong>: the relative orbit is the same ellipse seen from the other body (relative position is negated, the phase moves by 180 degrees; semi-major axis, eccentricity, inclination, period and the barycenter are unchanged), and each body stays where it was. So the swap for a pair is a relabel plus a sign, and a test can assert that a pair's absolute positions are identical before and after.</p>
+<p><strong>Two-body case.</strong> Re-primarying a pair changes nothing physical <strong>[C]</strong>: the relative orbit is the same ellipse seen from the other body (relative position is negated, the phase moves by 180 degrees; semi-major axis, eccentricity, inclination, period and the barycentre are unchanged), and each body stays where it was. So the swap for a pair is a relabel plus a sign, and a test can assert that a pair's absolute positions are identical before and after.</p>
 <h3 id="103-what-original-values-must-be-kept-so-the-recalculation-is-lossless">10.3 What &quot;original values&quot; must be kept so the recalculation is lossless</h3>
 <p>The principle: <strong>separate what a body was born with and where it was drawn from what is true of it at the present epoch about a particular primary.</strong> The first kind is kept; the second is a function of it and of the structure, computed after the structure is final.</p>
 <div class="table"><table>
@@ -355,7 +355,7 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>Equal masses (a twin pair, GEN.332's double planets)</td>
-<td>Tie rule: draw order stays; the barycenter is midway and both sit at equal distance; nothing special.</td>
+<td>Tie rule: draw order stays; the barycentre is midway and both sit at equal distance; nothing special.</td>
 </tr>
 <tr>
 <td>At generation: a companion heavier than the first-assigned primary</td>
@@ -379,12 +379,12 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p><strong>A correction to a literal reading.</strong> &quot;The central object is always the heaviest and so will be closest to the center&quot; holds for two bodies (the heavier is nearer the barycenter by the mass ratio) and for each pair of branches at a node. For one central object and several members it does not always hold <strong>[C]</strong>: the central object is displaced from the barycenter by up to sum(m_i a_i)/M, so a light member on a tighter orbit than that is nearer the barycenter than the star. Example: central mass 1, a member of 1e-3 at 5 AU displaces the central object by 0.005 AU, and a second member at 0.001 AU is nearer the barycenter than the central object. I would not write a test that asserts &quot;closest&quot;; the tested property is that the central object is the heaviest and the sum of mass-weighted offsets is zero.</p>
+<p><strong>A correction to a literal reading.</strong> &quot;The central object is always the heaviest and so will be closest to the centre&quot; holds for two bodies (the heavier is nearer the barycentre by the mass ratio) and for each pair of branches at a node. For one central object and several members it does not always hold <strong>[C]</strong>: the central object is displaced from the barycentre by up to sum(m_i a_i)/M, so a light member on a tighter orbit than that is nearer the barycentre than the star. Example: central mass 1, a member of 1e-3 at 5 AU displaces the central object by 0.005 AU, and a second member at 0.001 AU is nearer the barycentre than the central object. I would not write a test that asserts &quot;closest&quot;; the tested property is that the central object is the heaviest and the sum of mass-weighted offsets is zero.</p>
 <h3 id="105-trajectories-updated-by-the-gravitational-gradient-in-their-frame">10.5 &quot;Trajectories updated by the gravitational gradient in their frame&quot;</h3>
 <p>What the code can do, and what I read Boss to mean:</p>
 <ul>
-<li><strong>Storage is already as he describes.</strong> A moon's row has no reference to the star; it is stored relative to its planet, and the planet relative to the star. Nothing a moon does needs the star's motion in the galaxy; the star's motion is the top barycenter's, one stored point.</li>
-<li><strong>Each orbit is a two-body Kepler orbit in its parent's frame,</strong> with <code>mu = G (M_central + M_member)</code> for the member's total mass (a sub-system counts as one body). The universal-variable step (<code>kepler.universal_step</code>) advances a stored state from its epoch to any time analytically, so the Kepler step of a stored orbit never integrates (the orbital update's vector change goes through the one core function for every object: Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md Decided 2, which amends card S13): a body's state at time t is read as <code>advance(relative state, mu, t - epoch)</code>, once per level of the chain, lazily, nothing written but the top barycenter's point.</li>
+<li><strong>Storage is already as he describes.</strong> A moon's row has no reference to the star; it is stored relative to its planet, and the planet relative to the star. Nothing a moon does needs the star's motion in the galaxy; the star's motion is the top barycentre's, one stored point.</li>
+<li><strong>Each orbit is a two-body Kepler orbit in its parent's frame,</strong> with <code>mu = G (M_central + M_member)</code> for the member's total mass (a sub-system counts as one body). The universal-variable step (<code>kepler.universal_step</code>) advances a stored state from its epoch to any time analytically, so the Kepler step of a stored orbit never integrates (the orbital update's vector change goes through the one core function for every object: Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md Decided 2, which amends card S13): a body's state at time t is read as <code>advance(relative state, mu, t - epoch)</code>, once per level of the chain, lazily, nothing written but the top barycentre's point.</li>
 <li><strong>The &quot;gradient&quot; of the outer system on an inner one</strong> (the star's tide on a moon's orbit, the outer bodies' pull on an inner pair) is not a force in the Kepler step of this model (the vector change of the orbital update goes through the one core function, amending card S13, Boss, 2026-10-18, 5:30 to 5:33 PM EDT). It is a <strong>validity condition</strong>: the inner orbit must lie inside the stable zone (0.4895 of the Hill radius, <code>is_triple_stable</code>, the Kozai screen). Within it the two-body orbit is a good model; outside it the pair is not a system and validation moves it. First-order effects (precession, secular exchange) are the research item of card S13.</li>
 </ul>
 <h3 id="106-where-the-step-lives">10.6 Where the step lives</h3>
@@ -392,15 +392,15 @@ main{padding:16px 16px 60px}}
 <h2 id="11-frames-through-the-point-in-space-object-boss-1224-am-edt">11. Frames through the point-in-space object (Boss, 12:24 AM EDT)</h2>
 <p><strong>Boss:</strong> &quot;using the point in space object we then update the relative coordinates, the point in space is aware of the center's position in wider space and can then provide converted coordinates to different frames on demand.&quot;</p>
 <h3 id="111-what-the-point-class-does-in-the-code-m">11.1 What the point class does in the code <strong>[M]</strong></h3>
-<p><code>SpatialPosition3D</code> (714 lines) holds three frames (galactic, sector, system) and knows the center's position through <strong>copies</strong>: each body keeps <code>_sector_center</code>, <code>_star_center</code> and <code>_star_velocity</code> as absolute galactic metres. When a star or a sector moves, every body has to be told: <code>carry_anchors</code>, <code>carry_star_center</code>, <code>carry_sector_center</code> (three call sites, <code>galaxy/system_position.py:118-119</code> and <code>galaxy/sector.py:869</code>). <code>.spatial</code> is used 37 times in 5 files. A body's copy of its star's center is a copy that can go stale, and it can name only one level (the nearest star), so a moon's frame about its planet does not exist.</p>
+<p><code>SpatialPosition3D</code> (714 lines) holds three frames (galactic, sector, system) and knows the centre's position through <strong>copies</strong>: each body keeps <code>_sector_center</code>, <code>_star_center</code> and <code>_star_velocity</code> as absolute galactic metres. When a star or a sector moves, every body has to be told: <code>carry_anchors</code>, <code>carry_star_center</code>, <code>carry_sector_center</code> (three call sites, <code>galaxy/system_position.py:118-119</code> and <code>galaxy/sector.py:869</code>). <code>.spatial</code> is used 37 times in 5 files. A body's copy of its star's centre is a copy that can go stale, and it can name only one level (the nearest star), so a moon's frame about its planet does not exist.</p>
 <h3 id="112-the-design">11.2 The design</h3>
 <ul>
-<li><strong>A point has a parent link to its parent's point, not a copy of anchors.</strong> A point holds its truth relative to the parent (x, y, z, unit, velocity, epoch), exactly as the rows are stored. The point of a top-level system holds the barycenter in the sector and, by the sector's center, in the galaxy. Moving a parent's point moves every descendant by construction; the three <code>carry_*</code> calls go.</li>
+<li><strong>A point has a parent link to its parent's point, not a copy of anchors.</strong> A point holds its truth relative to the parent (x, y, z, unit, velocity, epoch), exactly as the rows are stored. The point of a top-level system holds the barycentre in the sector and, by the sector's centre, in the galaxy. Moving a parent's point moves every descendant by construction; the three <code>carry_*</code> calls go.</li>
 <li><strong>Each system point caches the central object's offset</strong> <code>c_off = -sum(M_i rel_i) / M_total</code>, versioned: any change to a member (add, remove, mass, state) bumps the system point's version, and everything derived from it is recomputed on first read (the lazy <code>_sync</code> and <code>_fresh</code> pattern of the class, extended up the chain).</li>
-<li><strong>A hop</strong> is the point's position relative to its parent's barycenter: <code>c_off(parent) + rel(point)</code>, with <code>rel</code> of the central object equal to zero. A body's coordinates in any ancestor's frame are the sum of the hops from the body up to that ancestor, summed <strong>leaf first</strong>, so a moon's coordinates in its planet's frame use only small numbers and never touch the large galactic ones (the precision rule of the unit note).</li>
+<li><strong>A hop</strong> is the point's position relative to its parent's barycentre: <code>c_off(parent) + rel(point)</code>, with <code>rel</code> of the central object equal to zero. A body's coordinates in any ancestor's frame are the sum of the hops from the body up to that ancestor, summed <strong>leaf first</strong>, so a moon's coordinates in its planet's frame use only small numbers and never touch the large galactic ones (the precision rule of the unit note).</li>
 <li><strong>Requests:</strong>
 <ul>
-<li><code>point.coordinates(frame, form)</code> with <code>frame</code> one of the named frames (<code>galactic</code>, <code>sector</code>, <code>top</code> = the top-level system's barycenter, <code>local</code> = the parent's barycenter) or <strong>any other point</strong> (an ancestor, or any body: found through the lowest common ancestor; up to the common ancestor and down again, differences of sums); <code>form</code> as in the class (Cartesian, cylindrical, spherical).</li>
+<li><code>point.coordinates(frame, form)</code> with <code>frame</code> one of the named frames (<code>galactic</code>, <code>sector</code>, <code>top</code> = the top-level system's barycentre, <code>local</code> = the parent's barycentre) or <strong>any other point</strong> (an ancestor, or any body: found through the lowest common ancestor; up to the common ancestor and down again, differences of sums); <code>form</code> as in the class (Cartesian, cylindrical, spherical).</li>
 <li><code>point.velocity(frame)</code> the same way (Galilean sum; all frames are non-rotating and share the galactic axes, as the code's sector frame already does).</li>
 <li><code>point.set(frame, form, values, unit)</code> as in the class for any frame and form: the value is converted to parent-relative truth by subtracting the chain, so setting a position from a galactic or planet-frame value stores the same parent-relative number.</li>
 <li><code>point.reparent(new_parent)</code> keeps the absolute position and velocity and re-expresses the relative state about the new parent: the operation of 10.4, of GEN.291's ejection, of a capture and of a merger.</li>
@@ -423,27 +423,27 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>galactic</td>
-<td>the galactic center</td>
-<td>top barycenter in the galaxy + the chain, summed leaf first, added last</td>
+<td>the galactic centre</td>
+<td>top barycentre in the galaxy + the chain, summed leaf first, added last</td>
 </tr>
 <tr>
 <td>sector</td>
-<td>the sector's center</td>
-<td>the same minus the sector center</td>
+<td>the sector's centre</td>
+<td>the same minus the sector centre</td>
 </tr>
 <tr>
 <td>top</td>
-<td>the top-level system's barycenter</td>
+<td>the top-level system's barycentre</td>
 <td>sum of hops up to the top</td>
 </tr>
 <tr>
 <td>local</td>
-<td>the immediate parent's barycenter</td>
+<td>the immediate parent's barycentre</td>
 <td>one hop</td>
 </tr>
 <tr>
 <td>any point P</td>
-<td>P's position (center of P's own frame)</td>
+<td>P's position (centre of P's own frame)</td>
 <td>up to the lowest common ancestor of body and P, and down to P</td>
 </tr>
 </tbody>
@@ -456,14 +456,14 @@ main{padding:16px 16px 60px}}
 <li><strong>SY14 (8.4): <code>reparent</code></strong>, the state-preserving operation shared by re-primary at an event, GEN.291, capture and merger. Core 4. Depends on SY6 (the point class).</li>
 <li><strong>SY6 expanded (8.4): the point class gets the parent link, versioned caches, <code>coordinates(frame, form)</code> with any point as a frame, <code>velocity(frame)</code>, <code>set(frame, ...)</code>, and loses the copied anchors and the three <code>carry_*</code> entry points</strong> (3 call sites, 37 <code>.spatial</code> uses in 5 files). Core 4 or Core 5; the largest single change in this note, about +200 and -150 lines <strong>[E]</strong>.</li>
 <li><strong>SY15 (tests):</strong> a pair re-primaried gives identical absolute positions; the step from the originals is idempotent and independent of the order members are listed in; <code>reparent</code> preserves absolute position and velocity; frame round trips (body to planet frame to galactic and back) agree to the spacing of a double at the top; the mass-weighted offsets sum to zero at every level; the 10 m body 10,000 AU from its parent keeps its metre. With SY3.</li>
-<li><strong>SY16 (8.3 note, no work item yet):</strong> the orbital update reads a body's state as <code>advance(relative state, mu, t - epoch)</code> along the chain, lazily, writes only the top barycenter's point, and runs <code>primary_first</code> and <code>reparent</code> only at events (merger, capture, ejection). Goes into the 8.3 plan text when that plan is written.</li>
+<li><strong>SY16 (8.3 note, no work item yet):</strong> the orbital update reads a body's state as <code>advance(relative state, mu, t - epoch)</code> along the chain, lazily, writes only the top barycentre's point, and runs <code>primary_first</code> and <code>reparent</code> only at events (merger, capture, ejection). Goes into the 8.3 plan text when that plan is written.</li>
 </ul>
 <h3 id="122-to-the-81-foundation-nothing-here-is-81-work-these-are-the-conventions-that-keep-81-from-being-redone">12.2 To the 8.1 foundation (nothing here is 8.1 work; these are the conventions that keep 8.1 from being redone)</h3>
 <ol>
 <li><strong>GEN.315, GEN.264, GEN.316:</strong> the fill must build stars from the stored members <strong>already ordered heaviest first at every node</strong> (slot 0 = heavier branch, as the tree builder writes it) and must not add a fifth copy of the swap; GEN.316's retirement of the two-star classes removes the three old copies. State this in the items.</li>
 <li><strong>GEN.552 (host registry):</strong> rows express an orbiter's mass as a <strong>ratio to the host's mass</strong> where the source gives a ratio, so the draw cannot make an orbiter heavier than its host except through the pair builder, which is where the primary-first step lives. This is a wording edit on a table being written anyway.</li>
 <li><strong>GEN.555 (pair builder, 8.4 phase 1) and GEN.556 (<code>populate</code>):</strong> the primary-first step is the first action of their validation; their Done lines add &quot;a pair re-primaried gives identical positions&quot;.</li>
-<li><strong>Stored-position convention (SY2, 8.1):</strong> a stored state is always parent-relative <strong>about the parent's central object, in a non-rotating frame whose axes are the galactic axes</strong>, with its epoch. This is how the rows are stored; stating it in SY2 keeps 8.1 items from storing a state about a barycenter or in a rotating frame.</li>
+<li><strong>Stored-position convention (SY2, 8.1):</strong> a stored state is always parent-relative <strong>about the parent's central object, in a non-rotating frame whose axes are the galactic axes</strong>, with its epoch. This is how the rows are stored; stating it in SY2 keeps 8.1 items from storing a state about a barycentre or in a rotating frame.</li>
 <li><strong>Nothing in 8.1 touches <code>SpatialPosition3D</code>'s anchors.</strong> The parent-link change (SY6) is 8.4, with GEN.565; until then the three <code>carry_*</code> calls stay.</li>
 </ol>
 <h3 id="123-cards">12.3 Cards</h3>
@@ -497,14 +497,14 @@ main{padding:16px 16px 60px}}
 <li>The named frames and ancestors only. Simpler to write; a sibling in another sibling's frame needs two calls.</li>
 <li>The four named frames only. Smallest change; no planet frame for a moon.</li>
 </ol>
-<p><strong>S15. How does a point know its center's position?</strong></p>
+<p><strong>S15. How does a point know its centre's position?</strong></p>
 <ol>
 <li>A live parent link to the parent's point; anchors are not copied. <strong>Recommended.</strong> Cannot go stale; the three <code>carry_*</code> calls go.</li>
 <li>Keep the copied anchors and push updates with <code>carry_*</code> when a parent moves, extended to every level. Smaller class change; every level of a moved system must be touched, and a copy can go stale.</li>
 <li>Links below the top, copied anchors at the top (sector and galactic). A halfway form with two mechanisms.</li>
 </ol>
 <h3 id="124-cost-and-risk-e">12.4 Cost and risk <strong>[E]</strong></h3>
-<p>SY6 and SY12 to SY15 together: about +500 to 700 new lines with tests, -300 to 450 removed (four swap copies, three <code>carry_*</code>, the lossy reconcile path, scene branches already counted in SY7); net about +100 to +400. The risk is the width of the point class change (37 uses, 5 files) and the values: re-expressing planet states about barycenters changes low digits (already one epoch with SY4 and SY5). The 8.1 conventions of 12.2 cost nothing and prevent a second pass.</p>
+<p>SY6 and SY12 to SY15 together: about +500 to 700 new lines with tests, -300 to 450 removed (four swap copies, three <code>carry_*</code>, the lossy reconcile path, scene branches already counted in SY7); net about +100 to +400. The risk is the width of the point class change (37 uses, 5 files) and the values: re-expressing planet states about barycentres changes low digits (already one epoch with SY4 and SY5). The 8.1 conventions of 12.2 cost nothing and prevent a second pass.</p>
 <h2 id="13-motion-and-spin-in-the-point-boss-1225-am-edt-and-the-three-refinements-together">13. Motion and spin in the point (Boss, 12:25 AM EDT) and the three refinements together</h2>
 <p><strong>Boss:</strong> &quot;and point in space also stores the vector of motion as well as spin and other attributes as part of the object with mass classification.&quot;</p>
 <h3 id="131-the-three-refinements-in-one-place">13.1 The three refinements in one place</h3>
@@ -519,12 +519,12 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>12:23</td>
-<td>Any two objects that orbit each other follow one rule; before a system is validated, the heaviest becomes primary and the rest are recomputed from their original values; the barycenter is the origin; coordinates are relative, so a moon follows its planet and the planet follows the star.</td>
+<td>Any two objects that orbit each other follow one rule; before a system is validated, the heaviest becomes primary and the rest are recomputed from their original values; the barycentre is the origin; coordinates are relative, so a moon follows its planet and the planet follows the star.</td>
 <td>Section 10</td>
 </tr>
 <tr>
 <td>12:24</td>
-<td>The point-in-space object updates the relative coordinates and, aware of the center's position in wider space, gives converted coordinates for any frame on demand.</td>
+<td>The point-in-space object updates the relative coordinates and, aware of the centre's position in wider space, gives converted coordinates for any frame on demand.</td>
 <td>Section 11</td>
 </tr>
 <tr>
@@ -593,9 +593,9 @@ main{padding:16px 16px 60px}}
 <p>Not in the code, and flagged rather than invented: a moment of inertia and oblateness (needed only for spin precession and tidal evolution, which no code models); the core leaves room for them in the planetary and stellar profiles.</p>
 <h3 id="134-how-motion-and-spin-chain-through-the-frames">13.4 How motion and spin chain through the frames</h3>
 <ul>
-<li><strong>Velocity.</strong> The velocity of a point relative to its parent's barycenter is <code>v_hop = v_c(parent) + v_rel(point)</code>, where <code>v_c(parent) = -sum(M_i v_rel_i) / M_total</code> is the central object's velocity relative to the barycenter and <code>v_rel</code> of the central object is zero. A body's velocity in any ancestor's frame is the sum of the hops up to that ancestor, leaf first, and the galactic velocity adds the top point's velocity last. <strong>A moon's velocity in the star's frame</strong> is <code>v_c(S) + v_rel(planet system) + v_c(P) + v_rel(moon)</code>: through the planet, with the frame's own motion included at each hop. Every hop first advances its relative state from its own epoch to the requested time (<code>universal_step</code>), so the epochs need not match.</li>
+<li><strong>Velocity.</strong> The velocity of a point relative to its parent's barycentre is <code>v_hop = v_c(parent) + v_rel(point)</code>, where <code>v_c(parent) = -sum(M_i v_rel_i) / M_total</code> is the central object's velocity relative to the barycentre and <code>v_rel</code> of the central object is zero. A body's velocity in any ancestor's frame is the sum of the hops up to that ancestor, leaf first, and the galactic velocity adds the top point's velocity last. <strong>A moon's velocity in the star's frame</strong> is <code>v_c(S) + v_rel(planet system) + v_c(P) + v_rel(moon)</code>: through the planet, with the frame's own motion included at each hop. Every hop first advances its relative state from its own epoch to the requested time (<code>universal_step</code>), so the epochs need not match.</li>
 <li><strong>Spin.</strong> A spin is intrinsic: the same axis and rate in every non-rotating frame, so a frame change is the identity; no rotation matrices are needed because every frame shares the galactic axes. What does depend on the frame is the <strong>obliquity</strong> and <strong>locking</strong>: both are derived against the parent's orbit, and so follow a re-primary automatically (the orbit normal <code>r x v</code> is unchanged when a pair is re-primaried, 10.2).</li>
-<li><strong>Angular momentum.</strong> The spin angular momentum of a body is intrinsic and contributes nothing to a system's barycenter; the orbital angular momentum of a system about its barycenter (sum of <code>r x m v</code>) and its total linear momentum are conserved by <code>reparent</code> and by the primary-first step, which gives two exact tests (SY15).</li>
+<li><strong>Angular momentum.</strong> The spin angular momentum of a body is intrinsic and contributes nothing to a system's barycentre; the orbital angular momentum of a system about its barycentre (sum of <code>r x m v</code>) and its total linear momentum are conserved by <code>reparent</code> and by the primary-first step, which gives two exact tests (SY15).</li>
 <li><strong>Setting.</strong> <code>point.set(frame, form, values, unit)</code> accepts a velocity in any frame like a position, and subtracts the chain's velocity to store the relative one; spin is set in the shared axes.</li>
 </ul>
 <h3 id="135-what-this-adds">13.5 What this adds</h3>
@@ -605,7 +605,7 @@ main{padding:16px 16px 60px}}
 <ul>
 <li><strong>SY6 (the point class)</strong> also holds spin axis and rate and gives <code>velocity(frame)</code> through the same chain; spin is set and read in the shared axes. The same class change as section 11, about +80 lines.</li>
 <li><strong>SY17 (8.4): the core's kinematic record</strong> as in 13.3: GEN.565 declares the fields; the derived columns are dropped in the DB.73 revision with the wobble columns (SY4); <code>spin.set_spin</code> and <code>spin_values</code> move onto the point. Core 4 with Core 1 for the storage. Depends on SY6, GEN.565.</li>
-<li><strong>SY15 (tests)</strong> gains: total linear momentum and orbital angular momentum about the barycenter are unchanged by <code>primary_first</code> and by <code>reparent</code>; a moon's velocity in the star's frame equals the sum of its hops; a locked body's rate follows a primary change.</li>
+<li><strong>SY15 (tests)</strong> gains: total linear momentum and orbital angular momentum about the barycentre are unchanged by <code>primary_first</code> and by <code>reparent</code>; a moon's velocity in the star's frame equals the sum of its hops; a locked body's rate follows a primary change.</li>
 <li><strong>SY16 (8.3 note)</strong> gains: the orbital update advances the relative state of every body along the chain and writes nothing but the top point; spin rate changes (tidal evolution, magnetic braking) are not modelled in the update and stay a later research item.</li>
 </ul>
 <p><strong>To the 8.1 foundation (conventions only).</strong> Add one line to SY2: a stored velocity is, like a stored position, relative to the parent's central object in the shared axes; a stored spin is a unit axis in the shared axes and a rate in rad/s. Nothing in 8.1 stores a spin or velocity otherwise; the 8.1 items that draw spin (GEN.104 is built) or velocity (GEN.142 is superseded by GEN.557) stay as they are.</p>

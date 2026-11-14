@@ -19,7 +19,7 @@ BIOTIC_O2_PRESSURE_MAX_PA = 0.35 * 101325.0
 """float: The most oxygen pressure, Pa, of the air of a world with life: 35 percent of one Earth atmosphere (35.5 kPa), the Phanerozoic peak and the fire limit
 (Boss 10-24 set the limit at 35 percent of Earth's air; Boss 11-06 ruled it a pressure and not a share, GEN.1320). Fire spreads with the oxygen's pressure
 (the partial pressure sets how fast fuel burns), not with its share of the molecules, so a thin air may hold a larger share and a thick one a smaller. The share
-is held to `ABIOTIC_O2_MAX` all the same, since no air is pure oxygen. [Stand-in OX1, tier Confident educated guess from physics, tweak L1.]"""
+is held to `ABIOTIC_O2_MAX` all the same, since no air is pure oxygen. The upper oxygen edge of classes M, O, H, P and R (`planet_class_fit.json`, 35.5 kPa) sits just above this cap, and `tests/test_oxygen_edge_clear_of_cap.py` fails if either number moves so that the edge is not above the cap by 0.1 percent (GEN.1582). [Stand-in OX1, tier Confident educated guess from physics, tweak L1.]"""
 
 ABIOTIC_O2_MAX = 0.95
 """float: The most oxygen of the air of a lifeless world that lost its water (Boss 10-24)."""

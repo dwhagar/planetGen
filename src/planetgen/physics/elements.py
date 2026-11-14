@@ -42,7 +42,9 @@ import os
 import re
 from dataclasses import dataclass
 
-AVOGADRO = 6.02214076e23
+from planetgen.physics import constants
+
+AVOGADRO = constants.AVOGADRO
 """float: Avogadro's constant, 1/mol (exact in the SI since 2019)."""
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")

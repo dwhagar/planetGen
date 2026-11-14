@@ -467,6 +467,24 @@ behind small ones. `queue/scheduler.py` answers which waiting job goes next, on 
 
 Boss's rule is built in: **only dead and quiet are `actionable`**. A unit whose counter is moving is never judged for killing, at any rate and any size over its estimate (the 11-08 failure was a sky cell killed at 10 times a sector unit's average while it was working); looping and slow are flags for a person. A unit that reports no counter is working until it is dead. `agreed(previous, current)` is the "two checks in a row" rule the follower (OPS.138) uses before it acts. The beat record is written by OPS.136 and the longest gaps by OPS.135; the follower runs the judge and logs each change once in OPS.138.
 
+**Evidence in the beat (OPS.193).** A counter that stands still is not proof a unit has stopped: one long SQL statement moves no counter. The beat record also carries `cpu_s` (processor seconds of the process), `io_read` and `io_write` (bytes, `/proc/self/io`), and, while a statement is out, `sql` (its label) and `sql_since` (server-clock seconds). `db/statementmark.py` is the mark: `db/store.py` sets it around every statement it sends and the beat thread reads it, so no privilege on `performance_schema` is needed. Nothing reads the fields yet; OPS.194 gives the judge the state `busy` from them. OPS.197 (`tests/test_no_sleep_in_commands.py`) keeps a bare sleep out of command code, where a wait would show no activity.
+
+### 5.17 The bulk worker limit follows the host's memory (Boss, 9:58 PM EST on 2026-11-11)
+
+Boss saw a "waited 300 s" line every few systems of a generation run and a slow run. The cause is the gate's bound (5.14): more bulk workers than the
+host's memory carries, so some sit at the gate with their star tables (about 1.4 GB each) until the table cap lets them in. `queue/adaptive.py` makes
+the bulk worker cap follow the host instead of waiting for the bound.
+
+* **Lowers by one worker** when a bulk job has waited 30 s at the gate for memory (`memorygate.Decision.memory`; a wait for a core or for a higher ticket is not one), or when the host's
+  available memory is under 75 percent of what the gate keeps back (`memorygate.reserve_mb`) while bulk work runs or is queued. The workers over the new limit are asked to leave
+  (`workers.shed_bulk`), those that wait at the gate first: such a worker puts its job back at the front of its queue and exits, so no work is lost. Two lowerings are 20 s apart. Never below 1.
+* **Raises by one** (at most every 120 s) after 120 s with no memory wait and no lowering, when bulk jobs are queued that no worker has and the free memory holds one more worker of the
+  largest claim held with a quarter on top. At the configured cap the limit is dropped; a limit nobody touches for an hour is forgotten.
+* **Logged**: each change is a line in the log (a lowering a warning naming the job and the wait) and an entry in `planetgen:gate:adaptive:recent` (the latest 50).
+* `workers.ensure_workers` applies the limit to the bulk lane only (`adaptive.adapt`), so a run's `--workers` and the admin's count are ceilings, not targets.
+  The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`). It changes how long a run takes, never what it generates (the work seed does not depend on the worker count).
+* **Not done yet**: the maintenance lane (warm-ups) is not limited by it; a status page line for the limit and its recent changes.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.

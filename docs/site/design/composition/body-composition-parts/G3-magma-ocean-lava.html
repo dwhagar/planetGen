@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>G3: magma-ocean redox, carbon solubility, outgassed split and lava-world vapor (check of Boss's second note, section 2) - planetGen docs</title>
+<title>G3: magma-ocean redox, carbon solubility, outgassed split and lava-world vapour (check of Boss's second note, section 2) - planetGen docs</title>
 <meta name="description" content="Scope: claims G3.1 to G3.7 of Boss&#x27;s note (messages cmsg01RuNTFUNB92A8cm5CbojQAiBH5ozwSDue3azzQUisow2D), plus what the generator must store and a parametrisation of the mantle delta-IW draw.">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/G3-magma-ocean-lava.html"><a href="../../../index.html">Site index</a></nav>
 <main>
-<h1 id="g3-magma-ocean-redox-carbon-solubility-outgassed-split-and-lava-world-vapor-check-of-bosss-second-note-section-2">G3: magma-ocean redox, carbon solubility, outgassed split and lava-world vapor (check of Boss's second note, section 2)</h1><p class="meta">docs/design/composition/body-composition-parts/G3-magma-ocean-lava.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#verdicts">Verdicts</a></li><li style="margin-left:0px"><a href="#figures-for-the-generator">Figures for the generator</a></li><li style="margin-left:14px"><a href="#f1-buffers-stored-fo2-reference">F1 Buffers (stored fO2 reference)</a></li><li style="margin-left:14px"><a href="#f2-melt-iron-redox-to-diw">F2 Melt iron redox to dIW</a></li><li style="margin-left:14px"><a href="#f3-gas-speciation-versus-diw-ideal-gas-computed-nasa-glenn-9-coefficient-fits-2nd-hand-from-atmodeller-102-data-file-subset-in-g3_nasa_glenn_subsetcsv">F3 Gas speciation versus dIW (ideal gas, COMPUTED, NASA Glenn 9-coefficient fits, 2ND-HAND from atmodeller 1.0.2 data file, subset in G3_nasa_glenn_subset.csv)</a></li><li style="margin-left:14px"><a href="#f4-mass-action-rule-for-a-generator-2-reservoirs">F4 Mass action rule for a generator (2 reservoirs)</a></li><li style="margin-left:14px"><a href="#f5-solubility-laws-the-generator-can-use-form-fugacity-t-p-to-dissolved-mass-fraction">F5 Solubility laws the generator can use (form: fugacity, T, P to dissolved mass fraction)</a></li><li style="margin-left:14px"><a href="#f6-carbon-inventory-check-from-the-readable-papers">F6 Carbon inventory check from the readable papers</a></li><li style="margin-left:14px"><a href="#f7-lava-world-vapor-dry-melt-no-h-c-n-s">F7 Lava-world vapor (dry melt, no H, C, N, S)</a></li><li style="margin-left:14px"><a href="#f8-stored-quantities-and-δiw-parametrisation">F8 Stored quantities and ΔIW parametrisation</a></li><li style="margin-left:0px"><a href="#still-unreachable-boss-must-research">Still unreachable (Boss must research)</a></li><li style="margin-left:0px"><a href="#counts">Counts</a></li></ul></details>
+<h1 id="g3-magma-ocean-redox-carbon-solubility-outgassed-split-and-lava-world-vapour-check-of-bosss-second-note-section-2">G3: magma-ocean redox, carbon solubility, outgassed split and lava-world vapour (check of Boss's second note, section 2)</h1><p class="meta">docs/design/composition/body-composition-parts/G3-magma-ocean-lava.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#verdicts">Verdicts</a></li><li style="margin-left:0px"><a href="#figures-for-the-generator">Figures for the generator</a></li><li style="margin-left:14px"><a href="#f1-buffers-stored-fo2-reference">F1 Buffers (stored fO2 reference)</a></li><li style="margin-left:14px"><a href="#f2-melt-iron-redox-to-diw">F2 Melt iron redox to dIW</a></li><li style="margin-left:14px"><a href="#f3-gas-speciation-versus-diw-ideal-gas-computed-nasa-glenn-9-coefficient-fits-2nd-hand-from-atmodeller-102-data-file-subset-in-g3_nasa_glenn_subsetcsv">F3 Gas speciation versus dIW (ideal gas, COMPUTED, NASA Glenn 9-coefficient fits, 2ND-HAND from atmodeller 1.0.2 data file, subset in G3_nasa_glenn_subset.csv)</a></li><li style="margin-left:14px"><a href="#f4-mass-action-rule-for-a-generator-2-reservoirs">F4 Mass action rule for a generator (2 reservoirs)</a></li><li style="margin-left:14px"><a href="#f5-solubility-laws-the-generator-can-use-form-fugacity-t-p-to-dissolved-mass-fraction">F5 Solubility laws the generator can use (form: fugacity, T, P to dissolved mass fraction)</a></li><li style="margin-left:14px"><a href="#f6-carbon-inventory-check-from-the-readable-papers">F6 Carbon inventory check from the readable papers</a></li><li style="margin-left:14px"><a href="#f7-lava-world-vapour-dry-melt-no-h-c-n-s">F7 Lava-world vapour (dry melt, no H, C, N, S)</a></li><li style="margin-left:14px"><a href="#f8-stored-quantities-and-δiw-parametrisation">F8 Stored quantities and ΔIW parametrisation</a></li><li style="margin-left:0px"><a href="#still-unreachable-boss-must-research">Still unreachable (Boss must research)</a></li><li style="margin-left:0px"><a href="#counts">Counts</a></li></ul></details>
 <p>Scope: claims G3.1 to G3.7 of Boss's note (messages cmsg_01RuNTFUNB92A8cm5CbojQAiBH5ozwSDue3azzQUisow2D), plus what the generator must store and a parametrisation of the mantle delta-IW draw. Read-only research. Scripts, extracted tables and outputs are in <code>/mnt/project-files/design-drafts/parts/G-files/</code> with prefix <code>G3_</code>. Existing work reused: F items 5 and 6 ([R4154], PMC7688334, re-read here, all figures below are from that re-read).</p>
 <p>Labels as in <code>_brief.md</code>: READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED. &quot;Code&quot; below means open-source code that implements a published equation (original paper not reached), so the constants are 2ND-HAND.</p>
 <p>Notation: dIW = log10 fO2 minus log10 fO2 of the iron-wustite buffer at the same T and P. &quot;H21&quot; = [R1951] IW calibration (see Figures, F1). QFM = FMQ = quartz-fayalite-magnetite.</p>
@@ -62,7 +62,7 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>G3.1a</td>
-<td>Oxidized mantle (dIW &gt;= +2): carbon dissolves as carbonate CO<sub>3</sub>^2-</td>
+<td>Oxidised mantle (dIW &gt;= +2): carbon dissolves as carbonate CO<sub>3</sub>^2-</td>
 <td>CONFIRMED</td>
 <td>Carbonate is the dissolved carbon species above about dIW +1 ([R1488]: &quot;C dissolves as CO (fO2 &lt; IW) and as CO<sub>3</sub>^2- (fO2 &gt; IW+1)&quot;); [R4154]: at dIW +0.5 H, C, N dissolve as CO<sub>3</sub>^2-, H<sub>2</sub>O/OH, N<sub>2</sub>. Both include dIW &gt;= +2</td>
 <td>[R1488]:117255 (HAL insu-03383209, results section 5.3); [R4154] Sci. Adv. (PMC7688334), text after Eq. 4</td>
@@ -126,7 +126,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>G3.3a</td>
-<td>Oxidized: C_melt proportional to fCO2 times NBO/T; valid to about 0.7 GPa for NBO/T &gt; 2 ultramafic melts</td>
+<td>Oxidised: C_melt proportional to fCO2 times NBO/T; valid to about 0.7 GPa for NBO/T &gt; 2 ultramafic melts</td>
 <td>PARTLY</td>
 <td>Physical part: mass action, dissolved CO<sub>3</sub>^2- proportional to fCO2 with a volume term: X_CO3 = X0 fCO2 exp(-DeltaV (P-1)/(R T)), DeltaV = 23 cm3/mol, T0 = 1473 K ([R1120, R1121, R1122], via code). Linear in P is observed to about 0.7 GPa for basalt and rhyolite with a common slope of about 0.57 ppm CO<sub>2</sub> per bar (Ni and Keppler Fig. 1a), and &quot;may apply to 4 GPa&quot;. The composition term is exponential in NBO/O, not linear in NBO/T: [R2066] ln C = sum(d_i x_i) + 1.0 ln fCO2 + 15.8 NBO/O - 5.3 + 0.14 P/T (anhydrous set). No source found for &quot;valid to 0.7 GPa for NBO/T &gt; 2&quot;. NBO/T alone is not enough (Ni and Keppler: Mg and Ca roles differ, Duncan and Dasgupta AGU abstract)</td>
 <td>VESIcal 1.2.12 dixon.py and iaconomarziano.py (2ND-HAND)</td>
@@ -150,7 +150,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>G3.4a</td>
-<td>Oxidized: outgassed gas is CO<sub>2</sub>, H<sub>2</sub>O, N<sub>2</sub></td>
+<td>Oxidised: outgassed gas is CO<sub>2</sub>, H<sub>2</sub>O, N<sub>2</sub></td>
 <td>PARTLY</td>
 <td>[R1075] at dIW +2 (1 bar, 1800 K, H/C mass 0.5, no solubility): H<sub>2</sub>O about 70 mol%, CO<sub>2</sub> about 15 mol%. [R1488]: &gt; IW+2 gives a dry, C-N-S-rich atmosphere (H<sub>2</sub>O stays dissolved; SO<sub>2</sub> appears), and [R4154]: about 99 % of the BSE water is dissolved at 2173 K. So H<sub>2</sub>O in the gas depends on solubility and inventory, not only on dIW</td>
 <td>[R1075] Nat. Commun. section &quot;redox states of the MOs&quot;; [R1488] abstract; [R4154]</td>
@@ -174,9 +174,9 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>G3.4d</td>
-<td>Sossi's CO-rich gas at dIW +0.5 lies in the &quot;moderately reduced&quot; row, not the oxidized one</td>
+<td>Sossi's CO-rich gas at dIW +0.5 lies in the &quot;moderately reduced&quot; row, not the oxidised one</td>
 <td>CONFIRMED</td>
-<td>Yes. Computed crossover (ideal gas, NASA Glenn fits, H21 IW): CO<sub>2</sub> = CO at dIW +1.00 (1500 K), +1.20 (1800 K), +1.37 (2173 K); H<sub>2</sub>O = H<sub>2</sub> at +0.17, +0.03, -0.06. So Boss's &quot;oxidized: dIW &gt;= +2&quot; threshold is right for CO<sub>2</sub> &gt; CO at 2173 K (CO<sub>2</sub>/CO = 2.1 at +2). On Sossi's own scale the crossover is +1.9</td>
+<td>Yes. Computed crossover (ideal gas, NASA Glenn fits, H21 IW): CO<sub>2</sub> = CO at dIW +1.00 (1500 K), +1.20 (1800 K), +1.37 (2173 K); H<sub>2</sub>O = H<sub>2</sub> at +0.17, +0.03, -0.06. So Boss's &quot;oxidised: dIW &gt;= +2&quot; threshold is right for CO<sub>2</sub> &gt; CO at 2173 K (CO<sub>2</sub>/CO = 2.1 at +2). On Sossi's own scale the crossover is +1.9</td>
 <td>F3 below</td>
 <td>COMPUTED</td>
 </tr>
@@ -216,13 +216,13 @@ main{padding:16px 16px 60px}}
 <td>G3.5c</td>
 <td>VapoRock &quot;is a Gibbs minimisation tool&quot;</td>
 <td>PARTLY</td>
-<td>It is not a global Gibbs minimiser. Each vapor species gets a mass-action partial pressure from equality of chemical potentials with the melt oxide components (paper Eqs. 1 to 3): log P_i = [sum nu_ij mu_j + nu_O2 mu0_O2 - mu0_i]/(RT ln10) + nu_O2 log fO2, in the &quot;vapor-limited regime&quot; (melt composition unchanged), ideal gas, fO2 an input. Melt activities from MELTS. Runs without H, C, N, S</td>
+<td>It is not a global Gibbs minimiser. Each vapour species gets a mass-action partial pressure from equality of chemical potentials with the melt oxide components (paper Eqs. 1 to 3): log P_i = [sum nu_ij mu_j + nu_O2 mu0_O2 - mu0_i]/(RT ln10) + nu_O2 log fO2, in the &quot;vapour-limited regime&quot; (melt composition unchanged), ideal gas, fO2 an input. Melt activities from MELTS. Runs without H, C, N, S</td>
 <td>VapoRock paper Section 2.3</td>
 <td>READ</td>
 </tr>
 <tr>
 <td>G3.6a</td>
-<td>1500-2000 K &quot;sub-liquidus&quot;: vapor dominated by Na and K</td>
+<td>1500-2000 K &quot;sub-liquidus&quot;: vapour dominated by Na and K</td>
 <td>PARTLY</td>
 <td>Na is the dominant gas for BSE across 1500 to about 2700 K; second and third are O<sub>2</sub> and O ([R2105, R3059, R3943] Type I Na, O<sub>2</sub>, O, Fe). K is minor: Ito (BSE at 2000 K, 1e-5 bar) molar fractions Na 0.721, O<sub>2</sub> 0.189, K 0.0407, O 0.0233, SiO 0.00731, Fe 0.001; VapoRock 1900 K K/Na = 0.11 to 0.15 for tholeiite, komatiite (up to 1.5 for dunite). Older MAGMA runs gave K/Na 100 to 600 times lower (known K error, [R4732: Table 3]). Wording: all of these treat a melt; BSE-like peridotite liquidus exceeds 2000 K at 1 bar (Sossi), so 1500-2000 K is below liquidus and the melt is metastable or partial</td>
 <td>sf09 text; Ito Fig. 3 caption; VapoRock Table 3; [R3059] section 3.1.1</td>
@@ -238,7 +238,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>G3.6c</td>
-<td>Vapor shifts from alkali gas to heavy oxide gas above 2200 K (Na stops dominating)</td>
+<td>Vapour shifts from alkali gas to heavy oxide gas above 2200 K (Na stops dominating)</td>
 <td>CONTRADICTED</td>
 <td>Na stops dominating at about 2700 K for BSE (VapoRock; SiO takes over), about 2800 K (Ito, BSE and MORB), 2600 K (bulk crust), 2500 K (upper crust); VapoRock crossover 2500 K for Bishop Tuff and above 3000 K for dunite; Miguel komatiite: SiO exceeds Na only above 3170 K (MAGMA). The crossover rises with fO2 and falls with melt SiO<sub>2</sub> and alkali content</td>
 <td>VapoRock Section 4.2, 4.3; Ito section 2.1; Miguel section 3.1.1</td>
@@ -246,9 +246,9 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>G3.6d</td>
-<td>Mean molecular weight of heavy vapor &quot;about 40 to 60 g/mol&quot;</td>
+<td>Mean molecular weight of heavy vapour &quot;about 40 to 60 g/mol&quot;</td>
 <td>CONTRADICTED</td>
-<td>Mean molar mass of the vapor over BSE: 25.4 g/mol at 2000 K, 1e-5 bar and 33.2 g/mol at 3000 K, 1e-2 bar (from Ito's seven listed species). Elemental atoms only at 1900 K (VapoRock Table 3): 25 to 28 g/mol for tholeiite, alkali basalt, komatiite, Bishop Tuff and 33 for dunite. [R2380] uses 34.15 g/mol (mean of SiO and Mg) for fractionated vapor. 40 to 60 would need SiO<sub>2</sub> (60) and FeO (72) to dominate; no source reports that</td>
+<td>Mean molar mass of the vapour over BSE: 25.4 g/mol at 2000 K, 1e-5 bar and 33.2 g/mol at 3000 K, 1e-2 bar (from Ito's seven listed species). Elemental atoms only at 1900 K (VapoRock Table 3): 25 to 28 g/mol for tholeiite, alkali basalt, komatiite, Bishop Tuff and 33 for dunite. [R2380] uses 34.15 g/mol (mean of SiO and Mg) for fractionated vapour. 40 to 60 would need SiO<sub>2</sub> (60) and FeO (72) to dominate; no source reports that</td>
 <td>G3_out_mean_molar_mass.txt; [R2380: Table 1]</td>
 <td>COMPUTED, READ</td>
 </tr>
@@ -583,7 +583,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>N<sub>2</sub></td>
-<td>X = alpha p^(1/beta); alpha = 7.0e-5, beta = 1.8 (oxidized); reduced set alpha = 74.16, beta = 4.582</td>
+<td>X = alpha p^(1/beta); alpha = 7.0e-5, beta = 1.8 (oxidised); reduced set alpha = 74.16, beta = 4.582</td>
 <td></td>
 <td>IW-8.3 to IW+8.7 in [R2675]</td>
 <td>[R2676, R2677] Table 1; fO2 form of [R0997] in atmodeller</td>
@@ -599,15 +599,15 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>The three-regime Henry constants for CO, CO<sub>2</sub> and CH<sub>4</sub> under &quot;oxidized / reduced / very reduced&quot; conditions that [R2956, R2957] take from [R1954] (Am. Min. 101:540, Table 2) are the likely origin of Boss's three-regime scheme. Maurice Table A.1 gives the calibration domains: CO and CH<sub>4</sub> [R1954] 1400-1800 C, 350-32000 bar, IW-3.6 to IW+2.3 (basalt); CO<sub>2</sub> [R1954] 1200-1625 C, 100-25000 bar, IW-1 to FMQ+2; CO<sub>2</sub> [R1224] 950-1600 C, 500-30000 bar, FMQ-6 to FMQ+1.5 (foidite to rhyolite); CO [R4832] 1200-1600 C, 2000-30000 bar. The constants themselves were not reached ([R1954: Table 2], [R1224]).</p>
+<p>The three-regime Henry constants for CO, CO<sub>2</sub> and CH<sub>4</sub> under &quot;oxidised / reduced / very reduced&quot; conditions that [R2956, R2957] take from [R1954] (Am. Min. 101:540, Table 2) are the likely origin of Boss's three-regime scheme. Maurice Table A.1 gives the calibration domains: CO and CH<sub>4</sub> [R1954] 1400-1800 C, 350-32000 bar, IW-3.6 to IW+2.3 (basalt); CO<sub>2</sub> [R1954] 1200-1625 C, 100-25000 bar, IW-1 to FMQ+2; CO<sub>2</sub> [R1224] 950-1600 C, 500-30000 bar, FMQ-6 to FMQ+1.5 (foidite to rhyolite); CO [R4832] 1200-1600 C, 2000-30000 bar. The constants themselves were not reached ([R1954: Table 2], [R1224]).</p>
 <p>Physical versus schematic: physical (mass action or Henry): carbonate proportional to fCO2 with exp(-DeltaV (P-1)/RT); CO dissolved as a neutral molecule with exponent 0.5 to 1.0 on fCO; CH<sub>4</sub> proportional to fCH4; H<sub>2</sub> proportional to fH2; H<sub>2</sub>O proportional to f_H2O^0.5; the gas-gas ratios F3. Schematic or empirical: the NBO/T factor (really exponential in NBO/O with extra cation terms), the exp(-dIW) form, the fH2^2 X_H2O form, and any extrapolation of the laws above to 2000 K and above (none is calibrated there except the H<sub>2</sub>O law at 2173 K).</p>
 <h3 id="f6-carbon-inventory-check-from-the-readable-papers">F6 Carbon inventory check from the readable papers</h3>
 <p>[R4154] (BSE, H = 0.01 wt%, C = 0.01 wt%, N = 0.0002 wt% in his Fig. 3 model, Earth calibration only): with existing laws about 99 percent of H<sub>2</sub>O and about 35 percent of CO<sub>2</sub> are dissolved at 2173 K, N<sub>2</sub> almost all in the gas. [R1488]: carbon dissolved in the equilibrium magma ocean is 2 to 70 ppm C depending on fO2 and ocean size (depleted-mantle value 37 +/- 12 ppm C); graphite saturation below about IW-3; a total of 40 to 220 bar atmosphere. Earth's BSE C/H = 1.3 +/- 0.3, C/N = 40 +/- 8, C/S = 0.49 +/- 0.14 ([R1954] abstract, READ): calibration targets only.</p>
-<h3 id="f7-lava-world-vapor-dry-melt-no-h-c-n-s">F7 Lava-world vapor (dry melt, no H, C, N, S)</h3>
-<p>Use reaction-equilibrium vapor pressures, not an on-the-fly Gibbs minimiser: log10 P_i = [sum nu_ij mu_j + nu_O2 mu0_O2 - mu0_i]/(RT ln 10) + nu_O2 log10 fO2, with melt oxide activities from a solution model (VapoRock Eq. 3). Ideal-mixing oxide activities (older MAGMA) differ by factors 3 to 10 and up to 300 for Si and K, so a generator that wants correct Na/K/SiO ratios needs tabulated outputs of a MELTS-based run, not ideal activities. Both published codes are copyleft (VapoRock AGPL-3.0, LavAtmos GPL-3.0): do not vendor the code; re-implement Eq. 3 with JANAF data, or run the codes offline and store the output tables (licensing of outputs is a decision for Boss).</p>
+<h3 id="f7-lava-world-vapour-dry-melt-no-h-c-n-s">F7 Lava-world vapour (dry melt, no H, C, N, S)</h3>
+<p>Use reaction-equilibrium vapour pressures, not an on-the-fly Gibbs minimiser: log10 P_i = [sum nu_ij mu_j + nu_O2 mu0_O2 - mu0_i]/(RT ln 10) + nu_O2 log10 fO2, with melt oxide activities from a solution model (VapoRock Eq. 3). Ideal-mixing oxide activities (older MAGMA) differ by factors 3 to 10 and up to 300 for Si and K, so a generator that wants correct Na/K/SiO ratios needs tabulated outputs of a MELTS-based run, not ideal activities. Both published codes are copyleft (VapoRock AGPL-3.0, LavAtmos GPL-3.0): do not vendor the code; re-implement Eq. 3 with JANAF data, or run the codes offline and store the output tables (licensing of outputs is a decision for Boss).</p>
 <p>fO2 during congruent vaporisation of BSE ([R3943], used by VapoRock): dIW +4.5 at 1500 K falling to +1 at 3000 K (VapoRock Section 4.3, READ). VapoRock Table 3 (1900 K, relative to Na = 1, dIW +2.6 to +3.4): K/Na 0.126 (tholeiite), 0.247 (alkali basalt), 0.113 (komatiite), 1.53 (dunite), 0.435 (Bishop Tuff); Fe/Na 0.0138, 0.0076, 0.0173, 0.0087, 0.0052; Si/Na 0.0044, 0.0014, 0.0052, 0.0003, 0.0126; Mg/Na 1.8e-4 (tholeiite), 7.6e-4 (komatiite). Total pressure over BSE melt: about 1e-7 bar at 1500 K, about 1e-3 bar at 2200 K, about 0.1 bar at 3000 K ([R3943: Fig. 1]; Ito Fig. 1).</p>
 <p>Temperature classes ([R3059], komatiite, MAGMA): Type I below 2033 K (Na, O<sub>2</sub>, O, Fe); Type II 2033 to 2588 K (SiO above Fe); Type III 2588 to 2890 K (Mg above Fe); Type VI 2890 to 3168 K (SiO above O<sub>2</sub>); Type V above 3168 K (silicate oxide dominant). With MELTS-based codes the SiO-over-Na crossover moves down to 2700 to 2800 K for BSE.</p>
-<p>Mean molar mass of the vapor: 25 g/mol near 2000 K to 33 g/mol near 3000 K for BSE (F7 computation); use 34 g/mol for fractionated (Na-free) vapor [R2380]. These feed scale height and escape in the atmosphere lane.</p>
+<p>Mean molar mass of the vapour: 25 g/mol near 2000 K to 33 g/mol near 3000 K for BSE (F7 computation); use 34 g/mol for fractionated (Na-free) vapour [R2380]. These feed scale height and escape in the atmosphere lane.</p>
 <h3 id="f8-stored-quantities-and-δiw-parametrisation">F8 Stored quantities and ΔIW parametrisation</h3>
 <p>Stored per rocky planet (new): mantle dIW at the magma-ocean surface (H21 scale, reference T stated), mantle Fe3+/Fe-total (derived through F<sub>2</sub>), pressure at the base of the magma ocean or melt fraction (Maurice's Phi), H, C, N, S inventories as mass fractions of the silicate (Earth calibration only: Sossi H 0.01, C 0.01, N 0.0002 wt%), surface temperature; from part B: mantle oxides (SiO<sub>2</sub>, MgO, FeO, Fe<sub>2</sub>O<sub>3</sub> if kept, Al<sub>2</sub>O<sub>3</sub>, CaO, Na<sub>2</sub>O, K<sub>2</sub>O, TiO<sub>2</sub>, Cr<sub>2</sub>O<sub>3</sub>) and the melt NBO/O.</p>
 <p>Is there a published distribution of dIW per planet? No. What exists:</p>
@@ -629,7 +629,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Polluted white dwarfs (rocks accreted, dIW as at core formation)</td>
-<td>-1.17, -1.37, -1.14, -0.59, &lt; -1.21, -0.63 (six stars; the IAU proceedings version cites 15 and 16 stars in later papers, SNIPPET); most oxidized -0.6 would form no Fe core. Detection limit about -8 to -0.9</td>
+<td>-1.17, -1.37, -1.14, -0.59, &lt; -1.21, -0.63 (six stars; the IAU proceedings version cites 15 and 16 stars in later papers, SNIPPET); most oxidised -0.6 would form no Fe core. Detection limit about -8 to -0.9</td>
 <td>[R1154: Table S1]</td>
 <td>READ</td>
 </tr>
@@ -671,18 +671,18 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Parametrisation proposal (a parametrisation, not a published distribution; the shape and bounds are my choice and must be labelled so in the design): draw the dIW at the base of the magma ocean from a uniform distribution on about -4 to -1 (the Rubie to Siebert range, which brackets Deng's -2, -1.5, -2 and Maurice's tested -5, -2, 0), then add a pressure-dependent upward shift from Deng's profile (about +4 at 55 GPa, about +2.5 at 25 GPa, about +1.2 at 14 GPa, 0 at 5 GPa, read from the four points above; a fit needs Deng's Fig. 3 data) to get the surface dIW; then add a Gaussian scatter of sigma 0.3 to 0.4 dex for composition (Guimond). Allow an oxidized tail to about IW +3.5 (Earth's upper mantle today, Sossi and Deng) for crystallised mantles after hydrogen loss ([R1488] on Venus). Solar System values are calibration targets only (Earth +0.5 to +2.3 for the magma ocean on different scales, Mars -0.3 to +0.5, Moon -2).</p>
+<p>Parametrisation proposal (a parametrisation, not a published distribution; the shape and bounds are my choice and must be labelled so in the design): draw the dIW at the base of the magma ocean from a uniform distribution on about -4 to -1 (the Rubie to Siebert range, which brackets Deng's -2, -1.5, -2 and Maurice's tested -5, -2, 0), then add a pressure-dependent upward shift from Deng's profile (about +4 at 55 GPa, about +2.5 at 25 GPa, about +1.2 at 14 GPa, 0 at 5 GPa, read from the four points above; a fit needs Deng's Fig. 3 data) to get the surface dIW; then add a Gaussian scatter of sigma 0.3 to 0.4 dex for composition (Guimond). Allow an oxidised tail to about IW +3.5 (Earth's upper mantle today, Sossi and Deng) for crystallised mantles after hydrogen loss ([R1488] on Venus). Solar System values are calibration targets only (Earth +0.5 to +2.3 for the magma ocean on different scales, Mars -0.3 to +0.5, Moon -2).</p>
 <p>Consistency tests the TODO tree can assert: (1) for any stored dIW and T, f_CO2/f_CO and f_H2O/f_H2 equal the F3 table values within 1 percent; (2) element mass balance for H, C, N, S between melt, atmosphere and graphite closes to 1e-9; (3) F<sub>2</sub> round trip: Fe3+/Fe-total to dIW and back; (4) QFM minus IW is 3.1 to 3.7 at 1 bar for 1500 to 2200 K.</p>
 <h2 id="still-unreachable-boss-must-research">Still unreachable (Boss must research)</h2>
 <p>Ranked by effect on the generator.</p>
 <ol>
-<li>[R1954] Am. Min. 101:540, Table 2: Henry constants for CO, CO<sub>2</sub>, CH<sub>4</sub> in &quot;oxidized, reduced, very reduced&quot; melt. Only the first page (abstract) opened (<code>msaweb.org/MSA/AmMin/TOC/2016/Abstracts/AM101P0540.pdf</code>). Would give the constants behind Boss's three-regime scheme.</li>
+<li>[R1954] Am. Min. 101:540, Table 2: Henry constants for CO, CO<sub>2</sub>, CH<sub>4</sub> in &quot;oxidised, reduced, very reduced&quot; melt. Only the first page (abstract) opened (<code>msaweb.org/MSA/AmMin/TOC/2016/Abstracts/AM101P0540.pdf</code>). Would give the constants behind Boss's three-regime scheme.</li>
 <li>[R1224] Chem. Geol. 487:23: CO<sub>2</sub> solubility from fluid to graphite/diamond saturation, 950-1600 C, 0.05-3 GPa, FMQ-6 to FMQ+1.5. Constants and T-dependence needed for magma-ocean T; ScienceDirect refused.</li>
 <li>[R0153]:283 and [R0136]:52: confirm Eq. 10 (Armstrong) and Eqs. 7a, 8 with units (Ardia, my evaluation of the coded form gives only 20 ppm CH<sub>4</sub> at 1e4 bar, which looks low). ScienceDirect refused.</li>
 <li>[R1182]:115: CO<sub>2</sub> at graphite saturation versus NBO/T (0.4 to 0.9 wt% at IW+1.6, 1 GPa, 1600 C). Would test the NBO/T claim in G3.3a.</li>
 <li>[R1075] Supplementary Notes and Fig. 3 data: surface dIW versus magma-ocean base pressure, to fit the shift in F8.</li>
 <li>[R1953]-344:48 (magma ocean and early atmosphere), [R3943]:438, [R3942]:216 (MAGMA code and Io vaporisation), [R1120, R1121, R1122] original (Am. Min. 82:368; msaweb path 404). None has an arXiv version that was found.</li>
-<li>VapoRock journal reference (ApJ volume and page) and the VapoRock default fO2 grid. Fig. 4 partial pressures of BSE vapor are only in graphics: a data table (or a run of VapoRock) would replace my two-point mean molar mass.</li>
+<li>VapoRock journal reference (ApJ volume and page) and the VapoRock default fO2 grid. Fig. 4 partial pressures of BSE vapour are only in graphics: a data table (or a run of VapoRock) would replace my two-point mean molar mass.</li>
 <li>G3.2b: the study that gives dIW -1.4 to -4.7 for carbon, if it exists.</li>
 </ol>
 <h2 id="counts">Counts</h2>

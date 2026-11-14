@@ -35,12 +35,33 @@ LOG_COUNTING_WORDS="Stage Part Phase"
 LOG_COMPONENTS="update install warm tiles orbits generate queue web job activity command lib logs permissions cache-dir swap python-deps"
 # END generated vocabulary
 
+# SEC.48: `log_mask TEXT` writes TEXT with every key, token, password and credentialed address masked (the first 4 characters, the last 2 and
+# X's between; the same rules as util/secrets_mask.py, which does the work when Python is there). Text with nothing that looks like a secret
+# costs no process. With no Python, the secret itself is replaced by X's.
+log_mask() {
+    local text="$1"
+    if [[ "$text" != *"://"*@* ]] \
+            && [[ ! "$text" =~ ([Pp]ass(word|wd)?|[Tt]oken|[Ss]ecret|[Aa]pi[_-]?[Kk]ey|[Cc]redential|[Aa]uthorization)[\"\']?[[:space:]]*[=:] ]] \
+            && [[ ! "$text" =~ --[a-z-]*(password|passwd|token|secret) ]]; then
+        printf '%s' "$text"
+        return 0
+    fi
+    local py="${PYTHON:-python3}" masked
+    if masked="$("$py" -c "import sys; from planetgen.util import secrets_mask; sys.stdout.write(secrets_mask.mask_text(sys.argv[1]))" "$text" 2>/dev/null)" \
+            && [[ -n "$masked" ]]; then
+        printf '%s' "$masked"
+    else
+        printf '%s' "$text" | sed -E 's#(://[^/:@[:space:]]*:)[^/@[:space:]]+@#\1XXXXXX@#g; s#((pass(word|wd)?|token|secret|api[_-]?key)[a-z_-]*["'"'"']?[[:space:]]*[=:][[:space:]]*["'"'"']?)[^[:space:]"'"'"',;&]+#\1XXXXXX#Ig'
+    fi
+}
+
 log_record() {
     local severity="$1" message="$2" stamp upper line record
     [[ " $LOG_SEVERITIES " == *" $severity "* ]] || severity=info
     upper="$(printf '%s' "$severity" | tr '[:lower:]' '[:upper:]')"
     stamp="$(date '+%Y-%m-%d %H:%M:%S %Z')"
     while IFS= read -r line || [[ -n "$line" ]]; do
+        line="$(log_mask "$line")"
         # A warning or an error is kept for the closing summary (OPS.100): its first line only, the lines under it are its fix.
         if [[ -n "${LOG_WARNING_FILE:-}" && -w "${LOG_WARNING_FILE:-}" && " $LOG_STDERR_SEVERITIES " == *" $severity "* && "$line" != [[:space:]]* ]]; then
             printf '%s\n' "$line" >> "$LOG_WARNING_FILE"

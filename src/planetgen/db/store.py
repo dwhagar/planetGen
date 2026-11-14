@@ -70,6 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
+from planetgen.db import statementmark
 from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
@@ -77,7 +78,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import body_history, effect_ledger, isotope_record, ore_deposits
+from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -247,7 +248,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 21
+CONTROL_SCHEMA_VERSION = 22
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -258,7 +259,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -974,7 +975,8 @@ class Connection:
         traced = log.debug_log_active()
         start = time.perf_counter()
         try:
-            cur.execute(sql.replace("?", "%s"), params)
+            with statementmark.statement(sql):
+                cur.execute(sql.replace("?", "%s"), params)
         except Exception as exc:
             if isinstance(exc, pymysql.err.OperationalError) and exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
                 # PERF.64: the page only says "took too long"; the log says which statement.
@@ -1127,13 +1129,15 @@ class Connection:
                         1153, f"A {table} row of {row_size} bytes doesn't fit the server's "
                               f"max_allowed_packet ({budget + _PACKET_MARGIN} bytes); nothing was sent for it")
                 if chunk and (len(chunk) >= _BATCH_ROWS or size + row_size > budget):
-                    cur.execute(head + ",".join(chunk))
+                    with statementmark.statement(head):
+                        cur.execute(head + ",".join(chunk))
                     statements += 1
                     chunk, size = [], len(head)
                 chunk.append(text)
                 size += row_size
             if chunk:
-                cur.execute(head + ",".join(chunk))
+                with statementmark.statement(head):
+                    cur.execute(head + ",".join(chunk))
                 statements += 1
         if log.debug_log_active():
             log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
@@ -1153,7 +1157,8 @@ class Connection:
         cur = self._conn.cursor()
         rows = list(seq_of_params)
         start = time.perf_counter()
-        cur.executemany(sql.replace("?", "%s"), rows)
+        with statementmark.statement(sql):
+            cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
             log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
                       f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
@@ -1168,7 +1173,8 @@ class Connection:
         self.flush()
         cur = self._conn.cursor()
         start = time.perf_counter()
-        cur.execute(sql)
+        with statementmark.statement(sql):
+            cur.execute(sql)
         if log.debug_log_active():
             log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
                       area="sql", stacklevel=3)
@@ -1196,7 +1202,8 @@ class Connection:
             if statement:
                 if log.debug_log_active():
                     log.trace(f"SQL script statement: {statement[:200]}", area="sql")
-                self._conn.cursor().execute(statement)
+                with statementmark.statement(statement):
+                    self._conn.cursor().execute(statement)
         self._conn.commit()
 
     def lock_until_commit(self, name, timeout_s=NAMED_LOCK_TIMEOUT_S):
@@ -1270,7 +1277,8 @@ class Connection:
             try:
                 callback()
             except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
-                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
+                name = getattr(callback, "__qualname__", None) or repr(callback)       # OPS.164: which step, and where it broke
+                log.exception(f"After-commit step {name} failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -1559,6 +1567,32 @@ def _schema_counts(conn, name):
     return {"sector_count": sectors, "system_count": systems}
 
 
+def _is_listed(base_config, name, prefix=None):
+    """
+    Whether `list_databases(base_config, prefix=prefix)` would offer schema `name`, asked with one query for the names and not the
+    listing's size query per schema (a request with `?db=` resolved its schema this way on every call, and each of the server's schemas
+    cost one `information_schema.tables` scan: 142 scans, 0.5 s a request, on a server with 147 test schemas; the pages that fetch a dozen
+    stages to draw one view took 20 s). The match is the listing's: the prefix, not the control schema, and the name exactly as written. The name
+    is compared here, not in SQL: a hostile `?db=` with a character the column's collation cannot mix would be a server error, and the server's
+    collation may fold case.
+    """
+    prefix = prefix or get_settings().mysql.database_prefix
+    conn = get_connection(
+        MySQLConfig(host=base_config.host, port=base_config.port,
+                    user=base_config.user, password=base_config.password, database=""),
+        ensure_schema=False,
+    )
+    try:
+        rows = conn.execute(
+            "SELECT schema_name AS name FROM information_schema.schemata "
+            "WHERE schema_name LIKE ? ESCAPE '\\\\' AND schema_name <> ?",
+            (f"{escape_like(prefix)}%", configured_control_database()),
+        ).fetchall()
+        return any(row["name"] == name for row in rows)
+    finally:
+        conn.close()
+
+
 def resolve_database(base_config, name, prefix=None):
     """
     Validates a database name supplied by a caller (e.g. a web request's
@@ -1586,7 +1620,7 @@ def resolve_database(base_config, name, prefix=None):
     """
     if not name:
         raise ValueError("No database specified.")
-    if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
+    if not _is_listed(base_config, name, prefix):
         raise ValueError(f"No such database: {name!r}")
     tables = _table_names(base_config, name)
     if "sectors" not in tables:
@@ -2970,7 +3004,7 @@ BODY_FIELDS = (
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
-    object_rows.each(body_strength.FIELDS),
+    object_rows.each(body_strength.BODY_FIELDS),
     object_rows.each(planet_type.FIELDS),
     object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
@@ -2986,8 +3020,11 @@ PLANET_ONLY_FIELDS = tuple(
     for axis in "xyz") + (
     object_rows.attr("sky_suns"),       # GEN.1458: the other suns of a planet's sky; the re-score reads it back, as generation read it
     object_rows.attr("light_factor"),   # GEN.1484: the share of its light a circumbinary planet keeps
+    object_rows.attr("obliquity_min_deg"),   # GEN.1535: the lowest tilt its axis reaches over the age of its star
+    object_rows.attr("obliquity_max_deg"),   # GEN.1535: the highest
+    object_rows.attr("belt_order"), object_rows.attr("belt_rank"),     # GEN.1510: the belt a promoted body came from and its rank in it
 )
-"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons)."""
+"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons; a moon is no belt body)."""
 
 PLANET_BODY_FIELDS = BODY_FIELDS + PLANET_ONLY_FIELDS
 
@@ -3736,26 +3773,9 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         ),
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
-    _store_nebula_shape(conn, cur.lastrowid, nebula)
     store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
-
-
-def _store_nebula_shape(conn, nebula_id, nebula):
-    """Writes `nebula`'s shape (GEN.75) to its row's `shape_*` columns and to
-    `nebula_shape_balls`."""
-    from planetgen.galaxy import nebula_shape
-
-    scalars, balls = nebula_shape.to_columns(nebula.get_shape())
-    sets = ", ".join(f"{column} = ?" for column in scalars)
-    conn.execute(f"UPDATE nebulae SET {sets} WHERE id = ?", (*scalars.values(), nebula_id))
-    storage_checksum.mark_rows(conn, "nebulae", [nebula_id])
-    conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
-    for ball in balls:
-        conn.execute(
-            "INSERT INTO nebula_shape_balls (nebula_id, ball_index, center_x, center_y, center_z, radius)"
-            " VALUES (?, ?, ?, ?, ?, ?)", (nebula_id, *ball))
 
 
 def _placement_values(placement):
@@ -3887,7 +3907,6 @@ ROGUE_PLANET_FIELDS = (
     object_rows.optional("planet_class"), object_rows.attr("mass_bin"), object_rows.attr("mass_kg"),
     object_rows.attr("radius_km"), object_rows.attr("composition"),
     object_rows.computed("has_internal_heat", lambda planet, context: int(planet.has_internal_heat)),
-    object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
     object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
     object_rows.each(rogue_habitability.ROGUE_FIELDS),
     object_rows.each(rings.BODY_FIELDS),  # GEN.836
@@ -3922,7 +3941,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
 ROGUE_HOST_ONLY_COLUMNS = frozenset({
     "distance_km", "period_years", "zone", "hill_radius_km", "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity", "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
-    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", *_VELOCITY_COLUMNS})
+    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "belt_order", "belt_rank", *_VELOCITY_COLUMNS})
 """frozenset: The `planets` columns that are the orbit round a host (GEN.1111): a rogue planet has no host, so its `velocity_*_kms` is the galaxy-frame movement (`_FREE_VECTOR_FIELD`)."""
 
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
@@ -4740,6 +4759,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     with object_rows.logged_rows() as saved:
         star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
         insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
+        stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code
         insert_body_history(conn, star_system_id, star_system, saved)
     return star_system_id
 
@@ -5093,16 +5113,17 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
     """
     Every placed nebula and supernova remnant whose sphere can reach the box
     `low`-`high` (galaxy-frame parsecs, each an `(x, y, z)`), padded by
-    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`.
+    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`, and for a nebula `inside` (the density contour, GEN.1267).
     """
     containers = []
+    galaxy = _lazy_galaxy(conn)
     for table, column in CONTAINER_TABLES:
         max_row = conn.execute(f"SELECT MAX(radius_ly) AS r FROM {table} WHERE center_x_pc IS NOT NULL").fetchone()
         if max_row["r"] is None:
             continue
         pad = ly_to_pc(max_row["r"]) + reach_pc
         rows = conn.execute(
-            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly FROM {table}"
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly{', nebula_class' if table == 'nebulae' else ''} FROM {table}"
             " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
             (low[0] - pad, high[0] + pad, low[1] - pad, high[1] + pad, low[2] - pad, high[2] + pad),
         ).fetchall()
@@ -5113,25 +5134,23 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
                 "radius_pc": ly_to_pc(row["radius_ly"]),
             }
             if table == "nebulae":
-                container["shape"] = _lazy_nebula_shape(conn, row["id"])
+                container["inside"] = containment.contour_test(galaxy, row["nebula_class"], container["center"], container["radius_pc"])
             containers.append(container)
     return containers
 
 
-def _lazy_nebula_shape(conn, nebula_id):
-    """A function returning nebula `nebula_id`'s `NebulaShape` (GEN.75),
-    loaded on the first call: most containers never see a point inside
-    their sphere."""
+def _lazy_galaxy(conn):
+    """A function giving the galaxy's `(seed, shape)` for the density contour of a nebula (GEN.1267), read on the first call (building the skeleton
+    takes a while and most containers never see a point inside their sphere), or `None` for a database never planned, whose nebulae are spheres."""
     loaded = []
 
-    def shape():
+    def galaxy():
         if not loaded:
-            from planetgen.db import query
-
-            loaded.append(query.nebula_shape(conn, nebula_id)[1])
+            skeleton = get_galaxy_shape(conn)
+            loaded.append(None if skeleton is None else (skeleton.galaxy_seed, skeleton.shape))
         return loaded[0]
 
-    return shape
+    return galaxy
 
 
 def refresh_containment(conn, sector_ids, on_progress=None):
@@ -5349,13 +5368,66 @@ def stamp_habitability(conn, system_ids):
         conn (Connection): Part of the caller's transaction.
         system_ids (iterable): `star_systems` ids.
     """
-    stamp = derived_stamp.current("habitability")
+    _stamp_family(conn, "habitability", system_ids)
+
+
+def stamp_ledger(conn, system_ids):
+    """
+    GEN.1498: records that the light and ultraviolet rows of the effect ledger of the systems `system_ids` were written by the running code
+    (`derived_stamp.current("ledger")`), so `refill-effect-ledger` leaves them alone. Called where the rows are written for a whole system: the save
+    of a new one and `refresh_effect_ledger`.
+    """
+    _stamp_family(conn, "ledger", system_ids)
+
+
+def _stamp_family(conn, family, system_ids):
+    """Writes the running code's stamp of `family` into `system_summary` for the systems `system_ids`."""
+    column = derived_stamp.STAMP_COLUMNS[family]
+    stamp = derived_stamp.current(family)
     ids = sorted(set(system_ids))
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
-        conn.execute("INSERT INTO system_summary (star_system_id, habitability_stamp) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + " ON DUPLICATE KEY UPDATE habitability_stamp = VALUES(habitability_stamp)",
+        conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
+                     + ", ".join("(?, ?)" for _ in chunk) + f" AS written ON DUPLICATE KEY UPDATE {column} = written.{column}",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
+
+
+def ledger_ids(system):
+    """`id(object)` to `(table, row id)` for the stars, planets and moons of a loaded `system`, the form `EffectLedger.rows` takes."""
+    ids = {}
+    for star in system.stars:
+        if getattr(star, "db_id", None) is not None:
+            ids[id(star)] = ("stars", star.db_id)
+    for planet in system.all_planets:
+        if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
+            ids[id(planet)] = ("planets", planet.db_id)
+        for moon in getattr(planet, "moons", ()):
+            if getattr(moon, "db_id", None) is not None:
+                ids[id(moon)] = ("moons", moon.db_id)
+    return ids
+
+
+def refresh_effect_ledger(conn, system_id):
+    """
+    GEN.1498: writes again the light and ultraviolet rows of one stored system's effect ledger (`physics/light_ledger.py`) at the floor of the running code
+    (`tuning.EFFECT_LEDGER_FLOOR`) and stamps the system. The rows of the other effects (tide, heating, secular, precession, eccentricity) are not touched: only the code that wrote
+    them can say what they were. The distance a body's light is made on is worked out from its stored orbit (`light_ledger.stored_distance_au`), so a row may differ from the one
+    generation wrote in its last digits and never in its sources. Nothing but the ledger and its stamp is written.
+
+    Returns:
+        int: The rows written.
+    """
+    system = load_star_system(conn, system_id)
+    ledger = effect_ledger.EffectLedger()
+    light_ledger.fill(ledger, system.all_planets, lambda body, planet: light_ledger.stored_distance_au(body, None if body is planet else planet))
+    rows = ledger.rows(system_id, ledger_ids(system))
+    codes = tuple(effect_ledger.EFFECT_CODES[name] for name in light_ledger.EFFECT_NAMES)
+    conn.execute(f"DELETE FROM effect_ledger WHERE star_system_id = ? AND effect IN ({', '.join('?' for _ in codes)})", (system_id, *codes))
+    columns = effect_ledger.ROW_FIELDS
+    if rows:
+        conn.executemany(f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})", [tuple(row[name] for name in columns) for row in rows])
+    stamp_ledger(conn, [system_id])
+    return len(rows)
 
 
 def refresh_habitability(conn, system_id):
@@ -7757,11 +7829,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()
@@ -10818,8 +10892,8 @@ def _advance_body_states(conn, clock, table, scale, budget=None):
         stepped, status = state_kernel.step_many(states, mus, clock.end_unix - epoch)
         failed = status != state_kernel.OK
         for index in np.flatnonzero(failed):
-            log.error(f"{table} {ids[index]}: the orbital step did not move it (status {int(status[index])}); "
-                      f"its state and epoch are kept")
+            log.error(f"The orbital step did not move a body of {table} (status {int(status[index])}), so its state and epoch are kept.",
+                      object_id=str(ids[index]))
         new_epoch = np.where(failed, epoch, clock.end_unix)
         speed = np.sqrt(stepped[:, 3] ** 2 + stepped[:, 4] ** 2 + stepped[:, 5] ** 2)
         with np.errstate(divide="ignore"):
