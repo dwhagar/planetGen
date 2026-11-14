@@ -159,3 +159,67 @@ def test_the_list_of_acts_keeps_only_the_newest_twenty(conn):
         store.note(float(number), f"act {number}")
     recent = supervisor.overview(conn)["recent"]
     assert len(recent) == supervisor.RECENT_KEPT and recent[0]["what"] == "act 29"
+
+
+class FakeStart:
+    def __init__(self, fail_on=None):
+        self.calls, self.fail_on = [], fail_on
+
+    def __call__(self, queue_name, connection, url, mysql_host, count):
+        if queue_name == self.fail_on:
+            raise OSError("no fork")
+        self.calls.append((queue_name, url, mysql_host, count))
+        return 2
+
+
+def test_an_ask_for_workers_is_left_for_the_supervisor_which_acts_on_it_once_and_the_later_ask_wins(conn):
+    supervisor.nudge(conn, "bulk", url="redis://x", count=4)
+    supervisor.nudge(conn, "bulk", url="redis://x", count=6)
+    supervisor.nudge(conn, "maintenance", url="redis://x")
+    assert conn.hlen(supervisor.nudges_key()) == 2
+    assert supervisor.RedisStore(conn).busy(), "an ask not acted on yet is something to do: the supervisor does not end"
+    start = FakeStart()
+    starts = supervisor.WorkerStarts(conn, start=start)
+    assert starts.turn() == 4
+    assert sorted(start.calls) == [("bulk", "redis://x", None, 6), ("maintenance", "redis://x", None, None)]
+    assert starts.turn() == 0 and conn.hlen(supervisor.nudges_key()) == 0, "taken and cleared: not acted on twice"
+
+
+def test_one_queues_failed_start_leaves_the_others_and_never_stops_the_turn(conn):
+    supervisor.nudge(conn, "bulk")
+    supervisor.nudge(conn, "maintenance")
+    start = FakeStart(fail_on="bulk")
+    assert supervisor.WorkerStarts(conn, start=start).turn() == 2
+    assert [call[0] for call in start.calls] == ["maintenance"]
+
+
+@pytest.mark.real_queue
+def test_ensure_workers_only_leaves_an_ask_and_start_workers_is_what_the_supervisor_calls(conn, monkeypatch):
+    called = []
+    monkeypatch.setattr(workers, "start_workers", lambda *args, **kwargs: called.append(args) or 3)
+    assert workers.ensure_workers("planetgen-bulk", conn, count=2) == 0
+    assert called == [], "a caller starts nothing itself"
+    assert conn.hlen(supervisor.nudges_key()) == 1
+    assert supervisor.WorkerStarts(conn).turn() == 3 and called and called[0][0] == "planetgen-bulk"
+    conn.delete(supervisor.nudges_key())
+
+
+def test_the_supervisor_runs_each_of_its_duties_every_turn_and_one_failing_does_not_stop_the_others():
+    clock = FakeClock()
+    seen = []
+
+    class Duty:
+        def __init__(self, name, fail=False):
+            self.name, self.fail = name, fail
+
+        def turn(self):
+            seen.append(self.name)
+            if self.fail:
+                raise ConnectionError("down")
+
+        def clear(self):
+            seen.append("clear " + self.name)
+
+    loop, _ = _supervisor(clock, FakeStore(busy=lambda now: True, clock=clock), duties=(Duty("a", fail=True), Duty("b")))
+    loop.run(max_turns=2)
+    assert seen == ["a", "b", "a", "b", "clear a", "clear b"]

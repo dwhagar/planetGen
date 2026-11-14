@@ -138,7 +138,7 @@ def test_a_generate_command_offered_during_the_update_does_not_start(updating, m
 
 def test_the_workers_take_no_job_during_the_update(updating, capsys):
     from planetgen.cli import worker
-    assert workers.ensure_workers("planetgen-bulk", connection=object(), url="redis://never") == 0
+    assert workers.start_workers("planetgen-bulk", connection=object(), url="redis://never") == 0
     assert worker.main(["planetgen-bulk", "--burst"]) == updateguard.EX_TEMPFAIL
     assert "A worker can't start" in capsys.readouterr().err
 

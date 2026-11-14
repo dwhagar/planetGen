@@ -41,7 +41,7 @@ def lane(redis_server, key_prefix, monkeypatch):
         worker.register_death()
         connection.delete(workers.LENT_PREFIX + worker.name)
     redisqueue.queue(redisqueue.BULK_QUEUE, connection).empty()
-    connection.delete(workers.STARTING_PREFIX + redisqueue.BULK_QUEUE, workers.DECIDING_KEY)
+    connection.delete(workers.STARTING_PREFIX + redisqueue.BULK_QUEUE)
 
 
 def host(available=8000.0):
@@ -87,9 +87,9 @@ def test_ensure_workers_starts_no_more_than_the_limit(lane):
         redisqueue.queue(redisqueue.BULK_QUEUE, connection).enqueue(os.getpid, job_timeout=600)
     runrecord.start_run(connection, "Fill", [runrecord.Stage("mass", "Mass", units=200)])
     connection.hset(adaptive._key("state"), mapping={"limit": 4, "lowered_at": adaptive.time.time()})
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 0         # six wanted, but the limit holds it at the four it has
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0         # six wanted, but the limit holds it at the four it has
     connection.delete(adaptive._key("state"))
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 2
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 2
 
 
 def test_a_host_under_pressure_lowers_the_limit_before_any_job_has_waited(lane):
