@@ -61,6 +61,16 @@ sensible pool (the 2 million-object ceiling's 95% of 64 cores) busy to the end."
 FAILED_KEEP_SECONDS = 86400
 """int: How long RQ keeps a failed unit's job."""
 
+ENDED_CONCLUDED = "concluded"
+ENDED_QUEUED = "queued"
+"""str: What `runrecord.ended_key` holds as the end of a stage gets on (OPS.186): its conclusion is done, then the next opening is queued."""
+
+ENDING_LEASE_SECONDS = 1800
+"""int: How long the process that ends a stage holds the lease (`runrecord.ending_key`) against a second attempt; a kill with a retry left frees it (`horse_killed`)."""
+
+OPEN_TRIES = 4
+"""int: How many times the queuing of an opening is tried before the run fails (a Redis hiccup is not the run's end)."""
+
 POLL_SECONDS = 0.25
 """float: How often `follow_stage` reads the run."""
 
@@ -175,7 +185,12 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
     """
     conn = rq.get_current_job().connection
     state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
-    if runrecord._s(state) != "running" or conn.sismember(runrecord.done_key(run_id, stage), unit):
+    if runrecord._s(state) != "running":
+        return {"skipped": True}
+    if conn.sismember(runrecord.done_key(run_id, stage), unit):
+        if stage_unended(conn, run_id, stage):          # OPS.186: the attempt that finished the stage was killed before it queued the next opening
+            repair_unended_stages(conn, run_id)
+            return {"resumed": True}
         return {"skipped": True}
     fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))      # GEN.599: the run's own switch, in every worker
     wanted = runrecord._s(debug)
@@ -261,16 +276,71 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     return {"seconds": seconds}
 
 
-def _end_stage(conn, run_id, stage, wrapper):
+def stage_unended(conn, run_id, stage):
+    """OPS.186: whether `stage` was completed (its `advanced` flag is set) and its end has not queued the next opening: the state a kill or a failure in the end leaves."""
+    return bool(conn.exists(runrecord.advanced_key(run_id, stage))) and runrecord._s(conn.get(runrecord.ended_key(run_id, stage))) != ENDED_QUEUED
+
+
+def unended_stages(conn, run_id):
+    """OPS.186: the stages of a live run that were completed and whose end has not queued the next opening, in order (what the reconciler of OPS.210 looks for)."""
+    if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
+        return []
+    count = len(json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")) or "[]"))
+    return [stage for stage in range(count) if stage_unended(conn, run_id, stage)]
+
+
+def repair_unended_stages(conn, run_id, wrapper=None):
+    """
+    OPS.186: finds the stages of the run that finished and did not advance and ends each (`_end_stage`: concludes what was not concluded, queues the opening
+    that was not queued, and only that). The retry of a killed unit calls it for its stage (`run_unit`), and the supervisor's reconciler (OPS.210) calls it for
+    every live run, so a stage whose end was lost is never waited on for ever.
+
+    Returns:
+        list: The indexes of the stages it ended.
+    """
+    if wrapper is None:
+        from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
+    repaired = unended_stages(conn, run_id)
+    for stage in repaired:
+        _end_stage(conn, run_id, stage, wrapper)
+    return repaired
+
+
+def _end_stage(conn, run_id, stage, wrapper, sleep=time.sleep):
     """
     What the unit that completes `stage` does for the run (PERF.172): the command's conclusion, the stage's
     statistics, and the queuing of the next stage's opening (`enqueue_open`). A failure in the conclusion is the run's failure, said at
     once with the stage named; left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage
     nobody queues.
+
+    OPS.186: idempotent and resumable. `runrecord.ended_key` says how far it got (`ENDED_CONCLUDED`, `ENDED_QUEUED`), so the retry of a unit
+    whose horse was killed here (`run_unit`) goes on from there and never concludes twice or queues the opening twice, and the queuing is tried
+    `OPEN_TRIES` times before it fails the run (`unit_failed` fails it loudly, with the stage named, when the opening is still not queued). A lease
+    keeps a second attempt from ending the stage beside the first.
     """
-    wrapper.conclude_and_finish_stage(conn, run_id, stage)
-    queue_name = wrapper.queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")))
-    enqueue_open(conn, run_id, stage + 1, queue_name)
+    lease = runrecord.ending_key(run_id, stage)
+    if not conn.set(lease, os.getpid(), nx=True, ex=ENDING_LEASE_SECONDS):
+        return                      # another attempt is ending this stage
+    try:
+        progress = runrecord._s(conn.get(runrecord.ended_key(run_id, stage)))
+        if progress == ENDED_QUEUED:
+            return
+        if progress != ENDED_CONCLUDED:
+            wrapper.conclude_and_finish_stage(conn, run_id, stage)
+            conn.set(runrecord.ended_key(run_id, stage), ENDED_CONCLUDED, ex=runrecord.KEEP_SECONDS)
+        queue_name = wrapper.queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")))
+        for attempt in range(OPEN_TRIES):
+            try:
+                enqueue_open(conn, run_id, stage + 1, queue_name)
+                break
+            except Exception as exc:        # noqa: BLE001 -- a Redis hiccup is tried again; the last one is raised
+                if attempt == OPEN_TRIES - 1:
+                    raise
+                log.warning(f"Run {run_id}: queuing the opening of stage {stage + 1} failed ({type(exc).__name__}: {exc}); trying again.")
+                sleep(0.5 * 2 ** attempt)
+        conn.set(runrecord.ended_key(run_id, stage), ENDED_QUEUED, ex=runrecord.KEEP_SECONDS)
+    finally:
+        conn.delete(lease)
 
 
 def open_job_id(run_id, index):
@@ -301,7 +371,7 @@ def open_stage(run_id, index):
     """
     conn = rq.get_current_job().connection
     state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
-    if runrecord._s(state) != "running":
+    if runrecord._s(state) != "running" or conn.exists(runrecord.opened_key(run_id, index)):
         return {"skipped": True}
     fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))
     wanted = runrecord._s(debug)
@@ -319,6 +389,7 @@ def _open_stage(conn, run_id, index):
         runrecord.finish_run(conn, run_id, "failed", error=f"stage {wrapper.stage_label(conn, run_id, index)} could not "
                                                            f"start: {type(exc).__name__}: {exc}")
         raise
+    conn.set(runrecord.opened_key(run_id, index), 1, ex=runrecord.KEEP_SECONDS)     # OPS.187: from here a failure RQ reports for this job is not the run's
     log.flush_relayed()
     return {"opened": True}
 
@@ -328,6 +399,9 @@ def open_failed(job, connection, exc_type, exc_value, _traceback):
     unless the run has ended already."""
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     run_id, index = job.args[:2]
+    if connection.exists(runrecord.opened_key(run_id, index)):       # OPS.187: the cut was finished; RQ's own housekeeping failed after it
+        log.debug(f"The opening of stage {index} of run {run_id} was done when RQ failed it ({exc_type.__name__}: {exc_value}); the run goes on.")
+        return
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"stage {wrapper.stage_name(connection, run_id, index)} could not start: {exc_type.__name__}: {exc_value}")
     requires.job_failed(job, connection, exc_type, exc_value)
@@ -412,9 +486,13 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     when it cleaned up): its sector or shells are saved, so the run goes on."""
     run_id, stage, unit = job.args[:3]
     if connection.sismember(runrecord.done_key(run_id, stage), unit):
-        log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
-                  f"{exc_value}); the run goes on.")
-        return
+        unended = stage_unended(connection, run_id, stage) and runrecord._s(connection.hget(runrecord.run_key(run_id), "state")) == "running"
+        if not unended or (getattr(job, "retries_left", None) or 0) > 0:
+            # OPS.186: with the stage's end unfinished, a retry left is what finishes it (`run_unit` resumes it); with none left the run fails below
+            log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
+                      f"{exc_value}); the run goes on.")
+            return
+        exc_value = f"{exc_value} (the stage was finished but the opening of the next could not be queued)"
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     stage_name = wrapper.stage_name(connection, run_id, stage)
     # OPS.162: the failure reaches error.log with the run, stage, unit and kind beside the traceback (RQ's own copy has none of them)
@@ -452,6 +530,8 @@ def horse_killed(job, retpid, ret_val, _rusage):
         log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {note['claimed_mb']:,.0f} MB (most seen {note['peak_mb']:,.0f} MB); "
                     + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))
         if retry:
+            if job.func_name == UNIT_FUNCTION:
+                conn.delete(runrecord.ending_key(job.args[0], job.args[1]))     # OPS.186: the lease of the end this horse was in, so the retry can finish it
             return
     if job.func_name == UNIT_FUNCTION:
         run_id, stage, unit = job.args[:3]
