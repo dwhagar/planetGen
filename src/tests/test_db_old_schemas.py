@@ -1,8 +1,8 @@
 # tests/test_db_old_schemas.py
 
 """
-TEST.8: every checked-in old galaxy schema (`fixtures/old_schemas/`, the
-Alembic baseline v130 and later) migrates to the current version and ends up
+TEST.8: every checked-in old galaxy schema (`fixtures/old_schemas/`: the
+Alembic baseline v130 and the newest three versions below the current one, TEST.729) migrates to the current version and ends up
 exactly the shape `schema.sql` gives a new database: the same tables,
 columns (type, nullability, default), indexes, foreign keys and CHECKs.
 Starting from the real old schema, not a new database with columns
@@ -39,10 +39,15 @@ def fresh_snapshot(beside):
     return _fresh_snapshots[server]
 
 
-def test_every_version_before_the_current_one_has_a_fixture():
+KEEP_NEWEST = 3
+"""int: How many of the versions just below the current one keep a fixture (TEST.729); the baseline keeps its own."""
+
+
+def test_the_baseline_and_the_newest_versions_have_a_fixture():
     versions = old_schema_versions()
     assert versions[0] == alembic_runner.BASELINE_VERSION
-    assert set(range(alembic_runner.BASELINE_VERSION, store.SCHEMA_VERSION)) <= set(versions)
+    newest = range(max(alembic_runner.BASELINE_VERSION + 1, store.SCHEMA_VERSION - KEEP_NEWEST), store.SCHEMA_VERSION)
+    assert set(newest) <= set(versions)
 
 
 @pytest.mark.parametrize("version", old_schema_versions())

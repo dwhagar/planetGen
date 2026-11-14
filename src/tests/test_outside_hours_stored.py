@@ -14,7 +14,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import outside_hours
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
@@ -87,22 +86,3 @@ def test_every_limit_has_words_for_a_page_and_the_sheet_lists_the_rows():
         assert sheet._value(keys["outside_hours_limit"], "planets", "uv") == [outside_hours.LIMIT_WORDS["uv"]]
         assert sheet._value(keys["outside_hours_limit"], "planets", None) == [sheet.NOT_STORED]
     assert not sheet.applies("planet", "J", "outside_hours_day") and sheet.applies("planet", "M", "outside_hours_day")
-
-
-def test_a_v186_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, 186)
-    assert store.schema_status(mysql_config)[0] == 186
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert not conn.execute("SHOW COLUMNS FROM " + table + " LIKE 'outside_hours_day'").fetchall()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            for column in FIELDS:
-                assert conn.execute("SHOW COLUMNS FROM " + table + " LIKE ?", (column,)).fetchall(), (table, column)
-    finally:
-        conn.close()

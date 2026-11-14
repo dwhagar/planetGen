@@ -13,17 +13,15 @@ import math
 
 import pytest
 
-from planetgen import tuning
 from planetgen.db import alembic_runner, store
-from planetgen.galaxy import nebula_field, superbubble_field
+from planetgen.galaxy import nebula_field
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import run_galaxy, run_plan
 from planetgen.physics import nebula_columns as nc
-from tests.db_schema_support import load_old_schema
 from tests.test_nebula_field import SHAPE
+from tests.test_phenomenon_scatter import _scatter_args
 from tests.test_nebula_field_table import (EDGE_PC, EXTENTS, REACH_PC, _centers, _seed, _seed_galaxy, _sectors, _table, no_superbubbles,  # noqa: F401  (fixtures)
                                            plenty_of_clouds)  # noqa: F401
-from tests.test_phenomenon_scatter import _scatter_args
 
 pytestmark = pytest.mark.db
 
@@ -125,19 +123,3 @@ def test_migration_0215_gives_a_cleared_table_the_numbers_the_plan_wrote_and_a_s
         assert [now[column] for column in nc.FIELD_COLUMNS] == pytest.approx([was[column] for column in nc.FIELD_COLUMNS], nan_ok=True)
     _engine_fill(mysql_config, monkeypatch)
     assert [[row[column] for column in nc.FIELD_COLUMNS] for row in _table(mysql_config)] == [[row[column] for column in nc.FIELD_COLUMNS] for row in filled]
-
-
-@pytest.mark.fresh_database
-def test_migration_0215_fills_the_rows_of_a_v214_galaxy_that_has_no_skeleton(mysql_config):
-    load_old_schema(mysql_config, 214)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert not conn.execute("SHOW COLUMNS FROM nebula_field LIKE 'mass_fraction_h'").fetchall()
-        conn.execute("INSERT INTO nebula_field (cell_i, cell_j, cell_k, n, nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc)"
-                     " VALUES (16, 0, 0, 0, 'N', 20.0, 810.0, 25.0, 3.0)")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    row = _table(mysql_config)[0]
-    assert row["mass_fraction_h"] > 0.0 and row["mass_fraction_h"] + row["mass_fraction_he"] + row["mass_fraction_z"] == pytest.approx(1.0, abs=1e-5)

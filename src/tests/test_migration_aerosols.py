@@ -13,7 +13,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import aerosols
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
@@ -91,20 +90,3 @@ def test_a_saved_system_keeps_its_aerosols(mysql_config):
     finally:
         conn.rollback()
         conn.close()
-
-
-def test_a_v137_galaxy_keeps_its_bodies_with_no_aerosol(mysql_config):
-    load_old_schema(mysql_config, 137)
-    assert store.schema_status(mysql_config)[0] == 137
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            found = conn.execute("SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
-                                 " AND TABLE_NAME = ? AND COLUMN_NAME IN ('tau_haze', 'tau_dust', 'tau_cloud', 'cloud_cover', 'aerosol_draw')", (table,)).fetchall()
-            assert sorted(row["COLUMN_NAME"] for row in found) == sorted(aerosols.BODY_FIELDS)
-            assert all(row["IS_NULLABLE"] == "YES" and row["DATA_TYPE"] == "double" for row in found)
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()
-    assert aerosols.of_body(type("Old", (), {})()) == aerosols.NONE

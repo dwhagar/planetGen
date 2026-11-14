@@ -14,7 +14,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import daylight, day_night
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
@@ -115,22 +114,3 @@ def test_the_sheet_lists_the_state_the_hours_of_night_and_the_days_in_a_year():
         assert keys["night_hours"].label == "Hours of night in a solar day, equator"
         assert keys["days_per_year"].label == "Solar days in one year"
         assert sheet._value(keys["day_night_state"], "planets", "tidally locked") == ["Tidally locked"]
-
-
-def test_a_v192_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, 192)
-    assert store.schema_status(mysql_config)[0] == 192
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert not conn.execute("SHOW COLUMNS FROM " + table + " LIKE 'day_night_state'").fetchall()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            for column in FIELDS:
-                assert conn.execute("SHOW COLUMNS FROM " + table + " LIKE ?", (column,)).fetchall(), (table, column)
-    finally:
-        conn.close()

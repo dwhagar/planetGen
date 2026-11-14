@@ -10,7 +10,6 @@ import pytest
 from planetgen.api.config import Config
 from planetgen.db import chart_ledger, query, store, uncharted_index
 from planetgen.web.app import create_app
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.db
 
@@ -147,26 +146,6 @@ def test_the_api_lists_the_made_cells_only_when_asked(galaxy):
     assert client.get("/api/sectors?limit=50").get_json()["total"] == 1
     body = client.get("/api/sectors?limit=50&coverage=uncharted").get_json()
     assert body["total"] == 4 and body["uncharted_total"] == 4 and body["empty_total"] == 0
-
-
-@pytest.mark.fresh_database
-def test_the_migration_makes_the_rows_of_a_galaxy_scattered_before_it(mysql_config):
-    load_old_schema(mysql_config, 225)
-    assert store.schema_status(mysql_config)[0] == 225
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        _star(conn, STAR_CELL)
-        _scatter(conn, SCATTER_CELL, built=False)
-        _scatter(conn, BUILT_SCATTER_CELL, built=True)
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert _addresses(conn) == {STAR_CELL, SCATTER_CELL}
-    finally:
-        conn.close()
 
 
 def test_a_placeholder_does_not_count_as_a_charted_sector_for_the_seed_guard(galaxy):

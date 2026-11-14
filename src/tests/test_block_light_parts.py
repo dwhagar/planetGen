@@ -10,7 +10,6 @@ import struct
 import pytest
 
 from planetgen.db import block_lights, store, uncharted_index
-from tests.db_schema_support import load_old_schema
 from tests.test_block_lights import _stored
 
 pytestmark = pytest.mark.db
@@ -165,25 +164,6 @@ def test_the_uncharted_index_takes_its_cells_from_the_parts(conn):
     assert uncharted_index.shells_with_objects(conn, from_parts=True) == uncharted_index.shells_with_objects(conn)
 
 
-@pytest.mark.fresh_database
-def test_a_v238_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 238)
-    config = mysql_config
-    old = store.get_connection(config, ensure_schema=False)
-    try:
-        assert "galaxy_block_light_parts" not in {next(iter(row.values())) for row in old.execute("SHOW TABLES").fetchall()}
-    finally:
-        old.close()
-    assert store.migrate_database(config) == store.SCHEMA_VERSION
-    assert store.migrate_database(config) == store.SCHEMA_VERSION
-    new = store.get_connection(config, ensure_schema=False)
-    try:
-        assert [row["Field"] for row in new.execute("SHOW COLUMNS FROM galaxy_block_light_parts").fetchall()] == list(block_lights.PARTS_COLUMNS)
-        assert new.execute("SELECT COUNT(*) AS n FROM galaxy_block_light_parts").fetchone()["n"] == 0
-    finally:
-        new.close()
-
-
 def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn, mysql_config):
     from planetgen.generation import run_plan
     stars, points = _rows()
@@ -319,4 +299,3 @@ def test_the_check_at_the_end_of_a_run_reads_no_scatter_table(conn):
     assert used and written
     reads = [sql for sql in seen if "FROM bright_stars" in sql or "FROM phenomenon_scatter " in sql or "FROM phenomenon_scatter WHERE" in sql]
     assert not reads, reads
-

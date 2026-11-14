@@ -414,8 +414,8 @@ per-version `_migrate_vN_to_vN+1` functions the entries below mention
 the baseline, and a database older than that is refused (`SchemaTooOldError`)
 and has to be generated again. A database with tables but no recorded version is refused too
 (`SchemaVersionMissingError`, DB.97). A database newer
-than the code is refused too (`SchemaTooNewError`). Every released schema from v130
-is kept as a fixture (`src/tests/fixtures/old_schemas/`) and
+than the code is refused too (`SchemaTooNewError`). The baseline schema (v130)
+and the newest three below the current one are kept as fixtures (`src/tests/fixtures/old_schemas/`, TEST.729) and
 `tests/test_db_old_schemas.py` migrates each to the current shape and checks
 it against `db/models.py` (the SQLAlchemy models that mirror `schema.sql`).
 `planetgen check-db` (`db/check.py`) compares the live tables against those
@@ -692,8 +692,8 @@ new one: it drops the placeholder DEFAULTs older steps left on NOT NULL
 columns and makes `nebulae`/`asteroid_fields`' `sector_id` keys ON
 DELETE SET NULL. Every migration step can be re-run after a crash
 (`_MigrationConnection` skips the clauses already applied).
-`tests/test_db_old_schemas.py` migrates every released schema and
-compares it with a new database.
+`tests/test_db_old_schemas.py` migrates the baseline schema and the newest three and
+compares each with a new database.
 
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,
 each on one host named by `host_type`: a star, planet, moon, asteroid belt,

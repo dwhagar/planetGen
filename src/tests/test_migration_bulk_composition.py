@@ -12,7 +12,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import bulk_composition as bc
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -48,25 +47,4 @@ def test_a_saved_system_keeps_every_bodys_composition(mysql_config):
         assert row["carbon_rock"] in (0, 1) and row["composition_origin"] in bc.ORIGINS
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v143_galaxy_gets_the_columns_empty(mysql_config):
-    system, cfg = _system()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 143)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        rows = conn.execute("SELECT metal_mass_fraction, composition_origin, water_mass_fraction FROM planets WHERE star_system_id = ?",
-                            (system_id,)).fetchall()
-        assert rows and all(row["metal_mass_fraction"] is None and row["composition_origin"] is None for row in rows)
-        loaded = store.load_star_system(conn, system_id)
-        assert all(item is None for item in _compositions(loaded))
-    finally:
         conn.close()

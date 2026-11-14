@@ -12,7 +12,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.physics import rogue_habitability
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -33,23 +32,3 @@ def test_a_saved_brown_dwarf_keeps_no_score(mysql_config):
     finally:
         conn.rollback()
         conn.close()
-
-
-def test_a_v157_galaxy_migrates_with_its_brown_dwarf_unscored(mysql_config):
-    planet = _brown_dwarf()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            row_id = store.insert_rogue_planet(conn, planet)
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 157)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (row_id,)).fetchone()
-        assert all(row[name] is None for name in rogue_habitability.ROGUE_FIELDS)
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION  # a second run changes nothing

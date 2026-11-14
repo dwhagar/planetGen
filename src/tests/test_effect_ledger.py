@@ -13,7 +13,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import effect_ledger as ledger, unit_registry
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 
 def test_the_largest_source_has_share_one_and_the_rest_are_its_fraction():
@@ -101,8 +100,6 @@ def test_the_body_codes_are_kind_tables_and_the_effect_units_are_registered():
         assert unit is None or unit_registry.unit(unit), name
 
 
-
-
 def _system_with_a_moon():
     cfg = SystemConfig()
     cfg.PLANETS = True
@@ -155,25 +152,6 @@ def test_a_system_with_no_contributions_writes_no_ledger_rows(mysql_config):
         assert conn.execute("SELECT COUNT(*) AS n FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchone()["n"] == 0
     finally:
         conn.rollback()
-        conn.close()
-
-
-@pytest.mark.fresh_database
-def test_a_v239_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 239)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert "effect_ledger" not in {next(iter(row.values())) for row in conn.execute("SHOW TABLES").fetchall()}
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        columns = [row["Field"] for row in conn.execute("SHOW COLUMNS FROM effect_ledger").fetchall()]
-        assert columns == list(ledger.ROW_FIELDS)
-        assert conn.execute("SELECT COUNT(*) AS n FROM effect_ledger").fetchone()["n"] == 0
-    finally:
         conn.close()
 
 

@@ -12,7 +12,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import rings
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -62,24 +61,4 @@ def test_a_ring_kind_the_check_does_not_know_is_refused(mysql_config):
             conn.execute("UPDATE planets SET ring_origin = 'granite' WHERE star_system_id = ? LIMIT 1", (system_id,))
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v159_galaxy_gets_the_columns_empty(mysql_config):
-    system, cfg = _system()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 159)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        rows = conn.execute("SELECT ring_kind, ring_mass_kg FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()
-        assert rows and all(row["ring_kind"] is None and row["ring_mass_kg"] is None for row in rows)
-        loaded = store.load_star_system(conn, system_id)
-        assert all(row == (None,) * len(rings.BODY_FIELDS) for row in _rings_of(loaded))
-    finally:
         conn.close()

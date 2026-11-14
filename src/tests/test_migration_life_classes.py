@@ -12,16 +12,8 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import life_classes
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
-
-NEW_COLUMNS = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity")
-
-
-def _types(conn, table):
-    return {row["COLUMN_NAME"]: row["DATA_TYPE"] for row in conn.execute(
-        "SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", (table,)).fetchall()}
 
 
 def test_every_chemistry_folds_into_a_class_that_exists():
@@ -31,41 +23,6 @@ def test_every_chemistry_folds_into_a_class_that_exists():
                                               "Zinc-Bacteriochlorophyll"}
     for number, letter in module.CLASS_OF_CHEMISTRY.values():
         assert f"{number}{letter}" in life_classes.BY_ID
-
-
-def test_a_v174_galaxy_keeps_the_class_of_its_chemistry(mysql_config):
-    load_old_schema(mysql_config, 174)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("SET SESSION sql_mode = ''")
-        conn.execute("SET FOREIGN_KEY_CHECKS = 0")
-        for table in ("planets", "moons"):
-            assert "life_chemical" in _types(conn, table)
-            assert not set(NEW_COLUMNS) & set(_types(conn, table))
-        for name, chemistry in (("Chlorophyll world", "Chlorophyll a"), ("Blue world", "Blue-Optimized Porphyrins"), ("Dark world", "Melanin"),
-                                ("Bare world", None)):
-            conn.execute("INSERT INTO planets (name, body_type, life_chemical) VALUES (?, 't', ?)", (name, chemistry))
-        conn.execute("INSERT INTO moons (name, body_type, life_chemical) VALUES (?, 't', ?)", ("Mat moon", "Bacteriochlorophylls"))
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            types = _types(conn, table)
-            assert "life_chemical" not in types
-            assert types["life_class"] == "tinyint" and types["life_class_variant"] == "char" and types["life_complexity"] == "double", table
-        found = {row["name"]: (row["life_class"], row["life_class_variant"], row["life_complexity"]) for row in conn.execute(
-            "SELECT name, life_class, life_class_variant, life_complexity FROM planets").fetchall()}
-        assert found == {"Chlorophyll world": (1, "a", None), "Blue world": (1, "b", None), "Dark world": (3, "b", None),
-                         "Bare world": (None, None, None)}
-        moon = conn.execute("SELECT life_class, life_class_variant FROM moons").fetchone()
-        assert (moon["life_class"], moon["life_class_variant"]) == (2, None)
-        for table in ("planet_life_class_scores", "moon_life_class_scores"):
-            assert conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0
-    finally:
-        conn.close()
 
 
 def test_a_saved_system_keeps_the_class_and_the_classes_it_supports(mysql_config):

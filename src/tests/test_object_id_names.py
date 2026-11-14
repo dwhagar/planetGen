@@ -17,9 +17,8 @@ from planetgen.galaxy import object_uid
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy.sector import SpaceSector
-
-from tests.db_schema_support import insert_filled_row, load_old_schema, migration_number
 from tests.test_parallel_generation import make_database  # noqa: F401 -- a fixture
+
 
 _POSITION = {"center_x_pc": 8000.0, "center_y_pc": 20.0, "center_z_pc": 5.0, "galactic_radius_pc": 8000.03}
 
@@ -117,29 +116,3 @@ def test_objects_at_one_point_in_different_sectors_have_different_names_whicheve
     results = [_save_in_order(make_database(), order) for order in ((0, 1, 2), (2, 1, 0), (1, 2, 0))]
     assert len(set(results[0].values())) == 3
     assert results[0] == results[1] == results[2]
-
-
-@pytest.mark.fresh_database
-def test_the_migration_gives_an_older_galaxys_position_id_names_the_object_id(mysql_config):
-    load_old_schema(mysql_config, migration_number("object_id_names") - 1)
-    uid = object_uid.to_bytes(object_uid.pack(1, 2, 3, object_uid.SERIAL_GENERATED, 5))
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("SET FOREIGN_KEY_CHECKS = 0")
-        insert_filled_row(conn, "rogue_planets", id=1, name="0123456789ABCDEF012", uid=uid)
-        insert_filled_row(conn, "rogue_planets", id=2, name="Drifter", uid=uid[:-1] + b"\x07")
-        insert_filled_row(conn, "rogue_planets", id=3, name="FEDCBA98765432100AB")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        names = {row["id"]: row["name"] for row in conn.execute("SELECT id, name FROM rogue_planets").fetchall()}
-        assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION      # a second run changes nothing
-        again = {row["id"]: row["name"] for row in conn.execute("SELECT id, name FROM rogue_planets").fetchall()}
-    finally:
-        conn.close()
-    assert names[1] == object_uid.format_id(object_uid.from_bytes(uid))
-    assert names[2] == "Drifter" and names[3] == "FEDCBA98765432100AB"      # a given name, and a row with no uid, stay
-    assert again == names

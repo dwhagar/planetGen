@@ -1,0 +1,6 @@
+**Headline:** The test suite drops the migration tests for databases older than the newest few schemas, about 40 to 55 minutes off a full run, following Boss's hard cut at 8.0.
+
+### Changed
+- **TEST.729, TEST.731, TEST.733: `src/tests/fixtures/old_schemas/` keeps the baseline (v130) and the newest three versions below the current one (v243 to v245); the other 112 stored schemas go.** `test_db_old_schemas.py` migrated all 116 (1,439 s recorded for three test functions); each start point runs the revisions after it, so the baseline run already passes through every revision, and the fixtures hold schema only, no rows. Deleting a fixture breaks every test that loaded it (67 test files did), so the same change retires them: the 29 shape-only downgrade-and-migrate functions (TEST.731, the shape is covered by `test_db_old_schemas` and `test_db_column_round_trip`) and the data-backfill tests of migrations Boss's server has run (TEST.733; he answered 3:53 PM EST 2026-11-12 that it is up to date). 25 test files that held nothing else go; the others keep their save-and-load round trip tests. `test_downgrade_to.py` tests the baseline and the newest fixture. `test_the_baseline_and_the_newest_versions_have_a_fixture` replaces the check for every version. Tests only; no generated output moves.
+
+generation-affects: none
