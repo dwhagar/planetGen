@@ -18,7 +18,7 @@ from planetgen.galaxy import galactic_orbit
 from planetgen.generation import ejection_events, rogue_landing
 from planetgen.generation.phenomena import starless_host
 from planetgen.physics.units import pc_to_ly
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 
 Rogue = collections.namedtuple("Rogue", ("event", "landing", "planet", "note"))
 """One rogue planet: the event that made it, where it is now, the planet through the chain and the sentence that says where it came from."""
@@ -51,7 +51,7 @@ def rogues_of(donor_uid, system, donor_position_pc, edge_pc, system_name=None):
     if not pairs:
         return []
     uid_text = donor_uid.hex() if isinstance(donor_uid, (bytes, bytearray)) else str(donor_uid)
-    distance_ly = pc_to_ly((donor_position_pc[0] ** 2 + donor_position_pc[1] ** 2 + donor_position_pc[2] ** 2) ** 0.5)
+    distance_ly = pc_to_ly(detmath.hypot(*donor_position_pc))
     circular_speed, _period = galactic_orbit.calculate_galactic_orbit(distance_ly)
     name = system_name if system_name is not None else system.name
     stars = []

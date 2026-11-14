@@ -706,7 +706,7 @@ class Planet(PlanetaryObject):
         if not self.scale_height or not self.atmospheric_pressure or not self.surface_temperature:
             return None
 
-        reference_pressure_pa = 101300  # ~1 standard atmosphere, matching the "atmospheres" conversion above
+        reference_pressure_pa = constants.STANDARD_ATMOSPHERE_PA
         transition_pressure_pa = constants.HYDROGEN_METALLIZATION_PRESSURE_PA
         adiabatic_exponent = (constants.ADIABATIC_INDEX_H2_HE - 1) / constants.ADIABATIC_INDEX_H2_HE
         radius_m = self.radius * 1000
