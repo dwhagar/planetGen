@@ -2480,8 +2480,7 @@ def _plan_random_start(args, edge_pc, progress):
             if args.min_start_density is not None else ""
         )
         within = f"within {args.max_shell} shells" if args.max_shell is not None else "in the galaxy"
-        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.",
-                  attempts=program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS)
+        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.")
         raise SystemExit(1)
     if len(starts) < args.neighborhoods:
         log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods "
