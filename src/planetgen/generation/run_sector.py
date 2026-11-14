@@ -46,6 +46,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.names.wordsalad import generate_sector_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.random import log_uniform
+from planetgen.util.ticker import Ticker
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation.phenomena import registry
 from planetgen.generation.star_labels import describe_types, star_label
@@ -573,7 +574,7 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly, mass_solar=None)
             fill_stages.count(sector, fill_stages.FLAGS, "quasar")
             return sector.add_phenomenon(Quasar(nucleus_config, black_hole_mass_solar=mass_solar), "quasar",
                                          position=position)
-        log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
+        log.debug("Sector %r: galactic nucleus is quiescent (supermassive black hole, no quasar).", sector.name)
         black_hole = BlackHole(nucleus_config, mass_class="supermassive", mass_solar=mass_solar)
         fill_stages.count(sector, fill_stages.FLAGS, "black-hole")
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
@@ -942,12 +943,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 # from here), so stop generating and placing altogether
                 # rather than pay for `total - i - 1` more full
                 # StarSystem generations just to discard them too.
-                log.normal(
-                    f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
-                    f"{total} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
-                    f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
-                    f"rather than the full requested count."
-                )
+                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands.",
+                           edge_ly=round(sector.edge_ly, 1))
                 break
 
     with log.timed_phase("generate_sector_phenomena"):
@@ -997,11 +994,12 @@ def _summary_star_label(star):
     return star_label(getattr(star, "type", None), getattr(star, "yerkes_class", None))
 
 
-def _log_summary(text):
+def _log_summary(text, say=None):
     """Logs a multi-line summary one line per record, so each line gets
-    the debug log's timestamp, process and source prefix (OPS.9)."""
+    the debug log's timestamp, process and source prefix (OPS.9). `say` is `log.normal` unless a bulk run gives `log.debug` (OPS.172)."""
+    say = log.normal if say is None else say
     for line in text.splitlines():
-        log.normal(line)
+        say(line)
 
 
 def sector_generation_summary_lines(sector, args_used):
@@ -1080,6 +1078,8 @@ class UnplacedSectorsFollower(followed.Follower):
     def __init__(self, args):
         super().__init__(args)
         self.label = commands.build_steps("sector", args)[0].label
+        self._ticker = Ticker("Sectors saved", total=getattr(args, "num_sectors", None) or None)
+        self._saved = 0
 
     def params(self):
         return commands.build_steps("sector", self.args)[0].params
@@ -1095,12 +1095,18 @@ class UnplacedSectorsFollower(followed.Follower):
                 run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
             run_common._record_sector(args, saved, saved["seconds"])
             phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
-            log.normal(
+            log.debug(      # a run of thousands would bury its stage lines; the ticker carries the progress (OPS.172)
                 f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "
                 f"{saved['systems']} systems{phenomena_note}, "
                 f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
             )
-            _log_summary(saved["summary"])
+            _log_summary(saved["summary"], log.debug)
+            self._saved += 1
+            self._ticker.tick(self._saved)
+
+    def on_done(self, conclusion):
+        if self._saved:
+            self._ticker.finish(self._saved)
 
 
 def run_sector(args):
@@ -1141,7 +1147,7 @@ def run_sector(args):
     try:
         followed.run_followed(args, [follower], follower.label, galaxy=False)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the sectors could not be generated: {exc}")
+        log.error(f"The sectors could not be generated: {exc}")
         raise SystemExit(1) from exc
 
     if args.num_sectors > 1:

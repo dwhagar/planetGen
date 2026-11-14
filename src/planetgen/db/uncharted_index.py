@@ -19,15 +19,12 @@ an empty uncharted sector (`query.sector_coverage_condition`), which the Sectors
 """
 
 import math
-import time
 
 from planetgen.db import contention, store
 from planetgen.galaxy import uid as galaxyUid
 from planetgen.galaxy.spherical import provisional_sector_designation, sector_position_pc
 from planetgen.util import log
-
-SAY_SECONDS = 30.0
-"""float: How long the index goes without saying where it is."""
+from planetgen.util.ticker import Ticker
 
 BATCH_CELLS = 500
 """int: Cells one transaction makes rows for."""
@@ -59,6 +56,39 @@ def shells_with_objects(conn, from_parts=False):
         shells.update(row["shell_index"] for row in conn.execute(
             f"SELECT DISTINCT o.shell_index FROM {table} o WHERE {waiting}").fetchall())
     return sorted(shells)
+
+
+UNIT_CELLS = 300000
+"""int: About how many cells with a part one unit of the index works (OPS.153): at about 10,000 rows a second, half a minute of work."""
+
+
+def shell_part_counts(conn):
+    """`[(shell, cells with a part)]`, sorted by shell, for cutting the index into units (OPS.153): one walk of the parts' primary key."""
+    return [(int(row["shell_index"]), int(row["n"])) for row in conn.execute(
+        "SELECT shell_index, COUNT(*) AS n FROM galaxy_block_light_parts GROUP BY shell_index ORDER BY shell_index").fetchall()]
+
+
+def shell_runs(counts, max_units, unit_cells=None):
+    """
+    The shells of `counts` (`shell_part_counts`) cut into runs of neighbors for the units of the index (OPS.153): a run takes shells until it holds `unit_cells`
+    cells (more when the cut would make more than `max_units` runs; a shell is never split, as the index works a shell at a time).
+
+    Returns:
+        list: `(shells, cells)` for each run, in shell order; the shells in a run are the ones in `counts`.
+    """
+    unit_cells = UNIT_CELLS if unit_cells is None else unit_cells
+    total = sum(n for _shell, n in counts)
+    target = max(unit_cells, -(-total // max(max_units, 1)))
+    runs, shells, held = [], [], 0
+    for shell, n in counts:
+        shells.append(shell)
+        held += n
+        if held >= target:
+            runs.append((shells, held))
+            shells, held = [], 0
+    if shells:
+        runs.append((shells, held))
+    return runs
 
 
 def cells_without_a_row(conn, shell, from_parts=False):
@@ -121,7 +151,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
         epoch = generatorEpoch.generator_epoch()
         run_id = store.sector_run_id(conn, run_id)
         conn.commit()
-    last_said = time.monotonic()
+    ticker = Ticker("Uncharted sectors, shells", total=len(shells), say=say)
     for done, shell in enumerate(shells, start=1):
         cells = cells_without_a_row(conn, shell, from_parts)
         for start in range(0, len(cells), BATCH_CELLS):
@@ -133,11 +163,9 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
                 made += contention.run_with_retries(conn, write, gate="uncharted-sectors", label=f"Uncharted sectors, shell {shell}")
         if on_progress is not None:
             on_progress(done, len(shells))
-        if time.monotonic() - last_said >= SAY_SECONDS:
-            last_said = time.monotonic()
-            say(f"Uncharted sectors: shell {done:,} of {len(shells):,} done, {made:,} rows made so far.")
+        ticker.tick(done, f"{made:,} rows made")
     say(f"Made {made:,} uncharted sector rows in {len(shells):,} shells." if made else "Every cell that holds a waiting object already has its sector row.")
-    log.debug(f"uncharted_index: {made} rows")
+    log.debug(f"The uncharted index was made with {made:,} rows.")
     return made
 
 

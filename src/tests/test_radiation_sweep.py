@@ -13,7 +13,7 @@ The rules:
    (the transmission follows the mixture).
 2. **Greenhouse.** The stored Bond albedo is between 0 and 1; the greenhouse factor is zero for a body with no air and positive for one with air; the
    stored surface temperature is `T_e (1 + G)^(1/4)` of the stored albedo, greenhouse factor and starlight (`climate_draws.surface_temperature_k`), or,
-   for a surface held at `surface_air.MAX_SURFACE_TEMPERATURE_K`, the same relation with the greenhouse factor taken from that capped temperature (GEN.1236); and over the rocky planets with air the greenhouse rises with the
+   for a surface held at the ionization ceiling (`ionization.ceiling_of`), the same relation with the greenhouse factor taken from that capped temperature (GEN.1236); and over the rocky planets with air the greenhouse rises with the
    infrared-active column (`gases.Gas.is_infrared_active`).
 3. **Dose.** The yearly dose is the sum of its four terms; the cosmic-ray term lies between the dose the column and the field give at the two ends of
    the solar-modulation range; the stellar-particle term is the one the column, the field and the star's flares give; a giant has no dose; the belt dose
@@ -36,7 +36,7 @@ import pytest
 from scipy import stats
 
 from planetgen import tuning
-from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, planet_type, radiation as rad, radiation_field, surface_air)
+from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, ionization, planet_type, radiation as rad, radiation_field)
 from tests.class_sweep_cli import sample_bodies
 
 SYSTEMS = 20
@@ -120,7 +120,7 @@ def climate_problems(body):
     flux = _starlight_w_m2(body)
     if flux is not None:
         expected = climate_draws.surface_temperature_k(albedo, factor, flux)
-        cap = surface_air.MAX_SURFACE_TEMPERATURE_K
+        cap = ionization.ceiling_of(atmosphere.gas_partials_pa(body))
         if _same(temperature, cap):
             if not math.isclose(expected, cap, rel_tol=RELATIVE_TOLERANCE):
                 problems.append(f"surface held at the {cap} K cap although albedo and greenhouse give {expected:.1f} K (GEN.1236: the greenhouse follows the capped temperature)")
@@ -269,14 +269,14 @@ class _Brighter:
 
 
 def test_a_greenhouse_that_disagrees_with_the_temperature_is_named(swept):
-    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.9 * surface_air.MAX_SURFACE_TEMPERATURE_K)
+    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.9 * ionization.ceiling_of(atmosphere.gas_partials_pa(b)))
     body.greenhouse_factor += 1.0
     assert any("albedo and greenhouse give" in text for text in climate_problems(body))
 
 
 def test_a_surface_held_at_the_cap_with_a_cooler_greenhouse_is_named(swept):
-    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.5 * surface_air.MAX_SURFACE_TEMPERATURE_K)
-    body.surface_temperature = surface_air.MAX_SURFACE_TEMPERATURE_K
+    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.5 * ionization.ceiling_of(atmosphere.gas_partials_pa(b)))
+    body.surface_temperature = ionization.ceiling_of(atmosphere.gas_partials_pa(body))
     assert any("cap" in text for text in climate_problems(body))
 
 

@@ -60,6 +60,7 @@ except ImportError:  # pragma: no cover
 from planetgen import backup
 from planetgen.admin import activity_log
 from planetgen.util import logpaths, settings
+from planetgen.util import log
 
 RESET = object()
 """A change value that removes the option from the file, so the default applies again."""
@@ -426,6 +427,7 @@ def _audit(result, actor, audit, action):
             try:
                 audit(action, target, detail)
             except Exception as exc:  # noqa: BLE001 -- the file is already written; say so, don't undo it
+                log.swallowed("util/settings_writer", "_audit", exc)
                 result.audit_errors.append(f"{target}: {exc}")
                 activity_log.event("DB", "config.audit_failed", user=actor, target=target, error=str(exc)[:200])
 

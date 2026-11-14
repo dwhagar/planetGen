@@ -11,7 +11,7 @@ inner triple, which a triple test cannot see. [R4575] trained a small neural net
 N-body integrations and got 93 percent. This module is that network as plain numbers: 11 inputs, four hidden layers of 50 logistic units, one
 logistic output, the probability that the system is *unstable*. The 8,301 numbers (weights and biases) are in `data/quadruple_stability_3p1_weights.json`, made from the
 authors' scikit-learn model file by `scripts/build_quadruple_stability.py` (read without running the pickle); the forward pass here is numpy
-only and gives the scikit-learn probabilities to 1e-8.
+only and gives the scikit-learn probabilities to 1e-8. The validity ranges and the stability definition of each shape are in `data/quadruple_stability_3p1.json` and `data/quadruple_stability_2p2.json`.
 
 The inputs, all dimensionless (the problem is scale free):
 

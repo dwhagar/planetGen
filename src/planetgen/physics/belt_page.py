@@ -167,28 +167,40 @@ def _bodies(record):
     pairs = [_member(record, m, p) for m, p in zip(ledger.masses_kg, record.placements)]
     neighbours = tuple(record.planets) + tuple((p.distance_au, m) for m, p in zip(ledger.masses_kg, record.placements))
     belts = ((record.inner_au, record.outer_au, ledger.remainder_kg),)
-    out = []
-    for rank, ((member, held), placement) in enumerate(zip(pairs, record.placements), start=1):
-        others = body_status.zone_mass_kg(placement.distance_au, member.mass_kg, record.star_mass_solar, neighbours, belts)
-        ice = member.makeup.water + member.makeup.ice
-        state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others)
-        out.append({
-            "rank": rank,
-            "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),
-            "mass": _q(member.mass_kg, "kg"),
-            "diameter": _q(2.0 * member.radius_km, "km"),
-            "distance": _q(placement.distance_au, "au"),
-            "density": _q(member.density_kg_m3, "kg_m3"),
-            "density_held": held,
-            "taxon": member.taxon,
-            "analogue": sbc.TAXON_DATA[member.taxon].analogue,
-            "differentiated": member.differentiated,
-            "composition": {"rock": _q(member.makeup.rock, "frac"), "metal": _q(member.makeup.metal, "frac"),
-                            "water": _q(member.makeup.water, "frac"), "ice": _q(member.makeup.ice, "frac")},
-            "status": {"word": state.word, "soter_mu": None if state.mu is None or math.isinf(state.mu) else state.mu, "roundness": state.roundness,
-                       "margot_pi": state.pi, "agrees": state.pi_agrees},
-        })
-    return out
+    return [body_entry(record, rank, member, held, placement, neighbours, belts)
+            for rank, ((member, held), placement) in enumerate(zip(pairs, record.placements), start=1)]
+
+
+def drawn_body(record, rank, mass_kg, placement, neighbours, belts):
+    """The `body_entry` of a body of `mass_kg` at `placement` that is not in the record's ledger (drawn on demand, GEN.1674): its makeup from `_member`, its status against `neighbours` and `belts`."""
+    member, held = _member(record, mass_kg, placement)
+    return body_entry(record, rank, member, held, placement, neighbours, belts)
+
+
+def body_entry(record, rank, member, held, placement, neighbours, belts):
+    """
+    The entry of the body of `rank` (the `bodies` block's, `member_bodies`) from its `member` (`_member`), whether its density was `held` and its `placement`, with its status judged against
+    the `neighbours` (`(distance_au, mass_kg)`) and `belts` of its zone. The one place an entry is made, for the stored bodies and for a body drawn on demand (GEN.1674).
+    """
+    others = body_status.zone_mass_kg(placement.distance_au, member.mass_kg, record.star_mass_solar, neighbours, belts)
+    ice = member.makeup.water + member.makeup.ice
+    state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others)
+    return {
+        "rank": rank,
+        "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),
+        "mass": _q(member.mass_kg, "kg"),
+        "diameter": _q(2.0 * member.radius_km, "km"),
+        "distance": _q(placement.distance_au, "au"),
+        "density": _q(member.density_kg_m3, "kg_m3"),
+        "density_held": held,
+        "taxon": member.taxon,
+        "analogue": sbc.TAXON_DATA[member.taxon].analogue,
+        "differentiated": member.differentiated,
+        "composition": {"rock": _q(member.makeup.rock, "frac"), "metal": _q(member.makeup.metal, "frac"),
+                        "water": _q(member.makeup.water, "frac"), "ice": _q(member.makeup.ice, "frac")},
+        "status": {"word": state.word, "soter_mu": None if state.mu is None or math.isinf(state.mu) else state.mu, "roundness": state.roundness,
+                   "margot_pi": state.pi, "agrees": state.pi_agrees},
+    }
 
 
 def fates_list(fates):
