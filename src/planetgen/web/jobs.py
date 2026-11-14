@@ -697,12 +697,15 @@ def job_time_limit(path):
     """
     The seconds RQ lets the job in `path` run (PERF.144): `redisqueue.job_timeout` of the time its steps are expected
     to take (`job_runner.expected_seconds`: the recorded stage times, else what each step took in earlier runs),
-    `JOB_CEILING_SECONDS` when a step has no record.
+    `JOB_CEILING_SECONDS` when a step has no record, and for a job with a step that is a run on the queue (OPS.255): its units are watched
+    for progress (`beatjudge`), and a clock of ten times what a smaller galaxy recorded would end the starter of a run that is still working. OPS.215 removes RQ and this rule goes with it.
     """
     from planetgen.web import job_runner
 
     with open(os.path.join(path, "job.json"), "r", encoding="utf-8") as f:
         job = json.load(f)
+    if job_runner.runs_queue_run(job):
+        return JOB_CEILING_SECONDS
     return redisqueue.job_timeout(job_runner.expected_seconds(job), ceiling=JOB_CEILING_SECONDS,
                                   floor=JOB_FLOOR_SECONDS)
 

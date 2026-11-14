@@ -31,7 +31,7 @@ Use:
 
 import math
 
-from planetgen.physics import binding_energy, planet_classes, planet_type, radiogenic, roundness, shape_temperature
+from planetgen.physics import binding_energy, constants, ice_types, planet_classes, planet_type, radiogenic, roundness, shape_temperature, water_layer
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -86,17 +86,53 @@ def _is_giant(body):
     return (getattr(body, "envelope_mass_fraction", None) or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE
 
 
-def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0, binding_j=None):
+def ice_factor_of(ice_type, temperature_k=None, quantile=None):
+    """
+    The factor on the strength of water ice Ih that the kind of ice `ice_type` has (`ice_types.strength_pa`, GEN.1177) at the temperature the shape was set at and the strength quantile of the
+    body: 1 for no ice, for ice Ih and for a kind with no strength of its own (nitrogen, carbon monoxide: `ice_types` names it by its row and the engine keeps the default ice).
+    """
+    if ice_type is None or ice_type not in ice_types.TYPES:
+        return 1.0
+    base = roundness.ice_strength_pa(temperature_k, quantile)
+    return ice_types.strength_pa(ice_type, base, temperature_k) / base
+
+
+def ice_type_of_makeup(makeup):
+    """The ice type of a small body from its makeup (`ice_types.ice_type_of` over its components), `None` for a body with no ice: a belt member, a comet or an asteroid of a field."""
+    return None if makeup is None else ice_types.ice_type_of(makeup.components)
+
+
+def central_pressure_pa(mass_kg, radius_m):
+    """The pressure at the center of a uniform sphere of this mass and radius, Pa: `(2 pi / 3) G rho^2 R^2`, the pressure the roundness law is written in (`roundness`, [R2703])."""
+    density = roundness.bulk_density_kg_m3(mass_kg, radius_m)
+    return (2.0 * math.pi / 3.0) * constants.G * density ** 2 * radius_m ** 2
+
+
+def ice_type_of_body(ice, mass_kg, radius_m, temperature_k=None):
+    """
+    The ice type of a planet or a moon, whose ice is stored as one share of its mass (its water and other ices together): water ice in the phase its center's pressure and the temperature of its
+    shape-setting give (`ice_types.water_phase`: Ih in a small body, II to VI deep in a large icy one). `None` for a body with no ice, and for one whose shape was set above the temperature of
+    water's triple point (`water_layer.WATER_TRIPLE_K`): its water was a liquid or a vapor then, and the engine keeps the default ice.
+    """
+    if not ice > 0.0:
+        return None
+    if temperature_k is not None and temperature_k > water_layer.WATER_TRIPLE_K:
+        return None
+    return ice_types.ice_type_of({"water_ice": ice}, temperature_k, central_pressure_pa(mass_kg, radius_m))
+
+
+def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0, binding_j=None, ice_type=None):
     """
     The `FIELDS` of a solid body from its mass, mean radius, density and composition: `{name: value}`. `ice` and `metal` are the shares of its mass,
     `temperature_k` the temperature the body took its shape at (`None`: the cold whole-body strength; a planet or a moon passes `shape_temperature_of`, GEN.1201), `quantile` the strength draw from 0 to 1, `core_kg` and
-    `core_m` the core of a differentiated body (0 for none), and `binding_j` its binding energy where the caller has worked it out already.
+    `core_m` the core of a differentiated body (0 for none), `binding_j` its binding energy where the caller has worked it out already, and `ice_type` the kind of its ice (`ice_types`, GEN.1684; None is ice Ih).
     """
     ice = min(max(ice or 0.0, 0.0), 1.0)
     metal = min(max(metal or 0.0, 0.0), 1.0 - ice)
+    factor = ice_factor_of(ice_type, temperature_k, quantile)
     return {
-        "roundness_ratio": roundness.roundness_ratio(radius_m, density_kg_m3, ice, metal, porosity or 0.0, temperature_k, draw=quantile),
-        "yield_strength_pa": roundness.yield_strength_pa(ice, metal, porosity or 0.0, temperature_k, draw=quantile),
+        "roundness_ratio": roundness.roundness_ratio(radius_m, density_kg_m3, ice, metal, porosity or 0.0, temperature_k, draw=quantile, ice_factor=factor),
+        "yield_strength_pa": roundness.yield_strength_pa(ice, metal, porosity or 0.0, temperature_k, draw=quantile, ice_factor=factor),
         "binding_energy_j": binding_energy.binding_energy_j("rocky", mass_kg, radius_m, core_kg, core_m) if binding_j is None else binding_j,
     }
 
@@ -138,7 +174,8 @@ def values(body, quantile=None):
     metal = min(max(getattr(body, "metal_mass_fraction", None) or 0.0, 0.0), 1.0 - ice)
     binding_j = binding_energy.binding_energy_j("rocky", mass_kg, radius_m, core_kg, core_m)
     temperature_k = shape_temperature_of(body, mass_kg, radius_m, binding_j, ice, metal)
-    out.update(solid(mass_kg, radius_m, density_kg_m3, ice, metal, getattr(body, "porosity", None), temperature_k, quantile, core_kg, core_m, binding_j))
+    out.update(solid(mass_kg, radius_m, density_kg_m3, ice, metal, getattr(body, "porosity", None), temperature_k, quantile, core_kg, core_m, binding_j,
+                     ice_type_of_body(ice, mass_kg, radius_m, temperature_k)))      # GEN.1684: the kind of ice at the center
     out[SHAPE_FIELD] = temperature_k
     return out
 
@@ -150,8 +187,9 @@ def quantile_for(*parts):
 
 
 def quantile_of(body):
-    """The strength quantile of a planet or a moon, from a stream of its own (mass, radius, distance and whether it is a moon)."""
-    return quantile_for(float(body.mass), float(body.radius), float(getattr(body, "distance", 0.0) or 0.0), int(bool(getattr(body, "is_moon", False))))
+    """The strength quantile of a planet or a moon, from a stream of its own keyed to its birth (mass, the distance it formed at, its star's mass and whether it is a moon; GEN.1547)."""
+    with draw.bound(draw.body_stream_of(STRENGTH_DRAW_STREAM, body, slot=str(int(bool(getattr(body, "is_moon", False)))))):
+        return draw.random()
 
 
 def generate(body):
@@ -173,7 +211,8 @@ def generate_comet(comet):
     comet.ice_mass_fraction = makeup.water + makeup.ice
     quantile = quantile_for(float(comet.mass_kg), float(comet.nucleus_diameter_km), float(getattr(comet, "perihelion_distance_au", 0.0)),
                             float(getattr(comet, "eccentricity", getattr(comet, "velocity_kms", 0.0))))
-    for name, value in solid(comet.mass_kg, radius_m, density, comet.ice_mass_fraction, makeup.metal, makeup.porosity, None, quantile).items():
+    for name, value in solid(comet.mass_kg, radius_m, density, comet.ice_mass_fraction, makeup.metal, makeup.porosity, None, quantile,
+                             ice_type=ice_type_of_makeup(makeup)).items():      # GEN.1684: methane clathrate, ammonia dihydrate or carbon dioxide ice where the makeup is mostly one
         setattr(comet, name, value)
 
 
@@ -199,14 +238,14 @@ def grain_density_kg_m3(ice, metal=0.0):
     return 1.0 / (ice / grains["ice"] + metal / grains["metal"] + rock / grains["rock"])
 
 
-def round_mass_for(ice, metal=0.0, quantile=None):
-    """The mass, kg, at which a body of this ice and metal share (no porosity) turns round: its round radius at the median strength (or at `quantile`), as a sphere of its grain density."""
-    return roundness.round_mass_kg(grain_density_kg_m3(ice, metal), ice, metal, draw=quantile)
+def round_mass_for(ice, metal=0.0, quantile=None, ice_type=None):
+    """The mass, kg, at which a body of this ice and metal share (no porosity) turns round: its round radius at the median strength (or at `quantile`), as a sphere of its grain density. `ice_type`: the kind of its ice (`ice_types`, None is ice Ih)."""
+    return roundness.round_mass_kg(grain_density_kg_m3(ice, metal), ice, metal, draw=quantile, ice_factor=ice_factor_of(ice_type, None, quantile))
 
 
-def ratio_for(mass_kg, ice, metal=0.0, quantile=None):
-    """The roundness ratio of a body of this mass, ice and metal share (no porosity), at the median strength (or at `quantile`): 1 or more is round."""
-    return roundness.roundness_ratio_from_mass(mass_kg, grain_density_kg_m3(ice, metal), ice, metal, draw=quantile)
+def ratio_for(mass_kg, ice, metal=0.0, quantile=None, ice_type=None):
+    """The roundness ratio of a body of this mass, ice and metal share (no porosity), at the median strength (or at `quantile`): 1 or more is round. `ice_type`: the kind of its ice (`ice_types`, None is ice Ih)."""
+    return roundness.roundness_ratio_from_mass(mass_kg, grain_density_kg_m3(ice, metal), ice, metal, draw=quantile, ice_factor=ice_factor_of(ice_type, None, quantile))
 
 
 STELLAR_FIELDS = ("density_g_cm3", "binding_energy_j")

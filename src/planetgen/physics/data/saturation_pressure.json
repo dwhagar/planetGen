@@ -880,17 +880,20 @@
    "selection": "single",
    "curves": [],
    "note": "GEN.524 part 2: the Edmister correlation, ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T), from the gas table's critical point (461 K, 6.485 MPa) and acentric factor 0.382 (88.7 kPa at the normal boiling point 292.7 K against 101.3 true); the gas table has no triple point for HF, so one curve serves all temperatures and is unverified in the cold, where it only has to be far below the partial pressure of a trace gas; a stand-in, tier 8 (educated guess from physics), registered in GEN.725 (AM94)"
-  }
- },
- "unread": {
+  },
   "S2": {
    "name": "disulfur",
    "form": "log-fit",
-   "coefficients": [65.2805, -16872.9, -5.1118],
+   "selection": "single",
+   "coefficients": [
+    65.2805,
+    -16872.9,
+    -5.1118
+   ],
    "from_k": 312.0,
    "to_k": 925.0,
    "max_error_percent": 8.8,
-   "note": "ln(P/Pa) = a + b/T + c ln T over condensed sulfur, fitted to the NASA-polynomial equilibrium vapor pressure of the gas table (01-gas-table-thermodynamics.md section 6.3, T6; the temperatures at 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa are 406, 504, 605, 763 and 882 K). Held back from `species` until GEN.1564 slice 1 runs the freeze-out for it: a species in `species` is read by `has`, and every caller would change at once."
+   "note": "ln(P/Pa) = a + b/T + c ln T over condensed sulfur (solid below 388.36 K, liquid above), fitted to the NASA-polynomial equilibrium vapor pressure of the gas table (01-gas-table-thermodynamics.md section 6.3, T6; the temperatures at 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa are 406, 504, 605, 763 and 882 K), 8.8 percent at worst over 312 to 925 K; carried on outside the window; no critical temperature is set (the curve is carried on above the window). The gas table has no triple point for S2 (GEN.1564)."
   }
  }
 }
