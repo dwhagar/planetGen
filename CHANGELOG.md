@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4120] - 2026-11-14
+
+**Headline:** A black hole with no accretion disk no longer carries planets or belts that its mass alone used to give it.
+
+### Fixed
+- **GEN.1648: planets around a black hole with no disk.** `StarSystem._generate_planets` sent a millisecond pulsar and a planetary nebula's pair to their own rules and every other remnant to the generic architecture, which places an inner chain from the mass alone (16 of 40 disk-less stellar holes got up to 7 planets at 0.1 to 0.6 AU, 2 of those also a belt). No disk survives the progenitor and no planet of a black hole is known, so `remnant_orbits.is_diskless_black_hole` now returns no planets and no belts for such a hole unless the run asks for planets (`PLANETS` true). A black hole with a disk (0.1 percent) and every other remnant keep their rules. The test that pinned seed 0 now covers 40 seeds.
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4119] - 2026-11-14
 
 **Headline:** a gas can no longer stand above its saturation pressure in the stored air of a world, sulfur included.
