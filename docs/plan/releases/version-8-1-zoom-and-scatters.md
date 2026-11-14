@@ -781,6 +781,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1717 | (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300) | none | Lane 15, 2026-11-14
 | UX.318 | (bug) The job progress ticker shows "0.0 per s" for slow steps (e.g. Stage 5 at about 200 s a sector), so a working run reads as stalled | none | Lane 13, 2026-11-14
 | TEST.743 | (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704 | none | Lane 13, 2026-11-14
+| TEST.744 | (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900) | none | Lane 03, 2026-11-14
 | SEC.50 | (bug) The log masker hides ordinary words: update.sh logs "Skipping the population pass: XXXXXX math check failed." for "the math check failed" | none | Lane 03, 2026-11-14
 | TEST.742 | (bug) sweep_bulk's text-materials check holds a stale phrase after Train 27 | none | Lane 22, 2026-11-14
 | TEST.741 | (bug) After Train 27 the W20 same-inventory test is red at bistable key 155 | none | Lane 21, 2026-11-14
