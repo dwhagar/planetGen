@@ -109,9 +109,15 @@ def write_nodes(conn, star_system_id, nodes, replace=True):
     if replace:
         storage_checksum.mark_system(conn, star_system_id)
         conn.execute("DELETE FROM orbit_nodes WHERE star_system_id = ?", (star_system_id,))
-    sql = f"INSERT INTO orbit_nodes (star_system_id, {', '.join(COLUMNS)}) VALUES (?, {', '.join('?' * len(COLUMNS))})"
-    for node in nodes:
-        conn.execute(sql, (star_system_id, *(getattr(node, column) for column in COLUMNS)))
+    _insert_rows(conn, "orbit_nodes", COLUMNS, star_system_id, nodes)
+
+
+def _insert_rows(conn, table, columns, star_system_id, rows):
+    """Inserts `rows` (objects with an attribute per name of `columns`) as rows of `table` filed under the system. The callers keep
+    the literal DELETE that empties the table first, so `test_storage_checksum`'s writer ledger still sees them mark the sector."""
+    sql = f"INSERT INTO {table} (star_system_id, {', '.join(columns)}) VALUES (?, {', '.join('?' * len(columns))})"
+    for row in rows:
+        conn.execute(sql, (star_system_id, *(getattr(row, column) for column in columns)))
 
 
 def read_nodes(conn, star_system_id):
@@ -128,10 +134,7 @@ def write_dark_members(conn, star_system_id, members, replace=True):
     if replace:
         storage_checksum.mark_system(conn, star_system_id)
         conn.execute("DELETE FROM dark_members WHERE star_system_id = ?", (star_system_id,))
-    sql = (f"INSERT INTO dark_members (star_system_id, {', '.join(DARK_COLUMNS)})"
-           f" VALUES (?, {', '.join('?' * len(DARK_COLUMNS))})")
-    for member in members:
-        conn.execute(sql, (star_system_id, *(getattr(member, column) for column in DARK_COLUMNS)))
+    _insert_rows(conn, "dark_members", DARK_COLUMNS, star_system_id, members)
 
 
 def read_dark_members(conn, star_system_id):

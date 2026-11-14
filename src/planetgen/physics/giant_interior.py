@@ -244,7 +244,9 @@ class Polytrope:
     def pressure_at_mass_inside_pa(self, fraction):
         return self.at_mass_inside(fraction)[1]
 
-    def _interpolate(self, key, target, descending):
+    def _bracket(self, key, target, descending):
+        """The two table rows `(a, b)` round `target` under `key` (a bisection over rows whose `key` runs down when `descending`,
+        else up) and the fraction `t` of the way from `a` to `b` the target lies (0 where the two keys are equal)."""
         rows = self._rows
         lo, hi = 0, len(rows) - 1
         while hi - lo > 1:
@@ -255,23 +257,16 @@ class Polytrope:
                 hi = mid
         a, b = rows[lo], rows[hi]
         span = key(b) - key(a)
-        t = 0.0 if span == 0.0 else (target - key(a)) / span
+        return a, b, 0.0 if span == 0.0 else (target - key(a)) / span
+
+    def _interpolate(self, key, target, descending):
+        a, b, t = self._bracket(key, target, descending)
         xi = a[0] + t * (b[0] - a[0])
         mass = a[2] + t * (b[2] - a[2])
         return xi / self._xi1, mass / self._mass1
 
     def _interpolate_to(self, key, target):
-        rows = self._rows
-        lo, hi = 0, len(rows) - 1
-        while hi - lo > 1:
-            mid = (lo + hi) // 2
-            if key(rows[mid]) < target:
-                lo = mid
-            else:
-                hi = mid
-        a, b = rows[lo], rows[hi]
-        span = key(b) - key(a)
-        t = 0.0 if span == 0.0 else (target - key(a)) / span
+        a, b, t = self._bracket(key, target, False)
         return (a[0] + t * (b[0] - a[0])) / self._xi1, a[1] + t * (b[1] - a[1]), a[2] + t * (b[2] - a[2])
 
 
@@ -282,8 +277,6 @@ def _polytrope_rows(index):
     if index not in _POLYTROPE_ROWS:
         _POLYTROPE_ROWS[index] = _lane_emden_table(index)
     return _POLYTROPE_ROWS[index]
-
-
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -716,7 +709,7 @@ def _gas_giant(subject):
         p_mm_gpa = profile.pressure_at_mass_inside_pa(1.0 - mass_mol / mass) / 1e9
 
     # Helium
-    depletion = helium_depletion(subject.temperature_1bar_k)
+    depletion = depletion_now
     y_nat = subject.helium_share
     rain_active = depletion < 1.0
 
@@ -838,7 +831,7 @@ def _gas_giant(subject):
             heavy_part = layer_heavy.get(kind, {})
             helium, hydrogen = gas[kind][0], gas[kind][1]
         top = max(top, 0.0)
-        layers.append(_layer(kind, state, top if kind != "molecular_envelope" else 1e5, bottom, heavy_part, helium, hydrogen,
+        layers.append(_layer(kind, state, top if kind != "molecular_envelope" else constants.BAR_PA, bottom, heavy_part, helium, hydrogen,
                              top_radius, bottom_radius))
         above += layer_mass
     layers = _fix_water(layers, _temperature_function(profile))
@@ -885,7 +878,7 @@ class _ConstantDensityProfile:
         self.density = [density for _mass, density in layers]
         self.layer_masses = [layer_mass for layer_mass, _density in layers]
         self.samples = []  # (radius, pressure, mass inside), surface first
-        pressure = 1e5
+        pressure = constants.BAR_PA
         for index in range(len(layers) - 1, -1, -1):
             r_out = self.outer_radii[index]
             r_in = self.outer_radii[index - 1] if index > 0 else 0.0
@@ -1050,7 +1043,7 @@ def _brown_dwarf(subject):
     layers = []
     y = subject.helium_share
     for kind, layer_mass, state, top, bottom in (
-            ("molecular_envelope", mass_mol, "molecular_fluid", 1e5, p_mm_gpa * 1e9),
+            ("molecular_envelope", mass_mol, "molecular_fluid", constants.BAR_PA, p_mm_gpa * 1e9),
             ("metallic_envelope", mass - mass_mol, "metallic_fluid", p_mm_gpa * 1e9, profile.central_pressure_pa)):
         if layer_mass <= 0:
             continue

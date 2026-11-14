@@ -190,9 +190,14 @@ def place_factor_from_peaks(populations, structure, kind=BLACK_HOLE):
 def component_factor(shares, structure=None, kind=BLACK_HOLE):
     """`place_factor` for a component whose stars have the population `shares` (`{population: share}`): the cluster or
     satellite's own mix, with the generic peaks (the middle draw's structure without one)."""
-    from planetgen.galaxy import structure as galaxyStructure
-    factors = population_factors(galaxyStructure.REFERENCE_STRUCTURE if structure is None else structure, 0.0, kind)
+    factors = population_factors(_structure_of(structure), 0.0, kind)
     return sum(share * float(factors[name]) for name, share in shares.items())
+def _structure_of(structure):
+    """`structure`, or the middle draw's (`galaxy.structure.REFERENCE_STRUCTURE`, imported late: it imports this module) when `None`."""
+    if structure is not None:
+        return structure
+    from planetgen.galaxy import structure as galaxyStructure
+    return galaxyStructure.REFERENCE_STRUCTURE
 
 
 def bound_factor(structure, kind=BLACK_HOLE):
@@ -208,9 +213,8 @@ def bound_factor(structure, kind=BLACK_HOLE):
 def standalone_factor(structure=None, kind=BLACK_HOLE):
     """The factor of a sector with no galaxy around it, taken at solar metallicity with every remnant formed: the
     failed share at [Fe/H] = 0 (the galaxy's solar share; the middle draw without a structure), or what it leaves."""
-    from planetgen.galaxy import structure as galaxyStructure
     _check_kind(kind)
-    structure = galaxyStructure.REFERENCE_STRUCTURE if structure is None else structure
+    structure = _structure_of(structure)
     failed = float(black_hole_formation.failed_share(0.0, structure.black_hole_solar_share,
                                                      structure.black_hole_metal_free_share))
     return _own_share(kind, structure, failed, True) * _per_generator_star()

@@ -26,8 +26,8 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
-from planetgen.physics import eclipses, radiation_field
+from planetgen.physics import (activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, eclipses, giant_draw,
+                               giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, radiation_field, unit_registry as units)
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")

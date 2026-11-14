@@ -24,7 +24,6 @@ import rq
 
 from planetgen.queue import allowlist, redisclient
 from planetgen.util import log
-from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
 """str: The queue of the first design (PERF.24), where the supervising process of a run put its tasks. Nothing is queued on
@@ -77,7 +76,7 @@ QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QU
 def redis_url():
     """The Redis server: `PLANETGEN_REDIS_URL`, else `config.json`'s
     `redis.url` (the settings model applies both)."""
-    return get_settings().redis.url
+    return redisclient.default_url()
 
 
 def connect(url=None, **options):

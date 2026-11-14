@@ -28,7 +28,8 @@ def canonical(value, seen=None):
     if isinstance(value, (set, frozenset)):
         return "{" + ",".join(sorted(canonical(item, seen) for item in value)) + "}"
     if isinstance(value, dict):
-        items = sorted((canonical(key, seen), canonical(item, seen)) for key, item in value.items())
+        # A key that is an object's `id()` (the effect ledger keys its rows by the body's address, GEN.1465) is an address, not content: it is written as a mark and the rows sorted by what they hold.
+        items = sorted(("<id>" if type(key) is int and key >= 2 ** 32 else canonical(key, seen), canonical(item, seen)) for key, item in value.items())
         return "{" + ",".join(f"{key}:{item}" for key, item in items) + "}"
     if id(value) in seen:
         return f"<{type(value).__name__}>"

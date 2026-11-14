@@ -90,6 +90,10 @@ def _polynomial_cm2(coefficients, pal):
     return max(column, 0.0)
 
 
+_G0V_FULL_CM2 = _polynomial_cm2(HOSTS[-1][2], 1.0)
+"""float: The G0V fit's 100 percent column, cm-2: the first point of the F-star scaling."""
+
+
 def _fit_column_cm2(teff_k, pal):
     """The Kozakis median, cm-2, between the five hosts and (hotter than G0V) scaled toward the F anchors."""
     cool, hot = HOSTS[0], HOSTS[-1]
@@ -104,7 +108,7 @@ def _fit_column_cm2(teff_k, pal):
 
 def _f_scale(teff_k):
     """The 100 percent column of a host hotter than G0V over G0V's, from the F7V and F0V columns of [R3845, R3846]."""
-    base = _polynomial_cm2(HOSTS[-1][2], 1.0)
+    base = _G0V_FULL_CM2
     points = [(F_STARS[0][0], base)] + list(F_STARS[1:])
     if teff_k >= points[-1][0]:
         return points[-1][1] / base

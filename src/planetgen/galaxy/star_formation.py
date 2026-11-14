@@ -119,6 +119,9 @@ def _normalisation(decline, gap_over_length, floor, shape):
     return float(np.trapezoid(weight, x) / np.trapezoid(weight * shape_term, x))
 
 
+def _flat(shape):
+    """`shape` with `k_norm` 1: the key the gas history is cached under (it does not read the normalisation)."""
+    return shape._replace(k_norm=1.0)
 def recent_factor(radius_pc, shape):
     """
     The recent-star-formation factor at cylindrical radius `radius_pc`: the share of the stars here that formed
@@ -136,7 +139,7 @@ def recent_factor(radius_pc, shape):
     gap = gap_radius_pc(shape)
     floor = _gap_floor(shape)
     decline = _decline_per_scale_length()
-    flat = shape._replace(k_norm=1.0)
+    flat = _flat(shape)
     norm = _normalisation(round(decline, 9), round(gap / length, 9), floor, flat)
     radius = np.asarray(radius_pc, dtype=float)
     value = (norm * np.exp(-decline * radius / length) * _gap_suppression(radius, gap, floor)
@@ -161,7 +164,7 @@ def _log_slope(radius_pc, shape):
     radius = np.asarray(radius_pc, dtype=float)
     up = np.power(radius / gap, power)
     rising = (1.0 - floor) * power * up / (1.0 + up) ** 2 / radius
-    thin_slope = _thin_gas_factor(radius / length, shape._replace(k_norm=1.0))[1]
+    thin_slope = _thin_gas_factor(radius / length, _flat(shape))[1]
     return rising / _gap_suppression(radius, gap, floor) - _decline_per_scale_length() / length + thin_slope / length
 
 

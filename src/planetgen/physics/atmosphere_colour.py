@@ -274,15 +274,10 @@ def _case(tau_rayleigh, tau_absorption, tau_ozone, above, aerosols, ground_albed
     tau_aerosol = sum((tau for tau, _omega, _g in optics), np.zeros_like(WAVELENGTHS_NM))
     tau_extinction = tau_rayleigh + tau_absorption + tau_aerosol
 
-    def gas_slab(share):
-        tau = share * (tau_rayleigh + tau_absorption)
-        omega = np.where(tau > 0.0, share * tau_rayleigh / np.where(tau > 0.0, tau, 1.0), 1.0)
-        return tau, omega, np.zeros_like(tau)
-
-    lower_slab = gas_slab(1.0 - above)
+    lower_slab = radiation.gas_slab(tau_rayleigh, tau_absorption, 1.0 - above)
     for tau, omega, g in optics:
         lower_slab = radiation.mix_layers(lower_slab, (tau, omega, g))
-    upper = two_stream.scattering_layer(*gas_slab(above), mu0)
+    upper = two_stream.scattering_layer(*radiation.gas_slab(tau_rayleigh, tau_absorption, above), mu0)
     lower = two_stream.scattering_layer(*lower_slab, mu0)
     ozone = two_stream.absorbing_layer(tau_ozone, mu0)
 
@@ -290,7 +285,7 @@ def _case(tau_rayleigh, tau_absorption, tau_ozone, above, aerosols, ground_albed
     arriving_plain, _out = two_stream.ground_flux(plain, 0.0)
     diffuse_plain = np.maximum(arriving_plain - plain.beam_transmission, 0.0)
     full = two_stream.stack_layers([upper, ozone, lower])
-    arriving, _out = two_stream.ground_flux(full, ground_albedo)
+    arriving, leaving = two_stream.ground_flux(full, ground_albedo)
     diffuse = np.maximum(arriving - full.beam_transmission, 0.0)
 
     weight = _smoothstep(float(np.interp(_REFERENCE_NM, WAVELENGTHS_NM, tau_extinction)))
@@ -301,7 +296,6 @@ def _case(tau_rayleigh, tau_absorption, tau_ozone, above, aerosols, ground_albed
         reference = float(np.interp(_REFERENCE_NM, WAVELENGTHS_NM, ratio))
         usable = (ratio > 0.0) & (reference > 0.0)
         correction = np.where(usable, (np.where(usable, ratio, 1.0) / (reference if reference > 0.0 else 1.0)) ** (1.0 - weight), 1.0)
-    _arriving, leaving = two_stream.ground_flux(full, ground_albedo)
     return diffuse, diffuse * correction, full.beam_transmission, weight, np.maximum(leaving, 0.0)
 
 

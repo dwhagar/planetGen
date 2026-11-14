@@ -34,8 +34,27 @@ def king_density(w):
     return math.exp(w) * math.erf(math.sqrt(w)) - math.sqrt(4.0 * w / math.pi) * (1.0 + 2.0 * w / 3.0)
 
 
+class TableMethods:
+    """What a tabulated profile answers from its `x`, `mass_fraction`, `density` and `tidal_x` columns (`KingTable`,
+    `component_profiles.ProfileTable`)."""
+
+    def radius_x(self, fraction):
+        """The radius, over the scale radius, inside which `fraction` (0 to 1) of the mass lies."""
+        return float(np.interp(fraction, self.mass_fraction, self.x))
+
+    def mass_within_x(self, x):
+        """The share of the mass inside `x` (over the scale radius; 1 at and beyond the cut)."""
+        return float(np.interp(x, self.x, self.mass_fraction))
+
+    def density_at_x(self, x):
+        """The density at `x` over the central density (0 beyond the cut)."""
+        if x >= self.tidal_x:
+            return 0.0
+        return float(np.interp(x, self.x, self.density))
+
+
 @dataclasses.dataclass(frozen=True)
-class KingTable:
+class KingTable(TableMethods):
     """One King model in King radii.
 
     Attributes:
@@ -57,20 +76,6 @@ class KingTable:
     mass_fraction: np.ndarray
     density: np.ndarray
     mass_over_central: float
-
-    def radius_x(self, fraction):
-        """The radius, over `r0`, inside which `fraction` (0 to 1) of the mass lies."""
-        return float(np.interp(fraction, self.mass_fraction, self.x))
-
-    def mass_within_x(self, x):
-        """The share of the mass inside `x` (over `r0`; 1 at and beyond the tidal radius)."""
-        return float(np.interp(x, self.x, self.mass_fraction))
-
-    def density_at_x(self, x):
-        """The density at `x` over the central density (0 beyond the tidal radius)."""
-        if x >= self.tidal_x:
-            return 0.0
-        return float(np.interp(x, self.x, self.density))
 
 
 @functools.lru_cache(maxsize=None)

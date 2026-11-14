@@ -68,8 +68,8 @@ def _caller():
     bearer = request.headers.get("Authorization", "").startswith(_BEARER)
     if admin is None and bearer:
         admin = authz.api_key_admin(request.headers["Authorization"][len(_BEARER):].strip())
-    elif admin is None and request.cookies.get(authz.SESSION_COOKIE_NAME):
-        admin = adminAuth.validate_session(get_control_db(), request.cookies.get(authz.SESSION_COOKIE_NAME))
+    elif admin is None and request.cookies.get(authz.session_cookie_name()):
+        admin = adminAuth.validate_session(get_control_db(), request.cookies.get(authz.session_cookie_name()))
     if admin is None:
         return None, "anonymous", None, None
     if bearer:

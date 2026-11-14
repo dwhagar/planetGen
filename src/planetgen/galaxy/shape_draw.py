@@ -166,9 +166,9 @@ def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar, compactness=None
     """The thin disk's scale length, parsecs, the seed draws for a galaxy of this stellar mass: the half-light radius of the
     size-mass relation with its scatter, over the exponential disk's half-light-to-scale ratio. A `compactness` (the
     Scale dial's pin, in standard deviations) replaces the draw of the scatter."""
-    scatter = (_stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(stellar_mass_solar)) if compactness is None
-               else size_sigma_ln(stellar_mass_solar) * compactness)
-    return _length_of_scatter(stellar_mass_solar, scatter)
+    if compactness is not None:
+        return _length_of(stellar_mass_solar, compactness)
+    return _length_of_scatter(stellar_mass_solar, _stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(stellar_mass_solar)))
 
 
 def _length_of_scatter(stellar_mass_solar, scatter):
@@ -320,11 +320,10 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     stage = stage_of(galaxy_seed, pinned_mass)
     late = stage == "late"
     structure = structure_draw.draw_structure(galaxy_seed, pinned_mass, fixed.get("stellar_halo_share"))
-    log_bd = _stream(galaxy_seed, "bulge-share").gauss(
-        LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
+    drawn_bulge_to_total = _drawn_bulge_to_total(galaxy_seed, late)
     bulge_to_total = fixed.get("bulge_to_total")
     if bulge_to_total is None:
-        bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
+        bulge_to_total = drawn_bulge_to_total
     mean, sigma = BAR_LENGTH_OVER_H_LATE if late else BAR_LENGTH_OVER_H_EARLY
     bar_ratio = _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
     bulge_size = fixed.get("bulge_size")
@@ -359,8 +358,7 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
         bar_length = bulge_radius * BAR_LENGTH_PER_SCALE_RADIUS
     amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
 
-    compactness = (math.log(length * EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0 / size_median_kpc(mass))
-                   / size_sigma_ln(mass))
+    compactness = _compactness_of(mass, length)
     return GalaxyDraw(chain, stage, structure, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms,
                       pitch, compactness)
 
@@ -406,8 +404,13 @@ def _compactness_of(mass, length_pc):
 
 
 def _length_of(mass, compactness):
-    log_r50 = math.log(size_median_kpc(mass)) + size_sigma_ln(mass) * compactness
-    return math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
+    """The thin disk's scale length, parsecs, `compactness` standard deviations of the size-mass law's scatter from its median."""
+    return _length_of_scatter(mass, size_sigma_ln(mass) * compactness)
+def _drawn_bulge_to_total(galaxy_seed, late):
+    """The bulge share `B/T` the seed draws for a `late` (or early) spiral: `log10(B/D)` about the stage's median."""
+    log_bd = _stream(galaxy_seed, "bulge-share").gauss(
+        LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
+    return 1.0 / (1.0 + 10.0 ** -log_bd)
 
 
 def resolve_scale(galaxy_seed, mass=None, compactness=None, length_pc=None, density=None, bulge_to_total=None,
@@ -443,10 +446,7 @@ def resolve_scale(galaxy_seed, mass=None, compactness=None, length_pc=None, dens
         structure = structure_draw.draw_structure(galaxy_seed, stellar_mass)
         if bulge_to_total is not None:
             return thin_disk_share(structure, bulge_to_total)
-        late = stage_of(galaxy_seed, stellar_mass) == "late"
-        log_bd = _stream(galaxy_seed, "bulge-share").gauss(
-            LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
-        return thin_disk_share(structure, 1.0 / (1.0 + 10.0 ** -log_bd))
+        return thin_disk_share(structure, _drawn_bulge_to_total(galaxy_seed, stage_of(galaxy_seed, stellar_mass) == "late"))
 
     def length_at(stellar_mass):
         if length_pc is not None:
@@ -575,6 +575,16 @@ def pinned_stellar_mass(args, drawn):
     size_and_density = dials.resolved(args, "density") is not None and (
         dials.resolved(args, "compactness") is not None or dials.resolved(args, "disk_scale_length") is not None)
     return drawn.chain.stellar_mass_solar if mass_given or size_and_density else None
+
+
+def current_shape_and_seed():
+    """`(shape, seed)` of the galaxy the running unit belongs to: its stored shape and seed when `galaxy.seed.seeded` was given them,
+    else the galaxy the seed draws with every shape option at its default (the fallback seed's outside any unit)."""
+    seed = galaxySeed.current_galaxy_seed() or mass_chain.FALLBACK_SEED
+    shape = galaxySeed.current_galaxy_shape()
+    if shape is None:
+        shape = default_shape(seed)
+    return shape, seed
 
 
 def default_shape(galaxy_seed):

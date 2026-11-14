@@ -32,7 +32,7 @@ from planetgen.physics import constants, core_composition
 
 GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K)."""
-GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
+GY_S = constants.SECONDS_PER_GY
 """float: Seconds in a gigayear."""
 MAX_EXPONENT = 600.0
 """float: The largest exponent of the viscosity law (`exp` overflows at 709): a box this cold has a viscosity no heat crosses (a numerical bound)."""

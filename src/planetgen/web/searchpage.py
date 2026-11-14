@@ -194,15 +194,30 @@ def _plain(number):
     return f"{number:.6g}"
 
 
+def _range_text(least, most, write, tail=""):
+    """A range as a chip writes it: "1–2 g", "≥ 1 g" or "≤ 2 g", each bound written by `write`."""
+    if least is not None and most is not None:
+        return f"{write(least)}\u2013{write(most)}{tail}"
+    if least is not None:
+        return f"\u2265 {write(least)}{tail}"
+    return f"\u2264 {write(most)}{tail}"
+
+
 def _key_label(entity, key):
     """What a chip or a sort menu calls `key`: the registry's label with its first letter lowered ("surface gravity")."""
-    label = search_values.KEYS[key].label.split(" (")[0]
+    label = search_values.short_label(key)
     return label[:1].lower() + label[1:]
 
 
 @functools.lru_cache(maxsize=None)
 def _unit_symbol(unit):
     return search_values.symbol(unit)
+
+
+def _symbol_tail(entity, key, unit):
+    """`" g"`: the symbol of `unit` (or of the key's own unit for `entity`) after a space, or `""` for a unitless value."""
+    symbol = _unit_symbol(unit or search_values.KEYS[key].default_unit(entity))
+    return f" {symbol}" if symbol else ""
 
 
 def _tidy_units(texts):
@@ -288,17 +303,10 @@ class SearchState:
         `None` when neither bound is a number (a non-number from a
         hand-edited URL is ignored, not an error)."""
         def parse(key):
-            raw = self.texts.get(key, "")
-            try:
-                value = float(raw) if raw else None
-            except ValueError:
-                return None
-            # Only a finite, non-negative size is a size: NaN, infinity
-            # and negatives from a hand-edited URL are ignored like any
-            # other non-number (the API would refuse them).
-            if value is None or not math.isfinite(value) or value < 0:
-                return None
-            return value
+            # Only a finite, non-negative size is a size: NaN, infinity and negatives from a hand-edited URL are ignored like
+            # any other non-number (the API would refuse them).
+            value = _finite(self.texts.get(key, ""))
+            return value if value is not None and value >= 0 else None
 
         low, high = parse(f"{entity}_min_radius_km"), parse(f"{entity}_max_radius_km")
         if low is None and high is None:
@@ -434,14 +442,7 @@ def value_chips(ranges, query_pairs, base_url, with_entity=True, anchor=""):
     entity_labels = dict(VALUE_ENTITIES)
     for entity, by_key in ranges.items():
         for key, (least, most, unit) in by_key.items():
-            symbol = _unit_symbol(unit or search_values.KEYS[key].default_unit(entity))
-            tail = f" {symbol}" if symbol else ""
-            if least is not None and most is not None:
-                text = f"{_plain(least)}\u2013{_plain(most)}{tail}"
-            elif least is not None:
-                text = f"\u2265 {_plain(least)}{tail}"
-            else:
-                text = f"\u2264 {_plain(most)}{tail}"
+            text = _range_text(least, most, _plain, _symbol_tail(entity, key, unit))
             names = value_field_names(entity, key)
             gas = key.startswith(search_values.GAS_PREFIX)
             pairs = [(name, value) for name, value in query_pairs if name not in names and not (gas and f"_{OTHER_GAS}" in name)]
@@ -510,26 +511,13 @@ def active_filters(state, facet_labels):
         size_range = state.size_range(entity)
         if size_range is None:
             continue
-        low, high = size_range
-        if low is not None and high is not None:
-            text = f"{low:,.0f}–{_km(high)}"
-        elif low is not None:
-            text = f"≥ {_km(low)}"
-        else:
-            text = f"≤ {_km(high)}"
+        text = _range_text(*size_range, lambda value: f"{value:,.0f}", " km")
         texts = dict(state.texts, **{f"{entity}_min_radius_km": "", f"{entity}_max_radius_km": ""})
         chips.append({"label": f"{label} size: {text}", "url": state.copy(texts=texts).url()})
     entity_labels = dict(VALUE_ENTITIES)
     for entity, by_key in state.value_ranges().items():
         for key, (least, most, unit) in by_key.items():
-            symbol = _unit_symbol(unit or search_values.KEYS[key].default_unit(entity))
-            tail = f" {symbol}" if symbol else ""
-            if least is not None and most is not None:
-                text = f"{_plain(least)}–{_plain(most)}{tail}"
-            elif least is not None:
-                text = f"≥ {_plain(least)}{tail}"
-            else:
-                text = f"≤ {_plain(most)}{tail}"
+            text = _range_text(least, most, _plain, _symbol_tail(entity, key, unit))
             texts = dict(state.texts, **{name: "" for name in value_field_names(entity, key)})
             chips.append({"label": f"{entity_labels[entity]} {_key_label(entity, key)}: {text}", "url": state.copy(texts=texts).url()})
     for entity, sort in state.value_sorts().items():
@@ -578,7 +566,7 @@ def value_form(state):
             }
         options = [{"value": "", "label": "The page's own order", "selected": entity not in sorts}]
         for key in keys:
-            name = search_values.KEYS[key].label.split(" (")[0]
+            name = search_values.short_label(key)
             options.append({"value": key, "label": f"{name}, low to high", "selected": sorts.get(entity) == key})
             options.append({"value": f"-{key}", "label": f"{name}, high to low", "selected": sorts.get(entity) == f"-{key}"})
         groups.append({"entity": entity, "label": label, "rows": rows, "other_gas": other,
@@ -691,8 +679,8 @@ def _score_cells(row):
 
 def _values_cell(row):
     """The physical values the search asked for (UX.227), each with its unit, in one cell; a dash when it asked for none."""
-    shown = [f"{search_values.KEYS[key].label.split(' (')[0]} {item['value']:.4g}" + (f" {item['symbol']}" if item["symbol"] else "")
-             for key, item in (row.get("values") or {}).items() if item.get("value") is not None]
+    texts = (search_values.value_text(key, item) for key, item in (row.get("values") or {}).items())
+    shown = [text for text in texts if text]
     return {"text": "; ".join(shown)} if shown else {"text": "—", "muted": True}
 
 
@@ -775,6 +763,12 @@ def lookup_notice(text):
     return {"text": f"{text} is", "url": url, "link": found["name"]}
 
 
+def _search_args(state):
+    """The arguments every `apiclient.get_search` call of a search shares: what is searched for, and how each kind is ordered."""
+    return {"texts": state.name_terms(), "tags": state.tags, "sizes": state.sizes(), "sorts": api_sorts(request.args, state),
+            "stars": state.stars(), "ranges": state.value_ranges(), "sector_scope": state.sector_scope()}
+
+
 def fetch(state):
     """
     Everything the Search page needs from the API, one request per result panel (UX.97): the facets and name
@@ -793,20 +787,17 @@ def fetch(state):
         slowpages.Pending: At least one request is being built; the first one.
     """
     waiting = []
+    shared = _search_args(state)
     try:
-        data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                                    offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args, state), stars=state.stars(),
-                                    ranges=state.value_ranges(), sector_scope=state.sector_scope())
+        data = apiclient.get_search(db_name(), limit=PAGE_SIZE, offsets=api_offsets(state), panels=[], **shared)
     except slowpages.Pending as pending:
         data = None
         waiting.append(pending)
     results = {}
     for panel in PANEL_NAMES:
         try:
-            answer = apiclient.get_search(
-                db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args, state), stars=state.stars(),
-                ranges=state.value_ranges(), sector_scope=state.sector_scope())
+            answer = apiclient.get_search(db_name(), limit=PAGE_SIZE, offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel],
+                                          **shared)
             results[panel] = answer["results"].get(panel)
         except slowpages.Pending as pending:
             waiting.append(pending)
@@ -825,10 +816,7 @@ def _panel_loader(panel):
         cached = (getattr(g, "search_results", None) or {}).get(panel)
         if cached is None or cached["offset"] != offset or cached["limit"] != limit:
             state = SearchState.from_args(request.args)
-            data = apiclient.get_search(
-                db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=limit,
-                offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args, state), stars=state.stars(),
-                ranges=state.value_ranges(), sector_scope=state.sector_scope())
+            data = apiclient.get_search(db_name(), limit=limit, offsets={panel: offset}, panels=[panel], **_search_args(state))
             cached = data["results"][panel]
         if cached is None:
             return Result([], 0)

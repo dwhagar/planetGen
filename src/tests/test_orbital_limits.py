@@ -15,6 +15,7 @@ from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.physics import constants as pc
 from planetgen.physics import kepler
 from planetgen.physics import state_vectors as sv
+from planetgen.physics import vec3
 from planetgen.physics.orbits import classify_encounter, roche_limit_m
 from planetgen.physics.units import ly_to_pc
 
@@ -105,10 +106,10 @@ def test_the_universal_step_is_a_proper_two_body_map():
     position, velocity = _state(1.0, 0.6, 0.7)
     dt = 0.9
     moved, moved_velocity = kepler.universal_step(position, velocity, MU_SUN, dt)
-    h0 = sv._cross(position, velocity)
-    h1 = sv._cross(moved, moved_velocity)
+    h0 = vec3.cross(position, velocity)
+    h1 = vec3.cross(moved, moved_velocity)
     assert h1 == pytest.approx(h0, rel=1e-12)  # angular momentum kept, so the map is area-preserving
-    energy = [0.5 * sv._dot(v, v) - MU_SUN / _norm(r) for r, v in ((position, velocity), (moved, moved_velocity))]
+    energy = [0.5 * vec3.dot(v, v) - MU_SUN / _norm(r) for r, v in ((position, velocity), (moved, moved_velocity))]
     assert energy[1] == pytest.approx(energy[0], rel=1e-12)
 
 

@@ -21,12 +21,12 @@ outside (a warmer ocean takes less, so the uptake of a hot ocean is an upper bou
 surface temperature.
 """
 
-from planetgen.physics import gases
+from planetgen.physics import constants, gases
 
 SULFUR_GASES = ("SO2", "H2S")
 """tuple: The gas-table species the ocean's solubility takes sulfur out as."""
 
-BAR_PA = 1.0e5
+BAR_PA = constants.BAR_PA
 """float: One bar, Pa (the unit of the Henry constant's pressure)."""
 
 
@@ -48,5 +48,3 @@ def sulfur_remaining_fraction(formula, ts_k, gravity_m_s2, ocean_column_kg_m2):
     low, high = gases.HENRY_RANGE_K
     kh = gas.henry.kh(min(max(ts_k, low), high))
     return 1.0 / (1.0 + kh * ocean_column_kg_m2 * gravity_m_s2 * gas.molar_mass / BAR_PA)
-
-

@@ -34,8 +34,7 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
 
 import dataclasses
 
-from planetgen.physics import saturation
-from planetgen.physics import mixture_oxygen, mixture_rocky
+from planetgen.physics import mixture_oxygen, mixture_rocky, saturation
 from planetgen.physics.mixture_base import MixtureDraw, NotApplicable, atoms_of, bracket, finish, require
 
 WATER_RESIDUAL = (1e-5, 1e-3, "log")
@@ -187,9 +186,10 @@ def titan_like(subject, recipe, supply=None):
         raise NotApplicable("no nitrogen has reached the surface")
     temperature, pressure = subject["ts_k"], subject["pressure_bar"]
     humidity = bracket(constants, "methane_humidity", TITAN_HUMIDITY)
-    methane = min(humidity * _saturation_bar("CH4", temperature) / pressure, TITAN_MAX_METHANE)
+    saturation_bar = _saturation_bar("CH4", temperature)
+    methane = min(humidity * saturation_bar / pressure, TITAN_MAX_METHANE)
     hydrogen = bracket(constants, "hydrogen_fraction", TITAN_HYDROGEN)
-    constants["methane_saturation_bar"] = _saturation_bar("CH4", temperature)
+    constants["methane_saturation_bar"] = saturation_bar
     result = _from_fractions({"N2": 1.0 - methane - hydrogen, "CH4": methane, "H2": hydrogen}, family="titan", recipe=recipe,
                              temperature_k=temperature, pressure_bar=pressure, inventory=inventory, constants=constants)
     return dataclasses.replace(result, moles=0.5 * nitrogen / result.mole_fractions["N2"])
