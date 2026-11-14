@@ -165,7 +165,8 @@ def test_progress_the_counter_does_not_show_starts_the_quiet_clock_again(conn, r
     with unitbeat.UnitBeat(conn, run_id, 0, 0, clock=lambda: clock[0], beat_seconds=60.0) as beat:
         beat(5, 9)
         clock[0] = 400.0
-        assert beat.record()["moved"] < 400.0 - 250
+        record = beat.record()
+        assert record["moved"] < record["beat"] - 250
         unitbeat.moving()                       # through the module, inside a unit
         assert beat.record()["moved"] == pytest.approx(beat.record()["beat"], abs=1.0)
         assert beat.longest_gap() >= 300.0
