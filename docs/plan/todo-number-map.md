@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.746 |
 | USR | USR.33 |
-| OPS | OPS.259 |
+| OPS | OPS.260 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3061,6 +3061,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | done, PR #6511 (12:25 PM EST 11-14): with no star scatter after a plan-and-stop the sky is left out of the backfill |
 | OPS.257 | A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena) | none | open |
 | OPS.258 | Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test | none | open |
+| OPS.259 | Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
