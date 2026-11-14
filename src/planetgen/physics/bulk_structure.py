@@ -444,8 +444,14 @@ def core_radius_earth(core_mass_earth):
     return core_mass_earth ** 0.25
 
 
+ENVELOPE_LAW_MIN_AGE_GY = 0.1
+"""float: The youngest age the envelope radius law was fitted to, Gyr ([R2741]: 100 Myr to 10 Gyr, measured domain of the paper). A younger planet takes the radius it has at this age
+instead of the power law's extrapolation, which for a 20 percent envelope at 50 Myr gave 0.02 g/cm3 and at age 0 a density of 0.004 (GEN.1672)."""
+
+
 def envelope_thickness_earth(mass_earth, envelope, flux_earth, age_gy):
-    """[R2741: Eq. 3]: the envelope's thickness in Earth radii, to the 20 mbar level."""
+    """[R2741: Eq. 3]: the envelope's thickness in Earth radii, to the 20 mbar level, at an age no younger than `ENVELOPE_LAW_MIN_AGE_GY` (the fit's own domain; GEN.1672)."""
+    age_gy = max(age_gy, ENVELOPE_LAW_MIN_AGE_GY)
     return 2.06 * mass_earth ** -0.21 * (envelope / 0.05) ** 0.59 * flux_earth ** 0.044 * (age_gy / 5.0) ** -0.18
 
 
