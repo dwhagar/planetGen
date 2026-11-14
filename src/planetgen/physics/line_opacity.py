@@ -62,7 +62,7 @@ G_POINTS, G_WEIGHTS, G_EDGES = ir_ktables.g_grid()
 """ndarray: The g points of the k-distribution, their weights (adding to 1) and the 11 edges of the intervals."""
 GRID_POINTS = len(G_POINTS)
 
-PRESSURE_REFERENCE_PA = 1.0e5
+PRESSURE_REFERENCE_PA = constants.BAR_PA
 """float: `P_REF`, one bar: the pressure the stand-in opacities are stated at."""
 
 TABLE_GASES = tuple(ir_ktables.GASES)
@@ -110,6 +110,11 @@ WATER_CONTINUUM = (
     (3600.0, 1.4e-21, 1.2e-22, 2.42),
 )
 """tuple: The MT_CKD 4.3 water vapor continuum of part 03 section 3.2 (DATA, computed there from the AER file at 296 K), eight nodes (IR4)."""
+_CONTINUUM_NU_CM1 = np.array([row[0] for row in WATER_CONTINUUM])
+_CONTINUUM_LOG_SELF = np.log([row[1] for row in WATER_CONTINUUM])
+_CONTINUUM_LOG_FOREIGN = np.log([row[2] for row in WATER_CONTINUUM])
+_CONTINUUM_EXPONENT = np.array([row[3] for row in WATER_CONTINUUM])
+"""ndarray: The columns of `WATER_CONTINUUM` as arrays (the logs of the two cross sections), built once for `_continuum_depth`."""
 WATER_CONTINUUM_REFERENCE_K = 296.0
 WATER_CONTINUUM_REFERENCE_DENSITY_CM3 = 1013.0e2 / (constants.BOLTZMANN * WATER_CONTINUUM_REFERENCE_K) * 1.0e-6
 """float: `n_ref`, the number density at 1013 mbar and 296 K, per cm3 (the file's reference)."""
@@ -293,10 +298,7 @@ def _pair_depth(prepared, temperature, water_fraction, molecules_cm2, density_cm
 
 def _continuum_depth(temperature, pressure_pa, water_fraction, molecules_cm2):
     """The MT_CKD continuum's optical depth (layer, band); zero outside 200 to 3600 cm-1."""
-    nus = np.array([row[0] for row in WATER_CONTINUUM])
-    log_self = np.log([row[1] for row in WATER_CONTINUUM])
-    log_foreign = np.log([row[2] for row in WATER_CONTINUUM])
-    exponent = np.array([row[3] for row in WATER_CONTINUUM])
+    nus, log_self, log_foreign, exponent = _CONTINUUM_NU_CM1, _CONTINUUM_LOG_SELF, _CONTINUUM_LOG_FOREIGN, _CONTINUUM_EXPONENT
     inside = (CENTERS_CM1 >= nus[0]) & (CENTERS_CM1 <= nus[-1])
     nu = np.where(inside, CENTERS_CM1, nus[0])
     sigma_self = (np.exp(np.interp(nu, nus, log_self))[None, :]
@@ -456,7 +458,7 @@ def layer_depth(prepared, temperature_k, pressure_pa, water_fraction, molecules_
     for gas in prepared.tabled:
         x = water if gas == "H2O" else prepared.dry.get(gas, 0.0) * (1.0 - water)
         if np.any(x > 0.0):
-            k = _lookup(prepared.tables[gas], prepared.table_temperatures, temperature, pressure / 1.0e5)
+            k = _lookup(prepared.tables[gas], prepared.table_temperatures, temperature, pressure / constants.BAR_PA)
             parts.append(k * (x * molecules)[:, None, None])
     for gas in prepared.standin:
         x = water if gas == "H2O" else prepared.dry.get(gas, 0.0) * (1.0 - water)

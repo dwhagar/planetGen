@@ -23,6 +23,7 @@ import math
 
 # --- Physical Constants ---
 EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
+EARTH_RADIUS_M = EARTH_RADIUS_KM * 1000.0  # the same in metres
 EARTH_GRAVITY = 9.80665  # Standard Earth gravity in m/s^2 (9.80665)
 # --- Distance ladder (Boss's exact values, in meters) ---
 # Every displayed distance goes through `format.format_distance_m`, which picks
@@ -42,6 +43,7 @@ AU_TO_KM = AU_M / KM_M  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
 SPEED_OF_LIGHT_M_S = 299_792_458  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (phenomena.compact_remnant.BlackHole)
 CELSIUS_ZERO_K = 273.15  # 0 °C in K (format.format_temperature_k)
+BAR_PA = 1.0e5  # one bar in Pa, the pressure unit the thermochemical fits and giant levels are written in
 STANDARD_ATMOSPHERE_PA = 101_325.0  # 1 atm, exact, Pa (format.format_pressure_pa)
 INCH_M = 0.0254  # The international inch, m (exact; the Customary unit preference)
 FOOT_M = 0.3048  # The international foot, m (exact; the Customary unit preference)
@@ -51,6 +53,8 @@ PSI_PA = 6_894.757293168361  # 1 lbf/in², Pa (format.format_pressure_pa)
 SPEED_OF_LIGHT_KMS = SPEED_OF_LIGHT_M_S / KM_M  # Exact (the SI definition), km/s -- the speed ladder's c (format.format_speed_kms, static/unitladder.js)
 R = 8.31446261815324  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.380649e-23  # Boltzmann constant in J/K
+VACUUM_PERMEABILITY = 4e-7 * math.pi  # mu0, T m/A (the pre-2019 defined value; the measured one differs by 2e-10 of itself); the one copy the dynamo and field code read
+PLANCK_CONSTANT = 6.62607015e-34  # h, J*s, exact (the SI definition)
 REDUCED_PLANCK = 1.0545718176461565e-34  # hbar, J*s -- Hawking radiation (phenomena.compact_remnant)
 STEFAN_BOLTZMANN_CONSTANT = 5.6703744191844314e-08  # Stefan-Boltzmann constant in W/m²/K⁴
 AVOGADRO = 6.02214076e23  # Avogadro constant, 1/mol, exact (the SI definition; GEN.1526: the one definition the isotope, air column and element tables read)
@@ -64,6 +68,7 @@ COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the
 # --- Astronomical Constants ---
 SOLAR_MASS_TO_KG = 1.988409870698051e+30  # Solar mass to kilograms conversion factor
 SOLAR_LUMINOSITY = 3.828e+26  # Solar luminosity in Watts
+SOLAR_TEMPERATURE_K = 5772.0  # the Sun's effective temperature, K (IAU 2015 nominal); the one definition the physics modules read
 MIN_TIDAL_DISTANCE_LY = 4.89  # 1.5 pc, a point's mean distance in the 2 pc core ball: the nearest to the center a system's Hill sphere is worked out at (at 0 it would be 0, leaving no room for a planet)
 EARTH_MASS_TO_KG = 5.972167867791379e+24  # Earth mass to kilograms conversion factor
 MOON_MASS_KG = 7.342e+22  # The Moon's mass, kg: project-nominal (the IAU defines no lunar mass), for the mass ladder's lunar rung
@@ -96,7 +101,6 @@ CM3_TO_M3 = 1e6  # Particles per cm^3 to particles per m^3
 SOLAR_RADIUS_M = 695_700_000.0  # Radius of the Sun in meters
 SOLAR_ESCAPE_VELOCITY = math.sqrt(2 * G * SOLAR_MASS_TO_KG / SOLAR_RADIUS_M)  # Sun's escape velocity in m/s (about 617.5 km/s)
 SOLAR_WIND_VELOCITY = 400 * 1000  # Average solar wind velocity in m/s
-SOLAR_MASS_LOSS_RATE = 2e-14 * SOLAR_MASS_TO_KG * (365.25 * 24 * 3600)  # Sun's mass loss rate in kg/s
 
 # Average local stellar density in the solar neighborhood, in systems per
 # cubic light-year. Cross-checked from two independent real surveys (see
@@ -223,6 +227,10 @@ RADIUS_SOL_EXPONENT = 2
 LUMINOSITY_SOL_EXPONENT = -0.5
 MASS_SOL_EXPONENT = -1.0
 SECONDS_PER_YEAR = 31_557_600.0  # the Julian year, 365.25 days
+HOURS_PER_YEAR = SECONDS_PER_YEAR / 3600.0  # 8766 hours, the Julian year the dose, gear and sky-clock code counts in
+SECONDS_PER_MYR = 1.0e6 * SECONDS_PER_YEAR  # a million Julian years, s
+SECONDS_PER_GY = 1.0e9 * SECONDS_PER_YEAR  # a billion Julian years, s
+SOLAR_CONSTANT_W_M2 = 1361.0  # the starlight at 1 au from the Sun, W/m2 (the Earth's total solar irradiance); the one copy the physics modules read
 ISOTROPIC_TOTAL_OVER_ONE_AXIS = math.sqrt(3.0)  # an isotropic velocity dispersion's three-axis total over its one-axis value
 HELIOPAUSE_RADIUS_DEFAULT_M = 0
 HYPERGIANT_WIND_VELOCITY_FACTOR = 2.6

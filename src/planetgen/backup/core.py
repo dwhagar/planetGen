@@ -65,6 +65,7 @@ FIX_HINT = ("The backups folder must belong to the web server's user: run ./upda
 _NAME = re.compile(r"^(\d{8}T\d{6}Z)(-\d+)?" + re.escape(SUFFIX) + r"$")
 _PART = re.compile(r"^[a-z][a-z0-9_-]{0,31}$")
 _FILE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]{0,100}(/[A-Za-z0-9_][A-Za-z0-9_.-]{0,100}){0,6}$")
+_ISO = "%Y-%m-%dT%H:%M:%SZ"
 _lock = threading.Lock()
 
 
@@ -169,7 +170,7 @@ def atomic_write(path, data, mode=None):
         os.makedirs(folder, exist_ok=True)
         handle, temp = tempfile.mkstemp(prefix=".write-", dir=folder)
     except OSError as exc:
-        raise BackupError(f"{path} can't be written ({exc.strerror or exc}). {FIX_HINT}") from exc
+        raise _write_error(path, exc) from exc
     try:
         with os.fdopen(handle, "wb") as out:
             out.write(data)
@@ -186,7 +187,7 @@ def atomic_write(path, data, mode=None):
         if os.path.exists(temp):
             os.unlink(temp)
         if isinstance(exc, OSError):
-            raise BackupError(f"{path} can't be written ({exc.strerror or exc}). {FIX_HINT}") from exc
+            raise _write_error(path, exc) from exc
         raise
     fsync_folder(folder)
 
@@ -307,13 +308,26 @@ def _utc(when=None):
     return (when or datetime.now(timezone.utc)).astimezone(timezone.utc)
 
 
-def _hash_file(path):
+def _hash_stream(handle):
+    """`(sha256 hex digest, size)` of everything left to read from `handle`."""
     digest, size = hashlib.sha256(), 0
-    with open(path, "rb") as handle:
-        for block in iter(lambda: handle.read(1 << 20), b""):
-            digest.update(block)
-            size += len(block)
+    for block in iter(lambda: handle.read(1 << 20), b""):
+        digest.update(block)
+        size += len(block)
     return digest.hexdigest(), size
+
+
+def _hash_file(path):
+    with open(path, "rb") as handle:
+        return _hash_stream(handle)
+
+
+def _no_backup(name):
+    return BackupError(f"There is no backup named {name!r}.")
+
+
+def _write_error(path, exc):
+    return BackupError(f"{path} can't be written ({exc.strerror or exc}). {FIX_HINT}")
 
 
 def _order(name):
@@ -348,7 +362,7 @@ def take(parts=None, who=None, reason="backup", directory=None, when=None, keep=
         work = tempfile.mkdtemp(prefix=".work-", dir=folder)
         temp = None
         try:
-            manifest = {"format": FORMAT, "taken_at": when.strftime("%Y-%m-%dT%H:%M:%SZ"), "taken_by": who,
+            manifest = {"format": FORMAT, "taken_at": when.strftime(_ISO), "taken_by": who,
                         "reason": reason, "version": __version__, "parts": []}
             for name in chosen:
                 part_dir = os.path.join(work, name)
@@ -380,12 +394,12 @@ def take(parts=None, who=None, reason="backup", directory=None, when=None, keep=
                 tar.addfile(info, io.BytesIO(data))
                 for part in manifest["parts"]:
                     for item in part["files"]:
-                        arc = f"{part['directory']}/{item['path']}"
-                        info = tar.gettarinfo(os.path.join(work, part["directory"], *item["path"].split("/")), arc)
+                        source = os.path.join(work, part["directory"], *item["path"].split("/"))
+                        info = tar.gettarinfo(source, f"{part['directory']}/{item['path']}")
                         info.uid = info.gid = 0
                         info.uname = info.gname = ""
                         info.mode = 0o600
-                        with open(os.path.join(work, part["directory"], *item["path"].split("/")), "rb") as src:
+                        with open(source, "rb") as src:
                             tar.addfile(info, src)
             with open(temp, "rb") as written:
                 os.fsync(written.fileno())
@@ -437,7 +451,7 @@ def _archive_row(folder, name):
                        str(manifest.get("reason") or ""), str(manifest.get("version") or ""), parts, stat.st_size,
                        complete=set(_PARTS) <= {p.name for p in parts})
     except (OSError, tarfile.TarError, EOFError, ValueError, KeyError, TypeError):
-        taken = datetime.fromtimestamp(stat.st_mtime, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        taken = datetime.fromtimestamp(stat.st_mtime, timezone.utc).strftime(_ISO)
         return Archive(name, path, taken, "", "", "", [], stat.st_size, readable=False)
 
 
@@ -461,7 +475,7 @@ def list_archives(directory=None):
 
 def _check_name(name):
     if not isinstance(name, str) or not _NAME.match(name):
-        raise BackupError(f"There is no backup named {name!r}.")
+        raise _no_backup(name)
     return name
 
 
@@ -478,7 +492,7 @@ def verify(name, directory=None):
     try:
         manifest = _read_manifest(path)
     except FileNotFoundError as exc:
-        raise BackupError(f"There is no backup named {name!r}.") from exc
+        raise _no_backup(name) from exc
     except (OSError, tarfile.TarError, EOFError, ValueError) as exc:
         return Verification(False, [f"{name} can't be read ({exc})"])
     expected = {}
@@ -505,12 +519,8 @@ def verify(name, directory=None):
                 if item is None:
                     problems.append(f"{member.name} is in the archive but not in its manifest")
                     continue
-                digest, size = hashlib.sha256(), 0
-                handle = tar.extractfile(member)
-                for block in iter(lambda: handle.read(1 << 20), b""):
-                    digest.update(block)
-                    size += len(block)
-                if size != item.get("size") or digest.hexdigest() != item.get("sha256"):
+                digest, size = _hash_stream(tar.extractfile(member))
+                if size != item.get("size") or digest != item.get("sha256"):
                     problems.append(f"{member.name} does not match its recorded hash; the backup is damaged")
                 seen.add(member.name)
     except (OSError, tarfile.TarError, EOFError) as exc:
@@ -541,7 +551,7 @@ def read_file(name, part, filename, directory=None):
                 raise BackupError(f"{name} has no usable file {part}/{filename}.")
             data = tar.extractfile(member).read()
     except FileNotFoundError as exc:
-        raise BackupError(f"There is no backup named {name!r}.") from exc
+        raise _no_backup(name) from exc
     except KeyError as exc:
         raise BackupError(f"{name} has no file {part}/{filename}.") from exc
     except (OSError, tarfile.TarError, EOFError, ValueError) as exc:

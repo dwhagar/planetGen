@@ -318,6 +318,30 @@ class Planet(PlanetaryObject):
     explanation of what this field means.
     """
 
+    TRANSIENT_STATE = ("_co2_sink",)
+    """tuple[str]: Attributes kept on a body while it is built and never stored (`planets._co2_sink`: a sink that holds a closure over the body), which a pickle of the body leaves out
+    (`__getstate__`) so that a sector can be sent to another process; a copy made in the same process keeps them (`__copy__`, `__deepcopy__`)."""
+
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        for name in self.TRANSIENT_STATE:
+            if name in state:
+                state[name] = None
+        return state
+
+    def __copy__(self):
+        clone = object.__new__(type(self))
+        clone.__dict__.update(self.__dict__)
+        return clone
+
+    def __deepcopy__(self, memo):
+        import copy
+        clone = object.__new__(type(self))
+        memo[id(self)] = clone
+        for name, value in self.__dict__.items():
+            clone.__dict__[name] = value if name in self.TRANSIENT_STATE else copy.deepcopy(value, memo)
+        return clone
+
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
@@ -482,14 +506,11 @@ class Planet(PlanetaryObject):
         self.primary_mass_kg = primary_mass_kg
         # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds does not draw the body again: the finished body
         # is judged on its conditions at the end of the system and dropped if it is one (GEN.1397).
-        given_mass, given_radius = self.mass, self.radius
         self._deferred_climate = None
         if defer_climate and system_config.HABITABLE_WORLD is not False:
-            self.mass, self.radius = given_mass, given_radius
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             self._deferred_climate = (moon_count, distance_override)
             return
-        self.mass, self.radius = given_mass, given_radius
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.prepare_class(self)

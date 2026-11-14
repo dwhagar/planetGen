@@ -89,20 +89,22 @@ def _refuse(what, name):
     raise ForbiddenFunction(message)
 
 
-def check_function(name, what="the function"):
-    """`name` when a job may name it, else raises `ForbiddenFunction` (and logs it)."""
-    module, _, function = name.rpartition(".") if isinstance(name, str) else ("", "", "")
-    if not isinstance(name, str) or (name not in FUNCTIONS and not _is_extra(module, function)):
+def _checked(name, allowed, split, what):
+    """`name` when it is in `allowed` or `EXTRA_ENV` adds it (`split` cuts it into module and function), else `_refuse`."""
+    module, _, function = split(name) if isinstance(name, str) else ("", "", "")
+    if not isinstance(name, str) or (name not in allowed and not _is_extra(module, function)):
         _refuse(what, name)
     return name
 
 
+def check_function(name, what="the function"):
+    """`name` when a job may name it, else raises `ForbiddenFunction` (and logs it)."""
+    return _checked(name, FUNCTIONS, lambda text: text.rpartition("."), what)
+
+
 def check_reference(reference):
     """`reference` (`module:name`) when `api_jobs.execute` may call it, else raises `ForbiddenFunction` (and logs it)."""
-    module, _, function = reference.partition(":") if isinstance(reference, str) else ("", "", "")
-    if not isinstance(reference, str) or (reference not in API_FUNCTIONS and not _is_extra(module, function)):
-        _refuse("the API function", reference)
-    return reference
+    return _checked(reference, API_FUNCTIONS, lambda text: text.partition(":"), "the API function")
 
 
 class GuardedJob(rq.job.Job):

@@ -32,6 +32,7 @@ stored mixture and gravity.
 Units: nm for wavelengths, cm2 per molecule for cross sections, cm-2 for columns.
 """
 
+import functools
 
 from planetgen.physics import gases
 
@@ -45,9 +46,6 @@ GENERIC_DISPERSION_UM2 = 0.0075
 """float: The research's generic dispersion term (part 02 section 3.1), used for the shape beyond the table's range when
 the three values do not fix one."""
 
-_FITS = {}
-
-
 class NoRayleigh(ValueError):
     """A gas of the mixture has no Rayleigh cross section in the gas table."""
 
@@ -56,11 +54,9 @@ def _shape(wavelength_um, dispersion_um2):
     return wavelength_um ** -4 * (1.0 + dispersion_um2 / wavelength_um ** 2) ** 2
 
 
+@functools.cache
 def _fit(formula):
     """`(A, B)` for `formula`: the amplitude (cm2 um4) and dispersion term (um2) through its three tabulated values."""
-    cached = _FITS.get(formula)
-    if cached is not None:
-        return cached
     entry = gases.gas(formula).rayleigh
     if entry is None:
         raise NoRayleigh(f"{formula} has no Rayleigh cross section in the gas table (physics/data/gases.json)")
@@ -84,9 +80,7 @@ def _fit(formula):
             else:
                 high = dispersion
         dispersion = 0.5 * (low + high)
-    amplitude = middle / _shape(um[1], dispersion)
-    _FITS[formula] = (amplitude, dispersion)
-    return _FITS[formula]
+    return middle / _shape(um[1], dispersion), dispersion
 
 
 def dispersion_um2(formula):

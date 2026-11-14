@@ -286,10 +286,10 @@ class Step:
         else:
             progress.detail_task = None
             progress.remove_task(self.task)
-        self._stop_own(keep_bar=self._is_main)
+        self._stop_own()
         self.task = None
 
-    def _stop_own(self, keep_bar=False):
+    def _stop_own(self):
         if self._own is not None:
             self._own.stop()
             log.reset_console()

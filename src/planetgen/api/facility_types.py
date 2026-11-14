@@ -13,7 +13,7 @@ from planetgen import tuning
 from planetgen.population import facility_types as types
 
 from .authz import audit, require_admin
-from .common import ApiError, require_json_body
+from .common import ApiError, require_json_body, truth
 from .limiter import limiter
 from .routes import WRITE_RATE_LIMIT, _write_conn, get_db
 from .schemas import (
@@ -21,16 +21,6 @@ from .schemas import (
 )
 
 bp = Blueprint("facility_types", __name__, url_prefix="/api")
-
-
-def _truth(raw, name):
-    if raw is None:
-        return False
-    if raw.strip().lower() in ("1", "true", "yes"):
-        return True
-    if raw.strip().lower() in ("0", "false", "no"):
-        return False
-    raise ApiError(f"{name} must be true or false, got {raw!r}")
 
 
 def _write(action):
@@ -52,7 +42,7 @@ def list_facility_types():
     kind = request.args.get("kind") or None
     if kind is not None and kind not in tuning.FACILITY_KINDS:
         raise ApiError(f"kind must be one of: {', '.join(sorted(tuning.FACILITY_KINDS))}")
-    items = types.list_types(get_db(), kind=kind, active_only=_truth(request.args.get("active"), "active"))
+    items = types.list_types(get_db(), kind=kind, active_only=truth(request.args.get("active"), "active", absent=False))
     return jsonify({"items": items, "icons": list(types.ICON_NAMES)})
 
 
