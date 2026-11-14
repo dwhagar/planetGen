@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4139] - 2026-11-14
+
+**Headline:** The overlap check now holds a planet or belt round an inner pair of a nested star tree to that pair's limits, so it no longer calls a correctly placed body an overlap.
+
+### Changed
+- **The independent clearance verifier reads `host_node_id` (GEN.332).** `physics/clearance.py` took a body with no star as going round the one pair of stars of the tree, which was right until GEN.332 put planets and belts about the inner pair node and the root pair node of a nested tree. `stored_rows` now reads `planets.host_node_id` and `asteroid_belts.host_node_id` and `_host_of` puts a body about the node it names, so it is held to that node's Holman-Wiegert limits and S-type limits. All 16 multi-star sweep systems of `test_a_generated_system_holds_no_overlap` that Train 27 reported (quadruple 4, 7, 8, 11, 16, triple 7, 9, 10, 11, 12, 16, 17, 19, 22, five 3, 5) are clear with it; the generator was right and the test's host was wrong.
+
+generation-output: unchanged
+
 ## [8.0.4138] - 2026-11-14
 
 **Headline:** Planets now orbit pairs of stars deep inside a larger system: in a system of three or more stars, a close pair or a pair of pairs that sits inside the tree has circumbinary planets of its own, where before only the primary's own close pair had any.
