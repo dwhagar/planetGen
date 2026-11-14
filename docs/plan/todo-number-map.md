@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.318 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1712 |
+| GEN | GEN.1713 |
 | PERF | PERF.267 |
 | DB | DB.131 |
 | API | API.49 |
@@ -3999,7 +3999,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1698 | (bug) H2S and SO2 have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S2 condensation limit they still hold 3,240 to 13,300 kPa of H2S and 172 to 675 kPa of SO2 | GEN.1562 | open |
 | GEN.1699 | (bug) Technological civilizations drop from about 3 percent of candidate systems on main to under 1 percent on Train 26 | none | open |
 | GEN.1700 | Replace the hand-tuned cap on a captured moon (planet_moons.EXCHANGE_MAX_RATIO, stand-in PSM4, L3) with the bound of the binary encounter built from the generated partners | GEN.1157 | open |
-| GEN.1701 | Check the continental weathering law against Earth and the published low-CO2 limit: warm land worlds draw CO2 to near zero (Earth copies median 4 Pa, real warm planets 0 to 0.12 Pa) | none | open |
+| GEN.1701 | Check the continental weathering law against Earth and the published low-CO2 limit: warm land worlds draw CO2 to near zero (Earth copies median 4 Pa, real warm planets 0 to 0.12 Pa) | none | closed as a true result (Lane 15, reports/gen1701-weathering-law-check-2026-11-14.md, 11:55 PM EST 11-13): the law matches its source and Earth; seafloor option is GEN.1712 |
 | GEN.1702 | A habitable-world request asks only for temperature and a surface ocean, so its kept planets are all-ocean and none is Class M: also ask for 20 to 95 percent water cover and 50 to 250 kPa total pressure | none | open |
 | GEN.1703 | The Air rating gives Blue with less oxygen than Class M needs: Blue Air must need at least 16 kPa of O2, the same floor as Class M | none | open |
 | GEN.1704 | Class M abundance tier setting (Science, Sparse, Scattered, Plentiful, Abundant) stored with the galaxy and shown on the Generate page; Science is the default and adjusts nothing | GEN.1702 | open |
@@ -4010,6 +4010,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1709 | Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star) | none | open |
 | GEN.1710 | (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently | none | open |
 | GEN.1711 | Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3) | none | open |
+| GEN.1712 | Measure-first: how far would the source model's seafloor weathering and carbonate source lift CO2 on warm land-and-sea worlds (300 to 330 K), and what share would then clear the 2 Pa life floor | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
