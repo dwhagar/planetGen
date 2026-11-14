@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4119] - 2026-11-14
+
+**Headline:** a gas can no longer stand above its saturation pressure in the stored air of a world, sulfur included.
+
+### Changed
+
+- The air the life stage changes (methane, hydrogen and oxygen of the ledger; the carbon sink balanced again) gets a new temperature from its new greenhouse, and at it a gas could stand far above its saturation pressure (an ammonia air of 97 kPa at 169 K, where the curve gives 0.3 kPa; the first solve had frozen it at 272 K). `biogenic_oxygen.store_air` now runs the freeze-out of the first solve (`surface_air.freeze_out`, no second pass written) on the new air at the new temperature, with the warming of what is left, until the pair settles (GEN.1564). On the first 14 hab-set systems, 4 of 5 supersaturated gases of the stored air are gone; one 7 percent excess (methane, a 79 K dwarf) is left.
+- Disulfur (S2) has a saturation curve (`data/saturation_pressure.json`, form `log-fit`, stand-in SV1, section 6.285): `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K, 8.8 percent at worst against the gas table's NASA-polynomial rows. The freeze-out now condenses it: a hot-sulfur air over a cold surface (2.5 MPa of S2 at 212 K) loses it, where the gas had no curve and stayed.
+- A warm ocean world that only supersaturated vapor held warm now freezes (GEN.1564, with GEN.1698's S2 half): the freeze-out takes the water of its sea as the reservoir (the first solve's humidity, 0.77), and where the warming needs vapor above that the pair settles cold. In the first test sample, a methane air over a sea at 349 K with 52 kPa of water (saturation at 349 K is 40 kPa) now settles ice-covered at 205 K; the oxygenic life of that world keeps its class, with its sea frozen over since the oxygen was made.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4118] - 2026-11-14
 
 **Headline:** A belt no longer keeps a world-sized body: every belt member heavier than the isolation mass of its stretch is a planet, and the belt's largest-body figure names the largest member it still holds.
