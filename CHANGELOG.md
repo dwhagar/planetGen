@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4125] - 2026-11-14
+
+**Headline:** Whether a body formed beyond the snow line, and so is icy, now reads the same viscous-disk snow line as its water.
+
+### Changed
+- **One snow line for the water and the ices (GEN.1679).** `bulk_draw.origin_of` (icy or rocky make-up) and `planets.formed_beyond_snow_line` (the stored `born_beyond_snow_line` flag the rings and the make-up read) used the luminosity line while the water of a rocky body (GEN.1678) read the viscous-disk line, so a body could be icy by origin and dry by the water law. Both now read `formation_snow_line.water_snow_line_au`. The planet chain, the belts and the comets still read the luminosity line.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4124] - 2026-11-14
 
 **Headline:** The water of a rocky planet is read against the snow line of the star's viscous disk, which falls with the star's mass the way the formation papers find, not against the luminosity line alone.
