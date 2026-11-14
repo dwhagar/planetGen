@@ -92,3 +92,15 @@ def test_the_unit_counts_one_step_to_a_statement():
             pass
     phases.finish()
     assert seen == [(0, 3), (1, 3), (3, 3)]
+
+
+def test_the_reset_names_each_table_it_empties(mysql_config, monkeypatch):
+    """OPS.206: one `longsql.run` to a table, labelled with the table and its place in the list, and the unit's count moves a table at a time."""
+    from planetgen.cli import reset
+    labels, counts = [], []
+    real = longsql.run
+    monkeypatch.setattr(longsql, "run", lambda conn, statement, label, *a, **k: labels.append((statement, label)) or real(conn, statement, label, *a, **k))
+    wiped = reset.wipe(mysql_config, lambda done, total: counts.append((done, total)))
+    assert len(labels) == len(wiped.tables) and all(s.startswith("TRUNCATE TABLE ") for s, _ in labels)
+    assert labels[0][1].startswith(f"Emptying {labels[0][0].split()[-1]} (") and f"table 1 of {len(wiped.tables)}" in labels[0][1]
+    assert counts[-1] == (len(wiped.tables), len(wiped.tables))
