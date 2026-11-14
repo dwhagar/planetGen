@@ -12499,14 +12499,16 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
 - [ ] **GEN.1617 (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores**
+  Boss, 2:34 PM EST on 2026-11-14 (card): option (a), store the surface liquid (kind and amount) and make classes U, Y, A and X test it, after the current generation fixes land (GEN.1716, GEN.1717 and Train 28). Lock item.
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do, Boss's call between: (a) store the liquid (surface liquid kind and amount) and make the condition read it (lock item), or (b) soften the sentences to say what the condition checks (text only, lock-free). Default if no answer: (b) now, (a) as a later lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1557, GEN.1212. Boss's call on the choice where noted.
+  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: GEN.1557, GEN.1212. Boss's call on the choice where noted.
   Filed by the TODO thread.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
 - [ ] **GEN.1618 (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K**
+  Boss, 2:34 PM EST on 2026-11-14 (card): add a new class row for these hot worlds (400 K and up, 10 kPa to 10 bar of air, 0.5 g or more), so class N keeps its meaning. No longer deferred; Lane 14 builds it after GEN.444 and OPS.205. Lock item.
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do, Boss's call between: widen class N to cover them, or add a new row; then check that no stored body has match 0. Lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.830, GEN.1557. Boss's call on the choice where noted.
+  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: GEN.830, GEN.1557. Boss's call on the choice where noted.
   Filed by the TODO thread.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
@@ -12529,8 +12531,9 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1623 Star table: the Sun comes out at 1.107 Lsun and 5848 K (the raw MIST file agrees), so F, G and K dwarfs run 70 to 240 K hot**
+  Boss, 2:34 PM EST on 2026-11-14 (card): find the cause first (likely the age or metallicity grid point the table reads), fix that cause, no hand shift. Lane 11 does it before GEN.1717.
   Data audit batch 1, D3 (report reports/data-audit-2026-11-11.md, with file and line). Boss's call (the coordinator is asking): accept as the source says, or apply one calibration shift so the Sun lands on 1 Lsun and 5772 K. Lock item if shifted.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 11. Prerequisites: none. Related: GEN.725.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
@@ -12928,7 +12931,7 @@ clears each one.
 
 - [ ] **OPS.198 Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity)**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P8 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 21. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.199 Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights)**
@@ -12958,7 +12961,7 @@ clears each one.
 
 - [ ] **OPS.205 Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P15); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P15 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 12. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.207 Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since**
@@ -13233,8 +13236,9 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1714 Life-bearing planets fell 20 percent (2.39 to 1.91 per candidate system) and dead worlds 56 percent after GEN.492's potassium depletion by mass: Boss to decide whether to revisit the potassium range**
+  Boss, 2:34 PM EST on 2026-11-14 (card): keep the sourced law, recheck its range against the source, and change it only if the source allows a wider range.
   Train Manager, measuring GEN.1699 (2026-11-14, /mnt/project-files/reports/civilization-drop-2026-11-14/report.md): the civilization drop was chance, but life-bearing planets are down 20 percent and dead worlds down 56 percent, caused by GEN.492 (potassium depletion drawn by body class and mass, Train 26); putting the old log-uniform draw back gives 2.24 per candidate. Class M and Blue are 0 in both builds. Do: put the choice to Boss (keep the sourced depletion law, or revisit its range against its source); build only on his answer. Changes output if built (lock item).
-  Version 8.1. Owner (TODO, 2026-11-14): waiting on Boss; then the lane that built GEN.492. Prerequisites: none. Related: GEN.492, GEN.1699.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 21.492. Prerequisites: none. Related: GEN.492, GEN.1699.
   Filed by the TODO thread.
 
 - [ ] **ADM.155 Default recipe as a JSON file with a "Set as default" button, a reset-or-hot-update prompt when the shipped default changes, and every recipe stored as a named JSON file with its creator**
@@ -13259,7 +13263,7 @@ clears each one.
 
 - [ ] **PERF.267 Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s**
   Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Stage 5 log: 109 of 109 sectors done after 6:05:18. Do: measure whether this is the expected cost per sector on that machine after Train 26 or a slowdown; report before any change.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 22. Prerequisites: none. Related: OPS.253.
   Filed by the TODO thread.
 
 - [ ] **TEST.741 (bug) After Train 27 the W20 same-inventory test is red at bistable key 155**
@@ -13299,7 +13303,7 @@ clears each one.
 
 - [ ] **GEN.1717 (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300)**
   Lane 15, 12:54 PM EST on 2026-11-14, from GEN.1716 (reports/gen1716-start-dependence-measure-2026-11-14.md): on main already; looks like opacity feeding back on temperature with nothing to stop it. Do: trace the feedback, compare with published sub-Neptune 1 bar temperatures for the same irradiation (radiative-convective models), and fix at the cause so the envelope's temperature comes from its physics; measure first, report before building. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1716.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 11. Prerequisites: none. Related: GEN.1716.
   Filed by the TODO thread.
 
 - [ ] **TEST.744 (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900)**
