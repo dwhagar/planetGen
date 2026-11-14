@@ -61873,6 +61873,44 @@
           "what": "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (UNCAPPED_CLIP_LN); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities"
         },
         {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLASS_MATCH_THRESHOLD 0.5: a class counts as an outcome (a requested class is met, a Class M world is counted) only for a body whose stored class_match is at least this; the match is 1 for a full fit and 1 - total / (values * largest cap) for a fudged one"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "requests for a class and the count of Class M worlds"
+            ],
+            [
+              "What would show it wrong",
+              "a requested class whose bodies at 0.5 to 0.6 read as plainly another class to a person (a Class M world 0.5 from a Class H)"
+            ],
+            [
+              "What replaces it",
+              "the match the player reads: a threshold chosen with the part 2 cap sweep once GEN.1309 is in"
+            ],
+            [
+              "Evidence",
+              "the plan's suggestion (design-drafts, F4); a fudged body is 1 minus its distance over the cap, so 0.5 is half the cap"
+            ]
+          ],
+          "id": "FT5",
+          "key": "6.261:FT5",
+          "kind": "P",
+          "slug": "6-261-ft5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CLASS_MATCH_THRESHOLD 0.5: a class counts as an outcome (a requested class is met, a Class M world is counted) only for a body whose stored class_match is at least this; the match is 1 for a full fit and 1 - total / (values * largest cap) for a fudged one"
+        },
+        {
           "burn_down": [
             "no data",
             "-",

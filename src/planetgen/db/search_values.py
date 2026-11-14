@@ -160,6 +160,7 @@ KEYS = {value.key: value for value in (
     _body("rotation_period", "Rotation period", "rotation_period_hours", "h"),
     _body("year_length", "Length of the year (the orbital period)", "period_years", "yr"),
     SearchValue("mass", "Mass", ENTITIES, "mass_kg", {"star": "Msun", "planet": "Mearth", "moon": "Mearth"}),
+    _body("class_match", "Match to its class (1 is a full fit)", "class_match", "frac"),
     _body("surface_dose", "Surface radiation dose", "surface_dose_msv_yr", "mSv/yr"),
     _body("magnetic_moment", "Magnetic moment", "magnetic_moment_a_m2", "A*m2"),
     _body("ocean_depth", "Ocean depth", "ocean_depth_km", "km"),

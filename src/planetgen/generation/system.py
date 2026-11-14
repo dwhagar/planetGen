@@ -32,7 +32,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
+from planetgen.physics import class_outcome, flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
@@ -1772,7 +1772,7 @@ class StarSystem:
     def _forced_class_present(self):
         """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""
         letter = self.system_config.FORCE_CLASS
-        return not letter or any(getattr(planet, "planet_class", None) == letter for planet in self.planets)
+        return not letter or any(class_outcome.has_class(planet, letter) for planet in self.planets)
 
     def _too_young_for_planets(self, star):
         """Whether `star` is younger than `tuning.PLANET_MIN_STAR_AGE_GY`, so it holds a debris disk (belts) and no planets, unless the config asks for a class or lists its slots."""
@@ -2168,7 +2168,7 @@ class StarSystem:
                 # core that finished growing after the gas disk went (rare in the population, so a request is its only way to it)
                 given["late_core"] = (attempt - tuning.CLASS_REQUEST_FREE_ATTEMPTS) % tuning.CLASS_REQUEST_LATE_CORE_EVERY == tuning.CLASS_REQUEST_LATE_CORE_EVERY - 1
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
-            if planet.planet_class == planet_class:
+            if class_outcome.has_class(planet, planet_class):      # GEN.1315: the class with a match that counts, not a poor fit of it
                 break
             draw.redrawn("planet.request_missed")
         else:
@@ -2357,7 +2357,7 @@ class StarSystem:
                 for body in (planet, *planet.moons):
                     if habitability.is_habitable(getattr(body, "phi4", None)):
                         hab_count += 1
-                    if body.planet_class == "M":
+                    if class_outcome.has_class(body, "M"):      # GEN.1315: a Class M world is one that matches M well enough to count
                         m_count += 1
         return hab_count, m_count
 
