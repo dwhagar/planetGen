@@ -238,6 +238,11 @@ def validate_password_policy(password, username=None):
         raise AuthError("password is too close to the username or the site's name; choose another")
 
 
+def _new_initial_password():
+    """A random first password (`INITIAL_PASSWORD_BYTES`), shown to the operator once."""
+    return secrets.token_urlsafe(INITIAL_PASSWORD_BYTES)
+
+
 def bootstrap_control_schema(config=None):
     """
     Ensures the control schema's *database* (MySQL schema) itself exists,
@@ -290,7 +295,7 @@ def bootstrap_control_schema(config=None):
         row = conn.execute("SELECT COUNT(*) AS n FROM admin_users").fetchone()
         if row["n"] != 0:
             return _rotate_published_default_password(conn)
-        password = secrets.token_urlsafe(INITIAL_PASSWORD_BYTES)
+        password = _new_initial_password()
         conn.execute(
             "INSERT INTO admin_users (username, password_hash, must_change_credentials, role) VALUES (?, ?, 1, 'owner')",
             (DEFAULT_ADMIN_USERNAME, hash_password(password)),
@@ -325,7 +330,7 @@ def _rotate_published_default_password(conn):
     for row in rows:
         if not verify_password(_PUBLISHED_DEFAULT_PASSWORD, row["password_hash"]):
             continue
-        password = secrets.token_urlsafe(INITIAL_PASSWORD_BYTES)
+        password = _new_initial_password()
         conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (hash_password(password), row["id"]))
         conn.execute("DELETE FROM admin_sessions WHERE admin_user_id = ?", (row["id"],))
         conn.commit()
@@ -851,11 +856,10 @@ def _normalize_recovery_code(code):
 def totp_status(conn, admin_user_id):
     """`{"enabled": bool, "recovery_codes_left": int}` for one admin's
     two-factor sign-in (SEC.26)."""
-    row = conn.execute("SELECT enabled_at FROM admin_totp WHERE admin_user_id = ?", (admin_user_id,)).fetchone()
     left = conn.execute(
         "SELECT COUNT(*) AS n FROM admin_recovery_codes WHERE admin_user_id = ? AND used_at IS NULL",
         (admin_user_id,)).fetchone()["n"]
-    return {"enabled": bool(row and row["enabled_at"]), "recovery_codes_left": int(left)}
+    return {"enabled": totp_enabled(conn, admin_user_id), "recovery_codes_left": int(left)}
 
 
 def totp_enabled(conn, admin_user_id):
@@ -1018,18 +1022,25 @@ def record_audit(conn, admin_user_id, admin_username, action, target=None, detai
         detail (str, optional): Free-form extra context (e.g. the fields
             changed).
     """
+    _insert_audit_row(conn, admin_user_id, admin_username, action, target, detail)
+    conn.commit()
+
+
+def _insert_audit_row(conn, admin_user_id, admin_username, action, target, detail):
+    """Adds one `admin_audit_log` row without committing."""
     conn.execute(
-        "INSERT INTO admin_audit_log (admin_user_id, admin_username, action, target, detail) "
-        "VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO admin_audit_log (admin_user_id, admin_username, action, target, detail) VALUES (?, ?, ?, ?, ?)",
         (admin_user_id, admin_username, action, target, detail),
     )
-    conn.commit()
 
 
 LOGIN_FAILURE_ACTIONS = ("login.failed", "login.locked", "password.failed", "totp.failed")
 """tuple: The `admin_audit_log` actions a refused sign-in writes (SEC.20):
 a wrong username or password, a locked login, and a wrong current
 password on a credential change."""
+
+_LOGIN_FAILURE_PLACEHOLDERS = ", ".join("?" for _ in LOGIN_FAILURE_ACTIONS)
+"""str: The `IN (...)` placeholders for `LOGIN_FAILURE_ACTIONS`."""
 
 LOGIN_FAILURE_RETENTION_DAYS = 90
 """int: Failure rows older than this are deleted as new ones are written,
@@ -1057,13 +1068,9 @@ def record_login_failure(conn, action, username, ip=None, detail=None, admin_use
     if action not in LOGIN_FAILURE_ACTIONS:
         raise ValueError(f"not a login failure action: {action!r}")
     name = (username or "")[:MAX_USERNAME_LENGTH] or "-"
+    _insert_audit_row(conn, admin_user_id, name, action, f"ip:{ip}" if ip else None, detail)
     conn.execute(
-        "INSERT INTO admin_audit_log (admin_user_id, admin_username, action, target, detail) VALUES (?, ?, ?, ?, ?)",
-        (admin_user_id, name, action, f"ip:{ip}" if ip else None, detail),
-    )
-    placeholders = ", ".join("?" for _ in LOGIN_FAILURE_ACTIONS)
-    conn.execute(
-        f"DELETE FROM admin_audit_log WHERE action IN ({placeholders}) "
+        f"DELETE FROM admin_audit_log WHERE action IN ({_LOGIN_FAILURE_PLACEHOLDERS}) "
         f"AND created_at < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)",
         (*LOGIN_FAILURE_ACTIONS, LOGIN_FAILURE_RETENTION_DAYS),
     )
@@ -1078,10 +1085,9 @@ def recent_login_failures(conn, limit=20):
     Returns:
         list[dict]: `{"action", "username", "ip", "created_at"}` rows.
     """
-    placeholders = ", ".join("?" for _ in LOGIN_FAILURE_ACTIONS)
     rows = conn.execute(
         f"SELECT action, admin_username, target, created_at FROM admin_audit_log "
-        f"WHERE action IN ({placeholders}) ORDER BY created_at DESC, id DESC LIMIT ?",
+        f"WHERE action IN ({_LOGIN_FAILURE_PLACEHOLDERS}) ORDER BY created_at DESC, id DESC LIMIT ?",
         (*LOGIN_FAILURE_ACTIONS, int(limit)),
     ).fetchall()
     return [{

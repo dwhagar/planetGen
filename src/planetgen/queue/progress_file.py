@@ -94,6 +94,11 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
         directory = os.path.dirname(os.path.abspath(path))
     except (TypeError, ValueError):
         return
+    _write_atomic(path, directory, text)
+
+
+def _write_atomic(path, directory, text):
+    """Writes `text` to `path` as a temp file in `directory` renamed over the old one; a failure leaves nothing behind."""
     tmp = None
     try:
         fd, tmp = tempfile.mkstemp(prefix=".progress-", dir=directory)
@@ -130,13 +135,10 @@ def set_stage(index, total, label, skipped=None):
     body["stage"] = _stage
     body["updated_at"] = time.time()
     try:
-        directory = os.path.dirname(os.path.abspath(path))
-        fd, tmp = tempfile.mkstemp(prefix=".progress-", dir=directory)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(json.dumps(body, allow_nan=False))
-        os.replace(tmp, path)
-    except (OSError, ValueError, TypeError):
-        pass
+        text = json.dumps(body, allow_nan=False)
+    except (TypeError, ValueError):
+        return
+    _write_atomic(path, os.path.dirname(os.path.abspath(path)), text)
 
 
 def _finite_or_none(value):

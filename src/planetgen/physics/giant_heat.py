@@ -53,7 +53,7 @@ RAIN_AGE_SHARE = 1.0
 """float: The share of the body's age over which the rain's heat has come out; 1 takes it as the average over the whole age, which is
 the least power it can give today, since the rain began when the body cooled below the temperature where helium separates (row GH3)."""
 
-SECONDS_PER_GYR = 1.0e9 * constants.SECONDS_PER_YEAR
+SECONDS_PER_GYR = constants.SECONDS_PER_GY
 """float: Seconds in a billion years."""
 
 

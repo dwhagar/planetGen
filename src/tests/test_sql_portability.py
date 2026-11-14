@@ -45,7 +45,7 @@ VALUES_FUNCTION_ALLOWED = {
         "diminutive_index", "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
         "bulge_amplitude", "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude", "spiral_reference_radius_pc",
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
-        "outer_shell_index", "habitability_stamp",
+        "outer_shell_index", "__expr__",    # `_stamp_family`: the stamp column of the family (`habitability_stamp`, `ledger_stamp`)
     },
     "planetgen/db/block_lights.py": {"__expr__"},
     "planetgen/db/system_summary.py": {"__expr__"},

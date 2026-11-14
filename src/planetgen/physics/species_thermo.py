@@ -100,17 +100,11 @@ class Species:
 
     def h_over_rt(self, temperature_k):
         """The molar enthalpy over R T."""
-        t = temperature_k
-        a1, a2, a3, a4, a5, a6, a7 = self.fit(t).a
-        b1 = self.fit(t).b[0]
-        return -a1 / t ** 2 + a2 * math.log(t) / t + a3 + a4 * t / 2 + a5 * t ** 2 / 3 + a6 * t ** 3 / 4 + a7 * t ** 4 / 5 + b1 / t
+        return _h_over_rt(self.fit(temperature_k), temperature_k)
 
     def s_over_r(self, temperature_k):
         """The molar entropy over R, at the 1 bar standard state."""
-        t = temperature_k
-        a1, a2, a3, a4, a5, a6, a7 = self.fit(t).a
-        b2 = self.fit(t).b[1]
-        return -a1 / (2 * t ** 2) - a2 / t + a3 * math.log(t) + a4 * t + a5 * t ** 2 / 2 + a6 * t ** 3 / 3 + a7 * t ** 4 / 4 + b2
+        return _s_over_r(self.fit(temperature_k), temperature_k)
 
     def cp_over_r(self, temperature_k):
         """The heat capacity over R."""
@@ -135,12 +129,21 @@ class Species:
             return self.g_over_rt(temperature_k)
         if temperature_k < below_k:
             raise ValueError(f"{self.name}: the supercooled liquid is only taken down to {below_k:g} K, not {temperature_k:g} K")
-        t = temperature_k
-        a1, a2, a3, a4, a5, a6, a7 = first.a
-        b1, b2 = first.b
-        h = -a1 / t ** 2 + a2 * math.log(t) / t + a3 + a4 * t / 2 + a5 * t ** 2 / 3 + a6 * t ** 3 / 4 + a7 * t ** 4 / 5 + b1 / t
-        s = -a1 / (2 * t ** 2) - a2 / t + a3 * math.log(t) + a4 * t + a5 * t ** 2 / 2 + a6 * t ** 3 / 3 + a7 * t ** 4 / 4 + b2
-        return h - s
+        return _h_over_rt(first, temperature_k) - _s_over_r(first, temperature_k)
+
+
+def _h_over_rt(fit, t):
+    """H/RT of one `Fit` at `t` K (the NASA Glenn form of the module docstring)."""
+    a1, a2, a3, a4, a5, a6, a7 = fit.a
+    b1 = fit.b[0]
+    return -a1 / t ** 2 + a2 * math.log(t) / t + a3 + a4 * t / 2 + a5 * t ** 2 / 3 + a6 * t ** 3 / 4 + a7 * t ** 4 / 5 + b1 / t
+
+
+def _s_over_r(fit, t):
+    """S/R of one `Fit` at `t` K, at the 1 bar standard state."""
+    a1, a2, a3, a4, a5, a6, a7 = fit.a
+    b2 = fit.b[1]
+    return -a1 / (2 * t ** 2) - a2 / t + a3 * math.log(t) + a4 * t + a5 * t ** 2 / 2 + a6 * t ** 3 / 3 + a7 * t ** 4 / 4 + b2
 
 
 def _load():

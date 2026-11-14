@@ -88,14 +88,15 @@ def cell_bubbles(galaxy_seed, shape, index):
         for n in range(_sample_poisson_count(mean)):
             x, y = low[0] + draw.uniform(0.0, edge), low[1] + draw.uniform(0.0, edge)
             z = draw.gauss(0.0, tuning.SUPERBUBBLE_CENTER_HEIGHT_SIGMA_PC)
-            radius_low, radius_high = tuning.SUPERBUBBLE_RADIUS_RANGE_PC
-            radius = math.exp(draw.uniform(math.log(radius_low), math.log(radius_high)))
-            density_low, density_high = tuning.SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3
-            density = math.exp(draw.uniform(math.log(density_low), math.log(density_high)))
+            radius = _log_uniform(*tuning.SUPERBUBBLE_RADIUS_RANGE_PC)
+            density = _log_uniform(*tuning.SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3)
             bubbles.append(Superbubble(tuple(index), n, (x, y, z), radius, density, tuning.SUPERBUBBLE_TEMPERATURE_K))
     return tuple(bubbles)
 
 
+def _log_uniform(low, high):
+    """The next draw of the bound stream, log-uniform between `low` and `high`."""
+    return math.exp(draw.uniform(math.log(low), math.log(high)))
 def bubbles_reaching(galaxy_seed, shape, point_pc, reach_pc=0.0):
     """Every bubble whose sphere comes within `reach_pc` of `point_pc`, nearest column first."""
     span = tuning.SUPERBUBBLE_RADIUS_RANGE_PC[1] + reach_pc

@@ -30,7 +30,7 @@ from planetgen.util import log
 from planetgen.web import assets
 
 from .authz import audit, require_admin, session_cookie_name
-from .common import ApiError, get_control_db, require_json_body
+from .common import ApiError, get_control_db, iso_utc, require_json_body
 from .limiter import limiter
 from .schemas import (
     ApiKeyCreate, ChangeCredentials, ImageUpload, Login, LoginCode, PasswordCheck, TotpConfirm, TotpDisable, parse_body,
@@ -65,21 +65,15 @@ def _admin_public_dict(admin):
 
 
 def _set_session_cookie(resp, raw_token):
-    resp.set_cookie(
-        session_cookie_name(),
-        raw_token,
-        max_age=adminAuth.SESSION_TTL_HOURS * 3600,
-        httponly=True,
-        secure=current_app.config.get("SESSION_COOKIE_SECURE", True),
-        samesite="Strict",
-        # Not "/api": the admin pages (/admin, /account, ...,
-        # web/admin_pages.py) live at the site root and relay this cookie
-        # to the API themselves. A cookie scoped to /api is never
-        # attached by the browser to a request for /admin, so a path
-        # scoped that narrowly locks every admin page out immediately
-        # after a successful login.
-        path="/",
-    )
+    resp.set_cookie(session_cookie_name(), raw_token, max_age=adminAuth.SESSION_TTL_HOURS * 3600, **_cookie_args())
+
+
+def _cookie_args():
+    """How the session and device cookies are set: `HttpOnly`, `Secure` (`config.SESSION_COOKIE_SECURE`), `SameSite=Strict`
+    and path `/`. Not "/api": the admin pages (/admin, /account, ..., web/admin_pages.py) live at the site root and relay
+    the cookie to the API themselves; a cookie scoped to /api is never attached by the browser to a request for /admin, so
+    a path scoped that narrowly locks every admin page out immediately after a successful login."""
+    return {"httponly": True, "secure": current_app.config.get("SESSION_COOKIE_SECURE", True), "samesite": "Strict", "path": "/"}
 
 
 DEVICE_COOKIE_NAME = "pg_admin_device"
@@ -116,15 +110,7 @@ def _issue_device_cookie(resp, conn, admin_user_id):
             log.swallowed("api/auth", "_issue_device_cookie", swallowed_exc)
         log.error(f"Could not record a trusted device (run update.sh?): {exc}")
         return
-    resp.set_cookie(
-        DEVICE_COOKIE_NAME,
-        raw,
-        max_age=adminAuth.DEVICE_TTL_DAYS * 86400,
-        httponly=True,
-        secure=current_app.config.get("SESSION_COOKIE_SECURE", True),
-        samesite="Strict",
-        path="/",
-    )
+    resp.set_cookie(DEVICE_COOKIE_NAME, raw, max_age=adminAuth.DEVICE_TTL_DAYS * 86400, **_cookie_args())
 
 
 def _clear_session_cookie(resp):
@@ -294,8 +280,7 @@ def change_credentials():
     a failed login (`password.failed`) for both.
     """
     body = parse_body(ChangeCredentials, require_json_body())
-    guard = LoginGuard(g.admin_user["username"], admin_user_id=g.admin_user["id"],
-                       trusted_device=trusted_device_for(g.admin_user["username"]))
+    guard = _own_guard()
     refused = guard.refusal()
     if refused is not None:
         return refused
@@ -325,11 +310,17 @@ def change_credentials():
     return resp
 
 
+def _own_guard():
+    """The `LoginGuard` of the signed-in admin's own password checks (SEC.23): the same per-address and per-username
+    counts as a login."""
+    return LoginGuard(g.admin_user["username"], admin_user_id=g.admin_user["id"],
+                      trusted_device=trusted_device_for(g.admin_user["username"]))
+
+
 def _check_current_password(body):
     """Re-checks `current_password` for a two-factor change, guarded like
     change-credentials (SEC.23)."""
-    guard = LoginGuard(g.admin_user["username"], admin_user_id=g.admin_user["id"],
-                       trusted_device=trusted_device_for(g.admin_user["username"]))
+    guard = _own_guard()
     refused = guard.refusal()
     if refused is not None:
         return refused
@@ -428,9 +419,7 @@ def totp_disable():
     conn = get_control_db()
     if adminAuth.totp_enabled(conn, g.admin_user["id"]):
         if adminAuth.check_second_factor(conn, g.admin_user["id"], body.code) is None:
-            guard = LoginGuard(g.admin_user["username"], admin_user_id=g.admin_user["id"],
-                               trusted_device=trusted_device_for(g.admin_user["username"]))
-            guard.failed("totp.failed")
+            _own_guard().failed("totp.failed")
             raise ApiError("that code isn't right", status_code=400)
     adminAuth.disable_totp(conn, g.admin_user["id"])
     # Devices trusted while the second factor was on aren't trusted any
@@ -495,12 +484,12 @@ def list_api_keys():
             "id": row["id"],
             "label": row["label"],
             # UTC (the connection's zone), with an explicit offset.
-            "created_at": row["created_at"].isoformat() + "Z" if row["created_at"] else None,
-            "last_used_at": row["last_used_at"].isoformat() + "Z" if row["last_used_at"] else None,
-            "revoked_at": row["revoked_at"].isoformat() + "Z" if row["revoked_at"] else None,
+            "created_at": iso_utc(row["created_at"]),
+            "last_used_at": iso_utc(row["last_used_at"]),
+            "revoked_at": iso_utc(row["revoked_at"]),
             "key_prefix": row["key_prefix"],
             "scopes": row["scopes"],
-            "expires_at": row["expires_at"].isoformat() + "Z" if row["expires_at"] else None,
+            "expires_at": iso_utc(row["expires_at"]),
         }
         for row in rows
     ]})

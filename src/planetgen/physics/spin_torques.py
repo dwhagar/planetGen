@@ -202,7 +202,7 @@ def thermal_relaxation_rate(surface_pressure_pa, flux_w_m2):
 
 
 def _thermal_table(surface_pressure_pa, column):
-    bar = surface_pressure_pa / 1.0e5
+    bar = surface_pressure_pa / constants.BAR_PA
     rows = THERMAL_TABLE
     if bar <= rows[0][0]:
         if column == 1:
@@ -307,7 +307,7 @@ def equilibria(torques, eccentricity=0.0):
     grid = [centers[0] - span + 2.0 * span * i / (2 * SCAN_POINTS) for i in range(2 * SCAN_POINTS + 1)]
     grid = sorted(set(grid) | {c + s * span * 10.0 ** (-k / 20.0) for c in centers for s in (-1.0, 1.0) for k in range(0, 100)})
     values = [torques.total(w) for w in grid]
-    flips = {c for c in centers}
+    flips = set(centers)
     for (w0, v0), (w1, v1) in zip(zip(grid, values), zip(grid[1:], values[1:])):
         if v0 == 0.0 or v0 * v1 > 0.0:
             continue

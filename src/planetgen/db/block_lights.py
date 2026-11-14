@@ -383,9 +383,8 @@ def _object_shells(conn):
     return sorted(shells)
 
 
-def _roll(cells, address, sums, parents):
-    """Notes the sums of the sector cell at `address` in its level-`DRILL_STEP` block in `cells` (`{m: {DrillBlock: [sums]}}`); `parents` memoises a block's
-    parent. A block combines what was noted in it when it is complete (`_complete`), and that is noted in its parent."""
+def _roll(cells, address, sums):
+    """Notes the sums of the sector cell at `address` in its level-`DRILL_STEP` block in `cells` (`{m: {DrillBlock: [sums]}}`). A block combines what was noted in it when it is complete (`_complete`), and that is noted in its parent."""
     level3 = drill_parent((1,) + tuple(address))
     cells[level3.m].setdefault(level3, []).append(sums)
 
@@ -419,7 +418,6 @@ def _unit_batches(conn, shells, on_shell=None, from_parts=False, on_found=None):
     sectors (PERF.187). `on_shell(shell)` is called before each shell is read. With `from_parts` the cells' sums are the parts' (GEN.1476), not
     a grouped read of the two object tables; `on_found(shell, found)` gets each shell's `{address: sums}` (the rebuild writes the parts with it)."""
     cells = {m: {} for m in sorted(LEVELS) if m <= UNIT_LEVEL}
-    parents = {}
     previous = None
     for shell in shells:
         if previous is not None:
@@ -428,12 +426,11 @@ def _unit_batches(conn, shells, on_shell=None, from_parts=False, on_found=None):
                     yield _complete(cells, level)
         if on_shell is not None:
             on_shell(shell)
-        parents.clear()
         found = _part_sums(conn, shell) if from_parts else _object_sums(conn, "shell_index = ?", (shell,), by_address=True)
         if on_found is not None:
             on_found(shell, found)
         for address, sums in found.items():
-            _roll(cells, address, sums, parents)
+            _roll(cells, address, sums)
         previous = shell
     for level in cells:
         if cells[level]:
@@ -444,6 +441,8 @@ def _unit_rows(conn, shells):
     """All the rows of one unit (see `_unit_batches`), for callers that want them together."""
     return [row for batch in _unit_batches(conn, shells) for row in batch]
 
+PROGRESS_SAY_SECONDS = 30.0
+"""float: How long a long loop of the block light work goes without saying where it is (`on_phase`)."""
 
 ABOVE_ROLL_SHARE = 0.8
 """float: The share of `_above_unit`'s progress that adding up the stored rows takes (the rest is writing the rows made)."""

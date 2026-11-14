@@ -30,11 +30,10 @@ from typing import Optional, Tuple
 
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import unit_registry
-from planetgen.physics import unit_registry as units
 
-_mearth_to_kg = units.converter("Mearth", "kg")
-_mjup_to_kg = units.converter("Mjup", "kg")
-_msun_to_kg = units.converter("Msun", "kg")
+_mearth_to_kg = unit_registry.converter("Mearth", "kg")
+_mjup_to_kg = unit_registry.converter("Mjup", "kg")
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 TINY_NUMBER = 1e-3
 """float: A number below this in the unit shown is written as scientific

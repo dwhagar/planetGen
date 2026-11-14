@@ -9,7 +9,6 @@ import json
 import pytest
 
 from planetgen import describe
-from planetgen.cli import generate
 from planetgen.generation import run_system
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -82,6 +81,6 @@ def test_a_life_class_that_does_not_come_out_is_an_unmet_requirement():
 
 
 def test_the_cli_refuses_a_class_that_does_not_exist():
-    assert generate.class_request_problem("O", "4c") is None and generate.class_request_problem(None, "6") is None
-    assert "not a planet class" in generate.class_request_problem("Q", None)
-    assert "not a life class" in generate.class_request_problem(None, "12")
+    assert run_system.class_request_problem("O", "4c") is None and run_system.class_request_problem(None, "6") is None
+    assert "not a planet class" in run_system.class_request_problem("Q", None)
+    assert "not a life class" in run_system.class_request_problem(None, "12")

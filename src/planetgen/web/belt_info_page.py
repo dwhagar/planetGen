@@ -7,12 +7,12 @@ and how crowded it is. The data is `GET /api/objects/<ref>/belt-page` (`describe
 
 from flask import abort
 
-from planetgen.galaxy import objectref
+from planetgen.web.lib import bodyview
 from planetgen.web.lib import apiclient
 
 from . import bp
 from .helpers import crumb, db_name, render_page
-from .item_pages import _crumbs, item_url
+from .item_pages import item_url, linked_crumbs
 from .belt_member_page import member_url
 
 
@@ -27,21 +27,15 @@ def _composition(shares):
 @bp.route("/object/<belt_ref>/belt")
 def belt_info_page(belt_ref):
     """The bodies, sizes and density of one asteroid belt; a reference that is not a belt, or names nothing, is a 404."""
-    try:
-        kind, printed_id = objectref.parse_public(belt_ref)
-    except ValueError:
-        abort(404)
-    if kind != "belt":
-        abort(404)
-    ref, db = f"belt:{printed_id}", db_name()
+    ref, printed_id = bodyview.page_ref(belt_ref, "belt")
+    db = db_name()
     try:
         found = apiclient.get_object(db, ref)
         data = apiclient.get_belt_page(db, ref)
     except apiclient.NotFoundError:
         abort(404)
     name = found["name"]
-    crumbs = _crumbs(found, name)
-    crumbs[-1] = {"label": name, "url": item_url(ref)}
+    crumbs = linked_crumbs(found, name, ref)
     crumbs.append(crumb("Bodies and sizes"))
     belt = data["belt"]
     return render_page(

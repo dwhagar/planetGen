@@ -259,12 +259,7 @@ def _core_collapse(initial_mass_sol, compact_kind, stripped, fe_h, rng):
     s = _stand_ins()
     final = helium_core_mass_sol(initial_mass_sol) if stripped else initial_mass_sol - wind_loss_sol(initial_mass_sol)
     final = min(final, initial_mass_sol)
-    if compact_kind == "black_hole":
-        compact = remnant_mass.draw_mass_sol("black-hole", rng=rng)
-    elif compact_kind == "neutron_star":
-        compact = remnant_mass.draw_mass_sol("neutron-star", rng=rng)
-    else:
-        compact = remnant_mass.draw_mass_sol("neutron-star", rng=rng)
+    compact = remnant_mass.draw_mass_sol("black-hole" if compact_kind == "black_hole" else "neutron-star", rng=rng)
     compact = min(compact, (1.0 - s["least_ejecta_share"]) * final)
     ejecta_total = final - compact
     core = min(helium_core_mass_sol(initial_mass_sol), final)

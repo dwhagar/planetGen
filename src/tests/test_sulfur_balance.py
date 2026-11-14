@@ -119,3 +119,59 @@ def test_the_crust_of_the_earth_twin_binds_the_sulfur_of_a_bulk_silicate_earth_d
     degassed = mantle_sulfur_mol_m2 * sp.degassed_share(EARTH_RELEASED_J, sb.EARTH_MANTLE_KG) * sp.DEGAS_EFFICIENCY["S"]
     capacity_sulfate, capacity_sulfide = sb.sink_capacities_mol_m2(_crust())
     assert degassed < capacity_sulfate + capacity_sulfide
+
+
+def test_the_dry_lifetime_range_holds_the_two_published_figures():
+    """GEN.1562 N1: 1.9 Myr [R1343] and 20 Myr, quoted by [R0157], at Venus's surface are the bracket starts within a tenth of the first and ends at the second."""
+    low, high = sb.DRY_LIFETIME_YEARS[:2]
+    assert low <= 1.9e6 * 1.1 and high >= 2.0e7
+
+
+def test_a_cooler_dry_surface_sulfates_slower_by_the_activation_energy_of_the_rate_law():
+    """GEN.1562 N2: tau(T) = tau(735 K) exp(15248 (1/T - 1/735)): 5e5 times at 450 K, the same at 735 K, a hotter surface shorter."""
+    tau = 2.0e6 * sb.YEAR_S
+    assert sb.sulfation_lifetime_s(tau, 735.0) == pytest.approx(tau)
+    assert sb.sulfation_lifetime_s(tau, 450.0) / tau == pytest.approx(math.exp(15248.0 * (1 / 450.0 - 1 / 735.0)), rel=1e-12)
+    assert 4.0e5 < sb.sulfation_lifetime_s(tau, 450.0) / tau < 6.0e5
+    assert sb.sulfation_lifetime_s(tau, 900.0) < tau
+    assert sb.sulfation_lifetime_s(tau, None) == tau
+    assert math.isfinite(sb.sulfation_lifetime_s(tau, 3.0)), "the exponent is held, no overflow at a few kelvin"
+
+
+def test_a_cool_dry_body_keeps_its_oxidized_sulfur_in_the_air():
+    hot = sb.balance(1.0e7, age_s=AGE_S, ocean_present=False, oxidized_share=1.0, crust_kg_m2=_crust(), lifetimes=LIFETIMES, temperature_k=735.0)
+    cool = sb.balance(1.0e7, age_s=AGE_S, ocean_present=False, oxidized_share=1.0, crust_kg_m2=_crust(), lifetimes=LIFETIMES, temperature_k=320.0)
+    assert cool.air_mol_m2 > 100.0 * hot.air_mol_m2
+    assert cool.air_mol_m2 + cool.sulfate_mol_m2 + cool.sulfide_mol_m2 == pytest.approx(1.0e7)
+
+
+def test_water_removes_at_most_one_mole_of_sulfur_per_mole_of_water_and_the_rest_meets_the_dry_lifetime():
+    """GEN.1562 N6: a thin layer of water (no ocean) acid-izes only the sulfur it has water for; at 2.75 m and over the wet lifetime holds for all."""
+    crust = _crust()
+    kw = dict(age_s=AGE_S, ocean_present=False, oxidized_share=1.0, crust_kg_m2=crust, lifetimes=LIFETIMES, temperature_k=320.0)
+    bound = _balance(1.0e7, False, oxidized=1.0).sulfate_mol_m2 + _balance(1.0e7, False, oxidized=1.0).air_mol_m2
+    dry = sb.balance(1.0e7, **kw)
+    thin = sb.balance(1.0e7, water_layer_m=0.05, **kw)                     # 0.05 m of water: 2.8e3 mol/m2 of water
+    wet = sb.balance(1.0e7, water_layer_m=sb.WATER_LAYER_FULL_M, **kw)
+    assert wet.air_mol_m2 < thin.air_mol_m2 < dry.air_mol_m2
+    assert thin.sulfate_mol_m2 + thin.air_mol_m2 == pytest.approx(dry.sulfate_mol_m2 + dry.air_mol_m2)
+    assert dry.air_mol_m2 - thin.air_mol_m2 <= 0.05 * 1000.0 / sb.WATER_MOLAR_MASS_KG * 1.0001, "no more sulfur is taken out than there is water"
+    assert bound > 0.0
+
+
+def test_a_water_layer_changes_nothing_for_an_ocean_world_and_none_keeps_the_old_rule():
+    kw = dict(age_s=AGE_S, oxidized_share=0.9, crust_kg_m2=_crust(), lifetimes=LIFETIMES)
+    assert sb.balance(1.0e7, ocean_present=True, water_layer_m=0.001, **kw).air_mol_m2 == pytest.approx(sb.balance(1.0e7, ocean_present=True, **kw).air_mol_m2)
+    assert sb.balance(1.0e7, ocean_present=False, **kw).air_mol_m2 == pytest.approx(_balance(1.0e7, False).air_mol_m2)
+
+
+def test_the_redox_shift_is_applied_to_the_magma_ocean_and_the_later_mantle():
+    """GEN.1562 N4: `mixture_rocky.draw_redox` returns the recipe's first value plus `REDOX_SHIFT_DEX`, and the building blocks' and the white dwarf debris's values are not moved."""
+    from types import SimpleNamespace
+    from planetgen.physics import mixture_rocky
+    recipe = lambda **values: SimpleNamespace(values=values)           # noqa: E731
+    subject = {"age_gy": 4.5, "long_lived_geology": False}
+    assert mixture_rocky.draw_redox(subject, recipe(a1=0.5), {}) == pytest.approx(0.5 + mixture_rocky.REDOX_SHIFT_DEX)
+    assert mixture_rocky.draw_redox(subject, recipe(a2=3.0), {}) == pytest.approx(3.0 + mixture_rocky.REDOX_SHIFT_DEX)
+    assert mixture_rocky.draw_redox(subject, recipe(a3=-1.0), {}) == -1.0
+    assert mixture_rocky.draw_redox(subject, recipe(a4=-1.2), {}) == -1.2

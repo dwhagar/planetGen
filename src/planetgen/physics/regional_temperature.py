@@ -67,7 +67,7 @@ LOCKED_TRANSPORT_X0 = 0.1
 spread the heat needs far less air to share it, so a bar of air removes 90 percent of the contrast (the order the
 general circulation models of locked Earth-like worlds give) and a Mars-thin one 14 percent."""
 
-EARTH_COLUMN_PA_PER_MS2 = 101_325.0 / constants.EARTH_GRAVITY
+EARTH_COLUMN_PA_PER_MS2 = constants.STANDARD_ATMOSPHERE_PA / constants.EARTH_GRAVITY
 """float: Earth's air column, pressure over gravity, Pa s2/m: the unit of `x`."""
 
 AIR_CP_J_KG_K = 1000.0
@@ -115,7 +115,7 @@ def _annual_insolation(latitude, tilt, suns=()):
     host = _daily_insolation(np.asarray(latitude)[:, None], declination[None, :]).mean(axis=1)
     if not suns:
         return host
-    folded = min(tilt, math.pi - tilt) if tilt > math.pi / 2.0 else tilt
+    folded = min(tilt, math.pi - tilt)
     total = (1.0 - sum(sun.share for sun in suns)) * host
     for share, sin_declination, _ in sky_suns.terms(folded, suns):
         total = total + share * _daily_insolation(np.asarray(latitude), np.full(np.shape(latitude), math.asin(max(-1.0, min(1.0, sin_declination)))))

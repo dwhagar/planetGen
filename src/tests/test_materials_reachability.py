@@ -88,7 +88,7 @@ def doubles():
 
 def test_the_reach_scan_looks_at_the_modules_that_use_the_table():
     modules = {str(path) for path in scanned_modules()}
-    assert {"physics/ground_albedo.py", "physics/small_body_composition.py", "physics/surface_composition.py", "tuning.py"} <= modules
+    assert {"physics/small_body_composition.py", "physics/surface_composition.py", "tuning.py"} <= modules
     reached = reached_rows()
     assert reached["forsterite"] and reached["water_ice"]
     assert "basalt_powder" in reached

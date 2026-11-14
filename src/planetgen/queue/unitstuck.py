@@ -28,6 +28,7 @@ import rq
 from rq import command
 
 from planetgen.queue import pause, redisqueue, runrecord, unitbeat
+from planetgen.util import process
 
 DUMP_WAIT_SECONDS = 3.0
 """float: How long the follower waits for a horse to write its stack after the signal."""
@@ -43,13 +44,7 @@ def alive(pid, host):
     """Whether process `pid` on this machine exists; `True` for one on another host (it cannot be told, and a stop is then waited for)."""
     if host != socket.gethostname() or not isinstance(pid, int):
         return True
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
+    return process.pid_alive(pid)
 
 
 def request_dump(raw, signal_process=os.kill, wait=DUMP_WAIT_SECONDS, sleep=time.sleep):
@@ -111,7 +106,7 @@ class Stuck:
         """
         Follows the stops under way, then acts on the units in `agreed` (`unitwatch.UnitWatch.agreed()`), whose verdicts are in `verdicts`. Does nothing for a run that is not live.
         """
-        live = runrecord._s(self.conn.hget(runrecord.run_key(self.run_id), "state")) in runrecord.LIVE_STATES
+        live = self._live()
         done = {int(unit) for unit in self.conn.smembers(runrecord.done_key(self.run_id, self.stage))}
         self._lift_when_over(done, live)
         if not live:
@@ -126,7 +121,7 @@ class Stuck:
             record = records.get(unit)
             if unit in done or (record is not None and record.get("phase") == "stopping") or unit not in verdicts:
                 continue        # a unit queued again by this very pass was forgotten by the watch: its verdict belongs to the attempt that was stopped
-            if runrecord._s(self.conn.hget(runrecord.run_key(self.run_id), "state")) not in runrecord.LIVE_STATES:
+            if not self._live():
                 return
             self._act(unit, record, now, verdicts[unit])
 
@@ -150,15 +145,16 @@ class Stuck:
         else:
             runrecord.log(self.conn, self.run_id, f"the queue is paused already, so unit {unit} will not run alone", "warning", "unit-solo-hold", stage=self.stage, unit=unit)
 
+    def _live(self):
+        return runrecord.run_state(self.conn, self.run_id) in runrecord.LIVE_STATES
+
+    def _beat_record(self, unit):
+        """The beat record of `unit` as stored (`{}` where it has none)."""
+        return unitbeat.parse(self.conn.hget(runrecord.progress_key(self.run_id, self.stage), unit) or b"{}") or {}
+
     def records(self):
         """`{unit: {attempts, phase, at, reason, dump}}` of what has been done in this stage."""
-        out = {}
-        for unit, raw in self.conn.hgetall(self.key).items():
-            try:
-                out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
-            except (ValueError, TypeError):
-                continue
-        return out
+        return runrecord.unit_json_hash(self.conn, self.key)
 
     def stack_of(self, unit):
         """The stack of the unit's horse, asked for now (a busy unit that has run past its learned time: OPS.194); nothing is stopped."""
@@ -168,7 +164,7 @@ class Stuck:
     # --- the action -------------------------------------------------------------------------------------------
 
     def _act(self, unit, record, now, verdict):
-        raw = unitbeat.parse(self.conn.hget(runrecord.progress_key(self.run_id, self.stage), unit) or b"{}") or {}
+        raw = self._beat_record(unit)
         attempts = int(record.get("attempts", 0)) if record else 0
         reason = f"unit {unit} is {verdict.state}: {verdict.reason}"
         stack = self._dump(raw) if verdict.state != "dead" or alive(raw.get("pid"), raw.get("host")) else "(no stack: the process is gone)"
@@ -185,7 +181,7 @@ class Stuck:
     def _follow_stop(self, unit, record, now):
         job = self._job(unit)
         status = None if job is None else job.get_status(refresh=True)
-        raw = unitbeat.parse(self.conn.hget(runrecord.progress_key(self.run_id, self.stage), unit) or b"{}") or {}
+        raw = self._beat_record(unit)
         gone = not alive(raw.get("pid"), raw.get("host"))
         if job is not None and (status in (rq.job.JobStatus.STOPPED, rq.job.JobStatus.FAILED) or (status == rq.job.JobStatus.STARTED and gone)):
             self._requeue(unit, record, job)
@@ -229,8 +225,13 @@ class Stuck:
         command.send_stop_job_command(self.conn, job_id, redisqueue.JsonSerializer)
 
     def _to_error_log(self, message, unit):
-        if self._record_error is not None:
-            self._record_error(message, unit=unit)
-            return
-        from planetgen.util import log
-        log.record_error("queue", message, unit=unit)
+        to_error_log(self._record_error, message, unit)
+
+
+def to_error_log(record_error, message, unit):
+    """`record_error(message, unit=unit)` where a follower was given one, else `log.record_error("queue", ...)` (`error.log`)."""
+    if record_error is not None:
+        record_error(message, unit=unit)
+        return
+    from planetgen.util import log
+    log.record_error("queue", message, unit=unit)

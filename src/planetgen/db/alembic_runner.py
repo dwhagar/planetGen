@@ -29,8 +29,8 @@ revision that way)."""
 
 BASELINE_VERSION = 130
 """int: The first revision: a database below it is refused with
-`SchemaTooOldError`. Moving it up deletes the revisions, the old-schema
-fixtures and the migration tests below it (DB.98)."""
+`SchemaTooOldError`, which points to `legacy/bump_database_to_8_0.py` (DB.126). Moving it up deletes the revisions, the old-schema
+fixtures and the migration tests below it (DB.98, DB.127) and puts those revisions in `legacy/db_revisions/`."""
 
 
 def revision_id(version):

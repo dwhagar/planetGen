@@ -34,6 +34,8 @@ from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.physics import unit_registry as units
 
 _m_to_km = units.converter("m", "km")
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 def format_comet_composition_summary(composition):
@@ -222,7 +224,7 @@ class InterstellarComet(SmallBody):
     """
 
     FIELD_UNITS = {
-        "name": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
+        "name": "text", "flavor_key": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
         "density_g_cm3": "g_cm3", "ice_mass_fraction": "frac", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
         **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
@@ -237,6 +239,9 @@ class InterstellarComet(SmallBody):
     center, see `nebulaData.Nebula`'s identical fields' docstring) -- the
     two don't conflict, the same way a planet's `rotation_period_hours`
     doesn't conflict with its own orbital motion."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -280,8 +285,5 @@ class InterstellarComet(SmallBody):
         return format_comet_composition_summary(self.composition)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
-
-_kg_to_msun = units.converter("kg", "Msun")
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(RoguePlanet, "rogue-planet")
 object_timing.track(InterstellarComet, "interstellar-comet")

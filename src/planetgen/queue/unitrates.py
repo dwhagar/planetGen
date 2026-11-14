@@ -39,14 +39,14 @@ def note(conn, run_id, kind, done, seconds):
 
 def read(conn, run_id):
     """`{command: items a second}` the run's finished units did so far."""
-    sums = {runrecord._s(field): float(runrecord._s(value)) for field, value in conn.hgetall(runrecord.rates_key(run_id)).items()}
+    sums = {field: float(value) for field, value in runrecord.text_hash(conn.hgetall(runrecord.rates_key(run_id))).items()}
     return {name[:-len(":done")]: sums[name] / sums[f"{name[:-len(':done')]}:seconds"]
             for name in sums if name.endswith(":done") and sums.get(f"{name[:-len(':done')]}:seconds", 0.0) > 0.0}
 
 
 def persisted(conn):
     """`{command: items a second}` the server has learned."""
-    return {runrecord._s(kind): float(runrecord._s(value)) for kind, value in conn.hgetall(persisted_key()).items()}
+    return {kind: float(value) for kind, value in runrecord.text_hash(conn.hgetall(persisted_key())).items()}
 
 
 def fold(conn, run_id):

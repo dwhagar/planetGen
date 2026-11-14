@@ -6249,6 +6249,23 @@ p.hint a {
 }
 .map-wall-arrow { font-size: 0.8rem; }
 
+/* The stars of one system (MAP.428, systemgroups.js): thin dashed links from the brightest member to the others, under the names. */
+.map-system-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.map-system-links line {
+  stroke: var(--accent, #4f5fe8);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  stroke-opacity: 0.8;
+}
+
 /* The map's names (MAP.268, maplabels.js): laid over the map, never picked, with a halo that reads on both
    themes; a fade in and out that reduced motion drops. */
 .map-labels {
@@ -7171,11 +7188,28 @@ a.help-mark {
    (tests/test_web_generate_alignment.py), and the row takes the room of its own label, box and bar. */
 
 /* The measure's title with its ? button beside it; the help text opens under the bar. */
-.lever-slider-title {
+.lever-slider-title,
+.default-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.5rem;
   font-weight: 600;
+  min-width: 0;
+}
+
+/* The title in bold with its unit as a small subtitle under it, so the units never wrap into the title's own lines. */
+.title-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title-unit {
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--text-muted);
 }
 
 .lever-help-button {
@@ -7205,3 +7239,68 @@ a.help-mark {
 .lever-slider-head .ui-field:not(.ui-field-check) {
   flex: 1 1 auto;
 }
+
+/* fielddefaults.js: the New galaxy page's other fields, as title, ? button, then the Default tick box beside the box. */
+.default-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.default-row > sl-input,
+.default-row > sl-select,
+.default-row > .range-value {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.default-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.default-field .limit-slider-row .range-value {
+  width: auto;
+}
+
+.default-field sl-input::part(form-control-label),
+.default-field sl-select::part(form-control-label) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.default-field > .field-hint {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.generate-section > summary {
+  font-weight: 600;
+}
+
+/* A fold of the galaxy shape (one dial's rows) sits inside the section's fold. */
+.generate-subsection {
+  margin: 0 0 0.5rem 0.75rem;
+}
+
+.generate-subsection > summary {
+  font-weight: 500;
+}
+
+summary .lever-help-button,
+legend .lever-help-button {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+/* PERF.147: a running unit's own bar and time left (partials/task_bar.html), under its counter in the Queue run page's unit rows. */
+.task-bar { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
+.task-bar progress { width: 6rem; }
+.task-bar-text { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }

@@ -148,12 +148,16 @@ class Lever:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             return f"{value!r} is not a finite number"
         if not self.minimum <= value <= self.maximum or (self.min_abs is not None and abs(value) < self.min_abs):
-            return (f"{value:g} is outside {self.range_text()}{self._abs_text()} "
+            return (f"{value:g} is outside {self.allowed_text()} "
                     f"({self.source}; {self.status})")
         return None
 
     def _abs_text(self):
         return f", at least {self.min_abs:g} away from 0" if self.min_abs is not None else ""
+
+    def allowed_text(self):
+        """The allowed values with the distance from 0 a row keeps: what a refusal, the help and the docs name."""
+        return self.range_text() + self._abs_text()
 
     def units_text(self):
         """How to type a `length` row, for the text under its box: the number with its unit straight after it, with
@@ -225,7 +229,7 @@ class Lever:
     def help_text(self):
         """The row's `--help` line: what it does, the range with its source, and what Auto is."""
         advanced = " Advanced." if self.advanced else ""
-        return (f"{self.help} Allowed: {self.range_text()}{self._abs_text()} "
+        return (f"{self.help} Allowed: {self.allowed_text()} "
                 f"({self.source}; {self.status}). Default Auto: {self.auto_text}.{advanced}")
 
 
@@ -391,6 +395,18 @@ LEVERS = (
         source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "
                "10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)", status="placeholder", tweak="L3"),
     Lever(
+        name="class_m", flag="--class-m", dial="census", label="Class M abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
+        choices=("science", "sparse", "scattered", "plentiful", "abundant"),
+        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water, "
+            "the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; the class of every body still "
+            "comes from its finished conditions and no class or count is forced (generation/abundance_tier)",
+        auto_text="science (nothing is moved; what the generator's own laws give)",
+        help="How common Earth-like (Class M) worlds are. Science is what the generator's laws give; Sparse aims at 1 per 1,000 Sun-like systems, "
+             "Scattered at 1 per 100, Plentiful at 1 per 30 and Abundant at 1 per 10 (aims, not yet calibrated). A tier moves the odds of an "
+             "Earth's conditions and never forces a world or a count. Auto is the same as Science.",
+        source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins "
+               "(tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census", status="placeholder", tweak="L4"),
+    Lever(
         name="arm_count", typical=2, flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",
@@ -530,8 +546,7 @@ def docs_table():
     labels = dict(DIALS)
     for row in LEVERS:
         flag = f"`{row.flag}`" + (" (advanced)" if row.advanced else "")
-        allowed = row.range_text() + row._abs_text()
-        lines.append(f"| {labels[row.dial]} | {flag} | {row.law} | {allowed} | {row.auto_text} | "
+        lines.append(f"| {labels[row.dial]} | {flag} | {row.law} | {row.allowed_text()} | {row.auto_text} | "
                      f"{row.source} ({row.status}) |")
     return "\n".join(lines)
 
@@ -562,7 +577,7 @@ def registry_block():
     """The registry rows for the shape dials' ranges in `docs/design/research/gap-filling-plan.md` (GEN.609): one per lever."""
     lines = [REGISTRY_BEGIN, "| Lever | Range | Label | Tier | Tweak | Source |", "|---|---|---|---|---|---|"]
     for row in LEVERS:
-        lines.append(f"| `{row.flag}` | {row.range_text()}{row._abs_text()} | {row.status} | {TIER_OF_STATUS[row.status]} | {row.tweak} | {row.source} |")
+        lines.append(f"| `{row.flag}` | {row.allowed_text()} | {row.status} | {TIER_OF_STATUS[row.status]} | {row.tweak} | {row.source} |")
     lines.append(REGISTRY_END)
     return "\n".join(lines)
 

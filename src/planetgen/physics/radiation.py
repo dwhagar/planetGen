@@ -39,18 +39,19 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    `physics/ozone.py`), haze, dust and cloud, lit by the star's own spectrum with its stored UV-C share (`physics/body_radiation.py`, GEN.443); a
    body with no air reads the star's unfiltered light (GEN.445; docs/design/composition/radiation-model.md section 7). There is no proxy: no
    ratio to the Sun, no ozone exponent.
-6. **Ozone loss (`ozone_loss_flag`, GEN.805, GEN.808).** True when there is ozone and either the system's lethal galactic events exceed one
-   per 100 Myr or the planet's flare irradiation index (`flare_irradiation_index`, `N33 / d_AU^2`: Earth 0.003, Proxima b about 2,100) times
+6. **Ozone loss (`ozone_loss_flag`, GEN.805, GEN.808, GEN.1694).** True when there is ozone and either a lethal galactic event fell inside the
+   ozone recovery time (`OZONE_RECOVERY_YR`, 100 years) before today (a draw with the chance `1 - exp(-rate * time)`, the same for every world of the
+   star; a star placed in no galaxy has none) or the planet's flare irradiation index (`flare_irradiation_index`, `N33 / d_AU^2`: Earth 0.003, Proxima b about 2,100) times
    the field's shielding `f_B` reaches `FLARE_OZONE_LIMIT` (300; `f_B` is 1 without a dipole, 0.3 for a magnetopause under 3 radii and 0.1
    above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it ([R4000]: 94 percent
    removed by one large flare; [R2014]: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
    UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
    impact, escape) is not applied to the stored ozone column here: the final-age refresh (GEN.839) works the dose and the ozone again from the air that is left.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
-   supernova within 8 pc, 1.5 per Gyr at 8 kpc from the center, times
-   `exp((8 kpc - R) / 1.45 kpc)` (250x at the center), plus gamma-ray bursts
-   (2 per Gyr at the Sun, falling outward) and nuclear-activity episodes (10
-   per Gyr inside 2.9 kpc), GEN.189.
+   supernova within 8 pc, 1.5 per Gyr at the galaxy's reference radius (the Sun's radius in its own thin disk's scale lengths, `galaxy.scales`), times
+   `exp((R_reference - R) / L)` with `L` 0.56 scale lengths (250x at the center), plus gamma-ray bursts
+   (2 per Gyr at the reference radius, falling outward) and nuclear-activity episodes (10
+   per Gyr inside 2.9 kpc, a distance set by the episode's fluence), GEN.189. A star placed in no galaxy has no rate (GEN.1694).
 8. **Trapped particles (`dose_belt_msv_yr`, GEN.983).** A moon in the belts of its parent's field takes their dose at its orbit, from the half of the sky
    the body does not block, cut by its own air (`radiation_belts.moon_exposure_msv_yr`, `apply_parent_belts`). A planet's own belts lie above its air
    and give its ground 0; a giant has no surface.
@@ -61,7 +62,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -107,15 +108,15 @@ add primaries, so a ratio the runs put above 1 (a weak field at 500 and 700 g/cm
 FIELD_MAX_MOMENT = FIELD_FULL_MOMENTS[-1]
 """float: The strongest field the runs reach (10 Earth moments); a stronger one takes this ratio, an upper bound."""
 
-"""float: The solar-cycle spread of the dose as fractions of its mean (Mars: 0.35 to 1.15 mSv/day around 0.7; a total spread
-of 3.3, [R1730]). `tuning.GCR_SOLAR_MODULATION_RANGE` is the draw."""
+# The solar-cycle spread of the dose as fractions of its mean (Mars: 0.35 to 1.15 mSv/day around 0.7; a total spread of 3.3, [R1730]) is the draw
+# `tuning.GCR_SOLAR_MODULATION_RANGE`.
 
 MUON_LOG_A = (-11.22, -14.10)
 MUON_RATE_PER_HG_CM2 = (0.00262, 0.001213)
 MUON_FLOOR = 2.17e-13
 MUON_MEV_PER_G = 2.0
 MUON_J_PER_MEV = 1.602176634e-13
-SECONDS_PER_YEAR = 3.15576e7
+SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
 """The Crouch fit of the vertical muon intensity (cm-2 s-1 sr-1) at depth h in hg/cm2 (m of water): `exp(-11.22 - 0.00262 h)
 + exp(-14.10 - 0.001213 h) + 2.17e-13` (docs/design/composition/radiation-model.md section 5), valid from about 1 km of water; the dose is
 pi I times 2 MeV cm2/g. It is 9 times below a published value at Titan (10 850 g/cm2), so it is a floor under the table's tail."""
@@ -133,7 +134,7 @@ EARTH_AGE_GY = 4.5
 SV_PER_GY = 0.7
 """float: Effective dose per absorbed dose in air for gamma rays from the ground, UNSCEAR (RECALLED, part E 5; radiation-model.md
 section 6)."""
-HOURS_PER_YEAR = 8766.0
+HOURS_PER_YEAR = constants.HOURS_PER_YEAR
 GAMMA_AIR_ATTENUATION_CM2_PER_G = 0.0637
 """float: Gamma dose under a dense gas falls as exp(-this * density g/cm3 * 100 cm) (radiation-model.md section 6). The Earth's
 coefficients are valid for a density under about 0.03 g/cm3 (F9); beyond it the factor is an extrapolation."""
@@ -169,9 +170,11 @@ FLARE_ENERGY_SPAN = 1.0e3
 """float: The span of flare energies, over the 1e33 erg of `N33`, the energy weight is worked out over (1e33 to 1e36 erg: the largest superflares seen
 on solar-type stars are 1e35 to 1e36). A design default."""
 
-LETHAL_EVENT_LIMIT_PER_GYR = 10.0
-"""float: One lethal event per 100 Myr: the rate above which galactic hazards
-flag ozone loss (Boss's default, GEN.87)."""
+OZONE_RECOVERY_YR = 100.0
+"""float: How long a world's ozone stays down after a galactic event, years: the layer a nearby supernova or a gamma-ray burst strips comes back in years to decades as the
+air's oxygen makes it again (the models of [R3026, R4340] give a few years to a few decades), the upper end held for the repeated depletion of the slow tail. The flag is
+the chance that an event fell inside this time before today (`galactic_event_in_recovery_time`), never a rate over a limit (GEN.1694). A stand-in, tier Confident educated
+guess from physics, tweak L0."""
 
 
 def _log_linear(x, xs, ys):
@@ -295,7 +298,7 @@ def magnetic_factor(cutoff_gv, column_g_cm2):
     moment = min(cutoff_gv / EARTH_CUTOFF_GV, FIELD_MAX_MOMENT)
     columns = FIELD_COLUMNS_G_CM2
     x = min(max(column_g_cm2, columns[0]), columns[-1])
-    ratios = [min(_field_ratio_at_column(moment, i), 1.0) for i in range(len(columns))]
+    ratios = [_field_ratio_at_column(moment, i) for i in range(len(columns))]        # each already held at 1
     return _log_linear(math.log(x), [math.log(c) for c in columns], ratios)
 
 
@@ -388,13 +391,24 @@ def field_shielding(magnetopause_rp, dipole_class):
     return SHIELD_WEAK_FIELD if magnetopause_rp < WEAK_MAGNETOPAUSE_RP else SHIELD_STRONG_FIELD
 
 
+def galactic_event_in_recovery_time(star):
+    """Whether a lethal galactic event fell inside the ozone recovery time before today (GEN.1694): a draw with the chance `1 - exp(-rate * OZONE_RECOVERY_YR)` of the star's
+    rate of events (per Gyr), from the star's own stream so every world of the system sees the same event and no run draw moves. A star with no rate (placed in no galaxy,
+    or one that has none stored) has none."""
+    rate = getattr(star, "lethal_event_rate_per_gyr", None)
+    if rate is None or rate <= 0.0:
+        return False
+    chance = -math.expm1(-rate * OZONE_RECOVERY_YR / 1.0e9)
+    stream = draw.Stream(f"galactic-ozone:{getattr(star, 'mass', None)!r}:{getattr(star, 'age', None)!r}:{getattr(star, 'galactic_center_dist_ly', None)!r}")
+    return stream.random() < chance
+
+
 def ozone_lost(body):
-    """Whether flares or galactic events keep a world's ozone down (rule 6): needs a stored ozone column, and the system's lethal events above the limit or
-    the stored flare irradiation index times `field_shielding` at `FLARE_OZONE_LIMIT`."""
+    """Whether flares or galactic events keep a world's ozone down (rule 6): needs a stored ozone column, and either a lethal galactic event inside the recovery time
+    (`galactic_event_in_recovery_time`) or the stored flare irradiation index times `field_shielding` at `FLARE_OZONE_LIMIT`."""
     if not (getattr(body, "ozone_column_du", None) or 0.0) > 0.0:
         return False
-    hazard = getattr(body.star, "lethal_event_rate_per_gyr", None)
-    if hazard is not None and hazard > LETHAL_EVENT_LIMIT_PER_GYR:
+    if galactic_event_in_recovery_time(body.star):
         return True
     index = getattr(body, "flare_irradiation_index", None) or 0.0
     return index * field_shielding(getattr(body, "magnetopause_rp", None), getattr(body, "dipole_class", None)) >= FLARE_OZONE_LIMIT
@@ -501,7 +515,7 @@ def generate_dose(body):
     body.dose_ground_msv_yr = ground
     body.dose_helio_mult = 1.0
     body.dose_belt_msv_yr = belt_dose_msv_yr(body, column)
-    body.surface_dose_msv_yr = gcr + sep + ground + body.dose_belt_msv_yr
+    body.surface_dose_msv_yr = total_dose_msv_yr(gcr, body.dose_helio_mult, sep, ground, body.dose_belt_msv_yr)
     body.ozone_loss_flag = ozone_lost(body)
     if body.ozone_loss_flag:     # GEN.808: the ozone the flares leave is what filters the ultraviolet and tints the sky
         body.ozone_column_du *= OZONE_LOSS_REMAINING
@@ -550,6 +564,6 @@ def column_g_cm2(pressure_pa, gravity_g):
     return pressure_pa / gravity * 0.1 if gravity > 0 and pressure_pa else 0.0
 
 
-def total_dose_msv_yr(gcr, helio_mult, sep, ground, belt=0.0):
-    """`surface_dose_msv_yr` from its parts."""
-    return gcr * helio_mult + sep + ground + (belt or 0.0)
+def total_dose_msv_yr(gcr, helio_mult, sep, ground, belt):
+    """`surface_dose_msv_yr` from its parts. Every stored body has its belt part (0.0 outside a belt), so it is required: a row without one is not read as zero."""
+    return gcr * helio_mult + sep + ground + belt

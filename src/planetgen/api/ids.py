@@ -112,7 +112,8 @@ def row_ids(conn, kind, printed_ids):
     wanted = {}
     for text in printed_ids:
         try:
-            wanted[parse(kind, text)] = format_stored(kind, parse(kind, text))
+            value = parse(kind, text)
+            wanted[value] = format_stored(kind, value)
         except IdError:
             continue
     found = {}
@@ -430,6 +431,13 @@ def _rule(rules, here, key):
     return kind or (KEY_KINDS.get(key) if isinstance(key, str) else None)
 
 
+def _want(wanted, kind, value, container, context):
+    """Adds the row ids the value at a rule names to `wanted` (`kind -> row ids`), for the kinds the API speaks."""
+    for target_kind, row in _targets(kind, value, container, context):
+        if target_kind in ACTIVE_KINDS:
+            wanted[target_kind].add(row)
+
+
 def _collect(node, path, rules, wanted, context):
     """Adds the `kind -> row ids` every rule match under `node` names to `wanted`."""
     if isinstance(node, dict):
@@ -437,24 +445,18 @@ def _collect(node, path, rules, wanted, context):
             here = f"{path}.{key}" if path else str(key)
             kind = _rule(rules, here, key)
             if kind is not None:
-                for target_kind, row in _targets(kind, value, node, context):
-                    if target_kind in ACTIVE_KINDS:
-                        wanted[target_kind].add(row)
+                _want(wanted, kind, value, node, context)
             keys_kind = rules.get(here + "{}")
             if keys_kind is not None and isinstance(value, dict):
                 for raw in value:
-                    for target_kind, row in _targets(keys_kind, int(raw) if str(raw).isdigit() else raw, value, context):
-                        if target_kind in ACTIVE_KINDS:
-                            wanted[target_kind].add(row)
+                    _want(wanted, keys_kind, int(raw) if str(raw).isdigit() else raw, value, context)
             _collect(value, here, rules, wanted, context)
     elif isinstance(node, list):
         here = path + "[]"
         kind = rules.get(here)
         for value in node:
             if kind is not None:
-                for target_kind, row in _targets(kind, value, node, context):
-                    if target_kind in ACTIVE_KINDS:
-                        wanted[target_kind].add(row)
+                _want(wanted, kind, value, node, context)
             _collect(value, here, rules, wanted, context)
 
 
@@ -526,14 +528,13 @@ def _uncharted_cell_of(conn, printed):
 def _resolve(view_args, strict):
     """Replaces the printed IDs in `view_args` (in place) with row ids. With `strict` an ID that names nothing ends
     in a 404; otherwise row 0 (which names nothing) stands in."""
+    from flask import request
     from planetgen.api.common import ApiError
     from planetgen.api.routes import get_db
 
     def missing(message):
         if strict:
             raise ApiError(message, 404)
-
-    from flask import request
 
     def retired(kind, text):
         answer = retired_answer(get_db(), kind, text, request.method)

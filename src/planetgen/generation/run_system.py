@@ -168,6 +168,8 @@ def build_system_config(args):
         system_config.STAR_TYPE = args.star_type
     if args.num_orbits is not None:
         system_config.NUM_ORBITS = args.num_orbits
+    if getattr(args, "class_m", None) is not None:
+        system_config.ABUNDANCE_TIER = args.class_m
     if getattr(args, "force_class", None):
         system_config.FORCE_CLASS = args.force_class.upper()
     if getattr(args, "force_life_class", None):
@@ -378,6 +380,18 @@ def run_system(args):
     run_common.RUN_COUNTS["systems"] += 1
     log.normal(f"Saved system '{result['name']}' to the database (star_system_id={result['star_system_id']}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+
+
+def class_request_problem(letter, life_class):
+    """What is wrong with a request for a class letter and a life class (GEN.1620), or `None`: the letter must be a planet class, the life
+    class an id of `physics/life_classes.py` or a bare number of one."""
+    from planetgen.physics import life_classes, planet_classes
+    if letter and letter.upper() not in planet_classes.LETTERS:
+        return f"{letter!r} is not a planet class; the classes are {', '.join(planet_classes.LETTERS)}"
+    numbers = {one.rstrip("abc") for one in life_classes.IDS}
+    if life_class and life_class.lower() not in life_classes.IDS and life_class not in numbers:
+        return f"{life_class!r} is not a life class; the classes are {', '.join(life_classes.IDS)} (or just the number)"
+    return None
 
 
 def class_request_report(system, system_config):

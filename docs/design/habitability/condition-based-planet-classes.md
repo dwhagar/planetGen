@@ -43,7 +43,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | M | Temperate world | the rest (air, liquid water 20 to 95 percent); M, H, O, P and R reach 2 g, V's line (GEN.1306, registry AW3; 1.25 g before); M, H, O, P and R judge oxygen (16 to 35.5 kPa) and carbon dioxide (under 1 kPa) by pressure, not share (GEN.1321, registry OP1) |
 | R | Hothouse world | M's too hot (GEN.1221): mean 312 to 345 K, hottest region 315 K or more, coldest 295 K or more, wet bulb 31 C or more, liquid water phase, and the oxygen, air, gravity and carbon dioxide ranges of M |
 | U | Methane-ethane world | methane-ethane liquid stable at the pressure and temperature (91 to 130 K, 50 to 500 kPa), methane 1 percent or more of the air, 0.05 to 2 g (GEN.1221) |
-| Y | Sulfuric acid world | sulfuric acid liquid stable at the pressure and temperature (300 to 350 K), pressure 3 kPa or more, sulfur dioxide 3 percent or more of the air, 0.5 to 2 g (GEN.1221) |
+| Y | Sulfuric acid world | sulfuric acid liquid stable at the pressure and temperature (300 to 350 K), pressure 3 kPa or more, sulfur dioxide 3 percent or more of the air, 0.5 to 2 g (GEN.1221) Fringe physics (GEN.1562): the support in the literature [R0043, R0232] is for warm, water-depleted, sulfur-rich worlds with acid pools or ionic liquid, not for acid oceans; the name stays, the physics is T8 |
 | X | Ammonia-water world | no air; a liquid cover of 20 percent or more, ammonia 10 percent or more of the water's mass, 190 to 240 K, 0.05 to 2 g (GEN.1258) |
 
 The table is in the order of the file. The order no longer decides anything (the best fit does; a tie goes to the class with more conditions, then to the letter), and R, U, X, Y and Z, which the rule file did not have when this table was written, are listed after M with their conditions as `planet_class_fit.json` holds them. Each row carries a one-sentence reading and its `basis` ("design: ..."). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.
@@ -67,6 +67,16 @@ A body that meets every condition of a class takes that class and scores 1. Othe
 * The match is `1 - total move / (values moved * 1 width)` (registry CP2); a body that fits fully scores 1.
 * A body no class reaches by 1 width has its gravity and air-amount edges relaxed (digit 9), and if that still fails it takes the nearest class with a match of 0.
 * The planet sheet says which values were moved and by how much (`class_fudge_values`, `class_fudge_amount`).
+* What reads a class reads its match with it (GEN.1315, `physics/class_outcome`, registry FT5): a request for a class is met, and a Class M world is counted, only by a body whose `class_match` is at least `tuning.CLASS_MATCH_THRESHOLD` (0.5); the search takes a range on `class_match` (`planet_min_class_match=0.5`). The habitable count and the bar on habitable worlds never read a letter: they read the PHI-6 score and the life of the finished body (GEN.1387, GEN.1397).
+
+## What the fudge is (GEN.1316)
+
+The width of a class edge is **the model's uncertainty, not the world's variety.** A planet that sits just past an edge is not a rare kind of world; it is a body the generator cannot yet tell from one on the near side, because the stand-ins that make its temperature, pressure, air or water (GEN.725) could move the value across the line by that much if they were wrong by what the registry says they could be. Two consequences follow, and the pages say both:
+
+* A quantity made only of measured values has almost no width. A stand-in replaced by a measured value, or one whose range research narrows, shrinks the width the next time `scripts/build_fudge_table.py` runs, and no class edge is moved by hand.
+* The width is not an allowance for the variety of real planets. Real worlds vary far more than the widths; that variety is the spread of the generator's draws, and the fit never uses the width to hide a world that is simply of another kind.
+
+The page of a class (`/classes/planet/<letter>`) gives the softness of each edge of its conditions ("mean surface temperature at least 275 K: soft by 0.925 K"), read from the table through `class_fit.softness_words`; the page of the type says what the softness is. The ranking of the stand-ins by their share of each width is [stand-in-fudge-ranking.md](../research/stand-in-fudge-ranking.md), built by `scripts/build_fudge_ranking.py` from the table, its matrix and the registry (a test fails when it differs): for each stand-in the share of the variance of each class quantity it makes, the score of the ranking report of 11-06 (tier and tweak), and how far the width falls if that stand-in were exact. Research goes first to the stand-in with the largest share of a wide quantity.
 
 ## What is built and what is next
 

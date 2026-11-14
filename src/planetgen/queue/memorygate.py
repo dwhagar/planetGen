@@ -54,6 +54,7 @@ import psutil
 
 from planetgen.queue import work
 from planetgen.util import log
+from planetgen.util.process import pid_alive
 
 MB = 2 ** 20
 
@@ -230,13 +231,21 @@ def held_mb(pid):
         return 0.0
 
 
-def alive(pid):
-    """Whether a process with this id runs here. A test patches this."""
-    return psutil.pid_exists(pid)
+alive = pid_alive
+"""Whether a process with this id runs here (`util.process.pid_alive`). A test patches this."""
 
 
 def _decode(value):
     return value.decode("utf-8") if isinstance(value, bytes) else value
+
+
+def claim_of(row):
+    """The `Claim` a stored row (a holder's or a ticket's) describes.
+
+    Raises:
+        KeyError, ValueError, TypeError: A row that is not a claim.
+    """
+    return Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
 
 
 def holders(conn, now=None):
@@ -251,7 +260,7 @@ def holders(conn, now=None):
         name = _decode(name)
         try:
             row = json.loads(_decode(raw))
-            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
+            claim = claim_of(row)
             pid, host = int(row["pid"]), row["host"]
             expires, peak = float(row["expires"]), float(row.get("peak", 0.0))
         except (ValueError, KeyError, TypeError):
@@ -270,15 +279,27 @@ def reserve_mb(host):
     return max(RESERVE_MIN_MB, RESERVE_SHARE * host.total_mb)
 
 
+def _places(places):
+    """`places`, or the reserved places of the settings (`queue.interactive_workers` plus `queue.long_workers`) when `None`."""
+    if places is not None:
+        return places
+    from planetgen.util.settings import get_settings
+    section = get_settings().queue
+    return section.interactive_workers + section.long_workers
+
+
+def _claim_row(conn, name):
+    """The stored claim of the worker `name` as a dict, or `None` when it holds none."""
+    raw = conn.hget(_key("claims"), name)
+    return None if raw is None else json.loads(_decode(raw))
+
+
 def kept_mb(held, places=None):
     """
     What the places reserved for the interactive and long lanes keep free against the other lanes, MB: `places` (default
     `queue.interactive_workers` plus `queue.long_workers`) at `KEEP_MB_PER_PLACE` each, less what those lanes' claims hold already.
     """
-    if places is None:
-        from planetgen.util.settings import get_settings
-        section = get_settings().queue
-        places = section.interactive_workers + section.long_workers
+    places = _places(places)
     in_use = sum(holder.claim.mb for holder in held if holder.claim.lane in SHORT_LANES)
     return max(0.0, places * KEEP_MB_PER_PLACE - in_use)
 
@@ -286,10 +307,7 @@ def kept_mb(held, places=None):
 def kept_cores(held, host, places=None):
     """What the places reserved for the interactive and long lanes keep free of the host's cores against the other lanes (OPS.130): `places` at
     `KEEP_CPU_PER_PLACE` each, less what those lanes' claims hold already, and never more than `KEEP_CPU_SHARE` of the host's cores."""
-    if places is None:
-        from planetgen.util.settings import get_settings
-        section = get_settings().queue
-        places = section.interactive_workers + section.long_workers
+    places = _places(places)
     in_use = sum(holder.claim.cpu for holder in held if holder.claim.lane in SHORT_LANES)
     return max(0.0, min(places * KEEP_CPU_PER_PLACE, KEEP_CPU_SHARE * host.cores) - in_use)
 
@@ -448,11 +466,10 @@ def refresh(conn, name, now=None):
     Renews the claim of `name` and notes the most its processes have held (called at the worker's heartbeat while a job runs). Returns
     what they hold now, MB, or 0.0 when the worker holds no claim.
     """
-    raw = conn.hget(_key("claims"), name)
-    if raw is None:
+    row = _claim_row(conn, name)
+    if row is None:
         return 0.0
     now = time.time() if now is None else now
-    row = json.loads(_decode(raw))
     current = held_mb(int(row["pid"]))
     row["peak"] = max(float(row.get("peak", 0.0)), current)
     row["expires"] = now + CLAIM_SECONDS
@@ -480,11 +497,10 @@ def _note_usage(row, pid, current, now):
 
 def release(conn, name):
     """Gives up the claim of `name` and keeps the peak its processes held as what the kind may need (`learn`). Returns the peak, MB."""
-    raw = conn.hget(_key("claims"), name)
-    if raw is None:
+    row = _claim_row(conn, name)
+    if row is None:
         return 0.0
     conn.hdel(_key("claims"), name)
-    row = json.loads(_decode(raw))
     peak = float(row.get("peak", 0.0))
     if peak > 0.0:
         learn(conn, row["kind"], peak)
@@ -508,8 +524,9 @@ def learned(conn):
 def learn(conn, kind, peak_mb):
     """Raises what is known of the kind's size to `peak_mb` if that is more than has been seen. Returns what is known now."""
     seen = conn.hget(_key("learned"), kind)
-    top = max(float(_decode(seen)) if seen is not None else 0.0, float(peak_mb))
-    if seen is None or top > float(_decode(seen)):
+    known = float(_decode(seen)) if seen is not None else 0.0
+    top = max(known, float(peak_mb))
+    if seen is None or top > known:
         conn.hset(_key("learned"), kind, f"{top:.3f}")
     return top
 
@@ -556,10 +573,9 @@ def grow(conn, kind, job_id, claimed_mb, peak_mb=0.0):
 
 def kill_note(conn, name):
     """What the worker `name` held when it was killed, for a message: its claim, the peak seen and what is held now, or `None`."""
-    raw = conn.hget(_key("claims"), name)
-    if raw is None:
+    row = _claim_row(conn, name)
+    if row is None:
         return None
-    row = json.loads(_decode(raw))
     return {"kind": row["kind"], "claimed_mb": float(row["mb"]), "peak_mb": float(row.get("peak", 0.0)), "job": row.get("job", "")}
 
 

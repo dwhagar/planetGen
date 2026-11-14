@@ -43,6 +43,8 @@ TRACE_FRACTION = 1e-4
 """float: The share from which a smaller gas is named as a trace (at most two)."""
 HUMID_H2O_FRACTION = 0.02
 
+KPA_TO_PA = 1000.0
+
 PENDING = "an air not yet drawn"
 """str: What a body whose class has air says until its air is made (`calculate_atmospheric_conditions` replaces it by `describe` of the
 solved mixture, GEN.415): a class names no gas, only whether it has air."""
@@ -61,7 +63,7 @@ def redox_class(delta_iw):
 def vapor_pressure_kpa(gas, temperature_k):
     """The most of `gas` (a stored species, `SPECIES`) that can be vapor at `temperature_k`, kPa: its saturation pressure
     (`saturation.saturation`), infinite above its critical temperature."""
-    return saturation.pressure_pa(gases.stored(gas).formula, temperature_k) / 1000.0
+    return saturation.pressure_pa(gases.stored(gas).formula, temperature_k) / KPA_TO_PA
 
 
 def gas_name(formula):
@@ -125,9 +127,6 @@ def store_air(planet, partials_pa, redox_diw):
     planet.mantle_redox = None if redox_diw is None else redox_class(redox_diw)
     setattr(planet, GAS_FIELD, dict(partials_pa))
     planet.atmosphere = describe(partials_pa)
-
-
-KPA_TO_PA = 1000.0
 
 
 def gas_partials_pa(body):

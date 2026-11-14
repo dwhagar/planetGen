@@ -82,11 +82,19 @@ def refresh_system(system):
     for number, (member, bodies) in enumerate(system.member_hosts() if hasattr(system, "member_hosts") else (), start=2):
         node, beside = system.sibling_stars(number)
         other = sum(system.stars[index].luminosity for index in beside)
+        separation_au = node.separation_km / constants.AU_TO_KM
         for planet in bodies:
             _set(planet, None if getattr(planet, "body_type", None) == "a" else companion_swing(
                 member.luminosity, planet.distance, other,
-                node.separation_km / constants.AU_TO_KM * (1.0 - node.eccentricity),
-                node.separation_km / constants.AU_TO_KM * (1.0 + node.eccentricity), planet.eccentricity))
+                separation_au * (1.0 - node.eccentricity), separation_au * (1.0 + node.eccentricity), planet.eccentricity))
+
+
+    for host, bodies in system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else ():    # GEN.332, slice A: the pair's turn and the planet's own orbit, as a close pair's
+        first, second = host.stars
+        for planet in bodies:
+            _set(planet, None if getattr(planet, "body_type", None) == "a" else min(
+                circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass, host.binary_separation_au, planet.distance)
+                + orbit_elements.flux_swing(planet.eccentricity), 1.0))
 
 
 def _set(planet, value):

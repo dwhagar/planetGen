@@ -12,7 +12,7 @@ Three kinds of function live here:
 - **Spacing** (`space_orbits`, `reconcile_moved_planet`,
   `trim_to_orbit_ceiling`, `cross_star_clearance`, and the distance
   helpers they use) is the orbit-spacing pass generation has always run.
-  `StarSystem.validate_system`, `_trim_to_orbit_ceiling` and
+  `StarSystem.validate_system`, the trim and
   `_validate_cross_star_clearance` (`generation/system.py`) now call these, with
   the same results.
 - **Stabilizing** (`stabilize_lunar_system`, `stabilize_star_system`) is
@@ -27,7 +27,7 @@ from collections import namedtuple
 
 from planetgen.generation import life as planetLife
 from planetgen.physics import (
-    clearance_ledger, constants, daylight, ocean_tides, orbit_elements, planet_classes, planets as planetPhysics, rings)
+    clearance_ledger, constants, daylight, ocean_tides, orbit_elements, planet_classes, planets as planetPhysics)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
@@ -189,6 +189,8 @@ def reconcile_moved_planet(planet):
     if getattr(planet, "_deferred_climate", None) is not None:
         # GEN.1282: a planet built without its climate has no air or moons to make again; `finish_climate` makes them at this distance.
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+        if getattr(planet, "_motion_done", False):
+            planetPhysics.update_orbital_position(planet)      # GEN.1548: its position and velocity were made at the old distance (`finish_motion`)
         return
     planetPhysics.calculate_atmospheric_conditions(planet)
     planetPhysics.prepare_class(planet)
@@ -235,10 +237,17 @@ def refresh_planet_reflex(planet, force=False):
         planet.reflex_offset_x = planet.reflex_offset_y = planet.reflex_offset_z = 0.0
 
 
-def _shift_belt(belt, amount):
+def shift_belt(belt, amount):
+    """Moves a belt outward by `amount` AU: its center and both edges."""
     belt.distance += amount
     belt.upper_limit += amount
     belt.lower_limit += amount
+
+
+def reflex_children(bodies):
+    """The `(mass_kg, x_au, y_au, z_au)` list `orbits.calculate_reflex_offset` takes, from a star's planets and belts: the
+    planets alone (a belt, `body_type` 'a', carries no mass anywhere in this codebase)."""
+    return [(p.mass, p.position_x, p.position_y, p.position_z) for p in bodies if p.body_type != 'a']
 
 
 def belt_needs_pushing(belt, last):
@@ -316,7 +325,7 @@ def space_orbits(planets):
         if planet.body_type == 'a':
             if belt_needs_pushing(planet, last_planet):
                 keep_out = tuning.MIN_ASTEROID_BELT_SEPARATION if last_planet.body_type == 'a' else last_planet.min_orbit_distance
-                _shift_belt(planet, keep_out + additional_correction)
+                shift_belt(planet, keep_out + additional_correction)
                 draw.redrawn("belt.spacing_push")
         else:
             min_distance = min_distance_after_au(planet, planets[:i])
@@ -570,11 +579,12 @@ def _member_hosts(system):
 def star_lists(system):
     """`(star, planets)` for each star that holds its own planet list:
     the system's star (a single star, or a close pair's merged proxy),
-    then a wide pair's secondary, then each further star of the tree (GEN.332)."""
+    then a wide pair's secondary, then each further star of the tree (GEN.332), then the proxy of each inner pair node of the tree with its planets."""
     lists = [(system.star, system.planets)]
     if getattr(system, "binary_type", None) == "wide":
         lists.append((system.secondary_star, system.secondary_planets))
     lists.extend(_member_hosts(system))
+    lists.extend(system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else [])
     return lists
 
 
@@ -667,22 +677,12 @@ def stabilize_lunar_system(planet):
 def refresh_star_reflex(system):
     """Each star's wobble from the planets orbiting it (a close pair's is
     shared by the pair), as `StarSystem.__init__` sets it."""
-    def children(planets):
-        return [(p.mass, p.position_x, p.position_y, p.position_z) for p in planets if p.body_type != 'a']
-
     if system.binary_type == "close":
         system.binary_planetary_wobble_x, system.binary_planetary_wobble_y, system.binary_planetary_wobble_z = \
-            calculate_reflex_offset(system.star.mass, children(system.planets))
+            calculate_reflex_offset(system.star.mass, reflex_children(system.planets))
         return
-    star = system.primary_star
-    star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = \
-        calculate_reflex_offset(star.mass, children(system.planets))
-    if system.binary_type == "wide":
-        star = system.secondary_star
-        star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = \
-            calculate_reflex_offset(star.mass, children(system.secondary_planets))
-    for star, planets in _member_hosts(system):
-        star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = calculate_reflex_offset(star.mass, children(planets))
+    for star, planets in star_lists(system):     # the system's star is its primary when the pair is not close
+        star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = calculate_reflex_offset(star.mass, reflex_children(planets))
 
 
 def stabilize_star_system(system, allow_removal=False):

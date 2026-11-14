@@ -39,7 +39,7 @@ OUTER_REACH = 3.0
 """float: A body beyond a ring still takes part in sharing its planetesimals when it lies within this many times the ring's outer edge: scattering goes both ways, so a giant just outside a belt is
 the main sink of what the belt scatters, though nothing is sent outward past it by drift. [Stand-in LS3, tier Marginal educated guess from physics, tweak L4.]"""
 
-AU_M = 1.495978707e11
+AU_M = constants.AU_M
 
 
 def capture_weight(radius_km, planet_au, mass_kg, star_mass_solar):
