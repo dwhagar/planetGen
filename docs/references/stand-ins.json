@@ -34367,7 +34367,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "by design",
+          "unread": null,
           "what": "roundness.SPHERICITY_FACTOR 1.1: the longest axis of a body counted round is at most this times its mean radius"
         },
         {
