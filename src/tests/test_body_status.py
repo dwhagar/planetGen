@@ -93,3 +93,18 @@ def test_the_solar_system_planets_clear_their_zones_from_the_planet_list_and_the
     for name, (a, mass) in SUN_NEIGHBOURS.items():
         others = bs.zone_mass_kg(a, mass, 1.0, list(SUN_NEIGHBOURS.values()), belts)
         assert bs.status(mass, 0.0, a, 1.0, others).word == bs.PLANET, name
+
+
+def test_a_clathrate_body_turns_round_at_a_larger_mass_than_a_water_ice_one():
+    """GEN.1684: the status word reads the strength of the kind of ice (`ice_types`), so a methane-clathrate body of the same ice share needs more mass to be round."""
+    from planetgen.physics import body_status as bs
+    assert bs.round_mass_kg(0.8, "ch4_clathrate") > 10.0 * bs.round_mass_kg(0.8)
+    mass = 1.2 * bs.round_mass_kg(0.8)
+    assert bs.roundness(mass, 0.8) >= 1.0 and bs.roundness(mass, 0.8, "ch4_clathrate") < 1.0
+
+
+def test_the_status_word_calls_a_body_round_by_is_round():
+    from planetgen.physics import body_status as bs
+    heavy = bs.round_mass_kg(0.5) * 100.0
+    assert bs.status(heavy, 0.5, 40.0, 1.0, 0.0).word != bs.MINOR_BODY
+    assert bs.status(bs.round_mass_kg(0.5) * 0.5, 0.5, 40.0, 1.0, 0.0).word == bs.MINOR_BODY

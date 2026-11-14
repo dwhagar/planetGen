@@ -32,7 +32,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.galaxy import object_uid
-from planetgen.physics import belt_history, belt_ledger, belt_member, body_status, compaction, scatter, unit_registry
+from planetgen.physics import belt_history, belt_ledger, belt_member, body_status, body_strength, compaction, scatter, unit_registry
 from planetgen.physics import small_body_composition as sbc
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import format_number
@@ -184,7 +184,7 @@ def body_entry(record, rank, member, held, placement, neighbours, belts):
     """
     others = body_status.zone_mass_kg(placement.distance_au, member.mass_kg, record.star_mass_solar, neighbours, belts)
     ice = member.makeup.water + member.makeup.ice
-    state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others)
+    state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others, ice_type=body_strength.ice_type_of_makeup(member.makeup))      # GEN.1684
     return {
         "rank": rank,
         "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),

@@ -27,7 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, spin,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -949,7 +949,7 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
+    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or roundness.is_round(row["roundness_ratio"]),
      "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
