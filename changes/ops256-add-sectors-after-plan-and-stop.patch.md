@@ -1,4 +1,0 @@
-**Headline:** Adding sectors to a galaxy that was only planned (no star scatter yet) no longer crashes at the backfill step.
-
-### Fixed
-- **Add sectors after a plan-and-stop crashed the backfill (OPS.256).** The backfill's expansion costed the sky tiers (`run_galaxy._sky_units`, `sky_charting.cost_rings`) from the galaxy's scatter limits, and a galaxy with no star scatter has none, so the luminosity ceiling was 0.0 and the draw raised `luminosity threshold 0.0 Lsun must be at least the brightest white dwarf`. `run_galaxy.expand_backfill_bright_stars` now leaves the sky out when no scatter ran (there is no level to chart a sky under), plans the sectors' own backfill as before, and the run's log says "No sky tiers are drawn" with the reason. A sky is drawn by a later backfill once a scatter has run.
