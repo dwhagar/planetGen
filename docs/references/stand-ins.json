@@ -24465,11 +24465,11 @@
           "fields": [
             [
               "What it is",
-              "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down"
+              "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and OZONE_RECOVERY_YR 100: the flag that flares or galactic events keep the ozone down (GEN.1694: a galactic event inside the recovery time, a draw)"
             ],
             [
               "The range it moves in",
-              "limit 100 to 1000"
+              "limit 100 to 1000; recovery time 10 to 1000 years"
             ],
             [
               "Where it holds",
@@ -24496,7 +24496,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down"
+          "what": "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and OZONE_RECOVERY_YR 100: the flag that flares or galactic events keep the ozone down (GEN.1694: a galactic event inside the recovery time, a draw)"
         },
         {
           "burn_down": null,
