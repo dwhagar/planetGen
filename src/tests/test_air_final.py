@@ -56,7 +56,7 @@ def test_a_body_with_the_ice_law_enters_the_solver_from_the_warm_side_and_a_gian
 
 
 def test_a_hazy_envelope_colder_than_its_albedo_gives_keeps_the_balance_in_the_albedo_not_a_clipped_greenhouse(monkeypatch):
-    """GEN.1718: the stored temperature must be the formula on the stored albedo and greenhouse (TEST.209). A giant whose haze makes it colder than starlight alone gives has a negative greenhouse
+    """Train 28 gate: the stored temperature must be the formula on the stored albedo and greenhouse (TEST.209). A giant whose haze makes it colder than starlight alone gives has a negative greenhouse
     quantity, which is not stored; clipping it to zero left the pair 0.26 percent off the temperature, so the albedo carries the balance."""
     import math
 

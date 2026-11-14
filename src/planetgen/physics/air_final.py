@@ -120,7 +120,7 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
         # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
         factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo_kept, starlight_w_m2)
         if factor is not None and factor < 0.0:
-            # GEN.1718 (Train 28 gate, system47/Ilrukbatus IV): the haze of a deep envelope keeps the 1 bar level 0.26 percent colder than its albedo alone gives. The greenhouse quantity is not
+            # Train 28 gate (test_sweep_atmosphere, system47/Ilrukbatus IV): the haze of a deep envelope keeps the 1 bar level 0.26 percent colder than its albedo alone gives. The greenhouse quantity is not
             # negative, and clipping it to zero left the stored temperature off the formula on the stored albedo and greenhouse; the balance is kept in the albedo instead
             albedo_kept = climate_draws.albedo_for_temperature(air.temperature_k, starlight_w_m2)
             factor = 0.0
