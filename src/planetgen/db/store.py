@@ -98,7 +98,7 @@ from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word, wide_pair_star_words
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -10211,6 +10211,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star.db_id = primary_row["id"]
         secondary_star.db_id = secondary_row["id"]
         system.stars = [star, secondary_star]
+        system.star_words = wide_pair_star_words(row["name"], star.name, secondary_star.name)    # DB.125: not a column, the two star names hold them
     else:
         system.primary_star = star
         system.stars = [star]
