@@ -13437,6 +13437,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
   Filed by the TODO thread.
 
+- [ ] **OPS.255 (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page**
+  Lane 05, 11:35 AM EST on 2026-11-14, from OPS.253: web/jobs.py:696-707 sets the Generate job's RQ job_timeout to 10 times the expected seconds of earlier runs, and job_runner.py `_stop_tree` ends the starter with no log line while its units carry on. Not the cause of Boss's 11-14 stall (the starter wrote "Stage 8 of 18 failed after 15571 s: canceled" at 10:08 AM EST), but a latent defect. Fix: a job whose steps run queue runs takes the ceiling as its RQ limit, since the unit watch judges progress; any job RQ ends says so in the run's log and on the Queue page; a test that fails before the fix. OPS.215 onward removes RQ and this rule with it.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **OPS.256 (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes**
+  Boss, 10:35 AM EST on 2026-11-14: "and, the crash??? I did a galaxy plan, then tried to add a sector group manually without the scatter". Boss, 10:35 AM EST: "standard default sector neighborhood fill from the generate menu, after the plan-and-stop". So: Generate menu plan-and-stop, then the Generate menu's default sector neighborhood fill. Error text to come from Boss. Reproduce those two web runs (and the matching CLI commands), on main and on Train 27's branch (PR 6485); fix the crash at its cause.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: none. Related: OPS.253.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
