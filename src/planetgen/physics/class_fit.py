@@ -96,6 +96,17 @@ def _load():
 DOCUMENT, CLASSES, WIDTHS = _load()
 """tuple: The `FitClass` rows; `DOCUMENT` the whole file; `WIDTHS` the fudge table's width at each edge, `{quantity: {"unit": "ln" or "plain", "edges": {edge: width}}}`."""
 
+
+def floor_of(letter, quantity, kind=planet_classes.TERRESTRIAL):
+    """The least value (a `min` condition) that class `letter` of `kind` asks of `quantity`, in the unit the table holds it: the one place a rating that must agree with a class (the Air rating's Blue rung with the oxygen of class M, GEN.1703) reads its number from."""
+    for cls in CLASSES:
+        if cls.letter == letter and cls.kind == kind:
+            floors = [condition["min"] for condition in cls.when if condition["quantity"] == quantity and "min" in condition]
+            if len(floors) != 1:
+                raise FitError(f"class {letter} ({kind}) has {len(floors)} floors for {quantity!r}, not one")
+            return floors[0]
+    raise FitError(f"{letter!r} is not a class of kind {kind!r}")
+
 GATE_PRESSURE_PA = DOCUMENT["gate_pressure_pa"]
 LETTERS = tuple(sorted({c.letter for c in CLASSES}))
 
@@ -322,3 +333,27 @@ def classify(body):
 def rule_words(cls, measure=None):
     """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`, which says what `measure` is)."""
     return [planet_classes.condition_words(condition, measure) for condition in cls.when]
+
+
+def softness_words(cls):
+    """
+    How far past each edge of a `FitClass` a value still fits it partly, as plain phrases (GEN.1316): the width of the edge in the fudge table, which is the model's doubt about the value (what the
+    stand-ins that make it could move it by), not the variety of the worlds. A logarithmic quantity is a factor, a share is in percentage points, the rest are in the unit of the quantity.
+    A condition with no edge (an `equals` condition) has no softness and no phrase.
+    """
+    phrases = []
+    for condition in cls.when:
+        if "equals" in condition:
+            continue
+        name = condition["quantity"]
+        edge = condition.get("min", condition.get("lt"))
+        width = WIDTHS[name]["edges"][edge]
+        label, unit, percent = planet_classes.quantity_entry(name)
+        if WIDTHS[name]["unit"] == "ln":
+            far = f"a factor of {math.exp(width):.3g}"
+        elif percent:
+            far = f"{width * 100:.3g} percentage points"
+        else:
+            far = f"{width:.3g} {unit}".rstrip()
+        phrases.append(f"{planet_classes.condition_words(condition)}: soft by {far}")
+    return phrases

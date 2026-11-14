@@ -27,3 +27,9 @@ def test_class_s_is_on_the_class_reference_page():
     cat = classref.catalog()
     planets = next(kind for kind in cat.values() if "S" in kind.get("classes", {}) and "V" in kind["classes"])
     assert "super-earth" in str(planets["classes"]["S"]).lower()
+
+
+def test_no_planet_class_carries_a_composition_text():
+    """GEN.1619: the class composition strings (stale, and read by nothing once their row mapping went) are gone; a class is its letter and kind."""
+    for letter, data in tuning.PLANET_CLASSES.items():
+        assert "composition" not in data and data["type"] in ("t", "g"), letter

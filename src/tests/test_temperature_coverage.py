@@ -254,3 +254,29 @@ def test_a_world_with_a_million_solar_days_per_span_is_read_in_a_blink():
     bands = tc.band_climate(_series(temperature, 1e-5, 1.0))
     assert time.perf_counter() - started < 2.0
     assert all(swing == 0.0 for _, swing in bands if not math.isnan(swing))      # a window of one sample has no range
+
+
+# --- a world that is the same north and south: the extremes and the best site do not depend on the last bits of a float ----------------------------------------------------------
+
+def _mirrored(series, noise_on):
+    """The series made north-south symmetric (each cell the mean of itself and its mirror), with `noise_on` ('north' or 'south') nudged up by a hundredth of a picokelvin."""
+    from dataclasses import replace
+
+    temperature = 0.5 * (series.temperature_k + series.temperature_k[::-1])
+    half = temperature.shape[0] // 2
+    nudge = np.zeros_like(temperature)
+    if noise_on == "north":
+        nudge[:half] = 1.0e-11
+    else:
+        nudge[temperature.shape[0] - half:] = 1.0e-11
+    return replace(series, temperature_k=temperature + nudge)
+
+
+@pytest.mark.parametrize("name", ["earth tilt 0", "locked 1 bar", "locked 0.1 bar"])
+def test_the_hottest_place_and_the_best_site_of_a_mirror_symmetric_world_are_the_same_whichever_hemisphere_the_rounding_favors(name):
+    series = ss.temperature_series(*WORLDS[name])
+    north, south = tc.coverage(_mirrored(series, "north")), tc.coverage(_mirrored(series, "south"))
+    for extreme in ("hottest", "coldest"):
+        a, b = getattr(north, extreme), getattr(south, extreme)
+        assert (a.latitude_deg, a.longitude_deg, a.time_days) == (b.latitude_deg, b.longitude_deg, b.time_days), extreme
+    assert (north.best_site.latitude_deg, north.best_site.longitude_deg) == (south.best_site.latitude_deg, south.best_site.longitude_deg)

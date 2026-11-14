@@ -19,10 +19,21 @@ let serial = 0;
 function titleRow(text, helpText) {
   const row = document.createElement("div");
   row.className = "default-title";
+  // A trailing "(unit)" is the unit: the title is bold and the unit sits under it as a small subtitle.
+  const split = /^(.*?)\s*\(([^()]+)\)$/.exec(text);
+  const wrap = document.createElement("span");
+  wrap.className = "title-text";
   const name = document.createElement("span");
   name.className = "default-title-name";
-  name.textContent = text;
-  row.append(name);
+  name.textContent = split ? split[1] : text;
+  wrap.append(name);
+  if (split) {
+    const unit = document.createElement("span");
+    unit.className = "title-unit";
+    unit.textContent = split[2];
+    wrap.append(unit);
+  }
+  row.append(wrap);
   let button = null;
   if (helpText) {
     button = document.createElement("button");

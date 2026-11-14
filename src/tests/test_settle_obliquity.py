@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen.physics import obliquity_variation as ov, planets
+from planetgen.physics import constants, obliquity_variation as ov, planets
 
 SUN = 1.98847e30
 EARTH = 5.972e24
@@ -183,7 +183,7 @@ def test_a_locked_moon_takes_the_cassini_tilt_of_its_nodal_regression_in_its_pla
     moon_period = 27.32 / 365.25
     moon = SimpleNamespace(mass=7.346e22, radius=1737.4, distance=384400e3 / 1.495978707e11, eccentricity=0.05, period=moon_period, orbital_inclination_deg=5.1, orbital_ascending_node_deg=30.0,
                            rotation_period_hours=moon_period * 8766.0, spin_axis_x=0.0, spin_axis_y=0.0, spin_axis_z=1.0, axial_tilt_deg=0.0, body_type="t",
-                           star=SimpleNamespace(snow_line_au=2.7), formation_distance_au=1.0)
+                           star=SimpleNamespace(snow_line_au=2.7, mass=constants.SOLAR_MASS_TO_KG), formation_distance_au=1.0)
     free = SimpleNamespace(**{**vars(moon), "rotation_period_hours": 20.0, "axial_tilt_deg": 11.0})
     planet.moons = [moon, free]
     assert planets.settle_moon_tilts([planet], SUN) == 1
