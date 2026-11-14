@@ -129,21 +129,28 @@ def expand_check_datasets(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def check_datasets_unit(params, report):
+def check_datasets_pieces(params, cursor):
+    """The pieces of the `check-datasets` unit (OPS.204): the key of each dataset chosen (`keys`, none means all), after the first `cursor` of them. An unknown key is refused here."""
+    return [dataset.key for dataset in _chosen(params.get("keys") or [])][cursor:]
+
+
+def check_datasets_piece(params, key, ctx):
     """
-    The `check-datasets` command (PERF.119): says where each dataset stands and fetches nothing, the data check in front
-    of every Generate job (GEN.590).
+    One piece of the `check-datasets` command (PERF.119): says where one dataset stands and fetches nothing, the data check in front of every Generate job (GEN.590).
 
     Args:
-        params (dict): `keys` (the datasets to check; none means all) and `disregard` (a missing dataset with a fallback
-            is taken as one).
-        report (callable): Unused: the unit is one step.
+        params (dict): `disregard` (a missing dataset with a fallback is taken as one).
 
     Returns:
-        dict: `lines`, what the check prints, and `absent`, how many datasets are missing for good.
+        dict: `lines`, what the check prints for the dataset, and `absent`, 1 when it is missing for good, else 0.
     """
-    lines, absent = status_lines(_chosen(params.get("keys") or []), bool(params.get("disregard")))
+    lines, absent = status_lines(_chosen([key]), bool(params.get("disregard")))
     return {"lines": lines, "absent": absent}
+
+
+def check_datasets_gather(params, results):
+    """The result of the `check-datasets` command: `lines`, what the check prints, and `absent`, how many datasets are missing for good."""
+    return {"lines": [line for result in results for line in result["lines"]], "absent": sum(result["absent"] for result in results)}
 
 
 def run_status(keys, disregard_missing_data):

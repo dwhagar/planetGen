@@ -25,8 +25,7 @@ def _run(config, names=commands.DEFAULT_CHECKS, scope=None):
     scope = scope or check.Scope()
     args = {"database": wrapper.database_args(config), "shells": list(scope.shells),
             "addresses": [list(a) for a in scope.addresses], "wide_binaries": scope.wide_binaries}
-    results = [check.CheckResult.from_dict(getattr(check, f"check_{name.replace('-', '_')}_unit")(args, None))
-               for name in names]
+    results = [check.CheckResult.from_dict(commands.run_alone(f"check-{name}", args)) for name in names]       # OPS.204: the engine's loop, a piece at a time
     return check.Report(results)
 
 
@@ -172,9 +171,9 @@ def test_a_foreign_key_with_another_delete_rule_is_drift(saved):
 
 
 def test_a_check_that_cannot_run_is_not_called_damage(saved, monkeypatch):
-    def broken(ctx):
+    def broken(ctx, piece=None):
         raise KeyError("boom")
-    monkeypatch.setitem(check.BY_NAME, "ids", check.Check("ids", "ids", broken))
+    monkeypatch.setitem(check.BY_NAME, "ids", check.Check("ids", "ids", broken, broken))
     report = _run(saved, ["ids"])
     assert report.exit_code() == check.EXIT_UNCHECKED and not report.damaged
     assert report.results[0].status == check.ERROR
