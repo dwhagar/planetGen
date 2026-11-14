@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4082] - 2026-11-14
+
+**Headline:** The first layered-fixes clean-up removes dead code, unused shim parameters and doubled request bookkeeping, with no change to what the generator makes.
+
+### Changed
+- **GEN.1649: the request bookkeeping of `StarSystem.__init__` reads the finished system once.** The belt, habitable world and forced class checks were written out three times with the same words, and `unmet_requirements` was built, then added to and taken from in three places. It is now one `_unmet_requirements()` read after the life pass, with `_belt_found` and `_habitable_found` for the attempt loop. The list order is fixed (belt, class, star count, comet, life class); a class lost in the life pass used to land at the end of the list, which only shows in the warning text of a refused request.
+- **GEN.1650: dead moves in `Planet.__init__`.** The two no-op `self.mass, self.radius = given_mass, given_radius` lines, left from an older draw loop, and a `# Removed:` comment are gone. `distance_override` stays: it is how a moon reads its parent's distance (`generate_moons`, the admin editor), not a dead parameter.
+- **GEN.1660: shims and functions nothing calls.** `init_app` loses its unused `limiter` parameter and `format_body_distance` its ignored `is_moon`. `materials.class_composition`, its mapping in `materials.json` and the test that held it are gone (no draw read it). The `from_dict` and `load_star_system` fallbacks that read `is_binary` for a save with no `binary_type`, the "backward compatibility" notes, the `_trim_to_orbit_ceiling` and `_reconcile_moved_planet` wrappers (callers use `validation` directly) and a 40-line docstring over a three-line body are gone. Thirteen functions with no caller and no test are deleted.
+
+generation-affects: none
+
 ## [8.0.4081] - 2026-11-14
 
 **Headline:** The second climate branch of a bistable world now keeps the world's own volatile inventory instead of drawing a new one.
