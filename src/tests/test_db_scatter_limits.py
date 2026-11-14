@@ -40,7 +40,7 @@ def _skeleton(**fields):
 
 def test_the_core_follows_the_baseline_times_a_tenth_until_set_and_the_halo_has_its_own_floor():
     unset = _skeleton()
-    assert scatter_limits.core_min_luminosity_sol(unset, None) == pytest.approx(9900.0)
+    assert scatter_limits.core_min_luminosity_sol(unset, None) == pytest.approx(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL * tuning.CORE_TIER_FACTOR)       # 19,800 since GEN.1681 raised the default floor to 18,000
     assert scatter_limits.core_mass_limit_sol(unset, None) == pytest.approx(15.4)
     assert scatter_limits.core_min_luminosity_sol(unset, 4000.0) == pytest.approx(4400.0)
     assert scatter_limits.core_mass_limit_sol(unset, 10.0) == pytest.approx(11.0)

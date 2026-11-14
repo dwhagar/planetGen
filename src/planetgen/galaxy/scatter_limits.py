@@ -256,6 +256,11 @@ class ScatterLimits:
             TierLimit(level, baseline_mass),
             TierLimit(halo_min_luminosity_sol(skeleton), halo_mass)))
 
+    @property
+    def scatter_ran(self):
+        """Whether the galaxy's star scatter ran (`tiers` is not `None`): before it there is no luminosity floor and no mass limit, so nothing that is drawn under them (the sky tiers) has a level."""
+        return self.tiers is not None
+
     def limit(self, tier):
         """The `TierLimit` of a tier index, `None` before any scatter ran."""
         return None if self.tiers is None else self.tiers[tier]
