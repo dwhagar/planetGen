@@ -8,7 +8,7 @@ row, no entry in the Sectors list and nothing for a filter to find, unless a dri
 `index` makes the same placeholder row (a placed sector with no cell in the chart ledger, MAP.399) for every cell that holds a waiting bright star or
 an unbuilt scattered phenomenon and has none yet, so the list, the search and the sector pages (`web.sector_page.placed_in_uncharted`) can reach
 what the long-range scans detected. It is made at the end of a scatter, where the block light totals are made (`generation.run_plan.refresh_block_lights`
-and `refresh_block_lights_unit` call it after `db.block_lights.rebuild`), by `planetgen fill-block-totals` and by the migration that introduced it
+and the `refresh-block-lights` unit call it after `db.block_lights.rebuild`), by `planetgen fill-block-totals` and by the migration that introduced it
 (0227, for a galaxy already scattered). It is not part of `block_lights.rebuild`: that runs inside the old migration 0147, on a schema that has no
 `sectors.uid` yet.
 

@@ -23,7 +23,7 @@ def one(args, piece, ctx):
     return piece * 10
 
 
-def together(args, results):
+def together(args, results, ctx):
     return {"sum": sum(results)}
 
 
@@ -308,3 +308,53 @@ def test_a_unit_of_the_engine_is_counted_and_done_like_any_other(command, starte
     assert conn.sismember(runrecord.done_key(run_id, 0), 0)
     import json
     assert json.loads(conn.hget(runrecord.results_key(run_id, 0), 0)) == {"sum": 30}
+
+
+def leaves(args, piece, ctx):
+    ctx.state.setdefault("seen", []).append(piece)
+    ctx.phase(f"Doing piece {piece}", keep=ctx.state.setdefault("lines", []))
+    return None
+
+
+def from_state(args, results, ctx):
+    return {"seen": ctx.state["seen"], "lines": ctx.state["lines"]}
+
+
+def test_the_pieces_of_a_unit_hand_each_other_what_they_leave_in_ctx_state_and_gather_reads_it(command):
+    command(do=(__name__, "leaves"), gather=(__name__, "from_state"))
+    result = engine.run("engine-test", {"count": 3}, Report())
+    assert result["seen"] == [0, 1, 2]
+    assert [line.split(" (")[0] for line in result["lines"]] == ["Doing piece 0", "Doing piece 1", "Doing piece 2"]
+    assert all(line.endswith(" elapsed).") for line in result["lines"])
+
+
+def test_a_piece_says_its_phase_to_the_beat_and_a_quiet_one_is_a_debug_record(command, monkeypatch):
+    from planetgen.queue import unitbeat
+    from planetgen.util import log
+    said = []
+    monkeypatch.setattr(log, "normal", lambda text: said.append(("normal", text)))
+    monkeypatch.setattr(log, "debug", lambda text, **kw: said.append(("debug", text)))
+    beat = unitbeat.UnitBeat(None, "r", 0, 0)
+    ctx = engine.Context("k", {}, beat)
+    with beat:
+        ctx.phase("Loud one")
+        assert beat.record(now_server=1.0)["phase"] == "Loud one"
+        ctx.phase("Quiet one", loud=False)
+    assert [kind for kind, _ in said] == ["normal", "debug"]
+
+
+def test_a_unit_may_let_go_of_its_connection_early_and_ctx_db_opens_another_on_the_next_use(command, monkeypatch):
+    opened, closed = [], []
+
+    class Connection:
+        def close(self):
+            closed.append(len(opened))
+
+    monkeypatch.setattr(store, "get_connection", lambda config, **kw: opened.append(1) or Connection())
+    ctx = engine.Context("k", {"database": {"host": "h", "port": 1, "user": "u", "database": "d"}}, Report())
+    first = ctx.db
+    assert ctx.db is first
+    ctx.close_db()
+    assert closed == [1] and ctx.db is not first and len(opened) == 2
+    ctx.close()
+    assert closed == [1, 2]
