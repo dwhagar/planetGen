@@ -54,7 +54,7 @@ BOLTZMANN = 1.380649e-23  # Boltzmann constant in J/K
 REDUCED_PLANCK = 1.0545718176461565e-34  # hbar, J*s -- Hawking radiation (phenomena.compact_remnant)
 STEFAN_BOLTZMANN_CONSTANT = 5.6703744191844314e-08  # Stefan-Boltzmann constant in W/m²/K⁴
 AVOGADRO = 6.02214076e23  # Avogadro constant, 1/mol, exact (the SI definition; GEN.1526: the one definition the isotope, air column and element tables read)
-GAS_CONSTANT = 8.314462618  # J/(mol K), the CODATA 2018 value to ten digits the interior, core, tide and species-thermo code was written with (GEN.1526); `R` is astropy's full-precision value, the two differ by 2e-11 of themselves
+GAS_CONSTANT = 8.314462618  # J/(mol K), the [R4361] value to ten digits the interior, core, tide and species-thermo code was written with (GEN.1526); `R` is astropy's full-precision value, the two differ by 2e-11 of themselves
 ICE_DENSITY_KG_M3 = 917.0  # Ice Ih at the freezing point, kg/m3 (GEN.1526: rings, clathrate brine and the water layer's lid)
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0  # Liquid water, kg/m3 (GEN.1526: aquifers and the hydrosphere)
 WATER_MELTING_K = CELSIUS_ZERO_K  # Water's melting point at 1 atm, K (GEN.1526: aquifers, hydrosphere, icy tide)
@@ -366,6 +366,7 @@ HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 GLADMAN_MUTUAL_HILL_STABILITY_FACTOR = 2 * math.sqrt(3)
 
 ELECTRON_VOLT_J = 1.602176634e-19  # One electron volt in joules (the elementary charge times 1 V)
+ELECTRON_MASS_KG = 9.1093837015e-31  # The electron's rest mass, kg; the Saha equation's electron term (`ionization.py`)
 
 # Earth's XUV flux today, 4.6 erg/cm^2/s at 1 AU [R3753], W/m^2:
 # the unit of a planet's `xuv_flux_earth` (GEN.86).

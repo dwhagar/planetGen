@@ -46,7 +46,8 @@ def _redis(url):
         connection = redisqueue.connect(url)
         connection.ping()
         return connection
-    except Exception:  # noqa: BLE001 -- no server: nothing is queued
+    except Exception as exc:  # noqa: BLE001 -- no server: nothing is queued
+        log.swallowed("cli/reset_jobs", "_redis", exc)
         return None
 
 
@@ -167,12 +168,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     if not args.yes and not args.dry_run and not sys.stdin.isatty():
-        log.error("error: there is no terminal to ask on; add --yes to reset without asking.")
+        log.error("There is no terminal to ask on, so add --yes to reset without asking.")
         return 1
     try:
         done = reset_jobs(assume_yes=args.yes, dry_run=args.dry_run)
     except Exception as exc:  # noqa: BLE001 -- said plainly; nothing half-reported
-        log.error(f"error: {exc}")
+        log.error(f"The jobs could not be reset: {exc}")
         return 1
     return 0 if done else 1
 

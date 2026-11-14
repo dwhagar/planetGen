@@ -23,6 +23,7 @@ import threading
 from flask import Response, abort, redirect, url_for
 
 from planetgen.util import settings as settingsModule
+from planetgen.util import log
 from planetgen.web import assets, seo
 from planetgen.web.lib import apiclient
 
@@ -265,7 +266,8 @@ def og_card(kind, object_id):
     if data is None:
         try:
             data = renderer(object_id)
-        except Exception:  # noqa: BLE001 -- a card that can't be drawn is the default picture, never a 500
+        except Exception as exc:  # noqa: BLE001 -- a card that can't be drawn is the default picture, never a 500
+            log.swallowed("web/seo_pages", "og_card", exc)
             data = None
         if not data:
             return fallback

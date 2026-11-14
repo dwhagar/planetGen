@@ -20,7 +20,7 @@ Why this form: it is the research's own READ and coded-and-checked profile (the 
 
 The research's worked example (HD 209458 b, kappa_th 1e-2 cm2/g, kappa_v 4e-3, T_int 100 K, T_eq 1469 K, g 1000 cm/s2, f 1/4): 1473 K at 66.7 mbar, 1647 K at 1 bar, 1648 K at 10 bar. The module reproduces 1472.6, 1647.4 and 1648.1 K (`test_the_worked_example_of_the_research`). The top equals the skin temperature; the bottom equals the deep isotherm; `gamma` large inverts the profile; the internal heat warms only the deep end.
 
-## Stand-ins (registry 6.277, provisional number)
+## Stand-ins (registry 6.287, provisional number)
 
 | row | what | tier | why |
 |---|---|---|---|

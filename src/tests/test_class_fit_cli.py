@@ -1,5 +1,7 @@
 """The best-fit class sweep (GEN.1206, GEN.1207): the report on bodies given as stored-column mappings."""
 
+import pytest
+
 from tests import class_fit_cli as cli
 from tests.test_planet_classes import CASES, body
 
@@ -29,47 +31,41 @@ def test_the_temperate_ocean_count_reads_the_hydrosphere():
     assert cli.temperate_surface_ocean(records())["M"] >= 1
 
 
-def test_a_table_compared_with_itself_changes_no_class_and_one_with_a_moved_edge_changes_some():
-    """GEN.1321: `--compare` counts the bodies whose class code differs under another fit table."""
+def test_a_dump_compared_with_itself_changes_no_class_and_one_with_a_class_moved_changes_one(tmp_path):
+    """GEN.1314: `--dump` writes the class code of every body; `--compare-dump` counts the bodies whose code differs and lists each."""
     import json
-    from planetgen.physics import class_fit
     recs = records()
-    same = open(class_fit.DATA_FILE, encoding="utf-8").read()
-    changed, total, pairs = cli.changes_against(recs, same)
-    assert changed == 0 and total >= len(CASES) and not pairs
-    document = json.loads(same)
-    for cls in document["classes"]:
-        for condition in cls["when"]:
-            if cls["letter"] == "M" and condition["quantity"] == "o2_partial_pa" and "min" in condition:
-                condition["min"] = 1.0e9                      # M no longer fits any body: they take other classes
-    changed, total, pairs = cli.changes_against(recs, json.dumps(document))
-    assert changed >= 1 and sum(pairs.values()) == changed
-    assert class_fit.CLASSES is not None and "o2_partial_pa" in {c["quantity"] for k in class_fit.CLASSES if k.letter == "M" for c in k.when}      # the table is put back
-    assert "## Class codes against the fit table at X" in cli.format_changes("X", changed, total, pairs)
+    path = tmp_path / "before.json"
+    cli.dump(recs, str(path))
+    before = json.loads(path.read_text())
+    changed, total, pairs, details = cli.changes_against(recs, before)
+    assert changed == 0 and total >= len(CASES) and not pairs and not details
+    before[0]["code"] = "Q"
+    changed, total, pairs, details = cli.changes_against(recs, before)
+    assert changed == 1 and sum(pairs.values()) == 1 and len(details) == 1 and details[0].startswith("Q to ")
+    text = cli.format_changes("X", changed, total, pairs, details)
+    assert "## Class codes against X" in text and "Each changed body:" in text
 
 
-def test_the_fudge_sweep_fits_the_cases_fully_and_moves_one_value_for_a_world_just_past_an_edge():
-    """GEN.1312: no fudge for a body that fits a class; the fewest values, then the smallest move, for one that does not."""
+def test_the_fudge_report_counts_full_fits_fudged_bodies_and_holes():
+    """GEN.1314: no fudge for a body that fits a class; the fewest values, then the smallest move, for one that does not; a body no class reaches is a hole."""
     recs = records()
-    rows = cli.fudge_sweep(recs)
-    assert all(r["best"][0] == 0 for r in rows[:len(CASES)]), "every case fits a class fully, so the rule fudges nothing"
-    near = rows[-1]                       # the light world: past the edge of a class by gravity alone
-    assert near["best"] is not None and near["best"][0] <= 1
-    for r in rows:
-        if r["best"][0] == 0:
-            assert r["best"][1] == 0.0 and not r["best"][3]
-    text = cli.format_fudge(rows)
-    assert "## The fudge sweep (no cap)" in text and "| cap (widths) | bodies placed | share | added |" in text
+    summary = cli.fudge_summary(recs)
+    assert len(summary["full"]) >= len(CASES), "every case fits a class fully, so the rule fudges nothing"
+    assert all(not r["fudge_values"] for r in recs[:len(CASES)])
+    assert len(summary["holes"]) >= 1
+    assert summary["total"] == len(summary["full"]) + len(summary["fudged"]) + len(summary["holes"]) + sum(1 for r in recs if r["match"] > 0.0 and r["digit"] == 9 and not r["fudge_values"] and r not in summary["full"])
+    text = cli.format_fudge(recs)
+    assert "## The fudge rule" in text and "fit a class fully" in text and "Nearest class of the holes" in text
 
 
 def test_the_thermal_quantities_count_as_one_value_and_a_cap_leaves_a_far_world_unplaced():
-    options = [("X", 2, {"thermal": 0.5, "pressure_pa": 3.0}), ("Y", 3, {"thermal": 1.2})]
-    assert cli.minimal_fudge(options)[2] == "Y", "one value moved beats two"
-    assert cli.minimal_fudge(options, 1.0) is None, "Y needs 1.2 widths and X needs 3.0 on the pressure"
-    assert cli.minimal_fudge(options, 1.5)[2] == "Y"
-    found = {"temperature_k": 100.0, "hottest_region_k": 100.0}
-    far = {"quantity": "temperature_k", "min": 200.0}
-    near = {"quantity": "hottest_region_k", "min": 150.0}
-    assert cli.overshoot(far, found) > 0.0 and cli.overshoot(near, found) > 0.0
-    assert cli.overshoot({"quantity": "temperature_k", "min": 50.0}, found) == 0.0
-    assert cli.overshoot({"quantity": "missing", "min": 1.0}, found) == float("inf")
+    from planetgen.physics import class_fit
+    width = class_fit.WIDTHS["temperature_k"]["edges"][275.0]
+    found = {"temperature_k": 275.0 - 0.5 * width}
+    assert class_fit.overshoot({"quantity": "temperature_k", "min": 275.0}, found) == pytest.approx(0.5)
+    assert class_fit.overshoot({"quantity": "temperature_k", "min": 275.0 - width}, found) == 0.0
+    assert class_fit.overshoot({"quantity": "missing", "min": 1.0}, found) == float("inf")
+    # one thermal value however many thermal quantities the class reads: a body moved by 0.5 width on both counts as one value
+    assert class_fit.match_of({class_fit.THERMAL_KEY: 0.5}) == 0.5
+    assert class_fit.match_of({class_fit.THERMAL_KEY: 2.0}) == 0.0, "past the largest cap the class is out of reach"

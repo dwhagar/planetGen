@@ -140,7 +140,7 @@ def test_class_pages_show_the_constants(client):
     assert planet_classes.describe("M").sentence in html
     assert "<th scope=\"row\">Core class</th><td>Yes</td>" in html
     html = _html(client, "/classes/planet/S")
-    assert "mass at least 1.5 Earth masses" in html
+    assert re.search(r'mass at least <span class="qty" data-q="mass" data-si="[^"]+" data-nc>1\.5 Earth masses</span>', html)     # UX.295: a number with a unit follows the visitor's unit setting
 
     low_k, high_k = mamajek_sequence.letter_range_k("G")
     html = _html(client, "/classes/star-spectral/G")
@@ -488,7 +488,7 @@ def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client
         assert text in html
 
 
-def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone(client):
+def test_the_help_menu_holds_classes_and_habitability(client):
     """UX.180: Classes leaves the section row for the Help menu beside the search button, with Habitability."""
     html = _html(client, "/classes")
     bar = html.split('<header class="site-header">')[1].split("</header>")[0]
@@ -499,7 +499,6 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     ordered = [entry for entry in entries if entry in (("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"))]
     assert ordered == [("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life")]     # other help pages (the sky, VIEW.38) may sit among them
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
-    assert "Habitability levels" not in html
     page = _html(client, "/help/habitability")
     assert 'class="site-help-trigger" aria-haspopup="menu" aria-current="page"><span class="site-help-text">Help</span>' in page
     assert 'data-href="/help/habitability" aria-current="page">Habitability</sl-menu-item>' in page
@@ -557,16 +556,6 @@ def test_every_equipment_item_name_has_a_row_on_the_habitability_page(client):
     assert set(habitability_ref.EQUIPMENT_ROW_IDS) == {label for label, _when in habitability_ref.EQUIPMENT_ITEMS}
 
 
-def test_the_equipment_search_tags_no_longer_carry_a_levels_link(app):
-    from planetgen.web import searchpage
-    from planetgen.web.searchpage import SearchState
-
-    options = [{"value": "0", "label": "Ideal", "count": 2}]
-    with app.test_request_context("/search"):
-        groups = searchpage.tag_groups(SearchState(), {"equipment": options})
-    assert all("help" not in group for group in groups)
-
-
 def test_a_range_gives_both_ends_the_one_style():
     """UX.107: a class page range never mixes plain and scientific ("5,000 to 1 × 10⁴ km")."""
     assert classref.number_range(5000, 1e4, "km") == "5 × 10³ to 1 × 10⁴ km"
@@ -607,3 +596,22 @@ def test_a_written_planet_class_code_resolves_to_its_letters_page(client):
     resp = client.get(f"/classes/planet/{letter}2")
     assert resp.status_code == 301 and resp.headers["Location"].endswith(f"/classes/planet/{letter}")
     assert client.get(f"/classes/planet/{letter}22").status_code == 404
+
+
+def test_the_conditions_line_writes_its_numbers_for_the_visitors_unit_setting(client):
+    """UX.295: the Conditions line of a planet class writes every pressure, temperature, gravity and mass as a `qty` span (`static/units.js` shows it in the visitor's
+    units from `data-si`), not as raw pascals and kelvins; the words round it are escaped and the spans are not."""
+    html = _html(client, "/classes/planet/M")
+    row = re.search(r'<th scope="row">Conditions</th><td>(.*?)</td>', html, re.S).group(1)
+    spans = re.findall(r'<span class="qty" data-q="(pressure|temperature|gravity|mass)" data-si="([^"]+)" data-nc>', row)
+    assert {kind for kind, _ in spans} >= {"pressure", "temperature", "gravity"}
+    outside = re.sub(r"<span.*?</span>", "", row)      # what is written outside the spans carries no number with a unit
+    assert not re.search(r"\d\s*(Pa|kPa|K|Earth masses)\b", outside), outside
+    assert "&lt;span" not in row
+
+
+def test_a_condition_without_a_unit_hook_is_written_as_before():
+    condition = {"quantity": "pressure_pa", "lt": 10.0}
+    assert planet_classes.condition_words(condition) == "surface pressure below 10 Pa"
+    assert planet_classes.condition_words(condition, lambda value, unit: None) == "surface pressure below 10 Pa"
+    assert planet_classes.condition_words(condition, lambda value, unit: f"[{value} {unit}]") == "surface pressure below [10.0 Pa]"

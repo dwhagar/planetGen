@@ -83,7 +83,7 @@ ASTROPY_VALUES = [
     ("ELECTRON_VOLT_J", lambda c, u: c.e.value, 0),
     # GEN.1526: the physical constants the modules used to define each for themselves
     ("AVOGADRO", lambda c, u: c.N_A.value, 0),
-    ("GAS_CONSTANT", lambda c, u: c.R.value, 1e-10),      # ten digits of the CODATA 2018 value, as the interior and tide code was written with
+    ("GAS_CONSTANT", lambda c, u: c.R.value, 1e-10),      # ten digits of the [R4361] value, as the interior and tide code was written with
     ("WATER_MELTING_K", lambda c, u: u.deg_C.to(u.K, 0.0, equivalencies=u.temperature()), 1e-15),
 ]
 

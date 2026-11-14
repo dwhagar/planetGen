@@ -85,7 +85,8 @@ def set_gas_detail(body):
     if star is None:
         return              # a bare stand-in body of a test: no star, no ratios
     ratios = bulk_draw.host_ratios(star)
-    body.envelope_helium_fraction = ratios.y_envelope * (1.0 - ratios.z)
+    fractionated = getattr(body, "_envelope_helium_y", None)       # GEN.1527: the helium share a hydrogen-first loss left (`envelope_capture.helium_share`), else the star's
+    body.envelope_helium_fraction = (ratios.y_envelope if fractionated is None else fractionated) * (1.0 - ratios.z)
     body.envelope_z_fraction = ratios.z
 
 
