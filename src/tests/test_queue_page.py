@@ -772,3 +772,32 @@ def test_the_queue_page_controls_pin_release_and_forget(web_app, admin_client, c
     assert profileclaim.pinned_mb(conn, "unit:link-neighbors") is None
     _post(web_app, admin_client, action="tuning-clear", kind="unit:link-neighbors")
     assert profileclaim.changes(conn)[0]["what"] == "clear"
+
+
+def test_the_supervisor_api_needs_an_admin_and_says_whether_it_is_alive_and_what_it_did(admin_client, web_app, conn):
+    from planetgen.queue import supervisor
+    assert web_app.test_client().get("/api/admin/work/supervisor").status_code == 401
+    assert admin_client.get("/api/admin/work/supervisor").get_json() == {"alive": False, "recent": []}
+    store = supervisor.RedisStore(conn)
+    store.note(1000.0, "started", "something asked for one")
+    store.publish(77, 1000.0, 1002.0, 2)
+    body = admin_client.get("/api/admin/work/supervisor").get_json()
+    assert body["alive"] and body["pid"] == 77 and body["turns"] == 2 and body["recent"] == [{"at": 1000.0, "what": "started", "reason": "something asked for one"}]
+
+
+def test_the_queue_page_shows_the_supervisors_sign_of_life_and_latest_acts(admin_client, conn):
+    from planetgen.queue import supervisor
+    store = supervisor.RedisStore(conn)
+    store.note(1000.0, "started", "something asked for one")
+    store.publish(77, 1000.0, 1002.0, 2)
+    page = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert 'id="queue-supervisor"' in page and "something asked for one" in page and "process 77" in page
+
+
+def test_the_supervisor_panel_words_a_dead_supervisor_and_a_missing_answer():
+    from planetgen.web import queue_page
+    assert queue_page._supervisor_view(None) is None
+    dead = queue_page._supervisor_view({"alive": False, "recent": []})
+    assert dead["alive"] is False and "starts again by itself" in dead["state"]
+    live = queue_page._supervisor_view({"alive": True, "pid": 5, "since": 1000.0, "turn_at": 1090.0, "turns": 45, "recent": []}, now=1100.0)
+    assert live["up"] == "1 m 40 s" and live["turn"] == "10.0 s" and live["turns"] == "45"

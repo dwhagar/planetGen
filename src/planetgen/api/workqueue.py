@@ -323,6 +323,16 @@ def set_workers():
     return jsonify(_workers_state(connection))
 
 
+@bp.route("/supervisor", methods=["GET"])
+@require_admin()
+def supervisor_state():
+    """`GET /api/admin/work/supervisor` -- the supervisor process (OPS.214): `alive` and, while it is, `pid`, `since`, `turn_at` (Unix seconds) and `turns`; `recent`, its latest acts newest
+    first, each `at`, `what` and `reason`. A poll of it starts a supervisor that is not alive, as every status poll does."""
+    connection = _redis()
+    supervisor.ensure_started(connection)
+    return jsonify(supervisor.overview(connection))
+
+
 @bp.route("/tuning", methods=["GET"])
 @require_admin()
 def tuning():

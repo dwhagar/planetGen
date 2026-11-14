@@ -51,7 +51,7 @@ def test_an_idle_supervisor_publishes_each_turn_and_ends_after_its_idle_spell():
     assert loop.run() == "idle"
     assert [turn[3] for turn in store.published] == [1, 2, 3, 4, 5, 6], "a turn every 2 s, the sixth at 10 s idle"
     assert {turn[1] for turn in store.published} == {1000.0}, "`since` stays the time of the first turn"
-    assert store.retracted == 1 and "ends after 6 turn(s): idle" in lines[-1]
+    assert store.retracted == 1 and "ended (nothing to watch for 10 s, after 6 turn(s))" in lines[-1]
 
 
 def test_something_to_watch_keeps_it_alive_and_the_idle_spell_counts_from_when_it_stopped():
@@ -138,3 +138,24 @@ def test_a_submit_a_status_poll_and_the_warm_up_each_call_for_a_supervisor(conn,
     monkeypatch.setattr(warmstart, "acquire", lambda database, client=None: False)
     assert warmstart.request("galaxy", "sector") == "running"
     assert calls, "the warm-up's start"
+
+
+def test_the_supervisors_acts_are_kept_newest_first_with_their_reasons_and_shown_with_its_sign_of_life(conn):
+    assert supervisor.overview(conn) == {"alive": False, "recent": []}
+    store = supervisor.RedisStore(conn)
+    clock = FakeClock()
+    loop = supervisor.Supervisor(clock, store, supervisor.ProcessTable(), pid=77, lines=lambda text: None, idle_seconds=4, turn_seconds=2)
+    loop.run()
+    assert [(act["what"], act["at"]) for act in supervisor.overview(conn)["recent"]] == [("ended", 1004.0), ("started", 1000.0)]
+    assert supervisor.overview(conn)["recent"][1]["reason"] == "something asked for one"
+    assert supervisor.overview(conn)["alive"] is False, "it retracted its sign of life when it ended"
+    store.publish(77, 1000.0, 1002.0, 2)
+    assert supervisor.overview(conn)["alive"] and supervisor.overview(conn)["turns"] == 2 and supervisor.overview(conn)["since"] == 1000.0
+
+
+def test_the_list_of_acts_keeps_only_the_newest_twenty(conn):
+    store = supervisor.RedisStore(conn)
+    for number in range(30):
+        store.note(float(number), f"act {number}")
+    recent = supervisor.overview(conn)["recent"]
+    assert len(recent) == supervisor.RECENT_KEPT and recent[0]["what"] == "act 29"
