@@ -124,6 +124,7 @@ const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPane
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
 const { createSideStrip } = await import(`./galaxystrip.js${VERSION_QUERY}`);
+const SystemGroups = await import(`./systemgroups.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -4381,7 +4382,7 @@ function initGalaxyMap3d(canvasEl, data) {
     canvasEl.__mapMarkers = markerLayer;    // the browser tests read what is drawn
   }
   // MAP.327: the frame of the sector opened in place: a locked wireframe and an icon on each wall that faces a neighbour.
-  if (viewport && !data.pinned) {
+  if (viewport) {
     sectorFrame = createSectorFrame({
       THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accent: accentColor, edgePc: edgePc,
       // The sector across a wall is the one the shared step helper finds (galaxyprisms.neighbourBlock, as the arrow keys use).
@@ -4390,11 +4391,17 @@ function initGalaxyMap3d(canvasEl, data) {
         var middle = cellCenter(hiddenCell);
         var here = sectorAddressAt(middle[0], middle[1], middle[2], edgePc);
         var found = neighbourBlock({ m: 1, shell: here.shell, band: here.band, wedge: here.wedge }, wall.dir, edgePc);
-        return found && stageOfSector(found.shell, found.band, found.wedge) ? { shell: found.shell, band: found.band, wedge: found.wedge } : null;
+        if (!found) return null;
+        // MAP.427: a sector page has an icon only where the sector beside it has a page of its own.
+        if (data.pinned) return stageView.neighbourPageId(found) ? { shell: found.shell, band: found.band, wedge: found.wedge } : null;
+        return stageOfSector(found.shell, found.band, found.wedge) ? { shell: found.shell, band: found.band, wedge: found.wedge } : null;
       },
       label: function (sector) { return "Sector " + sectorDesignation(sector.shell, sector.band, sector.wedge); },
       cellPoints: cellEdgePoints,
-      onMove: function (sector) { stageView.goTo({ sector: sector, open: true }); },
+      onMove: function (sector) {
+        if (data.pinned) stageView.openNeighbourPage(sector);
+        else stageView.goTo({ sector: sector, open: true });
+      },
     });
     canvasEl.__mapSectorFrame = sectorFrame;    // the browser tests read it
     // For tests (MAP.327): what the opened sector does to the rest of the map.
@@ -4404,7 +4411,7 @@ function initGalaxyMap3d(canvasEl, data) {
     sectorFrame.set(hiddenCell);
     // MAP.327: in the galactic view the same locked wireframe round the charted region the view is in (the 9-block holding the
     // point the camera looks at), with no dimming and no wall icons; it is the sector's frame that takes over once a sector is opened.
-    if (regionLayer) {
+    if (regionLayer && !data.pinned) {
       regionFrame = createSectorFrame({
         THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accent: accentColor, edgePc: edgePc,
         neighbour: function () { return null; }, label: function () { return ""; }, cellPoints: cellEdgePoints, onMove: function () {},
@@ -5355,15 +5362,82 @@ function initGalaxyMap3d(canvasEl, data) {
     var found = [];
     if (hiddenCell) return found;
     var list = pickableStars();
+    // MAP.428: the stars of one system are named once, by the system's name, where the middle of the members is.
+    var groups = systemGroupsOf(list);
+    var grouped = new Map();
+    groups.forEach(function (group) { grouped.set(group.systemId, group); });
     for (var i = list.length - 1; i >= 0 && found.length < NAMED_LIMIT; i--) {
       var star = list[i];
-      if (star.name) {
+      if (star.name && !SystemGroups.labelledByGroup(star, grouped)) {
         found.push({ id: "star:" + star.id, text: star.name, x: star.x, y: star.y, z: star.z,
           luminositySol: star.luminosity_sol || 0, ref: { kind: "star", star: star },
           slice: { domain: "star", radiusSol: star.radius_sol || 0, luminositySol: star.luminosity_sol || 0 } });
       }
     }
+    groups.forEach(function (group) {
+      var text = SystemGroups.systemNameOf(group);
+      if (!text || found.length >= NAMED_LIMIT) return;
+      var middle = SystemGroups.groupCenter(group);
+      var primary = group.members[0];
+      found.push({ id: "star-group:" + group.systemId, text: text, x: middle[0], y: middle[1], z: middle[2],
+        luminositySol: group.luminositySol, ref: { kind: "star", star: primary },
+        slice: { domain: "star", radiusSol: primary.radius_sol || 0, luminositySol: group.luminositySol } });
+    });
     return found;
+  }
+  // The groups of the stars in `list`, worked out again only when the list is a new one.
+  var groupCache = { list: null, groups: [] };
+  function systemGroupsOf(list) {
+    if (groupCache.list !== list) groupCache = { list: list, groups: SystemGroups.groupBySystem(list) };
+    return groupCache.groups;
+  }
+  // MAP.428: the link lines that tie the stars of one system together on screen (systemgroups.js): thin dashed lines from the brightest
+  // member to the others, in an SVG laid over the map, drawn once the members have parted by a few pixels.
+  var systemLinks = null;
+  function updateSystemLinks() {
+    if (!viewport) return;
+    if (!systemLinks) {
+      systemLinks = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      systemLinks.setAttribute("class", "map-system-links");
+      systemLinks.setAttribute("aria-hidden", "true");
+      viewport.appendChild(systemLinks);
+      canvasEl.__mapSystemLinks = function () {
+        return Array.prototype.map.call(systemLinks.querySelectorAll("line"), function (line) {
+          return { system: line.getAttribute("data-system"), x1: +line.getAttribute("x1"), y1: +line.getAttribute("y1"), x2: +line.getAttribute("x2"), y2: +line.getAttribute("y2") };
+        });
+      };
+    }
+    var on = stageView.layers.isOn("label-star");
+    var lines = [];
+    if (on) {
+      var width = canvasEl.clientWidth;
+      var height = canvasEl.clientHeight;
+      var point = new THREE.Vector3();
+      var project = function (star) {
+        point.set(star.x, star.y, star.z).project(camera);
+        var x = (point.x + 1) / 2 * width;
+        var y = (1 - point.y) / 2 * height;
+        return { x: x, y: y, visible: point.z > -1 && point.z < 1 && x >= -50 && x <= width + 50 && y >= -50 && y <= height + 50 };
+      };
+      systemGroupsOf(pickableStars()).slice(0, SystemGroups.MAX_LINKED_GROUPS).forEach(function (group) {
+        SystemGroups.linksOf(group, project).forEach(function (line) { lines.push({ system: group.systemId, line: line }); });
+      });
+    }
+    var signature = lines.map(function (item) {
+      return [item.system, item.line.from.x.toFixed(1), item.line.from.y.toFixed(1), item.line.to.x.toFixed(1), item.line.to.y.toFixed(1)].join(",");
+    }).join(";");
+    if (signature === systemLinks.__signature) return;
+    systemLinks.__signature = signature;
+    while (systemLinks.firstChild) systemLinks.removeChild(systemLinks.firstChild);
+    lines.forEach(function (item) {
+      var element = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      element.setAttribute("x1", item.line.from.x.toFixed(1));
+      element.setAttribute("y1", item.line.from.y.toFixed(1));
+      element.setAttribute("x2", item.line.to.x.toFixed(1));
+      element.setAttribute("y2", item.line.to.y.toFixed(1));
+      element.setAttribute("data-system", String(item.system));
+      systemLinks.appendChild(element);
+    });
   }
   // MAP.224: the globular clusters, named by their name, else by their designation while they have none. Each is anchored at its center,
   // as wide as its sphere, and in the nebulae's share of the label budget (a cluster is a place, not a point).
@@ -5905,6 +5979,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (sectorFrame) sectorFrame.update();
     planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
+    updateSystemLinks();
     nudgeRegionPois();
     renderFrame();
   })();

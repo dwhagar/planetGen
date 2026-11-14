@@ -472,6 +472,7 @@ def _unit_rows(run, units):
             "severity": unit.get("severity") or "",
             "phase": phase,
             "counter": counter,
+            "progress": unit.get("progress"),
             "rate": "" if not rate else (f"{rate:,.1f} a second" if rate >= 1 else f"{1 / rate:,.1f} s each"),
             "left": _duration(left) if left is not None else "",
             "beat": _duration(unit.get("beat_age_seconds")),

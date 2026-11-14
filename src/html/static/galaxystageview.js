@@ -4218,6 +4218,16 @@ export function createStageView(host) {
     stage: function () { return stage; },
     // MAP.336: the one way to go to anything (see goTo).
     goTo: goTo,
+    // MAP.427: a sector page's edge icon: the id of the page of the sector beside the pinned one (null where none is charted there),
+    // and the move to that page.
+    neighbourPageId: function (sector) {
+      const record = sectorRecord({ shell: sector.shell, band: sector.band, wedge: sector.wedge });
+      return record ? record.id : null;
+    },
+    openNeighbourPage: function (sector) {
+      const record = sectorRecord({ shell: sector.shell, band: sector.band, wedge: sector.wedge });
+      if (record && host.openSectorPage) host.openSectorPage(record.id);
+    },
     // The opened sector's entries (MAP.68): "Show on map" buttons select
     // one by key.
     // The world point under a screen point (MAP.150); read by the tests.
