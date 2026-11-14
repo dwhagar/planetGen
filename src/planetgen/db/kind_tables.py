@@ -19,6 +19,14 @@ standalone phenomenon, and the groups it is in. The groups:
 * `phenomenon`: a standalone phenomenon with a galaxy-frame center, a `quadrant` and a generator type.
 * `containable`: the rows can sit inside a nebula or a supernova remnant.
 * `path`: the rows get a path through the sectors (`sector_paths`).
+* `unique_name`: the names must be unique across the galaxy (`store.name_in_use`); `named_phenomenon`: the phenomena
+  among them, named through `system_name_registry` beside the star systems (v40). Comets and asteroid fields get
+  designations; planets and moons are named from their star.
+* `body`: a body born in a system, keyed by `star_system_id` and numbered on the system's one body counter.
+* `parent_link`: the rows say what they orbit in `parent_type` and `parent_id` (DB.73).
+
+A standalone black hole or neutron star is `star_filed` with `star_id` NULL: `tables("star_filed")` is the pair the
+queries that keep a star's remnant out of the standalone phenomena test against.
 
 The list holds data only and imports nothing, so the store, the readers and the object references can all read it. The
 order of a group is the order of `KIND_TABLES` unless the reader asks for a named order from `ORDERS`: the sites that
@@ -55,6 +63,8 @@ def _row(table, kind=None, generator_type=None, *groups):
 
 
 _PHENOMENON = ("phenomenon", "id_block", "timestamped", "sector_filed")
+_NAMED_PHENOMENON = (*_PHENOMENON, "unique_name", "named_phenomenon")
+_BODY = ("body", "parent_link")
 
 SCATTER_UID_TABLES = ("bright_stars", "phenomenon_scatter")
 """tuple: The scatter tables whose rows carry a `uid` (GEN.1254) that is not an object of their own: the Object ID a scatter row hands to the system or the
@@ -62,21 +72,21 @@ phenomenon built from it. They are not in the `uid` group (`api.ids` resolves a 
 (their point is a source of the built object's, on `point_columns.LAYOUTS`)."""
 
 KIND_TABLES = (
-    _row("sectors", "sector", None, "id_block", "timestamped"),
+    _row("sectors", "sector", None, "id_block", "timestamped", "unique_name"),
     _row("system_configs", None, None, "id_block"),
-    _row("star_systems", "system", None, "uid", "id_block", "timestamped", "sector_filed", "containable", "path"),
-    _row("stars", "star", None, "uid", "id_block", "system_filed"),
-    _row("planets", "planet", None, "uid", "id_block", "system_filed"),
-    _row("moons", "moon", None, "uid", "id_block", "system_filed"),
-    _row("asteroid_belts", "belt", None, "uid", "id_block", "system_filed"),
-    _row("comets", "comet", None, "uid", "id_block", "system_filed"),
-    _row("black_holes", "black_hole", "black-hole", "uid", "star_filed", "containable", *_PHENOMENON),
-    _row("neutron_stars", "neutron_star", "neutron-star", "uid", "star_filed", "containable", *_PHENOMENON),
-    _row("nebulae", "nebula", "nebula", "uid", "containable", *_PHENOMENON),
-    _row("supernova_remnants", "supernova_remnant", "supernova-remnant", "uid", *_PHENOMENON),
-    _row("quasars", "quasar", "quasar", "uid", *_PHENOMENON),
-    _row("rogue_planets", "rogue_planet", "rogue-planet", "uid", "containable", "path", *_PHENOMENON),
-    _row("interstellar_comets", "interstellar_comet", "comet", "uid", "containable", "path", *_PHENOMENON),
+    _row("star_systems", "system", None, "uid", "id_block", "timestamped", "sector_filed", "containable", "path", "unique_name"),
+    _row("stars", "star", None, "uid", "id_block", "system_filed", "unique_name", *_BODY),
+    _row("planets", "planet", None, "uid", "id_block", "system_filed", *_BODY),
+    _row("moons", "moon", None, "uid", "id_block", "system_filed", *_BODY),
+    _row("asteroid_belts", "belt", None, "uid", "id_block", "system_filed", *_BODY),
+    _row("comets", "comet", None, "uid", "id_block", "system_filed", *_BODY),
+    _row("black_holes", "black_hole", "black-hole", "uid", "star_filed", "containable", "parent_link", *_NAMED_PHENOMENON),
+    _row("neutron_stars", "neutron_star", "neutron-star", "uid", "star_filed", "containable", "parent_link", *_NAMED_PHENOMENON),
+    _row("nebulae", "nebula", "nebula", "uid", "containable", *_NAMED_PHENOMENON),
+    _row("supernova_remnants", "supernova_remnant", "supernova-remnant", "uid", *_NAMED_PHENOMENON),
+    _row("quasars", "quasar", "quasar", "uid", *_NAMED_PHENOMENON),
+    _row("rogue_planets", "rogue_planet", "rogue-planet", "uid", "containable", "path", "parent_link", *_NAMED_PHENOMENON),
+    _row("interstellar_comets", "interstellar_comet", "comet", "uid", "containable", "path", "parent_link", *_PHENOMENON),
     _row("asteroid_fields", "asteroid_field", "asteroid-field", "uid", "containable", *_PHENOMENON),
     _row("facilities", "facility", None, "uid", "sector_filed", "system_filed"),
     _row("vessels", "vessel", None, "uid"),
@@ -89,6 +99,8 @@ GROUPS = frozenset(group for row in KIND_TABLES for group in row.groups)
 ORDERS = {
     "placed": ("black_holes", "neutron_stars", "nebulae", "supernova_remnants", "rogue_planets",
                "interstellar_comets", "asteroid_fields", "quasars"),
+    "unique_name": ("sectors", "star_systems", "stars", "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
+                    "rogue_planets", "quasars"),
     "timestamped": ("sectors", "star_systems", "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
                     "rogue_planets", "interstellar_comets", "asteroid_fields", "quasars"),
     "containable": ("star_systems", "rogue_planets", "interstellar_comets", "black_holes", "neutron_stars",

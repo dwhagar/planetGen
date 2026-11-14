@@ -117,7 +117,7 @@ def local_domain(key):
 def _scramble_params(key, sector):
     """The multiplier `a` (odd) and offset `b` of the scramble for `sector` (its 56-bit address as an integer) under `key`: the first
     multiplier drawn from SHA-256(key, sector, attempt) that keeps the first `SPREAD_SERIALS` serials `SPREAD_GAP` apart."""
-    sector_text = f"{sector:0{object_uid.LAYOUT.sector_bits // 4}X}"
+    sector_text = _sector_hex(sector)
     attempt = 0
     while True:
         digest = hashlib.sha256(f"local-name:{parse_key(key)}:{sector_text}:{attempt}".encode()).digest()
@@ -142,6 +142,11 @@ def unscramble(scrambled, sector, key):
     return (pow(a, -1, 1 << _SCRAMBLE_BITS) * (scrambled - b)) & _SCRAMBLE_MASK
 
 
+def _sector_hex(sector):
+    """A 56-bit sector address (an integer) as its 14 hex digits."""
+    return f"{sector:0{object_uid.LAYOUT.sector_bits // 4}X}"
+
+
 def _sector_of(uid):
     layout = object_uid.LAYOUT
     return uid >> (layout.serial_bits + layout.body_bits)
@@ -149,7 +154,7 @@ def _sector_of(uid):
 
 def sector_text(uid):
     """The birth sector of an Object ID (an integer) as it is shown beside a local name: its 14 hex digits, `00FA0FFFE9E240`."""
-    return f"{_sector_of(uid):0{object_uid.LAYOUT.sector_bits // 4}X}"
+    return _sector_hex(_sector_of(uid))
 
 
 def local_name(uid, key):
@@ -179,12 +184,12 @@ def uncharted_sector_name(address, key):
         address (tuple): The cell, `(shell, band, wedge)`.
         key: The naming key.
     """
-    bits = object_uid.LAYOUT.sector_bits
+    key = parse_key(key)
     sector = int(provisional_sector_designation(*address), 16)
-    digest = hashlib.sha256(f"sector-name:{parse_key(key)}".encode()).digest()
-    mask = (1 << bits) - 1
+    digest = hashlib.sha256(f"sector-name:{key}".encode()).digest()
+    mask = (1 << object_uid.LAYOUT.sector_bits) - 1
     scrambled = ((int.from_bytes(digest[:8], "big") | 1) * sector + int.from_bytes(digest[8:16], "big")) & mask      # a keyed bijection, so neighbouring cells do not share a first word
-    return _CODEC.encode(f"{scrambled:0{bits // 4}X}", domain=f"{parse_key(key)}:{SECTOR_DOMAIN}").title()
+    return _CODEC.encode(_sector_hex(scrambled), domain=f"{key}:{SECTOR_DOMAIN}").title()
 
 
 def local_name_with_sector(uid, key):

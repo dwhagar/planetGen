@@ -14,7 +14,7 @@ from planetgen.generation import run_galaxy, run_plan, stages
 from planetgen.util import generator_epoch
 from tests.test_phenomenon_scatter import _scatter_args, _seed_galaxy
 
-FLOOR = "9000"
+FLOOR = "18000"
 """str: The luminosity floor `_scatter_args` draws at."""
 
 
@@ -196,7 +196,7 @@ def test_a_second_identical_galaxy_run_plans_no_scatter_and_no_block_light_stage
     keys, listed = _galaxy_run(mysql_config, monkeypatch)
     assert keys == ["sectors", "link", "backfill", "population", "territories", "settle", "run-blocks"]
     assert [key for key, reason in listed.items() if reason] == ["mass-clear", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "block-lights"]
-    assert list(listed) == ["sectors", "link", "mass-clear", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "backfill", "population", "territories", "settle",
+    assert list(listed) == ["sectors", "link", "mass-clear", "backfill", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "population", "territories", "settle",
                             "run-blocks", "block-lights"], "the stage list keeps every stage, numbered"
 
 
@@ -211,5 +211,5 @@ def test_a_galaxy_run_that_makes_a_sector_keeps_the_block_light_stage_and_a_run_
     finally:
         conn.close()
     keys, listed = _galaxy_run(mysql_config, monkeypatch)
-    assert keys == ["sectors", "link", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "backfill", "population", "territories", "settle", "run-blocks", "block-lights"]
+    assert keys == ["sectors", "link", "backfill", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "population", "territories", "settle", "run-blocks", "block-lights"]
     assert listed["mass"] and listed["luminosity"] and not listed["phenomena"] and not listed["block-lights"]

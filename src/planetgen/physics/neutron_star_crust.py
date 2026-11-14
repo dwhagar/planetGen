@@ -35,7 +35,7 @@ import os
 from dataclasses import dataclass
 
 from planetgen.physics import elements, neutron_star_structure
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, positive_number
 
 G_CM3_PER_FM3 = 1.66053906660e-24 * 1.0e39
 """float: One baryon per fm^3 in g/cm3 (the atomic mass unit in g times the 1e39 fm^3 in a cm3), to give the pasta's densities in the table's unit."""
@@ -107,10 +107,7 @@ def load(path=DATA_FILE):
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the neutron star crust table {path}: {error}") from error
 
-    def number(value, what):
-        if not isinstance(value, (int, float)) or isinstance(value, bool) or not value > 0 or value == float("inf"):
-            raise DataError(f"{what} must be a positive number, not {value!r}")
-        return value
+    number = positive_number      # GEN.1667: the shared check
 
     outer = []
     for raw in document.get("outer_crust") or []:

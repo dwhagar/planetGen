@@ -65,6 +65,7 @@ SUN_MASS_SOL = 1.0
 SUN_PERIOD_DAYS = 25.4
 """float: The Sun's rotation period, days, which gives the Rossby number the trend is anchored at."""
 
+_SUN_ROSSBY_HOURS = SUN_PERIOD_DAYS * 24.0
 MIN_STAR_MASS_SOL = 0.08
 MAX_STAR_MASS_SOL = 1.3
 """float: The masses, solar, over which the turnover time of [R4780] is fitted."""
@@ -138,7 +139,7 @@ def star_field_gauss(yerkes_class, mass_sol, mass_kg, radius_km, temperature_k, 
         return peculiar.field_gauss          # None for an Am star: no detected field
     if not covered_cool_dwarf(yerkes_class, mass_sol, temperature_k, period_hours):
         return None
-    anchor = rossby_number(SUN_MASS_SOL, SUN_PERIOD_DAYS * 24.0)
+    anchor = rossby_number(SUN_MASS_SOL, _SUN_ROSSBY_HOURS)
     trend = B_SUN_POLAR_GAUSS * (rossby_number(mass_sol, period_hours) / anchor) ** ROSSBY_SLOPE
     scatter = 10.0 ** draw.Stream(f"dipole-star:{mass_kg!r}:{temperature_k!r}:{age_gy!r}").gauss(0.0, FIELD_SCATTER_DEX)
     return min(trend * scatter, MAX_FIELD_GAUSS)

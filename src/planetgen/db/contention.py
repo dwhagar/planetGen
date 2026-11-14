@@ -41,7 +41,7 @@ _rng = random.Random()
 """The waits' own stream (not a generation draw), so waiting never moves a unit's draws (GEN.39, GEN.56)."""
 
 _pressure = 0.0
-"""float: This process's moving average of failed attempts (0 to 1), in a one-element list of the module: see `pressure`."""
+"""float: This process's moving average of failed attempts (0 to 1): see `pressure`."""
 
 
 def pressure():
@@ -96,7 +96,6 @@ class MySQLGate:
 
     def is_closed(self):
         """Whether somebody holds the exclusive grant."""
-        from planetgen.db import store
         probe = store.get_connection(self._config)
         try:
             return probe.execute("SELECT IS_FREE_LOCK(?) AS free", (self.name,)).fetchone()["free"] != 1
@@ -105,7 +104,6 @@ class MySQLGate:
 
     def grant(self, need):
         """Takes the exclusive grant, waiting up to `GRANT_TIMEOUT_S` for another unit's. Returns whether it was granted."""
-        from planetgen.db import store
         from planetgen.queue import unitbeat
         holder = store.get_connection(self._config)
         try:

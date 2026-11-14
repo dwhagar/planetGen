@@ -89,31 +89,27 @@ def write(directory, sector_id, zones, stamp_hex, values):
 
 def prune(directory, sector_id, keep=None):
     """Removes every grid file of the sector except `keep`; returns how many went."""
-    removed = 0
-    try:
-        names = os.listdir(directory)
-    except OSError:
-        return 0
-    for name in names:
+    def of_sector(name):
         found = _NAME.match(name)
-        if found and int(found.group(1)) == int(sector_id) and name != keep:
-            try:
-                os.unlink(os.path.join(directory, name))
-                removed += 1
-            except OSError:
-                pass
-    return removed
+        return found and int(found.group(1)) == int(sector_id) and name != keep
+    return _remove(directory, of_sector)
 
 
 def clear(directory):
     """Removes every grid file (and stray temporaries) in `directory`; returns how many went."""
+    return _remove(directory, lambda name: _NAME.match(name) or (name.startswith(".g") and name.endswith(".tmp")))
+
+
+def _remove(directory, wanted):
+    """Removes the files of `directory` whose name `wanted` accepts; returns how many went (0 for a directory that cannot be listed,
+    and a file that cannot be removed is not counted)."""
     removed = 0
     try:
         names = os.listdir(directory)
     except OSError:
         return 0
     for name in names:
-        if _NAME.match(name) or (name.startswith(".g") and name.endswith(".tmp")):
+        if wanted(name):
             try:
                 os.unlink(os.path.join(directory, name))
                 removed += 1

@@ -35,7 +35,6 @@ import re
 import signal
 import statistics
 import subprocess
-import sys
 import tempfile
 import threading
 import time
@@ -437,8 +436,7 @@ class Pipeline:
         store.close_pool(scratch)
 
     def _connection(self):
-        return ["--mysql-host", self.config.host, "--mysql-port", str(self.config.port),
-                "--mysql-user", self.config.user, "--mysql-database", self.database]
+        return benchmark.connection_args(self.config, self.database)
 
     def _floor_args(self):
         return [] if self.floor is None else ["--bright-star-min-luminosity", f"{self.floor:g}"]
@@ -490,7 +488,7 @@ class Pipeline:
     def prepare(self, step):
         """What a step needs done before it runs, outside its time."""
         if step == "scatter-nebula-field":                 # an earlier step drew the field with the phenomena
-            subprocess.run([sys.executable, "-m", "planetgen.cli.generate", "clear-scatter", "--nebula-field",
+            subprocess.run([*benchmark.GENERATE, "clear-scatter", "--nebula-field",
                             *self._connection()], env=self.env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL, check=False)
         if step == "fill-map-luminosity":
@@ -507,7 +505,7 @@ class Pipeline:
         noun, sql = MADE[step]
         before = _count(self.admin, self.database, sql)
         words = self.command(step)
-        argv = [sys.executable, "-m", "planetgen.cli.generate", *words, *([] if step in NO_DATABASE_ARGS else self._connection())]
+        argv = [*benchmark.GENERATE, *words, *([] if step in NO_DATABASE_ARGS else self._connection())]
         result = measure(argv, self.env, self.timeout, self.admin)
         stop_workers(self.control)
         after = _count(self.admin, self.database, sql)

@@ -264,13 +264,14 @@ def belt_map(giants, star_mass_kg, lower_au, upper_au, age_myr):
     eccentricity = max(annulus, forced)
     particles = max(forced, ZONE_ECCENTRICITY_FLOOR)       # the zones and widths are for the particles' free eccentricity, not the annulus's spread
     zones, resonances = [], []
+    ratios = _ratios()
     for index, giant in enumerate(giants):
         mu = _mu(giant, star_mass_kg)
         half, regime = chaotic_zone(mu, particles)
         inner, outer = giant.a_au * (1.0 - half), giant.a_au * (1.0 + half)
         if outer > lower_au and inner < upper_au:
             zones.append(ChaoticZone(index, inner, outer, half, regime))
-        for p, q in _ratios():
+        for p, q in ratios:
             for side, a in ((INTERIOR, giant.a_au * (q / p) ** (2.0 / 3.0)), (EXTERIOR, giant.a_au * (p / q) ** (2.0 / 3.0))):
                 if lower_au <= a <= upper_au and not (inner <= a <= outer):
                     width = resonance_width(mu, p, q, particles) * a

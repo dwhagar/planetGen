@@ -196,11 +196,21 @@ def _reading_rows(readings):
     return rows
 
 
+def _animal_grade(row):
+    """The stored animal grade of a world at the multicellular stage, else 0 (the grade means nothing before that stage)."""
+    return int(row.get("life_animal_grade") or 0) if row.get("life_stage") == "multicellularity" else 0
+
+
+def _grade_tail(grade):
+    """How a sentence on the stage of life ends: with the animal grade when there is one."""
+    return f" (animal grade {life_class_text.GRADES[min(grade, 3) - 1]})." if grade else "."
+
+
 def _life_facts(row, living):
     """The stored facts of the world's life as `[(label, text)]` for the Life section: the stage, the animal grade, the pace and the ages."""
     facts = []
     stage = row.get("life_stage")
-    grade = int(row.get("life_animal_grade") or 0) if stage == "multicellularity" else 0
+    grade = _animal_grade(row)
     if living and stage:
         facts.append(("Stage", evolution.stage_name(stage, living, grade).lower()))
     if grade:
@@ -237,9 +247,9 @@ def life_class_view(row, readings=(), class_url=None):
     view["also"] = [f"Class {class_id} ({_short_name(class_id)}, suitability {score} of {LIFE_SCORE_MAX})" for class_id, score in others]
     stage = row.get("life_stage")
     if living and stage:
-        grade = int(row.get("life_animal_grade") or 0) if stage == "multicellularity" else 0
+        grade = _animal_grade(row)
         text = f"Life here is Class {living}, at the stage of {evolution.stage_name(stage, living, grade).lower()}"
-        view["has"] = text + (f" (animal grade {life_class_text.GRADES[min(grade, 3) - 1]})." if grade else ".")
+        view["has"] = text + _grade_tail(grade)
     shown = living or best
     if shown and shown in life_classes.BY_ID:
         said = life_class_text.lines(shown)
@@ -278,9 +288,9 @@ def _life_paragraph(view, best, best_score, living, row, others, class_url=None)
     parts = []
     if view["has"]:
         stage = row.get("life_stage")
-        grade = int(row.get("life_animal_grade") or 0) if stage == "multicellularity" else 0
+        grade = _animal_grade(row)
         text = f"Life here is {_label(living, class_url)}, at the stage of {escape(evolution.stage_name(stage, living, grade).lower())}"
-        parts.append(text + (f" (animal grade {life_class_text.GRADES[min(grade, 3) - 1]})." if grade else "."))
+        parts.append(text + _grade_tail(grade))
     elif best and best_score:
         parts.append("Nothing lives here yet.")
     if view.get("alongside"):

@@ -57,9 +57,9 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, regional_temperature, sulfur_cloud_set, temperature_coverage
-from planetgen.physics import radiation_field
-from planetgen.physics import unit_registry as units
+from planetgen.physics import (adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores,
+                               outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, radiation_field, regional_temperature,
+                               sulfur_cloud_set, temperature_coverage, unit_registry as units)
 
 _pa_to_kpa = units.converter("Pa", "kPa")
 _kpa_to_pa = units.converter("kPa", "Pa")
@@ -67,9 +67,9 @@ _km_to_m = units.converter("km", "m")
 _au_to_m = units.converter("au", "m")
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
+"""dict: A domain's colour as stored (`tier_<domain>`): 0 is best."""
 TIER_NAMES = tuple(TIER_INDEX)
 """tuple: The tier colours by `tier_<domain>` number."""
-"""dict: A domain's colour as stored (`tier_<domain>`): 0 is best."""
 
 DOMAINS = tuple(name.lower() for name in habitability.DOMAINS)
 """tuple: The six domains as stored (`phi4_<domain>`, `tier_<domain>`): pressure, temperature, air, water,

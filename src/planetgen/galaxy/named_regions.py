@@ -101,22 +101,35 @@ def _hex(key, text, digits):
     return hashlib.sha256(f"{naming_key.parse_key(key)}:{REGION_KIND}:{text}".encode()).hexdigest()[:digits].upper()
 
 
+def _middle_of(block, edge_pc):
+    """`(radius, colatitude, longitude)` of the center of a block's bounds (`drill.drill_block_bounds`)."""
+    (inner, outer), (north, south), (start, end) = drill.drill_block_bounds(block, edge_pc)
+    return (inner + outer) / 2, (north + south) / 2, (start + end) / 2
+
+
+def _point_at(radius, colatitude, longitude):
+    """`(x, y, z)`, galaxy frame, of the spherical coordinates."""
+    plane = radius * math.sin(colatitude)
+    return (plane * math.cos(longitude), plane * math.sin(longitude), radius * math.cos(colatitude))
+
+
+def _block_holding(address, level):
+    """The block of size `level` in the ladder above the sector `address`."""
+    shell, band, wedge = address
+    return drill.drill_chain_of(shell, band, wedge)[drill.DRILL_LEVELS.index(level)]
+
+
 def anchor_pc(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """
     The anchor of the 9-block `block`, `(x, y, z)` parsecs in the galaxy frame: the center of its bounds, the middle radius
     (the core cell's origin side is the origin), colatitude and longitude (`drill.drill_block_bounds`).
     """
-    block = _check_region(block)
-    (inner, outer), (north, south), (start, end) = drill.drill_block_bounds(block, edge_pc)
-    radius, colatitude, longitude = (inner + outer) / 2, (north + south) / 2, (start + end) / 2
-    plane = radius * math.sin(colatitude)
-    return (plane * math.cos(longitude), plane * math.sin(longitude), radius * math.cos(colatitude))
+    return _point_at(*_middle_of(_check_region(block), edge_pc))
 
 
 def region_of(address):
     """The region (9-block) that holds the sector `(shell, band, wedge)`."""
-    shell, band, wedge = (int(value) for value in address)
-    return drill.drill_chain_of(shell, band, wedge)[drill.DRILL_LEVELS.index(REGION_LEVEL)]
+    return _block_holding(tuple(int(value) for value in address), REGION_LEVEL)
 
 
 def anchor_address(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
@@ -167,10 +180,7 @@ def _displaced_families(family, edge_pc):
     """The 81-blocks around `family`: those that hold the points one block's width from its anchor along each of the 26
     directions of the cube (diagonals included), the block's own excluded. A cell the grid squeezes may miss a neighbour; the
     block it finds are the ones beside it in the ladder."""
-    (inner, outer), (north, south), (start, end) = drill.drill_block_bounds(family, edge_pc)
-    radius, colatitude, longitude = (inner + outer) / 2, (north + south) / 2, (start + end) / 2
-    plane = radius * math.sin(colatitude)
-    x, y, z = plane * math.cos(longitude), plane * math.sin(longitude), radius * math.cos(colatitude)
+    x, y, z = _point_at(*_middle_of(family, edge_pc))
     width = FAMILY_LEVEL * edge_pc
     found = set()
     for dx in (-1, 0, 1):
@@ -181,8 +191,7 @@ def _displaced_families(family, edge_pc):
                 point = (x + dx * width, y + dy * width, z + dz * width)
                 if math.sqrt(sum(c * c for c in point)) > spherical.MAX_ADDRESSABLE_SHELL * edge_pc:
                     continue
-                shell, band, wedge = spherical.sector_address_at(point, edge_pc)
-                found.add(drill.drill_chain_of(shell, band, wedge)[drill.DRILL_LEVELS.index(FAMILY_LEVEL)])
+                found.add(_block_holding(spherical.sector_address_at(point, edge_pc), FAMILY_LEVEL))
     found.discard(family)
     return found
 

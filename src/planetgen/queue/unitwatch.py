@@ -17,7 +17,6 @@ can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/un
 """
 
 import json
-import time
 
 from planetgen.queue import beatjudge, runrecord, taskprogress, unitbeat, unitstuck
 from planetgen.util import log
@@ -116,11 +115,7 @@ class UnitWatch:
             self._to_error_log(f"run {self.run_id} stage {self.stage}: {message}", unit)
 
     def _to_error_log(self, message, unit):
-        if self.record_error is not None:
-            self.record_error(message, unit=unit)
-            return
-        from planetgen.util import log
-        log.record_error("queue", message, unit=unit)
+        unitstuck.to_error_log(self.record_error, message, unit)
 
     def _stored_rate(self):
         """The items a second recorded for this stage's command (`rate_of`), `None` where there is none."""
@@ -139,8 +134,9 @@ class UnitWatch:
         stale = {int(unit) for unit in self.conn.hkeys(key)} - set(verdicts)
         if stale:
             pipe.hdel(key, *sorted(stale))
+        agreed = set(self.agreed())
         for unit, verdict in verdicts.items():
-            pipe.hset(key, unit, json.dumps(view(verdict, found[unit], now, unit in self.agreed(), stored_rate)))
+            pipe.hset(key, unit, json.dumps(view(verdict, found[unit], now, unit in agreed, stored_rate)))
         pipe.execute()
 
 
@@ -155,10 +151,4 @@ def view(verdict, beat, now, agreed=False, stored_rate=None):
 
 def read(conn, run_id, stage):
     """`{unit: view}` as the follower last published it (empty where it has not)."""
-    out = {}
-    for unit, raw in conn.hgetall(runrecord.unitstate_key(run_id, stage)).items():
-        try:
-            out[int(unit)] = json.loads(raw if isinstance(raw, str) else raw.decode())
-        except (ValueError, TypeError):
-            continue
-    return out
+    return runrecord.unit_json_hash(conn, runrecord.unitstate_key(run_id, stage))

@@ -87,8 +87,13 @@ LAVA_DEFAULT = "basalt_melt"
 MAGMA_OCEAN = "peridotite_magma"
 LAVA_IDS = (*(liquid for _ground, liquid in LAVA_OF_GROUND), LAVA_DEFAULT, MAGMA_OCEAN)
 """tuple: Every liquid id that is a lava; the depth of one is not known."""
-LAVA_MIN_PRESSURE_PA = 1.0e5
+LAVA_MIN_PRESSURE_PA = constants.BAR_PA
 """float: A lava surface holds in its own vapor, so its window is checked at least at this pressure."""
+
+
+def _gravity_m_s2(body):
+    """The body's surface gravity, m/s2, from its stored `gravity` in g (0 for none)."""
+    return (body.gravity or 0.0) * constants.EARTH_GRAVITY
 
 
 def _liquid_water(body):
@@ -129,7 +134,7 @@ def _seas(body, temperature_k, pressure_pa):
     """`[(liquid id, surface mass per square metre in kg), ...]` of the seas a cold or temperate body could hold, best first (`surface_liquids.candidates`)."""
     partials = mixture.partial_pressures_pa(body)
     reservoir = _reservoir(body)
-    gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
+    gravity = _gravity_m_s2(body)
     area_m2 = 4.0 * math.pi * (body.radius * 1000.0) ** 2
     out = []
     for pick in surface_liquids.candidates(temperature_k, pressure_pa, partials, reservoir):
@@ -202,7 +207,23 @@ def _solutes(body):
         share = strange_solvents.ammonia_water_mass_fraction({"ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
                                                               "water_mass_fraction": getattr(body, "water_mass_fraction", None)})
         if share:
-            body.surface_liquid_ammonia_wt = 100.0 * share / (1.0 + share)
+            share *= _liquid_concentration(body)
+            body.surface_liquid_ammonia_wt = min(100.0 * share / (1.0 + share), AMMONIA_WATER_MASS_PERCENT)
+
+
+def _liquid_concentration(body):
+    """
+    How many times the ammonia of a water layer is concentrated in its liquid (GEN.1563): an ammonia-water ocean under an ice lid keeps the ammonia of the water that freezes out of it,
+    because that ice holds almost none (the residual liquid of a freezing ocean climbs toward the eutectic, the way Titan's and Enceladus's oceans are thought to reach tens of percent).
+    The water that freezes out of the ocean from above is the ice shell (`ice_shell_km`); the high-pressure ice beneath (`hp_ice_km`) is taken to keep its own ammonia, in hydrates, as the
+    deep ice of a differentiated body does. By thickness (an ice's density is within a tenth of the liquid's): the factor is `(liquid + shell) / liquid`, 1 for a layer with no shell or a body
+    with no ocean stored. Ammonia beyond the eutectic does not stay in the liquid: the caller holds the result at `AMMONIA_WATER_MASS_PERCENT`. Registry LQ16: tier 6, tweak level 1 (the
+    high-pressure ice counted in raised the ammonia of nearly every ice-covered ocean to the eutectic, 75 of 76 in 180 seeds).
+    """
+    liquid = getattr(body, "ocean_depth_km", None) or 0.0
+    if liquid <= 0.0:
+        return 1.0
+    return 1.0 + (getattr(body, "ice_shell_km", None) or 0.0) / liquid
 
 
 def _main_liquid(body):
@@ -225,7 +246,7 @@ def _main_liquid(body):
         return
     liquid_id, mass_per_m2 = seas[0]
     liquid_id = _named_by_its_bulk(body, liquid_id, temperature, pressure)
-    found = _cover(liquid_id, mass_per_m2, temperature, (body.gravity or 0.0) * constants.EARTH_GRAVITY)
+    found = _cover(liquid_id, mass_per_m2, temperature, _gravity_m_s2(body))
     if found is not None:
         body.surface_liquid, body.surface_liquid_fraction = liquid_id, found[0]
         body.surface_liquid_depth_km = found[1]
@@ -266,7 +287,7 @@ def _second_liquid(body):
     temperature, pressure = body.surface_temperature or 0.0, body.atmospheric_pressure or 0.0
     if room <= 0.0 or not temperature > 0.0 or not pressure > 0.0:
         return
-    gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
+    gravity = _gravity_m_s2(body)
     for liquid_id, mass_per_m2 in _seas(body, temperature, pressure):
         if liquid_id == main:
             continue

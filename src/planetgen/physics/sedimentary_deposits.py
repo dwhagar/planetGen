@@ -28,12 +28,10 @@ of the body's age) and the cap the host puts on the grade:
 Every constant is a stand-in in section 6.223 of the gap-filling plan (SD1 to SD9); the grade ranges and the per-deposit tonnage are the design file's (recalled) where it has them.
 """
 
-import math
 from dataclasses import dataclass
 from typing import Callable, NamedTuple, Optional
 
 from planetgen.physics import mixture, ore_deposits, phosphorus_budget, surface_composition
-from planetgen.util import draw
 
 BIF, PHOSPHORITE, EVAPORITE, LIMESTONE, CHERT, COAL, KEROGEN = ("banded_iron_formation", "phosphorite", "evaporite", "limestone", "chert", "coal", "kerogen")
 
@@ -134,6 +132,11 @@ def _after(start_gy, state, span_gy=None):
     return start_gy, end
 
 
+def _after_photosynthesis(state, lag_gy):
+    """The window from `lag_gy` after the first photosynthesis to the body's age; `None` where life never photosynthesised or the lag has not run."""
+    return None if state.photosynthesis_gy is None else _after(state.photosynthesis_gy + lag_gy, state)
+
+
 def _bif(state):
     window = _after(state.photosynthesis_gy, state, BIF_SPAN_GY)
     if window is None or state.hydrosphere not in WET_OCEAN or state.ocean_class != "neutral":
@@ -144,7 +147,7 @@ def _bif(state):
 
 
 def _phosphorite(state):
-    window = _after(None if state.photosynthesis_gy is None else state.photosynthesis_gy + PHOSPHORITE_LAG_GY, state)
+    window = _after_photosynthesis(state, PHOSPHORITE_LAG_GY)
     if window is None or state.hydrosphere not in OPEN_OCEAN or state.phosphate_umol_l < PHOSPHORITE_MIN_UMOL_L:
         return None
     supply = min(5.0, state.phosphate_umol_l / phosphorus_budget.EARTH_OCEAN_UMOL_L)
@@ -180,7 +183,7 @@ def _coal(state):
 
 
 def _kerogen(state):
-    window = _after(None if state.photosynthesis_gy is None else state.photosynthesis_gy + KEROGEN_LAG_GY, state)
+    window = _after_photosynthesis(state, KEROGEN_LAG_GY)
     if window is None or state.hydrosphere not in WET_OCEAN:
         return None
     return Setting(state.ocean_fraction / EARTH_OCEAN_FRACTION, *window, 1.0)
@@ -217,9 +220,8 @@ def state_of(body):
 
 
 def stream_of(body, kind):
-    """The body's own stream for one type: seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
-    star = getattr(body, "star", None)
-    return draw.Stream(f"sediment:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
+    """The body's own stream for one type (`ore_deposits.body_stream`): seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
+    return ore_deposits.body_stream("sediment", body, kind)
 
 
 def assess(kind, state, stream):
