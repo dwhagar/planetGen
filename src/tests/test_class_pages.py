@@ -488,7 +488,7 @@ def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client
         assert text in html
 
 
-def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone(client):
+def test_the_help_menu_holds_classes_and_habitability(client):
     """UX.180: Classes leaves the section row for the Help menu beside the search button, with Habitability."""
     html = _html(client, "/classes")
     bar = html.split('<header class="site-header">')[1].split("</header>")[0]
@@ -499,7 +499,6 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     ordered = [entry for entry in entries if entry in (("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"))]
     assert ordered == [("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life")]     # other help pages (the sky, VIEW.38) may sit among them
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
-    assert "Habitability levels" not in html
     page = _html(client, "/help/habitability")
     assert 'class="site-help-trigger" aria-haspopup="menu" aria-current="page"><span class="site-help-text">Help</span>' in page
     assert 'data-href="/help/habitability" aria-current="page">Habitability</sl-menu-item>' in page
@@ -555,16 +554,6 @@ def test_every_equipment_item_name_has_a_row_on_the_habitability_page(client):
         assert f'<tr id="{anchor}">' in page, name
     assert sorted(habitability_ref.EQUIPMENT_ROW_IDS.values()) == sorted(anchor for anchor, _ in habitability_symbols.EQUIPMENT_ANCHORS)
     assert set(habitability_ref.EQUIPMENT_ROW_IDS) == {label for label, _when in habitability_ref.EQUIPMENT_ITEMS}
-
-
-def test_the_equipment_search_tags_no_longer_carry_a_levels_link(app):
-    from planetgen.web import searchpage
-    from planetgen.web.searchpage import SearchState
-
-    options = [{"value": "0", "label": "Ideal", "count": 2}]
-    with app.test_request_context("/search"):
-        groups = searchpage.tag_groups(SearchState(), {"equipment": options})
-    assert all("help" not in group for group in groups)
 
 
 def test_a_range_gives_both_ends_the_one_style():

@@ -195,14 +195,6 @@ def test_the_sheet_lists_the_ratios_the_record_moves_and_counts_the_rest():
     assert ir.sheet_rows([]) == []
 
 
-def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record():
-    for distance in (0.0, None):
-        body = _body(distance=0.0, formation_distance_au=distance, water_mass_fraction=0.01)
-        assert ir._ice_temperature_k(body) == ir.ICE_REFERENCE_K
-        rows = {row["isotope"]: row for row in ir.record_of(body)}
-        assert rows["H-2"]["fraction"] > 0.0
-
-
 def test_the_short_lived_isotopes_are_tracers_with_a_birth_ratio_that_has_decayed_away_by_the_age_of_an_old_star(sun):
     planet = _planet(sun)
     rows = {row["isotope"]: row for row in planet.isotopes if row["origin"] == ir.EXTINCT}

@@ -4,10 +4,10 @@
     field (UX.125, partials/ui_fields.html: a Shoelace element with a plain twin in a <noscript>); the sliders, whose
     box is a native number input that limitsliders.js drives, and the radio choices stay native. -#}
 {% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
-{%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None) -%}
+{%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None, auto=None) -%}
 {%- set shown = form.get(name, value) if form else value -%}
 {%- if kind == "number" -%}
-{{ ui_input(name, label, shown, type="number", required=required, hint=hint, step=step, inputmode="decimal", min=min, max=max, placeholder=placeholder) }}
+{{ ui_input(name, label, shown, type="number", required=required, hint=hint, step=step, inputmode="decimal", min=min, max=max, placeholder=placeholder, **({"data-auto": auto} if auto is not none else {})) }}
 {%- else -%}
 {{ ui_input(name, label, shown, type=kind, required=required, hint=hint, min=min, max=max, placeholder=placeholder, autocomplete="off", autocapitalize="off", spellcheck="false") }}
 {%- endif -%}
@@ -18,7 +18,7 @@
 {%- macro limit_slider(id, spec, hint, follows=none, value=none) -%}
 {%- set posted = form.get(spec.name) if form else none -%}
 {%- set shown = posted if posted else (value if value is not none else spec.default) -%}
-<div class="search-field generate-slider limit-slider" data-limit-slider data-scale="{{ spec.scale }}"
+<div class="search-field generate-slider limit-slider" data-limit-slider data-auto="{{ '{:.10g}'.format((spec.default if spec.default is not none else shown)|float) }}" data-scale="{{ spec.scale }}"
   data-stops="{{ spec.stops_json }}" data-default="{{ '{:.10g}'.format(shown|float) }}"
   {%- if spec.snap %} data-snap{% endif %}
   {%- if follows %} data-follows="{{ follows[0] }}" data-follow-factor="{{ follows[1] }}"{% endif %}>
@@ -59,30 +59,69 @@
 {%- set choices = [{"value": "", "label": row.choices[0]|capitalize if row.choices|length == 1 else "Auto"}] -%}
 {%- if row.choices|length > 1 %}{% for choice in row.choices %}{% set _ = choices.append({"value": choice, "label": choice|capitalize}) %}{% endfor %}{% endif -%}
 {{ ui_select(row.name, row.label, choices, shown, hint=row.help ~ " Auto: " ~ row.auto_text ~ ".", **{"data-lever": row.name}) }}
-{%- elif row.kind == "length" -%}
-{{ ui_input(row.name, row.label, shown, hint=row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ". " ~ row.units_text(), placeholder="Auto", autocomplete="off", autocapitalize="off", spellcheck="false", **{"data-lever": row.name}) }}
 {%- else -%}
-{%- set extra = {"data-lever": row.name, "data-step": row.step, "data-dial": row.dial} -%}
+{#- A number or length row is a slider (Boss, 2026-11-12): the title, then the Default tick box beside the typed box, then the bar; the help is behind a ? button. Ticked (Default) is Auto
+    (the box is blank, so no flag goes to the plan) and the bar rests at the middle of what Auto draws (`slider_default`),
+    which it sticks to; unticked, the bar and the box set the value. static/leversliders.js drives it; without scripts the
+    box is typed into, blank for Auto. -#}
+{%- set extra = {"data-lever": row.name} -%}
+{%- if row.kind == "length" -%}
+{%- set hint = row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ". " ~ row.units_text() -%}
+{%- else -%}
+{%- set _ = extra.update({"data-step": row.step, "data-dial": row.dial}) -%}
 {%- if row.name == "mass" %}{% set _ = extra.update({"data-no-dark-halo-below": halo_min_stellar_mass, "data-simple-below": full_structure_min_mass}) %}{% endif -%}
-{{ ui_input(row.name, row.label ~ (" (" ~ row.unit ~ ")" if row.unit else ""), shown, type="number", hint=row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ".", step="any", inputmode="decimal", min=row.minimum, max=row.maximum, placeholder="Auto", **extra) }}
+{%- set hint = row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ "." -%}
+{%- endif -%}
+{%- set label = row.label ~ (" (" ~ row.unit ~ ")" if row.unit and row.kind != "length" else "") -%}
+{%- set factors = {} -%}
+{%- if row.kind == "length" %}{% for unit in row.units if unit.factor is not none %}{% set _ = factors.update({unit.name: unit.factor}) %}{% endfor %}{% endif -%}
+<div class="lever-slider" data-lever-slider data-kind="{{ row.kind }}" data-min="{{ row.minimum }}" data-max="{{ row.maximum }}"
+  data-default="{{ row.slider_default }}"{% if row.log %} data-log{% endif %}{% if row.min_abs is not none %} data-min-abs="{{ row.min_abs }}"{% endif %}
+  {%- if row.kind == "length" %} data-unit="{{ row.unit }}" data-factors="{{ factors|tojson|forceescape }}"{% endif %}>
+  <div class="lever-slider-title">
+    <span class="lever-slider-name">{{ label }}</span>
+    <button type="button" class="lever-help-button" data-lever-help aria-expanded="false" aria-controls="{{ row.name }}-help"
+      aria-label="About {{ label }}" hidden>?</button>
+  </div>
+  <div class="lever-slider-head">
+    {% call ui_checkbox(row.name ~ "_default", checked=(shown|string|length == 0), **{"data-lever-set": row.name}) %}<span class="sr-only">Default (Auto) for {{ label }}</span>{% endcall %}
+    {% if row.kind == "length" -%}
+    {{ ui_input(row.name, label, shown, placeholder="Auto", autocomplete="off", autocapitalize="off", spellcheck="false", **extra) }}
+    {%- else -%}
+    {{ ui_input(row.name, label, shown, type="number", step="any", inputmode="decimal", min=row.minimum, max=row.maximum, placeholder="Auto", **extra) }}
+    {%- endif %}
+  </div>
+  <input type="range" min="0" max="1000" step="1" value="500" list="{{ row.name }}-auto-tick" class="lever-slider-range" data-lever-range
+    aria-label="{{ label }}, slider" hidden>
+  <datalist id="{{ row.name }}-auto-tick"><option value="500"></option></datalist>
+  <span class="field-hint" id="{{ row.name }}-help" data-lever-help-text>{{ hint }}</span>
+</div>
 {%- endif -%}
 {%- endmacro -%}
+{#- The galaxy shape in subsections by dial (Boss, 2026-11-13: the section was very heavy): each dial's rows, the advanced ones
+    with the rest of their dial, in a fold of its own. The Shape selector and the Scale rows are open to start with. -#}
 {%- macro plan_inputs() -%}
-<div class="search-fields">
-  {%- for row in plan_fields if not row.advanced %}
-  {{ lever_input(row) }}
-  {%- endfor %}
-</div>
-<p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disk plus a bulge with no stellar halo, thick disk, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
-<p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
-<details class="generate-advanced">
-  <summary>Advanced shape options</summary>
-  <div class="search-fields">
-    {%- for row in plan_fields if row.advanced %}
+{%- set groups = [("shape", "Galaxy family", true), ("scale", "Size: mass, compactness, density, disk length", true),
+                  ("structure", "Structure: flatness, bulge, nuclear", false), ("edge", "Edge of the galaxy", false),
+                  ("halo", "Dark and stellar halo", false), ("census", "Census: star richness and rogue planets", false),
+                  ("pattern", "Spiral arms", false)] -%}
+{%- for key, title, opened in groups %}
+{%- set rows = plan_fields|selectattr("dial", "equalto", key)|list %}
+{%- if rows %}
+<details class="generate-advanced generate-subsection"{% if opened %} open{% endif %}>
+  <summary>{{ title }}</summary>
+  <div class="search-fields lever-fields">
+    {%- for row in rows %}
     {{ lever_input(row) }}
     {%- endfor %}
   </div>
+  {%- if key == "scale" %}
+  <p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disk plus a bulge with no stellar halo, thick disk, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
+  {%- endif %}
 </details>
+{%- endif %}
+{%- endfor %}
+<p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
 {%- endmacro -%}
 {#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
     first, then a segment each for the core, the halo, and the crowded cells. -#}
@@ -163,7 +202,7 @@
   gives with no changes; type a higher or lower share to change it, 0 for none.</p>
   <div class="search-fields">
     {%- for name, label, usual in prevalence_fields %}
-    {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%" ~ (". A higher share raises the odds and never forces one; the most it gives is " ~ prevalence_limits[name] ~ "%." if prevalence_limits is defined and name in prevalence_limits else "")) }}
+    {{ field(name, label, value=usual, min=0, max=100, auto=usual, hint="Usual: " ~ usual ~ "%" ~ (". A higher share raises the odds and never forces one; the most it gives is " ~ prevalence_limits[name] ~ "%." if prevalence_limits is defined and name in prevalence_limits else "")) }}
     {%- endfor %}
   </div>
   <fieldset class="generate-mode" data-star-mix>
@@ -172,13 +211,13 @@
     raise one when you lower another.</p>
     <div class="search-fields">
       {%- for name, label, usual in star_mix_fields %}
-      {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
+      {{ field(name, label, value=usual, min=0, max=100, auto=usual, hint="Usual: " ~ usual ~ "%") }}
       {%- endfor %}
     </div>
     <p class="hint" data-star-mix-total role="status" aria-live="polite"></p>
   </fieldset>
   <div class="search-fields">
-    {{ field("max_stars", max_stars_label, value=max_stars_default, step=1, min=1, max=max_stars_ceiling, hint="Default: " ~ max_stars_default ~ ", at most " ~ max_stars_ceiling ~ ". The cap on a rare system's star count.") }}
+    {{ field("max_stars", max_stars_label, value=max_stars_default, auto=max_stars_default, step=1, min=1, max=max_stars_ceiling, hint="Default: " ~ max_stars_default ~ ", at most " ~ max_stars_ceiling ~ ". The cap on a rare system's star count.") }}
   </div>
 </fieldset>
 {%- endmacro -%}

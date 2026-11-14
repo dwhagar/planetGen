@@ -20,7 +20,7 @@ an empty uncharted sector (`query.sector_coverage_condition`), which the Sectors
 
 import math
 
-from planetgen.db import contention, store
+from planetgen.db import batched, contention, store
 from planetgen.galaxy import uid as galaxyUid
 from planetgen.galaxy.spherical import provisional_sector_designation, sector_position_pc
 from planetgen.util import log
@@ -165,7 +165,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
             on_progress(done, len(shells))
         ticker.tick(done, f"{made:,} rows made")
     say(f"Made {made:,} uncharted sector rows in {len(shells):,} shells." if made else "Every cell that holds a waiting object already has its sector row.")
-    log.debug(f"uncharted_index: {made} rows")
+    log.debug(f"The uncharted index was made with {made:,} rows.")
     return made
 
 
@@ -184,6 +184,7 @@ def clear_unoccupied(conn, on_phase=None):
     delete is skipped for it by the database's own keys). Returns the rows deleted.
     """
     deleted, last = 0, 0
+    pace = Ticker("Uncharted sector rows nothing lives in, cleared")
     while True:
         ids = [r["id"] for r in conn.execute(
             f"SELECT sec.id FROM sectors sec WHERE sec.id > ? AND {_UNCHARTED} AND {_UNOCCUPIED} ORDER BY sec.id LIMIT ?", (last, CLEAR_CHUNK)).fetchall()]
@@ -192,6 +193,8 @@ def clear_unoccupied(conn, on_phase=None):
         last = ids[-1]
         deleted += conn.execute(f"DELETE IGNORE FROM sectors WHERE id IN ({', '.join('?' for _ in ids)})", ids).rowcount
         conn.commit()
+        batched.moving()                                  # OPS.185: a chunk is done, the unit that clears them moved
+        pace.tick(deleted)
     if on_phase is not None and deleted:
         on_phase(f"Cleared {deleted:,} uncharted sector rows nothing lives in.")
     return deleted

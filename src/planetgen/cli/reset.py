@@ -63,7 +63,7 @@ from planetgen.db import dataversion
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.queue import commands, longsql, redisqueue, runrecord, units, wrapper
 from planetgen.util import log
 from planetgen.util.format import counted
 
@@ -212,7 +212,7 @@ def wipe(config, report=None):
                     exact_rows += held
                 else:
                     estimated_rows += held
-                conn.execute(f"TRUNCATE TABLE {table}")
+                longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(tables)}", config=config)
                 if report is not None:
                     report(number, len(tables))
         finally:
@@ -285,9 +285,9 @@ def reset_database(config, dry_run=False, assume_yes=False):
     total_rows = sum(counts.values())
 
     if dry_run:
-        log.normal(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total):")
+        log.normal(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total).")
         for table in sorted(tables):
-            log.normal(f"  {table}: about {counts[table]:,} row(s)")
+            log.normal(f"{table}: about {counts[table]:,} row(s).")
         return False
 
     if not assume_yes and not _confirm(config.database, config.host, total_rows):
@@ -303,9 +303,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
     wiped = next((r for r in results if isinstance(r, dict) and "exact_rows" in r), None)
     log.normal(Wiped(tables, wiped["with_rows"], wiped["exact_rows"], wiped["estimated_rows"]).text(config.database) if wiped
                else f"Wiped {len(tables)} {counted('table', len(tables))} from '{config.database}'.")
-    log.normal("Ready for a new galaxy -- e.g.:")
-    log.normal("  planetgen plan ...   # rebuild the density skeleton")
-    log.normal("  planetgen galaxy ... # generate sectors into it")
+    log.normal("Ready for a new galaxy: run `planetgen plan ...` to rebuild the density skeleton, then `planetgen galaxy ...` to generate sectors into it.")
     return True
 
 
