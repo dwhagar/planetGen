@@ -27,7 +27,7 @@ Use:
 
 import math
 
-from planetgen.physics import atmosphere, constants, elements, gases
+from planetgen.physics import atmosphere, composition_text, constants, elements, gases
 from planetgen.physics import unit_registry as units
 
 HYDROGEN_RICH_SHARE = 0.3
@@ -119,3 +119,5 @@ def fill(body):
     for name in SOLIDS:
         if formed[name] is not None:
             setattr(body, name, formed[name] * keep)
+    if isinstance(getattr(body, "composition", None), str):
+        body.composition = composition_text.text(body)      # GEN.430: the phrase states the stored shares, and the air just moved them (a body whose water share sat on a level's edge, as a belt member's 0.2 does, fell under it)
