@@ -58,7 +58,9 @@ On another tier a dial makes one extra draw per candidate (or per system, for th
 
 The tier is the `class_m` row of the galaxy lever table (`galaxy/dials.py`), in the Census dial beside the Rogues level, and it reuses that level's path end to end: the `--class-m` flag of `planetgen plan`, the field on the Generate page, the stored choice in `galaxy_shape_pins`, and the line on the galaxy page. No new table and no migration.
 
-A system gets it through its config. The sector that makes a system sets `SystemConfig.ABUNDANCE_TIER` from the galaxy's shape (`FillContext.apply_population`), as it sets the population, so a system regenerated later is made under the same tier. The tier is not saved with the system's config: it belongs to the galaxy. A system made outside any galaxy is Science unless the caller sets the field.
+A system gets it through its config. The sector that makes a system sets `SystemConfig.ABUNDANCE_TIER` from the galaxy's shape (`FillContext.apply_population`), as it sets the population, so a system regenerated later is made under the same tier. The tier is not saved with the system's config: it belongs to the galaxy. A system made outside any galaxy is Science unless the caller sets the field. The single-system command takes `--class-m TIER` for that.
+
+Two makers of systems inside a galaxy build their config without the galaxy's shape and so stay on Science: the central star of a planetary nebula (`generation/run_sector.py`) and the systems of a remnant's satellites (`generation/system_pass.py`). Neither holds a candidate in practice. There is no per-run override on the sectors command: a galaxy has one tier.
 
 ## 6. Dial values and calibration
 
