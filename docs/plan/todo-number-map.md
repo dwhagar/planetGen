@@ -17,14 +17,14 @@ release is stamped.
 | MAP | MAP.429 |
 | NAV | NAV.78 |
 | GEN | GEN.1715 |
-| PERF | PERF.267 |
+| PERF | PERF.268 |
 | DB | DB.131 |
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.50 |
 | TEST | TEST.741 |
 | USR | USR.33 |
-| OPS | OPS.253 |
+| OPS | OPS.257 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2960,6 +2960,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.264 | The mass and luminosity scatter passes share the component sector addresses in their planning step | none | done, PR #6413 (11-13) |
 | PERF.265 | The workers' table warm-up starts while the parent plans each scatter pass | PERF.264 | closed as finding (Lane 15): measured 270 s vs 277 s on a 4-core box, within noise; the memory gate lets only one warm-up run beside the cut; patch kept at /mnt/project-files/reports/gen1683-perf265-prewarm-attempt.patch |
 | PERF.266 | (bug) planetgen system got about 55 s slower in a day: the no-database system page test took 88 s on main 75ef1017e and 142 s on 92855b9c7, past its 120 s limit | none | done, PR #6477 (Lane 15, 12:51 AM EST 11-14) |
+| PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | open |
@@ -3054,6 +3055,10 @@ Parents marked "new parent" had no old number of their own.
 | OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | open |
 | OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | open |
 | OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | open |
+| OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | open |
+| OPS.254 | (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s | none | open |
+| OPS.255 | (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page | none | open |
+| OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
