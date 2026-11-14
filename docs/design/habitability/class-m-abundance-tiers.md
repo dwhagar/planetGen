@@ -36,9 +36,15 @@ A tier turns three dials and nothing else. Each is a share from 0 to 1.
 |---|---|---|
 | `water_share` | The share of candidates whose water class is drawn as Earth's (`low`, 0.025 to 0.16 percent of the planet's mass) and not from the Bern law at the distance they formed at. The amount inside the class is still drawn. | `physics/bulk_draw.py`, `physics/delivered_water.py` |
 | `bare_share` | The share of candidates that are late cores: they finished growing after the gas disk went and captured no hydrogen envelope (the existing `Planet(late_core=True)`, GEN.1323). | `generation/planet.py`, `physics/envelope_capture.py` |
-| `request_share` | The share of systems that are given the request for a habitable world, which multiplies the odds of the wanted draw by `tuning.REQUEST_ODDS` and never forces it (`util/request_odds.py`, GEN.1130). | `generation/prevalence.py` |
+| `request_share` | The share of systems that are given the request for a habitable world, which multiplies the odds of the wanted draw by `tuning.REQUEST_ODDS` and never forces it (`util/request_odds.py`, GEN.1130). | `generation/system.py` (`StarSystem._draw_tier_request`) |
 
 A **candidate** is a rocky planet, not a moon, whose orbit lies in its star's ecosphere (`abundance_tier.candidate`).
+
+How each dial acts, as built:
+
+- **Water.** One extra draw per candidate. A dialed planet takes the `low` class and its air takes the same class's recipe row (b2). A candidate that formed beyond its star's snow line is icy by origin and is not reached: it keeps its icy water range. A candidate the law gave `low` by itself keeps the air the law draws.
+- **Envelope.** One extra draw per candidate, made once when the planet is first drawn; the decision stays if the orbit later settles into another zone.
+- **Request.** One extra draw per system, made by the system itself after its stars are built and before any planet. It acts on the planets only. It is never written into the system's config, so the host star is drawn exactly as without a request (a request in the config thins out white dwarfs from 7.2 to 1.0 percent of systems), nothing is stored, and the system reports no request, met or unmet. A system whose user said yes or no to a habitable world keeps the user's answer.
 
 What a tier may never do (Boss, card "Choose which dials the tiers may turn"):
 

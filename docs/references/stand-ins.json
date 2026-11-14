@@ -65285,7 +65285,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "GEN.1706",
           "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
         }
       ],

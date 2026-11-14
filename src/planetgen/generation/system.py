@@ -380,7 +380,8 @@ class StarSystem:
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
         self.build_ledger()
-        self._tier_request = self._draw_tier_request()
+        if self._draw_tier_request():      # set only when given: a system on science holds no field of it (the golden digests list every field an object holds)
+            self._tier_request = True
         self._request_unreachable = False
         self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
         for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):

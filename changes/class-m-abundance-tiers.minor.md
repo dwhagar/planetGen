@@ -6,7 +6,7 @@
 - **The meter (GEN.1705).** `scripts/class_census.py` draws Sun-like systems under a tier and prints the funnel from candidates to Class M and Blue with the rate per 1,000 systems beside the tier's target.
 - **Design:** `docs/design/habitability/class-m-abundance-tiers.md`. The dial values are first-pass stand-ins (tier T9, tweak L4; registry rows 6.288:AT1 to AT4) and are set again by census after GEN.1694 to GEN.1698 (GEN.1706).
 
-Reuse: the Rogues level's lever row, storage and page field (`galaxy/dials.py`, `galaxy_shape_pins`), `FillContext.apply_population`, `Planet(late_core=True)`, `prevalence.resolve`, `util/request_odds.py`, `physics/delivered_water.py` and `scripts/class_census.py`.
+Reuse: the Rogues level's lever row, storage and page field (`galaxy/dials.py`, `galaxy_shape_pins`), `FillContext.apply_population`, `Planet(late_core=True)`, the planet-stage request path of `StarSystem` and `util/request_odds.py`, `physics/delivered_water.py` and `scripts/class_census.py`.
 
 generation-output: unchanged
 generation-affects: none
