@@ -10,6 +10,7 @@ import struct
 import pytest
 
 from planetgen.db import block_lights, store
+from planetgen.queue import commands
 from tests.db_schema_support import load_old_schema
 from tests.test_block_lights import _stored
 
@@ -229,7 +230,7 @@ def test_the_stage_is_one_unit_that_makes_the_totals_and_no_sector_row(conn, mys
         expansion = run_plan.expand_refresh_block_lights(dict(params, rebuild=rebuild))
         assert len(expansion.units) == 1
         reports = []
-        result = run_plan.refresh_block_lights_unit(expansion.units[0][0], lambda done, total: reports.append((done, total)))
+        result = commands.run_alone("refresh-block-lights", expansion.units[0][0], lambda done, total: reports.append((done, total)))
         conn.commit()      # a new snapshot: the unit committed on a connection of its own
         assert result["warning"] is None and result["written"] > 0 and "made" not in result
         assert reports and reports[-1][0] == reports[-1][1]      # the unit ends its own bar
