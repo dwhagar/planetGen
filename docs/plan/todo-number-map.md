@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.317 |
+| UX | UX.318 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1701 |
+| GEN | GEN.1708 |
 | PERF | PERF.266 |
 | DB | DB.131 |
 | API | API.49 |
@@ -2166,7 +2166,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1367 | Phosphorus budget: stellar P to crustal apatite, schreibersite and merrillite to ocean phosphate by weathering and redox, replacing the high, limited and starved label | GEN.1360, GEN.1362, GEN.1366 | done, PR #5697 |
 | GEN.1368 | Accessory minerals in the asteroid taxon mixes: chromite, spinel, phosphates, CAI phases, Fe-Ni sulfides, carbonates, sulfates, phyllosilicates, nanodiamond and presolar grains, weights from the bulk | GEN.1362, GEN.1355 | done, PR #5697 |
 | GEN.1369 | Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it | GEN.1368, TEST.685 | open |
-| GEN.1370 | White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in | GEN.1362, GEN.1368 | open |
+| GEN.1370 | White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in | GEN.1362, GEN.1368 | done, PR #6254 (Lane 11, 11:25 PM EST 11-13) |
 | GEN.1371 | Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle | GEN.1360, GEN.1364 | done, PR #6138 |
 | GEN.1372 | Giant planet heavy-element species: C, N, O, S, P and the noble gases enriched element by element, not one Z share | GEN.1360, GEN.1363 | done, PR #5697 |
 | GEN.1373 | Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase | GEN.1372 | open |
@@ -2324,7 +2324,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.150 | The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it) | none | done, PR #5795 |
 | ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | done, PR #5795 |
 | ADM.153 | The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line | none | open |
-| ADM.154 | (bug) Admin plans page text read "comes laterrearranger" | none | open |
+| ADM.154 | (bug) Admin plans page text read "comes laterrearranger" | none | done, PR #6454 (11:25 PM EST 11-13) |
 | ADM.152 | An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit | SEC.47 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
@@ -2979,7 +2979,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.179 | cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list | none | open |
 | OPS.180 | (bug) Galaxy at a glance says no sectors are charted when sectors are charted | none | done, Ops train 2 PR 6398 (PR 6322, migration 0253), 5:02 AM EST 11-13 |
 | OPS.181 | Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers | none | open |
-| OPS.182 | (bug) queue/progress_file.set_stage left its temp file behind on error | none | open |
+| OPS.182 | (bug) queue/progress_file.set_stage left its temp file behind on error | none | done, PR #6454 (11:25 PM EST 11-13) |
 | OPS.183 | Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap | none | done, PR #6408 (Lane 05, 7:04 PM EST 11-13) |
 | OPS.184 | (bug) New galaxy run fails at Stage 3: the skeleton unit is stopped as quiet while it waits for the generator battery's digest (regression of OPS.170) | none | done, PR #6421 (7:12 PM EST 11-13) |
 | OPS.185 | Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter | OPS.184 | done, PR #6440 (11-13) |
@@ -3998,6 +3998,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1698 | (bug) H2S and SO2 have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S2 condensation limit they still hold 3,240 to 13,300 kPa of H2S and 172 to 675 kPa of SO2 | GEN.1562 | open |
 | GEN.1699 | (bug) Technological civilizations drop from about 3 percent of candidate systems on main to under 1 percent on Train 26 | none | open |
 | GEN.1700 | Replace the hand-tuned cap on a captured moon (planet_moons.EXCHANGE_MAX_RATIO, stand-in PSM4, L3) with the bound of the binary encounter built from the generated partners | GEN.1157 | open |
+| GEN.1701 | Check the continental weathering law against Earth and the published low-CO2 limit: warm land worlds draw CO2 to near zero (Earth copies median 4 Pa, real warm planets 0 to 0.12 Pa) | none | open |
+| GEN.1702 | A habitable-world request asks only for temperature and a surface ocean, so its kept planets are all-ocean and none is Class M: also ask for 20 to 95 percent water cover and 50 to 250 kPa total pressure | none | open |
+| GEN.1703 | The Air rating gives Blue with less oxygen than Class M needs: Blue Air must need at least 16 kPa of O2, the same floor as Class M | none | open |
+| GEN.1704 | Class M abundance tier setting (Science, Sparse, Scattered, Plentiful, Abundant) stored with the galaxy and shown on the Generate page; Science is the default and adjusts nothing | GEN.1702 | open |
+| GEN.1705 | A meter of Class M and Blue worlds per 1,000 Sun-like systems, with the habitable-zone funnel, reusing the repo census | none | open |
+| GEN.1706 | Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed | GEN.1694-1698 | open |
+| GEN.1707 | Two-threshold oxygen law: oxygen rises first to a plateau when the reductant sink falls below the source, then to the balance level when the sink falls below a third of the source | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4089,7 +4096,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | done, PR #5442 |
 | SEC.47 | Integration keys: issue, hash, scope, rotate and revoke an API key made by the PlanetGen owner for a linked site, limited to read-only calls on the object API and the site identity call | USR.28 | open |
 | SEC.48 | Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters | none | done, carried in PR #6408 (PR 6319, Lane 05, 7:04 PM EST 11-13) |
-| SEC.49 | (bug) The API call log read SESSION_COOKIE_NAME, so __Host- sessions were logged as anonymous | none | open |
+| SEC.49 | (bug) The API call log read SESSION_COOKIE_NAME, so __Host- sessions were logged as anonymous | none | done, PR #6454 (11:25 PM EST 11-13) |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
@@ -4986,10 +4993,11 @@ Each citation below resolves to one item by its date.
 | UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | done, PR #6372 (8:00 PM EST 11-13) |
 | UX.311 | The best-site coldest-to-hottest range says it spans the whole orbit, not a day | none | done, PR #6372 (8:00 PM EST 11-13) |
 | UX.312 | Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators | none | open |
-| UX.313 | (bug) The system page command names its input file like the --output file | none | open |
-| UX.314 | (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system) | none | open |
+| UX.313 | (bug) The system page command names its input file like the --output file | none | done, PR #6454 (11:25 PM EST 11-13) |
+| UX.314 | (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system) | none | done, PR #6454 (11:25 PM EST 11-13) |
 | UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
 | UX.316 | Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button | UX.315 | done, PR #6441 (9:09 PM EST 11-13) |
+| UX.317 | (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too) | UX.316 | open |
 
 ### Code tags `TODO(<area> #N)`
 
