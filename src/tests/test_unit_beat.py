@@ -157,3 +157,17 @@ def test_code_deep_in_a_unit_tags_a_wait_through_the_module_and_does_nothing_out
     with unitbeat.waiting("mysql"):
         pass
     assert unitbeat._current is None
+
+
+def test_progress_the_counter_does_not_show_starts_the_quiet_clock_again(conn, run_id):
+    """OPS.184: a phase that counts only its cases, with sampling tables worked out inside one, tells the heartbeat it moves."""
+    clock = [100.0]
+    with unitbeat.UnitBeat(conn, run_id, 0, 0, clock=lambda: clock[0], beat_seconds=60.0) as beat:
+        beat(5, 9)
+        clock[0] = 400.0
+        record = beat.record()
+        assert record["moved"] < record["beat"] - 250
+        unitbeat.moving()                       # through the module, inside a unit
+        assert beat.record()["moved"] == pytest.approx(beat.record()["beat"], abs=1.0)
+        assert beat.longest_gap() >= 300.0
+    unitbeat.moving()                           # outside a unit: nothing happens
