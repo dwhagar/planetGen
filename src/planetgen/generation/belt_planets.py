@@ -30,7 +30,7 @@ no body that a planet caught from the belt (status `moon`) is promoted. The firs
 from planetgen import tuning
 from planetgen.generation import irregular_moons, validation
 from planetgen.generation.planet import Planet
-from planetgen.physics import belt_origin, body_status, bulk_draw, unit_registry as units
+from planetgen.physics import belt_origin, body_status, bulk_draw, orbits, unit_registry as units
 from planetgen.util import draw, log
 
 TRIES_PER_PLANET = 2
@@ -49,12 +49,35 @@ def oligarch_cap_kg(star, belt):
     return units.convert(belt_origin.isolation_cap_earth(belt.lower_limit, belt.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star)), "Mearth", "kg")
 
 
+def in_ring(belt, member):
+    """
+    True when the whole orbit of `member` lies between the limits of `belt`: its closest and farthest points, `a (1 - e)` and `a (1 + e)` AU, are inside `lower_limit` and `upper_limit`. A member on a long ellipse that leaves the ring crosses the planets
+    and belts beside it, and the ring is what the system generator has cleared of them, so it stays a member of the belt (a population that crosses what is round it) and is not made a planet.
+    """
+    distance, eccentricity = member["distance_au"], member.get("eccentricity") or 0.0
+    return distance * (1.0 - eccentricity) >= belt.lower_limit and distance * (1.0 + eccentricity) <= belt.upper_limit
+
+
+def clear_of_planets(star, member, order, planets):
+    """
+    True when `member` stands `tuning.MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii (Gladman 1993, `orbits.mutual_hill_radius_au`) from every planet of `planets` that did not come from the belt `order`, as the planets of the star stand from each other
+    (`validation.min_distance_after_au`): a body of the ring keeps that room from the planets beside it, and one that is closer stays a member. The planets of its own belt are the ring and are not asked.
+    """
+    for planet in planets:
+        if planet.body_type == 'a' or planet.belt_order == order:
+            continue
+        hill = orbits.mutual_hill_radius_au(member["mass_kg"], planet.mass, member["distance_au"], planet.distance, star.mass)
+        if abs(member["distance_au"] - planet.distance) < tuning.MUTUAL_HILL_RADII_SEPARATION * hill:
+            return False
+    return True
+
+
 def chosen(belt, limit=None):
     """
-    The members of `belt` to promote: the `limit` (default `tuning.BELT_PLANETS_PER_BELT`) heaviest that are round, heaviest first. A member a planet caught (status `moon`) is a moon and is not one.
+    The members of `belt` to promote: the `limit` (default `tuning.BELT_PLANETS_PER_BELT`) heaviest that are round and whose whole orbit lies inside the belt's ring, heaviest first. A member a planet caught (status `moon`) is a moon and is not one.
     """
     limit = tuning.BELT_PLANETS_PER_BELT if limit is None else limit
-    round_ones = [member for member in belt.members if member["status"] in ROUND_STATUSES]
+    round_ones = [member for member in belt.members if member["status"] in ROUND_STATUSES and in_ring(belt, member)]
     return sorted(round_ones, key=lambda member: (-member["mass_kg"], member["rank"]))[:max(limit, 0)]
 
 
@@ -91,6 +114,8 @@ def promote(system, star, bodies):
         for member in chosen(belt, limit * TRIES_PER_PLANET):
             if taken >= limit:
                 break
+            if not clear_of_planets(star, member, order, [*bodies, *made]):
+                continue
             planet = planet_of(system, star, belt, order, member)
             if planet.planet_class is None or validation.reach_au(planet) > ceiling * (1 + validation.RELATIVE_TOLERANCE):
                 continue
