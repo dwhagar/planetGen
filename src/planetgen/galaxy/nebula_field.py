@@ -114,13 +114,6 @@ def gas_factor(position_pc, shape):
                (_gas_tracer(position_pc, shape) / reference) ** tuning.GMC_GAS_DENSITY_EXPONENT)
 
 
-def _arm_cosine_array(x, y, shape):
-    """`galaxyDensity._arm_cosine` at arrays `x`, `y`: 0 at the center, where the arms are undefined."""
-    r_cyl = np.hypot(x, y)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        theta_arm = (shape.spiral_reference_angle_rad
-                     + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
-        return np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
 
 
 def gas_factor_array(x, y, z, shape):
@@ -133,11 +126,19 @@ def gas_factor_array(x, y, z, shape):
     if reference <= 0.0:
         return np.zeros(np.broadcast(np.asarray(x), np.asarray(y), np.asarray(z)).shape)
     young = np.maximum(galaxyDensity.population_densities_array(x, y, z, shape)["young"], 0.0)
-    arm_cos = _arm_cosine_array(np.asarray(x, dtype=float), np.asarray(y, dtype=float), shape)
+    arm_cos = galaxyDensity.arm_cosine_array(np.asarray(x, dtype=float), np.asarray(y, dtype=float), shape)
     contrast = 1.0 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
     with np.errstate(divide="ignore", invalid="ignore"):
         tracer = np.where(contrast <= 0.0, 0.0, young / contrast * (1.0 + tuning.NEBULA_FIELD_ARM_AMPLITUDE * arm_cos))
     return np.minimum(tuning.NEBULA_FIELD_MAX_GAS_FACTOR, (tracer / reference) ** tuning.GMC_GAS_DENSITY_EXPONENT)
+
+
+def cells_between(low, high):
+    """Every field cell `(i, j, k)` from cell `low` to cell `high` (inclusive, 3-tuples), in index order."""
+    for i in range(low[0], high[0] + 1):
+        for j in range(low[1], high[1] + 1):
+            for k in range(low[2], high[2] + 1):
+                yield (i, j, k)
 
 
 def cell_index(position_pc):
@@ -244,19 +245,16 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
     low = cell_index(tuple(c - reach for c in sector_center))
     high = cell_index(tuple(c + reach for c in sector_center))
     rank = 0
-    for i in range(low[0], high[0] + 1):
-        for j in range(low[1], high[1] + 1):
-            for k in range(low[2], high[2] + 1):
-                other = (i, j, k)
-                for n, cloud, cloud_center in cell_draw(galaxy_seed, shape, other):
-                    if (other, n) == (index, n_self):
-                        return objectUid.pack(*address, objectUid.SERIAL_FIELD, rank)
-                    # A centroid is inside its cloud's bounding sphere, so a cloud further from the sector than its
-                    # radius plus the sector's size cannot be born here (and costs no centroid).
-                    if detmath.dist(cloud_center, sector_center) > ly_to_pc(cloud.radius_ly) + sector_size:
-                        continue
-                    if birth_of(other, n, cloud, cloud_center) == address:
-                        rank += 1
+    for other in cells_between(low, high):
+        for n, cloud, cloud_center in cell_draw(galaxy_seed, shape, other):
+            if (other, n) == (index, n_self):
+                return objectUid.pack(*address, objectUid.SERIAL_FIELD, rank)
+            # A centroid is inside its cloud's bounding sphere, so a cloud further from the sector than its
+            # radius plus the sector's size cannot be born here (and costs no centroid).
+            if detmath.dist(cloud_center, sector_center) > ly_to_pc(cloud.radius_ly) + sector_size:
+                continue
+            if birth_of(other, n, cloud, cloud_center) == address:
+                rank += 1
     raise ValueError("a field cloud was not found among its own sector's neighbors")
 
 
@@ -271,16 +269,13 @@ def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):
     low = cell_index(tuple(c - span for c in center_pc))
     high = cell_index(tuple(c + span for c in center_pc))
     found = []
-    for i in range(low[0], high[0] + 1):
-        for j in range(low[1], high[1] + 1):
-            for k in range(low[2], high[2] + 1):
-                index = (i, j, k)
-                nearest = tuple(min(max(c, n * edge), (n + 1) * edge) for c, n in zip(center_pc, index))
-                if detmath.dist(nearest, center_pc) > span:
-                    continue
-                for nebula, cloud_center in cell_clouds(galaxy_seed, shape, index):
-                    if detmath.dist(cloud_center, center_pc) <= ly_to_pc(nebula.radius_ly) + reach_pc:
-                        found.append((nebula, cloud_center))
+    for index in cells_between(low, high):
+        nearest = tuple(min(max(c, n * edge), (n + 1) * edge) for c, n in zip(center_pc, index))
+        if detmath.dist(nearest, center_pc) > span:
+            continue
+        for nebula, cloud_center in cell_clouds(galaxy_seed, shape, index):
+            if detmath.dist(cloud_center, center_pc) <= ly_to_pc(nebula.radius_ly) + reach_pc:
+                found.append((nebula, cloud_center))
     return found
 
 

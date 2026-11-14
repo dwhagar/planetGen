@@ -130,7 +130,7 @@ LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs", "scatter_epochs",
     "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
-    "system_configs", "system_config_slots", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "designations", "chart_ledger", "sky_tier_draws", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
+    "system_configs", "system_config_slots", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "sky_tier_draws", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
     "galaxy_totals", "sector_facets",    # DB.121: counts derived from sector_stats, not what a run made
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
@@ -184,6 +184,17 @@ class Fingerprint:
         return out
 
 
+def select_in(select, table, column, ids):
+    """The rows `select(table, where, params)` gives whose `column` is one of `ids` (distinct, ascending), `_IN_BATCH` ids a query so
+    no statement outgrows the server's limits; `storage_checksum`'s reader shares it."""
+    ids = sorted(set(ids))
+    rows = []
+    for first in range(0, len(ids), _IN_BATCH):
+        chunk = ids[first:first + _IN_BATCH]
+        rows.extend(select(table, f"`{column}` IN ({', '.join('?' * len(chunk))})", chunk))
+    return rows
+
+
 class _Reader:
     """Reads and canonicalizes rows of one database, caching the schema's
     columns and foreign keys and the keys of the rows they point at."""
@@ -233,12 +244,7 @@ class _Reader:
         return self._columns[key]
 
     def select_in(self, table, column, ids):
-        ids = sorted(set(ids))
-        rows = []
-        for first in range(0, len(ids), _IN_BATCH):
-            chunk = ids[first:first + _IN_BATCH]
-            rows.extend(self.select(table, f"`{column}` IN ({', '.join('?' * len(chunk))})", chunk))
-        return rows
+        return select_in(self.select, table, column, ids)
 
     def row_value(self, table, row):
         """`row` of `table` as the value the encoder writes, foreign keys

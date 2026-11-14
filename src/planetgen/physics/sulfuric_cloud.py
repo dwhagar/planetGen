@@ -24,7 +24,6 @@ The numbers are in `physics/data/sulfuric_cloud.json` with their tier and tweak 
 import math
 import os
 
-import numpy as np
 
 from planetgen.physics import acid_medium, aerosols, air_column, elements, sulfur_cloud_set
 
@@ -93,7 +92,7 @@ def optical_depth(mass_kg_m2, radius_um):
     return 3.0 * aerosols.CLOUD_Q_EXT * mass_kg_m2 / (4.0 * number("density_kg_m3") * radius_um * 1.0e-6)
 
 
-GOLDEN = 1.6180339887498949
+GOLDEN = sulfur_cloud_set.GOLDEN_CENTER
 """float: The multiplier that makes the depth draw from the one stored `aerosol_draw` (fractional part of `aerosol_draw x GOLDEN`), so depth and
 radius are not the same number."""
 

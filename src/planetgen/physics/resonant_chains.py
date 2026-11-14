@@ -54,6 +54,8 @@ CROSSING_SHARE = 0.5
 """float: The forced eccentricity of a planet is held to this share of the most that keeps its orbit from crossing a neighbour's, `(a' - a) / (a' + a)` for the sum of the two.
 Source tier T6, tweak level L1."""
 _INTEGRAL_POINTS = 4096
+_PSI = (np.arange(_INTEGRAL_POINTS) + 0.5) / _INTEGRAL_POINTS * 2.0 * math.pi
+"""ndarray: The midpoints of the full period the Laplace coefficients are integrated over."""
 
 
 class ResonantChainError(ValueError):
@@ -102,7 +104,7 @@ class Chain:
 def _laplace(order, alpha, derivative=False, s=0.5):
     """`b_s^{(order)}(alpha)` (`s` is 1/2 for the resonant terms; the secular exchange of `secular_chain` reads 3/2) or its derivative in `alpha`, by the trapezoid rule on the full
     period (spectrally exact for this smooth integrand)."""
-    psi = (np.arange(_INTEGRAL_POINTS) + 0.5) / _INTEGRAL_POINTS * 2.0 * math.pi
+    psi = _PSI
     base = 1.0 - 2.0 * alpha * np.cos(psi) + alpha * alpha
     if derivative:
         return float(2.0 / _INTEGRAL_POINTS * np.sum(np.cos(order * psi) * -s * (2.0 * alpha - 2.0 * np.cos(psi)) / base ** (s + 1.0)))
@@ -171,13 +173,11 @@ def semi_major_axis_m(period_days, host_mass_kg, planet_mass_kg=0.0):
     return (constants.G * (host_mass_kg + planet_mass_kg) * (period_days * 86400.0 / (2.0 * math.pi)) ** 2) ** (1.0 / 3.0)
 
 
-def _pair_eccentricities(pair, periods, masses, host_mass_kg):
-    """`(e_inner, e_outer)` forced by one pair (zero for a second-order resonance), before the crossing limit."""
+def _pair_eccentricities(pair, axes, masses, host_mass_kg):
+    """`(e_inner, e_outer)` forced by one pair (zero for a second-order resonance), before the crossing limit; `axes` are the planets' semi-major axes, m."""
     if pair.order != 1:
         return 0.0, 0.0
-    a_in = semi_major_axis_m(periods[pair.inner], host_mass_kg, masses[pair.inner])
-    a_out = semi_major_axis_m(periods[pair.outer], host_mass_kg, masses[pair.outer])
-    alpha = a_in / a_out
+    alpha = axes[pair.inner] / axes[pair.outer]
     mu_in, mu_out = masses[pair.inner] / host_mass_kg, masses[pair.outer] / host_mass_kg
     width = max(mu_in, mu_out) ** WIDTH_EXPONENT
     delta = max(abs(pair.delta), width)
@@ -201,14 +201,15 @@ def forced_eccentricities(periods_days, masses_kg, host_mass_kg):
         raise ResonantChainError("masses must be positive")
     periods = [float(p) for p in periods_days]
     squares = [0.0] * len(periods)
-    for chain in find_chains(periods):
+    chains = find_chains(periods)
+    axes = [semi_major_axis_m(period, host_mass_kg, mass) for period, mass in zip(periods, masses_kg)] if chains else []
+    for chain in chains:
         for pair in chain.pairs:
-            inner, outer = _pair_eccentricities(pair, periods, masses_kg, host_mass_kg)
+            inner, outer = _pair_eccentricities(pair, axes, masses_kg, host_mass_kg)
             squares[pair.inner] += inner ** 2
             squares[pair.outer] += outer ** 2
         for pair in chain.pairs:
-            a_in = semi_major_axis_m(periods[pair.inner], host_mass_kg, masses_kg[pair.inner])
-            a_out = semi_major_axis_m(periods[pair.outer], host_mass_kg, masses_kg[pair.outer])
+            a_in, a_out = axes[pair.inner], axes[pair.outer]
             limit = CROSSING_SHARE * (a_out - a_in) / (a_out + a_in)
             for member in (pair.inner, pair.outer):
                 squares[member] = min(squares[member], limit ** 2)

@@ -242,8 +242,11 @@ def compute(body, parent=None, extra=()):
     for moon in getattr(body, "moons", None) or ():
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
                                  _retrograde(axis, spin.orbit_normal_of(moon, body))))
-    for raiser in extra:
-        raisers.append(Raiser(raiser.name, raiser.mass_kg, raiser.distance_m, raiser.eccentricity, -abs(raiser.orbital_rate_rad_s) if _retrograde(axis, spin.orbit_normal_of(body, parent)) else abs(raiser.orbital_rate_rad_s)))
+    if extra:
+        against_spin = _retrograde(axis, spin.orbit_normal_of(body, parent))       # the other bodies go round the body's own orbit normal
+        for raiser in extra:
+            rate_rad_s = abs(raiser.orbital_rate_rad_s)
+            raisers.append(Raiser(raiser.name, raiser.mass_kg, raiser.distance_m, raiser.eccentricity, -rate_rad_s if against_spin else rate_rad_s))
     liquid = _liquid_of(body)
     try:
         tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")

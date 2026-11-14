@@ -13,6 +13,7 @@ from planetgen import tuning
 from planetgen.physics import atmosphere, constants, habitability, latitude_bands, life_classes, orbits
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
+from planetgen.util.format import whole_or_general
 from planetgen.web.lib import habitability_symbols, help_registry
 
 EQUIPMENT_ITEMS = (
@@ -75,9 +76,7 @@ DOMAIN_TIERS = (
 )
 """tuple: `(color, meaning)` of a PHI-6 domain's score, best first."""
 
-def _n(value):
-    """A limit as the page prints it: whole numbers with thousands separators, others as they are."""
-    return f"{int(value):,}" if float(value).is_integer() else f"{value:g}"
+_n = whole_or_general
 
 
 def _between(low, high, unit):

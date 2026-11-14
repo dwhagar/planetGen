@@ -39,8 +39,7 @@ import os
 from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
-from planetgen.physics import constants as physical_constants
-from planetgen.physics import elements
+from planetgen.physics import constants as physical_constants, elements
 from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
@@ -53,7 +52,7 @@ MODEL_ID = "kepler-recovery"
 G_SI = physical_constants.G
 M_SUN_KG = physical_constants.SOLAR_MASS_TO_KG
 R_SUN_M = physical_constants.SOLAR_RADIUS_M
-R_EARTH_M = physical_constants.EARTH_RADIUS_KM * 1000.0
+R_EARTH_M = physical_constants.EARTH_RADIUS_M
 DAY_S = 86400.0
 IMPACT_NODES = 10
 """int: The midpoints of `b` in [0, 1) the quadrature averages over."""

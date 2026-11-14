@@ -31,7 +31,6 @@ The gas table's band centers and `line_opacity`'s plateaus are the labelled fall
 (`fetch.Located.use_stand_in`).
 """
 
-import functools
 import gzip
 import io
 
@@ -102,14 +101,17 @@ def _read_header(stream):
             if card.startswith("END"):
                 return cards
             if card[8:10] == "= ":
-                value = card[10:].split("/")[0].strip()
-                try:
-                    cards[card[:8].strip()] = int(value)
-                except ValueError:
-                    try:
-                        cards[card[:8].strip()] = float(value)
-                    except ValueError:
-                        cards[card[:8].strip()] = value.strip("'").strip()
+                cards[card[:8].strip()] = _card_value(card[10:].split("/")[0].strip())
+
+
+def _card_value(text):
+    """A FITS card's value: an integer, else a number, else the text without its quotes."""
+    for kind in (int, float):
+        try:
+            return kind(text)
+        except ValueError:
+            pass
+    return text.strip("'").strip()
 
 
 def _shape(header):
@@ -246,10 +248,8 @@ DATASET = fetch.Dataset(
 )
 
 
-@functools.lru_cache(maxsize=2)
-def load(path):
-    with np.load(path) as stored:
-        return {name: np.array(stored[name]) for name in stored.files}
+load = fetch.load_arrays
+"""The reduced tables of an `ir_ktables.npz` at a path, read once (`fetch.load_arrays`)."""
 
 
 def tables(located):

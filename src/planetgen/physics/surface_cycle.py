@@ -102,7 +102,8 @@ def solar_day_days(rotation_hours, orbital_hours, tilt_deg):
         return math.inf
     if not orbital_hours or orbital_hours <= 0.0:
         return rotation_hours / 24.0
-    prograde = abs(tilt_deg or 0.0) % 360.0 <= 90.0 or abs(tilt_deg or 0.0) % 360.0 >= 270.0
+    folded = abs(tilt_deg or 0.0) % 360.0
+    prograde = folded <= 90.0 or folded >= 270.0
     rate = 1.0 / rotation_hours + (-1.0 if prograde else 1.0) / orbital_hours
     return 1.0 / (24.0 * abs(rate)) if abs(rate) > 1.0e-12 else math.inf
 

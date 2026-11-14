@@ -49,14 +49,14 @@ Every number that is not read from a source is a design constant with its source
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import elements
+from planetgen.physics import constants as physical_constants, elements
 from planetgen.physics.mixture_base import bracket
 from planetgen.physics.surface_pressure import PROCESSING_ENERGY_J_PER_KG, THETA_EARTH
 
 DAY_S = 86400.0
 """float: One day, s."""
 
-YEAR_S = 3.15576e7
+YEAR_S = physical_constants.SECONDS_PER_YEAR
 """float: One Julian year, s."""
 
 OXIDIZED_SULFUR = ("SO2", "SO3", "SO")

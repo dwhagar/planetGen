@@ -51,6 +51,7 @@ import contextlib
 import dataclasses
 import functools
 import hashlib
+import itertools
 import json
 import math
 import os
@@ -116,7 +117,7 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.galaxy import potential as galacticPotential, stepper as galacticStepper
-from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit, circular_orbit
+from planetgen.galaxy.galactic_orbit import circular_orbit
 from planetgen.galaxy.straight_line import straight_line_position_pc
 from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
@@ -734,20 +735,27 @@ def _reserve_id_block(config, table, size, at_least):
     """Reserves `size` ids for `table` and returns the first. `at_least`
     is past every id this process already handed out for it, which the
     table's `MAX(id)` can't show while those rows are uncommitted."""
+    def floor_of(cur):
+        cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
+        return max(cur.fetchone()["floor_id"], at_least)
+    return _reserve_range(config, size, "INSERT INTO id_blocks (table_name, next_id) VALUES (%s, LAST_INSERT_ID(%s + %s))"
+                          " ON DUPLICATE KEY UPDATE next_id = LAST_INSERT_ID(GREATEST(next_id, %s) + %s)",
+                          lambda floor: (table, floor, size, floor, size), floor_of)
+
+
+def _reserve_range(config, size, upsert, params_of, floor_of):
+    """
+    Moves one counter row up by `size` on its own autocommitted connection (so writers never queue behind each other's
+    transactions and a rolled-back save only leaves a gap) and returns the first number reserved. `upsert` is the one
+    INSERT ... ON DUPLICATE KEY UPDATE whose `LAST_INSERT_ID(...)` names the counter's new end, with `params_of(floor)`
+    its parameters; `floor_of(cursor)` is the lowest number allowed, read on the same connection. One upsert, so the
+    row lock is taken exclusive from the start: INSERT IGNORE then UPDATE had two processes each hold a shared lock on a
+    new table's row and deadlock (1213) upgrading it (TEST.81).
+    """
     raw = _get_pool(config).connect()
     try:
         cur = raw.cursor()
-        cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
-        floor_id = max(cur.fetchone()["floor_id"], at_least)
-        # One upsert, so the row lock is taken exclusive from the start:
-        # INSERT IGNORE then UPDATE had two processes each hold a shared
-        # lock on a new table's row and deadlock (1213) upgrading it
-        # (TEST.81).
-        cur.execute(
-            "INSERT INTO id_blocks (table_name, next_id) VALUES (%s, LAST_INSERT_ID(%s + %s))"
-            " ON DUPLICATE KEY UPDATE next_id = LAST_INSERT_ID(GREATEST(next_id, %s) + %s)",
-            (table, floor_id, size, floor_id, size),
-        )
+        cur.execute(upsert, params_of(floor_of(cur)))
         cur.execute("SELECT LAST_INSERT_ID() AS end_id")
         end = cur.fetchone()["end_id"]
         raw.commit()
@@ -3050,12 +3058,18 @@ def _insert_interior_layers(conn, table, id_column, owner_id, layers):
         )
 
 
-def _insert_deposit_types(conn, table, id_column, owner_id, rows):
-    """The magmatic ore types a rocky body was assessed for (GEN.1380); `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types` (this module's own literal table names)."""
-    columns = ", ".join(ore_deposits.ROW_FIELDS)
-    marks = ", ".join("?" for _ in range(len(ore_deposits.ROW_FIELDS) + 1))
-    for row in rows or []:
-        conn.execute(f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})", (owner_id, *(row[name] for name in ore_deposits.ROW_FIELDS)))
+def _insert_child_rows(conn, table, id_column, owner_id, rows, fields):
+    """
+    Writes the child rows `rows` (dicts with every name of `fields`) of one body into `table`, each with the body's id in
+    `id_column` first: the deposit types (GEN.1380, `ore_deposits.ROW_FIELDS`) and the isotope record (GEN.1377,
+    GEN.1420, `isotope_record.ROW_FIELDS`) of a planet, moon or rogue planet.
+    """
+    if not rows:
+        return
+    columns = ", ".join(fields)
+    marks = ", ".join("?" for _ in range(len(fields) + 1))
+    conn.executemany(f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})",
+                     [(owner_id, *(row[name] for name in fields)) for row in rows])
 
 
 BODY_OWNERS = {"planet": ("planet", "planet_id"), "moon": ("moon", "moon_id"), "rogue_planet": ("rogue_planet", "rogue_planet_id")}
@@ -3067,14 +3081,6 @@ def body_owner(body, owner=None):
     return BODY_OWNERS[owner or ("moon" if body.is_moon else "planet")]
 
 
-def _insert_isotopes(conn, table, id_column, owner_id, rows):
-    """The isotope record of a body (GEN.1377, GEN.1420); `planet_isotopes`, `moon_isotopes` and `rogue_planet_isotopes` (this module's own literal table names)."""
-    columns = ", ".join(isotope_record.ROW_FIELDS)
-    marks = ", ".join("?" for _ in range(len(isotope_record.ROW_FIELDS) + 1))
-    for row in rows or []:
-        conn.execute(f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})", (owner_id, *(row[name] for name in isotope_record.ROW_FIELDS)))
-
-
 def body_child_rows(conn, body, body_id, owner=None):
     """Writes a planet's, moon's or (with `owner="rogue_planet"`) rogue planet's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
     prefix, id_column = body_owner(body, owner)
@@ -3083,8 +3089,8 @@ def body_child_rows(conn, body, body_id, owner=None):
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
     )
     _insert_interior_layers(conn, f"{prefix}_interior_layers", id_column, body_id, body.interior_layers)
-    _insert_deposit_types(conn, f"{prefix}_deposit_types", id_column, body_id, getattr(body, ore_deposits.ATTRIBUTE, None))
-    _insert_isotopes(conn, f"{prefix}_isotopes", id_column, body_id, getattr(body, isotope_record.ATTRIBUTE, None))
+    _insert_child_rows(conn, f"{prefix}_deposit_types", id_column, body_id, getattr(body, ore_deposits.ATTRIBUTE, None), ore_deposits.ROW_FIELDS)
+    _insert_child_rows(conn, f"{prefix}_isotopes", id_column, body_id, getattr(body, isotope_record.ATTRIBUTE, None), isotope_record.ROW_FIELDS)
     for formula, partial_pa in sorted(atmosphere.gas_partials_pa(body).items()):
         if partial_pa > 0.0:
             conn.execute(f"INSERT INTO {prefix}_gases ({id_column}, gas, partial_pa) VALUES (?, ?, ?)",
@@ -3105,32 +3111,27 @@ def body_child_rows(conn, body, body_id, owner=None):
 def body_gases(conn, body_ids, is_moon, owner=None):
     """`{body id: {gas formula: partial pressure Pa}}` of the planets or moons `body_ids`: the air their rows keep in
     `planet_gases` or `moon_gases` (`rogue_planet_gases` for `owner="rogue_planet"`; a body with none has no key)."""
-    prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
-    table = f"{prefix}_gases"
-    air = {}
-    ids = list(body_ids)
-    for start in range(0, len(ids), 1000):
-        chunk = ids[start:start + 1000]
-        marks = ", ".join("?" * len(chunk))
-        for row in conn.execute(
-                f"SELECT {id_column}, gas, partial_pa FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
-            air.setdefault(row[id_column], {})[row["gas"]] = row["partial_pa"]
-    return air
+    return _body_child_map(conn, body_ids, is_moon, owner, "gases", "gas", "partial_pa")
 
 
 def body_class_scores(conn, body_ids, is_moon, owner=None):
     """`{body id: {class id: score 1 to 9}}` of the planets or moons `body_ids`: the life classes their rows keep in
     `planet_life_class_scores` or `moon_life_class_scores` (`rogue_planet_life_class_scores` for `owner="rogue_planet"`; a body that supports none has no key)."""
+    return _body_child_map(conn, body_ids, is_moon, owner, "life_class_scores", "life_class", "score")
+
+
+def _body_child_map(conn, body_ids, is_moon, owner, suffix, key_column, value_column):
+    """`{body id: {key: value}}` read from the per-body child table `<prefix>_<suffix>` (`BODY_OWNERS`) for `body_ids`, 1,000 ids a query."""
     prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
-    table = f"{prefix}_life_class_scores"
+    table = f"{prefix}_{suffix}"
     found = {}
     ids = list(body_ids)
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
         marks = ", ".join("?" * len(chunk))
         for row in conn.execute(
-                f"SELECT {id_column}, life_class, score FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
-            found.setdefault(row[id_column], {})[row["life_class"]] = row["score"]
+                f"SELECT {id_column}, {key_column}, {value_column} FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], {})[row[key_column]] = row[value_column]
     return found
 
 
@@ -3670,51 +3671,29 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
     Returns:
         int: The new `black_holes.id`.
     """
-    name_base = None
-    if register_name and star_id is None:
-        name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole, "black-hole", placement)
-    elif star_id is None:
-        _take_core_id(conn, black_hole, "black-hole-core", placement)
-    row_id = object_rows.insert_row(conn, "black_holes", BLACK_HOLE_FIELDS, black_hole, {
-        "star_id": star_id, "sector_id": sector_id, "placement": placement})
-    if name_base is not None:
-        confirm_object_name(conn, name_base, "black_holes", row_id, diminutive_index)
-    return row_id
+    return _insert_compact_remnant(conn, black_hole, "black_holes", BLACK_HOLE_FIELDS, "black-hole", star_id, sector_id,
+                                   placement, register_name)
 
 
 def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id=None, placement=None,
                         register_name=True) -> int:
-    """
-    Inserts a `neutron_stars` row (see `schema.sql`'s "v16"/"v17"/"v21"
-    header notes).
+    """Inserts a `neutron_stars` row; the arguments are `insert_black_hole`'s. Returns the new `neutron_stars.id`."""
+    return _insert_compact_remnant(conn, neutron_star, "neutron_stars", NEUTRON_STAR_FIELDS, "neutron-star", star_id,
+                                   sector_id, placement, register_name)
 
-    Args:
-        conn (Connection): An open, schema-initialized connection.
-        neutron_star (NeutronStar): The neutron star to persist.
-        star_id (int, optional): The owning `stars.id`, when this neutron
-            star anchors a `StarSystem` (`phenomenonGen.py --anchor-system`
-            -- see `insert_star_system`'s single-star branch, the only
-            caller that passes this). `None` for one generated standalone.
-            When set, the `galactic_orbital_*` columns are left `NULL` --
-            see `insert_black_hole`'s identical reasoning; `sector_id`/
-            `placement` below likewise only ever apply to a standalone
-            neutron star.
-        sector_id (int, optional): As in `insert_black_hole`.
-        placement (dict, optional): As in `insert_black_hole`.
-        register_name (bool): As in `insert_black_hole`.
 
-    Returns:
-        int: The new `neutron_stars.id`.
-    """
+def _insert_compact_remnant(conn, remnant, table, fields, kind, star_id, sector_id, placement, register_name):
+    """The shared body of `insert_black_hole` and `insert_neutron_star`: names the standalone remnant (or a core by its own ID),
+    inserts the row and confirms the name."""
     name_base = None
     if register_name and star_id is None:
-        name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star, "neutron-star", placement)
+        name_base, diminutive_index = _reserve_phenomenon_name(conn, remnant, kind, placement)
     elif star_id is None:
-        _take_core_id(conn, neutron_star, "neutron-star-core", placement)
-    row_id = object_rows.insert_row(conn, "neutron_stars", NEUTRON_STAR_FIELDS, neutron_star, {
+        _take_core_id(conn, remnant, f"{kind}-core", placement)
+    row_id = object_rows.insert_row(conn, table, fields, remnant, {
         "star_id": star_id, "sector_id": sector_id, "placement": placement})
     if name_base is not None:
-        confirm_object_name(conn, name_base, "neutron_stars", row_id, diminutive_index)
+        confirm_object_name(conn, name_base, table, row_id, diminutive_index)
     return row_id
 
 
@@ -7093,22 +7072,11 @@ def clear_nebula_field(conn, steps=statementmark.LABELS_ONLY):
 def insert_nebula_field(conn, rows, batch_size=5000):
     """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order, a row may stop after the place and leave the composition NULL), `batch_size` to a
     statement. Returns the rows written."""
-    head = None
-    written = 0
-    batch = []
-    for row in rows:
-        if head is None:
-            head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS[:len(row)])}) VALUES "
-        batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
-        if len(batch) >= batch_size:
-            conn.execute_literal(head + ",".join(batch))
-            written += len(batch)
-            batch = []
-            batched.moving()          # OPS.185: a batch of clouds is in, the unit moved
-    if batch:
-        conn.execute_literal(head + ",".join(batch))
-        written += len(batch)
-    return written
+    rows = iter(rows)
+    first = next(rows, None)
+    if first is None:
+        return 0
+    return _insert_literal_rows(conn, "nebula_field", NEBULA_FIELD_COLUMNS[:len(first)], itertools.chain((first,), rows), batch_size, moving=batched.moving)
 
 
 def link_nebula_field_stored(conn):
@@ -7288,11 +7256,12 @@ LITERAL_STATEMENT_CHARS = 1_000_000
 `max_allowed_packet` may be small."""
 
 
-def _insert_literal_rows(conn, table, columns, rows, batch_size):
+def _insert_literal_rows(conn, table, columns, rows, batch_size, moving=None):
     """Bulk-writes `rows` (values in `columns` order) into `table`, `batch_size` rows to a statement whose text is
     built here (`_scatter_value`): numbers, `None` and a few fixed names only, so the driver's own per-value
     escaping, about a quarter of an insert over tens of millions of rows, is skipped (PERF.73, PERF.48). A value
-    that is any other kind of string must not come through here. Returns the rows written."""
+    that is any other kind of string must not come through here. `moving`, when given, is called after each statement
+    (OPS.185: the unit's beat). Returns the rows written."""
     head = f"INSERT INTO {table} ({', '.join(columns)}) VALUES "
     written = 0
     batch = []
@@ -7306,6 +7275,8 @@ def _insert_literal_rows(conn, table, columns, rows, batch_size):
             written += len(batch)
             batch = []
             chars = 0
+            if moving is not None:
+                moving()
     if batch:
         conn.execute_literal(head + ",".join(batch))
         written += len(batch)
@@ -9532,23 +9503,9 @@ def _reserve_counter(config, kind, scope, size, floor):
     rolled-back save only leaves a gap. `floor` is the lowest number allowed:
     the row only moves up, so a number is never handed out twice, whatever
     happens to the object that took it (DB.20)."""
-    raw = _get_pool(config).connect()
-    try:
-        cur = raw.cursor()
-        cur.execute(
-            "INSERT INTO id_counters (kind, scope, next_value) VALUES (%s, %s, LAST_INSERT_ID(%s + %s))"
-            " ON DUPLICATE KEY UPDATE next_value = LAST_INSERT_ID(GREATEST(next_value, %s) + %s)",
-            (kind, scope, floor, size, floor, size),
-        )
-        cur.execute("SELECT LAST_INSERT_ID() AS end_id")
-        end = cur.fetchone()["end_id"]
-        raw.commit()
-    except Exception:
-        raw.rollback()
-        raise
-    finally:
-        raw.close()
-    return end - size
+    return _reserve_range(config, size, "INSERT INTO id_counters (kind, scope, next_value) VALUES (%s, %s, LAST_INSERT_ID(%s + %s))"
+                          " ON DUPLICATE KEY UPDATE next_value = LAST_INSERT_ID(GREATEST(next_value, %s) + %s)",
+                          lambda low: (kind, scope, low, size, low, size), lambda cur: floor)
 
 
 def _runtime_uids(conn, address, count):

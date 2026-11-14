@@ -118,10 +118,7 @@ def _tiers_of_places(shape, places, edge_pc):
     cosines = np.concatenate([_azimuths(int(count))[0] for count in counts])
     sines = np.concatenate([_azimuths(int(count))[1] for count in counts])
     xs, ys = planes * cosines, planes * sines
-    found = galaxyDensity.population_densities_array(xs, ys, zs, shape)
-    kept = {name: np.maximum(array, 0.0) for name, array in found.items()}
-    for kind in POPULATIONS_IN_THE_GATE:
-        kept[kind] = np.zeros_like(kept[kind])
+    kept = _kept(galaxyDensity.population_densities_array(xs, ys, zs, shape))
     offsets = np.concatenate(([0], np.cumsum(counts)[:-1]))
 
     def per_band(array):
@@ -130,6 +127,11 @@ def _tiers_of_places(shape, places, edge_pc):
     return _dominant_tiers({name: per_band(array) for name, array in kept.items()})
 
 
+def _kept(found):
+    """`found` (`{population: array}`) as the tiers read it: a gate kind's density counted as none and a negative term as
+    none."""
+    return {name: np.zeros_like(array) if name in POPULATIONS_IN_THE_GATE else np.maximum(array, 0.0)
+            for name, array in found.items()}
 def _dominant_tiers(summed):
     """The tier index of each place from its populations' densities (`{population: array}`, a gate kind's counted
     as none and a negative term as none): the nuclear terms' share, then the halo's, against `TIER_DOMINANCE_SHARE`."""
@@ -166,10 +168,7 @@ def probe_densities(shape, plane, z, azimuths=REACH_AZIMUTH_BINS):
     found = galaxyDensity.population_densities_array(
         (plane[:, None] * np.cos(theta)).ravel(), (plane[:, None] * np.sin(theta)).ravel(),
         np.repeat(z, azimuths), shape)
-    means = {}
-    for name, array in found.items():
-        array = np.zeros_like(array) if name in POPULATIONS_IN_THE_GATE else np.maximum(array, 0.0)
-        means[name] = array.reshape(len(plane), azimuths).mean(axis=1)
+    means = {name: array.reshape(len(plane), azimuths).mean(axis=1) for name, array in _kept(found).items()}
     return means, _dominant_tiers(means)
 
 

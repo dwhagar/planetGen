@@ -169,16 +169,18 @@ def _samples_for(radius, edge_pc):
                                                                   COVER_SAMPLES[2]))
 
 
+def _float_arrays(*values):
+    """Each of `values` as a float array."""
+    return tuple(np.asarray(value, dtype=float) for value in values)
+
+
 def fine_cover(x, y, z, radius, edge_pc):
     """
     How much sphere volume lies in each level-3 block the spheres reach: a `LevelCover` of the packed blocks and
     their cubic parsecs, each sphere's volume split by where evenly spread points inside it land. The bigger blocks'
     cover is these sums added up (`roll_up`), so it adds up through the ladder exactly.
     """
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-    z = np.asarray(z, dtype=float)
-    radius = np.asarray(radius, dtype=float)
+    x, y, z, radius = _float_arrays(x, y, z, radius)
     volume = sphere_volumes(radius)
     samples_of = _samples_for(radius, edge_pc)
     keys_out = []
@@ -246,10 +248,7 @@ def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
     with a count of zero and the cover only. `covers` is the level's `LevelCover` of `roll_up`
     when the caller has it, else it is worked out here.
     """
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-    z = np.asarray(z, dtype=float)
-    radius = np.asarray(radius, dtype=float)
+    x, y, z, radius = _float_arrays(x, y, z, radius)
     codes = np.asarray(codes, dtype=np.int64)
     volume = sphere_volumes(radius)
     if covers is None:

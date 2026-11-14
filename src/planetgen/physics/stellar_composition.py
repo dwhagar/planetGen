@@ -297,18 +297,21 @@ def _grid_radius_solar(mass_sol, teff_k, envelope):
     top = white_dwarf_models.CRYSTAL_MASS_SOL
     bottom = float(white_dwarf_models.masses_sol()[0])
     if mass_sol < bottom:
-        try:    # a helium-core white dwarf under the lightest sequence reads that sequence, scaled by the zero-temperature relation's ratio of the two masses
-            return (white_dwarf_models.radius_solar(bottom, teff_k, envelope)
-                    * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(bottom))
-        except sa.StellarAbundanceError:
-            return None
+        # a helium-core white dwarf under the lightest sequence reads that sequence, scaled by the zero-temperature relation's ratio of the two masses
+        return _scaled_radius_solar(bottom, mass_sol, teff_k, envelope)
     if mass_sol <= top:
         return white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+    return _scaled_radius_solar(top, mass_sol, teff_k, envelope)
+
+
+def _scaled_radius_solar(anchor_sol, mass_sol, teff_k, envelope):
+    """The sequence of `anchor_sol` at `teff_k`, scaled by the zero-temperature relation's ratio of `mass_sol` to the anchor; `None` for a mass the
+    relation does not reach."""
     try:
-        return (white_dwarf_models.radius_solar(top, teff_k, envelope)
-                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(top))
+        return (white_dwarf_models.radius_solar(anchor_sol, teff_k, envelope)
+                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(anchor_sol))
     except sa.StellarAbundanceError:
-        return None  # heavier than any white dwarf the relation makes
+        return None
 
 
 def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin=0.0, teff_k=None):

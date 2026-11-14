@@ -275,7 +275,7 @@ BINARY_MASS_RATIO = (5e-4, 0.11)
 """tuple: The mass ratio of a dwarf planet's partner, log-uniform ([R0269: Table 2])."""
 
 _ANHYDROUS = sb.TAXON_DATA["S"].fractions
-_HYDRATED = {name: value for name, value in sb.TAXON_DATA["C"].fractions.items()}
+_HYDRATED = dict(sb.TAXON_DATA["C"].fractions)
 
 
 def hydration(r_over_r_ice):
@@ -381,7 +381,6 @@ def density_kg_m3(makeup, mass_kg):
     rock = min(max(makeup.rock + makeup.metal, low), high)
     radius_km = compaction.compacted_radius_km(mass_kg, rock)
     return mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1e3) ** 3)
-
 
 
 def mass_from_radius_kg(makeup, radius_km):

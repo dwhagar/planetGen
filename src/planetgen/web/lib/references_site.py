@@ -426,7 +426,7 @@ def papers_page(data, usage, view="az", group="", q=""):
         by_letter = {}
         for row in rows:
             by_letter.setdefault(_letter(row), []).append(row)
-        for letter in sorted(by_letter, key=lambda l: (l == "#", l)):
+        for letter in sorted(by_letter, key=lambda letter: (letter == "#", letter)):
             page["letters"].append({"letter": letter, "id": f"letter-{letter.lower() if letter != '#' else 'other'}"})
             page["blocks"].append(block(letter if letter != "#" else "Other", by_letter[letter], page["letters"][-1]["id"], compact=True))
         page["note"] = f"{count(len(rows))} sources."
@@ -722,11 +722,11 @@ def fitted(data, targets, overview):
 
 
 def _tier_name(data, code):
-    return next(name for tier, name, _meaning in data["tiers"] if tier == code)
+    return _lookup(data["tiers"], code)[0]
 
 
 def _level_name(data, code):
-    return next(name for level, name, _meaning in data["tweaks"] if level == code)
+    return _lookup(data["tweaks"], code)[0]
 
 
 def speculative(data, folder=None):
@@ -808,6 +808,17 @@ def _tier_code(row):
     return row["tier_code"]
 
 
+def _weak(rows):
+    """The `(section, row)` pairs of `rows` that are weak: tier T8 or T9, or tweak level L4."""
+    return [(section, row) for section, row in rows if _tier_code(row) in LACKING_TIERS or row["tweak"] == "L4"]
+
+
+def _stand_in_cells(row):
+    """A stand-in as a row of a table of the method and gaps pages: its id linked to its page, what it is, its tier and level."""
+    link = Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), Markup(chem.mark_html(row["id"])))
+    return [link, summary(row["what"]), row["tier_code"], row["tweak"]]
+
+
 def _tiers_of(rows):
     """`{kind: how many of rows}` for the kinds of the scorecard: read, unverified, guess, chosen, fitted."""
     codes = [_tier_code(row) for _section, row in rows]
@@ -870,7 +881,7 @@ def method_page(area, data, properties, usage):
             "id": "stand-ins", "heading": "Stand-ins of this area", "paragraphs": [
                 "Each is a value that is not a verified measurement of the thing it stands for. Its page says how it is filled, where it is wrong, and what would replace it."],
             "table": {"head": ["Stand-in", "What it is", "Tier", "Level"], "rows": [
-                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), Markup(chem.mark_html(row["id"]))), summary(row["what"]), row["tier_code"], row["tweak"]]
+                _stand_in_cells(row)
                 for _section, row in rows]}})
     page["sections"].append({
         "id": "sources", "heading": "Sources of this area", "paragraphs": [
@@ -902,12 +913,12 @@ def gaps_page(data, usage):
     table = []
     for area in (*references_usage.AREAS, references_usage.OTHER):
         rows = by_area[area]
-        weak = [(section, row) for section, row in rows if _tier_code(row) in LACKING_TIERS or row["tweak"] == "L4"]
+        weak = _weak(rows)
         table.append([_area_title(area), count(len(sources.get(area, []))), count(len(rows)),
                       _percent(_tiers_of(rows)["read"], len(rows)), count(len(weak))])
     page["sections"].append({"id": "summary", "heading": "By area", "paragraphs": [], "table": {"head": head, "rows": table}})
     for area in (*references_usage.AREAS, references_usage.OTHER):
-        weak = [(section, row) for section, row in by_area[area] if _tier_code(row) in LACKING_TIERS or row["tweak"] == "L4"]
+        weak = _weak(by_area[area])
         shown = weak[:MAX_GAP_ROWS]
         paragraphs = [f"{count(len(weak))} of the {count(len(by_area[area]))} stand-ins of this area are weak." if weak else "No stand-in of this area is weak."]
         if len(weak) > len(shown):
@@ -915,7 +926,7 @@ def gaps_page(data, usage):
         page["sections"].append({
             "id": area, "heading": _area_title(area), "paragraphs": paragraphs,
             "table": {"head": ["Stand-in", "What it is", "Tier", "Level"], "rows": [
-                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), Markup(chem.mark_html(row["id"]))), summary(row["what"]), row["tier_code"], row["tweak"]]
+                _stand_in_cells(row)
                 for _section, row in shown]} if shown else None})
     return page
 

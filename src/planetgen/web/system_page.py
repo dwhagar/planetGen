@@ -105,6 +105,14 @@ def _text(form, name):
     return (form.get(name) or "").strip()
 
 
+def _name(form):
+    """The name the form gives, or a `FormError` when it is too long for the database."""
+    name = _text(form, "name")
+    if len(name) > SYSTEM_NAME_MAX_LENGTH:
+        raise FormError(f"The name is {len(name)} characters; a name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
+    return name
+
+
 def _starless_request(form, result_kind):
     """The `planetgen phenomenon` options for a rogue planet or an interstellar comet (UX.298): its name and debug log only,
     so any other option that is filled in is refused instead of ignored."""
@@ -115,9 +123,7 @@ def _starless_request(form, result_kind):
         others.append("max_planet_flavor")
     if others:
         raise FormError("A rogue planet or comet has no star, so only its name applies; clear: " + ", ".join(others).replace("_", " ") + ".")
-    name = _text(form, "name")
-    if len(name) > SYSTEM_NAME_MAX_LENGTH:
-        raise FormError(f"The name is {len(name)} characters; a name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
+    name = _name(form)
     argv = ["--type", result_kind, f"--format={DOCUMENT_FORMAT}"]
     if name:
         argv.append(f"--name={name}")
@@ -145,7 +151,7 @@ def system_request(form):
     if result_kind:
         return _starless_request(form, result_kind)
     states = {name: _tristate(form, name) for name, _label in TRISTATE_FIELDS}
-    name = _text(form, "name")
+    name = _name(form)
     star_type = _text(form, "star_type")
     age = _text(form, "age")
     if age not in ("", "young", "old"):
@@ -164,8 +170,6 @@ def system_request(form):
         except ValueError as exc:
             raise FormError(f"Force oddities: {exc}.") from None
 
-    if len(name) > SYSTEM_NAME_MAX_LENGTH:
-        raise FormError(f"The name is {len(name)} characters; a system name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
     if star_type and not STAR_TYPE_PATTERN.fullmatch(star_type.upper()):
         raise FormError("The star type must be a spectral type: a class letter (OBAFGKM), a subclass digit (0-9) "
                         "and a Yerkes class (0, IA+, IA, IAB, IB, II, III, IV, V, VI, VII or D), e.g. G2V.")
@@ -270,7 +274,7 @@ def run_generator(spec):
         argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, spec.get("command", "system"), "--output", page_path,
                 "--debug" if spec["debug"] else "--quiet"]
         if spec["system_file"] is not None:
-            file_path = os.path.join(tmp, "system.json")
+            file_path = os.path.join(tmp, "system-file.json")   # not the output file's name
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(spec["system_file"], f)
             argv.append("--system-file=" + file_path)

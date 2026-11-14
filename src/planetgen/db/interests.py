@@ -67,8 +67,8 @@ REASONS = {
     # reason with no score keeps `best_score` NULL: the map's tier colour is the habitability score's, not a life score's. The civilization
     # reason's score is the technology level of its most advanced species (MAP.344, in `TECH_REASONS`), NULL for a world with none yet.
     CIVILIZATION: {
-        "planets": f"p.life_stage = 'technological_civilization'",
-        "moons": f"m.life_stage = 'technological_civilization'", "score": _tech_of, "params": (),
+        "planets": "p.life_stage = 'technological_civilization'",
+        "moons": "m.life_stage = 'technological_civilization'", "score": _tech_of, "params": (),
     },
     SENTIENT: {
         "planets": _life_test("p", ("life_sentient",)), "moons": _life_test("m", ("life_sentient",)), "score": None, "params": (),

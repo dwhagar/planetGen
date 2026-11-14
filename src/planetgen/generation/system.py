@@ -1343,7 +1343,6 @@ class StarSystem:
             while i < system_objects - 1:
                 i += 1
                 slot_spec = slots[i] if i < len(slots) else None
-                prev_slot_explicit = i > 0 and (i - 1) < len(slots) and slots[i - 1] is not None
 
                 seed = plan.seed(i)
                 if i > 0:

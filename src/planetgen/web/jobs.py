@@ -400,15 +400,22 @@ def remaining_steps(job_id, root=None):
     return (job, remaining) if remaining else None
 
 
+def _known_job_dir(root, job_id):
+    """The folder of a job that exists (its `job.json` is there) under `root` (the jobs folder by default), else `None`."""
+    path = _job_dir(root or jobs_dir(), job_id)
+    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+        return None
+    return path
+
+
 def log_tail(job_id, max_bytes=64 * 1024, root=None):
     """
     The last `max_bytes` of a job's output, as text, with rich's carriage
     return redraws collapsed to their final state. `None` for an unknown
     job.
     """
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         with open(os.path.join(path, "output.log"), "rb") as f:
@@ -427,9 +434,8 @@ def log_tail(job_id, max_bytes=64 * 1024, root=None):
 
 def log_size(job_id, root=None):
     """The size in bytes of a job's `output.log` (0 before the first output); `None` for an unknown job."""
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         return os.path.getsize(os.path.join(path, "output.log"))
@@ -450,9 +456,8 @@ def read_log(job_id, offset=0, max_bytes=64 * 1024, root=None):
             replaced) starts again from 0. `("", offset)` when there is
             nothing new; `None` for an unknown job.
     """
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         with open(os.path.join(path, "output.log"), "rb") as f:

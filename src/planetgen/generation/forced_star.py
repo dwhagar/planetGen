@@ -171,12 +171,9 @@ def sample(letter, subclass, yerkes, age_bias=None, rng=draw, population=None, f
         ValueError: when the model makes no star of the Yerkes class at all.
     """
     model_class = ALIASES.get(yerkes, yerkes)
-    if fe_h is not None:
-        pass
-    elif model_class == "VI":
-        fe_h = rng.uniform(*tuning.SUBDWARF_FE_H_RANGE)
-    else:
-        fe_h = evolution.birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
+    if fe_h is None:
+        fe_h = (rng.uniform(*tuning.SUBDWARF_FE_H_RANGE) if model_class == "VI"
+                else evolution.birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly))
     bucket = _bucket(fe_h)
     table = _table(bucket)
     cells = table.get((letter, subclass, model_class), [])
@@ -255,8 +252,8 @@ def class_summary(yerkes):
     makes."""
     if yerkes == "W":
         masses = [tuning.WR_MIN_INITIAL_MASS_SOL, 40.0, 60.0, 100.0, imf.highest_mass_sol()]
-        present = [post_main_sequence.timeline(m, 0.0).state(post_main_sequence.timeline(m, 0.0).end_gy - 1.0e-9).mass_sol
-                   for m in masses]
+        lines = [post_main_sequence.timeline(m, 0.0) for m in masses]
+        present = [line.state(line.end_gy - 1.0e-9).mass_sol for line in lines]
         return Summary((min(present), max(present)), tuning.WR_LUMINOSITY_RANGE_SOL, None)
     if yerkes == "VI":
         bucket = _bucket(tuning.SUBDWARF_FE_H_RANGE[0])

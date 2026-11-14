@@ -164,6 +164,7 @@ TYPES = (
 """tuple: The six types. Grade ranges, concentration factors and the tonnage range of one deposit (1e8 to 1e10 t, 1e6 to 1e8 t, 1e6 to 1e8 t, 1e6 to 1e8 t, 1e5 to 1e7 t, 1e3 to 1e5 t of U) are the design
 file's, recalled; the medians are inside those ranges (stand-ins HT7). Tier T6 to T7, L3."""
 
+
 def state_of(body):
     """The `State` of a finished rocky planet or moon, or `None` for a body the ore pass did not assess (a giant, a belt, a row from before GEN.699). No draws."""
     ore = ore_deposits.state_of(body) if getattr(body, ore_deposits.ATTRIBUTE, None) is not None else None

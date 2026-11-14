@@ -32,8 +32,7 @@ EARTH_OZONE_DU = 300.0
 """float: The ozone column of the reference Earth, DU (measured: 279 to 313 DU in the models and 300 DU in the record)."""
 EARTH_BOND_ALBEDO = 0.306
 """float: The Earth's Bond albedo (measured), for the temperature of its ozone layer in the reference dose."""
-SUN_EFFECTIVE_K = 5772.0
-"""float: The Sun's effective temperature, K (IAU 2015)."""
+SUN_EFFECTIVE_K = constants.SOLAR_TEMPERATURE_K
 EARTH_AIR_PA = {"N2": 79100.0, "O2": 21200.0, "Ar": 950.0}
 """dict: The reference Earth's dry air, Pa by gas formula (101.25 kPa)."""
 
@@ -123,25 +122,32 @@ def uv_index(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=Non
     return spectrum.uv_index() + sum(other.uv_index() for other in companion_spectra(body, mu0, ground_albedo, distance_au))
 
 
+def _dna_dose_under_air_w_m2(body, mu0, ground_albedo, distance_au):
+    """The Setlow dose at the ground under the body's air from every star of its system, or `None` where there is no air or no star to compute it from."""
+    spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
+    if spectrum is None:
+        return None
+    return spectrum.dna_dose_w_m2() + sum(other.dna_dose_w_m2() for other in companion_spectra(body, mu0, ground_albedo, distance_au))
+
+
 def dna_dose_w_m2(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
     """The Setlow DNA-damage weighted irradiance at the ground of `body` (every star of its system adds its own), W/m2, 0 where there is no air to compute
     it in."""
-    spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
-    if spectrum is None:
-        return 0.0
-    return spectrum.dna_dose_w_m2() + sum(other.dna_dose_w_m2() for other in companion_spectra(body, mu0, ground_albedo, distance_au))
+    dose = _dna_dose_under_air_w_m2(body, mu0, ground_albedo, distance_au)
+    return 0.0 if dose is None else dose
 
 
 def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
     """The Setlow DNA-damage weighted irradiance of the star's unfiltered light on a horizontal surface, W/m2, or `None` for a body with no star or no
     distance. The ground of a body with no air."""
-    lit = _star_flux_w_m2(body, distance_au or _star_distance_au(body))
+    where = distance_au or _star_distance_au(body)
+    lit = _star_flux_w_m2(body, where)
     if lit is None:
         return None
     edges = uv_cross_sections.standard_edges()
     weight = atmospheric_radiation.setlow_weight(uv_cross_sections.centers(edges))
     total = 0.0
-    for star, temperature, flux in [(body.star, *lit), *_companion_sources(body, distance_au or _star_distance_au(body))]:
+    for star, temperature, flux in [(body.star, *lit), *_companion_sources(body, where)]:
         share = getattr(star, "uv_c_share", None)
         top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share, activity.uv_shares_of(star))
         total += float(mu0 * np.sum(top * weight))      # GEN.1442: every star of the system adds its own
@@ -165,6 +171,5 @@ def dna_dose_index(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_
     if air_column.column_of(body) is None:
         dose = bare_dna_dose_w_m2(body, mu0, distance_au)
     else:
-        spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
-        dose = None if spectrum is None else spectrum.dna_dose_w_m2() + sum(o.dna_dose_w_m2() for o in companion_spectra(body, mu0, ground_albedo, distance_au))
+        dose = _dna_dose_under_air_w_m2(body, mu0, ground_albedo, distance_au)
     return None if dose is None else dose / earth_dna_dose_w_m2()

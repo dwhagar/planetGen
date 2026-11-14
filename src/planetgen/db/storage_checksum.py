@@ -30,7 +30,6 @@ table, so a new writer cannot be added without deciding how it marks the sector.
 """
 
 import hashlib
-import math
 import struct
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -148,12 +147,7 @@ class _Reader:
         return self.conn.execute(f"SELECT {names} FROM `{table}` WHERE {where} ORDER BY {sort}", tuple(params)).fetchall()
 
     def select_in(self, table, column, ids):
-        ids = sorted(set(ids))
-        rows = []
-        for first in range(0, len(ids), _IN_BATCH):
-            chunk = ids[first:first + _IN_BATCH]
-            rows.extend(self.select(table, f"`{column}` IN ({', '.join('?' * len(chunk))})", chunk))
-        return rows
+        return fingerprint.select_in(self.select, table, column, ids)
 
 
 def reader(conn):
@@ -269,6 +263,14 @@ def mark_sector(conn, sector_id):
         _mark(conn, "id = ?", (sector_id,))
 
 
+def _mark_each(conn, ids, where_of):
+    """`_mark` for the distinct, non-null `ids`, `_IN_BATCH` at a time: `where_of(marks)` is the condition with the placeholders in."""
+    ids = sorted({int(i) for i in ids if i is not None})
+    for first in range(0, len(ids), _IN_BATCH):
+        chunk = ids[first:first + _IN_BATCH]
+        _mark(conn, where_of(", ".join("?" * len(chunk))), chunk)
+
+
 def mark_system(conn, star_system_id):
     """Marks the sector that holds a star system, for a change to the system or to anything under it (its stars, planets, moons,
     belts, comets, facilities and their child rows)."""
@@ -278,10 +280,7 @@ def mark_system(conn, star_system_id):
 
 def mark_systems(conn, star_system_ids):
     """`mark_system` for each of `star_system_ids`."""
-    ids = sorted({int(i) for i in star_system_ids if i is not None})
-    for first in range(0, len(ids), _IN_BATCH):
-        chunk = ids[first:first + _IN_BATCH]
-        _mark(conn, f"id IN (SELECT sector_id FROM star_systems WHERE id IN ({', '.join('?' * len(chunk))}))", chunk)
+    _mark_each(conn, star_system_ids, lambda marks: f"id IN (SELECT sector_id FROM star_systems WHERE id IN ({marks}))")
 
 
 def mark_star(conn, star_id):

@@ -236,7 +236,7 @@ def _log_likelihood(mu, sigma, exact, censored):
         z = (math.log(value) - mu) / sigma
         total += -math.log(value * sigma * math.sqrt(2.0 * math.pi)) - 0.5 * z * z
     for bound in censored:
-        total += math.log(max(0.5 * math.erfc((math.log(bound) - mu) / sigma / math.sqrt(2.0)), 1e-300))
+        total += math.log(max(_phi((mu - math.log(bound)) / sigma), 1e-300))
     return total
 
 
@@ -367,13 +367,18 @@ def _grid(mean, sd, count):
     return [mean + sd * _PHI_INV((k + 0.5) / count) for k in range(count)]
 
 
+def _error_grid(model, count):
+    """`count` equal-probability values of the star's error `sigma_x` under the log-normal `model`."""
+    return [math.exp(model.mu + model.sigma * z) for z in _grid(0.0, 1.0, count)]
+
+
 def class_probabilities(diw_true, model=None, nodes=200):
     """`{recovery: probability}` of a body with dIW `diw_true`, by quadrature over the error of the star."""
     model = model or ERROR_MODEL
     x = x_of(diw_true)
-    z_upper = -_PHI_INV(SAMPLE.negative_upper)
+    z_upper = _censor_scale(SAMPLE)
     both = upper_or_both = 0.0
-    for sigma_x in (math.exp(model.mu + model.sigma * z) for z in _grid(0.0, 1.0, nodes)):
+    for sigma_x in _error_grid(model, nodes):
         both += _phi(x / sigma_x - z_upper)
         upper_or_both += _phi(x / sigma_x)
     both /= nodes
@@ -390,7 +395,7 @@ def expected_sample(mean, sd, model=None, bodies=25, errors=40, realisations=120
     model = model or ERROR_MODEL
     counts = {r: 0.0 for r in RECOVERIES}
     total = kept = first = second = 0.0
-    sigmas = [math.exp(model.mu + model.sigma * z) for z in _grid(0.0, 1.0, errors)]
+    sigmas = _error_grid(model, errors)
     z0s = _grid(0.0, 1.0, realisations)
     for diw_true in _grid(mean, sd, bodies):
         x = x_of(diw_true)

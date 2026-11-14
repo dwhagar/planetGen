@@ -36,8 +36,7 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
-from planetgen.physics import constants as physical_constants
-from planetgen.physics import elements
+from planetgen.physics import constants as physical_constants, elements
 from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
@@ -142,7 +141,7 @@ MODEL = load()
 
 
 def _planck_7_5(temperature):
-    h, c, k = 6.62607015e-34, 2.99792458e8, 1.380649e-23
+    h, c, k = physical_constants.PLANCK_CONSTANT, physical_constants.SPEED_OF_LIGHT_M_S, physical_constants.BOLTZMANN
     return 1.0 / math.expm1(h * c / (7.5e-6 * k * temperature))
 
 

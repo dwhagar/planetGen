@@ -50,9 +50,9 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "mass_radius_sample.json")
 MODEL_ID = "mass-radius-sample"
 """str: The id of the selection model in `tuning_harness.SELECTION_MODEL_ITEMS`."""
 
-R_EARTH_KM = 6371.0
+R_EARTH_KM = physical_constants.EARTH_RADIUS_KM
 R_SUN_KM = physical_constants.SOLAR_RADIUS_M / 1000
-R_EARTH_CM = 6.371e8
+R_EARTH_CM = physical_constants.EARTH_RADIUS_M * 100.0
 M_EARTH_G = 5.972e27
 
 _PHI_INV = statistics.NormalDist().inv_cdf

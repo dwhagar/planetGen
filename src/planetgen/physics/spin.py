@@ -46,6 +46,7 @@ from scipy import special
 from planetgen.physics import vec3
 from planetgen.physics import chemically_peculiar, constants, impact_spin, unit_registry as units
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_msun = units.converter("kg", "Msun")
@@ -155,9 +156,14 @@ def _turn(vector, axis, sense):
 def moon_orbit_normal(moon, planet):
     """The unit normal of a moon's orbit in the system's frame: the one its stored elements give against its `planet`'s equator, turned onto the planet's
     spin axis (GEN.1352); the elements as they are for a moon whose planet has no axis."""
-    normal = orbit_normal(getattr(moon, "orbital_inclination_deg", None) or 0.0, getattr(moon, "orbital_ascending_node_deg", None) or 0.0)
-    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z")) if planet is not None else (None,)
-    return normal if any(c is None for c in axis) else turn_to_axis(normal, axis)
+    normal = _stored_orbit_normal(moon)
+    axis = spin_axis_of(planet) if planet is not None else None
+    return normal if axis is None else turn_to_axis(normal, axis)
+
+
+def _stored_orbit_normal(body):
+    """`orbit_normal` of the elements `body` stores (zero for one it has not got)."""
+    return orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
 
 
 def spin_axis_of(body):
@@ -170,7 +176,7 @@ def orbit_normal_of(body, planet=None):
     """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
     if planet is not None:
         return moon_orbit_normal(body, planet)
-    return orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
+    return _stored_orbit_normal(body)
 
 
 def orbit_normal_from_state(position, velocity):
@@ -318,8 +324,12 @@ def nominal_rotation_period_hours(mass_kg, temperature_k, age_gy):
     cover (one past the start of the Kraft break, whose spin is a speed it keeps)."""
     if kraft_weight(temperature_k) > 0.0:
         return None
-    colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
-    return gyro_median_days(colour, age_gy) * 24.0
+    return gyro_median_days(_gyro_colour_excess(temperature_k), age_gy) * 24.0
+
+
+def _gyro_colour_excess(temperature_k):
+    """`B - V - c` of a star of this temperature, held at `GYRO_MIN_COLOUR_EXCESS` for a bluer one."""
+    return max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
 
 
 def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes_class):
@@ -337,14 +347,13 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     if cls.startswith("D"):
         period = WHITE_DWARF_PERIOD_MEDIAN_HOURS * math.exp(draw.gauss(0.0, WHITE_DWARF_PERIOD_SIGMA))
     elif cls in GIANT_CLASSES:
-        low, high = (math.log(s) for s in GIANT_SPEED_RANGE_KMS)
-        period = period_hours_from_speed(radius_km, math.exp(draw.uniform(low, high)))
+        period = period_hours_from_speed(radius_km, log_uniform(*GIANT_SPEED_RANGE_KMS))
     elif (peculiar := chemically_peculiar.of_star(cls, mass_kg, radius_km, temperature_k, age_gy)) is not None:
         # GEN.1027: an Ap or Am dwarf spins slowly; its period is from the star's own keyed stream, not a draw of the run.
         period = peculiar.period_hours
     else:
         weight = kraft_weight(temperature_k)
-        colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
+        colour = _gyro_colour_excess(temperature_k)
         if weight == 0.0:
             days = gyro_median_days(colour, age_gy) * math.exp(draw.gauss(0.0, GYRO_SCATTER))
             period = days * 24.0
@@ -362,7 +371,7 @@ def planet_day_hours(body_type):
     gas giant."""
     low, high = constants.ROTATION_PERIOD_RANGE_HOURS[body_type]
     if body_type == "t":
-        return math.exp(draw.uniform(math.log(low), math.log(high)))
+        return log_uniform(low, high)
     return draw.uniform(low, high)
 
 
