@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4079] - 2026-11-14
+
+**Headline:** A planet whose thermal and gravitational tides balance away from synchronism can no longer spin faster than 85 percent of its breakup rate.
+
+### Fixed
+- **The asynchronous balance is capped (GEN.1576).** `planets.generate_spin` took the rate of a balance of the two tides (`spin_torques` kind "asynchronous") as it came, so a puffy planet (3.5 Earth masses at 9 Earth radii, 0.15 AU from a G2 star) turned once in 6.2 hours where its surface would leave the ground at 24.4. The rate is now held at `spin.BREAKUP_FRACTION` of the breakup rate of the planet's mass and radius, the limit every other spin already obeys. Only a planet whose balance was past that limit changes. The red `test_orbital_motion` rotation-period test came from this (its sample is unseeded, so it failed now and then).
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4078] - 2026-11-14
 
 **Headline:** the ammonia of an ice-covered ocean is now concentrated in the liquid left under its ice shell, so more icy ocean worlds hold the strong ammonia-water solution that ammonia-water life and class X ask for.
