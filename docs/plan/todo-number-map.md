@@ -3059,7 +3059,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.254 | (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s | none | done, PR #6508 (12:21 PM EST 11-14) |
 | OPS.255 | (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page | none | done, PR #6502 (11:05 AM EST 11-14) |
 | OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | done, PR #6511 (12:25 PM EST 11-14): with no star scatter after a plan-and-stop the sky is left out of the backfill |
-| OPS.257 | A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena) | none | open |
+| OPS.257 | A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena) | none | done, PRs #6543 and #6549 (7:00 PM EST 11-14) |
 | OPS.258 | Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test | none | open |
 | OPS.259 | Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
