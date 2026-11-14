@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.3982 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.4104 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -311,6 +311,16 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://perso.ens-lyon.fr/gilles.chabrier/DirEOS/DirEOS2021.tar.gz> as `DirEOS2021.tar.gz`
 
+### `methane_visible`: Methane absorption coefficients, 300 to 1050 nm at 1 nm resolution ([R2259], NASA PDS GBAT_0001)
+
+- Source: [R2259], Icarus 133, 134; NASA PDS Atmospheres Node volume GBAT_0001 (no license stated).
+- Download: 1 file, 0.1 MB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch methane_visible`.
+- Replaces: the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands and the windows of a giant's color.
+- With `--disregard-missing-data`: The 35 band means of the gas table (physics/data/gases.json) for methane.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://atmos.nmsu.edu/PDS/data/gbat_0001/data/1995low.tab> as `1995low.tab`
+
 ### `hyg_stars`: HYG star database v4.1 (test oracle for the generated sky)
 
 - Source: HYG database v4.1 (Hipparcos, Yale Bright Star and Gliese catalogs), CC BY-SA 4.0, astronexus.
@@ -320,6 +330,16 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Bulk generation does not need it (only a test reads it), so nothing falls back and nothing is refused.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://raw.githubusercontent.com/astronexus/HYG-Database/master/hyg/CURRENT/hygdata_v41.csv> as `hygdata_v41.csv`
+
+### `gaia_nearby`: Gaia DR3 stars within 25 parsecs (the spacing of stars)
+
+- Source: Gaia DR3, ESA/Gaia/DPAC, CC BY-SA 3.0 IGO, via the Gaia archive TAP service (or its Heidelberg mirror, or VizieR).
+- Download: 1 file, 0.8 MB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch gaia_nearby`.
+- Replaces: SEP1: the share of the galactic Hill spheres that random placement keeps between two systems.
+- Bulk generation does not need it (only a test reads it), so nothing falls back and nothing is refused.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://gea.esac.esa.int/tap-server/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=csv&QUERY=SELECT+source_id%2C+ra%2C+dec%2C+parallax%2C+parallax_error%2C+pmra%2C+pmdec%2C+phot_g_mean_mag%2C+bp_rp+FROM+gaiadr3.gaia_source+WHERE+parallax+%3E+40+AND+parallax_over_error+%3E+10+ORDER+BY+source_id> as `gaia_dr3_25pc.csv`
 
 <!-- external-files:end -->
 

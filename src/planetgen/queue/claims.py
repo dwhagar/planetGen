@@ -38,7 +38,7 @@ processes it starts hold the memory, and the gate counts them under the worker (
 
 UNIT_BY_NATURE_MB = {
     "plan-skeleton": 1000, "finish-phenomena": 1000, "refresh-run-blocks": 1000, "clean-nebula-field": 700, "clear-scatter": 700,
-    "generate-system": workers.BULK_WORKER_MEMORY_MB,       # draws a star, so a worker with the sampling tables
+    "generate-system": workers.BULK_WORKER_MEMORY_MB,       # the largest worker seen held 1.9 GB (measured with no sampling tables built, PERF.266)
     "run-population": 2100, "run-territories": 1000, "reset-galaxy": 700,
     "check-math": 700, "check-datasets": 700, "check-revision": 700, "check-tables": 700, "check-tables-extended": 1000, "check-orphans": 1000,
     "check-ids": 700, "check-values": 1000, "check-counts": 700, "check-version-keys": 700, "check-storage": 700, "check-systems": 1000,
@@ -143,6 +143,23 @@ def function_table(function):
     return FUNCTION_CLAIMS[function]
 
 
+def typed_mb(kind):
+    """The typed figure of a claim kind (`unit:<command>`, `cut:<command>`, `api:<ref>`, `fn:<name>`), MB, or `None` for a kind with none (OPS.158: the page sets it beside the learned one)."""
+    try:
+        prefix, _, name = kind.partition(":")
+        if prefix == "unit":
+            return float(unit_table_mb(name))
+        if prefix == "cut":
+            return float(CUT_MB)
+        if prefix == "api":
+            return float(api_table(name)[0])
+        if prefix == "fn":
+            return float(function_table(name)[0])
+    except NoClaim:
+        pass
+    return None
+
+
 def default_claim(job):
     """The claim of a job of a kind with no figure: `DEFAULT_MB` and a core, on the job's lane, under the kind `fn:<function>`."""
     return Claim(f"fn:{job.func_name}", float(DEFAULT_MB), 1.0, lane_of(job.origin))
@@ -197,4 +214,5 @@ def claim_for(job, conn):
         (mb, cpu), exclusive = function_table(function), False
         kind = f"fn:{function}"
     solo = pause.solo_of(conn)
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))
+    token = job.args[0] if function in (UNIT_FUNCTION, OPEN_FUNCTION) else None        # OPS.156: a run holds one figure per kind
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))

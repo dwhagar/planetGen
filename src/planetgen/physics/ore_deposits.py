@@ -211,8 +211,17 @@ def state_of(body):
 
 def stream_of(body, kind):
     """The body's own stream for one type (or `"craton"`): seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
+    return body_stream("ore", body, kind)
+
+
+def body_stream(prefix, body, kind):
+    """
+    The stream of one deposit pass (`prefix`: `ore`, `sediment`, `carbide`, `hydrothermal`) for one type on one body, seeded from what is final
+    about the body (whether it is a moon, its mass, radius and distance, its star's age) and the type, so no draw of the run's stream moves and
+    adding a type moves no other. Shared by the four deposit modules (GEN.1667).
+    """
     star = getattr(body, "star", None)
-    return draw.Stream(f"ore:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
+    return draw.Stream(f"{prefix}:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
 
 
 # --- the derived fields ---------------------------------------------------------------------------------------------

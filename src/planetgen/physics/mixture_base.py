@@ -136,4 +136,3 @@ def finish(equilibrium, *, family, drawn, redox_diw, inventory, constants, conde
         unlisted=unlisted,
         moles=equilibrium.total_moles if supplied else None,
     )
-

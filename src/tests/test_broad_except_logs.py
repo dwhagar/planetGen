@@ -28,6 +28,8 @@ ALLOWED = {
     ("util/log.py", "_RelayHandler.flush"): LOGGING_MACHINERY,
     ("util/log.py", "_referenced_values"): LOGGING_MACHINERY,
     ("util/log.py", "RelayReader.drain"): LOGGING_MACHINERY,
+    ("util/log.py", "_masked_record"): LOGGING_MACHINERY,
+    ("util/secrets_mask.py", "_settings_secrets"): LOGGING_MACHINERY,
 }
 
 LOG_NAMES = ("log.", "planetgen_log.", "logging.")

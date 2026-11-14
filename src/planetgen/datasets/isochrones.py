@@ -17,7 +17,6 @@ They answer `None` when the star has left the main sequence at that age or is be
 `fetch.DataMissing` when the file has not been downloaded.
 """
 
-import bisect
 import functools
 import io
 import itertools
@@ -30,7 +29,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.datasets import fetch
+from planetgen.datasets import axes, evolved_tracks, fetch
 
 ARCHIVE = "MIST_v1.2_vvcrit0.4_basic_isos.txz"
 DERIVED = "main_sequence.npz"
@@ -103,7 +102,6 @@ def parse_isochrone_file(lines):
 
 def derive(folder):
     """The compact files from the downloaded archive: `{DERIVED: npz bytes, POST_DERIVED: npz bytes}`."""
-    from planetgen.datasets import evolved_tracks
     found = []
     with tarfile.open(f"{folder}/{ARCHIVE}") as archive:
         for member in archive:
@@ -326,13 +324,8 @@ def metallicities():
 
 
 def _bracket(grid, fe_h):
-    values = [isochrone.fe_h for isochrone in grid]
-    fe_h = min(max(fe_h, values[0]), values[-1])
-    upper = min(bisect.bisect_left(values, fe_h), len(values) - 1)
-    lower = upper if values[upper] == fe_h else upper - 1
-    if lower == upper:
-        return grid[upper], grid[upper], 0.0
-    weight = (fe_h - values[lower]) / (values[upper] - values[lower])
+    """`(below, above, weight)`: the two isochrones of `grid` around `fe_h` (held to the grid's ends) and the share of the upper one."""
+    lower, upper, weight = axes.bracket([isochrone.fe_h for isochrone in grid], fe_h)
     return grid[lower], grid[upper], weight
 
 
@@ -499,7 +492,6 @@ def post_main_sequence_grid():
     """The `evolved_tracks.Grid` of the post-main-sequence tracks (GEN.935), read from the derived file once for the grid
     `_grid` has read: it follows the main sequence's checks of the dataset and the cache folder, and is read again when
     that grid is. Raises `fetch.DataMissing` when the isochrones were not downloaded."""
-    from planetgen.datasets import evolved_tracks
     _grid()
     token = _SEEN["token"]
     if _POST.get("token") != token:
@@ -517,7 +509,6 @@ def post_main_sequence_track(mass_sol, fe_h):
     """The `evolved_tracks.Track` of a star of initial mass `mass_sol` and birth `fe_h` from the end of its main sequence on
     (the four nearest tracks blended, GEN.935), or None when no track of the grid reaches the thermal pulses."""
     return post_main_sequence_grid().track(mass_sol, fe_h)
-
 
 
 def post_main_sequence_light(mass_sol, fe_h):

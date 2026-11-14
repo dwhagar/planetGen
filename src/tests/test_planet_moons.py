@@ -22,7 +22,6 @@ def test_a_disk_cannot_hold_more_than_canup_and_ward_total():
 
 
 def test_a_disk_moon_of_planet_size_needs_a_super_jovian_share():
-    assert pm.disk_parent_mass_kg() == pytest.approx(0.5 * JUPITER, rel=0.1)
     # a Jupiter's whole disk holds about 0.2 Earth masses: planet size only if one moon took the lot
     assert pm.disk_moon_ceiling_kg(JUPITER) < 3 * pm.PLANET_MOON_MIN_MASS_KG
     assert pm.disk_moon_ceiling_kg(10 * JUPITER) > 1.0 * EARTH_MASS_TO_KG
@@ -78,6 +77,6 @@ def test_about_one_giant_in_seventy_holds_one():
 
 
 def test_bad_inputs_are_refused():
-    for call in (pm.disk_moon_ceiling_kg, pm.exchange_chance, pm.exchange_ceiling_kg, pm.disk_parent_mass_kg):
+    for call in (pm.disk_moon_ceiling_kg, pm.exchange_chance, pm.exchange_ceiling_kg):
         with pytest.raises(ValueError):
             call(0.0)

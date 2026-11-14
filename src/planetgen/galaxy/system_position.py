@@ -166,10 +166,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     sector_au = tuple(c * to_au for c in sector_center_ly)
     center_au = tuple((c + p) * to_au for c, p in zip(sector_center_ly, position_ly))
 
-    system_speed = getattr(getattr(system, "star", None), "galactic_orbital_speed_kms", None)
-    circular_velocity = galactic_velocity_ms(center_au, system_speed)
-    system_velocity = tuple(velocity_ms) if velocity_ms is not None else _add(circular_velocity,
-                                                                              peculiar_velocity_ms(system))
+    system_velocity = tuple(velocity_ms) if velocity_ms is not None else system_velocity_ms(system, center_au)
     # Every star of a system moves with the system: the pair's bulk motion is one vector (a wide pair's two stars sit
     # up to a few hundredths of a parsec apart, where the rotation curve's tangent turns by about a millionth, 0.06 m/s
     # of 200 km/s; a star taking the tangent at its own place instead would load back, from the one stored vector,

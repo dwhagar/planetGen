@@ -39,6 +39,7 @@ import time
 from dataclasses import dataclass, field
 
 from planetgen.galaxy.version_key import version_key as current_version_key
+from planetgen.generation import object_timing
 from planetgen.util import log
 
 MIN_DENSITY = 0.01
@@ -85,12 +86,19 @@ GALAXY_WIDE_TABLES = frozenset({
 """frozenset: Tables a plan or the bright-star scatter fills for the
 whole galaxy at once, left out of the size per system."""
 
-STATS_ENV_VAR = "PLANETGEN_GENERATION_STATS"
+STATS_ENV_VAR = object_timing.STATS_ENV_VAR
 """str: `0` keeps `planetgen` from reading or recording any stats (the
 test suite sets it, so test runs never touch a real server's numbers)."""
 
 FLUSH_SECONDS = 30
 """int: How often a run writes its new averages back while it runs."""
+
+
+def recording_enabled():
+    """Whether stage rows and speed stats are stored at all (`STATS_ENV_VAR`, off in the test suite)."""
+    return object_timing.stats_enabled()
+
+
 
 KINDS = ("sector", "scatter-mass", "scatter-bright", "phenomena", "phenomena-write")
 """tuple: What a bucket times: a sector's fill, (PERF.9) a run of shells of the
@@ -186,6 +194,17 @@ class Bucket:
 
 _COLUMNS = ("samples", "seconds_per_task", "seconds_per_system", "systems_per_task", "stars_per_system",
             "max_density")
+
+
+def _sampled(buckets, kind, workers=None):
+    """The buckets of `kind` (and of `workers`, when given) that have counted a task, in the order of `buckets`
+    (`GenerationStats.buckets`: `(kind, workers, index)` to `Bucket`)."""
+    return [b for (k, w, _i), b in buckets.items() if k == kind and (workers is None or w == workers) and b.samples]
+
+
+def _sample_weighted(rows, attribute):
+    """`attribute` of the buckets `rows`, averaged with each bucket's samples as its weight."""
+    return sum(getattr(b, attribute) * b.samples for b in rows) / sum(b.samples for b in rows)
 
 
 class GenerationStats:
@@ -367,42 +386,33 @@ class GenerationStats:
         rows for that worker count; with none for it, the rows of the
         neighbouring worker counts blended by distance (the nearest one
         when only one side has any); else `DEFAULT_SECONDS_PER_SYSTEM`."""
+        found = self._blend_by_workers(kind, workers, lambda count: self._nearest_bucket(kind, density, count))
+        return DEFAULT_SECONDS_PER_SYSTEM if found is None else found
+
+    def _blend_by_workers(self, kind, workers, value_at):
+        """`value_at(count)`, a figure read from the `kind` buckets of one worker count, for a run of `workers`: the rows of that
+        worker count when there are any; else the neighbouring counts' figures blended by distance (the nearest one when only one
+        side has any); `None` with nothing recorded for `kind`."""
         workers = max(1, int(workers or 1))
-        counts = sorted({w for (k, w, _i), b in self.buckets.items() if k == kind and b.samples})
+        counts = sorted({b.workers for b in _sampled(self.buckets, kind)})
         if not counts:
-            return DEFAULT_SECONDS_PER_SYSTEM
+            return None
         if workers in counts:
-            return self._nearest_bucket(kind, density, workers)
+            return value_at(workers)
         below = [w for w in counts if w < workers]
         above = [w for w in counts if w > workers]
         if below and above:
             low, high = below[-1], above[0]
             fraction = (workers - low) / (high - low)
-            return ((1 - fraction) * self._nearest_bucket(kind, density, low)
-                    + fraction * self._nearest_bucket(kind, density, high))
-        return self._nearest_bucket(kind, density, (below or above)[-1 if below else 0])
+            return (1 - fraction) * value_at(low) + fraction * value_at(high)
+        return value_at((below or above)[-1 if below else 0])
 
     def _mean_for_workers(self, kind, workers, attribute):
         """`attribute` of the `kind` buckets at `workers`, averaged by their samples; with no rows for that
         worker count the neighbouring counts' averages blended by distance (the nearest when one side has
         none); `None` with nothing recorded."""
-        workers = max(1, int(workers or 1))
-        counts = sorted({w for (k, w, _i), b in self.buckets.items() if k == kind and b.samples})
-        if not counts:
-            return None
-
-        def mean(count):
-            rows = [b for (k, w, _i), b in self.buckets.items() if k == kind and w == count and b.samples]
-            return sum(getattr(b, attribute) * b.samples for b in rows) / sum(b.samples for b in rows)
-
-        if workers in counts:
-            return mean(workers)
-        below = [w for w in counts if w < workers]
-        above = [w for w in counts if w > workers]
-        if below and above:
-            fraction = (workers - below[-1]) / (above[0] - below[-1])
-            return (1 - fraction) * mean(below[-1]) + fraction * mean(above[0])
-        return mean((below or above)[-1 if below else 0])
+        return self._blend_by_workers(kind, workers,
+                                      lambda count: _sample_weighted(_sampled(self.buckets, kind, count), attribute))
 
     def pool_rate(self, kind, workers=1):
         """
@@ -421,8 +431,7 @@ class GenerationStats:
 
     def _nearest_bucket(self, kind, density, workers):
         index = bucket_index(density)
-        measured = [b for (k, w, _i), b in self.buckets.items() if k == kind and w == workers and b.samples]
-        nearest = min(measured, key=lambda b: (abs(b.index - index), -b.samples))
+        nearest = min(_sampled(self.buckets, kind, workers), key=lambda b: (abs(b.index - index), -b.samples))
         return nearest.seconds_per_system
 
     def bytes_per_system(self, database):
@@ -654,7 +663,7 @@ def estimate(sectors, stats, database, workers=1, kind="sector", total=None):
     result.stars = result.systems * stars_ratio
     result.bytes = int(math.ceil(round(result.systems * stats.bytes_per_system(database) * (1 + SIZE_MARGIN), 6)))
     result.seconds = worker_seconds / min(result.workers, max(result.sectors, 1))
-    result.measured = any(b.samples for (k, _w, _i), b in stats.buckets.items() if k == kind)
+    result.measured = bool(_sampled(stats.buckets, kind))
     return result
 
 
@@ -678,10 +687,8 @@ def fingerprint(conn):
 
 
 def _stars_per_system(stats, kind):
-    measured = [b for (k, _w, _i), b in stats.buckets.items() if k == kind and b.samples and b.stars_per_system]
-    if not measured:
-        return 1.3
-    return sum(b.stars_per_system * b.samples for b in measured) / sum(b.samples for b in measured)
+    measured = [b for b in _sampled(stats.buckets, kind) if b.stars_per_system]
+    return _sample_weighted(measured, "stars_per_system") if measured else 1.3
 
 
 def check_disk(result, disk):

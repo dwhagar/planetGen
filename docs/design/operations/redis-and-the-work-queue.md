@@ -467,6 +467,8 @@ behind small ones. `queue/scheduler.py` answers which waiting job goes next, on 
 
 Boss's rule is built in: **only dead and quiet are `actionable`**. A unit whose counter is moving is never judged for killing, at any rate and any size over its estimate (the 11-08 failure was a sky cell killed at 10 times a sector unit's average while it was working); looping and slow are flags for a person. A unit that reports no counter is working until it is dead. `agreed(previous, current)` is the "two checks in a row" rule the follower (OPS.138) uses before it acts. The beat record is written by OPS.136 and the longest gaps by OPS.135; the follower runs the judge and logs each change once in OPS.138.
 
+**Evidence in the beat (OPS.193).** A counter that stands still is not proof a unit has stopped: one long SQL statement moves no counter. The beat record also carries `cpu_s` (processor seconds of the process), `io_read` and `io_write` (bytes, `/proc/self/io`), and, while a statement is out, `sql` (its label) and `sql_since` (server-clock seconds). `db/statementmark.py` is the mark: `db/store.py` sets it around every statement it sends and the beat thread reads it, so no privilege on `performance_schema` is needed. Nothing reads the fields yet; OPS.194 gives the judge the state `busy` from them. OPS.197 (`tests/test_no_sleep_in_commands.py`) keeps a bare sleep out of command code, where a wait would show no activity.
+
 ### 5.17 The bulk worker limit follows the host's memory (Boss, 9:58 PM EST on 2026-11-11)
 
 Boss saw a "waited 300 s" line every few systems of a generation run and a slow run. The cause is the gate's bound (5.14): more bulk workers than the

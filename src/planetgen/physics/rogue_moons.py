@@ -73,10 +73,6 @@ def survival_distance_m(r_min_m, planet_mass_kg, scatterer_mass_kg):
     return r_min_m * (planet_mass_kg / (planet_mass_kg + scatterer_mass_kg)) ** (1.0 / 3.0)
 
 
-
-
-
-
 def moon_limit_km(hill_radius_km, stable_hill_fraction, r_min_km, planet_mass_kg, scatterer_mass_kg):
     """
     The widest orbit, km from the planet, a moon of a planet that is thrown out can have and still be there afterwards (GEN.1111, RP4): the lower of the

@@ -11,7 +11,7 @@ inner triple, which a triple test cannot see. [R4575] trained a small neural net
 N-body integrations and got 93 percent. This module is that network as plain numbers: 11 inputs, four hidden layers of 50 logistic units, one
 logistic output, the probability that the system is *unstable*. The 8,301 numbers (weights and biases) are in `data/quadruple_stability_3p1_weights.json`, made from the
 authors' scikit-learn model file by `scripts/build_quadruple_stability.py` (read without running the pickle); the forward pass here is numpy
-only and gives the scikit-learn probabilities to 1e-8.
+only and gives the scikit-learn probabilities to 1e-8. The validity ranges and the stability definition of each shape are in `data/quadruple_stability_3p1.json` and `data/quadruple_stability_2p2.json`.
 
 The inputs, all dimensionless (the problem is scale free):
 
@@ -67,12 +67,7 @@ def _load(kind, input_names):
     """`(rule document, coefficient matrices, bias vectors)` of the network of `kind` (`"3p1"` or `"2p2"`), refusing a file that does not hold what it claims."""
     data_file = os.path.join(elements.DATA_DIRECTORY, f"quadruple_stability_{kind}.json")
     weights_file = os.path.join(elements.DATA_DIRECTORY, f"quadruple_stability_{kind}_weights.json")
-    with open(data_file, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise QuadrupleStabilityError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+    document = elements.load_rule_numbers(data_file, QuadrupleStabilityError)
     with open(weights_file, encoding="utf-8") as handle:
         network = json.load(handle)
     coefs = [np.array(c, dtype=float) for c in network["coefs"]]

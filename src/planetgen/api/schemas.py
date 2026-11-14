@@ -12,6 +12,7 @@ mark every field in one round trip. The limits are the ones the routes
 always had (`routes.MAX_NAME_LENGTH` and the rest).
 """
 
+import re
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import (
@@ -96,12 +97,17 @@ def given(instance):
     return instance.model_dump(exclude_unset=True)
 
 
+def _at_most(value, limit):
+    """`value`, or a `ValueError` when it is longer than `limit` (a `None` passes)."""
+    if value is not None and len(value) > limit:
+        raise ValueError(f"'name' must be at most {limit} characters")
+    return value
+
+
 def _name(value):
     if not value.strip():
         raise ValueError("'name' must be a non-empty string")
-    if len(value) > MAX_NAME_LENGTH:
-        raise ValueError(f"'name' must be at most {MAX_NAME_LENGTH} characters")
-    return value
+    return _at_most(value, MAX_NAME_LENGTH)
 
 
 class SectorCreate(Body):
@@ -147,9 +153,7 @@ class SystemRename(Rename):
     @field_validator("name")
     @classmethod
     def _short(cls, value):
-        if len(value) > SYSTEM_NAME_MAX_LENGTH:
-            raise ValueError(f"'name' must be at most {SYSTEM_NAME_MAX_LENGTH} characters")
-        return value
+        return _at_most(value, SYSTEM_NAME_MAX_LENGTH)
 
 
 class BodyRename(Rename):
@@ -158,9 +162,7 @@ class BodyRename(Rename):
     @field_validator("name")
     @classmethod
     def _short(cls, value):
-        if len(value) > MAX_NAME_LENGTH:
-            raise ValueError(f"'name' must be at most {MAX_NAME_LENGTH} characters")
-        return value
+        return _at_most(value, MAX_NAME_LENGTH)
 
 
 class SystemRecipe(Body):
@@ -185,9 +187,7 @@ class SystemRecipe(Body):
     @field_validator("name")
     @classmethod
     def _recipe_name(cls, value):
-        if value is not None and len(value) > SYSTEM_NAME_MAX_LENGTH:
-            raise ValueError(f"'name' must be at most {SYSTEM_NAME_MAX_LENGTH} characters")
-        return value
+        return _at_most(value, SYSTEM_NAME_MAX_LENGTH)
 
     @field_validator("num_orbits")
     @classmethod
@@ -640,6 +640,24 @@ class WorkerCount(Lenient):
             raise ValueError("send either 'count' (a whole number of at least 1) or 'ludicrous': true")
         if self.count is not None and self.count < 1:
             raise ValueError("'count' must be at least 1")
+        return self
+
+
+class TuningAction(Lenient):
+    """`POST /api/admin/work/tuning` (OPS.158): fix (`pin`), release (`unpin`) or forget (`clear`) what the queue has learned for a job kind."""
+
+    action: StrictStr = Field(description="One of `pin`, `unpin` or `clear`.")
+    kind: StrictStr = Field(description="The job kind: `unit:<command>`, `cut:<command>`, `api:<ref>` or `fn:<name>`.", max_length=160)
+    mb: Optional[StrictFloat] = Field(default=None, description="Unit: count of megabytes, the claim to fix; `pin` only.")
+
+    @model_validator(mode="after")
+    def _check(self):
+        if self.action not in ("pin", "unpin", "clear"):
+            raise ValueError("'action' is 'pin', 'unpin' or 'clear'")
+        if not re.match(r"^(unit|cut|api|fn):[\w.:\-]+$", self.kind):
+            raise ValueError("'kind' is unit:<command>, cut:<command>, api:<ref> or fn:<name>")
+        if self.action == "pin" and (self.mb is None or not 150 <= self.mb <= 1_000_000):
+            raise ValueError("'mb' is a claim between 150 and 1,000,000 megabytes")
         return self
 
 

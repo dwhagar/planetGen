@@ -44,6 +44,7 @@ from planetgen import tuning
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import accessory_minerals, comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 # ---------------------------------------------------------------------------------------------------------------------
 # The kinds the tables are gated by (never a Solar System body)
@@ -485,8 +486,7 @@ def draw_comet(period_class=None, interstellar=False, ice_ratios=None):
         SmallBodyMakeup: With `detail` holding `refractory_ice_ratio`, `organic_share`, `volatiles` (percent of water by number),
         `carbon_chain_depleted` and `ice_fraction`.
     """
-    low, high = REFRACTORY_ICE_RATIO_RANGE
-    delta = math.exp(draw.uniform(math.log(low), math.log(high)))
+    delta = log_uniform(*REFRACTORY_ICE_RATIO_RANGE)
     organic = min(max(draw.gauss(*ORGANIC_SHARE), 0.0), 1.0)
     porosity = draw.uniform(*COMET_POROSITY_RANGE)
     volatiles = comet_population.draw_volatiles(COMET_DYNAMICAL_CLASS.get(period_class, period_class), interstellar=interstellar,
@@ -551,8 +551,7 @@ def draw_icy_body(kind=DWARF_PLANET):
     possibility = ICY_TABLE.draw(kind)
     rock = _truncated_normal(*ROCK_FRACTION_LAWS[possibility.name])
     components = {"forsterite": rock * 0.5, "enstatite": rock * 0.5, "water_ice": 1.0 - rock}
-    low, high = KUIPER_POROSITY_RANGE
-    return _makeup(kind, components, draw.uniform(low, high), detail={"row": possibility.name, "rock_fraction": rock},
+    return _makeup(kind, components, draw.uniform(*KUIPER_POROSITY_RANGE), detail={"row": possibility.name, "rock_fraction": rock},
                    size_dependent=True)
 
 

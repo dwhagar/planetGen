@@ -179,7 +179,7 @@ def catastrophic_energy(m_target, m_projectile):
     if not (m_target > 0.0 and m_projectile > 0.0) or m_projectile > m_target:
         raise ValueError("the target is the larger mass and both are positive")
     gamma = m_projectile / m_target
-    r_c1 = (3.0 * (m_target + m_projectile) / (4.0 * math.pi * RHO_1)) ** (1.0 / 3.0)
+    r_c1 = relations.sphere_radius(m_target + m_projectile, RHO_1)
     base = CRITICAL_COEFFICIENT * 0.8 * math.pi * RHO_1 * constants.G * r_c1 ** 2
     return ((gamma + 1.0) ** 2 / (4.0 * gamma)) ** (2.0 / (3.0 * CRITICAL_MU_BAR) - 1.0) * base
 
@@ -371,7 +371,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
         debris = Debris(m_total, center, v_com, r_sum, composition, remnant)
         return finish("disruption", [], [a.key, b.key], debris)
     if grazing:
-        eroded = x / 2.0 * 2.0 * m_proj
+        eroded = x * m_proj                       # each body loses x/2 of an interacting mass of twice the lens
         share = eroded / m_total
         kept = []
         taken = [0.0, 0.0]

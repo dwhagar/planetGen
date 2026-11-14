@@ -50,7 +50,7 @@ from types import SimpleNamespace
 
 from planetgen import tuning
 from planetgen.galaxy import shape_draw
-from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, disk_condensation, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
+from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, disk_condensation, elements, hydrosphere, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
 from planetgen.util import draw
 
 ATTRIBUTE = "isotopes"
@@ -213,7 +213,7 @@ ROCK_OXIDE_ELEMENTS = {"rock_na2o_fraction": "Na", "rock_k2o_fraction": "K", "ro
 CORE_ELEMENTS = {"core_ni_fraction": "Ni", "core_s_fraction": "S", "core_si_fraction": "Si", "core_o_fraction": "O", "core_c_fraction": "C", "core_h_fraction": "H"}
 """dict: The light-element column of a core and the element it holds."""
 
-_EARTH_G = 9.80665
+_EARTH_G = constants.EARTH_GRAVITY
 AVOGADRO = constants.AVOGADRO
 _GY_S = radiogenic.GY_S
 
@@ -570,7 +570,7 @@ def cosmogenic_rows(body):
 
 def _land_fraction(body):
     """The share of the body's surface that is dry rock the cascade reaches: the ocean (a few meters of water stop it) covers `ocean_fraction` of it."""
-    return min(max(1.0 - float(getattr(body, "ocean_fraction", None) or 0.0), 0.0), 1.0)
+    return min(max(1.0 - hydrosphere.water_cover(body), 0.0), 1.0)       # GEN.1567: ice stops the cascade as water does
 
 
 def _field_relative(body):
@@ -799,6 +799,7 @@ def mantle_sheet_rows(rows):
         ratio = SOLAR_XE_136_OVER_130 + excess
         add("136Xe/130Xe", "Xenon-136 over xenon-130 of the mantle's gas", f"136Xe/130Xe {ratio:.4g}", ratio)
     return shown
+
 
 def _one_row_per_isotope(rows):
     """

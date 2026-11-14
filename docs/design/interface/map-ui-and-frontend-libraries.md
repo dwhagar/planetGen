@@ -384,7 +384,7 @@ lies behind it can recur.
 - **Colours.** `NEBULA_LOOKS` (core/edge opacity): diffuse `#e3a6c8` 0.47/0.14, emission
   `#ff6f91` 0.69/0.25, reflection `#6fa8ff` 0.63/0.22, planetary `#5be8c9` 0.66/0.24,
   dark `#1c1c24` 0.91/0.56, shared with `starmap.py`.
-- **Shape.** `planetgen/galaxy/nebula_shape.py`: metaballs with kernel `(1 - d^2/r^2)^2`,
+- **Shape** (historical; GEN.1267 removed it, a nebula is the density contour of `galaxy/nebula_density.py`). `planetgen/galaxy/nebula_shape.py`: metaballs with kernel `(1 - d^2/r^2)^2`,
   domain-warped, marching cubes (`MESH_LODS` low 10, full 28 cells per axis). The scalar
   field `F` exists server side but is not served.
 

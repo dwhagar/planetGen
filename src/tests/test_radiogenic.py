@@ -15,7 +15,7 @@ from planetgen import tuning
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import elements, planet_type, radiation, radiogenic, rogue_surface, surface_composition
+from planetgen.physics import elements, planet_type, potassium_depletion, radiation, radiogenic, rogue_surface, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -142,22 +142,29 @@ def test_the_truncated_offset_has_the_stated_scatter():
 
 def test_the_draws_stay_in_their_ranges_and_always_use_the_same_number_of_draws():
     stream_a, stream_b = draw.Stream("radiogenic-a"), draw.Stream("radiogenic-a")
-    contents = []
-    for i in range(300):
-        contents.append(radiogenic.draw_content(0.2 if i % 2 else None, rng=stream_a))
-        radiogenic.draw_content(-0.3 if i % 3 else None, rng=stream_b)
+    contents, masses = [], []
+    for i in range(600):
+        mass = 1.0 if i % 2 else 0.002
+        masses.append(mass)
+        contents.append(radiogenic.draw_content(mass, 0.2 if i % 2 else None, rng=stream_a))
+        radiogenic.draw_content(mass, -0.3 if i % 3 else None, rng=stream_b)
     # whatever the branch, the streams stay in step: the next draw is the same
     assert stream_a.random() == stream_b.random()
-    ratios = [c.k0_ppm / (radiogenic.formation_mix("K")[1]) / (c.u0_ppm / radiogenic.formation_mix("U")[1]) / radiogenic.CI_CHONDRITE_K_OVER_U
+    ratios = [c.k0_ppm / (radiogenic.formation_mix("K")[1]) / (c.u0_ppm / radiogenic.formation_mix("U")[1]) / potassium_depletion.ci_k_over_u()
               for c in contents]
-    assert all(tuning.RADIOGENIC_K_DEPLETION_RANGE[0] * 0.999 <= r <= tuning.RADIOGENIC_K_DEPLETION_RANGE[1] * 1.001 for r in ratios)
+    assert all(0.0 < r <= potassium_depletion.MAX_DEPLETION * 1.001 for r in ratios)
+    # GEN.492: the depletion is drawn by the body's class, planets about 0.19 and small bodies about 0.015 of CI
+    planets = sorted(r for r, m in zip(ratios, masses) if m >= 1.0)
+    small = sorted(r for r, m in zip(ratios, masses) if m < 1.0)
+    assert 0.15 < planets[len(planets) // 2] < 0.24
+    assert 0.008 < small[len(small) // 2] < 0.03
     assert all(c.al26_ratio >= 0.0 for c in contents)
     assert min(r for r in ratios) < 0.1 and max(r for r in ratios) > 0.5  # the depletion spans the range
 
 
 def test_an_enriched_silicate_has_more_thorium_and_uranium():
-    plain = radiogenic.draw_content(0.0, rng=draw.Stream("e"))
-    rich = radiogenic.draw_content(0.0, rng=draw.Stream("e"), refractory_enrichment=2.0)
+    plain = radiogenic.draw_content(1.0, 0.0, rng=draw.Stream("e"))
+    rich = radiogenic.draw_content(1.0, 0.0, rng=draw.Stream("e"), refractory_enrichment=2.0)
     assert rich.th0_ppm == pytest.approx(2 * plain.th0_ppm)
     assert rich.u0_ppm == pytest.approx(2 * plain.u0_ppm)
     assert rich.al26_ratio == plain.al26_ratio
@@ -266,7 +273,7 @@ def test_the_aluminium_26_of_a_star_is_a_spiky_sum_of_decayed_additions_about_it
     """GEN.476: the median star is born with far less than the region's mean and a few with many times more, and the mean follows the gas depletion time and the star's aluminium."""
     mean = radiogenic.al26_mean()
     stream = draw.Stream("al26-spiky")
-    ratios = sorted(radiogenic.draw_content(0.0, rng=stream).al26_ratio for _ in range(1500))
+    ratios = sorted(radiogenic.draw_content(1.0, 0.0, rng=stream).al26_ratio for _ in range(1500))
     assert ratios[len(ratios) // 2] < 0.3 * mean and ratios[-1] > 5.0 * mean
     assert 0.3 * mean < sum(ratios) / len(ratios) < 3.0 * mean
     assert radiogenic.al26_mean(fe_h=0.3) == pytest.approx(radiogenic.al26_mean() / 10.0 ** 0.3)
@@ -274,10 +281,10 @@ def test_the_aluminium_26_of_a_star_is_a_spiky_sum_of_decayed_additions_about_it
 
 
 def test_the_given_mean_sets_the_scale_and_one_seed_gives_one_ratio():
-    low = [radiogenic.draw_content(0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-7).al26_ratio for i in range(200)]
-    high = [radiogenic.draw_content(0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-5).al26_ratio for i in range(200)]
+    low = [radiogenic.draw_content(1.0, 0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-7).al26_ratio for i in range(200)]
+    high = [radiogenic.draw_content(1.0, 0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-5).al26_ratio for i in range(200)]
     assert sum(high) > 20 * sum(low)
-    assert radiogenic.draw_content(0.0, rng=draw.Stream("same")).al26_ratio == radiogenic.draw_content(0.0, rng=draw.Stream("same")).al26_ratio
+    assert radiogenic.draw_content(1.0, 0.0, rng=draw.Stream("same")).al26_ratio == radiogenic.draw_content(1.0, 0.0, rng=draw.Stream("same")).al26_ratio
 
 
 def test_every_body_of_a_star_shares_its_birth_aluminium_26_and_a_star_without_a_history_has_none_to_share():
@@ -288,6 +295,6 @@ def test_every_body_of_a_star_shares_its_birth_aluminium_26_and_a_star_without_a
     other = radiogenic.star_al26_ratio(SimpleNamespace(metallicity_fe_h=-0.1, age=3.0, mass=1.1, galactic_center_dist_ly=26000.0))
     assert other != first or first == 0.0
     assert radiogenic.star_al26_ratio(SimpleNamespace(metallicity_fe_h=None, age=3.0)) is None
-    content = radiogenic.draw_content(0.0, rng=draw.Stream("shared"), al26_ratio=first)
+    content = radiogenic.draw_content(1.0, 0.0, rng=draw.Stream("shared"), al26_ratio=first)
     assert content.al26_ratio == first
     assert draw.Stream("shared").random() == draw.Stream("shared").random()

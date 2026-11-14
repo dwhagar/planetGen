@@ -148,6 +148,28 @@ def _proto_solar_crust_index():
     return (sa.PROTO_MASS_FRACTION["Ca"] + sa.PROTO_MASS_FRACTION["Al"]) / sa.PROTO_MASS_FRACTION["Mg"]
 
 
+def accreted_taxon(members, u):
+    """
+    The taxon of the belt member a polluted white dwarf accreted: one of `members` (pairs of mass in kg and taxon letter, the stored members of the system's
+    belts), chosen with a probability in proportion to its mass by `u`, a uniform number in [0, 1). `None` without members.
+    """
+    members = [(mass, taxon) for mass, taxon in members if mass > 0.0]
+    if not members:
+        return None
+    target = u * sum(mass for mass, _taxon in members)
+    running = 0.0
+    for mass, taxon in members:
+        running += mass
+        if target < running:
+            return taxon
+    return members[-1][1]
+
+
+def pollutant_of_taxon(taxon):
+    """The `pollutant` of a body of belt taxon `taxon` (`small_body_composition.TAXON_DATA`): the taxon's own mix of the materials table."""
+    return pollutant(sbc.TAXON_DATA[taxon].fractions)
+
+
 def pollutant(components):
     """
     The elements a white dwarf would show of an accreted body whose grains are `components` (material id -> mass fraction, as

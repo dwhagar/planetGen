@@ -40,7 +40,7 @@ import math
 from dataclasses import dataclass, field, replace
 
 from planetgen.physics import (
-    aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw, orbits,
+    aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
     mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
@@ -62,6 +62,9 @@ table warms to 1,000 K) from carrying the ocean past the critical point of water
 
 MAX_STEPS = 60
 """int: The most steps of the fixed point. A body that has not settled by then keeps its last step and says so (`Air.converged`)."""
+
+ESCAPE_MIN_STEPS = 12
+"""int: The fewest steps the light-gas escape pass gets after the air has settled without it (GEN.1594: `MAX_STEPS` ended a loop that settled on its last step with the escape never in the air, and the air was called converged)."""
 
 FREEZE_AFTER = 8
 """int: From this step on the recipe draw of the last step is kept (the regimes can no longer flip)."""
@@ -110,12 +113,6 @@ VACUUM_PRESSURE_PA = 1.0
 """float: Below this pressure (Pa) the volcanic gas equilibrium does not converge (it is a solver of a dense gas, and a fixed point that
 falls this far has no air to equilibrate); a body whose pressure falls here keeps only an exosphere, which is taken as airless. A
 planetGen stand-in (tier T5, L0): the exosphere of Mercury or the Moon is 1e-10 Pa and under."""
-
-MAX_SURFACE_TEMPERATURE_K = 2000.0
-"""float: The hottest surface the fixed point may reach. A steam or carbon dioxide greenhouse that runs away stops where the surface is
-molten rock radiating through its own windows (a radiative limit near 1500 to 1800 K, recalled from the magma-ocean literature, not
-read), and the equilibrium of the gas does not converge far above it. A planetGen stand-in (tier T5, L1): the iteration of an
-unbounded greenhouse reached 3700 K at 3700 bar for a hot, heavy body."""
 
 MIN_ABSORBED_FLUX_W_M2 = 1.0e-30
 """float: A body in the dark absorbs no light, and the greenhouse closure wants a positive flux; its temperature is the background's."""
@@ -295,6 +292,8 @@ class Air:
         late (dict): The carbon and nitrogen the late accretion left, atoms per 100 g of mantle (`_late_accretion`); what `generation/late_accretion.py` compares a new late accretion to.
         late_state: The state of the ambient stream where the late accretion's draws began (`late_accretion_moves` draws them again).
         degassed (dict): The carbon and nitrogen the last step's volcanoes gave the surface, atoms per 100 g of mantle: the scale `late` is small or large against.
+        ceiling_k (float or None): The hottest surface this air may have, K: the half-ionization temperature of its main gas at its pressure (`ionization.ceiling_k`, GEN.1580); `None` for no air.
+        entry_state: The state of the ambient stream when `solve` began, before it drew the design constants, the seed and the late accretion. Solving again from it with another start temperature (`air_branches.other_branch`, GEN.1646) repeats every draw, so the second climate branch of a world holds the same inventory as the first.
     """
 
     mixture: object
@@ -316,6 +315,13 @@ class Air:
     late: dict = field(default_factory=dict)
     degassed: dict = field(default_factory=dict)
     late_state: object = None
+    ceiling_k: object = None
+
+    @property
+    def at_ceiling(self):
+        """Whether the air's own warming asked for more than `ceiling_k` and was held at it (GEN.1580): a mistake of the model to explain, never a state to keep."""
+        return self.warming is not None and self.ceiling_k is not None and self.warming.surface_temperature_k > self.ceiling_k
+    entry_state: object = None
 
     @property
     def greenhouse_factor(self):
@@ -579,7 +585,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         if degassed_sulfur > 0.0:
             lifetimes, age_s, oxidized_share = sulfur
             kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidized_share=oxidized_share,
-                                          crust_kg_m2=crust_kg_m2, lifetimes=lifetimes)
+                                          crust_kg_m2=crust_kg_m2, lifetimes=lifetimes, temperature_k=temperature_k,
+                                          water_layer_m=setting.water_kg / (1000.0 * setting.area_m2))
             shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
             sulfate_mol_m2 = kept.sulfate_mol_m2
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
@@ -691,6 +698,7 @@ def solve(setting, start_temperature_k):
     Returns:
         Air: The air. Draws from the ambient stream once (the design constants and the seed of the replay).
     """
+    entry_state = draw.getstate()
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
@@ -714,11 +722,14 @@ def solve(setting, start_temperature_k):
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
+    gave_up = False
     sink_record = {}        # the carbon sink of the latest step (`CarbonSink`), for the life stage's second balance (GEN.1309 A)
     window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
-    for step in range(1, MAX_STEPS + 1):
+    step, step_limit = 0, MAX_STEPS
+    while step < step_limit:
+        step += 1
         pressure = math.exp(ln_pressure)
         if cycling:
             ocean = True
@@ -731,6 +742,7 @@ def solve(setting, start_temperature_k):
             ocean = ocean or cycling
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
+        sink_record.pop("sink", None)        # GEN.1594: the record is the latest step's; a step that does not weather leaves none, not an earlier step's
         shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidized_share), ocean, weathers, temperature,
                          water_world, late, sink_record)
         try:
@@ -746,7 +758,10 @@ def solve(setting, start_temperature_k):
             # middle of the way to the last good air and try there, a few times, before calling it a fault.
             stalls += 1
             if stalls > MAX_EQUILIBRIUM_STALLS:
-                raise
+                # GEN.1580: with no 2,000 K cap a runaway steam or carbon dioxide air goes on to 4,000 K and thousands of bar, where the ideal-gas equilibrium stops
+                # converging (4 of 62 census systems: 3,900 to 9,300 bar above 3,980 K). The air keeps the last one the equilibrium solved and does not settle.
+                gave_up = True
+                break
             ln_pressure = 0.5 * (ln_pressure + math.log(last[2]))
             temperature = 0.5 * (temperature + last[3])
             continue
@@ -799,14 +814,16 @@ def solve(setting, start_temperature_k):
         radiated_w_m2 = absorbed_w_m2 + setting.internal_flux_w_m2
         aloft_share = haze.absorbed_share * absorbed_w_m2 / radiated_w_m2
         warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, haze.pressure_pa)
-        new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), MAX_SURFACE_TEMPERATURE_K)
+        # GEN.1580: the surface stops where the air's main gas is half ionized at its pressure (`ionization.ceiling_k`), a limit no generated body should reach
+        ceiling_of_step = ionization.ceiling_k(partials, new_pressure)
+        new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), ceiling_of_step)
         if held_cool:
             new_temperature = min(new_temperature, MOIST_LIMIT_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
         window.append((temperature, new_temperature))
         del window[:-SLIDING_WINDOW]
-        last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step)
+        last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_of_step)
         if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
             if setting.giant or escape_bar is not None or family not in mixture_escape.FAMILIES:
                 break
@@ -814,6 +831,7 @@ def solve(setting, start_temperature_k):
             # that has lost its share already would lose it again at every step, and the first steps' reducing mixtures, which the settled air does not
             # keep, would take the whole air); the fixed point goes on with the loss in it.
             escape_bar = new_pressure / 1.0e5
+            step_limit = max(step_limit, step + ESCAPE_MIN_STEPS)       # GEN.1594: an air that settles without the escape on its last allowed step still gets the pass that has it in
             ln_pressure, temperature = math.log(new_pressure), new_temperature
             damping, previous_residual, history = [DAMPING, DAMPING], (0.0, 0.0), [[], []]
             continue
@@ -830,15 +848,19 @@ def solve(setting, start_temperature_k):
         else:
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
-    mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step = last
-    converged = setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K)
+    mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_k = last
+    if not setting.giant and pressure <= VACUUM_PRESSURE_PA:
+        # A settled air under the vacuum floor is an exosphere (a trace of sulfur vapor over a cold body, 1.3 mPa on a 120 K one): the
+        # floor the equilibrium stall applies above applies to the air that settles too, so a body never stores an air it calls thin.
+        return _airless(setting, mixture, step, design, ocean)
+    converged = not gave_up and (setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K))
     knee = False
     if not converged:
         temperature_k, knee = sliding_temperature(window, temperature_k)
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
                condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
-               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state)
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state, ceiling_k=ceiling_k, entry_state=entry_state)
 
 
 def _retention_cap_pa(mixture, subject):

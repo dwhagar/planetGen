@@ -89,24 +89,24 @@ def _step_process_options():
     return {"start_new_session": True}
 
 
-def _stop_tree(proc):
-    """Stops a step and every process it started."""
+def _signal_tree(proc, sig):
+    """Sends `sig` to a running step's process group (the step and every process it started); nothing for a step that is gone."""
     if proc is None or proc.poll() is not None:
         return
     try:
-        os.killpg(proc.pid, signal.SIGTERM)
+        os.killpg(proc.pid, sig)
     except OSError:
         pass
+
+
+def _stop_tree(proc):
+    """Stops a step and every process it started."""
+    _signal_tree(proc, signal.SIGTERM)
 
 
 def _kill_tree(proc):
     """Kills a step and every process in its group, for a step that ignored the request to stop."""
-    if proc is None or proc.poll() is not None:
-        return
-    try:
-        os.killpg(proc.pid, signal.SIGKILL)
-    except OSError:
-        pass
+    _signal_tree(proc, signal.SIGKILL)
 
 
 def _reap(proc):
@@ -192,6 +192,12 @@ def _mysql_config(job):
         user=env.get("PLANETGEN_MYSQL_USER"), password=env.get("PLANETGEN_MYSQL_PASSWORD"),
         database=env.get("PLANETGEN_MYSQL_DATABASE"),
     )
+
+
+def _control_connection(job):
+    """A connection to the control database of the job's server (imports planetGen)."""
+    from planetgen.db import store
+    return store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
 
 
 def _run_line(job):
@@ -367,11 +373,9 @@ def expected_seconds(job):
     has one, or without a control database. The web server calls this to give the job's RQ entry a time limit.
     """
     try:
-        from planetgen.db import store
-
         from planetgen.web import jobs
 
-        conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
+        conn = _control_connection(job)
         try:
             per_step, _per_stage = step_estimates(conn, job["steps"], recorded_step_seconds(jobs.configured_jobs_dir()))
         finally:
@@ -390,9 +394,7 @@ def _run_estimates(job, jobs_dir):
     steps = job["steps"]
     nothing = ([None] * len(steps), [None] * sum(_step_stage_counts(steps)))
     try:
-        from planetgen.db import store
-
-        conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
+        conn = _control_connection(job)
         try:
             return step_estimates(conn, steps, recorded_step_seconds(jobs_dir))
         finally:

@@ -27,7 +27,7 @@ Nothing calls them yet; the captured-moon wiring (GEN.1083) does. Stand-ins are 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import belt_history, belt_member, irregular_zone, moon_composition, small_body_composition as sbc
+from planetgen.physics import belt_history, belt_member, irregular_zone, moon_composition, relations, small_body_composition as sbc
 from planetgen.util.checks import finite_domain
 
 FEEDING_ZONE_HILL_RADII = 2.0 * math.sqrt(3.0)
@@ -150,7 +150,7 @@ def compose(window, mass_kg, source_distance_au, luminosity_w, aluminium_26_rati
     makeup = sbc.makeup_from_components("moon", components, 1.0 - source.filling, detail={"origin": "captured", "window": window, "taxon": source.taxon,
                                                                                        "source_au": source_distance_au, "ice_loss": loss})
     density = makeup.grain_density_kg_m3 * source.filling
-    radius_km = (3.0 * mass_kg / (4.0 * math.pi * density)) ** (1.0 / 3.0) / 1.0e3
+    radius_km = relations.sphere_radius(mass_kg, density) / 1.0e3
     return Captured(source, window, source_distance_au, loss, makeup, density, radius_km)
 
 

@@ -29,14 +29,13 @@ or corona, so the ultraviolet of a cool or active star is the photosphere's alon
 emission of MUSCLES); the PHOENIX grid is dwarfs only (log g 4.5 to 5.5), so a giant cooler than 3500 K reads the log g 4.5 model; the grids are solar metallicity.
 """
 
-import functools
 import io
 import math
 import re
 
 import numpy as np
 
-from planetgen.datasets import fetch
+from planetgen.datasets import axes, fetch
 from planetgen.physics import stellar_spectrum
 
 DERIVED = "stellar_spectra.npz"
@@ -140,7 +139,7 @@ def read_fits_vector(data):
 
 def _bin_powers(wavelength_cm, flux_per_cm):
     """The power, erg/s/cm^2, of a spectrum in each of `EDGES_NM`'s bins: the trapezoid cumulative integral, read at the edges."""
-    cumulative = np.concatenate([[0.0], np.cumsum(0.5 * (flux_per_cm[1:] + flux_per_cm[:-1]) * np.diff(wavelength_cm))])
+    cumulative = axes.cumulative_integral(wavelength_cm, flux_per_cm)
     return np.diff(np.interp(EDGES_NM * 1e-7, wavelength_cm, cumulative, left=0.0, right=cumulative[-1]))
 
 
@@ -206,11 +205,8 @@ DATASET = fetch.Dataset(
 
 # --- the lookup --------------------------------------------------------------------------------------------------------------
 
-@functools.lru_cache(maxsize=2)
-def load(path):
-    """The reduced library as a dict of arrays (see `derive`)."""
-    with np.load(path) as stored:
-        return {name: np.array(stored[name]) for name in stored.files}
+load = fetch.load_arrays
+"""The reduced library at a path as a dict of arrays (see `derive`), read once (`fetch.load_arrays`)."""
 
 
 def library(located=None):

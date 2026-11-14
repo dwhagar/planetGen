@@ -32,6 +32,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from planetgen.physics import vec3
+
 MIN_SHARE = 1.0e-4
 """float: A source with a smaller share of the light than this is left out of the sky (the temperature changes by under one part in 10^4)."""
 
@@ -46,34 +48,21 @@ class Sun:
     uz: float
 
 
-def _unit(v):
-    norm = math.sqrt(sum(c * c for c in v))
-    return tuple(c / norm for c in v)
-
-
-def _cross(a, b):
-    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
-
-
-def _dot(a, b):
-    return sum(x * y for x, y in zip(a, b))
-
-
 def frame(spin_axis, orbit_normal):
     """`(x, y, n, tilt_rad)` the equinox frame of a planet from its spin axis and its orbit's normal: `tilt_rad` the folded tilt (0 to 90 degrees)."""
-    n = _unit(orbit_normal)
-    s = _unit(spin_axis)
-    cosine = max(-1.0, min(1.0, _dot(s, n)))
+    n = vec3.unit(orbit_normal)
+    s = vec3.unit(spin_axis)
+    cosine = max(-1.0, min(1.0, vec3.dot(s, n)))
     if cosine < 0.0:
         s = tuple(-c for c in s)
         cosine = -cosine
     tilt = math.acos(cosine)
-    line = _cross(s, n)
-    if math.sqrt(_dot(line, line)) < 1.0e-9:       # no tilt: no equinox, and the declination is 0 whichever way x points
+    line = vec3.cross(s, n)
+    if math.sqrt(vec3.dot(line, line)) < 1.0e-9:       # no tilt: no equinox, and the declination is 0 whichever way x points
         helper = (1.0, 0.0, 0.0) if abs(n[0]) < 0.9 else (0.0, 1.0, 0.0)
-        line = _cross(helper, n)
-    x = _unit(line)
-    return x, _cross(n, x), n, tilt
+        line = vec3.cross(helper, n)
+    x = vec3.unit(line)
+    return x, vec3.cross(n, x), n, tilt
 
 
 @dataclass(frozen=True)
@@ -104,7 +93,7 @@ def placed(host, spin_axis, orbit_normal, distance_au):
     for companion in companions:
         light = light_of(host, companion, distance_au)
         offset = tuple(companion.offset_au)
-        found.append(Placed(companion.star, light, (_dot(offset, x), _dot(offset, y), _dot(offset, n))))
+        found.append(Placed(companion.star, light, (vec3.dot(offset, x), vec3.dot(offset, y), vec3.dot(offset, n))))
     return tilt, total, found
 
 
@@ -125,7 +114,7 @@ def suns_of(host, spin_axis, orbit_normal, distance_au):
         share = source.light_w_m2 / total
         if share < MIN_SHARE:
             continue
-        ux, uy, uz = _unit(source.offset_au)
+        ux, uy, uz = vec3.unit(source.offset_au)
         suns.append(Sun(share, ux, uy, uz))
     return tuple(suns)
 

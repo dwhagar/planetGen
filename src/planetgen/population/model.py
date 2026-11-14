@@ -465,7 +465,8 @@ def scan_life_worlds(conn):
         added += len(inserts)
         low = high
     if added:
-        log.debug(f"Population: {added} new species")
+        if log.debug_log_active():
+            log.debug(f"Population: {added} new species.")
     return added
 
 
@@ -482,7 +483,8 @@ def drop_species_without_civilization(conn):
     with conn:
         dropped = conn.execute("DELETE FROM species WHERE civilization_age_years IS NULL").rowcount
     if dropped:
-        log.debug(f"Population: {dropped} species without a technological civilization removed")
+        if log.debug_log_active():
+            log.debug(f"Population: {dropped} species without a technological civilization removed.")
     return dropped
 
 
@@ -516,8 +518,15 @@ def refresh_tech_levels(conn):
         with conn:
             conn.executemany(
                 f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates)
-        log.debug(f"Population: {len(updates)} species given tech levels")
+        if log.debug_log_active():
+            log.debug(f"Population: {len(updates)} species given tech levels.")
     return len(updates)
+
+
+def _founding_row(species):
+    """The `polities` row of a newly spacefaring species (`id`, `name`, `star_system_id`, homeworld `uid`): name, species, capital, government, colour."""
+    government = government_for(species["uid"])
+    return (polity_name(species["name"], government), species["id"], species["star_system_id"], government, polity_color(species["uid"]))
 
 
 def refresh_civilizations(conn):
@@ -553,8 +562,7 @@ def refresh_civilizations(conn):
             conn.executemany(
                 "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "
                 "VALUES (?, ?, ?, ?, ?, 0)",
-                [(polity_name(row["name"], government_for(row["uid"])), row["id"], row["star_system_id"],
-                  government_for(row["uid"]), polity_color(row["uid"])) for row in founding],
+                [_founding_row(row) for row in founding],
             )
         reaches = conn.execute(
             "SELECT p.id, p.reach_ly, s.civilization_age_years FROM polities p JOIN species s ON s.id = p.species_id"
@@ -563,6 +571,15 @@ def refresh_civilizations(conn):
                    if not math.isclose(reach_ly(row["civilization_age_years"]), row["reach_ly"])]
         if changed:
             conn.executemany("UPDATE polities SET reach_ly = ? WHERE id = ?", changed)
+
+
+_POSITION_MPC = ", ".join(f"ss.position_{axis}_mpc + sec.center_{axis}_pc * 1000 AS {axis}" for axis in "xyz")
+"""str: The SELECT list of a system's galaxy-frame position in milliparsecs, `x`, `y`, `z`, from `star_systems ss` joined to `sectors sec`."""
+
+
+def _position_pc(row):
+    """`(x, y, z)` in parsecs of a row with the `_POSITION_MPC` columns."""
+    return _mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"])
 
 
 def _system_positions(conn, sector_ids):
@@ -574,29 +591,25 @@ def _system_positions(conn, sector_ids):
         chunk = ids[start:start + 500]
         marks = ", ".join("?" * len(chunk))
         rows = conn.execute(
-            "SELECT ss.id, ss.position_x_mpc + sec.center_x_pc * 1000 AS x, "
-            "ss.position_y_mpc + sec.center_y_pc * 1000 AS y, "
-            "ss.position_z_mpc + sec.center_z_pc * 1000 AS z "
+            f"SELECT ss.id, {_POSITION_MPC} "
             "FROM star_systems ss JOIN sectors sec ON sec.id = ss.sector_id "
             f"WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL "
             "AND sec.center_x_pc IS NOT NULL",
             tuple(chunk),
         ).fetchall()
         for row in rows:
-            positions[row["id"]] = (_mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"]))
+            positions[row["id"]] = _position_pc(row)
     return positions
 
 
 def capital_positions(conn):
     """`[(polity_id, (x, y, z) pc or None, reach_ly)]` for every polity."""
     rows = conn.execute(
-        "SELECT p.id, p.reach_ly, ss.position_x_mpc + sec.center_x_pc * 1000 AS x, "
-        "ss.position_y_mpc + sec.center_y_pc * 1000 AS y, ss.position_z_mpc + sec.center_z_pc * 1000 AS z "
+        f"SELECT p.id, p.reach_ly, {_POSITION_MPC} "
         "FROM polities p JOIN star_systems ss ON ss.id = p.capital_system_id "
         "LEFT JOIN sectors sec ON sec.id = ss.sector_id ORDER BY p.id"
     ).fetchall()
-    return [(row["id"], None if row["x"] is None else (_mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"])),
-             row["reach_ly"]) for row in rows]
+    return [(row["id"], None if row["x"] is None else _position_pc(row), row["reach_ly"]) for row in rows]
 
 
 def refresh_territories(conn):
@@ -718,7 +731,12 @@ def _species_where(spacefaring=None, eras=(), tech_ranges=None):
     if eras:
         clauses.append(f"s.era IN ({', '.join('?' for _ in eras)})")
         params.extend(eras)
-    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
+    return _where(clauses), params
+
+
+def _where(clauses):
+    """`WHERE ... ` (with its trailing space) for the conditions, or empty for none: the shape `_and` builds on."""
+    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else ""
 
 
 def _and(where, *clauses):
@@ -879,18 +897,20 @@ def species_facets(conn, spacefaring=None, eras=(), tech_ranges=None):
     }
 
 
+def _one_species(conn, column, value):
+    """The species whose `column` (of `_SPECIES_FROM`) is `value`, or `None`."""
+    row = conn.execute(f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} WHERE {column} = ?", (value,)).fetchone()
+    return None if row is None else _species_dict(row)
+
+
 def species_detail(conn, species_id):
     """One species, or `None`."""
-    row = conn.execute(f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} WHERE s.id = ?", (species_id,)).fetchone()
-    return None if row is None else _species_dict(row)
+    return _one_species(conn, "s.id", species_id)
 
 
 def species_on_planet(conn, planet_id):
     """The species whose homeworld is this planet, or `None`."""
-    row = conn.execute(
-        f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} WHERE s.homeworld_planet_id = ?", (planet_id,)
-    ).fetchone()
-    return None if row is None else _species_dict(row)
+    return _one_species(conn, "s.homeworld_planet_id", planet_id)
 
 
 _POLITY_COLUMNS = (
@@ -917,7 +937,7 @@ def _polity_where(governments=(), eras=()):
         if values:
             clauses.append(f"{column} IN ({', '.join('?' for _ in values)})")
             params.extend(values)
-    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
+    return _where(clauses), params
 
 
 def list_polities(conn, limit=50, offset=0, sort="name", descending=False, governments=(), eras=()):

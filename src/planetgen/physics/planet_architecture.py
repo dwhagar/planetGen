@@ -35,8 +35,7 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import bulk_structure, constants, formation, metallicity, planet_mass, unit_registry as units
-from planetgen.physics import scatter as scatter_rule
+from planetgen.physics import bulk_structure, constants, planet_mass, scatter as scatter_rule, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -45,7 +44,7 @@ _EARTH_KG = constants.EARTH_MASS_TO_KG
 _G = constants.G
 _DAY_S = 86400.0
 _SOLAR_BLACKBODY_1AU_K = 278.3      # a blackbody at 1 AU from the Sun ([R2726: Table 10])
-_YEAR_S = 365.25 * _DAY_S
+_YEAR_S = constants.SECONDS_PER_YEAR
 
 SURVIVAL_K_OFFSET = 0.6
 SURVIVAL_K_SLOPE = 0.5
@@ -249,6 +248,28 @@ def sculpt(chain, star_mass_kg, age_yr, stream=None):
     return bodies
 
 
+def giant_impacts(bodies, star_mass_kg, snow_line_au, start_au, spacing):
+    """
+    The giant-impact stage of the terrestrial zone (GEN.1560): the bodies of `bodies` (`sculpt`'s `[distance_au, mass_kg, merged]` lists) that lie from `start_au` to the snow line (or `GIANT_IMPACT_END_AU`, whichever is nearer, as the caller passes it)
+    collide and merge, the closest pair in mutual Hill radii first, until every pair of them is `spacing` mutual Hill radii apart or more. N-body runs of protoplanets spaced 10 Hill
+    radii apart in a gas-free disk end in a few planets, two of them Earth-sized, after 100 Myr ([R2431], each protoplanet 0.16 Earth masses at 1 AU before): the stability to a Gyr that
+    `sculpt` asks of the chain is the stability of the planets the stage leaves, not of the protoplanets that built them. Mass and angular momentum are kept as `_merge` keeps them.
+    The inner system (inside `start_au`) and the bodies past the snow line are left to `sculpt`. No draw (the closest pair merges first).
+    """
+    zone = [i for i, body in enumerate(bodies) if start_au <= body[0] < snow_line_au]
+    if len(zone) < 2 or spacing <= 0.0:
+        return bodies
+    head, tail = bodies[:zone[0]], bodies[zone[-1] + 1:]
+    inside = [list(bodies[i]) for i in zone]
+    while len(inside) > 1:
+        gaps = [spacing_k(inside[i][0], inside[i][1], inside[i + 1][0], inside[i + 1][1], star_mass_kg) for i in range(len(inside) - 1)]
+        i = min(range(len(gaps)), key=gaps.__getitem__)
+        if gaps[i] >= spacing:
+            break
+        inside[i:i + 2] = [_merge(inside[i], inside[i + 1])]
+    return head + inside + tail
+
+
 def migration_probability(fe_h):
     """The chance a giant migrates in to a hot Jupiter orbit: `GIANT_MIGRATION_SHARE` at solar metallicity, rising with [Fe/H] by the extra
     exponent hot Jupiters have over giants ([R3499] against [R2172]), never above 1."""
@@ -257,8 +278,9 @@ def migration_probability(fe_h):
 
 def _clear_split(seeds, star_mass_kg):
     """
-    `(kept, swept, thrown)` for `seeds`: `_clear_around_giants` with its losses kept. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
-    or within `GIANT_CLEARING_SPACING` mutual Hill radii of a giant that moved in, and `thrown` is `_scatter_split`'s.
+    `(kept, swept, thrown)` for `seeds`: the planets a giant scattered, kept as losses. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
+    (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, [R4897]) or within `GIANT_CLEARING_SPACING` mutual Hill
+    radii of a giant that moved in (a giant that did not move clears nothing), and `thrown` is `_scatter_split`'s.
     """
     moved = [s for s in seeds if s.runaway and s.migrated]
     hot = [s for s in moved if s.distance_au < tuning.GIANT_HOT_ORBIT_AU]
@@ -281,15 +303,6 @@ def _clear_split(seeds, star_mass_kg):
     return kept, swept, thrown
 
 
-def _clear_around_giants(seeds, star_mass_kg):
-    """
-    `seeds` without the planets a giant scattered: those inside `GIANT_CLEARING_SPACING` mutual Hill radii of a giant that moved in, and
-    every planet inside a hot Jupiter's orbit (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, Zhu and Dong
-    2021). A giant that did not move clears nothing.
-    """
-    return _clear_split(seeds, star_mass_kg)[0]
-
-
 def _scatter_split(seeds, star_mass_kg):
     """
     `(kept, thrown)`: `seeds` (in order of distance) without the lighter of any neighbouring pair closer than `GIANT_CLEARING_SPACING` mutual Hill radii that
@@ -310,11 +323,6 @@ def _scatter_split(seeds, star_mass_kg):
         else:
             i += 1
     return kept, thrown
-
-
-def _scatter_crowded_giants(seeds, star_mass_kg):
-    """`seeds` without the lighter of any crowded pair that holds a giant (`_scatter_split`)."""
-    return _scatter_split(seeds, star_mass_kg)[0]
 
 
 def sublimation_au(luminosity_w):
@@ -410,6 +418,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         start_au = max(start_au, chain_inner[-1][0] * tuning.OUTER_CHAIN_START_RATIO)
     chain = chain_inner + oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation, start_au, outer_au)
     sculpted = sculpt(chain, star_mass_kg, tuning.SCULPT_AGE_YR, source)
+    sculpted = giant_impacts(sculpted, star_mass_kg, min(snow_line_au, tuning.GIANT_IMPACT_END_AU), tuning.PLANET_ROCKY_ZONE_START_AU, tuning.GIANT_IMPACT_SPACING)
     merge_debris = sum(body[1] for body in chain) - sum(body[1] for body in sculpted)
     merges = sum(body[2] for body in sculpted) - len(sculpted)
     thinned, small = [], []
@@ -501,6 +510,7 @@ def losses(architecture):
 
     if lost.capped:
         result.append(Loss("capped", lost.capped, lost.capped_kg, lost.capped_kg, None, None, None, None, None, None, None, False, 0.0, 1.0, 0.0))
+
     def scatterer(seed, recorded):
         """The planet that scatters `seed` (GEN.1456): the one of the highest Safronov number among those whose reach band holds the body, the neighbour the clearing recorded (`recorded`) among them and the first on a tie; every planet of the system acts on it, not the neighbour alone."""
         reaching = [p for p in architecture.planets if p is not recorded and _reaches(p, seed.distance_au, star_solar)]
