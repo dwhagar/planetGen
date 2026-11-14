@@ -482,7 +482,8 @@ _ROGUE_OWN = (
 _ROGUE_ORIGIN = (
     *_rows("identity", ("rogue_note", "Where it came from", TEXT)),
     *_rows("orbit", ("since_ejection_gy", "Time since the system threw it out"),
-           ("ejection_delay_gy", "Time from its birth to the throw"), ("ejection_speed_kms", "Speed it left at")),
+           ("ejection_delay_gy", "Time from its birth to the throw"), ("ejection_speed_kms", "Speed it left at"),
+           ("pair_separation_au", "Distance to its companion"), ("pair_period_yr", "Period round its companion")),
 )
 
 

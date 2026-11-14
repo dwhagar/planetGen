@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1684 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1690 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1657 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1663 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 190 | 20 | 12 | 1 | 0 | 223 |
 | T2 | 160 | 64 | 1 | 1 | 0 | 226 |
-| T3 | 113 | 55 | 13 | 9 | 0 | 190 |
+| T3 | 115 | 56 | 13 | 9 | 0 | 193 |
 | T4 | 85 | 14 | 4 | 22 | 16 | 141 |
-| T5 | 91 | 24 | 7 | 1 | 1 | 124 |
-| T6 | 220 | 115 | 31 | 76 | 4 | 446 |
-| T7 | 58 | 22 | 10 | 31 | 0 | 121 |
+| T5 | 92 | 24 | 7 | 1 | 1 | 125 |
+| T6 | 220 | 116 | 31 | 76 | 4 | 447 |
+| T7 | 58 | 23 | 10 | 31 | 0 | 122 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 6 | 95 | 38 | 206 |
-| All | 967 | 332 | 84 | 241 | 60 | 1684 |
+| All | 970 | 335 | 84 | 241 | 60 | 1690 |
 
 ## How the labels were given
 
@@ -2957,3 +2957,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | GA1 | P | T5 | L1 | `ground_albedo.VISIBLE_TO_BOND` 1.0: the factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (the conversion over the whole spectrum is an open gap) | 0.8 to 1.3 | a dry rocky ground (basalt powder 0.215) | a measured Bond albedo of an airless basalt surface outside 0.09 to 0.14 at 3 to 4.5 Gyr, or a measured fresh basalt outside 0.17 to 0.27 | the band-integrated Bond albedo of the table's spectra over the star's spectrum and the phase integral | the Moon's Bond albedo 0.11 and Mercury's 0.088 against 0.117 for the table's basalt after 3.5 Gyr at the middle of the weathering ranges; [R3425] for the table | predicted only | - | - |
 | GA2 | B | T6 | L0 | `ground_albedo.dry_ground_type`: a carbon rock is carbon, a body with a metal share of `surface_composition.RANGES["metal_stripped"]` (0.7) or more is metal (the stand-in ground albedo 0.15), else basalt, the ground the melt of an ordinary mantle makes | none (a rule) | a rocky body with no surface water, before its air and heat flow are solved | a dry airless body whose later drawn ground is mostly felsic, ultramafic or oxidised, which is brighter or darker than basalt | the dominant ground of the draw (`surface_composition.draw_surface`) made before the air, from the melt (`volcanic_ground_type`), once the heat flow is known earlier | the table of dominant grounds (`surface_composition.DOMINANT_TABLE`) and its gates | predicted only | - | - |
 | GA3 | P | T6 | L3 | `ground_albedo.weathered_albedo`: the fresh albedo times `1 - d (1 - exp(-t / tau_w))` with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, `ground_albedo.TAU_W_GY`, `DEPTH`) | tau_w 0.5 to 4 Gyr; d 0.2 to 0.8 | an airless dry surface older than 0.5 Gyr | a measured spread of airless Bond albedos wider than 0.07 to 0.16 for basalt | a fit of the darkening to lunar and asteroid reflectance by age | the decay of the unweathered fraction [R4713]; the placeholders are not fitted; the Moon 0.11 and Mercury 0.088 sit inside the range they give | predicted only | - | no data |
+
+## 6.291 Stand-ins of the rogue planets that stay a pair
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| RPP1 | B | T3 | L1 | `rogue_pairs.OBSERVED_SHARE` 0.09: the share of the systems of free planets that are bound pairs or triplets in a young cluster (42 of about 500 systems of the Trapezium sample, also quoted as 8 percent) | 0.01 to 0.10: Luhman 2024 and 2025 find most of the pairs are reddened background sources and keep one good candidate | systems of free planets of 0.7 to 13 Jupiter masses in a young cluster | a deeper survey that confirms fewer than 1 percent of free planets in pairs | a confirmed pair count of a spectroscopic follow-up | [R3467] (second hand), Luhman 2024 (AJ 168, 230) and 2025 (MNRAS 542, L126), second hand | predicted only | - | - |
+| RPP2 | T | T3 | L0 | `rogue_pairs.SURVIVAL_AT_REFERENCE` 0.02 per `REFERENCE_MYR` 10: the share of a cluster's planet-planet pairs still bound after 10 Myr, applied as the same factor in every 10 Myr (`survival`), so a pair of a rogue older than about 100 Myr has a share under 1e-17 | 0.5 per 10 Myr (a sparse region) to 0.02 | pairs made in a cluster and left to drift in the galaxy | a pair found with a rogue age far above 100 Myr | the survival from a cluster's N-body run at the donor's own density | Portegies Zwart and Hochart 2024 (second hand); Parker, Goodwin and Diamond 2025 (arXiv:2505.00762, second hand) give a dense and a sparse bound | predicted only | - | - |
+| RPP3 | B | T3 | L0 | `rogue_pairs.SEPARATION_RANGE_AU` (28, 384): a pair's separation is log-uniform inside the observed projected separations | none (the observed range); a projection is smaller than the true separation by a factor near one, not undone | pairs of 0.7 to 13 Jupiter masses | a pair measured outside the range | a measured separation distribution | [R3467] (second hand) | predicted only | - | - |
+| RPP4 | D | T5 | L0 | `rogue_pairs.tidal_limit_au`: a pair of mass m is held inside (G m / (4 Omega A)) ** (1/3) of the galaxy's tide (the epicyclic tidal term of `rogue_drift`, Oort's A and B); a pair with the limit under 28 AU is not made | none | the solar neighbourhood's Oort constants for every donor (the stand-in of `rogue_drift`) | the dense inner galaxy, where the real constants are larger | `rogue_drift.Galaxy.from_frequencies` for the donor's radius | physics (Chandrasekhar tidal radius), no measurement | predicted only | - | - |
+| RPP5 | P | T7 | L1 | `rogue_pairs.period_yr` and the circular orbit: the two go round each other on a circular orbit of the separation, by Kepler's third law (no source gives an eccentricity for wide young pairs, so none is drawn) | eccentricity 0 to 0.8 changes a period only by the pair's own pericentre | every pair | an eccentricity distribution measured for wide free-planet pairs | that distribution | educated guess from inferred physics (wide binary stars of the field) | predicted only | - | - |
+| RPP6 | P | T6 | L1 | `rogue_yield.bind_pairs`: each body of a donor not yet taken is a system with the chance `bound_share(age since the ejection)`, and its companion is the next body the donor ejected from the same star by the same cause, which leaves at the same moment (it takes its partner's delay, age and kick) and so lands with it; the draws are two per body not yet taken, in event order | the pairing of a body with the next in order rather than any other body of its star | donors with two or more ejected bodies of one star and one cause | a donor model in which a pair is ejected as a pair by a scatterer's single encounter | the pair made inside the scattering event (`planet_architecture`) | educated guess from physics (planets of one star scattered by one encounter leave together) | predicted only | - | - |

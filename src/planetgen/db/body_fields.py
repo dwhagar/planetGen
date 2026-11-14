@@ -448,6 +448,9 @@ FIELDS = (
     F('since_ejection_gy', 'DOUBLE', unit='Gyr', c="v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note", t='r'),
     F('ejection_speed_kms', 'DOUBLE', unit='km_s', c="v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note", t='r'),
     F('rogue_note', 'TEXT', c="v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note", t='r'),
+    F('pair_event_index', 'INT', unit='index', c="v260 (GEN.332): the event index (same donor) of the companion it left its donor bound to, NULL for a rogue that left alone, each of the two rows naming the other", t='r'),
+    F('pair_separation_au', 'DOUBLE', unit='AU', c="v260 (GEN.332): the distance to its companion, AU (the circular orbit of the pair), NULL without one", t='r'),
+    F('pair_period_yr', 'DOUBLE', unit='yr', c="v260 (GEN.332): the period of the pair round each other, years, NULL without a companion", t='r'),
 )
 """tuple: Every column of the body tables, in the order a new database holds them."""
 
@@ -513,7 +516,7 @@ ORDERS = {
         'day_share_mean', 'parent_shadow_share', 'solar_day_hours', 'daylight_hours', 'polar_circle_deg', 'life_class',
         'life_class_variant', 'life_class_best', 'life_class_best_score', 'life_animal_grade', 'life_complexity', 'life_traits',
         'cloud_chemistry', 'tide_range_spring_m', 'tide_range_neap_m', 'ocean_liquid', 'donor_uid', 'event_index',
-        'ejection_delay_gy', 'since_ejection_gy', 'ejection_speed_kms', 'rogue_note',
+        'ejection_delay_gy', 'since_ejection_gy', 'ejection_speed_kms', 'rogue_note', 'pair_event_index', 'pair_separation_au', 'pair_period_yr',
     ),
 }
 """dict: A table whose columns are not in the order of `FIELDS`, with its own order. `rogue_planets` keeps the order its database holds, because MySQL numbers a column's inline CHECK by its place (`rogue_planets_chk_3`) and an Alembic revision names the constraint by that number; reordering the columns of a new database would rename them."""
