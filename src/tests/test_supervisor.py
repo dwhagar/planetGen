@@ -125,6 +125,7 @@ def test_a_supervisor_that_could_not_be_started_never_fails_the_caller(conn):
     assert supervisor.ensure_started(conn, start=refuse) is False
 
 
+@pytest.mark.real_queue
 def test_a_submit_a_status_poll_and_the_warm_up_each_call_for_a_supervisor(conn, monkeypatch):
     calls = []
     monkeypatch.setattr(supervisor, "ensure_started", lambda *args, **kwargs: calls.append(1) or False)
