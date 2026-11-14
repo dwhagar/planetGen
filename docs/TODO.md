@@ -13305,6 +13305,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: TEST.740.
   Filed by the TODO thread.
 
+- [ ] **TEST.745 Remove the stray root script m.py and guard the repo root against stray .py files**
+  Lane 03, 2:42 PM EST on 2026-11-14, answering Boss's question "what is m.py in root": a 19-line throwaway measuring script (samples 100 bodies per seed on 8 seeds with class_sweep_cli and dumps them to JSON) committed by accident with GEN.1309 A (5802d1484, 2026-11-08); nothing references it. Do: git rm m.py; add a guard test that fails when a .py file other than setup.py sits in the repo root. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1309.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

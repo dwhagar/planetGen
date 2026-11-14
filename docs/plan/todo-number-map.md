@@ -22,7 +22,7 @@ release is stamped.
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.745 |
+| TEST | TEST.746 |
 | USR | USR.33 |
 | OPS | OPS.257 |
 | DOC | DOC.121 |
@@ -4848,6 +4848,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.742 | (bug) sweep_bulk's text-materials check holds a stale phrase after Train 27 | none | open |
 | TEST.743 | (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704 | none | open |
 | TEST.744 | (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900) | none | open |
+| TEST.745 | Remove the stray root script m.py and guard the repo root against stray .py files | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
