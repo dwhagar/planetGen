@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4171] - 2026-11-14
+
+**Headline:** A rocky body's composition phrase still names the level of each material after its air takes a sliver of the solids, so a share on a level's edge is not left one level too high.
+
+### Changed
+- **`envelope_share.fill` writes the composition phrase again after it scales the solids (GEN.430).** The phrase states the stored shares (`tests/audit/sweep_bulk.py` rule `text-materials`), but the air's share comes out of the solids after the phrase was made, so a body whose water share sat exactly on a level's edge kept "a large share of water" while its stored share was 0.19999999682. A promoted belt member (GEN.1510) takes the belt's round shares (0.8 rock, 0.2 water), so one of the 24 sweep systems (`system24/Eghintis ABC VI`) failed. Only a body that already holds a phrase gets it rewritten; the phrase changes only where the scaling crosses a level's edge.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4170] - 2026-11-14
 
 **Headline:** A rogue planet thrown out of a young system may now leave bound to a companion, at the share seen in young clusters, and its page names the distance and the period of the pair.
