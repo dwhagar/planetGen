@@ -530,7 +530,7 @@ def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_f
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
 
 
-def test_the_other_branch_is_the_same_world_with_the_same_draws():
+def test_the_other_branch_is_the_same_world_with_the_same_inventory_and_draws():
     """GEN.1646: the second solve of W20 repeats every draw of the first (design constants, mixture seed, late accretion); only the start temperature differs."""
     from planetgen.physics import surface_air
     from tests.fuzz_support import first_seed_with
@@ -557,7 +557,7 @@ def test_the_other_branch_is_the_same_world_with_the_same_draws():
     first, second = airs[0], other_of(airs)
     assert first.entry_state is not None and second.entry_state == first.entry_state
     assert second.constants == first.constants and second.late == first.late
-    # (the inventory the last step kept is not asserted: the recipe is frozen at step 8 from the temperature there, so two branches of one world can keep different inventories, GEN.1716)
+    assert second.mixture.inventory == first.mixture.inventory
     assert second.temperature_k != first.temperature_k      # a different branch of the same world
 
 
