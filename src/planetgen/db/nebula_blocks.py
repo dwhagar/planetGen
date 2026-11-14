@@ -68,9 +68,10 @@ def _arrays(parts):
 
 
 def _part(rows):
-    """`(class letters, x, y, z, radius_pc)` of rows `(class, radius_ly, x, y, z)`."""
-    return ([r[0] for r in rows], np.array([r[2] for r in rows], dtype=float), np.array([r[3] for r in rows], dtype=float),
-            np.array([r[4] for r in rows], dtype=float), np.array([ly_to_pc(r[1]) for r in rows], dtype=float))
+    """`(class letters, x, y, z, radius_pc)` of table rows with `nebula_class`, `radius_ly` and `center_*_pc`."""
+    return ([r["nebula_class"] for r in rows], np.array([r["center_x_pc"] for r in rows], dtype=float),
+            np.array([r["center_y_pc"] for r in rows], dtype=float), np.array([r["center_z_pc"] for r in rows], dtype=float),
+            np.array([ly_to_pc(r["radius_ly"]) for r in rows], dtype=float))
 
 
 def sources(conn):
@@ -86,14 +87,12 @@ def sources(conn):
                 "SELECT nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc FROM nebula_field"
                 " WHERE cell_i BETWEEN ? AND ?", (low, low + FIELD_SLAB_CELLS - 1)).fetchall()
             if rows:
-                parts.append(_part([(r["nebula_class"], r["radius_ly"], r["center_x_pc"], r["center_y_pc"],
-                                     r["center_z_pc"]) for r in rows]))
+                parts.append(_part(rows))
     rows = conn.execute(
         "SELECT n.nebula_class, n.radius_ly, n.center_x_pc, n.center_y_pc, n.center_z_pc FROM nebulae n"
         " WHERE n.center_x_pc IS NOT NULL AND NOT EXISTS (SELECT 1 FROM nebula_field f WHERE f.uid = n.uid)").fetchall()
     if rows:
-        parts.append(_part([(r["nebula_class"], r["radius_ly"], r["center_x_pc"], r["center_y_pc"],
-                             r["center_z_pc"]) for r in rows]))
+        parts.append(_part(rows))
     return _arrays(parts)
 
 
@@ -153,15 +152,19 @@ def through_id(conn):
     return None if row is None else int(row["n"])
 
 
-def _stored_blocks(conn, m, keys):
-    """The stored `nebula_block_stats` rows of level `m` at `keys` (`(shell, band, wedge)` each), by key."""
-    found = {}
+def _key_batches(keys):
+    """`keys` (`(shell, band, wedge)` each) in batches of `KEY_BATCH`, each as `(the IN list's SQL, its flat parameters)`."""
     keys = list(keys)
     for start in range(0, len(keys), KEY_BATCH):
         part = keys[start:start + KEY_BATCH]
-        for row in conn.execute(
-                "SELECT * FROM nebula_block_stats WHERE m = ? AND (shell_index, band_index, wedge_index) IN ("
-                + ", ".join("(?, ?, ?)" for _ in part) + ")", [m] + [v for key in part for v in key]).fetchall():
+        yield "(shell_index, band_index, wedge_index) IN (" + ", ".join("(?, ?, ?)" for _ in part) + ")", [v for key in part for v in key]
+
+
+def _stored_blocks(conn, m, keys):
+    """The stored `nebula_block_stats` rows of level `m` at `keys` (`(shell, band, wedge)` each), by key."""
+    found = {}
+    for in_keys, flat in _key_batches(keys):
+        for row in conn.execute(f"SELECT * FROM nebula_block_stats WHERE m = ? AND {in_keys}", [m] + flat).fetchall():
             found[(row["shell_index"], row["band_index"], row["wedge_index"])] = row
     return found
 
@@ -200,13 +203,10 @@ UPDATE_BLOCK = ("UPDATE nebula_block_stats SET nebula_count = ?, volume_pc3 = ?,
 def _stored_classes(conn, m, keys):
     """The stored `nebula_block_classes` volumes of level `m` at `keys`: `{(shell, band, wedge): {class: volume}}`."""
     found = {}
-    keys = list(keys)
-    for start in range(0, len(keys), KEY_BATCH):
-        part = keys[start:start + KEY_BATCH]
+    for in_keys, flat in _key_batches(keys):
         for row in conn.execute(
-                "SELECT shell_index, band_index, wedge_index, nebula_class, volume_pc3 FROM nebula_block_classes"
-                " WHERE m = ? AND (shell_index, band_index, wedge_index) IN ("
-                + ", ".join("(?, ?, ?)" for _ in part) + ")", [m] + [v for key in part for v in key]).fetchall():
+                f"SELECT shell_index, band_index, wedge_index, nebula_class, volume_pc3 FROM nebula_block_classes WHERE m = ? AND {in_keys}",
+                [m] + flat).fetchall():
             found.setdefault((row["shell_index"], row["band_index"], row["wedge_index"]), {})[
                 row["nebula_class"]] = row["volume_pc3"]
     return found
@@ -293,8 +293,7 @@ def catch_up(conn, edge_pc, on_progress=None):
             "SELECT n.nebula_class, n.radius_ly, n.center_x_pc, n.center_y_pc, n.center_z_pc FROM nebulae n"
             " WHERE n.id > ? AND n.id <= ? AND n.center_x_pc IS NOT NULL" + NOT_IN_FIELD, (done, upper)).fetchall()
         if rows:
-            codes, x, y, z, radius = _arrays([_part([(r["nebula_class"], r["radius_ly"], r["center_x_pc"],
-                                                      r["center_y_pc"], r["center_z_pc"]) for r in rows])])
+            codes, x, y, z, radius = _arrays([_part(rows)])
             added += add_nebulae(conn, edge_pc, codes, x, y, z, radius)
         _set_through(conn, upper)
         conn.commit()
@@ -315,14 +314,11 @@ def covers(conn, m, cells=None):
         rows = conn.execute("SELECT shell_index, band_index, wedge_index, cover FROM nebula_block_stats"
                             " WHERE m = ? AND cover > 0", (m,)).fetchall()
     else:
-        cells = list(cells)
         rows = []
-        for start in range(0, len(cells), KEY_BATCH):
-            part = cells[start:start + KEY_BATCH]
+        for in_keys, flat in _key_batches(cells):
             rows += conn.execute(
-                "SELECT shell_index, band_index, wedge_index, cover FROM nebula_block_stats WHERE m = ? AND cover > 0"
-                " AND (shell_index, band_index, wedge_index) IN (" + ", ".join("(?, ?, ?)" for _ in part) + ")",
-                [m] + [value for cell in part for value in cell]).fetchall()
+                f"SELECT shell_index, band_index, wedge_index, cover FROM nebula_block_stats WHERE m = ? AND cover > 0 AND {in_keys}",
+                [m] + flat).fetchall()
     return {(r["shell_index"], r["band_index"], r["wedge_index"]): float(r["cover"]) for r in rows}
 
 

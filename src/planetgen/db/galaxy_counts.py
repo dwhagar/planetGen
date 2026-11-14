@@ -190,6 +190,16 @@ def facet(conn, name):
     return found
 
 
+def _summed(conn):
+    """What the sectors' rows add up to: `({total name: n}` over the `total` facet rows, the stats rows' summed mass `m` and luminosity `l`)`: the
+    figures the totals row is rebuilt from, and checked against."""
+    sums = {row["value"]: int(row["n"]) for row in conn.execute(
+        "SELECT value, SUM(n) AS n FROM sector_facets WHERE facet = 'total' GROUP BY value").fetchall()}
+    stats = conn.execute("SELECT COALESCE(SUM(total_mass_kg), 0) AS m, COALESCE(SUM(total_luminosity_sol), 0) AS l"
+                         " FROM sector_stats WHERE bright_level_sol = 0").fetchone()
+    return sums, stats
+
+
 def rebuild(conn, on_progress=None, batch=200):
     """
     Makes every row again from the tables (the migration, `planetgen fill-block-totals`, and the repair `check-counts` points to):
@@ -211,10 +221,7 @@ def rebuild(conn, on_progress=None, batch=200):
             conn.commit()
             if on_progress is not None:
                 on_progress(done, len(sectors))
-    sums = {row["value"]: int(row["n"]) for row in conn.execute(
-        "SELECT value, SUM(n) AS n FROM sector_facets WHERE facet = 'total' GROUP BY value").fetchall()}
-    stats = conn.execute("SELECT COALESCE(SUM(total_mass_kg), 0) AS m, COALESCE(SUM(total_luminosity_sol), 0) AS l"
-                         " FROM sector_stats WHERE bright_level_sol = 0").fetchone()
+    sums, stats = _summed(conn)
     conn.execute(
         "INSERT INTO galaxy_totals (id, systems, stars, planets, moons, belts, habitable_worlds, mass_kg, luminosity_sol)"
         " VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -231,13 +238,12 @@ def problems(conn):
     """
     found = []
     row = conn.execute("SELECT * FROM galaxy_totals WHERE id = 1").fetchone()
-    sums = {r["value"]: int(r["n"]) for r in conn.execute("SELECT value, SUM(n) AS n FROM sector_facets WHERE facet = 'total' GROUP BY value").fetchall()}
+    sums, stats = _summed(conn)
     for name in TOTALS:
         column = "habitable_worlds" if name == "habitable" else name
         have = int(row[column]) if row else 0
         if have != sums.get(name, 0):
             found.append(f"The galaxy's stored {name} total is {have}, the sectors' rows add up to {sums.get(name, 0)}.")
-    stats = conn.execute("SELECT COALESCE(SUM(total_mass_kg), 0) AS m, COALESCE(SUM(total_luminosity_sol), 0) AS l FROM sector_stats WHERE bright_level_sol = 0").fetchone()
     for label, column, want in (("mass", "mass_kg", stats["m"]), ("luminosity", "luminosity_sol", stats["l"])):
         have = float(row[column]) if row else 0.0
         if abs(have - float(want)) > 1e-9 * max(abs(float(want)), 1.0):

@@ -205,6 +205,15 @@ class GatedPhonemeCodec:
         b = crc % 16
         return a, b
 
+    @staticmethod
+    def _map_digits(hex_str: str, step) -> str:
+        """`hex_str` with each digit `x_i` replaced by `step(i, x_i) mod 16`, as an uppercase hex string of the same length."""
+        return "".join(format(step(i, int(char, 16)) % 16, "X") for i, char in enumerate(hex_str))
+
+    def _digits_per_word(self, wordiness: Optional[Union[str, int]]) -> int:
+        """The digits per word of a `wordiness` override, or the codec's default when none is given."""
+        return self._resolve_wordiness(wordiness) if wordiness is not None else self.default_digits_per_word
+
     def _permute(self, hex_str: str, domain: Union[str, int]) -> str:
         """
         Applies a bijective positional affine transformation to a hex string:
@@ -215,15 +224,8 @@ class GatedPhonemeCodec:
         :return: Transformed hexadecimal string of identical length.
         """
         a, b = self._get_domain_params(domain)
-        permuted_chars: List[str] = []
-
-        for i, char in enumerate(hex_str):
-            val = int(char, 16)
-            # Bijective transformation incorporating positional index i
-            transformed = (a * val + b + i) % 16
-            permuted_chars.append(format(transformed, "X"))
-
-        return "".join(permuted_chars)
+        # Bijective transformation incorporating positional index i
+        return self._map_digits(hex_str, lambda i, val: a * val + b + i)
 
     def _unpermute(self, hex_str: str, domain: Union[str, int]) -> str:
         """
@@ -236,15 +238,8 @@ class GatedPhonemeCodec:
         """
         a, b = self._get_domain_params(domain)
         a_inv = self.MOD_INVERSES_16[a]
-        recovered_chars: List[str] = []
-
-        for i, char in enumerate(hex_str):
-            val = int(char, 16)
-            # Modular inverse cancels A; Python handles negative modulo correctly
-            original = (a_inv * (val - b - i)) % 16
-            recovered_chars.append(format(original, "X"))
-
-        return "".join(recovered_chars)
+        # Modular inverse cancels A; Python handles negative modulo correctly
+        return self._map_digits(hex_str, lambda i, val: a_inv * (val - b - i))
 
     # -------------------------------------------------------------------------
     # Phonotactic Transition Logic
@@ -368,11 +363,7 @@ class GatedPhonemeCodec:
         permuted_hex = self._permute(hex_data, domain)
 
         # Step 2: Determine word chunking boundaries
-        dpw = (
-            self._resolve_wordiness(wordiness)
-            if wordiness is not None
-            else self.default_digits_per_word
-        )
+        dpw = self._digits_per_word(wordiness)
         word_chunks = self._partition_hex_into_words(permuted_hex, dpw)
 
         # Step 3: Sequential gated phoneme generation per word chunk
@@ -520,11 +511,7 @@ class GatedPhonemeCodec:
         cleaned = re.sub(r"[^\w\s]", "", phrase.lower())
         words = cleaned.split()
 
-        dpw = (
-            self._resolve_wordiness(wordiness)
-            if wordiness is not None
-            else self.default_digits_per_word
-        )
+        dpw = self._digits_per_word(wordiness)
         try:
             permuted_hex = self._read_words(words, length, dpw)
         except PhonemeDecodeError as err:

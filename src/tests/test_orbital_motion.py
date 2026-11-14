@@ -105,8 +105,8 @@ def test_orbital_orientation_is_in_range_and_there_is_no_stored_phase(bodies):
         limit = 90.0 if planet.belt_rank is not None else ceiling      # GEN.1510: a body promoted from a belt keeps the belt's inclination, not a planet's
         assert 0 <= planet.orbital_inclination_deg <= limit
     for moon in moons:
-        # GEN.714: a regular moon lies near the equator, a captured one can be retrograde
-        limit = 180.0 if moon.moon_origin == "captured" else pc.MOON_ORBITAL_INCLINATION_MAX_DEG
+        # GEN.714: a regular moon lies near the equator, a captured one (or a capture of planet size, GEN.1157) can be retrograde
+        limit = 180.0 if moon.moon_origin in ("captured", "exchange") else pc.MOON_ORBITAL_INCLINATION_MAX_DEG
         assert 0 <= moon.orbital_inclination_deg <= limit
 
 

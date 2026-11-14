@@ -15,7 +15,6 @@ Redis server clock), and the Queue page lists them with the state `beatjudge` gi
         beat.phase("step 2 of 4")
 """
 
-import time
 from contextlib import contextmanager
 
 from planetgen.queue import beatjudge, redisqueue, runrecord, unitbeat

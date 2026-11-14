@@ -34,7 +34,6 @@ Nothing here changes a value. A world with no living class reads Absent for ever
 import math
 from collections import namedtuple
 
-from planetgen import tuning
 from planetgen.datasets.fetch import DataMissing
 from planetgen.physics import (atmosphere, constants, habitability_world, life_classes, life_supply, main_sequence, orbits,
                                stellar_evolution, unit_registry)
@@ -161,7 +160,7 @@ def _likelihood(values, row, ratio):
         scaled.setdefault(quantity, supplied)
     scaled.update(life_classes.derived_quantities(scaled))
     found = life_classes.quantities(scaled)
-    return life_classes.score_class(row, found, habitability_world.world_from(scaled), scaled, ).likelihood
+    return life_classes.score_class(row, found, habitability_world.world_from(scaled), scaled).likelihood
 
 
 UNKNOWN = math.nan

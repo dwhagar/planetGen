@@ -154,6 +154,15 @@ class StellarTable:
         return ax, ay, az
 
 
+def _residual(density_fn, analytic_density_fn, radii, cos_nodes, sin_nodes, phis):
+    """The residual density `density_fn - analytic_density_fn` on the grid of `radii` by `cos_nodes` (the cosines of the colatitude, with their sines
+    `sin_nodes`), averaged over the azimuths `phis`: shape `(len(radii), len(cos_nodes))`, a non-finite value counted as 0."""
+    rr = radii[:, None, None]
+    px = rr * sin_nodes[None, :, None] * np.cos(phis)[None, None, :]
+    py = rr * sin_nodes[None, :, None] * np.sin(phis)[None, None, :]
+    pz = rr * cos_nodes[None, :, None] + 0.0 * px
+    residual = (density_fn(px, py, pz) - analytic_density_fn(px, py, pz)).mean(axis=2)
+    return np.where(np.isfinite(residual), residual, 0.0)
 def build(density_fn, analytic_density_fn, big_g):
     """
     The `StellarTable` of the residual `density_fn - analytic_density_fn` (each `f(x, y, z)` over arrays, solar masses per pc^3; the first is the density model,
@@ -169,13 +178,7 @@ def build(density_fn, analytic_density_fn, big_g):
     r = np.geomspace(INNER_PC, OUTER_PC, RADIAL)
     du = math.log(OUTER_PC / INNER_PC) / (RADIAL - 1)
     phis = (np.arange(AZIMUTHS) + 0.5) * (2.0 * math.pi / AZIMUTHS)
-    sin_t = np.sqrt(1.0 - x_nodes ** 2)
-    rr = r[:, None, None]
-    px = rr * sin_t[None, :, None] * np.cos(phis)[None, None, :]
-    py = rr * sin_t[None, :, None] * np.sin(phis)[None, None, :]
-    pz = rr * x_nodes[None, :, None] + 0.0 * px
-    residual = (density_fn(px, py, pz) - analytic_density_fn(px, py, pz)).mean(axis=2)          # (RADIAL, ANGLES)
-    residual = np.where(np.isfinite(residual), residual, 0.0)
+    residual = _residual(density_fn, analytic_density_fn, r, x_nodes, np.sqrt(1.0 - x_nodes ** 2), phis)      # (RADIAL, ANGLES)
     d_l = detmath.matmul(residual * w[None, :], p_nodes.T) * (2 * degrees + 1)                                # (RADIAL, n_degrees)
     a, b = _segment_sums(d_l * r[:, None] ** 2, du, degrees)
     coefficient = 4.0 * math.pi * big_g / (2 * degrees + 1)
@@ -195,12 +198,6 @@ def build(density_fn, analytic_density_fn, big_g):
     # a_theta = (sin theta / r) sum phi_l P_l'(x)
     polar = (np.exp(-u)[:, None] * detmath.matmul(s_phi, dp_grid)) * sin_grid[None, :]
     # the density table is the residual itself on the grid, not the truncated series (the series cannot follow a thin disk's edge or the model's fall beyond 16 kpc)
-    grid_r = np.exp(u)[:, None, None]
-    grid_sin = sin_grid[None, :, None]
-    gx = grid_r * grid_sin * np.cos(phis)[None, None, :]
-    gy = grid_r * grid_sin * np.sin(phis)[None, None, :]
-    gz = grid_r * x_grid[None, :, None] + 0.0 * gx
-    density = (density_fn(gx, gy, gz) - analytic_density_fn(gx, gy, gz)).mean(axis=2)
-    density = np.where(np.isfinite(density), density, 0.0)
+    density = _residual(density_fn, analytic_density_fn, np.exp(u), x_grid, sin_grid, phis)
     digest = hashlib.sha256(np.concatenate([potential.ravel()[::97], radial.ravel()[::97], polar.ravel()[::97]]).astype("<f8").tobytes()).hexdigest()[:16]
     return StellarTable(u, tt, potential, radial, polar, density, digest)

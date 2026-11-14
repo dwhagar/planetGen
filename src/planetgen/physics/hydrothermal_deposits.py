@@ -33,7 +33,6 @@ range of each type are the design file's, recalled.
 from typing import NamedTuple, Optional
 
 from planetgen.physics import constants, interior_heat, mixture, ore_deposits, sedimentary_deposits as sd
-from planetgen.util import draw
 
 PORPHYRY, VMS, SEDEX, OROGENIC, EPITHERMAL, ROLL_FRONT = ("porphyry_cu_mo_au", "vms_massive_sulfide", "sedex_mvt_zn_pb", "orogenic_gold", "epithermal_au_ag", "roll_front_uranium")
 HYDROTHERMAL_IDS = (PORPHYRY, VMS, SEDEX, OROGENIC, EPITHERMAL, ROLL_FRONT)
@@ -165,6 +164,7 @@ TYPES = (
 """tuple: The six types. Grade ranges, concentration factors and the tonnage range of one deposit (1e8 to 1e10 t, 1e6 to 1e8 t, 1e6 to 1e8 t, 1e6 to 1e8 t, 1e5 to 1e7 t, 1e3 to 1e5 t of U) are the design
 file's, recalled; the medians are inside those ranges (stand-ins HT7). Tier T6 to T7, L3."""
 
+
 def state_of(body):
     """The `State` of a finished rocky planet or moon, or `None` for a body the ore pass did not assess (a giant, a belt, a row from before GEN.699). No draws."""
     ore = ore_deposits.state_of(body) if getattr(body, ore_deposits.ATTRIBUTE, None) is not None else None
@@ -181,8 +181,8 @@ def state_of(body):
 
 
 def stream_of(body, kind):
-    """The body's own stream for one type: seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
-    return draw.Stream(f"hydrothermal:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(getattr(body, 'star', None), 'age', None)!r}")
+    """The body's own stream for one type (`ore_deposits.body_stream`): seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
+    return ore_deposits.body_stream("hydrothermal", body, kind)
 
 
 def generate(body):

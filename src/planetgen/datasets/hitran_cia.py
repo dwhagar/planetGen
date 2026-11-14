@@ -22,12 +22,11 @@ Limits (stated; registry row IR6 in docs/design/research/gap-filling-plan.md): a
 pair with a water molecule) are zero, the water continuum being the separate `line_opacity.WATER_CONTINUUM`.
 """
 
-import functools
 import io
 
 import numpy as np
 
-from planetgen.datasets import fetch, ir_ktables
+from planetgen.datasets import axes, fetch, ir_ktables
 
 DERIVED = "ir_cia.npz"
 SOURCE = "HITRAN collision-induced absorption [R2267]"
@@ -107,7 +106,7 @@ def band_means(blocks, edges_cm1):
     for temperature, data in blocks:
         row = int(np.searchsorted(temperatures, temperature))
         wavenumber, k = data[:, 0], data[:, 1]
-        cumulative = np.concatenate([[0.0], np.cumsum(0.5 * (k[1:] + k[:-1]) * np.diff(wavenumber))])
+        cumulative = axes.cumulative_integral(wavenumber, k)
         low = np.clip(edges[:-1], wavenumber[0], wavenumber[-1])
         high = np.clip(edges[1:], wavenumber[0], wavenumber[-1])
         covered = high - low
@@ -150,10 +149,8 @@ DATASET = fetch.Dataset(
 )
 
 
-@functools.lru_cache(maxsize=2)
-def load(path):
-    with np.load(path) as stored:
-        return {name: np.array(stored[name]) for name in stored.files}
+load = fetch.load_arrays
+"""The band means of an `ir_cia.npz` at a path, read once (`fetch.load_arrays`)."""
 
 
 def tables(located):

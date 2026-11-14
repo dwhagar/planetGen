@@ -82,7 +82,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
-from planetgen.physics import climate_branches, constants, daylight, habitability, oddities, regional_temperature, sky_suns, surface_cycle
+from planetgen.physics import constants, daylight, habitability, oddities, regional_temperature, sky_suns, surface_cycle
 from planetgen.util import detmath
 
 STEPS = 96
@@ -455,7 +455,7 @@ def _anderson(step, start):
             return updated, passes, True
         current_g = updated.ravel()
         if previous_f is not None:
-            slot = (count) % ANDERSON_DEPTH
+            slot = count % ANDERSON_DEPTH
             np.subtract(change, previous_f, out=delta_f[slot])
             np.subtract(current_g, previous_g, out=delta_g[slot])
             count += 1

@@ -66,13 +66,10 @@ import math
 from planetgen.galaxy import scales
 from planetgen.generation import band_table_cache
 from planetgen.galaxy.age_law import AgeLaw
-from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    alive_until_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance,
-    main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy,
-    remnant_formation_time_gy, sample_living_star, star_params,
+    alive_until_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance, main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy, remnant_formation_time_gy, star_params,
 )
 from planetgen.util import draw
 
@@ -274,6 +271,11 @@ def _mass_grid(extra_edges=(), cells=None):
     return grid
 
 
+def _range_grid(mass_range, cells):
+    """`_mass_grid` of `cells` cells split at the ends of `mass_range` (`(low, high)`, an end `None` for none)."""
+    return _mass_grid(tuple(edge for edge in mass_range if edge is not None), cells)
+
+
 def check_threshold(min_luminosity_sol):
     if not (isinstance(min_luminosity_sol, (int, float)) and math.isfinite(min_luminosity_sol)):
         raise ValueError(f"luminosity threshold must be a finite number, got {min_luminosity_sol!r}")
@@ -396,8 +398,7 @@ def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_b
     cells, cumulative = [], []
     running = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
-    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
-                                        _grid_cells(fe_bin)):
+    for a, b, alpha, norm in _range_grid((mass_low, mass_high), _grid_cells(fe_bin)):
         if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
             continue
         count = norm * imf.power_law_integral(a, b, alpha)
@@ -423,12 +424,10 @@ def _fraction_terms(mass_range, window, fe_bin):
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
     living = 0.0
     cells = []
-    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
-                                        _grid_cells(fe_bin, True)):
+    for a, b, alpha, norm in _range_grid((mass_low, mass_high), _grid_cells(fe_bin, True)):
         count = norm * imf.power_law_integral(a, b, alpha)
         # E[measure] over the cell by stratified IMF quantiles.
-        points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
-                  for j in range(_FRACTION_POINTS_PER_CELL)]
+        points = _cell_points(a, b, alpha)
         living += count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
         if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
             continue
@@ -452,6 +451,11 @@ def _bright_fraction(min_luminosity_sol, population, mass_range, window, fe_bin)
     for count, masses, points in cells:
         bright += count * sum(_bright_measure(m, min_luminosity_sol, window, fe_bin) for m in masses) / points
     return bright / living if living > 0 else 0.0
+
+
+def _cell_points(a, b, alpha):
+    """The `_FRACTION_POINTS_PER_CELL` stratified IMF quantiles of a cell, the masses a cell's mean measure is read at."""
+    return [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL) for j in range(_FRACTION_POINTS_PER_CELL)]
 
 
 def _power_law_quantile(a, b, alpha, u):
@@ -493,8 +497,13 @@ def massive_star_fraction(min_mass_sol, population=None, age_laws=None):
     `MASS_PASS_MIN_LUMINOSITY_SOL` all its life), and what a mass backfill
     (GEN.187) takes a sector down to.
     """
-    return _mass_band_table((float(min_mass_sol), None), population, _law(population, age_laws),
-                            reference_fe_h(population), True)["fraction"]
+    return _born_fraction((float(min_mass_sol), None), population, age_laws)
+
+
+def _born_fraction(band, population, age_laws):
+    """The share of ALL of a population's living stars born in `band` (`(low, high)`), at the population's reference
+    composition: the `fraction` of its reference mass-band table."""
+    return _mass_band_table(band, population, _law(population, age_laws), reference_fe_h(population), True)["fraction"]
 
 
 def _prior_source(population, rng, fe_h_source, index):
@@ -562,6 +571,15 @@ def _bin_totals(table_at):
     return {fe_bin: _table_total(table_at(fe_bin)) for fe_bin in FE_H_BINS}
 
 
+def _draw_cell_mass(table, rng):
+    """One try's cell of a sampling `table`, picked by its running weight, and a mass in it from the IMF: `(mass, bound)`,
+    `bound` the cell's measure bound the try is kept against."""
+    cells, cumulative = table["cells"], table["cumulative"]
+    index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
+    a, b, alpha, bound = cells[index]
+    return imf.sample_power_law(a, b, alpha, rng), bound
+
+
 def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, source):
     def table_at(fe_bin):
         return _bright_table(float(min_luminosity_sol), population, mass_range, window, fe_bin)
@@ -569,11 +587,9 @@ def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, 
     for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
         fe_h = _draw_fe_h(source, _bin_totals(table_at), rng)
         table = table_at(fe_h_bin(fe_h))
-        cells, cumulative, law = table["cells"], table["cumulative"], table["law"]
+        law = table["law"]
         span = law.window
-        index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
-        a, b, alpha, bound = cells[index]
-        mass = imf.sample_power_law(a, b, alpha, rng)
+        mass, bound = _draw_cell_mass(table, rng)
         pieces = [(max(start, span[0]), min(end, span[1]), chance)
                   for start, end, chance in _bright_windows(mass, min_luminosity_sol, fe_h)]
         weights = [max(0.0, end - start) * chance for start, end, chance in pieces]
@@ -700,13 +716,11 @@ def _build_mass_band_table(mass_range, population, window, fe_bin, reference):
     cells, cumulative = [], []
     running = born = living = 0.0
     with_fraction = reference
-    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None),
-                                        _grid_cells(fe_bin, reference)):
+    for a, b, alpha, norm in _range_grid(mass_range, _grid_cells(fe_bin, reference)):
         count = norm * imf.power_law_integral(a, b, alpha)
         measure = 0.0
         if with_fraction:
-            points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
-                      for j in range(_FRACTION_POINTS_PER_CELL)]
+            points = _cell_points(a, b, alpha)
             measure = count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
         living += measure
         if b <= mass_low or (mass_high is not None and a >= mass_high):
@@ -739,7 +753,7 @@ def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None,
     already placed the brighter ones.
     """
     band = _check_mass_band(min_mass_sol, max_mass_sol)
-    born = _mass_band_table(band, population, _law(population, age_laws), reference_fe_h(population), True)["fraction"]
+    born = _born_fraction(band, population, age_laws)
     if max_luminosity_sol is not None:
         born -= bright_star_fraction(max_luminosity_sol, population, band, age_laws)
     return max(born, 0.0)
@@ -752,11 +766,8 @@ def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, sou
     for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
         fe_h = _draw_fe_h(source, _bin_totals(table_at), rng)
         table = table_at(fe_h_bin(fe_h))
-        cells, cumulative = table["cells"], table["cumulative"]
         window = table["law"].window
-        index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
-        a, b, alpha, bound = cells[index]
-        mass = imf.sample_power_law(a, b, alpha, rng)
+        mass, bound = _draw_cell_mass(table, rng)
         if rng.random() * bound >= _living_measure(mass, law, fe_h):
             continue
         oldest = window[1]

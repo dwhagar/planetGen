@@ -41,14 +41,14 @@ import math
 
 import numpy as np
 
-from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw, stellar_table
+from planetgen.galaxy import density, enclosed_mass, seed as galaxySeed, shape_draw, stellar_table
 from planetgen.physics import constants, unit_registry
 
 G_PC_KMS2_PER_MSUN = constants.G * unit_registry.converter("Msun", "kg")(1.0) / (constants.PARSEC_M * 1.0e6)
 """float: The gravitational constant in pc (km/s)^2 per solar mass (4.3009e-3)."""
 ACCELERATION_TO_SI = 1.0e6 / constants.PARSEC_M
 """float: One (km/s)^2 per pc in m/s^2."""
-KMS_TO_PC_PER_MYR = 1.0e3 * 365.25 * 86400.0 * 1.0e6 / constants.PARSEC_M
+KMS_TO_PC_PER_MYR = 1.0e3 * constants.SECONDS_PER_MYR / constants.PARSEC_M
 """float: One km/s in pc per Myr (1.0227)."""
 BLACK_HOLE_SOFTENING_PC = 1.0
 """float: The Plummer softening of the central black hole, parsecs; the only softened part of the potential (GEN.338)."""
@@ -272,9 +272,5 @@ def current():
     The `Potential` of the galaxy the running unit belongs to: its stored shape and seed when `galaxy.seed.seeded` was given them, else the galaxy the seed
     draws with every shape option at its default (the fallback seed's outside any unit), the same galaxy `enclosed_mass.current_enclosed_mass_kg` reads.
     """
-    seed = galaxySeed.current_galaxy_seed() or mass_chain.FALLBACK_SEED
-    shape = galaxySeed.current_galaxy_shape()
-    if shape is None:
-        shape = shape_draw.default_shape(seed)
-    return for_galaxy(shape, seed)
+    return for_galaxy(*shape_draw.current_shape_and_seed())
 

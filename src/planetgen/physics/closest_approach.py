@@ -31,11 +31,13 @@ All lengths are metres, times seconds, speeds m/s. Non-finite input, a negative 
 import dataclasses
 import math
 
+from planetgen.physics import constants
+
 COEFFICIENT = 0.03
 """float: The curvature fit of section 5.3: the straight relative path is off by about `0.03 Omega^2 v_rel t^3`."""
 CURVATURE_FRACTION = 0.01
 """float: The share of `R` the straight path may be off by at the end of a window."""
-CURVATURE_CHUNK_S = 0.1e6 * 365.25 * 86400.0
+CURVATURE_CHUNK_S = 0.1e6 * constants.SECONDS_PER_YEAR
 """float: The longest chunk a long step is cut into, 0.1 million years (section 5.3's chunk for galactic curvature)."""
 
 

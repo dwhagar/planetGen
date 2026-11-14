@@ -38,7 +38,7 @@ import os
 import sys
 
 from planetgen.admin import auth
-from planetgen.util import log, logpaths, settings, settings_writer
+from planetgen.util import log, logpaths, settings, settings_view, settings_writer
 
 DOCS_PATH = os.path.join(logpaths.PROJECT_ROOT, "docs", "reference", "config.md")
 EXAMPLE_PATH = os.path.join(logpaths.PROJECT_ROOT, "config.json.example")
@@ -168,10 +168,9 @@ def _show_result(result, verb):
 
 
 def _source(option, meta, config, environ):
-    variable = meta.get("x-env")
-    if variable and (environ.get(variable) or (meta.get("x-env-empty") and variable in environ)):
-        return f"environment ({variable})"
-    return "config.json" if settings_writer._get(config, option)[0] else "default"
+    """Where the option's value comes from (`settings_view.source_of`), naming the variable when it is the environment."""
+    source, variable = settings_view.source_of(option, meta, config, environ)
+    return f"environment ({variable})" if variable else source
 
 
 def run_get(option):
@@ -192,28 +191,26 @@ def run_get(option):
     return 0
 
 
-def run_save(args, changes, verb):
+def _write_as_host(args, verb, write):
+    """Runs `write(audit)` (a save or a restore, as the host) with the audit log open, and shows what it did."""
     audit, close = _open_audit(args)
     try:
-        result = settings_writer.save(changes, _actor(), role="host", audit=audit)
+        result = write(audit)
     except settings_writer.SettingsWriteError as exc:
-        log.error(f"The settings could not be saved: {exc}")
+        log.error(f"The settings could not be {verb.lower()}: {exc}")
         return 1
     finally:
         close()
     return _show_result(result, verb)
 
 
+def run_save(args, changes, verb):
+    return _write_as_host(args, verb, lambda audit: settings_writer.save(changes, _actor(), role="host", audit=audit))
+
+
 def run_restore(args):
-    audit, close = _open_audit(args)
-    try:
-        result = settings_writer.restore(args.backup, _actor(), role="host", audit=audit)
-    except settings_writer.SettingsWriteError as exc:
-        log.error(f"The settings could not be restored: {exc}")
-        return 1
-    finally:
-        close()
-    return _show_result(result, "Restored")
+    return _write_as_host(args, "Restored",
+                          lambda audit: settings_writer.restore(args.backup, _actor(), role="host", audit=audit))
 
 
 def main(argv=None):

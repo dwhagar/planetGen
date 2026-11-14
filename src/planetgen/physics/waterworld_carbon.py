@@ -141,7 +141,7 @@ def leached_cations_mol_m2(altered_km):
 TEMPERATURE_RANGE_K = (273.15, 373.15)
 """tuple: The temperatures the carbonate constants are used at ([R3548] give 0 to 90 C; hotter oceans use the 373 K values)."""
 
-BAR_PA = 1.0e5
+BAR_PA = constants.BAR_PA
 """float: One bar, Pa."""
 
 

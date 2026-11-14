@@ -94,7 +94,8 @@ def kepler_mean_inverse_cube(axis, eccentricity):
     return 1.0 / (axis ** 3 * (1.0 - e * e) ** 1.5)
 
 
-def _rate(primary_mass_kg, body_mass_kg, axis_m):
+def orbital_rate_rad_s(primary_mass_kg, body_mass_kg, axis_m):
+    """The mean motion of a body of `body_mass_kg` on a circle of radius `axis_m` about `primary_mass_kg`, rad/s."""
     return math.sqrt(constants.G * (primary_mass_kg + body_mass_kg) / axis_m ** 3)
 
 
@@ -113,13 +114,13 @@ def planet_sources(planet, siblings):
         return []
     a_au = planet.distance
     a_m = a_au * constants.AU_TO_M
-    n_planet = _rate(host.mass, planet.mass, a_m)
+    n_planet = orbital_rate_rad_s(host.mass, planet.mass, a_m)
     found = [Source(host, getattr(host, "name", None) or "star", "star", host.mass, kepler_mean_inverse_cube(a_m, getattr(planet, "eccentricity", 0.0)), n_planet)]
     for companion in radiation_field.companions_of(host):
         star = companion.star
         g3 = orbit_mean_inverse_cube(a_au, companion.axis_au, companion.eccentricity) / constants.AU_TO_M ** 3
         g6 = orbit_mean_inverse_sixth(a_au, companion.axis_au, companion.eccentricity) / constants.AU_TO_M ** 6
-        n_star = _rate(host.mass, star.mass, companion.axis_au * constants.AU_TO_M)
+        n_star = orbital_rate_rad_s(host.mass, star.mass, companion.axis_au * constants.AU_TO_M)
         found.append(Source(star, getattr(star, "name", None) or "companion star", "star", star.mass, g3, n_star, g6))
     for other in siblings:
         if other is planet or not getattr(other, "distance", None):
@@ -127,7 +128,7 @@ def planet_sources(planet, siblings):
         b_au = other.distance
         g3 = orbit_mean_inverse_cube(a_au, b_au, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
         g6 = orbit_mean_inverse_sixth(a_au, b_au, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 6
-        n_other = _rate(host.mass, other.mass, b_au * constants.AU_TO_M)
+        n_other = orbital_rate_rad_s(host.mass, other.mass, b_au * constants.AU_TO_M)
         found.append(Source(other, getattr(other, "name", None) or "planet", "planet", _mass_of(other), g3, n_other if b_au > a_au else n_planet, g6))
     return found
 
@@ -141,16 +142,15 @@ def moon_sources(moon, planet, siblings):
     if not getattr(moon, "distance", None):
         return found
     a_m = moon.distance * constants.AU_TO_M
-    n_moon = _rate(planet.mass, moon.mass, a_m)
-    for source in planet_sources(planet, siblings):
-        found.append(source)       # a source outside the planet's system turns the line to it at the rate it turns the planet's, whatever the moon does
+    n_moon = orbital_rate_rad_s(planet.mass, moon.mass, a_m)
+    found.extend(planet_sources(planet, siblings))       # a source outside the planet's system turns the line to it at the rate it turns the planet's, whatever the moon does
     for other in getattr(planet, "moons", ()) or ():
         if other is moon or not getattr(other, "distance", None):
             continue
         b_m = other.distance * constants.AU_TO_M
         g3 = orbit_mean_inverse_cube(moon.distance, other.distance, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
         g6 = orbit_mean_inverse_sixth(moon.distance, other.distance, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 6
-        n_other = _rate(planet.mass, other.mass, b_m)
+        n_other = orbital_rate_rad_s(planet.mass, other.mass, b_m)
         found.append(Source(other, getattr(other, "name", None) or "moon", "moon", float(other.mass), g3, n_other if other.distance > moon.distance else n_moon, g6))
     return found
 
@@ -162,20 +162,24 @@ def own_sources(body, parent=None):
         if getattr(body, "distance", None):
             a_m = body.distance * constants.AU_TO_M
             found.append(Source(parent, getattr(parent, "name", None) or "planet", "planet", float(parent.mass),
-                                kepler_mean_inverse_cube(a_m, getattr(body, "eccentricity", 0.0)), _rate(parent.mass, body.mass, a_m)))
+                                kepler_mean_inverse_cube(a_m, getattr(body, "eccentricity", 0.0)), orbital_rate_rad_s(parent.mass, body.mass, a_m)))
         return found
     for moon in getattr(body, "moons", ()) or ():
         if getattr(moon, "distance", None):
             a_m = moon.distance * constants.AU_TO_M
             found.append(Source(moon, getattr(moon, "name", None) or "moon", "moon", float(moon.mass),
-                                kepler_mean_inverse_cube(a_m, getattr(moon, "eccentricity", 0.0)), _rate(body.mass, moon.mass, a_m)))
+                                kepler_mean_inverse_cube(a_m, getattr(moon, "eccentricity", 0.0)), orbital_rate_rad_s(body.mass, moon.mass, a_m)))
     return found
 
 
+def other_sources(body, parent, siblings):
+    """The sources `ocean_tides` does not count on `body`: `moon_sources` for a moon of `parent`, `planet_sources` for a planet (`parent` None)."""
+    return moon_sources(body, parent, siblings) if parent is not None else planet_sources(body, siblings)
+
+
 def sources_of(body, parent, siblings):
-    """Every source of tide on `body` (a planet, or a moon of `parent`): the ones `ocean_tides` counts and the others (`planet_sources`, `moon_sources`)."""
-    others = moon_sources(body, parent, siblings) if parent is not None else planet_sources(body, siblings)
-    return [*own_sources(body, parent), *others]
+    """Every source of tide on `body` (a planet, or a moon of `parent`): the ones `ocean_tides` counts and the others (`other_sources`)."""
+    return [*own_sources(body, parent), *other_sources(body, parent, siblings)]
 
 
 def counted_by_ocean_tides(body, parent):
@@ -230,7 +234,7 @@ def spin_raisers(body):
     parent = getattr(body, "_tide_parent", None)
     siblings = getattr(body, "_tide_siblings", ())
     try:
-        sources = moon_sources(body, parent, siblings) if parent is not None else planet_sources(body, siblings)
+        sources = other_sources(body, parent, siblings)
     except (AttributeError, TypeError, ZeroDivisionError):
         return ()
     skip = id(getattr(body, "star", None)) if parent is None else None

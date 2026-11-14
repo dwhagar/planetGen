@@ -43,10 +43,6 @@ def reference_failed_share():
     return structure.REFERENCE_STRUCTURE.black_hole_solar_share
 
 
-def _number(low, high):
-    return imf.number(low, high)
-
-
 def _union(intervals):
     """`intervals` sorted, with those that overlap joined."""
     merged = []
@@ -59,7 +55,7 @@ def _union(intervals):
 
 
 def _count(intervals):
-    return sum(_number(low, high) for low, high in intervals)
+    return sum(imf.number(low, high) for low, high in intervals)
 
 
 def _scaled_islands(factor):
@@ -74,10 +70,11 @@ def _scaled_islands(factor):
 @functools.lru_cache(maxsize=512)
 def _failure_windows(share):
     bottom, top = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
-    target = share * _number(bottom, top)
+    whole = imf.number(bottom, top)
+    target = share * whole
     if target <= 0.0:
         return ()
-    if target >= _number(bottom, top):
+    if target >= whole:
         return ((bottom, top),)
     if target <= _count(tuning.EXPLOSION_FAILURE_ISLANDS_SOL) * (1.0 + 1.0e-4):
         low, high = 0.0, 1.0
@@ -134,7 +131,7 @@ def fails(initial_mass_sol, failed_share=None):
 
 def number(kind, lowest_sol=0.0, failed_share=None):
     """The stars per unit of the IMF whose progenitors end as `kind`, no lighter than `lowest_sol`."""
-    return sum(_number(max(low, lowest_sol), high) for low, high in kind_windows(kind, failed_share))
+    return sum(imf.number(max(low, lowest_sol), high) for low, high in kind_windows(kind, failed_share))
 
 
 def sample_mass_sol(kind, lowest_sol=0.0, rng=draw, failed_share=None):
@@ -146,7 +143,7 @@ def sample_mass_sol(kind, lowest_sol=0.0, rng=draw, failed_share=None):
     pieces = [(low, high) for low, high in pieces if low < high]
     if not pieces:
         return None
-    weights = [_number(low, high) for low, high in pieces]
+    weights = [imf.number(low, high) for low, high in pieces]
     pick = rng.random() * sum(weights)
     for (low, high), weight in zip(pieces, weights):
         if pick < weight:

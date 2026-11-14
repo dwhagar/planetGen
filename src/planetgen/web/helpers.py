@@ -43,7 +43,7 @@ these:
 """
 
 
-from flask import current_app, g, render_template, request, url_for
+from flask import current_app, g, jsonify, render_template, request, url_for
 from markupsafe import Markup
 
 from planetgen.web.lib import apiclient, autolink, help_registry
@@ -54,6 +54,13 @@ from planetgen.web.lib import reference_urls
 from planetgen.web.lib.reference_urls import reference_path
 
 from . import csrf
+
+
+def json_error(message, status):
+    """A `{"error": message}` JSON answer with `status`, for the data routes (`json_only` views)."""
+    response = jsonify({"error": message})
+    response.status_code = status
+    return response
 
 
 def db_name():
@@ -223,7 +230,6 @@ def help_menu():
     `web/lib/help_registry.py`. References registers itself last (order 1000) and the template puts a divider before it (DOC.88). The menu is current on these pages and on the class pages under Classes (a page names
     `section="classes"` or `section="help"`)."""
     return (("help_index", "All help"),) + help_registry.menu()
-
 
 
 HELP_SECTIONS = ("classes", "help", "references")

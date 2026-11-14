@@ -108,10 +108,7 @@ class BatteryDigest:
 
     def first_difference(self, other):
         """The first case, in the order of `CASES`, whose full digest differs from `other`'s, or `None`."""
-        for name in CASES:
-            if self.cases[name].full != other.cases[name].full:
-                return name
-        return None
+        return first_difference(cases_of(self), cases_of(other))
 
 
 def tree(value, seen=None):
