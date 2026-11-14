@@ -130,6 +130,11 @@ connectivity to that specific schema rather than the default one.
   known to be in (no rogue planet filed in them, no waiting star, no unbuilt scattered phenomenon), which are left out by default; it has no effect on `charted`.
   `total` counts the sectors listed and `charted_total`, `uncharted_total` and `empty_total` count each kind whatever is listed; the answer echoes `coverage` and
   `show_empty`. Another `coverage` is a 400. Changed: the default listing no longer includes the uncharted placeholders.
+  OPS.154: a cell that holds a waiting object (a bright star or an unbuilt scattered phenomenon) and has no chart-ledger entry needs no sector row of its own: with `coverage=uncharted|all`
+  the listing goes on, after the rows, into those cells by distance (shell, band, wedge; read by key from the block light parts), once the uncharted placeholder rows are few
+  (at most 100,000). Such an item has `virtual: true` and the cell's sector ID as `id` (its designation, which `GET /api/sectors/<id>` and `after=<sector ID>` accept though no row has it);
+  it has no systems (the `systems` and `density` sorts count it as zero, so these follow the rows) and the `quadrant` filter of the library function works from the cell's position.
+  `uncharted_total` and `total` include these cells. A cell with a row (a rogue planet's) is listed once, as its row.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -420,6 +425,15 @@ connectivity to that specific schema rather than the default one.
   typical composition and density), `density_factor` (`by_diameter`: the objects per square AU above 1, 10 and 100 km; `mass`: kilograms per square AU)
   and `totals` (the belt, the listed bodies and the bins, which add up). Every number is `{value, unit, text}`. A new route, so the API version stays; a
   reference that is not a belt, or names nothing, is a `404`.
+- `GET /api/objects/<ref>/irregular-moons` — the irregular moons a planet keeps (GEN.1086, `describe/irregular_moon_info.py`): `planet` (`designation`, `name`, `star`, `mass`,
+  `hill_radius`), `moons` (heaviest first, each with `rank` (the page address), `designation` (`<planet ID>.<rank hex>`, the rank being the stored rank plus one, or the belt's
+  designation `<belt ID>.<rank hex>` for a body caught from an inner belt, with `belt_designation` true), `window` (`gas`, `encounter` or `exchange`), `retrograde`, `mass`,
+  `diameter`, `density`, `taxon`, `analogue`, `composition` shares, the `distance` about the planet, `eccentricity`, `inclination` and `hill_fraction`) and `not_stored`
+  (`remainder`, `above_floor`, `lost`, `temporary`). Every number is `{value, unit, text}`. A new route, so the API version stays; a reference that is not a planet is a `404`.
+- `GET /api/objects/<ref>/irregular-moons/<rank>` — one irregular moon of a planet, `rank` written as a designation writes it (hex, at least four digits): `designation`,
+  `rank`, `moon` (the entry above), `orbit` (the six elements about the planet, the `closest_distance`, `farthest_distance`, `period`, `retrograde` and `hill_fraction`),
+  `planet` and the `previous` (heavier) and `next` (lighter) neighbours as `{rank, designation}`; ranks can have gaps where a smaller body was lost. A new route, so the API
+  version stays. A reference that is not a planet, a rank not written canonically, or a body the planet does not keep is a `404`.
 - `GET /api/objects/<ref>/belt-members/<rank>` — one body an asteroid belt keeps individually (GEN.1070, `describe/belt_member_info.py`), `rank` written as the
   designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry of `bodies` in the belt's information page:
   mass, diameter, density, `taxon`, composition, `status`, `population`), `orbit` (`semi_major_axis`, `eccentricity`, `inclination`, `ascending_node`,
@@ -1026,8 +1040,8 @@ forced credential change. They back the admin stats page
   Stats page.
 - `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "holder", "holder_title", "heartbeat_age_s",
-  "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
+  "paused_by", "paused_at", "paused_reason", "solo_unit", "holder", "holder_title",
+  "heartbeat_age_s", "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
   first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
   ("generation", "maintenance" or "check"), "who", "database", "job" (the
   Generate page job that started it), "argv", "state" ("running",
@@ -1067,6 +1081,10 @@ forced credential change. They back the admin stats page
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).
+  `GET /api/admin/work/jobs` (OPS.142) answers `{"jobs": [...], "available"}`, the
+  jobs that are not units of a run and are running, from their beats: `"kind"`
+  ("api", "web" or "tile-prefetch"), `"job"`, `"label"`, `"state"` ("working" or
+  "dead"), `"reason"`, `"phase"`, `"running_seconds"`, `"beat_age_seconds"`.
   `GET /api/admin/work/<id>/units` (OPS.138) answers `{"units": [...]}`, one
   per running unit of the followed stage: `"stage"`, `"unit"`, `"state"`
   ("working", "slow", "waiting", "quiet", "looping" or "dead"), `"severity"`,
@@ -1088,7 +1106,9 @@ forced credential change. They back the admin stats page
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it; `503` when Redis does not answer. Each answers
+  or resumes it (OPS.145: the same flag is a solo hold, `paused_reason` naming it and `solo_unit` the unit,
+  which the follower sets after it restarts a stuck unit so that unit runs alone; it lifts when the unit
+  completes or fails, and `resume` lifts it by hand); `503` when Redis does not answer. Each answers
   `{"ok": bool}` and writes the change to the audit and activity logs
   (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):

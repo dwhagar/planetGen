@@ -106,6 +106,9 @@ def worker_class(round_robin=False):
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
     untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
 
+    OPS.145: the flag may be a solo hold (`pause.hold_solo`), for the one restarted unit that is to run alone. A worker then takes jobs as usual to reach that unit, which is at the
+    front of its queue, and turns every other job it takes back to the queue and waits (`_turn_away_during_solo_hold`).
+
     PERF.254: every job passes the memory gate (`queue/memorygate.py`) before it is prepared: the worker takes the job's claim
     (`claims.claim_for`) and waits, with its heartbeat going, until the host has room for it; it gives the claim up when the job ends,
     renews it at every heartbeat while the job runs, and keeps the most the job held (the gate learns the size of each kind from it). A
@@ -136,20 +139,20 @@ def worker_class(round_robin=False):
             try:
                 memorygate.refresh(self.connection, self.name)
             except Exception as exc:  # noqa: BLE001 -- a missed sample is a claim that expires a little later, never a failed job
-                log.debug("gate: the claim of %s was not renewed: %s", self.name, exc, area="queue")
+                log.debug("The memory-gate claim of %s was not renewed: %s.", self.name, exc, area="queue")
 
         def _release_claim(self):
             try:
                 memorygate.release(self.connection, self.name)
             except Exception as exc:  # noqa: BLE001 -- the claim expires by itself
-                log.debug("gate: the claim of %s was not released: %s", self.name, exc, area="queue")
+                log.debug("The memory-gate claim of %s was not released: %s.", self.name, exc, area="queue")
 
         def _take_claim(self, job):
             """PERF.254: waits at the memory gate for the room this job claims, then holds the claim until the job ends (`execute_job`)."""
             try:
                 claim = claims.claim_for(job, self.connection)
             except claims.NoClaim as exc:
-                log.error(f"{exc}; the job {job.id} claims the default {claims.DEFAULT_MB} MB")
+                log.error(f"The claim of job {job.id} fell back to the default {claims.DEFAULT_MB} MB: {exc}")
                 claim = claims.default_claim(job)
             admission = memorygate.acquire(self.connection, claim, self.name, job=job.id, cap_of=claims.cap_of, scheduler=scheduler.Scheduler(),
                                            on_wait=lambda decision, waited: self._while_gated(job))
@@ -162,7 +165,7 @@ def worker_class(round_robin=False):
             self.heartbeat()
             origin = next(queue for queue in self.queues if queue.name == job.origin)
             if stopall.is_stopped() or self._stop_requested:
-                log.debug("worker exits: asked to stop while %s waited at the memory gate", job.id, area="queue")
+                log.debug("The worker exits, asked to stop while %s waited at the memory gate.", job.id, area="queue")
                 origin.push_job_id(job.id, at_front=True)
                 self.register_death()
                 os._exit(0)
@@ -178,8 +181,8 @@ def worker_class(round_robin=False):
             try:
                 runrecord.log(self.connection, job.args[0], f"Memory gate: {job.description or job.id} waited {admission.waited:,.0f} s for "
                               f"{claim.mb:,.0f} MB ({admission.decision.reason}).", kind="gate.wait", level="warning" if admission.timed_out else "info")
-            except Exception:  # noqa: BLE001 -- a log line is never a reason to fail the job
-                pass
+            except Exception as exc:  # noqa: BLE001 -- a log line is never a reason to fail the job
+                log.swallowed("cli/worker", "worker_class.WarmWorker._report_wait", exc)
 
         def prepare_execution(self, job):
             if units.sheds_tables_for(job):
@@ -194,36 +197,54 @@ def worker_class(round_robin=False):
             """PERF.226: a worker that holds the star tables and is given a unit that needs none puts the unit back at the front of its
             queue and starts itself over, so the unit runs in a worker of its own size. The unit is only queued still (RQ starts it
             after this), so it is not lost."""
-            log.debug("worker restarts itself: it holds the star tables and %s needs none", job.id, area="queue")
+            log.debug("The worker restarts itself, because it holds the star tables and %s needs none.", job.id, area="queue")
             next(queue for queue in self.queues if queue.name == job.origin).push_job_id(job.id, at_front=True)
             self.register_death()
             os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
 
-        def _wait_while_paused(self):
+        def _wait_while_paused(self, job_id=None):
             if not any(pause.holds(name) for name in self.queue_names()):
                 return
-            log.debug("worker holds: the queue is paused", area="queue")
-            while pause.is_paused(self.connection) and not self._stop_requested:
+            if not pause.blocks(self.connection, job_id):
+                return
+            log.debug("The worker holds, because the queue is paused.", area="queue")
+            while pause.blocks(self.connection, job_id) and not self._stop_requested:
                 self.heartbeat()
                 time.sleep(pause.WAIT_SECONDS)
 
+        def _turn_away_during_solo_hold(self, job):
+            """
+            OPS.145: a job taken while the queues are held for a restarted unit that runs alone, and that is not that unit, goes back to the back of its queue (the unit is at the front, and a job put in front of it
+            could keep every worker from reaching it) and this worker holds off until the hold lifts, so nothing starts beside the unit. Returns whether it was turned away. (A pause by hand keeps the job in hand, as before.)
+            """
+            if not any(pause.holds(name) for name in self.queue_names()) or pause.solo_of(self.connection) is None or not pause.blocks(self.connection, job.id):
+                return False
+            log.debug("The worker turns %s away, because the queue is held for a unit that runs alone.", job.id, area="queue")
+            next(queue for queue in self.queues if queue.name == job.origin).push_job_id(job.id)
+            self._wait_while_paused(job.id)
+            return True
+
         def dequeue_job_and_maintain_ttl(self, *args, **kwargs):
-            if stale():
-                log.debug("worker restarts itself: the release on disk is not the one it loaded", area="queue")
-                self.register_death()
-                os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
-            self._exit_if_stopped()
-            self._wait_while_paused()
-            result = super().dequeue_job_and_maintain_ttl(*args, **kwargs)
-            if result is not None:
+            while True:
+                if stale():
+                    log.debug("The worker restarts itself, because the release on disk is not the one it loaded.", area="queue")
+                    self.register_death()
+                    os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
                 self._exit_if_stopped()
                 self._wait_while_paused()
-            return result
+                result = super().dequeue_job_and_maintain_ttl(*args, **kwargs)
+                if result is None:
+                    return result
+                self._exit_if_stopped()
+                if self._turn_away_during_solo_hold(result[0]):
+                    continue
+                self._wait_while_paused(result[0].id)
+                return result
 
         def _exit_if_stopped(self):
             """PERF.186: a worker that is still alive when everything is stopped ends before it takes or starts a job."""
             if stopall.is_stopped():
-                log.debug("worker exits: everything was stopped", area="queue")
+                log.debug("The worker exits, because everything was stopped.", area="queue")
                 self.register_death()
                 os._exit(0)
 
@@ -249,10 +270,10 @@ def main(argv=None):
     try:
         updateguard.refuse_while_updating("A worker")     # OPS.53: the workers take no job during an update
     except updateguard.UpdateRunning as exc:
-        log.debug("worker not started: %s", exc, area="queue")
+        log.debug("The worker was not started: %s", exc, area="queue")
         log.error(exc)
         return updateguard.EX_TEMPFAIL
-    log.debug("worker starts: queues %s, %s, release %s", args.queues, "burst" if args.burst else
+    log.debug("The worker starts on queues %s (%s) with release %s.", args.queues, "burst" if args.burst else
               f"idle exit after {args.idle_seconds} s", _version.__version__, area="queue")
     work.lower_priority(workers.niceness(args.queues))
     warm(args.queues)
@@ -265,8 +286,7 @@ def main(argv=None):
                             job_monitoring_interval=int(memorygate.POLL_SECONDS))     # PERF.254: the claim is renewed and sampled this often
     worker.work(burst=args.burst, with_scheduler=False,
                 max_idle_time=None if args.burst else args.idle_seconds)
-    log.debug("worker exits: no work for %s s", "its idle time" if not args.burst else "the queue was empty",
-              area="queue")
+    log.debug("The worker exits because %s.", "its idle time ran out" if not args.burst else "the queue was empty", area="queue")
 
 
 if __name__ == "__main__":

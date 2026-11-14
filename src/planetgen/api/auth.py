@@ -97,7 +97,8 @@ def trusted_device_for(username):
         return False
     try:
         owner = adminAuth.device_username(get_control_db(), raw)
-    except Exception:  # noqa: BLE001 -- e.g. admin_devices not created yet
+    except Exception as exc:  # noqa: BLE001 -- e.g. admin_devices not created yet
+        log.swallowed("api/auth", "trusted_device_for", exc)
         return False
     return owner is not None and owner.casefold() == username.strip().casefold()
 
@@ -111,8 +112,8 @@ def _issue_device_cookie(resp, conn, admin_user_id):
     except Exception as exc:  # noqa: BLE001
         try:
             conn.rollback()
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as swallowed_exc:  # noqa: BLE001
+            log.swallowed("api/auth", "_issue_device_cookie", swallowed_exc)
         log.error(f"Could not record a trusted device (run update.sh?): {exc}")
         return
     resp.set_cookie(
@@ -207,8 +208,8 @@ def _totp_on(conn, admin_user_id):
     except Exception as exc:  # noqa: BLE001
         try:
             conn.rollback()
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as swallowed_exc:  # noqa: BLE001
+            log.swallowed("api/auth", "_totp_on", swallowed_exc)
         log.error(f"Could not read admin_totp (run update.sh?): {exc}")
         return False
 

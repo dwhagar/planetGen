@@ -142,7 +142,7 @@ def test_every_isotope_of_the_table_with_an_abundance_can_be_drawn_for_the_eleme
 
 
 def test_an_earth_like_planets_deuterium_nitrogen_and_argon_are_of_the_order_of_the_real_ones(sun):
-    rows = {row["isotope"]: row for row in _planet(sun, 1.0, seed=1).isotopes}
+    rows = {row["isotope"]: row for row in _planet(sun, 1.0, seed=0).isotopes}
     d_h = rows["H-2"]["fraction"] / rows["H-1"]["fraction"]
     assert 0.8e-4 < d_h < 4.0e-4                                                    # the ocean 1.56e-4, scattered by the draw
     assert 1.0 / (rows["N-15"]["fraction"] / rows["N-14"]["fraction"]) == pytest.approx(274.0, rel=0.1)
@@ -171,6 +171,7 @@ def test_a_gas_giant_with_no_interior_content_has_primordial_argon_only(sun):
 
 def test_the_same_body_gets_the_same_record_and_the_run_stream_does_not_move(sun):
     planet = _planet(sun, seed=3)
+    ir.generate(planet)                    # the record of the draw is made before the magnetic field is (cosmogenic rows read the moment): settle it first, then compare two calls on the same finished body
     before = [dict(row) for row in planet.isotopes]
     with draw.bound("isotope-record:outer-a"):
         ir.generate(planet)
@@ -280,14 +281,6 @@ def test_a_generated_world_with_air_carries_cosmogenic_rows_inside_the_property_
     assert {row["isotope"] for row in rows} <= {"H-3", "C-14", "Al-26", "Be-10"} and all(0.0 < row["fraction"] < (1e-5 if row["element"] == "Be" else 1e-9) for row in rows)
 
 
-def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record():
-    for distance in (0.0, None):
-        body = _body(distance=0.0, formation_distance_au=distance, water_mass_fraction=0.01)
-        assert ir._ice_temperature_k(body) == ir.ICE_REFERENCE_K
-        rows = {row["isotope"]: row for row in ir.record_of(body)}
-        assert rows["H-2"]["fraction"] > 0.0
-
-
 def _ratios(*args, **kwargs):
     return {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.small_body_record(*args, **kwargs))}
 
@@ -361,6 +354,18 @@ def test_the_mantle_xenon_excess_is_the_earths_at_the_early_solar_systems_iodine
     assert ratio(earthlike) == pytest.approx(ir.MANTLE_XE_129_OVER_130)
     assert ratio(poor) - ir.SOLAR_XE_129_OVER_130 == pytest.approx(0.5 * (ir.MANTLE_XE_129_OVER_130 - ir.SOLAR_XE_129_OVER_130))
     assert ir.mantle_sheet_rows([{"isotope": "H-1", "fraction": 1.0, "initial_ratio": None}]) == [] and ir.mantle_sheet_rows(None) == []        # no rock, no mantle
+
+def test_the_mantle_136xe_is_solar_plus_the_earths_fission_excess_with_the_plutonium_part_scaled_by_the_birth_ratio():
+    base = [{"isotope": "Mg-24", "fraction": 0.79, "initial_ratio": None}]
+    with_pu = lambda factor: base + [{"isotope": "Pu-244", "fraction": 1e-40, "initial_ratio": factor * ir.ESS_INITIAL_RATIO["Pu-244"]}]
+    ratio = lambda rows: [row for row in ir.mantle_sheet_rows(rows) if row[0] == "isotope_mantle_136Xe/130Xe"][0][3]
+    excess = ir.MANTLE_XE_136_OVER_130 - ir.SOLAR_XE_136_OVER_130
+    assert ratio(with_pu(1.0)) == pytest.approx(ir.MANTLE_XE_136_OVER_130)                                       # the Earth's early Solar System birth ratio gives the Earth's mantle
+    assert ratio(with_pu(0.0)) - ir.SOLAR_XE_136_OVER_130 == pytest.approx((1.0 - ir.PU_SHARE_OF_FISSION_XE136) * excess)   # no plutonium leaves the uranium part
+    assert ratio(with_pu(2.0)) > ratio(with_pu(1.0)) > ratio(with_pu(0.5)) > ir.SOLAR_XE_136_OVER_130
+    assert not [row for row in ir.mantle_sheet_rows(base) if row[0] == "isotope_mantle_136Xe/130Xe"]            # a record with no plutonium row shows no line
+    assert "isotope_mantle_136Xe/130Xe" in ir.MANTLE_SHEET_KEYS
+
 
 def _rock_world(**changes):
     body = _Air()

@@ -21,7 +21,7 @@ import functools
 
 import numpy as np
 
-from planetgen.datasets import fetch, ozone_uv
+from planetgen.datasets import fetch, methane_visible, ozone_uv
 from planetgen.physics import gases
 
 EDGES_NM = np.concatenate([np.arange(100.0, 400.0, 1.0), np.arange(400.0, 1100.0, 10.0), np.arange(1100.0, 4001.0, 100.0)])
@@ -97,3 +97,20 @@ def ozone_cross_section_cm2(edges, temperature_k=None):
     if located.use_stand_in("ozone cross sections from the 20 nm bins of the gas table"):
         return bins
     return ozone_uv.cross_section_cm2(located, edges, DEFAULT_OZONE_TEMPERATURE_K if temperature_k is None else temperature_k, bins)
+
+
+def methane_optical_depth(number_column_cm2, edges):
+    """
+    The optical depth of a vertical column of `number_column_cm2` methane molecules per cm2 in each cell of `edges` (GEN.949).
+
+    Between 400 and 1050 nm it is read from the downloaded table of Karkoschka (`datasets/methane_visible.py`): the depth of the mean transmission of the samples in
+    the cell, so the strong bands are nearly black and the windows between them clear, whatever the cell width. Elsewhere, and everywhere when the
+    download is absent and the run disregards missing data (`fetch.stand_ins_used` lists it), it is the column times the gas table's cell mean (`band_mean_cross_section_cm2`);
+    any other run without the download raises `fetch.DataMissing`.
+    """
+    bins = number_column_cm2 * band_mean_cross_section_cm2("CH4", edges)
+    located = fetch.locate(methane_visible.DATASET)
+    if located.use_stand_in("methane visible bands from the 35 bins of the gas table"):
+        return bins
+    read = methane_visible.cell_optical_depth(located, edges, number_column_cm2)
+    return np.where(np.isfinite(read), read, bins)

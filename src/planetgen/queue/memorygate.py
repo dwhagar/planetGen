@@ -42,6 +42,7 @@ Nothing here changes what a run generates: the work seed does not depend on how 
 """
 
 import contextlib
+import dataclasses
 import json
 import os
 import socket
@@ -126,13 +127,15 @@ def enabled():
 @dataclass(frozen=True)
 class Claim:
     """What one job asks of the host: its `kind` (the key claims are learned under), `mb` of memory, `cpu` cores, the `lane` it is on and
-    whether it needs the bulk lane to itself (`exclusive`: the cut of a stage)."""
+    whether it needs the bulk lane to itself (`exclusive`: the cut of a stage). `solo` (OPS.145) is the claim of the restarted unit that runs alone: it asks for the whole
+    memory budget of the lanes that are not the site's (`solo_mb`) and waits for every other claim of those lanes to end, and none of them is admitted while it is held."""
 
     kind: str
     mb: float
     cpu: float = 1.0
     lane: str = LANE_OTHER
     exclusive: bool = False
+    solo: bool = False
 
 
 @dataclass(frozen=True)
@@ -167,6 +170,7 @@ class Decision:
     reason: str
     need_mb: float
     free_mb: float
+    memory: bool = False
 
 
 @dataclass(frozen=True)
@@ -247,7 +251,7 @@ def holders(conn, now=None):
         name = _decode(name)
         try:
             row = json.loads(_decode(raw))
-            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")))
+            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
             pid, host = int(row["pid"]), row["host"]
             expires, peak = float(row["expires"]), float(row.get("peak", 0.0))
         except (ValueError, KeyError, TypeError):
@@ -290,6 +294,16 @@ def kept_cores(held, host, places=None):
     return max(0.0, min(places * KEEP_CPU_PER_PLACE, KEEP_CPU_SHARE * host.cores) - in_use)
 
 
+def solo_mb(host, held=(), places=None):
+    """The memory a solo claim asks for, MB: the host's, less what it keeps for itself (`reserve_mb`) and for the interactive and long lanes (`kept_mb`), so the site keeps its places."""
+    return max(float(MIN_CLAIM_MB), host.total_mb - reserve_mb(host) - kept_mb(held, places))
+
+
+def with_solo_mb(claim, host, places=None):
+    """`claim`, a solo one, with the whole budget as its memory (any other claim as it is)."""
+    return dataclasses.replace(claim, mb=max(claim.mb, solo_mb(host, places=places))) if claim.solo else claim
+
+
 def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     """
     The gate's rule (pure: the host and the claims held are given). `held` are the other claims (`holders`); `own_mb` is what the
@@ -300,16 +314,23 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     need = max(0.0, claim.mb - own_mb)
     if not others:
         return Decision(True, "alone: nothing else holds a claim", need, host.available_mb)
+    if claim.solo:
+        busy = sorted({holder.claim.kind for holder in others if holder.claim.lane not in SHORT_LANES})
+        if busy:
+            return Decision(False, f"a solo run waits for {', '.join(busy[:3])} to end", need, host.available_mb)
+        return Decision(True, "solo: no claim of the bulk or maintenance lanes is held", need, host.available_mb)
+    if not short and any(holder.claim.solo for holder in others):
+        return Decision(False, "a solo run holds the host", need, host.available_mb)
     if claim.exclusive and any(holder.claim.lane == claim.lane for holder in others):
         names = sorted({holder.claim.kind for holder in others if holder.claim.lane == claim.lane})
         return Decision(False, f"waits for the {claim.lane} lane to be clear of {', '.join(names[:3])}", need, host.available_mb)
-    unrealised = sum(max(0.0, holder.claim.mb - holder.held_mb) for holder in others)
+    unrealised = sum(max(0.0, holder.claim.mb - holder.held_mb) for holder in others if not (short and holder.claim.solo))      # the site's places are outside its budget
     keep = 0.0 if short else kept_mb(others, places)
     reserve = reserve_mb(host) / (2.0 if short else 1.0)
     free = host.available_mb - reserve - keep - unrealised
     if need > free:
         return Decision(False, f"needs {need:,.0f} MB, {free:,.0f} MB are free ({host.available_mb:,.0f} available, {reserve:,.0f} kept for the host, "
-                               f"{keep:,.0f} for the short lanes, {unrealised:,.0f} still to be taken by the claims held)", need, free)
+                               f"{keep:,.0f} for the short lanes, {unrealised:,.0f} still to be taken by the claims held)", need, free, True)
     cap = host.cores * (INTERACTIVE_CPU_SHARE if short else CPU_SHARE) - (0.0 if short else kept_cores(others, host, places))
     busy = sum(holder.claim.cpu for holder in others)
     if busy + claim.cpu > cap:
@@ -338,7 +359,7 @@ def _decision_lock(conn, wait=LOCK_SECONDS, sleep=time.sleep):
 
 def _write(conn, name, claim, pid, job, now):
     conn.hset(_key("claims"), name, json.dumps({
-        "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "pid": pid,
+        "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "solo": claim.solo, "pid": pid,
         "host": socket.gethostname(), "job": job, "started": now, "expires": now + CLAIM_SECONDS, "peak": 0.0}))
 
 
@@ -374,11 +395,14 @@ def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, cloc
 def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wait, scheduler):
     started = clock()
     announced = float("-inf")
+    memory_since = None
+    asked = claim
     while True:
         waited = clock() - started
         with _decision_lock(conn):
             held = holders(conn)
             host = read_host()
+            claim = with_solo_mb(asked, host)
             if enabled():
                 if scheduler is None:
                     decision = decide(claim, host, held, own_mb=held_mb(pid), name=name)
@@ -391,16 +415,32 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
                 decision, timed_out = Decision(True, f"waited {waited:,.0f} s; the table cap lets it in ({decision.reason})", decision.need_mb, decision.free_mb), True
             if decision.admit:
                 _write(conn, name, claim, pid, job, time.time())
-                log.debug(f"gate admits {claim.kind} ({claim.mb:,.0f} MB, {claim.cpu:g} core(s), {claim.lane}) for {name} after {waited:.1f} s: {decision.reason}", area="queue")
+                log.debug("The memory gate admits %s (%s MB, %g core(s), %s) for %s after %.1f s: %s", claim.kind, f"{claim.mb:,.0f}", claim.cpu, claim.lane, name, waited, decision.reason, area="queue")
                 if timed_out:
                     log.warning(f"The memory gate let {claim.kind} in after {waited:,.0f} s of waiting, by the table cap: {decision.reason}")
                 return Admission(waited, timed_out, decision)
+        if decision.memory:
+            memory_since = clock() if memory_since is None else memory_since
+            _adapt_to_wait(conn, claim, name, clock() - memory_since)
+        else:
+            memory_since = None
         if waited - announced >= 60.0:
             announced = waited
             log.normal(f"The memory gate holds {claim.kind} ({claim.mb:,.0f} MB) for {name}: {decision.reason}.")
         if on_wait is not None:
             on_wait(decision, waited)
         sleep(POLL_SECONDS)
+
+
+def _adapt_to_wait(conn, claim, name, memory_waited):
+    """A bulk job has waited `memory_waited` seconds for memory: tells the adaptive control (`queue.adaptive`), which lowers the worker limit once it is long. Never raises."""
+    if claim.lane != LANE_BULK or not enabled():
+        return
+    try:
+        from planetgen.queue import adaptive
+        adaptive.on_memory_wait(conn, name, claim.kind, memory_waited)
+    except Exception as exc:  # noqa: BLE001 -- the control is an optimisation; a wait at the gate goes on without it
+        log.debug("The adaptive worker control failed at the memory gate: %s", exc, area="queue")
 
 
 def refresh(conn, name, now=None):
@@ -416,8 +456,26 @@ def refresh(conn, name, now=None):
     current = held_mb(int(row["pid"]))
     row["peak"] = max(float(row.get("peak", 0.0)), current)
     row["expires"] = now + CLAIM_SECONDS
+    _note_usage(row, int(row["pid"]), current, now)
     conn.hset(_key("claims"), name, json.dumps(row))
     return current
+
+
+def _note_usage(row, pid, current, now):
+    """OPS.155: keeps beside the peak what the claim needs for an average of the memory and the processor (cores) over its life: the sum and count of the readings, the
+    processor seconds at the first and the last look and the busiest interval between two looks. Best effort."""
+    try:
+        from planetgen.queue import usage
+        if current > 0.0:
+            row["sum"], row["n"] = float(row.get("sum", 0.0)) + current, int(row.get("n", 0)) + 1
+        used = usage.cpu_seconds(pid)
+        if "cpu0" not in row:
+            row.update(cpu0=used, cpu_last=used, t0=now, t_last=now)
+        elif now - float(row["t_last"]) >= 1.0:
+            row["cpu_peak"] = max(float(row.get("cpu_peak", 0.0)), max(used - float(row["cpu_last"]), 0.0) / (now - float(row["t_last"])))
+            row["cpu_last"], row["t_last"] = used, now
+    except Exception as exc:        # noqa: BLE001 -- an average is not worth a heartbeat
+        log.swallowed("queue", "noting the usage of a gated job at its heartbeat", exc)
 
 
 def release(conn, name):
@@ -430,8 +488,15 @@ def release(conn, name):
     peak = float(row.get("peak", 0.0))
     if peak > 0.0:
         learn(conn, row["kind"], peak)
+    if not str(row["kind"]).startswith("unit:"):        # OPS.155: a unit's own row is written by the unit, with its items
+        from planetgen.queue import jobprofiles
+        lived = float(row["t_last"]) - float(row["t0"]) if "t0" in row else 0.0
+        jobprofiles.record(row["kind"], seconds=max(0.0, time.time() - float(row.get("started", time.time()))), peak_mb=peak or None,
+                           avg_mb=float(row["sum"]) / int(row["n"]) if row.get("n") else None, cpu_peak=row.get("cpu_peak"),
+                           cpu_avg=(float(row["cpu_last"]) - float(row["cpu0"])) / lived if lived >= 1.0 else None)
     from planetgen.queue import scheduler
-    scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
+    if not row.get("solo"):         # OPS.145: a solo run is not a turn of its kind, so the jobs it held back are not behind it afterwards
+        scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
     return peak
 
 
@@ -456,9 +521,9 @@ def forget(conn):
         conn.delete(key)
 
 
-def claim_mb(conn, kind, table_mb, job_id=None, known=None):
+def claim_mb(conn, kind, table_mb, job_id=None, known=None, token=None):
     """
-    What a job of `kind` claims, MB: the table's figure (`table_mb`), raised to the peak seen for the kind with its margin
+    What a job of `kind` claims, MB (from the job profile when the machine has history for it, `profileclaim`, else): the table's figure (`table_mb`), raised to the peak seen for the kind with its margin
     (`LEARN_MARGIN`), and to the larger claim a retry was given (`grow`). A kind with no table figure (`table_mb` `None`) claims what has
     been seen, or `MIN_CLAIM_MB` if nothing has: the caller gives a default for it.
     """
@@ -467,6 +532,10 @@ def claim_mb(conn, kind, table_mb, job_id=None, known=None):
     figure = table_mb
     if peak:
         figure = peak * LEARN_MARGIN if table_mb is None else max(table_mb, peak * LEARN_MARGIN)
+    from planetgen.queue import profileclaim
+    profiled = profileclaim.claim(conn, kind, table_mb, token=token)      # OPS.156: the profile's figure, when this machine has history; None gives the figure above
+    if profiled is not None:
+        figure = profiled
     if job_id:
         retried = conn.get(_key(f"override:{job_id}"))
         if retried is not None:

@@ -97,6 +97,16 @@ def test_the_body_is_a_table_of_its_mass_fractions():
     assert planet_layout.MASS_SHARED_KEYS >= {"metal_mass_fraction", "envelope_mass_fraction"}
 
 
+def test_the_mass_table_counts_the_water_so_the_parts_add_up_to_the_whole():
+    """UX.308: the water share is a row of the Water group; the table shows it, so metal, rock, water and the other ices sum to 100 percent."""
+    groups = [{"key": "composition", "label": "Composition", "rows": [
+        _row("metal_mass_fraction", "Metal", 0.262), _row("rock_mass_fraction", "Rock", 0.626), _row("ice_mass_fraction", "Ice", 0.0317)]},
+        {"key": "water", "label": "Water", "rows": [_row("water_mass_fraction", "Water share of the mass", 0.0803)]}]
+    table = planet_layout.mass_table({"groups": groups})
+    assert [part["name"] for part in table][-2:] == ["Water (ocean, ice and water bound in the rock)", "Other ices (not water)"]
+    assert sum(float(part["share"].split()[0]) for part in table) == pytest.approx(100.0, abs=0.01)
+
+
 def test_the_civilization_paragraph_exists_only_when_there_is_something_to_say():
     assert planet_layout.civilization_sentences({"inhabited": False}, None) == []
     assert planet_layout.civilization_sentences(None, None) == []
@@ -231,3 +241,10 @@ def test_the_summary_says_how_well_the_class_fits_and_what_the_runner_up_is():
     assert 'It fits class <a href="/classes/planet/M">M</a> 92 percent and class O 41 percent.' in text
     hole = " ".join(planet_summary.summary_sentences("Kepler b", {**ROW, "class_match": 0.0}, VALUES))
     assert 'No class fits it; class <a href="/classes/planet/M">M</a> is the nearest.' in hole
+
+
+def test_a_body_with_no_ground_says_its_numbers_are_at_the_reference_level():
+    """UX.297: a gas dwarf's temperature and pressure are at the 1 bar level, and the summary says so."""
+    text = " ".join(planet_summary.summary_sentences("Puff", {**ROW, "planet_type": "transitional"}, VALUES))
+    assert "its temperature at the 1 bar reference level is 288 K, the air at its reference level is 101 kPa, and gravity is 1 g." in text.replace("Its", "its")
+    assert "at the surface" not in text

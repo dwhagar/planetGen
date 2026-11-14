@@ -7,13 +7,13 @@ Kozai-Lidov pumping of a planet or a moon by the third body of its triple (GEN.1
 A planet with a distant companion star, a moon whose planet orbits a star, and a planet beside a heavy outer sibling are hierarchical triples: an inner pair (a body
 about its central mass) and a distant third body whose orbit is the outer one. When the two orbital planes are inclined by 39.2 to 140.8 degrees (`cos^2 i < 3/5`) the
 third body's torque, averaged over both orbits, trades the inner orbit's eccentricity and inclination back and forth: the eccentricity rises from its birth value to
-`e_max = sqrt(1 - (5/3) cos^2 i)` (Kozai 1962, Lidov 1962; quadrupole order, test-particle inner body, the form `stability.kozai_max_eccentricity` has used for stellar triples) and falls again
+`e_max = sqrt(1 - (5/3) cos^2 i)` ([R5221, R5222]; quadrupole order, test-particle inner body, the form `stability.kozai_max_eccentricity` has used for stellar triples) and falls again
 while `sqrt(1 - e^2) cos i` stays constant. `stability.kozai_verdict` is the screen the stellar triples have had since GEN.1447's first half; this module applies the same
 maths to a planet and a moon, and adds what a body has that a star does not: the quench by its siblings' precession and by its own tidal bulge, and the state at the system's age.
 
 **The screen** (`screen`). A cycle runs only when all of these hold: the mutual inclination lies in the window; the Kozai time `stability.kozai_timescale_yr` is shorter than the
 age; and the Kozai time is shorter than the period of every other apsidal precession of the inner orbit, the relativistic one (`stability.gr_precession_period_yr`), the siblings' and the
-planet's bulge (`other_rate_rad_yr`, which the caller sums): a precession from another cause at least as fast as the Kozai rate detunes the cycle before it can grow (Innanen et al. 1997; Fabrycky and Tremaine 2007; `OTHER_PRECESSION_QUENCH`).
+planet's bulge (`other_rate_rad_yr`, which the caller sums): a precession from another cause at least as fast as the Kozai rate detunes the cycle before it can grow ([R5223, R5226]; `OTHER_PRECESSION_QUENCH`).
 The octupole widening is `stability.kozai_verdict`'s: for an eccentric outer orbit and mutual inclinations of 25 to 90 degrees the maximum is lifted to 0.98.
 
 **The state at the age.** The orbit-averaged equations of the quadrupole test-particle problem, in units of the Kozai time `t_kl` (`kozai_timescale_yr`; the equations carry `K = 4 / (3 t_kl)`):
@@ -59,7 +59,7 @@ OCTUPOLE_MAXIMUM = 0.98
 """float: `kozai_verdict`'s cap for the octupole widening."""
 
 OTHER_PRECESSION_QUENCH = 1.0
-"""float: The apsidal precession from another cause (siblings, the planet's bulge) quenches the cycle when it is at least as fast as the Kozai rate, `|g| t_kl >= 1` (the rate the star turns the orbit is `3 K / 4 = 1 / t_kl`, so the bulge holds a moon to the planet's equator inside the Laplace radius, where the two are equal; Tremaine, Touma and Namouni 2009; a stand-in, row KZ4, tier Confident educated guess from physics, tweak L0). The relativistic quench is `kozai_verdict`'s, `t_kl >= P_GR`, kept as it was."""
+"""float: The apsidal precession from another cause (siblings, the planet's bulge) quenches the cycle when it is at least as fast as the Kozai rate, `|g| t_kl >= 1` (the rate the star turns the orbit is `3 K / 4 = 1 / t_kl`, so the bulge holds a moon to the planet's equator inside the Laplace radius, where the two are equal; [R5224]; a stand-in, row KZ4, tier Confident educated guess from physics, tweak L0). The relativistic quench is `kozai_verdict`'s, `t_kl >= P_GR`, kept as it was."""
 
 HIERARCHY_RATIO = 3.0
 """float: The outer axis over the inner axis under which the triple is not hierarchical and the averaged equations do not hold (a stand-in, row KZ2): the stability cut `stability.stable` is the physical limit and is the caller's."""
@@ -263,7 +263,7 @@ def laplace_tilt_rad(torque_ratio, obliquity_rad):
     """
     The angle (radians) from a planet's spin axis to the normal of the Laplace plane at a distance where the star's torque on a moon's orbit is `torque_ratio` times the bulge's (`1 / (t_kl |g|)`
     for a bulge precession `g` and Kozai time `t_kl`): the plane a moon's orbit precesses about, between the equator (close in, ratio 0) and the planet's orbit (far out, ratio large). The
-    two torques balance where `sin 2 theta = ratio sin 2 (obliquity - theta)` (Tremaine, Touma and Namouni 2009), solved by bisection. `obliquity_rad` is folded to 0 to 90 degrees.
+    two torques balance where `sin 2 theta = ratio sin 2 (obliquity - theta)` [R5224], solved by bisection. `obliquity_rad` is folded to 0 to 90 degrees.
     """
     epsilon = min(obliquity_rad, math.pi - obliquity_rad)
     if epsilon <= 0.0 or torque_ratio <= 0.0:

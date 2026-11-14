@@ -1328,7 +1328,7 @@ def test_system_page_renders_every_option(site, client):
     for name, _label in system_page.TRISTATE_FIELDS:
         assert f'name="{name}"' in html
     for name in ("name", "star_type", "age", "num_orbits", "stars", "max_stars", "flavor_chance_system",
-                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug"):
+                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug", "debug_areas", "disregard_missing_data"):
         assert f'name="{name}"' in html
     assert "Raise the odds" in html  # habitable world and intelligent life only raise the odds (GEN.1130)
     # Linked from the Generate page.
@@ -1439,6 +1439,66 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
                                "--name=Doc Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
                               env=env)
     assert document.returncode == 0 and json.loads(document.stdout)["title"] == "Doc Out"
+
+
+def test_system_request_passes_the_weirdness_dial_and_forced_oddities_on():
+    argv = system_page.system_request({"weirdness_dial": "0.5", "force_oddities": "w10, G1"})["argv"]
+    assert "--weirdness-dial=0.5" in argv and "--force-oddities=W10,G1" in argv
+    assert not any(one.startswith(("--weirdness", "--force-odd")) for one in system_page.system_request({})["argv"])
+    with pytest.raises(generate_page.FormError, match="Force oddities"):
+        system_page.system_request({"force_oddities": "Z9"})
+    with pytest.raises(generate_page.FormError, match="Weirdness dial"):
+        system_page.system_request({"weirdness_dial": "-1"})
+
+
+def test_generate_py_system_takes_the_weirdness_dial_and_forced_oddities(tmp_path):
+    import subprocess
+
+    out = tmp_path / "s.json"
+    ok = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--weirdness-dial", "0", "--force-oddities", "w10", "--format", "document",
+                         "--output", str(out), "--quiet", "--name=Odd"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120)
+    assert ok.returncode == 0 and json.loads(out.read_text(encoding="utf-8"))["title"] == "Odd", ok.stdout + ok.stderr
+    for args, word in ((["--force-oddities", "Z9"], "unknown oddity id"), (["--weirdness-dial", "-1"], "0 or more")):
+        bad = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", *args, "--output", "-"], cwd=jobs.REPO_DIR, capture_output=True,
+                             encoding="utf-8", timeout=120)
+        assert bad.returncode != 0 and word in bad.stderr
+
+def test_system_page_asks_for_a_rogue_planet_or_a_comet_without_a_database(site, client):
+    """UX.298: the Result choice runs `planetgen phenomenon --type ... --output`, which describes the body and never saves it."""
+    assert 'name="result_kind"' in client.get("/admin/generate/system").get_data(as_text=True)
+    for kind, section in (("rogue-planet", "rogue-planet"), ("comet", "interstellar-comet")):
+        resp = _post_system(client, result_kind=kind, name=f"Starless {kind}")
+        html = resp.get_data(as_text=True)
+        assert resp.status_code == 200, html
+        assert f'<h2 id="system-result-heading">Starless {kind}</h2>' in html
+        assert f"doc-{section}" in html or section in html
+
+
+def test_a_starless_result_takes_only_a_name_and_the_debug_log():
+    spec = system_page.system_request({"result_kind": "rogue-planet", "name": "Drifter", "debug": "on"})
+    assert spec["command"] == "phenomenon" and "--type" in spec["argv"] and "rogue-planet" in spec["argv"]
+    assert "--name=Drifter" in spec["argv"] and spec["system_file"] is None
+    with pytest.raises(generate_page.FormError, match="star type"):
+        system_page.system_request({"result_kind": "comet", "star_type": "G2V"})
+    with pytest.raises(generate_page.FormError, match="weirdness dial"):
+        system_page.system_request({"result_kind": "comet", "weirdness_dial": "0"})
+    with pytest.raises(generate_page.FormError):
+        system_page.system_request({"result_kind": "black-hole"})
+    assert "command" not in system_page.system_request({})
+
+
+def test_generate_py_phenomenon_output_writes_a_file_and_no_database(tmp_path):
+    import subprocess
+
+    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1", "PYTHONIOENCODING": "utf-8"}
+    done = subprocess.run([PY, *jobs.GENERATE_COMMAND, "phenomenon", "--type", "rogue-planet", "--format", "document", "--output", "-",
+                           "--quiet", "--name=Phenom Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
+                          env=env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert json.loads(done.stdout)["title"] == "Phenom Out"
+    bad = subprocess.run([PY, *jobs.GENERATE_COMMAND, "phenomenon", "--type", "rogue-planet", "--output", "-", "--sector-id", "1"],
+                         cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
+    assert bad.returncode != 0 and "--sector-id" in bad.stderr
 
 
 # --- Upper bounds (SEC.18) ----------------------------------
@@ -1803,7 +1863,11 @@ def test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting(si
         ["scatter", "--luminosity", "--bright-star-min-luminosity", "2500"],
         ["scatter", "--phenomena", "--compact-min-mass", "2"]]
     for step in steps:
-        assert step["stages"][0]["label"] == step["label"], "the step's own stage comes first, any it ends with after it"
+        # The step's own stage is in its list; what comes before it is only what it empties first (OPS.123: the earlier bright stars, phenomena, indexes and nebula field are stages
+        # of the scatter that draws them again), and what it ends with comes after.
+        labels = [entry["label"] for entry in step["stages"]]
+        assert step["label"] in labels, (step["label"], labels)
+        assert all(label.startswith(("Clear the earlier", "Take off the")) for label in labels[:labels.index(step["label"])]), labels
         assert [entry["skipped"] for entry in step["stages"]] == [None] * len(step["stages"])
 
 
@@ -1879,7 +1943,9 @@ def test_a_lever_row_names_its_unit_once(site, client):
     for row in dials.LEVERS:
         if row.kind != "length" and row.unit:
             assert row.unit not in row.label, row.name
-    assert html.count("Arm pitch angle (degrees)") == 1 and "Arm pitch angle (degrees) (degrees)" not in html
+    # The slider (Boss, 2026-11-12) shows the label on its tick box, its typed box and its bar's aria text, each with the unit once.
+    assert "Arm pitch angle (degrees)" in html and "Arm pitch angle (degrees) (degrees)" not in html
+    assert "(degrees), slider" in html and "degrees) degrees" not in html
 
 
 def test_the_edge_is_typed_with_its_unit(site, client):
@@ -2125,3 +2191,32 @@ def test_bring_to_epoch_does_not_start_when_it_has_nothing_it_can_do(site, clien
     resp = _post(client, action="bring_to_epoch")
     assert resp.status_code == 400 and said in resp.get_data(as_text=True)
     assert no_spawn == []
+
+
+def test_system_request_passes_disregard_missing_data_on():
+    assert "--disregard-missing-data" in system_page.system_request({"disregard_missing_data": "on"})["argv"]
+    assert "--disregard-missing-data" not in system_page.system_request({})["argv"]
+
+
+def test_system_request_debug_areas():
+    argv = system_page.system_request({"debug": "on", "debug_areas": "decision,-draw"})["argv"]
+    assert "--debug-areas=decision,-draw" in argv
+    assert not any(a.startswith("--debug-areas") for a in system_page.system_request({"debug_areas": "sql"})["argv"])
+    with pytest.raises(system_page.FormError, match="not a debug area"):
+        system_page.system_request({"debug": "on", "debug_areas": "nope"})
+
+
+def test_every_number_and_length_row_is_a_slider_with_a_tick_box_and_a_sticky_auto_mark(site, client):
+    """Boss, 2026-11-12: each galaxy measure is its title, a Default tick box beside its typed box, and a bar that rests at where Auto
+    sits in the range. The typed box stays the form field, so blank is Auto and the plan flags are as they were."""
+    html = _task_html(client, "new-galaxy")
+    sliders = [row for row in dials.LEVERS if row.kind != "enum"]
+    assert html.count("data-lever-slider ") == len(sliders) and html.count("data-lever-range") == len(sliders)
+    for row in sliders:
+        assert f'data-lever-set="{row.name}"' in html and f'name="{row.name}_default"' in html, row.name
+        assert f'data-default="{row.slider_default}"' in html, row.name
+        assert ("data-log" in re.search(rf'<div class="lever-slider"[^>]*data-min="{re.escape(str(row.minimum))}"[^>]*>', html).group(0)) == row.log, row.name
+    assert html.index('data-lever-set="mass"') < html.index('data-lever="mass"') < html.index("data-lever-range")
+    assert "/static/leversliders.js" in html
+    # The sliders add nothing to the plan: the tick boxes are not levers, and a blank box is Auto.
+    assert generate_page.plan_argv({"mass_default": "1", "mass": ""}) == []

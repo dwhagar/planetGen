@@ -28,7 +28,7 @@ from planetgen.util import ladders
 LADDER_KINDS = tuple(ladder.quantity for ladder in ladders.LADDERS)
 """tuple: The quantities that have a ladder."""
 
-OTHER_KINDS = ("radius", "luminosity", "dose", "flux", "ratio", "angle", "density", "count")
+OTHER_KINDS = ("radius", "luminosity", "flux", "ratio", "angle", "density", "count")
 """tuple: Quantities with no ladder (yet). `radius` is a body radius: always km in scientific notation."""
 
 KINDS = LADDER_KINDS + OTHER_KINDS
@@ -36,18 +36,18 @@ KINDS = LADDER_KINDS + OTHER_KINDS
 DISPLAY_UNITS = {
     "length": "m", "speed": "m_s", "time": "s", "temperature": "K", "temperature difference": "dK", "fraction": "frac", "pressure": "Pa", "gravity": "m_s2", "mass": "kg",
     "power": "W", "flux": "W_m2", "number density": "m-3", "magnetic field": "T", "radius": "m", "luminosity": "W",
-    "angle": "deg", "density": "kg_m3", "dose": "Sv/yr", "ratio": "ratio", "count": "count",
+    "dose rate": "Sv_s", "rate": "1/s", "angle": "deg", "density": "kg_m3", "ratio": "ratio", "count": "count",
 }
 """dict: The unit a kind's text is written from, a key of the unit registry or one of `PLAIN_UNITS`. A quantity held in
 another unit of the kind is converted to it (`quantity.display_value`)."""
 
-PLAIN_UNITS = ("ratio", "count", "Sv/yr")
-"""tuple: Units with no registry kind: a plain number, a count and a dose rate. They convert to nothing."""
+PLAIN_UNITS = ("ratio", "count")
+"""tuple: Units with no registry kind: a plain number and a count. They convert to nothing."""
 
 SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
                  "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
-PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life-class", "life", "timeline", "milestone", "flavor", "history")
+PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life-class", "life", "timeline", "milestone", "sky", "flavor", "history")
 
 
 def qty(kind, value, unit=None, **extra):

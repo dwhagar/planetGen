@@ -18,7 +18,7 @@ Since GEN.1111 a rogue planet IS a `Planet`, built by the planet code against a 
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import planet_type
+from planetgen.physics import daylight, outside_hours, planet_type, regional_temperature
 from planetgen.db import models, store
 from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena import starless_host
@@ -105,14 +105,19 @@ def test_a_rocky_planet_with_no_light_is_warmed_by_its_own_heat_only_when_it_has
 STARLIGHT_FIELDS = frozenset({"magnetopause_rp", "uv_surface_index"})
 """The stored quantities that need a star: the stellar wind that holds off a planet's field, and the ultraviolet a star gives the surface."""
 
+NO_SUN_FIELDS = frozenset({*daylight.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS})
+"""The stored quantities of a day under a star (GEN.1496): the solar day, the night, the polar circle, the days a year, the latitude bands that follow a sun and the hours outside they set; a body under
+no star has none, and its day share and daylight hours are 0."""
+
 LIQUID_SURFACE_FIELDS = frozenset({
     "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "ocean_phosphate_umol_l", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
     "ocean_liquid", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km"})
 """The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star (a rogue world
 of class T holds a sea of carbon monoxide at 76 K under its own air where the matched bound planet is an airless class C at 3 K)."""
 
-CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
-"""The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it."""
+CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_chemistry", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
+"""The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it. `cloud_chemistry` (GEN.1425) is the sulfur chemistry
+of that cloud, so it is filled on the one of a pair whose air holds the acid cloud and empty on the other."""
 
 RUNNER_UP_FIELDS = frozenset({"runner_up_class"})
 """The next-best class letter (GEN.1207): the classifier names one only when a second class fits at all, which the body's own conditions decide."""
@@ -124,6 +129,10 @@ gets decides (a hydrogen air is an envelope, `envelope_share`), so one draw of a
 ENVELOPE_SHELTER_FIELDS = frozenset({"shelter_column_g_cm2"})
 """The shielding a shelter needs (GEN.1323): a planet under a deep envelope has a thick column over its ground, so its yearly dose sits near the edge where a shelter becomes
 necessary, and the starlight that one of a matched pair gets and the other does not decides which side of the edge it falls on."""
+
+AIR_FIELDS = frozenset({"atm_density", "atm_molar_density", "scale_height_km"})
+"""The stored quantities of an air (its density, the mean molar mass and the scale height): an airless body stores none, so they are one-sided only where the body's own heat holds an air on
+one of a matched pair (a rogue world at 57 K under its hydrogen air where the bound planet at 3 K has frozen its gases out and is airless)."""
 
 SOLID_ONLY_FIELDS = frozenset({"roundness_ratio", "yield_strength_pa", "shelter_column_g_cm2"})
 """The stored quantities only a solid body has (a giant has none): they differ only where the two draws fall in different classes."""
@@ -175,7 +184,10 @@ def test_there_is_no_rogue_only_planet_generator():
 
 @pytest.mark.parametrize("kind", ("terrestrial", "saturn"))
 def test_a_rogue_and_its_moons_are_built_by_the_planet_and_moon_code_a_bound_planet_uses(kind):
-    rogue, bound = _moon_matched(kind, 0)
+    from tests.fuzz_support import first_seed_with
+    # TEST.714: the moon count is a number to attempt (`generate_moons`: fewer are made where the orbits have no room), so the pair is the first seed whose two draws both made two
+    _seed, (rogue, bound) = first_seed_with(lambda seed: _moon_matched(kind, seed), lambda pair: len(pair[0].moons) == len(pair[1].moons) == 2,
+                                            seeds=range(24), what="a rogue and a bound planet with two moons each")
     assert type(rogue) is type(bound) is Planet
     assert len(rogue.moons) == len(bound.moons) == 2
     assert {type(moon) for moon in rogue.moons + bound.moons} == {Planet}
@@ -220,11 +232,13 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
         if rogue_body.is_moon:
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
-        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS | DIPOLE_FIELDS
+        allowed = STARLIGHT_FIELDS | NO_SUN_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS | DIPOLE_FIELDS
         if (bound.envelope_mass_fraction or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
             allowed |= ENVELOPE_SHELTER_FIELDS
         if rogue.planet_class != bound.planet_class:
             allowed |= SOLID_ONLY_FIELDS
+        if (rogue.atmospheric_pressure > 0.0) != (bound.atmospheric_pressure > 0.0):
+            allowed |= AIR_FIELDS
         assert one_sided <= allowed, sorted(one_sided - allowed)
 
 

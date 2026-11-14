@@ -22,7 +22,7 @@ Every class of `physics/data/planet_class_fit.json` is judged on the same physic
 | `phase` | whether the family's liquid is a liquid at the body's pressure and temperature (`phase_gate`) |
 
 The cell of a class in a domain is the conditions of the fit table whose quantity is in that domain (`matrix`): a core edge and, past it, a shoulder
-(the table's `shoulders`). A class with no condition in a domain has the full range there (score 1). `domain_scores` grades a body in each
+(the width of the quantity in `fudge_table.json`, GEN.1314). A class with no condition in a domain has the full range there (score 1). `domain_scores` grades a body in each
 domain as the mean membership of the cell's conditions; `overall` is the weighted geometric mean of the six main domains (`weights` in the data file, equal to start).
 
 Quantities a body does not store (a row made before GEN.1108 has no bands, before GEN.1221 no humidity) are `None` and score 0, as everywhere in the fit table.
@@ -36,7 +36,7 @@ Use:
 
 import math
 
-from planetgen.physics import atmosphere, habitability, phase_gate
+from planetgen.physics import atmosphere, constants, habitability, phase_gate
 
 DOMAINS = ("structure", "gravity", "thermal", "air_amount", "air_chemistry", "water")
 """tuple: The six main domains, over which the overall score is taken."""
@@ -56,7 +56,7 @@ QUANTITY_DOMAIN = {
 }
 """dict: The domain of each quantity of the fit table that is not a gas share (`share_<gas>` is air chemistry, `phase_<family>` is the phase gate)."""
 
-BAND_COUNT = 7
+BAND_COUNT = constants.BAND_COUNT
 
 
 def domain_of(quantity):
@@ -93,7 +93,7 @@ def relative_humidity(values):
 
 def derived(values):
     """The quantities of the matrix that are not in `planet_classes.quantities`, from a body's stored `values`:
-    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
+    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0: an aquifer under a dry surface, or the water table under the land of a world with liquid at its surface, GEN.1638), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
     `phase_<family>` (1.0 where the family's liquid is a liquid at the body's temperature and pressure, else 0.0)."""
     found = {}
     bands = _bands(values)
@@ -112,6 +112,9 @@ def derived(values):
         from planetgen.physics import habitability_world
         groundwater = habitability_world.groundwater(values)
     found["groundwater_present"] = None if groundwater is None else (0.0 if groundwater == "none" else 1.0)
+    from planetgen.physics import habitability_world
+    if found["groundwater_present"] == 0.0 and values.get("hydrosphere") in habitability_world.LIQUID_WATER_STATES and (values.get("ocean_fraction") or 0.0) > 0.0:
+        found["groundwater_present"] = 1.0      # GEN.1638: a world with liquid at its surface has a water table under its land; the stored `groundwater` stays the water held only underground, which the habitability score reads
     temperature, pressure = values.get("surface_temperature_k"), values.get("atmospheric_pressure_pa") or 0.0
     for family in phase_gate.FAMILIES:
         found[PHASE_PREFIX + family] = None if temperature is None else (1.0 if phase_gate.holds(family, temperature, pressure) else 0.0)

@@ -44,9 +44,12 @@ from planetgen.physics import (
     neutron_star_crust,
     outside_hours,
     planet_class_text,
+    planet_type,
     pre_main_sequence,
     protection,
+    orbit_elements,
     regional_temperature,
+    sky_view,
     unit_registry,
 )
 from planetgen.physics.quantity import Quantity
@@ -467,7 +470,7 @@ def _planet_facts(planet):
     else:
         rows.append(fact("temperature", "Surface temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
-        rows.append(fact("pressure", "Surface pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        rows.append(fact("pressure", planet_type.pressure_label(planet_type.planet_type(planet)), _pascal(0.0 if airless else planet.atmospheric_pressure)))      # UX.297: a rocky planet under a deep envelope has no surface
         colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
         if colour is not None:
             rows.append(fact("atmosphere_colour", "Atmosphere color", swatch(colour.hex, colour.label)))
@@ -496,7 +499,7 @@ def _radiation_block(planet):
     terms = habitability_explain.radiation_terms(planet)
 
     def dose(msv_yr):
-        return qty("dose", msv_yr / 1000.0, "Sv/yr")
+        return qty("dose rate", msv_yr, "mSv/yr")
 
     air = ", ".join(f"{name} {three_figures_or_tiny(share * 100.0)} percent" for name, share in terms.air)
     shield = (f" under {three_figures_or_tiny(terms.column_g_cm2)} g/cm2 of air ({air})" if terms.column_g_cm2 > 0.0 and air
@@ -552,10 +555,13 @@ def _equipment_block(planet):
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
         rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
     if getattr(planet, "temp_site_coldest_k", None) is not None:           # GEN.1266: the temperatures the gear is chosen for, and the worst of the world
-        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k)))
+        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k), ", over the whole orbit and not a single day"))      # UX.311
         rows.append(fact("worst-range", "Worst conditions anywhere", _kelvin(planet.temp_coldest_k), " to ", _kelvin(planet.temp_hottest_k)))
         if planet.temp_site_longest_out_days:
-            rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            if getattr(planet, "temp_site_livable_time", None):
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            else:      # UX.310: a site that is never livable is indoors for the whole orbit, which is no "longest stay"
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", "All the time: even the best site is never livable without gear"))
         if planet.temp_livable_belt_only:
             rows.append(fact("belt-only", "Where a person can live", "Only the terminator belt"))
     return facts("Survival equipment", rows) if rows else None
@@ -575,7 +581,48 @@ def _mantle_block(planet):
     return facts("Mantle", rows)
 
 
-def _planet_section(planet):
+_ORDINALS = ("second", "third", "fourth", "fifth", "sixth", "seventh", "eighth")
+"""tuple: The words for the other suns of a sky, brightest first."""
+
+
+def _degrees(angle):
+    return f"{three_figures_or_tiny(angle)} degrees"
+
+
+def _percent(share):
+    return "under 0.1 percent" if share < 0.001 else f"{three_figures_or_tiny(100.0 * share)} percent"
+
+
+def _sky_sentences(sky):
+    """GEN.1443: what the sky of a body holds besides a main-sequence star alone: a white dwarf for a sun, and every other source bright enough to show, each with its kind, colour, width and
+    share of the light. Nothing for a lone star of the main sequence (the sky it has always had)."""
+    host, others = sky[0], sky[1:]
+    sentences = []
+    if getattr(host.star, "state", None) in sky_view.COMPACT_STATES:
+        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'}, and {_degrees(host.angular_deg)} wide.")
+    for number, body in enumerate(others):
+        colour = f"{body.colour} " if body.colour else ""
+        if body.role == "sun":
+            sentences.append(f"A {_ORDINALS[min(number, len(_ORDINALS) - 1)]} sun, a {colour}{body.kind} {_degrees(body.angular_deg)} wide, gives it {_percent(body.share)} of its light "
+                             "and makes a day of its own.")
+        else:
+            moons = body.light_w_m2 / sky_view.NIGHT_LIGHT_W_M2
+            sentences.append(f"A {colour}{body.kind}, {_degrees(body.angular_deg)} wide, lights its nights with {three_figures_or_tiny(moons)} times the light of a full Moon.")
+    return sentences
+
+
+def _sky_block(planet, parent):
+    """The sky text of a planet or moon (GEN.1443): `parent` the planet a moon circles, whose distance from the star the moon's light follows. `None` when the sky is the lone star's."""
+    host = parent if parent is not None else planet
+    star = getattr(planet, "star", None)
+    distance = getattr(host, "distance", None)
+    if star is None or not distance:
+        return None
+    sky = sky_view.bodies(star, orbit_elements.flux_distance_au(distance, getattr(host, "eccentricity", None) or 0.0))
+    return prose("sky", *_sky_sentences(sky)) if sky else None
+
+
+def _planet_section(planet, parent=None):
     blocks = [_planet_facts(planet)]
     summary = [f"It is {planet_class_text.description(planet.planet_class, planet.is_moon).lower()}."]
     blocks.append(prose("description", *summary))
@@ -591,6 +638,7 @@ def _planet_section(planet):
     blocks.append(_ratings_block(planet))
     blocks.append(_radiation_block(planet))
     blocks.append(_equipment_block(planet))
+    blocks.append(_sky_block(planet, parent))
     life = life_facts.resolve(planet)
     blocks.append(prose("life-class", *_life_class_sentences(life)))
     blocks.append(prose("life", *_life_sentences(life)))
@@ -600,7 +648,7 @@ def _planet_section(planet):
     if planet.flavor_text:
         blocks.append(prose("flavor", f"Sensors show {planet.flavor_text}"))
     kind = _noun(planet)
-    children = [_planet_section(moon) for moon in planet.moons]
+    children = [_planet_section(moon, planet) for moon in planet.moons]
     return section(kind, _ref(kind, planet), planet.name, [b for b in blocks if b and (b["type"] != "prose" or b["text"])],
                    children)
 

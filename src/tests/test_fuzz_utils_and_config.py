@@ -463,7 +463,7 @@ def test_system_config_round_trip_with_arbitrary_values(values, extra):
     for key in extra:
         if key not in out and key.isidentifier():
             assert not hasattr(config, key) or hasattr(defaults, key)
-    assert config.system_flavor_count == 0 and config.recent_flavor_texts == []
+    assert config.system_flavor_count == 0 and config.used_flavor_ids == []
     assert SystemConfig.from_dict(json.loads(json.dumps(out))).to_dict() == json.loads(json.dumps(out))
 
 
@@ -696,6 +696,7 @@ _PAIRS_THAT_ARE_NOT_RANGES = {
     "REFERENCE_BLACK_HOLE_DRAWS": "two independent uniform draws (solar share, then metal-free), not a low-high range; the solar one is 0.55 (GEN.1154, row BR1)",
     "WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL": "knots of a table, each (white dwarf mass, its helium envelope mass) in solar masses, interpolated in log; the two numbers are not low and high",
     "WD_HELIUM_CORE_HYDROGEN_FRACTIONS": "knots of a table, each (white dwarf mass in solar masses, hydrogen envelope as a fraction of its mass), interpolated in log; the two numbers are not low and high",
+    "WD_CENTRAL_OXYGEN_BY_MASS_SOL": "knots of a table, each (white dwarf mass in solar masses, central oxygen mass fraction), interpolated linearly; the two numbers are not low and high, and the oxygen falls past its peak (GEN.1370)",
 }
 """dict: The two-number constants that are not (low, high) ranges, so the ordered-pair check leaves them alone, each with why."""
 

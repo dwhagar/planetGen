@@ -37,8 +37,9 @@ from flask import Blueprint, current_app, g, jsonify, request
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_bodies, system_sky
-from planetgen.describe import belt_info, belt_member_info, field_member_info
+from planetgen.describe import belt_info, belt_member_info, field_member_info, irregular_moon_info
 from planetgen.describe.sheet import sheet as object_sheet
+from planetgen.util import log
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
@@ -89,6 +90,9 @@ from planetgen.db.query import (
     phenomena_facets,
     systems_facets,
     list_sectors,
+    sector_address_of_uid,
+    uncharted_cell_has_no_row,
+    virtual_sector_detail,
     list_systems,
     GENERATED_KINDS,
     generated_since,
@@ -99,7 +103,6 @@ from planetgen.db.query import (
     scattered_phenomenon_detail as query_scattered_phenomenon_detail,
     uncharted_system_detail as query_uncharted_system_detail,
     resolve_object,
-    nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
     parse_star_count,
@@ -446,6 +449,7 @@ def health():
         # Already logged by get_db.
         return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
     except Exception as exc:
+        log.swallowed("api/routes", "health", exc)
         _log_database_error(exc)
         return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
 
@@ -460,7 +464,8 @@ def health():
     try:
         schema_row = get_db().execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
         schema_version = schema_row["version"] if schema_row else None
-    except Exception:
+    except Exception as swallowed_exc:
+        log.swallowed("api/routes", "health", swallowed_exc)
         schema_version = None
 
     body = {
@@ -538,8 +543,11 @@ def sectors():
     after = None
     if request.args.get("after"):
         after = ids.row_id(db, "sector", request.args["after"])
-        if after is None:
-            raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
+        if after is None:       # OPS.154: the page ended on an uncharted cell that has no row; its ID is its address
+            address = sector_address_of_uid(request.args["after"])
+            if address is None or not uncharted_cell_has_no_row(db, address):
+                raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
+            after = address
     total = count_sectors(db, coverage=coverage, show_empty=show_empty)
     items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after, coverage=coverage, show_empty=show_empty)
     for item in items:
@@ -566,7 +574,7 @@ def sectors():
 def sector_detail(sector_id):
     conn = get_db()
     try:
-        detail = query_sector_detail(conn, sector_id)
+        detail = virtual_sector_detail(conn, sector_id) if isinstance(sector_id, tuple) else query_sector_detail(conn, sector_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     detail["superbubble"] = superbubble_of(conn, detail)
@@ -576,7 +584,7 @@ def sector_detail(sector_id):
         _show_uncharted_sector(conn, detail)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
-    detail["former_designations"] = ids.former_designations(conn, ids.SECTOR, sector_id)
+    detail["former_designations"] = [] if isinstance(sector_id, tuple) else ids.former_designations(conn, ids.SECTOR, sector_id)
     return jsonify(detail)
 
 
@@ -2086,6 +2094,40 @@ def object_belt_member_route(ref, rank):
         return jsonify({"error": str(exc)}), 404
 
 
+@bp.route("/objects/<ref>/irregular-moons")
+def object_irregular_moons_route(ref):
+    """
+    `GET /api/objects/<ref>/irregular-moons` (GEN.1086) -- the irregular moons a planet keeps (`describe/irregular_moon_info.py`): `planet` (its `designation`, `name`, `star`, `mass` and
+    `hill_radius`), `moons` (heaviest first, each with its `rank` (the page address), `designation` (`<planet ID>.<rank hex>`, or the belt's designation for a body caught from an inner belt),
+    `window` (`gas`, `encounter` or `exchange`), `retrograde`, mass, diameter, density, `taxon`, `analogue`, composition shares, the `distance` about the planet, `eccentricity`, `inclination` and
+    `hill_fraction`) and `not_stored` (`remainder`, `above_floor`, `lost`, `temporary`). Every number is `{value, unit, text}`. 404 for a reference that is not a planet.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "planet":
+            raise ValueError(f"{ref} is not a planet")
+        return jsonify(irregular_moon_info.list_info(get_db(), object_id))
+    except ValueError as exc:  # includes ids.IdError and irregular_moon_info.IrregularMoonNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/irregular-moons/<rank>")
+def object_irregular_moon_route(ref, rank):
+    """
+    `GET /api/objects/<ref>/irregular-moons/<rank>` (GEN.1086) -- one irregular moon of a planet (`describe/irregular_moon_info.py`), `rank` written as a designation writes it (hex, at least four
+    digits; 1 is the heaviest): `designation`, `rank`, `moon` (the entry the list has), `orbit` (the six elements about the planet, the `closest_distance`, `farthest_distance`, `period`,
+    `retrograde` and the `hill_fraction`), `planet` and the `previous` and `next` neighbours (`{rank, designation}`). Every number is `{value, unit, text}`. 404 for a reference that is not a planet, a rank that is not
+    written canonically, or a body the planet does not keep.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "planet":
+            raise ValueError(f"{ref} is not a planet")
+        return jsonify(irregular_moon_info.moon_info(get_db(), object_id, object_uid.parse_rank(rank)))
+    except ValueError as exc:  # includes ids.IdError and irregular_moon_info.IrregularMoonNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
 @bp.route("/objects/<ref>/field-members")
 def object_field_members_route(ref):
     """
@@ -2139,33 +2181,6 @@ def object_children_route(ref):
         return jsonify({"error": str(exc)}), 400
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
-
-
-@bp.route("/nebulae/<uid:nebula_id>/shape")
-def nebula_shape_route(nebula_id):
-    """
-    One nebula's shape as a triangle mesh (GEN.75): `?lod=low` (the default,
-    a coarse mesh for the Galaxy Map) or `?lod=full`. Answers `{"id",
-    "radius_ly", "center_pc" (or null for a nebula never placed), "lod",
-    "vertices", "faces"}`: the vertices are `[x, y, z]` in units of the
-    nebula's radius from its center (multiply by `radius_ly` for light-years),
-    the faces triples of vertex indexes. A 404 for an unknown nebula or a
-    `lod` other than `low` or `full`.
-    """
-    lod = request.args.get("lod", "low")
-    if lod not in ("low", "full"):
-        return jsonify({"error": f"lod must be 'low' or 'full', got {lod!r}"}), 404
-    try:
-        row, shape = query_nebula_shape(get_db(), nebula_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
-    vertices, faces = shape.mesh(lod)
-    center = None if row["center_x_pc"] is None else [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
-    return jsonify({
-        "id": nebula_id, "radius_ly": row["radius_ly"], "center_pc": center, "lod": lod,
-        "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
-        "faces": [[int(i) for i in face] for face in faces],
-    })
 
 
 @bp.route("/nebulae/<uid:nebula_id>/volume")

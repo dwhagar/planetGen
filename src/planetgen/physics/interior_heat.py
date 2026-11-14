@@ -75,7 +75,7 @@ REGIME_FIELDS = ("lid_regime",)
 STAGNANT, MOBILE = "stagnant", magnetism.LID_MOBILE
 """str: The two lids. A stagnant lid is one rigid plate; a mobile lid is plate tectonics."""
 
-GAS_CONSTANT = 8.314462618
+GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K)."""
 GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
 """float: Seconds in a gigayear."""
@@ -620,7 +620,7 @@ def surface_of(body):
 
 def generate_lid(body):
     """
-    Sets `lid_regime` on a rocky planet or moon: one draw, `MOBILE` when it falls under `magnetism.mobile_lid_chance` (a liquid surface
+    Sets `lid_regime` on a rocky planet or moon: one throw from a stream of the body's own (GEN.1591: no draw of the run's stream, the same throw every time it is made again), `MOBILE` when it falls under `magnetism.mobile_lid_chance` (a liquid surface
     ocean to lubricate the plates, and a mass between 0.5 and 5 Earth masses at 0.6, heavier at 0.3: the literature is unsettled), else
     `STAGNANT`. Call after the hydrosphere. A body with no stored content (a gas giant) has `None` and draws nothing. The magnetic field
     and the ground dose read the stored regime, so the three agree (they each drew their own coin before GEN.721).
@@ -629,8 +629,9 @@ def generate_lid(body):
         body.lid_regime = None
         return
     mass_earth = _kg_to_mearth(body.mass)
-    mobile = draw.random() < magnetism.mobile_lid_chance(body, mass_earth)
-    body.lid_regime = MOBILE if mobile else STAGNANT
+    formed = getattr(body, "formation_distance_au", None) or getattr(body, "distance", None)
+    coin = draw.Stream(f"lid-regime:{float(body.mass)!r}:{float(formed or 0.0)!r}:{float(getattr(getattr(body, 'star', None), 'mass', 0.0) or 0.0)!r}").random()      # GEN.1591: the body's own coin, so a body made again keeps the throw it had and only the chance (its ocean) can change its regime
+    body.lid_regime = MOBILE if coin < magnetism.mobile_lid_chance(body, mass_earth) else STAGNANT
 
 
 def heat_of(body):
@@ -640,10 +641,17 @@ def heat_of(body):
     heats its ice shell (`icy_tide`, GEN.960) and is not in the box. `None` for a body with no stored content or interior (a gas giant, or a row
     from before GEN.699). No draws.
     """
+    return heat_at(body, getattr(getattr(body, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY)
+
+
+def heat_at(body, age_gy):
+    """
+    The `Heat` of a rocky body at `age_gy` (`heat_of` at its star's age): the same stored content, interior, lid and surface, the tide of the orbit stored with it, run to that age
+    (GEN.1463: the heat the body gave off when its life began). `None` for a body with no stored content or interior. No draws.
+    """
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
         return None
-    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
 

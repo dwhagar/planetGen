@@ -16,8 +16,9 @@ planets (`physics.rogue_surface`) use the functions here.
    hydrosphere (every field `None`).
 2. **Land.** A two-level hypsometry (GEN.1147, [R0914]'s idea): the surface is ocean crust and continental crust, each a
    Gaussian of height (`HYPSOMETRY`: shares, mean height and spread in km), the relief scaled as `g_E / g`. `D`, the global water layer, fills the
-   lowest ground to a level `z`; the share of the surface under `z` is `ocean_fraction`, liquid or frozen, and `land_fraction` the rest. Earth's
-   2.7 km layer covers 0.71.
+   lowest ground to a level `z`; the share of the surface under `z` is `ocean_fraction`, the liquid sea (under its ice lid if it has one; none for a body that is ice
+   through), and `land_fraction` the rest of the surface (ice that lies on land counts as land). The ice a frozen body wears is `ice_cover_fraction`, kept apart (GEN.1567: the
+   classes, the weathering land and the sea of the deposits read the liquid sea, not "anything wet or frozen"). Earth's 2.7 km layer covers 0.71.
 3. **State.** Under water's triple-point pressure and warmer than
    `VACUUM_ICE_MAX_K` the water has sublimated away (`dry`); above the
    boiling curve it is in the air (`vapor`). Below freezing, an ice lid grows to
@@ -62,7 +63,7 @@ from planetgen.util.random import log_uniform
 
 
 HYDROSPHERE_FIELDS = (
-    "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
+    "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction", "ice_cover_fraction",
     "ocean_depth_km", "ice_shell_km", "hp_ice_km", "water_base_pressure_pa",
     "ocean_class", "ocean_ph", "water_activity", *aquifers.AQUIFER_FIELDS,
 )
@@ -79,7 +80,7 @@ OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutra
 WATER_MELTING_K = aquifers.WATER_MELTING_K
 FROZEN_COVER_STATES = ("ice", "ice-covered ocean")
 """tuple: The hydrosphere states whose surface is ice (GEN.833: their cover is the water layer the body holds, `frozen_cover`)."""
-LIQUID_WATER_DENSITY_KG_M3 = 1000.0
+LIQUID_WATER_DENSITY_KG_M3 = constants.LIQUID_WATER_DENSITY_KG_M3
 ICE_DENSITY_KG_M3 = water_layer.ICE_LID_DENSITY_KG_M3
 ICE_CONDUCTIVITY_A_W_M = 567.0
 """float: Water ice conducts heat as k = A / T (Turcotte and Schubert)."""
@@ -96,6 +97,9 @@ EARTH_OCEAN_FRACTION = 2.34e-4
 MANTLE_BUFFER_RANGE = (1.0, 8.0)
 COVER_SNAP = 0.999
 """float: A cover this high is all of the surface: the last tenth of a percent of a Gaussian tail is a seamount, not an island."""
+ISOSTATIC_BASIN_KM = 11.4
+"""float: The deepest the mean ocean basin gets at Earth's gravity before the continents are covered, km (GEN.1573; [R0914]: continental crust
+flows above 70 km / g thick, so a basin deeper than 11.4 km / g~ leaves no land). Stand-in row HY3."""
 HYPSOMETRY = ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9))
 """tuple: The surface of a rocky body as two Gaussians of height, each `(share of the area, mean height km, spread km)` at Earth's gravity: ocean crust and
 continental crust ([R0914]: two levels, relief as 1 / g; Guimond et al.: continental crust is about 40 percent of Earth's surface).
@@ -182,11 +186,23 @@ def _normal_pdf(x):
     return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
 
 
-def _filled_volume_km(level_km, scale):
-    """The water per unit area, km, that fills the surface of `HYPSOMETRY` (relief times `scale`) to `level_km`: the mean of `max(0, level - height)`."""
+def _relief(layer_km, scale, deepen):
+    """
+    The surface of `HYPSOMETRY` at this gravity as `(share, mean height, spread)` rows in km, the relief times `scale`. With `deepen` (GEN.1573) the ocean
+    crust sits as deep as the water needs: its mean depth is at least the layer spread over its share of the area, and at most `ISOSTATIC_BASIN_KM`
+    times `scale`: the basins of a heavier ocean sink under its load and keep the continents dry, until the basin is as deep as the crust can hold.
+    """
+    rows = [(share, mean * scale, spread * scale) for share, mean, spread in HYPSOMETRY]
+    if deepen:
+        share, mean, spread = rows[0]
+        rows[0] = (share, -min(max(-mean, layer_km / share), ISOSTATIC_BASIN_KM * scale), spread)
+    return rows
+
+
+def _filled_volume_km(level_km, relief):
+    """The water per unit area, km, that fills the surface `relief` (`_relief`'s rows) to `level_km`: the mean of `max(0, level - height)`."""
     total = 0.0
-    for share, mean, spread in HYPSOMETRY:
-        mean, spread = mean * scale, spread * scale
+    for share, mean, spread in relief:
         a = (level_km - mean) / spread
         total += share * ((level_km - mean) * _normal_cdf(a) + spread * _normal_pdf(a))
     return total
@@ -196,27 +212,38 @@ def ocean_fraction(layer_km, gravity_m_s2, icy=False):
     """
     The share of the surface a global water layer of `layer_km` covers (GEN.1147): the level `z` at which the water fills the two-level surface of
     `HYPSOMETRY` (found by bisection, the volume rising with the level), and the share of the surface under `z`. The relief is scaled as 1 / g.
+    The ocean crust sinks under the water it carries (GEN.1573, isostasy, [R0914: Eq. 10]): its mean depth is the layer over its share of the area
+    where that is deeper than Earth's, so a heavier ocean does not flood the continents until its basins are `ISOSTATIC_BASIN_KM / g~` deep; the water
+    beyond that fills the continents ([R0914]'s waterworld: no land left). Earth's 2.7 km layer is untouched: its basins are already as deep as
+    that layer needs.
     For `icy` (GEN.833) it is at most Earth's: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus, Callisto, Iapetus), ice
-    being strength-limited, so it does not grow as 1 / g below Earth's.
+    being strength-limited, so it does not grow as 1 / g below Earth's, and the basins do not sink (ice is not an isostatic load).
     """
     if layer_km <= 0 or gravity_m_s2 <= 0:
         return 0.0
     scale = constants.EARTH_GRAVITY / gravity_m_s2
     if icy:
         scale = min(scale, 1.0)
-    low = min(mean - 6.0 * spread for _share, mean, spread in HYPSOMETRY) * scale
-    high = max(mean + 6.0 * spread for _share, mean, spread in HYPSOMETRY) * scale + layer_km
-    if _filled_volume_km(high, scale) <= layer_km:
+    relief = _relief(layer_km, scale, deepen=not icy)
+    low = min(mean - 6.0 * spread for _share, mean, spread in relief)
+    high = max(mean + 6.0 * spread for _share, mean, spread in relief) + layer_km
+    if _filled_volume_km(high, relief) <= layer_km:
         return 1.0
     for _ in range(60):
         middle = 0.5 * (low + high)
-        if _filled_volume_km(middle, scale) < layer_km:
+        if _filled_volume_km(middle, relief) < layer_km:
             low = middle
         else:
             high = middle
     level = 0.5 * (low + high)
-    covered = sum(share * _normal_cdf((level - mean * scale) / (spread * scale)) for share, mean, spread in HYPSOMETRY)
+    covered = sum(share * _normal_cdf((level - mean) / spread) for share, mean, spread in relief)
     return 1.0 if covered >= COVER_SNAP else covered
+
+
+def water_cover(body):
+    """The share of the surface the water covers, liquid or frozen (GEN.1567: `ocean_fraction`, the liquid sea, and `ice_cover_fraction`, the ice, the larger of the two since an ice lid lies over its sea): for the
+    readers that ask whether a surface is wet at all."""
+    return min(1.0, max(getattr(body, "ocean_fraction", None) or 0.0, getattr(body, "ice_cover_fraction", None) or 0.0))
 
 
 def frozen_cover(body, gravity_m_s2):
@@ -323,6 +350,7 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     covered = ocean_fraction(layer_km, gravity)
     body.ocean_fraction = covered
     body.land_fraction = 1.0 - covered
+    body.ice_cover_fraction = 0.0
     temperature = body.surface_temperature or 0.0
     pressure = body.atmospheric_pressure or 0.0
     if not covered:
@@ -363,8 +391,9 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
         shell_km = hp_km
     body.hydrosphere = state
     if state in FROZEN_COVER_STATES:    # GEN.833: the ice covers what the water the body holds makes, not the toy ocean cover
-        body.ocean_fraction = max(covered, frozen_cover(body, gravity))
-        body.land_fraction = 1.0 - body.ocean_fraction
+        body.ice_cover_fraction = max(covered, frozen_cover(body, gravity))
+        if state == "ice":              # GEN.1567: ice through and through has no liquid sea; the ice lies on land, which stays land for the weathering
+            body.ocean_fraction, body.land_fraction = 0.0, 1.0
     body.ice_shell_km = shell_km or None
     body.hp_ice_km = hp_km or None
     body.ocean_depth_km = liquid_km

@@ -148,9 +148,10 @@ def test_the_air_gate_is_an_edge_and_every_other_edge_is_a_shoulder_that_lowers_
     assert pc.classify(body(atmospheric_pressure_pa=9.99, p_o2_kpa=0, p_n2_kpa=0, p_ar_kpa=0, p_co2_kpa=0,
                             hydrosphere="dry", ocean_fraction=0.0, surface_temperature_k=300.0)) == "C"
     assert pc.classify_detail(body(ocean_fraction=0.8)).match == pytest.approx(1.0)
-    soft = pc.classify_detail(body(surface_temperature_k=305.0, ocean_fraction=0.5))
+    assert pc.classify(body(ocean_fraction=0.85)) == "M"                      # GEN.1570: M runs up to 95 percent liquid cover
+    soft = pc.classify_detail(body(surface_temperature_k=306.0, ocean_fraction=0.5))
     assert soft.letter == "M" and 0.0 < soft.match < 1.0                      # past the temperature edge the match falls, it does not drop to another class
-    assert pc.classify(body(ocean_fraction=0.85)) == "O"                      # GEN.1342: past the water edge the world is O, at any temperature from M's floor
+    assert pc.classify(body(ocean_fraction=0.97)) == "O"                      # GEN.1342, GEN.1570: past the water edge (95 percent) the world is O, at any temperature from M's floor
     assert pc.classify_detail(body(surface_temperature_k=274.0)).match > pc.classify_detail(body(surface_temperature_k=275.0)).match - 1e-9 or True
     assert 0.0 < pc.classify_detail(body(surface_temperature_k=274.0)).match < 1.0
 
@@ -187,7 +188,7 @@ def test_the_function_is_pure_total_and_the_same_from_an_object():
             put_kpa(values, gas, rng.choice([0.0, values["atmospheric_pressure_pa"] / 1000.0 * rng.random() / 6]))
         first = pc.classify(values)
         assert first in pc.LETTERS and first == pc.classify(dict(values))
-        assert (pc.describe(first).kind == values["body_type"])
+        assert pc.classify_detail(values).kind == values["body_type"]      # a letter may exist for both kinds (T), so ask the classification
 
     class Planet:
         def __init__(self):
@@ -307,3 +308,13 @@ def test_a_terrestrial_body_under_a_roundness_ratio_of_one_is_an_asteroid_with_n
     assert pc.ASTEROID.letter is None and pc.ASTEROID.name == "Asteroid"
     assert pc.classify(body(body_type="g", mass_earth=300.0, roundness_ratio=0.1)) == "J"           # a giant is never an asteroid
     assert pc.classify(airless(mass_earth=0.01)) == "D"                                              # a body that states no ratio is not one
+
+
+def test_a_world_with_a_small_sea_has_a_water_table_and_is_a_desert_world():
+    """GEN.1638: class H needs water under a dry surface; a world with liquid at its surface and under a fifth of it covered has a water table under its land (it was unreachable: only a dry world got an aquifer)."""
+    desert = body(surface_temperature_k=290.0, ocean_fraction=0.1, hydrosphere="surface ocean")
+    assert pc.classify(desert) == "H"
+    assert pc.classify(body(surface_temperature_k=290.0, ocean_fraction=0.1, hydrosphere="brine seep")) == "H"
+    assert pc.classify(body(ocean_fraction=0.8)) == "M"                                            # an ocean world is still M
+    dry = body(surface_temperature_k=290.0, ocean_fraction=0.0, hydrosphere="dry", groundwater="none")
+    assert pc.classify(dry) != "H"                                                                 # no water at all is no desert world with some

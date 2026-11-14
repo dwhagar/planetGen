@@ -10,12 +10,19 @@ import textwrap
 import pytest
 import rq
 
-from planetgen.queue import beatjudge, commands, redisqueue, runrecord, unitbeat, units, unitstuck
+from planetgen.queue import beatjudge, commands, pause, redisqueue, runrecord, unitbeat, units, unitstuck
 
 
 @pytest.fixture
 def conn(redis_server):
     return redisqueue.connect(redis_server)
+
+
+@pytest.fixture(autouse=True)
+def _no_hold_left(conn):
+    pause.resume(conn)
+    yield
+    pause.resume(conn)
 
 
 @pytest.fixture
@@ -180,3 +187,89 @@ def test_the_watch_acts_on_a_unit_only_after_two_checks_in_a_row_say_quiet(conn,
     assert stopped == [], "one check acts on nothing"
     watch.check()
     assert stopped == [units.job_id(run_id, 0, 1)]
+
+
+def _stopped_and_requeued(conn, run_id, action, unit=1):
+    _beat(conn, run_id, unit)
+    action.step([unit], {unit: _quiet()})
+    job = _job(conn, run_id, unit)
+    redisqueue.queue(redisqueue.BULK_QUEUE, conn).remove(job.id)
+    job.set_status(rq.job.JobStatus.STOPPED)
+    action.step([], {})
+    return job
+
+
+def test_a_restarted_unit_is_queued_at_the_front_and_the_queue_is_held_for_it_alone(conn, run_id):
+    action = _stuck(conn, run_id)
+    job = _stopped_and_requeued(conn, run_id, action)
+    assert redisqueue.queue(redisqueue.BULK_QUEUE, conn).job_ids[0] == job.id
+    state = pause.state(conn)
+    assert state["paused"] and state["solo"] == {"job": job.id, "run": run_id, "stage": 0, "unit": 1}
+    assert state["reason"] == "solo run of unit 1 (stage 0) after a restart" and state["by"] == f"run {run_id}"
+    assert "unit 1 runs alone" in runrecord.log_text(conn, run_id)
+
+
+def test_the_hold_lifts_when_the_restarted_unit_completes(conn, run_id):
+    action = _stuck(conn, run_id)
+    _stopped_and_requeued(conn, run_id, action)
+    action.step([], {})
+    assert pause.is_paused(conn), "the unit has not completed"
+    runrecord.unit_done(conn, run_id, 0, 1, seconds=1.0)
+    action.step([], {})
+    assert not pause.is_paused(conn)
+
+
+def test_the_hold_lifts_when_the_restarted_unit_fails_the_run(conn, run_id):
+    action = _stuck(conn, run_id)
+    _stopped_and_requeued(conn, run_id, action)
+    _beat(conn, run_id, 1)
+    _stuck(conn, run_id).step([1], {1: _quiet()})
+    assert runrecord.read_run(conn, run_id)["state"] == "failed" and not pause.is_paused(conn)
+
+
+def test_the_hold_lifts_when_the_run_is_canceled_meanwhile(conn, run_id):
+    action = _stuck(conn, run_id)
+    _stopped_and_requeued(conn, run_id, action)
+    runrecord.finish_run(conn, run_id, "canceled")
+    action.step([], {})
+    assert not pause.is_paused(conn)
+
+
+def test_a_pause_by_hand_is_kept_and_the_unit_waits_for_the_resume(conn, run_id):
+    pause.pause("boss", conn)
+    action = _stuck(conn, run_id)
+    _stopped_and_requeued(conn, run_id, action)
+    action.step([], {})
+    assert pause.state(conn)["by"] == "boss" and pause.state(conn)["solo"] is None
+    runrecord.unit_done(conn, run_id, 0, 1, seconds=1.0)
+    action.step([], {})
+    assert pause.is_paused(conn), "the follower lifts only the hold it made"
+
+
+def test_nothing_is_held_when_the_follower_is_told_not_to(conn, run_id):
+    action = unitstuck.Stuck(conn, run_id, 0, dump=lambda raw: "S", stop=lambda job_id: None, record_error=lambda message, **f: None, solo=False)
+    _stopped_and_requeued(conn, run_id, action)
+    assert not pause.is_paused(conn)
+
+
+def test_a_hold_whose_follower_is_gone_lifts_when_the_unit_job_has_ended(conn, run_id):
+    action = _stuck(conn, run_id)
+    job = _stopped_and_requeued(conn, run_id, action)
+    assert pause.is_paused(conn)
+    job.set_status(rq.job.JobStatus.FINISHED)
+    assert not pause.is_paused(conn)
+
+
+def test_a_unit_queued_again_in_the_pass_that_finds_it_stopped_is_not_acted_on_with_the_verdict_of_its_old_attempt(conn, run_id):
+    """OPS.143: the unit is still dead or quiet when its stop takes effect, so it is in `agreed` and gone from the verdicts the watch forgot; that is not a crash."""
+    stopped = []
+    action = _stuck(conn, run_id, stopped=stopped)
+    _beat(conn, run_id, 1)
+    action.step([1], {1: _quiet()})
+    job = _job(conn, run_id, 1)
+    redisqueue.queue(redisqueue.BULK_QUEUE, conn).remove(job.id)
+    job.set_status(rq.job.JobStatus.STOPPED)
+    verdicts = {1: _quiet()}
+    action = unitstuck.Stuck(conn, run_id, 0, dump=lambda raw: "STACK", stop=stopped.append, record_error=lambda *a, **k: None, forget=lambda unit: verdicts.pop(unit, None))
+    action.step([1], verdicts)         # requeues, forgets the unit, and must not look the old verdict up
+    assert action.records()[1]["phase"] == "requeued" and len(stopped) == 1

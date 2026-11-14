@@ -14,7 +14,7 @@ The states, checked in this order:
 * **dead**: no beat for `DEAD_BEATS` intervals (30 s). The process is gone.
 * **waiting**: `waiting_on` is set (the gate, the sky lock, MySQL). Not stuck. It has its own, longer limit (`WAITING_LIMIT_SECONDS`); past it the state stays
   waiting and `over_limit` is set, because what it waits for may be a good job (a sky cell can take half an hour): the holder is what gets judged, not the waiter.
-* **quiet** (stuck): the beat is fresh and the counter has not changed for longer than `max(5 min, 5 x the longest gap between counter changes seen for this
+* **quiet** (stuck): the beat is fresh and the counter has not changed (not counting time spent waiting, which ends with the wait) for longer than `max(5 min, 5 x the longest gap between counter changes seen for this
   command)`, doubled while the host is starved (memory gate pressure, swap, load far over the cores).
 * **looping**: the counter moves but is not converging. `done` is over 3 times `estimate` (severity `flag`) or over 10 times (`suspect`); or `done` has gone
   backward inside one phase; or the same phase has begun again more than `RESTART_LIMIT` times (`suspect`).
@@ -93,6 +93,7 @@ class Beat:
         phase (str): What it is doing ("drawing tier 3").
         waiting_on (str): `gate`, `sky lock`, `mysql` or empty.
         restarts (int): How many times this phase has begun again.
+        waited (float): Seconds the unit has spent waiting (gate, sky lock, MySQL) and stopped since `moved`; a wait that has ended is not time the counter stood still.
         resident_mb (float, optional): The memory it holds, carried for the page; not judged.
     """
     beat: float
@@ -103,6 +104,7 @@ class Beat:
     phase: str = ""
     waiting_on: str = ""
     restarts: int = 0
+    waited: float = 0.0
     resident_mb: Optional[float] = None
 
 
@@ -114,9 +116,11 @@ class History:
     Attributes:
         longest_gap (float): The longest seconds between two counter changes seen for this command, 0 where none is recorded.
         expected_seconds (float, optional): How long a unit like this takes, from the earlier runs; with the unit's `estimate` it gives the expected rate.
+        expected_item_seconds (float, optional): The seconds one item takes (OPS.159, the job profile); its inverse is the expected rate whatever the size of the unit, and it is preferred.
     """
     longest_gap: float = 0.0
     expected_seconds: Optional[float] = None
+    expected_item_seconds: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -190,6 +194,8 @@ def _projected(beat, rate):
 
 
 def _expected_rate(beat, history):
+    if _finite(history.expected_item_seconds) and history.expected_item_seconds > 0:
+        return 1.0 / history.expected_item_seconds
     if not (_finite(history.expected_seconds) and history.expected_seconds > 0 and _finite(beat.estimate) and beat.estimate > 0):
         return None
     return beat.estimate / history.expected_seconds
@@ -230,7 +236,8 @@ def judge(beat, history, now, before=None, starved=False):
                        counter=_has_counter(beat))
     has_counter = _has_counter(beat)
     last_change = beat.moved if beat.moved is not None else beat.started
-    still = max(now - last_change, 0.0) if _finite(last_change) else 0.0
+    spent_waiting = beat.waited if _finite(beat.waited) and beat.waited > 0 else 0.0
+    still = max(now - last_change - spent_waiting, 0.0) if _finite(last_change) else 0.0
     rate = _rate(beat, now) if has_counter else None
     if beat.waiting_on:
         waited = max(now - last_change, 0.0)

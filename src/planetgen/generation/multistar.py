@@ -57,8 +57,9 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history,
-    remnant_mass, remnant_progenitors, roche, stability, stellar_abundances, stellar_composition)
+    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, hierarchy_stability, imf, mass_boundaries, ms_lifetime, neutron_star,
+    pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
+from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -1092,15 +1093,19 @@ class _Builder:
             left, right, m_left, m_right, total = drawn
             core = None
             rng = self.rng
-            inclination = math.acos(1.0 - 2.0 * rng.random())
             node = 2.0 * math.pi * rng.random()
             arg = 2.0 * math.pi * rng.random()
             anomaly = 2.0 * math.pi * rng.random()
+            inclination = None
             mutual = None
             a_hi = ROOT_MAX_AXIS_AU
             stable_at = None
             if parent is not None:
-                mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
+                # The tilt against the pair it orbits is drawn from the alignment law at that pair's axis (GEN.1500), then turned
+                # by the node drawn above about the pair's normal into this orbit's own inclination and node.
+                tilt = star_orbit_alignment.draw_mutual_inclination(rng, parent[0])
+                inclination, node = star_orbit_alignment.compose_plane(parent[2], parent[3], tilt, node)
+                mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])   # what a reader derives from the stored plane
                 a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual,
                                                 safety=STABILITY_MARGIN)
 
@@ -1127,6 +1132,10 @@ class _Builder:
                 if axis > a_hi:
                     draw.redrawn("pair.axis_out_of_range")
                     continue
+            if parent is None:
+                # The first companion's tilt against the plane of its star's planets, from the law at its own axis (GEN.1500); the
+                # draw has to wait for the axis, and nothing before it reads a root orbit's tilt.
+                inclination = star_orbit_alignment.draw_mutual_inclination(rng, axis)
             if fixed is None:
                 limit = self._eccentricity_limit(axis, peri_floor, apocenter_limit, stable_at)
                 if limit < 0.0:
@@ -1139,6 +1148,15 @@ class _Builder:
             circular = (lambda both: both is not None and any(leaf.circular for leaf in both))(self.pair_leaves(left, right))
             if circular:
                 e = 0.0                      # the companion of a helium-core white dwarf the star draw made (GEN.996)
+            both = self.pair_leaves(left, right)
+            if both is not None and not any(leaf.compact for leaf in both) and axis < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
+                # GEN.1615: two single stars closer than the least a wide pair has are a P-type pair, tracked on a circle (`System`
+                # sets the pair's node that way). It is circular here, at the draw, so the tree the stability judges is the tree
+                # that is stored; a circle has no periapsis, so the angle from the ascending node (the argument plus the anomaly)
+                # is carried in the anomaly.
+                e = 0.0
+                anomaly = (anomaly + arg) % (2.0 * math.pi)
+                arg = 0.0
             interaction, member_flags = self.interaction(left, right, axis, e)
             if circular:
                 interaction = "post-common-envelope"
@@ -1275,6 +1293,26 @@ class _Builder:
         by_sub = {id(record["sub"]): record for record in self.nodes}
         return all(pair_clears(record["separation_au"], record["eccentricity"], self.side(record["left"], by_sub),
                                self.side(record["right"], by_sub)) for record in self.nodes)
+
+    def hierarchy_stable(self):
+        """
+        GEN.1016: whether every level of the drawn tree is stable (`physics/hierarchy_stability.py`): each triple level at its own criterion, and a tree of four stars
+        also by the network of the quadruple paper, a 3+1 chain (an inner pair, a star, a star) or a 2+2 (two pairs). The pair draw tests each orbit as a triple against the
+        orbit it goes round (`stable_at`); only the quadruple network sees the outer star pumping the middle orbit, so it is asked here, once the whole tree is drawn. A tree
+        of three stars or fewer has no quadruple level and is as `stable_at` left it.
+        """
+        if len(self.leaves) < 4:
+            return True
+        nodes, members = [], []
+        for record in self.nodes:
+            nodes.append(OrbitNode(
+                node_no=record["node_no"], parent_node_no=record["parent_node_no"], slot=record["slot"], mass_solar=record["mass_solar"],
+                separation_km=record["separation_au"] * constants.AU_TO_KM, eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
+                ascending_node_deg=record["ascending_node_deg"], arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
+                epoch_unix=0.0, period_years=record["period_years"], kind=record["kind"], interaction=record["interaction"], flags=record["flags"]))
+            members += [TreeMember(member_no=child, parent_node_no=record["node_no"], slot=slot, mass_solar=self.leaves[child].mass)
+                        for slot, child in enumerate((record["left"], record["right"])) if isinstance(child, int)]
+        return hierarchy_stability.tree_is_stable(nodes, members)
 
     def finish(self):
         """Flags the members of an ultra-wide system `fragile` and the theoretical kinds `theoretical`."""
@@ -2128,6 +2166,9 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
                 continue
             if not builder.clears_extents():
                 draw.redrawn("tree.restart_overlap")
+                continue
+            if not builder.hierarchy_stable():
+                draw.redrawn("tree.restart_unstable_hierarchy")      # GEN.1016: the quadruple network refuses the tree
                 continue
             builder.finish()
             alone = _contact_pair_alone(builder.leaves, builder, n_stars, rng)

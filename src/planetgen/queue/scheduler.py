@@ -26,6 +26,10 @@ process; renewed at every poll, dropped when the job is admitted or the worker i
   any class that has just arrived: **no job is kept waiting by the order for more than `AGING_BOUND_SECONDS`.** (How long it waits for room is the time
   the claims in its way take to end; the gate's own bound, `memorygate.MAX_WAIT_SECONDS`, lets it in by the table cap after that.)
 
+**A solo hold does not rotate (OPS.145).** The restarted unit that runs alone (`Claim.solo`) is the top ticket (`SOLO_WEIGHT`): no job of the bulk or maintenance lanes is
+admitted while it waits or runs, and its time is not charged to its kind (`memorygate.release`), so the kinds held back have the same share, and the waiting they did, when
+the hold lifts: none is starved by it.
+
 **A job goes when it is the highest ticket that fits.** A ticket is held back (`Scheduler.decide`) while a higher ticket that fits now is waiting
 (it takes the room on its next poll), and, once a higher ticket has waited `RESERVE_AFTER_SECONDS` without room, while that ticket is still inside the
 gate's bound: the room that frees up is kept for it and smaller, lower jobs stop slipping past it (a large claim is not starved by small ones).
@@ -41,6 +45,7 @@ from typing import NamedTuple
 
 from planetgen.queue import memorygate
 from planetgen.queue.memorygate import Claim, Decision, Holder
+from planetgen.util import log
 
 LANE_WEIGHT = {
     memorygate.LANE_INTERACTIVE: 100.0,
@@ -51,6 +56,9 @@ LANE_WEIGHT = {
 }
 """dict: The class weight of each lane. A first setting: the order of the classes is the rule (the site first, a run's units before the upkeep), the numbers set how
 far apart they are against `FAIR_PENALTY` and `AGING_RATE`."""
+
+SOLO_WEIGHT = 1000.0
+"""float: The weight of the solo claim (OPS.145), above every class: the restarted unit that runs alone goes before any other job that waits at the gate."""
 
 SITE_KINDS = {"fn:planetgen.web.lib.tileprefetch.build_nodes": 90.0}
 """dict: A kind of job on a lane of upkeep that serves a visitor all the same (the nodes of the page they opened), with the weight it goes by."""
@@ -86,7 +94,9 @@ class Ticket(NamedTuple):
 
 
 def weight(claim):
-    """The class weight of a claim: its kind's, if the kind serves the site (`SITE_KINDS`), else its lane's."""
+    """The class weight of a claim: `SOLO_WEIGHT` for the solo claim, else its kind's if the kind serves the site (`SITE_KINDS`), else its lane's."""
+    if claim.solo:
+        return SOLO_WEIGHT
     return SITE_KINDS.get(claim.kind, LANE_WEIGHT.get(claim.lane, min(LANE_WEIGHT.values())))
 
 
@@ -120,8 +130,8 @@ def charge(conn, kind, core_seconds, now=None):
             row = json.loads(memorygate._decode(raw))
             old = float(row["v"]) * 0.5 ** (max(0.0, now - float(row["t"])) / USAGE_HALF_LIFE)
         conn.hset(memorygate._key("usage"), kind, json.dumps({"v": old + max(0.0, core_seconds), "t": now}))
-    except Exception:  # noqa: BLE001 -- bookkeeping
-        pass
+    except Exception as exc:  # noqa: BLE001 -- bookkeeping
+        log.swallowed("queue/scheduler", "charge", exc)
 
 
 def tickets(conn, now=None):
@@ -132,7 +142,7 @@ def tickets(conn, now=None):
         name = memorygate._decode(name)
         try:
             row = json.loads(memorygate._decode(raw))
-            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")))
+            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
             ticket = Ticket(name, claim, float(row["since"]), int(row["pid"]), row["host"])
             expires = float(row["expires"])
         except (ValueError, KeyError, TypeError):
@@ -167,6 +177,8 @@ def judge(me, others, host, held, now, used, places=None):
     for other in rank(others, now, used):
         if other.name == me.name or priority(other, now, used) <= mine:
             continue
+        if other.claim.solo and me.claim.lane not in memorygate.SHORT_LANES:
+            return Decision(False, f"the host is kept for the solo run of {other.claim.kind}", base.need_mb, base.free_mb)
         waited = now - other.since
         fits = memorygate.decide(other.claim, host, held, places=places, name=other.name)
         if fits.admit:
@@ -194,7 +206,7 @@ class Scheduler:
         since = mine.since if mine is not None else now - waited
         ticket = Ticket(name, claim, since, pid, _here())
         conn.hset(memorygate._key("tickets"), name, json.dumps({
-            "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "since": since, "pid": pid,
+            "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "solo": claim.solo, "since": since, "pid": pid,
             "host": ticket.host, "expires": now + TICKET_SECONDS}))
         others = [other for other in waiting if other.name != name]
         if not others:
@@ -211,8 +223,8 @@ class Scheduler:
         """The job is done waiting (admitted, let in by the table cap, or the worker is leaving): its ticket goes."""
         try:
             conn.hdel(memorygate._key("tickets"), name)
-        except Exception:  # noqa: BLE001 -- the ticket expires by itself
-            pass
+        except Exception as exc:  # noqa: BLE001 -- the ticket expires by itself
+            log.swallowed("queue/scheduler", "Scheduler.done", exc)
 
 
 def snapshot(conn, now=None):

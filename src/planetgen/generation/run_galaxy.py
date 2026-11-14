@@ -25,12 +25,13 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
+from planetgen.util.ticker import Ticker
 from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.region import Region
 from planetgen.galaxy import spherical
@@ -213,7 +214,7 @@ class _Pending:
             if self._limit is not None and taken >= self._limit:
                 break
             if not bounds.contains(address[0], address[1]):
-                log.debug(f"{_format_address(address)}: skipped (beyond the grid's reach)")
+                log.debug("Skipped %s, beyond the grid's reach.", _format_address(address))
                 skipped += 1
                 continue
             taken += 1
@@ -502,8 +503,8 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
         bar.close(success=not failed)     # nothing to draw: no bar left unmeasured
     run_plan.log_shells("Bright-star backfill", shells)
     if summary["sectors"]:
-        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), masses "
-                  f"{','.join(f'{mass:g}' for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)} Msun")
+        log.debug("Bright-star backfill: %s stars in %s sector(s), masses %s Msun.", summary["stars"], summary["sectors"],
+                  ",".join(f"{mass:g}" for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
     return summary
 
 
@@ -599,7 +600,7 @@ def _sky_units(params, centers):
         cells[cell] = center
     units = []
     for cell in sorted(cells):
-        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
+        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits, skeleton=skeleton)
         owed = sky_charting.owed_tiers(tiers, ledger, center)
         if owed:
             seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
@@ -662,10 +663,20 @@ def _sky_unit(unit_args, report):
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
+    before, opened, ticked = None, 0.0, 0.0
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
         conn = store.get_connection(_mysql_config_of(unit_args))
         try:
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), progress=report)
+            if before is not None:
+                connection_loss.explain(conn, before, time.monotonic() - ticked, time.monotonic() - opened)      # DB.115: what the new connection says about the lost one
+            before, opened = connection_loss.facts(conn), time.monotonic()
+            ticked = opened
+
+            def tick(batches, cells, stars):
+                nonlocal ticked
+                ticked = time.monotonic()
+
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=report)
             break
         except BaseException as exc:
             conn.rollback()
@@ -673,7 +684,7 @@ def _sky_unit(unit_args, report):
             # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
-            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+            log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
         finally:
             conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
@@ -922,6 +933,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new nebulae to the block totals failed: {exc}")
     report(1, 2)
     try:
@@ -936,6 +948,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new sectors to the block totals failed: {exc}")
     return {"nebulae": nebulae, "sectors": sectors, "warnings": warnings}
 
@@ -957,7 +970,7 @@ class RunBlocksFollower(followed.Follower):
         if result["nebulae"]:
             log.normal(f"Added {result['nebulae']:,} nebulae to the block totals.")
         for warning in result["warnings"]:
-            log.normal(f"Warning: {warning}")
+            log.warning(warning)
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -1324,7 +1337,7 @@ def _settle_named(args):
         conn.close()
     unknown = [sector_id for sector_id in ids if sector_id not in known]
     if unknown:
-        log.error(f"Error: --sector-id: no such sector: {', '.join(str(sector_id) for sector_id in unknown)}")
+        log.error(f"No such sector for --sector-id: {', '.join(str(sector_id) for sector_id in unknown)}")
         raise SystemExit(1)
     stages.begin(stages.for_command("settle", args), args, "settle")
     stages.enter("settle")
@@ -1416,7 +1429,7 @@ def _refresh_block_totals(config, address):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sector is saved; the totals can be made again
-        log.normal(f"Warning: adding the sector at {_format_address(address)} to the block totals failed: {exc}")
+        log.warning(f"Adding the sector at {_format_address(address)} to the block totals failed: {exc}")
 
 
 def regenerate_sector_cell(address, config):
@@ -1654,12 +1667,13 @@ def generate_sectors_unit(unit_args, report):
 
 
 def _log_saved(saved, address, suffix=""):
+    """One sector of a bulk stage as it is saved: a debug line (a stage of thousands would bury its own lines at normal; the stage's ticker carries the progress, OPS.172)."""
     designation = provisional_sector_designation(*address)
-    log.normal(
+    log.debug(
         f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)}{suffix} "
         f"(sector_id={saved['sector_id']})."
     )
-    run_sector._log_summary(saved["summary"])
+    run_sector._log_summary(saved["summary"], log.debug)
 
 
 class SectorsFollower(followed.Follower):
@@ -1704,6 +1718,7 @@ class SectorsFollower(followed.Follower):
         self.announce, self.finish = announce or _log_saved, finish
         self.reported = []
         self.generated = 0
+        self._ticker = Ticker(self.label)       # replaced with a total when the plan says how many
         self.bar = None
         self.items = []
         self.suffixes = {}
@@ -1719,10 +1734,11 @@ class SectorsFollower(followed.Follower):
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
         if plan["detail"].get("warning"):
-            log.normal(f"Warning: {plan['detail']['warning']}")
+            log.warning(plan["detail"]["warning"])
         if not self.collect:
-            log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
-                       f"it is saved, so the first report can take a while in a dense region.")
+            log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
+                       f"{program_constants.PROGRESS_LOG_SECONDS:g} s and each sector's own line is in the debug log.")
+        self._ticker = Ticker(self.label, total=sectors or None)
         if self.bar_description is not None:
             self.bar = self.hold(run_common.sector_bar(self.progress, self.args, self.bar_description, sectors))
 
@@ -1743,8 +1759,11 @@ class SectorsFollower(followed.Follower):
                 self.reported.append(saved)
             else:
                 self.announce(saved, address, saved.get("suffix") or self.suffixes.get(address, ""))
+                self._ticker.tick(self.generated)
 
     def on_done(self, conclusion):
+        if self.generated and not self.collect and self.announce is _log_saved:
+            self._ticker.finish(self.generated)
         if self.finish is not None:
             self.finish(self)
 
@@ -1926,12 +1945,8 @@ def _neighborhood_center(args):
         conn.close()
 
     if center_position is None:
-        log.error(
-            f"sector_id={args.center_sector} has never been placed in a galaxy (its galaxy-position "
-            f"columns are NULL) -- --center-sector requires an already galaxy-placed sector (one "
-            f"generated via 'planetgen galaxy' itself, not 'planetgen sector'). Use --shell to "
-            f"generate placed sectors from scratch instead."
-        )
+        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.",
+                  sector_id=args.center_sector)
         raise SystemExit(1)
     return (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
 
@@ -2465,11 +2480,8 @@ def _plan_random_start(args, edge_pc, progress):
             if args.min_start_density is not None else ""
         )
         within = f"within {args.max_shell} shells" if args.max_shell is not None else "in the galaxy"
-        log.error(
-            f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
-            f"-- this galaxy may already be almost entirely generated within that range, or that range "
-            f"may hold too little real stellar density; try a larger --max-shell."
-        )
+        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.",
+                  attempts=program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS)
         raise SystemExit(1)
     if len(starts) < args.neighborhoods:
         log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods "
@@ -2875,7 +2887,7 @@ def _check_plan(args, edge_pc):
     problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc,
                                    compute_battery=not getattr(args, "estimate_only", False))
     if warning:
-        log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
+        log.warning(warning)  # DB.7: a heads-up before it extends a mixed-version galaxy
     if problem:
         log.error(problem)
         raise SystemExit(1)
@@ -3027,8 +3039,8 @@ def _snap_to_region(args, edge_pc):
         finally:
             conn.close()
         if row is None or row["shell_index"] is None:
-            log.error(f"sector_id={args.center_sector} " + ("does not exist." if row is None else
-                      "has never been placed in a galaxy -- --region needs a sector with a grid address."))
+            log.error(f"Sector {args.center_sector} " + ("does not exist." if row is None else
+                      "has never been placed in a galaxy, and --region needs a sector with a grid address."))
             raise SystemExit(1)
         address = (row["shell_index"], row["band_index"], row["wedge_index"])
     else:

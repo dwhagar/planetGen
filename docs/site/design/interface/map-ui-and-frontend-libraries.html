@@ -595,7 +595,7 @@ lies behind it can recur.</p>
 <p>(Historical: MAP.142 parts 2 to 4 replaced the per-ID mesh and the sphere with each nebula's own cloud of points, drawn by the volume layer on the Galaxy Map, the Sector Map and the nebula page; <code>nebulamesh.js</code> is removed.)</p>
 <ul>
 <li><strong>Galaxy Map (<code>galaxymap3d.js</code>).</strong> Each nebula or remnant is a <code>THREE.Sprite</code> with
-a 128 px radial-gradient texture (<code>cloudTexture</code>; diffuse alpha 0.47 at the center,
+a 128 px radial-gradient texture (<code>cloudTexture</code>; diffuse alpha 0.47 at the centre,
 0.14 at 0.75 R, 0 at R). At 20 px radius or more (<code>NEBULA_MESH_MIN_PX</code>) it fetches
 <code>GET /galaxy/nebula/&lt;id&gt;/shape?lod=low</code> and draws the marching-cubes mesh instead
 (<code>buildNebulaMesh</code>: <code>MeshBasicMaterial</code>, <code>DoubleSide</code>, <code>depthWrite: false</code>,
@@ -855,8 +855,8 @@ and asteroid fields are left out (Boss).</li>
 sides, pickable with a cheaper hit test (a box test per neighbour region, not
 the star list).</li>
 <li><strong>Blockers</strong> (Boss: &quot;the more they obstruct the view the more invisible they
-become&quot;). With <code>s</code> the segment from the camera to the focus center, <code>p</code> a
-neighbour's center, <code>t</code> its projection parameter on <code>s</code> and <code>dist</code> the distance
+become&quot;). With <code>s</code> the segment from the camera to the focus centre, <code>p</code> a
+neighbour's centre, <code>t</code> its projection parameter on <code>s</code> and <code>dist</code> the distance
 from <code>p</code> to <code>s</code>: if <code>0 &lt; t &lt; 1</code> and <code>dist &lt; r_p + r_focus</code>, <code>fade = smoothstep(r_p, r_p + r_focus, dist)</code>, and opacity multiplies by <code>fade</code>
 (<code>fade = 0</code> means the neighbour lies exactly on the line of sight). Pure CPU,
 once per frame, tens of regions. Use <code>depthWrite: false</code> and sort by distance
@@ -900,7 +900,7 @@ sphere, drawn from the inside of its far wall (back faces only, so a camera outs
 as the Sun is, sees the shell round it): a faint even fill (0.06 in the dark theme, 0.07 in the light) and a crisp rim about two
 pixels wide where the sphere meets the line of sight, at 0.7 and 0.75, so the true silhouette is the bound. The colour is #6fb3d8
 on the dark map and the darker #1f6a99 on the light one. The look lives in <code>static/superbubble.js</code> (the numbers and the shader
-text, held by <code>tests/js/superbubble.test.mjs</code>); <code>galaxymap3d.js</code> builds one object per bubble at its center (MAP.240) sharing one
+text, held by <code>tests/js/superbubble.test.mjs</code>); <code>galaxymap3d.js</code> builds one object per bubble at its centre (MAP.240) sharing one
 material, and <code>canvas.galaxyBubbleLook()</code> reports the look to the browser test, which reads the rim against the fill in a
 screenshot in both themes. The layer's toggle, hover and key row are MAP.234 and MAP.235.</p>
 <h2 id="6-bookmarks-and-charted-regions-ux45-to-ux48">6. Bookmarks and charted regions (UX.45 to UX.48)</h2>

@@ -205,14 +205,23 @@ def test_the_guide_names_every_rule_and_the_two_rewrite_items():
 
 
 def test_the_stored_system_flavour_lines_are_in_plain_words():
-    """GEN.1212: `tuning.SYSTEM_FLAVOR` is drawn by index and stored as the line, so its length and order are fixed (the draw
-    must not move) and every line, read after "Sensors show", meets the guide."""
-    from planetgen import tuning
-    lines = tuning.SYSTEM_FLAVOR
+    """GEN.1212, GEN.1430: the system lines of the flavor tree are stored as the line, and every one, read after "Sensors show", meets the guide."""
+    from planetgen.physics import flavor_tree
+    lines = [option.text for option in flavor_tree.walk("system", None)]
     assert len(lines) == 23 and len(set(lines)) == 23
     for line in lines:
         for sentence in plainwords.sentences("Sensors show " + line):
             assert not plainwords.check_sentence(sentence), (sentence, plainwords.check_sentence(sentence))
+def test_the_stored_life_flavour_lines_are_in_plain_words():
+    """GEN.1431: every line of the life subtree, read after "Sensors show", meets the guide."""
+    from planetgen.physics import flavor_tree
+    ids = [i for i in flavor_tree.load()[1] if i.startswith("life:")]
+    assert len(ids) == 53
+    for line_id in ids:
+        for sentence in plainwords.sentences("Sensors show " + flavor_tree.text_of(line_id)):
+            assert not plainwords.check_sentence(sentence), (line_id, sentence, plainwords.check_sentence(sentence))
+
+
 def test_a_list_built_by_the_code_has_the_comma_before_its_last_word():
     from planetgen.util.wordlist import join_words
     assert join_words([]) == ""

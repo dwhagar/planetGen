@@ -30,7 +30,7 @@ ICE_KEYS = (("ice_co2_mass_fraction", "Carbon dioxide ice, part of the ice"), ("
 """tuple: The non-water ices of a body by species and how the table words each."""
 
 MASS_KEYS = (("metal_mass_fraction", "Metal (iron and nickel core)"), ("rock_mass_fraction", "Rock (silicate mantle and crust)"),
-             ("ice_mass_fraction", "Ice"), *ICE_KEYS, ("envelope_mass_fraction", "Gas envelope"))
+             ("water_mass_fraction", "Water (ocean, ice and water bound in the rock)"), ("ice_mass_fraction", "Other ices (not water)"), *ICE_KEYS, ("envelope_mass_fraction", "Gas envelope"))
 """tuple: The stored mass fractions of a body and what each is, in the order the table lists them; the ice's species (GEN.834) are the parts of the ice."""
 
 MASS_SHARED_KEYS = frozenset(key for key, _label in MASS_KEYS)
@@ -41,7 +41,7 @@ def split_blocks(blocks):
     """
     The description's blocks of a planet or moon sorted by where the page puts them: `phi6` (the ratings table and the
     radiation and survival equipment tables), `life` (what the life looks like), `flavor` (the "Sensors show ..." line,
-    which the page puts under the Sensor view, UX.276) and `rest` (anything else the page still shows, such as a gas giant's depth). The facts table of the body, the class
+    which the page puts under the Sensor view, UX.276) and `rest` (anything else the page still shows, such as a gas giant's depth and the sky text of GEN.1443). The facts table of the body, the class
     sentence, the atmosphere and composition summaries, and the life class, system age and milestone sentences (`life-class`, `timeline`
     and `milestone`, which the Life section says from the stored columns and the life readings, UX.251) are dropped.
     """
@@ -54,7 +54,7 @@ def split_blocks(blocks):
             parts["life"].append(block)
         elif kind == "prose" and block["role"] == "flavor":
             parts["flavor"].append(block)
-        elif kind == "prose" and block["role"] == "depth":
+        elif kind == "prose" and block["role"] in ("depth", "sky"):
             parts["rest"].append(block)
     return parts
 
@@ -101,8 +101,8 @@ def gas_table(sheet):
 
 def mass_table(sheet):
     """The make-up of a body by mass as `[{"name", "share"}]`: each stored mass fraction above zero as a percent of its mass
-    (the four parts add up to the whole body; the ice's species add up to the ice). Empty when none is stored."""
-    rows = {row["key"]: row for row in _rows(sheet, "composition")}
+    (the parts, water included, add up to the whole body; the ice's species add up to the ice). Empty when none is stored."""
+    rows = {row["key"]: row for group in sheet["groups"] if group["key"] in ("composition", "water") for row in group["rows"]}      # UX.308: the water share is a row of the Water group
     table = []
     for key, label in MASS_KEYS:
         row = rows.get(key)
