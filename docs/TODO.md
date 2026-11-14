@@ -6540,6 +6540,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only if it already had local work).
   Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): the birth step stays in 8.1 and is built with GEN.1611 (the formation snow line needs the star's birth luminosity) and GEN.1546 (age from the birth time, no raise). Owner: Lane 21 with Lane 11.
   Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the birth luminosity function is PR 6180 (physics/birth_luminosity.py, birth_luminosity_sol(initial_mass_sol, fe_h, age_gy), lock-free, unwired), for GEN.1611 slice 1 (Lane 21). It has a 1.8x step at 1.4 Msun from the track mismatch in GEN.1640.
+  Second-pass layered-fix scan (/mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md, N10, 2026-11-12): fold the three Schwarzschild-radius functions into one here.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6741,7 +6742,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 14
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.315, GEN.555, GEN.565, GEN.581. Related:
+  Prerequisites: GEN.315, GEN.555, GEN.565, GEN.581, GEN.1651, GEN.1656. Related:
   GEN.550,
   GEN.264,
   GEN.315, GEN.346.
@@ -7107,7 +7108,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   claude/gen570-planet-slice-wip in the pool. It adds a dose_rate unit,
   so whoever takes it must regenerate html/static/unitregistry.js with
   `python scripts/build_unit_registry.py`.
-  Prerequisites: GEN.565. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.565, GEN.1651, GEN.1658. Related: GEN.550, GEN.565,
   DB.74.
   Order (the coordinator, 8:16 AM EDT 2026-10-22): Lane 14 owns GEN.568
   and GEN.569, and this item follows GEN.569.
@@ -12541,6 +12542,7 @@ clears each one.
 - [ ] **GEN.1486 Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown**
   Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09): the ring cost is in stars drawn, 590k stored for 4.1k shown. Do: measure how the stars drawn fall with finer ring edges, and if the saving is real change the edges. Changing ring edges changes which stars are drawn, so this is a lock item with a scatter-stage epoch (--affects scatter), stand-ins registered in GEN.725 with tier and tweak level; time and stored size before and after; reuse sky_tiers and bright_stars.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
+  Boss, 5:00 PM EST on 2026-11-12 (card): yield 0.005, "Skip the faintest, lose 1%": 1.4 times fewer stars drawn, about 1 percent of stars that would show are not drawn. Slice 1 builds that cut; scatter-stage epoch, rides Train 26.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the measurement of drawn against shown stars per ring (report); slice 1 lock: narrower rings. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
@@ -12823,12 +12825,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14. Prerequisites: GEN.1560. Related: GEN.1560, GEN.1492, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the belt mass research note and the target distribution; slice 1 lock: the build. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **GEN.1562 Sulfur dioxide airs are never made: classes A and Y are unreachable (1,391 of 1,392 airs hold under 3 percent SO2); decide whether volcanic bodies (Io-like, tidally heated, close super-Earths) get SO2 airs and wire the supply, otherwise mark A and Y reserved**
-  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 3. Do: find where outgassing sets SO2 and why it stays under 3 percent, read the volcanic and tidal heating already built (reuse), wire the supply so tidally heated or volcanic bodies can hold an SO2 air with the sink that sulfur chemistry needs, and re-measure A and Y; if the physics says they should be rare to none, mark classes A and Y reserved with the reason and tell Boss. Done: census of SO2 airs by body type; tests. Lock item if it builds.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1563, GEN.1523.
-  Filed by the TODO thread.
-  Split (TODO sweep, 2026-11-12): slice 0 lock-free: trace why sulfur dioxide airs are never made (report); slice 1 lock: the fix. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
 - [ ] **GEN.1563 Ammonia-water fraction never reaches 0.1, so class X is unreachable (157 bodies pass every other condition); find where ammonia_water_mass_fraction is set and why it stays under 0.1**
   Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 4. Do: trace ammonia_water_mass_fraction from its source (ice-giant and ice-world composition, the cold-body freeze-out) to the class test, find why it stays under 0.1 (a mixing step, a missing ammonia supply, or the threshold itself), fix the cause and not the threshold unless the sources support it, and re-measure X. Done: census of the 157 bodies and how many reach X after; tests. Lock item if it builds.
@@ -13342,6 +13338,326 @@ clears each one.
   Filed by the TODO thread.
   Slice 0 done (Lane 06, as the lane reported 10:01 AM EST on 2026-11-12), reports/gen1648-black-hole-planets-2026-11-12.md: the generator is wrong and the test is right. Only millisecond pulsars and post-AGB pairs are intercepted in _generate_planets; a black hole falls through to _plan_architecture, whose inner_system_fraction depends on mass alone, so 16 of 40 disk-less stellar holes got planets at 0.1 to 0.6 AU. No disk survives the progenitor and no black hole planet is confirmed. Slice 1 (lock): return no bodies for a disk-less stellar black hole, keep the remnant rules for other remnants, add a multi-seed regression test.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
+
+- [ ] **OPS.154 Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB**
+  Lane 13 (as the lane reported 2:24 PM EST on 2026-11-12), reports/sectors-insert-rate-2026-11-12.md: one process writes about 21,000 sector rows a second, two thirds of it MySQL's insert; bulk-load tricks do not help and dropping secondary indexes gains 1.4x only. A row costs 408 bytes measured, about 600 GB at 1.5 billion cells. Everything in a placeholder row is a function of the cell address, the parts table already lists the cells, and rogues already create their row on demand. Do: a design note first (list, count, search and page behaviour for a cell without a row), then the build. Design change; Boss's call.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
+  Filed by the TODO thread.
+
+- [ ] **PERF.260 Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Hard test (Boss, 3:09 PM EST on 2026-11-12: "Write a test that verifies if a flag is ever set when something is not byte identical (test) then it should fail."): a test in the merge gate that collects every job and stage carrying the "dynamic split is byte identical" flag, runs each at two different cut sizes, and fails if any output differs. It fails, never warns or skips; a stage that cannot be run at two cut sizes in the test fails too, until its flag is removed. A newly flagged job is picked up automatically, with no list to update by hand.
+  Filed by the TODO thread.
+
+- [ ] **PERF.261 Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Then block lights, link, settle and warm-up chunks; the typed constants stay as default and clamp.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: PERF.260, OPS.161. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Filed by the TODO thread.
+
+- [ ] **OPS.159 Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Filed by the TODO thread.
+
+- [ ] **OPS.160 Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). After OPS.157, PERF.261 and OPS.159 have run on a full galaxy.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.157. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Filed by the TODO thread.
+
+- [ ] **OPS.161 Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources**
+  Boss, 3:00 PM EST on 2026-11-12: "Have todo build it and ship it, I want a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue". Do: a break-point declaration in the job spec (the planner, DOC.113) that every command fills (item counts, legal cut boundaries, spans that must stay whole, a cut_neutral flag from PERF.260); the queue engine reads it with the OPS.155 profile and the free memory and cores to choose unit sizes at plan time, frozen in the run record. Commands that declare nothing keep their typed split. Build with PERF.261, which moves each stage onto it.
+  Boss, 3:01 PM EST on 2026-11-12: "Jobs will flag if their split is required or not along with the flag that says what depends on what". Clarified 3:02 PM EST ("No if the dynamic split is byte identical or if the queue has to use the suggested split in the job information"): so the declaration also carries (a) a split flag per job: either "dynamic split is byte identical" (the engine may choose any cut from the profile) or "use the suggested split" (output depends on the cut, so the engine uses the job's own break points exactly); a job that declares nothing uses its suggested split, and PERF.260's test checks that every job flagged byte identical really gives identical output at two cut sizes; and (b) its dependencies on other jobs or stages, which the engine uses to decide what may overlap and never cuts across. Reuse the DOC.113 job graph and the OPS.131/132 overlap-by-proof work for (b).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: OPS.155, PERF.260. Related: OPS.122, OPS.123, OPS.156, OPS.157, PERF.261.
+  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Filed by the TODO thread. Top priority (Boss: build it and ship it).
+
+- [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
+  Filed by the TODO thread.
+
+- [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
+  Filed by the TODO thread.
+
+- [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
+  Filed by the TODO thread.
+
+- [ ] **OPS.175 Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments)**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, L1). Lock-free. Touches many files: own branch, merge quickly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
+  Filed by the TODO thread.
+
+- [ ] **OPS.176 Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
+  Filed by the TODO thread.
+
+- [ ] **TEST.729 Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run)**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.730 Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s)**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.731 Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Covered by test_db_old_schemas (shape) and test_db_column_round_trip.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: TEST.729. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.732 (bug) test_isotope_record.py defines the same test name twice, so the first never runs**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A4). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Rename or delete the stale one; pyflakes F811 in the pre-gate would catch more.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.733 Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Boss, 3:53 PM EST on 2026-11-12: "Yes I ran the update ... I'm okay with the migration tests for old versions going away ... Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above". So all 23 retire, none held; a migration chain kept only for history may come later, not now.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.734 Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s)**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.735 Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.736 One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row C). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. The wiki-routes-gone tests would block the 9.1 spakr link plan. A back-compat path is retired together with its test (cross-check with the layered-fix scan).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row D). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **OPS.177 A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else**
+  Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." No test run needed; the script only has to exist. Other legacy scripts go here later.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: DB.126, DB.127.
+  Filed by the TODO thread.
+
+- [ ] **DB.126 legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step**
+  Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." Lives beside OPS.177; run only by hand.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: OPS.177, DB.127.
+  Filed by the TODO thread.
+
+- [ ] **DB.127 Hard cut at 8.0: remove the database version migrations and tests for anything before 8.0, and refuse to open a database whose structure is older than 8.0 (pointing to legacy/)**
+  Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." First map which code serves structures older than 8.0 (8.0.0 began 2026-10-09; the Alembic baseline 0130 dates from 2026-10-24, inside 8.0); keep the 8.0-era chain that trains still add to. Rides a train so it cannot collide with migrations in flight; Lane 02 numbers it. Folds in TEST.733.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14, through Lane 02's train. Prerequisites: DB.126. Related: OPS.177, DB.126, TEST.729, TEST.731, TEST.733.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1649 Lock-free cleanup: the request bookkeeping list built once, not appended, removed and re-appended**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section E, with file:line, shape, risk and output impact). Output unchanged. One PR with GEN.1650, GEN.1655 and GEN.1660.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1650, GEN.1655, GEN.1660.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Filed by the TODO thread.
+
+- [ ] **GEN.1650 Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section F, with file:line, shape, risk and output impact). Output unchanged.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1649.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Filed by the TODO thread.
+
+- [ ] **GEN.1651 BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section G, with file:line, shape, risk and output impact). Output unchanged; makes GEN.1652 and GEN.1654 smaller.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1649. Related: GEN.1652, GEN.1654.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): a BuildState dataclass declared on the MassObject core (generation/mass_object.py beside KinematicRecord) with a PlanetaryBuildState subclass; not stored. Output unchanged. A prerequisite of GEN.556 and GEN.570.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1652 One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py)**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section A, with file:line, shape, risk and output impact). Fixes bug-sweep H2.3, H3, M1 and M3 at the root. Output changes (fixes): one epoch, rides a train after Train 25.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1651. Related: GEN.1653, GEN.1654.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): MassObject.finish(from_step) running a per-family FINISH_STEPS table (PlanetaryObject's is section A's chain with apply_class last; StellarObject's is Star._finish_init and CompactRemnant's copy, optional in the same PR). The stream is an argument defaulting to today's seeds (GEN.556 switches it to seed-derived later). Also: the two-phase build (draw, space, finish) becomes the only path, deleting finish_climate and the air part of reconcile_moved_planet, so moved request-built bodies get their air once. Same epoch.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section H, with file:line, shape, risk and output impact). Same PR and epoch as GEN.1652.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1652. Related: GEN.1652.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): apply_class is the last entry of PlanetaryObject's FINISH_STEPS (GEN.1652).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1654 One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section B, with file:line, shape, risk and output impact). Fixes bug-sweep H2.1. Output changes; can share GEN.1652's epoch.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (moved from Lane 04 to run in parallel). Prerequisites: none (built in parallel with GEN.1651/1652). Related: GEN.1655, GEN.1652.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): an AirSetting on PlanetaryBuildState, and a frozen AirRecord written to the profile's air fields by one function. Same output as filed.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1655 rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section C, with file:line, shape, risk and output impact). Fixes bug-sweep H2.2. Same PR and epoch as GEN.1654.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (moved from Lane 04 to run in parallel). Prerequisites: GEN.1654. Related: GEN.1654.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): an AirSetting on PlanetaryBuildState, and a frozen AirRecord written to the profile's air fields by one function. Same output as filed.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1656 StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section D, with file:line, shape, risk and output impact). Output measured on the golden before merge.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1652. Related: GEN.1657.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): this is populate(host) step one, with GEN.556's signature populate(host, zone, guarantees), and a prerequisite of GEN.556.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1657 calculate_atmospheric_conditions: the three post-hoc corrections move into the solver**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section J, with file:line, shape, risk and output impact). Output measured on the golden before merge.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 15 (moved from Lane 04 to run in parallel). Prerequisites: GEN.1654. Related: GEN.1656.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1658 GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns)**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section K, with file:line, shape, risk and output impact). Approved by Boss; check a generator against today's schema first.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11, after PERF.260 (Boss gave the go at 4:08 PM EST). Prerequisites: none. Related: GEN.1651.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
+  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): merged into GEN.570 as its first slice; the separate BODY_COLUMNS idea is dropped. Design already approved (E1, D1 option 2); Boss's go to build all the layered fixes at 4:08 PM EST covers it. Rides a train (schema).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1659 Low: settle_giant runs twice per giant and _air_replay is set twice**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section L, with file:line, shape, risk and output impact). Folds into GEN.1652 or GEN.1654 where the code is touched.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1652, GEN.1654.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Filed by the TODO thread.
+
+- [ ] **GEN.1660 Remove the backward-compat shims and the 13 functions nothing calls**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section I and M, with file:line, shape, risk and output impact). Shims: the init_app limiter, format_body_distance is_moon, materials.class_composition and legacy_names, the is_binary notes and from_dict fallback, and two thin wrappers in system.py (Boss's rule: no shims). Output unchanged; one PR with GEN.1649 and GEN.1650.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1649, TEST.736.
+  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
+  Filed by the TODO thread.
+  Second-pass scan (N10): also remove load_star_system's is_binary fallback (store.py, about line 10127).
+
+- [ ] **GEN.1661 (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt**
+  Lane 02 (as the lane reported 4:03 PM EST on 2026-11-12), found by Lane 14's redraw census: StarSystem._settle_to_final_age -> _secular_exchange -> secular_chain.evolve -> np.linalg.solve raises LinAlgError "Singular matrix" for 23 of 600 systems generated with a habitable world and an asteroid belt asked (seeds crc32 of 'redraw:world-requested:40', 53, 83, 97, 124); 0 crashes in the ordinary group. It is in the belt secular pull (GEN.1464), which rides Train 25, so Train 25 waits for this fix. Do: find why the matrix is singular (likely two bodies at the same semi-major axis, or a zero-mass row) and treat that case from the physics, not by catching the error. Test: those five seeds generate, and the 600-system redraw group gives 0 crashes.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21, in Train 25. Prerequisites: none. Related: GEN.1464.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1662 Bright-star backfill: one Band object and one loop replace the two parallel luminosity and mass pipelines in run_plan and bright_stars (about 85% identical)**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N1). Output unchanged, no epoch; lock-free. Same streams; check order on the golden or census.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: GEN.1665.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1663 Sector phenomena: generate_sector_phenomena's five per-kind branches become columns of phenomena/registry.py**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N2). Output unchanged, no epoch; lock-free. Stage E of GEN.556.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds).176. Prerequisites: none. Related: GEN.556, GEN.1666.
+  Filed by the TODO thread.
+
+- [ ] **DB.128 One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N3). Output unchanged, no epoch; lock-free. One PR with DB.129 and OPS.178.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: DB.129, OPS.178, GEN.1666.
+  Filed by the TODO thread.
+
+- [ ] **DB.129 SaveSession dataclass replaces the ten attributes stashed on the database connection during a save**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N4). Output unchanged, no epoch; lock-free. The twin of GEN.1651.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: DB.128, GEN.1651.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1664 StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N5). Output unchanged, no epoch; lock-free. Slice two of GEN.1656, a prerequisite of GEN.556; check order on the golden.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1656. Related: GEN.1656, GEN.556.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1665 One _advance_rows with a per-kind stepper replaces the three copies of one loop in store.advance_galactic_positions and its five sibling advance_* functions**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N6). Output unchanged, no epoch; lock-free. First slice of GEN.584; check order on the golden.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: GEN.584.
+  Filed by the TODO thread.
+
+- [ ] **OPS.178 CLI validate_sectors_args: the forty pairwise option exclusions become a mode table**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N7). Output unchanged, no epoch; lock-free. One PR with DB.128 and DB.129.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: DB.128.
+  Filed by the TODO thread.
+
+- [ ] **OPS.179 cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N8). Output unchanged, no epoch; lock-free. Low.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds). Prerequisites: none. Related: OPS.178.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1666 describe/sheet.sheet becomes per-kind row providers on the kind-table registry; query.resolve_object follows when DB.73 lands**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N9). Output unchanged, no epoch; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds).176. Prerequisites: DB.128. Related: DB.128, GEN.1663.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1667 (bug) test_secular_exchange_generation has 2 failures on Train 25: seed 1 no longer makes a belt**
+  Lane 21 (as the lane reported 4:52 PM EST on 2026-11-12), seen while fixing GEN.1661: on claude/train-25 (70c55b8b6), even without the GEN.1661 patch, two tests in test_secular_exchange_generation.py fail because seed 1 no longer generates a belt, so the belt secular case is not exercised. Do: pick a seed (or a forced belt request) that makes a belt on the Train 25 generator and check the belt's secular pull is still tested; if the belt loss itself is wrong, say so. A test fix inside Train 25.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23 (GEN.1464 part A), in Train 25. Prerequisites: none. Related: GEN.1464, GEN.1661.
+  Filed by the TODO thread.
+
+- [ ] **SEC.48 Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters**
+  Boss, 5:02 PM EST on 2026-11-12: "mask keys and credentials in logs with the first 4 characters and the last 2 characters and the rest are X's". Do: one masking helper in the log layer (util/log, logrecord) applied to every record at every level (normal, debug, error, error.log, job logs, warm-up log and the Queue page stream): API keys, integration keys, session and reset tokens, passwords, database and Redis URLs with credentials, and secrets from config.json, found by field name and by known value. Shape: abcdXXXXXXXXyz (a value of 6 characters or fewer is all X's, so nothing is revealed). Test: a test that fails if any key, token or password appears unmasked in any log output, run over the log fixtures and a sample of real log calls. Output unchanged; lock-free, merges directly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: SEC.47, SEC.33, OPS.168.
+  Filed by the TODO thread.
+
+- [ ] **OPS.180 (bug) Galaxy at a glance says no sectors are charted when sectors are charted**
+  Boss, 5:15 PM EST on 2026-11-12 (live observation on his server): "Galaxy at a glance says no sectors charted even though sectors are charted." Where it comes from: web/glance.galaxy_rows counts len(sectors) from GET /api/galaxy/sectors, which is db.query.galaxy_placed_sectors: placed sectors minus _UNCHARTED_SECTOR_SQL (a sector row whose cell the chart_ledger does not hold). Suspects (unconfirmed, TODO's read): charted sectors whose cell is missing from chart_ledger (so every row counts as an uncharted placeholder), or a cached API or page answer from before the run. Check the other charted counts on the same page (regions table) and the Sectors list against it. Do: find the cause on a galaxy with charted sectors, fix it at the cause, and add a test that the panel's count equals the charted sectors. Output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13, top item. Prerequisites: none. Related: OPS.153, OPS.154, MAP.402.
+  Filed by the TODO thread.
+
+- [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
+  Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: MAP.426.
+  Filed by the TODO thread.
+
+- [ ] **MAP.428 Wide binaries and multiples read as one system in the nav and sector views: a link line or ring around the group and one shared system label**
+  Boss, 5:28 PM EST on 2026-11-12 (via the coordinator, with screenshots, as Lane 23 relayed): wide binaries and multiples display poorly in the nav and sector views. Example: Ofriggor, a quadruple (A G8V, B M4VI, C M3VI, D M0V) where D sits about 8 AU out and shows as its own point with its own label. Do: as the view approaches a wide binary or multiple, show that the stars are one system (a link line or ring around the group, one shared system label instead of a label per star). Display only, output unchanged; lock-free. One PR with MAP.427.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, with MAP.427. Prerequisites: none. Related: MAP.427, MAP.136.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1668 Promoted belt planets run through settle_obliquity and the rest of the settle pass: tilt range, chaotic-tilt check, tides and moon tilts**
+  Lane 12, 2026-11-12: belt members promoted to planets (GEN.1510, `_promote_belt_members`) are made after `settle_obliquity` runs, so they never get obliquity_min_deg/obliquity_max_deg and never the chaotic-tilt check. Free-spinning promoted planets (all class D in the sample, 18 of 18 on seeds 7100 to 7107) should go through settle_obliquity. Lock item (their tilt may change; epoch). Until it lands the property sheet carries a rule that promoted planets have no tilt range (Train 25 patch reports/train25/lane12-sheet-fill-obliquity.patch); remove that clause in this item.
+  Train Manager (Train 25 gate, 2026-11-12): the same promoted planets also miss tides and moon tilts from the settle pass; Lane 22 saw 41 of 93 locked planets in the tilt test were promoted ones. GEN.1510 now skips promotion round a star under 10 Myr (Lane 22, Train 25).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 12. Prerequisites: GEN.1510. Related: GEN.1510.
+  Filed by the TODO thread.
+
+- [ ] **TEST.738 Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale**
+  Train Manager, Train 25 gate (2026-11-12): the Train 25 head had stale generated docs (life-class-rules, stand-in-values, stand-ins.json). Add a regenerate_generated.py step to the pregate for every lock PR (runbook reports/merge-train-runbook-2026-10-29.md and docs/plan/lanes.md) and a check that fails when generated files differ from a fresh regenerate.
+  Train Manager (2026-11-12): also make train_gate.py fall back to the real data dir (/var/cache/planetgen/datasets) when /tmp/claude/data_base is missing, since a gate machine without it fails the math check on every file.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1668.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1669 (bug) A forced K5VI star classifies as subdwarf only about 92% of the time; a forced luminosity class must always hold**
+  Lane 21, 2026-11-12: test_forced_star's subdwarf test draws 10 unseeded K5VI stars and asks each to classify as subdwarf; 24 of 300 draws fail on main (23 of 300 on the Train 24 base), so the test fails about half its runs. Not a new regression. Fix the classifier (or the forced draw) so a forced class VI star is always class VI; output-changing, so a lock item for Train 26. Do not seed the test to hide it; the test stays as it is and goes green with the fix.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1670 Sulfur speciation in the equilibrium step, so warm water-poor rocky bodies can hold SO2 and class Y can occur**
+  Lane 21, 2026-11-12, after the GEN.1562 sulfur package (PR 6339, Train 26: N1, N2, N6, with N4 droppable): over 381 seeds class A stays 1 and class Y stays 0. Only 22 of 308 rocky airy bodies sit at 300 to 350 K and 1 of those is water-poor, and the traced warm body holds its sulfur as S2 in the closed-system equilibrium even with an oxidized mantle. Boss wants a chance of class Y: add sulfur speciation (S2, SO2, H2S, COS by temperature, pressure and oxygen fugacity) to the equilibrium step, and check whether warm water-poor rocky bodies are too rare. Lock item (output changes).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1562 sulfur package (PR 6339). Related: GEN.1562.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1671 Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4)**
+  Fable thread whole-tree read (PR 6343 body, 2026-11-12): these helpers are copied across physics modules; keep one of each and import it everywhere. Output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Fable thread. Prerequisites: none. Related: GEN.1662, GEN.1665.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1672 (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff**
+  Lane 21, 2026-11-12: bulk_structure.envelope_thickness_earth uses (age/5 Gyr)^-0.18, fitted from 0.1 Gyr, but is applied below it; on main body 93 of the oddity S3 scan reads 0.0043 g/cm3 at age 0. Clamp the age at 0.1 Gyr (the fit's lower edge). Found while fixing the Train 25 S3 test red (Train Manager carries a test-only patch for Train 25). Lock item (output changes), Train 26.
+  Train Manager (2026-11-12): the law is R2741; S3 #2 (3.4 Earth masses, 0.049 Gyr) reads 0.022 g/cm3, under the 0.03 density edge. The Train 25 test has no lower edge under 0.1 Gyr; restore it with this fix.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on

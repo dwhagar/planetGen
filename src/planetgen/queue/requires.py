@@ -124,8 +124,8 @@ def _say(connection, job, text, kind):
         from planetgen.queue import runrecord
         try:
             runrecord.log(connection, run[0], text, level="info", kind=kind, stage=run[1])
-        except Exception:  # noqa: BLE001 -- a line in the run's log must never fail the job
-            pass
+        except Exception as exc:  # noqa: BLE001 -- a line in the run's log must never fail the job
+            log.swallowed("queue/requires", "_say", exc)
 
 
 def _run_of(job):

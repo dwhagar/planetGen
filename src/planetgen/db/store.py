@@ -247,7 +247,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 21
+CONTROL_SCHEMA_VERSION = 22
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -258,7 +258,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -1270,7 +1270,8 @@ class Connection:
             try:
                 callback()
             except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
-                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
+                name = getattr(callback, "__qualname__", None) or repr(callback)       # OPS.164: which step, and where it broke
+                log.exception(f"After-commit step {name} failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -5396,7 +5397,7 @@ def _stamp_family(conn, family, system_ids):
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
         conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
+                     + ", ".join("(?, ?)" for _ in chunk) + f" AS written ON DUPLICATE KEY UPDATE {column} = written.{column}",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
 
 
@@ -7837,11 +7838,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()
