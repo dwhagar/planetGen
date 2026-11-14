@@ -20,9 +20,6 @@ NOT_YET = {
     # OPS.204: the checks
     **dict.fromkeys(("check-math", "check-datasets", "check-revision", "check-tables", "check-tables-extended", "check-orphans", "check-ids", "check-values", "check-counts",
                      "check-version-keys", "check-storage", "check-systems", "check-object-index"), "OPS.204"),
-    # OPS.205: warm-up
-    **dict.fromkeys(("warm-cluster-field", "warm-object-index", "warm-galaxy-map", "warm-galaxy-nodes", "warm-galaxy-deep-nodes", "warm-lists", "warm-sectors", "warm-systems",
-                     "warm-phenomena", "warm-search", "end-map-rebuild-maintenance"), "OPS.205"),
     # OPS.206: reset
     "reset-galaxy": "OPS.206",
 }
@@ -44,5 +41,7 @@ def test_the_list_names_only_registered_commands():
     assert not gone, f"listed but not registered: {gone}"
 
 
-def test_the_commands_converted_so_far_are_the_skeleton_and_the_lights():
-    assert {kind for kind, spec in commands.REGISTRY.items() if spec.pieces is not None} >= {"plan-skeleton", "finish-phenomena", "refresh-block-lights"}
+def test_the_commands_converted_so_far_are_the_skeleton_the_lights_and_the_warm_up():
+    assert {kind for kind, spec in commands.REGISTRY.items() if spec.pieces is not None} >= {
+        "plan-skeleton", "finish-phenomena", "refresh-block-lights", "warm-cluster-field", "warm-object-index", "warm-galaxy-map", "warm-galaxy-nodes", "warm-galaxy-deep-nodes",
+        "warm-lists", "warm-sectors", "warm-systems", "warm-phenomena", "warm-search", "end-map-rebuild-maintenance"}
