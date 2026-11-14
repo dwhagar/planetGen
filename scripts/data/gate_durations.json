@@ -36,7 +36,6 @@
  "tests/test_brown_dwarf.py": 27.34,
  "tests/test_bughunt_cli_edges.py": 128.5,
  "tests/test_bughunt_db_child_tables.py": 61.11,
- "tests/test_bughunt_sector_placement.py": 1146.56,
  "tests/test_bughunt_serialization_fuzz.py": 583.97,
  "tests/test_burn_down_register.py": 4.12,
  "tests/test_cache_invalidation.py": 68.79,
