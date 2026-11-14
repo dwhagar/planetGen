@@ -194,22 +194,22 @@ def test_a_hot_jupiter_has_nothing_inside_its_orbit_and_a_moved_giant_clears_its
     hot = pa.Seed(0.05, 300 * EARTH, 30 * EARTH, True, 4, True, 0.05)
     inside = pa.Seed(0.03, 2 * EARTH, 2 * EARTH, False, 1, False, 0.03)
     outside = pa.Seed(1.5, 2 * EARTH, 2 * EARTH, False, 1, False, 1.5)
-    assert pa._clear_around_giants([inside, hot, outside], SUN) == [hot, outside]
+    assert pa._clear_split([inside, hot, outside], SUN)[0] == [hot, outside]
     moved = pa.Seed(2.0, 300 * EARTH, 30 * EARTH, True, 4, True, 2.0)
     near = pa.Seed(2.2, 5 * EARTH, 5 * EARTH, False, 1, False, 2.2)
     far = pa.Seed(9.0, 5 * EARTH, 5 * EARTH, False, 1, False, 9.0)
-    assert pa._clear_around_giants([moved, near, far], SUN) == [moved, far]
+    assert pa._clear_split([moved, near, far], SUN)[0] == [moved, far]
     still = pa.Seed(2.0, 300 * EARTH, 30 * EARTH, True, 4, False, 2.0)
-    assert pa._clear_around_giants([still, far], SUN) == [still, far]      # a giant that did not move clears nothing
-    assert pa._clear_around_giants([still, near, far], SUN) == [still, far]      # but one that landed on a neighbour throws it out
+    assert pa._clear_split([still, far], SUN)[0] == [still, far]      # a giant that did not move clears nothing
+    assert pa._clear_split([still, near, far], SUN)[0] == [still, far]      # but one that landed on a neighbour throws it out
 
 
 def test_two_giants_that_land_on_one_another_leave_the_heavier():
     heavy = pa.Seed(1.57, 300 * EARTH, 30 * EARTH, True, 4, False, 4.0)
     light = pa.Seed(1.59, 80 * EARTH, 20 * EARTH, True, 3, False, 6.0)
     apart = pa.Seed(8.0, 80 * EARTH, 20 * EARTH, True, 3, False, 8.0)
-    assert pa._clear_around_giants([heavy, light, apart], SUN) == [heavy, apart]
-    assert pa._clear_around_giants([light, heavy, apart], SUN) == [heavy, apart]
+    assert pa._clear_split([heavy, light, apart], SUN)[0] == [heavy, apart]
+    assert pa._clear_split([light, heavy, apart], SUN)[0] == [heavy, apart]
 
 
 # --- the whole architecture ------------------------------------------------------------------------------------------------
