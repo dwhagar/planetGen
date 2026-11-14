@@ -31,7 +31,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from planetgen.util import log
+from planetgen.util import log, logrecord
 from planetgen.util.user_agent import user_agent
 from planetgen.util.settings import get_settings
 
@@ -222,7 +222,8 @@ def _http_transport(method, target, data, headers, timeout):
     except urllib.error.HTTPError as exc:
         try:
             body = exc.read().decode("utf-8", errors="replace")
-        except Exception:
+        except Exception as swallowed_exc:
+            log.swallowed("web/lib/apiclient", "_http_transport", swallowed_exc)
             body = ""
         return TransportResponse(exc.code, body, [], exc.reason)
     except urllib.error.URLError as exc:
@@ -416,7 +417,7 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
 def _log_call(method, url, start, outcome):
     """One debug-log line per API call, attributed to the `apiclient`
     function that made it (`get_system`, `auth_me`, ...)."""
-    log.debug(f"API {method} {url} -> {outcome} in {(time.perf_counter() - start) * 1000:.1f}ms", stacklevel=4)
+    log.debug("API %s %s -> %s in %s.", method, url, outcome, logrecord.duration_text(time.perf_counter() - start), stacklevel=4)
 
 
 def _build_query(params):
@@ -1017,7 +1018,7 @@ def get_irregular_moon(db, ref, rank):
 
 
 def get_belt_member(db, ref, rank):
-    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`), the page data of one body an asteroid belt keeps
+    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`, `planet`), the page data of one body an asteroid belt keeps
     individually (`rank` as the designation writes it) -- see `describe/belt_member_info.py`."""
     _require_db(db)
     return _request(f"/objects/{ref}/belt-members/{rank}", {"db": db})
@@ -1476,6 +1477,19 @@ def admin_work_warm(cookie_header, database):
 def admin_work_held(cookie_header):
     """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.248): `{"total", "items"}`."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/work/held", cookie_header=cookie_header)
+    return body
+
+
+def admin_work_tuning(cookie_header):
+    """`GET /api/admin/work/tuning` -- what the queue has learned per job kind and its latest changes (OPS.158)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/tuning", cookie_header=cookie_header)
+    return body
+
+
+def admin_work_tuning_set(cookie_header, action, kind, mb=None):
+    """`POST /api/admin/work/tuning` -- `pin` a kind's claim at `mb`, `unpin` it or `clear` what was learned (OPS.158)."""
+    payload = {"action": action, "kind": kind, **({"mb": mb} if mb is not None else {})}
+    body, _set_cookie_headers = _auth_request("POST", "/admin/work/tuning", cookie_header=cookie_header, json_body=payload)
     return body
 
 

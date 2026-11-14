@@ -87023,6 +87023,30 @@
    "volume": "48",
    "year": 2011
   },
+  "10.1016/j.asr.2013.09.024": {
+   "arxiv": "1211.7027",
+   "authors": [
+    [
+     "Noyelles",
+     "B."
+    ],
+    [
+     "Lhotka",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.asr.2013.09.024",
+   "editors": [],
+   "journal": "AdSpR",
+   "page": "2085",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury",
+   "type": "journal-article",
+   "volume": "52",
+   "year": 2013
+  },
   "10.1016/j.asr.2016.08.043": {
    "arxiv": "1612.02446",
    "authors": [
@@ -153061,6 +153085,25 @@
    "volume": "21",
    "year": 2017
   },
+  "10.1080/14786441008636148": {
+   "authors": [
+    [
+     "Saha",
+     "M. N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1080/14786441008636148",
+   "editors": [],
+   "journal": "The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science",
+   "page": "472",
+   "publisher": "Informa UK Limited",
+   "src": "crossref",
+   "title": "LIII. Ionization in the solar chromosphere",
+   "type": "journal-article",
+   "volume": "40",
+   "year": 1920
+  },
   "10.1080/14786443109461710": {
    "authors": [
     [
@@ -165393,6 +165436,50 @@
    "volume": "716",
    "year": 2010
   },
+  "10.1088/0004-637x/717/2/897": {
+   "arxiv": "1005.2612",
+   "authors": [
+    [
+     "Althaus",
+     "L. G."
+    ],
+    [
+     "Córsico",
+     "A. H."
+    ],
+    [
+     "Bischoff-Kim",
+     "A."
+    ],
+    [
+     "Romero",
+     "A. D."
+    ],
+    [
+     "Renedo",
+     "I."
+    ],
+    [
+     "García-Berro",
+     "E."
+    ],
+    [
+     "Miller Bertolami",
+     "M. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/717/2/897",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "897",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "NEW CHEMICAL PROFILES FOR THE ASTEROSEISMOLOGY OF ZZ CETI STARS",
+   "type": "journal-article",
+   "volume": "717",
+   "year": 2010
+  },
   "10.1088/0004-637x/719/1/810": {
    "authors": [
     [
@@ -168912,6 +168999,30 @@
    "title": "THE FALSE POSITIVE RATE OF KEPLER AND THE OCCURRENCE OF PLANETS",
    "type": "journal-article",
    "volume": "766",
+   "year": 2013
+  },
+  "10.1088/0004-637x/767/2/128": {
+   "arxiv": "1304.1425",
+   "authors": [
+    [
+     "Correia",
+     "A. C. M."
+    ],
+    [
+     "Rodríguez",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/767/2/128",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "128",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES",
+   "type": "journal-article",
+   "volume": "767",
    "year": 2013
   },
   "10.1088/0004-637x/768/1/45": {
@@ -216288,6 +216399,60 @@
    "type": "journal-article",
    "volume": "112",
    "year": 2025
+  },
+  "10.1104/pp.019349": {
+   "authors": [
+    [
+     "McGinn",
+     "P. J."
+    ],
+    [
+     "Price",
+     "G. D."
+    ],
+    [
+     "Maleszka",
+     "R."
+    ],
+    [
+     "Badger",
+     "M. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1104/pp.019349",
+   "editors": [],
+   "journal": "Plant Physiology",
+   "page": "218",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Inorganic Carbon Limitation and Light Control the Expression of Transcripts Related to the CO2-Concentrating Mechanism in the Cyanobacterium Synechocystis sp. Strain PCC6803",
+   "type": "journal-article",
+   "volume": "132",
+   "year": 2003
+  },
+  "10.1104/pp.64.5.892": {
+   "authors": [
+    [
+     "Birmingham",
+     "B. C."
+    ],
+    [
+     "Colman",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1104/pp.64.5.892",
+   "editors": [],
+   "journal": "Plant Physiol.",
+   "page": "892",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae",
+   "type": "journal-article",
+   "volume": "64",
+   "year": 1979
   },
   "10.1107/s0021889809027897": {
    "authors": [
@@ -282856,6 +283021,24 @@
    "volume": "",
    "year": 2002
   },
+  "arXiv:astro-ph/0303039": {
+   "arxiv": "astro-ph/0303039",
+   "authors": [
+    [
+     "Metcalfe",
+     "T. S."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "Astrophys.J. 587 (2003) L43-L46",
+   "page": "",
+   "src": "arxiv",
+   "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate",
+   "type": "preprint",
+   "volume": "",
+   "year": 2003
+  },
   "arXiv:astro-ph/0303456": {
    "arxiv": "astro-ph/0303456",
    "authors": [
@@ -283363,7 +283546,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5246,
+ "id_next": 5248,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283855,6 +284038,7 @@
   "10.1016/j.asr.2009.08.013": "R3043",
   "10.1016/j.asr.2010.12.023": "R0222",
   "10.1016/j.asr.2011.06.009": "R0221",
+  "10.1016/j.asr.2013.09.024": "R5242",
   "10.1016/j.asr.2016.08.043": "R0173",
   "10.1016/j.asr.2017.05.014": "R3919",
   "10.1016/j.asr.2020.10.029": "R3178",
@@ -285548,6 +285732,7 @@
   "10.1080/03147538708712456": "R0933",
   "10.1080/10409230490496577": "R3648",
   "10.1080/13669877.2017.1304975": "R1618",
+  "10.1080/14786441008636148": "R5246",
   "10.1080/14786443109461710": "R0729",
   "10.1080/19466315.2026.2658638": "R3529",
   "10.1086/107463": "R0593",
@@ -285913,6 +286098,7 @@
   "10.1088/0004-637x/715/2/1050": "R0455",
   "10.1088/0004-637x/716/2/1060": "R4561",
   "10.1088/0004-637x/716/2/1191": "R4748",
+  "10.1088/0004-637x/717/2/897": "R5238",
   "10.1088/0004-637x/719/1/810": "R2075",
   "10.1088/0004-637x/719/1/865": "R4025",
   "10.1088/0004-637x/720/1/569": "R3840",
@@ -285994,6 +286180,7 @@
   "10.1088/0004-637x/766/2/136": "R4980",
   "10.1088/0004-637x/766/2/76": "R5091",
   "10.1088/0004-637x/766/2/81": "R1459",
+  "10.1088/0004-637x/767/2/128": "R5243",
   "10.1088/0004-637x/768/1/45": "R3266",
   "10.1088/0004-637x/769/1/6": "R2027",
   "10.1088/0004-637x/770/1/23": "R4919",
@@ -287046,6 +287233,8 @@
   "10.1103/revmodphys.97.025002": "R3117",
   "10.1103/sbrn-z9sn": "R2235",
   "10.1103/tz74-d3kh": "R2221",
+  "10.1104/pp.019349": "R5240",
+  "10.1104/pp.64.5.892": "R5241",
   "10.1107/s0021889809027897": "R1425",
   "10.1107/s0365110x59002419": "R3353",
   "10.1107/s0365110x59002420": "R3354",
@@ -288440,6 +288629,7 @@
   "arxiv:1004.1406": "R3058",
   "arxiv:1004.1507": "R1331",
   "arxiv:1004.2039": "R1539",
+  "arxiv:1005.2612": "R5238",
   "arxiv:1005.3084": "R2172",
   "arxiv:1006.0022": "R4000",
   "arxiv:1006.0106": "R1731",
@@ -288589,6 +288779,7 @@
   "arxiv:1211.2816": "R2975",
   "arxiv:1211.5401": "R0216",
   "arxiv:1211.6520": "R5198",
+  "arxiv:1211.7027": "R5242",
   "arxiv:1212.2654": "R2271",
   "arxiv:1212.2980": "R2479",
   "arxiv:1301.0365": "R2032",
@@ -288609,6 +288800,7 @@
   "arxiv:1303.5632": "R2058",
   "arxiv:1303.6283": "R0877",
   "arxiv:1303.6286": "R2505",
+  "arxiv:1304.1425": "R5243",
   "arxiv:1304.2909": "R4919",
   "arxiv:1304.3714": "R4915",
   "arxiv:1304.6083": "R3211",
@@ -289729,6 +289921,7 @@
   "arxiv:astro-ph/0211361": "R1530",
   "arxiv:astro-ph/0301527": "R4048",
   "arxiv:astro-ph/0301540": "R2530",
+  "arxiv:astro-ph/0303039": "R5239",
   "arxiv:astro-ph/0303456": "R5079",
   "arxiv:astro-ph/0308159": "R3682",
   "arxiv:astro-ph/0308388": "R1270",
@@ -289879,6 +290072,7 @@
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
+  "web:https://physics.nist.gov/physrefdata/asd/ionenergy.html": "R5247",
   "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
   "web:https://shoelace.style/": "R5033",
   "web:https://tanstack.com/table/": "R5034",
@@ -290418,6 +290612,15 @@
    "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
    "url": "https://arxiv.org/abs/1109.3511",
    "year": "2012"
+  },
+  {
+   "checked": "2026-11-12",
+   "identifier": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+   "kind": "web page",
+   "name": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+   "provider": "NIST",
+   "url": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+   "year": "2024"
   }
  ]
 }

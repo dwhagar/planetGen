@@ -30,7 +30,7 @@ ICE_KEYS = (("ice_co2_mass_fraction", "Carbon dioxide ice, part of the ice"), ("
 """tuple: The non-water ices of a body by species and how the table words each."""
 
 MASS_KEYS = (("metal_mass_fraction", "Metal (iron and nickel core)"), ("rock_mass_fraction", "Rock (silicate mantle and crust)"),
-             ("ice_mass_fraction", "Ice"), *ICE_KEYS, ("envelope_mass_fraction", "Gas envelope"))
+             ("water_mass_fraction", "Water (ocean, ice and water bound in the rock)"), ("ice_mass_fraction", "Other ices (not water)"), *ICE_KEYS, ("envelope_mass_fraction", "Gas envelope"))
 """tuple: The stored mass fractions of a body and what each is, in the order the table lists them; the ice's species (GEN.834) are the parts of the ice."""
 
 MASS_SHARED_KEYS = frozenset(key for key, _label in MASS_KEYS)
@@ -101,8 +101,8 @@ def gas_table(sheet):
 
 def mass_table(sheet):
     """The make-up of a body by mass as `[{"name", "share"}]`: each stored mass fraction above zero as a percent of its mass
-    (the four parts add up to the whole body; the ice's species add up to the ice). Empty when none is stored."""
-    rows = {row["key"]: row for row in _rows(sheet, "composition")}
+    (the parts, water included, add up to the whole body; the ice's species add up to the ice). Empty when none is stored."""
+    rows = {row["key"]: row for group in sheet["groups"] if group["key"] in ("composition", "water") for row in group["rows"]}      # UX.308: the water share is a row of the Water group
     table = []
     for key, label in MASS_KEYS:
         row = rows.get(key)

@@ -1062,6 +1062,7 @@ def run_check(check):
     try:
         actual = check.compute()
     except Exception as exc:  # noqa: BLE001 -- any error is a failed check
+        log.swallowed("physics/mathcheck", "run_check", exc)
         return Result(check, False, error=f"{type(exc).__name__}: {exc}",
                       seconds=time.perf_counter() - start)
     actual = float(actual)

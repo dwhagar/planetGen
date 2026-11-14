@@ -14,7 +14,7 @@ The cases, each from a fixed seed:
 - `sector-a` and `sector-b`: a sector of three systems through `generate_sector`, under the unit seed of two sector
   addresses of one galaxy seed;
 - `phenomenon`: one rogue planet from `generate_phenomenon`;
-- `nebula-shape`: a nebula shape from `nebula_shape.draw_shape`, its scale and 50 `contains` answers;
+- `nebula-contour`: which of 50 points a nebula of the toy galaxy holds, by the young-star and by the gas density contour (`nebula_density.inside`, GEN.1267);
 - `bright-star-scatter`: the bright stars of a tiny outline of a toy galaxy (`bright_stars.scatter`);
 - `population-stream`: ten stars of the bright-star population model (`star_population.sample_bright_stars`);
 - `unit-seed`: `galaxy.seed.unit_seed` for a known address, which must never change.
@@ -36,8 +36,10 @@ import multiprocessing
 
 from planetgen import tuning
 from planetgen.db.fingerprint_tree import CLOCK_KEYS
+from planetgen.generation import battery_progress
 from planetgen.util import draw
 from planetgen.util import fingerprint_encoding as encoding
+from planetgen.util import log
 
 GALAXY_SEED = bytes(range(1, 17))
 """bytes: The galaxy seed of the sector cases and of the known answer."""
@@ -78,7 +80,7 @@ POPULATION_STARS = 10
 KNOWN_UNIT_SEED = (bytes(range(16)), "sector", (3, 1, 0))
 """tuple: `(galaxy seed, kind, address)` of the known-answer case."""
 
-CASES = ("sector-a", "sector-b", "phenomenon", "brown-dwarf", "nebula-shape", "bright-star-scatter", "population-stream", "unit-seed")
+CASES = ("sector-a", "sector-b", "phenomenon", "brown-dwarf", "nebula-contour", "bright-star-scatter", "population-stream", "unit-seed")
 """tuple: The cases, in the order the overall digest takes them."""
 
 
@@ -186,13 +188,15 @@ def _brown_dwarf_case():
 
 
 def _nebula_case():
-    """A nebula shape, its dictionary and which of `NEBULA_POINTS` points it contains."""
-    from planetgen.galaxy import nebula_shape
+    """Which of `NEBULA_POINTS` points a nebula of the toy galaxy holds, by each of the two densities it can be drawn from."""
+    from planetgen.galaxy import nebula_density
 
     stream = draw.Stream(NEBULA_SEED)
-    shape = nebula_shape.draw_shape(stream)
-    points = [[stream.uniform(-1.0, 1.0) for _ in range(3)] for _ in range(NEBULA_POINTS)]
-    return {"shape": tree(shape.to_dict()), "scale": shape.scale, "inside": [bool(shape.contains(p)) for p in points]}
+    center, radius = (30.0, 5.0, 0.0), 12.0
+    points = [[center[axis] + radius * stream.uniform(-1.2, 1.2) for axis in range(3)] for _ in range(NEBULA_POINTS)]
+    shape = _toy_shape()
+    return {field: [bool(held) for held in nebula_density.inside(GALAXY_SEED, shape, points, center, radius, field)]
+            for field in ("young", "gas")}
 
 
 def _toy_shape():
@@ -239,7 +243,7 @@ _BUILDERS = {
     "sector-b": lambda: _sector_case(SECTOR_ADDRESSES[1]),
     "phenomenon": _phenomenon_case,
     "brown-dwarf": _brown_dwarf_case,
-    "nebula-shape": _nebula_case,
+    "nebula-contour": _nebula_case,
     "bright-star-scatter": _scatter_case,
     "population-stream": _population_case,
     "unit-seed": _unit_seed_case,
@@ -299,30 +303,49 @@ def kept_battery_digest(progress=None):
     return battery_digest_cache.digest(functools.partial(generator_battery_digest, progress), BatteryDigest, CaseDigest)
 
 
+DIGEST_POLL_SECONDS = 2.0
+"""float: How often the wait for the digest process reads what it has done (OPS.184)."""
+
+
+def _digest_in_process():
+    """What the digest process runs: `kept_battery_digest`, counting its cases (`battery_progress`)."""
+    return kept_battery_digest(battery_progress.case)
+
+
 def start_running_digest():
     """
     Starts working out `running_digest()` in a process of its own (PERF.176), for a caller that will need it later and
     has other work to do meanwhile: the battery uses no database and nothing of this process, so the digest is the
-    one this process would make, five seconds that would otherwise be waited for on a free core.
+    one this process would make, five seconds that would otherwise be waited for on a free core (minutes on a code key
+    whose sampling tables are not kept yet).
 
     Returns:
-        callable: `finish()`, which waits for the process and keeps its digest as this process's `running_digest()`. If
-            the process could not be started or died, `running_digest()` works the digest out here when it is asked for.
+        callable: `finish(on_progress=None)`, which waits for the process and keeps its digest as this process's
+            `running_digest()`. While it waits it calls `on_progress(cases done, cases in all, tables built)` every
+            `DIGEST_POLL_SECONDS` and once more at the end (OPS.184), so the caller can show real counts. If the
+            process could not be started or died, `running_digest()` works the digest out here when it is asked for.
     """
     if _running is not None:
-        return lambda: None
+        return lambda on_progress=None: None
     try:
-        pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
-        future = pool.submit(kept_battery_digest)
-    except Exception:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
-        return lambda: None
+        context = multiprocessing.get_context("spawn")
+        shared = battery_progress.create(context)
+        pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=context, initializer=battery_progress.adopt, initargs=(shared,))
+        future = pool.submit(_digest_in_process)
+    except Exception as exc:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
+        log.swallowed("generation/generator_battery", "start_running_digest", exc)
+        return lambda on_progress=None: None
 
-    def finish():
+    def finish(on_progress=None):
         global _running
         try:
+            while not future.done():
+                concurrent.futures.wait([future], timeout=DIGEST_POLL_SECONDS)
+                if on_progress:
+                    on_progress(*battery_progress.read(shared))
             _running = future.result()
-        except Exception:  # noqa: BLE001 -- the digest is then worked out where it is asked for
-            pass
+        except Exception as exc:  # noqa: BLE001 -- the digest is then worked out where it is asked for
+            log.swallowed("generation/generator_battery", "start_running_digest.finish", exc)
         finally:
             pool.shutdown()
 

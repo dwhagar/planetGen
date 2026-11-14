@@ -29,7 +29,7 @@ def test_the_reader_counts_the_stars_at_or_brighter_than_a_limit_and_leaves_out_
 
 def test_the_catalogue_is_fetched_by_setup_but_only_a_test_reads_it():
     assert hyg_stars.DATASET in catalogue.ALL and not hyg_stars.DATASET.required
-    assert all(dataset.required for dataset in catalogue.ALL if dataset is not hyg_stars.DATASET)
+    assert all(dataset.required for dataset in catalogue.ALL if dataset.key not in ("hyg_stars", "gaia_nearby"))     # the Gaia sample (GEN.1534) is the other test-and-fit-only one
     assert hyg_stars.DATASET.pieces[0].url.startswith("https://") and hyg_stars.DATASET.pieces[0].size == 33932548
 
 

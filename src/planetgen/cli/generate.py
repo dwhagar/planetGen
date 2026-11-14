@@ -204,7 +204,8 @@ def _validate_class_request(args, parser):
     if args.force_class and args.system_file:
         try:
             slots = run_system.load_system_file(args.system_file).get("slots")
-        except Exception:        # the system file's own checks say what is wrong with it
+        except Exception as exc:        # the system file's own checks say what is wrong with it
+            log.swallowed("cli/generate", "_validate_class_request", exc)
             slots = None
         if slots:
             parser.error("--force-class cannot be combined with a system file's slots: a slot already names its class.")
@@ -1616,9 +1617,9 @@ def run_repair_db(args):
             report = dbRepair.repair(conn, scope, dry_run=args.dry_run)
             if any(result.outcome == dbRepair.UNREADABLE for result in report.results):
                 tables = table_rebuild.probe_unreadable(conn)
-                log.normal("Repair: unreadable table(s): " + (", ".join(tables) or "none found now") + ". To rebuild one, stop the "
-                           "website and generation, restart the server with innodb_force_recovery = 1, run `planetgen repair-db "
-                           "--salvage TABLE`, restart it normally, then `planetgen repair-db --reload TABLE`.")
+                log.normal("Unreadable table(s): " + (", ".join(tables) or "none found now") + ".")
+                log.normal("To rebuild one, stop the website and generation and restart the server with innodb_force_recovery = 1.")
+                log.normal("Then run `planetgen repair-db --salvage TABLE`, restart the server normally, and run `planetgen repair-db --reload TABLE`.")
         except table_rebuild.RebuildRefused as exc:
             log.error(str(exc))
             sys.exit(1)
@@ -2078,7 +2079,7 @@ def run_check_math(args):
         wrapper.run("Math check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
                     kind=runrecord.CHECK, argv=sys.argv[1:])
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the math check could not run: {exc}")
+        log.error(f"The math check could not run: {exc}")
         raise SystemExit(1)
     finally:
         if previous_term is not None:
@@ -2422,7 +2423,8 @@ def _run_user():
     """Who ran this: the login name (`getpass.getuser`), or `None`."""
     try:
         return getpass.getuser()
-    except Exception:  # noqa: BLE001 -- no user name in this environment
+    except Exception as exc:  # noqa: BLE001 -- no user name in this environment
+        log.swallowed("cli/generate", "_run_user", exc)
         return None
 
 
@@ -2437,11 +2439,11 @@ def _fatal(message, logger_ready=True, traceback=False):
     it."""
     if logger_ready:
         if traceback:
-            log.exception(f"Error: {message}")
+            log.exception(message)
         else:
-            log.error(f"Error: {message}")
+            log.error(message)
     else:
-        log.error(f"planetgen: error: {message}")
+        log.error(message)
         if traceback:
             import traceback as traceback_module
 
