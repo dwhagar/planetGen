@@ -65093,6 +65093,182 @@
       ],
       "slug": "6-287-stand-ins-of-the-freezing-curve-of-the-sulfuric-acid-hydrates-gen-1644",
       "title": "Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)"
+    },
+    {
+      "key": "6.288",
+      "number": "6.288",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how often a rocky planet in the habitable zone is as dry as Earth; the share is the galaxy maker's choice, calibrated to the tier's target by the meter after GEN.1694 to GEN.1698"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (low of delivered_water) and not from the Bern law at their formation distance"
+            ],
+            [
+              "The range it moves in",
+              "each share 0 to 1"
+            ],
+            [
+              "Where it holds",
+              "galaxies made under a tier other than Science; rocky planets in the ecosphere, never moons"
+            ],
+            [
+              "What would show it wrong",
+              "the meter (scripts/class_census.py) reading a Class M rate outside a factor of 2 of the tier's target"
+            ],
+            [
+              "What replaces it",
+              "a formation law that gives habitable-zone planets Earth's water at a known rate (the research on water-rich births)"
+            ],
+            [
+              "Evidence",
+              "needed output: no source says how often a habitable-zone planet is as dry as Earth; forcing the class on 35 measured systems raised land-and-sea planets from 2 to 14 (report section 3)"
+            ]
+          ],
+          "id": "AT1",
+          "key": "6.288:AT1",
+          "kind": "P",
+          "slug": "6-288-at1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (low of delivered_water) and not from the Bern law at their formation distance"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the share of habitable-zone rocky planets that captured no hydrogen envelope is not measured (no radius survey reaches Earth-size planets at Earth's flux around Sun-like stars); the maker's choice, calibrated by the meter"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ABUNDANCE_TIER_DIALS bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (Planet(late_core=True), GEN.1323)"
+            ],
+            [
+              "The range it moves in",
+              "each share 0 to 1"
+            ],
+            [
+              "Where it holds",
+              "as AT1"
+            ],
+            [
+              "What would show it wrong",
+              "as AT1"
+            ],
+            [
+              "What replaces it",
+              "an envelope law checked against the observed radius distribution at habitable-zone fluxes (the research on hydrogen envelopes)"
+            ],
+            [
+              "Evidence",
+              "needed output: 34 of 75 right-mass candidates keep an envelope (report section 3); the share that should is not known"
+            ]
+          ],
+          "id": "AT2",
+          "key": "6.288:AT2",
+          "kind": "P",
+          "slug": "6-288-at2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.ABUNDANCE_TIER_DIALS bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (Planet(late_core=True), GEN.1323)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the share of systems given the habitable request is a setting of the galaxy's maker, not a measured quantity"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ABUNDANCE_TIER_DIALS request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by tuning.REQUEST_ODDS (row CC10) and forces nothing"
+            ],
+            [
+              "The range it moves in",
+              "each share 0 to 1"
+            ],
+            [
+              "Where it holds",
+              "galaxies made under Plentiful or Abundant"
+            ],
+            [
+              "What would show it wrong",
+              "as AT1"
+            ],
+            [
+              "What replaces it",
+              "none: the strength of a request is the maker's choice"
+            ],
+            [
+              "Evidence",
+              "needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate"
+            ]
+          ],
+          "id": "AT3",
+          "key": "6.288:AT3",
+          "kind": "P",
+          "slug": "6-288-at3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.ABUNDANCE_TIER_DIALS request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by tuning.REQUEST_ODDS (row CC10) and forces nothing"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the Class M rate of each tier is Boss's choice (card, 11:19 PM EST 2026-11-13); nobody knows how common an Earth is"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
+            ],
+            [
+              "The range it moves in",
+              "each target by a factor of 3 (the choice Boss was given)"
+            ],
+            [
+              "Where it holds",
+              "the calibration only"
+            ],
+            [
+              "What would show it wrong",
+              "none: a setting of the galaxy's maker"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "Boss, card \"Set the target Class M rate of each tier\", 11:19 PM EST 2026-11-13"
+            ]
+          ],
+          "id": "AT4",
+          "key": "6.288:AT4",
+          "kind": "P",
+          "slug": "6-288-at4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
+        }
+      ],
+      "slug": "6-288-stand-ins-of-the-class-m-abundance-tiers-gen-1704",
+      "title": "Stand-ins of the Class M abundance tiers (GEN.1704)"
     }
   ]
 }

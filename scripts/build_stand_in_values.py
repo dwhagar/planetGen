@@ -531,7 +531,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.287", "6.287 Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.288", "6.288 Stand-ins of the Class M abundance tiers",
+    ("6.288", "6.288 Stand-ins of the Class M abundance tiers (GEN.1704)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

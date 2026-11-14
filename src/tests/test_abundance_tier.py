@@ -1,6 +1,6 @@
 # tests/test_abundance_tier.py
 
-"""The Class M abundance tier of a galaxy (docs/design/habitability/class-m-abundance-tiers.md): what a tier's dials are, and that Science moves nothing."""
+"""GEN.1704: the Class M abundance tier of a galaxy (docs/design/habitability/class-m-abundance-tiers.md): what a tier's dials are, and that Science moves nothing."""
 
 from types import SimpleNamespace
 

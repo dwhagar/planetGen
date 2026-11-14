@@ -1,8 +1,8 @@
 # planetgen/generation/abundance_tier.py
 
 """
-The Class M abundance tier of a galaxy (Boss, 11:19 PM EST 2026-11-13; docs/design/habitability/class-m-abundance-tiers.md)
-==============================================================================================================
+The Class M abundance tier of a galaxy (GEN.1704; Boss, 11:19 PM EST 2026-11-13; docs/design/habitability/class-m-abundance-tiers.md)
+========================================================================================================================================
 
 Known science cannot say how common an Earth is: the generator's own laws, with every bug fixed, give under one Class M world in ten
 thousand Sun-like systems (reports/class-m-blue-levers-2026-11-14.md). A galaxy therefore carries a tier, one word, that says how far past

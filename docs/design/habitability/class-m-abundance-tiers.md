@@ -1,6 +1,6 @@
 # Class M abundance tiers
 
-**Status:** being built (Boss approved the design by question cards, 11:17 to 11:19 PM EST 2026-11-13). Dial values are first-pass stand-ins until the census calibration that follows GEN.1694 to GEN.1698.
+**Status:** being built (GEN.1704 the setting, GEN.1705 the meter, GEN.1706 the calibration; Boss approved the design by question cards, 11:17 to 11:19 PM EST 2026-11-13). Dial values are first-pass stand-ins until the census calibration that follows GEN.1694 to GEN.1698.
 
 **Code:** `planetgen/generation/abundance_tier.py` (the tier and its dials), `tuning.ABUNDANCE_TIER_DIALS` (the values), the `class_m` row of `planetgen/galaxy/dials.py` (the control and its storage), `scripts/class_census.py` (the meter).
 
@@ -71,7 +71,7 @@ A system gets it through its config. The sector that makes a system sets `System
 
 These are first-pass values from the estimates of the report (every candidate given Earth's water gives about 1 Class M world per 500 Sun-like systems; 1 per 100 needs the envelopes gone as well; the two top tiers need the request). They are registered as stand-ins of tier T9, tweak level L4 (`docs/design/research/gap-filling-plan.md` section 6.288).
 
-Calibration is by the meter: `scripts/class_census.py` draws a seeded sample of Sun-like systems under a tier and prints the funnel (candidates, right mass, ground, gravity, water cover, liquid water, Class M, Blue) and the rate of Class M and Blue worlds per 1,000 systems with its interval, beside the tier's target. The values are set again after GEN.1694 to GEN.1698 merge, because those fixes change the rate under every tier.
+Calibration is by the meter: `scripts/class_census.py` draws a seeded sample of Sun-like systems under a tier and prints the funnel (candidates, right mass, ground, gravity, water cover, liquid water, Class M, Blue) and the rate of Class M and Blue worlds per 1,000 systems with its interval, beside the tier's target. The values are set again (GEN.1706) after GEN.1694 to GEN.1698 merge, because those fixes change the rate under every tier.
 
 **A target may be out of reach.** The dials only move draws. If every candidate has Earth's water and no envelope and every system carries the request, and the meter still reads under 1 in 10, then Abundant gives what the dials can give and the page says the measured rate. The remedy is a decision for Boss (a wider dial), never a forced world.
 
@@ -79,4 +79,4 @@ Calibration is by the meter: `scripts/class_census.py` draws a seeded sample of 
 
 - The physics fixes of GEN.1694 to GEN.1698 and the weathering and oxygen work: they apply on every tier, Science included.
 - The research on why habitable-zone planets are born water-rich and on hydrogen envelopes. If it shows the law itself is wrong, the law is fixed for Science and the dial values shrink.
-- The habitable request's own conditions (`tuning.REQUEST_*`).
+- The habitable request's own conditions (`tuning.REQUEST_*`): GEN.1702 makes the request ask for land and pressure as well, for every request, tier or not.

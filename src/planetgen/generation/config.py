@@ -254,7 +254,7 @@ class SystemConfig:
 
         self.ABUNDANCE_TIER = None
         """
-        str or None: The Class M abundance tier the system is made under (`generation.abundance_tier.TIERS`: "science",
+        str or None: The Class M abundance tier the system is made under (GEN.1704, `generation.abundance_tier.TIERS`: "science",
         "sparse", "scattered", "plentiful" or "abundant"), which moves the water and envelope draws of rocky planets in
         the ecosphere and the share of systems given the habitable request. None is "science": nothing is moved. A galaxy
         sector sets it from the galaxy's stored choice with `POPULATION`. Not saved with the config.
