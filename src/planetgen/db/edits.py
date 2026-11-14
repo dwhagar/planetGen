@@ -116,12 +116,12 @@ def _delete_missing(conn, table, column, owner_id, kept_ids):
         conn.execute(f"DELETE FROM {table} WHERE {column} = ?", (owner_id,))
 
 
-def _save_belt(conn, system_id, star_id, index, belt):
+def _save_belt(conn, system_id, star_id, index, belt, host_node_id=None):
     lower_km = _au_to_km(belt.lower_limit)
     upper_km = _au_to_km(belt.upper_limit)
     distance_km = _au_to_km(belt.distance)
     if getattr(belt, "db_id", None) is None:
-        belt.db_id = store.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id)
+        belt.db_id = store.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id, host_node_id=host_node_id)
         return
     conn.execute(
         "UPDATE asteroid_belts SET star_id = ?, orbital_index = ?, distance_km = ?, lower_limit_km = ?,"
@@ -202,7 +202,7 @@ def save_system_edits(conn, system_id, system, stars=()):
     for star_id, planets, host_node_id in _star_ids(conn, system_id, system):
         for index, body in enumerate(planets):
             if body.body_type == 'a':
-                _save_belt(conn, system_id, star_id, index, body)
+                _save_belt(conn, system_id, star_id, index, body, host_node_id)
                 kept_belts.append(body.db_id)
                 continue
             if getattr(body, "db_id", None) is None:

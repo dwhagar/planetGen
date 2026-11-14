@@ -3421,7 +3421,8 @@ def _json_loads(text, default):
 BELT_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
     object_rows.computed(("parent_type", "parent_id"),
-                         lambda belt, context: planet_parent(context["star_id"], context["star_system_id"])),
+                         lambda belt, context: planet_parent(context["star_id"], context["star_system_id"], context.get("host_node_id"))),
+    object_rows.Field(("host_node_id",), lambda belt, context: context.get("host_node_id")),    # GEN.332, slice C: the node of a belt round an inner pair node
     object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
     object_rows.attr("density"), object_rows.attr("mass_kg"), object_rows.optional("chondrite_group"),
@@ -3449,7 +3450,7 @@ BELT_FIELDS = (
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
 
-def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None) -> int:
+def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None, host_node_id=None) -> int:
     """
     Inserts an `asteroid_belts` row (plus its `asteroid_belt_composition`
     child rows).
@@ -3469,12 +3470,14 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
             semantics as `planets.star_id` (see that column's own schema
             comment) -- `None` for a single star's or a 'close' binary's
             belt, set for a 'wide' binary's.
+        host_node_id (int, optional): The orbit node a circumbinary belt of an inner pair node goes round (GEN.332,
+            slice C), saved with no `star_id`; `None` for every other belt.
 
     Returns:
         int: The new `asteroid_belts.id`.
     """
     belt_id = object_rows.insert_row(conn, "asteroid_belts", BELT_FIELDS, belt, {
-        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index})
+        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index, "host_node_id": host_node_id})
 
     for position, (component, concentration) in enumerate(belt.composition):
         conn.execute(
@@ -5040,7 +5043,10 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     # The circumbinary planets of an inner pair node (GEN.332, slice A): no star row, the node in `host_node_id`; each node has its own orbital-index space.
     for host, bodies in star_system.node_planet_hosts():
         for orbital_index, obj in enumerate(bodies):
-            insert_planet(conn, obj, star_system_id, None, orbital_index, host_node_id=host.host_node_no)
+            if obj.body_type == "a":
+                insert_asteroid_belt(conn, obj, star_system_id, orbital_index, host_node_id=host.host_node_no)
+            else:
+                insert_planet(conn, obj, star_system_id, None, orbital_index, host_node_id=host.host_node_no)
 
     # Comets have their own list, own table, and no orbital_index -- see
     # insert_comet's own docstring for why they don't share the
@@ -10301,7 +10307,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     else:
         member_star_ids = {member.db_id for member in system.member_stars}
         system.planets = _build_object_list([r for r in planet_rows if r["star_id"] not in member_star_ids and r["host_node_id"] is None],
-                                            [r for r in belt_rows if r["star_id"] not in member_star_ids], star)
+                                            [r for r in belt_rows if r["star_id"] not in member_star_ids and r["host_node_id"] is None], star)
         system.secondary_planets = []
         system.comets = _build_comet_list([r for r in comet_rows if r["star_id"] not in member_star_ids])
         system.secondary_comets = []
@@ -10312,7 +10318,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         for member in system.member_stars]
     system.build_ledger()
     # GEN.332, slice A: the planets of an inner pair node, told from the pair's by `host_node_id`
-    system.node_planets = [_build_object_list([r for r in planet_rows if r["host_node_id"] == host.host_node_no], [], host)
+    system.node_planets = [_build_object_list([r for r in planet_rows if r["host_node_id"] == host.host_node_no],
+                                              [r for r in belt_rows if r["host_node_id"] == host.host_node_no], host)
                            for host in system.node_hosts]
 
     system.system_flavor_text = row["system_flavor_text"]

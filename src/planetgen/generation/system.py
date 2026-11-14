@@ -1554,6 +1554,8 @@ class StarSystem:
         The cold debris disk of a main-sequence star (GEN.1071): the dust of its outer-disk belt, when a survey would find it (`debris_dust`). The star's `disk_kind` is then "debris" and the disk's edges are
         the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
         """
+        if any(star is host for host in self.node_hosts):       # GEN.332 slice C: the belt row at an inner pair node is the disk; the dust note stays the star's own (a star of the pair may hold another disk)
+            return
         holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
         if holder.disk_kind not in (None, debris_dust.DEBRIS_KIND):                  # GEN.1550: a young star's own class 0, I or II disk (`pre_main_sequence.draw_disk`) is not this method's to clear
             return
@@ -1663,8 +1665,8 @@ class StarSystem:
     def _generate_node_planets(self, host):
         """
         The planets of an inner pair node (GEN.332, slice A): the same draw as a member's, round the node's proxy `host` and inside the
-        P-type window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world, and no belts (`asteroid_belts`
-        has no `host_node_id` yet). The draw comes from a stream keyed by the node, its two stars and its orbit, so a system without such a
+        P-type window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world, and with the belts the chain leaves
+        (`_add_belts`, GEN.332 slice C: a circumbinary disk is a belt row hosted at the node, `asteroid_belts.host_node_id`). The draw comes from a stream keyed by the node, its two stars and its orbit, so a system without such a
         node draws exactly what it drew before and one with a node draws the same planets whatever else the system holds.
         """
         node = self.orbit_nodes[host.host_node_no]
@@ -1676,6 +1678,7 @@ class StarSystem:
             bodies = self._generate_planets(host, host.habitable_zone, ceiling_au, apply_guarantees=False)
             self.validate_system(bodies)
             validation.trim_to_orbit_ceiling(bodies, ceiling_au)
+            self._add_belts(bodies, host, ceiling_au, apply_guarantees=False)
             self._apply_star_history(bodies, host)
             if remnant_orbits.widen_for_mass_loss(bodies, host, self._explicit_request()):
                 self.validate_system(bodies)

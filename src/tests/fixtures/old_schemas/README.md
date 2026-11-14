@@ -132,3 +132,4 @@ Commit each file came from:
 - v250: after GEN.558's migration 0250 (rogue_planets.has_moons dropped), before GEN.1267 drop of the nebula shape table and columns (0251)
 - v251: after GEN.1267's migration 0251 (nebula shape dropped), before GEN.1201 shape_temperature_k column (0252)
 - v252: after GEN.1201's migration 0252 (shape_temperature_k column), before OPS.180 chart ledger repair (0253, no schema change)
+- v253: after OPS.180's migration 0253 (chart ledger repair, no schema change), before GEN.332 slice C asteroid_belts.host_node_id column (0254)
