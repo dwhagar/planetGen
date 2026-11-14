@@ -45,8 +45,11 @@ def _bodies(system):
         yield from obj.moons
 
 
-def test_the_systems_include_bodies_the_final_age_made_again(systems):
-    assert sum(systems[1]) >= 3
+def test_the_systems_include_rocky_bodies_to_check_and_none_is_made_again_for_an_age_that_did_not_move(systems):
+    # GEN.1548: a body's air, class and spin are made once, after the orbits settle, so `refinish_rocky` no longer remakes a body of a star whose age is fixed at its making (GEN.1546);
+    # the checks below run over real bodies, and a body made again would be one whose age moved
+    assert sum(1 for system in systems[0] for body in _bodies(system) if body.body_type != "g") >= 30
+    assert sum(systems[1]) == 0 or all(count > 0 for count in systems[1])
 
 
 def test_no_rocky_body_or_moon_keeps_values_from_an_age_more_than_the_tolerance_younger_than_the_stars(systems):
