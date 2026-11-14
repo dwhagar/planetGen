@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4143] - 2026-11-14
+
+**Headline:** The stale composition strings of the planet classes are gone; a class is its letter and its kind.
+
+### Changed
+- **GEN.1619: `tuning.PLANET_CLASSES` no longer carries a `composition` string for each class (they were out of date: class C anthracite, class V iridium and tungsten, class B potassium).** Nothing displayed them and no draw read them; the class pages read the words in `physics/data/planet_classes.json`. The mapping from those strings to material rows (`materials.class_composition`) goes in GEN.1660 (PR 6333), which this change follows. Nothing generated moves.
+
+generation-affects: none
+
 ## [8.0.4142] - 2026-11-14
 
 **Headline:** The values the layered-fixes read found written twice now have one copy each: the fluid Roche limit is 2.456 planet radii everywhere, the standard atmosphere is 101325 Pa, an AM CVn donor's radius follows the zero-temperature degenerate law, and the metal grains of a small body all count as metal.
