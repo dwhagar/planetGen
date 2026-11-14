@@ -167,3 +167,12 @@ def test_event_names_and_addresses_are_not_secrets():
     for line in ("AUTH password.failed ip=198.51.100.77 user=admin", "AUTH token.refreshed ip=203.0.113.9 user=boss",
                  "AUTH password.changed ip=2001:db8::1 user=boss"):
         assert secrets_mask.mask_text(line) == line
+
+
+def test_ordinary_log_text_passes_the_shell_mask_unchanged():
+    """SEC.50: `log_mask` took the bare word `pass` (the population pass) for a password name and replaced the word after it, with and without Python."""
+    lines = ("Skipping the population pass: the math check failed.", "The first pass: nothing to do", "pass=2 of 3 done", "Compass: north is up")
+    for line in lines:
+        assert _shell(f"log_mask '{line}'").stdout == line
+        assert _shell(f"PYTHON=/nonexistent log_mask '{line}'").stdout == line
+    assert leaks(_shell(f"PYTHON=/nonexistent log_mask 'passphrase={PASSWORD} password: {PASSWORD}'").stdout) == []
