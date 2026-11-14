@@ -382,8 +382,6 @@ VOCABULARY_ONLY = {
     "o2_ice": _SPECIES_ROW, "xe_ice": _SPECIES_ROW, "ar_ice": _SPECIES_ROW, "kr_ice": _SPECIES_ROW, "c2h2_ice": _SPECIES_ROW,
     "nh4cl": _SPECIES_ROW, "nh4hco3": _SPECIES_ROW, "nh4sh": _SPECIES_ROW, "ammonium_formate": _SPECIES_ROW, "ammonium_sulfate": _SPECIES_ROW,
     "ammonia_monohydrate": _SPECIES_ROW, "sulfuric_acid_monohydrate": _SPECIES_ROW, "sulfuric_acid_tetrahydrate": _SPECIES_ROW,
-    "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
-    "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
     **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
         "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "alabandite", "daubreelite", "osbornite",
         "sinoite", "khamrabaevite")},
