@@ -36,6 +36,7 @@ import multiprocessing
 
 from planetgen import tuning
 from planetgen.db.fingerprint_tree import CLOCK_KEYS
+from planetgen.generation import battery_progress
 from planetgen.util import draw
 from planetgen.util import fingerprint_encoding as encoding
 from planetgen.util import log
@@ -302,28 +303,46 @@ def kept_battery_digest(progress=None):
     return battery_digest_cache.digest(functools.partial(generator_battery_digest, progress), BatteryDigest, CaseDigest)
 
 
+DIGEST_POLL_SECONDS = 2.0
+"""float: How often the wait for the digest process reads what it has done (OPS.184)."""
+
+
+def _digest_in_process():
+    """What the digest process runs: `kept_battery_digest`, counting its cases (`battery_progress`)."""
+    return kept_battery_digest(battery_progress.case)
+
+
 def start_running_digest():
     """
     Starts working out `running_digest()` in a process of its own (PERF.176), for a caller that will need it later and
     has other work to do meanwhile: the battery uses no database and nothing of this process, so the digest is the
-    one this process would make, five seconds that would otherwise be waited for on a free core.
+    one this process would make, five seconds that would otherwise be waited for on a free core (minutes on a code key
+    whose sampling tables are not kept yet).
 
     Returns:
-        callable: `finish()`, which waits for the process and keeps its digest as this process's `running_digest()`. If
-            the process could not be started or died, `running_digest()` works the digest out here when it is asked for.
+        callable: `finish(on_progress=None)`, which waits for the process and keeps its digest as this process's
+            `running_digest()`. While it waits it calls `on_progress(cases done, cases in all, tables built)` every
+            `DIGEST_POLL_SECONDS` and once more at the end (OPS.184), so the caller can show real counts. If the
+            process could not be started or died, `running_digest()` works the digest out here when it is asked for.
     """
     if _running is not None:
-        return lambda: None
+        return lambda on_progress=None: None
     try:
-        pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
-        future = pool.submit(kept_battery_digest)
+        context = multiprocessing.get_context("spawn")
+        shared = battery_progress.create(context)
+        pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=context, initializer=battery_progress.adopt, initargs=(shared,))
+        future = pool.submit(_digest_in_process)
     except Exception as exc:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
         log.swallowed("generation/generator_battery", "start_running_digest", exc)
-        return lambda: None
+        return lambda on_progress=None: None
 
-    def finish():
+    def finish(on_progress=None):
         global _running
         try:
+            while not future.done():
+                concurrent.futures.wait([future], timeout=DIGEST_POLL_SECONDS)
+                if on_progress:
+                    on_progress(*battery_progress.read(shared))
             _running = future.result()
         except Exception as exc:  # noqa: BLE001 -- the digest is then worked out where it is asked for
             log.swallowed("generation/generator_battery", "start_running_digest.finish", exc)

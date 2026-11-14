@@ -30,7 +30,7 @@ import tempfile
 import time
 
 from planetgen import tuning
-from planetgen.generation import battery_digest_cache
+from planetgen.generation import battery_digest_cache, battery_progress
 
 ENV = "PLANETGEN_BAND_TABLE_CACHE"
 """str: The environment variable that names the folder the tables are kept in (the test suite sets it); set but empty, the tables are not kept. Unset, the folder is `DEFAULT_ROOT` where it exists."""
@@ -96,6 +96,7 @@ def kept(kind, arguments, compute, encode, decode):
     except (OSError, ValueError, KeyError, TypeError):
         pass
     table = compute()
+    battery_progress.table_built()      # OPS.184: the digest process counts the tables it works out
     try:
         descriptor, temporary = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:

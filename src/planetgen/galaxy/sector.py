@@ -961,10 +961,11 @@ class SpaceSector:
         for attempt in range(1, program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS + 1):
             candidate = self._sample_point()
             if self._neighbor_cache.clear_of(self, candidate, min_separation_ly, hill_new):
-                log.debug(f"Sector {self.name!r}: random position {_fmt_position(candidate)} accepted on attempt "
-                          f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in the "
-                          f"{self.edge_ly} ly {'cell' if self.cell is not None else 'cube'}, clear of every massive neighbor's "
-                          f"{'flat ' + str(min_separation_ly) + ' ly' if min_separation_ly is not None else 'Hill sphere'})")
+                if log.debug_log_active():
+                    log.debug(f"Sector {self.name!r}: random position {_fmt_position(candidate)} accepted on attempt "
+                              f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in the "
+                              f"{self.edge_ly} ly {'cell' if self.cell is not None else 'cube'}, clear of every massive neighbor's "
+                              f"{'flat ' + str(min_separation_ly) + ' ly' if min_separation_ly is not None else 'Hill sphere'}).")
                 return candidate
 
         raise ValueError(
@@ -1022,8 +1023,9 @@ class SpaceSector:
         self.entries.append(entry)
         if self.cloud_containers:
             cloudContext.apply_in_sector(self, star_system, position)
-        log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
-                  f"{_fmt_position(position)} (system {len(self.entries)} in this sector)")
+        if log.debug_log_active():
+            log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
+                      f"{_fmt_position(position)} (system {len(self.entries)} in this sector).")
         return entry
 
     def add_preplaced_system(self, star_system, position, system_config=None):
@@ -1057,9 +1059,10 @@ class SpaceSector:
         if not self.contains(position):
             raise ValueError(f"Sector {self.name!r}: pre-placed position {_fmt_position(position)} is outside the sector")
         for neighbor_position, required in self._neighbor_cache.overlapping(self, position, hill_radius_ly(star_system)):
-            log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
-                      f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
-                      f"{_fmt_position(neighbor_position)}; kept at its stored position")
+            if log.debug_log_active():
+                log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
+                          f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
+                          f"{_fmt_position(neighbor_position)}; kept at its stored position.")
         entry = self.add_system(star_system, position=position, system_config=system_config)
         entry.preplaced = True
         return entry
@@ -1162,8 +1165,9 @@ class SpaceSector:
         entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position, sector_center_ly=self.center_galactic_ly,
                                       sector_edge_pc=self.sector_edge_pc, epoch_unix=self.epoch_unix)
         self.phenomena.append(entry)
-        log.debug(f"Sector {self.name!r}: placed {phenomenon_type} {getattr(phenomenon, 'name', '?')!r} at "
-                  f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'})")
+        if log.debug_log_active():
+            log.debug(f"Sector {self.name!r}: placed {phenomenon_type} {getattr(phenomenon, 'name', '?')!r} at "
+                      f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'}).")
         return entry
 
     def _fine_tune_position(self, position, candidate_system,
@@ -1269,8 +1273,9 @@ class SpaceSector:
         if target_count is None:
             expected = self.expected_system_count()
             target_count = _sample_poisson_count(expected)
-            log.debug(f"Sector {self.name!r}: growth target {target_count} systems (Poisson draw around an "
-                      f"expected {expected:.3f})")
+            if log.debug_log_active():
+                log.debug(f"Sector {self.name!r}: growth target {target_count} systems (Poisson draw around an "
+                          f"expected {expected:.3f}).")
 
         half_edge = self.edge_ly / 2
         active_list = [seed]
@@ -1289,13 +1294,15 @@ class SpaceSector:
 
                 position = self._fine_tune_position(position, candidate_system)
                 if position is None:
-                    log.debug(f"Sector {self.name!r}: candidate near {_system_name(parent.star_system)!r} "
-                              f"rejected (no Hill-sphere-clear spot within "
-                              f"{program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS} nudges)")
+                    if log.debug_log_active():
+                        log.debug(f"Sector {self.name!r}: candidate near {_system_name(parent.star_system)!r} "
+                                  f"rejected (no Hill-sphere-clear spot within "
+                                  f"{program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS} nudges).")
                     continue
                 if not self.contains(position):
-                    log.debug(f"Sector {self.name!r}: candidate at {_fmt_position(position)} rejected (outside "
-                              f"the sector's +/-{half_edge} ly bounds)")
+                    if log.debug_log_active():
+                        log.debug(f"Sector {self.name!r}: candidate at {_fmt_position(position)} rejected (outside "
+                                  f"the sector's +/-{half_edge} ly bounds).")
                     continue
 
                 entry = self.add_system(candidate_system, position=position)
@@ -1306,8 +1313,9 @@ class SpaceSector:
 
             if not placed:
                 active_list.remove(parent)
-                log.debug(f"Sector {self.name!r}: retiring {_system_name(parent.star_system)!r} as a growth "
-                          f"parent ({k} candidates in a row failed); {len(active_list)} parents left")
+                if log.debug_log_active():
+                    log.debug(f"Sector {self.name!r}: retiring {_system_name(parent.star_system)!r} as a growth "
+                              f"parent ({k} candidates in a row failed); {len(active_list)} parents left.")
 
         return new_entries
 

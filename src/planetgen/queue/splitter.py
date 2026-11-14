@@ -21,6 +21,7 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.queue import breakpoints, splitprofile
+from planetgen.util import log
 
 TARGET_SHARE = 0.2
 """float: The share of `queue.unit_ceiling_seconds` a unit is aimed at (300 s ceiling, 60 s unit)."""
@@ -92,7 +93,8 @@ def resources_now(kind=None):
         host = memorygate.read_host()
         cap = workers.stage_worker_cap(kind) if kind else None
         return Resources(host.available_mb, host.cores, max(1, min(cap or host.cores, host.cores)))
-    except Exception:  # noqa: BLE001 -- learning never blocks a job; the typed figures stand
+    except Exception as exc:  # noqa: BLE001 -- learning never blocks a job; the typed figures stand
+        log.swallowed("queue/splitter", "resources_now", exc)
         return Resources(0.0, 1, 1)
 
 
@@ -187,7 +189,8 @@ def decide(kind, decl, resources=None):
     """
     try:
         reading = splitprofile.lookup(kind)
-    except Exception:  # noqa: BLE001 -- learning never blocks a job
+    except Exception as exc:  # noqa: BLE001 -- learning never blocks a job
+        log.swallowed("queue/splitter", "decide", exc)
         reading = None
     if not decl.dynamic:
         return choose(kind, decl, reading)

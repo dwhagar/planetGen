@@ -114,7 +114,7 @@ HAZE_PASSES = 12
 """int: The most times `store_air` works the haze of the air and the temperature against each other (GEN.1589), as the air solver does at its first answer; the last answer stands when they do not settle."""
 
 HAZE_TOLERANCE_K = 0.01
-"""float: The temperature change under which `store_air` stops working the haze and the temperature against each other."""
+"""float: The temperature change under which `store_air` stops working the haze and the temperature against each other. A stand-in numerical tolerance."""
 
 APPLY_RISE = 1.01
 """float: The air takes new oxygen only when the target is this much above what it holds, so that applying the model again changes nothing."""

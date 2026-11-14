@@ -11,6 +11,8 @@ A test (or a lane before the rows exist) puts readings in `STUB`, which wins ove
 
 from dataclasses import dataclass
 
+from planetgen.util import log
+
 MIN_SAMPLES = 3
 """int: The fewest samples a reading stands on before the engine trusts it (the design note's fallback chain: a profile with at least 3 samples on this machine shape)."""
 
@@ -88,5 +90,6 @@ def lookup(kind):
             return None
         host = memorygate.read_host()
         return from_rows(jobprofiles.unit_rows("unit:" + kind), host.total_mb, host.cores, generator_epoch.generator_epoch())
-    except Exception:  # noqa: BLE001 -- learning never blocks a job; the suggested split stands
+    except Exception as exc:  # noqa: BLE001 -- learning never blocks a job; the suggested split stands
+        log.swallowed("queue/splitprofile", "lookup", exc)
         return None

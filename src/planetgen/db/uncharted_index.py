@@ -165,7 +165,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
             on_progress(done, len(shells))
         ticker.tick(done, f"{made:,} rows made")
     say(f"Made {made:,} uncharted sector rows in {len(shells):,} shells." if made else "Every cell that holds a waiting object already has its sector row.")
-    log.debug(f"uncharted_index: {made} rows")
+    log.debug(f"The uncharted index was made with {made:,} rows.")
     return made
 
 
