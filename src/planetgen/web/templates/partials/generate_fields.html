@@ -4,10 +4,10 @@
     field (UX.125, partials/ui_fields.html: a Shoelace element with a plain twin in a <noscript>); the sliders, whose
     box is a native number input that limitsliders.js drives, and the radio choices stay native. -#}
 {% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
-{%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None) -%}
+{%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None, auto=None) -%}
 {%- set shown = form.get(name, value) if form else value -%}
 {%- if kind == "number" -%}
-{{ ui_input(name, label, shown, type="number", required=required, hint=hint, step=step, inputmode="decimal", min=min, max=max, placeholder=placeholder) }}
+{{ ui_input(name, label, shown, type="number", required=required, hint=hint, step=step, inputmode="decimal", min=min, max=max, placeholder=placeholder, **({"data-auto": auto} if auto is not none else {})) }}
 {%- else -%}
 {{ ui_input(name, label, shown, type=kind, required=required, hint=hint, min=min, max=max, placeholder=placeholder, autocomplete="off", autocapitalize="off", spellcheck="false") }}
 {%- endif -%}
@@ -18,7 +18,7 @@
 {%- macro limit_slider(id, spec, hint, follows=none, value=none) -%}
 {%- set posted = form.get(spec.name) if form else none -%}
 {%- set shown = posted if posted else (value if value is not none else spec.default) -%}
-<div class="search-field generate-slider limit-slider" data-limit-slider data-scale="{{ spec.scale }}"
+<div class="search-field generate-slider limit-slider" data-limit-slider data-auto="{{ '{:.10g}'.format((spec.default if spec.default is not none else shown)|float) }}" data-scale="{{ spec.scale }}"
   data-stops="{{ spec.stops_json }}" data-default="{{ '{:.10g}'.format(shown|float) }}"
   {%- if spec.snap %} data-snap{% endif %}
   {%- if follows %} data-follows="{{ follows[0] }}" data-follow-factor="{{ follows[1] }}"{% endif %}>
@@ -194,7 +194,7 @@
   gives with no changes; type a higher or lower share to change it, 0 for none.</p>
   <div class="search-fields">
     {%- for name, label, usual in prevalence_fields %}
-    {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%" ~ (". A higher share raises the odds and never forces one; the most it gives is " ~ prevalence_limits[name] ~ "%." if prevalence_limits is defined and name in prevalence_limits else "")) }}
+    {{ field(name, label, value=usual, min=0, max=100, auto=usual, hint="Usual: " ~ usual ~ "%" ~ (". A higher share raises the odds and never forces one; the most it gives is " ~ prevalence_limits[name] ~ "%." if prevalence_limits is defined and name in prevalence_limits else "")) }}
     {%- endfor %}
   </div>
   <fieldset class="generate-mode" data-star-mix>
@@ -203,13 +203,13 @@
     raise one when you lower another.</p>
     <div class="search-fields">
       {%- for name, label, usual in star_mix_fields %}
-      {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
+      {{ field(name, label, value=usual, min=0, max=100, auto=usual, hint="Usual: " ~ usual ~ "%") }}
       {%- endfor %}
     </div>
     <p class="hint" data-star-mix-total role="status" aria-live="polite"></p>
   </fieldset>
   <div class="search-fields">
-    {{ field("max_stars", max_stars_label, value=max_stars_default, step=1, min=1, max=max_stars_ceiling, hint="Default: " ~ max_stars_default ~ ", at most " ~ max_stars_ceiling ~ ". The cap on a rare system's star count.") }}
+    {{ field("max_stars", max_stars_label, value=max_stars_default, auto=max_stars_default, step=1, min=1, max=max_stars_ceiling, hint="Default: " ~ max_stars_default ~ ", at most " ~ max_stars_ceiling ~ ". The cap on a rare system's star count.") }}
   </div>
 </fieldset>
 {%- endmacro -%}

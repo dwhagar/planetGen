@@ -7205,3 +7205,55 @@ a.help-mark {
 .lever-slider-head .ui-field:not(.ui-field-check) {
   flex: 1 1 auto;
 }
+
+/* fielddefaults.js: the New galaxy page's other fields, as title, ? button, then the Default tick box beside the box. */
+.default-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.default-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.default-row > sl-input,
+.default-row > sl-select,
+.default-row > .range-value {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.default-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.default-field .limit-slider-row .range-value {
+  width: auto;
+}
+
+.default-field sl-input::part(form-control-label),
+.default-field sl-select::part(form-control-label) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.default-field > .field-hint {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.generate-section > summary {
+  font-weight: 600;
+}

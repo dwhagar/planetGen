@@ -2220,3 +2220,17 @@ def test_every_number_and_length_row_is_a_slider_with_a_tick_box_and_a_sticky_au
     assert "/static/leversliders.js" in html
     # The sliders add nothing to the plan: the tick boxes are not levers, and a blank box is Auto.
     assert generate_page.plan_argv({"mass_default": "1", "mass": ""}) == []
+
+
+def test_the_new_galaxy_page_gives_every_property_the_default_toggle_and_collapsible_sections(site, client):
+    """Boss, 2026-11-13: the galaxy shape and the first neighborhood are collapsible and open to start with, and the script
+    that adds each property's Default tick box and ? help runs over them and the advanced star properties."""
+    html = _task_html(client, "new-galaxy")
+    assert "data-default-toggles" in html and "/static/fielddefaults.js" in html
+    assert re.search(r'<details class="generate-advanced generate-section" open>\s*<summary>Galaxy shape</summary>', html)
+    assert re.search(r'<details class="generate-advanced generate-section" open>\s*<summary>First neighborhood</summary>', html)
+    assert html.index("data-default-toggles") < html.index("<summary>Galaxy shape</summary>") < html.index("Advanced: bright stars")
+    # A field that starts with its usual value says what Default is, so the toggle can put it back.
+    assert re.search(r'name="prevalence_moons"[^>]*data-auto="', html) and re.search(r'name="max_stars"[^>]*data-auto="', html)
+    assert 'data-limit-slider data-auto=' in html
+    assert "data-default-toggles" in _task_html(client, "plan-only")
