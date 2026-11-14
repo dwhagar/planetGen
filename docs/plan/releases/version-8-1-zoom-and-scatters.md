@@ -565,6 +565,44 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.212 | Job engine stage 2: supervisor simulator under fake clock and store with kill faults; invariants: a finished stage advances exactly once, a run ends or says why, nothing queued twice | none | Lane 06, 2026-11-13. |
 | OPS.213 | Job engine stage 2: kill tests with real Redis and MySQL on the small galaxy (kill starter, supervisor, last unit in conclusion); galaxy must match an undisturbed run | none | Lane 06, 2026-11-13. |
 | OPS.214 | Job engine stage 2: supervisor on the Queue page (alive since, last turn, recent actions with reasons in words) | none | Lane 06, 2026-11-13. |
+| OPS.215 | Job engine stage 3: ledger tables engine_runs, engine_jobs, engine_attempts (control database) and engine_items (galaxy database), written through a queue so the supervisor never waits on MySQL; absorbs OPS.122 with OPS.216 | none | Lane 22, 2026-11-14. |
+| OPS.216 | Job engine stage 3: the plan is rows (the cut inserts its unit jobs and marks itself done in one transaction; the Redis plan string is no longer the truth) | none | Lane 06, 2026-11-14. |
+| OPS.217 | Job engine stage 3: the fenced done mark (attempt number raised at hand-out; ctx.commit updates WHERE attempt = mine; Redis done set and advanced flag stop being the truth); closes OPS.190 | none | Lane 06, 2026-11-14. |
+| OPS.218 | Job engine stage 3: open, conclude and finish become jobs with edges; units._end_stage and the prepare, conclude and finish hooks deleted; absorbs OPS.123 and the hook part of OPS.129; split per hook kind | none | Lane 06, 2026-11-14. |
+| OPS.219 | Job engine stage 3: checkpoints (ctx.commit stores the last finished piece's cursor; a retry or resume starts after it) | none | Lane 13, 2026-11-14. |
+| OPS.220 | Job engine stage 3: failure by kind (passing, killed, idle, lasting); passing failures retried with doubling waits 2 s to 5 min inside a run budget; Retry(max=1), hand-written deadlock retries and unit_failed ending the run deleted | none | Lane 05, 2026-11-14. |
+| OPS.221 | Job engine stage 3: held items and held runs (a lasting failure holds the item, the rest goes on; Retry held and Cancel on the Queue page, CLI and API) | none | Lane 22, 2026-11-14. |
+| OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | Lane 22, 2026-11-14. |
+| OPS.223 | Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146 | none | Lane 05, 2026-11-14. |
+| OPS.224 | Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits) | none | Lane 12, 2026-11-14. |
+| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | Lane 06, 2026-11-14. |
+| OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | Lane 22, 2026-11-14. |
+| OPS.227 | Job engine stage 4: the dispatch rule over the whole backlog (site lanes first against kept places, then scheduler.judge; reservations last until used; each job's last reason stored); absorbs OPS.124 with OPS.231 and OPS.232 | none | Lane 05, 2026-11-14. |
+| OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | Lane 22, 2026-11-14. |
+| OPS.229 | Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189 | none | Lane 22, 2026-11-14. |
+| OPS.230 | Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted) | none | Lane 22, 2026-11-14. |
+| OPS.231 | Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot | none | Lane 22, 2026-11-14. |
+| OPS.232 | Job engine stage 4: named resources (tokens mysql_write, alone, one per warm set; pause.hold_solo stops being a special case) | none | Lane 05, 2026-11-14. |
+| OPS.233 | Job engine stage 4: Queue page for the new engine (why each job waits, oldest job age per class, ready-to-start time, last controller action); replaces OPS.150 | none | Lane 12, 2026-11-14. |
+| OPS.234 | Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor | none | Lane 06, 2026-11-14. |
+| OPS.235 | Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot | none | Lane 22, 2026-11-14. |
+| OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | Lane 06, 2026-11-14. |
+| OPS.237 | Job engine stage 4: warm star tables stored as packed arrays so a forked job does not copy them (stage 0: 120 MB copied after 416 stars, 464 MB after 8,336); every drawn star identical (golden), dropped if it cannot be | none | Lane 14, 2026-11-14. |
+| OPS.238 | Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths | none | Lane 13, 2026-11-14. |
+| OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | Lane 13, 2026-11-14. |
+| OPS.240 | Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126 | none | Lane 13, 2026-11-14. |
+| OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | Lane 23, 2026-11-14. |
+| OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | Lane 23, 2026-11-14. |
+| OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | Lane 22, 2026-11-14. |
+| OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | Lane 12, 2026-11-14. |
+| OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | Lane 06, 2026-11-14. |
+| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | Lane 06, 2026-11-14. |
+| OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | Lane 04, 2026-11-14. |
+| OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | Lane 05, 2026-11-14. |
+| OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | Lane 22, 2026-11-14. |
+| OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | Lane 22, 2026-11-14. |
+| OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | Lane 05, 2026-11-14. |
+| OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | Lane 12, 2026-11-14. |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | Lane 06, 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
