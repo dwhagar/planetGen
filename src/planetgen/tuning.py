@@ -155,16 +155,16 @@ OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
-# The viscous-disk snow line the water of a rocky body is read against (GEN.1678, `formation_snow_line.viscous_snow_line_au`): Mulders, Ciesla, Min and Pascucci 2015 ([R3193]) Eq. 2
+# The viscous-disk snow line the water of a rocky body is read against (GEN.1678, `formation_snow_line.viscous_snow_line_au`): [R3193: Eq. 2]
 # with the accretion rate of Eq. 4, Mdot = 3e-8 (M / Msun)^1.81 (t / Myr)^-1.5 Msun/yr (the exponents and the 3e-8 are read; Eq. 4 holds for times well past the viscous time),
 # the age they set the line at (1 Myr, section 2.5), the gas-to-dust ratio 66 (section 2.3), alpha 0.01 (section 2.5) and the ice sublimation temperature 160 K (section 2).
-VISCOUS_DISK_AGE_MYR = 1.0
-VISCOUS_DISK_MDOT_PREFACTOR_SOL_YR = 3.0e-8
-VISCOUS_DISK_MDOT_MASS_EXPONENT = 1.81
-VISCOUS_DISK_MDOT_TIME_EXPONENT = -1.5
-VISCOUS_DISK_GAS_TO_DUST = 66.0
-VISCOUS_DISK_ALPHA = 0.01
-VISCOUS_DISK_ICE_K = 160.0
+VISCOUS_DISK_AGE_MYR = 1.0  # [R3193], read
+VISCOUS_DISK_MDOT_PREFACTOR_SOL_YR = 3.0e-8  # [R3193], read
+VISCOUS_DISK_MDOT_MASS_EXPONENT = 1.81  # [R3193], read
+VISCOUS_DISK_MDOT_TIME_EXPONENT = -1.5  # [R3193], read
+VISCOUS_DISK_GAS_TO_DUST = 66.0  # [R3193], read
+VISCOUS_DISK_ALPHA = 0.01  # [R3193], read
+VISCOUS_DISK_ICE_K = 160.0  # [R3193], read
 # The Rosseland opacity of the disk's dust, cm2/g: the paper gives 570 for small (interstellar) grains and 20 for large ones (section 2.3) and the grain size of a disk is not known; this is
 # the geometric mean of the two, the center of their range (sqrt(570 x 20) = 107): a Sun-like star's line is 2.4 au (3.5 au with small grains, 1.6 with large). A planetGen stand-in
 # (tier T6, tweak L1: inside the range of the source).
@@ -2252,113 +2252,88 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 
 # --- Planet Classification Data ---
 
-# The composition text of each class, and its kind ('t' for terrestrial, 'g' for gas giant). The words that describe a class are
-# in `physics/data/planet_classes.json` (the phrase of each row) (GEN.1212). A class is derived from a finished body's
+# The letters of the classes, each with its kind ('t' for terrestrial, 'g' for gas giant). The words that describe a class are
+# in `physics/data/planet_classes.json` (the phrase of each row) (GEN.1212); GEN.1619 retired the composition strings that were here. A class is derived from a finished body's
 # conditions (`physics/planet_classes.py`, `physics/data/planet_classes.json`); nothing here says what a body of the class
 # looks like for generation: no radius, zone, density, albedo or probability.
 PLANET_CLASSES = {
     'A': {
-        "composition": 'igneous silica and basalt',
         "type": 't',
     },
     'B': {
-        "composition": 'iron, potassium, silicon, and sulfur',
         "type": 't',
     },
     'C': {
-        "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
     # GEN.1160: Class D is a rule over the finished body's conditions (`physics/data/planet_classes.json`): no air, round (a roundness ratio of 1 or more) and under 0.1 Earth masses.
     # Rock or ice, a dwarf planet or a moon; a body under a roundness ratio of 1 is an Asteroid and has no letter. At 0.1 Earth masses and over, an airless body is Class C.
     'D': {
-        "composition": 'rock, ice, and frozen hydrocarbons',
         "type": 't',
     },
     'E': {
-        "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'F': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'G': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'H': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'I': {
-        "composition": 'rock, ice, methane, and ammonia',
         "type": 'g',
     },
     'J': {
-        "composition": 'hydrogen and helium',
         "type": 'g',
     },
     'K': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'L': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'M': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'N': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'O': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'P': {
-        "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     # GEN.1207: the letters of the best-fit classes (GEN.1221, GEN.1258): R hothouse, U methane-ethane, X ammonia-water, Y sulfuric acid, Z hot thin-air.
     'R': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'S': {
-        "composition": 'silicate rock over a large iron core',
         "type": 't',
     },
     'T': {
-        "composition": 'hydrogen, helium, and hydrocarbons',
         "type": 'g',
         "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
     'U': {
-        "composition": 'silicon, iron, magnesium, ice, and hydrocarbons',
         "type": 't',
     },
     'V': {
-        "composition": 'iron, iridium, tungsten, and nickel',
         "type": 't',
     },
     'W': {
-        "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'X': {
-        "composition": 'silicon, iron, magnesium, water ice, and ammonia',
         "type": 't',
     },
     'Y': {
-        "composition": 'silicon, iron, magnesium, and sulfur',
         "type": 't',
     },
     'Z': {
-        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
 }
