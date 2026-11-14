@@ -19,7 +19,7 @@ def documentation():
 
 @pytest.mark.parametrize("kind", sorted(commands.REGISTRY))
 def test_a_command_is_a_registered_kind_with_json_arguments_and_a_result(kind):
-    """One path: a unit that takes `(params, report)` and an expansion that takes `(params)`, both found by name."""
+    """One path: a unit that takes `(params, report)` (or, OPS.191, the pieces and the piece that the engine's loop runs) and an expansion that takes `(params)`, both found by name."""
     spec = commands.spec(kind)
     assert spec.kind == kind and spec.summary.strip(), "a command has a name and says what it does"
     assert not spec.inline, f"{kind} is inline: give it a unit and an expand (PERF.120 leaves no second way)"
