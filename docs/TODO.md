@@ -13291,6 +13291,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 11. Prerequisites: none. Related: GEN.1716.
   Filed by the TODO thread.
 
+- [ ] **GEN.1718 (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes**
+  Lane 15, 4:19 PM EST on 2026-11-14, from GEN.1716 part C (reports/gen1716-start-dependence-measure-2026-11-14.md): a bracketed temperature root find fixed 1 to 2 of 7 and made slow bodies worse; the pressure drifts 0.32 to 0.46 bar over 40 steps, and at the carbon switch the answer moves 100 K over 0.5 K of iterate, finer than the greenhouse solver's 0.1 K noise. Do: a two-variable root find (Broyden or Newton in ln P and T) for the solve loop, with the greenhouse solve made smooth enough to support it; every stored air settles or is a named branch. Measure the census shift. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: GEN.1716 part B. Related: GEN.1716, GEN.1715.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
