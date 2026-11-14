@@ -570,11 +570,12 @@ def _member_hosts(system):
 def star_lists(system):
     """`(star, planets)` for each star that holds its own planet list:
     the system's star (a single star, or a close pair's merged proxy),
-    then a wide pair's secondary, then each further star of the tree (GEN.332)."""
+    then a wide pair's secondary, then each further star of the tree (GEN.332), then the proxy of each inner pair node of the tree with its planets."""
     lists = [(system.star, system.planets)]
     if getattr(system, "binary_type", None) == "wide":
         lists.append((system.secondary_star, system.secondary_planets))
     lists.extend(_member_hosts(system))
+    lists.extend(system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else [])
     return lists
 
 
