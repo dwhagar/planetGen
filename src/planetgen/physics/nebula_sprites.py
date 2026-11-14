@@ -43,7 +43,10 @@ from planetgen.physics import constants, light_travel
 PC_PER_LY = constants.LY_TO_M / constants.PARSEC_M
 """float: Parsecs in a light year."""
 
-ARCSEC2_PER_SR = (180.0 * 3600.0 / math.pi) ** 2
+ARCSEC_PER_RAD = 180.0 * 3600.0 / math.pi
+"""float: Arcseconds in a radian."""
+
+ARCSEC2_PER_SR = ARCSEC_PER_RAD ** 2
 """float: Square arcseconds in a steradian."""
 
 EM_PER_RAYLEIGH = 2.75
@@ -82,6 +85,9 @@ REFLECTION_CENTRAL_ABSOLUTE_V = -3.0
 NAKED_EYE_LIMIT_MAG_ARCSEC2 = 23.0
 """float: A sprite is visible when its mean surface brightness is under this (sky-view.md 2.10; a dark site's sky is 21.8)."""
 
+_HALPHA_PHOTON_ERG = constants.PLANCK_CONSTANT * constants.SPEED_OF_LIGHT_M_S / (HALPHA_WAVELENGTH_A * 1.0e-10) * 1.0e7
+"""float: The energy of one hydrogen-alpha photon, erg (`h c / lambda`), built once for `rayleigh_to_v_mag`."""
+
 EMISSION_FAMILIES = ("emission", "planetary")
 """tuple: The nebula families whose light is the hydrogen-alpha of an ionized gas."""
 
@@ -119,8 +125,7 @@ def emission_measure_cm6_pc(density_cm3, radius_ly):
 
 def rayleigh_to_v_mag(rayleigh):
     """The V magnitude per square arcsecond of a hydrogen-alpha line of `rayleigh` Rayleighs, through the V filter (`HALPHA_V_TRANSMISSION`); 1 R is about 30.4."""
-    photon_erg = 2.0 * math.pi * constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S / (HALPHA_WAVELENGTH_A * 1.0e-10) * 1.0e7
-    line = np.asarray(rayleigh, dtype=float) * RAYLEIGH_PHOTONS_CM2_S_SR * photon_erg / ARCSEC2_PER_SR      # erg / cm2 / s / arcsec2
+    line = np.asarray(rayleigh, dtype=float) * RAYLEIGH_PHOTONS_CM2_S_SR * _HALPHA_PHOTON_ERG / ARCSEC2_PER_SR      # erg / cm2 / s / arcsec2
     reference = V_ZERO_FLUX_ERG_CM2_S_A * V_EFFECTIVE_WIDTH_A
     with np.errstate(divide="ignore"):
         return -2.5 * np.log10(line * HALPHA_V_TRANSMISSION / reference)
@@ -165,7 +170,7 @@ def surface_brightness(family, density_cm3, radius_ly, extinction_av):
 
 def total_magnitude(surface_brightness_mag, angular_radius_rad_):
     """The integrated V magnitude of a disk of mean surface brightness `surface_brightness_mag` and angular radius `angular_radius_rad_`: `S - 2.5 log10(pi theta^2)` with theta in arcseconds."""
-    theta_arcsec = np.asarray(angular_radius_rad_, dtype=float) * (180.0 * 3600.0 / math.pi)
+    theta_arcsec = np.asarray(angular_radius_rad_, dtype=float) * ARCSEC_PER_RAD
     with np.errstate(divide="ignore"):
         return np.asarray(surface_brightness_mag, dtype=float) - 2.5 * np.log10(math.pi * theta_arcsec * theta_arcsec)
 

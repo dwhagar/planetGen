@@ -518,6 +518,15 @@ class SettingsFile(_Section):
 
 
 _HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def _absolute_http(value, example):
+    """Checks that `value` is an absolute http or https address with no query, fragment or password (the site's and the API's
+    addresses); the message names `example`."""
+    parts = urlsplit(value)
+    if parts.scheme not in ("http", "https") or not parts.netloc or parts.query or parts.fragment \
+            or parts.username or parts.password:
+        raise ValueError(f"must be {example} (no query, fragment or password)")
 _ASSET_NAME = re.compile(r"^([0-9a-f]{16}\.(png|ico|jpg|svg))?$")
 _TWITTER_HANDLE = re.compile(r"^(@[A-Za-z0-9_]{1,15})?$")
 _LANGUAGE = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
@@ -823,11 +832,7 @@ class Settings(_Section):
     @field_validator("base_url")
     @classmethod
     def _base_url(cls, value):
-        parts = urlsplit(value)
-        if parts.scheme not in ("http", "https") or not parts.netloc or parts.query or parts.fragment \
-                or parts.username or parts.password:
-            raise ValueError("must be an absolute http or https address such as https://example.org/ (no query, "
-                             "fragment or password)")
+        _absolute_http(value, "an absolute http or https address such as https://example.org/")
         return value if value.endswith("/") else value + "/"
 
     api_base_url: str = opt("", "Base URL of the Flask API's /api mount point (for example https://example.org/api). "
@@ -843,11 +848,7 @@ class Settings(_Section):
     def _api_base_url(cls, value):
         if not value:
             return value
-        parts = urlsplit(value)
-        if parts.scheme not in ("http", "https") or not parts.netloc or parts.query or parts.fragment \
-                or parts.username or parts.password:
-            raise ValueError("must be empty or an absolute http or https address such as https://example.org/api "
-                             "(no query, fragment or password)")
+        _absolute_http(value, "empty or an absolute http or https address such as https://example.org/api")
         return value.rstrip("/")
     debug: bool = opt(False, "Debug mode: every decision the generator makes, every "
                       "random roll, every SQL statement, queue event, and request, written to the console of each "
@@ -1059,7 +1060,8 @@ def _merge(base, overrides):
             base[key] = copy.deepcopy(value)  # never share a layer's nested dict with the merge
 
 
-def _set_path(data, path, value):
+def set_path(data, path, value):
+    """Sets the dotted `path` of the settings tree `data` to `value`, replacing anything on the way that is not a dict with one."""
     parts = path.split(".")
     for part in parts[:-1]:
         if not isinstance(data.get(part), dict):
@@ -1077,7 +1079,7 @@ def _environment_layer(environ):
         value = environ[name]
         if value == "" and not meta.get("x-env-empty"):
             continue
-        _set_path(layer, path, value)
+        set_path(layer, path, value)
     return layer
 
 

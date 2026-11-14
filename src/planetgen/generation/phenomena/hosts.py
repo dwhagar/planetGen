@@ -209,8 +209,12 @@ def draw_star_count(body_class, prevalence=1.0, rng=draw):
     `STAR_COUNT_PROBABILITIES`): one draw of the `star-count` table on `rng`, the five-or-more columns scaled by
     `prevalence`.
     """
-    table = _probabilities(_table("star-count"), body_class, prevalence)
-    return int(rng.choices([row for row, _p in table], weights=[p for _row, p in table])[0].name.split()[0])
+    return int(_draw_row(_probabilities(_table("star-count"), body_class, prevalence), rng).name.split()[0])
+
+
+def _draw_row(rows_and_chances, rng):
+    """One draw on `rng` from a table's `probabilities` list: the row drawn."""
+    return rng.choices([row for row, _p in rows_and_chances], weights=[p for _row, p in rows_and_chances])[0]
 
 
 def star_count_weights(body_class, prevalence=1.0):
@@ -237,7 +241,4 @@ def chance(table_name, object_key):
 
 def holds_something(table_name, object_key, rng=draw):
     """Rolls the table for an object with this key on `rng` (one draw): whether it holds something."""
-    table = _table(table_name)
-    rows_and_chances = table.probabilities(pt.Subject(object_key))
-    chosen = rng.choices([row for row, _p in rows_and_chances], weights=[p for _row, p in rows_and_chances])[0]
-    return chosen.name != NO_SATELLITES
+    return _draw_row(_table(table_name).probabilities(pt.Subject(object_key)), rng).name != NO_SATELLITES

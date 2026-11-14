@@ -53,7 +53,7 @@ from planetgen.datasets import hhe_eos
 from planetgen.physics import bulk_structure, constants
 
 G = constants.G
-ONE_BAR_PA = 1.0e5
+ONE_BAR_PA = constants.BAR_PA
 """float: The pressure the integration starts from (Pa), the 1 bar level the radii are given at."""
 
 STEP_LN_PA = 0.25

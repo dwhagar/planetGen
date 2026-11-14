@@ -56,9 +56,9 @@ import cmath
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior, magnetic_geometry, radiation_field
+from planetgen.physics import (activity, constants, core_heat, dynamo, giant_dynamo, giant_interior, magnetic_geometry, radiation_field,
+                               unit_registry as units)
 from planetgen.util import draw
-from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_msun = units.converter("kg", "Msun")
@@ -100,10 +100,8 @@ MERCURY_SCATTER_DEX = 0.5
 FIELD_SCATTER_DEX = 0.07
 """float: The log-normal scatter of the dynamo scaling, dex: the 145 numerical dynamos fit the buoyancy-flux law within about 15 percent ([R3355],
 second-hand, `dynamo.DIPOLE_COEFFICIENT`). Registry row DY5."""
-"""tuple: `(mass in Earth masses, dipole moment A m2)` for Neptune, Saturn
-and Jupiter."""
 
-VACUUM_PERMEABILITY = 4e-7 * math.pi
+VACUUM_PERMEABILITY = constants.VACUUM_PERMEABILITY
 """float: mu0, T m/A."""
 EXCITATION_SHARE = 0.4
 """float: The share of the parent's equatorial dipole field that reaches a moon
@@ -399,8 +397,12 @@ def apply_parent_magnetosphere(moon, parent):
     pressure = magnetosphere_pressure_pa(parent_moment, orbit_m)
     if pressure <= 0.0:
         return
-    standoff_earth_radii = EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3) * (pressure / EARTH_WIND_PA) ** (-1 / 6)
-    moon.magnetopause_rp = standoff_earth_radii * constants.EARTH_RADIUS_KM / moon.radius
+    moon.magnetopause_rp = _standoff_earth_radii(moment, pressure) * constants.EARTH_RADIUS_KM / moon.radius
+
+
+def _standoff_earth_radii(moment, pressure):
+    """Rule 5's standoff, Earth radii: Earth's 9.75 scaled by the cube root of the moment and the inverse sixth root of the pressure (GEN.843)."""
+    return EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3) * (pressure / EARTH_WIND_PA) ** (-1 / 6)
 
 
 def magnetopause_rp(body, star_distance_au):
@@ -412,9 +414,7 @@ def magnetopause_rp(body, star_distance_au):
     pressure = wind_pressure_at(body.star, star_distance_au)
     if pressure <= 0.0:   # GEN.1111: a body with no star has no wind to hold off, so no standoff
         return None
-    standoff_earth_radii = (EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3)
-                            * (pressure / EARTH_WIND_PA) ** (-1 / 6))
-    return standoff_earth_radii * constants.EARTH_RADIUS_KM / body.radius
+    return _standoff_earth_radii(moment, pressure) * constants.EARTH_RADIUS_KM / body.radius
 
 
 def _with_companions(host_value, star, star_distance_au, band):
