@@ -189,7 +189,7 @@ def heat_capacity_j_m2_k(pressure_pa, gravity_ms2, ocean_fraction, period_years,
     """
     _check(ocean_fraction, "ocean fraction", 0.0, 1.0)
     _check(period_years, "period", 1e-6)
-    period_s = period_years * 365.25 * 86400.0
+    period_s = period_years * constants.SECONDS_PER_YEAR
     ground = regional_temperature.GROUND_INERTIA * math.sqrt(period_s / math.pi)
     sea = ocean_heat_capacity_j_m3_k * mixed_layer_m
     column = regional_temperature.AIR_CP_J_KG_K * pressure_pa / gravity_ms2 if pressure_pa and gravity_ms2 and pressure_pa > 0.0 else 0.0
@@ -252,7 +252,7 @@ def seasonal_swing(latitudes_deg, obliquity_deg, eccentricity, mean_k, stellar_f
     forcing = (1.0 - bond_albedo) * stellar_flux_w_m2 * (insolation - insolation.mean(axis=1, keepdims=True))
     linear_slope = 4.0 * emissivity * sigma * local_mean ** 3
     damping = linear_slope * (1.0 + share / (1.0 - share))
-    year_s = period_years * 365.25 * 86400.0
+    year_s = period_years * constants.SECONDS_PER_YEAR
     omega = 2.0 * math.pi / year_s
     spectrum = np.fft.rfft(forcing, axis=1)
     response = spectrum / (damping[:, None] + 1j * capacity * omega * np.arange(spectrum.shape[1])[None, :])
@@ -529,7 +529,7 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
     emissivity = min(absorbed_world / (sigma * mean_k ** 4), 1.0)
     eps_sigma = emissivity * sigma
     column = regional_temperature.column_in_earths(pressure_pa, gravity_ms2)
-    locked = regional_temperature.is_locked(rotation_hours, orbital_hours / (365.25 * 24.0))
+    locked = regional_temperature.is_locked(rotation_hours, orbital_hours / (constants.DAYS_PER_YEAR * 24.0))
     share = min(regional_temperature.transport_share(column, locked), MAX_SHARE)
     transport = 4.0 * eps_sigma * mean_k ** 3 * share / (1.0 - share)
 

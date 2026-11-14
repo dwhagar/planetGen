@@ -140,6 +140,10 @@
       {
        "quantity": "has_ground",
        "equals": 1
+      },
+      {
+       "quantity": "starless",
+       "equals": 0
       }
      ],
      "tags": [
@@ -248,6 +252,10 @@
      "gate": [
       {
        "quantity": "has_ground",
+       "equals": 0
+      },
+      {
+       "quantity": "starless",
        "equals": 0
       }
      ],
@@ -1057,6 +1065,1039 @@
          "text": "orbital traffic: a steady stream of ships leaving the surface and crossing between orbits."
         }
        ]
+      }
+     ]
+    },
+    {
+     "id": "planet.starless",
+     "gate": [
+      {
+       "quantity": "starless",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "life:53",
+       "weight": 1.0,
+       "text": "a dark, cold world with no sun, drifting alone between the stars."
+      },
+      {
+       "id": "life:54",
+       "weight": 1.0,
+       "text": "a sky with no daylight, only the faint glow of distant stars."
+      },
+      {
+       "id": "life:55",
+       "weight": 1.0,
+       "text": "no sunrise and no sunset: the sky never changes."
+      }
+     ],
+     "children": [
+      {
+       "id": "planet.starless.giant",
+       "gate": [
+        {
+         "quantity": "body_type",
+         "equals": "g"
+        }
+       ],
+       "lines": [
+        {
+         "id": "life:56",
+         "weight": 1.0,
+         "text": "banded clouds with no sunlight on them, glowing faintly in the infrared from the heat inside."
+        },
+        {
+         "id": "life:57",
+         "weight": 1.0,
+         "text": "a gas giant with no star, its cloud bands lit by nothing but its own heat."
+        }
+       ]
+      },
+      {
+       "id": "planet.starless.ground",
+       "gate": [
+        {
+         "quantity": "has_ground",
+         "equals": 1
+        }
+       ],
+       "lines": [
+        {
+         "id": "life:58",
+         "weight": 1.0,
+         "text": "bare, frozen ground under a black sky, warmed only by heat from the rock below."
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.starless.ground.water",
+         "gate": [
+          {
+           "quantity": "water_mass_fraction",
+           "min": 0.01
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:59",
+           "weight": 1.0,
+           "text": "a deep ocean sealed under ice, kept liquid by heat from the rock below."
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "planet.starless.moons",
+       "gate": [
+        {
+         "quantity": "moon_mass_ratio",
+         "min": 1e-09
+        }
+       ],
+       "lines": [
+        {
+         "id": "life:60",
+         "weight": 1.0,
+         "text": "a moon in orbit that travels with it through the dark."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "planet.moon",
+     "gate": [
+      {
+       "quantity": "is_moon",
+       "equals": 1
+      },
+      {
+       "quantity": "starless",
+       "equals": 0
+      }
+     ],
+     "lines": [
+      {
+       "id": "life:61",
+       "weight": 1.0,
+       "text": "a small world in orbit around a larger one."
+      }
+     ],
+     "children": [
+      {
+       "id": "planet.moon.locked",
+       "gate": [
+        {
+         "quantity": "tidally_locked",
+         "equals": 1
+        }
+       ],
+       "lines": [
+        {
+         "id": "life:62",
+         "weight": 1.0,
+         "text": "a host that hangs in one spot in the sky, never rising and never setting."
+        }
+       ]
+      },
+      {
+       "id": "planet.moon.turning",
+       "gate": [
+        {
+         "quantity": "tidally_locked",
+         "equals": 0
+        }
+       ],
+       "lines": [
+        {
+         "id": "life:63",
+         "weight": 1.0,
+         "text": "a host that rises and sets as the moon turns."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "belt": {
+   "id": "belt",
+   "lines": [
+    {
+     "id": "belt:0",
+     "weight": 1.0,
+     "text": "a wide ring of rock and ice debris that never gathered into a planet."
+    },
+    {
+     "id": "belt:1",
+     "weight": 1.0,
+     "text": "countless small bodies, so far apart that a ship could cross the ring without passing close to one."
+    },
+    {
+     "id": "belt:2",
+     "weight": 1.0,
+     "text": "a faint band of dust and rock chips, brightest where the pieces collide."
+    }
+   ],
+   "children": [
+    {
+     "id": "belt.stirred",
+     "gate": [
+      {
+       "quantity": "belt_stirred",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:3",
+       "weight": 1.0,
+       "text": "a field kept stirred by a giant's pull, with fresh collision debris across its width."
+      },
+      {
+       "id": "belt:4",
+       "weight": 1.0,
+       "text": "streams of broken rock thrown out of the ring by a giant's gravity."
+      }
+     ]
+    },
+    {
+     "id": "belt.large_body",
+     "gate": [
+      {
+       "quantity": "belt_largest_body_km",
+       "min": 500
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:5",
+       "weight": 1.0,
+       "text": "one large, round body among the rubble, the biggest by far."
+      }
+     ]
+    },
+    {
+     "id": "belt.massive",
+     "gate": [
+      {
+       "quantity": "belt_mass_earth",
+       "min": 0.001
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:6",
+       "weight": 1.0,
+       "text": "a belt heavy enough that its own pull shows in the motion of the planets near it."
+      }
+     ]
+    },
+    {
+     "id": "belt.narrow",
+     "gate": [
+      {
+       "quantity": "belt_width_ratio",
+       "lt": 1.5
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:7",
+       "weight": 1.0,
+       "text": "a narrow ring with sharp edges, held in a thin line by the pull of a planet."
+      }
+     ]
+    }
+   ]
+  },
+  "star": {
+   "id": "star",
+   "quantities": {
+    "star_teff_k": {
+     "attr": "temperature"
+    },
+    "star_mass_sun": {
+     "attr": "mass",
+     "per": "SOLAR_MASS_TO_KG"
+    },
+    "star_radius_sun": {
+     "attr": "radius",
+     "per": 695700.0
+    },
+    "star_age_gyr": {
+     "attr": "age"
+    }
+   },
+   "lines": [
+    {
+     "id": "star:0",
+     "weight": 1.0,
+     "text": "a point of light that holds steady, with only faint changes in brightness over the years."
+    },
+    {
+     "id": "star:1",
+     "weight": 1.0,
+     "text": "a star that the sensors can place precisely, with nothing unusual in its light."
+    },
+    {
+     "id": "star:2",
+     "weight": 1.0,
+     "text": "a star whose brightness wobbles slightly as spots cross its face."
+    }
+   ],
+   "children": [
+    {
+     "id": "star.red_dwarf",
+     "gate": [
+      {
+       "quantity": "star_teff_k",
+       "lt": 3800
+      }
+     ],
+     "lines": [
+      {
+       "id": "star:3",
+       "weight": 1.0,
+       "text": "a dim, red star that flares without warning and washes its inner worlds in ultraviolet light."
+      },
+      {
+       "id": "star:4",
+       "weight": 1.0,
+       "text": "a faint red star with dark spots that cover much of its face."
+      }
+     ]
+    },
+    {
+     "id": "star.hot",
+     "gate": [
+      {
+       "quantity": "star_teff_k",
+       "min": 20000
+      }
+     ],
+     "lines": [
+      {
+       "id": "star:5",
+       "weight": 1.0,
+       "text": "a hot, blue star whose light drives a strong wind off its surface."
+      },
+      {
+       "id": "star:6",
+       "weight": 1.0,
+       "text": "a bright blue star that burns through its fuel in a few million years."
+      }
+     ]
+    },
+    {
+     "id": "star.giant",
+     "gate": [
+      {
+       "quantity": "star_radius_sun",
+       "min": 20
+      }
+     ],
+     "lines": [
+      {
+       "id": "star:7",
+       "weight": 1.0,
+       "text": "a swollen star whose loose outer layers glow a deep red and drift away into space."
+      }
+     ]
+    },
+    {
+     "id": "star.young",
+     "gate": [
+      {
+       "quantity": "star_age_gyr",
+       "lt": 0.1
+      }
+     ],
+     "lines": [
+      {
+       "id": "star:8",
+       "weight": 1.0,
+       "text": "a young star still ringed by leftover gas and dust."
+      }
+     ]
+    },
+    {
+     "id": "star.old",
+     "gate": [
+      {
+       "quantity": "star_age_gyr",
+       "min": 8
+      }
+     ],
+     "lines": [
+      {
+       "id": "star:9",
+       "weight": 1.0,
+       "text": "an old star, long past its restless youth and slowly changing."
+      }
+     ]
+    }
+   ]
+  },
+  "comet": {
+   "id": "comet",
+   "quantities": {
+    "comet_nucleus_km": {
+     "attr": "nucleus_diameter_km"
+    },
+    "comet_perihelion_au": {
+     "attr": "perihelion_distance_au"
+    },
+    "comet_eccentricity": {
+     "attr": "eccentricity"
+    },
+    "comet_active": {
+     "attr": "is_active",
+     "flag": true
+    }
+   },
+   "lines": [
+    {
+     "id": "comet:0",
+     "weight": 1.0,
+     "text": "a small, dark nucleus of ice and dust, darker than coal where the sunlight has baked its surface."
+    },
+    {
+     "id": "comet:1",
+     "weight": 1.0,
+     "text": "a loose body of frozen gas and dust that holds together only by its own faint pull."
+    },
+    {
+     "id": "comet:2",
+     "weight": 1.0,
+     "text": "a rough, pitted nucleus that sheds a little dust whenever its star warms it."
+    }
+   ],
+   "children": [
+    {
+     "id": "comet.active",
+     "gate": [
+      {
+       "quantity": "comet_active",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "comet:3",
+       "weight": 1.0,
+       "text": "a bright coma and a long tail of dust and gas, pushed away from the star by its light."
+      },
+      {
+       "id": "comet:4",
+       "weight": 1.0,
+       "text": "jets of gas that leave the nucleus in narrow streams as the ice warms."
+      }
+     ]
+    },
+    {
+     "id": "comet.small",
+     "gate": [
+      {
+       "quantity": "comet_nucleus_km",
+       "lt": 3
+      }
+     ],
+     "lines": [
+      {
+       "id": "comet:5",
+       "weight": 1.0,
+       "text": "a nucleus only a few kilometers across, easy to break apart."
+      }
+     ]
+    },
+    {
+     "id": "comet.grazer",
+     "gate": [
+      {
+       "quantity": "comet_perihelion_au",
+       "lt": 0.1
+      }
+     ],
+     "lines": [
+      {
+       "id": "comet:6",
+       "weight": 1.0,
+       "text": "a path so close to the star that the surface is stripped away at every pass."
+      }
+     ]
+    },
+    {
+     "id": "comet.stretched",
+     "gate": [
+      {
+       "quantity": "comet_eccentricity",
+       "min": 0.99
+      }
+     ],
+     "lines": [
+      {
+       "id": "comet:7",
+       "weight": 1.0,
+       "text": "an orbit so stretched that the comet is only just bound to its star."
+      }
+     ]
+    }
+   ]
+  },
+  "black_hole": {
+   "id": "black_hole",
+   "quantities": {
+    "bh_mass_solar": {
+     "attr": "mass_solar"
+    },
+    "bh_spin": {
+     "attr": "spin"
+    },
+    "bh_disk": {
+     "attr": "has_accretion_disk",
+     "flag": true
+    }
+   },
+   "lines": [
+    {
+     "id": "blackhole:0",
+     "weight": 1.0,
+     "text": "a point of nothing, circled by a thin ring of bent starlight."
+    },
+    {
+     "id": "blackhole:1",
+     "weight": 1.0,
+     "text": "a region where light cannot leave, marked only by its pull on nearby stars."
+    },
+    {
+     "id": "blackhole:2",
+     "weight": 1.0,
+     "text": "a silent, dark object that shows itself only by what it does to the light behind it."
+    }
+   ],
+   "children": [
+    {
+     "id": "black_hole.disk",
+     "gate": [
+      {
+       "quantity": "bh_disk",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "blackhole:3",
+       "weight": 1.0,
+       "text": "a glowing disk of hot gas spiraling in, brighter on the side that moves toward you."
+      }
+     ]
+    },
+    {
+     "id": "black_hole.spinning",
+     "gate": [
+      {
+       "quantity": "bh_spin",
+       "min": 0.9
+      }
+     ],
+     "lines": [
+      {
+       "id": "blackhole:4",
+       "weight": 1.0,
+       "text": "a hole spinning near its limit, dragging space around with it."
+      }
+     ]
+    },
+    {
+     "id": "black_hole.giant",
+     "gate": [
+      {
+       "quantity": "bh_mass_solar",
+       "min": 100000.0
+      }
+     ],
+     "lines": [
+      {
+       "id": "blackhole:5",
+       "weight": 1.0,
+       "text": "a giant hole, heavy enough to hold a whole cluster of stars around it."
+      }
+     ]
+    }
+   ]
+  },
+  "neutron_star": {
+   "id": "neutron_star",
+   "quantities": {
+    "ns_spin_ms": {
+     "attr": "spin_period_ms"
+    },
+    "ns_field_gauss": {
+     "attr": "magnetic_field_gauss"
+    },
+    "ns_temperature_k": {
+     "attr": "surface_temperature_k"
+    }
+   },
+   "lines": [
+    {
+     "id": "pulsar:0",
+     "weight": 1.0,
+     "text": "a ball of neutrons the size of a city, spinning in the dark."
+    },
+    {
+     "id": "pulsar:1",
+     "weight": 1.0,
+     "text": "a body smaller than a city and heavier than a star."
+    },
+    {
+     "id": "pulsar:2",
+     "weight": 1.0,
+     "text": "a crust so smooth that its tallest ridge is no higher than a grain of sand."
+    }
+   ],
+   "children": [
+    {
+     "id": "neutron_star.fast",
+     "gate": [
+      {
+       "quantity": "ns_spin_ms",
+       "lt": 30
+      }
+     ],
+     "lines": [
+      {
+       "id": "pulsar:3",
+       "weight": 1.0,
+       "text": "a beam of radio waves that sweeps past every few milliseconds, as steady as a clock."
+      }
+     ]
+    },
+    {
+     "id": "neutron_star.magnetar",
+     "gate": [
+      {
+       "quantity": "ns_field_gauss",
+       "min": 100000000000000.0
+      }
+     ],
+     "lines": [
+      {
+       "id": "pulsar:4",
+       "weight": 1.0,
+       "text": "a magnetic field so strong that it stretches the atoms near the surface into thin needles."
+      }
+     ]
+    },
+    {
+     "id": "neutron_star.hot",
+     "gate": [
+      {
+       "quantity": "ns_temperature_k",
+       "min": 1000000.0
+      }
+     ],
+     "lines": [
+      {
+       "id": "pulsar:5",
+       "weight": 1.0,
+       "text": "a surface hot enough to glow in X-rays."
+      }
+     ]
+    }
+   ]
+  },
+  "nebula": {
+   "id": "nebula",
+   "quantities": {
+    "neb_radius_ly": {
+     "attr": "radius_ly"
+    },
+    "neb_density_cm3": {
+     "attr": "density_cm3"
+    },
+    "neb_temperature_k": {
+     "attr": "temperature_k"
+    },
+    "neb_age_myr": {
+     "attr": "age_myr"
+    }
+   },
+   "lines": [
+    {
+     "id": "nebula:0",
+     "weight": 1.0,
+     "text": "a vast cloud of thin gas and dust, glowing where nearby stars light it."
+    },
+    {
+     "id": "nebula:1",
+     "weight": 1.0,
+     "text": "dark lanes of dust that block the stars behind them."
+    },
+    {
+     "id": "nebula:2",
+     "weight": 1.0,
+     "text": "slow currents of gas, stirred by the stars forming inside."
+    }
+   ],
+   "children": [
+    {
+     "id": "nebula.hot",
+     "gate": [
+      {
+       "quantity": "neb_temperature_k",
+       "min": 5000
+      }
+     ],
+     "lines": [
+      {
+       "id": "nebula:3",
+       "weight": 1.0,
+       "text": "gas heated until it glows in sharp colors, red from hydrogen and green from oxygen."
+      }
+     ]
+    },
+    {
+     "id": "nebula.dense",
+     "gate": [
+      {
+       "quantity": "neb_density_cm3",
+       "min": 1000
+      }
+     ],
+     "lines": [
+      {
+       "id": "nebula:4",
+       "weight": 1.0,
+       "text": "cores so dense that new stars are forming in them."
+      }
+     ]
+    },
+    {
+     "id": "nebula.young",
+     "gate": [
+      {
+       "quantity": "neb_age_myr",
+       "lt": 5
+      }
+     ],
+     "lines": [
+      {
+       "id": "nebula:5",
+       "weight": 1.0,
+       "text": "a young cloud, still shaped by the stars that formed in it."
+      }
+     ]
+    },
+    {
+     "id": "nebula.wide",
+     "gate": [
+      {
+       "quantity": "neb_radius_ly",
+       "min": 20
+      }
+     ],
+     "lines": [
+      {
+       "id": "nebula:6",
+       "weight": 1.0,
+       "text": "a cloud so wide that light needs decades to cross it."
+      }
+     ]
+    }
+   ]
+  },
+  "remnant": {
+   "id": "remnant",
+   "quantities": {
+    "snr_age_years": {
+     "attr": "age_years"
+    },
+    "snr_radius_ly": {
+     "attr": "radius_ly"
+    },
+    "snr_temperature_k": {
+     "attr": "temperature_k"
+    }
+   },
+   "lines": [
+    {
+     "id": "remnant:0",
+     "weight": 1.0,
+     "text": "a shell of hot gas, still racing outward from a star that exploded long ago."
+    },
+    {
+     "id": "remnant:1",
+     "weight": 1.0,
+     "text": "thin filaments of glowing gas, torn from the star as it blew apart."
+    },
+    {
+     "id": "remnant:2",
+     "weight": 1.0,
+     "text": "an expanding bubble that clears out the gas around it."
+    }
+   ],
+   "children": [
+    {
+     "id": "remnant.young",
+     "gate": [
+      {
+       "quantity": "snr_age_years",
+       "lt": 1000
+      }
+     ],
+     "lines": [
+      {
+       "id": "remnant:3",
+       "weight": 1.0,
+       "text": "a young remnant, still bright in X-rays and still crashing through the gas around it."
+      }
+     ]
+    },
+    {
+     "id": "remnant.old",
+     "gate": [
+      {
+       "quantity": "snr_age_years",
+       "min": 50000
+      }
+     ],
+     "lines": [
+      {
+       "id": "remnant:4",
+       "weight": 1.0,
+       "text": "a fading remnant, so large and old that it is blending into the gas around it."
+      }
+     ]
+    }
+   ]
+  },
+  "quasar": {
+   "id": "quasar",
+   "quantities": {
+    "quasar_luminosity_w": {
+     "attr": "luminosity_w"
+    },
+    "quasar_jet_ly": {
+     "attr": "jet_length_ly"
+    },
+    "quasar_radio_loud": {
+     "attr": "is_radio_loud",
+     "flag": true
+    },
+    "quasar_eddington": {
+     "attr": "eddington_ratio"
+    }
+   },
+   "lines": [
+    {
+     "id": "quasar:0",
+     "weight": 1.0,
+     "text": "a core that outshines its whole galaxy, fed by gas falling into a giant black hole."
+    },
+    {
+     "id": "quasar:1",
+     "weight": 1.0,
+     "text": "a point of light brighter than billions of stars together."
+    },
+    {
+     "id": "quasar:2",
+     "weight": 1.0,
+     "text": "a bright core wrapped in a thick doughnut of dust that hides the hole from the side."
+    }
+   ],
+   "children": [
+    {
+     "id": "quasar.radio",
+     "gate": [
+      {
+       "quantity": "quasar_radio_loud",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "quasar:3",
+       "weight": 1.0,
+       "text": "twin jets of fast particles, running far out into space on both sides."
+      }
+     ]
+    },
+    {
+     "id": "quasar.long_jet",
+     "gate": [
+      {
+       "quantity": "quasar_jet_ly",
+       "min": 50000
+      }
+     ],
+     "lines": [
+      {
+       "id": "quasar:4",
+       "weight": 1.0,
+       "text": "a jet longer than the galaxy that made it."
+      }
+     ]
+    },
+    {
+     "id": "quasar.bright",
+     "gate": [
+      {
+       "quantity": "quasar_eddington",
+       "min": 0.5
+      }
+     ],
+     "lines": [
+      {
+       "id": "quasar:5",
+       "weight": 1.0,
+       "text": "a core shining as brightly as its mass allows, its own light holding back the falling gas."
+      }
+     ]
+    }
+   ]
+  },
+  "interstellar_comet": {
+   "id": "interstellar_comet",
+   "quantities": {
+    "ic_nucleus_km": {
+     "attr": "nucleus_diameter_km"
+    },
+    "ic_velocity_kms": {
+     "attr": "velocity_kms"
+    },
+    "ic_active": {
+     "attr": "is_active",
+     "flag": true
+    }
+   },
+   "lines": [
+    {
+     "id": "icomet:0",
+     "weight": 1.0,
+     "text": "a small body of ice and rock adrift between the stars, cold and dark."
+    },
+    {
+     "id": "icomet:1",
+     "weight": 1.0,
+     "text": "a nucleus that has not been near a sun in a very long time."
+    }
+   ],
+   "children": [
+    {
+     "id": "interstellar_comet.dormant",
+     "gate": [
+      {
+       "quantity": "ic_active",
+       "equals": 0
+      }
+     ],
+     "lines": [
+      {
+       "id": "icomet:2",
+       "weight": 1.0,
+       "text": "a quiet nucleus with no tail to show where it has been."
+      }
+     ]
+    },
+    {
+     "id": "interstellar_comet.active",
+     "gate": [
+      {
+       "quantity": "ic_active",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "icomet:3",
+       "weight": 1.0,
+       "text": "a faint tail, made by what little ice the distant starlight can warm."
+      }
+     ]
+    },
+    {
+     "id": "interstellar_comet.fast",
+     "gate": [
+      {
+       "quantity": "ic_velocity_kms",
+       "min": 40
+      }
+     ],
+     "lines": [
+      {
+       "id": "icomet:4",
+       "weight": 1.0,
+       "text": "a body moving much faster than the stars around it."
+      }
+     ]
+    }
+   ]
+  },
+  "asteroid_field": {
+   "id": "asteroid_field",
+   "quantities": {
+    "af_radius_ly": {
+     "attr": "radius_ly"
+    },
+    "af_rms_speed_kms": {
+     "attr": "rms_speed_kms"
+    },
+    "af_largest_body_kg": {
+     "attr": "largest_body_kg"
+    }
+   },
+   "lines": [
+    {
+     "id": "field:0",
+     "weight": 1.0,
+     "text": "a loose swarm of rock fragments, spread across a volume wider than a star system."
+    },
+    {
+     "id": "field:1",
+     "weight": 1.0,
+     "text": "pieces of rock that never fell into any star or planet."
+    },
+    {
+     "id": "field:2",
+     "weight": 1.0,
+     "text": "a thin, drifting cloud of rock and dust."
+    }
+   ],
+   "children": [
+    {
+     "id": "asteroid_field.fast",
+     "gate": [
+      {
+       "quantity": "af_rms_speed_kms",
+       "min": 5
+      }
+     ],
+     "lines": [
+      {
+       "id": "field:3",
+       "weight": 1.0,
+       "text": "fragments moving fast enough that a collision would shatter them."
+      }
+     ]
+    },
+    {
+     "id": "asteroid_field.large",
+     "gate": [
+      {
+       "quantity": "af_largest_body_kg",
+       "min": 1e+20
+      }
+     ],
+     "lines": [
+      {
+       "id": "field:4",
+       "weight": 1.0,
+       "text": "one large body among the fragments, held together by its own pull."
       }
      ]
     }

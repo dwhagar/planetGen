@@ -119,6 +119,26 @@ def _reap(proc):
         proc.kill()
 
 
+def _say_ended(job_dir, job, state):
+    """
+    Writes into the job's log, and its records, that the job was ended and why (OPS.255): a job that RQ's time limit (or any failure of the runner) ended stopped its step with nothing in the log,
+    and a run that lost its starter that way went silent for hours. The stage the job was at is the one that failed.
+    """
+    try:
+        from planetgen.util import logrecord
+        counts = _step_stage_counts(job["steps"])
+        index = max(int(state.get("step") or 1), 1)
+        first = sum(counts[:index - 1]) + 1
+        record = logrecord.stage_record(logrecord.STAGE_FAILED, "job", first, sum(counts), seconds=time.time() - float(state.get("step_started_at") or state["started_at"]),
+                                        reason=state["error"], count=counts[index - 1])
+        with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
+            log.write(("\n" + logrecord.display_line(record) + "\n").encode("utf-8"))
+        with open(os.path.join(job_dir, RECORDS_FILE), "ab", buffering=0) as records:
+            records.write((logrecord.file_line(record) + "\n").encode("utf-8"))
+    except Exception as exc:  # noqa: BLE001 -- the state file already says it; the line is a courtesy to the log
+        planetgen_log.swallowed("web/job_runner", "_say_ended", exc)
+
+
 def _record_memory(job_dir, log, watch, index, label, first, count):
     """Writes the memory line after a step into the log and the step's entry into `MEMORY_NAME` (PERF.183). Never fails the job."""
     try:
@@ -260,6 +280,16 @@ def _staged_command(argv):
     except (SystemExit, Exception) as exc:  # noqa: BLE001 -- the step then uses its recorded time
         planetgen_log.swallowed("web/job_runner", "_staged_command", exc)
         return None
+
+
+def runs_queue_run(job):
+    """Whether a step of `job` is a run on the queue (`planetgen run-job`, or a command of `commands.STAGED_COMMANDS`): its work is units that the run's watch judges by their progress, not by a clock (OPS.255). Read from the command line alone, so a spec that does not parse still counts."""
+    from planetgen.queue import commands
+    from planetgen.web import jobs
+
+    start = len(jobs.GENERATE_COMMAND) + 1
+    return any(len(step["argv"]) > start and step["argv"][1:start] == list(jobs.GENERATE_COMMAND) and (step["argv"][start] == "run-job" or step["argv"][start] in commands.STAGED_COMMANDS)
+               for step in job.get("steps", ()))
 
 
 def _job_entries(argv):
@@ -563,6 +593,7 @@ def _run(job_dir, job, beat):
         state["status"] = "failed"
         state["error"] = (f"The job ran past its time limit and RQ ended it: {exc}"
                           if type(exc).__name__ == "JobTimeoutException" else f"The job runner failed: {exc}")
+        _say_ended(job_dir, job, state)
         _log_traceback(job_dir)
         planetgen_log.error("The job runner failed (job %s): %s", job["id"], exc, exc_info=True)
     finally:

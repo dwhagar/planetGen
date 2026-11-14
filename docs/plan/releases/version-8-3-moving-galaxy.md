@@ -133,3 +133,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | GEN.799 | Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage | DB.106, GEN.798 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
 | MAP.312 | Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter | GEN.799 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
+| API.50 | Default planet settings as a JSON file format: the inputs a user can set for the planets of a created system | API.49 | Boss, 2026-11-14 (placeholder). |

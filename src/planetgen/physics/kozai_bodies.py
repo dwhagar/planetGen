@@ -340,7 +340,7 @@ def pump_moons(planet, ledger=None):
         extent_km = max(planet.radius + (moon.radius or 0.0), rings.roche_limit_km(planet.radius, planet_density, moon_density))
         bulge_rate = oblateness_precession_rad_yr(planet, moon.distance)
         other = sibling_rate + bulge_rate
-        stream = draw.Stream(f"kozai:{float(planet.mass)!r}:{float(moon.mass)!r}:{float(moon.distance)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}")
+        stream = draw.body_stream_of("kozai", planet, slot=repr(float(moon.mass)))      # GEN.1547: the planet's birth numbers and the moon's mass, not either's distance now
         bulge = abs(bulge_rate)
         t_kl = triple_timescale_yr(planet_mass, _mass_solar(moon.mass), star_mass, moon.distance, planet.distance, planet.eccentricity)
         ratio = 1.0 / (bulge * t_kl) if bulge > 0.0 else 1.0e6

@@ -271,7 +271,7 @@ def give_forced_eccentricities(planets, host_mass_kg):
         body.oddity_quantities = quantities
     if len(bodies) < 3 or not host_mass_kg > 0.0:
         return 0
-    forced = _clear_of_neighbours(bodies, forced_eccentricities([p.period * 365.25 for p in bodies], [p.mass for p in bodies], host_mass_kg), host_mass_kg)
+    forced = _clear_of_neighbours(bodies, forced_eccentricities([p.period * constants.DAYS_PER_YEAR for p in bodies], [p.mass for p in bodies], host_mass_kg), host_mass_kg)
     given = 0
     for body, value in zip(bodies, forced):
         if value > 0.0:
