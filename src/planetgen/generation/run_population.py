@@ -11,10 +11,8 @@ two as consecutive stages (`run_population_stage`, `run_territories_stage`); nei
 """
 
 from planetgen.generation import followed, stages, steps
-from planetgen.db import store
-from planetgen.generation import run_plan
 from planetgen.population import model
-from planetgen.queue import commands
+from planetgen.queue import commands, engine, unitbeat
 from planetgen.util import log
 
 
@@ -28,43 +26,78 @@ def _territories_summary(counts):
 
 
 def expand_population(params):
-    """The `run-population` command's stage: one unit, the whole pass (`run-territories` cuts its stage the same way)."""
+    """The `run-population` command's stage: one unit, whose pieces the engine runs (`run-territories` cuts its stage the same way)."""
     return commands.Expansion([(params, 1.0)], {})
-
-
-def population_unit(params, report):
-    """
-    The `run-population` command's unit: scan the life worlds, drop the species without a civilization, date the
-    civilizations and found or dissolve the polities (`model.run_population`).
-
-    Returns:
-        dict: `new_species`, `species`, `spacefaring`, `polities` and `lines`, what the run says about it (this unit may
-            run in a worker, so the process that started the run logs them).
-    """
-    conn = store.get_connection(run_plan._mysql_config_of(params))
-    try:
-        counts = model.run_population(conn, rescan=bool(params.get("rescan")))
-    finally:
-        conn.close()
-    return {**counts, "lines": [f"Population: {_population_summary(counts)}"]}
 
 
 expand_territories = expand_population
 
 
-def territories_unit(params, report):
+def _reader(params):
+    """A connection to read with while the pieces are listed, closed by the caller (the unit's own opens on its first piece)."""
+    return engine.Context("run-population", params, None)
+
+
+def population_pieces(params, cursor):
     """
-    The `run-territories` command's unit: recompute which polity owns which system from the polities stored
-    (`model.run_territories`).
+    The `run-population` command's pieces (OPS.203): forget every species for a rescan, scan the planets one batch of ids a piece, drop the
+    species without a civilization, date the civilizations and found or dissolve the polities, refresh the map's technology rows, and count
+    (`model.population_pieces`).
+    """
+    reader = _reader(params)
+    try:
+        return model.population_pieces(reader.db, rescan=bool(params.get("rescan")))[cursor:]
+    finally:
+        reader.close()
+
+
+def _under_the_lock(ctx, work):
+    """Runs `work()` holding the pass lock (`model.take_pass_lock`; the beat says the unit waits on `mysql` while it waits), commits through `ctx.commit()` before the
+    lock is let go, and returns what `work` returns."""
+    with unitbeat.waiting("mysql"):
+        model.take_pass_lock(ctx.db)
+    try:
+        ctx.commit()        # a fresh transaction, so the piece reads what the last holder of the lock committed
+        result = work()
+        ctx.commit()
+        return result
+    finally:
+        model.release_pass_lock(ctx.db)
+
+
+def population_do(params, piece, ctx):
+    """One piece of the population pass (`model.do_population_piece`), under the pass lock and committed through `ctx.commit()`."""
+    return _under_the_lock(ctx, lambda: model.do_population_piece(ctx.db, piece))
+
+
+def population_gather(params, results):
+    """
+    What the unit returns: the counts of the pass and `lines`, what the run says about it (this unit may run in a worker, so the process that started the run
+    logs them).
 
     Returns:
-        dict: `polities`, `owned_systems` and `lines`.
+        dict: `new_species`, `species`, `spacefaring`, `polities` and `lines`.
     """
-    conn = store.get_connection(run_plan._mysql_config_of(params))
-    try:
-        counts = model.run_territories(conn)
-    finally:
-        conn.close()
+    counts = model.population_counts(results)
+    return {**counts, "lines": [f"Population: {_population_summary(counts)}"]}
+
+
+def territories_pieces(params, cursor):
+    """The `run-territories` command's pieces (OPS.203): recompute which polity owns which system (`model.territories_pieces`)."""
+    return model.territories_pieces()[cursor:]
+
+
+def territories_do(params, piece, ctx):
+    """One piece of the territories pass (`model.do_territories_piece`), counted through `ctx.step` and `ctx.advance`, under the pass lock and committed through
+    `ctx.commit()`."""
+    return _under_the_lock(ctx, lambda: model.do_territories_piece(ctx.db, piece, ctx))
+
+
+def territories_gather(params, results):
+    """
+    What the unit returns: `polities`, `owned_systems` and `lines`.
+    """
+    counts = next(result for result in reversed(results) if "polities" in result)
     return {**counts, "lines": [f"Territories: {_territories_summary(counts)}"]}
 
 
