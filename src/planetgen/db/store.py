@@ -6742,6 +6742,26 @@ CLEAR_BRIGHT_STARS_STEPS = 7
 """int: The steps `clear_bright_stars` takes, for the bar of the unit that calls it (OPS.200)."""
 
 
+def bright_stars_hold_nothing(conn):
+    """
+    Whether there is nothing for `clear_bright_stars` to clear (OPS.254): `bright_stars` holds no row and its id counter has never moved, the scatter's threshold, seed and mass limit are not
+    recorded, and no scatter epoch of the mass, luminosity or band pass is. A galaxy made new has none of them, and the clear then costs a few reads instead of the minutes of statements over the
+    block light parts, the sectors' levels and the member trees. `clear_bright_stars` ends with the `TRUNCATE` of `bright_stars` and forgets the record before it, so a clear that was stopped
+    half way has rows left and is done again in full.
+    """
+    if conn.execute("SELECT 1 FROM bright_stars LIMIT 1").fetchone() is not None:
+        return False
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
+    counter = conn.execute("SELECT auto_increment AS n FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'bright_stars'").fetchone()
+    if counter is not None and int(counter["n"] or 1) > 1:
+        return False
+    shape = conn.execute("SELECT 1 FROM galaxy_shape WHERE bright_star_min_luminosity_sol IS NOT NULL OR bright_star_seed IS NOT NULL"
+                         " OR bright_star_mass_limit_sol IS NOT NULL LIMIT 1").fetchone()
+    if shape is not None:
+        return False
+    return conn.execute("SELECT 1 FROM scatter_epochs WHERE kind IN ('mass', 'luminosity', 'band') LIMIT 1").fetchone() is None
+
+
 def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     """
     Empties `bright_stars`, sets every sector's own bright-star level
@@ -6751,9 +6771,12 @@ def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     galaxy starts over. `TRUNCATE` (an implicit commit), since a real
     scatter leaves tens of millions of rows. Each statement is a step of `steps`
     (`CLEAR_BRIGHT_STARS_STEPS` of them), which names it for the beat (OPS.200).
+
+    With nothing to clear (`bright_stars_hold_nothing`: a new galaxy) it reads and leaves. The `TRUNCATE` comes last, so a clear that
+    was stopped before it is not taken for a clear that is done.
     """
-    with steps.sql("Emptying bright_stars"):
-        conn.execute("TRUNCATE TABLE bright_stars")
+    if bright_stars_hold_nothing(conn):
+        return
     from planetgen.db import block_lights
 
     with steps.sql("Taking the star light out of the block parts"):
@@ -6770,6 +6793,8 @@ def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     with steps.sql("Forgetting that the scatter was drawn"):
         forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
+    with steps.sql("Emptying bright_stars"):
+        conn.execute("TRUNCATE TABLE bright_stars")
 
 
 def _forget_bright_levels(conn):
