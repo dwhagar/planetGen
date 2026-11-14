@@ -485,6 +485,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     already stored and counted (RQ failed it after it was done, say `ValueError: Execution ... not found in Redis`
     when it cleaned up): its sector or shells are saved, so the run goes on."""
     run_id, stage, unit = job.args[:3]
+    unqueued = ""
     if connection.sismember(runrecord.done_key(run_id, stage), unit):
         unended = stage_unended(connection, run_id, stage) and runrecord._s(connection.hget(runrecord.run_key(run_id), "state")) == "running"
         if not unended or (getattr(job, "retries_left", None) or 0) > 0:
@@ -492,7 +493,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
             log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
                       f"{exc_value}); the run goes on.")
             return
-        exc_value = f"{exc_value} (the stage was finished but the opening of the next could not be queued)"
+        unqueued = " (the stage was finished but the opening of the next could not be queued)"
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     stage_name = wrapper.stage_name(connection, run_id, stage)
     # OPS.162: the failure reaches error.log with the run, stage, unit and kind beside the traceback (RQ's own copy has none of them)
@@ -501,7 +502,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
                      kind=job.args[3] if len(job.args) > 3 else "?")
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {stage_name} failed: "
-                               f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
+                               f"{exc_type.__name__}: {exc_value}{unqueued}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
 
