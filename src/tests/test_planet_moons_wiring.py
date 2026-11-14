@@ -10,8 +10,8 @@ from planetgen.physics import planet_moons as pm
 from planetgen.util import draw
 
 
-def _giants(seed, count):
-    """`count` giants of one Jupiter mass round a G2 star at 5.2 AU, each from its own stream and with the moons a giant draws (a giant is drawn on purpose: a seeded run of whole systems finds none in a dozen systems)."""
+def _giants(seed, count, jupiters=1.0):
+    """`count` giants of `jupiters` Jupiter masses round a G2 star at 5.2 AU, each from its own stream and with the moons a giant draws (a giant is drawn on purpose: a seeded run of whole systems finds none in a dozen systems)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.star import Star
     from tests import class_support
@@ -21,7 +21,7 @@ def _giants(seed, count):
     with draw.bound(f"planet-moons-wiring:star:{seed}"):
         star = Star(config)
     star.age = 1.0
-    giants = [class_support.draw_planet(star, 5.2, seed + index, config, mass=mc.JUPITER_MASS_KG, zone_override="c") for index in range(count)]
+    giants = [class_support.draw_planet(star, 5.2, seed + index, config, mass=jupiters * mc.JUPITER_MASS_KG, zone_override="c") for index in range(count)]
     return [giant for giant in giants if giant.body_type == "g" and giant.moons]
 
 
@@ -32,11 +32,11 @@ def test_the_giant_cap_is_the_disk_ceiling():
 
 @pytest.fixture(scope="module")
 def captured_giants():
-    """Giants with moons of 25 seeded draws, at a capture chance of 1."""
+    """Giants with moons of 25 seeded draws, at a capture chance of 1: five Jupiter masses, since a binary encounter leaves a moon of planet size only to a parent of a few Jupiter masses (GEN.1700, `exchange_bound_kg`)."""
     saved = pm.CAPTURE_CHANCE
     pm.CAPTURE_CHANCE = 1.0
     try:
-        return _giants(31, 25)
+        return _giants(31, 25, jupiters=5.0)
     finally:
         pm.CAPTURE_CHANCE = saved
 
@@ -46,7 +46,7 @@ def test_a_capture_moon_is_a_planet_sized_moon_with_a_captured_orbit(captured_gi
     seen = [(giant, moon) for giant in captured_giants for moon in giant.moons if moon.moon_origin == "exchange"]
     assert seen, "no giant took a capture moon in 25 giants at a chance of 1"
     for giant, moon in seen:
-        assert pm.PLANET_MOON_MIN_MASS_KG <= moon.mass <= pm.exchange_ceiling_kg(giant.mass)
+        assert pm.PLANET_MOON_MIN_MASS_KG <= moon.mass <= giant.mass / 10      # the bound of the encounter, under the generator's one-tenth limit
         assert not low < moon.orbital_inclination_deg < high
         assert moon.radius > 0 and moon.density > 0
     for giant in captured_giants:

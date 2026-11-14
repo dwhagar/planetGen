@@ -205224,6 +205224,33 @@
    "volume": "365",
    "year": 2007
   },
+  "10.1098/rsta.2007.2047": {
+   "authors": [
+    [
+     "Catling",
+     "D."
+    ],
+    [
+     "Claire",
+     "M."
+    ],
+    [
+     "Zahnle",
+     "K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1098/rsta.2007.2047",
+   "editors": [],
+   "journal": "Phil. Trans. R. Soc. A.",
+   "page": "1867",
+   "publisher": "The Royal Society",
+   "src": "crossref",
+   "title": "Anaerobic methanotrophy and the rise of atmospheric oxygen",
+   "type": "journal-article",
+   "volume": "365",
+   "year": 2007
+  },
   "10.1098/rsta.2007.2049": {
    "authors": [
     [
@@ -235882,6 +235909,33 @@
    "publisher": "American Association for the Advancement of Science (AAAS)",
    "src": "crossref",
    "title": "Oxygen fugacities of extrasolar rocks: Evidence for an Earth-like geochemistry of exoplanets",
+   "type": "journal-article",
+   "volume": "366",
+   "year": 2019
+  },
+  "10.1126/science.aax6459": {
+   "authors": [
+    [
+     "Alcott",
+     "L. J."
+    ],
+    [
+     "Mills",
+     "B. J. W."
+    ],
+    [
+     "Poulton",
+     "S. W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.aax6459",
+   "editors": [],
+   "journal": "Science",
+   "page": "1333",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Stepwise Earth oxygenation is an inherent property of global biogeochemical cycling",
    "type": "journal-article",
    "volume": "366",
    "year": 2019
@@ -284678,19 +284732,7 @@
   }
  },
  "id_aliases": {},
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- "id_next": 5250,
-=======
- "id_next": 5249,
->>>>>>> origin/claude/lane14-gen1561
-=======
- "id_next": 5251,
->>>>>>> origin/claude/lane15-gen1713
-=======
- "id_next": 5252,
->>>>>>> origin/claude/lane21-gen1670
+ "id_next": 5253,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -288195,6 +288237,7 @@
   "10.1098/rsta.1988.0067": "R4617",
   "10.1098/rsta.1994.0132": "R4618",
   "10.1098/rsta.2007.2044": "R4741",
+  "10.1098/rsta.2007.2047": "R5250",
   "10.1098/rsta.2007.2049": "R0844",
   "10.1098/rsta.2008.0301": "R1371",
   "10.1098/rsta.2009.0159": "R2186",
@@ -288797,6 +288840,7 @@
   "10.1126/science.aau2465": "R1663",
   "10.1126/science.aav7272": "R1087",
   "10.1126/science.aax3901": "R1154",
+  "10.1126/science.aax6459": "R5252",
   "10.1126/science.aay6620": "R3008",
   "10.1126/science.abb3091": "R2677",
   "10.1126/science.abc1796": "R1229",

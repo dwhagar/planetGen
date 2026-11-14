@@ -57,7 +57,7 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, hierarchy_stability, imf, mass_boundaries, ms_lifetime, neutron_star,
+    accretion, alpha_tracks, brown_dwarf, constants, degenerate_radius, helium_core_white_dwarf, hierarchy_stability, imf, mass_boundaries, ms_lifetime, neutron_star,
     pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
@@ -1667,7 +1667,7 @@ def _accreting_companion(placed_mass, kind, age_yr, rng, fe_h=0.0):
         else:
             low, high = tuning.AM_CVN_DONOR_MASS_RANGE_SOL
             mass = math.exp(math.log(low) + rng.random() * (math.log(high) - math.log(low)))
-            radius_sol = tuning.AM_CVN_DONOR_RADIUS_SOL_AT_0_05 * (mass / 0.05) ** (-1.0 / 3.0)
+            radius_sol = degenerate_radius.zero_temperature_radius_sol(mass)
             donor = _Leaf("stripped-helium", None, mass, rng.uniform(1.0, 2.5),
                           radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M)
         axis = _filling_axis_au(donor, placed_mass, window)

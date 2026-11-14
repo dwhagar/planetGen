@@ -60,7 +60,7 @@
 {%- if row.choices|length > 1 %}{% for choice in row.choices %}{% set _ = choices.append({"value": choice, "label": choice|capitalize}) %}{% endfor %}{% endif -%}
 {{ ui_select(row.name, row.label, choices, shown, hint=row.help ~ " Auto: " ~ row.auto_text ~ ".", **{"data-lever": row.name}) }}
 {%- else -%}
-{#- A number or length row is a slider (Boss, 2026-11-12): the title, then the Default tick box beside the typed box, then the bar; the help is behind a ? button. Ticked (Default) is Auto
+{#- A number or length row is a slider (Boss, 2026-11-12; UX.317, 2026-11-14): the title in bold with its unit as a small subtitle under it, then the Default tick box beside the typed box, then the bar; the help is behind a ? button. Ticked (Default) is Auto
     (the box is blank, so no flag goes to the plan) and the bar rests at the middle of what Auto draws (`slider_default`),
     which it sticks to; unticked, the bar and the box set the value. static/leversliders.js drives it; without scripts the
     box is typed into, blank for Auto. -#}
@@ -79,7 +79,8 @@
   data-default="{{ row.slider_default }}"{% if row.log %} data-log{% endif %}{% if row.min_abs is not none %} data-min-abs="{{ row.min_abs }}"{% endif %}
   {%- if row.kind == "length" %} data-unit="{{ row.unit }}" data-factors="{{ factors|tojson|forceescape }}"{% endif %}>
   <div class="lever-slider-title">
-    <span class="lever-slider-name">{{ label }}</span>
+    <span class="title-text"><span class="lever-slider-name">{{ row.label }}</span>
+      {%- if row.unit and row.kind != "length" %}<span class="title-unit">{{ row.unit }}</span>{% endif %}</span>
     <button type="button" class="lever-help-button" data-lever-help aria-expanded="false" aria-controls="{{ row.name }}-help"
       aria-label="About {{ label }}" hidden>?</button>
   </div>

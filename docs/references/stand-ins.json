@@ -3799,82 +3799,6 @@
           "fields": [
             [
               "Evidence",
-              "READ ([R2628: Table 1]: 0.1 to 0.5; source tier 1, tweak level 0)"
-            ],
-            [
-              "What it is",
-              "surface_pressure.WEATHERING_ALPHA"
-            ],
-            [
-              "The range it moves in",
-              "0.1 to 0.5, uniform"
-            ],
-            [
-              "Where it holds",
-              "bodies with liquid water at the surface"
-            ],
-            [
-              "What would show it wrong",
-              "test_surface_pressure::test_the_cycle_draws_stay_in_their_brackets_and_are_recorded"
-            ],
-            [
-              "What replaces it",
-              "a weathering model with runoff and land (GEN.726 follow-up)"
-            ]
-          ],
-          "id": "AM30",
-          "key": "6.7:AM30",
-          "kind": "B",
-          "slug": "6-7-am30",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "surface_pressure.WEATHERING_ALPHA"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "Evidence",
-              "READ ([R2628: Table 1]: 10 to 40 K; source tier 1, tweak level 0)"
-            ],
-            [
-              "What it is",
-              "surface_pressure.WEATHERING_T_E_K"
-            ],
-            [
-              "The range it moves in",
-              "10 to 40 K, uniform"
-            ],
-            [
-              "Where it holds",
-              "bodies with liquid water at the surface"
-            ],
-            [
-              "What would show it wrong",
-              "test_surface_pressure::test_the_cycle_draws_stay_in_their_brackets_and_are_recorded"
-            ],
-            [
-              "What replaces it",
-              "the same"
-            ]
-          ],
-          "id": "AM31",
-          "key": "6.7:AM31",
-          "kind": "B",
-          "slug": "6-7-am31",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "surface_pressure.WEATHERING_T_E_K"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "Evidence",
               "READ ([R2628: Table 1]: 1 to 2; source tier 1, tweak level 0)"
             ],
             [
@@ -3891,7 +3815,7 @@
             ],
             [
               "What would show it wrong",
-              "test_surface_pressure::test_the_cycle_draws_stay_in_their_brackets_and_are_recorded"
+              "test_continental_weathering::test_the_cycle_draws_stay_in_their_brackets_and_are_recorded"
             ],
             [
               "What replaces it",
@@ -3929,7 +3853,7 @@
             ],
             [
               "What would show it wrong",
-              "test_surface_pressure::test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature"
+              "test_continental_weathering::test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature"
             ],
             [
               "What replaces it",
@@ -6339,7 +6263,7 @@
             ],
             [
               "The range it moves in",
-              "15248 K, fixed (+/- 4 percent); 735 K; the dry lifetime at a surface temperature T is the AM46 lifetime times exp(15248 (1/T - 1/735)): 5e5 times at 450 K"
+              "15248 K, fixed (+/- 4 percent); SULFATION_REFERENCE_K 735 K; the dry lifetime at a surface temperature T is the AM46 lifetime times exp(15248 (1/T - 1/735)): 5e5 times at 450 K"
             ],
             [
               "Where it holds",
@@ -6481,6 +6405,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "mixture_evolved.AIR_BUFFER_DIW"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "READ ([R1660: Table 1, the factor their tests of the thermodynamic limit run over: a tenth to ten times Lambda, which they find the one constant that matters]; source tier 1, tweak level 0)"
+            ],
+            [
+              "What it is",
+              "continental_weathering.LAMBDA_SCALE"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 10 times Lambda, log (replaces the Walker law's exponent and e-folding temperature, rows AM30 and AM31, GEN.1713)"
+            ],
+            [
+              "Where it holds",
+              "bodies with land and liquid water at the surface"
+            ],
+            [
+              "What would show it wrong",
+              "test_continental_weathering::test_the_cycle_draws_stay_in_their_brackets_and_are_recorded"
+            ],
+            [
+              "What replaces it",
+              "a model of the clay precipitation of the runoff that fixes Lambda for a body's own rock"
+            ]
+          ],
+          "id": "AM101",
+          "key": "6.7:AM101",
+          "kind": "B",
+          "slug": "6-7-am101",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "continental_weathering.LAMBDA_SCALE"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "READ ([R1660: Table 1 and Eqs. 40 to 44], one paper: Lambda 1.4e-3 mol per litre, n 0.316, alpha 3.39e5, t_s 1e5 yr, m 0.27 kg per mol, A 100 m2 per kg, k_eff,ref 8.7e-6, beta 0.2, T_e 11.1 K, Gamma 0.2, epsilon 0.03 per K, p_ref 0.99 m per yr, the latent heat fit 1.918e9 (T / (T - 33.91))^2; source tier 1, tweak level 0; the paper calls the choice between this form and the Walker law open)"
+            ],
+            [
+              "What it is",
+              "continental_weathering.THERMODYNAMIC_CONSTANT_MOL_M3"
+            ],
+            [
+              "The range it moves in",
+              "fixed at Table 1 (Lambda is scaled by AM100)"
+            ],
+            [
+              "Where it holds",
+              "bodies with land and liquid water at the surface"
+            ],
+            [
+              "What would show it wrong",
+              "test_continental_weathering::test_the_runoff_is_held_under_the_energy_limit_and_the_rate_under_the_supply_limit"
+            ],
+            [
+              "What replaces it",
+              "a second published land law, or a later paper's constants"
+            ]
+          ],
+          "id": "AM102",
+          "key": "6.7:AM102",
+          "kind": "P",
+          "slug": "6-7-am102",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "continental_weathering.THERMODYNAMIC_CONSTANT_MOL_M3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "CALIBRATED on the Earth (the level of the law is set by the Earth identity at 289 K, 288 microbar and 238 W per m2 absorbed, so that the Earth is the balance at its own pressure; GP20's Table 1 gives 0.0053 mol per m2 of the Earth's surface per year at the modern reference where their reference flux is 0.0147, a factor of 0.36, so the shape of their law is used and its level is not; source tier 5, tweak level 2)"
+            ],
+            [
+              "What it is",
+              "continental_weathering.EARTH_ABSORBED_FLUX_W_M2"
+            ],
+            [
+              "The range it moves in",
+              "238 W per m2 (1360 x 0.7 / 4), fixed; the law's value there is the unit of the land term"
+            ],
+            [
+              "Where it holds",
+              "bodies with land and liquid water at the surface"
+            ],
+            [
+              "What would show it wrong",
+              "test_continental_weathering::test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature"
+            ],
+            [
+              "What replaces it",
+              "a table of constants for the law that reproduces the modern weathering flux itself"
+            ]
+          ],
+          "id": "AM103",
+          "key": "6.7:AM103",
+          "kind": "D",
+          "slug": "6-7-am103",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "continental_weathering.EARTH_ABSORBED_FLUX_W_M2"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -13033,7 +13071,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics (water-rich bodies of the Bern model end near 0.5)"
+              "educated guess from physics (water-rich bodies of the Bern model end near 0.5; the same 50 percent is the cap of planets built from beyond-snow-line material in Kite and Ford 2018 [R2381] sec. 5.2 and Mulders 2015 [R3193] sec. 4)"
             ]
           ],
           "id": "DW3",
@@ -13045,6 +13083,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "tuning.DELIVERED_WATER_RICH_MAX 0.5 (the largest water share a rocky body draws; the rich class is log-uniform from the hycean limit 0.1 to it)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.VISCOUS_DISK_OPACITY_CM2_G 107 (the Rosseland opacity of the disk dust that sets the viscous-disk snow line the delivered water of a rocky body is read against, GEN.1678; the other constants of the line are read from [R3193])"
+            ],
+            [
+              "The range it moves in",
+              "20 (large grains) to 570 cm2/g (small grains), both from [R3193] sec. 2.3"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of every star: Sun-like dry share 19 percent (large) to 50 percent (small)"
+            ],
+            [
+              "What would show it wrong",
+              "test_formation_snow_line::test_the_viscous_line_is_the_papers_at_both_grain_sizes; a measured grain size of protoplanetary disks, or the observed dry share of habitable-zone planets by stellar mass"
+            ],
+            [
+              "What replaces it",
+              "a draw of the grain size per disk"
+            ],
+            [
+              "Evidence",
+              "the geometric mean of the two opacities the source gives, the centre of its range"
+            ]
+          ],
+          "id": "DW4",
+          "key": "6.22:DW4",
+          "kind": "P",
+          "slug": "6-22-dw4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.VISCOUS_DISK_OPACITY_CM2_G 107 (the Rosseland opacity of the disk dust that sets the viscous-disk snow line the delivered water of a rocky body is read against, GEN.1678; the other constants of the line are read from [R3193])"
         },
         {
           "burn_down": null,
@@ -13367,11 +13443,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15) and REQUEST_HYDROSPHERES (\"surface ocean\",) (the conditions a request for a habitable world asks of a finished body, GEN.916)"
+              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
             ],
             [
               "The range it moves in",
-              "the range edges are the liquid-water range at the surface"
+              "temperature edges are the liquid-water range at the surface (verified physics); cover 10 to 30 percent low edge and 90 to 99 percent high edge"
             ],
             [
               "Where it holds",
@@ -13379,26 +13455,26 @@
             ],
             [
               "What would show it wrong",
-              "a request met by a body outside 273 to 323 K or without a surface ocean"
+              "a request met by a body outside 273 to 323 K, without a surface ocean, or with under 20 or over 95 percent of its surface under water"
             ],
             [
               "What replaces it",
-              "none needed"
+              "the PHI-6 domains of habitable requests"
             ],
             [
               "Evidence",
-              "the liquid range of water at the surface (verified physics)"
+              "design (the cover range asks for a world with both land and sea: Earth 71 percent; the temperature range is the liquid range of water at the surface)"
             ]
           ],
           "id": "CC11",
           "key": "6.22:CC11",
-          "kind": "D",
+          "kind": "P",
           "slug": "6-22-cc11",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
           "unread": null,
-          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15) and REQUEST_HYDROSPHERES (\"surface ocean\",) (the conditions a request for a habitable world asks of a finished body, GEN.916)"
+          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
         },
         {
           "burn_down": null,
@@ -13443,11 +13519,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air)"
+              "tuning.REQUEST_PRESSURE_PA (50000, 250000) (the total air pressure of a world that meets a request for a habitable world, 50 to 250 kPa, GEN.1702; the floor was 10 kPa)"
             ],
             [
               "The range it moves in",
-              "pressure 5 to 20 kPa"
+              "low edge 30 to 70 kPa; high edge 150 to 400 kPa"
             ],
             [
               "Where it holds",
@@ -13455,7 +13531,7 @@
             ],
             [
               "What would show it wrong",
-              "a request met by a body with under 10 kPa of air"
+              "a request met by a body with under 50 or over 250 kPa of air"
             ],
             [
               "What replaces it",
@@ -13463,18 +13539,18 @@
             ],
             [
               "Evidence",
-              "design (the pressure floor is the generator's own)"
+              "design (a breathable pressure range around Earth's 101 kPa: Boss's card 11:18 PM EST 2026-11-13)"
             ]
           ],
           "id": "CC12",
           "key": "6.22:CC12",
           "kind": "P",
           "slug": "6-22-cc12",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
           "unread": null,
-          "what": "tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air)"
+          "what": "tuning.REQUEST_PRESSURE_PA (50000, 250000) (the total air pressure of a world that meets a request for a habitable world, 50 to 250 kPa, GEN.1702; the floor was 10 kPa)"
         },
         {
           "burn_down": null,
@@ -16077,6 +16153,40 @@
           "tweak": "L0",
           "unread": null,
           "what": "multistar.MEMBER_STATE_BY_PLACED recycled-pulsar neutron-star companion 2.0e-3 (low 6e-4, high 4.3e-3), the phenomena row millisecond-pulsar-companion by_class neutron-star 0.0026 of recycled pulsars with a companion"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "degenerate_radius.zero_temperature_radius_sol: Eggleton's zero-temperature mass-radius relation (0.0114 solar radii scale, Chandrasekhar mass 1.44, degeneracy mass 0.00057 solar masses), the radius of the AM CVn helium donor multistar._accreting_companion draws (GEN.1686; it replaced the scaling AM_CVN_DONOR_RADIUS_SOL_AT_0_05, 0.03 at 0.05 solar masses)"
+            ],
+            [
+              "The range it moves in",
+              "none (a law without knobs)"
+            ],
+            [
+              "Where it holds",
+              "cold degenerate bodies from planetary masses to the Chandrasekhar mass; a hot semi-degenerate donor is up to twice as large (Deloye et al. 2007)"
+            ],
+            [
+              "What replaces it",
+              "a donor evolution track with the donor's entropy"
+            ],
+            [
+              "Evidence",
+              "2ND-HAND (Verbunt and Rappaport 1988 eq. 15, quoted in the module doc; the fit itself is unpublished)"
+            ]
+          ],
+          "id": "AC11",
+          "key": "6.31:AC11",
+          "kind": "T",
+          "slug": "6-31-ac11",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "degenerate_radius.zero_temperature_radius_sol: Eggleton's zero-temperature mass-radius relation (0.0114 solar radii scale, Chandrasekhar mass 1.44, degeneracy mass 0.00057 solar masses), the radius of the AM CVn helium donor multistar._accreting_companion draws (GEN.1686; it replaced the scaling AM_CVN_DONOR_RADIUS_SOL_AT_0_05, 0.03 at 0.05 solar masses)"
         }
       ],
       "slug": "6-31-stand-ins-of-the-accreting-compact-binaries",
@@ -24465,11 +24575,11 @@
           "fields": [
             [
               "What it is",
-              "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down"
+              "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and OZONE_RECOVERY_YR 100: the flag that flares or galactic events keep the ozone down (GEN.1694: a galactic event inside the recovery time, a draw)"
             ],
             [
               "The range it moves in",
-              "limit 100 to 1000"
+              "limit 100 to 1000; recovery time 10 to 1000 years"
             ],
             [
               "Where it holds",
@@ -24496,7 +24606,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down"
+          "what": "radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and OZONE_RECOVERY_YR 100: the flag that flares or galactic events keep the ozone down (GEN.1694: a galactic event inside the recovery time, a draw)"
         },
         {
           "burn_down": null,
@@ -35595,38 +35705,38 @@
           "fields": [
             [
               "What it is",
-              "The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history"
+              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
             ],
             [
               "The range it moves in",
-              "none"
+              "temperature edges are the liquid-water range at the surface (verified physics); cover 10 to 30 percent low edge and 90 to 99 percent high edge"
             ],
             [
               "Where it holds",
-              "all bodies"
+              "every request for a habitable world"
             ],
             [
               "What would show it wrong",
-              "a two-way coupled model whose mantle cools differently"
+              "a request met by a body outside 273 to 323 K, without a surface ocean, or with under 20 or over 95 percent of its surface under water"
             ],
             [
               "What replaces it",
-              "a coupled core and mantle box"
+              "the PHI-6 domains of habitable requests"
             ],
             [
               "Evidence",
-              "design (the stored heat flow and Urey ratio stay as they were)"
+              "design (the cover range asks for a world with both land and sea: Earth 71 percent; the temperature range is the liquid range of water at the surface)"
             ]
           ],
           "id": "CC11",
           "key": "6.136:CC11",
           "kind": "P",
           "slug": "6-136-cc11",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
           "unread": null,
-          "what": "The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history"
+          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
         }
       ],
       "slug": "6-136-stand-ins-of-the-core-s-thermal-history",
@@ -64166,18 +64276,18 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1700",
-            "L3, the cap on a captured moon is set above the Kepler-1625 b-i candidate; the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners replaces it"
+            "replaced",
+            "-",
+            "GEN.1700 (merged with this note): the L3 cap of 1e-2 of the parent on a captured moon is gone: the bound of the binary encounter (Eq. 1 to 3 of [R5229]) from the generated parent and partner replaces it; its encounter distance is now one L1 share of the Hill radius from the one worked case"
           ],
           "fields": [
             [
               "What it is",
-              "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+              "planet_moons.EXCHANGE_ENCOUNTER_HILL_FRACTION 0.0732: the closest approach of the binary to the parent (b of Eq. 1 to 3 of [R5229]) in the parent's Hill radius, the 19.1 Jupiter radii over the 261 of the one worked case, Kepler-1625 b (GEN.1700 replaced the fixed cap EXCHANGE_MAX_RATIO, L3)"
             ],
             [
               "The range it moves in",
-              "5e-3 to 5e-2"
+              "0.02 to 0.3"
             ],
             [
               "Where it holds",
@@ -64185,15 +64295,15 @@
             ],
             [
               "What would show it wrong",
-              "a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower"
+              "an encounter model that gives the distance of closest approach from the planet's own scattering cross-section"
             ],
             [
               "What replaces it",
-              "the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners"
+              "the closest approach drawn from the encounter geometry of the binary-capture model"
             ],
             [
               "Evidence",
-              "[R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037]"
+              "[R5229] (READ: Eq. 1 to 3 and the worked case; the bound reproduces its 5 to 50 Earth-mass partners), [R0037]"
             ]
           ],
           "id": "PSM4",
@@ -64202,9 +64312,47 @@
           "slug": "6-276-psm4",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L1",
           "unread": null,
-          "what": "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+          "what": "planet_moons.EXCHANGE_ENCOUNTER_HILL_FRACTION 0.0732: the closest approach of the binary to the parent (b of Eq. 1 to 3 of [R5229]) in the parent's Hill radius, the 19.1 Jupiter radii over the 261 of the one worked case, Kepler-1625 b (GEN.1700 replaced the fixed cap EXCHANGE_MAX_RATIO, L3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.EXCHANGE_V_INFINITY_FRACTION 1: the speed of the binary relative to the parent at infinity (v_inf of Eq. 2) in the parent's own speed round its star, [R5229]'s upper end (30 km/s for Kepler-1625 b, its Keplerian speed), the careful one since a faster encounter needs a heavier partner"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 1"
+            ],
+            [
+              "Where it holds",
+              "every capture"
+            ],
+            [
+              "What would show it wrong",
+              "a measured relative speed of planet-binary encounters in a planetary system"
+            ],
+            [
+              "What replaces it",
+              "a draw from the system's own velocity dispersion"
+            ],
+            [
+              "Evidence",
+              "[R5229] (READ: 1 to 30 km/s tested)"
+            ]
+          ],
+          "id": "PSM5",
+          "key": "6.276:PSM5",
+          "kind": "P",
+          "slug": "6-276-psm5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_moons.EXCHANGE_V_INFINITY_FRACTION 1: the speed of the binary relative to the parent at infinity (v_inf of Eq. 2) in the parent's own speed round its star, [R5229]'s upper end (30 km/s for Kepler-1625 b, its Keplerian speed), the careful one since a faster encounter needs a heavier partner"
         }
       ],
       "slug": "6-276-stand-ins-of-the-moons-of-planet-size-around-the-giants",
@@ -65359,6 +65507,132 @@
       ],
       "slug": "6-287-stand-ins-of-the-freezing-curve-of-the-sulfuric-acid-hydrates-gen-1644",
       "title": "Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)"
+    },
+    {
+      "key": "6.288",
+      "number": "6.288",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ground_albedo.VISIBLE_TO_BOND 1.0: the factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (the conversion over the whole spectrum is an open gap)"
+            ],
+            [
+              "The range it moves in",
+              "0.8 to 1.3"
+            ],
+            [
+              "Where it holds",
+              "a dry rocky ground (basalt powder 0.215)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Bond albedo of an airless basalt surface outside 0.09 to 0.14 at 3 to 4.5 Gyr, or a measured fresh basalt outside 0.17 to 0.27"
+            ],
+            [
+              "What replaces it",
+              "the band-integrated Bond albedo of the table's spectra over the star's spectrum and the phase integral"
+            ],
+            [
+              "Evidence",
+              "the Moon's Bond albedo 0.11 and Mercury's 0.088 against 0.117 for the table's basalt after 3.5 Gyr at the middle of the weathering ranges; [R3425] for the table"
+            ]
+          ],
+          "id": "GA1",
+          "key": "6.288:GA1",
+          "kind": "P",
+          "slug": "6-288-ga1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ground_albedo.VISIBLE_TO_BOND 1.0: the factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (the conversion over the whole spectrum is an open gap)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ground_albedo.dry_ground_type: a carbon rock is carbon, a body with a metal share of surface_composition.RANGES[\"metal_stripped\"] (0.7) or more is metal (the stand-in ground albedo 0.15), else basalt, the ground the melt of an ordinary mantle makes"
+            ],
+            [
+              "The range it moves in",
+              "none (a rule)"
+            ],
+            [
+              "Where it holds",
+              "a rocky body with no surface water, before its air and heat flow are solved"
+            ],
+            [
+              "What would show it wrong",
+              "a dry airless body whose later drawn ground is mostly felsic, ultramafic or oxidised, which is brighter or darker than basalt"
+            ],
+            [
+              "What replaces it",
+              "the dominant ground of the draw (surface_composition.draw_surface) made before the air, from the melt (volcanic_ground_type), once the heat flow is known earlier"
+            ],
+            [
+              "Evidence",
+              "the table of dominant grounds (surface_composition.DOMINANT_TABLE) and its gates"
+            ]
+          ],
+          "id": "GA2",
+          "key": "6.288:GA2",
+          "kind": "B",
+          "slug": "6-288-ga2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ground_albedo.dry_ground_type: a carbon rock is carbon, a body with a metal share of surface_composition.RANGES[\"metal_stripped\"] (0.7) or more is metal (the stand-in ground albedo 0.15), else basalt, the ground the melt of an ordinary mantle makes"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the weathering time (1 to 2 Gyr) and amplitude (0.3 to 0.7) are the design note's placeholders; no source prints the darkening of basalt by surface age, a fit to lunar and asteroid reflectance by age replaces them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ground_albedo.weathered_albedo: the fresh albedo times 1 - d (1 - exp(-t / tau_w)) with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, ground_albedo.TAU_W_GY, DEPTH)"
+            ],
+            [
+              "The range it moves in",
+              "tau_w 0.5 to 4 Gyr; d 0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "an airless dry surface older than 0.5 Gyr"
+            ],
+            [
+              "What would show it wrong",
+              "a measured spread of airless Bond albedos wider than 0.07 to 0.16 for basalt"
+            ],
+            [
+              "What replaces it",
+              "a fit of the darkening to lunar and asteroid reflectance by age"
+            ],
+            [
+              "Evidence",
+              "the decay of the unweathered fraction [R4713]; the placeholders are not fitted; the Moon 0.11 and Mercury 0.088 sit inside the range they give"
+            ]
+          ],
+          "id": "GA3",
+          "key": "6.288:GA3",
+          "kind": "P",
+          "slug": "6-288-ga3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ground_albedo.weathered_albedo: the fresh albedo times 1 - d (1 - exp(-t / tau_w)) with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, ground_albedo.TAU_W_GY, DEPTH)"
+        }
+      ],
+      "slug": "6-288-stand-ins-of-the-bond-albedo-of-a-dry-body-s-ground",
+      "title": "Stand-ins of the Bond albedo of a dry body's ground"
     }
   ]
 }

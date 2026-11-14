@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4101] - 2026-11-14
+
+**Headline:** The New galaxy page's properties have bold titles with their units underneath, and the boxes and bars line up across every row.
+
+### Changed
+- **The New galaxy page is tidied (UX.317).** Each property's title is bold with its unit as a small subtitle under it ("Stellar mass" over "solar masses") instead of the unit inline in the title. Each property is now four rows of a shared grid (title, Default tick box with its box, bar, hint), so the tops of the boxes and the bars sit level across a row however many lines a title wraps to, in every fold (Galaxy family, Size, Structure, Edge, Dark and stellar halo, Census, Spiral arms, First neighborhood, Advanced); the Shape and Rogue planets dropdowns line up with their neighbours too. The Default tick boxes, the ? help and the folds work as before.
+
+generation-output: unchanged
+
+## [8.0.4100] - 2026-11-14
+
+**Headline:** Four tests red on main pass again; the Gaia nearby-star query qualifies its columns.
+
+### Fixed
+- **Main reds (TEST.740, part).** The Gaia nearby-star ADQL query names its table `g` and qualifies every column, so `dec` is no longer an unquoted reserved word (same rows, same bytes). The warm-up test reads the capitalised log line the command writes. The Gaia sources test reads the VizieR fallback's current name. A planet architecture docstring cites its source by ID. The unused `run_common.write_text_output` is removed and the wiring register drops the roundness row RN1, which is read now.
+
+generation-output: unchanged
+
 ## [8.0.4099] - 2026-11-14
 
 **Headline:** Queued runs work again: the database step parameters are turned into a connection config by `MySQLConfig.from_args`, which the cleanup rounds called but never defined, so every queued galaxy run stopped at its first step.

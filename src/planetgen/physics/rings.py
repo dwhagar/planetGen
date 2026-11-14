@@ -42,7 +42,7 @@ Use:
 
 import math
 
-from planetgen.physics import constants as physical_constants, moon_composition, oddities, unit_registry as units
+from planetgen.physics import constants as physical_constants, moon_composition, oddities, relations, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -59,8 +59,9 @@ UNITS = {"ring_kind": "text", "ring_origin": "text", "ring_inner_km": "km", "rin
          "ring_optical_depth": "ratio", "ring_ice_fraction": "frac", "ring_age_yr": "yr"}
 """dict: Each field of `BODY_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 
-ROCHE_COEFFICIENT = 2.456
-"""float: The fluid Roche limit in planet radii for particles as dense as the planet (Roche 1850; [R3220]). Recalled, T2, L0."""
+ROCHE_COEFFICIENT = relations.ROCHE_FLUID_COEFFICIENT
+"""float: The fluid Roche limit in planet radii for particles as dense as the planet (Roche 1850; [R3220]), the one copy
+in `relations`."""
 
 ICE_DENSITY_KG_M3 = physical_constants.ICE_DENSITY_KG_M3
 """float: Water ice Ih, the density of a ring's ice (the repo's ice density, `constants`-free so the module stands alone)."""

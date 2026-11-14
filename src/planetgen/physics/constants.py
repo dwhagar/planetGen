@@ -226,6 +226,7 @@ ESCAPE_VELOCITY_CONSTANT = 2
 RADIUS_SOL_EXPONENT = 2
 LUMINOSITY_SOL_EXPONENT = -0.5
 MASS_SOL_EXPONENT = -1.0
+DAYS_PER_YEAR = 365.25  # the Julian year, days: the one copy the period conversions read
 SECONDS_PER_YEAR = 31_557_600.0  # the Julian year, 365.25 days
 HOURS_PER_YEAR = SECONDS_PER_YEAR / 3600.0  # 8766 hours, the Julian year the dose, gear and sky-clock code counts in
 SECONDS_PER_MYR = 1.0e6 * SECONDS_PER_YEAR  # a million Julian years, s

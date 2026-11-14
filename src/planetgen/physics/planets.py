@@ -1816,7 +1816,9 @@ def generate_moons(planet, moon_count=None, bare=False):
 
     # GEN.1157: a giant may also hold one moon of planet size taken by capture (`planet_moons`), drawn after its disk moons and made as a planet is; only its orbit is a captured one
     if parent_is_giant and (moon_count is None or len(planet.moons) < moon_count):
-        captured = planet_moons.draw_exchange_moon(planet.mass, draw)
+        # GEN.1700: the bound of the binary encounter reads the parent's Hill radius and its speed round the star
+        orbital_speed_m_s = math.sqrt(constants.G * planet.star.mass / (planet.distance * constants.AU_TO_M)) if planet.distance else 0.0
+        captured = planet_moons.draw_exchange_moon(planet.mass, (planet.hill_radius or 0.0) * 1000.0, orbital_speed_m_s, limit_mass_kg, draw)
         if captured is not None and captured.mass_kg <= limit_mass_kg:
             span_low, span_high = max(total_orbit_distance, low_orbit), high_orbit
             if span_low >= span_high:    # no room left past the last moon
