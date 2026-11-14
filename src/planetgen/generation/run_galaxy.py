@@ -561,7 +561,7 @@ def expand_backfill_bright_stars(params):
                        else store.sector_centers_since(conn, params["since"]))
             todo = backfill_targets(conn, skeleton, limits, centers)
             skip = None if centers else "the run generated no sector"
-            if limits.tiers is None and params.get("sky_limit") is not None and centers:
+            if not limits.scatter_ran and params.get("sky_limit") is not None and centers:
                 # OPS.256: a plan-and-stop galaxy has no scatter, so no luminosity level or mass limit to cost and draw a sky ring by (`sky_charting.walk_edges_and_ceiling`): no sky yet
                 sky_skip = "the galaxy has no star scatter yet, so there is no level to chart a sky under"
     finally:

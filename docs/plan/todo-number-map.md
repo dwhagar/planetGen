@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.319 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1718 |
+| GEN | GEN.1719 |
 | PERF | PERF.268 |
 | DB | DB.131 |
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.744 |
+| TEST | TEST.746 |
 | USR | USR.33 |
-| OPS | OPS.257 |
+| OPS | OPS.258 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3059,6 +3059,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.254 | (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s | none | done, PR #6508 (12:21 PM EST 11-14) |
 | OPS.255 | (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page | none | done, PR #6502 (11:05 AM EST 11-14) |
 | OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | done, PR #6511 (12:25 PM EST 11-14): with no star scatter after a plan-and-stop the sky is left out of the backfill |
+| OPS.257 | A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena) | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4020,10 +4021,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1711 | Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3) | none | open |
 | GEN.1712 | Measure-first: how far would the source model's seafloor weathering and carbonate source lift CO2 on warm land-and-sea worlds (300 to 330 K), and what share would then clear the 2 Pa life floor | none | closed as a true result (Lane 15, reports/gen1712-seafloor-sink-measure-2026-11-14.md, 12:07 AM EST 11-14): the seafloor sink lowers warm CO2; the build with limits is GEN.1713 |
 | GEN.1713 | Full carbon balance for the CO2 law: add seafloor dissolution beside continental weathering, each sink held to its published limit, then census CO2 on warm land-and-sea worlds | none | done, PR #6483 in Train 27, PR #6485 (11:13 AM EST 11-14) |
-| GEN.1714 | Life-bearing planets fell 20 percent (2.39 to 1.91 per candidate system) and dead worlds 56 percent after GEN.492's potassium depletion by mass: Boss to decide whether to revisit the potassium range | none | open |
+| GEN.1714 | Life-bearing planets fell 20 percent (2.39 to 1.91 per candidate system) and dead worlds 56 percent after GEN.492's potassium depletion by mass: Boss to decide whether to revisit the potassium range | none | closed as checked (Lane 21, 2:40 PM EST 11-14, on Boss's answer): the source allows no wider range; report reports/potassium-depletion-range-check-2026-11-14.md |
 | GEN.1715 | Bistable climates fell from 11 to 1 per 200 keys after Train 27 | none | open |
 | GEN.1716 | (bug) The air and climate solve depends on its start temperature at its switches: the ocean on/off switch at 273 K and its flip-count lock (HCl and HF stay in the air or dissolve, 50 kPa against 14 kPa), the mixture recipe frozen at step 8 from the temperature then, and steam solutions on hot worlds | none | open |
 | GEN.1717 | (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300) | none | open |
+| GEN.1718 | (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4116,7 +4118,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.47 | Integration keys: issue, hash, scope, rotate and revoke an API key made by the PlanetGen owner for a linked site, limited to read-only calls on the object API and the site identity call | USR.28 | open |
 | SEC.48 | Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters | none | done, carried in PR #6408 (PR 6319, Lane 05, 7:04 PM EST 11-13) |
 | SEC.49 | (bug) The API call log read SESSION_COOKIE_NAME, so __Host- sessions were logged as anonymous | none | done, PR #6454 (11:25 PM EST 11-13) |
-| SEC.50 | (bug) The log masker hides ordinary words: update.sh logs "Skipping the population pass: XXXXXX math check failed." for "the math check failed" | none | open |
+| SEC.50 | (bug) The log masker hides ordinary words: update.sh logs "Skipping the population pass: XXXXXX math check failed." for "the math check failed" | none | done, PR #6513 (12:36 PM EST 11-14) |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
@@ -4846,7 +4848,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.740 | (bug) Main reds left after Train 26: fill_order, materials reachability, cli_edges, math lint in reproducible_draws, sql_portability, generation_stats, datasets_gaia_sources, web_generate_size and finish_run_generation | none | open |
 | TEST.741 | (bug) After Train 27 the W20 same-inventory test is red at bistable key 155 | none | open |
 | TEST.742 | (bug) sweep_bulk's text-materials check holds a stale phrase after Train 27 | none | open |
-| TEST.743 | (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704 | none | open |
+| TEST.743 | (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704 | none | done, PR #6530 (3:56 PM EST 11-14) |
+| TEST.744 | (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900) | none | done, PRs #6527, #6529, #6531 (4:05 PM EST 11-14) |
+| TEST.745 | Remove the stray root script m.py and guard the repo root against stray .py files | none | done, PR #6526 (3:30 PM EST 11-14) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -5021,7 +5025,7 @@ Each citation below resolves to one item by its date.
 | UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
 | UX.316 | Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button | UX.315 | done, PR #6441 (9:09 PM EST 11-13) |
 | UX.317 | (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too) | UX.316 | done, PR #6459 (2:14 AM EST 11-14) |
-| UX.318 | (bug) The job progress ticker shows "0.0 per s" for slow steps (e.g. Stage 5 at about 200 s a sector), so a working run reads as stalled | none | open |
+| UX.318 | (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand | none | open |
 
 ### Code tags `TODO(<area> #N)`
 

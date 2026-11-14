@@ -18,6 +18,7 @@ OUTSIDE = "runs in a process that is not a unit (the web server, the CLI, the st
 ALLOWED = {
     ("db/contention.py", "_wait_while_closed"): BLOCKING,
     ("db/contention.py", "run_with_retries"): BLOCKING,
+    ("queue/engine.py", "Context._hold_while_paused"): BLOCKING + " (a unit held between two pieces by a pause, shown as `pause`; OPS.191)",
     ("queue/memorygate.py", "_decision_lock"): BLOCKING + " (the gate's lock, shown as `gate`)",
     ("queue/memorygate.py", "_acquire"): BLOCKING + " (waiting for memory, shown as `gate`)",
     ("generation/run_plan.py", "_run_stale_unit"): RETRY,
@@ -32,7 +33,7 @@ ALLOWED = {
     ("web/jobs.py", "_end_orphan"): OUTSIDE,
     ("web/generate_page.py", "generate_job_stream.events"): OUTSIDE,
     ("web/lib/singleflight.py", "wait"): OUTSIDE,
-    ("queue/wrapper.py", "_await"): OUTSIDE + " (the follower of a run)",
+    ("queue/wrapper.py", "_await"): OUTSIDE + " (the follower of a run, waiting for a stage's plan or conclusion: `_await_plan` and `_await_conclusion` share it)",
     ("queue/supervisor.py", "SystemClock.sleep"): OUTSIDE + " (the supervisor's own clock, between two turns)",
     ("queue/supervisor.py", "Supervisor.run"): OUTSIDE + " (the supervisor's loop, between two turns)",
     ("queue/units.py", "_end_stage"): "a pause (half a second, doubling, at most four tries) between two tries to queue the next stage's opening (OPS.186), the last unit's own work",
