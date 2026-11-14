@@ -320,7 +320,7 @@ def test_low_oxygen_is_rated_by_the_air_and_not_by_the_mask_that_fixes_it():
 def test_the_blue_air_rung_reads_the_oxygen_floor_of_class_m_and_a_species_scales_it_with_its_own_minimum():
     """GEN.1703: the one number is the `min` of class M's oxygen condition; a species that lowers its inspired minimum lowers the floor in proportion."""
     from planetgen.physics import class_fit
-    assert hab.BLUE_O2_FLOOR_KPA == class_fit.floor_of("M", "o2_partial_pa") / 1000.0 == 16.0
+    assert hab.blue_o2_floor_kpa() == class_fit.floor_of("M", "o2_partial_pa") / 1000.0 == 16.0
     thin = World(100.0, 15, {"N2": 0.9, "O2": 0.10})            # 10 kPa of oxygen
     assert hab.tier(hab.air_score(thin)) == "Green"
     hardy = hab.bands({"inspired_o2_min_kpa": 4.0})              # half the minimum: half the floor, 8 kPa

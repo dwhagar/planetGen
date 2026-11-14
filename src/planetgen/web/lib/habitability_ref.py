@@ -126,7 +126,7 @@ def domains(bands=habitability.HUMAN):
         ("Air", [
             (f"Oxygen the lungs get (the pressure minus {_n(bands.armstrong)} kPa of water vapor), too little",
              f"{_n(bands.o2_min)} kPa or more", f"{_n(bands.o2_low[2])} kPa or more", f"{_n(bands.o2_low[1])} kPa or more"),
-            ("Oxygen in the air itself (its own pressure; the floor of class M, GEN.1703)", f"{_n(habitability.BLUE_O2_FLOOR_KPA * bands.o2_min / limit('inspired_o2_min_kpa'))} kPa or more",
+            ("Oxygen in the air itself (its own pressure; the floor of class M, GEN.1703)", f"{_n(habitability.blue_o2_floor_kpa() * bands.o2_min / limit('inspired_o2_min_kpa'))} kPa or more",
              "under that, Green at best", ""),
             ("Oxygen the lungs get, too much", _up_to(bands.o2_high[4], "kPa"), "",
              _up_to(bands.o2_high[6], "kPa")),

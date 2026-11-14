@@ -284678,19 +284678,7 @@
   }
  },
  "id_aliases": {},
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  "id_next": 5250,
-=======
- "id_next": 5249,
->>>>>>> origin/claude/lane14-gen1561
-=======
- "id_next": 5251,
->>>>>>> origin/claude/lane15-gen1713
-=======
- "id_next": 5252,
->>>>>>> origin/claude/lane21-gen1670
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",

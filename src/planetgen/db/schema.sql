@@ -3477,7 +3477,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     makeup                      TEXT NULL,  -- v256 (DB.124): what the belt is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo, the taxon shares)
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
-    host_node_id                SMALLINT NULL,  -- v254 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets`
+    host_node_id                SMALLINT NULL,  -- v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets`
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),

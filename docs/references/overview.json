@@ -24,30 +24,13 @@
       "T9": 200
     },
     "by_tweak": {
-<<<<<<< HEAD
-<<<<<<< HEAD
       "L0": 961,
       "L1": 328,
       "L2": 81,
       "L3": 239,
-=======
-      "L0": 960,
-      "L1": 326,
-      "L2": 83,
-      "L3": 238,
->>>>>>> origin/claude/lane21-gen1670
       "L4": 56
     },
     "rows": 1665
-=======
-      "L0": 962,
-      "L1": 327,
-      "L2": 81,
-      "L3": 238,
-      "L4": 56
-    },
-    "rows": 1664
->>>>>>> origin/claude/gen1700-exchange-bound
   },
   "tiers": [
     [
@@ -134,11 +117,7 @@
     },
     "fitted_to_a_result": {
       "percent": 23,
-<<<<<<< HEAD
       "rows": 377
-=======
-      "rows": 375
->>>>>>> origin/claude/gen1700-exchange-bound
     },
     "read_from_a_source": {
       "percent": 27,

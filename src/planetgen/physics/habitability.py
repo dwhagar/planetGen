@@ -509,9 +509,11 @@ O2_HIGH_BAND = (None, None, None, None, INSPIRED_O2_CHRONIC_KPA, INSPIRED_O2_CHR
 """tuple: The log band of inspired O2 against too much of it (the low side is a mask, see `_gas_scores`)."""
 
 
-BLUE_O2_FLOOR_KPA = class_fit.floor_of("M", "o2_partial_pa") / 1000.0
-"""float: The least oxygen partial pressure, kPa, a Blue Air rating needs (GEN.1703): the floor of class M (16 kPa, read from its row, the one number), so a world rated Blue for its air has the oxygen of a
-temperate world and not only an inspired minimum a lungful can live on. A species that lowers its inspired minimum lowers this with it (`_o2_low_band`)."""
+def blue_o2_floor_kpa():
+    """float: The least oxygen partial pressure, kPa, a Blue Air rating needs (GEN.1703): the floor of class M (16 kPa, read from its row, the one number), so a world rated Blue for its air has the oxygen of a
+    temperate world and not only an inspired minimum a lungful can live on. A species that lowers its inspired minimum lowers this with it (`_o2_low_band`). Read when asked, not when this module loads:
+    `class_fit` reads the class domains, and those read this module."""
+    return class_fit.floor_of("M", "o2_partial_pa") / 1000.0
 
 
 def _gas_scores(world, limits=HUMAN):
@@ -519,7 +521,7 @@ def _gas_scores(world, limits=HUMAN):
     o2 = inspired_o2_kpa(world, limits)
     # Low O2 is scored on the air's own oxygen, never on the mask that supplies it (Boss, 11-12: a rating is the planet's conditions).
     low = band_score(o2, limits.o2_low, log=True)
-    if world.partial_kpa("O2") < BLUE_O2_FLOOR_KPA * limits.o2_min / limit("inspired_o2_min_kpa"):
+    if world.partial_kpa("O2") < blue_o2_floor_kpa() * limits.o2_min / limit("inspired_o2_min_kpa"):
         low = min(low, CEILING_SCORE["Green"])
     scores["O2"] = min(low, band_score(o2, limits.o2_high, log=True))
     for gas, kpa, band in gas_inputs(world):
