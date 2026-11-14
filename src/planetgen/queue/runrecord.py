@@ -14,6 +14,8 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
                                   the units took, first and last finish) and the decayed sums the ETA reads.
 * `<PREFIX>:run:<id>:s<k>:done`  set: the indexes of the units that finished; also the barrier.
 * `<PREFIX>:run:<id>:s<k>:advanced`  string: set once, by the unit that completes the stage.
+* `<PREFIX>:run:<id>:s<k>:ended`     string: how far the end of the stage got, `concluded` then `queued` (OPS.186); `:ending` is the lease of the
+                                  process doing it, and `:opened` (OPS.187) says the stage's opening finished.
 * `<PREFIX>:run:<id>:s<k>:results`   hash: unit -> the JSON result it returned (PERF.97), written before the unit
                                   joins the done set, so a unit found done has its result.
 * `<PREFIX>:run:<id>:s<k>:progress`  hash: unit -> `"done,estimate"`, a unit's work so far while it runs (PERF.97).
@@ -147,6 +149,21 @@ def done_key(run_id, index):
 
 def advanced_key(run_id, index):
     return _k("run", run_id, f"s{index}", "advanced")
+
+
+def ended_key(run_id, index):
+    """OPS.186: how far the end of stage `index` got: `concluded` (the command's conclusion and the stage's row are done), then `queued` (the next opening is queued)."""
+    return _k("run", run_id, f"s{index}", "ended")
+
+
+def ending_key(run_id, index):
+    """OPS.186: the lease of the process that is ending stage `index` now, so a second attempt does not end it beside the first."""
+    return _k("run", run_id, f"s{index}", "ending")
+
+
+def opened_key(run_id, index):
+    """OPS.187: set when the opening of stage `index` has cut it and queued what it queues, so a failure RQ reports after that does not fail the run."""
+    return _k("run", run_id, f"s{index}", "opened")
 
 
 def events_key(run_id):
@@ -755,7 +772,7 @@ def _keys_of(conn, run_id, every=False):
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
-        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
+        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index), ended_key(run_id, index), ending_key(run_id, index), opened_key(run_id, index),
                  results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index), plan_key(run_id, index)]
     return keys
 
