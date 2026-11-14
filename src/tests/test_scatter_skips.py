@@ -211,5 +211,6 @@ def test_a_galaxy_run_that_makes_a_sector_keeps_the_block_light_stage_and_a_run_
     finally:
         conn.close()
     keys, listed = _galaxy_run(mysql_config, monkeypatch)
-    assert keys == ["sectors", "link", "backfill", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "population", "territories", "settle", "run-blocks", "block-lights"]
+    # OPS.257: the phenomena were just cleared, so their clear is not planned; the nebula field is still stored, so its clear is
+    assert keys == ["sectors", "link", "backfill", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "population", "territories", "settle", "run-blocks", "block-lights"]
     assert listed["mass"] and listed["luminosity"] and not listed["phenomena"] and not listed["block-lights"]

@@ -159,7 +159,7 @@ def _scatter(args, index, _since):
         planned = run_plan.planned_phenomena(args, kind, tag)
     else:
         planned = run_plan.planned_bright_stars(args, (kind,), kind, tag, prepare=getattr(args, "prepare_limits", False))
-    listed = stages.scatter_stages(args)
+    listed = [stage for stage in stages.scatter_stages(args) if not stage.skip]       # a stage that is not planned is not listed
     if kind == "luminosity" and getattr(args, "prepare_limits", False):
         listed = [stage for stage in listed if stage.key != stages.BRIGHT_CLEAR_STAGE["luminosity"].key]
     return Part("scatter", args, listed, planned.followers)
@@ -185,6 +185,7 @@ def build_parts(entries, run_args):
     """
     since, parts = None, []
     flags = prepare_flags(entries)
+    leave_out_empty_clears(entries)
     for index, (command, args) in enumerate(entries):
         args.generation_run_id = getattr(run_args, "generation_run_id", None)
         args.prepare_limits = flags[index]
@@ -193,6 +194,19 @@ def build_parts(entries, run_args):
             since = wrapper.opened_by(part.followers[0].key)
         parts.append(part)
     return hoist_clears(parts)
+
+
+def leave_out_empty_clears(entries):
+    """
+    Names, on each scatter entry's arguments, the clearing stages that are left out because what they clear holds nothing (`args.stage_skips`, `run_plan.empty_clear_skips`, OPS.257), as the
+    database holds it when the job is planned. Only the first entry that changes a scatter is asked: an earlier one may write what a later clear would find.
+    """
+    fresh = True
+    for command, args in entries:
+        if command in ("scatter", "clear-scatter"):
+            kind = stages.scatter_kind(args) if command == "scatter" else None
+            args.stage_skips = run_plan.empty_clear_skips(args, (kind,), fresh) if kind else {}
+            fresh = False
 
 
 def prepare_flags(entries):
@@ -266,10 +280,11 @@ def stage_estimates(conn, entries):
     (`stages.stage_estimates`, at the settings that command was given), the stage every scatter ends with only at its last place.
     """
     rows, flags = [], prepare_flags(entries)
+    leave_out_empty_clears(entries)
     for flag, (command, args) in zip(flags, entries):
         rows += [(stage.key, seconds)
                  for stage, seconds in zip(stages.for_command(command, args), stages.stage_estimates(conn, command, args))
-                 if not (flag and stage.key == stages.BRIGHT_CLEAR_STAGE["luminosity"].key)]
+                 if not (flag and stage.key == stages.BRIGHT_CLEAR_STAGE["luminosity"].key) and not (command == "scatter" and stage.skip)]
     rows = hoist_rows(rows)
     last = max((place for place, (key, _seconds) in enumerate(rows) if key == stages.BLOCK_LIGHTS_STAGE.key), default=None)
     return [seconds for place, (key, seconds) in enumerate(rows) if key != stages.BLOCK_LIGHTS_STAGE.key or place == last]

@@ -3112,7 +3112,8 @@ def run_galaxy(args):
     Args:
         args (argparse.Namespace): Validated arguments (`command == "galaxy"`).
     """
-    args.stage_skips = run_plan.stored_scatter_skips(args)       # PERF.256: a scatter that is stored and current is not planned
+    # PERF.256: a scatter that is stored and current is not planned; OPS.257: nor a clear of a scatter that holds nothing (a wiped galaxy)
+    args.stage_skips = {**run_plan.empty_clear_skips(args, ("phenomena",)), **run_plan.stored_scatter_skips(args)}
 
     def tail(since):
         stars, _book = run_plan.bright_star_followers(args, prepare=True)
