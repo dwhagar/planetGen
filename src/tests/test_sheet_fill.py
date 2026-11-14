@@ -141,7 +141,7 @@ def test_a_giant_keeps_no_starlight_while_its_moons_and_a_rocky_planet_do():
 
 def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
     """GEN.785: the rate is worked out from the star's place in the galaxy (`activity.set_galactic_hazard`) and stored with the star; a system
-    built with no place is rated where such a system is taken to be (`scales.default_galactocentric_ly`), so every star has one."""
+    built with no place has none (GEN.1694: it was rated at `scales.default_galactocentric_ly`, which always flagged its ozone)."""
     from planetgen.db import store
     from planetgen.generation.config import SystemConfig
     from planetgen.galaxy import scales
@@ -162,8 +162,7 @@ def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
         finally:
             conn.close()
     assert rates[True] and all(rate is not None and rate > 0.0 for rate in rates[True])
-    default_rate = activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly())
-    assert rates[False] and all(rate == default_rate for rate in rates[False])
+    assert rates[False] and all(rate is None for rate in rates[False])
 
 
 def test_star_and_comet_rules():

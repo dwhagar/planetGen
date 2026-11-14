@@ -59,7 +59,7 @@ Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular c
 | Today | What it does in one go | Becomes, in sequence |
 |---|---|---|
 | `prepare_scatter_phenomena` (built, OPS.123 slice 3) | empties the earlier scatter, then takes off the indexes | `empty-phenomenon-scatter` (built; `clear-scatter` was not reused: it refreshes the block lights and resets the epoch), `drop-phenomenon-indexes` (built) |
-| `finish_phenomena_unit` (the `finish-phenomena` command) | draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut | `draw-special-phenomena`, `write-special-phenomena`, `build-index` (one per index), `stamp-hypervelocity-epoch`, `record-phenomenon-scatter` |
+| the `finish-phenomena` command (`finish_phenomena_do`) | draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut | `draw-special-phenomena`, `write-special-phenomena`, `build-index` (one per index), `stamp-hypervelocity-epoch`, `record-phenomenon-scatter` |
 | `conclude_scatter_phenomena` | counts the phenomena per class and stores them | `store-phenomenon-class-counts` |
 | `prepare_scatter_pass` (built, OPS.123 slice 3), `conclude_scatter_pass` | empties bright stars (or the luminosity pass); stores threshold, seed and mass limit; stores the generator epoch | `clear-bright-stars` (built: one command for both, the stage `mass-clear` or `luminosity-clear`), `store-scatter-limits`, `store-scatter-epoch` |
 | `prepare_draw_nebula_field` (built, OPS.123 slice 3), `conclude_draw_nebula_field` | checks the skeleton and empties the table; links the stored nebulae to their rows and makes the nebula block totals | `empty-nebula-field` (built: the skeleton check and the no-outline guard stay with the step, which is why `clear-scatter` was not reused), `link-nebulae-to-field`, `make-nebula-block-totals` |
@@ -69,7 +69,7 @@ Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular c
 | `conclude_rescore_habitability` | makes the blocks' habitable totals follow the sector counts | `make-habitable-block-totals` |
 | `expand_*` (every cut) | reads the database and decides the items | `cut-<command>`: one thing, makes the item list |
 | `generate_sectors_unit` | draws a sector and saves it in one transaction, and builds the log summary | stays **one command**, `generate-sector` (draw and save are one effect: making a sector exist; splitting them would move a whole sector through Redis). The summary lines are bookkeeping and move to the executor. Boss may overrule. |
-| `refresh_block_lights_unit`, link, settle, one shell of a scatter, one backfill cell | one effect each | unchanged, but as items (section 3.5) |
+| the `refresh-block-lights` command (`refresh_block_lights_do`), link, settle, one shell of a scatter, one backfill cell | one effect each | unchanged, but as items (section 3.5) |
 
 The commands that have no hook today (checks, `reset-galaxy`, `plan-skeleton`, the warm families) are mostly already singular; `plan-skeleton` and `reset-galaxy` are one effect each. A few `check-*` and `warm-*` commands may also bundle (the audit in step 0 lists them).
 

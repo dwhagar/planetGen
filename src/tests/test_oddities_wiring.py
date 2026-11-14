@@ -519,12 +519,13 @@ def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_whe
 
 def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
     from tests.fuzz_support import first_seed_with
+    # train 27: the share of keys with a second branch fell from 11 in 200 to 1 in 200 (stacked physics: the snow line, the ground albedo, the warm start of ice-law bodies, the redox shift), so the search runs to 200 keys
     # TEST.714: a draw key whose planet has a second branch (50 K and 0.34 of albedo apart at the first search), found by search: the generator's draws moved at epoch 140 (GEN.1363, GEN.1374) and
     # again with GEN.993, each time replacing the key that had one
     pair = lambda number: (_planet_at("G2V", 1.2, f"w20-G2V-{number}", force=("W20",)), _planet_at("G2V", 1.2, f"w20-G2V-{number}", dial=0.0))
     wanted = lambda both: ("W20" in both[0].oddities and both[1].oddities == ()
                            and abs(both[0].surface_temperature - both[1].surface_temperature) >= 20.0 and abs(both[0].bond_albedo - both[1].bond_albedo) >= 0.1)
-    _seed, (other, first) = first_seed_with(pair, wanted, seeds=range(60), what="a G2V planet with a second climate branch")
+    _seed, (other, first) = first_seed_with(pair, wanted, seeds=range(200), what="a G2V planet with a second climate branch")
     assert "W20" in other.oddities and first.oddities == ()
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
 
@@ -549,7 +550,7 @@ def test_the_other_branch_is_the_same_world_with_the_same_inventory_and_draws():
         return planet, airs
 
     # TEST.714: a draw key whose planet has a second branch, found by search (the draws behind a key move with every change to the generator)
-    _seed, (planet, airs) = first_seed_with(run, lambda both: "W20" in both[0].oddities and len(both[1]) >= 2, seeds=range(60), what="a G2V planet with a second climate branch")
+    _seed, (planet, airs) = first_seed_with(run, lambda both: "W20" in both[0].oddities and len(both[1]) >= 2, seeds=range(200), what="a G2V planet with a second climate branch")
     assert "W20" in planet.oddities and len(airs) >= 2
     first, second = airs[0], airs[1]
     assert first.entry_state is not None and second.entry_state == first.entry_state

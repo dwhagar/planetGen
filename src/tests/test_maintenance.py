@@ -224,12 +224,17 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
         "family": family, "warmed": 1, "left_out": 0, "seconds": 0.0, "line": f"{family}: ok"})
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_nodes_unit", lambda args, report: warmup._warm_unit("galaxy-nodes", args))
+    monkeypatch.setattr(warmup, "pieces_warm_galaxy_nodes", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(warmup, "do_warm_galaxy_nodes", lambda args, piece, ctx: warmup._warm_unit("galaxy-nodes", args))
+    monkeypatch.setattr(warmup, "gather_warm_galaxy_nodes", warmup.gather_first)
     monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
-                        lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
-    monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
+    monkeypatch.setattr(warmup, "pieces_warm_galaxy_deep_nodes", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(warmup, "do_warm_galaxy_deep_nodes", lambda args, piece, ctx: warmup._warm_unit("galaxy-deep-nodes", args))
+    monkeypatch.setattr(warmup, "gather_warm_galaxy_deep_nodes", warmup.gather_first)
+    monkeypatch.setattr(warmup, "pieces_warm_object_index", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(warmup, "do_warm_object_index", lambda args, piece, ctx: warmup._warm_unit("object-index", args))
+    monkeypatch.setattr(warmup, "gather_warm_object_index", warmup.gather_first)
     # PERF.227: the cluster-field stage reads the galaxy's components from the database before it plans; one empty plan instead, as a galaxy with none gets
     from planetgen.galaxy import field_job
     monkeypatch.setattr(field_job, "expand_field", lambda params: commands.Expansion([({"database": params["database"], "state": "empty"}, 0.1)], {"state": "empty"}))
