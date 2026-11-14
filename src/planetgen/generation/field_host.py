@@ -26,7 +26,7 @@ import collections
 
 from planetgen import tuning
 from planetgen.generation.phenomena.asteroid_field import RING_RADIUS_AU, AsteroidField, asteroid_field_class, radius_ly_at
-from planetgen.physics import belt_ledger, belt_mass, constants, field_dispersal, field_mass, field_rates, formation, remnant_mass, remnant_progenitors, stellar_evolution, unit_registry
+from planetgen.physics import belt_ledger, belt_mass, constants, field_mass, field_rates, formation, remnant_mass, remnant_progenitors, stellar_evolution, unit_registry
 from planetgen.util import draw
 
 BELT_LIMITS_AU = (0.6 * RING_RADIUS_AU, 1.4 * RING_RADIUS_AU)

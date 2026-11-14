@@ -317,12 +317,7 @@ def gas_and_solid_c_over_o(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, 
     is not frozen: the carbon not in grains and not in a frozen CO, CO2 or CH4, over the oxygen not in rock and not in frozen water, CO or CO2. The solids are the rest. `None` for a
     side that holds no oxygen.
     """
-    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
-    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
-    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
-    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
-    carbon_gas = held.carbon - carbon_solid
-    oxygen_gas = held.oxygen - oxygen_solid
+    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
     gas = carbon_gas / oxygen_gas if oxygen_gas > 1e-12 else None
     solid = carbon_solid / oxygen_solid if oxygen_solid > 1e-12 else None
     return gas, solid

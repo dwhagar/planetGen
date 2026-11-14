@@ -44,7 +44,7 @@ from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
 from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "wd_pollution_sample.json")
@@ -130,12 +130,6 @@ class Sample:
         return min(temps), max(temps)
 
 
-def _finite(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"{owner}: {value!r} is not a finite number")
-    return float(value)
-
-
 def load(path=DATA_FILE):
     """Reads and checks the sample at `path`."""
     try:
@@ -147,9 +141,9 @@ def load(path=DATA_FILE):
     for key, source in sources.items():
         if not source.get("citation") or not source.get("label"):
             raise DataError(f"source {key} has no citation or label")
-    x_metal = _finite("x_metal", document.get("x_metal"))
-    negative_upper = _finite("negative_fraction_median_and_upper", document.get("negative_fraction_median_and_upper"))
-    negative_limit = _finite("negative_fraction_limit_only", document.get("negative_fraction_limit_only"))
+    x_metal = finite_number("x_metal", document.get("x_metal"))
+    negative_upper = finite_number("negative_fraction_median_and_upper", document.get("negative_fraction_median_and_upper"))
+    negative_limit = finite_number("negative_fraction_limit_only", document.get("negative_fraction_limit_only"))
     if not 0 < x_metal <= 1 or not 0 < negative_upper < negative_limit < 1:
         raise DataError("x_metal or the negative-draw fractions are out of range")
     stars, seen = [], set()
@@ -162,15 +156,15 @@ def load(path=DATA_FILE):
             raise DataError(f"{name}: source {raw.get('source')!r} is not in the sources")
         median = raw.get("median_diw")
         minus = raw.get("minus")
-        plus = _finite(f"{name} plus", raw.get("plus"))
+        plus = finite_number(f"{name} plus", raw.get("plus"))
         if plus <= 0:
             raise DataError(f"{name}: the upper bound {plus} is not positive")
         if median is None and minus is not None:
             raise DataError(f"{name}: an upper limit has no lower bound")
-        if minus is not None and _finite(f"{name} minus", minus) <= 0:
+        if minus is not None and finite_number(f"{name} minus", minus) <= 0:
             raise DataError(f"{name}: the lower bound {minus} is not positive")
-        stars.append(Star(name=name, type=raw.get("type", ""), teff_k=_finite(f"{name} teff_k", raw.get("teff_k")),
-                          median_diw=None if median is None else _finite(f"{name} median", median), plus=plus,
+        stars.append(Star(name=name, type=raw.get("type", ""), teff_k=finite_number(f"{name} teff_k", raw.get("teff_k")),
+                          median_diw=None if median is None else finite_number(f"{name} median", median), plus=plus,
                           minus=None if minus is None else float(minus), source=raw["source"], table=str(raw.get("table", ""))))
     if not stars:
         raise DataError("the sample has no stars")
@@ -242,7 +236,7 @@ def _log_likelihood(mu, sigma, exact, censored):
         z = (math.log(value) - mu) / sigma
         total += -math.log(value * sigma * math.sqrt(2.0 * math.pi)) - 0.5 * z * z
     for bound in censored:
-        total += math.log(max(0.5 * math.erfc((math.log(bound) - mu) / sigma / math.sqrt(2.0)), 1e-300))
+        total += math.log(max(_phi((mu - math.log(bound)) / sigma), 1e-300))
     return total
 
 
@@ -373,13 +367,18 @@ def _grid(mean, sd, count):
     return [mean + sd * _PHI_INV((k + 0.5) / count) for k in range(count)]
 
 
+def _error_grid(model, count):
+    """`count` equal-probability values of the star's error `sigma_x` under the log-normal `model`."""
+    return [math.exp(model.mu + model.sigma * z) for z in _grid(0.0, 1.0, count)]
+
+
 def class_probabilities(diw_true, model=None, nodes=200):
     """`{recovery: probability}` of a body with dIW `diw_true`, by quadrature over the error of the star."""
     model = model or ERROR_MODEL
     x = x_of(diw_true)
-    z_upper = -_PHI_INV(SAMPLE.negative_upper)
+    z_upper = _censor_scale(SAMPLE)
     both = upper_or_both = 0.0
-    for sigma_x in (math.exp(model.mu + model.sigma * z) for z in _grid(0.0, 1.0, nodes)):
+    for sigma_x in _error_grid(model, nodes):
         both += _phi(x / sigma_x - z_upper)
         upper_or_both += _phi(x / sigma_x)
     both /= nodes
@@ -396,7 +395,7 @@ def expected_sample(mean, sd, model=None, bodies=25, errors=40, realisations=120
     model = model or ERROR_MODEL
     counts = {r: 0.0 for r in RECOVERIES}
     total = kept = first = second = 0.0
-    sigmas = [math.exp(model.mu + model.sigma * z) for z in _grid(0.0, 1.0, errors)]
+    sigmas = _error_grid(model, errors)
     z0s = _grid(0.0, 1.0, realisations)
     for diw_true in _grid(mean, sd, bodies):
         x = x_of(diw_true)

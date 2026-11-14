@@ -28,6 +28,13 @@ TERMS = density.model_terms(SHAPE)
 SOLAR_RADIUS_PC = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * SHAPE.disk_scale_length_pc
 
 
+def _components(position_pc):
+    """`(bulge, thin disk without arms, thick disk, arm cosine)` at a point, unnormalized: the fields of
+    `density.component_values` the tests below read."""
+    values = density.component_values(position_pc, SHAPE)
+    return values.bulge, values.thin_profile, values.thick_disk, values.arm_cosine
+
+
 def _at(radius, angle, z=0.0):
     return (radius * math.cos(angle), radius * math.sin(angle), z)
 
@@ -78,7 +85,7 @@ def test_the_disks_have_the_milky_ways_scale_heights_at_the_sun():
     sun = _at(SOLAR_RADIUS_PC, 1.0)
 
     def part(index):
-        return lambda z: density._components((sun[0], sun[1], z), SHAPE)[index]
+        return lambda z: _components((sun[0], sun[1], z))[index]
 
     assert _local_scale(part(1), 1000.0, 2000.0) == pytest.approx(300.0, abs=50.0)
     assert _local_scale(part(2), 3000.0, 4500.0) == pytest.approx(900.0, abs=180.0)
@@ -90,7 +97,7 @@ def test_the_disks_have_the_milky_ways_scale_heights_at_the_sun():
 
 def test_the_thick_disk_is_four_percent_of_the_plane_at_the_sun():
     # BHG16: 0.04 +- 0.02.
-    _bulge, thin, thick, _arm = density._components(_at(SOLAR_RADIUS_PC, 1.0), SHAPE)
+    _bulge, thin, thick, _arm = _components(_at(SOLAR_RADIUS_PC, 1.0))
     assert thick / thin == pytest.approx(0.04, abs=0.02)
 
 
@@ -101,7 +108,7 @@ def _bulge_half_density_pc(direction):
 
     def bulge(distance):
         u, v, w = (distance * c for c in direction)
-        return density._components((u * cos_a - v * sin_a, u * sin_a + v * cos_a, w), SHAPE)[0]
+        return _components((u * cos_a - v * sin_a, u * sin_a + v * cos_a, w))[0]
 
     peak, low, high = bulge(0.0), 0.0, 20000.0
     for _ in range(60):
@@ -129,7 +136,7 @@ def test_the_bar_leads_the_sun_by_27_degrees():
     # galactic longitude: ahead of the Sun in the direction of rotation
     # (counterclockwise from galactic north, increasing theta).
     angles = [2 * math.pi * i / 3600 for i in range(3600)]
-    densest = max(angles, key=lambda a: density._components(_at(1500.0, a), SHAPE)[0])
+    densest = max(angles, key=lambda a: _components(_at(1500.0, a))[0])
     lead = math.degrees((densest - TERMS["reference_angle_rad"]) % math.pi)
     assert lead == pytest.approx(27.0, abs=2.0)
 
@@ -141,11 +148,11 @@ def test_the_bars_central_density_matches_its_mass_and_the_suns_disk():
     # the stars' surface density at the Sun is about 33 M_sun/pc^2
     # [R3002]. So 0.054 per parsec, with the bulge mass's
     # +-10% and the surface density's +-10%.
-    center = density._components((0.0, 0.0, 0.0), SHAPE)[0]
+    center = _components((0.0, 0.0, 0.0))[0]
     sun = _at(SOLAR_RADIUS_PC, 0.3)
 
     def disk(z):
-        _bulge, thin, thick, _arm = density._components((sun[0], sun[1], z), SHAPE)
+        _bulge, thin, thick, _arm = _components((sun[0], sun[1], z))
         return thin + thick
 
     surface = 2 * sum(disk(z + 2.5) for z in range(0, 12000, 5)) * 5
@@ -180,7 +187,7 @@ def test_the_bulge_stands_out_edge_on():
     assert _edge_on_column(0.0, 1000.0) > 3.8 * _edge_on_column(4000.0, 1000.0)
     # And 600 pc up, most of the center's light is the bulge's.
     angle = TERMS["reference_angle_rad"]
-    bulge = sum(density._components(_at(y, angle, 600.0), SHAPE)[0] for y in range(-20000, 20001, 50))
+    bulge = sum(_components(_at(y, angle, 600.0))[0] for y in range(-20000, 20001, 50))
     assert SHAPE.k_norm * bulge > 0.5 * _edge_on_column(0.0, 600.0)
 
 
@@ -196,7 +203,7 @@ def test_the_thin_disks_midplane_is_the_exponential_fits_for_its_column():
     def at(z):
         return _at(SOLAR_RADIUS_PC, angle, z)
 
-    thin = lambda z: density._components(at(z), SHAPE)[1]
+    thin = lambda z: _components(at(z))[1]
     thin_column = 2.0 * sum(thin(z + 2.5) for z in range(0, 12000, 5)) * 5
     assert thin_column / thin(0.0) == pytest.approx(2.0 * SHAPE.disk_scale_height_pc, rel=0.01)
     assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.75 * recalled_over_derived, abs=0.02)

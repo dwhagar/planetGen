@@ -281,8 +281,12 @@ def reference_fluence_j():
     """A 1 solar mass, solar-luminosity star's XUV over `REFERENCE_AGE_GY`,
     with no scatter: the exposure index's unit (section 2.3)."""
     t_sat, decay = saturation_age_gy(1.0), decay_exponent(1.0)
-    return _fluence_j(constants.SOLAR_LUMINOSITY, 5772.0, 1.0, REFERENCE_AGE_GY, t_sat, decay, 0.0)
+    return _fluence_j(constants.SOLAR_LUMINOSITY, SUN_TEMPERATURE_K, 1.0, REFERENCE_AGE_GY, t_sat, decay, 0.0)
 
+
+SUN_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
+SUN_LOGG = 4.438
+"""float: The effective temperature and the surface gravity (measured: log g 4.438, cgs) of the Sun, the model atmosphere that stands for the reference star."""
 
 REFERENCE_FLUENCE_J = reference_fluence_j()
 
@@ -387,6 +391,12 @@ def generate_activity(star):
     star.uv_c_share = _uv_c_share(star)
 
 
+def _corona_share(star, luminosity):
+    """The star's coronal XUV as a share of its luminosity (from its stored `log_lx_lbol`; 0 without one)."""
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    return 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+
+
 def uv_shares_of(star):
     """
     The UV-C, UV-B and UV-A power of an ordinary star as multiples of its blackbody's (GEN.971, `stellar_library.uv_shares`): the
@@ -398,16 +408,12 @@ def uv_shares_of(star):
     temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
     if not (mass and radius and temperature and luminosity):
         return None
-    log_ratio = getattr(star, "log_lx_lbol", None)
-    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    corona = _corona_share(star, luminosity)
     return stellar_library.uv_shares(mass, radius, temperature, corona)
 
 
 SUN_AGE_GY = 4.57
 """float: The age of the Sun the far-ultraviolet flux of `far_uv_flux_ratio` is measured against."""
-SUN_TEMPERATURE_K = 5772.0
-SUN_LOGG = 4.438
-"""float: The effective temperature (IAU 2015) and the surface gravity of the Sun, the model atmosphere that stands for the reference star."""
 
 
 def _sun_far_uv_flux_w_m2():
@@ -427,8 +433,7 @@ def far_uv_flux_ratio(star, distance_au):
     temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
     if not (getattr(star, "mass", None) and getattr(star, "radius", None) and temperature and luminosity and distance_au and distance_au > 0.0):
         return None
-    log_ratio = getattr(star, "log_lx_lbol", None)
-    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    corona = _corona_share(star, luminosity)
     power = stellar_library.far_uv_power_w(temperature, stellar_library.surface_logg(star.mass, star.radius), luminosity, corona)
     return power / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) / _sun_far_uv_flux_w_m2()
 
@@ -442,8 +447,7 @@ def far_uv_chromospheric_share(star):
     temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
     if not (getattr(star, "mass", None) and getattr(star, "radius", None) and temperature and luminosity):
         return None
-    log_ratio = getattr(star, "log_lx_lbol", None)
-    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    corona = _corona_share(star, luminosity)
     photosphere, chromosphere = stellar_library.far_uv_powers_w(temperature, stellar_library.surface_logg(star.mass, star.radius), luminosity, corona)
     total = photosphere + chromosphere
     return chromosphere / total if total > 0.0 else 0.0

@@ -175,7 +175,7 @@ def test_setup_fails_only_when_all_four_sources_fail_and_says_why_for_each():
     dataset, result = _fetch(payload, net)
     assert result.status == "missing"
     reason = "; ".join(result.reasons)
-    for label in ("its own address", "asynchronous query", "Heidelberg", "VizieR (Gaia DR3", "Nearby Stars"):
+    for label in ("its own address", "asynchronous query", "Heidelberg", "VizieR (Gaia DR3", "nearby-star catalog"):
         assert label in reason
 
 

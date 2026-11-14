@@ -35,9 +35,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.galaxy import scales
-from planetgen.physics import elements as element_data
-from planetgen.physics import stellar_abundances as sa
-from planetgen.physics import stellar_composition as sc
+from planetgen.physics import constants, elements as element_data, stellar_abundances as sa, stellar_composition as sc
 from planetgen.util import draw
 
 # --- The gas metallicity of the place -----------------------------------------------------------------------------------------------
@@ -293,14 +291,14 @@ KMT_FRACTION_TERMS = (0.75, 0.25)
 chi = 0.77 (1 + 3.1 Z'^0.365). The chi coefficient is checked against its eq. 7 (2.3/3 = 0.77); the f form is recalled and its half-molecular column
 (34 solar masses per pc2 at solar Z') is near the 27 of the paper's summary. [Stand-in NBC11, tier T2, tweak L0.]"""
 
-_PC_CM = 3.0856775814913673e18
+_PC_CM = constants.PARSEC_M * 100.0
 _MSUN_PER_PC2_IN_G_PER_CM2 = 1.98847e33 / _PC_CM ** 2
 
 
 def column_density_msun_pc2(density_cm3, radius_ly):
     """The mean surface density of a uniform sphere of hydrogen density `density_cm3` (per cm3) and radius `radius_ly`: 4/3 n R of mass 1.4 m_H per
     hydrogen atom, in solar masses per pc2. [Stand-in NBC12, tier T6, tweak L0: a uniform cloud; the stored density is the cloud's mean.]"""
-    radius_cm = radius_ly * 9.4607304725808e17
+    radius_cm = radius_ly * (constants.LY_TO_M * 100.0)
     grams = (4.0 / 3.0) * density_cm3 * radius_cm * molecular_column_scale()
     return grams / _MSUN_PER_PC2_IN_G_PER_CM2
 

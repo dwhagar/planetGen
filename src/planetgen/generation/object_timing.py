@@ -46,6 +46,9 @@ HISTOGRAM_BUCKETS = 24
 from 2^(n-1) to 2^n microseconds (bucket 0: under a microsecond); the last
 bucket takes everything slower (over about 4 seconds)."""
 
+STATS_ENV_VAR = "PLANETGEN_GENERATION_STATS"
+"""str: `0` turns every generation statistic off (the test suite's setting); `stats.STATS_ENV_VAR` is this name."""
+
 FULL_ROWS_ENV_VAR = "PLANETGEN_OBJECT_TIMING_FULL"
 """str: `1` keeps a row for every object, not only the sample."""
 
@@ -85,8 +88,9 @@ def full_rows_enabled():
 
 
 def stats_enabled():
-    """Whether timings may be saved (`PLANETGEN_GENERATION_STATS` is not off)."""
-    return os.environ.get("PLANETGEN_GENERATION_STATS", "1").strip().lower() not in ("0", "off", "no", "false")
+    """Whether timings may be saved (`STATS_ENV_VAR` is not off): the one reading of the switch, which `stats.recording_enabled`
+    and the Generate page share."""
+    return os.environ.get(STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false")
 
 
 def sampled(label, kind, ordinal):

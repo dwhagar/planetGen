@@ -41,55 +41,16 @@ import colorsys
 import math
 
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics.units import pc_to_ly
 from planetgen.web.lib.fmt import (
     format_distance_ly, format_luminosity_sol, format_members, format_number, format_period_years, format_speed_kms)
 
-try:
-    from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # duplicated literally rather than left unimportable, since these
-    # drive the map's color math directly.
-    SPECTRAL_CLASS_COLORS = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
-    TEMP_RANGES = {
-        'O': (32350, 62500), 'B': (10200, 32350), 'A': (7310, 10200), 'F': (5990, 7310),
-        'G': (5325, 5990), 'K': (3890, 5325), 'M': (2285, 3890),
-    }
-    SOLAR_LUMINOSITY = 3.82e26
-    SOLAR_RADIUS_M = 6.957e8
-
-try:
-    from planetgen.galaxy.frame import binary_companion_offset_pc
-    from planetgen.galaxy.spherical import (
-        band_colatitude_bounds,
-        sector_cell_vertices_pc,
-        sector_orientation,
-        sector_position_pc,
-        shell_bounds_pc,
-        wedge_longitude_bounds,
-    )
-    from planetgen.physics.units import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
-except ImportError:
-    # Same deployment gap as above -- without these, a sector with no
-    # galaxy placement (or one this deployment can't reach the geometry
-    # module for) just keeps the plain axis-aligned cube outline and no
-    # scale bar; see `_cell_edges_px`/`_ly_per_px_at_zoom_1` below. Without
-    # `sector_orientation` specifically, star dots fall back to being
-    # plotted in their own unrotated local axes (see `_rotate_to_galaxy_frame`).
-    # Without `ly_to_milliparsecs`, nebula/asteroid-field clouds can't be
-    # scaled/positioned at all and are omitted.
-    sector_position_pc = None
-    binary_companion_offset_pc = None
-    sector_cell_vertices_pc = None
-    sector_orientation = None
-    shell_bounds_pc = None
-    band_colatitude_bounds = None
-    wedge_longitude_bounds = None
-    mpc_to_pc = None
-    pc_to_mpc = None
-    milliparsecs_to_ly = None
-    ly_to_milliparsecs = None
+from planetgen.galaxy.frame import binary_companion_offset_pc
+from planetgen.galaxy.spherical import (
+    band_colatitude_bounds, sector_cell_vertices_pc, sector_orientation, sector_position_pc, shell_bounds_pc,
+    wedge_longitude_bounds,
+)
+from planetgen.physics.constants import SOLAR_LUMINOSITY, SOLAR_RADIUS_M, SPECTRAL_CLASS_COLORS, TEMP_RANGES
+from planetgen.physics.units import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc, pc_to_ly
 
 # The 3D scene's world-unit scale -- every position/radius below is in
 # these units (a sector's own half-edge maps to this many of them), handed
@@ -267,7 +228,7 @@ def _rotate_to_galaxy_frame(center_pc, local_vec):
         tuple: `(x, y, z)`, re-expressed along the galaxy frame's axes,
               in `local_vec`'s original units.
     """
-    if center_pc is None or any(c is None for c in center_pc) or sector_orientation is None:
+    if center_pc is None or any(c is None for c in center_pc):
         return local_vec
     if math.hypot(center_pc[0], center_pc[1]) < 1e-9:
         return local_vec
@@ -297,17 +258,12 @@ def _cell_edges_px(address, edge_mpc, half_edge):
 
     Returns:
         list[tuple] or None: 8 points, or `None` for a sector with no grid
-            address, or when the geometry helpers aren't importable --
-            callers fall back to the plain cube.
+            address; callers fall back to the plain cube.
     """
     if (
         address is None
         or any(value is None for value in address)
         or not edge_mpc
-        or sector_cell_vertices_pc is None
-        or sector_position_pc is None
-        or mpc_to_pc is None
-        or pc_to_mpc is None
     ):
         return None
 
@@ -345,7 +301,7 @@ def _cell_arc_edges_px(address, edge_mpc, half_edge):
             when `_cell_edges_px` would be.
     """
     corners = _cell_edges_px(address, edge_mpc, half_edge)
-    if corners is None or shell_bounds_pc is None:
+    if corners is None:
         return None
 
     shell_index, band_index, wedge_index = address
@@ -543,13 +499,8 @@ def _ly_per_px_at_zoom_1(half_edge):
     fixed guess.
 
     Returns:
-        float or None: ly per unit, or `None` if `milliparsecs_to_ly`
-                       isn't importable in this deployment (the scale bar
-                       is then omitted entirely rather than shown in raw
-                       milliparsecs).
+        float: ly per unit.
     """
-    if milliparsecs_to_ly is None:
-        return None
     mpc_per_unit = half_edge / _SCENE_HALF_PX
     return milliparsecs_to_ly(mpc_per_unit)
 
@@ -589,12 +540,7 @@ def _kelvin_to_hex(temp_k):
 
 
 def _rgb_hex(rgb_float):
-    r, g, b = rgb_float
-    return "#{:02x}{:02x}{:02x}".format(
-        max(0, min(255, round(r * 255))),
-        max(0, min(255, round(g * 255))),
-        max(0, min(255, round(b * 255))),
-    )
+    return "#{:02x}{:02x}{:02x}".format(*(max(0, min(255, round(c * 255))) for c in rgb_float))
 
 
 def star_color(star_type, temperature_k, luminosity_w):
@@ -953,18 +899,24 @@ _DEFAULT_NEBULA_ALPHA = (0x90, 0x38)
 
 
 def _phenomenon_cloud_radius_px(radius_ly, half_edge):
-    if ly_to_milliparsecs is None or not half_edge:
+    if not half_edge:
         return 0.0
     radius_mpc = ly_to_milliparsecs(radius_ly)
     radius_px = (radius_mpc / half_edge) * _SCENE_HALF_PX
     return max(4.0, min(_MAX_CLOUD_RADIUS_PX, radius_px))
 
 
+def _nebula_colors(descriptor):
+    """`(color "#rrggbb", core alpha, edge alpha)` of a nebula type, the alphas 0 to 255."""
+    color = _NEBULA_TYPE_COLORS.get(descriptor, _DEFAULT_NEBULA_COLOR)
+    core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(descriptor, _DEFAULT_NEBULA_ALPHA)
+    return color, core_alpha, edge_alpha
+
+
 def nebula_look(descriptor):
     """`(color "#rrggbb", core opacity, edge opacity)` -- opacities 0 to 1 --
     of a nebula type, the look every map gives it."""
-    color = _NEBULA_TYPE_COLORS.get(descriptor, _DEFAULT_NEBULA_COLOR)
-    core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(descriptor, _DEFAULT_NEBULA_ALPHA)
+    color, core_alpha, edge_alpha = _nebula_colors(descriptor)
     return color, core_alpha / 255, edge_alpha / 255
 
 
@@ -1013,8 +965,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
         data["distanceText"] += " (from a neighboring sector)"
 
     if phenomenon_type == "nebula":
-        color = _NEBULA_TYPE_COLORS.get(descriptor, _DEFAULT_NEBULA_COLOR)
-        core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(descriptor, _DEFAULT_NEBULA_ALPHA)
+        color, core_alpha, edge_alpha = _nebula_colors(descriptor)
         data["kind"] = "nebula"
         # sectorscene.js swaps the sphere for the nebula's shape (MAP.103).
         data["nebulaId"] = phenomenon["id"]
@@ -1061,8 +1012,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
         # doesn't know about yet -- drawn the same as a default-colored
         # nebula rather than a crash or a silently wrong label.
         data["kind"] = "nebula"
-        data["coreColor"] = f"{_DEFAULT_NEBULA_COLOR}90"
-        data["edgeColor"] = f"{_DEFAULT_NEBULA_COLOR}30"
+        data["coreColor"] = f"{_DEFAULT_NEBULA_COLOR}{_DEFAULT_NEBULA_ALPHA[0]:02x}"
+        data["edgeColor"] = f"{_DEFAULT_NEBULA_COLOR}{_DEFAULT_NEBULA_ALPHA[1]:02x}"
         data["typeLabel"] = phenomenon_type.replace("_", " ").title()
 
     light = _PHENOMENON_LIGHTS.get(data["kind"])
@@ -1136,8 +1087,7 @@ def map_scene_data(
                 shift_z = 0.0
             else:
                 # The real gap, by the rule the Galaxy Map's nodes use too (MAP.186).
-                shift_pc = (binary_companion_offset_pc(system.get("binary_separation_km"))
-                            if binary_companion_offset_pc else (0.0, 0.0, 0.0))
+                shift_pc = binary_companion_offset_pc(system.get("binary_separation_km"))
                 scale = _SCENE_HALF_PX / (half_edge / 1000.0)
                 shift_x, shift_y, shift_z = shift_pc[0] * scale, -shift_pc[1] * scale, shift_pc[2] * scale
             companion = _star_data(
@@ -1151,7 +1101,7 @@ def map_scene_data(
 
     clouds_data = []
     brightest_sol = max((star["luminositySol"] for star in stars_data), default=None)
-    for phenomenon in (phenomena or []) if ly_to_milliparsecs is not None else ():
+    for phenomenon in phenomena or []:
         # Already galaxy-frame (see this function's own `phenomena`
         # docstring) -- no `_rotate_to_galaxy_frame` step, unlike a
         # system's sector-local x/y/z above. Position is intentionally
@@ -1227,7 +1177,7 @@ def map_scene_data(
         "generate": generate,
         # The sector's own edge in light years, for the Generate buttons'
         # "up to about N sectors" estimate (static/generatebuttons.js).
-        "edgeLy": milliparsecs_to_ly(edge_mpc) if edge_mpc and milliparsecs_to_ly else None,
+        "edgeLy": milliparsecs_to_ly(edge_mpc) if edge_mpc else None,
         # Where the sector is, for drawing its scene inside the Galaxy Map's
         # (`static/sectorscene.js`): its center in galaxy-frame parsecs
         # and half its edge in parsecs, which `sceneHalfPx` scene units span.

@@ -44,7 +44,7 @@ def test_the_redox_of_a_young_or_inert_body_is_the_magma_ocean_stage_and_of_an_o
         with draw.bound(seed):
             recipe = RECIPES.draw_all(subject(long_lived_geology=False), categories=md.ROCKY_CATEGORIES)
             inert = md.draw_redox(subject(long_lived_geology=False), recipe, {})
-        assert inert == recipe.values["a1"]
+        assert inert == recipe.values["a1"] + md.REDOX_SHIFT_DEX
     differences = []
     for seed in range(8):
         with draw.bound(seed):
@@ -52,8 +52,8 @@ def test_the_redox_of_a_young_or_inert_body_is_the_magma_ocean_stage_and_of_an_o
             constants = {}
             old = md.draw_redox(subject(age_gy=40.0), recipe, constants)
             young = md.draw_redox(subject(age_gy=0.0), recipe, {})
-        assert young == recipe.values["a1"]
-        assert old == pytest.approx(recipe.values["a2"], abs=0.01)
+        assert young == recipe.values["a1"] + md.REDOX_SHIFT_DEX
+        assert old == pytest.approx(recipe.values["a2"] + md.REDOX_SHIFT_DEX, abs=0.01)
         differences.append(old - young)
     assert max(differences) > 1.0
 
@@ -64,7 +64,7 @@ def test_a_white_dwarf_debris_body_takes_its_own_redox_row_and_a_small_body_the_
     if "a4" in recipe.values:
         assert md.draw_redox(subject(host_type="WD"), recipe, {}) == recipe.values["a4"]
     assert md.draw_redox(subject(), RecipeDraw(values={"a3": -0.7}), {}) == -0.7
-    assert md.draw_redox(subject(), RecipeDraw(values={"a2": 3.0}), {}) == 3.0
+    assert md.draw_redox(subject(), RecipeDraw(values={"a2": 3.0}), {}) == 3.0 + md.REDOX_SHIFT_DEX
     assert md.draw_redox(subject(), RecipeDraw(), {}) is None
 
 
@@ -72,9 +72,9 @@ def test_the_later_mantle_is_never_more_reduced_than_the_magma_ocean_surface_of_
     """GEN.482b: [R1075, R1951] find that the later processes only oxidise the mantle."""
     old = subject(long_lived_geology=True, age_gy=9.0)
     recipe = RecipeDraw(values={"a1": 1.2, "a2": -0.5})
-    assert md.draw_redox(old, recipe, {}) == pytest.approx(1.2)
+    assert md.draw_redox(old, recipe, {}) == pytest.approx(1.2 + md.REDOX_SHIFT_DEX)
     recipe = RecipeDraw(values={"a1": 0.0, "a2": 3.0})
-    assert md.draw_redox(old, recipe, {}) == pytest.approx(3.0, abs=0.05)
+    assert md.draw_redox(old, recipe, {}) == pytest.approx(3.0 + md.REDOX_SHIFT_DEX, abs=0.05)
 
 
 def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidized_one_carbon_dioxide_and_sulfur_dioxide():
@@ -82,7 +82,7 @@ def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidized_one_carbon_dioxi
     for seed in range(40):
         result = mixture(seed, long_lived_geology=False, ts_k=1000.0, pressure_bar=1.0)
         fractions = result.mole_fractions
-        (reduced if result.redox_diw < 0.0 else oxidized if result.redox_diw > 3.0 else []).append(fractions)
+        (reduced if result.redox_diw < md.REDOX_SHIFT_DEX else oxidized if result.redox_diw > 3.0 else []).append(fractions)
     assert reduced
     assert all(f.get("CO", 0.0) > f.get("CO2", 0.0) * 0.3 for f in reduced)
     for seed in range(40):

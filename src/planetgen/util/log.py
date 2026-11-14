@@ -269,6 +269,12 @@ _origin_filter = _OriginFilter()
 _area_filter = _AreaFilter()
 
 
+def _debug_filters(handler):
+    """Gives `handler` the two filters every debug-form handler carries: the origin stamp and the area filter."""
+    handler.addFilter(_origin_filter)
+    handler.addFilter(_area_filter)
+
+
 def _debug_formatter():
     return LineFormatter("debug")
 
@@ -552,8 +558,7 @@ def _attach_record_file(level):
     handler.setFormatter(LineFormatter("json" if as_json else "file"))
     handler.setLevel(level)
     if level == logging.DEBUG:
-        handler.addFilter(_origin_filter)
-        handler.addFilter(_area_filter)
+        _debug_filters(handler)
     _logger.addHandler(handler)
     _record_handler = handler
 
@@ -828,8 +833,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
     _console_handler.errors_to_stderr = errors_to_stderr
     _console_handler.filters.clear()
     if level == DEBUG:
-        _console_handler.addFilter(_origin_filter)
-        _console_handler.addFilter(_area_filter)
+        _debug_filters(_console_handler)
     if console:
         _logger.addHandler(_console_handler)
     else:
@@ -843,8 +847,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
         file_handler.setFormatter(formatter)
         file_handler.setLevel(console_level)
         if level == DEBUG:
-            file_handler.addFilter(_origin_filter)
-            file_handler.addFilter(_area_filter)
+            _debug_filters(file_handler)
         _logger.addHandler(file_handler)
 
     if _relay_handler is not None:
@@ -1029,8 +1032,7 @@ def _configure_debug_log():
             return False
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(_debug_formatter())
-        handler.addFilter(_origin_filter)
-        handler.addFilter(_area_filter)
+        _debug_filters(handler)
         _debug_log_handler = handler
         _attach_extras(handler)
 
@@ -1450,8 +1452,7 @@ def relayed(conn, key, areas=""):
     global _relay_handler, _areas, _areas_spec
     handler = _RelayHandler(conn, key)
     handler.setFormatter(_debug_formatter())
-    handler.addFilter(_origin_filter)
-    handler.addFilter(_area_filter)
+    _debug_filters(handler)
     before = (_areas, _areas_spec, _logger.level, _relay_handler)
     set_areas(areas)
     _relay_handler = handler

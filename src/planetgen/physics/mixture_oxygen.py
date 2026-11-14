@@ -15,7 +15,9 @@ living world has.
     cap_oxygen({"O2": 0.99, "CO2": 0.01}, ABIOTIC_O2_MAX, INERT_FLOOR)     # O2 0.945, N2 0.005, CO2 0.05
 """
 
-BIOTIC_O2_PRESSURE_MAX_PA = 0.35 * 101325.0
+from planetgen.physics import constants
+
+BIOTIC_O2_PRESSURE_MAX_PA = 0.35 * constants.STANDARD_ATMOSPHERE_PA
 """float: The most oxygen pressure, Pa, of the air of a world with life: 35 percent of one Earth atmosphere (35.5 kPa), the Phanerozoic peak and the fire limit
 (Boss 10-24 set the limit at 35 percent of Earth's air; Boss 11-06 ruled it a pressure and not a share, GEN.1320). Fire spreads with the oxygen's pressure
 (the partial pressure sets how fast fuel burns), not with its share of the molecules, so a thin air may hold a larger share and a thick one a smaller. The share

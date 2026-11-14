@@ -44,19 +44,27 @@ def leave(pid, reason):
     if not text:
         return False
     try:
-        os.makedirs(folder(), exist_ok=True)
-        with contextlib.suppress(OSError):
-            os.chmod(folder(), 0o1777)      # every user a cancel runs as may leave one, and every run may read it
-        path = _path(pid)
-        with contextlib.suppress(FileNotFoundError):
-            os.unlink(path)         # a link or file left under the name: removed itself, never followed
-        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-            os.fchmod(handle.fileno(), 0o644)       # whatever the umask: the run, another user, reads it
+        with open_shared_file(folder(), _path(pid)) as handle:
             handle.write(text + "\n")
     except OSError:
         return False
     return True
+
+
+def open_shared_file(directory, path, mode=0o644):
+    """Opens `path` in the world-open `directory` for writing, the way a file every user may leave and every user may read
+    is written safely (SEC.38): the folder is made (mode 1777), whatever sits under the name is removed (a link a local
+    user planted is removed itself, never followed), the file is created new (`O_CREAT | O_EXCL | O_NOFOLLOW`) and given
+    `mode` whatever the umask. Raises `OSError` when any of that fails; the caller decides what that means."""
+    os.makedirs(directory, exist_ok=True)
+    with contextlib.suppress(OSError):
+        os.chmod(directory, 0o1777)
+    with contextlib.suppress(FileNotFoundError):
+        os.unlink(path)
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, mode)
+    handle = os.fdopen(descriptor, "w", encoding="utf-8")
+    os.fchmod(handle.fileno(), mode)
+    return handle
 
 
 def take(pid):

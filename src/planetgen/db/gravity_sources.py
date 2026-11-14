@@ -28,11 +28,12 @@ import dataclasses
 
 import numpy as np
 
+from planetgen.db import kind_tables
 from planetgen.galaxy import spherical as geometry
 from planetgen.physics import unit_registry as units
 
 _kg_to_msun = units.converter("kg", "Msun")
-STAND_ALONE_TABLES = ("black_holes", "neutron_stars")
+STAND_ALONE_TABLES = kind_tables.tables("star_filed")
 """tuple: The remnant tables whose rows can stand alone; one with a `star_id` is already a row of `stars`."""
 
 

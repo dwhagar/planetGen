@@ -18,7 +18,7 @@ import math
 from planetgen.galaxy import frame, galactic_orbit, spherical
 from planetgen.generation import ejection_events, rogue_landing
 from planetgen.generation.phenomena import starless_host
-from planetgen.physics import constants, planet_architecture, rogue_moons, rogue_topup
+from planetgen.physics import constants, planet_architecture, rogue_topup
 from planetgen.physics import unit_registry as units
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
@@ -55,9 +55,8 @@ def _event(index, rogue, donor, formation_au, scatter_au, uid_text):
         (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), limit, "thrown")
 
 
-def _along(vector, axes):
-    """A `(outward, along the rotation, up)` vector in the galaxy frame, given the three unit axes of a sector."""
-    return tuple(sum(vector[k] * axes[k][i] for k in range(3)) for i in range(3))
+_along = rogue_landing._along
+"""A `(outward, along the rotation, up)` vector in the galaxy frame, given the three unit axes of a sector."""
 
 
 def place(rogue, address, edge_pc, circular_speed_km_s):

@@ -106,8 +106,8 @@ class IrregularPopulationError(ValueError):
     """An input the model cannot use."""
 
 
-def _break_count():
-    return DISK_COUNT_AT_REFERENCE * (DISK_BREAK_RADIUS_KM / DISK_REFERENCE_RADIUS_KM) ** -DISK_INDEX_BELOW
+_BREAK_COUNT = DISK_COUNT_AT_REFERENCE * (DISK_BREAK_RADIUS_KM / DISK_REFERENCE_RADIUS_KM) ** -DISK_INDEX_BELOW
+"""float: The reference disk's bodies above `DISK_BREAK_RADIUS_KM`, where its size law steepens."""
 
 
 @finite_domain()
@@ -117,7 +117,7 @@ def source_count_above(radius_km, scale=1.0):
         raise IrregularPopulationError("the radius must be positive and the scale not negative")
     if radius_km <= DISK_BREAK_RADIUS_KM:
         return scale * DISK_COUNT_AT_REFERENCE * (radius_km / DISK_REFERENCE_RADIUS_KM) ** -DISK_INDEX_BELOW
-    return scale * _break_count() * (radius_km / DISK_BREAK_RADIUS_KM) ** -DISK_INDEX_ABOVE
+    return scale * _BREAK_COUNT * (radius_km / DISK_BREAK_RADIUS_KM) ** -DISK_INDEX_ABOVE
 
 
 @finite_domain()
@@ -125,7 +125,7 @@ def source_radius_at_count(count, scale=1.0):
     """The inverse of `source_count_above`: the radius with `count` bodies expected above it, km."""
     if not count > 0.0 or not scale > 0.0:
         raise IrregularPopulationError("the count and the scale must be positive")
-    at_break = scale * _break_count()
+    at_break = scale * _BREAK_COUNT
     if count >= at_break:
         return DISK_REFERENCE_RADIUS_KM * (count / (scale * DISK_COUNT_AT_REFERENCE)) ** (-1.0 / DISK_INDEX_BELOW)
     return DISK_BREAK_RADIUS_KM * (count / at_break) ** (-1.0 / DISK_INDEX_ABOVE)

@@ -40,7 +40,7 @@ from dataclasses import dataclass
 from planetgen.physics import constants, eclipses
 
 _C2 = float(constants.SPEED_OF_LIGHT_M_S) ** 2
-_HOURS_PER_YEAR = constants.SECONDS_PER_YEAR / 3600.0
+_HOURS_PER_YEAR = constants.HOURS_PER_YEAR
 _TWO_PI = 2.0 * math.pi
 
 
