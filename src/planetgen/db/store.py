@@ -3475,7 +3475,8 @@ def _insert_composition(conn, table, owner_column, owner_id, composition):
         return
     marks = ", ".join("?" * len(rows[0]))
     columns = "position, component, concentration" if len(rows[0]) == 4 else "position, component"
-    conn.executemany(f"INSERT INTO {table} ({owner_column}, {columns}) VALUES ({marks})", rows)
+    for row in rows:        # one `execute` each: the connection holds these INSERTs back and writes them with the system's others (`executemany` would flush them for every belt and comet)
+        conn.execute(f"INSERT INTO {table} ({owner_column}, {columns}) VALUES ({marks})", row)
 
 
 def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None) -> int:
