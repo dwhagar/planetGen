@@ -2,6 +2,81 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4061] - 2026-11-14
+
+**Headline:** Every property on the New galaxy page has a Default tick box and a ? help button, and the galaxy shape and first neighborhood fold away.
+
+### Changed
+- **The galaxy shape and the first neighborhood are collapsible sections, open to start with**, like the advanced star properties. The plan-only page's galaxy shape folds the same way.
+- **Shape, Rogue planets, the first neighborhood boxes, the bright star limits, the prevalence and star mix shares and the star cap get the Default toggle and ? help the galaxy measures have.** Each shows its title, a ? button beside it that opens the help text, and an unlabeled tick box beside the box, ticked to start: a blank property stays blank and is drawn by the seed, and one with a usual value shows it read-only (its bar disabled). Unticking frees it. The core limits keep their own "follow the galaxy-wide limits" box.
+
+- **The galaxy shape is split into folds by dial**: the galaxy family and the size rows are open to start with; structure, edge, halo, census (richness and rogue planets) and spiral arms are closed. The advanced shape rows sit with their dial.
+- **All the help text on the New galaxy page is behind a ? button**: each property's, each section's and each tick box's. Only warnings and computed figures stay showing.
+
+generation-affects: none
+
+## [8.0.4060] - 2026-11-14
+
+**Headline:** Two leftover back-compatibility paths for results and rows saved before 8.0 are gone.
+
+### Changed
+- **TEST.736.** `radiation.total_dose_msv_yr` now requires the belt part (every stored body has one, 0.0 outside a belt) instead of reading a missing one as zero, and the benchmark report no longer tolerates a result saved before the buffer pool, table sizes and worker start-up were recorded. Their two tests that kept the old behaviour alive are dropped and the belt-part assertions stay. Nothing generated changes.
+generation-output: unchanged
+
+## [8.0.4059] - 2026-11-14
+
+**Headline:** The long clears of a plan and a scatter (the bright stars, the phenomena, the nebula field and the block light totals) now go a batch of rows at a time and say how many they have done, so a slow machine never shows them as quiet.
+
+### Changed
+
+- OPS.185: the units of OPS.170 that can pass the 300 s quiet floor on a slow host now work in steps that move the unit's heartbeat and say a real count, as OPS.184 did for the generator battery's digest. New `db/batched.py` (`repeat`: a `DELETE` or an `UPDATE` run a batch of rows at a time, each batch committed, `unitbeat.moving()` and a `Ticker` line with the rows so far) is used for the sectors' bright star levels, the spheres the star draw kept (`sky_tier_draws`), the bright stars of one pass, the Galaxy Map's block light totals and parts, and the members and nodes of the scattered stars; `scatter_systems.delete_member_trees_scanning` finds the rows of a pass a chunk of ids at a time and removes their member trees, where one `DELETE` over a join was minutes; `uncharted_index.clear_unoccupied` and the nebula field's inserts tell the unit after each chunk; the nebula field's slab says the column of cells it has walked (`nebula_field.table_rows(on_column)`); the phenomenon scatter's indexes come off one statement each, counted. No `waiting` tag is used. The `plan-skeleton`, `clear-bright-stars`, `empty-phenomenon-scatter`, `drop-phenomenon-indexes`, `clear-scatter` and `draw-nebula-field` units go through these.
+- The phases that cannot pass the floor (a few rows written, an outline of tens of thousands of cheap calls, one range of 200,000 ids, a block light roll that already counts) are left alone; the reasons are in the pull request's audit table.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4058] - 2026-11-14
+
+**Headline:** Two design notes for a chaotic three-sun zone and a dimming star are added to the research tree; nothing in the generator changes.
+
+### Changed
+- **Design notes for the chaotic triple-star zone and the dimming star (GEN.1437).** The notes say what the generator already holds for each case, what a planet or star would store, how to check it, and the build items each needs. Documentation only; generated output is unchanged.
+
+## [8.0.4057] - 2026-11-14
+
+**Headline:** The mass pass and the luminosity pass of one run look up the clusters' and satellites' sector addresses once, with no change to any generated star.
+
+### Changed
+- **The planning of the two bright-star passes shares the components' sample addresses.** Each pass's planning asks, for every cluster and satellite, which sector 256 sample positions lie in (`component_pass.kept_stars`, 5 million `sector_address_at` calls on the default galaxy, most of the 69 s serial planning step of a pass). The places depend on the component alone, not on the pass, so they are now kept by the digest of the positions (`component_pass._sample_places`) and the second pass finds them. The expected stars, the units and the stars drawn are unchanged (PERF.264).
+
+## [8.0.4056] - 2026-11-14
+
+**Headline:** The Sectors list no longer counts the chart ledger table on a request that has no stored answer yet; it uses the storage engine's estimate, as every other count does.
+
+### Fixed
+- **No table-wide count on a request (OPS.154).** The estimate that `count_uncharted_sector_rows` returns before its first stored count ran `SELECT COUNT(*) FROM chart_ledger`; it now reads the ledger's estimated rows, like the sectors table beside it. `test_count_cache.py::test_a_request_never_counts_the_table_itself_when_the_answer_is_not_there` was red on main since PR 6308 and passes again. The stored (exact) count is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4055] - 2026-11-14
+
+**Headline:** Four tests that went red on main this evening pass again; no behavior changes.
+
+### Fixed
+- **Main reds after OPS.183, OPS.184 and OPS.175 (TODO sweep).** The ESA account variables of the Gaia download (OPS.183) are named in the settings test with their reason; the generator battery's digest poll interval (OPS.184) says it is defined by the program; the VizieR source name reads "catalog"; the settings writer test reads the new refusal wording of OPS.175. generation-output: unchanged
+generation-affects: none
+
+## [8.0.4054] - 2026-11-14
+
+**Headline:** A long database statement of a command shows in the beat with its label and start, and the stage events of MySQL are used where the account may read them.
+
+### Changed
+- **One helper for a long statement (OPS.195).** `queue/longsql.run(conn, statement, label)` sends the statement and names it in the beat while it runs (`db/statementmark.py`, the unit's phase). Where the database account can read MySQL's current stage events the beat also carries the work done and estimated for the statement; the account the install creates cannot, so this is checked once and stays off.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4053] - 2026-11-14
 
 **Headline:** The beat of a running job now carries proof that it is working, so a long database statement no longer looks like a job that stopped.

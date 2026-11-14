@@ -107,6 +107,8 @@ class UnitWatch:
             return
         where = f" in {beat.phase}" if beat.phase else ""
         message = f"unit {unit} is {verdict.state}{where}: {verdict.reason}"
+        if verdict.state == beatjudge.BUSY and verdict.severity and self.stuck is not None:
+            message += f"; nothing is stopped, its stack is below\n{self.stuck.stack_of(unit)}"
         error = verdict.state in (beatjudge.DEAD, beatjudge.QUIET) or verdict.severity == beatjudge.SUSPECT
         runrecord.log(self.conn, self.run_id, message, "error" if error else "warning" if verdict.severity or verdict.state == beatjudge.LOOPING else "info", "unit-state",
                       stage=self.stage, unit=unit)
@@ -147,7 +149,7 @@ def view(verdict, beat, now, agreed=False, stored_rate=None):
     return {"state": verdict.state, "severity": verdict.severity, "reason": verdict.reason, "actionable": verdict.actionable, "agreed": bool(agreed),
             "counter": verdict.counter, "rate": verdict.rate, "projected_finish_seconds": verdict.projected_finish_seconds, "still_seconds": verdict.still_seconds,
             "over_limit": verdict.over_limit, "phase": beat.phase, "waiting_on": beat.waiting_on, "done": beat.done, "estimate": beat.estimate,
-            "restarts": beat.restarts, "resident_mb": beat.resident_mb, "beat_age_seconds": max(now - beat.beat, 0.0), "running_seconds": max(now - beat.started, 0.0),
+            "restarts": beat.restarts, "resident_mb": beat.resident_mb, "sql": beat.sql, "sql_seconds": None if beat.sql_since is None or not beat.sql else max(now - beat.sql_since, 0.0), "beat_age_seconds": max(now - beat.beat, 0.0), "running_seconds": max(now - beat.started, 0.0),
             "progress": taskprogress.as_dict(taskprogress.progress(beat.done, beat.estimate, beat.started, now, stored_rate))}
 
 

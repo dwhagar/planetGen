@@ -431,7 +431,7 @@ def _stage_rows(run):
     } for number, stage in enumerate(run["stages"], 1)]
 
 
-UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
+UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "busy": "Busy", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
 """dict: The words for the states `beatjudge` gives a running unit (OPS.138), in the order the summary lists them."""
 
 UNIT_ROWS_SHOWN = 200

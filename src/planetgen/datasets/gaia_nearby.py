@@ -182,7 +182,7 @@ MIRRORS = (
         {"REQUEST": "doQuery", "LANG": "ADQL", "FORMAT": "csv", "MAXREC": "100000", "QUERY": QUERY})),
     fetch.Mirror("VizieR (Gaia DR3, I/355)", get=_vizier(_vizier_columns(
         "I/355/gaiadr3", ("Source", "RA_ICRS", "DE_ICRS", "Plx", "e_Plx", "pmRA", "pmDE", "Gmag", "BP-RP"), " AND Plx/e_Plx > 10")), convert=vizier_to_file, accept=accept_rows),
-    fetch.Mirror("VizieR (the Gaia Catalogue of Nearby Stars, I/360)", get=_vizier(_vizier_columns(
+    fetch.Mirror("VizieR (the Gaia nearby-star catalog GCNS, I/360)", get=_vizier(_vizier_columns(
         "I/360/gcnsmain", ("GaiaEDR3", "RA_ICRS", "DE_ICRS", "Plx", "e_Plx", "pmRA", "pmDE", "Gmag", "BP-RP"))), convert=vizier_to_file, accept=accept_rows),
 )
 """tuple: What is tried, in order, when the archive's own synchronous query fails or is capped (OPS.183, Boss: have all four and if one fails go to the next). The first two give the file byte for byte

@@ -371,7 +371,7 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
         with conn:
             # An airless world is the case the multiplier is built for.
             conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500,"
-                         " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, surface_dose_msv_yr = 501.5,"
+                         " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, dose_belt_msv_yr = 0, surface_dose_msv_yr = 501.5,"
                          " dose_helio_mult = 1 WHERE body_type = 't'")
             cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
             conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 20 WHERE id = ?", (cloud,))
@@ -411,7 +411,7 @@ def test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier(mysql_config
     try:
         with conn:
             conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500, dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5,"
-                         " surface_dose_msv_yr = 501.5, dose_helio_mult = 1 WHERE body_type = 't'")
+                         " dose_belt_msv_yr = 0, surface_dose_msv_yr = 501.5, dose_helio_mult = 1 WHERE body_type = 't'")
             cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
             conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 20 WHERE id = ?", (cloud,))
             home = conn.execute("SELECT center_x_pc FROM nebulae WHERE id = ?", (cloud,)).fetchone()["center_x_pc"]
