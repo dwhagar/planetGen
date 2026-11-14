@@ -60,6 +60,9 @@ class CommandSpec:
     The break points (OPS.161): `breaks`, when given, is a `(module, function)` pair; `breaks(params)` returns the command's `breakpoints.Declaration` for a stage with those
     parameters (the suggested split, where a cut may fall, the split flag, what the command depends on), which the queue engine reads to choose the stage's cut (`splitter`). A
     command that is `whole` declares itself (one item, one unit). One that declares nothing keeps its typed split and runs in plan order (`declaration` is `None`).
+
+    `profile_by` names an argument of the command's units that tells their kinds apart in the job profile (PERF.261): a command whose units are of different sorts (a roll-up and an index, say)
+    that count different items would otherwise put figures of unlike things under one name; with it the profile kind is `<command>:<that argument's value>` (`profile_kind`).
     """
 
     kind: str
@@ -74,6 +77,7 @@ class CommandSpec:
     unit_seconds: float = None
     breaks: tuple = None
     split: str = SPLIT_SUGGESTED
+    profile_by: str = None
 
     @property
     def inline(self):
@@ -155,7 +159,8 @@ REGISTRY = _commands(
                 unit_seconds=30),
     CommandSpec("refresh-block-lights", "Make the Galaxy Map's block light totals again: one unit",
                 unit=("planetgen.generation.run_plan", "refresh_block_lights_unit"),
-                expand=("planetgen.generation.run_plan", "expand_refresh_block_lights"), whole=True),
+                expand=("planetgen.generation.run_plan", "expand_refresh_block_lights"), whole=True,
+                breaks=("planetgen.generation.run_plan", "declare_refresh_block_lights"), split=SPLIT_BYTE_IDENTICAL, profile_by="part"),
     CommandSpec("refresh-run-blocks", "Bring the Galaxy Map's block totals up to what a galaxy run stored: one unit",
                 unit=("planetgen.generation.run_galaxy", "refresh_run_blocks_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_refresh_run_blocks"), whole=True),
@@ -412,6 +417,13 @@ def spec(kind):
     return REGISTRY[kind]
 
 
+def profile_kind(kind, args=None):
+    """The name a unit of command `kind` with `args` is kept under in the job profile (`unit:` is put before it): the command's, with the value of `profile_by` after a colon when the command has one and the unit's arguments hold it."""
+    by = REGISTRY[kind].profile_by if kind in REGISTRY else None
+    value = (args or {}).get(by) if by else None
+    return f"{kind}:{value}" if value else kind
+
+
 def declaration(kind, params=None):
     """
     The break points command `kind` declares for a stage with `params` (OPS.161, `breakpoints.Declaration`), or `None` when it declares none, which keeps its typed split. A
@@ -420,7 +432,6 @@ def declaration(kind, params=None):
     Raises:
         KeyError: No such command.
     """
-    import dataclasses
     from planetgen.queue import breakpoints
     command = REGISTRY[kind]
     if command.breaks is not None:
@@ -429,7 +440,13 @@ def declaration(kind, params=None):
         found = breakpoints.whole_job()
     else:
         return None
-    return dataclasses.replace(found, split=command.split, after=found.after or requires_of(kind))
+    return flagged(kind, found)
+
+
+def flagged(kind, found):
+    """`found`, a declaration made by command `kind` itself, with the command's split flag and, when it names none, its `REQUIRES` as the dependencies (what `declaration` does, for an `expand` that has made the declaration already)."""
+    import dataclasses
+    return dataclasses.replace(found, split=REGISTRY[kind].split, after=found.after or requires_of(kind))
 
 
 def _function(pair):

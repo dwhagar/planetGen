@@ -23,7 +23,7 @@ import types
 
 import pymysql
 
-from planetgen.queue import commands, progress_rate, taskprogress, unitbeat, units, wrapper
+from planetgen.queue import breakpoints, commands, progress_rate, splitter, taskprogress, unitbeat, units, wrapper
 from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, derived_stamp, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
@@ -2836,9 +2836,11 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
     def above(fraction):
         report(BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE * fraction, roll_total)
 
+    running = [0]          # a unit of the index counts the cells with a part it has done, which is what the queue engine cuts the index by (PERF.261): after each shell, the cells of the shells so far
+
     def indexed(done, count):
         if part == "index":
-            report(done, count)
+            report(running[done], running[-1] or 1)
         else:
             report(index_start + (total - index_start) * done / count, total)
 
@@ -2859,9 +2861,13 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
         if shells is None:
             shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
             say(f"{len(shells):,} shells hold objects ({time.monotonic() - begun:,.0f} s to list them).")
+        if part == "index":
+            counted = dict(uncharted_index.shell_part_counts(conn))
+            for shell in shells:
+                running.append(running[-1] + counted.get(shell, 0))
         made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells, from_parts=True)
         say(f"Uncharted sector rows: {made:,} made in {time.monotonic() - begun:,.0f} s.")
-        report(len(shells) or 1, len(shells) or 1) if part == "index" else report(total, total)
+        report(running[-1] or 1, running[-1] or 1) if part == "index" else report(total, total)
     return written, made
 
 
@@ -3101,6 +3107,30 @@ ROLL_SECONDS_PER_CELL, INDEX_SECONDS_PER_CELL = 1.5e-5, 1e-4
 in the roll-up, about 10,000 rows a second in the index (OPS.152, OPS.153)."""
 
 
+def _index_counts(params):
+    """
+    `(counts, note)` of the `refresh-block-lights` stage: the cells with a part of each shell (`uncharted_index.shell_part_counts`) when the parts are current and the stage is cut into the roll-up and
+    runs of the index, or `(None, plan note)` when it is the one unit of old (`rebuild`, or the check of the parts fails).
+    """
+    if params.get("rebuild"):
+        return None, {}
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        if not block_lights.parts_current(conn):
+            return None, {"parts": "made again"}
+        return uncharted_index.shell_part_counts(conn), {}
+    finally:
+        conn.close()
+
+
+def declare_refresh_block_lights(params):
+    """The break points of the `refresh-block-lights` stage (OPS.161, PERF.261): the items of the index are its cells with a part and a cut falls where a shell ends; the stage that is one unit is one item."""
+    counts, _note = _index_counts(params)
+    if counts is None:
+        return breakpoints.whole_job()
+    return uncharted_index.declaration(counts, units.MAX_UNITS - 1)
+
+
 def expand_refresh_block_lights(params):
     """
     The `refresh-block-lights` command's stage cut into its units (OPS.153): when the parts are current (a cheap check, `block_lights.parts_current`) one unit rolls
@@ -3108,25 +3138,26 @@ def expand_refresh_block_lights(params):
     the two halves do not read what the other writes. When the parts have to be made again from the objects (`rebuild`, or the check fails) the stage is the one unit of
     old (`part` `"all"`), since the index must wait for the parts.
 
+    The cut of the index is the queue engine's (PERF.261): the index writes the same rows at any cut between shells (the cut-neutral test of PERF.260 holds it to that), so
+    `splitter.decide` makes the units about a fifth of the unit ceiling long at the speed the job profile has for them (`unit:refresh-block-lights:index`, in cells), and the cut of
+    `uncharted_index.shell_runs` stays where the profile has nothing usable. The decision is in the plan and the run's log.
+
     Args:
         params (dict): `database`, `run_id` and `rebuild`.
 
     Returns:
-        commands.Expansion: The units and the plan (`cells`, `runs`).
+        commands.Expansion: The units, the plan (`cells`, `runs`) and the decision.
     """
-    if params.get("rebuild"):
-        return commands.Expansion([(dict(params, part="all"), 1.0)], {})
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        if not block_lights.parts_current(conn):
-            return commands.Expansion([(dict(params, part="all"), 1.0)], {"parts": "made again"})
-        runs = uncharted_index.shell_runs(uncharted_index.shell_part_counts(conn), units.MAX_UNITS - 1)
-    finally:
-        conn.close()
+    counts, note = _index_counts(params)
+    if counts is None:
+        return commands.Expansion([(dict(params, part="all"), 1.0)], note)
+    declared = commands.flagged("refresh-block-lights", uncharted_index.declaration(counts, units.MAX_UNITS - 1))
+    decision = splitter.decide(commands.profile_kind("refresh-block-lights", {"part": "index"}), declared, max_units=units.MAX_UNITS - 1)
+    runs = uncharted_index.runs_of_spans(counts, splitter.spans(declared.items, decision))
     cells = sum(held for _shells, held in runs)
     cut = [(dict(params, part="roll"), max(cells * ROLL_SECONDS_PER_CELL, 1.0))]
     cut += [(dict(params, part="index", shells=shells), max(held * INDEX_SECONDS_PER_CELL, 1.0)) for shells, held in runs]
-    return commands.Expansion(cut, {"cells": cells, "runs": len(runs)})
+    return commands.Expansion(cut, {"cells": cells, "runs": len(runs)}, split=decision)
 
 
 def refresh_block_lights_unit(params, report):

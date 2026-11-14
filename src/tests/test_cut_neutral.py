@@ -121,51 +121,56 @@ def _register(context, monkeypatch, mode, flagged=True, recipe=True):
     return {"cut-probe": _probe_recipe()} if recipe else {}
 
 
+def _probe_only():
+    """The registry of the probe alone: the commands the program flags are held to their own recipes by the gate's test, and these tests are about the probe."""
+    return {"cut-probe": commands.REGISTRY["cut-probe"]}
+
+
 def test_a_flagged_stage_that_stores_the_same_bytes_at_any_cut_passes(context, monkeypatch):
     found = _register(context, monkeypatch, "neutral")
-    assert gate_failures(found, lambda _recipe: context) == []
+    assert gate_failures(found, lambda _recipe: context, _probe_only()) == []
     verdict = check(found["cut-probe"], context)
     assert verdict.passed and verdict.units == (6, 1) and verdict.line().startswith("IDENTICAL cut-probe")
 
 
 def test_a_flagged_stage_that_stores_a_different_thing_at_a_different_cut_fails_the_gate(context, monkeypatch):
     found = _register(context, monkeypatch, "cut dependent")
-    failures = gate_failures(found, lambda _recipe: context)
+    failures = gate_failures(found, lambda _recipe: context, _probe_only())
     assert len(failures) == 1 and failures[0].startswith("FAILS cut-probe") and "the cuts differ in the stored bytes" in failures[0]
     assert "cut_probe" in failures[0], "the message names the table that differs"
 
 
 def test_a_flagged_stage_that_does_not_reproduce_itself_fails_the_gate(context, monkeypatch):
     found = _register(context, monkeypatch, "unstable")
-    failures = gate_failures(found, lambda _recipe: context)
+    failures = gate_failures(found, lambda _recipe: context, _probe_only())
     assert len(failures) == 1 and "the same cut does not reproduce itself" in failures[0]
 
 
 def test_a_flagged_stage_that_stores_nothing_fails_the_gate(context, monkeypatch):
     found = _register(context, monkeypatch, "nothing")
-    failures = gate_failures(found, lambda _recipe: context)
+    failures = gate_failures(found, lambda _recipe: context, _probe_only())
     assert len(failures) == 1 and "stored nothing" in failures[0]
 
 
 def test_two_cuts_that_make_the_same_number_of_units_fail_the_gate(context, monkeypatch):
     found = _register(context, monkeypatch, "neutral")
     found["cut-probe"] = _probe_recipe(cuts=((6,), (10,)))      # both are one unit of six
-    failures = gate_failures(found, lambda _recipe: context)
+    failures = gate_failures(found, lambda _recipe: context, _probe_only())
     assert len(failures) == 1 and "the two cuts make the same number of units" in failures[0]
 
 
 def test_a_flagged_command_with_no_recipe_fails_the_gate_until_the_flag_is_removed(context, monkeypatch):
     found = _register(context, monkeypatch, "neutral", recipe=False)
-    failures = gate_failures(found, lambda _recipe: context)
+    failures = gate_failures(found, lambda _recipe: context, _probe_only())
     assert len(failures) == 1 and "cut-probe is flagged byte identical but has no recipe" in failures[0]
     monkeypatch.setitem(commands.REGISTRY, "cut-probe", commands.CommandSpec("cut-probe", "A probe stage"))      # the flag is removed
-    assert gate_failures(found, lambda _recipe: context) == []
+    assert gate_failures(found, lambda _recipe: context, _probe_only()) == []
 
 
 def test_the_flagged_commands_are_found_in_the_registry_with_no_list_and_an_unflagged_one_is_not_run(context, monkeypatch):
     found = _register(context, monkeypatch, "cut dependent", flagged=False)
     assert "cut-probe" not in flagged_commands()
-    assert gate_failures(found, lambda _recipe: context) == [], "a stage that is not flagged may be cut dependent"
+    assert gate_failures(found, lambda _recipe: context, _probe_only()) == [], "a stage that is not flagged may be cut dependent"
     _register(context, monkeypatch, "cut dependent", flagged=True)
     assert "cut-probe" in flagged_commands()
     assert flagged_commands() == [kind for kind, spec in commands.REGISTRY.items() if getattr(spec, "split", None) == BYTE_IDENTICAL]

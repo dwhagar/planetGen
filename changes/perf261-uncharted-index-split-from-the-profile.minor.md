@@ -1,0 +1,6 @@
+**Headline:** The uncharted index step now cuts itself into units from what earlier runs measured, so it uses the machine's memory and time better without changing a single stored byte.
+
+### Changed
+- **The Stage 17 uncharted index is the first stage on the queue engine (PERF.261).** The block-light totals stage cut its uncharted index into runs of shells of about 300,000 cells whatever the machine; it now declares its break points (cells with a part, a cut only where a shell ends, the old cut as the suggestion) and the queue engine (OPS.161) picks the cut from the job profile: units about a fifth of the unit ceiling long at the speed the profile has for them, smaller where the machine's free memory asks, between a quarter and four times the old unit. With no usable profile (fewer than three finished index units, or self-tuning off) the cut is exactly the old one. The index writes the same rows at any cut between shells, which PERF.260's test holds it to; the decision (old and new units, the samples, the reason) is in the run's log and plan. A unit of the index now counts the cells it has done, not the shells, and its profile is kept under `unit:refresh-block-lights:index` so the roll-up's figures never mix with it (`CommandSpec.profile_by`).
+
+generation-output: unchanged

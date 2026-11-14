@@ -91,6 +91,53 @@ def shell_runs(counts, max_units, unit_cells=None):
     return runs
 
 
+def declaration(counts, max_units, unit_cells=None):
+    """
+    The break points of the index over `counts` (`shell_part_counts`), for the queue engine (OPS.161, PERF.261): the items are the cells with a part, taken shell by shell, a cut may fall
+    only where a shell ends (a shell is never split), and the suggested cut is the one `shell_runs` makes. The index writes the same rows at any cut, which PERF.260's test holds it to.
+
+    Returns:
+        breakpoints.Declaration: Without the split flag; `commands.declaration` puts the command's own on it.
+    """
+    from planetgen.queue import breakpoints
+    total = sum(n for _shell, n in counts)
+    ends, held = [], 0
+    for _shell, n in counts:
+        held += n
+        ends.append(held)
+    suggested, held = [], 0
+    for _shells, cells in shell_runs(counts, max_units, unit_cells)[:-1]:
+        held += cells
+        suggested.append(held)
+    return breakpoints.Declaration(total, tuple(suggested), boundaries=tuple(end for end in ends if 0 < end < total))
+
+
+def runs_of_spans(counts, spans):
+    """
+    The runs of shells (`shell_runs`' form, `(shells, cells)`) of the cell ranges `spans` (`(start, end)` over the cells of `counts` taken shell by shell, as `declaration` counts them, one after
+    the other from 0): each range must end where a shell does.
+
+    Raises:
+        ValueError: A range that cuts a shell.
+    """
+    runs, shells, held, edge = [], [], 0, 0
+    ends = iter(end for _start, end in spans)
+    end = next(ends, None)
+    for shell, n in counts:
+        shells.append(shell)
+        held += n
+        edge += n
+        if end is not None and edge > end:
+            raise ValueError(f"the range ending at cell {end} cuts a shell")
+        if edge == end:
+            runs.append((shells, held))
+            shells, held = [], 0
+            end = next(ends, None)
+    if shells:
+        runs.append((shells, held))
+    return runs
+
+
 def cells_without_a_row(conn, shell, from_parts=False):
     """The `(band, wedge)` of every cell of `shell` that holds a waiting object and has no sector row, sorted. With `from_parts` the cells with a
     part are the cells that hold one (GEN.1476)."""

@@ -180,18 +180,19 @@ def choose(kind, decl, reading=None, resources=None, seconds=None, max_units=Non
                     samples=reading.samples, seconds_per_item=reading.seconds_per_item, limit=limit, resources=shown)
 
 
-def decide(kind, decl, resources=None):
+def decide(kind, decl, resources=None, max_units=None):
     """
     `choose` with the stub or stored profile (`splitprofile.lookup`) and the host now (`resources_now`): the call a command's `expand` makes to cut its stage (PERF.261).
-    Any failure to read either leaves the suggested split, and says so.
+    `kind` is the profile kind (`commands.profile_kind`: the command's name, with `:<sort>` after it when its units are of unlike sorts); the host's workers are those of the command, the part before the colon.
+    `max_units` is the most units the stage may have (`units.MAX_UNITS` unset). Any failure to read either leaves the suggested split, and says so.
     """
     try:
         reading = splitprofile.lookup(kind)
     except Exception:  # noqa: BLE001 -- learning never blocks a job
         reading = None
     if not decl.dynamic:
-        return choose(kind, decl, reading)
-    return choose(kind, decl, reading, resources or resources_now(kind))
+        return choose(kind, decl, reading, max_units=max_units)
+    return choose(kind, decl, reading, resources or resources_now(kind.split(":")[0]), max_units=max_units)
 
 
 def announce(conn, run_id, stage, decision):

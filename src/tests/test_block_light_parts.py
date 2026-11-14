@@ -235,6 +235,63 @@ def test_shells_are_cut_into_runs_of_neighbors_that_never_split_a_shell():
     assert [shell for shells, _held in runs for shell in shells] == [shell for shell, _n in counts]
 
 
+def test_the_index_declares_its_cells_cut_only_where_a_shell_ends():
+    """PERF.261: the items are the cells with a part, a cut falls at the end of a shell, and the suggested cut is the one `shell_runs` makes; runs come back from any legal cut."""
+    counts = [(1, 100), (2, 150), (3, 400), (4, 10), (7, 30), (9, 500)]
+    declared = uncharted_index.declaration(counts, 100, unit_cells=250)
+    assert declared.items == 1190 and declared.suggested == (250, 650) and declared.legal_cuts == (100, 250, 650, 660, 690)
+    assert declared.sizes() == [250, 400, 540]
+    spans = [(0, 250), (250, 650), (650, 1190)]
+    assert uncharted_index.runs_of_spans(counts, spans) == uncharted_index.shell_runs(counts, 100, unit_cells=250)
+    assert uncharted_index.runs_of_spans(counts, [(0, 100), (100, 660), (660, 1190)]) == [([1], 100), ([2, 3, 4], 560), ([7, 9], 530)]
+    assert uncharted_index.runs_of_spans(counts, [(0, 1190)]) == [([1, 2, 3, 4, 7, 9], 1190)]
+    with pytest.raises(ValueError):
+        uncharted_index.runs_of_spans(counts, [(0, 120), (120, 1190)])
+    empty = uncharted_index.declaration([], 5)
+    assert empty.items == 0 and uncharted_index.runs_of_spans([], []) == []
+
+
+def test_the_engine_cuts_the_index_from_the_profile_and_keeps_the_suggested_cut_without_one(conn, mysql_config, monkeypatch):
+    """PERF.261: with nothing usable in the profile the stage is cut as before; with a reading it is cut about a fifth of the unit ceiling long, still only between shells, and says so in its plan."""
+    from planetgen.generation import run_plan
+    from planetgen.queue import splitprofile
+    from planetgen.queue.splitprofile import Reading
+
+    monkeypatch.setattr(uncharted_index, "UNIT_CELLS", 2)
+    monkeypatch.setattr("planetgen.db.query.galaxy_edge_pc", lambda conn: 4.0)
+    stars, points = _rows()
+    _write(conn, stars, points)
+    params = {"database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}, "run_id": None, "rebuild": False}
+    counts = uncharted_index.shell_part_counts(conn)
+    monkeypatch.setattr(splitprofile, "STUB", {})
+    monkeypatch.setattr(splitprofile, "lookup", lambda kind: None)
+    plain = run_plan.expand_refresh_block_lights(params)
+    assert plain.split.by == "suggested" and [unit["shells"] for unit, _cost in plain.units[1:]] == [shells for shells, _held in uncharted_index.shell_runs(counts, 511, unit_cells=2)]
+    monkeypatch.setattr(splitprofile, "lookup", lambda kind: Reading(seconds_per_item=1000.0, samples=9) if kind == "refresh-block-lights:index" else None)
+    chosen = run_plan.expand_refresh_block_lights(params)
+    assert chosen.split.by == "profile" and chosen.split.kind == "refresh-block-lights:index" and chosen.plan["cells"] == plain.plan["cells"]
+    assert [shell for unit, _cost in chosen.units[1:] for shell in unit["shells"]] == [shell for shells, _held in uncharted_index.shell_runs(counts, 511, unit_cells=2) for shell in shells]
+
+
+def test_a_unit_of_the_index_reports_the_cells_it_has_done(conn, mysql_config, monkeypatch):
+    """PERF.261: its items for the job profile are the cells with a part, so the speed learned is the same whatever shells the unit holds."""
+    from planetgen.generation import run_plan
+
+    monkeypatch.setattr("planetgen.db.query.galaxy_edge_pc", lambda conn: 4.0)
+    stars, points = _rows()
+    _write(conn, stars, points)
+    params = {"database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}, "run_id": None, "rebuild": False}
+    run_plan.refresh_block_lights_unit(dict(params, part="roll"), lambda done, total: None)
+    conn.commit()
+    counts = uncharted_index.shell_part_counts(conn)
+    reports = []
+    result = run_plan.refresh_block_lights_unit(dict(params, part="index", shells=[shell for shell, _n in counts]), lambda done, total: reports.append((done, total)))
+    assert result["warning"] is None
+    everything = sum(n for _shell, n in counts)
+    assert reports[-1] == (everything, everything) and [done for done, _total in reports] == sorted(done for done, _total in reports)
+    assert {total for _done, total in reports} == {everything}
+
+
 def _sector_rows(conn):
     rows = conn.execute("SELECT shell_index, band_index, wedge_index, uid, name, center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors ORDER BY shell_index, band_index, wedge_index").fetchall()
     return [tuple(row.values()) for row in rows]

@@ -245,7 +245,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     commandgaps.note(conn, run_id, kind, gap)       # OPS.135
     unitrates.note(conn, run_id, kind, finished, worked)        # PERF.147: how fast this command's units work, for the ETA of a unit's bar
     peak = peak_resident_mb()
-    _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, used.summary())       # OPS.155: what this kind of unit costs, kept for the self-tuning jobs (nothing reads it yet)
+    _profile_unit(conn, run_id, stage, unit, commands.profile_kind(kind, args), finished, worked, peak, used.summary())       # OPS.155: what this kind of unit costs, kept for the self-tuning jobs (nothing reads it yet)
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it

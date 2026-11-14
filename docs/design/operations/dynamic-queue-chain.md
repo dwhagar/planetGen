@@ -1,6 +1,6 @@
 # The dynamic queue chain: jobs declare, the engine splits (OPS.161)
 
-Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet. Asked by Boss, 2026-11-12, 3:00 PM EST ("a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue"), with his rulings of 3:01 to 3:04 PM EST. It is the second half of [self-tuning-jobs.md](self-tuning-jobs.md) (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of [job-graph-and-memory-broker.md](job-graph-and-memory-broker.md) (DOC.113).
+Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); the Stage 17 uncharted index uses it (PERF.261, first stage), no other stage yet. Asked by Boss, 2026-11-12, 3:00 PM EST ("a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue"), with his rulings of 3:01 to 3:04 PM EST. It is the second half of [self-tuning-jobs.md](self-tuning-jobs.md) (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of [job-graph-and-memory-broker.md](job-graph-and-memory-broker.md) (DOC.113).
 
 ## What a job declares
 
@@ -32,8 +32,14 @@ The decision (`Decision`) carries the flag, the old and new unit counts and size
 
 `queue/splitprofile.py` reads the `job_profiles` rows of `jobprofiles` (`unit_rows`, kind `unit:<command>`, finished units with seconds per item). `lookup(kind)` gives a `Reading(seconds_per_item, mb_base, mb_per_item, samples, trust)`: the median seconds per item, and a memory line through the lowest and highest size bucket's median peaks (one bucket gives the raw peak over the items and no base, which overstates the slope and so never cuts a unit too large). Rows from this machine's shape and epoch (the rule of `profileclaim._shape_of`, reused) count in full at 3 samples or more; otherwise rows from elsewhere count at half trust (0.5); fewer than 3 of either gives `None`, so the job keeps its suggested split. `PLANETGEN_SELF_TUNING=0` or `PLANETGEN_JOB_PROFILES=0` (the test default) turns the reading off, and any failure to read leaves the suggested split. The same table feeds the gate claim (OPS.156) and the worker caps (OPS.157).
 
+## The first stage on the engine: the uncharted index (PERF.261)
+
+`refresh-block-lights` is flagged byte identical (`CommandSpec.split`; PERF.260's recipe for it cuts the index at two sizes and compares every stored byte). Its `expand` (`run_plan.expand_refresh_block_lights`) declares the index with `uncharted_index.declaration`: the items are the cells with a part, taken shell by shell; a cut may fall only where a shell ends; the suggested cut is the one `uncharted_index.shell_runs` makes (the cell target `UNIT_CELLS`), so it is also the cut whenever the profile has nothing usable. `splitter.decide` then picks the cut (about a fifth of `queue.unit_ceiling_seconds` at the profile's seconds per cell), and `uncharted_index.runs_of_spans` turns the chosen cell ranges back into runs of shells. The roll-up and the one-unit form of the stage (`rebuild`, or parts that are not current) keep their typed cut.
+
+A unit of the index now reports the cells it has done (it reported shells), so its item for the job profile is a cell, the same whatever shells the unit holds. The kind a unit is profiled under carries its sort (`unit:refresh-block-lights:index`, `:roll`, `:all`: `CommandSpec.profile_by`, `commands.profile_kind`), so the roll-up's figures, counted on another scale, never mix with the index's. Nothing is read from a profile that does not exist yet: until three finished index units are in `job_profiles` the stage is cut as before.
+
 ## What is not built
 
-* Declarations for the registered commands and the use of `splitter.decide` in their `expand` functions: PERF.261, starting with the Stage 17 uncharted index (`uncharted_index.shell_runs`), then block lights, link, settle and the warm-up chunks; each behind PERF.260's byte-identical test.
+* Declarations for the other registered commands and the use of `splitter.decide` in their `expand` functions: PERF.261 goes on stage by stage (block lights' roll-up, link, settle and the warm-up chunks), each behind PERF.260's byte-identical test.
 * The overlap of declared independent jobs (OPS.131/OPS.132): the declaration carries the data (`reads`, `writes`, `after`); the executor does not use it yet.
 * A learned figure that moves at most 25 percent per run (the design note's rule) applies to the stored profile, not to this engine.
