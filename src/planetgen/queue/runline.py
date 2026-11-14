@@ -9,7 +9,8 @@ wait for the machine waits here, in one ordered list in Redis, up to `queue.max_
 come first served:
 
 * a **run** (`type` `run`): a generation run (or an API job's, a one-sector regenerate or a neighbourhood) that finds
-  the machine's `GENERATION` slot taken (`runrecord.start_run`), waiting inside `start_when_free`. It holds its place
+  the machine's `GENERATION` slot taken (`runrecord.start_run`), waiting inside `start_when_free`. The supervisor starts it (OPS.211: `supervisor.RunStarts`), the first of the line when the
+  machine is free, and the waiting process follows the run it started. It holds its place
   with a sign of life (`ALIVE_SECONDS`), so one that was killed drops out of the line by itself;
 * a **job** (`type` `job`): a Generate page job that finds another job running, waiting for the Generate page's job
   slot (`web/jobs.py`). Its recipe is kept in a private file of the jobs folder (it holds the database environment);
@@ -30,9 +31,12 @@ Keys (`runrecord.PREFIX` first):
 * `line:seq`        the arrival counter;
 * `line:<ticket>`   hash: `type`, `title`, `who`, `database`, `kind`, `queued_at`, `seq`, and for a job `root`,
                     `spec` (the file holding its steps and environment), `after_job` and `held`;
-* `line:<ticket>:alive`  a run's sign of life.
+* `line:<ticket>:alive`  a run's sign of life;
+* `line:<ticket>:verdict`  the supervisor's answer to a run that asked to start (`run_id`, `busy` or `failed`);
+* `line:starts`     hash: ticket -> the start of a run that does not wait (no place in the line), JSON; a run in the line keeps its own in the entry's `start` field.
 """
 
+import json
 import secrets
 import time
 import traceback
@@ -126,6 +130,7 @@ def entries(conn):
             "database": fields.get("database") or None, "kind": fields.get("kind") or None,
             "queued_at": float(fields.get("queued_at") or 0), "seq": int(fields.get("seq") or 0),
             "position": places[fields["type"]], "root": fields.get("root") or None, "spec": fields.get("spec") or None,
+            "start": fields.get("start") or None,
             "after_job": fields.get("after_job") or None, "held": fields.get("held") or None,
         })
     return found
@@ -207,20 +212,70 @@ def sign_of_life(conn, ticket):
     conn.set(_alive_key(ticket), "1", ex=ALIVE_SECONDS)
 
 
-def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENERATION, title=None, who=None,
+STARTS_KEY_NAME = "line:starts"
+START_WAIT_SECONDS = 60.0
+"""float: How long a run that nothing holds up waits for the supervisor to start it before it says the supervisor did not."""
+
+
+class NotStarted(runrecord.Busy):
+    """Nothing holds the machine and the supervisor did not start the run in time."""
+
+
+def _starts_key():
+    return runrecord.PREFIX + STARTS_KEY_NAME
+
+
+def _verdict_key(ticket):
+    return runrecord.PREFIX + f"line:{ticket}:verdict"
+
+
+def verdict(conn, ticket):
+    """What the supervisor decided about the run `ticket` asked for: `{"run_id": ...}`, `{"busy": message}` or `{"failed": message}`; `None` while it has not decided."""
+    fields = {runrecord._s(key): runrecord._s(value) for key, value in conn.hgetall(_verdict_key(ticket)).items()}
+    return fields or None
+
+
+def decide(conn, ticket, **fields):
+    """The supervisor's answer to the run `ticket` asked for (`verdict`)."""
+    conn.hset(_verdict_key(ticket), mapping=fields)
+    conn.expire(_verdict_key(ticket), KEEP_VERDICT_SECONDS)
+
+
+KEEP_VERDICT_SECONDS = 600
+
+
+def direct_starts(conn):
+    """`{ticket: start}` of the runs that asked for the machine without a place in the line (a run that does not wait), `start` the arguments of `runrecord.start_run`."""
+    return {runrecord._s(ticket): json.loads(runrecord._s(raw)) for ticket, raw in conn.hgetall(_starts_key()).items()}
+
+
+def take_direct(conn, ticket):
+    """Takes one direct ask so that one process alone acts on it; whether this call took it."""
+    return bool(conn.hdel(_starts_key(), ticket))
+
+
+def waiting_start(conn):
+    """The run first in the line and the start it asks for, as `(ticket, start)`; `None` when the line holds no run or its first run starts itself (it has no start to carry out)."""
+    waiting = of_type(conn, RUN)
+    if waiting and waiting[0]["start"]:
+        return waiting[0]["ticket"], json.loads(waiting[0]["start"])
+    return None
+
+
+def start_when_free(conn, start, limit_seconds, ask, on_wait=None, kind=runrecord.GENERATION, title=None, who=None,
                     database=None, admitted=False, clock=time.time, sleep=time.sleep,
                     nested_guard=False):
     """
-    Takes the machine with `take()` (it returns the run id, or raises `runrecord.Busy`), waiting in the line for it
-    when another run holds it.
+    Asks the supervisor to start a run (OPS.211) and waits for its answer, in the line for the machine when another run holds it.
 
-    Only the first run in the line tries the machine, so a late comer never jumps the line. It gives up when
-    `limit_seconds` have passed (0 or less never waits) and fails naming the run it waited for.
+    The run does not start here: the ask is left on Redis (a place in the line for a run that waits, a request of its own for one that does not) and the supervisor's `RunStarts` starts it
+    when the machine is free and the run is first in the line, so a run is never started by a process that may be gone a moment later. Only the first run in the line is started, so a late
+    comer never jumps it. This gives up when `limit_seconds` have passed (0 or less never waits) and fails naming the run it waited for.
 
     Args:
-        conn: The Redis client.
-        take (callable): Starts the run; raises `runrecord.Busy` when the machine is taken.
-        limit_seconds (float): The longest to wait; 0 or less does not wait (the first `Busy` is raised).
+        start (dict): The arguments of `runrecord.start_run`, as JSON: the stages as dicts and `owner` the process that follows the run.
+        limit_seconds (float): The longest to wait for the machine; 0 or less does not wait (the first `Busy` is raised).
+        ask (callable): `ask()` makes sure a supervisor is there to answer, called at every poll (the caller's `supervisor.ensure_started`; a test passes one turn of `RunStarts`).
         on_wait (callable, optional): `on_wait(holder, position)` each time the wait changes (the run that holds the
             machine, and the place among the waiting runs, 1 being next), and `on_wait(None, None)` once it is over.
         kind (str): The kind of run, to name the holder.
@@ -231,48 +286,60 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
             line.
 
     Returns:
-        str: What `take` returned.
+        str: The id of the run that was started.
 
     Raises:
         LineFull: The line is full.
         runrecord.Busy: The machine stayed taken for `limit_seconds`; the message names the run.
+        NotStarted: Nothing held the machine and no supervisor started the run within `START_WAIT_SECONDS`.
     """
-    if limit_seconds <= 0 or not of_type(conn, RUN):
-        try:
-            return take()
-        except runrecord.Busy:
-            if limit_seconds <= 0:
-                raise
-    ticket = join(conn, RUN, title or "A run", who=who, database=database, kind=kind, force=admitted)
-    deadline = clock() + limit_seconds
+    waits = limit_seconds > 0
+    if waits:
+        ticket = join(conn, RUN, title or "A run", who=who, database=database, kind=kind,
+                      force=admitted or not of_type(conn, RUN), fields={"start": json.dumps(start)})
+    else:
+        ticket = secrets.token_hex(8)
+        conn.hset(_starts_key(), ticket, json.dumps(start))
+        conn.expire(_starts_key(), KEEP_VERDICT_SECONDS)
+    now = clock()
+    deadline = now + limit_seconds
+    free_since = now
     shown = None
     try:
         while True:
-            sign_of_life(conn, ticket)
-            waiting = of_type(conn, RUN)
-            places = [entry["ticket"] for entry in waiting]
-            position = places.index(ticket) + 1 if ticket in places else 1
+            if waits:
+                sign_of_life(conn, ticket)
+            ask()
+            found = verdict(conn, ticket)
+            if found:
+                if found.get("run_id"):
+                    return found["run_id"]
+                if found.get("failed"):
+                    raise RuntimeError(found["failed"])
+                raise runrecord.Busy(found.get("busy") or "another run is running")
             holder = runrecord.active_run(conn, kind)
-            if position == 1:
-                try:
-                    return take()
-                except runrecord.Busy as busy:
-                    holder = runrecord.active_run(conn, kind) or holder
-                    last = busy
+            places = [entry["ticket"] for entry in of_type(conn, RUN)] if waits else []
+            position = places.index(ticket) + 1 if ticket in places else 1
+            if holder is None:
+                if clock() - free_since >= START_WAIT_SECONDS:
+                    raise NotStarted("nothing holds the machine, but no supervisor started the run in time; the supervisor may not be running (planetgen.cli.supervisor)")
             else:
-                last = runrecord.Busy(runrecord.busy_message(conn, holder))
+                free_since = clock()
+                if not waits and clock() - now >= START_WAIT_SECONDS:
+                    raise NotStarted("no supervisor answered the ask for a run in time; the supervisor may not be running (planetgen.cli.supervisor)")
             if nested_guard and holder and runrecord.followed_here(conn, holder):
                 log.error("A run was started inside a run of the same process; where from:\n"
                                                      + "".join(traceback.format_stack(limit=25)))
                 raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; this run is started by the same process "
                                      f"that follows it, so it would wait for itself for ever (a run started inside a run)")
-            if clock() >= deadline:
-                raise runrecord.Busy(f"{last}; waited {limit_seconds / 60:g} minutes for it")
-            if on_wait is not None and (holder, position) != shown:
+            if waits and clock() >= deadline and holder is not None:
+                raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; waited {limit_seconds / 60:g} minutes for it")
+            if on_wait is not None and waits and holder is not None and (holder, position) != shown:
                 shown = (holder, position)
                 on_wait(holder, position)
             sleep(POLL_SECONDS)
     finally:
         leave(conn, ticket)
+        conn.hdel(_starts_key(), ticket)
         if shown is not None and on_wait is not None:
             on_wait(None, None)

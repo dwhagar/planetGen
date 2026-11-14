@@ -374,7 +374,7 @@ def test_a_refusal_names_the_run_that_holds_the_machine(conn):
         runrecord.start_run(conn, "Another", _stages(), kind=runrecord.CHECK)
     text = str(refused.value)
     assert f"run {first} is running" in text and "Check the data sets" in text and "check kind" in text
-    assert "1970-01-01 00:01:40 UTC" in text and runrecord._owner() in text
+    assert "1970-01-01 00:01:40 UTC" in text and runrecord.this_process() in text
 
 
 # --- OPS.141: the stale rule on the states of the running units --------------------------------------------

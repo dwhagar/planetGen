@@ -1,6 +1,7 @@
 """OPS.207: the supervisor process (`planetgen/queue/supervisor.py`): one per host by a file lock, a sign of life in Redis, its loop driven by a fake clock, store
 and process table, and started on demand by a submit, a status poll and the warm-up."""
 
+import json
 import socket
 import subprocess
 import sys
@@ -271,3 +272,52 @@ def test_a_run_the_supervisor_watches_is_not_taken_over_when_its_starting_proces
     assert not runrecord.holder_is_dead(conn, run_id), "OPS.210: with it, the run carries on"
     runrecord.finish_run(conn, run_id, "done")
     assert runrecord.holder_is_dead(conn, run_id), "a run that is over is never held"
+
+
+def _ask_for_a_run(title="A run", **extra):
+    """What a run asks the supervisor to start (`wrapper.run`'s `start`)."""
+    return {"title": title, "stages": [{"key": "mass", "label": "Mass"}], **extra}
+
+
+def test_the_supervisor_starts_the_first_run_of_the_line_when_the_machine_is_free_and_names_the_process_that_follows_it(conn):
+    from planetgen.queue import runline
+    first = runline.join(conn, runline.RUN, "First", fields={"start": json.dumps(_ask_for_a_run("First", owner="host:111"))})
+    second = runline.join(conn, runline.RUN, "Second", fields={"start": json.dumps(_ask_for_a_run("Second", owner="host:222"))})
+    duty = supervisor.RunStarts(conn)
+    assert duty.turn() == 1
+    started = runline.verdict(conn, first)["run_id"]
+    assert runrecord.active_run(conn) == started and runrecord._s(conn.hget(runrecord.run_key(started), "owner")) == "host:111"
+    assert runline.verdict(conn, second) is None and [entry["ticket"] for entry in runline.of_type(conn, runline.RUN)] == [second]
+    assert duty.turn() == 0                         # the machine is taken: the second keeps its place
+    runrecord.finish_run(conn, started, "done")
+    assert duty.turn() == 1 and runrecord._s(conn.hget(runrecord.run_key(runline.verdict(conn, second)["run_id"]), "owner")) == "host:222"
+
+
+def test_a_run_that_does_not_wait_is_refused_with_the_holder_named_and_a_failed_start_is_answered_and_leaves_the_line_going(conn):
+    from planetgen.queue import runline
+    holder = runrecord.start_run(conn, "Holder", [runrecord.Stage("mass", "Mass")])
+    ticket = "t1"
+    conn.hset(runline._starts_key(), ticket, json.dumps(_ask_for_a_run("Check", kind=runrecord.GENERATION)))
+    supervisor.RunStarts(conn).turn()
+    assert holder in runline.verdict(conn, ticket)["busy"]
+    broken = runline.join(conn, runline.RUN, "Broken", fields={"start": json.dumps({"title": "x", "stages": []})})
+    supervisor.RunStarts(conn).turn()
+    assert "could not be started" in runline.verdict(conn, broken)["failed"] and runline.of_type(conn, runline.RUN) == []
+
+
+def test_a_run_waiting_for_a_supervisor_that_never_comes_fails_naming_the_supervisor(conn):
+    from planetgen.queue import runline
+
+    class Clock:
+        now = 1000.0
+
+        def time(self):
+            return self.now
+
+        def sleep(self, seconds):
+            self.now += seconds
+
+    clock = Clock()
+    with pytest.raises(runline.NotStarted, match="supervisor"):
+        runline.start_when_free(conn, _ask_for_a_run(), 3600, lambda: None, clock=clock.time, sleep=clock.sleep)
+    assert runline.of_type(conn, runline.RUN) == []
