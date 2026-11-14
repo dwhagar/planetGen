@@ -229,10 +229,20 @@ def _verdict_key(ticket):
     return runrecord.PREFIX + f"line:{ticket}:verdict"
 
 
+def _answers(conn, ticket):
+    return {runrecord._s(key): runrecord._s(value) for key, value in conn.hgetall(_verdict_key(ticket)).items()}
+
+
 def verdict(conn, ticket):
     """What the supervisor decided about the run `ticket` asked for: `{"run_id": ...}`, `{"busy": message}` or `{"failed": message}`; `None` while it has not decided."""
-    fields = {runrecord._s(key): runrecord._s(value) for key, value in conn.hgetall(_verdict_key(ticket)).items()}
-    return fields or None
+    fields = _answers(conn, ticket)
+    return fields if any(name in fields for name in ("run_id", "busy", "failed")) else None
+
+
+def starting(conn, ticket):
+    """The id the supervisor chose for the run `ticket` asked for before it started it (`decide(starting=...)`), so a supervisor that was killed in the start, or a start that Redis failed, is
+    carried out again with the same id and never starts a second run; `None` before one was chosen."""
+    return _answers(conn, ticket).get("starting")
 
 
 def decide(conn, ticket, **fields):
@@ -249,9 +259,9 @@ def direct_starts(conn):
     return {runrecord._s(ticket): json.loads(runrecord._s(raw)) for ticket, raw in conn.hgetall(_starts_key()).items()}
 
 
-def take_direct(conn, ticket):
-    """Takes one direct ask so that one process alone acts on it; whether this call took it."""
-    return bool(conn.hdel(_starts_key(), ticket))
+def end_direct(conn, ticket):
+    """Removes a direct ask the supervisor has answered."""
+    conn.hdel(_starts_key(), ticket)
 
 
 def waiting_start(conn):

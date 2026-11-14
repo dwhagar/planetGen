@@ -336,3 +336,18 @@ def test_a_live_run_whose_starter_stopped_is_noted_once_in_the_run_log_and_the_a
     assert sum("starter stopped" in line and "carries the run on" in line for line in acts) == 1
     said = [fields for _id, fields in runrecord.read_events(conn, run_id) if fields.get("kind") == "run.starter_stopped"]
     assert len(said) == 1
+
+
+def test_a_start_carried_out_again_after_a_kill_uses_the_same_run_and_never_starts_a_second(conn):
+    from planetgen.queue import runline
+    ticket = runline.join(conn, runline.RUN, "Once", fields={"start": json.dumps(_ask_for_a_run("Once"))})
+    chosen = runrecord.new_run_id()
+    runline.decide(conn, ticket, starting=chosen)           # the supervisor chose the id and was killed before it started the run
+    supervisor.RunStarts(conn).turn()
+    assert runline.verdict(conn, ticket)["run_id"] == chosen
+    assert runrecord.active_run(conn) == chosen
+    again = runline.join(conn, runline.RUN, "Again", fields={"start": json.dumps(_ask_for_a_run("Again"))})
+    conn.hset(runline._verdict_key(again), mapping={"run_id": chosen})      # answered, and killed before it left the line
+    supervisor.RunStarts(conn).turn()
+    assert [entry["ticket"] for entry in runline.of_type(conn, runline.RUN)] == [] and runrecord.active_run(conn) == chosen
+    assert conn.exists(runrecord.supervised_key(chosen))

@@ -19,6 +19,8 @@ import os
 import sys
 import time
 
+import redis
+
 from planetgen.admin import maintenance
 from planetgen.queue import redisqueue, runline, runrecord
 from planetgen.util import log, logrecord
@@ -394,41 +396,61 @@ class RunStarts:
         if self.supervisor is not None:
             self.supervisor.act(what, reason)
 
-    def _begin(self, spec):
-        """Starts the run an ask describes; raises `runrecord.Busy` when the machine is taken."""
+    def _begin(self, ticket, spec):
+        """
+        Starts the run an ask describes and returns its id; raises `runrecord.Busy` when the machine is taken. The id is chosen and written down before the start, and a start that is carried out
+        again (the supervisor was killed in it, Redis failed it) uses the same id and finds the run if it was made, so an ask never starts two runs.
+        """
+        run_id = runline.starting(self.connection, ticket)
+        if run_id is None:
+            run_id = runrecord.new_run_id(time.time())
+            runline.decide(self.connection, ticket, starting=run_id)
+        if self.connection.exists(runrecord.run_key(run_id)):
+            return run_id
         arguments = dict(spec)
         arguments["stages"] = [runrecord.Stage(**stage) for stage in arguments["stages"]]
-        return (self.start or runrecord.start_run)(self.connection, **arguments)
+        arguments["run_id"] = run_id
+        run_id = (self.start or runrecord.start_run)(self.connection, **arguments)
+        self.connection.set(runrecord.supervised_key(run_id), "1", ex=SUPERVISED_SECONDS)       # watched from its first moment, whatever the next turn of the reconciler does
+        return run_id
 
     def turn(self):
         """
-        Answers every ask that does not wait and starts the first waiting run if the machine is free.
+        Answers every ask that does not wait and starts the first waiting run if the machine is free. A Redis error ends the turn and the next one carries on: what was not answered is
+        still on Redis.
 
         Returns:
             int: How many runs it started.
         """
         started = 0
         for ticket, spec in runline.direct_starts(self.connection).items():
-            if not runline.take_direct(self.connection, ticket):
-                continue
-            try:
-                run_id = self._begin(spec)
-            except runrecord.Busy as busy:
-                runline.decide(self.connection, ticket, busy=str(busy))
-            except Exception as exc:  # noqa: BLE001 -- the ask is answered with the failure, and the others are still answered
-                log.swallowed("queue/supervisor", "RunStarts.turn", exc)
-                runline.decide(self.connection, ticket, failed=f"the run could not be started: {exc}")
-            else:
-                runline.decide(self.connection, ticket, run_id=run_id)
-                self._act("started a run", f"{spec.get('title') or 'a run'} ({run_id}), asked for without waiting")
-                started += 1
+            if runline.verdict(self.connection, ticket) is None:
+                try:
+                    run_id = self._begin(ticket, spec)
+                except runrecord.Busy as busy:
+                    runline.decide(self.connection, ticket, busy=str(busy))
+                except redis.exceptions.RedisError:
+                    raise
+                except Exception as exc:  # noqa: BLE001 -- the ask is answered with the failure, and the others are still answered
+                    log.swallowed("queue/supervisor", "RunStarts.turn", exc)
+                    runline.decide(self.connection, ticket, failed=f"the run could not be started: {exc}")
+                else:
+                    runline.decide(self.connection, ticket, run_id=run_id)
+                    self._act("started a run", f"{spec.get('title') or 'a run'} ({run_id}), asked for without waiting")
+                    started += 1
+            runline.end_direct(self.connection, ticket)
         waiting = runline.waiting_start(self.connection)
         if waiting is not None:        # the supervisor of the host is the only one that starts a run, so the ask is not claimed
             ticket, spec = waiting
+            if runline.verdict(self.connection, ticket) is not None:
+                runline.leave(self.connection, ticket)          # answered, and the supervisor was killed before it left the line
+                return started
             try:
-                run_id = self._begin(spec)
+                run_id = self._begin(ticket, spec)
             except runrecord.Busy:
                 pass        # it keeps its place; the machine is taken
+            except redis.exceptions.RedisError:
+                raise
             except Exception as exc:  # noqa: BLE001 -- the run that asked is told, and the line goes on
                 log.swallowed("queue/supervisor", "RunStarts.turn", exc)
                 runline.decide(self.connection, ticket, failed=f"the run could not be started: {exc}")
