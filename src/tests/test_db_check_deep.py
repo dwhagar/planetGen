@@ -38,9 +38,11 @@ def test_the_extended_table_check_is_its_own_check(saved):
 
 def test_a_system_that_fails_validation_is_named(saved):
     _heal_key(saved)
-    _sql(saved, "UPDATE stars SET mass_kg = -1")
+    # A star's mass is only read where a system has two bodies to space (a system of one planet has no spacing to check), and the saved
+    # systems are drawn at random, so the planets are also put beyond any stable orbit: every system with a planet fails, whatever it drew.
+    _sql(saved, "UPDATE stars SET mass_kg = -1", "UPDATE planets SET distance_km = 1e30")
     report = _run(saved, ["systems"])
-    assert _status(report)["systems"] == check.FAIL
+    assert _status(report)["systems"] == check.FAIL, "\n".join(report.lines())
     assert any("star system" in line for line in report.lines())
 
 

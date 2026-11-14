@@ -268,8 +268,16 @@ def _number(value, percent):
     return f"{value:,.12g}"
 
 
-def condition_words(condition):
-    """A rule condition as plain words, e.g. `surface pressure below 10 Pa` or `oxygen share of the air at least 10 percent`."""
+def condition_words(condition, measure=None):
+    """
+    A rule condition as plain words, e.g. `surface pressure below 10 Pa` or `oxygen share of the air at least 10 percent`.
+
+    Args:
+        condition (dict): The condition.
+        measure (callable, optional): `measure(value, unit)` for a number that has a unit (`unit` is the quantity's unit as the document writes it:
+            "Pa", "K", "C", "g", "Earth masses") returns the text to write in place of the number and its unit, or None to write them as usual; the web
+            page gives a number that follows the visitor's unit setting (UX.295). Defaults to None.
+    """
     name = condition["quantity"]
     if name.startswith("share_"):
         gas = name[len("share_"):]
@@ -282,15 +290,20 @@ def condition_words(condition):
         entry = DOCUMENT["quantities"][name]
         label, unit, percent = entry["label"], entry.get("unit", ""), entry.get("percent", False)
     suffix = f" {unit}" if unit else ""
+
+    def number(value):
+        measured = measure(value, unit) if measure is not None and unit else None
+        return measured if measured is not None else f"{_number(value, percent)}{suffix}"
+
     parts = []
     if "min" in condition:
-        parts.append(f"{label} at least {_number(condition['min'], percent)}{suffix}")
+        parts.append(f"{label} at least {number(condition['min'])}")
     if "lt" in condition:
-        parts.append(f"{label} below {_number(condition['lt'], percent)}{suffix}")
+        parts.append(f"{label} below {number(condition['lt'])}")
     if "equals" in condition and name.startswith("phase_") and condition["equals"] == 1.0:
         parts.append(f"the {name[len('phase_'):].replace('_', '-')} family's liquid is a liquid at the surface temperature and pressure")
     elif "equals" in condition and name == "groundwater_present" and condition["equals"] == 1.0:
-        parts.append("liquid groundwater under a dry surface")
+        parts.append("liquid water under a dry surface, or a water table under the land of a world with a small sea")
     elif "equals" in condition:
         parts.append(f"{label} is {condition['equals']}")
     if "not_equals" in condition:

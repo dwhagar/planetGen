@@ -47,6 +47,14 @@ class SystemConfig:
     combined with `SLOTS` (slots already name classes). Defaults to None.
     """
 
+    FORCE_LIFE_CLASS = None
+    """
+    str or None: A life class (`"6"`, a number, or `"4c"`, a number and variant; `physics/life_classes.py`) the system must hold a planet or moon
+    living under (GEN.1620). Like `FORCE_CLASS` a class attribute: not saved with the system, off by default (a default run never sets it, so a
+    seeded system is unchanged). The class is judged on the finished bodies, so a system without it is drawn again by the caller's tries and
+    one that never gets it says "a world with life class X" in `StarSystem.unmet_requirements`. Defaults to None.
+    """
+
     FORCE_ODDITIES = None
     """
     tuple[str] or None: Oddity ids (`physics/oddities.py`, e.g. `("W10",)`) every body whose conditions allow them is given, without the roll

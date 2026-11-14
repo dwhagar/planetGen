@@ -24,6 +24,8 @@ import subprocess
 import threading
 import time
 
+from planetgen.util import log
+
 INTERVAL_SECONDS = 2.0
 """float: How often the processes are looked at."""
 
@@ -134,8 +136,8 @@ class PeakTracker:
         while not self._stop.is_set():
             try:
                 self._take()
-            except Exception:  # noqa: BLE001 -- watching must never stop the step
-                pass
+            except Exception as exc:  # noqa: BLE001 -- watching must never stop the step
+                log.swallowed("util/memwatch", "PeakTracker._run", exc)
             self._stop.wait(self.interval)
 
     def __enter__(self):
@@ -151,8 +153,8 @@ class PeakTracker:
             self._thread.join(timeout=self.interval + 15)
         try:
             self._take()
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001
+            log.swallowed("util/memwatch", "PeakTracker.__exit__", exc)
         self.peaks["seconds"] = self._clock() - self._started
         return False
 

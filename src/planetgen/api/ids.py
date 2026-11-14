@@ -513,6 +513,16 @@ def _api_request():
     return request.path.startswith("/api/")
 
 
+def _uncharted_cell_of(conn, printed):
+    """The `(shell, band, wedge)` a printed sector ID names when no sector row has it but the cell holds a waiting object and is not charted (OPS.154), else `None`."""
+    from planetgen.db import query
+
+    if row_id(conn, SECTOR, printed) is not None:
+        return None
+    address = query.sector_address_of_uid(printed)
+    return address if address is not None and query.virtual_cells_listed(conn) and query.uncharted_cell_has_no_row(conn, address) else None
+
+
 def _resolve(view_args, strict):
     """Replaces the printed IDs in `view_args` (in place) with row ids. With `strict` an ID that names nothing ends
     in a 404; otherwise row 0 (which names nothing) stands in."""
@@ -536,6 +546,11 @@ def _resolve(view_args, strict):
 
     segments = request.path.split("/")
     body_kind = BODY_URL_KINDS.get(segments[2]) if len(segments) > 2 else None
+    if request.endpoint == "api.sector_detail" and "sector_id" in view_args:       # OPS.154: an uncharted cell with no sector row answers by its designation
+        cell = _uncharted_cell_of(get_db(), view_args["sector_id"])
+        if cell is not None:
+            view_args["sector_id"] = cell
+            return
     resolve_view_args(get_db, view_args, missing, fallback=0, body_kind=body_kind, retired=retired)
 
 

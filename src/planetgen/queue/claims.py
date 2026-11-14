@@ -18,6 +18,7 @@ them because they are replaced by a measurement in the first run, and `memorygat
 
 from planetgen.queue import commands, memorygate, pause, redisqueue, workers
 from planetgen.queue.memorygate import Claim
+from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 OPEN_FUNCTION = "planetgen.queue.units.open_stage"
@@ -142,6 +143,23 @@ def function_table(function):
     return FUNCTION_CLAIMS[function]
 
 
+def typed_mb(kind):
+    """The typed figure of a claim kind (`unit:<command>`, `cut:<command>`, `api:<ref>`, `fn:<name>`), MB, or `None` for a kind with none (OPS.158: the page sets it beside the learned one)."""
+    try:
+        prefix, _, name = kind.partition(":")
+        if prefix == "unit":
+            return float(unit_table_mb(name))
+        if prefix == "cut":
+            return float(CUT_MB)
+        if prefix == "api":
+            return float(api_table(name)[0])
+        if prefix == "fn":
+            return float(function_table(name)[0])
+    except NoClaim:
+        pass
+    return None
+
+
 def default_claim(job):
     """The claim of a job of a kind with no figure: `DEFAULT_MB` and a core, on the job's lane, under the kind `fn:<function>`."""
     return Claim(f"fn:{job.func_name}", float(DEFAULT_MB), 1.0, lane_of(job.origin))
@@ -162,7 +180,8 @@ def cut_command(conn, run_id, index):
     try:
         declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
         return next(commands.Step.from_dict(item).kind for item in runrecord.read_steps(conn, run_id) if item["key"] == declared["key"])
-    except Exception:  # noqa: BLE001 -- a run that is gone or a stage that is not there is cut under the default claim
+    except Exception as exc:  # noqa: BLE001 -- a run that is gone or a stage that is not there is cut under the default claim
+        log.swallowed("queue/claims", "cut_command", exc)
         return None
 
 
@@ -195,4 +214,5 @@ def claim_for(job, conn):
         (mb, cpu), exclusive = function_table(function), False
         kind = f"fn:{function}"
     solo = pause.solo_of(conn)
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))
+    token = job.args[0] if function in (UNIT_FUNCTION, OPEN_FUNCTION) else None        # OPS.156: a run holds one figure per kind
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))

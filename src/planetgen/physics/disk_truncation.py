@@ -80,6 +80,8 @@ def star_truncation_au(star):
     """The radius where the companions that `radiation_field` attached to `star` cut its disk, AU: the tightest of them, `math.inf` for a star with none."""
     radius = math.inf
     for companion in radiation_field.companions_of(star):
+        if companion.dark:      # a glowing dark member of the tree (GEN.1501) lights the planets; the gravity of every member is the work of GEN.1446 to GEN.1462
+            continue
         mass = getattr(companion.star, "mass", None)
         host = getattr(star, "mass", None)
         if mass and host:

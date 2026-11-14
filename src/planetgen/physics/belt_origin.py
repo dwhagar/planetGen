@@ -25,9 +25,10 @@ in as `u` arguments) and moves nothing. GEN.1068 gives it the final chain in pla
 **Shaping causes** (what took mass afterwards; the stored `history`), applied in this order to each belt, solids weighted by the disk's own
 surface density (`belt_mass.primordial_mass_earth`):
 
-- `giant-stirring`: the chaotic zone of each giant, half-width `1.3 a mu^(2/7)` each side [R4727], and for a belt inside the giant the
-  gaps at the resonances 4:1, 3:1, 5:2, 7:3 and 2:1 (`a_g (q/p)^(2/3)`), half-width `RESONANCE_HALF_WIDTH` of the resonance's distance for a
-  Jupiter-mass giant and as the square root of the giant's mass ratio. What is in them is gone: `cleared_earth`. A belt within
+- `giant-stirring`: the chaotic zone of each giant and, once the belt is older than the resonances take to empty, the gaps at its mean-motion
+  resonances on both sides of its orbit, from `resonance_gaps.belt_map` (GEN.1062, GEN.1092: the one code path for the giants' clearing; the zone
+  is `1.3 a mu^(2/7)` each side for a cold belt [R4727] and wider for a giant that forces eccentricity on it). What is in them is gone: `cleared_earth`;
+  the stretches are kept on the origin (`cleared_spans`) and the belt's stored members are not placed in them. A belt within
   `STIR_ZONE_WIDTHS` chaotic half-widths of a giant is stirred whether or not mass is cleared, and says so.
 - `instability-depletion`: a giant that moved (the architecture's hot Jupiter, `migrated`) through the belt's stretch swept that part of it: a share
   `INSTABILITY_SURVIVAL_RANGE` of the swept stretch survives, log-uniform in the draw `u`; the rest is `scattered_earth` (the scatter step, GEN.1089,
@@ -54,7 +55,7 @@ import math
 import os
 
 from planetgen import tuning
-from planetgen.physics import belt_mass, clearance_ledger, elements, formation, planet_architecture, planet_mass, scatter as scatter_rule, unit_registry as units
+from planetgen.physics import belt_mass, clearance_ledger, elements, formation, planet_architecture, planet_mass, resonance_gaps, scatter as scatter_rule, unit_registry as units
 from planetgen.physics.elements import DataError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -73,18 +74,6 @@ MIN_BELT_MASS_EARTH = 1.0e-6
 
 SNOW_BUMP_WIDTH = 0.15
 """float: The snow-line bump spans the formation snow line divided and multiplied by `1 + SNOW_BUMP_WIDTH` (BG4)."""
-
-CHAOTIC_ZONE_COEFFICIENT = 1.3
-"""float: The half-width of a planet's chaotic zone is this times `a mu^(2/7)` ([R4727], READ in [R3175, R3226], row BR2) (BG5)."""
-
-RESONANCES = ((4, 1), (3, 1), (5, 2), (7, 3), (2, 1))
-"""tuple: The period ratios `p:q` (giant : body) of the gaps a giant cuts in a belt inside its orbit, `a_g (q/p)^(2/3)` (BG6)."""
-
-RESONANCE_HALF_WIDTH = 0.015
-"""float: The half-width of a resonance gap as a share of its distance, for a giant of `JUPITER_MASS_RATIO` (BG7)."""
-
-JUPITER_MASS_RATIO = 9.546e-4
-"""float: Jupiter over the Sun, the giant `RESONANCE_HALF_WIDTH` is for."""
 
 STIR_ZONE_WIDTHS = 3.0
 """float: A belt within this many chaotic half-widths of a giant, outside its chaotic zone, is stirred by it (BG8)."""
@@ -152,7 +141,7 @@ Event = collections.namedtuple("Event", ("cause", "mass_earth", "giant_au", "tex
 
 BeltOrigin = collections.namedtuple("BeltOrigin", (
     "origin", "co_causes", "inner_au", "outer_au", "formation_snow_line_au", "primordial_mass_earth", "mass_earth", "cleared_earth",
-    "scattered_earth", "stirred", "history", "sentence"))
+    "scattered_earth", "stirred", "history", "sentence", "cleared_spans"), defaults=((),))
 """A belt and where it came from: the formation cause, the others that coincide with it, the stretch, the snow line at formation, the mass it
 formed with, what is left, what the giants cleared, what an instability scattered, whether a giant stirs it, the shaping causes in order and
 the sentence for its page."""
@@ -209,6 +198,18 @@ def _subtract(spans, cut):
     return out
 
 
+def _gaps_between(lower, upper, kept):
+    """The `(low, high)` stretches of `[lower, upper]` that `kept` (a list of `(low, high)`) leaves out, nearest the star first."""
+    out, position = [], lower
+    for a, b in sorted(kept):
+        if a > position:
+            out.append((position, a))
+        position = max(position, b)
+    if position < upper:
+        out.append((position, upper))
+    return tuple(out)
+
+
 # --- the chain --------------------------------------------------------------------------------------------------------------------------
 
 def _hill_share(body, star_mass_kg):
@@ -222,14 +223,14 @@ def keep_out(body, star_mass_kg):
     return body.distance_au * (1.0 - body.eccentricity - share), body.distance_au * (1.0 + body.eccentricity + share)
 
 
+def _giant(body):
+    return resonance_gaps.Giant(body.distance_au, body.mass_kg, min(max(body.eccentricity or 0.0, 0.0), 0.99))
+
+
 def chaotic_half_width_au(body, star_mass_kg):
-    """The half-width of the chaotic zone of a planet, each side of its orbit [R4727], in AU."""
-    return CHAOTIC_ZONE_COEFFICIENT * body.distance_au * (body.mass_kg / star_mass_kg) ** (2.0 / 7.0)
-
-
-def resonance_distances_au(body):
-    """The distances inside a giant's orbit where the resonances of `RESONANCES` stand, `a (q/p)^(2/3)`, as `((p, q), au)`."""
-    return [((p, q), body.distance_au * (q / p) ** (2.0 / 3.0)) for p, q in RESONANCES]
+    """The half-width of the chaotic zone of a planet, each side of its orbit [R4727], in AU, for a cold belt (`resonance_gaps.chaotic_zone` at no eccentricity: the low-eccentricity law)."""
+    half, _regime = resonance_gaps.chaotic_zone(body.mass_kg / star_mass_kg, 0.0)
+    return half * body.distance_au
 
 
 def _primordial(lower, upper, star_mass_kg, snow_line_au, metal_ratio, scatter):
@@ -359,12 +360,18 @@ def scattering_loss_share(chain, star_mass_kg, lower_au, instability):
     return min(instability, 1.0) * (1.0 - math.exp(-theta / scatter_rule.THETA_EJECT)), reach, outer
 
 
-def cleared_spans(body, star_mass_kg, lower_au, upper_au):
-    """The stretches of `[lower_au, upper_au]` a giant clears: its chaotic zone and, for the part inside its orbit, the resonance gaps."""
-    half = chaotic_half_width_au(body, star_mass_kg)
-    spans = [(body.distance_au - half, body.distance_au + half)]
-    width = RESONANCE_HALF_WIDTH * math.sqrt(body.mass_kg / (star_mass_kg * JUPITER_MASS_RATIO))
-    spans += [(distance * (1.0 - width), distance * (1.0 + width)) for _, distance in resonance_distances_au(body)]
+def cleared_spans(body, star_mass_kg, lower_au, upper_au, age_myr=None):
+    """
+    The stretches of `[lower_au, upper_au]` a giant clears: its chaotic zone and, once a belt of `age_myr` is old enough, the zones of its resonances on both sides of its orbit
+    (`resonance_gaps.belt_map`; `None` is a belt older than they take to empty). Nothing clears a belt that lies wholly outside every zone.
+    """
+    if not 0.0 < lower_au < upper_au:
+        return []
+    age = resonance_gaps.RESONANCE_CLEARING_MYR if age_myr is None else age_myr
+    belt = resonance_gaps.belt_map([_giant(body)], star_mass_kg, lower_au, upper_au, age)
+    spans = [(zone.inner_au, zone.outer_au) for zone in belt.zones]
+    if belt.gaps_open:
+        spans += [(r.inner_au, r.outer_au) for r in belt.resonances]
     return _clip(sorted(spans), lower_au, upper_au)
 
 
@@ -395,7 +402,7 @@ def _text(cause, **fields):
     return CAUSES[cause]["text"].format(**{name: fields[name] for name in CAUSES[cause]["fields"]})
 
 
-def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability=0.0):
+def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability=0.0, age_myr=None):
     lower, upper = candidate["inner_au"], candidate["outer_au"]
 
     cold_share = planetesimal_share(metal_ratio)
@@ -417,7 +424,7 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
     history, cleared, stirred = [], 0.0, False
     for body in sorted((b for b in chain if b.giant), key=lambda b: abs(math.log(b.distance_au / (lower * upper) ** 0.5))):
         taken = 0.0
-        for span in cleared_spans(body, star_mass_kg, lower, upper):
+        for span in cleared_spans(body, star_mass_kg, lower, upper, age_myr):
             before = sum(mass(a, b) for a, b in remaining)
             remaining = _subtract(remaining, span)
             taken += before - sum(mass(a, b) for a, b in remaining)
@@ -457,12 +464,13 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
     parts = [_text(candidate["cause"], **fields)]
     parts += [CAUSES[co]["co_text"].format(**{name: fields[name] for name in CAUSES[co]["co_fields"]}) for co in candidate["co"]]
     sentence = " ".join(parts + [event.text for event in history])
+    taken_spans = _gaps_between(lower, upper, remaining)
     return BeltOrigin(candidate["cause"], tuple(candidate["co"]), lower, upper, formation_snow_line_au, primordial, left, cleared, scattered,
-                      stirred, tuple(history), sentence)
+                      stirred, tuple(history), sentence, taken_spans)
 
 
 def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5, debris=(), metal_ratio=1.0,
-          scatter=1.0, instability=0.0, disk_limit_au=math.inf):
+          scatter=1.0, instability=0.0, disk_limit_au=math.inf, age_myr=None):
     """
     Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disk and
     the `debris` events the caller names, each traced through the giants' clearing and the instability, in order of distance. Belts under
@@ -478,6 +486,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
         debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.
         instability (float): 0 to 1, how much the giants scattered each other (`capture_windows.instability_level`): it throws out a share of the disk past the outermost giant (`scattering_loss_share`, GEN.1341).
+        age_myr (float or None): The star's age, Myr, for the resonance zones the giants have emptied by then (`resonance_gaps.RESONANCE_CLEARING_MYR`); `None` is old enough.
         disk_limit_au (float): Where a companion star cuts the disk (`disk_truncation.star_truncation_au`, GEN.1451): every stretch ends there before its mass is worked out, and one that no longer fits is no belt. Infinite for a lone star.
 
     Returns:
@@ -493,7 +502,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         candidates = [candidate for candidate in candidates if _fits(candidate["inner_au"], candidate["outer_au"])]
     belts = []
     for candidate in sorted(candidates, key=lambda c: c["inner_au"]):
-        belt = _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability)
+        belt = _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability, age_myr)
         if belt.primordial_mass_earth >= MIN_BELT_MASS_EARTH:
             belts.append(belt)
     return belts

@@ -1458,17 +1458,54 @@ def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_
     yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
 
 
-def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):
-    """`luminosity_sphere_batches` for a mass ring: the cells of the sphere that `backfill_mass_cells` has anything to draw in, with their memo."""
+def _mass_paths(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges, shared):
+    """`(paths, seeded)` of the mass bands a draw from `target_mass_sol` to `held_mass_sol` is made of: the bands' `(key, shares, tag)` that `_sphere_batches` takes, and the
+    entries its batches' memos start with (the shares, kept in `shared`)."""
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     age_laws = age_laws_of(shape)
-    shared = {} if memo is None else memo
     shares_key = ("mass shares", max_luminosity_sol)
     of_band = _band_shares(shared, shares_key, [((low, high), low, high) for low, high in bands],
                            lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
                                                                             age_laws))
     paths = [(f"m{low:g}", of_band[(low, high)], (max_luminosity_sol, high)) for low, high in bands]
-    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
+    return paths, {shares_key: shared[shares_key]}
+
+
+def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):
+    """`luminosity_sphere_batches` for a mass ring: the cells of the sphere that `backfill_mass_cells` has anything to draw in, with their memo."""
+    paths, seeded = _mass_paths(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges, {} if memo is None else memo)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded)
+
+
+def sphere_walk_visits(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, stride=1):
+    """
+    The visits `_sphere_batches` makes over a sphere (GEN.1485): for each row of the sphere, one visit to every cell of its window when any band of `paths` is on the cell path
+    (its `block_bound` is `CANDIDATE_PATH_BOUND` or more), else one to every block of the window (the candidate path). It is the walk's own rule applied to the rows, with no
+    star drawn, so a sky tier is costed by what the walk does and not by the cells the sphere holds.
+
+    Args:
+        paths (list): `(key, shares, tag)` of each band of the draw, as `_sphere_batches` takes them.
+        stride (int): Look at every `stride`-th row and scale the sum by it (the rows of a 7.5 sky number a few hundred thousand); 1 looks at them all.
+
+    Returns:
+        float: The visits.
+    """
+    total = 0.0
+    for number, (shell_index, band_index, count, first, length) in enumerate(sphere_rows(center_pc, radius_pc, edge_pc)):
+        if number % stride:
+            continue
+        terms = bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1)
+        if any(bound_of(terms, shares) >= CANDIDATE_PATH_BOUND for _key, shares, _tag in paths):
+            total += length
+        else:
+            total += len(_row_chunks(count, first, length))
+    return total * stride
+
+
+def mass_sphere_walk_visits(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, edges, stride=1):
+    """`sphere_walk_visits` for a mass ring, over the bands `mass_sphere_batches` draws."""
+    paths, _seeded = _mass_paths(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges, {})
+    return sphere_walk_visits(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, stride)
 
 
 def star_params(row):

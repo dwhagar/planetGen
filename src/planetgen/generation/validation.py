@@ -141,7 +141,17 @@ def min_distance_after_au(body, inner_bodies):
             edge = clearance_ledger.planet_exclusion(inner.distance, inner.eccentricity or 0.0, inner.mass, body.star.mass, body.mass,
                                                      eccentricity)[1]
         needed = max(needed, edge)
-    return needed
+    return _chain_needed(body, inner_bodies, needed)
+
+
+def _chain_needed(body, inner_bodies, needed):
+    """`needed` raised, for a planet that is the last of a chain of `tuning.CHAIN_WINDOW` planets (GEN.1521), to the nearest distance that holds the chain's effective spacing (`clearance_ledger.chain_distance_au`).
+    A belt among the planets just inside breaks the chain: it is the pairwise rule alone."""
+    run = inner_bodies[-(tuning.CHAIN_WINDOW - 1):]
+    if len(run) < tuning.CHAIN_WINDOW - 1 or any(inner.body_type == 'a' for inner in run):
+        return needed
+    planets = [(inner.distance, inner.eccentricity or 0.0, inner.mass) for inner in run]
+    return clearance_ledger.chain_distance_au(planets, body.mass, body.eccentricity or 0.0, body.star.mass, needed)
 
 
 def moon_clearance_au(inner_moons):
@@ -182,9 +192,10 @@ def reconcile_moved_planet(planet):
         return
     planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)       # GEN.1597: before the air, which is solved on the period it has now
     planetPhysics.calculate_atmospheric_conditions(planet)
-    planetPhysics.apply_class(planet)
+    planetPhysics.prepare_class(planet)
     planetPhysics.update_orbital_position(planet)
     planetPhysics.generate_spin(planet, planet.star.mass, birth=getattr(planet, "_birth_spin", None))        # GEN.1597: the planet keeps the spin it was born with, only the orbit moved
+    planetPhysics.classify(planet)      # GEN.1587: after the spin, which makes the latitude bands the class reads
 
     planetPhysics.release_moons(planet)      # GEN.1352: the moons are regenerated in their planet's equator, then set in the system again below
     for moon in planet.moons:
@@ -214,8 +225,9 @@ def reconcile_moved_moon(moon, planet):
     """
     planetPhysics.reconcile_zone(moon, planet.mass, distance_override=planet.distance)
     planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
-    planetPhysics.apply_class(moon)
-    planetPhysics.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
+    planetPhysics.prepare_class(moon)
+    planetPhysics.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))        # GEN.704: the dose, UV and score `generate_spin` ends with are run again, from the spin it was born with
+    planetPhysics.classify(moon)      # GEN.1587: after the spin, which makes the latitude bands the class reads
 
 
 def refresh_planet_reflex(planet, force=False):
@@ -242,6 +254,11 @@ def belt_needs_pushing(belt, last):
     if last.body_type == 'a':
         return _below(belt.distance - last.upper_limit, tuning.MIN_ASTEROID_BELT_SEPARATION)
     return _below(belt.distance - apoapsis_au(last), last.min_orbit_distance)
+
+
+def slot_planets(planets):
+    """`planets` without the belt members promoted to planets (GEN.1510, `Planet.belt_rank`): they orbit inside a belt, which is exempt from the spacing of the slots (as the belt is), so the spacing rules do not see them."""
+    return [body for body in planets if getattr(body, "belt_rank", None) is None]
 
 
 def space_orbits(planets):
@@ -273,6 +290,7 @@ def space_orbits(planets):
         list: The bodies that moved.
     """
     moved = []
+    planets = slot_planets(planets)
     if len(planets) < 2:
         return moved
 
@@ -539,6 +557,7 @@ def check_orbit_spacing(planets):
         list: `Problem`s, empty when it validates.
     """
     problems = []
+    planets = slot_planets(planets)
     for index, (last, body) in enumerate(zip(planets, planets[1:])):
         if _below(inner_edge_au(body), inner_edge_au(last)):
             problems.append(Problem(_label(body), f"it is listed after {_label(last)} but orbits inside it"))

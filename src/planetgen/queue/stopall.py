@@ -27,6 +27,7 @@ import time
 from datetime import datetime, timezone
 
 from planetgen.admin import maintenance, stop_reason
+from planetgen.util import log
 
 FILE_NAME = "stopped.json"
 """str: The hold's file in the state folder: `{"by": name, "at": Unix seconds}` as JSON."""
@@ -256,8 +257,8 @@ def _cancel_runs(connection, who):
         try:
             if runcontrol.cancel_run(connection, run_id, who=who) is not None:
                 canceled += 1
-        except Exception:       # noqa: BLE001 -- the next run, and the kill that follows, still go ahead
-            pass
+        except Exception as exc:       # noqa: BLE001 -- the next run, and the kill that follows, still go ahead
+            log.swallowed("queue/stopall", "_cancel_runs", exc)
     return canceled
 
 
@@ -275,8 +276,8 @@ def _empty_queues(connection):
             removed += queue.count
             queue.empty()
             removed += requires.drop_held(connection, name)      # PERF.247: the jobs held for a requirement are dropped with it
-        except Exception:       # noqa: BLE001 -- the other queues are still emptied
-            pass
+        except Exception as exc:       # noqa: BLE001 -- the other queues are still emptied
+            log.swallowed("queue/stopall", "_empty_queues", exc)
     return removed
 
 
@@ -358,8 +359,8 @@ def stop_all(who=None, connection=None, kill=True, hold=True):
     job_roots = []
     try:
         summary["job"], job_roots = _stop_jobs()
-    except Exception:       # noqa: BLE001 -- the kill below stops the job's processes whatever this did
-        pass
+    except Exception as exc:       # noqa: BLE001 -- the kill below stops the job's processes whatever this did
+        log.swallowed("queue/stopall", "stop_all", exc)
     if connection is not None:
         if hold:
             with contextlib.suppress(Exception):
@@ -391,6 +392,6 @@ def resume_all(connection=None):
         os.remove(path())
     try:
         pause.resume(connection or redisqueue.connect())
-    except Exception:       # noqa: BLE001 -- no Redis, no pause to lift
-        pass
+    except Exception as exc:       # noqa: BLE001 -- no Redis, no pause to lift
+        log.swallowed("queue/stopall", "resume_all", exc)
     return was

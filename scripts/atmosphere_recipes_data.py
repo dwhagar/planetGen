@@ -12,7 +12,7 @@ the constants a row draws within a bracket, and the corrections the later resear
 
 Expressions are Python arithmetic over the stored quantities of the subject (the names of `INPUTS` in
 `planetgen.physics.atmosphere_recipes`), the row's constants and these functions: `phi` (normal CDF), `window` (a soft
-window, lo and hi may be None), `exp log log10 sqrt min max abs clamp loglog`, `w('id')` (the gated weight of a sibling
+window, lo and hi may be None), `exp log log10 sqrt min max abs clamp loglog`, `ch4_co_edge_k` and `water_loss_edge_k` (the hot-giant regime edges at a pressure, from `equilibrium_edges`, GEN.994), `w('id')` (the gated weight of a sibling
 row), `p('id')` (the probability of a row in its own table at this subject) and `pdist('id', lo, hi)` (the probability a
 continuous row's value lies in [lo, hi]).
 """
@@ -273,14 +273,14 @@ MACHINE = {
 
     # ---- h. hot Jupiters ----
     "h1": dict(state="partly verified", limit="the edge is the equilibrium line of methane and carbon monoxide at the photospheric pressure, computed with the NASA polynomials at solar metals and C/O 0.55; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               lets={"edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)"},
+               lets={"edge": "ch4_co_edge_k(photosphere_bar)"},
                weight="window(tday_k, None, edge, 100)"),
     "h2": dict(state="partly verified", limit="the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               lets={"low_edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)",
-                     "high_edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"},
+               lets={"low_edge": "ch4_co_edge_k(photosphere_bar)",
+                     "high_edge": "water_loss_edge_k(photosphere_bar)"},
                weight="window(tday_k, low_edge, high_edge, 100)"),
     "h3": dict(state="partly verified", limit="the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               lets={"edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"},
+               lets={"edge": "water_loss_edge_k(photosphere_bar)"},
                weight="window(tday_k, edge, None, 100)"),
     "h4": dict(state="partly verified", limit="a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519)", kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
                constants={"c_h4": [2350.0, 2641.0, "uniform"]}, weight="1 if teq_k >= c_h4 else 0"),
@@ -327,23 +327,34 @@ MACHINE = {
                "3/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
     "k4": dict(state="partly verified", limit="geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)", kind="param", classes=["comet", "asteroid"], bins=[0.03, 0.1, 0.3], tunable=True,
                dist={"kind": "normal", "log10": True, "mu": "log10(0.109)", "sigma": 0.51}),
-    "k5": dict(state="partly verified", limit="geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)", kind="param", classes=["comet", "asteroid"], tunable=True,
+    "k5": dict(state="partly verified", limit="geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)", kind="param", classes=["comet", "asteroid"], tunable=True, sets="co_over_h2o",
                dist={"kind": "normal", "log10": True, "mu": "log10(0.025)", "sigma": 0.65}),
     "k6": dict(kind="param", classes=["comet", "asteroid"],
                dists={"CH3OH": {"kind": "loguniform", "lo": 0.002, "hi": 0.026},
                       "NH3": {"kind": "loguniform", "lo": 0.001, "hi": 0.0073},
                       "HCN": {"kind": "loguniform", "lo": 0.0009, "hi": 0.0029}}),
-    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.1021", tunable=True,
-               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, Ar, OCS and SO2 are the host's own nitrogen, argon "
-                     "and sulfur per carbon over the nebula's carbon in CO, times a trapping share and the median CO/H2O, and O2, Kr and Xe keep one value (physics.comet_species, stand-in "
-                     "rows CK1 to CK6): the trapping shares and the three values are tuned to one measured comet (tier T7, tweak L3), so one comet still fixes the seven (GEN.520, GEN.1005)",
+    "k7": dict(kind="param", classes=["comet", "asteroid"], state="partly verified", tunable=True,
+               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database). OCS, SO2 and O2 are measured in two comets or a "
+                     "compilation, so each is log-uniform between the two (the widest range where two sources are in question): OCS and SO2 the range of the comets, O2 Halley to 67P; the "
+                     "ends scale with the host's sulfur per carbon. N2, Ar, Kr and Xe follow one latent per comet, the temperature its ice formed at, read off the CO/H2O row k5 (the laboratory law through "
+                     "Halley's CO, 12.5 K per decade): N2 per CO runs from 67P (warm end, the median comet) to C/2016 R2 and argon per water from 67P to Hale-Bopp (cold end, CO/H2O 0.2, a coma, "
+                     "not a nucleus) in the logarithm, with a residual of its own; krypton follows the comet's argon and xenon its krypton by the ratios of 67P (physics.comet_ice_formation, "
+                     "physics.comet_species, stand-in rows CB1, CB2, CY1 to CY3) (GEN.520, GEN.1005, GEN.1021, GEN.1022)",
                dists={**{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": sd}
                          for name, v, sd in (("CH4", 6.8e-3, 0.33), ("C2H6", 4.1e-3, 0.33), ("H2CO", 2.5e-3, 0.35), ("H2S", 7.1e-3, 0.39))},
-                      **{name: {"kind": "normal", "log10": True,
-                                "mu": f"log10(comet_species_median('{name}', n_over_c, ar_over_c, s_over_c))", "sigma": "comet_species_sigma()"}
-                         for name in ("N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe")}},
-               correction="GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon and the width is 0.4 dex (Bar-Nun's 5 K in the formation temperature) in place of the design 0.6; "
-                          "O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn."),
+                      "N2": {"kind": "normal", "log10": True,
+                             "mu": "comet_latent_log10('N2', co_over_h2o, n_over_c, ar_over_c, s_over_c)", "sigma": "comet_residual_dex('N2')"},
+                      **{name: {"kind": "loguniform",
+                                "lo": f"comet_species_low('{name}', n_over_c, ar_over_c, s_over_c)",
+                                "hi": f"comet_species_high('{name}', n_over_c, ar_over_c, s_over_c)"}
+                         for name in ("O2", "OCS", "SO2")},
+                      "Ar": {"kind": "normal", "log10": True,
+                             "mu": "comet_latent_log10('Ar', co_over_h2o, n_over_c, ar_over_c, s_over_c)", "sigma": "comet_residual_dex('Ar')"},
+                      "Kr": {"kind": "normal", "log10": True, "mu": "comet_tie_log10('Kr', draw_Ar)", "sigma": "comet_residual_dex('Kr')"},
+                      "Xe": {"kind": "normal", "log10": True, "mu": "comet_tie_log10('Xe', draw_Kr)", "sigma": "comet_residual_dex('Xe')"}},
+               correction="GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon. GEN.1021: OCS, SO2 and O2 are log-uniform between the comets measured in place of a "
+                          "log-normal about 67P alone. GEN.1022: N2, Ar, Kr and Xe follow the formation temperature of the comet's ice (read off its CO/H2O) so a CO-rich comet is argon- and "
+                          "nitrogen-rich, which the comets measured show. Ne is only an upper limit (below 5e-8) and is not drawn."),
 
     # ---- l. white-dwarf and pulsar planets ----
     "l1": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
