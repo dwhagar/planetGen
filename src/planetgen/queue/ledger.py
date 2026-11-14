@@ -5,7 +5,7 @@ The job engine's ledger (OPS.215, L1 of `docs/design/operations/job-engine.md`):
 
 Four tables. Three are in the control database (`control_schema.sql`, v23): `engine_runs` (a run), `engine_jobs` (the jobs of a run, with the number of
 the newest attempt) and `engine_attempts` (one row per attempt, with how it ended). The fourth, `engine_items`, is in each galaxy's own database (migration
-0260): one row per job that writes to that galaxy, so a job's commits and its done mark are one transaction.
+0261): one row per job that writes to that galaxy, so a job's commits and its done mark are one transaction.
 
 **Nothing reads or writes these rows yet.** The supervisor (OPS.207) is the writer and the plan-as-rows item (OPS.221) the first reader; this module is what
 both build on, so the column names live in one place.

@@ -1,4 +1,4 @@
-"""OPS.215: the job engine's ledger (control schema v23, galaxy schema v260, planetgen/queue/ledger.py). Nothing else reads or writes the rows yet."""
+"""OPS.215: the job engine's ledger (control schema v23, galaxy schema v261, planetgen/queue/ledger.py). Nothing else reads or writes the rows yet."""
 
 import pytest
 
