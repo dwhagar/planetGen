@@ -104,8 +104,8 @@ def test_a_planet_passed_to_a_second_star_keeps_its_place_in_space_and_what_it_i
     other = StarSystem(system_config=SystemConfig(), galactic_center_dist_ly=26000.0).star
     before = {"position": (planet.position_x, planet.position_y, planet.position_z), "velocity": (planet.velocity_x_kms, planet.velocity_y_kms, planet.velocity_z_kms),
               "mass": planet.mass, "radius": planet.radius, "birth": planet._birth_spin, "moons": len(planet.moons)}
-    # The second star sits 0.3 of the planet's distance along x from the planet, and is moving so that the planet is on a near-circular orbit about it (0.9 of the circular speed).
-    separation = 0.3 * planet.distance
+    # The second star sits 3 times the planet's distance along x from the planet (so its Hill sphere is wider than it was and the moons stay), and is moving so that the planet is on a near-circular orbit about it (0.9 of the circular speed).
+    separation = 3.0 * planet.distance
     parent_position = tuple(c + d for c, d in zip(before["position"], (separation, 0.0, 0.0)))
     planet_velocity_au_yr = tuple(v / gen_reparent._AU_YR_TO_KM_S for v in before["velocity"])
     circular_speed = 0.9 * math.sqrt(kin.primary_mu_au3_per_year2(other.mass) / separation)
