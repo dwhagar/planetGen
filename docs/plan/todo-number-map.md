@@ -5023,7 +5023,7 @@ Each citation below resolves to one item by its date.
 | UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
 | UX.316 | Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button | UX.315 | done, PR #6441 (9:09 PM EST 11-13) |
 | UX.317 | (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too) | UX.316 | done, PR #6459 (2:14 AM EST 11-14) |
-| UX.318 | (bug) The job progress ticker shows "0.0 per s" for slow steps (e.g. Stage 5 at about 200 s a sector), so a working run reads as stalled | none | open |
+| UX.318 | (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand | none | open |
 
 ### Code tags `TODO(<area> #N)`
 
