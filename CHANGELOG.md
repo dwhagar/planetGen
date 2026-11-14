@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4071] - 2026-11-14
+
+**Headline:** A planet read back from the database keeps its count of recorded mergers, so its collision oddity is not lost.
+
+### Changed
+- **DB.122 (bug).** `planets`, `moons` and `rogue_planets` gain a `collision_count` column (migration 0255, a placeholder number for Lane 02 to renumber), written and read by the body fields of `db/store.py`. Before, a loaded planet read 0 (101 of the sample's planets had 1 or more), so `physics/oddities.py` lost the collision oddity when anything judged a loaded planet again. A body saved before the migration reads back as 0, as before. No drawn value changes, so there is no epoch or golden.
+generation-output: unchanged
+
 ## [8.0.4070] - 2026-11-14
 
 **Headline:** The galaxy now fills in dimmer stars around the filled sectors before the big scatters, and the luminous-star default is 18,000 solar luminosities.
