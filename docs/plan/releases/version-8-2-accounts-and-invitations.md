@@ -199,6 +199,7 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
 | ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
 | API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | Boss, 10:28 AM EST on 2026-11-08. |
+| API.49 | Default system settings as a JSON file format: the inputs a user can set when a system is created (for example the kind of star to look for) | ADM.155 | Boss, 2026-11-14 (placeholder). |
 | GEN.1411 | Fictional materials part 7: the biomass index (the gate for the three life-gated crystals) |  | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1412 | Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1413 | Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch) | GEN.1411, GEN.1412 | Boss, 10:28 AM EST on 2026-11-08. |
@@ -210,6 +211,7 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | Boss, 10:41 AM EST on 2026-11-08. |
 | ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | Boss, 10:41 AM EST on 2026-11-08. |
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | Boss, 10:41 AM EST on 2026-11-08. |
+| ADM.155 | Default recipe as a JSON file with a "Set as default" button, a reset-or-hot-update prompt when the shipped default changes, and every recipe stored as a named JSON file with its creator |  | Boss, 2026-11-14. |
 | TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | Boss, 10:28 AM EST on 2026-11-08. |
 

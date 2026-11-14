@@ -19,8 +19,8 @@ release is stamped.
 | GEN | GEN.1715 |
 | PERF | PERF.267 |
 | DB | DB.131 |
-| API | API.49 |
-| ADM | ADM.155 |
+| API | API.51 |
+| ADM | ADM.156 |
 | SEC | SEC.50 |
 | TEST | TEST.741 |
 | USR | USR.33 |
@@ -573,6 +573,8 @@ Parents marked "new parent" had no old number of their own.
 | API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | open |
 | API.47 | The linked-sites list for the third project: each linked site has a kind (wiki, surface later) and the body page shows each kind in its own labelled block | API.45 | open |
 | API.48 | API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging | none | open |
+| API.49 | Default system settings as a JSON file format: the inputs a user can set when a system is created (for example the kind of star to look for) | ADM.155 | open |
+| API.50 | Default planet settings as a JSON file format: the inputs a user can set for the planets of a created system | API.49 | open |
 | API.46 | GET /api/objects/<ref>/linked-pages: the wiki pages about an object, asked of the wiki lazily and returned short | API.45 | open |
 | API.45 | The lookup client: one place that knows the contract GET <site>/api/v1/links?ref=..., with timeout, Redis cache, negative cache, breaker and a batch call | ADM.153 | open |
 | API.44 | The short address /o/<Object ID> that finds the kind and redirects, and one stable answer from /api/objects/<ref> that tells 'no longer charted' from 'wrong map'; check the anonymous read rule | none | open |
@@ -2325,6 +2327,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | done, PR #5795 |
 | ADM.153 | The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line | none | open |
 | ADM.154 | (bug) Admin plans page text read "comes laterrearranger" | none | done, PR #6454 (11:25 PM EST 11-13) |
+| ADM.155 | Default recipe as a JSON file with a "Set as default" button, a reset-or-hot-update prompt when the shipped default changes, and every recipe stored as a named JSON file with its creator | none | open |
 | ADM.152 | An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit | SEC.47 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
