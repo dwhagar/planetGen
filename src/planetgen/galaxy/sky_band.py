@@ -115,6 +115,21 @@ def face_directions(pixels=FACE_PIXELS):
     return faces / np.linalg.norm(faces, axis=-1, keepdims=True)
 
 
+def _face_coordinates(directions):
+    """The cube face (0 to 5, `axis * 2 + negative`) each of `directions` (`(..., 3)`) falls on and its `(column, row)` on that face
+    in -1 to 1, the two other axes in the order `face_directions` puts them."""
+    d = np.asarray(directions, dtype=float)
+    a = np.abs(d)
+    axis = np.argmax(a, axis=-1)
+    sign = np.take_along_axis(d, axis[..., None], axis=-1)[..., 0] < 0
+    major = np.take_along_axis(a, axis[..., None], axis=-1)[..., 0]
+    column_axis = np.where(axis == 0, 2, 0)
+    row_axis = np.where(axis == 1, 2, 1)
+    column = np.take_along_axis(d, column_axis[..., None], axis=-1)[..., 0] / major
+    row = np.take_along_axis(d, row_axis[..., None], axis=-1)[..., 0] / major
+    return axis * 2 + sign.astype(int), column, row
+
+
 def face_lookup(band, directions):
     """
     The surface brightness of `band` (the `(6, n, n)` array `band_for` returns) in the directions `directions`, an array
@@ -122,17 +137,7 @@ def face_lookup(band, directions):
     """
     band = np.asarray(band)
     n = band.shape[1]
-    d = np.asarray(directions, dtype=float)
-    a = np.abs(d)
-    axis = np.argmax(a, axis=-1)
-    sign = np.take_along_axis(d, axis[..., None], axis=-1)[..., 0] < 0
-    major = np.take_along_axis(a, axis[..., None], axis=-1)[..., 0]
-    # The two other axes, in the order `face_directions` puts them (column, row).
-    column_axis = np.where(axis == 0, 2, 0)
-    row_axis = np.where(axis == 1, 2, 1)
-    column = np.take_along_axis(d, column_axis[..., None], axis=-1)[..., 0] / major
-    row = np.take_along_axis(d, row_axis[..., None], axis=-1)[..., 0] / major
-    face = axis * 2 + sign.astype(int)
+    face, column, row = _face_coordinates(directions)
     ci = np.clip(((column + 1.0) / 2.0 * n).astype(int), 0, n - 1)
     ri = np.clip(((row + 1.0) / 2.0 * n).astype(int), 0, n - 1)
     return band[face, ri, ci]
@@ -307,16 +312,7 @@ def face_bilinear(values, directions):
     """
     values = np.asarray(values, dtype=float)
     n = values.shape[1]
-    d = np.asarray(directions, dtype=float)
-    a = np.abs(d)
-    axis = np.argmax(a, axis=-1)
-    sign = np.take_along_axis(d, axis[..., None], axis=-1)[..., 0] < 0
-    major = np.take_along_axis(a, axis[..., None], axis=-1)[..., 0]
-    column_axis = np.where(axis == 0, 2, 0)
-    row_axis = np.where(axis == 1, 2, 1)
-    column = np.take_along_axis(d, column_axis[..., None], axis=-1)[..., 0] / major
-    row = np.take_along_axis(d, row_axis[..., None], axis=-1)[..., 0] / major
-    face = axis * 2 + sign.astype(int)
+    face, column, row = _face_coordinates(directions)
     x = np.clip((column + 1.0) / 2.0 * n - 0.5, 0.0, n - 1.0)
     y = np.clip((row + 1.0) / 2.0 * n - 0.5, 0.0, n - 1.0)
     x0, y0 = np.floor(x).astype(int), np.floor(y).astype(int)

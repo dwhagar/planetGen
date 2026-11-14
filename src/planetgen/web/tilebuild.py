@@ -35,6 +35,7 @@ from planetgen.util import log
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import tilecache
 
+_GB = 1073741824
 STAGING_NAME = ".build"
 """str: The folder under the cache root the new cache is built in."""
 
@@ -60,11 +61,15 @@ class BuildRefused(Exception):
 
 def levels_of(keys):
     """`{m: count}` of node keys, the biggest blocks first."""
-    counts = {}
+    return {m: len(level_keys) for m, level_keys in _by_level(keys).items()}
+
+
+def _by_level(keys):
+    """`{m: [keys]}` of node keys, the biggest blocks first, each level's keys in their given order."""
+    by_level = {}
     for key in keys:
-        m = int(key.split(".", 1)[0])
-        counts[m] = counts.get(m, 0) + 1
-    return dict(sorted(counts.items(), reverse=True))
+        by_level.setdefault(int(key.split(".", 1)[0]), []).append(key)
+    return dict(sorted(by_level.items(), reverse=True))
 
 
 def projected_bytes(counts):
@@ -79,8 +84,8 @@ def check_disk(root, counts, free_bytes=None):
     free = shutil.disk_usage(root).free if free_bytes is None else free_bytes
     if free < DISK_MARGIN * need:
         raise BuildRefused(
-            f"the whole map is projected at {need / 1073741824:.1f} GB ({sum(counts.values())} nodes) and the build needs "
-            f"{DISK_MARGIN:.0f} times that free while the live cache stays, but {free / 1073741824:.1f} GB is free under {root}")
+            f"the whole map is projected at {need / _GB:.1f} GB ({sum(counts.values())} nodes) and the build needs "
+            f"{DISK_MARGIN:.0f} times that free while the live cache stays, but {free / _GB:.1f} GB is free under {root}")
     return need
 
 
@@ -208,11 +213,9 @@ def build_all(database, workers=None, force=False, swap=True, progress=None, key
             raise
         say(f"warning: {exc}; building anyway (--force)")
     workers = workers or workers_setting()
-    say(f"whole-map build: {len(keys)} nodes in {len(counts)} levels, about {projected / 1073741824:.2f} GB, {workers} process(es)")
+    say(f"whole-map build: {len(keys)} nodes in {len(counts)} levels, about {projected / _GB:.2f} GB, {workers} process(es)")
     staging = staging_root(root)
-    by_level = {}
-    for key in keys:
-        by_level.setdefault(int(key.split(".", 1)[0]), []).append(key)
+    by_level = _by_level(keys)
     total_built = total_already = 0
     pool = None
     try:

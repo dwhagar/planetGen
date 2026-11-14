@@ -113,7 +113,7 @@ def letter_range_k(letter):
 @functools.lru_cache(maxsize=None)
 def _luminosity_curve():
     rows = sorted((found.teff_k, found.log_luminosity) for found in _load() if found.log_luminosity is not None)
-    return tuple(t for t, _ in rows), tuple(l for _, l in rows)
+    return tuple(t for t, _ in rows), tuple(log_l for _, log_l in rows)
 
 
 def dwarf_log_luminosity(teff_k):

@@ -96,6 +96,11 @@ def escape_speed_kms(chain, disk_scale_length_kpc, radius_kpc):
     return math.sqrt(2.0 * (halo + stars))
 
 
+def _kick_sigma(sigma_kms):
+    """The kick's one-dimensional dispersion, km/s: the given one, or `tuning.NEUTRON_STAR_KICK_SIGMA_KMS`."""
+    return tuning.NEUTRON_STAR_KICK_SIGMA_KMS if sigma_kms is None else sigma_kms
+
+
 def neutron_star_unbound_share(chain, circular_speed_kms, disk_scale_length_kpc, sigma_kms=None):
     """
     The share of the neutron stars a galaxy forms that its kicks send out of it: `survival` of the kick over the escape
@@ -107,7 +112,7 @@ def neutron_star_unbound_share(chain, circular_speed_kms, disk_scale_length_kpc,
         disk_scale_length_kpc (float): The thin disk's scale length.
         sigma_kms (float, optional): The kick's one-dimensional dispersion; `tuning.NEUTRON_STAR_KICK_SIGMA_KMS` when omitted.
     """
-    sigma = tuning.NEUTRON_STAR_KICK_SIGMA_KMS if sigma_kms is None else sigma_kms
+    sigma = _kick_sigma(sigma_kms)
     total = 0.0
     for radius in birth_radii_over_scale_length():
         speed = escape_speed_kms(chain, disk_scale_length_kpc, radius * disk_scale_length_kpc)
@@ -138,7 +143,7 @@ def ejecta_speeds_kms(chain, circular_speed_kms, disk_scale_length_kpc, sigma_km
     the speed law (`survival`'s density) and the birth radii (`birth_radii_over_scale_length`). `()` for a galaxy that
     ejects none.
     """
-    sigma = tuning.NEUTRON_STAR_KICK_SIGMA_KMS if sigma_kms is None else sigma_kms
+    sigma = _kick_sigma(sigma_kms)
     a = circular_speed_kms / sigma
     pairs = []
     for radius in birth_radii_over_scale_length():

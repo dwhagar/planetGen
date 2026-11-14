@@ -165,6 +165,10 @@ def speed_kms_html(kms):
     return measured_html("km_s", kms)
 
 
+_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+"""str: The `planetgen` package folder (this file is `planetgen/web/lib/fmt.py`)."""
+
+
 def _read_package_version():
     """
     The planetGen package version (`src/planetgen/_version.py`'s
@@ -174,8 +178,7 @@ def _read_package_version():
     Falls back to `"dev"` if the file can't be found or parsed, so a page
     still renders (just without a meaningful cache-busting value).
     """
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                        "_version.py")
+    path = os.path.join(_PACKAGE_DIR, "_version.py")
     try:
         with open(path, encoding="utf-8") as handle:
             match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', handle.read(), re.MULTILINE)
@@ -186,8 +189,7 @@ def _read_package_version():
 
 STATIC_VERSION = _read_package_version()
 
-_STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "html", "static")
-_STATIC_DIR = os.path.normpath(_STATIC_DIR)
+_STATIC_DIR = os.path.normpath(os.path.join(_PACKAGE_DIR, "..", "html", "static"))
 STATIC_FINGERPRINT_TTL_SECONDS = 5.0
 _fingerprint_cache = {"at": -1e9, "value": ""}
 

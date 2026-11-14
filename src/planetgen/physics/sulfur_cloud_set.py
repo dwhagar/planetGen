@@ -317,10 +317,13 @@ SPREAD_LIMIT_SIGMA = 2.0
 """float: How far, in stated sigmas, the draw may move the band (the tails past two sigma are not used)."""
 
 
+_SPREAD_LOW = NormalDist().cdf(-SPREAD_LIMIT_SIGMA)
+"""float: The unit below which (and above one minus which) `_shift_sigmas` holds the draw."""
+
+
 def _shift_sigmas(unit):
     """A normal deviate in sigmas for `unit` in [0, 1), held to `SPREAD_LIMIT_SIGMA` either way."""
-    low = NormalDist().cdf(-SPREAD_LIMIT_SIGMA)
-    return NormalDist().inv_cdf(min(max(unit, low), 1.0 - low))
+    return NormalDist().inv_cdf(min(max(unit, _SPREAD_LOW), 1.0 - _SPREAD_LOW))
 
 
 def absorber_band(cloud_tau_550, so2_share, wavelengths_um, draw=0.5):

@@ -60,7 +60,7 @@ at today's value), the Great Oxidation coming some 0.3 to 1 Gyr after oxygenic p
 RISE_STEP_GYR = 0.25
 """float: The step, Gyr, of the integral of the surplus `S - R(age)` in `rise_age_gyr`; the heat flow it reads changes by under 10 percent over a step after the first Gyr."""
 
-EARTH_AREA_M2 = 4.0 * math.pi * (constants.EARTH_RADIUS_KM * 1000.0) ** 2
+EARTH_AREA_M2 = 4.0 * math.pi * constants.EARTH_RADIUS_M ** 2
 EARTH_OCEAN_FRACTION = 0.71
 EARTH_HEAT_W = 4.4e13
 """float: Earth's own heat flow now, W (44 TW)."""
@@ -82,7 +82,7 @@ LIGHT_RANGE = (0.0, 2.0)
 PAR_NM = (400.0, 700.0)
 """tuple[float]: The photosynthetically active band, nm."""
 
-SUN_TEMPERATURE_K = 5772.0
+SUN_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
 
 TEMPERATURE_ACTIVATION_EV = 0.32
 """float: The activation energy of photosynthesis, eV (about a half of a heterotroph's; T2, L0)."""

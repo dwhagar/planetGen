@@ -30,6 +30,9 @@ adjacency above it."""
 
 _EPS = 1e-9
 
+def _angle(cosine):
+    """The angle whose cosine is `cosine`, clamped to [0, pi] (a cosine past -1 is a full half turn)."""
+    return math.pi if cosine <= -1.0 else math.acos(min(1.0, max(-1.0, cosine)))
 BandArc = namedtuple("BandArc", ["shell", "band", "first", "count", "whole"])
 """One band's wedges in a region: `count` wedges from `first`, counterclockwise
 as the longitude grows, wrapping past the band's last wedge when `first +
@@ -91,14 +94,15 @@ class Region:
         plane, z = spherical.band_center_pc(shell, band, self.edge_pc)
         if n == 1 or plane == 0.0:
             return BandArc(shell, band, 0, 1, True) if self._inside(shell, band, 0) else None
-        denominator = math.sin(math.atan2(plane, z)) * math.sin(colat_c)
+        colat = math.atan2(plane, z)
+        denominator = math.sin(colat) * math.sin(colat_c)
         if delta >= math.pi or denominator < 1e-12:
             candidates = range(n)
         else:
-            cos_width = (cos_delta - math.cos(math.atan2(plane, z)) * math.cos(colat_c)) / denominator
+            cos_width = (cos_delta - math.cos(colat) * math.cos(colat_c)) / denominator
             if cos_width > 1.0 + 1e-6:
                 return None
-            width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, max(-1.0, cos_width)))
+            width = _angle(cos_width)
             candidates = spherical._wedges_near_longitude(n, lon_c, width + 1e-6)
         inside = {wedge for wedge in candidates if self._inside(shell, band, wedge)}
         if not inside:
@@ -134,7 +138,7 @@ class Region:
                 cos_delta = (radius * radius + reach * reach - self.reach_pc ** 2) / (2 * radius * reach)
             if cos_delta > 1.0 + 1e-9:
                 continue
-            delta = math.pi if cos_delta <= -1.0 else math.acos(min(1.0, max(-1.0, cos_delta)))
+            delta = _angle(cos_delta)
             low, high = spherical.band_range(shell)
             layout = spherical.shell_layout(shell)
             lo_colat = max(0.0, colat_c - delta)

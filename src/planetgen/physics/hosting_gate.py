@@ -167,7 +167,7 @@ def stable_zone_m(host):
     if host.fluid:
         inner = max(inner, relations.roche_limit(host.diameter_m / 2.0, host.density_kg_m3, SATELLITE_DENSITY_KG_M3))
     hill = hill_radius_m(host)
-    return inner, None if hill is None else clearance_ledger.moon_hill_fraction(0.0)[0] * hill
+    return inner, None if hill is None else SUBMOON_HILL_FRACTION * hill
 
 
 def satellite_fits(host):

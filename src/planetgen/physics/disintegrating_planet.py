@@ -77,7 +77,7 @@ CORE_MASS_FRACTION = 0.32
 GONE_BELOW = 1.0e-2
 """float: The share of its mass under which a planet is gone (the lower end of the lifetime integral; the last hundredth goes in a thousandth of the time)."""
 
-_GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
+_GY_S = constants.SECONDS_PER_GY
 _H = constants.HYDROGEN_ATOM_MASS_KG
 _K = constants.BOLTZMANN
 _G = constants.G

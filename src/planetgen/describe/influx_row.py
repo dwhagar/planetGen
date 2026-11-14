@@ -8,6 +8,7 @@ The derived row of a planet's sheet for the belt dust and comets that reach it (
 made and is not a column: it is a pure function of stored data. `None` for a giant, a planet with no star or orbit, and a system with nothing to send in.
 """
 
+from planetgen.describe import host_star
 from planetgen.physics import constants, influx
 from planetgen.physics import unit_registry as units
 
@@ -28,8 +29,7 @@ def influx_kg_per_yr(conn, planet_id):
     planet = conn.execute("SELECT star_system_id, star_id, body_type, distance_km, radius_km FROM planets WHERE id = ?", (planet_id,)).fetchone()
     if planet is None or planet["body_type"] == "g" or not planet["distance_km"] or not planet["radius_km"]:
         return None
-    star = (conn.execute("SELECT mass_kg, age_gy, luminosity_w FROM stars WHERE id = ?", (planet["star_id"],)).fetchone() if planet["star_id"]
-            else conn.execute("SELECT mass_kg, age_gy, luminosity_w FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (planet["star_system_id"],)).fetchone())
+    star = host_star.of(conn, planet, "mass_kg, age_gy, luminosity_w")
     if star is None or not star["mass_kg"] or not star["age_gy"]:
         return None
     belts = conn.execute("SELECT star_id, mass_kg, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ?", (planet["star_system_id"],)).fetchall()

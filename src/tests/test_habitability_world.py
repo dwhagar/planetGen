@@ -256,7 +256,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         with conn:
             # An airless, worst-case world: the cosmic-ray multiplier changes its dose and so its tier.
             conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500,"
-                         " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, surface_dose_msv_yr = 501.5,"
+                         " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, dose_belt_msv_yr = 0, surface_dose_msv_yr = 501.5,"
                          " dose_helio_mult = 1, tier_radiation = NULL, eq_body = NULL"
                          " WHERE body_type = 't'")
             cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")

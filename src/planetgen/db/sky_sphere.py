@@ -251,9 +251,8 @@ def cell_levels(conn, center, radius_pc):
         return CellLevels((), scatter_level, math.inf)
     ledger = sky_tier_ledger.read(conn)
     if 4.0 / 3.0 * math.pi * ((radius_pc / edge) + spherical.CELL_REACH_EDGES) ** 3 > MAX_LEVEL_CELLS:
-        complete = math.inf if scatter_level is None else scatter_level
-        if scatter_level is not None:
-            complete = ledger.sphere_reached(sky_tier_ledger.LUMINOSITY, center, radius_pc, scatter_level)
+        complete = (math.inf if scatter_level is None
+                    else ledger.sphere_reached(sky_tier_ledger.LUMINOSITY, center, radius_pc, scatter_level))
         return CellLevels((), scatter_level, complete, truncated=True)
     addresses = sorted((shell, band, wedge) for shell, band, wedge, *_rest in spherical.cells_touching_sphere(center, radius_pc, edge))
     levels = store.sector_bright_levels(conn, addresses)

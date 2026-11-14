@@ -95,7 +95,7 @@ def reach(reservoir, planet_au):
 
 def cross_section_share(radius_km, planet_au):
     """The share of an isotropic stream through the sphere of the planet's orbit that the planet intercepts: `R^2 / (4 a^2)`."""
-    radius_au = radius_km / 1.495978707e8
+    radius_au = radius_km / constants.AU_TO_KM
     return (radius_au / planet_au) ** 2 / 4.0 if planet_au > 0.0 else 0.0
 
 
