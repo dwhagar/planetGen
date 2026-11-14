@@ -13296,6 +13296,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: GEN.1716 part B. Related: GEN.1716, GEN.1715.
   Filed by the TODO thread.
 
+- [ ] **OPS.257 A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena)**
+  Boss, 4:32 PM EST on 2026-11-14 (follow-up on OPS.254): "on a galaxy run that starts with a database wipe, there is no need to clear scatters". OPS.254 (PR 6508) only makes a clear cheap when it finds the tables empty. Do: when a run's plan begins with the reset, the shared planner leaves out every scatter clear stage, so every route that starts with a wipe gets it (web New galaxy, CLI galaxy with reset, a queue resume of such a run); runs without a wipe keep 6508's empty check. Tests through each route. Lock-free unless output moves.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: none. Related: OPS.254.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
