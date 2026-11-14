@@ -400,15 +400,22 @@ def remaining_steps(job_id, root=None):
     return (job, remaining) if remaining else None
 
 
+def _known_job_dir(root, job_id):
+    """The folder of a job that exists (its `job.json` is there) under `root` (the jobs folder by default), else `None`."""
+    path = _job_dir(root or jobs_dir(), job_id)
+    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+        return None
+    return path
+
+
 def log_tail(job_id, max_bytes=64 * 1024, root=None):
     """
     The last `max_bytes` of a job's output, as text, with rich's carriage
     return redraws collapsed to their final state. `None` for an unknown
     job.
     """
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         with open(os.path.join(path, "output.log"), "rb") as f:
@@ -427,9 +434,8 @@ def log_tail(job_id, max_bytes=64 * 1024, root=None):
 
 def log_size(job_id, root=None):
     """The size in bytes of a job's `output.log` (0 before the first output); `None` for an unknown job."""
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         return os.path.getsize(os.path.join(path, "output.log"))
@@ -450,9 +456,8 @@ def read_log(job_id, offset=0, max_bytes=64 * 1024, root=None):
             replaced) starts again from 0. `("", offset)` when there is
             nothing new; `None` for an unknown job.
     """
-    root = root or jobs_dir()
-    path = _job_dir(root, job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    path = _known_job_dir(root, job_id)
+    if path is None:
         return None
     try:
         with open(os.path.join(path, "output.log"), "rb") as f:
@@ -692,12 +697,15 @@ def job_time_limit(path):
     """
     The seconds RQ lets the job in `path` run (PERF.144): `redisqueue.job_timeout` of the time its steps are expected
     to take (`job_runner.expected_seconds`: the recorded stage times, else what each step took in earlier runs),
-    `JOB_CEILING_SECONDS` when a step has no record.
+    `JOB_CEILING_SECONDS` when a step has no record, and for a job with a step that is a run on the queue (OPS.255): its units are watched
+    for progress (`beatjudge`), and a clock of ten times what a smaller galaxy recorded would end the starter of a run that is still working. OPS.215 removes RQ and this rule goes with it.
     """
     from planetgen.web import job_runner
 
     with open(os.path.join(path, "job.json"), "r", encoding="utf-8") as f:
         job = json.load(f)
+    if job_runner.runs_queue_run(job):
+        return JOB_CEILING_SECONDS
     return redisqueue.job_timeout(job_runner.expected_seconds(job), ceiling=JOB_CEILING_SECONDS,
                                   floor=JOB_FLOOR_SECONDS)
 

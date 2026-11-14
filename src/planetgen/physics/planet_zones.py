@@ -30,7 +30,6 @@ point at its center of mass, which holds where a planet is well inside its host'
 Distances are AU, masses and luminosities solar.
 """
 
-import math
 from dataclasses import dataclass
 
 from planetgen import tuning
@@ -122,6 +121,11 @@ def _axis_au(node):
     return _km_to_au(node.separation_km)
 
 
+def _host_of(zone):
+    """The tree child a zone's planets go round: the member of an S-type zone, the node of a P-type one."""
+    return ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+
+
 def _s_limit_au(tree, child, parent):
     """The S-type limit of subtree `child` against its sibling in `parent`'s orbit: the Holman and Wiegert fit or the
     Hill radius in the pair, whichever is tighter."""
@@ -189,7 +193,7 @@ def ancestor_limits_au(zone, nodes, members):
     all of them (GEN.1014).
     """
     tree = _Tree(list(nodes), list(members))
-    child = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    child = _host_of(zone)
     limits = []
     parent = tree.parent_of(child)
     while parent is not None and parent.kind != "group":
@@ -202,7 +206,7 @@ def ancestor_limits_au(zone, nodes, members):
 def host_mass_solar(zone, nodes, members):
     """The mass a body in `zone` goes round, in solar masses: the host star's, or the sum of the pair node's two sides'."""
     tree = _Tree(list(nodes), list(members))
-    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    host = _host_of(zone)
     return tree.mass(host)
 
 
@@ -237,7 +241,7 @@ def companion_orbits(zone, nodes, members):
         ValueError: For a member that meets the host at a `group` node, which has no orbit.
     """
     tree = _Tree(list(nodes), list(members))
-    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    host = _host_of(zone)
     own = tree.below(host)
     host_chain = set(tree.chain(host)) | ({zone.host_no} if zone.kind == P_TYPE else set())
     found = []
@@ -255,5 +259,5 @@ def companion_orbits(zone, nodes, members):
 def host_members(zone, nodes, members):
     """The numbers of the members the planets of `zone` go round (the star itself for an S-type zone, a pair node's subtree for a P-type one)."""
     tree = _Tree(list(nodes), list(members))
-    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    host = _host_of(zone)
     return sorted(tree.below(host))

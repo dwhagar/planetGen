@@ -36,9 +36,6 @@ from planetgen.physics import constants as physical_constants, moon_composition,
 from planetgen.util.checks import finite_domain
 from planetgen.util.random import log_uniform
 
-_AU_M = 1.495978707e11
-"""float: The astronomical unit in metres (IAU 2012)."""
-
 RESONANCE_ORDER = 3
 """int: How many times slower than the body's rotation the ring goes round (Quaoar 1/3, Haumea 3:1, Chariklo near it). [Stand-in RR1, tier T4, tweak L3.]"""
 
@@ -117,8 +114,7 @@ def resonance_ring(mass_kg, radius_km, spin_period_h, distance_au, host_mass_kg,
         ResonanceRing or None
     """
     chance = stream.random()
-    low, high = rings.RANGES["ice_fraction"][NARROW]
-    share = stream.uniform(low, high)
+    share = stream.uniform(*rings.RANGES["ice_fraction"][NARROW])
     ring_mass = min(log_uniform(*RESONANCE_RING_MASS_KG, rng=stream), rings.MAX_MASS_OVER_PLANET * mass_kg)
     width = log_uniform(*RESONANCE_WIDTH_FRACTION, rng=stream)
     filling = log_uniform(*rings.RANGES["filling"][NARROW], rng=stream)
@@ -128,7 +124,7 @@ def resonance_ring(mass_kg, radius_km, spin_period_h, distance_au, host_mass_kg,
     center = resonance_radius_km(mass_kg, spin_period_h)
     density = mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3)
     roche = rings.roche_limit_km(radius_km, density, rings.mixture_density_kg_m3(ice_fraction))
-    hill_km = orbits.calculate_hill_sphere(distance_au * _AU_M, mass_kg, host_mass_kg) / 1000.0
+    hill_km = orbits.calculate_hill_sphere(distance_au * physical_constants.AU_M, mass_kg, host_mass_kg) / 1000.0
     if center <= roche or center > HILL_FRACTION_MAX * hill_km:
         return None
     inner, outer = center * (1.0 - width / 2.0), center * (1.0 + width / 2.0)

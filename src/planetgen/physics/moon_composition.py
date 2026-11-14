@@ -41,7 +41,9 @@ GIANT = "giant"
 TERRESTRIAL = "terrestrial"
 DWARF_PLANET = "dwarf-planet"
 PARENT_KINDS = (GIANT, TERRESTRIAL, DWARF_PLANET)
-ORIGINS = ("disk", "impact", "captured", "ring", "binary")
+ORIGINS = ("disk", "impact", "captured", "ring", "binary", "exchange")
+CAPTURE_ORBIT_ORIGINS = ("captured", "exchange")
+"""tuple: The origins whose orbit is a captured one (isotropic outside the Kozai band, a thermal eccentricity). `exchange` is a capture of planet size (GEN.1157, `planet_moons`): its orbit is a captured one and its body is made as a planet's, not as an icy rock."""
 
 GIANT_ENVELOPE_FRACTION = 0.01
 """float: A parent with at least this envelope mass fraction is a giant (a parametrisation; an envelope of 1 percent is where a planet
@@ -149,11 +151,11 @@ def draw_inclination_deg(origin):
     uniform number is mapped onto the allowed cosines, so no value is rejected.
 
     Args:
-        origin (str): `disk`, `impact`, `captured`, `ring` or `binary`.
+        origin (str): `disk`, `impact`, `captured`, `ring`, `binary` or `exchange`.
     """
     if origin not in ORIGINS:
         raise ValueError(f"the origin {origin!r} is none of {ORIGINS}")
-    if origin != "captured":
+    if origin not in CAPTURE_ORBIT_ORIGINS:
         return draw.uniform(0.0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
     low, high = (math.radians(angle) for angle in KOZAI_FORBIDDEN_DEG)
     prograde = 1.0 - math.cos(low)          # the cosines from 1 down to cos(low)
@@ -273,7 +275,7 @@ BINARY_MASS_RATIO = (5e-4, 0.11)
 """tuple: The mass ratio of a dwarf planet's partner, log-uniform ([R0269: Table 2])."""
 
 _ANHYDROUS = sb.TAXON_DATA["S"].fractions
-_HYDRATED = {name: value for name, value in sb.TAXON_DATA["C"].fractions.items()}
+_HYDRATED = dict(sb.TAXON_DATA["C"].fractions)
 
 
 def hydration(r_over_r_ice):
@@ -379,7 +381,6 @@ def density_kg_m3(makeup, mass_kg):
     rock = min(max(makeup.rock + makeup.metal, low), high)
     radius_km = compaction.compacted_radius_km(mass_kg, rock)
     return mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1e3) ** 3)
-
 
 
 def mass_from_radius_kg(makeup, radius_km):

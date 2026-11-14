@@ -48,7 +48,7 @@ class BandSpectrum:
 # --- Shielding by a mixed column --------------------------------------------------------------------------------
 
 AIR_INTERACTION_LENGTH_G_CM2 = 90.1
-INTERACTION_LENGTH_G_CM2 = {"air": 90.1, "N2": 90.1, "O2": 90.1, "CO2": 88.9, "H2": 52.0}
+INTERACTION_LENGTH_G_CM2 = {"air": AIR_INTERACTION_LENGTH_G_CM2, "N2": AIR_INTERACTION_LENGTH_G_CM2, "O2": AIR_INTERACTION_LENGTH_G_CM2, "CO2": 88.9, "H2": 52.0}
 """dict: The nuclear interaction length, g/cm2, of the gases the research lanes read from the Particle Data Group
 (air 90.1, CO2 88.9, H2 52.0; N2 and O2 take air's). A gas not here is an error."""
 

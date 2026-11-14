@@ -17,7 +17,7 @@ so 0.83 at `q = 3.5` and 1.0 at `q = 4`. [R4254, R4255] measure `0.96 (+0.47 -0.
 of a cascade sits inside the measurement, and no number was tuned to it.
 
 **What the scatterer lifts out.** A body is thrown out by the planet it scatters off only if it is the lighter of the pair (whether the scatterer ejects at all is the architecture's Safronov number, `scatter.safronov_number`): the energy that unbinds the body comes out of the scatterer's orbit, so a body heavier than the scatterer is the one that stays (the architecture already throws out
-the lighter of a crowded pair, `planet_architecture._scatter_crowded_giants`; [R0258] eject only embryos of at most a Mars mass to an Earth mass in the same runs). The ejected spectrum is
+the lighter of a crowded pair, `planet_architecture._scatter_split`; [R0258] eject only embryos of at most a Mars mass to an Earth mass in the same runs). The ejected spectrum is
 the supply's, cut at the scatterer's mass.
 
 The normalisation (how many, how much mass) comes from the ejection record (RP1, GEN.1119), not from here; this module gives the shape, the share of the ejected bodies in a mass range, and a draw from it.
@@ -26,7 +26,6 @@ The rogue top-up draws its masses from it (`rogue_topup.draw_mass_earth`, GEN.12
 
 import math
 
-from planetgen.physics import rogue_kick
 from planetgen.util.checks import finite_domain
 
 SUPPLY_DIFFERENTIAL_INDEX = 3.5

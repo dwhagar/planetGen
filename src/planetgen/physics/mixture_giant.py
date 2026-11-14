@@ -95,7 +95,6 @@ MIN_CONDENSED = 1e-10
 """float: Ices that took fewer moles than this per hydrogen atom are not listed as condensed."""
 
 
-
 def _log_eps(symbol):
     return PHOTOSPHERE_LOG_EPS.get(symbol, tuning.STELLAR_SOLAR_LOG_EPS.get(symbol))
 
@@ -539,7 +538,8 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     disk_factors = _disk_enrichments(subject, log_enrichment - fe_h)
     for symbol, factor in disk_factors.items():
         constants_drawn[f"enrichment_{symbol.lower()}"] = factor
-    budget = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
+    inventory = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
+    budget = dict(inventory)        # the delivered budget before the clouds and the helium of a stripped envelope; `inventory` stays as delivered
     helium_y = subject.get("envelope_helium_y") if family == "envelope" else None
     if helium_y is not None:         # GEN.1527: an envelope that lost hydrogen first (`helium_fractionation`): the helium per hydrogen of its helium mass share, in place of the solar one
         budget["He"] = helium_y / (1.0 - helium_y) / helium_fractionation.HELIUM_ATOM_MASS_RATIO
@@ -595,4 +595,4 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
         temperature_k=temperature, pressure_bar=pressure, moles=result.moles, mole_fractions=result.mole_fractions,
         total_moles=result.total_moles, iterations=result.iterations, skipped=result.skipped)
     return finish(result, family=family, drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=None,
-                  inventory=element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors), constants=constants_drawn, condensed=condensed)
+                  inventory=inventory, constants=constants_drawn, condensed=condensed)

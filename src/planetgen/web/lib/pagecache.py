@@ -219,6 +219,12 @@ class ResponseCache:
     def _redis(self):
         return redisclient.client(timeout=SOCKET_SECONDS, retries=1)
 
+    def _keep(self, db, target, entry):
+        """Puts `entry` in this process's copies, the least recently used out past `max_entries`. The caller holds the lock."""
+        self._entries[(db, target)] = entry
+        while len(self._entries) > self._max_entries:
+            self._entries.popitem()
+
     def _redis_has_room(self):
         """Whether Redis is under `REDIS_ROOM_FRACTION` of its `maxmemory` (always, when it has no limit); looked up at
         most every `REDIS_ROOM_SECONDS`, and a failed look counts as room (the write that follows copes with errors)."""
@@ -357,9 +363,7 @@ class ResponseCache:
         except (ValueError, UnicodeDecodeError):
             return None
         with self._lock:
-            self._entries[(db, target)] = entry
-            while len(self._entries) > self._max_entries:
-                self._entries.popitem()
+            self._keep(db, target, entry)
         return entry
 
     def _note(self, db, target, incarnation, tags):
@@ -447,9 +451,7 @@ class ResponseCache:
         if db is None:
             with self._lock:
                 if generation == self._generation:
-                    self._entries[(db, target)] = Entry("", {}, body, now, cost)
-                    while len(self._entries) > self._max_entries:
-                        self._entries.popitem()
+                    self._keep(db, target, Entry("", {}, body, now, cost))
             return False
         tags = pagetags.read_tags(_path_of(target), body)
         try:
@@ -463,9 +465,7 @@ class ResponseCache:
             self._refreshing.pop((db, target), None)
             if generation != self._generation or db not in self._stamps:
                 return False
-            self._entries[(db, target)] = entry
-            while len(self._entries) > self._max_entries:
-                self._entries.popitem()
+            self._keep(db, target, entry)
         try:
             if not self._redis_has_room():
                 return False

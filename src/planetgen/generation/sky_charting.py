@@ -206,24 +206,14 @@ def _luminosity_rows(context, tier, addresses, work, states):
     Returns:
         tuple: `(rows, levels)`; `levels` is `{address: tier floor}` for each cell drawn whose level the tier touched (the tier reaches up to it), to be stored in the cell's row.
     """
-    groups = collections.defaultdict(list)
-    levels = {}
-    for address in addresses:
-        state = states.get(address)
-        if state is None:
-            continue
-        level, held = state
-        top = level if tier.high is None else min(float(tier.high), level)
-        if top <= tier.low + sky_tier_ledger.EDGE_TOLERANCE:
-            continue
-        groups[(top, held)].append(address)
-        if tier.high is None or float(tier.high) >= level - sky_tier_ledger.EDGE_TOLERANCE:
-            levels[address] = float(tier.low)
-    rows = []
-    for (top, held), group in sorted(groups.items(), key=lambda item: (item[0][0], -1.0 if item[0][1] is None else item[0][1])):
-        rows.extend(bright_stars.backfill_cells(context.skeleton.shape, group, context.edge_pc, context.expected, float(tier.low), top, context.seed,
-                                                mass_range=None if held is None else (None, held), memo=work))
-    return rows, levels
+    return _tier_rows(
+        tier, addresses, states,
+        top_of=lambda level, held: level if tier.high is None else min(float(tier.high), level),
+        other_of=lambda level, held: held,
+        reaches=lambda level, held: tier.high is None or float(tier.high) >= level - sky_tier_ledger.EDGE_TOLERANCE,
+        draw=lambda group, top, held: bright_stars.backfill_cells(
+            context.skeleton.shape, group, context.edge_pc, context.expected, float(tier.low), top, context.seed,
+            mass_range=None if held is None else (None, held), memo=work))
 
 
 def _mass_rows(context, tier, addresses, work, states):
@@ -233,24 +223,43 @@ def _mass_rows(context, tier, addresses, work, states):
     Returns:
         tuple: `(rows, masses)`; `masses` is `{address: tier low}` for each cell drawn that the ring reaches up to (its held mass is at or over the ring's high), to be stored in the cell's row.
     """
+    return _tier_rows(
+        tier, addresses, states,
+        top_of=lambda level, held: float(tier.high) if held is None else min(float(tier.high), held),
+        other_of=lambda level, held: level,
+        reaches=lambda level, held: held is None or held >= float(tier.high) - sky_tier_ledger.EDGE_TOLERANCE,
+        draw=lambda group, top, level: bright_stars.backfill_mass_cells(
+            context.skeleton.shape, group, context.edge_pc, context.expected, float(tier.low), top, level, context.seed,
+            context.edges, memo=work))
+
+
+def _tier_rows(tier, addresses, states, top_of, other_of, reaches, draw):
+    """
+    The shared body of `_luminosity_rows` and `_mass_rows` (GEN.1662): groups the cells of `addresses` that have a state
+    by `(top_of(level, held), other_of(level, held))`, the top the tier draws each to and the other limit it draws under,
+    skips a group whose top is at the tier's low, draws each group with `draw(group, top, other)` in order of its key,
+    and records `tier.low` for every cell `reaches(level, held)` says the tier reaches up to.
+
+    Returns:
+        tuple: `(rows, reached)`; `reached` is `{address: float(tier.low)}`.
+    """
     groups = collections.defaultdict(list)
-    masses = {}
+    reached = {}
     for address in addresses:
         state = states.get(address)
         if state is None:
             continue
         level, held = state
-        top = float(tier.high) if held is None else min(float(tier.high), held)
+        top = top_of(level, held)
         if top <= tier.low + sky_tier_ledger.EDGE_TOLERANCE:
             continue
-        groups[(top, level)].append(address)
-        if held is None or held >= float(tier.high) - sky_tier_ledger.EDGE_TOLERANCE:
-            masses[address] = float(tier.low)
+        groups[(top, other_of(level, held))].append(address)
+        if reaches(level, held):
+            reached[address] = float(tier.low)
     rows = []
-    for (top, level), group in sorted(groups.items()):
-        rows.extend(bright_stars.backfill_mass_cells(context.skeleton.shape, group, context.edge_pc, context.expected, float(tier.low), top, level, context.seed,
-                                                     context.edges, memo=work))
-    return rows, masses
+    for (top, other), group in sorted(groups.items(), key=lambda item: (item[0][0], -1.0 if item[0][1] is None else item[0][1])):
+        rows.extend(draw(group, top, other))
+    return rows, reached
 
 
 class DrawLock:

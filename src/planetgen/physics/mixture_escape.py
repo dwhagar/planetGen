@@ -57,7 +57,7 @@ def body_inputs(subject):
     radius = subject.get("radius_km")
     radius_m = radius * 1e3 if radius else 2.0 * constants.G * mass / (v_esc * 1e3) ** 2
     pressure_bar = subject.get("pressure_bar")
-    pressure_pa = (pressure_bar if pressure_bar else 1.0) * 1e5
+    pressure_pa = (pressure_bar if pressure_bar else 1.0) * constants.BAR_PA
     return mass, radius_m, pressure_pa, age
 
 
@@ -109,7 +109,7 @@ def apply(subject, result, column_bar=None):
     """
     if result.family not in FAMILIES or not result.mole_fractions:
         return result
-    kept, exobase = kept_in_column(subject, result.mole_fractions, column_bar * 1e5 if column_bar else None)
+    kept, exobase = kept_in_column(subject, result.mole_fractions, column_bar * constants.BAR_PA if column_bar else None)
     left, total = survivors(result.mole_fractions, kept)
     moles = None if result.moles is None else result.moles * total
     constants_out = {**result.constants, "exobase_k": exobase, "escape_kept": {f: round(k, 6) for f, k in kept.items() if k < 0.999999}}

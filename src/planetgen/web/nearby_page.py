@@ -70,6 +70,17 @@ def nearby_url(place=None, distance=None, **params):
     return url_for("web.nearby") + (f"?{urlencode(query, safe=':,')}" if query else "")
 
 
+def _ref_page_url(kind, object_id):
+    """The page of a phenomenon, a sector or a system named by an object reference's kind and id, or `None` for any other kind."""
+    if kind in near_search.object_ref.PHENOMENON_KINDS:
+        return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=object_id)
+    if kind == "sector":
+        return page_url("sector", sector_id=object_id)
+    if kind == "system":
+        return page_url("system", system_id=object_id)
+    return None
+
+
 def _row_url(row):
     """The page of one result."""
     kind = row["kind"]
@@ -79,12 +90,12 @@ def _row_url(row):
         from .item_pages import item_url        # imported here: item_pages reaches this module through the nav page
         return item_url(row["ref"])
     if kind in near_search.object_ref.PHENOMENON_KINDS:
-        return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=row["id"])
+        return _ref_page_url(kind, row["id"])
     if row["system_id"] is not None:
         return page_url("system", system_id=row["system_id"])
     parent = row["parent"]
     if parent and parent["kind"] == "sector":
-        return page_url("sector", sector_id=parent["ref"].split(":")[1])
+        return _ref_page_url(*parent["ref"].split(":"))
     return None
 
 
@@ -93,11 +104,8 @@ def _parent_link(row):
     if not parent:
         return None
     kind, parent_id = parent["ref"].split(":")
-    if kind == "sector":
-        return {"name": parent["name"], "url": page_url("sector", sector_id=parent_id)}
-    if kind == "system":
-        return {"name": parent["name"], "url": page_url("system", system_id=parent_id)}
-    return {"name": parent["name"], "url": page_url("system", system_id=row["system_id"])}
+    url = _ref_page_url(kind, parent_id) if kind in ("sector", "system") else page_url("system", system_id=row["system_id"])
+    return {"name": parent["name"], "url": url}
 
 
 def _place_pickers(sector_raw):
@@ -156,7 +164,7 @@ def _value_chips(ranges, sort, query_pairs):
     chips = value_chips(ranges, query_pairs, url_for("web.nearby"))
     if sort:
         entity, ordered = sort
-        label = search_values.KEYS[ordered.lstrip("-")].label.split(" (")[0].lower()
+        label = search_values.short_label(ordered.lstrip("-")).lower()
         remaining = [(key, value) for key, value in query_pairs if key not in VALUE_SORT_FIELDS]
         chips.append({"label": f"{ {'planet': 'Planet', 'moon': 'Moon', 'star': 'Star'}[entity] }s ordered by {label}, "
                                f"{'high to low' if ordered.startswith('-') else 'low to high'}",
@@ -166,12 +174,8 @@ def _value_chips(ranges, sort, query_pairs):
 
 def _values_text(row):
     """The Values cell of a row: each value it carries, written with its label and unit."""
-    parts = []
-    for key, found in (row.get("values") or {}).items():
-        if found["value"] is not None:
-            tail = f" {found['symbol']}" if found["symbol"] else ""
-            parts.append(f"{search_values.KEYS[key].label.split(' (')[0]} {found['value']:.4g}{tail}")
-    return "; ".join(parts)
+    texts = (search_values.value_text(key, found) for key, found in (row.get("values") or {}).items())
+    return "; ".join(text for text in texts if text)
 
 
 def _error_field(message):
@@ -217,8 +221,7 @@ def nearby():
                "kind_options": [{"value": kind, "label": KIND_LABELS[kind], "checked": kind in kinds}
                                 for kind in near_search.SEARCH_KINDS]}
     if not distance_raw:
-        title = "What's nearby"
-        return render_page("nearby.html", title=title, place_name=place_param, asking=True, **context, **page)
+        return render_page("nearby.html", title="What's nearby", place_name=place_param, asking=True, **context, **page)
 
     page_number = parse_page(args.get("page"))
     params = {**question, "distance": distance_raw, "limit": PAGE_SIZE, "offset": (page_number - 1) * PAGE_SIZE}
@@ -259,13 +262,4 @@ def nearby():
 
 
 def _place_url(place):
-    if place["ref"] is None:
-        return None
-    kind, object_id = place["ref"].split(":")
-    if kind in near_search.object_ref.PHENOMENON_KINDS:
-        return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=object_id)
-    if kind == "sector":
-        return page_url("sector", sector_id=object_id)
-    if kind == "system":
-        return page_url("system", system_id=object_id)
-    return None
+    return _ref_page_url(*place["ref"].split(":")) if place["ref"] is not None else None

@@ -38,14 +38,18 @@ def note(conn, run_id, kind, gap):
     conn.register_script(_MAX)(keys=[runrecord.gaps_key(run_id)], args=[kind, round(float(gap), 3), runrecord.KEEP_SECONDS])
 
 
+def _gaps(conn, key):
+    return {kind: float(value) for kind, value in runrecord.text_hash(conn.hgetall(key)).items()}
+
+
 def read(conn, run_id):
     """`{command: seconds}` the run holds."""
-    return {runrecord._s(kind): float(runrecord._s(value)) for kind, value in conn.hgetall(runrecord.gaps_key(run_id)).items()}
+    return _gaps(conn, runrecord.gaps_key(run_id))
 
 
 def persisted(conn):
     """`{command: seconds}` the server has learned."""
-    return {runrecord._s(kind): float(runrecord._s(value)) for kind, value in conn.hgetall(persisted_key()).items()}
+    return _gaps(conn, persisted_key())
 
 
 def fold(conn, run_id):

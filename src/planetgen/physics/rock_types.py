@@ -33,8 +33,6 @@ takes the volcanic (secondary) crust of a body from its stored mantle through `r
 assemblages of the types and as the calibration.
 """
 
-import math
-
 from planetgen.physics import elements
 from planetgen.util.checks import finite_domain
 
@@ -180,8 +178,6 @@ def cipw_norm(oxides):
     """
     units, iron = _units(oxides)
     return {name: units[name] * _mass(name, iron) for name in MINERALS if units[name] > 0.0}
-
-
 
 
 @finite_domain()

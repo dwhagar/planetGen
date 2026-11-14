@@ -15,27 +15,6 @@ def _database(context):
     return wrapper.database_args(context.mysql_config)
 
 
-# --- refresh-block-lights: the roll-up and the uncharted index, cut into runs of shells (OPS.153) ---------------
-
-def _prepare_block_lights(context):
-    from planetgen.db import store
-    from tests.test_block_light_parts import _rows, _write
-
-    context.monkeypatch.setattr("planetgen.db.query.galaxy_edge_pc", lambda conn: 4.0)
-    conn = store.get_connection(context.mysql_config)
-    try:
-        stars, points = _rows()
-        _write(conn, stars, points)
-    finally:
-        conn.close()
-
-
-BLOCK_LIGHTS = Recipe(
-    "refresh-block-lights", (("planetgen.db.uncharted_index", "UNIT_CELLS"),), ((1,), (10 ** 9,)),
-    prepare=_prepare_block_lights, run_params=lambda context: {"database": _database(context), "run_id": None, "rebuild": False},
-    note="The scatter tables and the parts they keep are written; the stage rolls the totals up and makes the uncharted sector rows, a run of shells to a unit.")
-
-
 # --- link-neighbors and settle-sector-paths: runs of sectors (PERF.113, PERF.115) -------------------------------
 
 def _save_sectors(context):
@@ -224,5 +203,5 @@ WARM_NODES = _node_recipe("warm-galaxy-nodes", "the populated nodes of the built
 WARM_DEEP_NODES = _node_recipe("warm-galaxy-deep-nodes", f"the first {DEEP_SLICE} nodes of the zoom run")
 
 
-RECIPES = {recipe.kind: recipe for recipe in (BLOCK_LIGHTS, LINK, SETTLE, MAP_LUMINOSITY, WARM_SECTORS, WARM_SYSTEMS, WARM_PHENOMENA, WARM_NODES, WARM_DEEP_NODES)}
+RECIPES = {recipe.kind: recipe for recipe in (LINK, SETTLE, MAP_LUMINOSITY, WARM_SECTORS, WARM_SYSTEMS, WARM_PHENOMENA, WARM_NODES, WARM_DEEP_NODES)}
 """dict: Command kind -> `Recipe`."""

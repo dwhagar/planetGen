@@ -78,7 +78,7 @@ def create_app(config_object=Config):
     app.register_blueprint(facility_types_bp)
     app.register_blueprint(edits_bp)
     app.register_blueprint(workqueue_bp)
-    web.init_app(app, limiter=limiter)
+    web.init_app(app)
     settings_view.remember_startup()
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)
@@ -303,6 +303,12 @@ def _register_error_handlers(app):
 
     from planetgen.web.errors import RETRY_AFTER_SECONDS, busy_page, render_error, timeout_page, unexpected_error_message
 
+    def _retry_later_json(message, status):
+        """The API's answer when the database could not serve the request in time: the error and when to try again."""
+        response = jsonify({"error": message})
+        response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+        return response, status
+
     @app.errorhandler(pymysql.err.OperationalError)
     def _handle_statement_timeout(exc):
         # PERF.17: a read that ran past `mysql.statement_timeout_seconds`
@@ -312,17 +318,13 @@ def _register_error_handlers(app):
             # ADM.53: a row a long job holds locked; the request gave up after `WEB_LOCK_WAIT_SECONDS`.
             log.debug(f"Row lock wait on {request.method} {request.path}: {exc}")
             if _is_api_request():
-                response = jsonify({"error": "BUSY: the database is busy with another job; try again shortly"})
-                response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
-                return response, 503
+                return _retry_later_json("BUSY: the database is busy with another job; try again shortly", 503)
             return busy_page()
         if not (exc.args and exc.args[0] in store.STATEMENT_TIMEOUT_ERRORS):
             return _handle_internal_error(exc)
         log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")
         if _is_api_request():
-            response = jsonify({"error": "QUERY_TIMEOUT: the database took too long to answer"})
-            response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
-            return response, 504
+            return _retry_later_json("QUERY_TIMEOUT: the database took too long to answer", 504)
         return timeout_page()
 
     @app.errorhandler(400)

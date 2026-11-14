@@ -193,6 +193,11 @@ def store(kind, data):
         AssetError: The upload is not usable, or the folder can't be written (the message says how to fix it).
     """
     extension, _width, _height = check(kind, data)
+    return _write_named(data, extension)
+
+
+def _write_named(data, extension):
+    """Writes `data` under its content name (`<16 hex digits of its SHA-256>.<extension>`), once; returns the name."""
     name = f"{hashlib.sha256(data).hexdigest()[:16]}.{extension}"
     path = path_of(name)
     with _lock:
@@ -335,14 +340,7 @@ def store_avatar(data):
         AssetError: The picture is not usable, or the folder can't be written.
     """
     extension, stored, width, height, frames = prepare_avatar(data)
-    name = f"{hashlib.sha256(stored).hexdigest()[:16]}.{extension}"
-    path = path_of(name)
-    with _lock:
-        if not os.path.exists(path):
-            try:
-                backup_core.atomic_write(path, stored, mode=0o644)
-            except backup_core.BackupError as exc:
-                raise AssetError(str(exc)) from exc
+    name = _write_named(stored, extension)
     return {"name": name, "width": width, "height": height, "frames": frames, "mime": MIME[extension]}
 
 

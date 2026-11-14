@@ -303,38 +303,64 @@ def analyze(records, metrics=STATISTICAL_METRICS, k=3.0):
             if issues:
                 hard_violations.append((record, issues))
 
-        metric_report = {}
-        for metric in metrics:
-            # scale_height is None for classes with no atmosphere (never set
-            # by calculate_atmospheric_conditions) -- exclude those records
-            # from this metric rather than treating None as an anomaly.
-            values = [r[metric] for r in recs if r[metric] is not None and math.isfinite(r[metric])]
-            if not values:
-                continue
-            lo, hi = iqr_bounds(values, k=k)
-            outliers = [
-                r for r in recs
-                if r[metric] is not None and math.isfinite(r[metric]) and not (lo <= r[metric] <= hi)
-            ]
-            metric_report[metric] = {
-                "n": len(values),
-                "min": min(values),
-                "max": max(values),
-                "mean": statistics.mean(values),
-                "median": statistics.median(values),
-                "stdev": statistics.stdev(values) if len(values) > 1 else 0.0,
-                "iqr_bounds": (lo, hi),
-                "outlier_count": len(outliers),
-                "outlier_fraction": len(outliers) / len(recs),
-                "outlier_examples": outliers[:5],
-            }
-
         report[cls] = {
             "n": len(recs),
             "hard_violations": hard_violations,
-            "metrics": metric_report,
+            # scale_height is None for classes with no atmosphere (never set by calculate_atmospheric_conditions):
+            # `metric_statistics` leaves those records out of the metric rather than treating None as an anomaly.
+            "metrics": metric_statistics(recs, metrics, k),
         }
     return report
+
+
+def metric_statistics(records, metrics, k=3.0):
+    """
+    The per-metric block of a plausibility report, shared with `phenomena_plausibility.analyze`: for each metric of
+    `metrics` that any record has a finite value for, `{"n", "min", "max", "mean", "median", "stdev", "iqr_bounds",
+    "outlier_count", "outlier_fraction", "outlier_examples"}`, the outliers being the records outside the IQR fence
+    `iqr_bounds(values, k)`. A record with no value for a metric (missing, `None` or not finite) is left out of it.
+    """
+    report = {}
+    for metric in metrics:
+        values = [r[metric] for r in records if r.get(metric) is not None and math.isfinite(r[metric])]
+        if not values:
+            continue
+        lo, hi = iqr_bounds(values, k=k)
+        outliers = [r for r in records
+                    if r.get(metric) is not None and math.isfinite(r[metric]) and not (lo <= r[metric] <= hi)]
+        report[metric] = {
+            "n": len(values),
+            "min": min(values),
+            "max": max(values),
+            "mean": statistics.mean(values),
+            "median": statistics.median(values),
+            "stdev": statistics.stdev(values) if len(values) > 1 else 0.0,
+            "iqr_bounds": (lo, hi),
+            "outlier_count": len(outliers),
+            "outlier_fraction": len(outliers) / len(records),
+            "outlier_examples": outliers[:5],
+        }
+    return report
+
+
+def format_metric_lines(lines, data, show_outlier_examples, example):
+    """
+    Appends one line per metric of `data["metrics"]` (an `analyze` entry) to `lines`, with the outlier example lines
+    under it when `show_outlier_examples`: `example(metric, record)` writes the text after `e.g. metric=value`.
+    Shared with `phenomena_plausibility.format_report`.
+    """
+    for metric, stats in data["metrics"].items():
+        flag = " <-- outliers present" if stats["outlier_count"] else ""
+        lines.append(
+            f"  {metric}: min={stats['min']:.4g} max={stats['max']:.4g} "
+            f"mean={stats['mean']:.4g} median={stats['median']:.4g} "
+            f"stdev={stats['stdev']:.4g} "
+            f"outliers={stats['outlier_count']}/{data['n']} "
+            f"({stats['outlier_fraction']:.1%}){flag}"
+        )
+        if show_outlier_examples and stats["outlier_examples"]:
+            for record in stats["outlier_examples"]:
+                lines.append(f"      e.g. {metric}={record[metric]:.4g}{example(metric, record)}")
 
 
 def run_full_sample(n_per_zone=100, include_moons=True):
@@ -371,21 +397,8 @@ def format_report(report, show_outlier_examples=True):
                     f"    - star={record['star_type']} zone={record['zone']} is_moon={record['is_moon']}: "
                     + "; ".join(issues)
                 )
-        for metric, stats in data["metrics"].items():
-            flag = " <-- outliers present" if stats["outlier_count"] else ""
-            lines.append(
-                f"  {metric}: min={stats['min']:.4g} max={stats['max']:.4g} "
-                f"mean={stats['mean']:.4g} median={stats['median']:.4g} "
-                f"stdev={stats['stdev']:.4g} "
-                f"outliers={stats['outlier_count']}/{data['n']} "
-                f"({stats['outlier_fraction']:.1%}){flag}"
-            )
-            if show_outlier_examples and stats["outlier_examples"]:
-                for record in stats["outlier_examples"]:
-                    lines.append(
-                        f"      e.g. {metric}={record[metric]:.4g} "
-                        f"(star={record['star_type']}, zone={record['zone']}, is_moon={record['is_moon']})"
-                    )
+        format_metric_lines(lines, data, show_outlier_examples,
+                            lambda metric, r: f" (star={r['star_type']}, zone={r['zone']}, is_moon={r['is_moon']})")
         lines.append("")
 
     return "\n".join(lines)

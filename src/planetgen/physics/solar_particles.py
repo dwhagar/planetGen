@@ -128,11 +128,7 @@ GRID_MIN_MEV = 10.0
 GRID_MAX_MEV = 20000.0
 
 
-def _spectra():
-    return [BandSpectrum(j0, gamma1, gamma2, r0) for _, _, _, j0, gamma1, gamma2, r0 in EVENTS]
-
-
-SPECTRA = _spectra()
+SPECTRA = [BandSpectrum(j0, gamma1, gamma2, r0) for _, _, _, j0, gamma1, gamma2, r0 in EVENTS]
 """list: The `surface_dose.BandSpectrum` of each of `EVENTS`."""
 
 

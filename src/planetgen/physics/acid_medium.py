@@ -20,11 +20,16 @@ The model, with every number in `physics/data/acid_medium.json` and its tier and
   reported.
 * **Pool.** Acid at the ground: the surface in the liquid window with a concentrated acid at its own temperature and pressure.
 
+**Fringe physics (GEN.1562).** The acid pool is the least supported part of this model. [R0232] say it is unknown whether stable
+surface lakes or oceans of sulfuric acid could exist on a dry planet, and [R0043] propose surface
+ionic liquids (hydrogen sulfate salts) on warm, water-depleted worlds where the acid is only transiently liquid and "likely itself not a dominant
+planetary surface feature". So a pool here means a warm, water-poor, sulfur-rich ground with acid pools or ionic liquid, not an acid ocean. Tier: from
+reputable fringe physics (T8).
+
 `level(values)` is the number the life class rules read as `acid_medium`: 0 no liquid acid, 1 a cloud layer, 2 a pool (a pool world usually has a cloud too; the
 pool is the larger number because a class that needs the ground reads it).
 """
 
-import json
 import math
 import os
 
@@ -43,13 +48,8 @@ class AcidMediumError(ValueError):
 
 
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise AcidMediumError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-    return document
+    """The rule file's document, checked (`elements.load_rule_numbers`): every number has a value, a tier, a tweak and a basis."""
+    return elements.load_rule_numbers(DATA_FILE, AcidMediumError)
 
 
 DOCUMENT = _load()

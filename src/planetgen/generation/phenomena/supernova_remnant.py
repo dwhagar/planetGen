@@ -87,6 +87,10 @@ def infer_remnant_class(morphology, progenitor_type, age_years):
     return "S"
 
 
+COMPACT_KINDS = {"black_hole": BlackHole, "neutron_star": NeutronStar}
+"""dict: The `compact_remnant_kind` discriminator a saved remnant carries, and the class of core it names."""
+
+
 class SupernovaRemnant(LazySaladName):
     """
     A basic class to store information for a supernova remnant.
@@ -114,7 +118,7 @@ class SupernovaRemnant(LazySaladName):
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "remnant_class", "morphology", "age_years", "radius_ly", "progenitor_type",
+        "name", "flavor_key", "remnant_class", "morphology", "age_years", "radius_ly", "progenitor_type",
         "dominant_species", "density_cm3", "temperature_k", "extinction_av", "compact_offset_ly",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
@@ -127,6 +131,9 @@ class SupernovaRemnant(LazySaladName):
     `nebulaData.Nebula`'s identical `galactic_orbital_*` fields' docstring
     -- a supernova remnant is likewise still gravitationally part of the
     galaxy despite being bound to no star."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -229,15 +236,9 @@ class SupernovaRemnant(LazySaladName):
                  `compact_remnant_kind`/`compact_remnant`.
         """
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
-        if isinstance(self.compact_remnant, BlackHole):
-            data["compact_remnant_kind"] = "black_hole"
-            data["compact_remnant"] = self.compact_remnant.to_dict()
-        elif isinstance(self.compact_remnant, NeutronStar):
-            data["compact_remnant_kind"] = "neutron_star"
-            data["compact_remnant"] = self.compact_remnant.to_dict()
-        else:
-            data["compact_remnant_kind"] = None
-            data["compact_remnant"] = None
+        kind = next((name for name, cls in COMPACT_KINDS.items() if isinstance(self.compact_remnant, cls)), None)
+        data["compact_remnant_kind"] = kind
+        data["compact_remnant"] = None if kind is None else self.compact_remnant.to_dict()
         return data
 
     @classmethod
@@ -266,14 +267,8 @@ class SupernovaRemnant(LazySaladName):
              data["extinction_av"]) = typical_class_contents(data["remnant_class"])
         fields_from_dict(remnant, data, cls.SERIALIZABLE_FIELDS)
 
-        kind = data.get("compact_remnant_kind")
-        if kind == "black_hole":
-            remnant.compact_remnant = BlackHole.from_dict(data["compact_remnant"], system_config)
-        elif kind == "neutron_star":
-            remnant.compact_remnant = NeutronStar.from_dict(data["compact_remnant"], system_config)
-        else:
-            remnant.compact_remnant = None
-
+        core = COMPACT_KINDS.get(data.get("compact_remnant_kind"))
+        remnant.compact_remnant = None if core is None else core.from_dict(data["compact_remnant"], system_config)
         return remnant
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)

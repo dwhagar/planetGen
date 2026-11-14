@@ -44,11 +44,29 @@ def entry_of(step):
     return command, options, flags
 
 
+def hoisted_clear(listed):
+    """
+    `listed` (stage dicts) with the massive-star scatter's clear moved before the backfill that comes ahead of it, as `generation.job.hoist_clears` runs
+    them, and the clear of the luminosity pass dropped after it (the clear before the backfill emptied the table already).
+    """
+    from planetgen.generation import stages as generation_stages
+    clear = generation_stages.BRIGHT_CLEAR_STAGE["mass"].label
+    light_clear = generation_stages.BRIGHT_CLEAR_STAGE["luminosity"].label
+    backfill = generation_stages.SINGLE_STAGE_COMMANDS["backfill"].label
+    labels = [stage["label"] for stage in listed]
+    if clear not in labels or backfill not in labels or labels.index(clear) < labels.index(backfill):
+        return listed
+    moved = listed.pop(labels.index(clear))
+    listed.insert([stage["label"] for stage in listed].index(backfill), moved)
+    return [stage for stage in listed if stage["label"] != light_clear]
+
+
 def merged_stages(steps):
     """The stage list of a group of steps: each step's own, the stage every scatter ends with only at its last place."""
     listed = []
     for step in steps:
         listed += [dict(stage) for stage in step.get("stages") or [{"label": step["label"], "skipped": None}]]
+    listed = hoisted_clear(listed)
     last = max((place for place, stage in enumerate(listed) if stage["label"] == REPEATED_STAGE), default=None)
     return [stage for place, stage in enumerate(listed) if stage["label"] != REPEATED_STAGE or place == last]
 

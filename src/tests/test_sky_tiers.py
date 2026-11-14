@@ -100,13 +100,28 @@ def few_samples(monkeypatch):
     monkeypatch.setattr(tiers_module, "RING_SAMPLES", 40)
 
 
-def test_the_rings_of_one_solar_mass_and_up_are_the_default_mass_edges_and_reach_as_far_as_a_star_of_50_lsun(clear, few_samples):
+def test_the_rings_of_one_solar_mass_and_up_reach_as_far_as_their_yield_and_no_farther_than_a_star_of_50_lsun(clear, few_samples):
+    """GEN.1486: the heavy rings follow the yield rule of the light ones. The ring of 8 solar masses and up holds no star under 50 Lsun, so it draws nothing and is left out."""
     table = build(SUN, 7.5, EDGE, curve=clear)
     heavy = [ring for ring in table.rings if ring.key >= 1.0]
-    assert [ring.key for ring in heavy] == [1.0, 2.0, 5.0, 8.0]
-    assert heavy[-1].high == tuning.PHENOMENON_MIN_MASS_SOLAR
-    assert all(ring.reach_pc == pytest.approx(reach_pc(50.0, 7.5, clear)) for ring in heavy)
+    assert [ring.key for ring in heavy] == [1.0, 2.0, 5.0]
+    ceiling = reach_pc(50.0, 7.5, clear)
+    assert all(0.0 < ring.reach_pc <= ceiling for ring in heavy)
+    assert heavy[0].reach_pc < ceiling and heavy[1].reach_pc < ceiling                  # a ring reaches as far as 0.5 percent of its stars show, which is short of a 50 Lsun star
+    assert heavy[-1].reach_pc < heavy[1].reach_pc                                       # the 5 to 8 ring holds few dim stars and they are the brighter ones
     assert all(ring.ledger == "mass" and ring.visits == ring.cells for ring in table.rings)
+
+
+def test_the_yield_is_one_half_of_one_percent_for_every_ring():
+    assert tiers_module.RING_MIN_YIELD == 0.005
+
+
+def test_a_ring_with_no_star_under_the_cap_has_an_empty_sample_and_no_reach(clear, few_samples):
+    top = tiers_module.ring_edges()[-2:]
+    samples = tiers_module.ring_luminosities(top[0], top[1], 40)
+    assert all(len(values) == 0 for values in samples.values())
+    assert tiers_module.visible_share(samples, 1.0) == 0.0
+    assert tiers_module.ring_reach_pc(top[0], top[1], 7.5, clear) == 0.0
 
 
 def test_the_rings_under_one_solar_mass_are_the_near_masses_and_reach_less_far(clear, few_samples):
@@ -123,7 +138,7 @@ def test_the_rings_under_one_solar_mass_are_the_near_masses_and_reach_less_far(c
 
 def test_a_ring_that_shows_nowhere_is_left_out_and_without_near_masses_the_rings_are_the_scatters(clear, few_samples):
     table = build(SUN, 7.5, EDGE, curve=clear, edges=tiers_module.ring_edges(()))
-    assert [ring.key for ring in table.rings] == [1.0, 2.0, 5.0, 8.0]
+    assert [ring.key for ring in table.rings] == [1.0, 2.0, 5.0]
     dim = build(SUN, 1.0, EDGE, curve=clear)
     assert all(ring.key >= 1.0 or ring.reach_pc < 30.0 for ring in dim.rings)           # a 1.0 sky shows almost no dwarf
 
@@ -216,7 +231,7 @@ def test_the_table_changes_ledger_where_the_floor_passes_50_lsun(clear):
 
 def test_a_distance_inside_the_cut_is_built_and_one_past_it_is_not(clear):
     table = build(SUN, 7.5, EDGE, curve=clear, visit_budget=_lum_visits(build(SUN, 7.5, EDGE, curve=clear, visit_budget=1.0e15)) / 3.0)
-    near, far = floor_table(table, clear, (300.0, 3000.0))
+    near, far = floor_table(table, clear, (300.0, 4000.0))          # a third of the visits reaches the 5,623 Lsun band (3,137 pc); 4,000 pc needs the 10,000 Lsun one
     assert near["built"] and not far["built"]
     assert far["band"] is not None and far["band"] > near["band"]
 

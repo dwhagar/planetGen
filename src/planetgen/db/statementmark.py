@@ -80,3 +80,16 @@ def running():
         return None
     return (oldest[1] or shorten(oldest[0]), max(now - oldest[3], 0.0), oldest[2])
 
+
+class Steps:
+    """
+    How a clear or a drop names its statements (OPS.200): `with steps.sql("Emptying bright_stars"): conn.execute(...)` labels the statements of the block for the beat. This one only labels; a
+    unit gives its own (`run_plan._UnitPhases`), which also says the step begins, so the unit's bar counts one step to a statement.
+    """
+
+    def sql(self, label):
+        return labelled(label)
+
+
+LABELS_ONLY = Steps()
+"""Steps: What the clears and drops of `db/store.py` use where the caller gives none."""

@@ -36,9 +36,8 @@ from planetgen.util.checks import finite_domain
 from planetgen.physics import unit_registry as units
 
 _percm3_to_perm3 = units.converter("cm-3", "m-3")
-_km_to_m = units.converter("km", "m")
 _m_to_au = units.converter("m", "au")
-_m_to_km = units.converter("m", "km")
+_kg_to_msun = units.converter("kg", "Msun")
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -318,8 +317,10 @@ class Star(StellarObject):
                 fe_h = birth_fe_h(draw, population, fe_h_peaks, self.galactic_center_dist_ly)
             age = age_gy if age_gy is not None else age_metallicity.tilted_age(
                 fe_h, population, lambda: sample_star_age_gy(age_bias), draw)
-            state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
-                                galactic_center_dist_ly=self.galactic_center_dist_ly)
+            def evolved(mass_sol):
+                return evolve_star(mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
+                                   galactic_center_dist_ly=self.galactic_center_dist_ly)
+            state = evolved(initial_mass_sol)
             # A companion of a specified-type primary takes a fraction of
             # that star's present mass, which can be heavy enough to have
             # collapsed already at the pair's age. Lighten it until it is
@@ -328,19 +329,20 @@ class Star(StellarObject):
             while state is None and initial_mass_sol > imf.lowest_mass_sol():
                 draw.redrawn("star.mass_lightened")
                 initial_mass_sol = max(initial_mass_sol * 0.8, imf.lowest_mass_sol())
-                state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
-                                    galactic_center_dist_ly=self.galactic_center_dist_ly)
+                state = evolved(initial_mass_sol)
         if state is None:
             # No companion given.
             habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
             max_luminosity_sol = getattr(self.system_config, "MAX_STAR_LUMINOSITY_SOL", None)
             max_mass_sol = getattr(self.system_config, "MAX_STAR_MASS_SOL", None)
-            try:
-                initial_mass_sol, age, state = sample_living_star(
-                    age_bias, self.system_config.LARGE_STAR, habitable_host=habitable_host,
+            def living(large_star):
+                return sample_living_star(
+                    age_bias, large_star, habitable_host=habitable_host,
                     population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
                     fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
                     fe_h=fe_h)
+            try:
+                initial_mass_sol, age, state = living(self.system_config.LARGE_STAR)
             except ValueError:
                 if not (self.system_config.LARGE_STAR and (max_luminosity_sol is not None
                                                            or max_mass_sol is not None)):
@@ -350,11 +352,7 @@ class Star(StellarObject):
                 # massive stars were pre-placed allows; this one stays an
                 # ordinary star.
                 log.choice("Large star", "dropped", "none within the sector's star limits")
-                initial_mass_sol, age, state = sample_living_star(
-                    age_bias, None, habitable_host=habitable_host,
-                    population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
-                    fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
-                    fe_h=fe_h)
+                initial_mass_sol, age, state = living(None)
 
         state = helium_core_draw.with_helium_core(state, initial_mass_sol, age)
         self._apply_params(star_params(initial_mass_sol, age, state))
@@ -467,6 +465,4 @@ class Star(StellarObject):
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
-_kg_to_msun = units.converter("kg", "Msun")
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Star, "star")

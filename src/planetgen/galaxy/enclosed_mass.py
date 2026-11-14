@@ -32,7 +32,7 @@ import math
 
 import numpy as np
 
-from planetgen.galaxy import density, disk_history, mass_chain, seed as galaxySeed, shape_draw
+from planetgen.galaxy import density, disk_history, mass_chain, shape_draw
 from planetgen.physics import unit_registry as units
 
 _msun_to_kg = units.converter("Msun", "kg")
@@ -162,8 +162,5 @@ def current_enclosed_mass_kg(radius_pc):
     `galaxy.seed.seeded` was given them, else the galaxy the seed draws with every shape option at its default (the
     fallback seed's outside any unit).
     """
-    seed = galaxySeed.current_galaxy_seed() or mass_chain.FALLBACK_SEED
-    shape = galaxySeed.current_galaxy_shape()
-    if shape is None:
-        shape = shape_draw.default_shape(seed)
+    shape, seed = shape_draw.current_shape_and_seed()
     return enclosed_mass_kg(shape, seed, radius_pc)

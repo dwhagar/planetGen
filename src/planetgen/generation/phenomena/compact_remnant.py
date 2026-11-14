@@ -60,7 +60,7 @@ _m_to_au = units.converter("m", "au")
 _au_to_pc = units.converter("au", "pc")
 _ly_to_au = units.converter("ly", "au")
 _km_to_m = units.converter("km", "m")
-
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 def hawking_temperature_k(mass_solar):
@@ -488,6 +488,5 @@ class NeutronStar(CompactRemnant):
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(BlackHole, "black-hole")
 object_timing.track(NeutronStar, "neutron-star")

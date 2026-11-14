@@ -427,7 +427,7 @@ def protect_sector(conn, sector_id, parity_store=None, before=None):
         data, checksum = sector_export.export_sector(conn, sector_id)
         if not row["d"] and row["c"] is not None and bytes(row["c"]) != checksum:
             conn.rollback()                 # sealed and unchanged since, yet different: damage, which parity must not absorb
-            log.error(f"Sector {sector_id} no longer hashes to its stored checksum, so it is left as it is for repair-db.", sector_id=sector_id)
+            log.error(f"Sector {sector_id} no longer hashes to its stored checksum, so it is left as it is for repair-db.")
             return UNPROTECTABLE
         with parity_store.file.locked():
             held = parity_store.member(sector_id)

@@ -56,7 +56,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones, fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import alpha_tracks, constants, elements, main_sequence, white_dwarf_layers, wolf_rayet
+from planetgen.physics import alpha_tracks, constants, elements, main_sequence, white_dwarf_core, white_dwarf_layers, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -115,6 +115,7 @@ class StarDraws:
         u_wolf_rayet (float): Places a Wolf-Rayet star's carbon inside its subtype's range.
         u_crust_model (float): Picks the nuclear mass model of a neutron star's outer crust.
         u_pollution (float): Decides whether a cool white dwarf is polluted (`white_dwarf_polluted`).
+        u_pollutant (float): Picks the belt member a polluted white dwarf accreted (`white_dwarf_core.accreted_taxon`), drawn after every other so none of them moved (GEN.1370).
     """
 
     normals: tuple
@@ -126,6 +127,7 @@ class StarDraws:
     u_wolf_rayet: float
     u_crust_model: float
     u_pollution: float
+    u_pollutant: float
 
 
 def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group=None):
@@ -158,7 +160,8 @@ def key_draws(key):
     calcium = (stream.gauss(0.0, 1.0),)
     # GEN.1360: Ti, V, Cr, Mn, P, Zn, Co, Cu and Li come last of all, so no earlier draw moved
     later = tuple(stream.gauss(0.0, 1.0) for _ in range(len(sa.RESIDUAL_ELEMENTS) - 5))
-    return StarDraws(normals + calcium + later, *rest)
+    u_pollutant = stream.random()    # GEN.1370: after every other draw
+    return StarDraws(normals + calcium + later, *rest, u_pollutant)
 
 
 def white_dwarf_polluted(teff_k, u_pollution, share=POLLUTED_SHARE):
@@ -294,18 +297,21 @@ def _grid_radius_solar(mass_sol, teff_k, envelope):
     top = white_dwarf_models.CRYSTAL_MASS_SOL
     bottom = float(white_dwarf_models.masses_sol()[0])
     if mass_sol < bottom:
-        try:    # a helium-core white dwarf under the lightest sequence reads that sequence, scaled by the zero-temperature relation's ratio of the two masses
-            return (white_dwarf_models.radius_solar(bottom, teff_k, envelope)
-                    * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(bottom))
-        except sa.StellarAbundanceError:
-            return None
+        # a helium-core white dwarf under the lightest sequence reads that sequence, scaled by the zero-temperature relation's ratio of the two masses
+        return _scaled_radius_solar(bottom, mass_sol, teff_k, envelope)
     if mass_sol <= top:
         return white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+    return _scaled_radius_solar(top, mass_sol, teff_k, envelope)
+
+
+def _scaled_radius_solar(anchor_sol, mass_sol, teff_k, envelope):
+    """The sequence of `anchor_sol` at `teff_k`, scaled by the zero-temperature relation's ratio of `mass_sol` to the anchor; `None` for a mass the
+    relation does not reach."""
     try:
-        return (white_dwarf_models.radius_solar(top, teff_k, envelope)
-                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(top))
+        return (white_dwarf_models.radius_solar(anchor_sol, teff_k, envelope)
+                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(anchor_sol))
     except sa.StellarAbundanceError:
-        return None  # heavier than any white dwarf the relation makes
+        return None
 
 
 def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin=0.0, teff_k=None):
@@ -407,6 +413,14 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope) if detail["core"] == "carbon-oxygen"
                                 else white_dwarf_layers.helium_core(mass_sol, envelope) if detail["core"] == "helium"
                                 else white_dwarf_layers.oxygen_neon(mass_sol, envelope))    # GEN.743
-            open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",
-                          "the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)")
+            open_items = ("the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)",)
+            if detail["core"] == "carbon-oxygen" and detail["layers"] is not None:
+                # GEN.1370: the sequences split the core evenly between carbon and oxygen and hold no neon; the core is oxygen-rich with the 22Ne of the progenitor's CNO
+                detail["core_fractions"] = white_dwarf_core.core_fractions(mass_sol, birth)
+                layers = detail["layers"]
+                core_mass = layers["carbon"] + layers["oxygen"]
+                detail["layers"] = dict(layers, carbon=core_mass * detail["core_fractions"].carbon, oxygen=core_mass * detail["core_fractions"].oxygen,
+                                        neon22=core_mass * detail["core_fractions"].neon22)
+            else:
+                open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",) + open_items
     return StarMakeup(kind, branch, birth, surface, draws, detail, open_items)

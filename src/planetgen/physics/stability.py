@@ -181,9 +181,14 @@ def gr_precession_period_yr(a_in, e_in, m_in, p_in_yr):
     return p_in_yr * a_in * (1.0 - e_in ** 2) / (3.0 * _SOLAR_GM_OVER_C2_AU * m_in)
 
 
+def _kozai_x(e_in, i):
+    """`(5/3) (1 - e_in^2) cos^2 i`: under 1 inside the Kozai window."""
+    return (5.0 / 3.0) * (1.0 - e_in ** 2) * math.cos(i) ** 2
+
+
 def kozai_max_eccentricity(e_in, i):
     """The quadrupole-order maximum inner eccentricity, or `e_in` outside the Kozai window."""
-    x = (5.0 / 3.0) * (1.0 - e_in ** 2) * math.cos(i) ** 2
+    x = _kozai_x(e_in, i)
     return math.sqrt(1.0 - x) if x < 1.0 else e_in
 
 
@@ -201,7 +206,7 @@ def kozai_verdict(m1, m2, m3, a_in, a_out, e_in, e_out, i, age_yr, extent_sum_au
     0.98 for inclinations of 25 to 90 degrees (and the mirror).
     """
     m_in = m1 + m2
-    x = (5.0 / 3.0) * (1.0 - e_in ** 2) * math.cos(i) ** 2
+    x = _kozai_x(e_in, i)
     mutual = min(i, math.pi - i)
     eps = (a_in / a_out) * e_out / (1.0 - e_out ** 2)
     octupole = eps > 0.01 and math.radians(25.0) < mutual < math.radians(90.0)
@@ -226,8 +231,7 @@ def peters_merger_time_yr(m1, m2, a_au, e=0.0):
     factor of a few at high eccentricity).
     """
     seconds = _PETERS_COEFFICIENT_S * _au_to_m(a_au) ** 4 / (
-        (_msun_to_kg(m1)) * (_msun_to_kg(m2))
-        * (_msun_to_kg(m1 + m2)))
+        _msun_to_kg(m1) * _msun_to_kg(m2) * _msun_to_kg(m1 + m2))
     return _s_to_yr(seconds * (1.0 - e ** 2) ** 3.5)
 
 

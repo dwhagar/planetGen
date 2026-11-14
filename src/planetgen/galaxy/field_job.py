@@ -278,6 +278,15 @@ def _ages_in(conn):
     return distinct_ages(row["age_gy"] for row in rows)
 
 
+def _check_unchanged(conn, sig):
+    """Raises `Changed` unless the stored components still make the field `sig` (`signature` of `store.component_field_key`)."""
+    from planetgen.db import store
+    key = store.component_field_key(conn)
+    if key is None or signature(key) != sig:
+        raise Changed("the stored clusters and satellites changed while the cluster field was made; "
+                      "the next warm-up starts it again")
+
+
 def expand_field(params):
     """
     The units of the `warm-cluster-field` stage: one per part of `PART_AGES` ages, or one that says the field is already a
@@ -315,11 +324,7 @@ def field_unit(args, report):
                 "line": "cluster-field: already a file, nothing to make."}
     conn = _connect(args["database"])
     try:
-        from planetgen.db import store
-        key = store.component_field_key(conn)
-        if key is None or signature(key) != args["signature"]:
-            raise Changed("the stored clusters and satellites changed while the cluster field was made; "
-                          "the next warm-up starts it again")
+        _check_unchanged(conn, args["signature"])
         ages = _ages_in(conn)
     finally:
         conn.close()
@@ -338,10 +343,7 @@ def conclude_field(params, plan, results, seconds):
     from planetgen.db import store
     conn = _connect(params["database"])
     try:
-        key = store.component_field_key(conn)
-        if key is None or signature(key) != plan["signature"]:
-            raise Changed("the stored clusters and satellites changed while the cluster field was made; "
-                          "the next warm-up starts it again")
+        _check_unchanged(conn, plan["signature"])
         found = tuple(c for c in store.get_galaxy_components(conn) if c.kind in component_field.KINDS_IN_THE_GATE)
         shape = conn.execute("SELECT edge_pc, expected_system_count_at_density_1 FROM galaxy_shape WHERE id = 1").fetchone()
     finally:

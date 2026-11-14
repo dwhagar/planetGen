@@ -234,12 +234,23 @@ def source_of(bodies, star, windows, aluminium_26_ratio):
     return Source(mass_earth, inner, outer, windows.encounters, star.luminosity, aluminium_26_ratio, star.mass, star.age, inner_belts)
 
 
-def _compose(source, planet, window, mass_kg, stream):
-    """The composition of a body of `window` from a stream of its own: its source distance, taxon, porosity and ice loss."""
-    inner, outer = captured_composition.source_annulus(window, planet.distance, planet.mass, source.star_mass_kg, source.inner_au, source.outer_au)
-    distance = captured_composition.draw_source_distance(inner, outer, stream.random())
+def _compose(source, window, mass_kg, stream, inner_au, outer_au):
+    """The composition of a body of `window` caught from the stretch `inner_au` to `outer_au`, from a stream of its own: its source distance, taxon, porosity and ice loss."""
+    distance = captured_composition.draw_source_distance(inner_au, outer_au, stream.random())
     return captured_composition.compose(window, min(mass_kg, COMPOSITION_MASS_CAP_KG), distance, source.luminosity_w, source.aluminium_26_ratio,
                                         stream.random(), stream.random(), stream.random())
+
+
+def _composed_moon(rank, window, mass_kg, captured, orbit, belt_order=None):
+    """The `IrregularMoon` of a body `_compose` gave the makeup `captured`."""
+    makeup = captured.makeup
+    return IrregularMoon(rank, window, mass_kg, captured.radius_km, captured.density_kg_m3, captured.taxon, captured.source_distance_au, captured.ice_loss,
+                         makeup.rock, makeup.metal, makeup.water, makeup.ice, orbit, belt_order, None)
+
+
+def _stays(zone, orbit):
+    """Whether `orbit` stays in `zone` (`irregular_zone.verdict` finds nothing against it)."""
+    return irregular_zone.verdict(zone, orbit.semi_major_axis_au, orbit.eccentricity, orbit.inclination_deg) is None
 
 
 def _orbit(zone, planet, stream):
@@ -247,7 +258,7 @@ def _orbit(zone, planet, stream):
     with draw.bound(stream):
         for _ in range(ORBIT_TRIES):
             orbit = irregular_orbits.draw_orbit(zone, planet.distance)
-            if irregular_zone.verdict(zone, orbit.semi_major_axis_au, orbit.eccentricity, orbit.inclination_deg) is None:
+            if _stays(zone, orbit):
                 return orbit
     return None
 
@@ -305,10 +316,8 @@ def for_planet(planet, source):
         if order is not None:
             moons.append(_from_belt(source, claimed, dict(source.belts)[order], order, len(moons), window, mass, orbit, stream))
             continue
-        captured = _compose(source, planet, window, mass, stream)
-        makeup = captured.makeup
-        moons.append(IrregularMoon(len(moons), window, mass, captured.radius_km, captured.density_kg_m3, captured.taxon, captured.source_distance_au, captured.ice_loss,
-                                   makeup.rock, makeup.metal, makeup.water, makeup.ice, orbit))
+        inner, outer = captured_composition.source_annulus(window, planet.distance, planet.mass, source.star_mass_kg, source.inner_au, source.outer_au)
+        moons.append(_composed_moon(len(moons), window, mass, _compose(source, window, mass, stream, inner, outer), orbit))
     if not moons and not remainder_kg and not temporary:
         return NO_IRREGULARS
     return IrregularSet(tuple(moons), remainder_kg, above_floor, lost, temporary, tuple(belt_remainders))
@@ -341,12 +350,7 @@ def _from_belt(source, claimed, belt, order, rank, window, mass, orbit, stream):
             caught.add(member["rank"])
             return IrregularMoon(rank, window, member["mass_kg"], member["radius_km"], member["density_g_cm3"] * 1000.0, member["taxon"], member["distance_au"], 0.0,
                                  member["rock_fraction"], member["metal_fraction"], member["water_fraction"], member["ice_fraction"], orbit, order, member["rank"])
-    distance = captured_composition.draw_source_distance(belt.lower_limit, belt.upper_limit, stream.random())
-    captured = captured_composition.compose(window, min(mass, COMPOSITION_MASS_CAP_KG), distance, source.luminosity_w, source.aluminium_26_ratio, stream.random(), stream.random(), stream.random())
-    makeup = captured.makeup
-    return IrregularMoon(rank, window, mass, captured.radius_km, captured.density_kg_m3, captured.taxon, captured.source_distance_au, captured.ice_loss,
-                         makeup.rock, makeup.metal, makeup.water, makeup.ice, orbit, order, None)
-
+    return _composed_moon(rank, window, mass, _compose(source, window, mass, stream, belt.lower_limit, belt.upper_limit), orbit, order)
 
 
 def keep_stable(planet):
@@ -357,8 +361,7 @@ def keep_stable(planet):
     if not held.moons:
         return 0
     zone = irregular_zone.zone(planet.distance, planet.mass, planet.star.mass, max((moon.distance for moon in planet.moons), default=0.0))
-    kept = tuple(moon for moon in held.moons
-                 if irregular_zone.verdict(zone, moon.orbit.semi_major_axis_au, moon.orbit.eccentricity, moon.orbit.inclination_deg) is None)
+    kept = tuple(moon for moon in held.moons if _stays(zone, moon.orbit))
     dropped = len(held.moons) - len(kept)
     if dropped:
         planet.irregulars = dataclasses.replace(held, moons=kept, lost=held.lost + dropped)

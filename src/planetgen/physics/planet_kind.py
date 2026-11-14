@@ -21,7 +21,7 @@ draws read it), whatever they later become. A pure function of the star and the 
 import collections
 
 from planetgen import tuning
-from planetgen.physics import constants, planet_mass
+from planetgen.physics import constants, planet_mass, planet_moons
 from planetgen.util.random import sample_power_law
 
 Formation = collections.namedtuple("Formation", ("kind", "mass_kg", "core_kg", "runaway", "beyond_snow_line"))
@@ -76,11 +76,11 @@ def kind_of_given(mass_kg=None, radius_km=None, beyond_snow_line=False):
 
 
 def moon_mass_ceiling_kg(parent_mass_kg, parent_is_giant):
-    """The heaviest moon a parent holds: its share of the parent's mass (`MOON_GIANT_PARENT_MAX_MASS_RATIO` or
-    `MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO`)."""
-    ratio = (tuning.MOON_GIANT_PARENT_MAX_MASS_RATIO if parent_is_giant
-             else tuning.MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO)
-    return ratio * parent_mass_kg
+    """The heaviest moon a parent holds: a giant's circumplanetary disk holds at most `planet_moons.DISK_TOTAL_RATIO_MAX` of the parent between its moons (GEN.1157; a captured moon of
+    planet size is `planet_moons`' own draw), any other parent `MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO` of its mass."""
+    if parent_is_giant:
+        return planet_moons.disk_moon_ceiling_kg(parent_mass_kg)
+    return tuning.MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO * parent_mass_kg
 
 
 def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None, floor_kg=None):

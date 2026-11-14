@@ -72,3 +72,46 @@ def test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same
     assert baseline["rows"] and baseline["rows"][0]["i"] == 0 and len(baseline["rows"]) == 800
     again = analog.trials(baseline["block"], 0, 2, baseline["age_gy"], baseline["water"])
     assert [json.dumps(r, sort_keys=True) for r in again] == [json.dumps(r, sort_keys=True) for r in baseline["rows"][:2]]
+
+
+def _calls_in_order(source, names):
+    """The `module.function` calls of `source` (a function's text) whose last two parts are in `names`, in the order they appear."""
+    import ast
+
+    alias = {"planetPhysics": "planets", "planetLife": "life"}
+    import textwrap
+
+    found = []
+    for node in sorted((n for n in ast.walk(ast.parse(textwrap.dedent(source))) if isinstance(n, ast.Call)), key=lambda n: (n.lineno, n.col_offset)):
+        func = node.func
+        if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+            name = f"{alias.get(func.value.id, func.value.id)}.{func.attr}"
+            if name in names:
+                found.append(name)
+    return found
+
+
+def test_the_script_runs_the_generators_steps_in_the_generators_order(analog):
+    """TEST.739: the trial calls the system's own steps in the order `generate_spin`'s tail and `StarSystem._finish_planet` run them, so it cannot drift from the generator again."""
+    import inspect
+
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics import planets
+
+    tail = ["daylight.generate", "magnetism.generate_field", "radiation.generate_dose", "body_colour.generate", "habitability_world.generate"]
+    finish = ["interior_heat.update_heat", "planets.refresh_at_final_age", "planets.apply_class", "magnetism.generate_stellar_induction", "life.apply_life_data"]
+    air = ["planets.calculate_atmospheric_conditions", "planets.prepare_class"]
+    assert _calls_in_order(inspect.getsource(Planet.__init__), set(air)) == air
+    assert _calls_in_order(inspect.getsource(planets.generate_spin), set(tail)) == tail
+    assert _calls_in_order(inspect.getsource(StarSystem._finish_planet), set(finish)) == finish
+    # the script's `_generate` is the three in turn (the class after the life is `apply_life_data`'s own, GEN.980)
+    script = _calls_in_order(inspect.getsource(analog._generate), set(air + tail + finish))
+    assert script == air + tail + finish
+
+
+def test_each_trial_starts_on_a_fresh_body(analog):
+    """TEST.739: a trial leaves nothing on the body the next one draws (the light the life step reads was left over from the trial before)."""
+    import inspect
+
+    assert "copy.deepcopy(planet0)" in inspect.getsource(analog.trials)

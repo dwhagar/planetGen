@@ -67,14 +67,6 @@ def is_stone(node):
     return isinstance(node, str) and node.startswith(KEY_PREFIX)
 
 
-def parse_stone_key(node):
-    """`(kind, row id)` of a stone key, or `None` for any other node."""
-    if not is_stone(node):
-        return None
-    _prefix, kind, row_id = node.split(":", 2)
-    return kind, int(row_id)
-
-
 def _by_band(cells):
     bands = {}
     for shell, band, wedge in cells:

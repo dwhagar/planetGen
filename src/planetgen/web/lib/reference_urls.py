@@ -71,12 +71,13 @@ def paper_anchor(paper_id):
     return f"paper-{paper_id.lower()}"
 
 
-def _paper(entry):
-    return (f"{ROOT}/papers", f"#{paper_anchor(entry)}") if entry is not None else (f"{ROOT}/papers", "")
+def _cited(name):
+    """The pages whose entries are sources: the fragment is the source's `paper_anchor`."""
+    return lambda entry: (f"{ROOT}/{name}", f"#{paper_anchor(entry)}" if entry is not None else "")
 
 
-def _data(entry):
-    return (f"{ROOT}/data", f"#{paper_anchor(entry)}") if entry is not None else (f"{ROOT}/data", "")
+_paper = _cited("papers")
+_data = _cited("data")
 
 
 def _method(entry):

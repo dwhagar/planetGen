@@ -17,6 +17,7 @@ What each page's `<head>` says is in `seo.py`.
 """
 
 import hashlib
+import json
 import os
 import threading
 
@@ -190,7 +191,6 @@ def humans_txt():
 @bp.route("/site.webmanifest")
 @_file
 def site_webmanifest():
-    import json
     settings = settingsModule.get_settings()
     if not settings.icons.manifest_enabled:
         abort(404)

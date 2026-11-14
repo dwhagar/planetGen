@@ -32,7 +32,6 @@ an unknown `action`, just redirects back to the page.
 """
 
 import math
-import re
 from urllib.parse import urlencode
 
 from flask import abort, current_app, flash, g, get_flashed_messages, jsonify, redirect, request, url_for
@@ -56,6 +55,7 @@ from planetgen.api.limiter import page_limit
 from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
+from planetgen.util.format import counted
 from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -79,10 +79,9 @@ values (the same ones the phenomena list uses)."""
 _FLASH_CATEGORY = "sector"
 
 
-def _api_message(exc):
-    """An `ApiError`'s message without `apiclient`'s "planetGen API error
-    (NNN): " prefix."""
-    return re.sub(r"^planetGen API error \(\d+\): ", "", str(exc))
+def _address(sector):
+    """A sector's `(shell, band, wedge)` grid address; a `None` in it means it has none."""
+    return (sector.get("shell_index"), sector.get("band_index"), sector.get("wedge_index"))
 
 
 def _system_star_type(row):
@@ -405,7 +404,7 @@ def _handle_post(sector_id, admin):
             except apiclient.NotFoundError as exc:
                 return "neighborhood", str(exc)
             except apiclient.ApiError as exc:
-                return "neighborhood", _api_message(exc)
+                return "neighborhood", apiclient.message_of(exc)
             return "neighborhood_estimate", result["estimate"]
         # ADM.11: a background job, like the Generate page's, so it runs
         # to the end whether or not this page stays open.
@@ -530,7 +529,7 @@ def _sector_map_html(detail, pick, admin, uncharted=False):
     from .galaxy_views import (  # galaxy_views imports this module
         phenomenon_url_template, sector_url_template, system_url_template, uncharted_phenomenon_url_template, uncharted_scene_url_template)
 
-    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    address = _address(detail)
     if not detail["placed"] or None in address:
         return ('<section class="panel" id="map"><h2>Sector Map</h2>'
                 '<p class="hint">This sector has no place in the galaxy, so it has no map.</p></section>')
@@ -575,7 +574,7 @@ def _profile_panel(address, charted=False):
 def sector_designation(sector):
     """A sector's galaxy designation (`provisional_sector_designation`),
     or `None` for a sector with no galaxy address."""
-    address = (sector.get("shell_index"), sector.get("band_index"), sector.get("wedge_index"))
+    address = _address(sector)
     if None in address:
         return None
     try:
@@ -637,7 +636,7 @@ def _clusters_reaching(detail):
     center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
     edge_pc = detail["edge_mpc"] / 1000.0
     reach = edge_pc * math.sqrt(3) / 2
-    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    address = _address(detail)
     if None not in address:
         for vertex in sector_cell_vertices_pc(*address, edge_pc):
             reach = max(reach, math.dist(vertex, center))
@@ -677,9 +676,7 @@ def sector_scene(sector_id):
         (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]) if detail["placed"] else None
     )
     scene = map_scene_data(
-        page_url, detail["edge_mpc"],
-        (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index")),
-        center_pc, map_systems, phenomena=detail.get("phenomena"),
+        page_url, detail["edge_mpc"], _address(detail), center_pc, map_systems, phenomena=detail.get("phenomena"),
         neighbors=_with_bright_stars(detail.get("neighbors")),
         generate=generate_target(current_admin()),
         compress_binaries=request.args.get("binaries") != "real",
@@ -768,8 +765,7 @@ def sector(sector_id):
         title=detail["name"],
         section="sectors",
         breadcrumbs=[crumb("Sectors", "sectors"), crumb(detail["name"])],
-        description=f"Sector {detail['name']}: {system_count} star system"
-                    f"{'' if system_count == 1 else 's'}, its 3D sector map and nearby phenomena.",
+        description=f"Sector {detail['name']}: {system_count} star {counted('system', system_count)}, its 3D sector map and nearby phenomena.",
         sector=detail,
         sector_id=sector_id,
         former=formerly.view(detail.get("former_designations")),
@@ -792,8 +788,7 @@ def sector(sector_id):
         far_run_sectors=FAR_RUN_SECTORS,
         messages=get_flashed_messages(category_filter=[_FLASH_CATEGORY]),
         pick=pick,
-        profile=_profile_panel((detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index")),
-                               charted=True) if detail["placed"] else None,
+        profile=_profile_panel(_address(detail), charted=True) if detail["placed"] else None,
     )
 
 

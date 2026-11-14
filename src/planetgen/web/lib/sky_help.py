@@ -14,6 +14,7 @@ are read from the code that uses them, so the page cannot disagree with the sky 
 
 from planetgen.api import system_sky
 from planetgen.galaxy import sky, sky_band
+from planetgen.util.format import whole_or_general
 from planetgen.web.lib import help_registry
 from planetgen.web.lib.skypack import MAX_LIMIT, MIN_LIMIT
 
@@ -21,8 +22,7 @@ TITLE = "The sky behind a system"
 DESCRIPTION = "What the stars, the glow and the clouds behind a system in the System View are, and how to read them."
 
 
-def _number(value):
-    return f"{value:,.0f}" if float(value).is_integer() else f"{value:g}"
+_number = whole_or_general
 
 
 def _section(slug, heading, paragraphs, table=None, reference=None):

@@ -33,6 +33,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     map_site, nebula_volume_payload,
 )
 
+MIN_LINK_PX = 4    # systemgroups.js: the members are one dot closer than this
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
 """The designation of the fixture's Fixture Prime (shell 1, band 0, wedge 1)."""
 BESIDE_CODE = provisional_sector_designation(1, 0, 2)
@@ -123,7 +124,10 @@ def _shot(page, selector):
 
 # --- The Sector Map -------------------------------------------------------------------
 
-def _open_sector(page, base, query=""):
+def _open_sector(page, base, query="", wall_icons=False):
+    """Opens the sector page's map; the icons on the walls of its sector (MAP.427) are left out unless `wall_icons`, as they sit over the points the tests look for."""
+    if not wall_icons:
+        page.add_init_script(NO_WALL_ICONS)
     _open(page, f"{base}/sector/{SECTOR_ID}{query}", SECTOR_CANVAS)
     page.wait_for_selector(".starmap-sr-list button", state="attached")
 
@@ -937,10 +941,6 @@ SAFE_EXTENT_PC = 10000
 """float: The farthest, in parsecs, a layer's buffer values may be from the object's own origin (`static/camerarelative.js`'s
 SAFE_EXTENT_PC): float32 holds 10 kpc to 0.001 pc, a tenth of a pixel at the closest zoom of a layer."""
 
-WHOLE_GALAXY_EXTENT_PC = 50000
-"""float: The farthest the whole-galaxy view's block part may reach from its origin (the middle of the galaxy), in parsecs: float32 holds 50 kpc
-to 0.004 pc, under a thousandth of the 100 pc a pixel spans at that zoom."""
-
 BUFFER_EXTENTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyBufferExtents()"
 
 
@@ -989,9 +989,7 @@ def test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own(p
     layers = {e["layer"] for e in extents}
     assert {"superbubbles", "territory dots"} <= layers, layers
     for e in extents:
-        # The one view of the whole galaxy draws its blocks as a single part about the galaxy's middle that spans more than a window's
-        # layers (static/camerarelative.js): a pixel there is 100 pc or more, so a float32 at this extent is far finer than the screen.
-        assert e["extentPc"] <= (WHOLE_GALAXY_EXTENT_PC if e["layer"] == "block prisms" else SAFE_EXTENT_PC), e
+        assert e["extentPc"] <= SAFE_EXTENT_PC, e
     far = {e["layer"] for e in extents if max(abs(v) for v in e["origin"]) > 100000}
     assert {"superbubbles", "territory dots"} <= far, "the bubble and the dots are really out there"
     assert sum(1 for e in extents if e["layer"] == "territory dots") >= 2, "dots spread over several kpc are split into cubes"
@@ -4048,6 +4046,41 @@ def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_e
     assert page.evaluate(SECTOR_FRAME_LINES) != before or not page.evaluate(SECTOR_VIEW)["opened"]
 
 
+def test_a_sector_page_keeps_one_wireframe_round_its_sector_and_an_icon_on_each_edge_that_opens_the_neighbour(page, map_site):
+    """MAP.427: the sector page's map draws one wireframe, round its own sector, that stays where the cell is however the view is turned or
+    moved, and no grid of other blocks; each wall that faces a sector with a page of its own has one labelled icon at its center whose click
+    opens that sector's page (with its own frame round it), and a wall that faces nothing charted has none."""
+    page.set_viewport_size(VIEWPORT)
+    _open(page, f"{map_site}/sector/{SECTOR_ID}", SECTOR_CANVAS)
+    _settle(page)
+    page.wait_for_function(f"() => {{ const f = ({SECTOR_FRAME})(); return f && f.framed && f.icons.some((i) => i.shown); }}", timeout=20000)
+    state = page.evaluate(SECTOR_FRAME)
+    # The fixture has one charted neighbour, Fixture Beside, across the east wall; the other walls face nothing charted or the galaxy's edge.
+    assert [(icon["dir"], icon["name"]) for icon in state["icons"]] == [("east", f"Sector {BESIDE_CODE}")], state["icons"]
+    spot = _screen_of(page, tuple(state["icons"][0]["wall"]))
+    assert spot
+    on = page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); const b = e && e.closest('.map-wall-icon'); return b && b.dataset.dir; }", [spot[0], spot[1]])
+    assert on == "east", on
+    # The frame is fixed: turning the view, moving it and zooming change nothing of where it stands in the galaxy.
+    before = page.evaluate(SECTOR_FRAME_LINES)
+    page.mouse.move(500, 450)
+    page.mouse.down()
+    page.mouse.move(380, 400, steps=8)
+    page.mouse.up()
+    page.keyboard.press("ArrowLeft")
+    page.mouse.wheel(0, -200)
+    page.wait_for_timeout(500)
+    _settle(page)
+    assert page.evaluate(SECTOR_FRAME_LINES) == before
+    assert page.evaluate(SECTOR_FRAME)["framed"] is True
+    # The clicked icon arrives at the neighbour's own page, with the frame round that sector.
+    page.locator('.map-wall-icon[data-dir="east"]').click()
+    page.wait_for_function("([id]) => location.pathname.endsWith('/sector/' + id)", arg=[str(BESIDE_ID)], timeout=20000)
+    page.wait_for_function(f"() => {{ const f = ({SECTOR_FRAME})(); return f && f.framed; }}", timeout=20000)
+    arrived = page.evaluate(SECTOR_FRAME)
+    assert [icon["dir"] for icon in arrived["icons"]] == ["west"] and arrived["icons"][0]["name"] == f"Sector {PRIME_CODE}", arrived["icons"]
+
+
 OPACITIES = "() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.opacities()"
 
 
@@ -6684,3 +6717,39 @@ def test_sector_map_gravity_layer_opens_from_the_address(page, map_site):
     assert _gravity_toggle(page).is_checked()
     assert page.locator('button[data-gravity-mode="depth"]').get_attribute("aria-pressed") == "true"
 
+
+
+def test_the_stars_of_a_wide_pair_are_linked_as_one_system(page, dense_site):
+    """MAP.428: the dense region's close pair (`DENSE_PAIR_IDS`) is one system (a wide pair): once the two stars stand apart on the screen a
+    dashed link joins them, from the brighter to the other, and once the view is far enough out for them to be one dot the link is gone."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 3.0, at=close_pair_center())
+    first, second = _close_pair_on_the_map(page)
+    links = "() => document.querySelector('#galaxymap3d-canvas').__mapSystemLinks()"
+
+    def screen_of(star):
+        return page.evaluate("(id) => { const s = document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().find((o) => o.id === id); return s ? {x: s.x, y: s.y} : null; }", star["id"])
+
+    try:
+        page.wait_for_function(f"() => ({links})().length > 0", timeout=20000)
+    except sync_api.TimeoutError:
+        drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().filter((s) => [23000, 23001].includes(s.id))")
+        raise AssertionError(f"no link: the pair is {drawn}, links {page.evaluate(links)}")
+    found = page.evaluate(links)
+    pair = [line for line in found if line["system"] == str(first["system_id"])]
+    assert len(pair) == 1, found    # one link: a pair has the brighter star and one other
+    one, other = screen_of(first), screen_of(second)    # the brighter first (30 against 20 L-sun)
+    line = pair[0]
+    assert math.hypot(line["x1"] - one["x"], line["y1"] - one["y"]) < 2, (line, one)
+    assert math.hypot(line["x2"] - other["x"], line["y2"] - other["y"]) < 2, (line, other)
+    # Far out the two stars are one dot, and no link is drawn.
+    page.locator(GALAXY_CANVAS).hover()
+    for _ in range(60):
+        one, other = _spot(page, first), _spot(page, second)
+        if math.hypot(one["x"] - other["x"], one["y"] - other["y"]) < MIN_LINK_PX - 1:
+            break
+        page.mouse.wheel(0, 400)
+        page.wait_for_timeout(150)
+        _settle(page)
+    assert math.hypot(one["x"] - other["x"], one["y"] - other["y"]) < MIN_LINK_PX, "the view never went far enough out"
+    page.wait_for_function(f"() => ({links})().filter((line) => line.system === '{first['system_id']}').length === 0", timeout=20000)
