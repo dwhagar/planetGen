@@ -34,6 +34,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | E | Deep-frozen world | air, mean surface under 233.15 K (-40 C) (GEN.1142; the letter of the old wet reducing world) |
 | P | Glaciated world | the Earth-like cold world: mean surface 240 to 270 K with a melting region in season, near-standard air with oxygen (GEN.1142, GEN.1221; the temperate family's too-cold member) |
 | W | Frozen world | air, mean surface 233.15 K (-40 C) to freezing (273.15 K), under 2 g, not a hydrogen envelope and not a volcanic air; the cold air world class P does not hold (GEN.1306 part 4, registry AW8, Boss 11-06). P wins a tie, E is colder |
+| Q | Hot world | 0.5 to 2 g, 400 K or more, air 10 kPa to 10 bar, hydrogen under 30 percent (GEN.1618, registry AW9; Boss revived the letter Q, free since GEN.1135): the gap between Z (thinner air) and N (10 bar and up) |
 | Z | Hot thin-air world | no ocean, 0.5 to 2 g, 340 to 1500 K, air 1 to 10 kPa (GEN.1211; 1.4 g and 1100 K before GEN.1306, registry AW6 and AW7); the 1 and 10 kPa edges are the retention caps of the air |
 | B | Small hot world | gravity under 0.5 g, air, and a mean surface above freezing (273.15 K); the name says hot but the class holds every temperature above freezing, up to 2,000 K in a census |
 | F | Anoxic world | oxygen under 3 kPa (GEN.1321: a pressure; 3 percent of the air before) and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more) |

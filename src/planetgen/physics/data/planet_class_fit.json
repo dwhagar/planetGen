@@ -143,6 +143,39 @@
       "note": "10 bar, 400 K, not hydrogen"
     },
     {
+      "letter": "Q",
+      "name": "Hot world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 400.0
+        },
+        {
+          "quantity": "pressure_pa",
+          "min": 10000.0
+        },
+        {
+          "quantity": "pressure_pa",
+          "lt": 1000000.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        }
+      ],
+      "note": "GEN.1618, registry AW9 (Boss): the hot world with a moderate air, 400 K and up, 10 kPa to 10 bar, 0.5 to 2 g; thinner air at 340 K and up is class Z, thicker air is class N, 2 g and up is class V, and a cooler anoxic or carbon dioxide air stays F or G"
+    },
+    {
       "letter": "V",
       "name": "High-gravity world",
       "kind": "t",

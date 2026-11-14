@@ -2,10 +2,8 @@
   "title": "Planet and moon classes as conditions of the finished body",
   "version": 2,
   "status": "the conditions of every class are its row of physics/data/planet_class_fit.json (GEN.1207: the best-fit classifier); a row here gives only the name, the phrase, the sentence and the basis of a class (GEN.1432: the phrase is what a body's page says after \"It is\"; the sentence is a class page's own words and holds no number, because the page lists the conditions from that file under it). Every number marked design is a planetGen default refitted by the class sweep, not a measured constant",
-  "reserve": [
-    "Q"
-  ],
-  "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else. Q was retired by Boss (6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit; the swing of the starlight is the stored flux_variation and an At a glance flag. The old wet reducing E was retired by Boss (6:57 PM EDT 2026-10-30, GEN.1142; it was F with steam and got no body) and the letter E now names the deep-frozen world (7:06 PM EDT).",
+  "reserve": [],
+  "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else. Q was retired by Boss (6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit; the swing of the starlight is the stored flux_variation and an At a glance flag, and the letter Q now names the hot world with a moderate air (GEN.1618, revived by Boss). The old wet reducing E was retired by Boss (6:57 PM EDT 2026-10-30, GEN.1142; it was F with steam and got no body) and the letter E now names the deep-frozen world (7:06 PM EDT).",
   "quantities": {
     "mass_earth": {
       "label": "mass",
@@ -190,6 +188,14 @@
       "kind": "t",
       "sentence": "A hot world under a very thick air that is not hydrogen, usually mostly carbon dioxide, often with water vapor.",
       "basis": "design stand-in (GEN.1142, registry CL2): 10 bar, 400 K and under 30 percent hydrogen; cooler thick-air bodies take the later rows by their own conditions"
+    },
+    {
+      "letter": "Q",
+      "name": "Hot world",
+      "phrase": "a hot world under a moderate air, between thin and very thick",
+      "kind": "t",
+      "sentence": "A hot world under a moderate air: thicker than the thin air of class Z and thinner than the very thick air of class N, with a gravity of at least half of Earth's and short of class V's.",
+      "basis": "design (GEN.1618, registry AW9): the gap between class Z (under 10 kPa) and class N (10 bar and up) for a world of 400 K and up and 0.5 g or more"
     },
     {
       "letter": "V",

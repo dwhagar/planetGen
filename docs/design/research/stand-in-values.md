@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1684 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1685 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1657 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1658 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 220 | 115 | 31 | 76 | 4 | 446 |
 | T7 | 58 | 22 | 10 | 31 | 0 | 121 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 49 | 18 | 6 | 95 | 38 | 206 |
-| All | 967 | 332 | 84 | 241 | 60 | 1684 |
+| T9 | 50 | 18 | 6 | 95 | 38 | 207 |
+| All | 968 | 332 | 84 | 241 | 60 | 1685 |
 
 ## How the labels were given
 
@@ -1751,6 +1751,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AW6 | P | T9 | L3 | class Z gravity floor 0.5 g (`planet_class_fit.json`, Z `gravity_g min 0.5`; 1.4 g before): the floor of F and G, so a hot thin air at 340 K or more is Z under 1.4 g too, and a warm anoxic or carbon dioxide air under 400 K stays F or G (they hold more conditions, so they win a tie) | 0.5 to 1.4 g | hot worlds with air of 1 to 10 kPa and no ocean | a sweep where the floor moves bodies of class F or G (4 of F and 5 of G changed letter, all of them at 400 K or more or at 10 kPa with no class before) | the gravity edges of Z once the hot thin-air worlds are fitted | GEN.1306 class sweep, 2212 bodies from four seeds of 150 systems | predicted only | - | no data |
 | AW7 | P | T9 | L3 | class Z temperature top 1500 K (`temperature_k lt 1500`; 1100 K before) | 1100 to 1700 K | worlds of 1 to 10 kPa with no ocean | a sweep where the top moves a body of another class into Z | the top of Z from the temperature at which a thin air is lost (the retention fit) | the same sweep (one carbon dioxide body at 1297 K) | predicted only | - | no data |
 | AW8 | P | T6 | L0 | class W, the Frozen world (`planet_class_fit.json`, W: `temperature_k min 233.15` and `lt 273.15`, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K | none (the freezing point of water and -40 C) | air worlds of 233 to 273 K | a cold air world that reads better as class P or E | a class of the cold anoxic or dense worlds if Boss asks for one | the P and E rows of the same file; GEN.1142 CL5, CL7; Boss 11-06 | predicted only | - | - |
+| AW9 | P | T9 | L0 | class Q, the Hot world (`planet_class_fit.json`, Q: `gravity_g` 0.5 to 2, `temperature_k min 400`, `pressure_pa` 10 kPa to 10 bar, hydrogen under 30 percent): the edges are the ones its neighbours already have (the 10 kPa top of Z, the 10 bar floor and 400 K of N, the 0.5 g floor of F and Z, the 2 g floor of V), so a hot world with a moderate air has a class and N keeps its meaning (GEN.1618, Boss) | none (the edges of Z, N, F and V) | worlds of 400 K and up with 10 kPa to 10 bar of air at 0.5 to 2 g | a sweep with a hot body of this air whose best class is not Q | the edges of Z, N and V once they are fitted | the class sweep of GEN.1618 (G 7 of 26 and F 2 of 49 stored bodies at match 0, hotter than 400 K) | predicted only | - | - |
 
 ## 6.192 Stand-in of how far apart random placement keeps two systems
 

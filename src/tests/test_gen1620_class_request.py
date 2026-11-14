@@ -66,7 +66,7 @@ def test_the_report_says_what_came_of_the_request():
     classes.discard(None)
     config.FORCE_CLASS = sorted(classes)[0]
     assert "holds it" in run_system.class_request_report(system, config)
-    config.FORCE_CLASS = next(one for one in "ABCDEFGHIJKLMNOPRSTUVWXYZ" if one not in classes)
+    config.FORCE_CLASS = next(one for one in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if one not in classes)
     assert "no body of this system came out as class" in run_system.class_request_report(system, config)
     config.FORCE_CLASS, config.FORCE_LIFE_CLASS = None, "9"
     assert "Life class 9 asked for" in run_system.class_request_report(system, config)
@@ -82,5 +82,5 @@ def test_a_life_class_that_does_not_come_out_is_an_unmet_requirement():
 
 def test_the_cli_refuses_a_class_that_does_not_exist():
     assert run_system.class_request_problem("O", "4c") is None and run_system.class_request_problem(None, "6") is None
-    assert "not a planet class" in run_system.class_request_problem("Q", None)
+    assert "not a planet class" in run_system.class_request_problem("?", None)
     assert "not a life class" in run_system.class_request_problem(None, "12")
