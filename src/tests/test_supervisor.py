@@ -231,7 +231,7 @@ def _finished_stage(conn, ended_at):
     """A run whose stage 0 was completed by its only unit at `ended_at` and whose end never queued the next opening (the unit's process was killed in it)."""
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
     runrecord.begin_stage(conn, run_id, 0)
-    runrecord.set_stage_plan(conn, run_id, 0, 1, 1.0, {"units": 1, "detail": {}})
+    runrecord.set_stage_size(conn, run_id, 0, 1, 1.0)
     assert runrecord.unit_done(conn, run_id, 0, 0, now=ended_at).advance
     return run_id
 

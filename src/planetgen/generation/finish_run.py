@@ -34,7 +34,7 @@ import dataclasses
 import sys
 
 from planetgen.db import store
-from planetgen.queue import commands, redisqueue, runrecord, wrapper
+from planetgen.queue import commands, planrows, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
@@ -221,7 +221,7 @@ def plan(conn, run_id, galaxy_seed, build, database):
 def _starts_as_planned(conn, run_id, index, params):
     """A random-start stage that picked its starts in the run being carried on (PERF.214) keeps them, as sectors to generate: picking again
     would pass over the start it saved and choose another."""
-    detail = (runrecord.read_plan(conn, run_id, index) or {}).get("detail") or {}
+    detail = (planrows.read_plan(conn, run_id, index) or {}).get("detail") or {}
     if detail.get("centers") is None:
         return params
     return {**params, "items": [place for address in detail["centers"] for place in address], "planned": ""}

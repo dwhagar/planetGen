@@ -22,7 +22,7 @@ import time
 import redis
 
 from planetgen.admin import maintenance
-from planetgen.queue import redisqueue, runline, runrecord
+from planetgen.queue import planrows, redisqueue, runline, runrecord
 from planetgen.util import log, logrecord
 
 LOCK_NAME = "supervisor.lock"
@@ -162,7 +162,7 @@ def running_stage(conn, run_id):
     """
     count = len(json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")) or "[]"))
     for index in range(count):
-        plan = runrecord.read_plan(conn, run_id, index)
+        plan = planrows.read_plan(conn, run_id, index)
         if plan is None:
             return None
         if plan["units"] and conn.scard(runrecord.done_key(run_id, index)) < plan["units"]:

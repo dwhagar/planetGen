@@ -4,7 +4,8 @@ unit is done -- and what happens to a run when one of them, or the opening of a 
 
 import pytest
 
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.db import store
+from planetgen.queue import commands, planrows, redisqueue, runrecord, units, wrapper
 
 CALLS = []
 """list: What the test commands did, in order."""
@@ -123,6 +124,7 @@ def test_the_plan_of_a_stage_with_nothing_to_do_stores_its_row_as_skipped(conn, 
     monkeypatch.setattr(stages, "write_skipped_row", lambda config, key, row, reason: stored.update(key=key, reason=reason))
     monkeypatch.setattr(stages, "write_queued_row", lambda *args: stored.update(ran=True))
     monkeypatch.setattr(wrapper, "_mysql_config", lambda named: None)
+    monkeypatch.setattr(planrows, "_control", lambda conn, run_id: store.get_control_connection(store.control_mysql_config()))     # the step names no real server
     monkeypatch.setitem(commands.REGISTRY, "idle", commands.CommandSpec(
         "idle", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut_nothing")))
     row = {"command": "test", "n": 1, "total": 1, "label": "Idle", "settings": {}}

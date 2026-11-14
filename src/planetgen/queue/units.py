@@ -145,7 +145,7 @@ EXPECTED_SECONDS_ARG = "expected_seconds"
 """str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for the heartbeat judge (its expected rate, OPS.135); the time limit does not read it (`unit_timeout`)."""
 
 
-def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None):
+def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None, rows=None):
     """
     Queues the units of stage `stage` of the run.
 
@@ -155,6 +155,7 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
             predicted time (`EXPECTED_SECONDS_ARG`).
         expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
             (`unit_timeout`).
+        rows (list[int], optional): The id of each unit's row in the job ledger (`planrows.record_cut`, OPS.216), in unit order, handed to the unit (`run_unit`'s `row`).
 
     Raises:
         ValueError: More than `MAX_UNITS` units, or a kind that is not a command with units.
@@ -163,22 +164,26 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
         raise ValueError(f"no unit kind {kind!r}")
     if len(units) > MAX_UNITS:
         raise ValueError(f"a stage queues at most {MAX_UNITS} units, not {len(units)}")
+    if rows is not None and len(rows) != len(units):
+        raise ValueError(f"the plan has {len(rows)} rows for {len(units)} units")
     queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
     timeout = unit_timeout(expected_seconds)
     for start in range(0, len(units), ENQUEUE_BATCH):
         queue.enqueue_many([
             queue.prepare_data(
-                UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost), job_id=job_id(run_id, stage, index),
+                UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost, None if rows is None else rows[index]), job_id=job_id(run_id, stage, index),
                 timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
                 retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
 
 
-def run_unit(run_id, stage, unit, kind, args, cost=None):
+def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
     """
     The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
     wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (canceled,
     failed) does nothing.
+
+    `row` is the unit's row in the job ledger (OPS.216), which the fence of OPS.217 will hold.
 
     Returns:
         dict: `seconds` the unit took, or `skipped`.

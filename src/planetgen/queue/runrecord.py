@@ -19,9 +19,7 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
 * `<PREFIX>:run:<id>:s<k>:results`   hash: unit -> the JSON result it returned (PERF.97), written before the unit
                                   joins the done set, so a unit found done has its result.
 * `<PREFIX>:run:<id>:s<k>:progress`  hash: unit -> `"done,estimate"`, a unit's work so far while it runs (PERF.97).
-* `<PREFIX>:run:<id>:s<k>:plan`      string: the JSON summary the stage's command gave when it was expanded into
-                                  units (PERF.118): what any process following the run needs to read the units'
-                                  results. Written before the stage's units are queued.
+  (The summary the stage's command gave when it was expanded into units is rows of the job ledger, `planrows`, OPS.216; the run's hash names its `engine_run`.)
 * `<PREFIX>:run:<id>:banner`     string: the whole hours the site banner shows for the run (UX.3), so every visitor
                                   sees one figure; expires a day after it is written.
 * `<PREFIX>:run:<id>:alive`      string: set with a time to live of `ALIVE_SECONDS` by the process that follows the run
@@ -208,10 +206,6 @@ def unitstate_key(run_id, index):
     return _k("run", run_id, f"s{index}", "unitstate")
 
 
-def plan_key(run_id, index):
-    return _k("run", run_id, f"s{index}", "plan")
-
-
 def debug_key(run_id):
     """The stream of debug lines the run's workers relay to the process that started it (`planetgen.util.log.relayed`)."""
     return _k("run", run_id, "debug")
@@ -254,7 +248,7 @@ def text_hash(fields):
 
 
 def declared_stages(conn, run_id):
-    """The run's stage list as `start_run` stored it (and `set_stage_plan` keeps it): `[]` for an unknown run."""
+    """The run's stage list as `start_run` stored it (and `set_stage_size` keeps it): `[]` for an unknown run."""
     return json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
 
 
@@ -530,11 +524,10 @@ def read_steps(conn, run_id):
     return json.loads(_s(conn.hget(run_key(run_id), "steps")) or "[]")
 
 
-def set_stage_plan(conn, run_id, index, units, cost, plan, now=None):
+def set_stage_size(conn, run_id, index, units, cost, now=None):
     """
-    Records what stage `index` turned out to be when its command was expanded (PERF.118): `units` units of total
-    predicted `cost`, and `plan`, the JSON summary a process following the run reads its results by. Called once,
-    before the units are queued, so no unit can finish against the old count.
+    Records how many units stage `index` was cut into and their total predicted `cost` (PERF.118), for the stage's bar and the count that completes it. The plan itself, what
+    the cut said of the stage, is rows (`planrows`, OPS.216). Called once, before the units are queued, so no unit can finish against the old count.
     """
     now = _now(now)
     declared = declared_stages(conn, run_id)
@@ -543,14 +536,7 @@ def set_stage_plan(conn, run_id, index, units, cost, plan, now=None):
     pipe = conn.pipeline()
     pipe.hset(run_key(run_id), mapping={"stages": json.dumps(declared), "updated": now})
     pipe.hset(stage_key(run_id, index), mapping={"units": int(units), "cost_total": float(cost)})
-    pipe.set(plan_key(run_id, index), json.dumps(plan))
     pipe.execute()
-
-
-def read_plan(conn, run_id, index):
-    """Stage `index`'s plan (`set_stage_plan`), or `None` while the stage has not been expanded."""
-    raw = conn.get(plan_key(run_id, index))
-    return None if raw is None else json.loads(_s(raw))
 
 
 def set_conclusion(conn, run_id, index, conclusion, now=None):
@@ -788,7 +774,7 @@ def _keys_of(conn, run_id, every=False):
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
         keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index), ended_key(run_id, index), ending_key(run_id, index), opened_key(run_id, index),
-                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index), plan_key(run_id, index)]
+                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index)]
     return keys
 
 
@@ -982,5 +968,5 @@ def recent_runs(conn, limit=20):
 
 
 __all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_canceling", "is_stale",
-           "event_handler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
-           "set_stage_plan", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]
+           "event_handler", "job_runs", "log", "new_run_id", "read_events", "read_run", "read_steps", "recent_runs", "request_cancel",
+           "set_stage_size", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

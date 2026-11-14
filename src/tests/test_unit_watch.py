@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from planetgen.queue import beatjudge, redisqueue, runrecord, unitbeat, unitwatch, units
+from planetgen.queue import beatjudge, planrows, redisqueue, runrecord, unitbeat, unitwatch, units
 
 
 @pytest.fixture
@@ -100,7 +100,8 @@ def test_the_supervisor_judges_the_stage_in_flight_of_a_live_run_each_turn_and_d
     """OPS.208: the watch moved from the process that started the run to the supervisor (`supervisor.RunWatches`)."""
     from planetgen.queue import supervisor
     runrecord.begin_stage(conn, run_id, 0)
-    runrecord.set_stage_plan(conn, run_id, 0, 1, 1.0, {"units": 1, "detail": {}})
+    runrecord.set_stage_size(conn, run_id, 0, 1, 1.0)
+    monkeypatch.setattr(planrows, "read_plan", lambda c, r, index: {"units": 1, "detail": {}})      # the supervisor reads the plan from rows (OPS.216); this test is of its watching
     calls = []
 
     class _Watch:
@@ -122,7 +123,8 @@ def test_the_supervisor_judges_the_stage_in_flight_of_a_live_run_each_turn_and_d
 def test_a_failing_watch_does_not_stop_the_supervisors_turn(conn, run_id, monkeypatch):
     from planetgen.queue import supervisor
     runrecord.begin_stage(conn, run_id, 0)
-    runrecord.set_stage_plan(conn, run_id, 0, 1, 1.0, {"units": 1, "detail": {}})
+    runrecord.set_stage_size(conn, run_id, 0, 1, 1.0)
+    monkeypatch.setattr(planrows, "read_plan", lambda c, r, index: {"units": 1, "detail": {}})      # the supervisor reads the plan from rows (OPS.216); this test is of its watching
     monkeypatch.setattr(runrecord, "read_steps", lambda c, r: [{"key": "test", "kind": "test"}])
 
     class _Broken:

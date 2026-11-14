@@ -8,7 +8,7 @@ import pytest
 
 from planetgen.cli import generate as generate_cli
 from planetgen.generation import stages
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.queue import commands, planrows, redisqueue, runrecord, units, wrapper
 
 GALAXY_RUNS = (["galaxy"], ["galaxy", "--shell", "2"], ["sectors"], ["sectors", "--shell", "2"], ["link"], ["backfill"],
                ["settle"])
@@ -165,13 +165,13 @@ def test_a_stage_with_no_units_is_passed_over_and_the_run_still_ends(monkeypatch
     assert runrecord.read_run(conn, run_id)["state"] == "done"
 
 
-def test_the_plan_of_a_stage_is_in_redis_for_any_process_following_the_run(monkeypatch, conn):
+def test_the_plan_of_a_stage_is_rows_for_any_process_following_the_run(monkeypatch, conn):
     _register(monkeypatch, first=_units(2))
     run_id = wrapper.run("One", [commands.Step("a", "first", "A", {"x": 1})], lambda index, plan: None,
                          lambda index, unit, result: None)
-    plan = runrecord.read_plan(conn, run_id, 0)
+    plan = planrows.read_plan(conn, run_id, 0)
     assert plan == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
-    assert runrecord.read_plan(conn, run_id, 1) is None
+    assert planrows.read_plan(conn, run_id, 1) is None
     assert runrecord.read_steps(conn, run_id)[0]["params"] == {"x": 1}
 
 

@@ -322,6 +322,28 @@ def _mysql_server_available():
         conn.close()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _ledger_control_database():
+    """
+    OPS.216: a run's plan is rows of the job ledger in the control database (`queue/planrows.py`), so a test that runs a stage needs the session's control database to
+    exist with its tables. Made here once for the process, when a MySQL server can be reached (a test that needs none does not).
+    """
+    try:
+        kwargs = _test_server_kwargs()
+        raw = pymysql.connect(**kwargs, connect_timeout=3)
+        try:
+            with raw.cursor() as cur:
+                cur.execute(f"CREATE DATABASE IF NOT EXISTS `{SESSION_CONTROL_DATABASE}`")
+            raw.commit()
+        finally:
+            raw.close()
+        from planetgen.db import store
+        store.get_control_connection(store.MySQLConfig(database=SESSION_CONTROL_DATABASE, **kwargs), ensure_schema=True).close()
+    except Exception:  # noqa: BLE001 -- no server: the tests that need one skip themselves
+        pass
+    yield
+
+
 @pytest.fixture(scope="session")
 def _worker_database(_mysql_server_available):
     """The database this test process reuses (tests/dbpool.py, TEST.139); dropped when the process ends."""
