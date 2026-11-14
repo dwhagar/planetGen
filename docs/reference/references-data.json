@@ -205173,6 +205173,33 @@
    "volume": "365",
    "year": 2007
   },
+  "10.1098/rsta.2007.2047": {
+   "authors": [
+    [
+     "Catling",
+     "D."
+    ],
+    [
+     "Claire",
+     "M."
+    ],
+    [
+     "Zahnle",
+     "K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1098/rsta.2007.2047",
+   "editors": [],
+   "journal": "Phil. Trans. R. Soc. A.",
+   "page": "1867",
+   "publisher": "The Royal Society",
+   "src": "crossref",
+   "title": "Anaerobic methanotrophy and the rise of atmospheric oxygen",
+   "type": "journal-article",
+   "volume": "365",
+   "year": 2007
+  },
   "10.1098/rsta.2007.2049": {
    "authors": [
     [
@@ -284606,7 +284633,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5250,
+ "id_next": 5251,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -288109,6 +288136,7 @@
   "10.1098/rsta.1988.0067": "R4617",
   "10.1098/rsta.1994.0132": "R4618",
   "10.1098/rsta.2007.2044": "R4741",
+  "10.1098/rsta.2007.2047": "R5250",
   "10.1098/rsta.2007.2049": "R0844",
   "10.1098/rsta.2008.0301": "R1371",
   "10.1098/rsta.2009.0159": "R2186",
