@@ -13,7 +13,7 @@ GEN.422 fixes, repeating until the pressure and the temperature stop moving:
    interior has degassed (`surface_pressure.degassed_share` of each element's inventory) and the late accretion left (`surface_pressure.impact_inventory`, GEN.819: the carbon
    and nitrogen the leftover planetesimals brought and did not erode) less what the sinks take: the sulfate and sulfide sinks of the crust take sulfur
    (`sulfur_balance`, which the ocean then dissolves some of, `mixture_sinks`), and the carbonate cycle takes the carbon that weathering locks up at the
-   temperature (`surface_pressure.carbonate_pco2_bar`), the carbon of the impacts as well as the degassed.
+   temperature (`continental_weathering.pco2_bar`), the carbon of the impacts as well as the degassed.
 2. *Pressure.* The moles of gas are an air mass, `P = g M_air / (4 pi R^2)`, and the gas that stays is what the light-gas escape
    (`mixture_escape`) leaves. The escape stays out until the fixed point has settled without it; it then compares its loss to
    that settled pressure and the fixed point goes on with the loss in it (a loss compared to the pressure of the step before is
@@ -40,7 +40,7 @@ import math
 from dataclasses import dataclass, field, replace
 
 from planetgen.physics import (
-    ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
+    ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
     mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
@@ -452,7 +452,7 @@ def liquid_ocean(ocean_cover, temperature_k, pressure_pa):
 def _weathers(setting, water_left, temperature_k):
     """Whether silicate weathering takes carbon at this step: the body has surface water that has not all gone to vapor, and its surface is
     under the critical temperature of water. The cold side is not gated: the weathering law falls off exponentially with the temperature
-    (`surface_pressure.carbonate_pco2_bar`), and a hard gate at the freezing point would make the carbon of a frozen world jump to all that
+    (`continental_weathering.pco2_bar`), and a hard gate at the freezing point would make the carbon of a frozen world jump to all that
     has been degassed in one step instead of building up until it thaws. The land it works on shrinks with the ice cover instead (`_weathering_land`, GEN.1697)."""
     return (not setting.giant and setting.ocean_cover > 0.0 and water_left > 0.0
             and temperature_k < surface_pressure.LIQUID_WATER_K[1])
@@ -642,9 +642,10 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             def kept_at(ts_k):
                 """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at)."""
                 if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
-                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, _weathering_land(setting, ts_k), lambda p_bar: ts_k, *cycle)
+                    return continental_weathering.pco2_bar(supply_bar, setting.heat_flux_w_m2, _weathering_land(setting, ts_k), ts_k, setting.absorbed_flux_at(ts_k, ocean),
+                                                           cycle, water_world.law)
                 if kind == waterworld_carbon.SEAFLOOR_WEATHERING:
-                    return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[2])
+                    return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[1])
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
                 return waterworld_carbon.ocean_pco2(carbon / setting.area_m2, ts_k, setting.water_kg / setting.area_m2, setting.gravity_m_s2,
                                                     sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=anion_charge).pco2_bar
@@ -739,7 +740,7 @@ def solve(setting, start_temperature_k):
     entry_state = draw.getstate()
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = surface_pressure.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     oxidized_share = UNKNOWN_OXIDIZED_SHARE
     water_world = water_world_of(setting, design)
