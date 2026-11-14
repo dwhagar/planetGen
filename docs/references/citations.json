@@ -26223,8 +26223,8 @@
     },
     "R5248": {
       "kind": "paper",
-      "label": "Krivov and Wyatt 2020",
-      "title": "Solution to the debris disc mass problem: planetesimals are born small?"
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
     },
     "R5249": {
       "kind": "paper",
@@ -26233,8 +26233,8 @@
     },
     "R5250": {
       "kind": "paper",
-      "label": "Chambers 2020",
-      "title": "The Effect of Seafloor Weathering on Planetary Habitability"
+      "label": "Catling et al. 2007",
+      "title": "Anaerobic methanotrophy and the rise of atmospheric oxygen"
     },
     "R5251": {
       "kind": "paper",
@@ -26245,6 +26245,16 @@
       "kind": "paper",
       "label": "Alcott et al. 2019",
       "title": "Stepwise Earth oxygenation is an inherent property of global biogeochemical cycling"
+    },
+    "R5253": {
+      "kind": "paper",
+      "label": "Krivov and Wyatt 2020",
+      "title": "Solution to the debris disc mass problem: planetesimals are born small?"
+    },
+    "R5254": {
+      "kind": "paper",
+      "label": "Chambers 2020",
+      "title": "The Effect of Seafloor Weathering on Planetary Habitability"
     }
   }
 }

@@ -20,7 +20,7 @@ module is the balance of a body with land and an ocean that is not sealed (`wate
   latent heat allows (Eqs. 41 to 44). On a hot world that limit, not the Clausius-Clapeyron rise, sets the rain, and so the weathering.
 * *Seafloor.* The dissolution of basalt in the pore water of the ocean floor (`waterworld_carbon.seafloor_rate_over_modern`, [R2489]),
   at the modern share of the volcanoes' CO2 (`waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING`, 0.45 / 6.6). Its limit is the supply of
-  fresh crust, which is the spreading term `(q / q_E)^beta` already in that law (Chambers 2020 [R5250]: "limited by the supply of fresh
+  fresh crust, which is the spreading term `(q / q_E)^beta` already in that law (Chambers 2020 [R5254]: "limited by the supply of fresh
   oceanic crust, and proportional to the seafloor spreading rate"; Hoening, Tosi and Spohn 2019 give no further cap).
 * *The balance.* In units of the modern outgassing, with `s` the seafloor share,
 
