@@ -39,7 +39,7 @@ change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum, surface_air
 from planetgen.util import log
 
 EARTH_O2_MOL = 3.7e19
@@ -431,16 +431,69 @@ def rebalance_co2(body):
     return True
 
 
+FREEZE_AGAIN_PASSES = 20
+"""int: The most times `store_air` lets the warming and the freeze-out of the new air move each other (the colder air condenses more, the condensed air warms less, and the pair settles in a few passes)."""
+FREEZE_AGAIN_TOLERANCE = 1.0e-6
+"""float: The relative change of a partial pressure under which the freeze-out has settled. A numerical tolerance, not a physical value."""
+
+
+def freeze_out_at(body, air, temperature_k):
+    """
+    `air` (formula to partial pressure, Pa) once the gases that stand above their saturation pressure at `temperature_k` have condensed (GEN.1564): the same
+    `surface_air.freeze_out` the first solve uses, on the moles of the column. A gas with no curve, or above its critical temperature, is left alone. The water
+    of the body's ocean (`_ocean_moles`) is the reservoir of the vapor, as in the first solve: it brings the vapor to its humidity from either side, so a sea
+    that is not frozen over keeps its air wet at a colder temperature; no other gas has a reservoir here.
+    """
+    gravity = body.gravity * constants.EARTH_GRAVITY
+    area = area_m2(body)
+    weight = sum(pascal * gases.gas(formula).molar_mass for formula, pascal in air.items())
+    total_pa = sum(air.values())
+    if weight <= 0.0 or total_pa <= 0.0:
+        return air
+    mean_molar_mass = weight / total_pa
+    moles = {formula: pascal * area / (gravity * mean_molar_mass) for formula, pascal in air.items()}
+    ocean_moles = _ocean_moles(body, area)
+    reservoirs = {"H2O": (surface_air.RELATIVE_HUMIDITY, ocean_moles)} if ocean_moles > 0.0 else None
+    left, _, _ = surface_air.freeze_out(moles, gravity, area, temperature_k, reservoirs)
+    left = {formula: count for formula, count in left.items() if count > 0.0}
+    column = sum(left.values())
+    if column <= 0.0:
+        return {}
+    pressure = sum(count * gases.gas(formula).molar_mass for formula, count in left.items()) * gravity / area
+    return {formula: count / column * pressure for formula, count in left.items()}
+
+
+def _ocean_moles(body, area):
+    """Moles of water in the body's ocean (its cover times its mean depth, at liquid water's density), 0 for a body with no sea."""
+    depth_km = getattr(body, "ocean_depth_km", None) or 0.0
+    cover = getattr(body, "ocean_fraction", None) or 0.0
+    if getattr(body, "hydrosphere", None) not in ("surface ocean", "hycean", "ice-covered ocean") or depth_km <= 0.0 or cover <= 0.0:
+        return 0.0
+    return cover * area * depth_km * 1000.0 * constants.LIQUID_WATER_DENSITY_KG_M3 / gases.gas("H2O").molar_mass
+
+
 def store_air(body, air):
     """
     Gives `body` the air `air` (formula to partial pressure, Pa): the warming and surface temperature that mixture gives under the starlight the
     body absorbed (the closure of `surface_air`, so the stored greenhouse factor still follows from the stored air, haze included: GEN.1589), and the total pressure,
     molar mass, density and scale height of the new mixture. The doses, aerosols, colour and score that read the air are the caller's to make
     again (`generation.life`).
+
+    The new air has a new temperature, and at it a gas may stand above its saturation pressure: the freeze-out of the first solve is run again at that
+    temperature (`freeze_out_at`, GEN.1564), and the warming of the air that is left, until the pair settles. A hydrogen-rich air keeps its gases (the
+    first solve does not freeze a giant either).
     """
     gravity = body.gravity * constants.EARTH_GRAVITY
     radiated = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
     warming = _warming(body, air, gravity, radiated)
+    for _ in range(FREEZE_AGAIN_PASSES):
+        frozen = freeze_out_at(body, air, warming.surface_temperature_k)
+        if not frozen:
+            break
+        if all(abs(frozen.get(formula, 0.0) - pascal) <= FREEZE_AGAIN_TOLERANCE * max(pascal, MINIMUM_PA) for formula, pascal in air.items()):
+            break
+        air = frozen
+        warming = _warming(body, air, gravity, radiated)
     state = atmosphere_state.air_state(air, warming.surface_temperature_k, gravity)
     body.surface_temperature = warming.surface_temperature_k
     body.greenhouse_factor = warming.factor

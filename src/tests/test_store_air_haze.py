@@ -14,7 +14,7 @@ AIR = {"N2": 70000.0, "CO2": 30000.0}
 
 def _body(haze_draws=None, internal=0.0):
     kept = None if haze_draws is None else (haze_draws, 5800.0, None, internal)
-    return SimpleNamespace(gravity=1.0, surface_temperature=288.0, greenhouse_factor=0.5, mantle_delta_iw=None, _air_haze=kept)
+    return SimpleNamespace(gravity=1.0, radius=6371.0, surface_temperature=288.0, greenhouse_factor=0.5, mantle_delta_iw=None, _air_haze=kept)
 
 
 def _no_side_effects(monkeypatch):
@@ -41,7 +41,7 @@ def test_a_body_without_haze_draws_or_an_air_step_gets_the_clear_warming(monkeyp
     gravity = constants.EARTH_GRAVITY
     radiated = constants.STEFAN_BOLTZMANN_CONSTANT * 288.0 ** 4 / 1.5
     clear = atmosphere_state.greenhouse_warming(AIR, gravity, radiated)
-    for body in (_body(haze_draws=None), SimpleNamespace(gravity=1.0, surface_temperature=288.0, greenhouse_factor=0.5, mantle_delta_iw=None)):
+    for body in (_body(haze_draws=None), SimpleNamespace(gravity=1.0, radius=6371.0, surface_temperature=288.0, greenhouse_factor=0.5, mantle_delta_iw=None)):
         bo.store_air(body, AIR)
         assert body.surface_temperature == pytest.approx(clear.surface_temperature_k, abs=1e-9)
 

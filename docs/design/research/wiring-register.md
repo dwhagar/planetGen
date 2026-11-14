@@ -242,5 +242,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.286:WDC6 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
 | row | 6.286:WDC7 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
 | row | 6.286:WDC8 | GEN.1370 | read when the white dwarf's stored core and pollution detail take the module |
-| function | planetgen.physics.saturation.unread_pressure_pa | GEN.1564 | the held-back S2 vapor pressure curve (stand-in SV1); slice 1 moves the row into `species` and the freeze-out reads it through `saturation` |
-| function | planetgen.physics.saturation.unread_formulas | GEN.1564 | the names of the held-back curves, read by the tests; slice 1 empties it |
