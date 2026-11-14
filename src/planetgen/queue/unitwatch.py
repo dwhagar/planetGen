@@ -150,7 +150,16 @@ def view(verdict, beat, now, agreed=False, stored_rate=None):
             "counter": verdict.counter, "rate": verdict.rate, "projected_finish_seconds": verdict.projected_finish_seconds, "still_seconds": verdict.still_seconds,
             "over_limit": verdict.over_limit, "phase": beat.phase, "waiting_on": beat.waiting_on, "done": beat.done, "estimate": beat.estimate,
             "restarts": beat.restarts, "resident_mb": beat.resident_mb, "sql": beat.sql, "sql_seconds": None if beat.sql_since is None or not beat.sql else max(now - beat.sql_since, 0.0), "beat_age_seconds": max(now - beat.beat, 0.0), "running_seconds": max(now - beat.started, 0.0),
-            "progress": taskprogress.as_dict(taskprogress.progress(beat.done, beat.estimate, beat.started, now, stored_rate))}
+            "progress": taskprogress.as_dict(taskprogress.progress(beat.done, beat.estimate, beat.started, now, stored_rate)), "step": step_view(beat, now)}
+
+
+def step_view(beat, now):
+    """The unit's second-level count (OPS.192) as the pages show it, `None` where the unit has none: `name`, `done`, `total` and `progress` (its own bar and time left from its own rate)."""
+    if not beat.step:
+        return None
+    started = beat.step_started if beat.step_started is not None else beat.started
+    return {"name": beat.step, "done": beat.step_done, "total": beat.step_total,
+            "progress": taskprogress.as_dict(taskprogress.progress(beat.step_done, beat.step_total, started, now))}
 
 
 def read(conn, run_id, stage):

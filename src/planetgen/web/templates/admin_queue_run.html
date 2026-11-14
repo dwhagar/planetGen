@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% from "partials/log_lines.html" import colored_log %}
+{% from "partials/task_bar.html" import task_bar %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <section class="panel" aria-labelledby="run-heading">
@@ -55,7 +56,7 @@
   <div class="table-scroll" tabindex="0">
   <table class="unit-table">
     <caption class="sr-only">The units running now, the ones that need a look first</caption>
-    <thead><tr><th scope="col">Stage</th><th scope="col">Unit</th><th scope="col">State</th><th scope="col">Doing</th><th scope="col">Counter</th><th scope="col">Rate</th><th scope="col">Time left</th><th scope="col">Last beat</th><th scope="col">Running</th><th scope="col">Memory</th></tr></thead>
+    <thead><tr><th scope="col">Stage</th><th scope="col">Unit</th><th scope="col">State</th><th scope="col">Doing</th><th scope="col">Counter</th><th scope="col">Rate</th><th scope="col">Time left</th><th scope="col">Last beat</th><th scope="col">Running</th><th scope="col">Memory</th><th scope="col">Counting inside</th></tr></thead>
     <tbody>
     {%- for unit in unit_rows %}
       <tr>
@@ -69,6 +70,7 @@
         <td>{{ unit.beat }} ago</td>
         <td>{{ unit.running }}</td>
         <td>{{ unit.memory }}</td>
+        <td>{% if unit.step %}{{ unit.step.text }} {{ task_bar(unit.step.bar, unit.step.name) }}{% endif %}</td>
       </tr>
     {%- endfor %}
     </tbody>

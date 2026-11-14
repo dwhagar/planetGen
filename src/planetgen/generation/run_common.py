@@ -92,6 +92,39 @@ class _ReportingProgress(Progress):
         if self.main_task is not None:
             self._report(self.main_task, force=True)
 
+    _step_task = None
+    """The task of the units' second-level count (`show_step`), when it is the one drawn as `detail_task`."""
+
+    def show_step(self, step):
+        """
+        The second bar of the run, from what the units of the stage count inside their own count (OPS.192): `step` is `{"name", "done", "total"}` (`queue/units._step_now`) or `None`
+        where no unit is in one, which takes the bar down. A second bar another step holds (the slow shells, PERF.4) is left alone and nothing is drawn meanwhile.
+        """
+        task = self._step_task
+        if task is not None and (step is None or task not in self._tasks or self._tasks[task].description != step["name"]):
+            # a count that ended, or a new one beginning: this one comes down with its own rate, the next starts from none
+            if self.detail_task == task:
+                self.detail_task = None
+            self._step_task = None
+            if task in self._tasks:
+                self.remove_task(task)
+            task = None
+        if step is None:
+            return
+        total = step["total"] or None
+        completed = min(step["done"], total) if total else step["done"]
+        if task is None:
+            if self.detail_task is not None:
+                return
+            task = self._step_task = self.add_task(step["name"], total=total, completed=completed)
+            self.detail_task = task
+            return
+        if self.detail_task == task:
+            changes = {"completed": completed}
+            if total != self._tasks[task].total:         # a new total is written at once; a count that only moved goes by the file's own throttle
+                changes["total"] = total
+            self.update(task, **changes)
+
     def _detail(self):
         task = self._tasks.get(self.detail_task) if self.detail_task is not None else None
         if task is None:

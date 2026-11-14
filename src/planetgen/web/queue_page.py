@@ -465,6 +465,7 @@ def _unit_rows(run, units):
         if unit.get("waiting_on"):
             phase = f"{phase} (waiting on {unit['waiting_on']})" if phase else f"waiting on {unit['waiting_on']}"
         rows.append({
+            "step": _step_text(unit.get("step")),
             "stage": f"{unit['stage'] + 1}. {labels[unit['stage']]}" if 0 <= unit["stage"] < len(labels) else str(unit["stage"] + 1),
             "unit": unit["unit"],
             "state": unit["state"],
@@ -483,6 +484,21 @@ def _unit_rows(run, units):
     counts = {state: sum(1 for unit in units if unit["state"] == state) for state in UNIT_STATE_LABELS}
     summary = f"{len(units)} {counted('unit', len(units))}: " + ", ".join(f"{count} {state}" for state, count in counts.items() if count)
     return rows[:UNIT_ROWS_SHOWN], summary, max(len(rows) - UNIT_ROWS_SHOWN, 0)
+
+
+def _step_text(step):
+    """A unit's second-level count (OPS.192: `unitwatch.step_view`) as its row shows it: `{"name", "text", "bar"}`, `None` for a unit that has none. The text is the name, the count and the rate in words; `bar` is the unit's own bar."""
+    if not step:
+        return None
+    done, total = step.get("done") or 0.0, step.get("total") or 0.0
+    progress = step.get("progress") or {}
+    text = f"{step['name']}: {done:,.0f} of {total:,.0f}" if total else f"{step['name']}: {done:,.0f}"
+    rate = progress.get("rate")
+    if rate:
+        text += f", {rate:,.1f} a second" if rate >= 1 else f", {1 / rate:,.1f} s each"
+    if progress.get("eta_seconds") is not None:
+        text += f", {_duration(progress['eta_seconds'])} left"
+    return {"name": step["name"], "text": text, "bar": progress}
 
 
 def _live_units(cookie_header, run):

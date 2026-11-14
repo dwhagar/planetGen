@@ -532,8 +532,32 @@ def _progress(conn, run_id, stage):
     return found
 
 
+def _step_now(conn, run_id, stage, seen):
+    """
+    The second-level count of the stage as one (OPS.192): `{"name", "done", "total"}` for the units still working, from the beat records. The count is the first working unit's
+    step; the units that are in a step of the same name add their counts to it (four units each removing their share of a table are one count of the table). `None` where no working
+    unit is in a step.
+    """
+    found = {}
+    for unit, raw in conn.hgetall(runrecord.progress_key(run_id, stage)).items():
+        record = unitbeat.parse(raw)
+        if record is None or not record.get("step"):
+            continue
+        try:
+            number = int(unit)
+            if number not in seen:
+                found[number] = (str(record["step"]), float(record.get("step_done") or 0.0), float(record.get("step_total") or 0.0))
+        except (ValueError, TypeError):
+            continue
+    if not found:
+        return None
+    name = found[min(found)][0]
+    same = [counts for counts in found.values() if counts[0] == name]
+    return {"name": name, "done": sum(counts[1] for counts in same), "total": sum(counts[2] for counts in same)}
+
+
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep, on_debug=None, touch=True, watch=None):
+                 sleep=time.sleep, on_debug=None, touch=True, watch=None, on_step=None):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
@@ -546,13 +570,17 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             process is gone is not taken for a live one on its account.
 
         watch (unitwatch.UnitWatch, optional): Judges the beat of each running unit at every poll (OPS.138); only the process that started the run has one.
+        on_step (callable, optional): `on_step(step)` at every poll with the stage's second-level count (`_step_now`: `{"name", "done", "total"}`, or `None` when no unit is in one), and once with
+            `None` when the stage ends, so a display that drew it can take it down (OPS.192).
 
     Raises:
         RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
     """
     try:
-        _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch)
+        _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch, on_step)
     finally:
+        if on_step is not None:
+            on_step(None)
         if watch is not None:
             try:
                 watch.clear()
@@ -560,7 +588,7 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
                 log.swallowed("queue/units", "follow_stage", exc)
 
 
-def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):
+def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch, on_step=None):
     seen = set()
     last_ensure = float("-inf")
 
@@ -593,6 +621,8 @@ def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, s
             for unit, (done, estimate) in _progress(conn, run_id, stage).items():
                 if unit not in seen:
                     on_progress(unit, done, estimate)
+        if on_step is not None:
+            on_step(_step_now(conn, run_id, stage, seen))
         if watch is not None:
             watch.check()
         if ensure is not None and clock() - last_ensure >= ENSURE_SECONDS:

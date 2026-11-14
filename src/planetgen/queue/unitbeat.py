@@ -27,6 +27,7 @@ from contextlib import contextmanager
 
 from planetgen.db import statementmark
 from planetgen.queue import beatjudge, runrecord, usage as usageModule
+from planetgen.util import ticker
 
 COUNTER_WRITE_SECONDS = 2.0
 """float: A counter that moved is written at most this often, between two beats."""
@@ -139,6 +140,9 @@ class UnitBeat:
         self._waited_total = 0.0                    # the same over the whole unit (PERF.147: a rate is items over the seconds worked)
         self._longest_gap = 0.0                     # the longest gap between two changes of `done` so far (OPS.135)
         self._phase, self._waiting, self._phases = "", "", {}
+        self._step = ""                             # OPS.192: the second level: what the unit is counting inside its own count, how far, and since when
+        self._step_done = self._step_total = 0.0
+        self._step_at = None
         self._started_at = self.clock()
         self._started_server = None
         self._last_write = None
@@ -182,6 +186,43 @@ class UnitBeat:
             self._phases[text] = self._phases.get(text, 0) + 1
             self._phase = text
 
+    def step(self, name, total=None):
+        """
+        The unit begins a second-level count (OPS.192): `name` ("Removing the stored members"), `total` of what it counts or `None` where it is not known. The count starts at 0
+        and the quiet clock starts again; a step of the same name that begins again is a new count.
+        """
+        with self._lock:
+            self._step, self._step_total, self._step_done = str(name), float(total or 0.0), 0.0
+            self._step_at = self.clock()
+            self._moved_at = self._step_at
+            self._close_gap(self._moved_at)
+
+    def advance(self, amount=1):
+        """The second-level count has done `amount` more; the quiet clock starts again."""
+        with self._lock:
+            self._set_step_done(self._step_done + float(amount))
+
+    def step_to(self, done, total=None):
+        """The second-level count stands at `done` (of `total`, where that is given or changes), as a loop that counts for itself says it."""
+        with self._lock:
+            if total is not None:
+                self._step_total = float(total)
+            self._set_step_done(float(done))
+
+    def _set_step_done(self, done):
+        if done != self._step_done:
+            self._step_done = done
+            self._moved_at = self.clock()
+            self._close_gap(self._moved_at)
+
+    def counted(self, label, done, total):
+        """A loop that counts for itself (`util.ticker.Ticker`) says where it is: a new `label` begins a second-level count, the same label moves it (OPS.192)."""
+        with self._lock:
+            begins = label != self._step
+        if begins:
+            self.step(label, total)
+        self.step_to(done, total)
+
     @contextmanager
     def waiting(self, tag):
         """The unit waits for `tag` (`gate`, `sky lock` or `mysql`) inside the block."""
@@ -209,6 +250,9 @@ class UnitBeat:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
                     "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
                     "waited": round(max(self._waited, 0.0), 1), "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
+            if self._step:
+                made.update({"step": self._step, "step_done": self._step_done, "step_total": self._step_total,
+                             "step_started": now_server - (self.clock() - self._step_at)})
             if self.stack_file:
                 made["stack_file"] = self.stack_file
             made.update(proof)
@@ -260,6 +304,7 @@ class UnitBeat:
     def __enter__(self):
         global _current
         self._outer, _current = _current, self
+        self._outer_sink, ticker.sink = ticker.sink, self.counted      # OPS.192: every `Ticker` of this unit's code is its second-level count
         if self.stack_file:
             register_dump(self.stack_file)
         self._thread = threading.Thread(target=self._run, name=f"beat-{self.unit}", daemon=True)
@@ -269,6 +314,7 @@ class UnitBeat:
     def __exit__(self, *exc_info):
         global _current
         _current = self._outer
+        ticker.sink = self._outer_sink
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5.0)
@@ -294,6 +340,24 @@ def moving():
         _current.moving()
 
 
+def step(name, total=None):
+    """The running unit begins a second-level count (`UnitBeat.step`); nothing happens outside a unit."""
+    if _current is not None:
+        _current.step(name, total)
+
+
+def advance(amount=1):
+    """The running unit's second-level count has done `amount` more; nothing happens outside a unit."""
+    if _current is not None:
+        _current.advance(amount)
+
+
+def step_to(done, total=None):
+    """The running unit's second-level count stands at `done`; nothing happens outside a unit."""
+    if _current is not None:
+        _current.step_to(done, total)
+
+
 def phase(text):
     """The running unit begins `text`; nothing happens outside a unit."""
     if _current is not None:
@@ -316,7 +380,9 @@ def beat_of(found):
                           phase=str(found.get("phase", "")), waiting_on=str(found.get("waiting_on", "")), restarts=int(found.get("restarts", 0)),
                           waited=float(found.get("waited") or 0.0), resident_mb=None if found.get("resident_mb") is None else float(found["resident_mb"]),
                           active=None if found.get("active") is None else float(found["active"]), sql=str(found.get("sql", "")),
-                          sql_since=None if found.get("sql_since") is None else float(found["sql_since"]))
+                          sql_since=None if found.get("sql_since") is None else float(found["sql_since"]), step=str(found.get("step", "")),
+                          step_done=float(found.get("step_done") or 0.0), step_total=float(found.get("step_total") or 0.0),
+                          step_started=None if found.get("step_started") is None else float(found["step_started"]))
 
 
 def read(conn, run_id, stage):
