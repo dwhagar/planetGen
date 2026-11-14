@@ -44,6 +44,7 @@ import dataclasses
 from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_escape, mixture_evolved, mixture_giant, mixture_lava, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, MixtureError, NotApplicable  # noqa: F401  (the public names of the result)
+from planetgen.util import draw
 
 
 CATEGORIES = "".join(letter for letter in atmosphere_recipes.DRAW_ORDER if letter <= "l")
@@ -157,7 +158,8 @@ def draw_mixture(subject, recipe_subject=None, supply=None, escape=True, escape_
         MixtureError: A quantity a row reads is missing (named), a family has no chemistry yet, or the gas holds more than
             `mixture_base.UNLISTED_LIMIT` of species the gas table lacks.
     """
-    recipe = draw_recipe(subject if recipe_subject is None else recipe_subject)
+    with draw.bound(draw.Stream(draw.getrandbits(64))):     # GEN.1646: the recipe's rows draw a different number of values from branch to branch; a stream of their own keeps the design constants after them the same draws
+        recipe = draw_recipe(subject if recipe_subject is None else recipe_subject)
     family = family_of(recipe, subject)
     drawn = {group: row.name for group, row in recipe.groups.items()}
     try:

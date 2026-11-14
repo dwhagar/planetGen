@@ -62,7 +62,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, gases, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition, surface_dose
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -335,6 +335,27 @@ def helio_multiplier(column_g_cm2, compression):
     return 1.0 + HELIO_MAX_EXTRA * math.exp(-column_g_cm2 / HELIO_FADE_G_CM2) * min(max(compression, 0.0), 1.0)
 
 
+def gas_columns_g_cm2(partials_pa, column_g_cm2):
+    """The column of each gas of an air, g/cm2 (`{formula: column}`): the air's `column_g_cm2` split by each gas's share of the mass (partial pressure
+    times molar mass). Empty for an airless body."""
+    mass = {formula: pressure * gases.gas(formula).molar_mass for formula, pressure in partials_pa.items() if pressure > 0.0}
+    total = sum(mass.values())
+    if total <= 0.0 or column_g_cm2 <= 0.0:
+        return {}
+    return {formula: column_g_cm2 * share / total for formula, share in mass.items()}
+
+
+def shielding_of_air(body, column_g_cm2):
+    """`(effective column, stopping mixture)` of `body`'s air (GEN.444): the g/cm2 of Earth air that stops as many cosmic-ray primaries as the
+    body's own mix of gases (`surface_dose.effective_air_column_g_cm2`, by each gas's nuclear interaction length), and the element mixture a stellar
+    proton is stopped in (`surface_dose.stopping_mixture`, Bragg's rule). An air of N2 and O2 is its own column and the row of air. The mixture is
+    `"air"` for a body with no column."""
+    columns = gas_columns_g_cm2(mixture.partial_pressures_pa(body), column_g_cm2)
+    if not columns:
+        return column_g_cm2, "air"
+    return surface_dose.effective_air_column_g_cm2(columns), surface_dose.stopping_mixture(columns, proton_range.MATERIALS)
+
+
 def proton_cutoff_gv(column_g_cm2, material="air"):
     """The rigidity, GV, of the proton whose range is `column_g_cm2` of `material` (`proton_range`: NIST PSTAR)."""
     return proton_range.rigidity_gv(proton_range.energy_mev(column_g_cm2, material))
@@ -354,10 +375,10 @@ def companion_free_sep_msv_yr(star, distance_au):
     return total
 
 
-def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv):
+def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv, material="air"):
     """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space dose and a dipole's equatorial `cutoff_gv`: the share of the protons
     of the measured events (`solar_particles.dose_share`) that gets past the column's proton cutoff and the field's, latitude-averaged."""
-    return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2), cutoff_gv)
+    return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2, material), cutoff_gv)
 
 
 def flare_energy_weight(flare_alpha):
@@ -503,10 +524,11 @@ def generate_dose(body):
     moment = getattr(body, "magnetic_moment_a_m2", None) or 0.0
     cutoff = cutoff_rigidity_gv(moment, body.radius)
     modulation = log_uniform(*tuning.GCR_SOLAR_MODULATION_RANGE)
-    gcr = gcr_dose_msv_yr(column, cutoff, modulation)
+    shield_column, stopping = shielding_of_air(body, column)      # GEN.444: the gases of the air by their own interaction lengths and stopping powers
+    gcr = gcr_dose_msv_yr(shield_column, cutoff, modulation)
     free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance, getattr(star, "flare_alpha", None)) \
         + companion_free_sep_msv_yr(star, distance)       # GEN.1442: the particles of the other stars too
-    sep = sep_dose_msv_yr(free, column, cutoff)
+    sep = sep_dose_msv_yr(free, column, cutoff, stopping)
     ground = _ground_dose(body, pressure_pa)
     p_o2_pa = mixture.partial_pressures_pa(body).get("O2", 0.0)
     body.ozone_column_du = ozone.draw_column_du(getattr(star, "temperature", None), p_o2_pa, getattr(body, "gravity", None))

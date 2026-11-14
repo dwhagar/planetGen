@@ -53,3 +53,23 @@ def test_a_body_with_the_ice_law_enters_the_solver_from_the_warm_side_and_a_gian
     assert starts == [air_branches.WARM_START_K, 255.0, 255.0]
     air_final.make(_moon(), types.SimpleNamespace(albedo_law="law"), 400.0, 1361.0, 1.0, 0.3, False, 1e-3)
     assert starts[-1] == 400.0      # a body already hotter than the warm side keeps its own start
+
+
+def test_a_hazy_envelope_colder_than_its_albedo_gives_keeps_the_balance_in_the_albedo_not_a_clipped_greenhouse(monkeypatch):
+    """Train 28 gate: the stored temperature must be the formula on the stored albedo and greenhouse (TEST.209). A giant whose haze makes it colder than starlight alone gives has a negative greenhouse
+    quantity, which is not stored; clipping it to zero left the pair 0.26 percent off the temperature, so the albedo carries the balance."""
+    import math
+
+    from planetgen.physics import constants
+
+    state = types.SimpleNamespace(mean_molar_mass_kg_mol=0.002, density_kg_m3=0.5, scale_height_m=2.0e4)
+    air = types.SimpleNamespace(partials_pa={"H2": 1.0e5}, temperature_k=180.7723, greenhouse_factor=0.0, albedo=None, at_ceiling=False, warming=None, knee=False,
+                                pressure_pa=1.0e5, state=state, retention_cap_pa=None, co2_sink=None)
+    monkeypatch.setattr(surface_air, "solve", lambda setting, start_k: air)
+    flux, albedo = 2400.0, 0.3383
+    final = air_final.make(_moon(), types.SimpleNamespace(albedo_law=None, haze_draws=None), 190.0, flux, 0.155, albedo, True, None)
+    assert final.greenhouse_factor == 0.0 and final.albedo > albedo
+    assert math.isclose(((1.0 - final.albedo) * flux / (4.0 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** 0.25, final.temperature_k, rel_tol=1e-9)
+    air.temperature_k = 400.0       # a giant warmer than its albedo gives keeps its albedo and the greenhouse that makes the difference
+    final = air_final.make(_moon(), types.SimpleNamespace(albedo_law=None, haze_draws=None), 190.0, flux, 0.155, albedo, True, None)
+    assert final.albedo == albedo and final.greenhouse_factor > 0.0

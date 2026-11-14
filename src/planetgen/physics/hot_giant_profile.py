@@ -40,7 +40,7 @@ GAMMA_AT_2000_K = 0.6
 `kappa_v = 6e-3 sqrt(T_irr / 2000 K)` cm2/g over `kappa_th` = 1e-2 cm2/g). Stand-in HGP2, tier T2, tweak L0."""
 
 HEAT_REDISTRIBUTION = 0.25
-"""float: `f`, the share of the starlight spread over the planet: 1 for the substellar point, 1/2 for the dayside, 1/4 for the whole globe (Guillot's `f`)."""
+"""float: `f`, the share of the starlight spread over the planet: 1 for the substellar point, 1/2 for the dayside, 1/4 for the whole globe (Guillot's `f`; a physical definition, registry section 6.288)."""
 
 SQRT3 = math.sqrt(3.0)
 
