@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4100] - 2026-11-14
+
+**Headline:** Four tests red on main pass again; the Gaia nearby-star query qualifies its columns.
+
+### Fixed
+- **Main reds (TEST.740, part).** The Gaia nearby-star ADQL query names its table `g` and qualifies every column, so `dec` is no longer an unquoted reserved word (same rows, same bytes). The warm-up test reads the capitalised log line the command writes. The Gaia sources test reads the VizieR fallback's current name. A planet architecture docstring cites its source by ID. The unused `run_common.write_text_output` is removed and the wiring register drops the roundness row RN1, which is read now.
+
+generation-output: unchanged
+
 ## [8.0.4099] - 2026-11-14
 
 **Headline:** Queued runs work again: the database step parameters are turned into a connection config by `MySQLConfig.from_args`, which the cleanup rounds called but never defined, so every queued galaxy run stopped at its first step.
