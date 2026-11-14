@@ -206,7 +206,6 @@ def assemble(passes, regenerated=None):
     `population_rows` those the regenerate runs moved and the frozen runs did not.
     """
     import stand_in_sensitivity
-    from planetgen.physics import class_fit
 
     screens = []
     for path in passes:
@@ -225,9 +224,10 @@ def assemble(passes, regenerated=None):
     unstable = sorted(fill_id for fill_id in flagged if fill_id not in combined)
     partly = sorted(fill_id for fill_id in flagged if fill_id in combined)
     rows = {}
+    fitted = {condition["quantity"] for cls in class_conditions() for condition in cls.when if "equals" not in condition}      # TEST.740: the quantities a class condition reads (class_fit.SHOULDERS went with the hand shoulders, GEN.1314)
     for fill_id, entry in sorted(combined.items()):
         cells = {quantity: {"rms": round(cell["rms"], 6), "moved": round(cell["moved"], 4), "bodies": cell["bodies"], "steps": cell["steps"]} for quantity, cell in sorted(entry["quantities"].items())
-                 if quantity in class_fit.SHOULDERS and cell["rms"] > EPSILON}
+                 if quantity in fitted and cell["rms"] > EPSILON}
         if cells:
             rows[fill_id] = {"passes": entry["passes"], "quantities": cells}
     population = []
