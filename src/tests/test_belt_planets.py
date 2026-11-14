@@ -194,3 +194,17 @@ def test_the_oligarch_mass_of_a_belt_is_the_isolation_mass_of_its_stretch(promot
         cap = belt_planets.oligarch_cap_kg(system.star, belt)
         assert cap > 0.0 and cap == pytest.approx(belt_planets.oligarch_cap_kg(system.star, belt))
         assert all(member["mass_kg"] <= cap for member in belt.members if member["status"] != "moon")       # none is left over it
+
+
+def test_a_promoted_body_under_the_taper_has_the_radius_of_the_structure_model_even_where_its_member_was_denser_than_its_grains(promoted_system):
+    """GEN.1692: below `compaction.TAPER_END_KG` the planet keeps the member's porosity but takes the radius the structure model gives it, as every planet does (`tests/audit/sweep_bulk.py`, 1e-6); a member
+    denser than the grains' zero-pressure mix (porosity clamped to none) used to keep its own, smaller radius."""
+    from tests.audit import sweep, sweep_bulk
+    rule = next(rule for rule in sweep_bulk.RULES if rule.name == "radius-from-structure")
+    _seed, system = promoted_system
+    order, belt = next(iter(belt_planets.irregular_moons.belts_of(system.planets).items()))
+    light = [member for member in belt.members if member["mass_kg"] < compaction.TAPER_END_KG and member["radius_km"] > 0.0]
+    assert light, "the belt has members under the taper's end"
+    for member in (light[0], dict(light[0], radius_km=0.7 * light[0]["radius_km"])):       # as the belt drew it, and denser than any grain mix could be
+        planet = belt_planets.planet_of(system, system.star, belt, order, member)
+        assert rule.check(sweep.Entry(planet, None, None, "x")) == []
