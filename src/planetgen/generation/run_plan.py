@@ -337,8 +337,32 @@ class _UnitPhases:
         self.report(self.done, self.total)
         self.done += 1
 
+    def within(self, fraction):
+        """The phase begun last is `fraction` (0 to under 1) done: the unit's count moves between two phases, for one that is long and counts its own work."""
+        self.report(max(self.done - 1, 0) + min(max(fraction, 0.0), 0.999), self.total)
+
     def finish(self):
         self.report(self.total, self.total)
+
+
+def _battery_waiter(phases):
+    """
+    `on_progress` for the wait on the generator battery's digest process (OPS.184): the bar moves a case at a time, the ticker says the cases and the sampling tables built so far
+    (the cold digest of a new code key is mostly tables), and the unit's heartbeat is told whenever a table was built, so a process that still works never looks quiet and one that
+    does not does.
+    """
+    pace = Ticker("Generator battery digest, cases", total=len(generatorBattery.CASES))
+    seen = []
+
+    def step(cases, total, tables):
+        if seen and seen[-1] == (cases, tables):
+            return
+        seen.append((cases, tables))
+        del seen[:-1]
+        phases.within(cases / total if total else 0.0)
+        unitbeat.moving()
+        pace.tick(cases, detail=f"{tables:,} sampling tables built")
+    return step
 
 
 def _counting(report, label, total, every=100):
@@ -473,7 +497,7 @@ def plan_skeleton_unit(params, report):
     if finish_battery is not None:
         phases.next("Waiting for the generator battery's digest")
         with timer.step("the generator battery's digest, as far as it was waited for"):
-            finish_battery()
+            finish_battery(_battery_waiter(phases))
     phases.next("Storing the galaxy's shape")
     with timer.step("storing the shape"):
         galaxy_seed = store.save_galaxy_shape(

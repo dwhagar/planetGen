@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4050] - 2026-11-14
+
+**Headline:** Every body of a belt at the class D size or larger now has a page and a class when you ask for it, however many the belt holds, made on the spot by the same generator that makes the planets and never stored.
+
+### Changed
+- **Bodies past the stored 300 (GEN.1674).** A belt keeps up to 300 bodies, but its size law holds many more over 1e19 kg (about 200 km across): about 230,000 in a median outer disk (Kuiper and scattered disk) and up to over a million. A rank past the stored ones is now a body of the same law, drawn from a stream of the belt's own, the same whenever it is asked for, down to the 1e19 kg floor. `GET /api/objects/<ref>/belt-members/<rank>` and the member page serve it with the same page as a stored body.
+- **Its class, on demand.** The member page and the API now give the body's class (`planet`: class, its description, mass, radius, density, gravity, surface temperature and air pressure) from the one planet generator (`belt_planets.planet_of`), for a stored body and a tail body alike; nothing is stored for it. The belt block gives `class_d_count`, the number of bodies the belt holds at the class D size or larger.
+- No stored value, no generated body and no generation output changes: the member rows and the planets are as they were. `belt_roster` and `belt_page` give the one function that makes a body's entry to both the stored bodies and the bodies drawn on demand.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4049] - 2026-11-14
+
+**Headline:** The galaxy skeleton step is no longer stopped as "stuck" while it waits for the generator battery's digest, and the wait now shows real counts: the battery's cases on the bar and the sampling tables built in the log.
+
+### Changed
+
+- OPS.184 (a bug from Boss's run on 8.0.4043, 5:36 PM EST on 2026-11-13): the plan's skeleton unit reports nine phases since OPS.170, and the phase "Waiting for the generator battery's digest" stood on one count while the digest process worked out the battery and the bright-star sampling tables of a code key it had not seen (minutes on a slow host), past the 300 s quiet limit twice. The run stopped with "unit 0 of stage Galaxy skeleton was stuck twice".
+- The digest process now counts its cases and every sampling table it works out in two shared numbers (`generation/battery_progress.py`). The plan's wait reads them every 2 s: the bar moves a case at a time between phase 5 and 6, the log says `Generator battery digest, cases: 3 of 8 done (37%), 40 sampling tables built, ...` every progress interval, and the unit's heartbeat is told (`unitbeat.moving`) whenever the counts change, so a digest process that works never looks quiet and one that stops still does.
+
+generation-output: unchanged
+
+## [8.0.4048] - 2026-11-14
+
+**Headline:** Keys, tokens, passwords and credentialed addresses no longer reach any log: every line is masked to its first 4 characters, its last 2 and X's between (`abcdXXXXXXyz`).
+
+### Changed
+- **One masking helper, `util/secrets_mask.py` (SEC.48).** It finds a secret by the name beside it (`api_key=`, `"password":`, `--mysql-password`, `Authorization: Bearer`, a log field called `token`), by its place in an address (`mysql://user:password@host`, `redis://:password@host`) and by its value (every secret option of `config.json` and the environment, every variable named like a secret). A value of 6 characters or fewer is all X's.
+- **It is applied at every way a line leaves the logging layer:** each record any logger makes (the program's and a library's, message, exception and stack), `logrecord.Record`, every formatter (so `error.log`, the job logs and the Queue stream), the live-log callback, the relay, `record_error` and `write_line`.
+- **`tests/test_log_masking.py` fails if** a key, token, password or credentialed address appears unmasked in any of them.
+- **The shell scripts mask too.** `update.sh`, `install.sh` and the other scripts print through `log_record`, which now masks each line (`log_mask`), so `Redis: answering at redis://planetgen:Sup3XXXXXXXXX99@127.0.0.1:6379/0` no longer shows the password. The Redis settings check and the "no Redis server answers at" messages mask the address too.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4047] - 2026-11-14
+
+**Headline:** The Gaia 25 parsec sample is fetched at setup from four sources in turn, so the ESA archive's 2,000-row cap or a full queue no longer leaves it missing.
+
+### Changed
+- **`datasets/fetch.py` takes mirrors for a piece (OPS.183).** When a piece's own address fails or serves the wrong bytes, `fetch` tries each `Mirror` in order and logs which one served and, for the Gaia file, how many sources it holds; it is missing only when all fail, with every reason. A mirror either gives the same bytes (checked against the sha256) or converts another catalogue's answer, which `accept` judges and a `.source.json` record keeps.
+- **`datasets/gaia_nearby.py` lists four:** the ESA archive's asynchronous query (with the optional `PLANETGEN_ESA_USER` and `PLANETGEN_ESA_PASSWORD` account, the password masked by SEC.48), the Heidelberg ARI mirror (byte for byte the same file), VizieR's Gaia DR3 table and the Gaia Catalogue of Nearby Stars (I/360), the last two kept only when they hold about 5,300 well-measured stars.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4046] - 2026-11-13
 
 **Headline:** A test now fails whenever a stage is flagged as byte identical at any cut size and is not.
