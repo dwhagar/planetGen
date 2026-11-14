@@ -2,6 +2,198 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4167] - 2026-11-14
+
+**Headline:** The database checks, the math check and the data check now run on the engine's loop, so each shows how many tables, keys, sectors, systems or checks it has done of how many it has.
+
+### Changed
+
+- OPS.204: the eleven `check-*` commands of `db/check.py`, `check-math` and `check-datasets` move from their own unit functions to `pieces` and `do` (OPS.191). `check-tables` and `check-tables-extended` do one table a piece, `check-orphans` one foreign key a piece and then the two pointer tables, `check-ids` one `id_blocks` table, `check-values` one table of the value rules, `check-counts` the sectors' stats and then the galaxy's stored counts, `check-version-keys` a run of 2,000 sectors, `check-storage` one sector, `check-systems` one star system, `check-object-index` one kind of object, `check-revision` the version records and then the models, `check-math` one check, `check-datasets` one dataset. Each unit's result is the same `CheckResult` (or `lines` and `absent`, or `failed` and `report`) as before, made by the command's `gather` from what its pieces found; a check whose database query is refused still ends as "could not check", never as damage, and still opens its connection without `ensure_schema`, so a check never mends the schema it is looking at. The systems check records its speed for the next estimate (`deep_estimate`) from the seconds its pieces took, as its own bar did. What a person sees: the bar of a check counts real things instead of one step, a cancel or a pause lands between two pieces, and the long checks (storage, systems, orphans, tables) no longer look like one silent step. The old `check_*_unit` functions, `check_*(ctx)`, `run_check`, `_unit` and the systems check's own bar are deleted.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4166] - 2026-11-14
+
+**Headline:** The habitability re-score and the effect ledger refill now run on the engine's loop, one system a piece, so their bars count systems and a cancel or a pause lands between two systems.
+
+### Changed
+
+- OPS.201: `rescore-habitability` and `refill-effect-ledger` move from their own unit functions to `pieces` and `do` (OPS.191): `rescore_habitability_pieces` and `refill_effect_ledger_pieces` list the systems of the unit's id range that are stale (every system with `all`), and `rescore_habitability_piece` and `refill_effect_ledger_piece` do one system each, in its own transaction at READ COMMITTED, committed through `ctx.commit()`. The unit's result is the same dict as before (`updated`, `ids`, `systems`, from `stale_systems_result`). What changes for a person: the unit's bar counts systems (it used to move every hundred), a cancel is honoured after the system in hand instead of after the whole range, and a run stopped in the middle keeps the systems it finished, which the next run skips because their stamps are current. A deadlock or lock wait timeout (PERF.228) now starts one system over instead of the whole range. The old unit functions are deleted, with the free-text line the unit wrote in step with its own count; the line naming the range stays until the second level of the beat (OPS.192) takes it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4165] - 2026-11-14
+
+**Headline:** every way a generation job starts now takes the 30-day job limit.
+
+### Fixed
+
+- OPS.255: OPS.255: every command of the generator in a Generate job (finish the last run, sector, system, warm, check-db, backfill and the rest, not only galaxy, plan and run-job) takes the 30-day RQ ceiling, so no way of starting a run on the queue is ended by a clock of a smaller galaxy's recorded time.
+
+## [8.0.4164] - 2026-11-14
+
+**Headline:** a galaxy run that starts with a database wipe no longer clears scatters that hold nothing.
+
+### Changed
+
+- OPS.257: A galaxy run that starts with a database wipe no longer clears the scatters: a clearing stage whose target holds nothing (the phenomena and the nebula field) is left out of the plan and listed as skipped, by every route (the web's New galaxy, the CLI scatter and galaxy, run-job). The bright-star clear stays, since it stores the scatter's limits, and finds nothing to clear in a few reads.
+
+## [8.0.4163] - 2026-11-14
+
+**Headline:** A command can now hand the queue its pieces and let the engine run the loop, so the count, the stop and the pause between two pieces are the same for every command that does.
+
+### Changed
+
+- OPS.191: `commands.CommandSpec` gains `pieces(params, cursor)` (the list of the pieces of one unit after a cursor) and `do(params, piece, ctx)` (one piece), and `gather(params, results)` for a unit whose result is not the list of its pieces' results. The new `queue/engine.py` runs the loop for such a command: it writes pieces done of pieces in all into the unit's beat before the first piece and after each, ends the unit between two pieces when the run is canceled or ended (`units._do_unit` leaves such a unit undone and says so in the debug log), and holds it between two pieces while the queues are paused, shown on the Queue page as waiting on `pause` (a solo hold lets its own unit through). Every piece is handed `ctx`: the unit's database connection (opened on first use, closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (OPS.195's `longsql.run`) and `ctx.moving()`. A converted command commits only through `ctx.commit()`, a plain commit until the ledger stores the cursor (OPS.219).
+- No command is converted yet: each runs as before until the item of its family lands. `commands.run_alone` goes through the engine, which runs a command with its own `unit` function exactly as it did.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4162] - 2026-11-14
+
+**Headline:** The three spreads of a trojan swarm now come from the Jupiter and Neptune Trojans, and a tadpole orbit is no longer cut at the wrong angle; nothing in the generator draws a swarm yet.
+
+### Changed
+
+- GEN.1643 (slice 1): `trojan_swarm.LIBRATION_SIGMA_DEG` 10 to 13 degrees (the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration, 13.0; the Neptune Trojans give 12 to 15). `ECC_SIGMA` 0.06 and `INCLINATION_SIGMA_DEG` 12 stay (the fit gives 0.058 and 11.7). Stand-ins TJ9 (tier T2, tweak L2), TJ10 and TJ11 (T2, L1) leave the burn-down register. Fit: `scripts/fit_trojan_scales.py`; report `reports/gen1643-trojan-scales-2026-11-12.md`.
+- GEN.1647: `trojans.TADPOLE_LIMIT_DEG` was 23.9, which is the nearest a tadpole comes to the secondary, not a libration amplitude. It is now the amplitude at the edge of the tadpole zone, (180 - 23.9) / 2 = 78.05 degrees, derived from the new `TADPOLE_NEAREST_APPROACH_DEG` 23.9; the swarm draw is cut at it and `trojans.motion` splits tadpole from horseshoe at it. With it the generated mean amplitude is 16.3 degrees against the Jupiter Trojans' 16.2, and about a fifth of the bodies librate wider than 23.9 degrees, as the real ones do. Row TJ3 of section 6.121 is corrected.
+- `trojan_swarm.draw_regions` and `trojans.motion` are read by no generation step yet (GEN.1151 wires the swarm), so no planet, moon or swarm in the output moves.
+
+generation-output: unchanged
+
+## [8.0.4161] - 2026-11-14
+
+**Headline:** The System Map now draws a planet's irregular moons on their own tilted, stretched orbits, many going backward, with an info panel and a link to each body's page.
+
+### Changed
+
+- GEN.1086 (slice 2): a planet that caught irregular moons has a scene of its own on the System Map (`planet-<id>-irregular`), opened from the planet when it has no regular moons, or by an "Irregular moons" button beside the moon system scene (and a "Moons" button back). The moons are tens of millions of kilometers out, so they have a scale of their own and the regular moons are not squeezed into a speck. Each body is drawn at its saved place on its saved orbit (eccentric, inclined, forward or backward); clicking one shows its type, radius, mass, distance, period, makeup and the window it was caught through, with a View button to its page.
+- `GET /api/systems/<id>`: each planet has `irregular_moons` (an empty list when it keeps none); a new key, the API version stays. The planet's own page links to the irregular scene when it keeps only irregular moons.
+- Not yet: the 3D view, and the clearance ledger taking the irregular zone as occupied space (the rest of GEN.1086).
+
+generation-output: unchanged
+
+## [8.0.4160] - 2026-11-14
+
+**Headline:** The cache warm-up commands now run through the queue engine's loop, so the Queue page counts their pieces and a cancel or a pause takes hold between two of them.
+
+### Changed
+
+- OPS.205: the ten `warm-*` commands (`warm-cluster-field`, `warm-object-index`, `warm-galaxy-map`, `warm-galaxy-nodes`, `warm-galaxy-deep-nodes`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-search`) and `end-map-rebuild-maintenance` give the engine `pieces` and `do` (OPS.191) in place of a `unit` function that loops for itself. A cluster-field unit is one piece per age; a node unit is one piece per chunk of 64 nodes; a sector, system or phenomenon unit is one piece per 50 objects of its slice; the object index is one piece per kind of object; the page families and the map-rebuild reopening are one piece each. The pages, lists and objects a piece visits are counted as the unit's second level (OPS.192), and the unit's result keeps the shape it had. Nothing a warm-up writes changes: no generation change, no migration, no epoch.
+
+## [8.0.4159] - 2026-11-14
+
+**Headline:** A guard test now keeps every queue command on the engine's loop, so no new command can go silent by writing a loop of its own.
+
+### Changed
+
+- OPS.196 (first part): `test_commands_have_pieces` fails for a registered command that gives the engine neither `pieces` and `do` nor a place in its list of commands waiting for the family item that converts them (OPS.198 to OPS.206). The list only gets shorter: a converted command still listed fails, and so does a name that is not a command. The second part (each command run on the small galaxy with its longest quiet stretch held to a budget, and the `whole` flag deleted) comes with the last family.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4158] - 2026-11-14
+
+**Headline:** The galaxy plan, the end of the phenomena scatter and the block light totals now run on the engine's loop, so each says how far it is by its pieces and by what it counts inside them.
+
+### Changed
+
+- OPS.199: `plan-skeleton` (nine pieces: clear, outline, report, components, shells, battery, shape, containers, naming), `finish-phenomena` (four: draw, write, indexes, record) and `refresh-block-lights` (the roll-up and the uncharted rows, by the unit's `part`) give the engine `pieces` and `do` instead of a `unit` function with phases counted by hand (OPS.170). The engine counts the pieces and checks for a cancel or a pause between two; each piece says its phase through `ctx.phase`; the pieces hand each other what they made through `ctx.state`; the long counts inside them are the second-level count (OPS.192): the phenomena indexes built, the generator battery's digest cases, the block light totals and the uncharted rows. Every commit goes through `ctx.commit()`. A unit restarts from its first piece (the cursor is not stored until OPS.219), as it always did.
+- The engine's `ctx` gains `state`, `phase(text)` and `close_db()`, and a command's `gather` is given `(params, results, ctx)`.
+- Nothing a command computes or stores changes, and the lines they say are the same; the three commands' tests now run them through `commands.run_alone`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4157] - 2026-11-14
+
+**Headline:** A long step now shows what it is counting inside its own count, as a second bar with the real numbers and the rate, on the Queue page and the Generate page.
+
+### Changed
+
+- OPS.192: a unit can say what it counts inside its own count: `ctx.step(name, total)` and `ctx.advance(n)` for a piece of the engine (OPS.191), and every `util.ticker.Ticker` of a running unit's code is the same count without another line (so the counters OPS.185 added, such as the rows a clear has removed, are on the pages as they are). The beat carries `step`, `step_done`, `step_total` and `step_started`; a count that moves starts the quiet clock again, as the unit's own count does.
+- The Queue run page's unit row has a "Counting inside" cell with the count, the rate, the time left and a bar (`unitwatch.step_view`, `queue_page._step_text`; `GET /api/admin/work/<id>/units` gives each unit a `step`).
+- The process that follows a run draws the stage's count as the run's second bar (`wrapper.run`'s and `wrapper.follow`'s new `on_step`, `followed.Follower.on_step`, `run_common`'s `show_step`): the first working unit's step, with the units in a step of the same name added to it. A second bar something else already holds (the slow shells) is left alone. The Generate page already reads that bar as its detail line.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4156] - 2026-11-14
+
+**Headline:** A command can now hand the queue its pieces and let the engine run the loop, so the count, the stop and the pause between two pieces are the same for every command that does.
+
+### Changed
+
+- OPS.191: `commands.CommandSpec` gains `pieces(params, cursor)` (the list of the pieces of one unit after a cursor) and `do(params, piece, ctx)` (one piece), and `gather(params, results)` for a unit whose result is not the list of its pieces' results. The new `queue/engine.py` runs the loop for such a command: it writes pieces done of pieces in all into the unit's beat before the first piece and after each, ends the unit between two pieces when the run is canceled or ended (`units._do_unit` leaves such a unit undone and says so in the debug log), and holds it between two pieces while the queues are paused, shown on the Queue page as waiting on `pause` (a solo hold lets its own unit through). Every piece is handed `ctx`: the unit's database connection (opened on first use, closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (OPS.195's `longsql.run`) and `ctx.moving()`. A converted command commits only through `ctx.commit()`, a plain commit until the ledger stores the cursor (OPS.219).
+- No command is converted yet: each runs as before until the item of its family lands. `commands.run_alone` goes through the engine, which runs a command with its own `unit` function exactly as it did.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4155] - 2026-11-14
+
+**Headline:** The deadlock retry test listens where the retry line is logged now.
+
+### Fixed
+- `test_scatter_write_deadlock::test_a_deadlock_is_retried_with_a_logged_wait` collected the retry line through `log.normal`. OPS.167 (#6279, warnings at the right level) moved that line, "MySQL error 1213 on try 1 of 8; trying again in ...", to the `generate` component logger's `notice`, on purpose: a retried deadlock is an expected, notable event, not ordinary progress. The test now collects `Logger.notice` as well as `log.normal` (the "asking for it" and "granted exclusive use" lines are still normal lines). The code was right; the test was stale.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4154] - 2026-11-14
+
+**Headline:** Two tests that were red on main follow the changes they missed: the one progress cadence of the layered cleanup, and the 18,000 solar luminosity floor of GEN.1681.
+
+### Fixed
+- `test_ticker::test_no_place_keeps_its_own_progress_clock` found `block_lights.PROGRESS_SAY_SECONDS` still there. OPS.185 (#6440) added it for the block-light loops; the layered cleanup (#6454), which made every place say where it is at the one `tuning.PROGRESS_LOG_SECONDS`, took away the code that read it but not the constant. It is deleted.
+- `test_db_scatter_limits::test_the_core_follows_the_baseline_times_a_tenth_until_set_and_the_halo_has_its_own_floor` expected a core floor of 9,900 solar luminosities (9,000 times 1.1). GEN.1681 (Train 26, Boss: twice as high) raised the default baseline floor to 18,000 on purpose, so the core floor is 19,800; the test missed the change when the train's tests followed it. The expected number now follows `BRIGHT_STAR_MIN_LUMINOSITY_SOL` times `CORE_TIER_FACTOR`, so the next change of the default does not break it again. No product code reads the wrong number: the code was right and the test was stale. Part of TEST.744.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4153] - 2026-11-14
+
+**Headline:** The test of the stored-skeleton serialization knows that the Class M abundance tier is a setting for the systems made in a galaxy, not a number the Galaxy Map reads.
+
+### Fixed
+- `test_galaxy_gen::test_galaxy_density_shape_serializes_the_stored_skeleton` expected every `GalaxyShape` field in the dict the Galaxy Map reads, and failed with `KeyError: 'abundance_tier'` since GEN.1704 added the tier. `density.shape_with_terms` leaves the tier out on purpose, with the other fields that are objects or settings for the generator and not numbers for the map's density cloud, and the dict still carries the tier through `pins` (`class_m`) when the plan pinned one. The test now lists `abundance_tier` with them and asserts it is absent. No product code changes. TEST.743.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4152] - 2026-11-14
+
+**Headline:** The guard that keeps sleeps out of command code names the functions that sleep today, so it is green again.
+
+### Fixed
+- `test_no_sleep_in_commands.py` listed `queue/wrapper.py` `_await_plan` and `_await_conclusion` and `generation/run_galaxy.py` `_take_to_the_deepest_floor`. The layered-fixes cleanup (#6454) moved the wait of the first two into the one `_await`, and moved the retry of the third into `contention.run_with_retries`, which the guard already declares as a blocking primitive. The list now holds `_await` (the follower of a run, waiting for a stage's plan or conclusion) and no longer holds the two names that stopped sleeping. The guard itself is unchanged: every sleep still has to be a listed wait. Part of TEST.744.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4151] - 2026-11-14
+
+**Headline:** The clear of the earlier bright stars still shows its step on the Queue page when a new galaxy has nothing to clear.
+
+### Fixed
+- **OPS.254 (bug), output unchanged.** After the clears of a new galaxy were made cheap, the clear unit reported nothing, so its bar never showed a first step and the log had no line for it (`test_unit_reports` went red on main). A clear that finds nothing stored now says so as its one phase ("No bright stars are stored, nothing to clear") and the bar fills.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4150] - 2026-11-14
+
+**Headline:** A stray scratch script, `m.py`, is gone from the repository root, and a test now fails if another one lands there.
+
+### Fixed
+- `m.py` (a throwaway measuring helper that came in with the GEN.1309 A commit) is removed; nothing used it.
+- New `test_repo_root_holds_no_scratch_files.py` fails when a tracked `.py` file other than `setup.py` sits in the repository root (TEST.745).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4149] - 2026-11-14
 
 **Headline:** The sky code itself now knows when no star scatter has run, so a sky draw never reaches the 0.0 luminosity ceiling, whichever way it is started.

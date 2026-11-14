@@ -361,9 +361,11 @@ def test_the_writers_that_mark_say_so():
 
 def _storage_result(conn, config, scope=None):
     from planetgen.db import check
+    from planetgen.queue import commands, wrapper
 
-    ctx = check._Context(conn, config, scope or check.Scope())
-    return check.run_check(check.BY_NAME["storage"], ctx)
+    scope = scope or check.Scope()
+    args = {"database": wrapper.database_args(config), "shells": list(scope.shells), "addresses": [list(a) for a in scope.addresses], "wide_binaries": scope.wide_binaries}
+    return check.CheckResult.from_dict(commands.run_alone("check-storage", args))      # OPS.204: the engine's loop, one sector a piece
 
 
 def test_check_storage_passes_warns_and_fails(mysql_config):

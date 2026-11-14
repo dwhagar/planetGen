@@ -121,7 +121,9 @@ def body_nav(args, course=True):
     pick = _pick_mode(args) if course else None
     nearby = {"nearby": nearby_url(token, DEFAULT_DISTANCE_PC).replace(token, "{ref}"),
               "nearby-label": f"What’s within {DEFAULT_DISTANCE_PC} pc",
-              "view": page_url("object_page", ref=token).replace(token, "{ref}")}
+              "view": page_url("object_page", ref=token).replace(token, "{ref}"),
+              # GEN.1086: the page of an irregular moon of a planet, `{ref}` the planet's reference and `{rank}` the rank its designation writes
+              "irregular": page_url("irregular_moon_page", planet_ref=token, rank="__RANK__").replace(token, "{ref}").replace("__RANK__", "{rank}")}
     if pick is None:
         nav = ({"start": nav_url(origin=token).replace(token, "{ref}"),
                 "end": nav_url(destination=token).replace(token, "{ref}")} if course else {})

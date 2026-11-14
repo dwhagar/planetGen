@@ -14,9 +14,9 @@
   "stand_ins": {
     "by_tier": {
       "T1": 223,
-      "T2": 226,
+      "T2": 229,
       "T3": 190,
-      "T4": 141,
+      "T4": 138,
       "T5": 124,
       "T6": 446,
       "T7": 121,
@@ -25,10 +25,10 @@
     },
     "by_tweak": {
       "L0": 968,
-      "L1": 332,
-      "L2": 84,
+      "L1": 334,
+      "L2": 85,
       "L3": 241,
-      "L4": 60
+      "L4": 57
     },
     "rows": 1685
   },
@@ -117,15 +117,15 @@
     },
     "fitted_to_a_result": {
       "percent": 23,
-      "rows": 385
+      "rows": 383
     },
     "read_from_a_source": {
       "percent": 27,
-      "rows": 449
+      "rows": 452
     },
     "unverified": {
-      "percent": 20,
-      "rows": 331
+      "percent": 19,
+      "rows": 328
     }
   }
 }
