@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4150] - 2026-11-14
+
+**Headline:** A stray scratch script, `m.py`, is gone from the repository root, and a test now fails if another one lands there.
+
+### Fixed
+- `m.py` (a throwaway measuring helper that came in with the GEN.1309 A commit) is removed; nothing used it.
+- New `test_repo_root_holds_no_scratch_files.py` fails when a tracked `.py` file other than `setup.py` sits in the repository root (TEST.745).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4149] - 2026-11-14
 
 **Headline:** The sky code itself now knows when no star scatter has run, so a sky draw never reaches the 0.0 luminosity ceiling, whichever way it is started.
