@@ -219,6 +219,35 @@ _run_stream = Stream(secrets.randbits(128))
 _bound = contextvars.ContextVar("planetgen_draw_stream", default=None)
 
 
+def body_stream(kind, mass_kg, formation_distance_au, star_mass_kg, slot=None):
+    """
+    The stream of one draw of one body, keyed to the body's BIRTH identity alone: its mass, the distance it formed at and its star's mass (GEN.1547).
+
+    An end stage (the air, the haze, the albedo, the surface water, the spin, a giant's interior, the mineral rows) that draws from this stream gets the same numbers
+    whenever it is made again, whatever the body's orbit, the star's age or its own surface temperature have become since; a key that holds one of those re-rolls
+    the stage when it moves by a hair. The string is the one `envelope-start` and `tidal-q-prime` already used, so moving them here changes no draw.
+
+    Args:
+        kind (str): The name of the draw, which keeps two draws of one body apart ("haze", "ore:craton").
+        mass_kg, formation_distance_au, star_mass_kg (float): The body's mass, where it formed and its star's mass.
+        slot (str or None): Told apart only when two bodies share all three numbers (two moons of one mass); None leaves the string as it was.
+
+    Returns:
+        Stream: A new stream, seeded from the string.
+    """
+    key = f"{kind}:{float(mass_kg)!r}:{float(formation_distance_au)!r}:{float(star_mass_kg)!r}"
+    return Stream(key if slot is None else f"{key}:{slot}")
+
+
+def body_stream_of(kind, body, slot=None):
+    """
+    `body_stream` of `body`: its mass, its formation distance (its own distance when it records none, the parent's for a moon) and its star's mass (0 for a body with no star).
+    """
+    formation = getattr(body, "formation_distance_au", None)
+    star_mass = getattr(getattr(body, "star", None), "mass", None)      # a rogue body has no star: its key holds 0
+    return body_stream(kind, body.mass, body.distance if formation is None else formation, 0.0 if star_mass is None else star_mass, slot)
+
+
 def set_run_seed(seed):
     """Seeds the run stream (`planetgen`'s run seed, a work queue's)."""
     global _run_stream

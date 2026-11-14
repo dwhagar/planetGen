@@ -772,3 +772,16 @@ def test_the_queue_page_controls_pin_release_and_forget(web_app, admin_client, c
     assert profileclaim.pinned_mb(conn, "unit:link-neighbors") is None
     _post(web_app, admin_client, action="tuning-clear", kind="unit:link-neighbors")
     assert profileclaim.changes(conn)[0]["what"] == "clear"
+
+
+def test_a_running_units_own_bar_and_time_left_show_under_its_counter_only_when_it_has_one(admin_client, conn):
+    """PERF.147 in the OPS.139 rows: a unit with a shown `progress` draws the bar macro under its counter, one without draws none."""
+    run_id = _run(conn, queued=False)
+    _publish_unit(conn, run_id, 0, done=300.0, estimate=1000.0,
+                  progress={"show": True, "percent": 30.0, "eta_seconds": 120.0, "source": "running"})
+    _publish_unit(conn, run_id, 1, done=5.0, estimate=10.0, progress={"show": False, "percent": 50.0, "eta_seconds": None, "source": "running"})
+    _publish_unit(conn, run_id, 2, done=1.0, estimate=100.0, progress={"show": True, "percent": 1.0, "eta_seconds": 600.0, "source": "stored"})
+    html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    assert html.count('class="task-bar"') == 2
+    assert "30%, about 120 s left" in html and "1%, about 600 s left (from earlier runs)" in html
+    assert "50%" not in html

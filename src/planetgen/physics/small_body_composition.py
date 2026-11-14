@@ -301,8 +301,9 @@ def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DI
     return _from_taxa(kind, names, weights, concentration, {"temperature_k": temperature_k, "al26_ratio": al26_ratio}, host=host)
 
 
-METAL_ROWS = ("kamacite", "taenite", "schreibersite")
-"""tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis."""
+METAL_AXIS_ROWS = ("kamacite", "taenite", "schreibersite")
+"""tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis (a subset of
+`METAL_ROWS`, the group map's reading of a chondrite's metal grains)."""
 
 REFRACTORY_ROWS = ("spinel", "anorthite", "melilite", "hibonite", "perovskite")
 """tuple: The rows that stand for the refractory inclusions (calcium-aluminium-rich) of its refractory axis."""
@@ -329,7 +330,7 @@ def group_axes(components):
     forsterite = components.get("forsterite", 0.0) / (materials.material("forsterite").molar_mass * 1000.0)
     olivine_volume = percent(("fayalite", "forsterite"))
     iron = 100.0 * fayalite / (fayalite + forsterite) if olivine_volume >= 100.0 * OLIVINE_MIN_VOLUME else None
-    return iron, percent(METAL_ROWS), percent(REFRACTORY_ROWS), percent(MATRIX_ROWS)
+    return iron, percent(METAL_AXIS_ROWS), percent(REFRACTORY_ROWS), percent(MATRIX_ROWS)
 
 
 def chondrite_group(components):

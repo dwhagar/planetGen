@@ -97,7 +97,7 @@ def test_a_planet_is_born_beyond_the_line_of_its_star_when_it_orbits_at_or_beyon
         for planet in system.planets:
             if planet.body_type == 'a':
                 continue
-            assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= planet.star.snow_line_au)   # GEN.1596: where it formed, not where it has moved to
+            assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= formation_snow_line.water_snow_line_au(planet.star))   # GEN.1596: where it formed, not where it has moved to
             seen.add(planet.born_beyond_snow_line)
             assert all(moon.born_beyond_snow_line == planet.born_beyond_snow_line for moon in planet.moons)
     assert seen == {True, False}
@@ -113,7 +113,7 @@ def test_a_close_pairs_line_is_the_root_of_the_sum_of_the_squares_of_its_stars()
         assert pair.snow_line_au == pytest.approx(math.hypot(*(s.snow_line_au for s in pair.stars)))
         for planet in system.planets:
             if planet.body_type != 'a':
-                assert planet.born_beyond_snow_line == (planet.distance >= pair.snow_line_au)
+                assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= formation_snow_line.water_snow_line_au(pair))
         found += 1
     assert found
 

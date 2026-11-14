@@ -12,7 +12,7 @@ from planetgen.datasets import catalogue, fetch, gaia_nearby
 def test_the_sample_is_fetched_by_setup_but_bulk_generation_does_not_need_it():
     assert gaia_nearby.DATASET in catalogue.ALL and not gaia_nearby.DATASET.required
     piece = gaia_nearby.DATASET.pieces[0]
-    assert piece.url.startswith("https://gea.esac.esa.int/tap-server/") and "ORDER+BY+source_id" in piece.url and piece.size == 766879
+    assert piece.url.startswith("https://gea.esac.esa.int/tap-server/") and "ORDER+BY+g.source_id" in piece.url and piece.size == 766879
     assert gaia_nearby.DATASET.fill == "SEP1"
 
 
