@@ -37,7 +37,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, belt_planets, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, belt_planets, disk_ejection, abundance_tier, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
@@ -380,6 +380,8 @@ class StarSystem:
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
         self.build_ledger()
+        if self._draw_tier_request():      # set only when given: a system on science holds no field of it (the golden digests list every field an object holds)
+            self._tier_request = True
         self._request_unreachable = False
         self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
         for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
@@ -1399,7 +1401,7 @@ class StarSystem:
                     continue
 
                 given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au, collision_count=max(int(seed.merged) - 1, 0))
-                if apply_guarantees and hz and self.system_config.HABITABLE_WORLD is True:
+                if apply_guarantees and hz and self._habitable_requested():
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
                     planet = Planet(self.system_config, star, habitable_zone, estimated_distance, defer_climate=True, **given)   # GEN.1282: its air and moons come once the spacing has settled
@@ -1606,6 +1608,28 @@ class StarSystem:
         """Whether the config asks for a class, or lists its slots."""
         return bool(self.system_config.SLOTS) or bool(self.system_config.FORCE_CLASS)
 
+    _tier_request = False
+    """bool: Whether the Class M abundance tier gave this system the request for a habitable world (`_draw_tier_request`, GEN.1704). Drawn by the system, never kept in the config
+    or stored: a system made again under the same tier and seed draws it again. A class attribute so a system loaded from the database (`object.__new__`) reads False."""
+
+    def _draw_tier_request(self):
+        """
+        The Class M abundance tier's request dial (GEN.1704): whether this system is given the request for a habitable world, one draw in the tier's
+        `request_share` of systems, made once the stars are built and before any planet, so the stars are exactly as without the tier. The request acts on the planets
+        only (`_habitable_requested`): a request in the config would also thin out the host stars (white dwarfs 36 to 5 of 500 systems, `physics.stellar_evolution`)
+        and the companions. A config that says True or False is the user's and wins; the system then reports a tier request as it reports none
+        (`habitable_request_status`). One draw when the share is over 0, none on `science`.
+        """
+        share = abundance_tier.request_share(self.system_config)
+        if (share <= 0.0 or self.system_config.HABITABLE_WORLD is not None or self.system_config.PLANETS is False
+                or self.system_config.ASTEROID_BELT is True):  # a belt and a habitable world together need a large star, which a drawn star cannot be made
+            return False
+        return draw.random() < share
+
+    def _habitable_requested(self):
+        """Whether the planets are drawn under a request for a habitable world: the user's (`HABITABLE_WORLD` True) or the abundance tier's (`_tier_request`)."""
+        return self.system_config.HABITABLE_WORLD is True or self._tier_request
+
     def _habitable_request_stands(self):
         """
         Whether the planets just drawn stand under the system's request for a habitable world (GEN.1130): always without a request or when
@@ -1614,14 +1638,14 @@ class StarSystem:
         system with no rocky planet in the ecosphere is drawn again; the one that is left when the draws are spent stands whatever it holds,
         and `habitable_request_status` says `"unmet"` when it holds no habitable world.
         """
-        if self.system_config.HABITABLE_WORLD is not True:
+        if not self._habitable_requested():
             return True
         in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.planets)
         return request_odds.keeps(in_ecosphere or habitable_request.count(self.planets) > 0)
 
     def _habitable_found(self):
         """Whether the primary's planets hold a habitable world (True when none was asked for)."""
-        return self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
+        return not self._habitable_requested() or habitable_request.count(self.planets) > 0
 
     def _belt_found(self):
         """Whether the primary's bodies hold an asteroid belt (True when none was asked for)."""

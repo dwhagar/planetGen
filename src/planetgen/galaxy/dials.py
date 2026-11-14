@@ -395,6 +395,18 @@ LEVERS = (
         source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "
                "10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)", status="placeholder", tweak="L3"),
     Lever(
+        name="class_m", flag="--class-m", dial="census", label="Class M abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
+        choices=("science", "sparse", "scattered", "plentiful", "abundant"),
+        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water, "
+            "the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; the class of every body still "
+            "comes from its finished conditions and no class or count is forced (generation/abundance_tier)",
+        auto_text="science (nothing is moved; what the generator's own laws give)",
+        help="How common Earth-like (Class M) worlds are. Science is what the generator's laws give; Sparse aims at 1 per 1,000 Sun-like systems, "
+             "Scattered at 1 per 100, Plentiful at 1 per 30 and Abundant at 1 per 10 (aims, not yet calibrated). A tier moves the odds of an "
+             "Earth's conditions and never forces a world or a count. Auto is the same as Science.",
+        source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins "
+               "(tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census", status="placeholder", tweak="L4"),
+    Lever(
         name="arm_count", typical=2, flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",

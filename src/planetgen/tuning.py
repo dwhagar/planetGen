@@ -271,6 +271,18 @@ REQUEST_ODDS = 10.0
 planet, a timeline that does not reach a civilization within the star's age and a world that has no civilization now are each kept one time
 in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
+ABUNDANCE_TIER_DIALS = {
+    "sparse": (0.5, 0.0, 0.0),
+    "scattered": (1.0, 1.0, 0.0),
+    "plentiful": (1.0, 1.0, 0.5),
+    "abundant": (1.0, 1.0, 1.0),
+}
+"""dict: Class M abundance tier -> `(water_share, bare_share, request_share)`, the three dials of `generation.abundance_tier` (GEN.1704: the share of
+rocky planets in the ecosphere given Earth's water class, the share of them whose starting hydrogen envelope is taken as lost, and the share of
+systems given the request for a habitable world). `science`, the default, is not a row: it moves nothing. FIRST-PASS values from the estimates of
+reports/class-m-blue-levers-2026-11-14.md section 8, not yet calibrated by census (GEN.1706): the targets are 1 Class M world per 1,000, 100, 30 and 10
+Sun-like systems (Boss, 11:19 PM EST 2026-11-13). A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3)."""
+
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies
 # (belts, comets), not planets. Tier "from needed output", level L1.

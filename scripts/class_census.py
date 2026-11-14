@@ -3,13 +3,17 @@
 The class census as a repeatable script (TEST.719): draw a seeded sample of systems, store what the planet classifier saw in each body, and print the tables of
 reports/class-census-2026-11-11.md in one markdown format so runs of different trains compare line by line.
 
-    python scripts/class_census.py collect OUT.jsonl SET [--workers 4] [--forced-young] [--caps-off all|d34]
+    python scripts/class_census.py collect OUT.jsonl SET [--workers 4] [--forced-young] [--caps-off all|d34] [--class-m TIER] [--count N]
     python scripts/class_census.py report DIR [--caps-off-dir DIR]
 
 `collect` writes one JSON line per system (the stars, the belts, one record per planet and moon with its stored values, the classifier's quantities and the
-conditions of the habitable-family classes M, R, P, O and H). `SET` is one of `SETS`: `natural`, `hab`, `stars`, `young`, `youngforced`, `capsoff`. A run
+conditions of the habitable-family classes M, R, P, O and H). `SET` is one of `SETS`: `natural`, `hab`, `stars`, `young`, `youngforced`, `capsoff`, `sunlike`. A run
 that stopped continues where it ended (a system already in OUT.jsonl is skipped). It takes the host's memory and load gate (PERF.254, as `scripts/test.py`
 does) for its workers before it draws.
+
+`sunlike` is the Sun-like sample of the Class M meter (`scripts/class_m_meter.py`): `--count` systems (default 400) of the star types F7V to K2V in rotation,
+seeds from 30000. `--class-m TIER` makes every system under that Class M abundance tier (`SystemConfig.ABUNDANCE_TIER`); the records carry it as `class_m`.
+While it draws, `collect` prints the running counts (systems done of total, candidates, Class M, Blue).
 
 `--forced-young` draws every random primary star with an age from 0.5 to 50 Myr, log-uniform, so the disk-era stars can be counted (the GEN.1553 disk-by-age row);
 it changes the draw of this process only. `--caps-off` switches the pressure caps of the atmosphere recipe row d6 off in this process (`all` drops every cap,
@@ -41,7 +45,7 @@ import numpy
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-SETS = ("natural", "hab", "stars", "young", "youngforced", "capsoff")
+SETS = ("natural", "hab", "stars", "young", "youngforced", "capsoff", "sunlike")
 """tuple: The sample names `collect` takes (`jobs_for`)."""
 
 SOLAR_LUMINOSITY_W = 3.828e26
@@ -59,7 +63,13 @@ planet_class class_match runner_up_class runner_up_match class_variant life_clas
 temp_hottest_k temp_coldest_k temp_livable_share surface_dose_msv_yr born_beyond_snow_line formation_distance_au hill_radius ocean_depth_km ocean_ph
 relative_humidity cloud_cover tau_cloud tau_haze tau_dust groundwater aquifer_depth_km ground_type lid_regime life_system_age_gyr tier_air tier_pressure tier_temperature tier_water tier_radiation tier
 xuv_flux_earth uv_surface_index sky_suns days_per_year solar_day_hours water_activity porosity crust_thickness_km core_h_fraction
-mantle_redox ring_kind ring_mass_kg magnetic_moment_a_m2 dipole_class""".split()
+phi4 mantle_redox ring_kind ring_mass_kg magnetic_moment_a_m2 dipole_class""".split()
+SUN_TYPES = ("F7V", "F9V", "G0V", "G2V", "G4V", "G6V", "G8V", "K0V", "K1V", "K2V")
+"""tuple: The star types of the `sunlike` sample, in rotation (the set of reports/class-m-blue-levers-2026-11-14.md)."""
+
+SUNLIKE_SEED = 30000
+SUNLIKE_COUNT = 400
+
 STAR_ATTRS = """type yerkes_class mass luminosity radius temperature age lifespan metallicity_fe_h snow_line_au disk_kind disk_inner_au disk_outer_au disk_mass_solar a_crit_au
 age_ceiling_gy initial_mass_sol""".split()
 
@@ -100,6 +110,9 @@ class ForcedYoung:
         self.random.seed(seed)
 
 
+CLASS_M = None
+"""str: The Class M abundance tier every system is drawn under (`--class-m`), or None; set before the pool forks."""
+
 FORCED = None
 """ForcedYoung: Set in the main process before the pool forks, so every worker holds the patched functions."""
 
@@ -126,7 +139,7 @@ class Capture(logging.Handler):
 
 
 def body_record(body, is_moon, host_index, parent_name):
-    from planetgen.physics import atmosphere, class_fit
+    from planetgen.physics import atmosphere, class_fit, habitability
     record = {"is_moon": is_moon, "host": host_index, "parent": parent_name}
     try:
         star = getattr(body, "star", None)
@@ -144,6 +157,11 @@ def body_record(body, is_moon, host_index, parent_name):
         record["gas_pa"] = jsonable(atmosphere.gas_partials_pa(body))
     except Exception as exc:  # noqa: BLE001
         record["gas_pa"] = f"ERR {type(exc).__name__}"
+    try:
+        phi4 = record.get("phi4")
+        record["overall_tier"] = habitability.tier(phi4) if isinstance(phi4, (int, float)) and not isinstance(phi4, bool) else None
+    except Exception as exc:  # noqa: BLE001
+        record["overall_tier"] = f"ERR {type(exc).__name__}"
     try:
         found = class_fit._found(body)
         record["found"] = jsonable(dict(found))
@@ -178,6 +196,9 @@ def draw_one(job):
         config.PLANETS = True
         for key, value in kwargs.items():
             setattr(config, key, value)
+        if CLASS_M is not None:
+            config.ABUNDANCE_TIER = CLASS_M
+            out["class_m"] = CLASS_M
         with draw.bound(seed):
             system = StarSystem(system_config=config)
         stars = []
@@ -228,7 +249,7 @@ def draw_one(job):
     return out
 
 
-def jobs_for(name):
+def jobs_for(name, count=None):
     """The `(tag, seed, config overrides)` of a sample; the seeds are fixed so two builds draw the same systems."""
     jobs = []
     if name == "natural":
@@ -246,6 +267,8 @@ def jobs_for(name):
     elif name == "capsoff":
         jobs += [("off-natural", 1000 + i, {}) for i in range(150)]
         jobs += [("off-hab-G2V", 4000 + i, {"STAR_TYPE": "G2V", "HABITABLE_WORLD": True}) for i in range(40)]
+    elif name == "sunlike":
+        jobs += [("sunlike", SUNLIKE_SEED + i, {"STAR_TYPE": SUN_TYPES[i % len(SUN_TYPES)]}) for i in range(count or SUNLIKE_COUNT)]
     elif name == "young":
         jobs += [("young", 9000 + i, {"AGE": "young"}) for i in range(40)]
     else:
@@ -287,25 +310,55 @@ def done_before(path):
     return done
 
 
+class Progress:
+    """The running counts of a draw: systems done of total, rocky candidates (`abundance_tier.candidate`'s test on a stored record), Class M and Blue worlds."""
+
+    def __init__(self, total):
+        self.total, self.done, self.errors, self.candidates, self.class_m, self.blue = total, 0, 0, 0, 0, 0
+        self.started = time.time()
+
+    def add(self, record):
+        self.done += 1
+        self.errors += bool(record.get("error"))
+        for body in record.get("bodies", []):
+            self.candidates += body.get("body_type") == "t" and not body.get("is_moon") and body.get("zone") == "e"
+            self.class_m += body.get("planet_class") == "M"
+            self.blue += body.get("overall_tier") == "Blue"
+
+    def line(self):
+        elapsed = time.time() - self.started
+        eta = f", about {elapsed / self.done * (self.total - self.done) / 60:.0f} min left" if self.done else ""
+        return (f"{self.done} of {self.total} systems ({100.0 * self.done / max(1, self.total):.0f}%), {self.candidates} candidates, "
+                f"{self.class_m} Class M, {self.blue} Blue, {self.errors} errors, {elapsed / 60:.1f} min{eta}")
+
+
+def draw_sample(out, set_name, workers, count=None, every=25):
+    """Draws the systems of `set_name` not yet in `out` and appends one line each, printing the `Progress` line every `every` systems (and at the end)."""
+    jobs = jobs_for(set_name, count)
+    done = done_before(out)
+    jobs = [job for job in jobs if (job[0], job[1]) not in done]
+    print(f"{set_name}: {len(jobs)} systems to do ({len(done)} already)", flush=True)
+    progress = Progress(len(jobs))
+    with host_gate(workers):
+        with multiprocessing.get_context("fork").Pool(workers, maxtasksperchild=20) as pool, open(out, "a") as handle:
+            for record in pool.imap_unordered(draw_one, jobs):
+                handle.write(json.dumps(record) + "\n")
+                handle.flush()
+                progress.add(record)
+                if progress.done % every == 0:
+                    print(progress.line(), flush=True)
+    print("finished:", progress.line(), flush=True)
+
+
 def collect(args):
-    global FORCED
+    global FORCED, CLASS_M
     if args.caps_off:
         apply_caps_off(args.caps_off)
     if args.forced_young:
         FORCED = ForcedYoung()
         FORCED.install()
-    jobs = jobs_for(args.set)
-    done = done_before(args.out)
-    jobs = [job for job in jobs if (job[0], job[1]) not in done]
-    print(f"{args.set}: {len(jobs)} systems to do ({len(done)} already)", flush=True)
-    with host_gate(args.workers):
-        with multiprocessing.get_context("fork").Pool(args.workers, maxtasksperchild=20) as pool, open(args.out, "a") as handle:
-            for number, record in enumerate(pool.imap_unordered(draw_one, jobs), 1):
-                handle.write(json.dumps(record) + "\n")
-                handle.flush()
-                if number % 25 == 0:
-                    print(number, "done", flush=True)
-    print("finished", flush=True)
+    CLASS_M = args.class_m
+    draw_sample(args.out, args.set, args.workers, args.count)
 
 
 # ---------------------------------------------------------------------------------------------------------------- report
@@ -698,6 +751,11 @@ def report(args):
         table_k(census, Census(args.caps_off_dir))
 
 
+def _tiers():
+    from planetgen.generation import abundance_tier
+    return abundance_tier.TIERS
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -707,6 +765,8 @@ def main(argv=None):
     drawer.add_argument("--workers", type=int, default=max(1, min(4, (os.cpu_count() or 1))))
     drawer.add_argument("--forced-young", action="store_true", help="every random primary star gets an age of 0.5 to 50 Myr")
     drawer.add_argument("--caps-off", choices=("all", "d34"), help="switch the pressure caps off in this process")
+    drawer.add_argument("--class-m", choices=_tiers(), help="draw every system under this Class M abundance tier")
+    drawer.add_argument("--count", type=int, help=f"systems of the sunlike sample (default {SUNLIKE_COUNT})")
     drawer.set_defaults(run=collect)
     reporter = sub.add_parser("report", help="print the tables of a directory of collected files")
     reporter.add_argument("directory")

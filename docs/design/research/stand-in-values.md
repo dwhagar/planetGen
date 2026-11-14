@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1666 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1671 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1639 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1644 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 157 | 64 | 1 | 1 | 0 | 223 |
 | T3 | 114 | 53 | 12 | 9 | 0 | 188 |
-| T4 | 85 | 14 | 4 | 22 | 15 | 140 |
+| T4 | 85 | 14 | 4 | 22 | 16 | 141 |
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
 | T6 | 218 | 113 | 31 | 76 | 4 | 442 |
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 49 | 18 | 5 | 93 | 35 | 200 |
-| All | 964 | 326 | 81 | 239 | 56 | 1666 |
+| T9 | 49 | 18 | 5 | 94 | 38 | 204 |
+| All | 964 | 326 | 81 | 240 | 60 | 1671 |
 
 ## How the labels were given
 
@@ -162,6 +162,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | `--stellar-halo-share` | 0.001 to 0.3 | bracket | T3 | L0 | the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (the disk-dominated galaxies of [R0329]), read in structure_draw | predicted only | - | - |
 | `--richness` | 1 to 3 systems per solar mass | bracket | T3 | L0 | the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4 | predicted only | - | - |
 | `--rogues` | none, few, normal, many | placeholder | T4 | L3 | Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS) | predicted only | - | no data |
+| `--class-m` | science, sparse, scattered, plentiful, abundant | placeholder | T4 | L4 | Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census | predicted only | - | no data |
 | `--arm-count` | 1 to 10 | placeholder | T4 | L0 | [R1836] counts 1 to 5 or more arms; the ceiling of 10 is a placeholder | predicted only | - | - |
 | `--pitch-angle-deg` | -90 to 90 degrees, at least 1 away from 0 | placeholder | T4 | L0 | [R1836] draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused because a flat pitch divides by zero (density-limits report, 10-21) | predicted only | - | - |
 | `--arm-contrast` | 0 to 1 | placeholder | T4 | L0 | 0 to 1 because the density cannot go negative (theory); the 0.4 default is the first plan's hand value, no source | predicted only | - | - |
@@ -2929,3 +2930,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | HGP1 | P | T2 | L0 | `hot_giant_profile.KAPPA_THERMAL_M2_KG`: the constant thermal opacity, 1e-3 m2/kg (1e-2 cm2/g), one value for every hot giant | 3e-4 to 3e-3 m2/kg | hot giants between about 1e-3 and 10 bar | a giant whose measured photosphere pressure at the equilibrium temperature differs from tau = 2/3 at this opacity by more than a factor of 3 | the opacity of the atmosphere's own mixture (`line_opacity`) | Guillot's value for HD 209458 b ([R1715], READ); reproduces his 65 mbar photosphere (66.7 mbar) | predicted only | GEN.1577 | - |
 | HGP2 | P | T2 | L0 | `hot_giant_profile.GAMMA_AT_2000_K` 0.6: the visible-to-thermal opacity ratio is 0.6 sqrt(T_irr / 2000 K) | 0.3 to 2 | hot giants without strong visible absorbers | a hot giant with TiO or VO where the profile must invert and gamma stays near 0.6; a measured day-side profile that disagrees by more than 200 K at 0.1 bar | a gamma from the mixture's own visible absorbers | Guillot's `kappa_v = 6e-3 sqrt(T_irr / 2000 K)` cm2/g over `kappa_th` = 1e-2 cm2/g ([R1715], READ) | predicted only | GEN.1577 | - |
 | HGP3 | T | T6 | L0 | the constant-opacity radiative-equilibrium profile is used from 1e-6 to 1e3 bar, with no convective joining | the deep isotherm by up to a few hundred K above 10 bar | the upper atmosphere, 1e-6 to 10 bar | a measured or modelled hot-Jupiter profile that is hotter than the isotherm by more than 300 K at 100 bar | the radiative-convective join of [R3783] and the interior adiabat | [R1715]: constant kappa underestimates the deep temperature above about 10 bar (READ) | predicted only | - | - |
+
+## 6.289 Stand-ins of the Class M abundance tiers (GEN.1704)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AT1 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (`low` of `delivered_water`) and not from the Bern law at their formation distance | each share 0 to 1 | galaxies made under a tier other than Science; rocky planets in the ecosphere, never moons | the meter (`scripts/class_census.py`) reading a Class M rate outside a factor of 2 of the tier's target | a formation law that gives habitable-zone planets Earth's water at a known rate (the research on water-rich births) | needed output: no source says how often a habitable-zone planet is as dry as Earth; forcing the class on 35 measured systems raised land-and-sea planets from 2 to 14 (report section 3) | predicted only | - | no data |
+| AT2 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (`Planet(late_core=True)`, GEN.1323) | each share 0 to 1 | as AT1 | as AT1 | an envelope law checked against the observed radius distribution at habitable-zone fluxes (the research on hydrogen envelopes) | needed output: 34 of 75 right-mass candidates keep an envelope (report section 3); the share that should is not known | predicted only | - | no data |
+| AT3 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by `tuning.REQUEST_ODDS` (row CC10) and forces nothing | each share 0 to 1 | galaxies made under Plentiful or Abundant | as AT1 | none: the strength of a request is the maker's choice | needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate | predicted only | - | no data |
+| AT4 | P | T9 | L3 | `abundance_tier.TARGET_SYSTEMS_PER_CLASS_M` (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy | each target by a factor of 3 (the choice Boss was given) | the calibration only | none: a setting of the galaxy's maker | none | Boss, card "Set the target Class M rate of each tier", 11:19 PM EST 2026-11-13 | predicted only | GEN.1706 | no data |
