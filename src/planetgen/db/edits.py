@@ -41,17 +41,19 @@ class EditError(Exception):
 
 
 def _star_ids(conn, system_id, system):
-    """`[(star_id, planets), ...]`: the `planets.star_id` each of the
+    """`[(star_id, planets, host_node_id), ...]`: the `planets.star_id` each of the
     system's planet lists is stored under (`None` for a close pair's
-    circumbinary planets)."""
-    members = [(member.db_id, bodies) for member, bodies in system.member_hosts()]    # GEN.332
+    circumbinary planets) and the node a list of an inner pair node's planets
+    goes round (`planets.host_node_id`, GEN.332; `None` for every other list)."""
+    members = [(member.db_id, bodies, None) for member, bodies in system.member_hosts()]    # GEN.332
+    members += [(None, bodies, host.host_node_no) for host, bodies in system.node_planet_hosts()]
     if system.binary_type == "wide":
-        return [(system.primary_star.db_id, system.planets),
-                (system.secondary_star.db_id, system.secondary_planets), *members]
+        return [(system.primary_star.db_id, system.planets, None),
+                (system.secondary_star.db_id, system.secondary_planets, None), *members]
     if system.binary_type == "close":
-        return [(None, system.planets), *members]
+        return [(None, system.planets, None), *members]
     row = conn.execute("SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)).fetchone()
-    return [(row["id"] if row else None, system.planets)]
+    return [(row["id"] if row else None, system.planets, None), *members]
 
 
 _BODY_CHILD_TABLES = ("reflection_spectrum", "interior_layers", "deposit_types", "isotopes", "gases", "life_class_scores", "life")
@@ -196,14 +198,14 @@ def save_system_edits(conn, system_id, system, stars=()):
     conn.execute("UPDATE system_summary SET ledger_stamp = NULL WHERE star_system_id = ?", (system_id,))   # GEN.1498: not current any more, so `refill-effect-ledger` writes its light and ultraviolet rows again
     store.keep_body_numbers(conn, system_id)   # a body deleted below leaves its number used for good (DB.20)
     kept_planets, kept_belts = [], []
-    for star_id, planets in _star_ids(conn, system_id, system):
+    for star_id, planets, host_node_id in _star_ids(conn, system_id, system):
         for index, body in enumerate(planets):
             if body.body_type == 'a':
                 _save_belt(conn, system_id, star_id, index, body)
                 kept_belts.append(body.db_id)
                 continue
             if getattr(body, "db_id", None) is None:
-                body.db_id = store.insert_planet(conn, body, system_id, star_id, index)
+                body.db_id = store.insert_planet(conn, body, system_id, star_id, index, host_node_id=host_node_id)
                 for moon in body.moons:
                     moon.db_id = None
                 rows = conn.execute("SELECT id FROM moons WHERE planet_id = ? ORDER BY orbital_index",
@@ -212,7 +214,7 @@ def save_system_edits(conn, system_id, system, stars=()):
                     moon.db_id = row["id"]
             else:
                 _update_body(conn, "planets", body, ("star_id", "orbital_index", "parent_type", "parent_id"),
-                             (star_id, index, *store.planet_parent(star_id, system_id)))
+                             (star_id, index, *store.planet_parent(star_id, system_id, host_node_id)))
                 _save_moons(conn, system_id, star_id, body)
             kept_planets.append(body.db_id)
     _delete_missing(conn, "planets", "star_system_id", system_id, kept_planets)

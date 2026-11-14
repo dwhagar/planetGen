@@ -792,6 +792,12 @@ def _member_sections(system):
     return [_star_section(star, [_body_section(body) for body in bodies]) for star, bodies in system.member_hosts()]
 
 
+def _node_sections(system):
+    """The pairs of the inner nodes of the tree that hold planets, each a `pair` section named for its stars with the planets round it (GEN.332, slice A)."""
+    return [section("pair", None, system.node_label(host), [], [_body_section(body) for body in bodies])
+            for host, bodies in system.node_planet_hosts()]
+
+
 def describe(system):
     """
     The Document of `system` (a `StarSystem`): one `system` section holding the overview, whose children are
@@ -814,6 +820,7 @@ def describe(system):
         children += _member_sections(system)    # GEN.631: the stars beyond the pair
     else:
         children = [_star_section(system.star)]
+    children += _node_sections(system)
     if system.binary_type != "wide":
         children += [_body_section(body) for body in system.planets]
         children += [_comet_section(comet) for comet in system.comets]
