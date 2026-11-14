@@ -66,7 +66,7 @@ Each dropped digit divides the chance by about 10. A quantised fingerprint misfi
 
 ### 2.3 numpy, BLAS and astropy
 
-The statement in [reproducible-galaxies.md](reproducible-galaxies.md) section 4 that no numpy or other numeric library is used was wrong. `galaxy/nebula_shape.py`, `physics/sector_path.py` and `physics/kepler.py` import numpy (the last also scipy `optimize`), `nebula_shape.py` needs scikit-image for marching cubes, and `physics/constants.py` imports astropy for 19 constants (GEN.66). The lock pins a different version per Python leg:
+The statement in [reproducible-galaxies.md](reproducible-galaxies.md) section 4 that no numpy or other numeric library is used was wrong. `galaxy/gradient_noise.py` (GEN.1267 removed `nebula_shape.py`, its metaball shape), `physics/sector_path.py` and `physics/kepler.py` import numpy (the last also scipy `optimize`), `physics/constants.py` imports astropy for 19 constants (GEN.66). The lock pins a different version per Python leg:
 
 | Library | 3.9 | 3.10 | 3.11 | 3.12 and later |
 |---|---|---|---|---|
@@ -85,7 +85,7 @@ Rules for generation code (the packages `galaxy`, `generation`, `names`, `physic
 1. **Randomness only through `draw`.** Built and scanned by `src/tests/test_reproducible_draws.py`. Seed with non-negative ints only.
 2. **No `math.hypot`, `math.dist` or builtin `sum()` of floats.** Add `planetgen/util/detmath.py` with `hypot(*c)` (the square root of a left-to-right sum of squares, plain IEEE operations), `dist(a, b)` and `fsum` (`math.fsum`, correctly rounded and identical in every version run). Extend `test_reproducible_draws.py`'s AST scan to flag the three, with an allowlist for integer sums and a comment. `math.fsum` costs more than `sum`; check the performance benchmarks, none of these are hot paths. Switching changes stored values, so it ships with an epoch bump.
 3. **Transcendentals are allowed, exact float comparison on their output is not.** Avoid `sinh`, `cosh`, `expm1`, `log1p` where `exp` and `log` do the job. A libm-free normal draw (a ziggurat, or Wichura's AS241) would remove `Stream.gauss`'s dependence on `log` and `cos`; not worth doing unless an exact cross-libm guarantee is wanted.
-4. **No BLAS in generation.** Replace `@`, `dot`, `matmul` and `linalg.*` in `nebula_shape.py` and `sector_path.py` with elementwise code, or show the quantity feeds only quantised output. Give numpy an explicit dtype. numpy stays for display meshes.
+4. **No BLAS in generation.** Replace `@`, `dot`, `matmul` and `linalg.*` in `gradient_noise.py` and `sector_path.py` with elementwise code, or show the quantity feeds only quantised output. Give numpy an explicit dtype. numpy stays for display meshes.
 5. **Freeze astropy-derived constants as literals.**
 6. **Never iterate a set or dict built from strings or tuples without sorting**, and never `os.listdir` or `glob` unsorted. The scan finds no `list(set(` today.
 7. **Text.** Keep names and word lists ASCII or handle them as bytes: the Unicode database differs from 13.0 (3.9) to 16.0 (3.14), so `.lower()`, `.title()` and `casefold()` can change for non-ASCII letters [R for the effect, C for the versions].

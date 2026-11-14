@@ -30,7 +30,7 @@ import time
 
 from planetgen.admin import updateguard
 from planetgen.queue import jobbeat, redisqueue, workers
-from planetgen.util import log
+from planetgen.util import log, secrets_mask
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
@@ -162,7 +162,8 @@ def recorded_task_seconds(kind, config=None, workers=1):
     try:
         return stats.GenerationStats(store.control_mysql_config(config or store.DEFAULT_MYSQL_CONFIG)) \
             .seconds_per_task(kind, workers)
-    except Exception:  # noqa: BLE001 -- no estimate then: the job gets the fixed limit
+    except Exception as exc:  # noqa: BLE001 -- no estimate then: the job gets the fixed limit
+        log.swallowed("queue/api_jobs", "recorded_task_seconds", exc)
         return None
 
 
@@ -210,7 +211,7 @@ def submit(function, *args, expected_seconds=None):
     try:
         connection.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise NoQueue(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise NoQueue(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                       f"start Redis to run this: {exc}") from exc
     job_id = new_job_id()
     queue_name, cap = lane(expected_seconds)
@@ -294,8 +295,8 @@ def status(job_id):
         # A worker that was about to exit when the job arrived leaves it waiting: whoever asks starts another.
         try:
             workers.ensure_workers(job.origin, connection, count=_cap_of(job.origin))
-        except Exception:  # noqa: BLE001 -- a status read does not fail for want of a worker
-            pass
+        except Exception as swallowed_exc:  # noqa: BLE001 -- a status read does not fail for want of a worker
+            log.swallowed("queue/api_jobs", "status", swallowed_exc)
     body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None,
             "waiting": job.meta.get("waiting") if state == "running" else None}
     if state == "succeeded":
@@ -432,7 +433,7 @@ def run_command(argv, env, cwd, timeout, merge_stderr=False):
     except subprocess.TimeoutExpired as exc:
         out["timed_out"] = True
         out["stdout"] = (exc.stdout or b"").decode("utf-8", errors="replace")
-        log.get("queue").error(f"The command {_command_words(argv)} timed out after {timeout} s")
+        log.get("queue").error(f"The command {_command_words(argv)} timed out after {timeout} s.")
     except OSError as exc:
         out["error"] = str(exc)
         log.get("queue").error(f"The command {_command_words(argv)} could not be started: {exc}")

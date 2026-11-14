@@ -23,7 +23,7 @@ import re
 from planetgen.generation import forced_star, helium_core_draw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import (activity, age_metallicity, formation, imf, metallicity, pre_main_sequence,
+from planetgen.physics import (activity, age_metallicity, formation, formation_snow_line, imf, metallicity, pre_main_sequence,
                               spin, stellar_state, stellar_wind)
 from planetgen.util import draw
 from planetgen.util import log
@@ -274,9 +274,10 @@ class Star(StellarObject):
         # GEN.786 and GEN.785: its evolutionary state and, for a white dwarf, the age since it stopped burning (no draw).
         stellar_state.set_state(self)
         # GEN.458: this star's own snow line, drawn once around the blackbody position and stored; its stream is its
-        # own, like the [Fe/H] above, so no older draw moves.
-        self.snow_line_au = formation.draw_snow_line_au(
-            self.luminosity, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
+        # own, like the [Fe/H] above, so no older draw moves. GEN.1611: the position is that of the luminosity its disk saw
+        # (its initial mass at the age the disk was there), not of the light it has today.
+        self.snow_line_au = formation_snow_line.draw_for_star(
+            self, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
@@ -297,7 +298,7 @@ class Star(StellarObject):
         its mass-radius relation). Also fixes `age`/`lifespan` (read by
         `__init__`),
         `initial_mass_sol` (a binary secondary's mass is a fraction of it)
-        and `phase_end_age_gy` (`adjust_age_for_planets` keeps the age
+        and `phase_end_age_gy` (the age the star is drawn at stays
         inside the present phase).
 
         `+large_star` truncates the IMF at `LARGE_STAR_MIN_MASS_SOL`, and a
@@ -462,34 +463,6 @@ class Star(StellarObject):
             log.choice("Star", self.type, f"forced type the model never makes: its nearest {model_class} star, "
                                           f"initial mass {found.initial_mass_sol:.3g} Msun, at "
                                           f"{state['temperature_k']:.0f} K")
-
-
-def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets, members=()):
-    """
-    Settles one shared age for a binary pair's two stars (GEN.53): old
-    enough for every planet each star hosts (judged by that star's own
-    evolutionary scales), and no older than either star's generated state
-    allows. The primary's `adjust_age_for_planets` does the work, bounded
-    by the companion's `age_ceiling_gy`; the companion then takes the
-    result. Both stars start at the same age (the companion is born with
-    the primary), so neither moves outside what it was generated as.
-
-    Args:
-        primary (Star): The heavier star.
-        secondary (Star): Its companion.
-        primary_planets (list): Bodies judged against the primary's scales.
-        secondary_planets (list): Bodies judged against the companion's (a
-            close pair passes its circumbinary planets for both).
-        members (list of tuple): `(star, planets)` for each further star of the system (GEN.332): they share the age
-            too, so their planets set a minimum and their states a ceiling like the companion's.
-    """
-    min_required = max([secondary.planet_age_requirement_gy(secondary_planets),
-                        *(star.planet_age_requirement_gy(bodies) for star, bodies in members)])
-    ceiling = min([secondary.age_ceiling_gy(), *(star.age_ceiling_gy() for star, _ in members)])
-    primary.adjust_age_for_planets(primary_planets, min_required_age_gy=min_required, age_ceiling_gy=ceiling)
-    secondary.age = primary.age
-    for star, _ in members:
-        star.age = primary.age
 
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)

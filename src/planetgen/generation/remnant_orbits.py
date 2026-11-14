@@ -136,6 +136,7 @@ def widen_for_mass_loss(planets, star, explicit_request=False):
             continue
         body.distance *= mass_loss.expansion_factor(formed, star.mass, body.mass)
         validation.reconcile_moved_planet(body)
-    log.debug(f"White dwarf planets widened by {mass_loss.expansion_factor(formed, star.mass):.3g} for the mass the "
-              f"star lost ({formed:.3g} to {star.mass:.3g} kg)")
+    if log.debug_log_active():
+        log.debug(f"White dwarf planets widened by {mass_loss.expansion_factor(formed, star.mass):.3g} for the mass the "
+                  f"star lost ({formed:.3g} to {star.mass:.3g} kg).")
     return True

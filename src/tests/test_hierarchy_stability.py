@@ -145,22 +145,67 @@ def test_mutual_inclination_of_nodes_reaches_the_network():
 # --- what today's generator draws -----------------------------------------------------------------------------------------------------------
 
 @pytest.mark.slow
-def test_every_triple_the_generator_draws_in_a_quadruple_passes_and_the_quadruple_verdicts_are_asked_of_both_shapes():
-    """The generator tests each node as a nested triple, so every triple level of its four-star trees passes (the baseline GEN.1016's wiring
-    keeps); the 3+1 and 2+2 verdicts exist for every tree. How many 3+1 trees the network refuses is the number the wiring brings to zero."""
+def _four_star_system(seed):
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
+    cfg = SystemConfig()
+    cfg.STARS = 4
+    cfg.PLANETS = False
+    with draw.bound(seed):
+        system = StarSystem(system_config=cfg)
+    members = [TreeMember(number, parent, slot, star.mass / constants.SOLAR_MASS_TO_KG)
+               for number, (star, (parent, slot)) in enumerate(zip(system.stars, system.star_slots or ()))]
+    return system, members
+
+
+def test_every_quadruple_the_generator_draws_clears_the_network_at_both_shapes():
+    """GEN.1016: the tree draw asks `hierarchy_stability.tree_is_stable` of a tree of four stars and draws it again when a level refuses (`_Builder.hierarchy_stable`),
+    so every triple level and every 3+1 and 2+2 verdict of a drawn four-star tree passes. Before the wiring 44 percent of the 3+1 trees and 22 percent of the 2+2 trees
+    drawn on main were refused by the network."""
     shapes = set()
     for seed in range(1, 25):
-        cfg = SystemConfig()
-        cfg.STARS = 4
-        cfg.PLANETS = False
-        with draw.bound(seed):
-            system = StarSystem(system_config=cfg)
-        members = [TreeMember(number, parent, slot, star.mass / constants.SOLAR_MASS_TO_KG)
-                   for number, (star, (parent, slot)) in enumerate(zip(system.stars, system.star_slots))]
+        system, members = _four_star_system(seed)
         found = hs.verdicts(system.orbit_nodes, members)
-        assert all(verdict.stable for verdict in found if verdict.shape == "triple"), (seed, found)
+        assert all(verdict.stable for verdict in found), (seed, found)
         shapes |= {verdict.shape for verdict in found}
     assert {"3+1", "2+2"} <= shapes
+
+
+def test_a_close_pair_is_circular_in_the_tree_that_is_judged():
+    """GEN.1615: a pair of two single stars closer than `tuning.WIDE_BINARY_SEPARATION_MIN_AU` is circular at the tree draw (eccentricity 0, no periapsis), so the tree
+    the network judges is the tree that is stored. Seed 112 drew an eccentric close 2+2 pair, passed, and was stored circular by `StarSystem`, which the network then refused."""
+    from planetgen import tuning
+    closes = 0
+    for seed in [112, *range(1, 25)]:
+        system, members = _four_star_system(seed)
+        for node in system.orbit_nodes:
+            under = [member for member in members if member.parent_node_no == node.node_no]
+            if len(under) == 2 and node.separation_km / constants.AU_TO_KM < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
+                closes += 1
+                assert node.eccentricity == 0.0 and node.arg_periapsis_deg == 0.0, (seed, node)
+        found = hs.verdicts(system.orbit_nodes, members)
+        assert all(verdict.stable for verdict in found), (seed, found)
+    assert closes
+
+
+def test_a_tree_the_network_always_refuses_loses_its_lightest_loose_member(monkeypatch):
+    """The restart is bounded: when no draw of a four-star shape passes, the tree drops a member as it does for a shape no overlap screen passes (`tree.member_dropped`)
+    and the three stars left have no quadruple level to refuse."""
+    monkeypatch.setattr(hs, "tree_is_stable", lambda nodes, members, **margins: False)
+    system, _ = _four_star_system(3)
+    assert len(system.stars) <= 3
+
+
+def test_a_tree_of_three_stars_is_not_asked_of_the_quadruple_network(monkeypatch):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    calls = []
+    monkeypatch.setattr(hs, "tree_is_stable", lambda nodes, members, **margins: calls.append(1) or False)
+    cfg = SystemConfig()
+    cfg.STARS = 3
+    cfg.PLANETS = False
+    with draw.bound(5):
+        system = StarSystem(system_config=cfg)
+    assert len(system.stars) == 3 and not calls

@@ -156,3 +156,31 @@ def test_the_stored_molar_mass_density_and_scale_height_follow_the_air_the_trace
     assert drawn.atm_molar_density == pytest.approx(state.mean_molar_mass_kg_mol, rel=1e-12)
     assert drawn.atm_density == pytest.approx(state.density_kg_m3, rel=1e-12)
     assert drawn.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-12)
+
+
+def test_a_hot_air_keeps_its_equilibrium_nitrogen_dioxide_and_nitrous_oxide():
+    """GEN.1614: NO2 and N2O are gases of a hot air at their equilibrium amounts (far over the design brackets of a draw); `trace_air` takes off an air only what a draw can have given
+    it (the top of the gas's bracket), so the equilibrium amount stays and the total pressure stays."""
+    total = 4.0e7
+    air = {"N2": 0.618 * total, "CO2": 0.38 * total, "NO2": 1.5e-3 * total, "N2O": 5.0e-4 * total}
+    kept = trace_air._strip(air)
+    assert sum(kept.values()) == pytest.approx(total, rel=1e-12)
+    for formula, fraction in (("NO2", 1.5e-3), ("N2O", 5.0e-4)):
+        assert kept[formula] / total == pytest.approx(fraction, abs=1.01 * trace_air.TRACE_CEILING[formula])      # off by the most a draw could have added, no more
+        assert kept[formula] / total > 0.99 * fraction
+
+
+def test_a_drawn_trace_gas_is_taken_off_whole():
+    """What a draw gave an air is at most the top of its bracket, so `_strip` removes it whole and a second `apply` gives the same air (the module's rule)."""
+    total = 1.0e5
+    drawn = {"N2": 78000.0, "O2": 20000.0, "N2O": 0.9 * trace_air.TRACE_CEILING["N2O"] * total, "PH3": 1.0e-9 * total, "NO2": 5.0e-12 * total}
+    kept = trace_air._strip(drawn)
+    assert set(kept) == {"N2", "O2"}
+    assert sum(kept.values()) == pytest.approx(sum(drawn.values()), rel=1e-12)
+
+
+def test_the_ceiling_is_the_top_of_each_gas_s_design_bracket():
+    for row in mixture_trace.WIRED_ROWS:
+        for formula, spec in mixture_trace.ABUNDANCES[row].items():
+            assert trace_air.TRACE_CEILING[formula] == spec[1]
+    assert set(trace_air.TRACE_CEILING) == set(trace_air.TRACE_GASES)
