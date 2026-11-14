@@ -333,7 +333,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 
 ### `gaia_nearby`: Gaia DR3 stars within 25 parsecs (the spacing of stars)
 
-- Source: Gaia DR3, ESA/Gaia/DPAC, CC BY-SA 3.0 IGO, via the Gaia archive TAP service.
+- Source: Gaia DR3, ESA/Gaia/DPAC, CC BY-SA 3.0 IGO, via the Gaia archive TAP service (or its Heidelberg mirror, or VizieR).
 - Download: 1 file, 0.8 MB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch gaia_nearby`.
 - Replaces: SEP1: the share of the galactic Hill spheres that random placement keeps between two systems.
