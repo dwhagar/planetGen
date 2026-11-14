@@ -625,7 +625,7 @@ def _await(conn, run_id, index, read, verb, ensure, clock, sleep, on_debug, touc
         sleep(units.POLL_SECONDS)
 
 
-def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done=None):
+def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done=None, on_step=None):
     """
     Follows a run this process did not start, from the run record alone (PERF.235): the steps are read from the record, and for each
     stage it waits for the plan, tells the caller (`on_plan(index, plan)`), and follows the units' results (`on_result(index, unit,
@@ -653,7 +653,8 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
             units.follow_stage(conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                                None if on_progress is None else
                                (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                               None, touch=False)
+                               None, touch=False,
+                               on_step=None if on_step is None else (lambda step, index=index: on_step(index, step)))
         conclusion = None
         if commands.spec(steps[index].kind).conclude is not None:
             conclusion = _await_conclusion(conn, run_id, index, None, touch=False)
@@ -752,7 +753,7 @@ def ask_supervisor(conn, url):
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
-        build=None, finishes=None):
+        build=None, finishes=None, on_step=None):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
@@ -765,6 +766,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             `plan` is `{"kind", "units", "cost", "detail"}`, `detail` the command's JSON summary of the stage.
         on_result (callable): `on_result(index, unit, result)`, once for each unit as it finishes.
         on_progress (callable, optional): `on_progress(index, unit, done, estimate)` for the units still working.
+        on_step (callable, optional): `on_step(index, step)` at every poll of stage `index` with its second-level count (`{"name", "done", "total"}`, or `None` where no unit is in one: OPS.192).
         listing (list[commands.Step], optional): Every step of the run, inline ones too, as the wrapper's list
             (`steps_for`); stored in the run record. Default: `steps`.
         on_stage_done (callable, optional): `on_stage_done(index, conclusion)` when every unit of stage `index` is done
@@ -844,7 +846,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                    ensure, on_debug=on_debug)
+                    ensure, on_debug=on_debug,
+                    on_step=None if on_step is None else (lambda step, index=index: on_step(index, step)))
             if commands.spec(steps[index].kind).conclude is not None:
                 conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)
             if on_stage_done is not None:

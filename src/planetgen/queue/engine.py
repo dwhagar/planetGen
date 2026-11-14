@@ -12,7 +12,7 @@ A command that declares `pieces` and `do` (`commands.CommandSpec`) does not writ
   live (canceled, failed, ended from outside) ends the unit with `UnitStopped`, which `units._do_unit` answers by leaving the unit undone; a pause holds the unit where it stands, shown in
   the beat as waiting on `pause`, until the queues are let go (a solo hold lets its own unit through, `pause.blocks`) or the run ends.
 * **`ctx`**, the one object a piece is handed: `ctx.args` and `ctx.kind`, `ctx.cursor`, the unit's database connection (`ctx.db`, opened from `args["database"]` the first time it is asked
-  for and closed by the engine), `ctx.commit()` and `ctx.sql(statement, label)` (`queue/longsql.py`). A converted command commits only through `ctx.commit()`: where the cursor is stored with the
+  for and closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (`queue/longsql.py`) and the second-level count, `ctx.step(name, total)` and `ctx.advance(n)` (OPS.192: a bar under the unit's own on the pages). A converted command commits only through `ctx.commit()`: where the cursor is stored with the
   data (OPS.219) that call is the one place that writes it, and a direct `.commit()` would be a second path.
 
 **The cursor is in the contract and not stored yet.** Every unit starts at cursor 0. Storing it, so a retry or a resume starts after the last committed piece, waits for the ledger (OPS.219);
@@ -24,7 +24,7 @@ until then `ctx.commit()` stores no cursor; with a unit that has a ledger row it
 import time
 
 from planetgen.queue import commands, longsql, pause, runrecord, unitbeat
-from planetgen.util import log
+from planetgen.util import log, ticker
 
 CHECK_SECONDS = 1.0
 """float: At most how often the engine reads the run's state and the pause flag between two pieces. Defined by the program, not a physical value: a unit of thousands of pieces a second
@@ -51,6 +51,8 @@ class Context:
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
         self.attempt = attempt
+        self.state = {}                 # what the pieces of this unit hand to each other: they run in one process, in order, so a piece may leave what the next reads
+        self.began = time.monotonic()
         self._db = None
         self._checked_at = None
 
@@ -88,9 +90,32 @@ class Context:
         """One long statement with its label and start time in the beat (`longsql.run`); returns the cursor."""
         return longsql.run(self.db, statement, label, params, config=self.config)
 
+    def step(self, name, total=None):
+        """The piece begins a second-level count (OPS.192): `name`, `total` of what it counts (`None` where that is not known). The Queue page draws it as a bar under the unit's own, with its numbers and rate."""
+        unitbeat.step(name, total)
+
+    def advance(self, amount=1):
+        """The second-level count has done `amount` more."""
+        unitbeat.advance(amount)
+
     def moving(self):
         """The piece made progress its count does not show: the quiet clock starts again (`unitbeat.moving`)."""
         unitbeat.moving()
+
+    def phase(self, text, keep=None, loud=True):
+        """
+        The piece says what it is doing (the standard's rule 6, OPS.170): a log line with the time since the unit began, the unit's phase for the heartbeat and, where `keep` is a list,
+        the line kept in it for the unit's result. `loud` false makes the line a debug record, for one unit of many.
+        """
+        line = ticker.stamp(text, self.began)
+        (log.normal if loud else log.debug)(line)
+        unitbeat.phase(text[:120])
+        if keep is not None:
+            keep.append(line)
+
+    def close_db(self):
+        """Closes the unit's connection now, where the rest of the unit needs none held (`ctx.db` opens another on the next use)."""
+        self.close()
 
     def close(self):
         """Closes the unit's connection if it opened one; called by the engine, once, when the unit ends."""
@@ -141,7 +166,7 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
         redis, run_id, stage, unit, job: Where the unit runs; with them the engine honours a cancel and a pause between two pieces. Without them (`commands.run_alone`) it does neither.
 
     Returns:
-        The unit's JSON-able result: what the command's `gather` makes of the pieces' results, or, with none, the list of them in order.
+        The unit's JSON-able result: what the command's `gather(args, results, ctx)` makes of the pieces' results (and `ctx.state`), or, with none, the list of them in order.
 
     Raises:
         UnitStopped: The run ended between two pieces.
@@ -161,6 +186,6 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
             ctx.between()
             results.append(do(args, piece, ctx))
             report(done, total)
+        return results if gather is None else gather(args, results, ctx)
     finally:
         ctx.close()
-    return results if gather is None else gather(args, results)
