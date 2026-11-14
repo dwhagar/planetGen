@@ -71,7 +71,7 @@ def disk_moon_ceiling_kg(parent_mass_kg):
 
 def encounter_limit_kg(parent_mass_kg, partner_mass_kg, hill_radius_m, orbital_speed_m_s):
     """
-    Eq. 1 of [R5229] (the framework of Williams 2013), the heaviest mass a parent captures from a binary encounter whose other member leaves with `partner_mass_kg`, kg:
+    Eq. 1 of [R5229], the heaviest mass a parent captures from a binary encounter whose other member leaves with `partner_mass_kg`, kg:
 
         M_cap < 3 M_p (pi G M_esc / (2 b v_enc dv))^(3/2) - M_esc,
 

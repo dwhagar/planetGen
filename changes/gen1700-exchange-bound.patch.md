@@ -1,4 +1,4 @@
-**Headline:** The most a giant keeps from a binary encounter is now the bound of that encounter (Heller 2018, Eq. 1 to 3), worked out from the giant and the partner it met, not a hundredth of the giant's mass.
+**Headline:** The most a giant keeps from a binary encounter is now the bound of that encounter ([R5229: Eq. 1 to 3]), worked out from the giant and the partner it met, not a hundredth of the giant's mass.
 
 ### Changed
 
