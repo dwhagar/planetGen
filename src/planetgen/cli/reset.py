@@ -75,19 +75,31 @@ already excludes it."""
 
 
 def _table_estimates(conn, database):
-    """Returns `{table: estimated_row_count}` for every table to truncate: every `BASE TABLE` in `database` (which
+    """`{table: estimated_row_count}`; see `_table_facts`."""
+    return {name: facts[0] for name, facts in _table_facts(conn, database).items()}
+
+
+def _table_facts(conn, database):
+    """The facts of every table to truncate: every `BASE TABLE` in `database` (which
     must be named, `information_schema` spanning every database on the server) except `_EXCLUDED_TABLES`, discovered
     live rather than hand-maintained (this module's docstring says why), in whatever order the query returns them
     (`FOREIGN_KEY_CHECKS` is off for the whole truncate pass, so order cannot matter). The estimate is `information_schema.tables.table_rows`, which
     InnoDB keeps from its statistics -- free, where an exact `COUNT(*)` reads
     the whole table (minutes across a galaxy's tables, the slow part of a
-    reset before this)."""
+    reset before this).
+
+    Returns:
+        dict: `{table: (estimated_row_count, counter_moved)}`: `counter_moved` is whether the table's id counter (`AUTO_INCREMENT`) stands above 1, which a table that
+            holds no row can still do once rows were made and deleted, and which only `TRUNCATE` puts back (OPS.254). The statistics are read fresh (`information_schema_stats_expiry`
+            0), as a cached counter of 1 would let a moved one be left alone.
+    """
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
     rows = conn.execute(
-        "SELECT table_name AS name, table_rows AS n FROM information_schema.tables "
+        "SELECT table_name AS name, table_rows AS n, auto_increment AS counter FROM information_schema.tables "
         "WHERE table_schema = ? AND table_type = 'BASE TABLE'",
         (database,),
     ).fetchall()
-    return {row["name"]: int(row["n"] or 0) for row in rows if row["name"] not in _EXCLUDED_TABLES}
+    return {row["name"]: (int(row["n"] or 0), int(row["counter"] or 1) > 1) for row in rows if row["name"] not in _EXCLUDED_TABLES}
 
 
 def _purge_page_cache(database):
@@ -176,7 +188,8 @@ def wipe(config, report=None):
     """
     conn = get_connection(config)
     try:
-        estimates = _table_estimates(conn, config.database)
+        facts = _table_facts(conn, config.database)
+        estimates = {name: found[0] for name, found in facts.items()}
         tables = list(estimates)
         exact_rows = estimated_rows = with_rows = 0
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
@@ -188,7 +201,8 @@ def wipe(config, report=None):
                     exact_rows += held
                 else:
                     estimated_rows += held
-                longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(tables)}", config=config)
+                if held or facts[table][1]:         # OPS.254: a table with no row and an id counter never used has nothing to clear
+                    longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(tables)}", config=config)
                 if report is not None:
                     report(number, len(tables))
         finally:
