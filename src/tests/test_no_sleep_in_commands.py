@@ -18,6 +18,7 @@ OUTSIDE = "runs in a process that is not a unit (the web server, the CLI, the st
 ALLOWED = {
     ("db/contention.py", "_wait_while_closed"): BLOCKING,
     ("db/contention.py", "run_with_retries"): BLOCKING,
+    ("queue/engine.py", "Context._hold_while_paused"): BLOCKING + " (a unit held between two pieces by a pause, shown as `pause`; OPS.191)",
     ("queue/memorygate.py", "_decision_lock"): BLOCKING + " (the gate's lock, shown as `gate`)",
     ("queue/memorygate.py", "_acquire"): BLOCKING + " (waiting for memory, shown as `gate`)",
     ("generation/run_galaxy.py", "_take_to_the_deepest_floor"): RETRY,

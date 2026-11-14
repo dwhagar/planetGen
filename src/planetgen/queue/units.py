@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, commandgaps, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import commands, commandgaps, engine, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -239,7 +239,12 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
               f"arguments {_short(args)}", area="queue")
     used = usage.Usage(resident_mb)         # OPS.155: the memory and processor of this unit, peak and average
     with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit), usage=used) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
-        result = commands.unit_function(kind)(args, report)
+        try:
+            result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit))
+        except engine.UnitStopped as stopped:         # OPS.191: the engine found the run no longer live between two pieces; the unit stays undone, as one a cancel stops does
+            log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) ends between two pieces: {stopped}.", area="queue")
+            conn.hdel(runrecord.progress_key(run_id, stage), unit)
+            return {"stopped": True}
         gap = report.longest_gap()
         finished, worked = report.totals()
     commandgaps.note(conn, run_id, kind, gap)       # OPS.135
