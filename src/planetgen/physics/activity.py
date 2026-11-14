@@ -66,8 +66,9 @@ STAR_ACTIVITY_FIELDS = tuple(STAR_ACTIVITY_UNITS)
 ERG_PER_J = 1e7
 
 SN_RATE_AT_SUN_PER_GYR = 1.5
-SN_SCALE_LENGTH_PC = 1450.0
-SUN_GALACTIC_RADIUS_PC = 8000.0
+SN_SCALE_LENGTH_DISK_FRACTION = 1450.0 / 2600.0
+"""float: The radial scale length of the supernova rate, in scale lengths of the thin disk (derived: the Milky Way's 1.45 kpc over its 2.6 kpc, the radial law of GEN.87 [R3026],
+scaled to the galaxy's own disk by `galaxy.scales`, GEN.1694). The rate is quoted at `scales.reference_radius_pc()`, the galaxy's own radius of the Sun."""
 SN_MAX_BOOST = 250.0
 
 # Gamma-ray bursts (GEN.189): a beamed long burst within about 2 kpc whose
@@ -291,11 +292,16 @@ def _galactic_radius_pc(galactic_distance_ly):
     return _m_to_pc(_ly_to_m(galactic_distance_ly))
 
 
+def _radial_boost_exponent(galactic_distance_ly):
+    """`(R_reference - R) / L_sn` in the galaxy's own scales (GEN.1694): the radius the rates are quoted at and the scale length of the supernova rate are the
+    galaxy's thin disk's (`galaxy.scales`), not the Milky Way's pc."""
+    return (scales.reference_radius_pc() - _galactic_radius_pc(galactic_distance_ly)) / (SN_SCALE_LENGTH_DISK_FRACTION * scales.disk_scale_length_pc())
+
+
 def supernova_rate_per_gyr(galactic_distance_ly):
     """GEN.87 rule 7: supernovae within 8 pc per Gyr at this distance from
     the galactic center (1.5 at the Sun's 8 kpc, up to 250 times that)."""
-    boost = min(SN_MAX_BOOST, math.exp(
-        (SUN_GALACTIC_RADIUS_PC - _galactic_radius_pc(galactic_distance_ly)) / SN_SCALE_LENGTH_PC))
+    boost = min(SN_MAX_BOOST, math.exp(_radial_boost_exponent(galactic_distance_ly)))
     return SN_RATE_AT_SUN_PER_GYR * boost
 
 
@@ -303,8 +309,7 @@ def grb_rate_per_gyr(galactic_distance_ly):
     """GEN.189: gamma-ray bursts per Gyr that reach this distance from the
     center with an ozone-stripping fluence: `GRB_LETHAL_RATE_AT_SUN_PER_GYR`
     at the Sun's distance and inward, falling off outward."""
-    boost = min(1.0, math.exp(
-        (SUN_GALACTIC_RADIUS_PC - _galactic_radius_pc(galactic_distance_ly)) / SN_SCALE_LENGTH_PC))
+    boost = min(1.0, math.exp(_radial_boost_exponent(galactic_distance_ly)))
     return GRB_LETHAL_RATE_AT_SUN_PER_GYR * boost
 
 
@@ -326,10 +331,10 @@ def lethal_event_rate_per_gyr(galactic_distance_ly):
 
 
 def set_galactic_hazard(star):
-    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement; a star with none is rated where a system with no place in the galaxy
-    is taken to be (`scales.default_galactocentric_ly`, where its metallicity and orbit are also taken), so the column is filled for every star."""
+    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement. A star with none has no rate (`None`) and so no galactic hazard: a system made on its
+    own sits nowhere in a galaxy, and no place is not a place near the center (GEN.1694; GEN.785 had rated it at the distance a system with no place is taken at)."""
     distance = getattr(star, "galactic_center_dist_ly", None)
-    star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(scales.default_galactocentric_ly() if distance is None else distance)
+    star.lethal_event_rate_per_gyr = None if distance is None else lethal_event_rate_per_gyr(distance)
 
 
 def rotation_saturation_scale(nominal_period_hours, period_hours, decay):
