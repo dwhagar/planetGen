@@ -1116,7 +1116,7 @@ def check_math_piece(params, index, ctx):
     return _row_of(run_check(all_checks()[index]))
 
 
-def check_math_gather(params, rows):
+def check_math_gather(params, rows, ctx):
     """
     The result of the `check-math` command (TEST.68): `failed` (how many checks failed) and `report`, the text `format_report` gives (a line for every check with `verbose`, not only the failures).
     """

@@ -148,7 +148,7 @@ def check_datasets_piece(params, key, ctx):
     return {"lines": lines, "absent": absent}
 
 
-def check_datasets_gather(params, results):
+def check_datasets_gather(params, results, ctx):
     """The result of the `check-datasets` command: `lines`, what the check prints, and `absent`, how many datasets are missing for good."""
     return {"lines": [line for result in results for line in result["lines"]], "absent": sum(result["absent"] for result in results)}
 

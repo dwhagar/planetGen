@@ -777,7 +777,7 @@ def check_revision_pieces(args, cursor):
     return _pieces_of("revision", args, cursor)
 
 
-def check_revision_gather(args, results):
+def check_revision_gather(args, results, ctx):
     """The result of `check-revision`."""
     return _result_of("revision", args, results)
 
@@ -787,7 +787,7 @@ def check_tables_pieces(args, cursor):
     return _pieces_of("tables", args, cursor)
 
 
-def check_tables_gather(args, results):
+def check_tables_gather(args, results, ctx):
     """The result of `check-tables`."""
     return _result_of("tables", args, results)
 
@@ -797,7 +797,7 @@ def check_tables_extended_pieces(args, cursor):
     return _pieces_of("tables-extended", args, cursor)
 
 
-def check_tables_extended_gather(args, results):
+def check_tables_extended_gather(args, results, ctx):
     """The result of `check-tables-extended`."""
     return _result_of("tables-extended", args, results)
 
@@ -807,7 +807,7 @@ def check_orphans_pieces(args, cursor):
     return _pieces_of("orphans", args, cursor)
 
 
-def check_orphans_gather(args, results):
+def check_orphans_gather(args, results, ctx):
     """The result of `check-orphans`: child rows whose parent is gone."""
     return _result_of("orphans", args, results)
 
@@ -817,7 +817,7 @@ def check_ids_pieces(args, cursor):
     return _pieces_of("ids", args, cursor)
 
 
-def check_ids_gather(args, results):
+def check_ids_gather(args, results, ctx):
     """The result of `check-ids`: `id_blocks` is ahead of every id."""
     return _result_of("ids", args, results)
 
@@ -827,7 +827,7 @@ def check_values_pieces(args, cursor):
     return _pieces_of("values", args, cursor)
 
 
-def check_values_gather(args, results):
+def check_values_gather(args, results, ctx):
     """The result of `check-values`: columns holding numbers no generator can write."""
     return _result_of("values", args, results)
 
@@ -837,7 +837,7 @@ def check_counts_pieces(args, cursor):
     return _pieces_of("counts", args, cursor)
 
 
-def check_counts_gather(args, results):
+def check_counts_gather(args, results, ctx):
     """The result of `check-counts`: a sector's stats count its systems."""
     return _result_of("counts", args, results)
 
@@ -847,7 +847,7 @@ def check_version_keys_pieces(args, cursor):
     return _pieces_of("version-keys", args, cursor)
 
 
-def check_version_keys_gather(args, results):
+def check_version_keys_gather(args, results, ctx):
     """The result of `check-version-keys`: every sector in scope has a well formed version key."""
     return _result_of("version-keys", args, results)
 
@@ -857,7 +857,7 @@ def check_storage_pieces(args, cursor):
     return _pieces_of("storage", args, cursor)
 
 
-def check_storage_gather(args, results):
+def check_storage_gather(args, results, ctx):
     """The result of `check-storage`: every sealed sector in scope still hashes to its storage checksum (DB.45)."""
     return _result_of("storage", args, results)
 
@@ -867,7 +867,7 @@ def check_systems_pieces(args, cursor):
     return _pieces_of("systems", args, cursor)
 
 
-def check_systems_gather(args, results):
+def check_systems_gather(args, results, ctx):
     """The result of `check-systems`: every star system in scope validates; its speed is recorded for the next estimate."""
     return _result_of("systems", args, results)
 
@@ -877,7 +877,7 @@ def check_object_index_pieces(args, cursor):
     return _pieces_of("object-index", args, cursor)
 
 
-def check_object_index_gather(args, results):
+def check_object_index_gather(args, results, ctx):
     """The result of `check-object-index`: the object index matches the tables."""
     return _result_of("object-index", args, results)
 
