@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
-                               disk_condensation, elements, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
+                               disk_condensation, elements, formation_snow_line, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
                                volatile_depletion)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -412,8 +412,9 @@ def _subject(body, ratios):
 
 
 def _snow_ratio(body):
-    """The distance `body` formed at in its star's snow lines, or `None` when it has no star line or distance to say."""
-    line = getattr(getattr(body, "star", None), "snow_line_au", None)
+    """The distance `body` formed at in its star's water snow lines (`formation_snow_line.water_snow_line_au`, GEN.1678), or `None` when it has no star line or distance to say."""
+    star = getattr(body, "star", None)
+    line = None if star is None else formation_snow_line.water_snow_line_au(star)
     distance = _formation_distance_au(body)
     return None if not line or distance is None else distance / line
 
