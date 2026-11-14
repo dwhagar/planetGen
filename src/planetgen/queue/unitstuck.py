@@ -160,6 +160,11 @@ class Stuck:
                 continue
         return out
 
+    def stack_of(self, unit):
+        """The stack of the unit's horse, asked for now (a busy unit that has run past its learned time: OPS.194); nothing is stopped."""
+        raw = unitbeat.parse(self.conn.hget(runrecord.progress_key(self.run_id, self.stage), unit) or b"{}") or {}
+        return self._dump(raw)
+
     # --- the action -------------------------------------------------------------------------------------------
 
     def _act(self, unit, record, now, verdict):

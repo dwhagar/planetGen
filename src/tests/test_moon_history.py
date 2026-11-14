@@ -13,7 +13,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as pc
-from planetgen.physics import interior_heat, moon_history, planets, radiogenic, ring_origin, rings, tidal_heating
+from planetgen.physics import interior_heat, moon_composition, moon_history, planets, radiogenic, ring_origin, rings, tidal_heating
 from planetgen.physics.mathcheck import _bulk_silicate_earth
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy, first_seed_with
@@ -106,7 +106,13 @@ def test_every_planet_with_moons_ends_with_moons_it_can_keep():
                     # The origin is the largest of the ring's events (`ring_origin.ring_origin`), and the steady dust ring of the small moons near the planet (GEN.1233, origin
                     # `moon_erosion`) is one of them: a fallen moon's ring spreads thin with the time since, and a faint dust ring can outweigh what is left of it (one planet of this sample,
                     # a dusty ring of 1e8 kg after Train 21 changed what the seeds draw). So the origin is one of the three, and a `moon_erosion` ring is a dusty one.
-                    assert planet.ring_origin in rings.ORIGINS and planet.ring_age_yr > 0.0
+                    assert planet.ring_origin in rings.ORIGINS
+                    # A dwarf planet whose own moons' ring has spread away (or never was) may carry the narrow resonance ring of GEN.1057 instead: it names
+                    # `disrupted_moon` as its cause and has no age (`rings.darken`), so a ring with no age is that one; any other has one.
+                    if planet.ring_age_yr is None:
+                        assert planet.ring_kind == "narrow" and planet.mass < moon_composition.DWARF_PLANET_MAX_MASS_KG
+                    else:
+                        assert planet.ring_age_yr > 0.0
                     assert planet.ring_origin != "moon_erosion" or planet.ring_kind == "dusty"
                     assert planet.ring_mass_kg <= rings.MAX_MASS_OVER_PLANET * planet.mass * (1.0 + 1e-9)
             assert planet.rotation_period_hours > 0.0

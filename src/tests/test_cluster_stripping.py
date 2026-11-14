@@ -97,7 +97,10 @@ def test_a_system_with_no_cluster_history_is_the_system_it_always_was_and_a_dens
     found = None
     for seed in range(40):
         plain, dense = _system(None, seed), _system(DENSE, seed)
-        if not plain.ejected_losses() and any(kind == "stripped" for _star, kind in [(s, l.kind) for s, l in dense.ejected_losses()]):
+        # The cluster history draws one number per planet before the architecture is built, so the two systems are not the same beyond the stripping (GEN.1611 slice 1 moved the
+        # architecture of seed 1 from 15 planets to 23 under the history): take the first seed where the history also leaves the dense system with fewer planets.
+        if (not plain.ejected_losses() and any(kind == "stripped" for _star, kind in [(s, l.kind) for s, l in dense.ejected_losses()])
+                and len(dense.planets) < len(plain.planets)):
             found = plain, dense
             break
     assert found, "no system of 40 seeds had a planet to strip"

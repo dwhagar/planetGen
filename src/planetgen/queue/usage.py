@@ -15,6 +15,8 @@ a look every few seconds. The work loop is never touched.
 import os
 import time
 
+from planetgen.util import log
+
 KINDS = ("mem_peak_mb", "mem_avg_mb", "cpu_peak", "cpu_avg")
 
 INTERVAL_SECONDS = 5.0
@@ -30,7 +32,8 @@ def cpu_seconds(pid=None):
         import psutil
         times = psutil.Process(pid).cpu_times()
         return float(times.user + times.system + getattr(times, "children_user", 0.0) + getattr(times, "children_system", 0.0))
-    except Exception:       # noqa: BLE001 -- a process that is gone or a system without the figure
+    except Exception as exc:        # noqa: BLE001 -- a process that is gone or a system without the figure
+        log.swallowed("queue", f"reading the processor time of process {pid}", exc)
         return 0.0
 
 
@@ -52,7 +55,8 @@ class Usage:
         self._looked = now
         try:
             reading = float(self.resident())
-        except Exception:       # noqa: BLE001
+        except Exception as exc:        # noqa: BLE001
+            log.swallowed("queue", "reading the resident memory of a unit", exc)
             reading = 0.0
         if reading > 0.0:
             self._memory.append(reading)

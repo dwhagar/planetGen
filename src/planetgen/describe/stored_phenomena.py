@@ -30,8 +30,7 @@ _BUILDERS = {
 }
 """dict: The section builder of each type (the generated object's own, `describe/phenomena.py`)."""
 
-_DEFAULTS = {"reflex_offset_x": 0.0, "reflex_offset_y": 0.0, "reflex_offset_z": 0.0, "has_moons": False,
-             "has_liquid_water": False, "ice_shell_thickness_km": 0.0, "ocean_depth_km": 0.0, "hosts": None,
+_DEFAULTS = {"reflex_offset_x": 0.0, "reflex_offset_y": 0.0, "reflex_offset_z": 0.0, "has_liquid_water": False, "ice_shell_thickness_km": 0.0, "ocean_depth_km": 0.0, "hosts": None,
              "q_total": None}
 """dict: What a builder reads that a table may leave out."""
 

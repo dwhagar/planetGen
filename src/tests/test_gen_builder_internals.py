@@ -113,6 +113,7 @@ def test_trim_on_an_empty_list_is_a_no_op(system):
 def test_trim_removes_trailing_bodies_past_the_ceiling(system):
     planets = [planet_at(system, 6.0, GIANT_EARTH), planet_at(system, 30.0, GIANT_EARTH), planet_at(system, 60.0, GIANT_EARTH)]
     keep = planets[0]
+    keep.eccentricity = 0.0       # the drawn eccentricity moves with the draw order (0.70 under one seed put its apoapsis and Hill margin past 10 AU); this test is about the trim
     system._trim_to_orbit_ceiling(planets, 10.0)
     assert planets == [keep]
 

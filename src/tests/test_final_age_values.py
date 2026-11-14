@@ -1,8 +1,7 @@
 # tests/test_final_age_values.py
 
 """
-GEN.720 and GEN.839: every age-dependent value of a finished system is the value at the star's final age. The age only ever rises once, after the planets are in
-(`Star.adjust_age_for_planets`); a rocky planet and the moons of any planet whose star's age rose by more than `planets.AGE_SETTLE_TOLERANCE` are made again at that age (air,
+GEN.720 and GEN.839: every age-dependent value of a finished system is the value at the star's final age. The age is fixed when the star is made (GEN.1546); a rocky planet and the moons of any planet whose star's age rose by more than `planets.AGE_SETTLE_TOLERANCE` are made again at that age (air,
 water, hydrosphere ice shell, surface composition and its volcanism gate, class, spin; `planets.refinish_rocky`, GEN.992), a table-sized giant whose radius moved is settled again
 (`giant_draw.settle`), and the heat of every body is run to the final age without a draw (`interior_heat.update_heat`, GEN.763).
 """
