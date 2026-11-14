@@ -2,7 +2,7 @@
 `db/contention.py`, the gate, the sky lock). This test lists every call of `sleep` in the package by the function that makes it. Each must be named in `ALLOWED` with the reason it is
 not a silent stretch inside a command; a new one fails here, and an entry that no longer matches a call fails too (reports/job-engine-items-stage-1-2-2026-11-13.md, item P7).
 
-The test finds `time.sleep(...)` and a bare `sleep(...)` (the clock a function takes as a parameter, `sleep=time.sleep`). A loop that polls without any sleep is out of its reach. Every other
+The test finds `time.sleep(...)`, a bare `sleep(...)` (the clock a function takes as a parameter, `sleep=time.sleep`) and `concurrent.futures.wait(...)`, the timed wait the battery's digest loop polls with. A loop that polls without any sleep is out of its reach. Every other
 waiting call (`join`, `wait`) is bounded by its own timeout and is not a poll.
 """
 
@@ -24,6 +24,7 @@ ALLOWED = {
     ("generation/run_plan.py", "_run_stale_unit"): RETRY,
     ("db/store.py", "_save_with_retries"): RETRY,
     ("db/migrations/helpers.py", "_with_retries"): "the migration runner, not a unit; a pause between two tries of one statement",
+    ("generation/generator_battery.py", "start_running_digest.finish"): "the battery digest wait of OPS.184: it waits on the digest's own thread and shows its progress line every poll",
     ("datasets/fetch.py", "_download_from"): "the pause between two tries of one download at setup; the line `trying again (n of N)` is shown through `progress.note` first",
     ("datasets/gaia_nearby.py", "esa_async"): "the poll of ESA's own job during the setup download; each poll is a request the download's progress line reports",
     ("util/log.py", "RelayReader.finish"): "a tenth of a second for the last lines of a child to arrive",
@@ -62,7 +63,8 @@ def _sleepers():
                 if isinstance(child, ast.Call):
                     function = child.func
                     name = function.attr if isinstance(function, ast.Attribute) else getattr(function, "id", None)
-                    if name == "sleep":
+                    polls = name == "wait" and isinstance(function, ast.Attribute) and getattr(function.value, "attr", "") == "futures"      # concurrent.futures.wait(..., timeout=...) in a loop
+                    if name == "sleep" or polls:
                         found.setdefault((path.relative_to(PACKAGE).as_posix(), ".".join(stack)), []).append(child.lineno)
                 walk(child, stack)
 
