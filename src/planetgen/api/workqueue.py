@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, warmphases, work as workQueue, workers as queueWorkers
 from planetgen.util import log
 
 from .authz import audit, require_admin
@@ -294,7 +294,9 @@ def _redis():
 def workers_state():
     """`GET /api/admin/work/workers` -- `wanted` (the bulk worker count), `live` (bulk workers running now),
     `ludicrous` (the count "Ludicrous Speed" sets) and `cpus` (ADM.15)."""
-    return jsonify(_workers_state(_redis()))
+    connection = _redis()
+    supervisor.ensure_started(connection)           # OPS.207: every status poll wakes the supervisor
+    return jsonify(_workers_state(connection))
 
 
 @bp.route("/held", methods=["GET"])
