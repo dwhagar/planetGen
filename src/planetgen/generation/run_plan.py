@@ -808,7 +808,8 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
         return [], book
     if prepare and passes == ["luminosity"]:      # the clear before the backfill emptied the table already; this pass's own would take the backfill's stars
         return list(book.followers), book
-    return [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *book.followers], book
+    limits = [StoreScatterLimitsFollower(args, settings("mass"))] if prepare and passes[0] == "mass" else []
+    return _standing_followers(args, [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *limits, *book.followers]), book
 
 
 def _bright_star_settings(marker):
@@ -891,10 +892,6 @@ def clear_bright_stars_unit(params, report):
     try:
         if clear == "all":
             store.clear_bright_stars(conn, phases)
-            if params.get("prepare"):       # the limits stand from here, so the backfill before the passes draws only what they leave out
-                prepared = params["prepare"]
-                store.record_bright_star_scatter(conn, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
-                conn.commit()
         else:
             store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
                 store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]), phases)
@@ -902,6 +899,42 @@ def clear_bright_stars_unit(params, report):
         conn.close()
     phases.finish()
     return {"cleared": clear}
+
+
+def expand_store_scatter_limits(params):
+    """The `store-scatter-limits` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def store_scatter_limits_unit(params, report):
+    """
+    The `store-scatter-limits` command's unit (OPS.257; the limits the clear of the earlier bright stars stored before, OPS.123): records the floor, mass limit and seed the star scatter will run
+    at (`params["prepare"]`), so the backfill that runs between this stage and the passes reads them and draws only the stars the passes leave out. It runs whether or not there was anything to clear.
+    """
+    prepared = params["prepare"]
+    phases = _UnitPhases(report, 1)
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        phases.next("Storing the star scatter's floor, mass limit and seed")
+        store.record_bright_star_scatter(conn, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
+        conn.commit()
+    finally:
+        conn.close()
+    phases.finish()
+    return {"stored": True}
+
+
+class StoreScatterLimitsFollower(UnitBarFollower):
+    """The recording of the star scatter's limits as a stage of a run (OPS.257): the `store-scatter-limits` command, one unit, between the clear and the backfill."""
+
+    key, label = stages.LIMITS_STAGE.key, stages.LIMITS_STAGE.label
+
+    def __init__(self, args, settings):
+        super().__init__(args)
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
 
 
 class ClearBrightStarsFollower(UnitBarFollower):
@@ -3721,7 +3754,7 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "scatter-limits", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
 """dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
 
 
@@ -3768,9 +3801,9 @@ def stored_scatter_skips(args):
         conn.close()
 
 
-EMPTY_CLEAR_STAGES = {"mass": (), "luminosity": (), "phenomena": ("phenomena-clear", NEBULA_CLEAR_KEY), "nebula-field": (NEBULA_CLEAR_KEY,)}
+EMPTY_CLEAR_STAGES = {"mass": ("mass-clear",), "luminosity": (), "phenomena": ("phenomena-clear", NEBULA_CLEAR_KEY), "nebula-field": (NEBULA_CLEAR_KEY,)}
 """dict: The clearing stages of each kind of scatter that are left out of a run when what they clear holds nothing (OPS.257). The clear of the bright stars is not one of them: a run that prepares the
-scatter's limits stores them in that stage (`clear_bright_stars_unit`), so it always runs, and its own clear finds nothing in a few reads (OPS.254)."""
+scatter's limits stores them in a stage of its own (`store_scatter_limits_unit`), which is not a clear and always runs."""
 
 
 def empty_clear_skips(args, kinds, fresh=True):
@@ -3783,11 +3816,14 @@ def empty_clear_skips(args, kinds, fresh=True):
     wanted = [key for kind in kinds for key in EMPTY_CLEAR_STAGES.get(kind, ())]
     if not fresh or not wanted:
         return {}
-    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+    except pymysql.err.OperationalError:       # no such database yet: nothing is known about it, and every stage is planned
+        return {}
     try:
         if store.get_galaxy_shape(conn) is None:
             return {}
-        holds = {"phenomena-clear": store.phenomenon_scatter_holds_nothing, NEBULA_CLEAR_KEY: store.nebula_field_holds_nothing}
+        holds = {"mass-clear": store.bright_stars_hold_nothing, "phenomena-clear": store.phenomenon_scatter_holds_nothing, NEBULA_CLEAR_KEY: store.nebula_field_holds_nothing}
         return {key: "nothing is stored to clear" for key in dict.fromkeys(wanted) if holds[key](conn)}
     finally:
         conn.close()
