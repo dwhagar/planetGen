@@ -35,7 +35,6 @@ Two-tier "sane range" design (mirrors `plausibility.py` exactly):
 """
 
 import math
-import statistics
 from collections import Counter, defaultdict
 
 from planetgen.physics import constants as pc, neutron_star, relations
@@ -44,7 +43,7 @@ from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar, hawking_luminosity_w
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
-from planetgen.generation.plausibility import iqr_bounds
+from planetgen.generation.plausibility import format_metric_lines, metric_statistics
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, sedov_taylor_radius_ly
@@ -536,28 +535,7 @@ def analyze(records, k=3.0):
             if issues:
                 hard_violations.append((record, issues))
 
-        metric_report = {}
-        for metric in STATISTICAL_METRICS_BY_TYPE.get(phenomenon_type, ()):
-            values = [r[metric] for r in recs if r.get(metric) is not None and math.isfinite(r[metric])]
-            if not values:
-                continue
-            lo, hi = iqr_bounds(values, k=k)
-            outliers = [
-                r for r in recs
-                if r.get(metric) is not None and math.isfinite(r[metric]) and not (lo <= r[metric] <= hi)
-            ]
-            metric_report[metric] = {
-                "n": len(values),
-                "min": min(values),
-                "max": max(values),
-                "mean": statistics.mean(values),
-                "median": statistics.median(values),
-                "stdev": statistics.stdev(values) if len(values) > 1 else 0.0,
-                "iqr_bounds": (lo, hi),
-                "outlier_count": len(outliers),
-                "outlier_fraction": len(outliers) / len(recs),
-                "outlier_examples": outliers[:5],
-            }
+        metric_report = metric_statistics(recs, STATISTICAL_METRICS_BY_TYPE.get(phenomenon_type, ()), k)
 
         category_report = {}
         for field, expected_proportions in CATEGORY_EXPECTATIONS.get(phenomenon_type, {}).items():
@@ -610,18 +588,7 @@ def format_report(report, show_outlier_examples=True, category_flag_margin=0.1):
             for record, issues in data["hard_violations"][:5]:
                 lines.append(f"    - {record}: " + "; ".join(issues))
 
-        for metric, stats in data["metrics"].items():
-            flag = " <-- outliers present" if stats["outlier_count"] else ""
-            lines.append(
-                f"  {metric}: min={stats['min']:.4g} max={stats['max']:.4g} "
-                f"mean={stats['mean']:.4g} median={stats['median']:.4g} "
-                f"stdev={stats['stdev']:.4g} "
-                f"outliers={stats['outlier_count']}/{data['n']} "
-                f"({stats['outlier_fraction']:.1%}){flag}"
-            )
-            if show_outlier_examples and stats["outlier_examples"]:
-                for record in stats["outlier_examples"]:
-                    lines.append(f"      e.g. {metric}={record[metric]:.4g}")
+        format_metric_lines(lines, data, show_outlier_examples, lambda metric, r: "")
 
         for field, cat_data in data["categories"].items():
             lines.append(f"  {field} (observed vs. expected):")

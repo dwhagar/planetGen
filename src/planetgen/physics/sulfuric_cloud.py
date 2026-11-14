@@ -21,7 +21,6 @@ and a mass limit but no saturation crossing.
 The numbers are in `physics/data/sulfuric_cloud.json` with their tier and tweak level; the registry rows are SC1 to SC5 of the gap plan.
 """
 
-import json
 import math
 import os
 
@@ -39,13 +38,8 @@ class SulfuricCloudError(ValueError):
 
 
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise SulfuricCloudError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-    return document
+    """The rule file's document, checked (`elements.load_rule_numbers`): every number has a value, a tier, a tweak and a basis."""
+    return elements.load_rule_numbers(DATA_FILE, SulfuricCloudError)
 
 
 DOCUMENT = _load()

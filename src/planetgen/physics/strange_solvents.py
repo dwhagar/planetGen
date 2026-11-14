@@ -14,7 +14,6 @@ out from the body's bulk composition (`bulk_composition`, GEN.428), so nothing i
 * **Silicon.** 1 when the rock's molar Mg/Si is at or under `silicon_rich_mg_si_max`, else 0; `None` when the body stores no ratio.
 """
 
-import json
 import os
 
 from planetgen.physics import elements
@@ -27,13 +26,8 @@ class StrangeSolventError(ValueError):
 
 
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise StrangeSolventError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-    return document
+    """The rule file's document, checked (`elements.load_rule_numbers`): every number has a value, a tier, a tweak and a basis."""
+    return elements.load_rule_numbers(DATA_FILE, StrangeSolventError)
 
 
 DOCUMENT = _load()

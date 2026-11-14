@@ -33,6 +33,8 @@ a body's elements from its state vector with `elements_from_state`, and
 
 import math
 
+from planetgen.physics import vec3
+
 TWO_PI = 2.0 * math.pi
 
 PARABOLIC_TOLERANCE = 1.0e-12
@@ -43,25 +45,9 @@ CIRCULAR_TOLERANCE = 1.0e-10
 0 the node vector is to count as untilted)."""
 
 
-def _dot(a, b):
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-
-
-def _cross(a, b):
-    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
-
-
-def _norm(a):
-    return math.sqrt(_dot(a, a))
-
-
-def _scale(a, k):
-    return (a[0] * k, a[1] * k, a[2] * k)
-
-
 def _angle_about(a, b, axis):
     """The angle from `a` to `b` turning about the unit `axis`, in [0, 2 pi)."""
-    return math.atan2(_dot(_cross(a, b), axis), _dot(a, b)) % TWO_PI
+    return math.atan2(vec3.dot(vec3.cross(a, b), axis), vec3.dot(a, b)) % TWO_PI
 
 
 def _rotate(vector, inclination, ascending_node, arg_periapsis):
@@ -140,38 +126,38 @@ def elements_from_state(position, velocity, mu):
     for value in (*position, *velocity):
         if not math.isfinite(value):
             raise ValueError(f"the state vector must be finite, got {tuple(position)!r}, {tuple(velocity)!r}")
-    r = _norm(position)
-    h = _cross(position, velocity)
-    h_norm = _norm(h)
-    if r == 0.0 or h_norm <= 1.0e-12 * r * _norm(velocity):
+    r = vec3.norm(position)
+    h = vec3.cross(position, velocity)
+    h_norm = vec3.norm(h)
+    if r == 0.0 or h_norm <= 1.0e-12 * r * vec3.norm(velocity):
         raise ValueError("the body has no orbital plane (it sits on its primary or moves along the line to it)")
-    h_hat = _scale(h, 1.0 / h_norm)
+    h_hat = vec3.scale(h, 1.0 / h_norm)
 
-    eccentricity_vector = tuple(c / mu - p / r for c, p in zip(_cross(velocity, h), position))
-    eccentricity = _norm(eccentricity_vector)
+    eccentricity_vector = tuple(c / mu - p / r for c, p in zip(vec3.cross(velocity, h), position))
+    eccentricity = vec3.norm(eccentricity_vector)
     p = h_norm * h_norm / mu
     periapsis_distance = p / (1.0 + eccentricity)
     inclination = math.acos(max(-1.0, min(1.0, h_hat[2])))
 
     node_vector = (-h_hat[1], h_hat[0], 0.0)
-    node_norm = _norm(node_vector)
+    node_norm = vec3.norm(node_vector)
     if node_norm < CIRCULAR_TOLERANCE:
         ascending_node = 0.0
         reference = (1.0, 0.0, 0.0)
     else:
         ascending_node = math.atan2(h_hat[0], -h_hat[1]) % TWO_PI
-        reference = _scale(node_vector, 1.0 / node_norm)
+        reference = vec3.scale(node_vector, 1.0 / node_norm)
 
-    position_hat = _scale(position, 1.0 / r)
+    position_hat = vec3.scale(position, 1.0 / r)
     if eccentricity < CIRCULAR_TOLERANCE:
         arg_periapsis = 0.0
         true_anomaly = _angle_about(reference, position_hat, h_hat)
     else:
-        eccentricity_hat = _scale(eccentricity_vector, 1.0 / eccentricity)
+        eccentricity_hat = vec3.scale(eccentricity_vector, 1.0 / eccentricity)
         arg_periapsis = _angle_about(reference, eccentricity_hat, h_hat)
         true_anomaly = _angle_about(eccentricity_hat, position_hat, h_hat)
 
-    energy = 0.5 * _dot(velocity, velocity) - mu / r
+    energy = 0.5 * vec3.dot(velocity, velocity) - mu / r
     if abs(eccentricity - 1.0) <= PARABOLIC_TOLERANCE:
         kind, semi_major_axis, period = "parabolic", math.inf, None
     elif eccentricity < 1.0:
@@ -214,12 +200,12 @@ def equinoctial_from_state(position, velocity, mu):
     """
     if not mu > 0.0 or not math.isfinite(mu):
         raise ValueError(f"mu must be positive, got {mu!r}")
-    r = _norm(position)
-    h_vec = _cross(position, velocity)
-    h_norm = _norm(h_vec)
-    if r == 0.0 or h_norm <= 1.0e-12 * r * _norm(velocity):
+    r = vec3.norm(position)
+    h_vec = vec3.cross(position, velocity)
+    h_norm = vec3.norm(h_vec)
+    if r == 0.0 or h_norm <= 1.0e-12 * r * vec3.norm(velocity):
         raise ValueError("the body has no orbital plane (it sits on its primary or moves along the line to it)")
-    h_hat = _scale(h_vec, 1.0 / h_norm)
+    h_hat = vec3.scale(h_vec, 1.0 / h_norm)
     if 1.0 + h_hat[2] < 1.0e-12:
         raise ValueError("modified equinoctial elements are singular for a retrograde equatorial orbit")
     k_eq = h_hat[0] / (1.0 + h_hat[2])
@@ -228,14 +214,14 @@ def equinoctial_from_state(position, velocity, mu):
     s2 = 1.0 + h_eq * h_eq + k_eq * k_eq
     f_hat = ((1.0 - k_eq * k_eq + h_eq * h_eq) / s2, 2.0 * k_eq * h_eq / s2, -2.0 * k_eq / s2)
     g_hat = (2.0 * k_eq * h_eq / s2, (1.0 + k_eq * k_eq - h_eq * h_eq) / s2, 2.0 * h_eq / s2)
-    eccentricity_vector = tuple(c / mu - q / r for c, q in zip(_cross(velocity, h_vec), position))
+    eccentricity_vector = tuple(c / mu - q / r for c, q in zip(vec3.cross(velocity, h_vec), position))
     return {
         "p": h_norm * h_norm / mu,
-        "f": _dot(eccentricity_vector, f_hat),
-        "g": _dot(eccentricity_vector, g_hat),
+        "f": vec3.dot(eccentricity_vector, f_hat),
+        "g": vec3.dot(eccentricity_vector, g_hat),
         "h": h_eq,
         "k": k_eq,
-        "L": math.atan2(_dot(position, g_hat), _dot(position, f_hat)) % TWO_PI,
+        "L": math.atan2(vec3.dot(position, g_hat), vec3.dot(position, f_hat)) % TWO_PI,
     }
 
 

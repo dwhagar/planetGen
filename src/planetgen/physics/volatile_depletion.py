@@ -36,7 +36,7 @@ import math
 import os
 
 from planetgen.physics import condensate_shares, elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, positive_number
 from planetgen.util.checks import finite_domain
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "volatile_depletion.json")
@@ -51,10 +51,7 @@ def load(path=DATA_FILE):
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the volatile depletion table {path}: {error}") from error
 
-    def positive(value, what):
-        if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or value <= 0:
-            raise DataError(f"{what} must be a positive number, not {value!r}")
-        return float(value)
+    positive = positive_number      # GEN.1667: the shared check
 
     law = document.get("law") or {}
     law = {"slope_per_k": positive(law.get("slope_per_k"), "the slope"), "cut_k": positive(law.get("cut_k"), "the cut"),

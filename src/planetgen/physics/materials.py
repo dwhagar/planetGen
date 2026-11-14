@@ -6,9 +6,8 @@ The shared materials and components table (GEN.427, docs/design/composition/bulk
 
 The one table of every element, mineral, ice, organic and alloy a body can contain: its formula, molar mass, grain density,
 phase points, latent heats, the band albedos and the equation-of-state constants of the model GEN.426 chose, each number with
-the source it was read from. There is no component list owned by one kind: the 84 names of `tuning.ASTEROID_COMPONENTS`, the
-taxa of `physics/small_body_composition.py` and the composition texts of
-`tuning.PLANET_CLASSES` all resolve to rows of it (`material`, `class_composition`), and a test fails when one does not. A
+the source it was read from. There is no component list owned by one kind: the 84 names of `tuning.ASTEROID_COMPONENTS` and the
+taxa of `physics/small_body_composition.py` all resolve to rows of it (`material`), and a test fails when one does not. A
 planet's or moon's bulk and surface draws (GEN.428, GEN.441) read the same rows; this item holds the data only and
 changes no draw, so it bumps nothing (Boss, 2:10 PM EDT, card "Data table, no bump").
 
@@ -40,7 +39,6 @@ Use:
     material("plagioclase feldspars").members              # the rows a group name stands for
     material("carbon dioxide ice").prop("rho_grain_g_cm3").value
     material("iron_epsilon").eos_of("vinet")               # the Vinet constants, source and range
-    class_composition("silicon, iron, and magnesium")     # the rows a class text names
     MATERIALS                                              # every row, in the file's order
 """
 
@@ -423,21 +421,6 @@ def material(name):
 def has(name):
     """Whether the table has the material, by id, name or alias."""
     return str(name).lower() in _NAMES
-
-
-def class_composition(text):
-    """
-    The rows a class composition text of `tuning.PLANET_CLASSES` names (`"silicon, iron, and magnesium"`), in the order the text
-    gives them.
-
-    Raises:
-        UnknownMaterial: The text is not one the file maps.
-    """
-    try:
-        names = _DATA["legacy_names"]["class_compositions"][text]
-    except KeyError:
-        raise UnknownMaterial(f"the class composition {text!r} is not mapped in materials.json (legacy_names.class_compositions)") from None
-    return tuple(material(name) for name in names)
 
 
 def expand(name):

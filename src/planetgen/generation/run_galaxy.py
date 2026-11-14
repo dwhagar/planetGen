@@ -1945,8 +1945,7 @@ def _neighborhood_center(args):
         conn.close()
 
     if center_position is None:
-        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.",
-                  sector_id=args.center_sector)
+        log.error(f"Sector {args.center_sector} has never been placed in a galaxy, and --center-sector needs one that was (made by 'planetgen galaxy'). Use --shell instead.")
         raise SystemExit(1)
     return (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
 
@@ -2480,8 +2479,7 @@ def _plan_random_start(args, edge_pc, progress):
             if args.min_start_density is not None else ""
         )
         within = f"within {args.max_shell} shells" if args.max_shell is not None else "in the galaxy"
-        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.",
-                  attempts=program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS)
+        log.error(f"No unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note}. Try a larger --max-shell.")
         raise SystemExit(1)
     if len(starts) < args.neighborhoods:
         log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods "
@@ -3122,9 +3120,10 @@ def run_sectors(args):
 def run_galaxy(args):
     """
     `planetgen galaxy`: the sectors in the mode the arguments ask for (span, course, single-address, shell,
-    local-neighborhood, or random-start), then the link, the scatters of the bright stars and phenomena (GEN.30: they come
-    after the sectors, so neither the scatter nor the backfill draws stars for a sector the run filled), the backfill, the
-    population and territories, the sector paths (GEN.126) and the block totals -- every one a stage of the one run
+    local-neighborhood, or random-start), then the link, the clearing of the earlier bright stars (which stores the scatter's
+    limits), the backfill out from the filled sectors (before the scatters, so the scatters draw everything past it),
+    the scatters of the bright stars and phenomena (GEN.30: they come after the sectors, so neither the scatter nor the
+    backfill draws stars for a sector the run filled), the population and territories, the sector paths (GEN.126) and the block totals -- every one a stage of the one run
     (PERF.172), so one estimate covers it and it is one entry in the queue. First checks the galaxy has been planned at the
     standard sector edge, since every mode validates its addresses against that plan's stored outline before generating
     anything.
@@ -3135,10 +3134,13 @@ def run_galaxy(args):
     args.stage_skips = run_plan.stored_scatter_skips(args)       # PERF.256: a scatter that is stored and current is not planned
 
     def tail(since):
-        stars, _book = run_plan.bright_star_followers(args)
+        stars, _book = run_plan.bright_star_followers(args, prepare=True)
         phenomena, _book = run_plan.phenomena_followers(args)
-        planned = [LinkFollower(args, since), *stars, *phenomena,
-                   BackfillFollower(args, since), run_population.population_follower(args),
+        clear, passes = (stars[:1], stars[1:]) if stars and stars[0].key == stages.BRIGHT_CLEAR_STAGE["mass"].key else ([], stars)
+        # the backfill goes out from the filled sectors before the scatters, so the scatters draw everything past it: the clear (which also
+        # stores the scatter's limits, so the backfill draws only what the passes leave out) is the first thing after the link
+        planned = [LinkFollower(args, since), *clear, BackfillFollower(args, since), *passes, *phenomena,
+                   run_population.population_follower(args),
                    run_population.territories_follower(args), SettleFollower(args, since),
                    RunBlocksFollower(args, since), run_plan.BlockLightsFollower(args)]       # PERF.251: the block lights are the last thing a galaxy run makes
         for key, reason in args.stage_skips.items():

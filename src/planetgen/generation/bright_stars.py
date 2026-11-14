@@ -948,47 +948,89 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
-    bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
+    yield from _backfill_bands(shape, addresses, edge_pc, expected_at_density_1, seed,
+                               _luminosity_bands(shape, min_luminosity_sol, max_luminosity_sol, mass_range), memo)
+
+
+DrawBand = collections.namedtuple("DrawBand", "key low high tag shares_key share sample keep")
+"""One band of a backfill draw (GEN.1662), what `backfill_cells` (a luminosity band) and `backfill_mass_cells` (a mass band)
+differ in: `key` names the band in its streams (`k`, or `m<low>`), `low`/`high` are its edges, `tag` is what its block path
+depends on besides the band (`candidate_path`), `shares_key` is what its population shares depend on besides the band
+(the memo's key for them, `_band_shares`), `share(population)` is the population's share of the band,
+`sample(count, population, rng, fe_h_source)` draws its stars, and `keep(row)` says whether a drawn row is kept."""
+
+
+def _luminosity_bands(shape, min_luminosity_sol, max_luminosity_sol, mass_range):
+    """The `DrawBand`s of a luminosity backfill from `min_luminosity_sol` to `max_luminosity_sol` (`canonical_bands`)."""
     age_laws = age_laws_of(shape)
+    return [DrawBand(
+        key=k, low=low, high=high, tag=mass_range, shares_key=("shares", mass_range),
+        share=lambda population, low=low, high=high: bright_band_fraction(low, high, population, mass_range, age_laws),
+        sample=lambda count, population, rng, fe_h_source, low=low, high=high: sample_bright_stars(
+            count, low, population, rng, max_luminosity_sol=high, mass_range=mass_range, age_laws=age_laws,
+            fe_h_source=fe_h_source),
+        keep=lambda row: _in_range(row, min_luminosity_sol, max_luminosity_sol),
+    ) for k, low, high in canonical_bands(min_luminosity_sol, max_luminosity_sol)]
+
+
+def _mass_bands(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges):
+    """The `DrawBand`s of a mass backfill from `target_mass_sol` to `held_mass_sol` (`canonical_mass_bands`), dimmer than
+    `max_luminosity_sol`."""
+    age_laws = age_laws_of(shape)
+    return [DrawBand(
+        key=f"m{low:g}", low=low, high=high, tag=(max_luminosity_sol, high), shares_key=("mass shares", max_luminosity_sol),
+        share=lambda population, low=low, high=high: mass_band_fraction(low, high, max_luminosity_sol, population, age_laws),
+        sample=lambda count, population, rng, fe_h_source, low=low, high=high: sample_mass_band_stars(
+            count, low, high, population, rng, max_luminosity_sol=max_luminosity_sol, age_laws=age_laws,
+            fe_h_source=fe_h_source),
+        keep=lambda row: True,
+    ) for low, high in canonical_mass_bands(target_mass_sol, held_mass_sol, edges)]
+
+
+def _backfill_bands(shape, addresses, edge_pc, expected_at_density_1, seed, bands, memo):
+    """
+    The one backfill draw (GEN.1662): per cell of `addresses` and `DrawBand` of `bands`, either the block's candidates
+    (GEN.309, `candidate_path`) or a Poisson count per population from the cell's own stream (`seed:address:key`), each
+    star uniform in the cell.
+
+    Yields:
+        tuple: One row per star kept, in `store.BRIGHT_STAR_COLUMNS` order.
+    """
     memo = {} if memo is None else _trimmed(memo)
-    of_band = _band_shares(memo, ("shares", mass_range), [(k, low, high) for k, low, high in bands],
-                           lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
+    of_band = _band_shares(memo, bands)
     for shell_index, band_index, wedge in addresses:
         address = (shell_index, band_index, wedge)
-        for k, low, high in bands:
-            candidates = candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, k, of_band[k],
-                                        mass_range)
+        for band in bands:
+            shares = of_band[band.key]
+            candidates = candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, band.key, shares, band.tag)
             if candidates is not None and not candidates:
                 continue          # a sparse block that put no star in this cell: its densities are never read
             densities, volume = _cell_densities(memo, shape, address, edge_pc)
-            means = {population: expected_at_density_1 * volume * densities[population] * of_band[k][population]
+            means = {population: expected_at_density_1 * volume * densities[population] * shares[population]
                      for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
             center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
             if candidates is not None:
-                for row in _candidate_rows(candidates, address, means, seed, k, edge_pc,
-                                           lambda population, rng, low=low, high=high: sample_bright_stars(
-                                               1, low, population, rng, max_luminosity_sol=high, mass_range=mass_range,
-                                               age_laws=age_laws, fe_h_source=center_fe_h(population, center, rng))):
-                    if _in_range(row, min_luminosity_sol, max_luminosity_sol):
+                for row in _candidate_rows(candidates, address, means, seed, band.key, edge_pc,
+                                           lambda population, rng, band=band: band.sample(
+                                               1, population, rng, center_fe_h(population, center, rng))):
+                    if band.keep(row):
                         yield row
                 continue
-            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:{k}")
+            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:{band.key}")
             for population in SCATTERED_POPULATIONS:
                 if means[population] <= 0.0:
                     continue
                 count = _sample_poisson_count(means[population], rng=rng)
                 if not count:
                     continue
-                for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high,
-                                                  mass_range=mass_range, age_laws=age_laws,
-                                                  fe_h_source=center_fe_h(population, center, rng)):
+                for params in band.sample(count, population, rng, center_fe_h(population, center, rng)):
                     for _ in range(SLOT_REDRAWS):
                         point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:
                             row = _row(shell_index, band_index, wedge, point, population, params, rng)
-                            if _in_range(row, min_luminosity_sol, max_luminosity_sol):
+                            if band.keep(row):
                                 yield row
                             break
 
@@ -1181,22 +1223,17 @@ def candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, k
     return found.get(wedge, [])
 
 
-def _band_shares(memo, memo_key, bands, share_of):
+def _band_shares(memo, bands):
     """
-    The share of each population in each of `bands` (`(name, low, high)`), as `{name: {population: share}}`, kept in
-    `memo` under `memo_key`: they depend on the band, the mass or luminosity limit and the galaxy's age laws, not on the
-    cell, and a draw that asks per sector would otherwise work them out for every sector (most of a sparse cell's cost).
-
-    Args:
-        memo (dict): The draw's memo.
-        memo_key: What the shares depend on besides the band (the limit), the memo's key for them.
-        bands (list): `(name, low, high)` of each band.
-        share_of (callable): `share_of(low, high, population)` -> the population's share of the band.
+    The share of each population in each `DrawBand` of `bands`, as `{band.key: {population: share}}`, kept in `memo`
+    under the bands' `shares_key`: they depend on the band, the mass or luminosity limit and the galaxy's age laws, not
+    on the cell, and a draw that asks per sector would otherwise work them out for every sector (most of a sparse
+    cell's cost). Every band of one draw shares one `shares_key`.
     """
-    kept = memo.setdefault(memo_key, {})
-    for name, low, high in bands:
-        if name not in kept:
-            kept[name] = {population: share_of(low, high, population) for population in SCATTERED_POPULATIONS}
+    kept = memo.setdefault(bands[0].shares_key, {}) if bands else {}
+    for band in bands:
+        if band.key not in kept:
+            kept[band.key] = {population: band.share(population) for population in SCATTERED_POPULATIONS}
     return kept
 
 
@@ -1326,46 +1363,8 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
-    bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
-    age_laws = age_laws_of(shape)
-    memo = {} if memo is None else _trimmed(memo)
-    of_band = _band_shares(memo, ("mass shares", max_luminosity_sol), [((low, high), low, high) for low, high in bands],
-                           lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
-                                                                            age_laws))
-    for shell_index, band_index, wedge in addresses:
-        address = (shell_index, band_index, wedge)
-        for low, high in bands:
-            candidates = candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, f"m{low:g}",
-                                        of_band[(low, high)], (max_luminosity_sol, high))
-            if candidates is not None and not candidates:
-                continue          # a sparse block that put no star in this cell: its densities are never read
-            densities, volume = _cell_densities(memo, shape, address, edge_pc)
-            means = {population: expected_at_density_1 * volume * densities[population] * of_band[(low, high)][population]
-                     for population in SCATTERED_POPULATIONS}
-            if not any(mean > 0.0 for mean in means.values()):
-                continue
-            center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
-            if candidates is not None:
-                yield from _candidate_rows(candidates, address, means, seed, f"m{low:g}", edge_pc,
-                                           lambda population, rng, low=low, high=high: sample_mass_band_stars(
-                                               1, low, high, population, rng, max_luminosity_sol=max_luminosity_sol,
-                                               age_laws=age_laws, fe_h_source=center_fe_h(population, center, rng)))
-                continue
-            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:m{low:g}")
-            for population in SCATTERED_POPULATIONS:
-                if means[population] <= 0.0:
-                    continue
-                count = _sample_poisson_count(means[population], rng=rng)
-                if not count:
-                    continue
-                for params in sample_mass_band_stars(count, low, high, population, rng,
-                                                     max_luminosity_sol=max_luminosity_sol, age_laws=age_laws,
-                                                     fe_h_source=center_fe_h(population, center, rng)):
-                    for _ in range(SLOT_REDRAWS):
-                        point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
-                        if point is not None:
-                            yield _row(shell_index, band_index, wedge, point, population, params, rng)
-                            break
+    yield from _backfill_bands(shape, addresses, edge_pc, expected_at_density_1, seed,
+                               _mass_bands(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges), memo)
 
 
 SPHERE_BATCH_CELLS = 500
@@ -1448,27 +1447,21 @@ def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_
     Yields:
         tuple: `(addresses, memo)`; pass the memo to `backfill_cells`.
     """
-    bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
-    age_laws = age_laws_of(shape)
-    shared = {} if memo is None else memo
-    shares_key = ("shares", mass_range)
-    of_band = _band_shares(shared, shares_key, [(k, low, high) for k, low, high in bands],
-                           lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
-    paths = [(k, of_band[k], mass_range) for k, _, _ in bands]
-    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
+    paths, seeded = _paths(_luminosity_bands(shape, min_luminosity_sol, max_luminosity_sol, mass_range), {} if memo is None else memo)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded)
+
+
+def _paths(bands, shared):
+    """`(paths, seeded)` of a draw made of `bands`: the bands' `(key, shares, tag)` that `_sphere_batches` takes, and the
+    entries its batches' memos start with (the shares, kept in `shared`)."""
+    of_band = _band_shares(shared, bands)
+    return [(band.key, of_band[band.key], band.tag) for band in bands], {bands[0].shares_key: of_band} if bands else {}
 
 
 def _mass_paths(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges, shared):
     """`(paths, seeded)` of the mass bands a draw from `target_mass_sol` to `held_mass_sol` is made of: the bands' `(key, shares, tag)` that `_sphere_batches` takes, and the
     entries its batches' memos start with (the shares, kept in `shared`)."""
-    bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
-    age_laws = age_laws_of(shape)
-    shares_key = ("mass shares", max_luminosity_sol)
-    of_band = _band_shares(shared, shares_key, [((low, high), low, high) for low, high in bands],
-                           lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
-                                                                            age_laws))
-    paths = [(f"m{low:g}", of_band[(low, high)], (max_luminosity_sol, high)) for low, high in bands]
-    return paths, {shares_key: shared[shares_key]}
+    return _paths(_mass_bands(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges), shared)
 
 
 def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):

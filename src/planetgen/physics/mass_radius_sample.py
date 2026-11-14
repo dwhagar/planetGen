@@ -41,7 +41,7 @@ from dataclasses import dataclass
 from planetgen.generation import tuning_harness
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "mass_radius_sample.json")
@@ -117,17 +117,11 @@ class Model:
     retrieved: str
 
 
-def _finite(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"{owner}: {value!r} is not a finite number")
-    return float(value)
-
-
 def _line(owner, raw):
-    scatter = _finite(f"{owner} scatter", raw.get("scatter"))
+    scatter = finite_number(f"{owner} scatter", raw.get("scatter"))
     if scatter <= 0:
         raise DataError(f"{owner}: the scatter {scatter} is not positive")
-    return Line(_finite(f"{owner} intercept", raw.get("intercept")), _finite(f"{owner} slope", raw.get("slope")), scatter)
+    return Line(finite_number(f"{owner} intercept", raw.get("intercept")), finite_number(f"{owner} slope", raw.get("slope")), scatter)
 
 
 def load(path=DATA_FILE):
@@ -138,14 +132,14 @@ def load(path=DATA_FILE):
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the mass-radius sample model {path}: {error}") from error
     cut = document.get("cut") or {}
-    mass_cut, radius_cut = _finite("mass cut", cut.get("mass_error_share")), _finite("radius cut", cut.get("radius_error_share"))
+    mass_cut, radius_cut = finite_number("mass cut", cut.get("mass_error_share")), finite_number("radius cut", cut.get("radius_error_share"))
     if not 0 < mass_cut < 1 or not 0 < radius_cut < 1:
         raise DataError("the error shares of the cut are out of range")
     subsamples = {}
     for name, raw in (document.get("subsamples") or {}).items():
-        correlation = _finite(f"{name} correlation", raw.get("residual_correlation"))
+        correlation = finite_number(f"{name} correlation", raw.get("residual_correlation"))
         population = raw.get("population") or {}
-        if not -1 < correlation < 1 or not -1 < _finite(f"{name} population correlation", population.get("correlation")) < 1:
+        if not -1 < correlation < 1 or not -1 < finite_number(f"{name} population correlation", population.get("correlation")) < 1:
             raise DataError(f"{name}: a correlation is outside (-1, 1)")
         n, passing = raw.get("n"), raw.get("passing")
         if not isinstance(n, int) or not isinstance(passing, int) or not 0 <= passing <= n or n < 10:
@@ -154,13 +148,13 @@ def load(path=DATA_FILE):
             name=name, description=raw.get("description", ""), n=n, passing=passing,
             sigma_k=_line(f"{name} sigma_k", raw.get("ln_sigma_k") or {}),
             sigma_depth=_line(f"{name} sigma_depth", raw.get("ln_sigma_depth") or {}), correlation=correlation,
-            mean_ln_k=_finite(f"{name} mean_ln_k", population.get("mean_ln_k")), sd_ln_k=_finite(f"{name} sd_ln_k", population.get("sd_ln_k")),
-            mean_ln_depth=_finite(f"{name} mean_ln_depth", population.get("mean_ln_depth")),
-            sd_ln_depth=_finite(f"{name} sd_ln_depth", population.get("sd_ln_depth")),
-            population_correlation=_finite(f"{name} population correlation", population.get("correlation")))
+            mean_ln_k=finite_number(f"{name} mean_ln_k", population.get("mean_ln_k")), sd_ln_k=finite_number(f"{name} sd_ln_k", population.get("sd_ln_k")),
+            mean_ln_depth=finite_number(f"{name} mean_ln_depth", population.get("mean_ln_depth")),
+            sd_ln_depth=finite_number(f"{name} sd_ln_depth", population.get("sd_ln_depth")),
+            population_correlation=finite_number(f"{name} population correlation", population.get("correlation")))
     if not subsamples:
         raise DataError("the model has no sub-samples")
-    return Model(mass_cut=mass_cut, radius_cut=radius_cut, k_per_earth_mass_ms=_finite("k_per_earth_mass_ms", document.get("k_per_earth_mass_ms")),
+    return Model(mass_cut=mass_cut, radius_cut=radius_cut, k_per_earth_mass_ms=finite_number("k_per_earth_mass_ms", document.get("k_per_earth_mass_ms")),
                  subsamples=subsamples, source=document.get("source", ""), retrieved=document.get("retrieved", ""))
 
 

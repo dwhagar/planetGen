@@ -79,10 +79,6 @@ EXTINCTION_STEPS = 512
 """int: Samples along a line of sight. The sech^2 layer is 134 pc thick, so 60 pc steps at 30 kpc still sample it."""
 
 
-def _log10(value):
-    return np.log10(np.asarray(value, dtype=float))
-
-
 def _flower(log_t):
     """Flower's fit on an array of log10 T already inside its range."""
     out = np.empty_like(log_t)

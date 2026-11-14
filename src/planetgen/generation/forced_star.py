@@ -36,6 +36,10 @@ ALIASES = {"IA+": "0", "D": "VII"}
 """A forced Yerkes class the model names otherwise."""
 
 _FE_H_BUCKETS = (-2.0, -1.5, -1.0, -0.5, 0.0, 0.5)
+FORCED_SUBDWARF_MARGIN_DEX = 0.01
+"""float: How far under the subdwarf luminosity limit (dex) a forced subdwarf of a temperature no model subdwarf has is shown. Stand-in, tier 9 (needed output), tweak level L0: only
+keeps the star on the right side of `stellar_evolution.is_subdwarf`."""
+
 _MODEL_CLASSES = ("0", "IA", "IAB", "IB", "II", "III", "IV", "V", "VI", "VII")
 
 
@@ -137,6 +141,13 @@ def target_temperature_k(letter, subclass):
     return mamajek_sequence.temperature_k(letter, subclass)
 
 
+def _shown(state, exact, letter, subclass):
+    """`state` as the star shows it: at the type's nominal temperature when the model never makes the type, and at the temperature
+    `stellar_evolution.star_params` stores (rounded to the nearest hundred kelvin) either way, which is what its class is judged at."""
+    temperature = state["temperature_k"] if exact else target_temperature_k(letter, subclass)
+    return {**state, "temperature_k": round(temperature, tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED)}
+
+
 def _nearest_cells(yerkes, target_k, bucket):
     """The cells of `yerkes` closest in temperature to `target_k` (those within `FORCED_STAR_NEAREST_SLACK` of the best)."""
     wanted = (yerkes, _HOT_SUBDWARF_KEY) if yerkes == "VI" else (yerkes,)
@@ -182,18 +193,36 @@ def sample(letter, subclass, yerkes, age_bias=None, rng=draw, population=None, f
         state = evolution.evolve_star(mass, age, rng, fe_h=fe_h)
         if state is None or state["yerkes_class"] not in _MODEL_CLASSES:
             continue
+        # A type the model never makes is shown at the temperature the type stands for (`Star._generate_forced_type`), so the star's
+        # class is judged at that temperature with its own luminosity: a subdwarf at its own temperature can be a dwarf at the nominal
+        # one, and the forced K5VI would classify as V (GEN.1669).
+        shown = _shown(state, exact, letter, subclass)
         if model_class == "VI":
-            if not (evolution.yerkes_class_of(state) == "VI" or _hot_subdwarf(state)):
+            if not (evolution.yerkes_class_of(shown) == "VI" or _hot_subdwarf(state)):
                 continue
-        elif evolution.yerkes_class_of(state) != model_class:
+        elif evolution.yerkes_class_of(shown) != model_class:
             continue
         if exact and _key(state) != (letter, subclass):
             continue
         return ForcedStar(mass, age, state, exact, fe_h)
     # The jittered stars fell out of the type (a state with a draw in it, a horizontal-branch colour or a white dwarf's
     # atmosphere, moves with the draw); the cell's own star is in it, at the temperature the table recorded.
-    state = evolution.evolve_star(cell.mass_sol, cell.age_gy, rng, fe_h=bucket)
-    state["temperature_k"] = cell.temperature_k
+    # A type the model never makes is shown at the nominal temperature, so the cell taken is one whose own star is still of the class there.
+    for candidate in [cell] + [other for other in cells if other is not cell]:
+        state = evolution.evolve_star(candidate.mass_sol, candidate.age_gy, rng, fe_h=bucket)
+        state["temperature_k"] = candidate.temperature_k
+        shown = _shown(state, exact, letter, subclass)
+        if (evolution.yerkes_class_of(shown) == model_class) or (model_class == "VI" and _hot_subdwarf(state)):
+            cell = candidate
+            break
+    else:
+        state = evolution.evolve_star(cell.mass_sol, cell.age_gy, rng, fe_h=bucket)
+        state["temperature_k"] = cell.temperature_k
+        if model_class == "VI" and not exact and not _hot_subdwarf(state):
+            # No subdwarf of the model is under-luminous enough at the nominal temperature (the nearest are cooler or hotter): the nearest one is
+            # shown just under the subdwarf limit there, so the forced type classifies as it was asked (GEN.1669).
+            limit = mamajek_sequence.dwarf_log_luminosity(_shown(state, exact, letter, subclass)["temperature_k"]) - tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX - FORCED_SUBDWARF_MARGIN_DEX
+            state["luminosity_sol"] = min(state["luminosity_sol"], 10.0 ** limit)
     return ForcedStar(cell.mass_sol, cell.age_gy, state, exact, bucket)
 
 

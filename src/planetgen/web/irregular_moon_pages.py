@@ -29,14 +29,6 @@ def irregular_moon_url(planet_ref, rank):
     return page_url("irregular_moon_page", planet_ref=planet_ref, rank=f"{rank:0{object_uid.MEMBER_RANK_DIGITS}X}")
 
 
-def _quantity(value):
-    return value["text"] if value else ""
-
-
-def _composition_text(entry):
-    return ", ".join(f"{part} {entry['composition'][part]['text']}" for part in ("rock", "metal", "water", "ice") if entry["composition"][part]["value"] > 0.0)
-
-
 def _planet_ref(planet_ref):
     try:
         kind, printed_id = objectref.parse_public(planet_ref)
@@ -70,8 +62,8 @@ def irregular_moons_page(planet_ref):
         planet_url=item_url(ref),
         planet=data["planet"],
         not_stored=data["not_stored"],
-        moons=[{**moon, "url": irregular_moon_url(ref, moon["rank"]), "composition_text": _composition_text(moon), "window_text": WINDOW_WORDS[moon["window"]]} for moon in data["moons"]],
-        quantity=_quantity,
+        moons=[{**moon, "url": irregular_moon_url(ref, moon["rank"]), "composition_text": bodyview.member_composition_text(moon), "window_text": WINDOW_WORDS[moon["window"]]} for moon in data["moons"]],
+        quantity=bodyview.quantity_text,
     )
 
 
@@ -107,12 +99,12 @@ def irregular_moon_page(planet_ref, rank):
         planet=data["planet"],
         moon=moon,
         window_text=WINDOW_WORDS[moon["window"]],
-        composition_text=_composition_text(moon),
+        composition_text=bodyview.member_composition_text(moon),
         orbit=data["orbit"],
         previous_url=irregular_moon_url(ref, data["previous"]["rank"]) if data["previous"] else None,
         next_url=irregular_moon_url(ref, data["next"]["rank"]) if data["next"] else None,
         previous=data["previous"]["designation"] if data["previous"] else None,
         next=data["next"]["designation"] if data["next"] else None,
-        quantity=_quantity,
+        quantity=bodyview.quantity_text,
         example=bodyview.member_view(data["designation"], moon),
     )

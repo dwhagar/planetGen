@@ -147,11 +147,6 @@ BASE_REASONS = tuple(reason for reason in REASONS if not reason.startswith(PER_C
 """tuple: The reasons that are neither a planet class nor a life class: what every node lists whatever the visitor chose."""
 
 
-def reason_ids():
-    """The reason ids, in order."""
-    return tuple(REASONS)
-
-
 def _sources(reason):
     """`[(key, test)]` of the tables a reason reads: its tests that are not None."""
     spec = REASONS[reason]

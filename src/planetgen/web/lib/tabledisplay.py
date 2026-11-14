@@ -115,16 +115,14 @@ def format_period(period_years):
     return format_period_years(period_years)
 
 
-def format_body_distance(distance_km, is_moon=False):
+def format_body_distance(distance_km):
     """
     A planet's distance from its star or a moon's from its planet, through
     the distance ladder (`format.format_distance_m`): km under 1 AU, then AU,
-    and so on up. `is_moon` is kept for callers; moons and planets now
-    follow the same ladder.
+    and so on up. Moons and planets follow the same ladder.
 
     Args:
         distance_km (float): `planets`/`moons`.`distance_km`.
-        is_moon (bool): Whether this row came from the `moons` table.
 
     Returns:
         str: The formatted distance.

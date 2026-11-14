@@ -280,13 +280,13 @@ PLANET_MIN_MASS_KG = 1.0e21
 # planetGen stand-ins (tier "educated guess from physics", level L3) until a moon-formation law is wired:
 # moon masses follow dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE between the lightest moon the generator makes and a share of the
 # parent's mass. Regular satellites of the giants are at most a few 1e-4 of the parent (Titan 2.4e-4 of Saturn; Ganymede 7.8e-5
-# of Jupiter), so the giants' cap is 1e-3; a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
+# of Jupiter), so the giants' cap is the most a circumplanetary disk can hold of its parent, 6.4e-4 (`physics/planet_moons.DISK_TOTAL_RATIO_MAX`, [R0643]; GEN.1157; a capture moon of planet size is drawn apart);
+# a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
 # Pluto), which is also the largest `physics/planets.moon_size_limits` allows.
 MOON_MASS_FUNCTION_SLOPE = 0.5
 # The lightest moon generated (about an Enceladus, 250 km across): the generator leaves the swarm of smaller captured rocks to the belts and
 # rings. A planetGen stand-in (tier L3): the old class draw built moons of 500 km and more, 1.1 per planet.
 MOON_MIN_MASS_KG = 1.0e20
-MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
 # GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
@@ -3105,11 +3105,6 @@ whose host star has no stored composition (a rogue planet)."""
 RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
 """float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
 
-RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
-"""tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
-inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies [R3293], not a measured
-spread (radiation-model.md R15, part E 3.3)."""
-
 INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (9.3e7, 1.9e11)
 """tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly (GEN.1185). [R1716] take 2.6e10 to 5.3e13 with an
 activation energy of 200 to 300 kJ/mol ([R1716] section 2.2.3; READ); the activation range moved up to the diffusion-creep values of the laboratory
@@ -4215,13 +4210,15 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 9000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 18000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
 filled in near generated sectors by the backfill (luminosity tiers, then the
-mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
+mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day, 9000 after, and 18000 on
+2026-11-13 (Boss: twice as high; a survey of the default galaxy put the luminosity pass at 24,794 stars at 9000 and 5,983 at
+18000, see reports/generation-order-2026-11-13/report.md). The user
 picks it from the ladder in `generation/luminosity_floor.py`, from
 `BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
 already scattered keeps the level it was scattered at. The value a scatter

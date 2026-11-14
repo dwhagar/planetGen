@@ -104,3 +104,27 @@ def test_methane_is_the_sea_where_methane_and_carbon_monoxide_are_both_liquid_an
     assert [c.liquid_id for c in both][:2] == ["methane", "carbon_monoxide"]
     only_co = surface_liquids.candidates(75.0, 1.0e5, {}, {"carbon_monoxide": 0.05, "methane": 0.01})
     assert [c.liquid_id for c in only_co] == ["carbon_monoxide"]          # methane is a solid at 75 K
+
+
+def _ice_covered_ocean(**extra):
+    return _body(hydrosphere="ice-covered ocean", surface_temperature=200.0, atmospheric_pressure=0.0, p_n2_kpa=0.0, p_ch4_kpa=0.0,
+                 ice_mass_fraction=0.003, water_mass_fraction=0.1, ocean_depth_km=20.0, **extra)
+
+
+def test_the_ammonia_of_an_ice_covered_ocean_is_concentrated_by_the_ice_shell_that_froze_out_of_it():
+    """GEN.1563: the ammonia of the water layer sits in the liquid, the shell holds almost none; the share of the water is 0.1 * 0.003 / 0.1 = 0.003."""
+    open_ocean = _ice_covered_ocean(ice_shell_km=0.0)
+    slw.generate(open_ocean)
+    assert open_ocean.surface_liquid_ammonia_wt == pytest.approx(100.0 * 0.003 / 1.003)
+    covered = _ice_covered_ocean(ice_shell_km=60.0)
+    slw.generate(covered)
+    assert covered.surface_liquid_ammonia_wt == pytest.approx(100.0 * (0.003 * 4.0) / (1.0 + 0.003 * 4.0)), "a shell three times the liquid's thickness: the layer is four times the liquid"
+
+
+def test_the_high_pressure_ice_keeps_its_own_ammonia_and_the_liquid_never_passes_the_eutectic():
+    deep = _ice_covered_ocean(ice_shell_km=0.0, hp_ice_km=500.0)
+    slw.generate(deep)
+    assert deep.surface_liquid_ammonia_wt == pytest.approx(100.0 * 0.003 / 1.003), "the ice below the ocean is not counted in"
+    thick = _ice_covered_ocean(ice_shell_km=20000.0)
+    slw.generate(thick)
+    assert thick.surface_liquid_ammonia_wt == slw.AMMONIA_WATER_MASS_PERCENT

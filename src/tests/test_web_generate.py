@@ -278,11 +278,13 @@ def test_page_renders_summary_and_forms(site, client):
     assert '<a href="/admin/generate" data-destination="generate" aria-current="page">Generate</a>' in html
 
 
-def test_the_richness_field_is_folded_away_under_advanced(site, client):
+def test_the_richness_field_is_folded_away_under_its_own_fold(site, client):
+    """UX.316: richness sits in the Census fold of the galaxy shape (folded, not open to start with); flatness sits in the Structure fold."""
     html = _task_html(client, "new-galaxy")
-    fold = html.index('<details class="generate-advanced">')
-    assert 'name="richness"' in html and html.index('name="richness"') > fold
-    assert html.index('name="flatness"') < fold
+    census = html.index("Census: star richness and rogue planets")
+    structure = html.index("Structure: flatness, bulge, nuclear")
+    assert 'name="richness"' in html and census < html.index('name="richness"') < html.index("</details>", census)
+    assert structure < html.index('name="flatness"') < html.index("</details>", structure)
 
 
 def test_page_shows_the_bright_star_scatter(site, client):
@@ -746,13 +748,13 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, sectors, link, mass, luminosity, phenomena, backfill, settle = _work_steps(job)
+    reset, plan, sectors, link, backfill, mass, luminosity, phenomena, settle = _work_steps(job)
     assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4"]
     # GEN.30: the scatters come after the sectors, each a step of its own (PERF.123).
     assert _argv(sectors) == ["sectors", "--radius-pc", "40.0"]
-    assert [_argv(step) for step in (link, mass, luminosity, phenomena, backfill, settle)] == [
-        ["link"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"], ["backfill"], ["settle"]]
+    assert [_argv(step) for step in (link, backfill, mass, luminosity, phenomena, settle)] == [
+        ["link"], ["backfill"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"], ["settle"]]
 
 
 def test_plan_only_resets_and_plans_with_no_sectors_and_no_scatter(site, client, no_spawn):
@@ -869,7 +871,7 @@ def test_page_offers_the_scatter_threshold(site, client):
     assert generate_page.BRIGHT_THRESHOLD_LABEL in html
     # GEN.184, UX.116: a slider over the presets with a number box at its end, which shows the default.
     assert re.search(r'<input type="number" class="range-value" id="plan-mass-limit-floor-box" name="bright_min_luminosity" '
-                     r'value="9000"[^>]*min="2500\.0" max="4000000\.0"', html)
+                     r'value="18000"[^>]*min="2500\.0" max="4000000\.0"', html)
     assert 'data-stops="[2500.0,' in html and '4000000.0]"' in html
     assert generate_page.BACKFILL_TEXT in html
 
@@ -1700,7 +1702,7 @@ def test_the_plan_forms_offer_the_core_halo_and_dense_cell_segments(site, client
     for segment in segments:
         for legend in ("Core", "Halo and intergalactic space", "Dense cells"):
             assert f"<legend>{legend}</legend>" in segment
-        for name, value in (("core_min_luminosity", "9900"), ("core_mass_limit", "15.4"), ("halo_min_luminosity", "500"),
+        for name, value in (("core_min_luminosity", "19800"), ("core_mass_limit", "15.4"), ("halo_min_luminosity", "500"),
                             ("cell_star_ceiling", "5000"), ("fill_luminosity_cap", "100")):
             assert re.search(rf'name="{name}"\s+value="{value}"', segment), name
         assert re.search(r'<sl-checkbox name="core_follow" value="1" checked data-core-follow', segment)
@@ -1761,7 +1763,7 @@ def test_a_new_galaxy_scatters_at_the_form_s_mass_limit(site, client, no_spawn):
     """The plan step doesn't store the limit, so the galaxy step carries it to the scatters."""
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
     (job,) = no_spawn
-    _reset, plan, _sectors, _link, mass, *_rest = _work_steps(job)
+    _reset, plan, _sectors, _link, _backfill, mass, *_rest = _work_steps(job)
     assert _argv(plan) == ["plan"]
     assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "8"]
 
@@ -1822,7 +1824,7 @@ def test_the_compact_limit_follows_the_star_setting_by_default(site, client, no_
 def test_an_unticked_compact_limit_reaches_every_scatter_step(site, client, no_spawn):
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="14", compact_min_mass="2").status_code == 303
     (job,) = no_spawn
-    _reset, plan, _sectors, _link, mass, luminosity, phenomena, *_rest = _work_steps(job)
+    _reset, plan, _sectors, _link, _backfill, mass, luminosity, phenomena, *_rest = _work_steps(job)
     assert _argv(plan) == ["plan"]
     assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "14"]
     assert _argv(phenomena) == ["scatter", "--phenomena", "--compact-min-mass", "2"]
@@ -2220,3 +2222,30 @@ def test_every_number_and_length_row_is_a_slider_with_a_tick_box_and_a_sticky_au
     assert "/static/leversliders.js" in html
     # The sliders add nothing to the plan: the tick boxes are not levers, and a blank box is Auto.
     assert generate_page.plan_argv({"mass_default": "1", "mass": ""}) == []
+
+
+def test_the_new_galaxy_page_gives_every_property_the_default_toggle_and_collapsible_sections(site, client):
+    """Boss, 2026-11-13: the galaxy shape and the first neighborhood are collapsible and open to start with, and the script
+    that adds each property's Default tick box and ? help runs over them and the advanced star properties."""
+    html = _task_html(client, "new-galaxy")
+    assert "data-default-toggles" in html and "/static/fielddefaults.js" in html
+    assert re.search(r'<details class="generate-advanced generate-section" open>\s*<summary>Galaxy shape</summary>', html)
+    assert re.search(r'<details class="generate-advanced generate-section" open>\s*<summary>First neighborhood</summary>', html)
+    assert html.index("data-default-toggles") < html.index("<summary>Galaxy shape</summary>") < html.index("Advanced: bright stars")
+    # A field that starts with its usual value says what Default is, so the toggle can put it back.
+    assert re.search(r'name="prevalence_moons"[^>]*data-auto="', html) and re.search(r'name="max_stars"[^>]*data-auto="', html)
+    assert 'data-limit-slider data-auto=' in html
+    assert "data-default-toggles" in _task_html(client, "plan-only")
+
+
+def test_the_galaxy_shape_is_split_into_a_fold_for_each_dial_with_the_scale_open(site, client):
+    """Boss, 2026-11-13: the galaxy shape was very heavy. Each dial's rows (the advanced ones with them) are a fold of their own;
+    the family and the size rows are open to start with, the rest closed."""
+    html = _task_html(client, "new-galaxy")
+    folds = re.findall(r'<details class="generate-advanced generate-subsection"( open)?>\s*<summary>([^<]+)</summary>', html)
+    titles = [title for _opened, title in folds]
+    assert [t.split(":")[0] for t in titles] == ["Galaxy family", "Size", "Structure", "Edge of the galaxy", "Dark and stellar halo", "Census", "Spiral arms"]
+    assert [bool(opened) for opened, _title in folds] == [True, True, False, False, False, False, False]
+    for row in dials.LEVERS:
+        assert html.count(f'data-lever="{row.name}"') >= 1, row.name
+    assert "Advanced shape options" not in html
