@@ -21340,9 +21340,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1016",
-            "the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it"
+            "no data",
+            "-",
+            "the criterion holds only for q_out up to 5; GEN.1028 enforces the range, and GEN.1016 (built, Train 25) uses the quadruple fit and the 3+1 criterion beyond it; a fit of C over a wider q_out from the N-body papers would replace the hand value"
           ],
           "fields": [
             [
