@@ -3130,7 +3130,13 @@ def redraw_nebula_field(args):
 def planned_nebula_field(args):
     """The nebula field table drawn again as a `followed.Planned`; its result is the rows written."""
     follower = NebulaFieldFollower(args)
-    return followed.Planned([EmptyNebulaFieldFollower(args), follower], "Nebula field", lambda: follower.written)
+    return followed.Planned(_standing_followers(args, [EmptyNebulaFieldFollower(args), follower]), "Nebula field", lambda: follower.written)
+
+
+def _standing_followers(args, followers):
+    """`followers` without the stages `args.stage_skips` names (PERF.256, OPS.257): a stage that need not run is not planned, and its stage is listed as skipped."""
+    skips = getattr(args, "stage_skips", None) or {}
+    return [follower for follower in followers if follower.key not in skips]
 
 
 def expand_refresh_block_lights(params):
@@ -3388,7 +3394,7 @@ def phenomena_followers(args, refuse=None, tag=""):
                  PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
                  EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
-    return followers, book
+    return _standing_followers(args, followers), book
 
 
 def _phenomena_settings_marker(args, stage, refuse=None, tag=""):
@@ -3774,6 +3780,31 @@ def stored_scatter_skips(args):
         conn.close()
 
 
+EMPTY_CLEAR_STAGES = {"mass": (), "luminosity": (), "phenomena": ("phenomena-clear", NEBULA_CLEAR_KEY), "nebula-field": (NEBULA_CLEAR_KEY,)}
+"""dict: The clearing stages of each kind of scatter that are left out of a run when what they clear holds nothing (OPS.257). The clear of the bright stars is not one of them: a run that prepares the
+scatter's limits stores them in that stage (`clear_bright_stars_unit`), so it always runs, and its own clear finds nothing in a few reads (OPS.254)."""
+
+
+def empty_clear_skips(args, kinds, fresh=True):
+    """
+    The clearing stages of a run of the scatters `kinds` that need not run because what they clear holds nothing (OPS.257): `{stage key: reason}`. It is decided from what the database
+    holds when the run is planned, which is after a wipe whatever route started it (the web's New galaxy runs the wipe as a step of its own, the galaxy the CLI starts has none), so a galaxy that
+    was wiped clears no scatter. A galaxy with no skeleton has none (its stages say so themselves), and neither has a run (`fresh` false) in which an earlier stage of the same job may write what the
+    clear would find.
+    """
+    wanted = [key for kind in kinds for key in EMPTY_CLEAR_STAGES.get(kind, ())]
+    if not fresh or not wanted:
+        return {}
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        if store.get_galaxy_shape(conn) is None:
+            return {}
+        holds = {"phenomena-clear": store.phenomenon_scatter_holds_nothing, NEBULA_CLEAR_KEY: store.nebula_field_holds_nothing}
+        return {key: "nothing is stored to clear" for key in dict.fromkeys(wanted) if holds[key](conn)}
+    finally:
+        conn.close()
+
+
 def block_lights_skip(args, skips):
     """
     The reason the block light stage of a `galaxy` run need not run, or `None` (PERF.256): every scatter stands (`skips` holds the stages of all of them, `stored_scatter_skips`) and the stored
@@ -3799,6 +3830,7 @@ def run_scatter(args):
     kind = stages.scatter_kind(args)
     if kind == "nebula-field":
         _refuse_stored_scatter_of(args, kind)
+    args.stage_skips = empty_clear_skips(args, (kind,))       # OPS.257: a clear of nothing is not planned
     stages.begin(stages.scatter_stages(args), args, "scatter")
     if kind == "band":
         stages.enter("band")
@@ -3806,7 +3838,8 @@ def run_scatter(args):
     elif kind == "phenomena":
         scatter_phenomena(args, refuse=kind)
     elif kind == "nebula-field":
-        stages.enter("nebula-clear")
+        if "nebula-clear" not in args.stage_skips:
+            stages.enter("nebula-clear")
         redraw_nebula_field(args)
     else:
         scatter_bright_stars(args, passes=(kind,), refuse=kind)

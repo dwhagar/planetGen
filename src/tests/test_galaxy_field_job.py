@@ -41,9 +41,17 @@ def _many(count=11):
 KEY = ("db", 11, 1, 11, 2.2e6, EDGE, E1)
 
 
+def _compute_part(sig, index, ages):
+    """What a unit of the stage does for a part (`pieces_field`, `do_field`, `gather_field`), without a database: works out the means of `ages` and writes the part, unless it is there."""
+    if field_job._read_part(sig, index, ages) is not None:
+        return {"index": index, "ages": len(ages), "built": 0}
+    field_job.write_part(sig, index, ages, [field_job.do_field({}, age, None)["mean"] for age in ages])
+    return {"index": index, "ages": len(ages), "built": 1}
+
+
 def _make_parts(sig, found):
     ages = field_job.distinct_ages(c.age_gy for c in found)
-    return ages, [field_job.compute_part(sig, i, field_job.part_ages(ages, i)) for i in range(field_job.part_count(ages))]
+    return ages, [_compute_part(sig, i, field_job.part_ages(ages, i)) for i in range(field_job.part_count(ages))]
 
 
 def _same_field(a, b):
@@ -76,10 +84,10 @@ def test_a_part_is_a_file_and_one_that_is_there_is_kept(state_folder):
     found = _many()
     sig = field_job.signature(KEY)
     ages = field_job.distinct_ages(c.age_gy for c in found)
-    first = field_job.compute_part(sig, 0, field_job.part_ages(ages, 0))
+    first = _compute_part(sig, 0, field_job.part_ages(ages, 0))
     path = field_job.part_path(sig, 0)
     stamp = os.stat(path).st_mtime_ns
-    again = field_job.compute_part(sig, 0, field_job.part_ages(ages, 0))
+    again = _compute_part(sig, 0, field_job.part_ages(ages, 0))
     assert first["built"] == 1 and again["built"] == 0 and os.stat(path).st_mtime_ns == stamp
     assert not [name for name in os.listdir(os.path.dirname(path)) if name.endswith(".tmp")]
     assert json.load(open(path))["ages"] == field_job.part_ages(ages, 0)
@@ -89,11 +97,11 @@ def test_a_run_that_stopped_is_carried_on_not_started_again():
     found = _many()
     sig = field_job.signature(KEY)
     ages = field_job.distinct_ages(c.age_gy for c in found)
-    field_job.compute_part(sig, 0, field_job.part_ages(ages, 0))
+    _compute_part(sig, 0, field_job.part_ages(ages, 0))
     with pytest.raises(field_job.PartsMissing):
         field_job.assemble(sig, found, EDGE, E1)
     assert not field_job.is_published(sig)
-    rest = [field_job.compute_part(sig, i, field_job.part_ages(ages, i)) for i in (1, 2)]
+    rest = [_compute_part(sig, i, field_job.part_ages(ages, i)) for i in (1, 2)]
     assert [d["built"] for d in rest] == [1, 1]
     assert field_job.assemble(sig, found, EDGE, E1) is not None and field_job.is_published(sig)
 
@@ -102,13 +110,13 @@ def test_a_part_for_other_ages_or_cut_short_is_worked_out_again():
     found = _many()
     sig = field_job.signature(KEY)
     ages = field_job.distinct_ages(c.age_gy for c in found)
-    field_job.compute_part(sig, 0, field_job.part_ages(ages, 0))
+    _compute_part(sig, 0, field_job.part_ages(ages, 0))
     path = field_job.part_path(sig, 0)
     with open(path, "w") as handle:
         handle.write('{"ages": [9.9], "means": [1.0]')                   # cut short
-    assert field_job.compute_part(sig, 0, field_job.part_ages(ages, 0))["built"] == 1
+    assert _compute_part(sig, 0, field_job.part_ages(ages, 0))["built"] == 1
     other = field_job.part_ages(ages, 0)[:-1] + [123.0]
-    assert field_job.compute_part(sig, 0, other)["built"] == 1            # the ages changed under it
+    assert _compute_part(sig, 0, other)["built"] == 1            # the ages changed under it
 
 
 def test_publishing_removes_the_parts_and_keeps_the_newest_two_fields(state_folder):
@@ -247,7 +255,7 @@ def test_a_small_galaxy_is_built_in_the_request_and_a_worker_may_build_a_big_one
 def test_the_job_is_a_warm_command_and_the_first_step_of_the_opening_phase():
     from planetgen.web import warmup
     spec = commands.REGISTRY["warm-cluster-field"]
-    assert spec.unit == ("planetgen.galaxy.field_job", "field_unit") and spec.conclude and spec.unit_seconds
+    assert spec.pieces == ("planetgen.galaxy.field_job", "pieces_field") and spec.unit is None and spec.conclude and spec.unit_seconds
     assert commands.KIND_OF_WARM_FAMILY["cluster-field"] == "warm-cluster-field"
     assert warmup.phase_of("cluster-field") == "opening" and list(warmup.FAMILIES)[0] == "cluster-field"
     args = type("Args", (), {"database": "d", "cap": None, "families": None})()
@@ -277,7 +285,7 @@ def test_the_job_runs_end_to_end_on_a_database_and_a_second_run_finds_the_file(m
     plan = field_job.expand_field(params)
     assert plan.plan["state"] == "parts" and plan.plan["parts"] == 3 and len(plan.units) == 3
     assert all(cost == field_job.PART_SECONDS for _args, cost in plan.units)
-    results = [field_job.field_unit(args, None) for args, _cost in plan.units]
+    results = [field_job.run_unit(args) for args, _cost in plan.units]
     assert [r["built"] for r in results] == [1, 1, 1] and all(r["line"].startswith("cluster-field:") for r in results)
     assert not field_job.is_published(sig)
     summary = field_job.conclude_field(params, plan.plan, results, 1.0)
@@ -292,7 +300,7 @@ def test_the_job_runs_end_to_end_on_a_database_and_a_second_run_finds_the_file(m
 
     again = field_job.expand_field(params)
     assert again.plan["state"] == "ready" and len(again.units) == 1
-    assert field_job.field_unit(again.units[0][0], None)["cached"] == 1
+    assert field_job.run_unit(again.units[0][0])["cached"] == 1
     assert field_job.conclude_field(params, again.plan, [], 0.0) == {}
 
     replaced = list(found[:-1])                                           # the rows change while a run is going
@@ -303,13 +311,13 @@ def test_the_job_runs_end_to_end_on_a_database_and_a_second_run_finds_the_file(m
     finally:
         conn.close()
     with pytest.raises(field_job.Changed):
-        field_job.field_unit(plan.units[0][0], None)
+        field_job.run_unit(plan.units[0][0])
     assert field_job.expand_field(params).plan["state"] == "parts"        # a new signature: a new field to make
 
 
 def test_a_galaxy_without_components_has_nothing_to_make(mysql_config):
     plan = field_job.expand_field({"database": mysql_config.database})
-    assert plan.plan == {"state": "empty"} and "no field" in field_job.field_unit(plan.units[0][0], None)["line"]
+    assert plan.plan == {"state": "empty"} and "no field" in field_job.run_unit(plan.units[0][0])["line"]
     assert field_job.conclude_field({"database": mysql_config.database}, plan.plan, [], 0.0) == {}
 
 

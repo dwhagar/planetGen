@@ -2,6 +2,62 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4162] - 2026-11-14
+
+**Headline:** The three spreads of a trojan swarm now come from the Jupiter and Neptune Trojans, and a tadpole orbit is no longer cut at the wrong angle; nothing in the generator draws a swarm yet.
+
+### Changed
+
+- GEN.1643 (slice 1): `trojan_swarm.LIBRATION_SIGMA_DEG` 10 to 13 degrees (the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration, 13.0; the Neptune Trojans give 12 to 15). `ECC_SIGMA` 0.06 and `INCLINATION_SIGMA_DEG` 12 stay (the fit gives 0.058 and 11.7). Stand-ins TJ9 (tier T2, tweak L2), TJ10 and TJ11 (T2, L1) leave the burn-down register. Fit: `scripts/fit_trojan_scales.py`; report `reports/gen1643-trojan-scales-2026-11-12.md`.
+- GEN.1647: `trojans.TADPOLE_LIMIT_DEG` was 23.9, which is the nearest a tadpole comes to the secondary, not a libration amplitude. It is now the amplitude at the edge of the tadpole zone, (180 - 23.9) / 2 = 78.05 degrees, derived from the new `TADPOLE_NEAREST_APPROACH_DEG` 23.9; the swarm draw is cut at it and `trojans.motion` splits tadpole from horseshoe at it. With it the generated mean amplitude is 16.3 degrees against the Jupiter Trojans' 16.2, and about a fifth of the bodies librate wider than 23.9 degrees, as the real ones do. Row TJ3 of section 6.121 is corrected.
+- `trojan_swarm.draw_regions` and `trojans.motion` are read by no generation step yet (GEN.1151 wires the swarm), so no planet, moon or swarm in the output moves.
+
+generation-output: unchanged
+
+## [8.0.4161] - 2026-11-14
+
+**Headline:** The System Map now draws a planet's irregular moons on their own tilted, stretched orbits, many going backward, with an info panel and a link to each body's page.
+
+### Changed
+
+- GEN.1086 (slice 2): a planet that caught irregular moons has a scene of its own on the System Map (`planet-<id>-irregular`), opened from the planet when it has no regular moons, or by an "Irregular moons" button beside the moon system scene (and a "Moons" button back). The moons are tens of millions of kilometers out, so they have a scale of their own and the regular moons are not squeezed into a speck. Each body is drawn at its saved place on its saved orbit (eccentric, inclined, forward or backward); clicking one shows its type, radius, mass, distance, period, makeup and the window it was caught through, with a View button to its page.
+- `GET /api/systems/<id>`: each planet has `irregular_moons` (an empty list when it keeps none); a new key, the API version stays. The planet's own page links to the irregular scene when it keeps only irregular moons.
+- Not yet: the 3D view, and the clearance ledger taking the irregular zone as occupied space (the rest of GEN.1086).
+
+generation-output: unchanged
+
+## [8.0.4160] - 2026-11-14
+
+**Headline:** The cache warm-up commands now run through the queue engine's loop, so the Queue page counts their pieces and a cancel or a pause takes hold between two of them.
+
+### Changed
+
+- OPS.205: the ten `warm-*` commands (`warm-cluster-field`, `warm-object-index`, `warm-galaxy-map`, `warm-galaxy-nodes`, `warm-galaxy-deep-nodes`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-search`) and `end-map-rebuild-maintenance` give the engine `pieces` and `do` (OPS.191) in place of a `unit` function that loops for itself. A cluster-field unit is one piece per age; a node unit is one piece per chunk of 64 nodes; a sector, system or phenomenon unit is one piece per 50 objects of its slice; the object index is one piece per kind of object; the page families and the map-rebuild reopening are one piece each. The pages, lists and objects a piece visits are counted as the unit's second level (OPS.192), and the unit's result keeps the shape it had. Nothing a warm-up writes changes: no generation change, no migration, no epoch.
+
+## [8.0.4159] - 2026-11-14
+
+**Headline:** A guard test now keeps every queue command on the engine's loop, so no new command can go silent by writing a loop of its own.
+
+### Changed
+
+- OPS.196 (first part): `test_commands_have_pieces` fails for a registered command that gives the engine neither `pieces` and `do` nor a place in its list of commands waiting for the family item that converts them (OPS.198 to OPS.206). The list only gets shorter: a converted command still listed fails, and so does a name that is not a command. The second part (each command run on the small galaxy with its longest quiet stretch held to a budget, and the `whole` flag deleted) comes with the last family.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4158] - 2026-11-14
+
+**Headline:** The galaxy plan, the end of the phenomena scatter and the block light totals now run on the engine's loop, so each says how far it is by its pieces and by what it counts inside them.
+
+### Changed
+
+- OPS.199: `plan-skeleton` (nine pieces: clear, outline, report, components, shells, battery, shape, containers, naming), `finish-phenomena` (four: draw, write, indexes, record) and `refresh-block-lights` (the roll-up and the uncharted rows, by the unit's `part`) give the engine `pieces` and `do` instead of a `unit` function with phases counted by hand (OPS.170). The engine counts the pieces and checks for a cancel or a pause between two; each piece says its phase through `ctx.phase`; the pieces hand each other what they made through `ctx.state`; the long counts inside them are the second-level count (OPS.192): the phenomena indexes built, the generator battery's digest cases, the block light totals and the uncharted rows. Every commit goes through `ctx.commit()`. A unit restarts from its first piece (the cursor is not stored until OPS.219), as it always did.
+- The engine's `ctx` gains `state`, `phase(text)` and `close_db()`, and a command's `gather` is given `(params, results, ctx)`.
+- Nothing a command computes or stores changes, and the lines they say are the same; the three commands' tests now run them through `commands.run_alone`.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4157] - 2026-11-14
 
 **Headline:** A long step now shows what it is counting inside its own count, as a second bar with the real numbers and the rate, on the Queue page and the Generate page.
