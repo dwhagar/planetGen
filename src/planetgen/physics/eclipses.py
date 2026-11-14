@@ -175,6 +175,11 @@ def pair_light_lost(star_a, star_b, separation_au, pair_period_yr, distance_au, 
                             float(distance_au), float(inclination_deg), float(km_per_au))
 
 
+def kept_share(factor):
+    """The share of its light a body keeps given its `light_factor` (`light_factor_of`): 1 for `None` (no eclipses to apply), the factor itself otherwise, so a body whose eclipses take all its light keeps none, not all (GEN.1606)."""
+    return 1.0 if factor is None else factor
+
+
 def light_factor_of(planet):
     """
     The share of its host's light a planet keeps after the eclipses of its sky (GEN.1484): 1 less `pair_light_lost` for a planet of a close pair (its host is the pair's proxy, which holds both stars, their

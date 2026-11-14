@@ -34,7 +34,7 @@ def _old_database(mysql_config):
         _insert(conn, "black_holes", id=1, star_id=3, has_accretion_disk=0)
         _insert(conn, "black_holes", id=2, has_accretion_disk=0)
         _insert(conn, "neutron_stars", id=1, star_id=1, pulsar_type="young")
-        _insert(conn, "rogue_planets", id=1, planet_type="t", has_internal_heat=0, has_moons=0)
+        _insert(conn, "rogue_planets", id=1, planet_type="t", has_internal_heat=0)
         _insert(conn, "interstellar_comets", id=1, is_active=1)
         _insert(conn, "planets", id=1, star_system_id=2, star_id=3, orbital_index=0, body_type="t", parent_type="star", parent_id=3)
         _insert(conn, "moons", id=1, planet_id=1, star_system_id=2, orbital_index=0, body_type="t", parent_type="planet", parent_id=1)

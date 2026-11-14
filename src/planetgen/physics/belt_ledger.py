@@ -202,9 +202,14 @@ class Ledger:
         return diameter_km(self.masses_kg[0], self.law.density_kg_m3)
 
 
+def next_exponential(stream):
+    """One unit exponential draw from `stream` (the gap to the next body of the size law)."""
+    return -math.log(1.0 - stream.random())
+
+
 def draw_exponentials(stream):
     """The belt's `LEDGER_MAX_BODIES` unit exponential draws, the same number from `stream` whatever the belt (so a run's stream does not depend on the belt's mass)."""
-    return [-math.log(1.0 - stream.random()) for _ in range(LEDGER_MAX_BODIES)]
+    return [next_exponential(stream) for _ in range(LEDGER_MAX_BODIES)]
 
 
 @finite_domain()

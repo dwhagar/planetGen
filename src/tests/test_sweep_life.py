@@ -132,7 +132,7 @@ def capable_entry(everything):
 
 
 def _letter_of(body):
-    """The class letter of what the life model is asked to score: the habitability code passes a column-named mapping of the body's values, the sweep a body."""
+    """The class letter of a body object or of the stored-values dict the habitability scores pass the life model."""
     return body.get("planet_class") if isinstance(body, dict) else body.planet_class
 
 

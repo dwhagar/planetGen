@@ -31,6 +31,9 @@ def _sector(name, system_names, rogue_names=()):
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         system.name = system_name
+        for planet in system.planets:      # the carbon sink a planet keeps for the life stage (GEN.1309 A) holds a closure, which is not stored and does not pickle
+            for body in (planet, *getattr(planet, "moons", ())):
+                body._co2_sink = None
         sector.add_system(system, position=(float(index), 0.0, 0.0), system_config=cfg)
     for index, rogue_name in enumerate(rogue_names):
         rogue = RoguePlanet(SystemConfig(), name=rogue_name)
@@ -43,6 +46,7 @@ class _Counter:
 
     def __init__(self, monkeypatch):
         self.statements = []
+        self.rows = 0
         real_run, real_flush = store.Connection._run, store.Connection.flush
         counter = self
 
@@ -52,6 +56,7 @@ class _Counter:
 
         def flush(conn):
             if conn._batch:
+                counter.rows += sum(len(rows) for rows in conn._batch.values())
                 counter.statements.extend(
                     ["INSERT"] * sum(-(-len(rows) // store._BATCH_ROWS) for rows in conn._batch.values()))
             return real_flush(conn)
