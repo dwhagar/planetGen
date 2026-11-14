@@ -65957,6 +65957,90 @@
       ],
       "slug": "6-290-stand-ins-of-the-bond-albedo-of-a-dry-body-s-ground",
       "title": "Stand-ins of the Bond albedo of a dry body's ground"
+    },
+    {
+      "key": "6.291",
+      "number": "6.291",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2 for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31"
+            ],
+            [
+              "The range it moves in",
+              "each within 5 percent"
+            ],
+            [
+              "Where it holds",
+              "krypton and bromine as trace gases of an air (the table's only users of them)"
+            ],
+            [
+              "What would show it wrong",
+              "a printed length of krypton or bromine outside 140 to 158 g/cm2"
+            ],
+            [
+              "What replaces it",
+              "the Particle Data Group's own krypton and bromine pages"
+            ],
+            [
+              "Evidence",
+              "[R4926] gives iron and xenon (READ); argon 119.7, potassium 119.0, calcium 119.8, titanium 126.2, vanadium 128.5, chromium 129.3 and iron 132.1 lie on a smooth curve of the same kind"
+            ]
+          ],
+          "id": "SHL1",
+          "key": "6.291:SHL1",
+          "kind": "P",
+          "slug": "6-291-shl1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2 for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_dose.stopping_mixture: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen"
+            ],
+            [
+              "The range it moves in",
+              "the mass stopping power of the neighboring rows differs by about 10 percent"
+            ],
+            [
+              "Where it holds",
+              "an air whose heavier elements are trace gases (sulfur dioxide, sodium and potassium chlorides); the carriers C, N, O, H, He, Ne, Ar, Kr and Xe have rows"
+            ],
+            [
+              "What would show it wrong",
+              "a stellar-proton cutoff of a sulfur-rich air that moves by more than 5 percent when sulfur gets its own row"
+            ],
+            [
+              "What replaces it",
+              "rows of the proton range table (scripts/build_proton_range.py) for the missing elements"
+            ],
+            [
+              "Evidence",
+              "the mass stopping power of fast protons varies slowly with Z/A (ICRU 49 rows of the table); 0.4 to 0.5 for all of them"
+            ]
+          ],
+          "id": "SHL2",
+          "key": "6.291:SHL2",
+          "kind": "B",
+          "slug": "6-291-shl2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_dose.stopping_mixture: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen"
+        }
+      ],
+      "slug": "6-291-stand-ins-of-the-shielding-of-a-mixed-air-gen-444",
+      "title": "Stand-ins of the shielding of a mixed air (GEN.444)"
     }
   ]
 }
