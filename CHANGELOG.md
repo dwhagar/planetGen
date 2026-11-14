@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4122] - 2026-11-14
+
+**Headline:** A very young planet with a hydrogen envelope is no longer puffed up past what the radius law was fitted to.
+
+### Changed
+
+- GEN.1672: the age term of the envelope radius law (Lopez and Fortney, fitted from 100 Myr) is held at 0.1 Gyr for a younger planet, so a young sub-Neptune no longer has a radius from the power law's extrapolation (a 3.4 Earth mass planet with a 20 percent envelope at 0.05 Gyr was 9.4 Earth radii and 0.02 g/cm3, and a planet at age 0 reached 0.004 g/cm3).
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4121] - 2026-11-14
 
 **Headline:** A warm, dry, oxidized air keeps its sulfur dioxide, and rocky worlds come out about half oxidized.
