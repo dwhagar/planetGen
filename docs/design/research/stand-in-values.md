@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1690 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1692 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1663 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1665 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 160 | 64 | 1 | 1 | 0 | 226 |
 | T3 | 115 | 56 | 13 | 9 | 0 | 193 |
 | T4 | 85 | 14 | 4 | 22 | 16 | 141 |
-| T5 | 92 | 24 | 7 | 1 | 1 | 125 |
-| T6 | 220 | 116 | 31 | 76 | 4 | 447 |
+| T5 | 93 | 24 | 7 | 1 | 1 | 126 |
+| T6 | 221 | 116 | 31 | 76 | 4 | 448 |
 | T7 | 58 | 23 | 10 | 31 | 0 | 122 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 6 | 95 | 38 | 206 |
-| All | 970 | 335 | 84 | 241 | 60 | 1690 |
+| All | 972 | 335 | 84 | 241 | 60 | 1692 |
 
 ## How the labels were given
 
@@ -2968,3 +2968,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RPP4 | D | T5 | L0 | `rogue_pairs.tidal_limit_au`: a pair of mass m is held inside (G m / (4 Omega A)) ** (1/3) of the galaxy's tide (the epicyclic tidal term of `rogue_drift`, Oort's A and B); a pair with the limit under 28 AU is not made | none | the solar neighbourhood's Oort constants for every donor (the stand-in of `rogue_drift`) | the dense inner galaxy, where the real constants are larger | `rogue_drift.Galaxy.from_frequencies` for the donor's radius | physics (Chandrasekhar tidal radius), no measurement | predicted only | - | - |
 | RPP5 | P | T7 | L1 | `rogue_pairs.period_yr` and the circular orbit: the two go round each other on a circular orbit of the separation, by Kepler's third law (no source gives an eccentricity for wide young pairs, so none is drawn) | eccentricity 0 to 0.8 changes a period only by the pair's own pericentre | every pair | an eccentricity distribution measured for wide free-planet pairs | that distribution | educated guess from inferred physics (wide binary stars of the field) | predicted only | - | - |
 | RPP6 | P | T6 | L1 | `rogue_yield.bind_pairs`: each body of a donor not yet taken is a system with the chance `bound_share(age since the ejection)`, and its companion is the next body the donor ejected from the same star by the same cause, which leaves at the same moment (it takes its partner's delay, age and kick) and so lands with it; the draws are two per body not yet taken, in event order | the pairing of a body with the next in order rather than any other body of its star | donors with two or more ejected bodies of one star and one cause | a donor model in which a pair is ejected as a pair by a scatterer's single encounter | the pair made inside the scattering event (`planet_architecture`) | educated guess from physics (planets of one star scattered by one encounter leave together) | predicted only | - | - |
+
+## 6.292 Stand-ins of the shielding of a mixed air (GEN.444)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SHL1 | P | T5 | L0 | `surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2` for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31 | each within 5 percent | krypton and bromine as trace gases of an air (the table's only users of them) | a printed length of krypton or bromine outside 140 to 158 g/cm2 | the Particle Data Group's own krypton and bromine pages | [R4926] gives iron and xenon (READ); argon 119.7, potassium 119.0, calcium 119.8, titanium 126.2, vanadium 128.5, chromium 129.3 and iron 132.1 lie on a smooth curve of the same kind | predicted only | - | - |
+| SHL2 | B | T6 | L0 | `surface_dose.stopping_mixture`: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen | the mass stopping power of the neighboring rows differs by about 10 percent | an air whose heavier elements are trace gases (sulfur dioxide, sodium and potassium chlorides); the carriers C, N, O, H, He, Ne, Ar, Kr and Xe have rows | a stellar-proton cutoff of a sulfur-rich air that moves by more than 5 percent when sulfur gets its own row | rows of the proton range table (`scripts/build_proton_range.py`) for the missing elements | the mass stopping power of fast protons varies slowly with Z/A (ICRU 49 rows of the table); 0.4 to 0.5 for all of them | predicted only | - | - |
