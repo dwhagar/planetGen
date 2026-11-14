@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4058] - 2026-11-14
+
+**Headline:** Two design notes for a chaotic three-sun zone and a dimming star are added to the research tree; nothing in the generator changes.
+
+### Changed
+- **Design notes for the chaotic triple-star zone and the dimming star (GEN.1437).** The notes say what the generator already holds for each case, what a planet or star would store, how to check it, and the build items each needs. Documentation only; generated output is unchanged.
+
 ## [8.0.4057] - 2026-11-14
 
 **Headline:** The mass pass and the luminosity pass of one run look up the clusters' and satellites' sector addresses once, with no change to any generated star.
