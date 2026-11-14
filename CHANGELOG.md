@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4085] - 2026-11-14
+
+**Headline:** A forced subdwarf star such as K5VI now always comes out as a subdwarf.
+
+### Changed
+
+- GEN.1669: a forced star type the model never makes is shown at the temperature the type stands for, but its class was judged at its own cooler or hotter temperature, so about 6 percent of forced K5VI draws classified as dwarfs. The class is now judged at the shown temperature, the fallback tries the other nearest cells, and a type with no fitting model subdwarf (such as M9VI) is shown just under the subdwarf luminosity limit.
+
+generation-output: unchanged
+
 ## [8.0.4084] - 2026-11-14
 
 **Headline:** A belt member made a planet gets the same finishing pass as any planet: its tilt range, the check for a chaotic tilt, its moons' tilts and the tides of its orbit.
