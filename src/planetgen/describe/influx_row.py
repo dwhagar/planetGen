@@ -29,7 +29,7 @@ def influx_kg_per_yr(conn, planet_id):
     planet = conn.execute("SELECT star_system_id, star_id, body_type, distance_km, radius_km FROM planets WHERE id = ?", (planet_id,)).fetchone()
     if planet is None or planet["body_type"] == "g" or not planet["distance_km"] or not planet["radius_km"]:
         return None
-    star = host_star.of(conn, planet, "mass_kg, age_gy")
+    star = host_star.of(conn, planet, "mass_kg, age_gy, luminosity_w")
     if star is None or not star["mass_kg"] or not star["age_gy"]:
         return None
     belts = conn.execute("SELECT star_id, mass_kg, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ?", (planet["star_system_id"],)).fetchall()
@@ -45,5 +45,6 @@ def influx_kg_per_yr(conn, planet_id):
         return None
     big = [influx.Giant(_kg_to_mearth(giant["mass_kg"]), _km_to_rearth(giant["radius_km"]), _au(giant["distance_km"]))
            for giant in giants if same(giant) and giant["mass_kg"] and giant["radius_km"] and giant["distance_km"]]
-    total, _ = influx.planet_influx_kg_per_yr(float(planet["radius_km"]), _au(planet["distance_km"]), _kg_to_msun(star["mass_kg"]), reservoirs, big)
+    luminosity = float(star["luminosity_w"]) / constants.SOLAR_LUMINOSITY if star["luminosity_w"] else None
+    total, _ = influx.planet_influx_kg_per_yr(float(planet["radius_km"]), _au(planet["distance_km"]), _kg_to_msun(star["mass_kg"]), reservoirs, big, luminosity)
     return total

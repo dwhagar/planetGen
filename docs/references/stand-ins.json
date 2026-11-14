@@ -42799,7 +42799,7 @@
           "fields": [
             [
               "What it is",
-              "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+              "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default; needs the acid cloud, exposed iron and a cosmic-dust supply on the body (the influx of its system's belts and comets, influx.py, at least dust_min_influx_kg_m2_yr per area, CV14; GEN.1542, GEN.1543)"
             ],
             [
               "The range it moves in",
@@ -42815,7 +42815,7 @@
             ],
             [
               "What replaces it",
-              "a per-planet dust influx and a second paper"
+              "a second paper"
             ],
             [
               "Evidence",
@@ -42830,7 +42830,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+          "what": "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default; needs the acid cloud, exposed iron and a cosmic-dust supply on the body (the influx of its system's belts and comets, influx.py, at least dust_min_influx_kg_m2_yr per area, CV14; GEN.1542, GEN.1543)"
         },
         {
           "burn_down": null,
@@ -42911,6 +42911,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored aerosol_draw (a normal deviate held to two sigma either way, sulfur_cloud_set.absorber_band; the two-sigma limit is a numerical choice)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfur_cloud_set number dust_min_influx_kg_m2_yr 2.4e-10 kg per m2 a year: the least cosmic-dust influx per area that gate 5 calls a supply for V8, a tenth of Venus's by influx.py with a Solar-System asteroid belt (2.4e-9); the comets and the Kuiper belt are not in that reference, so it is on the model's own scale"
+            ],
+            [
+              "The range it moves in",
+              "2.4e-11 to 2.4e-9"
+            ],
+            [
+              "Where it holds",
+              "V8 only, off by default"
+            ],
+            [
+              "What would show it wrong",
+              "a second paper that puts the need outside the 600 and 3 thousand years of influx"
+            ],
+            [
+              "What replaces it",
+              "the paper's cloud-top budget"
+            ],
+            [
+              "Evidence",
+              "STATUS from needed output; no source gives the share"
+            ]
+          ],
+          "id": "CV14",
+          "key": "6.229:CV14",
+          "kind": "P",
+          "slug": "6-229-cv14",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sulfur_cloud_set number dust_min_influx_kg_m2_yr 2.4e-10 kg per m2 a year: the least cosmic-dust influx per area that gate 5 calls a supply for V8, a tenth of Venus's by influx.py with a Solar-System asteroid belt (2.4e-9); the comets and the Kuiper belt are not in that reference, so it is on the model's own scale"
         },
         {
           "burn_down": [
@@ -59663,7 +59701,7 @@
           "fields": [
             [
               "What it is",
-              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit per crossing, and a belt's dust crosses the orbit influx.crossings times (GEN.1543, IP1 and IP2), so it takes 1 - exp(-N R^2 / (4 a^2)) of it; gravitational focusing is not counted; a comet's nucleus crosses once"
             ],
             [
               "The range it moves in",
@@ -59694,7 +59732,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit per crossing, and a belt's dust crosses the orbit influx.crossings times (GEN.1543, IP1 and IP2), so it takes 1 - exp(-N R^2 / (4 a^2)) of it; gravitational focusing is not counted; a comet's nucleus crosses once"
         },
         {
           "burn_down": null,
@@ -59809,6 +59847,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.GRAIN_BETA 0.01: the radiation-to-gravity ratio of the grains that carry a belt's dust inward round the Sun (Poynting-Robertson drift da/dt = 2 beta G M / (c a)), scaled by the star's luminosity over its mass"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "grains of tens to hundreds of microns"
+            ],
+            [
+              "What would show it wrong",
+              "a measured size distribution of a debris belt's inward dust"
+            ],
+            [
+              "What replaces it",
+              "a grain-size cascade"
+            ],
+            [
+              "Evidence",
+              "zodiacal dust is mostly grains of tens to hundreds of microns; recalled, not read"
+            ]
+          ],
+          "id": "IP1",
+          "key": "6.247:IP1",
+          "kind": "P",
+          "slug": "6-247-ip1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "influx.GRAIN_BETA 0.01: the radiation-to-gravity ratio of the grains that carry a belt's dust inward round the Sun (Poynting-Robertson drift da/dt = 2 beta G M / (c a)), scaled by the star's luminosity over its mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.GRAIN_ECCENTRICITY 0.1: the eccentricity of the dust grains, that of the parent belt's bodies; it sets how many times a grain crosses a planet's orbit while it drifts (crossings, about 3e4 at 1 AU)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "belts stirred by their planets"
+            ],
+            [
+              "What would show it wrong",
+              "a belt of very low or very high eccentricity"
+            ],
+            [
+              "What replaces it",
+              "the belt's own stirring (GEN.1492)"
+            ],
+            [
+              "Evidence",
+              "the asteroid belt's proper eccentricities are 0.1 to 0.2; recalled"
+            ]
+          ],
+          "id": "IP2",
+          "key": "6.247:IP2",
+          "kind": "P",
+          "slug": "6-247-ip2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "influx.GRAIN_ECCENTRICITY 0.1: the eccentricity of the dust grains, that of the parent belt's bodies; it sets how many times a grain crosses a planet's orbit while it drifts (crossings, about 3e4 at 1 AU)"
         }
       ],
       "slug": "6-247-stand-ins-of-the-belt-dust-and-comet-influx-of-a-planet",
