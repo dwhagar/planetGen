@@ -446,7 +446,7 @@ def haze_stream_of(body):
     The stream of the body's haze draws, seeded by what is fixed about the body before its air (its mass, radius and distance, not its class or
     its temperature, which the air makes), so the fixed point of the air and `generate_aerosols` draw the same haze.
     """
-    return draw.Stream(f"haze:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}")
+    return draw.body_stream_of("haze", body, slot=str(bool(body.is_moon)))      # GEN.1547: the body's birth numbers alone
 
 
 def draw_haze_draws(rng):
@@ -657,10 +657,9 @@ def _clear(body):
 
 def stream_of(body):
     """The body's own stream for these draws, seeded from what is final about it before they are made, so no draw of the run's stream
-    moves when they are added, taken out or retuned. It is keyed on the body's identity (moon or planet, mass, radius, distance) and its
-    conditions (surface temperature, air pressure), never on its class letter (GEN.917, GEN.915)."""
-    return draw.Stream(f"aerosols:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{body.surface_temperature!r}"
-                       f":{getattr(body, 'atmospheric_pressure', None)!r}")
+    moves when they are added, taken out or retuned. It is keyed on the body's birth identity (moon or planet, mass, the distance it formed at, its star's mass; GEN.1547), never on its temperature,
+    pressure, radius or class letter (GEN.917, GEN.915)."""
+    return draw.body_stream_of("aerosols", body, slot=str(bool(body.is_moon)))      # GEN.1547: the body's birth numbers alone, not its temperature or pressure
 
 
 def _haze_temperature_k(body, surface_temperature_k):

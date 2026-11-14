@@ -123,7 +123,7 @@ def apply(planet, primary_mass_kg):
     survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance
     survivors, dragged = _settle(planet, survivors)
     for moon in survivors:
-        if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION:
+        if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION and not planets.is_bare(moon):     # a moon built bare has no spin yet, it takes its first at its final orbit (GEN.1548)
             planets.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
     planet.moons[:] = survivors
     age_yr = planet.star.age * 1.0e9

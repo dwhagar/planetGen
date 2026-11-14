@@ -2469,17 +2469,21 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            for obj in self.all_planets:    # GEN.1548: a body built bare has its position and velocity now, for the planets' pull on each other
+                if obj.body_type != 'a':
+                    obj.finish_motion()
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
-            self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
             self._give_belts_their_planets()    # GEN.1492: the apsidal rate of the planets beside each belt, which dilutes a companion star's forcing of its members
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":
                 resonant_chains.give_forced_eccentricities(self.secondary_planets, self.secondary_star.mass)
+            # GEN.1548: the orbit and the size of every planet, before any air: a body built bare (GEN.1282) takes the tide, the forced eccentricity, the giant's radius and the envelope
+            # and has no air to make again; one built whole (a system that bars habitable worlds, GEN.1397) is made again as it always was
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # a belt is not a body
                     continue
-                self._settle_body(obj)
+                self._settle_body(obj, refinish=False)      # GEN.1548: the rocky bodies are made again below, once their air is final
             # An eccentricity the settle pass raised or the oddities forced (a resonant chain's, W5) can close the gap the spacing pass left exactly at its rule; where the final check would now refuse a
             # star's planets, the pass is run once more on that star (it moves nothing where the rule holds, so a system that passes is untouched).
             respaced = False
@@ -2493,6 +2497,23 @@ class StarSystem:
                     respaced = True
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
+            # GEN.1548: the orbits are final, so the air, class and spin of the bodies built bare are made now, once, and their moons (bare, with their orbits) with them
+            for obj in self.all_planets:
+                if obj.body_type != 'a':
+                    obj.finish_climate()
+            self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
+            for obj in self.all_planets:
+                if obj.body_type == 'a':
+                    continue
+                for moon in obj.moons:
+                    if planetPhysics.settle_orbit(moon):
+                        if log.debug_log_active():
+                            log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                obj.finish_moons()      # GEN.1548: the moons built bare take their air, class and spin on the orbit the tide left
+                made = planetPhysics.refinish_rocky(obj)
+                if made:
+                    if log.debug_log_active():
+                        log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
             for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
                 moved = planetPhysics.settle_obliquity(planets, star.mass)
                 if moved:
@@ -2502,7 +2523,7 @@ class StarSystem:
                     log.debug(f"{star.name}: {moon_tilts} locked moon{'s' if moon_tilts != 1 else ''} given the tilt of their Cassini state.")
 
     @staticmethod
-    def _settle_body(obj):
+    def _settle_body(obj, refinish=True):
         """The settle pass for one planet and its moons (`_settle_to_final_age`; and, for a belt member made a planet, `_settle_promoted`): the giant sized again, the tides of the orbit, the envelope, the oddities of a resonant chain and the end stages of a rocky body made again."""
         if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
             log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr.")
@@ -2517,6 +2538,8 @@ class StarSystem:
             log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km.")
         if planetPhysics.finish_orbit_oddities(obj):
             log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors.")
+        if not refinish:
+            return
         made = planetPhysics.refinish_rocky(obj)
         if made:
             log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
@@ -2742,9 +2765,6 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
-        for body in planets:   # GEN.1282: the planets built without their climate get it at the distance the spacing left them
-            if body.body_type != 'a':
-                body.finish_climate()
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
