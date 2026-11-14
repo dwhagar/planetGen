@@ -90,6 +90,9 @@ class Steps:
     def sql(self, label):
         return labelled(label)
 
+    def nothing(self, text):
+        """A clear that found nothing to clear says so (OPS.254); a unit's own steps say it as a phase, so its bar and its log line show it."""
+
 
 LABELS_ONLY = Steps()
 """Steps: What the clears and drops of `db/store.py` use where the caller gives none."""

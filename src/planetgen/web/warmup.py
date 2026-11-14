@@ -622,7 +622,7 @@ def pieces_of_one(args, cursor):
     return [{}][cursor:]
 
 
-def gather_first(args, results):
+def gather_first(args, results, ctx):
     """The unit's result of a unit of one piece: the piece's."""
     return results[0]
 
@@ -694,7 +694,7 @@ def do_warm_sectors(args, piece, ctx):
     return _do_objects("sectors", args, piece, ctx)
 
 
-def gather_warm_sectors(args, results):
+def gather_warm_sectors(args, results, ctx):
     return _gather_objects("sectors", args, results)
 
 
@@ -708,7 +708,7 @@ def do_warm_systems(args, piece, ctx):
     return _do_objects("systems", args, piece, ctx)
 
 
-def gather_warm_systems(args, results):
+def gather_warm_systems(args, results, ctx):
     return _gather_objects("systems", args, results)
 
 
@@ -722,7 +722,7 @@ def do_warm_phenomena(args, piece, ctx):
     return _do_objects("phenomena", args, piece, ctx)
 
 
-def gather_warm_phenomena(args, results):
+def gather_warm_phenomena(args, results, ctx):
     return _gather_objects("phenomena", args, results)
 
 
@@ -749,7 +749,7 @@ def do_warm_object_index(args, kind, ctx):
         raise
 
 
-def gather_warm_object_index(args, results):
+def gather_warm_object_index(args, results, ctx):
     """The unit's result from the kinds'. Reports like a page family: the rows are what was warmed, the rows it wrote are what it built."""
     rows = sum(kind["rows"] for kind in results)
     written = sum(kind["changed"] + kind["removed"] for kind in results)
@@ -921,7 +921,7 @@ def do_warm_galaxy_nodes(args, keys, ctx):
     return _do_node_chunk(args, keys, ctx)
 
 
-def gather_warm_galaxy_nodes(args, results):
+def gather_warm_galaxy_nodes(args, results, ctx):
     return _gather_nodes("galaxy-nodes", args, results)
 
 
@@ -935,7 +935,7 @@ def do_warm_galaxy_deep_nodes(args, keys, ctx):
     return _do_node_chunk(args, keys, ctx)
 
 
-def gather_warm_galaxy_deep_nodes(args, results):
+def gather_warm_galaxy_deep_nodes(args, results, ctx):
     return _gather_nodes("galaxy-deep-nodes", args, results)
 
 

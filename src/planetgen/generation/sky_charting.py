@@ -87,6 +87,9 @@ def walk_edges_and_ceiling(limits):
     What a ring's walk is made of, from the galaxy's `ScatterLimits`: the mass edges of the sector backfill (1, 2, 5, 8 and the galaxy's mass limits) with the sky's near rings under
     them, and the luminosity ceiling a ring leaves to the bright-star scatter (`_Context` draws with both; `cost_rings` costs with both).
     """
+    if not limits.scatter_ran:
+        # OPS.256: no ceiling to leave; 0.0 would read as "the scatter drew every star", which no draw can honour
+        raise ValueError("the galaxy has no star scatter yet: a sky ring has no luminosity ceiling")
     found = list(limits.tiers or ())
     edges = bright_stars.mass_band_edges([tier.mass_limit_sol for tier in found],
                                          sorted({*sky_tiers.NEAR_RING_MASSES_SOL, *tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL}))
@@ -123,10 +126,13 @@ def plan(observer_pc, limit_mag, edge_pc, *, limits=None, skeleton=None, **optio
     (`cost_rings`) and not by the cells of its sphere.
 
     Returns:
-        tuple: `(center, SkyTiers)`; the radii are not padded (see `padded_radius`).
+        tuple: `(center, SkyTiers)`; the radii are not padded (see `padded_radius`). With `limits` that say no scatter ran, `SkyTiers` holds no tier (a sky is drawn under the scatter's level).
     """
     _cell, center = observer_cell(observer_pc)
     tiers = sky_tiers.build(center, limit_mag, edge_pc, **options)
+    if limits is not None and not limits.scatter_ran:
+        # OPS.256: the sky is drawn under the scatter's luminosity floor and mass limit, so with no scatter there is no sky to chart: no tier, and nothing owed or drawn
+        return center, tiers._replace(luminosity=(), rings=(), dropped=())
     if limits is not None and tiers.rings:
         top = [found.mass_limit_sol for found in (limits.tiers or ()) if found.mass_limit_sol is not None]
         if top:
@@ -160,7 +166,7 @@ class _Context:
         self.walk_mass_range = None if (not caps or any(cap is None for cap in caps)) else (None, float(max(caps)))
         # The edges of the sector backfill (1, 2, 5, 8 and the galaxy's mass limits) and the sky's near rings under them: the bands from 1 solar mass up are the same bands, so
         # a star is the same star whichever backfill draws it.
-        self.edges, self.walk_ceiling = walk_edges_and_ceiling(self.limits)
+        self.edges, self.walk_ceiling = walk_edges_and_ceiling(self.limits) if self.limits.scatter_ran else ((), None)       # no scatter: `plan` gives no tier, so nothing is drawn with them
         self.blocks = {}
 
     def own_level(self, address, locked):

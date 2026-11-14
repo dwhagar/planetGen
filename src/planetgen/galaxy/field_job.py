@@ -332,7 +332,7 @@ def do_field(args, age, ctx):
     return {"mean": system_mass.mean_system_mass_at_age_solar(age), "seconds": time.monotonic() - started}
 
 
-def gather_field(args, results):
+def gather_field(args, results, ctx):
     """The unit's result from its pieces: writes the part from the means the pieces worked out, or says there was nothing to make."""
     state = args["state"]
     if state == "empty":
@@ -353,7 +353,7 @@ def gather_field(args, results):
 
 def run_unit(args):
     """A unit of `warm-cluster-field` run in this process, without the queue: its pieces in order, then what the unit makes of them (`engine.run`'s loop)."""
-    return gather_field(args, [do_field(args, age, None) for age in pieces_field(args, 0)])
+    return gather_field(args, [do_field(args, age, None) for age in pieces_field(args, 0)], None)
 
 
 def conclude_field(params, plan, results, seconds):

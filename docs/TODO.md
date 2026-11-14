@@ -12499,14 +12499,16 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
 - [ ] **GEN.1617 (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores**
+  Boss, 2:34 PM EST on 2026-11-14 (card): option (a), store the surface liquid (kind and amount) and make classes U, Y, A and X test it, after the current generation fixes land (GEN.1716, GEN.1717 and Train 28). Lock item.
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do, Boss's call between: (a) store the liquid (surface liquid kind and amount) and make the condition read it (lock item), or (b) soften the sentences to say what the condition checks (text only, lock-free). Default if no answer: (b) now, (a) as a later lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1557, GEN.1212. Boss's call on the choice where noted.
+  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: GEN.1557, GEN.1212. Boss's call on the choice where noted.
   Filed by the TODO thread.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
 - [ ] **GEN.1618 (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K**
+  Boss, 2:34 PM EST on 2026-11-14 (card): add a new class row for these hot worlds (400 K and up, 10 kPa to 10 bar of air, 0.5 g or more), so class N keeps its meaning. No longer deferred; Lane 14 builds it after GEN.444 and OPS.205. Lock item.
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do, Boss's call between: widen class N to cover them, or add a new row; then check that no stored body has match 0. Lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.830, GEN.1557. Boss's call on the choice where noted.
+  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: GEN.830, GEN.1557. Boss's call on the choice where noted.
   Filed by the TODO thread.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
@@ -12529,8 +12531,9 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1623 Star table: the Sun comes out at 1.107 Lsun and 5848 K (the raw MIST file agrees), so F, G and K dwarfs run 70 to 240 K hot**
+  Boss, 2:34 PM EST on 2026-11-14 (card): find the cause first (likely the age or metallicity grid point the table reads), fix that cause, no hand shift. Lane 11 does it before GEN.1717.
   Data audit batch 1, D3 (report reports/data-audit-2026-11-11.md, with file and line). Boss's call (the coordinator is asking): accept as the source says, or apply one calibration shift so the Sun lands on 1 Lsun and 5772 K. Lock item if shifted.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 11. Prerequisites: none. Related: GEN.725.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
@@ -12928,7 +12931,7 @@ clears each one.
 
 - [ ] **OPS.198 Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity)**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P8 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 21. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.199 Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights)**
@@ -12958,7 +12961,7 @@ clears each one.
 
 - [ ] **OPS.205 Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P15); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P15 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 12. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.207 Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since**
@@ -13232,11 +13235,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 22. Prerequisites: none. Related: GEN.1710, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1714 Life-bearing planets fell 20 percent (2.39 to 1.91 per candidate system) and dead worlds 56 percent after GEN.492's potassium depletion by mass: Boss to decide whether to revisit the potassium range**
-  Train Manager, measuring GEN.1699 (2026-11-14, /mnt/project-files/reports/civilization-drop-2026-11-14/report.md): the civilization drop was chance, but life-bearing planets are down 20 percent and dead worlds down 56 percent, caused by GEN.492 (potassium depletion drawn by body class and mass, Train 26); putting the old log-uniform draw back gives 2.24 per candidate. Class M and Blue are 0 in both builds. Do: put the choice to Boss (keep the sourced depletion law, or revisit its range against its source); build only on his answer. Changes output if built (lock item).
-  Version 8.1. Owner (TODO, 2026-11-14): waiting on Boss; then the lane that built GEN.492. Prerequisites: none. Related: GEN.492, GEN.1699.
-  Filed by the TODO thread.
-
 - [ ] **ADM.155 Default recipe as a JSON file with a "Set as default" button, a reset-or-hot-update prompt when the shipped default changes, and every recipe stored as a named JSON file with its creator**
   Boss, 9:41 AM EST on 2026-11-14 (project chat): "There will be a default recipe JSON file that will hold all the defaults the user wants. We'll add a button to the generator workflow labeled "Set as default" that will set as default whatever settings the user has currently put in. An "Update" that shows this default JSON recipe has changed will automatically ask the user if they wish to reset to default or attempt a hot update. The hot update will attempt to change any defaults in the recipe that were still defaults from the last run if they've changed. [...] Add a name flag to the JSON recipe index. All recipes will be stored as JSON files within the recipe subdirectory. The recipes subdirectory will be ignored by Git. We'll have a default recipe JSON example in examples that, upon first run, will be copied over. If it doesn't exist it'll be copied from the example automatically during the update or install to create our default JSON recipe. JSON recipe files will also have a name field and will contain the username that created them. If no username is specified they will be said to be created by CLI". Then, 9:41 AM EST: "We don't have to do that until 8.2 but if any of that work seems really relevant to what we're doing already, we can go ahead and do those pieces now". Do: (1) recipes move from the control database (ADM.125, admin/recipes.py, generate_recipes tables) to JSON files in a git-ignored recipes/ directory, each with a name and the creating username ("CLI" when none), with an index carrying the names; (2) examples/ gets the shipped default recipe, copied to recipes/ on first run and by update.sh and install when missing; (3) a "Set as default" button in the Generate workflow writes the current settings as the default recipe; (4) when update.sh brings a changed shipped default, the user is asked to reset to it or to hot update, which changes only the fields still equal to the old shipped default. No compatibility shim for the database recipes (moved once). Nothing pulled into 8.1: no 8.1 work touches the Generate recipes now (the 8.1 "recipe" items are atmosphere recipes, a different thing).
   Version 8.2. Owner (TODO, 2026-11-14): to be routed when 8.2 opens. Prerequisites: none. Related: ADM.125, API.28, UX.307.
@@ -13259,7 +13257,7 @@ clears each one.
 
 - [ ] **PERF.267 Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s**
   Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Stage 5 log: 109 of 109 sectors done after 6:05:18. Do: measure whether this is the expected cost per sector on that machine after Train 26 or a slowdown; report before any change.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 22. Prerequisites: none. Related: OPS.253.
   Filed by the TODO thread.
 
 - [ ] **TEST.741 (bug) After Train 27 the W20 same-inventory test is red at bistable key 155**
@@ -13282,19 +13280,25 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1715, GEN.1696.
   Filed by the TODO thread.
 
-- [ ] **UX.318 (bug) The job progress ticker shows "0.0 per s" for slow steps (e.g. Stage 5 at about 200 s a sector), so a working run reads as stalled**
+- [ ] **UX.318 (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand**
+  Boss, 3:06 PM EST on 2026-11-14 (standing rule): "make sure the generation logging system uses our units code, so that it always displays helpful units. If the sectors / second is 0.0 that's not helpful, so intead change it to seconds per sector, also memory limits sometimes say bytes, sometimes MB, sometimes GB, it's very inconsistent, it should use our unit system that is specifically designed for that." Do: audit every place that formats a rate, duration, size or memory by hand (logs, tickers and progress bars, the Queue page, warnings, job reports, shell scripts' log lines) and list them in the PR; route each through the units code (one formatter per kind, reused); a rate under one per second flips to time per item; a guard test that fails on a hand-formatted unit in those modules. Text only, no train; lock-free.
   Lane 13, 12:24 PM EST on 2026-11-14, from OPS.256; seen in Boss's New galaxy log (/mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log: "Neighborhood: 97 of 109 done (89%), 0.0 per s"). Do: show slow rates as time per item ("1 per 3 min 20 s") or per minute or hour, whichever reads with a nonzero figure; one formatter for the ticker and the Queue page.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: none. Related: OPS.253, PERF.267.
+  Version 8.1. Owner (TODO, 2026-11-14): the layered-fix thread (Fable). Prerequisites: none. Related: OPS.253, PERF.267.
   Filed by the TODO thread.
 
-- [ ] **SEC.50 (bug) The log masker hides ordinary words: update.sh logs "Skipping the population pass: XXXXXX math check failed." for "the math check failed"**
-  Seen by the layered-fix thread and TODO, 12:26 PM EST on 2026-11-14: test_math_gate::test_update_sh_check_math_failure_only_warns is red on main because the SEC.48 masker (src/planetgen/util/secrets_mask.py) masks "the" after "pass:". Do: find which rule matched (a name rule or a registered value) and narrow it so only real secret names and values are masked, keeping Boss's format (first 4, last 2, the rest X); test that ordinary log text passes through unchanged. Do not loosen the math-gate test.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: SEC.48, TEST.740.
+- [ ] **GEN.1717 (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300)**
+  Lane 15, 12:54 PM EST on 2026-11-14, from GEN.1716 (reports/gen1716-start-dependence-measure-2026-11-14.md): on main already; looks like opacity feeding back on temperature with nothing to stop it. Do: trace the feedback, compare with published sub-Neptune 1 bar temperatures for the same irradiation (radiative-convective models), and fix at the cause so the envelope's temperature comes from its physics; measure first, report before building. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 11. Prerequisites: none. Related: GEN.1716.
   Filed by the TODO thread.
 
-- [ ] **TEST.743 (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704**
-  Seen by the layered-fix thread, 12:24 PM EST on 2026-11-14 (red on main, needs the DB variables). GEN.1704 (PR 6469, Class M abundance tiers) added abundance_tier; the stored-skeleton serializer or its test was not updated. Do: carry the tier through the skeleton serialization at its cause; test green.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: none. Related: GEN.1704, TEST.740.
+- [ ] **GEN.1718 (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes**
+  Lane 15, 4:19 PM EST on 2026-11-14, from GEN.1716 part C (reports/gen1716-start-dependence-measure-2026-11-14.md): a bracketed temperature root find fixed 1 to 2 of 7 and made slow bodies worse; the pressure drifts 0.32 to 0.46 bar over 40 steps, and at the carbon switch the answer moves 100 K over 0.5 K of iterate, finer than the greenhouse solver's 0.1 K noise. Do: a two-variable root find (Broyden or Newton in ln P and T) for the solve loop, with the greenhouse solve made smooth enough to support it; every stored air settles or is a named branch. Measure the census shift. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: GEN.1716 part B. Related: GEN.1716, GEN.1715.
+  Filed by the TODO thread.
+
+- [ ] **OPS.257 A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena)**
+  Boss, 4:32 PM EST on 2026-11-14 (follow-up on OPS.254): "on a galaxy run that starts with a database wipe, there is no need to clear scatters". OPS.254 (PR 6508) only makes a clear cheap when it finds the tables empty. Lane 06 (4:32 PM EST): a New galaxy job is separate runs (reset, plan, sectors, link, backfill, scatter --mass, --luminosity, --phenomena, settle; generate_page.py:985-993), so no run's plan begins with the wipe; clears sit in the plan skeleton unit (run_plan.py:434), each scatter's first clear stage (commands.py:358-360) and clear-scatter; the bright-star clear unit also records the scatter's threshold, seed and mass limit (run_plan.py:849-855). Do (TODO approved): decide from the database, not a flag, in the shared step builder (commands.build_steps and the plan unit): a clear stage is left out of the plan when what it clears holds nothing, so every route gets it, a resumed run included; the limits recording becomes its own small step that always runs. Tests through each route. Lock-free unless output moves.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: none. Related: OPS.254.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

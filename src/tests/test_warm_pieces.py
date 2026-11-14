@@ -156,7 +156,7 @@ def test_the_map_rebuild_reopens_the_site_in_one_piece(monkeypatch):
 def test_a_cluster_field_unit_with_nothing_to_make_has_no_piece():
     assert field_job.pieces_field({"database": "x", "state": "empty"}, 0) == []
     assert field_job.pieces_field({"database": "x", "state": "ready"}, 0) == []
-    assert field_job.gather_field({"database": "x", "state": "empty"}, [])["line"].startswith("cluster-field: ")
+    assert field_job.gather_field({"database": "x", "state": "empty"}, [], None)["line"].startswith("cluster-field: ")
 
 
 def test_the_engine_counts_the_pieces_of_a_node_unit(monkeypatch):
