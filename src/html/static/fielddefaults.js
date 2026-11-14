@@ -125,3 +125,44 @@ for (const scope of document.querySelectorAll("[data-default-toggles]")) {
     if (!root.closest(".default-field")) enhanceLimit(root);
   }
 }
+
+// The help paragraphs of a section (the text under a fold's title or a group's legend) go behind a ? button in the title,
+// too, so no help text is left showing. A paragraph that reports something (a data-* attribute, a role, a warning)
+// is not help and stays.
+function groupHelp(scope) {
+  for (const note of scope.querySelectorAll("fieldset > p.hint, fieldset > span.field-hint, details > p.hint")) {
+    if (note.hidden || note.classList.contains("warning") || note.hasAttribute("role")
+        || [...note.attributes].some((attribute) => attribute.name.startsWith("data-"))) continue;
+    const parent = note.parentElement;
+    const heading = parent.matches("fieldset") ? parent.querySelector(":scope > legend") : parent.querySelector(":scope > summary");
+    if (!heading || heading.querySelector(".lever-help-button")) continue;
+    const text = heading.textContent.trim().replace(/\s+/g, " ");
+    const row = titleRow(text, note);
+    const button = row.querySelector("button");
+    // Inside a fold's title the button must not fold it.
+    button.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); });
+    heading.append(button);
+  }
+}
+
+for (const scope of document.querySelectorAll("[data-default-toggles]")) groupHelp(scope);
+
+// The sliders that follow another limit (the core's) keep their own "follow" tick box, so they get only the title and
+// the ? help; a tick box's own help text moves behind a ? button after it.
+for (const scope of document.querySelectorAll("[data-default-toggles]")) {
+  for (const root of scope.querySelectorAll("[data-limit-slider][data-follows]")) {
+    const label = root.querySelector(":scope > label");
+    const help = root.querySelector(":scope > .field-hint");
+    if (!label || !help) continue;
+    label.replaceWith(titleRow(label.textContent.trim(), help));
+  }
+  for (const tick of scope.querySelectorAll("sl-checkbox")) {
+    const help = tick.querySelector('[slot="help-text"]');
+    if (!help || tick.closest(".default-row")) continue;
+    help.removeAttribute("slot");
+    const row = titleRow(tick.textContent.trim().slice(0, 60), help);
+    const button = row.querySelector("button");
+    button.setAttribute("aria-label", `About: ${tick.textContent.trim().slice(0, 60)}`);
+    tick.after(button, help);
+  }
+}

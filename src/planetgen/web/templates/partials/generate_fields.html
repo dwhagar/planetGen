@@ -98,22 +98,30 @@
 </div>
 {%- endif -%}
 {%- endmacro -%}
+{#- The galaxy shape in subsections by dial (Boss, 2026-11-13: the section was very heavy): each dial's rows, the advanced ones
+    with the rest of their dial, in a fold of its own. The Shape selector and the Scale rows are open to start with. -#}
 {%- macro plan_inputs() -%}
-<div class="search-fields lever-fields">
-  {%- for row in plan_fields if not row.advanced %}
-  {{ lever_input(row) }}
-  {%- endfor %}
-</div>
-<p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disk plus a bulge with no stellar halo, thick disk, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
-<p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
-<details class="generate-advanced">
-  <summary>Advanced shape options</summary>
+{%- set groups = [("shape", "Galaxy family", true), ("scale", "Size: mass, compactness, density, disk length", true),
+                  ("structure", "Structure: flatness, bulge, nuclear", false), ("edge", "Edge of the galaxy", false),
+                  ("halo", "Dark and stellar halo", false), ("census", "Census: star richness and rogue planets", false),
+                  ("pattern", "Spiral arms", false)] -%}
+{%- for key, title, opened in groups %}
+{%- set rows = plan_fields|selectattr("dial", "equalto", key)|list %}
+{%- if rows %}
+<details class="generate-advanced generate-subsection"{% if opened %} open{% endif %}>
+  <summary>{{ title }}</summary>
   <div class="search-fields lever-fields">
-    {%- for row in plan_fields if row.advanced %}
+    {%- for row in rows %}
     {{ lever_input(row) }}
     {%- endfor %}
   </div>
+  {%- if key == "scale" %}
+  <p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disk plus a bulge with no stellar halo, thick disk, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
+  {%- endif %}
 </details>
+{%- endif %}
+{%- endfor %}
+<p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
 {%- endmacro -%}
 {#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
     first, then a segment each for the core, the halo, and the crowded cells. -#}

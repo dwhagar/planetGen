@@ -2234,3 +2234,16 @@ def test_the_new_galaxy_page_gives_every_property_the_default_toggle_and_collaps
     assert re.search(r'name="prevalence_moons"[^>]*data-auto="', html) and re.search(r'name="max_stars"[^>]*data-auto="', html)
     assert 'data-limit-slider data-auto=' in html
     assert "data-default-toggles" in _task_html(client, "plan-only")
+
+
+def test_the_galaxy_shape_is_split_into_a_fold_for_each_dial_with_the_scale_open(site, client):
+    """Boss, 2026-11-13: the galaxy shape was very heavy. Each dial's rows (the advanced ones with them) are a fold of their own;
+    the family and the size rows are open to start with, the rest closed."""
+    html = _task_html(client, "new-galaxy")
+    folds = re.findall(r'<details class="generate-advanced generate-subsection"( open)?>\s*<summary>([^<]+)</summary>', html)
+    titles = [title for _opened, title in folds]
+    assert [t.split(":")[0] for t in titles] == ["Galaxy family", "Size", "Structure", "Edge of the galaxy", "Dark and stellar halo", "Census", "Spiral arms"]
+    assert [bool(opened) for opened, _title in folds] == [True, True, False, False, False, False, False]
+    for row in dials.LEVERS:
+        assert html.count(f'data-lever="{row.name}"') >= 1, row.name
+    assert "Advanced shape options" not in html

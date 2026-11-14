@@ -7257,3 +7257,18 @@ a.help-mark {
 .generate-section > summary {
   font-weight: 600;
 }
+
+/* A fold of the galaxy shape (one dial's rows) sits inside the section's fold. */
+.generate-subsection {
+  margin: 0 0 0.5rem 0.75rem;
+}
+
+.generate-subsection > summary {
+  font-weight: 500;
+}
+
+summary .lever-help-button,
+legend .lever-help-button {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
