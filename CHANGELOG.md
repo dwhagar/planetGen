@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4106] - 2026-11-14
+
+**Headline:** The logging-rule tests pass on main again.
+
+### Fixed
+- **Main reds (TEST.740, part).** The admin account command (which took over the trusted-device and two-factor commands) is the one file allowed to print its answer; the two folded commands leave the allow list. A deferred stage that a run does not declare is worded without a hand-made "stage X to Y" count.
+
+generation-output: unchanged
+
 ## [8.0.4105] - 2026-11-14
 
 **Headline:** The Running units table of the Queue run page shows each unit's own progress bar and time left under its counter (PERF.147 in the OPS.139 rows).
