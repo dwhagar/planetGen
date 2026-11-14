@@ -138,7 +138,7 @@ def test_an_edit_to_a_planet_reaches_its_row_through_its_system(galaxy):
     try:
         planet = conn.execute("SELECT id, star_system_id FROM planets ORDER BY id LIMIT 1").fetchone()
         if planet is None:
-            pytest.skip("this draw made no planet")
+            pytest.fail("(TEST.737) this draw made no planet")
         objectindex.build(conn, database=config.database)
         conn.execute("UPDATE planets SET name = 'Edited World' WHERE id = %s", (planet["id"],))
         store.touch_star_system(conn, planet["star_system_id"])

@@ -127,7 +127,7 @@ def test_a_sector_that_holds_a_rogue_born_elsewhere_cannot_be_deleted(saved):
     conn, sector_id, address = saved
     other = conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE sector_id <> ?", (sector_id,)).fetchone()
     if other is None:
-        pytest.skip("every rogue landed in its donor's own sector")
+        pytest.fail("(TEST.737) every rogue landed in its donor's own sector")
     with pytest.raises(edits.SectorHasResidents):
         with conn:
             edits.delete_sector_with_contents(conn, other["sector_id"])
@@ -172,7 +172,7 @@ def test_the_landing_sectors_leaves_go_when_the_donors_sector_is_emptied(saved):
     conn, sector_id, address = saved
     landing = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE sector_id <> ?", (sector_id,)).fetchall()]
     if not landing:
-        pytest.skip("every rogue landed in its donor's own sector")
+        pytest.fail("(TEST.737) every rogue landed in its donor's own sector")
     with conn:
         edits.delete_sector_birth_contents(conn, sector_id)
     assert all(_leaf(conn, filed_in) == (None, None) for filed_in in landing)

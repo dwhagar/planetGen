@@ -129,7 +129,7 @@ def test_a_planet_whose_orbit_settled_is_made_again_though_the_age_did_not_move(
 def test_the_moons_of_a_planet_whose_orbit_settled_are_made_again_too(host_star):
     planet = _rocky(host_star, moon_count=1)
     if not planet.moons:
-        pytest.skip("no moon in the draw")
+        pytest.fail("(TEST.737) no moon in the draw")
     planet.eccentricity = 0.4
     for moon in planet.moons:
         moon.host_eccentricity = 0.4
@@ -150,7 +150,7 @@ def test_a_giant_whose_orbit_settled_is_made_again_on_the_orbit_but_not_for_the_
             giant = candidate
             break
     if giant is None:
-        pytest.skip("no giant in the draws")
+        pytest.fail("(TEST.737) no giant in the draws")
     giant.eccentricity = 0.4
     planets.remake_end_stages(giant, giant)
     host_star.age = 8.0

@@ -133,8 +133,9 @@ PLAIN = (("gravity", "gravity_g", "g0"), ("surface_temperature", "surface_temper
 def test_a_range_returns_exactly_the_bodies_whose_stored_value_is_in_it(scored_galaxy, table, panel, entity, key, column, stored):
     bodies = [b for b in _rows(scored_galaxy.config, table, [column]) if b[column] is not None]
     values = sorted(b[column] for b in bodies)
-    if len(values) < 4:
-        pytest.skip(f"the sample galaxy has too few {table} with {column}")
+    # TEST.737: three values is the least that tells an inside from an outside (the four sample systems hold three moons with an
+    # ocean depth), so a galaxy with fewer fails here instead of skipping its case.
+    assert len(values) >= 3, f"the sample galaxy has too few {table} with {column}"
     least, most = values[len(values) // 4], values[3 * len(values) // 4]
     unit = sv.KEYS[key].default_unit(entity)
     shown = lambda number: sv.convert(number, stored, unit)
@@ -206,7 +207,7 @@ def test_a_sort_by_a_gas_reads_the_air_and_a_body_without_the_gas_has_none(score
     finally:
         conn.close()
     if not rows:
-        pytest.skip("the sample galaxy has no planet with nitrogen")
+        pytest.fail("(TEST.737) the sample galaxy has no planet with nitrogen")
     middle = _between(r["pa"] for r in rows)
     want = {r["name"] for r in rows if r["pa"] >= middle}
     got = _search(scored_galaxy.config, ranges={"planet": {"gas_N2": (middle / 1e5, None, "bar")}})["results"]["planets"]["rows"]

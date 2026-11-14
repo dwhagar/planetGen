@@ -213,7 +213,7 @@ def test_the_stored_air_stays_one_air_after_the_oxygen_goes_in(worlds):
             assert not (set(partials) & set(bo.REDUCED_GASES)) or partials["O2"] < 1e-3 * sum(partials.values())
             assert all(gases.gas(f) for f in partials)
             return
-    pytest.skip("no oxygen made in these seeds")
+    pytest.fail("(TEST.737) no oxygen made in these seeds")
 
 
 def test_an_oxygenic_class_eats_light():

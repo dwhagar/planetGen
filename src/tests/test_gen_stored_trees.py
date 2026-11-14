@@ -58,7 +58,7 @@ def _tree(members, mass=1.0, start=1):
         tree, age_yr = _tree_of(members, seed, mass)
         if tree is not None:
             return seed, tree, age_yr
-    pytest.skip(f"no seed drew a tree of {members} members")
+    pytest.fail(f"(TEST.737) no seed drew a tree of {members} members")
 
 
 def _primary_params(mass, age_yr, seed):
@@ -91,7 +91,7 @@ def _pair(kind, start=1):
         tree, age_yr = _tree_of(2, seed)
         if tree is not None and _pair_kind(tree.nodes[0]) == kind and tree.members[1].kind in stored_trees.PAIR_STAR_KINDS:
             return seed, tree, age_yr
-    pytest.skip(f"no seed drew a {kind} pair")
+    pytest.fail(f"(TEST.737) no seed drew a {kind} pair")
 
 
 # --- The plan -----------------------------------------------------------------------------------------------------

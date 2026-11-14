@@ -80,7 +80,7 @@ def test_a_remnant_core_gets_its_own_object_id(mysql_config):
         if remnant.compact_remnant is not None:
             break
     else:
-        pytest.skip("no remnant with a core drawn")
+        pytest.fail("(TEST.737) no remnant with a core drawn")
     assert remnant.compact_remnant.name == f"{remnant.name} Core"
     sector = SpaceSector("Halfway Sector", edge_ly=11.5)
     sector.add_phenomenon(remnant, "supernova-remnant", position=(1.0, 2.5, 1.0))

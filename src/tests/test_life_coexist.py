@@ -43,7 +43,7 @@ def systems():
 def mixed(systems):
     found = [body for system in systems for body in _bodies(system) if len(body.life_living or ()) > 1]
     if not found:
-        pytest.skip("no body with several classes in these seeds")
+        pytest.fail("(TEST.737) no body with several classes in these seeds")
     return found
 
 

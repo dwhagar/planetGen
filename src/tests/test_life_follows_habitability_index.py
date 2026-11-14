@@ -58,7 +58,7 @@ def test_a_star_too_young_for_a_crust_and_oceans_has_no_life_anywhere(host_star,
         if planet.life_class is not None:
             break
     else:
-        pytest.skip("no world of the first 60 seeds is alive around this star")
+        pytest.fail("(TEST.737) no world of the first 60 seeds is alive around this star")
     monkeypatch.setattr(host_star, "age", tuning.LIFE_MIN_STAR_AGE_GY * 0.5)
     planetLife.apply_life_data(planet)
     assert planet.life_class is None and not planet.has_timeline
@@ -73,7 +73,7 @@ def _living_planet(host_star):
         planetLife.apply_life_data(planet)
         if planet.life_class is not None:
             return planet
-    pytest.skip("no world of the first 60 seeds is alive around this star")
+    pytest.fail("(TEST.737) no world of the first 60 seeds is alive around this star")
 
 
 def test_a_world_whose_first_step_comes_after_its_stars_age_has_no_class(host_star, monkeypatch):
