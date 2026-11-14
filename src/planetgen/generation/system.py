@@ -2513,12 +2513,12 @@ class StarSystem:
                 for moon in obj.moons:
                     if planetPhysics.settle_orbit(moon):
                         if log.debug_log_active():
-                            log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                            log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
                 obj.finish_moons()      # GEN.1548: the moons built bare take their air, class and spin on the orbit the tide left
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     if log.debug_log_active():
-                        log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+                        log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr.")
             for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
                 moved = planetPhysics.settle_obliquity(planets, star.mass)
                 if moved:
