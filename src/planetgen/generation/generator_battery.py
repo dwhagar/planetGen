@@ -304,7 +304,7 @@ def kept_battery_digest(progress=None):
 
 
 DIGEST_POLL_SECONDS = 2.0
-"""float: How often the wait for the digest process reads what it has done (OPS.184)."""
+"""float: How often the wait for the digest process reads what it has done (OPS.184). Defined by the program, not a physical value."""
 
 
 def _digest_in_process():
