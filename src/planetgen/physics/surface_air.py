@@ -704,6 +704,8 @@ def _airless(setting, mixture, steps, design, ocean):
 
 def _column_moles(result, mantle_kg):
     """The moles of each gas in the column of a mixture that has `result.moles` per 100 g of the mantle."""
+    if not result.mole_fractions or result.moles is None:      # GEN.1675: an airless mixture over a surface ice has no gas of its own, only what the ice gives off
+        return {}
     total = result.moles * mantle_kg / 0.1
     return {formula: fraction * total for formula, fraction in result.mole_fractions.items()}
 

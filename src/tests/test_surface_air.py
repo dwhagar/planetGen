@@ -687,3 +687,7 @@ def test_the_mantle_redox_takes_one_draw_from_the_unit_whatever_the_recipe_takes
         sa.mantle_redox_diw = real
     assert calls[0] == calls[1]        # the same stream position afterwards with or without an air
     assert len(taken) == 1
+
+
+def test_an_airless_mixture_has_no_column_of_its_own_to_freeze_out():
+    assert sa._column_moles(types.SimpleNamespace(moles=None, mole_fractions={}), 1.0e22) == {}
