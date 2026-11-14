@@ -89,7 +89,8 @@ def test_a_remade_body_makes_the_same_streams_when_it_moved_by_a_hair(rocky):
     moved.surface_temperature += 0.2
     before, after = _streams_made(still), _streams_made(moved)
     # `abundance` is the star's makeup (keyed on its mass and galactic distance, never its age); it is made once per age in a cache, so only the moved copy makes the stream again
-    offenders = sorted({s.split(":")[0] for s in (before - after) | (after - before)} - {"abundance"})
+    # `ice-giant-heat` is keyed on the body's mass alone (`ice_giant_heat.SEED_DIGITS`) and made once per mass in the same cache, so only the first copy makes it
+    offenders = sorted({s.split(":")[0] for s in (before - after) | (after - before)} - {"abundance", "ice-giant-heat"})
     assert not offenders, f"streams keyed on the body's present state: {offenders}"
 
 

@@ -365,8 +365,7 @@ def remake_end_stages(body, planet):
     Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
     itself for a planet and the parent for a moon.
     """
-    stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
-                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
+    stream = draw.body_stream_of("refinish-rocky", body, slot=str(int(body.is_moon)))      # GEN.1547: the body's birth numbers alone, so a remake after a settled orbit or age re-rolls nothing
     with draw.bound(stream):
         if body.is_moon:
             calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
@@ -549,8 +548,7 @@ def settle_giant(planet):
     if moved:
         planet.volume = (4 / 3) * math.pi * planet.radius ** 3
         calculate_surface_gravity(planet)
-    stream = draw.Stream(f"settle-giant-air:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
-                         f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
+    stream = draw.body_stream_of("settle-giant-air", planet)      # GEN.1547
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
         prepare_class(planet)
@@ -651,6 +649,15 @@ def calculate_surface_gravity(planet):
 
 
 def calculate_atmospheric_conditions(planet, distance_override=None, host_eccentricity=None):
+    """
+    The air of `planet` made from a stream keyed to the body's birth (`draw.body_stream_of`, GEN.1547), so the first pass and every later one draw the same numbers
+    and the run's stream is not touched; the work is `_calculate_atmospheric_conditions`, whose docstring says what it makes.
+    """
+    with draw.bound(draw.body_stream_of("air", planet, slot=str(int(bool(planet.is_moon))))):
+        _calculate_atmospheric_conditions(planet, distance_override, host_eccentricity)
+
+
+def _calculate_atmospheric_conditions(planet, distance_override=None, host_eccentricity=None):
     """
     Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
@@ -800,7 +807,7 @@ def _remake_what_reads_the_air(planet):
     `remake_air` just made, the way `remake_end_stages` follows the air (GEN.992), from a stream of the planet's own so the run's stream does not move, and the moons' day and night shares (no
     draws) after the planet's new spin. The planet keeps its birth spin, so a planet whose air is made again with the same pressure and clouds keeps its day.
     """
-    stream = draw.Stream(f"late-accretion-end:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:{float(planet.star.age)!r}:{float(planet.radius)!r}")
+    stream = draw.body_stream_of("late-accretion-end", planet)      # GEN.1547
     with draw.bound(stream):
         prepare_class(planet)
         generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))
