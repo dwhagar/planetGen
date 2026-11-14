@@ -170,7 +170,7 @@ TABLES = {
         "index": ("position",),
     },
     "asteroid_belts": {
-        "id": ("id", "star_system_id", "star_id", "parent_id"),
+        "id": ("id", "star_system_id", "star_id", "parent_id", "host_node_id"),
         "index": ("orbital_index",),
         "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km", "largest_body_km"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),

@@ -279,7 +279,7 @@ def migration_probability(fe_h):
 def _clear_split(seeds, star_mass_kg):
     """
     `(kept, swept, thrown)` for `seeds`: the planets a giant scattered, kept as losses. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
-    (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, Zhu and Dong 2021) or within `GIANT_CLEARING_SPACING` mutual Hill
+    (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, [R4897]) or within `GIANT_CLEARING_SPACING` mutual Hill
     radii of a giant that moved in (a giant that did not move clears nothing), and `thrown` is `_scatter_split`'s.
     """
     moved = [s for s in seeds if s.runaway and s.migrated]

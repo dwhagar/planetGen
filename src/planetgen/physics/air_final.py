@@ -17,7 +17,7 @@ import os
 from typing import Optional
 
 from planetgen import tuning
-from planetgen.physics import air_branches, climate_draws, constants, oddities, orbits, surface_air
+from planetgen.physics import air_branches, climate_draws, constants, ground_albedo, oddities, orbits, surface_air
 from planetgen.physics import unit_registry as units
 from planetgen.util import log
 
@@ -61,9 +61,9 @@ def past_runaway_with_water(planet, starlight_w_m2, surface_w):
     return effective > orbits.runaway_greenhouse_flux(planet.star.temperature, units.converter("kg", "Mearth")(planet.mass))
 
 
-def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, albedo, giant, surface_w):
+def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, albedo, giant, surface_w, dry_ground=False, no_air_internal_w_m2=0.0):
     """
-    The air of `planet` as it ends: solved from the start temperature the body's water gives (`past_runaway_with_water`), replaced by the air of an oddity of lever L7 when a row names the body
+    The air of `planet` as it ends: solved from the start temperature the body's water gives (`past_runaway_with_water`, or the warm side for a body with the ice law, GEN.1696), replaced by the air of an oddity of lever L7 when a row names the body
     (`air_branches`), or the airless state when it keeps none (`surface_air.airless_state`, the ice-albedo law's own answer). Keeps on the planet, as before and not stored, the replay of the
     late accretion (`_air_replay`, GEN.1493), the retention cap of the first solve (`_retention_cap_pa`, GEN.1340) and the carbon sink of the air kept (`_co2_sink`, GEN.1309 A).
 
@@ -76,6 +76,8 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
         albedo (float): The Bond albedo drawn before the air.
         giant (bool): Whether it has no surface (the air is solved at its 1 bar level).
         surface_w (float or None): The surface water drawn before the air.
+        dry_ground (bool): Whether its albedo is its ground's (GEN.684 A): with no air it is then darkened by space weathering before the ice law starts from it.
+        no_air_internal_w_m2 (float): The own heat of a starless body, which its airless temperature includes.
 
     Returns:
         FinalAir: What the body keeps.
@@ -83,6 +85,8 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     start_k = no_air_temperature_k
     if past_runaway_with_water(planet, starlight_w_m2, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `past_runaway_with_water`)
+    elif setting.albedo_law is not None and not giant:
+        start_k = max(start_k, air_branches.WARM_START_K)           # GEN.1696: a body with the ice law cooled from its formation, so it enters from the warm side
     air = surface_air.solve(setting, start_k)
     if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
         planet._air_replay = (*planet._air_replay[:3], (setting, air.late_state, air.late, air.degassed))
@@ -92,9 +96,15 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     planet._air_haze = None if air is None or setting.haze_draws is None else (setting.haze_draws, setting.star_temperature_k, setting.far_uv, setting.internal_flux_w_m2)    # GEN.1589: kept, not stored; the haze of the air kept, for the life stage
     if air is None or not air.partials_pa:
         temperature_k, albedo_kept = no_air_temperature_k, albedo
+        if dry_ground:
+            # GEN.684 A: a surface with no air over it is darkened by space weathering (`ground_albedo`), the ice-free albedo the ice law starts from too
+            albedo_kept = ground_albedo.weathered_albedo(albedo_kept, ground_albedo.surface_age_gy(planet))
         if setting.albedo_law is not None:
             # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
-            temperature_k, albedo_kept = surface_air.airless_state(setting.albedo_law, starlight_w_m2, no_air_temperature_k)
+            law = surface_air.ice_albedo_law(planet, albedo_kept, surface_w) if dry_ground else setting.albedo_law
+            temperature_k, albedo_kept = surface_air.airless_state(law, starlight_w_m2, no_air_temperature_k)
+        elif dry_ground:
+            temperature_k = climate_draws.equilibrium_temperature_k(albedo_kept, starlight_w_m2, internal_flux_w_m2=no_air_internal_w_m2)
         return FinalAir(air=air, temperature_k=temperature_k, albedo=albedo_kept, greenhouse_factor=0.0, pressure_pa=0.0, molar_density_kg_mol=None, density_kg_m3=None,
                         scale_height_km=None, partials_pa={})
     if air.at_ceiling:
