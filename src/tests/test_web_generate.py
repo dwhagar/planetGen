@@ -748,13 +748,13 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, sectors, link, mass, luminosity, phenomena, backfill, settle = _work_steps(job)
+    reset, plan, sectors, link, backfill, mass, luminosity, phenomena, settle = _work_steps(job)
     assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4"]
     # GEN.30: the scatters come after the sectors, each a step of its own (PERF.123).
     assert _argv(sectors) == ["sectors", "--radius-pc", "40.0"]
-    assert [_argv(step) for step in (link, mass, luminosity, phenomena, backfill, settle)] == [
-        ["link"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"], ["backfill"], ["settle"]]
+    assert [_argv(step) for step in (link, backfill, mass, luminosity, phenomena, settle)] == [
+        ["link"], ["backfill"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"], ["settle"]]
 
 
 def test_plan_only_resets_and_plans_with_no_sectors_and_no_scatter(site, client, no_spawn):
@@ -871,7 +871,7 @@ def test_page_offers_the_scatter_threshold(site, client):
     assert generate_page.BRIGHT_THRESHOLD_LABEL in html
     # GEN.184, UX.116: a slider over the presets with a number box at its end, which shows the default.
     assert re.search(r'<input type="number" class="range-value" id="plan-mass-limit-floor-box" name="bright_min_luminosity" '
-                     r'value="9000"[^>]*min="2500\.0" max="4000000\.0"', html)
+                     r'value="18000"[^>]*min="2500\.0" max="4000000\.0"', html)
     assert 'data-stops="[2500.0,' in html and '4000000.0]"' in html
     assert generate_page.BACKFILL_TEXT in html
 
@@ -1702,7 +1702,7 @@ def test_the_plan_forms_offer_the_core_halo_and_dense_cell_segments(site, client
     for segment in segments:
         for legend in ("Core", "Halo and intergalactic space", "Dense cells"):
             assert f"<legend>{legend}</legend>" in segment
-        for name, value in (("core_min_luminosity", "9900"), ("core_mass_limit", "15.4"), ("halo_min_luminosity", "500"),
+        for name, value in (("core_min_luminosity", "19800"), ("core_mass_limit", "15.4"), ("halo_min_luminosity", "500"),
                             ("cell_star_ceiling", "5000"), ("fill_luminosity_cap", "100")):
             assert re.search(rf'name="{name}"\s+value="{value}"', segment), name
         assert re.search(r'<sl-checkbox name="core_follow" value="1" checked data-core-follow', segment)
@@ -1763,7 +1763,7 @@ def test_a_new_galaxy_scatters_at_the_form_s_mass_limit(site, client, no_spawn):
     """The plan step doesn't store the limit, so the galaxy step carries it to the scatters."""
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
     (job,) = no_spawn
-    _reset, plan, _sectors, _link, mass, *_rest = _work_steps(job)
+    _reset, plan, _sectors, _link, _backfill, mass, *_rest = _work_steps(job)
     assert _argv(plan) == ["plan"]
     assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "8"]
 
@@ -1824,7 +1824,7 @@ def test_the_compact_limit_follows_the_star_setting_by_default(site, client, no_
 def test_an_unticked_compact_limit_reaches_every_scatter_step(site, client, no_spawn):
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="14", compact_min_mass="2").status_code == 303
     (job,) = no_spawn
-    _reset, plan, _sectors, _link, mass, luminosity, phenomena, *_rest = _work_steps(job)
+    _reset, plan, _sectors, _link, _backfill, mass, luminosity, phenomena, *_rest = _work_steps(job)
     assert _argv(plan) == ["plan"]
     assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "14"]
     assert _argv(phenomena) == ["scatter", "--phenomena", "--compact-min-mass", "2"]

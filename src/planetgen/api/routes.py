@@ -2469,41 +2469,15 @@ def generate_sector_neighborhood_route(sector_id):
     radius_ly, estimate_only = request_body.radius_ly, request_body.estimate_only
     disregard = request_body.disregard_missing_data
 
-    config = _resolve_requested_write_db_config()
-    if not estimate_only:
-        try:
-            run_galaxy.require_datasets(disregard)
-        except RuntimeError as exc:
-            raise ApiError(str(exc), status_code=409)
-    try:
-        # A real run is estimated first, so an unknown sector (404), a
-        # missing skeleton (409) and a database disk that can't hold it
-        # (507) answer here, before anything is queued.
-        result = run_galaxy.generate_sector_neighborhood(
-            sector_id, radius_ly=radius_ly, config=config, estimate_only=True,
-        )
-    except run_galaxy.EnumerationTooLarge as exc:
-        raise ApiError(str(exc), status_code=413)
-    except ValueError as exc:
-        raise ApiError(str(exc), status_code=404)
-    except RuntimeError as exc:
-        raise ApiError(str(exc), status_code=409)
-    if estimate_only:
-        return jsonify(result)
-    if result["estimate"].get("refusal"):
-        # PERF.3: the database disk can't hold it; nothing is queued.
-        raise ApiError(result["estimate"]["refusal"], status_code=507)
-
-    try:
-        job_id = api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config, disregard,
-                                 expected_seconds=result["estimate"].get("seconds"))
-    except api_jobs.NoQueue as exc:
-        raise ApiError(str(exc), status_code=503)
-    audit(
-        "sector.generate_neighborhood", target=f"sector:{sector_id}",
-        detail=f"radius_ly={radius_ly!r} job={job_id}" + (" disregard_missing_data" if disregard else ""),
+    return _generation_job(
+        estimate_only, disregard,
+        lambda config: run_galaxy.generate_sector_neighborhood(sector_id, radius_ly=radius_ly, config=config,
+                                                               estimate_only=True),
+        unknown_status=404,
+        submit=lambda config, seconds: api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config,
+                                                       disregard, expected_seconds=seconds),
+        action="sector.generate_neighborhood", target=f"sector:{sector_id}", detail=f"radius_ly={radius_ly!r} ",
     )
-    return accepted(job_id)
 
 
 @bp.route("/galaxy/blocks/<key>/generate", methods=["POST"])
@@ -2531,6 +2505,25 @@ def generate_block_route(key):
         raise ApiError(str(exc), status_code=400)
     key = drill.format_drill_key(block)
 
+    return _generation_job(
+        estimate_only, disregard,
+        lambda config: run_galaxy.generate_block(key, config=config, estimate_only=True),
+        unknown_status=400,
+        submit=lambda config, seconds: api_jobs.submit(api_jobs.generate_block, key, config, disregard,
+                                                       expected_seconds=seconds),
+        action="galaxy.generate_block", target=f"block:{key}", detail="",
+    )
+
+
+def _generation_job(estimate_only, disregard, estimate, unknown_status, submit, action, target, detail):
+    """
+    The shared body of the two generation routes (generate-neighborhood, block generate): checks the datasets for a
+    real run, runs `estimate(config)` (the generator with `estimate_only=True`) first so an unknown target
+    (`unknown_status`), a missing skeleton (409), too large a run (413) and a database disk that cannot hold it
+    (507, PERF.3) answer before anything is queued, returns the estimate when that is all that was asked, otherwise
+    queues `submit(config, expected_seconds)`, writes the audit line (`action`, `target`, `detail` followed by the
+    job id) and answers `accepted`.
+    """
     config = _resolve_requested_write_db_config()
     if not estimate_only:
         try:
@@ -2538,25 +2531,22 @@ def generate_block_route(key):
         except RuntimeError as exc:
             raise ApiError(str(exc), status_code=409)
     try:
-        result = run_galaxy.generate_block(key, config=config, estimate_only=True)
+        result = estimate(config)
     except run_galaxy.EnumerationTooLarge as exc:
         raise ApiError(str(exc), status_code=413)
     except ValueError as exc:
-        raise ApiError(str(exc), status_code=400)
+        raise ApiError(str(exc), status_code=unknown_status)
     except RuntimeError as exc:
         raise ApiError(str(exc), status_code=409)
     if estimate_only:
         return jsonify(result)
     if result["estimate"].get("refusal"):
         raise ApiError(result["estimate"]["refusal"], status_code=507)
-
     try:
-        job_id = api_jobs.submit(api_jobs.generate_block, key, config, disregard,
-                                 expected_seconds=result["estimate"].get("seconds"))
+        job_id = submit(config, result["estimate"].get("seconds"))
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
-    audit("galaxy.generate_block", target=f"block:{key}",
-          detail=f"job={job_id}" + (" disregard_missing_data" if disregard else ""))
+    audit(action, target=target, detail=f"{detail}job={job_id}" + (" disregard_missing_data" if disregard else ""))
     return accepted(job_id)
 
 

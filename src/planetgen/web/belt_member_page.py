@@ -20,10 +20,6 @@ def member_url(belt_ref, designation):
     return page_url("belt_member_page", belt_ref=belt_ref, rank=designation.rpartition(object_uid.MEMBER_SEPARATOR)[2])
 
 
-def _quantity(value):
-    return value["text"] if value else ""
-
-
 @bp.route("/object/<belt_ref>/member/<rank>")
 def belt_member_page(belt_ref, rank):
     """One body of an asteroid belt at the class D size or larger (stored, or made when asked for, GEN.1674); a reference that is not a belt, a rank the belt does not keep or one written otherwise than the designation writes it is a 404."""
@@ -60,13 +56,13 @@ def belt_member_page(belt_ref, rank):
         belt=belt,
         planet=data.get("planet"),
         member=member,
-        composition_text=", ".join(f"{part} {member['composition'][part]['text']}" for part in ("rock", "metal", "water", "ice") if member["composition"][part]["value"] > 0.0),
+        composition_text=bodyview.member_composition_text(member),
         orbit=data["orbit"],
         share=data["share"],
         previous_url=member_url(ref, data["previous"]) if data["previous"] else None,
         next_url=member_url(ref, data["next"]) if data["next"] else None,
         previous=data["previous"],
         next=data["next"],
-        quantity=_quantity,
+        quantity=bodyview.quantity_text,
         example=bodyview.member_view(data["designation"], member),
     )

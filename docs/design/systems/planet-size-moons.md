@@ -14,11 +14,11 @@ A disk cannot make an Earth-mass moon around a Jupiter: the whole disk holds abo
 
 ## 2. What the generator does today
 
-`moon_composition` already makes the disk (`DiskSystem`, with the total from the same law), but the moon masses come from `planet_kind.draw_moon_mass_kg` with a flat ceiling of 1e-3 of a giant (`tuning.MOON_GIANT_PARENT_MAX_MASS_RATIO`). That is higher than the disk's top (6.4e-4), so a giant can already draw a moon above what its disk made; and there is no capture window above it. The wiring fixes both.
+`moon_composition` already makes the disk (`DiskSystem`, with the total from the same law), but the moon masses come from `planet_kind.draw_moon_mass_kg` with a flat ceiling of 1e-3 of a giant (`tuning.MOON_GIANT_PARENT_MAX_MASS_RATIO`, removed by the wiring). That was higher than the disk's top (6.4e-4), so a giant could draw a moon above what its disk made; and there was no capture window above it. The wiring fixes both (section 3).
 
 The Triton-class window of `irregular_population` (`exchange_chance`, GEN.1077) is a different thing: a planetesimal binary gives an ice or rock body of 1e22 kg or so, and it holds no gas giant. The planet-size capture here starts at 0.1 Earth mass (6e23 kg), so the two never give the same moon; the wiring checks that a planet-size capture is not also drawn by that window.
 
-## 3. Proposed wiring (changes output, rides a train)
+## 3. The wiring (built; changes output, rides a train)
 
 1. In `generate_moons`, cap a disk-origin moon at `planet_moons.disk_moon_ceiling_kg` (and the disk's sum at the same figure), replacing the flat 1e-3 for giants.
 2. After the disk moons, one `planet_moons.draw_exchange_moon(planet.mass, draw)` per giant; a hit adds a moon of that mass with origin `exchange` (a new value of `moon_composition.ORIGINS`), placed anywhere inside `moon_orbit_bounds_km`, with the captured inclination law (isotropic, about half retrograde, [R5229]), and made by the ordinary `Planet` generator, so its class, air and life come from its own conditions.

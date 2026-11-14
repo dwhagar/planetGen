@@ -211,11 +211,11 @@ def test_the_outer_disk_starts_past_the_chaotic_zone_of_the_last_giant():
     assert disk.stirred and "past 34.1 AU" in disk.sentence
 
 
-def test_with_no_giant_the_outer_disk_takes_over_where_the_tail_ends_and_a_disk_with_no_room_is_none():
+def test_with_no_giant_the_outer_disk_takes_over_a_separation_past_where_the_tail_ends_and_a_disk_with_no_room_is_none():
     belts = build([rocky(1.0)])
     (disk,) = [b for b in belts if b.origin == "outer-disk"]
     (tail,) = [b for b in belts if b.origin == "tail"]
-    assert disk.inner_au == pytest.approx(tail.outer_au) and disk.inner_au == GROWTH
+    assert tail.outer_au == GROWTH and disk.inner_au == pytest.approx(GROWTH + tuning.MIN_ASTEROID_BELT_SEPARATION)       # GEN.1673: born the separation apart that the spacing pass keeps
     assert bo.outer_disk([rocky(1.0)], STAR, GROWTH, 12.0) == []
 
 
@@ -416,3 +416,16 @@ def test_no_planets_at_all_still_gives_the_disk_a_belt_with_its_cause():
     belts = build([])
     assert [b.origin for b in belts] == ["snow-line-bump", "outer-disk"] or [b.origin for b in belts] == ["outer-disk"]
     assert all(b.sentence for b in belts)
+
+
+def test_a_stretch_that_begins_just_past_the_belt_before_it_starts_a_separation_clear_and_an_overlapping_one_is_left_alone():
+    first = {"cause": "tail", "inner_au": 1.0, "outer_au": 2.0, "co": []}
+    abutting = {"cause": "outer-disk", "inner_au": 2.0, "outer_au": 5.0, "co": []}
+    overlapping = {"cause": "debris", "inner_au": 1.2, "outer_au": 1.4, "co": []}
+    spaced = bo._spaced([first, overlapping, abutting])
+    assert [c["inner_au"] for c in spaced] == [1.0, 1.2, 2.0 + tuning.MIN_ASTEROID_BELT_SEPARATION]
+
+
+def test_a_planets_own_clearance_sets_where_a_belt_may_start():
+    planet = bo.Body(1.0, EARTH, 0.1, False, False, None, None, 0.2)
+    assert bo.keep_out(planet, STAR) == pytest.approx((0.9 - 0.2, 1.1 + 0.2))

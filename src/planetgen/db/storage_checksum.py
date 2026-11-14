@@ -269,14 +269,6 @@ def mark_sector(conn, sector_id):
         _mark(conn, "id = ?", (sector_id,))
 
 
-def mark_sectors(conn, sector_ids):
-    """`mark_sector` for each of `sector_ids` (a refile marks the sector an object left and the one it entered)."""
-    ids = sorted({int(i) for i in sector_ids if i is not None})
-    for first in range(0, len(ids), _IN_BATCH):
-        chunk = ids[first:first + _IN_BATCH]
-        _mark(conn, f"id IN ({', '.join('?' * len(chunk))})", chunk)
-
-
 def mark_system(conn, star_system_id):
     """Marks the sector that holds a star system, for a change to the system or to anything under it (its stars, planets, moons,
     belts, comets, facilities and their child rows)."""

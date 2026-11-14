@@ -72,9 +72,17 @@ galaxy-placed sector the "molecular-cloud" roll gives way to the galaxy's
 cloud field (`nebulaField`, GEN.47). Diffuse gas (classes A-B) fills about
 half the disk, so it is the background, not generated."""
 
-POPULATION_AGED_KINDS = ("brown-dwarf", "neutron-star", "black-hole")
-"""tuple: The kinds whose age follows the population the sector's fill gives them (GEN.553): they are made with
-`FillContext.apply_population` and take their age from that population's window and age law."""
+POPULATION_AGED_KINDS = registry.kinds(aged_by_population=True)
+"""tuple: The kinds whose age follows the population the sector's fill gives them (GEN.553, the registry's
+`aged_by_population` column): they are made with `FillContext.apply_population` and take their age from that
+population's window and age law."""
+
+_SECTOR_ROLL = {row.kind: row for row in registry.rows(sector_roll=True)}
+
+
+def _rolled(kind):
+    """The registry row of a kind `generate_sector_phenomena` rolls, or `None` for one the registry lacks (a test's own)."""
+    return _SECTOR_ROLL.get(kind)
 
 
 def iter_sector_configs(args):
@@ -203,27 +211,29 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
     kind_factors = kind_factors or {}
 
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
-        if kind == "molecular-cloud" and cloud_field is not None:
+        row = _rolled(kind)      # GEN.1663: what differs between the kinds is read from the registry's columns
+        from_field = row is not None and row.gate == "nebula field"      # the molecular clouds
+        if from_field and cloud_field is not None:
             if sector.cloud_field != cloud_field:
                 cloudContext.begin(sector, cloud_field, nebula_field.clouds_reaching(*cloud_field))
             fill_stages.count(sector, fill_stages.NEBULAE, kind, len(sector.field_nebulae))
             continue
-        if scattered and kind in phenomenon_scatter.SCATTERED_KINDS:
+        if scattered and row is not None and row.scatter_pass == "band-density":
             continue
         # Each kind draws from a stream of its own (stage E), so adding a kind moves no other kind's draws.
-        stage = fill_stages.NEBULAE if kind == "molecular-cloud" else fill_stages.PER_STAR_KINDS
+        stage = fill_stages.NEBULAE if from_field else fill_stages.PER_STAR_KINDS
         with fill_stages.stage(sector, stage, kind):
-            rate = (remnant_density.rate_per_star(kind_factors, kind) if kind in remnant_density.KINDS
+            rate = (remnant_density.rate_per_star(kind_factors, kind) if row is not None and row.rate_source == "remnant density"
                     else program_constants.phenomenon_rate_per_star(kind) * kind_factors.get(kind, 1.0))
             count = _sample_poisson_count(rate * star_count)
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon_config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
-                if kind in POPULATION_AGED_KINDS and fill is not None:
+                if row is not None and row.aged_by_population and fill is not None:
                     fill.apply_population(phenomenon_config)   # GEN.553: its age follows its population
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
-                if kind == "planetary-nebula":
+                if row is not None and "star-system" in row.carries:      # a planetary nebula: built around its own system
                     entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
                     if entry is not None:
                         new_entries.append(entry)
@@ -943,8 +953,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 # from here), so stop generating and placing altogether
                 # rather than pay for `total - i - 1` more full
                 # StarSystem generations just to discard them too.
-                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands.",
-                           edge_ly=round(sector.edge_ly, 1))
+                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands (edge {round(sector.edge_ly, 1)} ly).")
                 break
 
     with log.timed_phase("generate_sector_phenomena"):

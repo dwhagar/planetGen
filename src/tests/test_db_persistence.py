@@ -1622,7 +1622,7 @@ def test_bright_star_web_queries(mysql_config):
         assert stats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
         status = queryDb.bright_star_scatter_status(conn)
         assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
-        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
+        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 18000.0
         assert queryDb.bright_stars_in_sector(conn, 3, 0, 0) == []
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
@@ -1656,7 +1656,7 @@ def test_bright_star_web_queries(mysql_config):
         status = queryDb.bright_star_scatter_status(conn)
         limits = status.pop("limits")
         assert status == {"scattered": True, "min_luminosity_sol": 100.0, "seed": 9,
-                          "default_min_luminosity_sol": 9000.0}
+                          "default_min_luminosity_sol": 18000.0}
         # The core follows the galaxy-wide limits (GEN.333 / UX.116) until its own are set.
         assert limits["core_follows"] is True
         assert limits["core_min_luminosity_sol"] == pytest.approx(100.0 * tuning.CORE_TIER_FACTOR)
