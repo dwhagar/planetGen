@@ -14,7 +14,9 @@ The states, checked in this order:
 * **dead**: no beat for `DEAD_BEATS` intervals (30 s). The process is gone.
 * **waiting**: `waiting_on` is set (the gate, the sky lock, MySQL). Not stuck. It has its own, longer limit (`WAITING_LIMIT_SECONDS`); past it the state stays
   waiting and `over_limit` is set, because what it waits for may be a good job (a sky cell can take half an hour): the holder is what gets judged, not the waiter.
-* **quiet** (stuck): the beat is fresh and the counter has not changed (not counting time spent waiting, which ends with the wait) for longer than `max(5 min, 5 x the longest gap between counter changes seen for this
+* **busy** (OPS.194): the counter has stood still for as long as a quiet unit's would, but the evidence in the beat (OPS.193: processor time, bytes read and written, a statement out) moved in the
+  last `BUSY_WINDOW_SECONDS`. Never acted on. Past the seconds the command is known to take (`History.expected_seconds`) it is a flag, and the follower puts a stack of the unit in the run log.
+* **quiet** (stuck): the beat is fresh, nothing at all has moved, and the counter has not changed (not counting time spent waiting, which ends with the wait) for longer than `max(5 min, 5 x the longest gap between counter changes seen for this
   command)`, doubled while the host is starved (memory gate pressure, swap, load far over the cores).
 * **looping**: the counter moves but is not converging. `done` is over 3 times `estimate` (severity `flag`) or over 10 times (`suspect`); or `done` has gone
   backward inside one phase; or the same phase has begun again more than `RESTART_LIMIT` times (`suspect`).
@@ -69,8 +71,11 @@ SLOW_FRACTION = 1.0 / 3.0
 SLOW_MIN_SECONDS = 60.0
 """float: A unit younger than this is not judged slow (a start-up says little about a rate)."""
 
-WORKING, SLOW, WAITING, QUIET, LOOPING, DEAD = "working", "slow", "waiting", "quiet", "looping", "dead"
-STATES = (WORKING, SLOW, WAITING, QUIET, LOOPING, DEAD)
+BUSY_WINDOW_SECONDS = 2.5 * BEAT_SECONDS
+"""float: Evidence of work (processor time, bytes, a statement) this recent, with the counter still, is busy and not quiet (OPS.194)."""
+
+WORKING, SLOW, WAITING, BUSY, QUIET, LOOPING, DEAD = "working", "slow", "waiting", "busy", "quiet", "looping", "dead"
+STATES = (WORKING, SLOW, WAITING, BUSY, QUIET, LOOPING, DEAD)
 """tuple: Every state, in the order the admin page lists them."""
 
 ACTIONABLE = frozenset({QUIET, DEAD})
@@ -95,6 +100,9 @@ class Beat:
         restarts (int): How many times this phase has begun again.
         waited (float): Seconds the unit has spent waiting (gate, sky lock, MySQL) and stopped since `moved`; a wait that has ended is not time the counter stood still.
         resident_mb (float, optional): The memory it holds, carried for the page; not judged.
+        active (float, optional): When the unit's processor time or bytes read and written last moved, or a statement was out (OPS.193, OPS.194); `None` while none has.
+        sql (str): The label of the statement the unit is in, if it is in one; shown on the page, not judged.
+        sql_since (float, optional): When that statement was sent.
     """
     beat: float
     started: float
@@ -106,6 +114,9 @@ class Beat:
     restarts: int = 0
     waited: float = 0.0
     resident_mb: Optional[float] = None
+    active: Optional[float] = None
+    sql: str = ""
+    sql_since: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -116,9 +127,11 @@ class History:
     Attributes:
         longest_gap (float): The longest seconds between two counter changes seen for this command, 0 where none is recorded.
         expected_seconds (float, optional): How long a unit like this takes, from the earlier runs; with the unit's `estimate` it gives the expected rate.
+        expected_item_seconds (float, optional): The seconds one item takes (OPS.159, the job profile); its inverse is the expected rate whatever the size of the unit, and it is preferred.
     """
     longest_gap: float = 0.0
     expected_seconds: Optional[float] = None
+    expected_item_seconds: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -192,6 +205,8 @@ def _projected(beat, rate):
 
 
 def _expected_rate(beat, history):
+    if _finite(history.expected_item_seconds) and history.expected_item_seconds > 0:
+        return 1.0 / history.expected_item_seconds
     if not (_finite(history.expected_seconds) and history.expected_seconds > 0 and _finite(beat.estimate) and beat.estimate > 0):
         return None
     return beat.estimate / history.expected_seconds
@@ -210,6 +225,23 @@ def _looping(beat, before, rate):
     if beat.restarts > RESTART_LIMIT:
         return Verdict(LOOPING, SUSPECT, f"{beat.phase or 'the same phase'} has begun again {beat.restarts} times", rate=rate)
     return None
+
+
+def _shows_work(beat, now):
+    """Whether processor time, bytes or a statement moved within `BUSY_WINDOW_SECONDS` of `now`."""
+    return _finite(beat.active) and now - beat.active <= BUSY_WINDOW_SECONDS
+
+
+def _busy(beat, history, now, still, limit, rate):
+    """
+    The count has stood still past the quiet limit but the unit shows work (OPS.194), so it is busy and nothing is stopped. Past the learned seconds of the command
+    (`History.expected_seconds`, from `profiletime`) it is a flag, which the follower answers with a stack dump on the page; the unit still runs.
+    """
+    doing = f"in SQL: {beat.sql}" if beat.sql else "using processor time or reading and writing"
+    ran = max(now - beat.started, 0.0)
+    over = _finite(history.expected_seconds) and history.expected_seconds > 0 and ran > history.expected_seconds
+    tail = f"; it has run {ran:.0f} s against about {history.expected_seconds:.0f} s learned" if over else ""
+    return Verdict(BUSY, FLAG if over else "", f"the count has stood at {beat.done:g} for {still:.0f} s (past {limit:.0f} s) but the unit is {doing}{tail}", rate=rate, still_seconds=still)
 
 
 def judge(beat, history, now, before=None, starved=False):
@@ -243,6 +275,8 @@ def judge(beat, history, now, before=None, starved=False):
     if not has_counter:
         return Verdict(WORKING, reason="no counter reported, so only a missing beat can be judged", counter=False)
     limit = quiet_limit_seconds(history.longest_gap, starved)
+    if still > limit and _shows_work(beat, now):
+        return _busy(beat, history, now, still, limit, rate)
     if still > limit:
         return Verdict(QUIET, reason=f"beat fresh but the count has stood at {beat.done:g} for {still:.0f} s (limit {limit:.0f} s)", rate=rate, still_seconds=still)
     looping = _looping(beat, before, rate)

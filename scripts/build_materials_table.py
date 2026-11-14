@@ -694,7 +694,7 @@ def main():
                  "they are valid over, the source and the code. Gate groups: `any` (every planet and moon class and every small-body "
                  "kind) and `planetary` (planet and moon classes only: the high-pressure phases and the envelopes). A group row lists "
                  "member rows and carries no number. The molar mass is computed from the formula with `physics.elements`.",
-        "sources": SOURCES, "legacy_names": {"class_compositions": data.CLASS_COMPOSITIONS},
+        "sources": SOURCES,
         "vocabulary_only": data.VOCABULARY_ONLY,
         "materials": list(rows.values()),
     }

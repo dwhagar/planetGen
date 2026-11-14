@@ -56,9 +56,9 @@ OPERATORS = ("min", "lt", "equals", "not_equals", "in", "not_in")
 SOLVENT_MEDIA = ("water", "hydrocarbon", "co2", "sulfuric", "ammonia_water")
 ENERGY_SOURCES = ("light", "chemical")
 
-PLANCK_J_S = 6.62607015e-34
-BOLTZMANN_J_K = 1.380649e-23
-LIGHT_M_S = 299792458.0
+PLANCK_J_S = constants.PLANCK_CONSTANT
+BOLTZMANN_J_K = constants.BOLTZMANN
+LIGHT_M_S = constants.SPEED_OF_LIGHT_M_S
 SPECTRUM_NM = (100.0, 20000.0)
 """tuple: The wavelengths, nm, over which a star's photons are counted (a blackbody beyond them holds a negligible share)."""
 SPECTRUM_STEPS = 600
@@ -66,6 +66,8 @@ SPECTRUM_STEPS = 600
 CO2_TRIPLE_K, CO2_TRIPLE_PA = 216.59, 518500.0
 CO2_CRITICAL_K, CO2_CRITICAL_PA = 304.13, 7377300.0
 """float: The triple and critical points of carbon dioxide (read, NIST)."""
+_CO2_SLOPE = math.log(CO2_CRITICAL_PA / CO2_TRIPLE_PA) / (1.0 / CO2_CRITICAL_K - 1.0 / CO2_TRIPLE_K)
+"""float: The slope of ln p in 1/T through the two points (`co2_saturation_pa`)."""
 OPTIONAL_QUANTITIES = ("acid_medium", "ammonia_water_mass_fraction", "silicon_rich_crust")
 """tuple: Quantities worked out from a body's values when it carries none (`derived_quantities`: GEN.888, GEN.894); a body that carries one in its
 values is scored on that, and a rule that reads one the body lacks fails and names it."""
@@ -166,8 +168,7 @@ def band_fraction(temperature_k, band_nm):
 def co2_saturation_pa(temperature_k):
     """The vapor pressure of carbon dioxide, Pa, between its triple and critical points: ln p linear in 1/T through the two points
     (within a few percent of the measured curve, which is all a phase test needs)."""
-    slope = math.log(CO2_CRITICAL_PA / CO2_TRIPLE_PA) / (1.0 / CO2_CRITICAL_K - 1.0 / CO2_TRIPLE_K)
-    return CO2_TRIPLE_PA * math.exp(slope * (1.0 / temperature_k - 1.0 / CO2_TRIPLE_K))
+    return CO2_TRIPLE_PA * math.exp(_CO2_SLOPE * (1.0 / temperature_k - 1.0 / CO2_TRIPLE_K))
 
 
 def co2_phase(temperature_k, pressure_pa):
@@ -448,7 +449,6 @@ def _energy_term(row, found, world, values):
     sunlit = values.get("hydrosphere") not in ("ice-covered ocean",) and world.life_on_surface
     if not sunlit:
         return 0.0
-    teff = found.get("_teff_k")
     return _energy_curve(world.energy_flux_w_m2 * band_ratio(row, found))
 
 

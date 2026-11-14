@@ -157,13 +157,17 @@ def slowest_recent_duration(db, path):
     return _duration(path_key(db, path))
 
 
+def _unreachable(exc):
+    return NoQueue(f"no Redis server answers: {exc}")
+
+
 def _read_meta(job_id):
     if not isinstance(job_id, str) or not ID_RE.match(job_id):
         return None
     try:
         return _redis().hgetall(meta_key(job_id)) or None
     except (redis.RedisError, OSError) as exc:
-        raise NoQueue(f"no Redis server answers: {exc}") from exc
+        raise _unreachable(exc) from exc
 
 
 def _float(meta, field):
@@ -201,7 +205,8 @@ def status(job_id):
             error = queued["error"]
     elif meta.get("queue_job") or time.time() - (_float(meta, "created") or 0) > api_jobs.RESULT_TTL_SECONDS:
         state, error = "failed", "the job is gone from the queue"
-    if meta.get("canceled") == "1" and state == "failed" and queued is not None and "ended without" in (error or ""):
+    canceled = meta.get("canceled") == "1"
+    if canceled and state == "failed" and queued is not None and "ended without" in (error or ""):
         state, error = "canceled", None        # removed from the queue before it started
     total = int(meta["rows"]) if meta.get("rows") else None
     expected = _float(meta, "expected") or 0.0
@@ -224,7 +229,7 @@ def status(job_id):
     )
     return {"id": job_id, "state": state, "done": done, "total": total, "unit": "rows", "estimated": True,
             "eta_seconds": eta, "seconds": round(elapsed, 3), "error": error,
-            "canceling": meta.get("canceled") == "1" and state in ("queued", "running"),
+            "canceling": canceled and state in ("queued", "running"),
             "cache_key": pagecache.shared_key(meta["db"], meta["target"]), "target": meta["target"]}
 
 
@@ -282,7 +287,7 @@ def ensure(db, target, rows=None, expected=None, config=None, retry=False):
             raise
         connection.hset(meta_key(token), "queue_job", queue_job)
     except (redis.RedisError, OSError) as exc:
-        raise NoQueue(f"no Redis server answers: {exc}") from exc
+        raise _unreachable(exc) from exc
     return status(token)
 
 
@@ -305,7 +310,7 @@ def cancel(job_id):
         connection.hset(meta_key(job_id), "canceled", "1")
         connection.expire(job_key(meta["db"], meta["target"]), tuning.SLOW_PAGE_FAILED_SECONDS)
     except (redis.RedisError, OSError) as exc:
-        raise NoQueue(f"no Redis server answers: {exc}") from exc
+        raise _unreachable(exc) from exc
     if meta.get("queue_job"):
         api_jobs.cancel(meta["queue_job"])
     return status(job_id)

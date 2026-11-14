@@ -37,9 +37,9 @@ def test_the_ratio_is_the_published_formula_at_the_solar_systems_age():
 
 def test_a_body_draws_the_production_ratio_where_it_drew_the_uranium_scatter_and_keeps_the_stream_in_step():
     a, b = draw.Stream("rp-a"), draw.Stream("rp-a")
-    contents = [radiogenic.draw_content(0.0, rng=a, th_u_factor=1.2) for _ in range(200)]
+    contents = [radiogenic.draw_content(1.0, 0.0, rng=a, th_u_factor=1.2) for _ in range(200)]
     for _ in range(200):
-        radiogenic.draw_content(0.3, rng=b, th_u_factor=1.4)
+        radiogenic.draw_content(1.0, 0.3, rng=b, th_u_factor=1.4)
     assert a.random() == b.random()
     ratios = [c.th0_ppm / c.u0_ppm * radiogenic.formation_mix("U")[1] / radiogenic.formation_mix("Th")[1] for c in contents]
     low, high = rprocess_enrichment.PRODUCTION_RATIO_RANGE
@@ -49,8 +49,8 @@ def test_a_body_draws_the_production_ratio_where_it_drew_the_uranium_scatter_and
 
 def test_gas_enriched_long_before_the_star_formed_leaves_the_rock_thorium_rich_and_uranium_poor():
     same = dict(rng=draw.Stream("rp-b"))
-    poor = radiogenic.draw_content(0.0, th_u_factor=1.0, **same)
-    rich = radiogenic.draw_content(0.0, th_u_factor=1.5, rng=draw.Stream("rp-b"))
+    poor = radiogenic.draw_content(1.0, 0.0, th_u_factor=1.0, **same)
+    rich = radiogenic.draw_content(1.0, 0.0, th_u_factor=1.5, rng=draw.Stream("rp-b"))
     assert rich.th0_ppm == pytest.approx(poor.th0_ppm)             # thorium follows the star's Th/Mg
     assert rich.u0_ppm == pytest.approx(poor.u0_ppm / 1.5)         # the uranium is what the ratio leaves
     assert rich.k0_ppm == pytest.approx(poor.k0_ppm / 1.5)         # potassium is a multiple of the uranium

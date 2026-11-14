@@ -65,8 +65,7 @@ def blended_rate(live, n, prior, elapsed=None):
     no prior gives the live rate, no live rate gives the prior, neither
     gives `None`. A pure function.
     """
-    prior = prior if prior is not None and _finite(prior) and prior > 0 else None
-    live = live if live is not None and _finite(live) and live > 0 else None
+    prior, live = _positive(prior), _positive(live)
     if prior is None:
         return live
     if live is None or n < HOLD_UNITS or (elapsed is not None and elapsed < HOLD_SECONDS):
@@ -105,7 +104,7 @@ class DecayingRate:
     def __init__(self, tau=TIME_CONSTANT_SECONDS, clock=time.monotonic, prior=None):
         self.tau = float(tau)
         self.clock = clock
-        self.prior = prior if prior is not None and _finite(prior) and prior > 0 else None
+        self.prior = _positive(prior)
         self.live = None
         self.n = 0
         self.started = clock()
@@ -194,6 +193,11 @@ class DecayingRate:
         # takes once the next unit is overdue, so a slow unit holds the
         # estimate rather than letting it reach zero early.
         return max(0.0, left / rate - elapsed, (left - 1) / rate)
+
+
+def _positive(value):
+    """`value` when it is a finite number over 0, else `None`."""
+    return value if value is not None and _finite(value) and value > 0 else None
 
 
 def _finite(value):

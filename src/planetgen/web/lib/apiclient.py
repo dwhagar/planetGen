@@ -25,13 +25,14 @@ The API must be reachable for this browser to work at all now -- see
 alongside `html/` in a real deployment.
 """
 
+import re
 import json
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
-from planetgen.util import log
+from planetgen.util import log, logrecord
 from planetgen.util.user_agent import user_agent
 from planetgen.util.settings import get_settings
 
@@ -83,6 +84,14 @@ class MovedError(NotFoundError):
 
 class GoneError(NotFoundError):
     """Raised for a 410 response (GEN.1139): the object that had the ID asked for was deleted. A page answers 410. A `NotFoundError` too."""
+
+
+_ERROR_PREFIX = re.compile(r"^planetGen API error \(\d+\): ")
+
+
+def message_of(exc):
+    """The API's own message from an `ApiError`, without the `planetGen API error (400): ` prefix `_request` puts before it."""
+    return _ERROR_PREFIX.sub("", str(exc))
 
 
 class ApiError(Exception):
@@ -318,8 +327,8 @@ def _request(path, params=None):
         params (dict or list[tuple], optional): Query parameters --
             a plain `dict` for single-valued params, or a list of
             `(key, value)` pairs when a key repeats (e.g. search's tag
-            facets). `None`/empty values are dropped from a `dict`; a
-            list of pairs is used exactly as given.
+            facets). `None`/empty values are dropped from either, so a
+            caller passes its optional parameters as they are.
 
     Returns:
         The parsed JSON body (usually a `dict`; a few endpoints return a bare `list`).
@@ -417,7 +426,7 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
 def _log_call(method, url, start, outcome):
     """One debug-log line per API call, attributed to the `apiclient`
     function that made it (`get_system`, `auth_me`, ...)."""
-    log.debug(f"API {method} {url} -> {outcome} in {(time.perf_counter() - start) * 1000:.1f}ms", stacklevel=4)
+    log.debug("API %s %s -> %s in %s.", method, url, outcome, logrecord.duration_text(time.perf_counter() - start), stacklevel=4)
 
 
 def _build_query(params):
@@ -479,7 +488,7 @@ def get_sectors(db, limit=None, offset=None, sort=None, descending=False, after=
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else None), ("coverage", coverage), ("empty", "1" if show_empty else None)]
-    return _request("/sectors", [(key, value) for key, value in params if value is not None])
+    return _request("/sectors", params)
 
 
 def get_sector(db, sector_id):
@@ -516,7 +525,7 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
     for entity, by_key in (ranges or {}).items():
         for key, (least, most, unit) in by_key.items():
             params += [(f"{entity}_min_{key}", least), (f"{entity}_max_{key}", most), (f"{entity}_{key}_unit", unit or None)]
-    return _request("/systems", [(key, value) for key, value in params if value is not None])
+    return _request("/systems", params)
 
 
 def get_generated(db, kind, since, limit=None, offset=None):
@@ -524,7 +533,7 @@ def get_generated(db, kind, since, limit=None, offset=None):
     moons made at or after `since`, Unix seconds, newest first (ADM.150)."""
     _require_db(db)
     params = [("db", db), ("kind", kind), ("since", since), ("limit", limit), ("offset", offset)]
-    return _request("/generated", [(key, value) for key, value in params if value is not None])
+    return _request("/generated", params)
 
 
 def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
@@ -536,7 +545,7 @@ def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=Fal
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("from", start or None), ("sort", sort),
               ("order", "desc" if descending else "asc" if sort else None)]
-    return _request("/uncharted-systems", [(key, value) for key, value in params if value is not None])
+    return _request("/uncharted-systems", params)
 
 
 def get_uncharted_system(db, bright_star_id):
@@ -796,7 +805,7 @@ def get_polities(db, limit=None, offset=None, sort=None, descending=False, gover
               ("order", "desc" if descending else None)]
     params += [("government", value) for value in governments] + [("era", value) for value in eras]
     params.append(("facets", "1" if facets else None))
-    return _request("/polities", [(key, value) for key, value in params if value is not None])
+    return _request("/polities", params)
 
 
 def get_polity(db, polity_id, limit=None, offset=None, sort=None, descending=False):
@@ -806,7 +815,7 @@ def get_polity(db, polity_id, limit=None, offset=None, sort=None, descending=Fal
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
               ("order", "desc" if descending else None)]
-    return _request(f"/polities/{int(polity_id)}", [(key, value) for key, value in params if value is not None])
+    return _request(f"/polities/{int(polity_id)}", params)
 
 
 def get_species_list(db, spacefaring=None, limit=None, offset=None, sort=None, descending=False, eras=(),
@@ -823,7 +832,7 @@ def get_species_list(db, spacefaring=None, limit=None, offset=None, sort=None, d
     params += [("era", value) for value in eras] + [("facets", "1" if facets else None)]
     for name, (low, high) in (tech_ranges or {}).items():
         params += [(f"{name}_min", low), (f"{name}_max", high)]
-    return _request("/species", [(key, value) for key, value in params if value is not None])
+    return _request("/species", params)
 
 
 def get_species(db, species_id):
@@ -925,7 +934,7 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
     params += [("type", value) for value in types] + [("descriptor", value) for value in descriptors]
     params += [("placed", None if placed is None else ("yes" if placed else "no")),
                ("facets", "1" if facets else None)]
-    return _request("/phenomena", [(key, value) for key, value in params if value is not None])
+    return _request("/phenomena", params)
 
 
 def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
@@ -938,7 +947,7 @@ def get_object_list(db, kind, limit=None, sort=None, descending=False, after=Non
     params = [("db", db), ("limit", limit), ("sort", sort), ("order", "desc" if descending else None),
               ("after", after), ("name", name), ("class", object_class), ("sector_id", sector_id),
               ("from", start or None)]
-    pairs = [(key, value) for key, value in params if value is not None]
+    pairs = list(params)
     for key, (least, most, unit) in (ranges or {}).items():
         for part, bound in (("min", least), ("max", most)):
             if bound is not None:
@@ -1018,7 +1027,7 @@ def get_irregular_moon(db, ref, rank):
 
 
 def get_belt_member(db, ref, rank):
-    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`), the page data of one body an asteroid belt keeps
+    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`, `planet`), the page data of one body an asteroid belt keeps
     individually (`rank` as the designation writes it) -- see `describe/belt_member_info.py`."""
     _require_db(db)
     return _request(f"/objects/{ref}/belt-members/{rank}", {"db": db})

@@ -25,7 +25,7 @@ Pure functions over the ledger's draw: the random numbers (one for the taxon, on
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import compaction, small_body_composition as sbc, taxon_kernel
+from planetgen.physics import compaction, relations, small_body_composition as sbc, taxon_kernel
 from planetgen.util.checks import finite_domain
 
 
@@ -143,5 +143,5 @@ def member(u_taxon, u_porosity, mass_kg, distance_au, luminosity_w, aluminium_26
     makeup = sbc.makeup_from_components("belt", data.fractions, 0.0)
     rock, filling = _filling(makeup, mass_kg, taxon, u_porosity)
     density = makeup.grain_density_kg_m3 * filling
-    radius_km = (3.0 * mass_kg / (4.0 * math.pi * density)) ** (1.0 / 3.0) / 1.0e3
+    radius_km = relations.sphere_radius(mass_kg, density) / 1.0e3
     return Member(taxon, is_differentiated(taxon), mass_kg, distance_au, rock, filling, density, radius_km, data.albedo, makeup)

@@ -25,7 +25,6 @@ of the queue the required job ran on.
 
 import importlib
 
-import rq
 from rq.job import Dependency, Job, JobStatus
 from rq.registry import DeferredJobRegistry, FailedJobRegistry
 
@@ -106,7 +105,7 @@ def check_serializers(connection, ids, serializer, own_id=None):
         origin = connection.hget(f"rq:job:{found}", "origin")
         if origin is None:
             continue            # done and gone, or not queued yet: nothing to read
-        if redisqueue.serializer_for(origin.decode() if isinstance(origin, bytes) else origin) is not serializer:
+        if redisqueue.serializer_for(_text(origin)) is not serializer:
             raise ValueError(f"job {found} was queued with another serializer than the job that requires it; "
                              f"a requirement and its dependant must share one (the queues of a lane do)")
 
@@ -136,8 +135,12 @@ def _run_of(job):
     return job.args[0], job.args[1]
 
 
+def _text(value):
+    return value.decode() if isinstance(value, bytes) else value
+
+
 def _dependents(connection, job_id):
-    return sorted(item.decode() if isinstance(item, bytes) else item for item in connection.smembers(f"rq:job:{job_id}:dependents"))
+    return sorted(_text(item) for item in connection.smembers(f"rq:job:{job_id}:dependents"))
 
 
 def _held_job(connection, dependent_id):
@@ -146,7 +149,7 @@ def _held_job(connection, dependent_id):
     origin = connection.hget(f"rq:job:{dependent_id}", "origin")
     if origin is None:
         return None
-    origin = origin.decode() if isinstance(origin, bytes) else origin
+    origin = _text(origin)
     job = redisqueue.fetch_job(dependent_id, connection, redisqueue.serializer_for(origin))
     if job is None or job.get_status(refresh=True) != JobStatus.DEFERRED:
         return None
@@ -248,17 +251,18 @@ def drop_held(connection, queue_name):
             job.delete()
         dropped += 1
     if dropped:
-        log.normal(f"dropped: {dropped} job(s) held in {queue_name} for a requirement")
+        log.normal(f"Dropped {dropped} job(s) held in {queue_name} for a requirement.")
     return dropped
 
 
 def held_jobs(connection, queue_name):
     """The jobs held in queue `queue_name`: `[(job id, [the job ids it waits for])]`, for the Queue page and the log."""
     from planetgen.queue import redisqueue
-    registry = DeferredJobRegistry(queue_name, connection=connection, serializer=redisqueue.serializer_for(queue_name))
+    serializer = redisqueue.serializer_for(queue_name)
+    registry = DeferredJobRegistry(queue_name, connection=connection, serializer=serializer)
     held = []
     for job_id in registry.get_job_ids():
-        job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(queue_name))
+        job = redisqueue.fetch_job(job_id, connection, serializer)
         if job is not None:
             held.append((job_id, list(job.dependency_ids)))
     return held
@@ -280,13 +284,14 @@ def held_overview(connection, limit=HELD_SHOWN):
     items = []
     total = 0
     for name in redisqueue.QUEUES:
-        registry = DeferredJobRegistry(name, connection=connection, serializer=redisqueue.serializer_for(name))
+        serializer = redisqueue.serializer_for(name)
+        registry = DeferredJobRegistry(name, connection=connection, serializer=serializer)
         ids = registry.get_job_ids()
         total += len(ids)
         for job_id in ids:
             if len(items) >= limit:
                 break
-            job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(name))
+            job = redisqueue.fetch_job(job_id, connection, serializer)
             if job is None:
                 continue
             run = _run_of(job)

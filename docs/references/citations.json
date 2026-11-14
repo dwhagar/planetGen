@@ -1,5 +1,8 @@
 {
-  "aliases": {},
+  "aliases": {
+    "R5253": "R5248",
+    "R5254": "R5250"
+  },
   "sources": {
     "R0001": {
       "kind": "paper",
@@ -26220,6 +26223,61 @@
       "kind": "web",
       "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
       "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5248": {
+      "kind": "paper",
+      "label": "Krivov and Wyatt 2020",
+      "title": "Solution to the debris disc mass problem: planetesimals are born small?"
+    },
+    "R5249": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2018",
+      "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
+    },
+    "R5250": {
+      "kind": "paper",
+      "label": "Chambers 2020",
+      "title": "The Effect of Seafloor Weathering on Planetary Habitability"
+    },
+    "R5251": {
+      "kind": "paper",
+      "label": "Fegley et al. 1997",
+      "title": "The Oxidation State of the Lower Atmosphere and Surface of Venus"
+    },
+    "R5252": {
+      "kind": "paper",
+      "label": "Alcott et al. 2019",
+      "title": "Stepwise Earth oxygenation is an inherent property of global biogeochemical cycling"
+    },
+    "R5255": {
+      "kind": "paper",
+      "label": "Maher and Chamberlain 2014",
+      "title": "Hydrologic Regulation of Chemical Weathering and the Geologic Carbon Cycle"
+    },
+    "R5256": {
+      "kind": "paper",
+      "label": "Verbunt and Rappaport 1988",
+      "title": "Mass transfer instabilities due to angular momentum flows in close binaries"
+    },
+    "R5257": {
+      "kind": "paper",
+      "label": "Deloye et al. 2007",
+      "title": "The thermal evolution of the donors in AM Canum Venaticorum binaries"
+    },
+    "R5258": {
+      "kind": "paper",
+      "label": "Rappaport et al. 1983",
+      "title": "A new technique for calculations of binary stellar evolution, with application to magnetic braking"
+    },
+    "R5259": {
+      "kind": "paper",
+      "label": "Hoffman et al. 2017",
+      "title": "Snowball Earth climate dynamics and Cryogenian geology-geobiology"
+    },
+    "R5260": {
+      "kind": "paper",
+      "label": "Höning et al. 2019",
+      "title": "Carbon cycling and interior evolution of water-covered plate tectonics and stagnant-lid planets"
     }
   }
 }

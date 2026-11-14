@@ -55,7 +55,7 @@ LIBRARY = ("planetgen.physics", "planetgen.generation", "planetgen.galaxy", "pla
 
 KINDS = ("module", "dataset", "reader", "data", "row", "column", "function")
 PLUMBING = (
-    "planetgen.db.models", "planetgen.db.column_units", "planetgen.db.store", "planetgen.db.storage_checksum", "planetgen.db.check",
+    "planetgen.db.models", "planetgen.db.body_fields", "planetgen.db.column_units", "planetgen.db.store", "planetgen.db.storage_checksum", "planetgen.db.check",
     "planetgen.db.object_rows", "planetgen.db.fingerprint", "planetgen.db.fingerprint_tree", "planetgen.db.parity",
     "planetgen.db.parity_file", "planetgen.db.sector_export", "planetgen.db.table_rebuild", "planetgen.db.repair",
     "planetgen.describe.sheet", "planetgen.describe.sheet_sources",

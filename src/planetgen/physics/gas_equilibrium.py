@@ -257,9 +257,9 @@ def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=Non
             rising = ~significant & (d_ln_moles >= 0.0)
             if rising.any():
                 gap = d_ln_moles[rising] - d_ln_total
-                gap = gap[gap != 0.0]
-                if gap.size:
-                    room = np.abs((-log_fraction[rising][d_ln_moles[rising] - d_ln_total != 0.0] - 9.2103) / gap)
+                nonzero = gap != 0.0
+                if nonzero.any():
+                    room = np.abs((-log_fraction[rising][nonzero] - 9.2103) / gap[nonzero])     # 9.2103 is -ln 1e-4: the room a negligible species has to rise
                     factor = min(factor, float(room.min()))
             moles = np.maximum(moles * np.exp(factor * d_ln_moles), MOLES_FLOOR)
             total = total * math.exp(factor * d_ln_total)

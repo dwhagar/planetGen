@@ -55,7 +55,6 @@ below the solidus; the frequency of a spin-orbit tide is the caller's (`2 |omega
 These are stated stand-ins (`docs/design/research/gap-filling-plan.md` section 6.15).
 """
 
-import cmath
 import math
 from dataclasses import dataclass
 
@@ -187,9 +186,14 @@ def compliance(frequency_rad_s, rigidity, viscosity, material=ROCK, maxwell=Fals
     return unrelaxed * (1.0 + creep) - 1j / (viscosity * frequency_rad_s)
 
 
+def self_gravity_pressure_pa(mass_kg, radius_m):
+    """`rho g R` of a homogeneous sphere, `3 G M^2 / (4 pi R^4)`, Pa: the gravity the rigidity is measured against in `k2`."""
+    return 3.0 * constants.G * mass_kg ** 2 / (4.0 * math.pi * radius_m ** 4)
+
+
 def love_number(mass_kg, radius_m, frequency_rad_s, rigidity, viscosity, material=ROCK, maxwell=False):
     """The complex `k2` of a homogeneous sphere (the module's formula)."""
-    pressure = 3.0 * constants.G * mass_kg ** 2 / (4.0 * math.pi * radius_m ** 4)
+    pressure = self_gravity_pressure_pa(mass_kg, radius_m)
     complex_rigidity = 1.0 / compliance(frequency_rad_s, rigidity, viscosity, material, maxwell)
     return 1.5 / (1.0 + 9.5 * complex_rigidity / pressure)
 

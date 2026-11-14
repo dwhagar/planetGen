@@ -168,14 +168,31 @@ def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_rat
         raise BeltRosterError(f"a belt stores 0 to {belt_ledger.LEDGER_MAX_BODIES} bodies, not {count}")
     numbers = [[stream.random() for _ in range(DRAWS_PER_BODY)] for _ in range(belt_ledger.LEDGER_MAX_BODIES)]
     table = cumulative_table(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio)
+    return [entry_of(row, table, lower_au, upper_au, populations, giant_au, cleared) for row in numbers[:count]]
+
+
+def entry_of(numbers, table, lower_au, upper_au, populations=None, giant_au=None, cleared=()):
+    """
+    The `Entry` of one body from its `DRAWS_PER_BODY` uniform `numbers` (the body's own, in the order of `draw_roster`) and the belt's `cumulative_table`: the one place a body's orbit and
+    taxon numbers are made, for a stored body (`draw_roster`) and for a body drawn on demand (`entry_at`, GEN.1674).
+    """
     e_rms = rms_eccentricity(lower_au, upper_au)
     i_rms = e_rms / E_OVER_I
-    entries = []
-    for u_taxon, u_porosity, u_a, u_e, u_i, u_node, u_peri, u_anomaly, u_pop, u_pa, u_pe in numbers[:count]:
-        a_au, e_scale, e_fixed, tag = semi_major_axis_au(table, u_a, cleared), 1.0, None, None
-        if populations is not None:
-            tag, a_au, e_scale, e_fixed = belt_populations.orbit(belt_populations.pick(populations, u_pop), a_au, lower_au, upper_au, giant_au, u_pa, u_pe)
-        inclination = min(math.degrees(rayleigh(u_i, i_rms * (e_scale if e_scale is not None else 1.0))), I_MAX_DEG)
-        eccentricity = e_fixed if e_fixed is not None else min(rayleigh(u_e, e_rms * e_scale), E_MAX)
-        entries.append(Entry(Placement(a_au, u_taxon, u_porosity), eccentricity, inclination, 360.0 * u_node, 360.0 * u_peri, 360.0 * u_anomaly, tag))
-    return entries
+    u_taxon, u_porosity, u_a, u_e, u_i, u_node, u_peri, u_anomaly, u_pop, u_pa, u_pe = numbers
+    a_au, e_scale, e_fixed, tag = semi_major_axis_au(table, u_a, cleared), 1.0, None, None
+    if populations is not None:
+        tag, a_au, e_scale, e_fixed = belt_populations.orbit(belt_populations.pick(populations, u_pop), a_au, lower_au, upper_au, giant_au, u_pa, u_pe)
+    inclination = min(math.degrees(rayleigh(u_i, i_rms * (e_scale if e_scale is not None else 1.0))), I_MAX_DEG)
+    eccentricity = e_fixed if e_fixed is not None else min(rayleigh(u_e, e_rms * e_scale), E_MAX)
+    return Entry(Placement(a_au, u_taxon, u_porosity), eccentricity, inclination, 360.0 * u_node, 360.0 * u_peri, 360.0 * u_anomaly, tag)
+
+
+def entry_at(rank_stream, lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, populations=None, giant_au=None, cleared=()):
+    """
+    The `Entry` of one body drawn on demand (GEN.1674), from `rank_stream` (a `draw.Stream` keyed on the belt and the body's rank, so a body never depends on the others): the same rule as a stored
+    body's, from the body's own `DRAWS_PER_BODY` numbers.
+    """
+    if not 0.0 < lower_au < upper_au:
+        raise BeltRosterError("the belt needs 0 < lower < upper")
+    numbers = [rank_stream.random() for _ in range(DRAWS_PER_BODY)]
+    return entry_of(numbers, cumulative_table(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio), lower_au, upper_au, populations, giant_au, cleared)

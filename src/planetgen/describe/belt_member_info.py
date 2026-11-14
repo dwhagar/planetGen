@@ -16,6 +16,8 @@ import math
 from planetgen.db import store
 from planetgen.describe import belt_info
 from planetgen.galaxy import object_uid
+from planetgen.generation import belt_ondemand, irregular_moons
+from planetgen.physics import planet_class_text
 from planetgen.physics import belt_page as page_data
 from planetgen.physics import unit_registry as units
 
@@ -41,7 +43,7 @@ def orbit(member, star_mass_msun):
     }
 
 
-def _belt_block(belt, star, belt_id):
+def _belt_block(belt, star, belt_id, class_d_count):
     """What the member page says of its belt: its designation, the star it goes round and the sentences of where it came from and what shaped it."""
     return {
         "designation": object_uid.format_id(belt_id),
@@ -50,16 +52,38 @@ def _belt_block(belt, star, belt_id):
         "history": list(getattr(belt, "origin_history", ()) or ()),
         "history_text": getattr(belt, "history", None) or None,
         "individual_count": len(belt.members),
+        "class_d_count": class_d_count,
+    }
+
+
+def planet_block(system, star, belt, rank):
+    """
+    The planet the body of `rank` is when asked for (GEN.1674): `belt_ondemand.planet_of_rank` makes it with the one planet generator, and this is its class and a few of what the pass gave it. `None` for a
+    belt whose body the generator cannot make a planet of (a body under `FLOOR_KG` is not asked for).
+    """
+    order = next((place for place, held in irregular_moons.belts_of(system.planets).items() if held is belt), 1)
+    planet = belt_ondemand.planet_of_rank(system, star, belt, order, rank)
+    q = page_data._q
+    return {
+        "class": planet.planet_class,
+        "class_text": planet_class_text.description(planet.planet_class, False),
+        "mass": q(planet.mass, "kg"),
+        "radius": q(planet.radius, "km"),
+        "density": q(planet.density * 1000.0, "kg_m3"),
+        "gravity": q(planet.gravity, "g0"),
+        "surface_temperature": q(planet.surface_temperature, "K"),
+        "surface_pressure": q(planet.atmospheric_pressure or 0.0, "Pa"),
+        "zone": planet.zone,
     }
 
 
 def member_info(conn, belt_id, rank):
     """
-    The page data of the member of `rank` (1 is the heaviest) of the stored belt `belt_id`: `member` (the belt page's entry), `orbit`, `share` of the belt's mass, `belt` and the `previous` and `next`
-    designations (`None` at the ends).
+    The page data of the member of `rank` (1 is the heaviest) of the stored belt `belt_id`: `member` (the belt page's entry), `orbit`, `share` of the belt's mass, `belt`, the `previous` and `next`
+    designations (`None` at the ends) and `planet` (the body made into a planet on demand, `planet_block`). A rank past the stored ones is drawn from the belt's size law (`belt_ondemand`).
 
     Raises:
-        BeltMemberNotFound: No belt has that id, or it keeps no stored body of that rank.
+        BeltMemberNotFound: No belt has that id, or it holds no body of that rank at the Class D size or larger.
     """
     row = conn.execute("SELECT uid, star_system_id, star_id FROM asteroid_belts WHERE id = ?", (belt_id,)).fetchone()
     if row is None:
@@ -68,13 +92,19 @@ def member_info(conn, belt_id, rank):
     belt = belt_info.belt_of(system, belt_id)
     star = belt_info.host_star(system, row["star_id"])
     members = list(belt.members)
-    found = next((member for member in members if member["rank"] == rank), None)
+    found = belt_ondemand.member_of_rank(belt, star, system.system_config, rank)
     if found is None:
-        raise BeltMemberNotFound(f"the belt keeps {len(members)} bodies one by one; the body of rank {rank} is drawn when asked for and has no page")
+        raise BeltMemberNotFound(f"the belt holds no body of rank {rank} at or over the Class D size (it keeps {len(members)} one by one and {belt_ondemand.individual_count(belt_ondemand.settled_of(belt, star)):,} in all)")
     object_id = object_uid.from_bytes(row["uid"])
+    count = belt_ondemand.individual_count(belt_ondemand.settled_of(belt, star))
     ranks = [member["rank"] for member in members]
-    place = ranks.index(rank)
-    neighbour = lambda i: object_uid.designation(object_id, ranks[i]) if 0 <= i < len(ranks) else None
+    if rank in ranks:
+        place = ranks.index(rank)
+        neighbour = lambda i: object_uid.designation(object_id, ranks[i]) if 0 <= i < len(ranks) else None
+        previous, following = neighbour(place - 1), neighbour(place + 1)
+    else:
+        previous = object_uid.designation(object_id, rank - 1) if rank > 1 else None
+        following = object_uid.designation(object_id, rank + 1) if rank < count else None
     shown = page_data.stored_bodies(object_id, [found])[0]
     return {
         "designation": shown["designation"],
@@ -82,7 +112,8 @@ def member_info(conn, belt_id, rank):
         "member": shown,
         "orbit": orbit(found, units.convert(star.mass, "kg", "Msun")),
         "share": found["mass_kg"] / float(belt.mass_kg),
-        "belt": _belt_block(belt, star, object_id),
-        "previous": neighbour(place - 1),
-        "next": neighbour(place + 1),
+        "belt": _belt_block(belt, star, object_id, count),
+        "previous": previous,
+        "next": following,
+        "planet": planet_block(system, star, belt, rank),
     }

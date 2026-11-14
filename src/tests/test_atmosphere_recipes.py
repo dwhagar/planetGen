@@ -255,13 +255,6 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
     assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d5"})) == {"p_max_bar": None}
 
 
-def test_the_retired_k_window_is_gone_and_the_shoreline_is_marked_as_corrected():
-    d1 = RECIPES.entry("d1")
-    assert "[R0364]" in d1.source and "Corrected 2026-10-18" in d1.notes
-    assert "K window" in d1.notes and "13 Solar System bodies" in d1.notes
-    assert "3.0e-4" not in d1.weight.text
-
-
 def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
     gate = dict(mass_earth=5.0, teq_k=300.0, xuv_index=1.5)
     assert RECIPES.flag("d7", Subject("giant", dict(gate, v_esc_kms=25.0)))

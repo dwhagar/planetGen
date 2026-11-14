@@ -1106,7 +1106,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
         body = client.get("/api/galaxy/shape").get_json()
         assert body["shape"] is None and body["shells"] is None
         assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
-                                        "default_min_luminosity_sol": 9000.0, "limits": None}
+                                        "default_min_luminosity_sol": 18000.0, "limits": None}
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
@@ -1129,7 +1129,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     assert shells["rows"][0]["bands"] == 3
     limits = body["bright_stars"].pop("limits")
     assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
-                                    "default_min_luminosity_sol": 9000.0}
+                                    "default_min_luminosity_sol": 18000.0}
     # UX.116: the settings stored with the plan; the core follows the galaxy-wide floor until it is set.
     assert limits["core_follows"] is True and limits["core_min_luminosity_sol"] == pytest.approx(550.0)
     assert limits["halo_min_luminosity_sol"] == 500.0
@@ -2198,26 +2198,6 @@ def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_cl
     assert response.status_code == 429
     body = response.get_json()
     assert body["error"] == "rate limit exceeded"
-
-
-# ---------------------------------------------------------------------
-# The wiki upload is gone (OPS.69): no routes, no sector `wiki_url`.
-# ---------------------------------------------------------------------
-
-def test_the_wiki_routes_are_gone(admin_client, seeded_sector):
-    _config, sector_id, system_ids = seeded_sector
-    assert admin_client.get("/api/wiki-config").status_code == 404
-    system_path = f"/api/systems/{pid('system', system_ids[0])}/wiki"
-    sector_path = f"/api/sectors/{pid('sector', sector_id)}/wiki"
-    for path in (system_path, sector_path):
-        assert admin_client.post(path, json={"backend": "wikijs", "path": "x"}).status_code in (404, 405)
-
-
-def test_a_sector_has_no_wiki_url(admin_client, seeded_sector):
-    _config, sector_id, _system_ids = seeded_sector
-    assert "wiki_url" not in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()
-    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": "https://wiki.example.com/Sector"})
-    assert response.status_code == 400
 
 
 def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):

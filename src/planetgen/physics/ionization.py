@@ -31,10 +31,10 @@ HALF_IONIZED = 0.5
 """float: The ionized share of the main gas's atoms that defines the ceiling (a half-ionized gas is a plasma on any definition)."""
 
 HOTTEST_BRACKET_K = 1.0e7
-"""float: The hottest temperature the half-ionization search looks at."""
+"""float: The hottest temperature the half-ionization search looks at. A stand-in search bracket."""
 
 COOLEST_BRACKET_K = 500.0
-"""float: The coolest temperature the search looks at."""
+"""float: The coolest temperature the search looks at. A stand-in search bracket."""
 
 STATISTICAL_WEIGHT_RATIO = 1.0
 """float: `g_ion / g_atom` of the Saha equation. DESIGN stand-in, tier educated guess from physics, tweak L0 (the true ratio is 1/2 to 6 and moves the ceiling under 2 percent)."""

@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, evaporite_sequence, hydrosphere, ice_species, mantle_oxides, materials, mixture, planet_type, rock_types, saturation, surface_liquid_world, waterworld_carbon
+from planetgen.physics import bulk_draw, evaporite_sequence, hydrosphere, ice_species, mantle_oxides, materials, mixture, planet_type, rock_types, saturation, surface_liquid_world, waterworld_carbon
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -94,6 +94,9 @@ MELT_FRACTION_RANGE = (0.03, 0.30)
 MELT_FLUX_DECADES = 5.0
 """float: The decades of heat flow over the middle of the volcanism floor's range over which the melt share runs from its lowest to its highest (log-linear). Earth's heat flow of
 0.09 W/m2 is 2.5 decades over it and melts 8 to 9 percent of its mantle, the share of the mid-ocean ridges; Io's 2 W/m2 is 3.8 decades and melts about 17. [Stand-in MF1, tier T9, tweak L3.]"""
+_VOLCANISM_FLOOR_MIDDLE_W_M2 = math.sqrt(RANGES["volcanism_floor_w_m2"][0] * RANGES["volcanism_floor_w_m2"][1])
+"""float: The middle (geometric) of the volcanism floor's range, the heat flow `melt_fraction` starts its ramp at."""
+
 
 OCEAN, ICE = "ocean", "ice"
 LIQUID_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
@@ -370,9 +373,8 @@ def melt_fraction(heat_flux_w_m2):
     The share of the mantle that melts to make the volcanic crust at a heat flow (GEN.474): log-linear from `MELT_FRACTION_RANGE`'s lowest at the middle of the volcanism floor's range
     to its highest `MELT_FLUX_DECADES` decades over it.
     """
-    floor = math.sqrt(RANGES["volcanism_floor_w_m2"][0] * RANGES["volcanism_floor_w_m2"][1])
     low, high = MELT_FRACTION_RANGE
-    position = min(1.0, max(0.0, math.log10(max(heat_flux_w_m2, 1e-30) / floor) / MELT_FLUX_DECADES))
+    position = min(1.0, max(0.0, math.log10(max(heat_flux_w_m2, 1e-30) / _VOLCANISM_FLOOR_MIDDLE_W_M2) / MELT_FLUX_DECADES))
     return low * (high / low) ** position
 
 
@@ -621,8 +623,8 @@ def _volatile_shares(body):
 def generate_surface(body):
     """Sets `COLUMN_FIELDS` on a planet or moon from its stored composition, hydrosphere and air (call after the hydrosphere). A giant
     has no ground (every field `None`)."""
-    for field in COLUMN_FIELDS:
-        setattr(body, field, None)
+    for name in COLUMN_FIELDS:
+        setattr(body, name, None)
     if not planet_type.has_ground(body):      # GEN.1334: nor has a planet under a deep envelope
         return
     result = draw_surface(inputs_of(body))

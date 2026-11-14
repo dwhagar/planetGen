@@ -355,6 +355,7 @@ stars -- one row per single star, two rows (primary/secondary) per binary. Never
 | `star_system_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `role` | VARCHAR(16) | NOT NULL | v133 (GEN.630): 'member' |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the star shows, an id of the `star` scope of physics/data/flavor_tree.json (NULL for none) |
 | `star_type` | VARCHAR(64) | NOT NULL | Star.type, e.g. "G2V Yellow Main Sequence Star" |
 | `yerkes_class` | VARCHAR(16) | NOT NULL |  |
 | `mass_kg` | DOUBLE | NOT NULL |  |
@@ -417,7 +418,7 @@ stars -- one row per single star, two rows (primary/secondary) per binary. Never
 
 ## `planets`
 
-planets -- top-level planets only as of schema v2 (see the header comment's "v2" note); moons live in the `moons` table below instead of self-referencing here. Fields verified against planetData.py:117-200 / Planet.__init__ (27 scalar fields; excludes system_config/star back-refs, the `moons` list [-> the moons table], `evolutionary_data` [-> planet_evolutionary_paragraphs], and reflection_spectrum_visible/ non_visible [-> planet_reflection_spectrum]).
+planets -- top-level planets only as of schema v2 (see the header comment's "v2" note); moons live in the `moons` table below instead of self-referencing here. Fields verified against planetData.py:117-200 / Planet.__init__ (27 scalar fields; excludes system_config/star back-refs, the `moons` list [-> the moons table], `evolutionary_data` [-> planet_evolutionary_paragraphs], and reflection_spectrum_visible/ non_visible [-> planet_reflection_spectrum]). BEGIN GENERATED body tables (db/body_fields.py, scripts/build_body_tables.py): do not edit by hand: planets
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
@@ -491,6 +492,7 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `hydrosphere` | VARCHAR(20) | NULL |  |
 | `ocean_fraction` | DOUBLE | NULL |  |
 | `land_fraction` | DOUBLE | NULL |  |
+| `ice_cover_fraction` | DOUBLE | NULL | v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through), `ocean_fraction` is the liquid sea alone |
 | `ocean_depth_km` | DOUBLE | NULL |  |
 | `ice_shell_km` | DOUBLE | NULL |  |
 | `hp_ice_km` | DOUBLE | NULL |  |
@@ -626,6 +628,7 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `roundness_ratio` | DOUBLE | NULL | v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not |
 | `yield_strength_pa` | DOUBLE | NULL | v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178) |
 | `binding_energy_j` | DOUBLE | NULL | v199 (GEN.1159): the energy that assembling the body releases, J |
+| `shape_temperature_k` | DOUBLE | NULL | v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting), the strength reads it |
 | `planet_type` | VARCHAR(12) | NULL | v206 (GEN.1219): the body type, from the envelope share of the mass |
 | `class_variant` | TINYINT | NULL | v206 (GEN.1220): the digit of the class code, see the header comment |
 | `relative_humidity` | DOUBLE | NULL | v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99 |
@@ -636,6 +639,7 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `class_fudge_values` | VARCHAR(120) | NULL | v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class |
 | `class_fudge_amount` | DOUBLE | NULL | v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store |
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
+| `collision_count` | SMALLINT UNSIGNED | NULL | v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
 | `obliquity_min_deg` | DOUBLE | NULL | v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
@@ -656,7 +660,7 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `ozone_column_du` | DOUBLE | NULL | v135 (GEN.413): the ozone column, Dobson units |
 | `tau_haze` | DOUBLE | NULL | v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air |
 | `tau_dust` | DOUBLE | NULL | v138 (GEN.414, DB.68): dust optical depth at 550 nm |
-| `tau_cloud` | DOUBLE | NULL | v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey) |
+| `tau_cloud` | DOUBLE | NULL | v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (gray) |
 | `cloud_cover` | DOUBLE | NULL | v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1 |
 | `aerosol_draw` | DOUBLE | NULL | v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets |
 | `c_k0_ppm` | DOUBLE | NULL | v141 (GEN.459): potassium in the bulk silicate at formation, ppm by mass |
@@ -762,7 +766,7 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `ring_optical_depth` | DOUBLE | NULL | v160: its mean optical depth over the area it covers |
 | `ring_ice_fraction` | DOUBLE | NULL | v160: its water-ice share by mass |
 | `ring_age_yr` | DOUBLE | NULL | v192 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring |
-| `atmosphere_colour` | INT UNSIGNED | NULL | v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air |
+| `atmosphere_colour` | INT UNSIGNED | NULL | v162 (DB.96): the color of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air |
 | `lid_regime` | VARCHAR(10) | NULL | v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant |
 | `day_share_equator` | DOUBLE | NULL | v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit |
 | `day_share_mean` | DOUBLE | NULL | v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1 |
@@ -778,8 +782,8 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `life_complexity` | DOUBLE | NULL | v175: the complexity index of its life class, 1 for an Earth-like biosphere |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none |
 | `cloud_chemistry` | VARCHAR(48) | NULL | v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
-| `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea |
-| `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, metres |
+| `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, meters, 0 under an ice cover, NULL without a sea |
+| `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, meters |
 | `ocean_liquid` | VARCHAR(40) | NULL | v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea |
 | `FULLTEXT` | KEY | NULL |  |
 
@@ -900,7 +904,7 @@ The life classes that live on a planet (v203, GEN.1209): one row for each class 
 
 ## `moons`
 
-moons -- one row per moon, as of schema v2 (see the header comment's "v2" note). Exactly the same column shape as `planets` (moons are `Planet` instances too, with `is_moon=True`), except `planet_id` replaces `star_system_id`/`star_id`'s role as "what this body directly orbits" -- `star_system_id`/`star_id` are still carried here too (redundant with the owning planet's own columns) purely so a moon can be queried/joined to its system or star without an extra hop through `planets`. No self-reference: moons never generate their own moons (`Planet.__init__` only calls `generate_moons` `if not self.is_moon`).
+moons -- one row per moon, as of schema v2 (see the header comment's "v2" note). Exactly the same column shape as `planets` (moons are `Planet` instances too, with `is_moon=True`), except `planet_id` replaces `star_system_id`/`star_id`'s role as "what this body directly orbits" -- `star_system_id`/`star_id` are still carried here too (redundant with the owning planet's own columns) purely so a moon can be queried/joined to its system or star without an extra hop through `planets`. No self-reference: moons never generate their own moons (`Planet.__init__` only calls `generate_moons` `if not self.is_moon`). BEGIN GENERATED body tables (db/body_fields.py, scripts/build_body_tables.py): do not edit by hand: moons
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
@@ -975,6 +979,7 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `hydrosphere` | VARCHAR(20) | NULL |  |
 | `ocean_fraction` | DOUBLE | NULL |  |
 | `land_fraction` | DOUBLE | NULL |  |
+| `ice_cover_fraction` | DOUBLE | NULL | v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through), `ocean_fraction` is the liquid sea alone |
 | `ocean_depth_km` | DOUBLE | NULL |  |
 | `ice_shell_km` | DOUBLE | NULL |  |
 | `hp_ice_km` | DOUBLE | NULL |  |
@@ -1110,6 +1115,7 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `roundness_ratio` | DOUBLE | NULL | v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not |
 | `yield_strength_pa` | DOUBLE | NULL | v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178) |
 | `binding_energy_j` | DOUBLE | NULL | v199 (GEN.1159): the energy that assembling the body releases, J |
+| `shape_temperature_k` | DOUBLE | NULL | v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting), the strength reads it |
 | `planet_type` | VARCHAR(12) | NULL | v206 (GEN.1219): the body type, from the envelope share of the mass |
 | `class_variant` | TINYINT | NULL | v206 (GEN.1220): the digit of the class code, see the header comment |
 | `relative_humidity` | DOUBLE | NULL | v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99 |
@@ -1120,6 +1126,7 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `class_fudge_values` | VARCHAR(120) | NULL | v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class |
 | `class_fudge_amount` | DOUBLE | NULL | v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store |
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
+| `collision_count` | SMALLINT UNSIGNED | NULL | v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
 | `obliquity_min_deg` | DOUBLE | NULL | v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
@@ -1134,7 +1141,7 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `ozone_column_du` | DOUBLE | NULL | v135 (GEN.413): the ozone column, Dobson units |
 | `tau_haze` | DOUBLE | NULL | v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air |
 | `tau_dust` | DOUBLE | NULL | v138 (GEN.414, DB.68): dust optical depth at 550 nm |
-| `tau_cloud` | DOUBLE | NULL | v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey) |
+| `tau_cloud` | DOUBLE | NULL | v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (gray) |
 | `cloud_cover` | DOUBLE | NULL | v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1 |
 | `aerosol_draw` | DOUBLE | NULL | v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets |
 | `rogue_planet_id` | BIGINT UNSIGNED | NULL | v140 (DB.73): the rogue planet a moon of a free planet orbits |
@@ -1241,7 +1248,7 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `ring_optical_depth` | DOUBLE | NULL | v160: its mean optical depth over the area it covers |
 | `ring_ice_fraction` | DOUBLE | NULL | v160: its water-ice share by mass |
 | `ring_age_yr` | DOUBLE | NULL | v192 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring |
-| `atmosphere_colour` | INT UNSIGNED | NULL | v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air |
+| `atmosphere_colour` | INT UNSIGNED | NULL | v161 (DB.96): the color of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air |
 | `lid_regime` | VARCHAR(10) | NULL | v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant |
 | `day_share_equator` | DOUBLE | NULL | v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit |
 | `day_share_mean` | DOUBLE | NULL | v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1 |
@@ -1257,8 +1264,8 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `life_complexity` | DOUBLE | NULL | v175: the complexity index of its life class, 1 for an Earth-like biosphere |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none |
 | `cloud_chemistry` | VARCHAR(48) | NULL | v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
-| `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea |
-| `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, metres |
+| `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, meters, 0 under an ice cover, NULL without a sea |
+| `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, meters |
 | `ocean_liquid` | VARCHAR(40) | NULL | v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea |
 | `FULLTEXT` | KEY | NULL |  |
 
@@ -1416,9 +1423,12 @@ asteroid_belts -- belts have no properties-dict data table (asteroidData.py:93-1
 | `stirred` | TINYINT(1) | NULL | v204 (GEN.1069): whether a giant stirs the belt |
 | `origin_history` | TEXT | NULL | v204 (GEN.1069): the sentences of what shaped the belt, a JSON list |
 | `origin_sentence` | TEXT | NULL | v204 (GEN.1069): the sentence of where the belt came from, for its page |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the belt shows, an id of the belt scope of physics/data/flavor_tree.json (NULL for none) |
 | `scatter_fates` | TEXT | NULL | v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object |
+| `makeup` | TEXT | NULL | v256 (DB.124): what the belt is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo, the taxon shares) |
 | `largest_body_km` | DOUBLE | NULL | v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass |
 | `history_text` | TEXT | NULL | v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205 |
+| `host_node_id` | SMALLINT | NULL | v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets` |
 
 ## `asteroid_belt_composition`
 
@@ -1529,6 +1539,7 @@ comets -- v19, a comet gravitationally bound to a star (planetgen/generation/com
 | `star_system_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `star_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the comet shows, an id of the `comet` scope of physics/data/flavor_tree.json (NULL for none) |
 | `orbit_type` | VARCHAR(16) | NOT NULL |  |
 | `period_class` | VARCHAR(16) | NULL |  |
 | `nucleus_diameter_km` | DOUBLE | NOT NULL |  |
@@ -1566,6 +1577,7 @@ comets -- v19, a comet gravitationally bound to a star (planetgen/generation/com
 | `roundness_ratio` | DOUBLE | NULL | v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not |
 | `yield_strength_pa` | DOUBLE | NULL | v199 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178) |
 | `binding_energy_j` | DOUBLE | NULL | v199 (GEN.1159): the energy that assembling the nucleus releases, J |
+| `makeup` | TEXT | NULL | v256 (DB.124): what the nucleus is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo) |
 | `parent_type` | VARCHAR(16) | NOT NULL | v140 (DB.73): what it orbits, see the v140 note |
 | `parent_id` | BIGINT UNSIGNED | NULL | v140 (DB.73) |
 
@@ -1590,6 +1602,7 @@ black_holes / neutron_stars -- v16 exotic phenomena, see this file's header comm
 | `star_id` | BIGINT UNSIGNED | NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the black hole shows, an id of the `black_hole` scope of physics/data/flavor_tree.json (NULL for none) |
 | `mass_class` | VARCHAR(16) | NOT NULL |  |
 | `mass_solar` | DOUBLE | NOT NULL |  |
 | `event_horizon_radius_km` | DOUBLE | NOT NULL |  |
@@ -1634,6 +1647,7 @@ black_holes / neutron_stars -- v16 exotic phenomena, see this file's header comm
 | `star_id` | BIGINT UNSIGNED | NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the neutron star shows, an id of the `neutron_star` scope of physics/data/flavor_tree.json (NULL for none) |
 | `mass_solar` | DOUBLE | NOT NULL |  |
 | `radius_km` | DOUBLE | NOT NULL |  |
 | `spin_period_ms` | DOUBLE | NOT NULL |  |
@@ -1680,6 +1694,7 @@ nebulae -- v16 exotic phenomenon, always standalone. `sector_id` links it to the
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the nebula shows, an id of the `nebula` scope of physics/data/flavor_tree.json (NULL for none) |
 | `nebula_class` | CHAR(1) | NOT NULL |  |
 | `nebula_type` | VARCHAR(16) | NOT NULL |  |
 | `radius_ly` | DOUBLE | NOT NULL |  |
@@ -1707,18 +1722,6 @@ nebulae -- v16 exotic phenomenon, always standalone. `sector_id` links it to the
 | `mass_kg` | DOUBLE | NULL | v102 (DB.55): point mass, a stated zero where the mass is not known |
 | `galactic_radius_pc` | DOUBLE | NULL |  |
 | `quadrant` | VARCHAR(4) | NULL |  |
-| `shape_axis_x` | DOUBLE | NULL |  |
-| `shape_axis_y` | DOUBLE | NULL |  |
-| `shape_axis_z` | DOUBLE | NULL |  |
-| `shape_angle_x` | DOUBLE | NULL |  |
-| `shape_angle_y` | DOUBLE | NULL |  |
-| `shape_angle_z` | DOUBLE | NULL |  |
-| `shape_warp_amplitude` | DOUBLE | NULL |  |
-| `shape_warp_frequency` | DOUBLE | NULL |  |
-| `shape_warp_octaves` | INT | NULL |  |
-| `shape_noise_seed` | BIGINT UNSIGNED | NULL |  |
-| `shape_iso` | DOUBLE | NULL |  |
-| `shape_scale` | DOUBLE | NULL |  |
 | `inside_nebula_id` | BIGINT UNSIGNED | NULL |  |
 | `inside_remnant_id` | BIGINT UNSIGNED | NULL |  |
 | `created_at` | TIMESTAMP | NOT NULL |  |
@@ -1758,19 +1761,6 @@ nebulae -- v16 exotic phenomenon, always standalone. `sector_id` links it to the
 | `grain_ice` | DOUBLE | NULL | v214 (GEN.1276): share of the dust mass in ice grains |
 | `progenitor_mass_sol` | DOUBLE | NULL | v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae) |
 
-## `nebula_shape_balls`
-
-v56: a nebula's metaballs (GEN.75): 4 to 8 per nebula, in nebula-shape units (`galaxy/nebula_shape.py`). `ball_index` is their order.
-
-| Column | Type | Null | Meaning |
-|---|---|---|---|
-| `nebula_id` | BIGINT UNSIGNED | NOT NULL |  |
-| `ball_index` | INT | NOT NULL |  |
-| `center_x` | DOUBLE | NOT NULL |  |
-| `center_y` | DOUBLE | NOT NULL |  |
-| `center_z` | DOUBLE | NOT NULL |  |
-| `radius` | DOUBLE | NOT NULL |  |
-
 ## `supernova_remnants`
 
 supernova_remnants -- v16 exotic phenomenon, always standalone. At most one of compact_remnant_black_hole_id/compact_remnant_neutron_star_id is ever set (see compact_remnant_kind), and only for a core-collapse progenitor whose collapsed core is still detectable -- never for a Type Ia progenitor, which leaves nothing behind.
@@ -1780,6 +1770,7 @@ supernova_remnants -- v16 exotic phenomenon, always standalone. At most one of c
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the remnant shows, an id of the `remnant` scope of physics/data/flavor_tree.json (NULL for none) |
 | `remnant_class` | CHAR(1) | NOT NULL |  |
 | `morphology` | VARCHAR(16) | NOT NULL |  |
 | `age_years` | DOUBLE | NOT NULL |  |
@@ -1861,6 +1852,7 @@ quasars -- v31 exotic phenomenon: a galaxy's active nucleus, always at the galac
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the quasar shows, an id of the `quasar` scope of physics/data/flavor_tree.json (NULL for none) |
 | `black_hole_mass_solar` | DOUBLE | NOT NULL |  |
 | `event_horizon_radius_km` | DOUBLE | NOT NULL |  |
 | `eddington_ratio` | DOUBLE | NOT NULL |  |
@@ -1887,7 +1879,7 @@ quasars -- v31 exotic phenomenon: a galaxy's active nucleus, always at the galac
 
 ## `rogue_planets`
 
-rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by definition unbound from any star).
+rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by definition unbound from any star). BEGIN GENERATED body tables (db/body_fields.py, scripts/build_body_tables.py): do not edit by hand: rogue_planets
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
@@ -2020,6 +2012,8 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `hydrosphere` | VARCHAR(20) | NULL | v207 (GEN.1111) |
 | `ocean_fraction` | DOUBLE | NULL | v207 (GEN.1111) |
 | `land_fraction` | DOUBLE | NULL | v207 (GEN.1111) |
+| `ice_cover_fraction` | DOUBLE | NULL | v249 (GEN.1567) |
+| `shape_temperature_k` | DOUBLE | NULL | v252 (GEN.1201): the temperature the body took its shape at, K (surface, accretion and radioactive heat, tides, capped at the rock's melting), the strength reads it |
 | `ice_shell_km` | DOUBLE | NULL | v207 (GEN.1111) |
 | `ocean_class` | VARCHAR(16) | NULL | v207 (GEN.1111) |
 | `ocean_ph` | DOUBLE | NULL | v207 (GEN.1111) |
@@ -2207,6 +2201,7 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `class_fudge_values` | VARCHAR(120) | NULL | v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class |
 | `class_fudge_amount` | DOUBLE | NULL | v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store |
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
+| `collision_count` | SMALLINT UNSIGNED | NULL | v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
 | `obliquity_min_deg` | DOUBLE | NULL | v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
@@ -2347,6 +2342,7 @@ interstellar_comets -- v16 exotic phenomenon, always standalone (an interstellar
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the interstellar comet shows, an id of the `interstellar_comet` scope of physics/data/flavor_tree.json (NULL for none) |
 | `nucleus_diameter_km` | DOUBLE | NOT NULL |  |
 | `velocity_kms` | DOUBLE | NOT NULL |  |
 | `is_active` | TINYINT(1) | NOT NULL |  |
@@ -2402,6 +2398,7 @@ asteroid_fields -- v17 exotic phenomenon (seventh phenomenon type), always stand
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the asteroid field shows, an id of the `asteroid_field` scope of physics/data/flavor_tree.json (NULL for none) |
 | `field_class` | VARCHAR(4) | NOT NULL |  |
 | `composition_family` | VARCHAR(16) | NOT NULL |  |
 | `density` | VARCHAR(16) | NOT NULL |  |
@@ -2630,9 +2627,19 @@ system_summary (v238, GEN.1479; v241, GEN.1478): a narrow row for each star syst
 | `belt_count` | SMALLINT UNSIGNED | NULL |  |
 | `comet_count` | SMALLINT UNSIGNED | NULL |  |
 
+## `body_numbers`
+
+body_numbers (v257, DB.75): the body number each slot of a system has had. A slot is where a body sits (its kind, the star it orbits and its place in that star's orbits, a moon under its planet's slot); `slot_key` is its path as text (`planet:primary:3`, `moon:planet:primary:3:1`; `store._slot_key`). When a system's content is drawn again the numbers its bodies hold are written here first, and a new body at a remembered path takes that number, so a planet that comes back at a slot an earlier draw left empty is the same object (the same Object ID) it was, and a surviving body keeps its ID when its siblings change. A number is held by one path (`uq_body_numbers_number`), and the system's counter (`id_counters`) never goes back, so no number is given to two slots. A galaxy made before v257 has no rows; the first draw of a system writes its rows. It goes with its system (`ON DELETE CASCADE`).
+
+| Column | Type | Null | Meaning |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | NOT NULL |  |
+| `slot_key` | VARCHAR(96) | NOT NULL |  |
+| `body_number` | SMALLINT UNSIGNED | NOT NULL |  |
+
 ## `body_history`
 
-body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version` of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no result: the draws are kept by the generator on the body and this keeps them for the stored galaxy. It goes with its system (`ON DELETE CASCADE`) and an edit of the system clears its rows (`db/edits.py`).
+v259 (GEN.1433): `asteroid_belts` gain `flavor_key` (VARCHAR(32), NULL): the id of the flavor line the belt shows, a line of the `belt` scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244. body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version` of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no result: the draws are kept by the generator on the body and this keeps them for the stored galaxy. It goes with its system (`ON DELETE CASCADE`) and an edit of the system clears its rows (`db/edits.py`).
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|

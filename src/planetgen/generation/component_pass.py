@@ -30,6 +30,7 @@ with the young share of its systems, and its supernova remnants with its star fo
 more than the disk's per system where it forms them faster per star), so a Cloud shows every class its profile allows.
 """
 
+import hashlib
 import math
 
 import numpy as np
@@ -244,6 +245,53 @@ def _spread(count):
     return np.stack([index / count, (index * 0.7548776662466927) % 1.0, (index * 0.5698402909980532) % 1.0])
 
 
+_SAMPLE_PLACES = {}
+"""dict: `_sample_places`' answers, by the sample positions' digest and the sector edge (PERF.264). About 3 KB a
+component, so the twenty thousand components of a galaxy hold about 60 MB at most."""
+
+SAMPLE_PLACES_KEPT = 100000
+"""int: How many components' sample places `_SAMPLE_PLACES` keeps before it starts again."""
+
+
+def _sample_places(component, edge_pc):
+    """
+    `(places, which)` of a component's `KEPT_SAMPLE_POINTS` sample positions (PERF.264): `places` the sorted distinct
+    `(shell, band)` they lie in, `which` the index into `places` of each position, in the order of the positions. The
+    places depend on the component and the sector edge alone, not on the pass, so the planning of the mass pass and of the
+    luminosity pass of one run look the 5 million addresses up once (`sector_address_at` was most of a pass's planning).
+    The answers are kept by the digest of the positions, so a component read again from the database finds them.
+    """
+    points = positions_mpc(component, _spread(KEPT_SAMPLE_POINTS))
+    key = (hashlib.blake2b(points.tobytes(), digest_size=16).digest(), edge_pc)
+    found = _SAMPLE_PLACES.get(key)
+    if found is None:
+        addresses = [_address(tuple(int(value) for value in points[:, index]), edge_pc)
+                     for index in range(points.shape[1])]
+        places = sorted({address[:2] for address in addresses})
+        number = {place: index for index, place in enumerate(places)}
+        found = (places, [number[address[:2]] for address in addresses])
+        if len(_SAMPLE_PLACES) >= SAMPLE_PLACES_KEPT:
+            _SAMPLE_PLACES.clear()
+        _SAMPLE_PLACES[key] = found
+    return found
+
+
+_TIERS_OF_PLACE = {}
+"""dict: `{(shape, edge_pc): {(shell, band): tier}}`, what `_tiers_of_sample_places` has worked out (PERF.264). A place's tier is
+the dominant term of the galaxy's density there, the same for every pass, so a run's second pass finds the first's."""
+
+
+def _tiers_of_sample_places(limits, places):
+    """`{place: tier}` of `places` (`(shell, band)` pairs), each worked out once for a galaxy (`ScatterLimits.tiers_of_places`)."""
+    if len(_TIERS_OF_PLACE) > 4:
+        _TIERS_OF_PLACE.clear()
+    known = _TIERS_OF_PLACE.setdefault((limits.shape, limits.edge_pc), {})
+    missing = [place for place in places if place not in known]
+    if missing:
+        known.update(zip(missing, limits.tiers_of_places(missing).tolist()))
+    return known
+
+
 def kept_stars(component, fractions, tiered, edge_pc):
     """
     About how many stars `scatter_stars` places for one component (GEN.678): its systems times, for each population, the
@@ -261,11 +309,9 @@ def kept_stars(component, fractions, tiered, edge_pc):
     systems = systems_of(component)
     if tiered is None:
         return sum(systems * share * fractions[population] for population, share in shares.items() if share > 0.0)
-    points = positions_mpc(component, _spread(KEPT_SAMPLE_POINTS))
-    addresses = [_address(tuple(int(value) for value in points[:, index]), edge_pc)
-                 for index in range(points.shape[1])]
-    tier_of = _tiers_by_place(tiered.limits.tiers_of_places, addresses)
-    tiers_here = [tier_of[address[:2]] for address in addresses]
+    places, which = _sample_places(component, edge_pc)
+    tier_of = _tiers_of_sample_places(tiered.limits, places)
+    tiers_here = [tier_of[places[index]] for index in which]
     return sum(systems * share * sum(fractions[tier][population] for tier in tiers_here) / len(tiers_here)
                for population, share in shares.items() if share > 0.0)
 

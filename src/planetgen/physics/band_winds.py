@@ -186,7 +186,7 @@ def band_winds(bands, pressure_pa, mean_molar_mass_kg_mol, radius_m, rotation_ra
         t_mean = mean[id(band)]
         if locked:
             day_side = heat_engine_speed_m_s(band.day_k - band.night_k, t_mean, gas) if band.day_k != band.night_k else 0.0
-            flow = max(day_side, heat_engine_speed_m_s(delta_ep, mean_world, gas))
+            flow = max(day_side, u0_ep)
             out.append(BandWind(band.latitude_deg, SURFACE_COUPLING * flow * fade, SURFACE_COUPLING * NIGHT_COUPLING * flow * fade, LOCKED, 0.0, flow))
             continue
         aloft = _smooth_minimum(u0_ep, thermal_wind_m_s(latitude, delta_ep, gas, radius_m, rotation_rate_rad_s))

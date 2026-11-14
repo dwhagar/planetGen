@@ -28,7 +28,7 @@ import os
 from dataclasses import dataclass
 
 from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import detmath
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_occurrence.json")
@@ -88,12 +88,6 @@ class Multiplicity:
         return {k: v / self.systems for k, v in self.counts.items()}
 
 
-def _finite(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"{owner}: {value!r} is not a finite number")
-    return float(value)
-
-
 def load(path=DATA_FILE):
     """Reads and checks the file at `path`: `(hosts, bands, multiplicity)`, `bands` a dict by id."""
     try:
@@ -101,12 +95,12 @@ def load(path=DATA_FILE):
             document = json.load(handle)
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the planet occurrence file {path}: {error}") from error
-    width = _finite("default_relative_width", document.get("default_relative_width"))
+    width = finite_number("default_relative_width", document.get("default_relative_width"))
     if not 0.0 < width < 1.0:
         raise DataError(f"default_relative_width {width} is not between 0 and 1")
     hosts = {}
     for name, entry in (document.get("hosts") or {}).items():
-        low, high = _finite(f"host {name} low", entry.get("low")), _finite(f"host {name} high", entry.get("high"))
+        low, high = finite_number(f"host {name} low", entry.get("low")), finite_number(f"host {name} high", entry.get("high"))
         if not 0.0 < low < high:
             raise DataError(f"host {name}: mass range {low} to {high} is not increasing")
         hosts[name] = (low, high)
@@ -115,10 +109,10 @@ def load(path=DATA_FILE):
         band_id = raw.get("id")
         if not band_id or band_id in bands:
             raise DataError(f"band id {band_id!r} is missing or repeated")
-        value = _finite(band_id, raw.get("value"))
+        value = finite_number(band_id, raw.get("value"))
         printed = raw.get("minus") is not None or raw.get("plus") is not None
-        minus = _finite(band_id, raw["minus"]) if raw.get("minus") is not None else None
-        plus = _finite(band_id, raw["plus"]) if raw.get("plus") is not None else None
+        minus = finite_number(band_id, raw["minus"]) if raw.get("minus") is not None else None
+        plus = finite_number(band_id, raw["plus"]) if raw.get("plus") is not None else None
         if minus is None:
             minus = plus if plus is not None else value * width
         if plus is None:

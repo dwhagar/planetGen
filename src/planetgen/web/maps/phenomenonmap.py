@@ -32,26 +32,14 @@ diagram needs, so it renders here exactly like a nebula/asteroid field.
 
 from planetgen.web.lib.fmt import esc
 
-try:
-    from planetgen.physics.units import ly_to_au
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # duplicated fallback, matching galaxy.py's/phenomenon.py's own
-    # identical pattern for pc_to_ly.
-    ly_to_au = None
-
-_LY_TO_AU_FALLBACK = 9460730472580800 / 149597870700
-
-
-def _to_au(radius_ly):
-    return ly_to_au(radius_ly) if ly_to_au else radius_ly * _LY_TO_AU_FALLBACK
+from planetgen.physics.units import ly_to_au
 
 
 _MIN_VIEW_SIZE_AU = 1.0
 """float: The deepest zoom-in this diagram allows, as a full viewBox-edge
 span in AU -- the "max zoom in as 1 AU" bound."""
 
-_MAX_VIEW_SIZE_AU = _to_au(1.0)
+_MAX_VIEW_SIZE_AU = ly_to_au(1.0)
 """float: The furthest zoom-out this diagram allows, as a full viewBox-edge
 span in AU (one light-year, converted) -- the "max zoom out of 1 ly"
 bound. A phenomenon whose own real radius is larger than this (a big
@@ -116,7 +104,7 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
             phenomenon template's `head` block).
     """
     color = _TYPE_COLORS.get(phenomenon_type, _DEFAULT_COLOR)
-    radius_au = _to_au(radius_ly) if radius_ly else 0.0
+    radius_au = ly_to_au(radius_ly) if radius_ly else 0.0
     is_point_like = radius_au <= 0
 
     if is_point_like:

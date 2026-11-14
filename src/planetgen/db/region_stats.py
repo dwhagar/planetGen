@@ -65,22 +65,25 @@ def capacity_of(cell):
     return len(cell_sectors(cell))
 
 
+def _generated(conn, cell):
+    """`(addresses, mass_kg)` of the generated sectors of the region `cell`, from one read: the sorted `(shell, band, wedge)` of
+    each and the exact sum of their `sector_stats.total_mass_kg` (0 for a sector with no figure)."""
+    where, params = query._sectors_where(cell_sectors(cell))
+    rows = conn.execute(
+        "SELECT s.shell_index, s.band_index, s.wedge_index, st.total_mass_kg AS mass FROM " + query.charted_sectors_sql(where) + " s"
+        " LEFT JOIN sector_stats st ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
+        " AND st.wedge_index = s.wedge_index", params).fetchall()
+    addresses = sorted((int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])) for r in rows)
+    return addresses, math.fsum(float(r["mass"] or 0.0) for r in rows)
 def generated_sectors(conn, cell):
     """The `(shell, band, wedge)` of the generated sectors of the region `cell`, sorted."""
-    where, params = query._sectors_where(cell_sectors(cell))
-    rows = conn.execute(f"SELECT shell_index, band_index, wedge_index FROM {query.charted_sectors_sql(where)} s", params).fetchall()
-    return sorted((int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])) for r in rows)
+    return _generated(conn, cell)[0]
 
 
 def generated_mass_kg(conn, cell):
     """The summed mass, in kilograms, of the generated sectors of the region `cell` (`sector_stats.total_mass_kg`; 0 for a
     sector with no figure)."""
-    where, params = query._sectors_where(cell_sectors(cell))
-    rows = conn.execute(
-        "SELECT st.total_mass_kg AS mass FROM " + query.charted_sectors_sql(where) + " s"
-        " LEFT JOIN sector_stats st ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
-        " AND st.wedge_index = s.wedge_index", params).fetchall()
-    return math.fsum(float(r["mass"] or 0.0) for r in rows)
+    return _generated(conn, cell)[1]
 
 
 def _row(cell, addresses, edge_pc, mass_kg):
@@ -98,9 +101,9 @@ def refresh_cells(conn, cells, edge_pc=None):
     for cell in sorted(set(cells), key=tuple):
         conn.execute("DELETE FROM region_stats WHERE shell_index = ? AND band_index = ? AND wedge_index = ?",
                      (cell.shell, cell.band, cell.wedge))
-        addresses = generated_sectors(conn, cell)
+        addresses, mass_kg = _generated(conn, cell)
         if addresses:
-            conn.execute(INSERT, _row(cell, addresses, edge_pc, generated_mass_kg(conn, cell)))
+            conn.execute(INSERT, _row(cell, addresses, edge_pc, mass_kg))
             written += 1
     return written
 

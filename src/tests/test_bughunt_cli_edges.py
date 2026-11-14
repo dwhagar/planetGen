@@ -90,7 +90,7 @@ def test_sector_min_habitable_above_a_drawn_count_warns_and_raises_the_count(mys
     monkeypatch.setattr(run_sector, "_sample_poisson_count", lambda mean, rng=None: 1)
     monkeypatch.setenv("PLANETGEN_WORKERS", "1")
     run_cli("sector", ["--density", "1e-6", "--min-habitable", "2"] + mysql_argv(mysql_config))
-    assert "WARNING:" in capsys.readouterr().out
+    assert "warning:" in capsys.readouterr().out
     conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"] >= 2

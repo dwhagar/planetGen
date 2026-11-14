@@ -79,15 +79,16 @@ def topup_sector(conn, address, profile, level, system_config, edge_pc, stream_k
                          (sector_id,)).fetchone()["n"]
     system_ids = [r["id"] for r in conn.execute("SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id LIMIT ?", (sector_id, MAX_HOSTS)).fetchall()]
     hosts = [store.load_star_system(conn, system_id).star for system_id in system_ids]
+    host_masses = [host.mass for host in hosts]
     key = stream_key or "topup:" + ".".join(str(part) for part in address)
     radius_pc = math.sqrt(sum(c * c for c in profile.position_pc))
     plan = rogue_topup.plan(
-        draw.Stream(key + ":plan"), word, stars, short, [host.mass for host in hosts], rogues_present=store.count_rogues_in_sector(conn, sector_id),
+        draw.Stream(key + ":plan"), word, stars, short, host_masses, rogues_present=store.count_rogues_in_sector(conn, sector_id),
         sector_edge_pc=edge_pc, galactocentric_radius_pc=radius_pc)
     made = rogue_topup_build.build(plan.rogues, hosts, system_config, key, address, edge_pc)
     written = store.save_topup_rogues(conn, sector_id, made)
     # What the level left unmatched becomes the lighter fields (Boss, 5:41 PM EDT), placed and given an apparent history the same way.
-    light = topup_field.plan(draw.Stream(key + ":fields"), plan.remainder_kg, [host.mass for host in hosts] if plan.remainder_kg else [], sector_edge_pc=edge_pc,
+    light = topup_field.plan(draw.Stream(key + ":fields"), plan.remainder_kg, host_masses if plan.remainder_kg else [], sector_edge_pc=edge_pc,
                              galactocentric_radius_pc=radius_pc)
     field_count = store.save_topup_fields(conn, sector_id, field_topup_build.build(light.fields, system_config, key, address, edge_pc))
     chart_ledger.mark_topped_up(conn, address)

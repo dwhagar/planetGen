@@ -89,8 +89,8 @@ _TIDAL_FIT = (0.29, -0.90, 0.91, 3.11, -0.88)
 """tuple: [R3079] equation 14: `R(tides) / R(no tides) = 1 + a (M / 10 Me)^b (f_env / 0.05)^c (F / 100 F_earth)^d (Q / 1e5)^e`, with
 `Q = Q' (1 + cos^2 eps) / sin^2 eps`."""
 
-_R_EARTH_M = constants.EARTH_RADIUS_KM * 1.0e3
-_INSOLATION_W_M2 = 1361.0
+_R_EARTH_M = constants.EARTH_RADIUS_M
+_INSOLATION_W_M2 = constants.SOLAR_CONSTANT_W_M2
 
 
 def covers(mass_earth, envelope):

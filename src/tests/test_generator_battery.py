@@ -146,3 +146,63 @@ def test_the_running_digest_passes_the_progress_callback_on(monkeypatch):
     seen = []
     battery.running_digest(lambda done, total: seen.append(done))
     assert seen[-1] == len(battery.CASES)
+
+
+def test_the_wait_for_the_digest_reports_what_the_process_has_done(monkeypatch):
+    """OPS.184: the plan waits for the digest process minutes on a new code key; the wait reads the process's cases and tables as often as `DIGEST_POLL_SECONDS`, and once at the end."""
+    from planetgen.generation import battery_progress
+
+    seen = []
+
+    class Future:
+        calls = 0
+
+        def done(self):
+            Future.calls += 1
+            return Future.calls > 3
+
+        def result(self):
+            return "digest"
+
+    class Pool:
+        def __init__(self, **kwargs):
+            self.initializer, self.initargs = kwargs["initializer"], kwargs["initargs"]
+
+        def submit(self, function):
+            self.initializer(*self.initargs)         # what the process does first
+            battery_progress.case(2, 8)
+            for _ in range(5):
+                battery_progress.table_built()
+            return Future()
+
+        def shutdown(self):
+            seen.append("shutdown")
+
+    monkeypatch.setattr(battery, "_running", None)
+    monkeypatch.setattr(battery, "DIGEST_POLL_SECONDS", 0.0)
+    monkeypatch.setattr(battery.concurrent.futures, "ProcessPoolExecutor", Pool)
+    monkeypatch.setattr(battery.concurrent.futures, "wait", lambda futures, timeout: None)
+    try:
+        battery.start_running_digest()(lambda *numbers: seen.append(numbers))
+    finally:
+        battery_progress.adopt(None)
+    assert battery._running == "digest"
+    assert seen == [(2, 8, 5)] * 3 + ["shutdown"]
+    monkeypatch.setattr(battery, "_running", None)
+
+
+def test_the_digest_process_counts_nothing_outside_itself():
+    from planetgen.generation import battery_progress
+
+    battery_progress.case(1, 8)
+    battery_progress.table_built()          # no `adopt` here: nothing to write to, and no error
+    shared = battery_progress.create(battery.multiprocessing.get_context("spawn"))
+    assert battery_progress.read(shared) == (0, 0, 0)
+    battery_progress.adopt(shared)
+    try:
+        battery_progress.case(3, 8)
+        battery_progress.table_built()
+        battery_progress.table_built()
+        assert battery_progress.read(shared) == (3, 8, 2)
+    finally:
+        battery_progress.adopt(None)

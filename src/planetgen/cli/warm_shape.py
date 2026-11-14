@@ -49,7 +49,7 @@ def _save_with_bar(ages):
         def line(done, total):
             if time.monotonic() - last[0] >= 60 or done == total:
                 last[0] = time.monotonic()
-                log.normal(f"{done} of {total} ages done")
+                log.normal(f"{done} of {total} ages done.")
         return system_mass.save_means(ages, progress=line)
     from rich.progress import BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeRemainingColumn
     with Progress(TextColumn("  cluster ages"), BarColumn(), MofNCompleteColumn(), TimeRemainingColumn()) as bar:
@@ -70,12 +70,12 @@ def main():
             log.normal("No stored clusters: nothing to work out.")
             return
         started = time.perf_counter()
-        log.normal(f"Working out the mean system mass of {len(ages)} cluster ages (a big galaxy takes a few minutes):")
+        log.normal(f"Working out the mean system mass of {len(ages)} cluster ages (a big galaxy takes a few minutes).")
         held = _save_with_bar(ages)
         log.normal(f"Mean system mass worked out for {len(ages)} cluster ages in {time.perf_counter() - started:.1f} s; "
                    f"{held} ages are stored in {system_mass.STORE_FILE}.")
     except Exception as exc:  # noqa: BLE001 -- the update carries on
-        log.warning(f"the mean system masses could not be worked out ({exc}); the web app works them out when asked.")
+        log.warning(f"The mean system masses could not be worked out ({exc}); the web app works them out when asked.")
         sys.exit(1)
 
 

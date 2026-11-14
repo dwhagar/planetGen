@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 
 from planetgen.admin import maintenance, stop_reason
 from planetgen.util import log
+from planetgen.util import process
 
 FILE_NAME = "stopped.json"
 """str: The hold's file in the state folder: `{"by": name, "at": Unix seconds}` as JSON."""
@@ -184,18 +185,7 @@ def find_targets(table, protected=()):
     return ordered
 
 
-def _alive(pid):
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    try:
-        with open(f"/proc/{pid}/stat", "rb") as handle:
-            return handle.read().rpartition(b")")[2].split()[0] != b"Z"
-    except (OSError, IndexError):
-        return True
+_alive = process.pid_alive
 
 
 def _signal(pids, number):

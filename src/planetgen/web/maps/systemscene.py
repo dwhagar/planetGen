@@ -109,7 +109,9 @@ def _pair_around(tree, stars):
 
 def _star_around(planet_or_belt, stars, system, pair_around="barycenter"):
     """What a planet or belt goes round: its own star in a wide binary, a
-    single-star system or a further star of the tree (GEN.332), else the close pair's center of mass."""
+    single-star system or a further star of the tree (GEN.332), else the close pair's center of mass; the node of an inner pair for the planets round it."""
+    if planet_or_belt.get("host_node_id") is not None:        # the planets of an inner pair node go round the node's center of mass (GEN.332, slice A)
+        return f"node:{planet_or_belt['host_node_id']}"
     star_id = planet_or_belt.get("star_id")
     if system["binary_configuration"] == "close" and not any(
             s["id"] == star_id and s["role"] == "member" for s in stars):    # a member star's own planets (GEN.332)

@@ -9,7 +9,7 @@ planet, a moon), how often and how long the moons and the inner planets eclipse 
 the sheet is made and are not columns: each is a pure function of stored data, the way the moon's longest eclipse in its planet's shadow is. Each row is `(group, key, label, value, raw)`.
 """
 
-from planetgen.describe import day_rows, heavy_rows, model
+from planetgen.describe import day_rows, heavy_rows, host_star, model
 from planetgen.physics import sky_clock
 
 CLOCK_KEY = "clock_lag_s_per_yr"
@@ -30,13 +30,7 @@ def is_derived_key(key):
 
 
 def _star_of(conn, planet):
-    if planet["star_id"]:
-        star = conn.execute("SELECT mass_kg, radius_km FROM stars WHERE id = ?", (planet["star_id"],)).fetchone()
-        if star is not None:
-            return star
-    if planet["star_system_id"]:
-        return conn.execute("SELECT mass_kg, radius_km FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (planet["star_system_id"],)).fetchone()
-    return None
+    return host_star.of(conn, planet, "mass_kg, radius_km")
 
 
 def _clock_row(own, hosts):
