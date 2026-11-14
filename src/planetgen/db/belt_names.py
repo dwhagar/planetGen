@@ -17,7 +17,8 @@ def numbers_for_belts(conn, belt_ids):
         return {}
     marks = ", ".join("?" * len(belt_ids))
     systems = sorted({row["star_system_id"] for row in conn.execute(f"SELECT star_system_id FROM asteroid_belts WHERE id IN ({marks})", tuple(belt_ids)).fetchall()})
-    return {belt_id: number for belt_id, number in numbers_for_systems(conn, systems).items() if belt_id in set(belt_ids)}
+    wanted = set(belt_ids)
+    return {belt_id: number for belt_id, number in numbers_for_systems(conn, systems).items() if belt_id in wanted}
 
 
 def numbers_for_systems(conn, system_ids):

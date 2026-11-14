@@ -58,7 +58,7 @@ def subject_of(body, partials):
     """The `Subject` of table m for `body` and its air `partials` (formula to Pa, without the trace gases)."""
     pressure_pa = sum(partials.values())
     quantities = mixture_subject.quantities_of_body(
-        body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / 1.0e5, star_distance_au=getattr(body, "_star_distance_au", None))
+        body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / constants.BAR_PA, star_distance_au=getattr(body, "_star_distance_au", None))
     quantities.update({
         "has_solid_ground": getattr(body, "body_type", "t") == "t",
         "gas_has_co_h2s": partials.get("CO", 0.0) > 0.0 and partials.get("H2S", 0.0) > 0.0,

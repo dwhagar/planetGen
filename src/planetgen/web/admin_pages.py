@@ -144,13 +144,9 @@ def _require_admin(fresh=True):
     return admin, None
 
 
-_API_ERROR_PREFIX = re.compile(r"^planetGen API error \(\d+\): ")
-
-
 def _api_message(exc):
-    """The API's own message from an `ApiError`, without the
-    `planetGen API error (400): ` prefix."""
-    return _API_ERROR_PREFIX.sub("", str(exc))
+    """The API's own message from an `ApiError` (`apiclient.message_of`)."""
+    return apiclient.message_of(exc)
 
 
 # ---------------------------------------------------------------------
@@ -284,7 +280,7 @@ def login_code():
         if exc.status_code == 401:
             message = _api_message(exc)
             if "password" in message:
-                return _login_page(next_url, error=message[0].upper() + message[1:] + ".", username=username,
+                return _login_page(next_url, error=_sentence(message), username=username,
                                    status=401)
             return _login_page(next_url, error="That code isn't right. Try the newest one.", username=username,
                                pending=pending, status=401)
@@ -308,13 +304,18 @@ def logout():
     return _relay(_see_other(url_for("web.index")), set_cookie_headers)
 
 
+def _sentence(message):
+    """The API's message as a sentence of the page: a capital first letter and a full stop."""
+    return message[0].upper() + message[1:] + "."
+
+
 def _too_many_message(exc):
     """The message for a 429 from a password check: a lockout (per address
     or per username, `api/loginguard.py`) names its wait; the per-address
     rate limit doesn't."""
     message = _api_message(exc)
     if "try again in" in message:
-        return message[0].upper() + message[1:].replace("; try", ". Try") + "."
+        return _sentence(message.replace("; try", ". Try"))
     return "Too many login attempts. Wait a minute, then try again."
 
 
@@ -368,7 +369,7 @@ def account_two_factor():
             return _account_page(admin, next_url, totp={"error": _too_many_message(exc)}, status=429)
         if exc.status_code in (400, 401):
             message = _api_message(exc)
-            totp = {"error": message[0].upper() + message[1:] + "."}
+            totp = {"error": _sentence(message)}
             if action == "confirm":
                 # Show the same QR code again (the pending secret is
                 # unchanged); the form carried it back.

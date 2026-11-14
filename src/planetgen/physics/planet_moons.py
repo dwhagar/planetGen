@@ -1,15 +1,15 @@
 # planetgen/physics/planet_moons.py
 
 """
-Moons of planet size around the giants (GEN.1157 slice 0, stand-ins PSM1 to PSM4 of docs/design/research/gap-filling-plan.md section 6.276)
+Moons of planet size around the giants (GEN.1157, stand-ins PSM1 to PSM4 of docs/design/research/gap-filling-plan.md section 6.276)
 =========================================================================================================================================
 
-How often a giant planet holds a moon as big as a planet (`PLANET_MOON_MIN_MASS_KG`, a tenth of an Earth mass or more), and how big, from the two ways a giant can get one. A pure module:
-nothing is stored and nothing is wired, so it changes no generated body. Design: docs/design/systems/planet-size-moons.md. Report: reports/gen1157-planet-size-moons-2026-11-12.md.
+How often a giant planet holds a moon as big as a planet (`PLANET_MOON_MIN_MASS_KG`, a tenth of an Earth mass or more), and how big, from the two ways a giant can get one. A pure module (slice 0), read by `planets.generate_moons` and
+`planet_kind.moon_mass_ceiling_kg` since the wiring slice (an epoch). Nothing is stored: the captured moon is an ordinary moon row with origin `exchange`. Design: docs/design/systems/planet-size-moons.md. Report: reports/gen1157-planet-size-moons-2026-11-12.md.
 
 * **The circumplanetary disk** makes regular moons whose total is about 1e-4 to 6e-4 of the planet (`moon_composition.total_moon_mass_ratio` at the ends of `ALPHA_OVER_F`, [R0642], [R0643:
-  Eq. 4.15]). No disk moon can pass that share of its parent, so `disk_moon_ceiling_kg` is the ceiling the generator should hold the disk's moons to; a planet-size moon of the disk needs a parent of
-  a few Jupiter masses (`disk_parent_mass_kg`), the super-Jovians of [R1899]. A disk moon is drawn with the disk, not here.
+  Eq. 4.15]). No disk moon can pass that share of its parent, so `disk_moon_ceiling_kg` is the ceiling the generator holds a giant's moons to (`planet_kind.moon_mass_ceiling_kg`); a planet-size moon of the disk needs a parent of
+  a few Jupiter masses (the whole disk of a Jupiter holds 0.2 Earth masses), the super-Jovians of [R1899]. A disk moon is drawn with the disk, not here.
 * **Capture** (a giant that meets a binary, keeps one and flings the other away, [R0037, R5229]; or a planet pulled in during a migration instability, [R5230]; the candidate
   Kepler-1625 b-i of [R4322] is the case studied, and [R1900] read its signal another way) is rare and not tied to the disk: `exchange_chance` of a giant has one, `exchange_ceiling_kg` is the most it can hold (a share of the parent, `EXCHANGE_MAX_RATIO`) and
   `draw_exchange_moon` draws its mass from the generator's own moon-mass law (`tuning.MOON_MASS_FUNCTION_SLOPE`) between `PLANET_MOON_MIN_MASS_KG` and that ceiling.
@@ -59,14 +59,6 @@ def disk_moon_ceiling_kg(parent_mass_kg):
     if not parent_mass_kg > 0.0:
         raise ValueError(f"the parent mass {parent_mass_kg!r} is not positive")
     return DISK_TOTAL_RATIO_MAX * parent_mass_kg
-
-
-def disk_parent_mass_kg(moon_mass_kg=PLANET_MOON_MIN_MASS_KG):
-    """The lightest parent whose disk can make a moon of `moon_mass_kg`: the mass at which `disk_moon_ceiling_kg` reaches it (about 0.5 Jupiter masses for a tenth of an Earth mass, and
-    in practice several, since the moons of one disk share the total). Pure."""
-    if not moon_mass_kg > 0.0:
-        raise ValueError(f"the moon mass {moon_mass_kg!r} is not positive")
-    return moon_mass_kg / DISK_TOTAL_RATIO_MAX
 
 
 def exchange_chance(parent_mass_kg):

@@ -21,13 +21,12 @@ large factor, and a run that disregards missing data says so.
 The reader returns cell means on the radiation model's wavelength grid (`physics/uv_cross_sections.py`).
 """
 
-import functools
 import io
 import zipfile
 
 import numpy as np
 
-from planetgen.datasets import fetch
+from planetgen.datasets import axes, fetch
 
 ARCHIVE = "uv-vis-spectral-atlas-2013-06-24.zip"
 DERIVED = "ozone_uv.npz"
@@ -89,10 +88,7 @@ DATASET = fetch.Dataset(
 )
 
 
-@functools.lru_cache(maxsize=2)
-def _load(path):
-    with np.load(path) as stored:
-        return {name: np.array(stored[name]) for name in stored.files}
+_load = fetch.load_arrays
 
 
 def tables(located):
@@ -100,13 +96,7 @@ def tables(located):
     return _load(located.path(DERIVED))
 
 
-def _cell_means(nm, sigma, edges):
-    """The mean of the piecewise-linear table over each cell of `edges`; NaN for a cell the table does not cover."""
-    cumulative = np.concatenate([[0.0], np.cumsum(0.5 * (sigma[1:] + sigma[:-1]) * np.diff(nm))])
-    low, high = edges[:-1], edges[1:]
-    inside = (low >= nm[0]) & (high <= nm[-1])
-    area = np.interp(high, nm, cumulative) - np.interp(low, nm, cumulative)
-    return np.where(inside, area / (high - low), np.nan)
+_cell_means = axes.cell_means
 
 
 def chappuis_ratio(located, edges, temperature_k):
@@ -118,10 +108,7 @@ def chappuis_ratio(located, edges, temperature_k):
     edges = np.asarray(edges, dtype=float)
     data = tables(located)
     temperatures = CHAPPUIS_TEMPERATURES_K
-    t = min(max(temperature_k, temperatures[0]), temperatures[-1])
-    upper = next(i for i, value in enumerate(temperatures) if value >= t)
-    lower = max(upper - 1, 0)
-    weight = 0.0 if upper == lower else (t - temperatures[lower]) / (temperatures[upper] - temperatures[lower])
+    lower, upper, weight = axes.bracket(temperatures, temperature_k)
     reference = _cell_means(data["nm_bt298"], data["sigma_bt298"], edges)
     mix = np.zeros_like(reference)
     for index, share in ((lower, 1.0 - weight), (upper, weight)):

@@ -305,6 +305,7 @@ def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_f
              - 5.09 * mu ** 2 + 4.61 * e ** 2 * mu ** 2)
     return ratio * binary_separation_au
 
+
 @finite_domain()
 def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, central_mass_kg):
     """

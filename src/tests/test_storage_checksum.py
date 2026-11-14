@@ -327,7 +327,8 @@ def _writers():
     root = pathlib.Path(sc.__file__).resolve().parents[1]
     tables = sorted(set(sc.CONTENT_TABLES))
     pattern = re.compile(r"\b(UPDATE|INSERT\s+(?:IGNORE\s+)?INTO|DELETE\s+FROM)\s+`?(%s)\b(?!_)" % "|".join(tables)
-                         + r"|\bdesignation_rows\.(?:set_name|renumber)\(")  # GEN.1138: the one writer of a name and an ID takes the table as an argument
+                         + r"|\bdesignation_rows\.(?:set_name|renumber)\("  # GEN.1138: the one writer of a name and an ID takes the table as an argument
+                         + r"|\b_insert_composition\(conn, \"(?:%s)\"" % "|".join(tables))  # the one writer of composition shares takes the table as an argument
     found = {}
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root).as_posix()

@@ -50,6 +50,7 @@ from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.physics import unit_registry as units
 
 _au_yr_to_kms = units.converter("au_yr", "km_s")
+_msun_to_kg = units.converter("Msun", "kg")
 
 PERIOD_CLASS_LABELS = {
     "jupiter_family": "Jupiter-family",
@@ -399,5 +400,4 @@ class Comet(SmallBody):
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Comet, "comet")

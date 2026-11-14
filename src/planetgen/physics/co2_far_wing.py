@@ -26,17 +26,16 @@ carbon dioxide and nitrogen one for every gas; the temperature exponent and the 
 Units: strengths in cm per molecule (cm-1 times cm2), result in cm2 per molecule of carbon dioxide; wavenumbers in cm-1; pressure in Pa.
 """
 
-import json
 import os
 
 import numpy as np
 
-from planetgen.physics import elements
+from planetgen.physics import constants, elements
 from planetgen.util import detmath
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "co2_far_wing.json")
 
-ATMOSPHERE_PA = 101325.0
+ATMOSPHERE_PA = constants.STANDARD_ATMOSPHERE_PA
 """float: One standard atmosphere, Pa, the pressure the half widths are stated at."""
 REFERENCE_K = 296.0
 """float: The temperature the half widths are stated at (HITRAN's)."""
@@ -52,13 +51,8 @@ class FarWingError(ValueError):
 
 
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise FarWingError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-    return document
+    """The rule file's document, checked (`elements.load_rule_numbers`): every number has a value, a tier, a tweak and a basis."""
+    return elements.load_rule_numbers(DATA_FILE, FarWingError)
 
 
 DOCUMENT = _load()
@@ -156,6 +150,25 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
     Returns:
         ndarray: (layers, bands).
     """
+    def tail_of(t, pressure, x, scale):
+        gamma = half_width_cm1(t, pressure, x)
+
+        def tail(distance):
+            weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") \
+                + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
+            return np.where(_window(distance), scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+        return tail
+
+    return _layer_cross_sections(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction, tail_of)
+
+
+def _layer_cross_sections(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction, tail_of):
+    """
+    The far-wing cross section in each band for a stack of layers (the shape `cross_section_cm2` describes): for each layer with
+    carbon dioxide and pressure, `tail_of(temperature, pressure, co2 fraction, scale)` gives the Lorentz tail (a function of the
+    distance from the band, cm-1), `scale` being the pressure over one atmosphere times `(REFERENCE_K / T)^gamma_exponent`; the tail
+    is paired with the layer's band strengths over the band edges. A layer without either stays 0.
+    """
     strengths = np.atleast_2d(np.asarray(strengths, dtype=float))
     temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
     pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
@@ -164,15 +177,9 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
     for layer in range(len(temperature)):
         if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
             continue
-        x, t = fraction[layer], temperature[layer]
-        gamma = half_width_cm1(t, pressure[layer], x)
+        t = temperature[layer]
         scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
-
-        def tail(distance):
-            weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") \
-                + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
-            return np.where(_window(distance), scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
-
+        tail = tail_of(t, pressure[layer], fraction[layer], scale)
         result[layer] = detmath.matmul(_pair_matrix(edges_cm1, tail), strengths[layer][:, None])[:, 0]
     return np.maximum(result, 0.0)
 
@@ -184,22 +191,14 @@ def minor_gas_cross_section_cm2(gas, strengths, edges_cm1, temperature_k, pressu
     `minor_uses_chi` is 0), weighted by the carbon dioxide share of the air so that an air without carbon dioxide adds nothing (its water
     far wing is the continuum of `line_opacity`). Arguments as `cross_section_cm2`.
     """
-    strengths = np.atleast_2d(np.asarray(strengths, dtype=float))
-    temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
-    pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
-    fraction = np.atleast_1d(np.asarray(co2_fraction, dtype=float))
     gamma0 = number("minor_gamma_cm1_atm")[gas]
-    result = np.zeros(strengths.shape)
-    for layer in range(len(temperature)):
-        if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
-            continue
-        t = temperature[layer]
-        scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
+
+    def tail_of(t, pressure, x, scale):
         gamma = gamma0 * scale
 
         def tail(distance):
             shape = chi(distance, t, "co2_co2") if number("minor_uses_chi") else 1.0
-            return np.where(_window(distance), fraction[layer] * gamma * shape / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+            return np.where(_window(distance), x * gamma * shape / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+        return tail
 
-        result[layer] = detmath.matmul(_pair_matrix(edges_cm1, tail), strengths[layer][:, None])[:, 0]
-    return np.maximum(result, 0.0)
+    return _layer_cross_sections(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction, tail_of)

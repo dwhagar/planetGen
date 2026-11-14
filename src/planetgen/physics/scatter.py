@@ -38,13 +38,13 @@ Use:
 
 import math
 
-from planetgen.physics import constants, unit_registry as units
+from planetgen.physics import constants, resonance_gaps, unit_registry as units
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 _msun_to_kg = units.converter("Msun", "kg")
 
-ZONE_COEFFICIENT = 1.3
-"""float: The half-width of the chaotic zone over `a q^(2/7)` ([R4727], recalled from the design's table, row SX1)."""
+ZONE_COEFFICIENT = resonance_gaps.CHAOTIC_ZONE_COEFFICIENT
+"""float: The half-width of the chaotic zone over `a q^(2/7)` ([R4727], recalled from the design's table, row SX1; the belt map's `resonance_gaps` holds the number)."""
 
 DISK_SLOPE = 1.5
 """float: The surface density of the disk goes as `a^-DISK_SLOPE` (the minimum-mass nebula, [R1854], recalled; row SX1)."""
@@ -77,12 +77,12 @@ POPULATIONS = ("cold_classical", "hot_classical", "resonant", "scattered_disk", 
 """tuple: The keys of `scatter_shares`."""
 
 _AU = constants.AU_TO_M
-_R_EARTH_M = constants.EARTH_RADIUS_KM * 1.0e3
+_R_EARTH_M = constants.EARTH_RADIUS_M
 
 
 def mass_ratio(giant_mass_earth, star_mass_solar):
     """`q = m / M*`."""
-    return _mearth_to_kg(giant_mass_earth) / (_msun_to_kg(star_mass_solar))
+    return _mearth_to_kg(giant_mass_earth) / _msun_to_kg(star_mass_solar)
 
 
 def zone_half_width_au(giant_au, giant_mass_earth, star_mass_solar):

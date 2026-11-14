@@ -89,7 +89,7 @@ def test_a_radius_gets_the_mass_its_composition_needs():
         bulk_draw.draw_terrestrial(body, True, False)
         bulk = bc.bulk_fractions(body)
         assert bulk.origin == "drawn" and sum(bulk.shares().values()) == pytest.approx(1.0)
-        solved = bulk_structure.structure(bulk, body.mass, x_fe=bulk_draw._x_fe(bulk))
+        solved = bulk_structure.structure(bulk, body.mass, x_fe=bulk_draw._x_fe(bulk.rock_feo))
         assert solved.radius_km == pytest.approx(radius, rel=0.02)
         assert body.density == pytest.approx(body.mass / (4 / 3 * math.pi * (radius * 1000) ** 3) / 1000)
 

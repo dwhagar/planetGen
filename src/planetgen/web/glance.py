@@ -25,6 +25,17 @@ def _count(word, plural, number):
     return f"{number:,} {word if number == 1 else plural}"
 
 
+def _trusted_rows(rows):
+    """The rows with their HTML marked safe for the template (each renderer here escaped what it wrote)."""
+    return [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]
+
+
+def _facilities_row(facilities):
+    """The Facilities row (`[]` when there are none); `facilities` is the API's `items` dict or the list itself."""
+    held = facilities.get("items") if isinstance(facilities, dict) else facilities
+    return [{"label": "Facilities", "html": esc(f"{len(held):,}")}] if held else []
+
+
 def _worlds(detail):
     """`[(kind, body)]` for every planet and moon of a system's detail."""
     worlds = []
@@ -69,16 +80,14 @@ def system_rows(detail, facilities, symbols):
         tier, kind, body = min(scored, key=lambda item: item[0])
         url = item_pages.item_url(f"{kind}:{body['id']}")
         rows.append({"label": "Best world", "html": f'<a href="{esc(url)}">{esc(body["name"])}</a> {symbols(body, page=url)}'})
-    held = facilities.get("items") if isinstance(facilities, dict) else facilities
-    if held:
-        rows.append({"label": "Facilities", "html": esc(f"{len(held):,}")})
+    rows.extend(_facilities_row(facilities))
     perimeters = [s["system_perimeter_km"] for s in stars if s.get("system_perimeter_km")]
     if perimeters:
         rows.append({"label": "System perimeter", "html": inline_html([model.qty("length", max(perimeters), "km")])})
     region = item_pages.region_row(detail)
     if region:
         rows.append(region)
-    return [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]
+    return _trusted_rows(rows)
 
 
 HAZARD_TYPES = ("black_hole", "neutron_star", "quasar")
@@ -109,16 +118,14 @@ def sector_rows(detail, facilities, type_labels):
         nearest = min(hazards, key=lambda item: item.get("distance_ly") if item.get("distance_ly") is not None else 1e18)
         rows.append({"label": "Hazards", "html": esc(f"{len(hazards):,} compact object" + ("" if len(hazards) == 1 else "s")
                                                       + f", nearest {nearest['name']}")})
-    held = facilities.get("items") if isinstance(facilities, dict) else facilities
-    if held:
-        rows.append({"label": "Facilities", "html": esc(f"{len(held):,}")})
+    rows.extend(_facilities_row(facilities))
     bubble = detail.get("superbubble")
     if bubble:
         rows.append({"label": "Inside", "html": esc(f"a superbubble {bubble['radius_pc'] * 2:g} pc across")})
     region = item_pages.region_row(detail)
     if region:
         rows.append(region)
-    return [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]
+    return _trusted_rows(rows)
 
 
 def keep_out_row(found):
@@ -149,4 +156,4 @@ def galaxy_rows(sectors, containers):
         number = sum(1 for c in containers if c["kind"] == kind)
         if number:
             rows.append({"label": label, "html": esc(f"{number:,}")})
-    return [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]
+    return _trusted_rows(rows)

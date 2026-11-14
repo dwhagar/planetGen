@@ -32,7 +32,7 @@ import math
 import numpy as np
 from numba import njit
 
-from planetgen.galaxy import gravity_kernel
+from planetgen.galaxy import cellkey, gravity_kernel
 from planetgen.galaxy.gravity_settings import LEAF_PC, MAX_THETA, MIN_THETA, PAIR_BUDGET, THETA_STEP
 
 HALF_DIAGONAL = math.sqrt(3.0) / 2.0
@@ -82,14 +82,18 @@ class Hierarchy:
 
 
 def _spread(values):
-    """The bits of the integers `values` (below 2^21) spread to every third bit (the Morton interleave of one axis)."""
-    v = values.astype(np.uint64) & np.uint64(0x1FFFFF)
-    v = (v | (v << np.uint64(32))) & np.uint64(0x1F00000000FFFF)
-    v = (v | (v << np.uint64(16))) & np.uint64(0x1F0000FF0000FF)
-    v = (v | (v << np.uint64(8))) & np.uint64(0x100F00F00F00F00F)
-    v = (v | (v << np.uint64(4))) & np.uint64(0x10C30C30C30C30C3)
-    v = (v | (v << np.uint64(2))) & np.uint64(0x1249249249249249)
-    return v
+    """The bits of the integers `values` (below 2^21) spread to every third bit (the Morton interleave of one axis, `cellkey.spread_array`)."""
+    return cellkey.spread_array(values.astype(np.uint64) & np.uint64(0x1FFFFF))
+
+
+def _aggregate(keys, weights, points):
+    """The cells of one level: for each run of equal `keys` (sorted), `(unique keys, first index, total weight, center)`, the center the
+    weighted mean of `points` or their plain mean for a run of no weight."""
+    unique, first = np.unique(keys, return_index=True)
+    total = np.add.reduceat(weights, first)
+    moment = np.stack([np.add.reduceat(weights * points[:, k], first) for k in range(3)], 1)
+    plain = np.stack([np.add.reduceat(points[:, k], first) for k in range(3)], 1) / np.diff(np.append(first, len(keys)))[:, None]
+    return unique, first, total, np.where(total[:, None] > 0.0, moment / np.where(total > 0.0, total, 1.0)[:, None], plain)
 
 
 def build(positions, masses_solar, leaf_pc=LEAF_PC):
@@ -121,25 +125,19 @@ def build(positions, masses_solar, leaf_pc=LEAF_PC):
     code, positions, masses = code[order], positions[order], masses[order]
 
     codes, mass, center, lo, hi = [], [], [], [], []
-    unique, start = np.unique(code, return_index=True)
-    mass0 = np.add.reduceat(masses, start)
-    moment = np.stack([np.add.reduceat(masses * positions[:, k], start) for k in range(3)], 1)
-    plain = np.stack([np.add.reduceat(positions[:, k], start) for k in range(3)], 1) / np.diff(np.append(start, count))[:, None]
+    unique, start, mass0, center0 = _aggregate(code, masses, positions)
     codes.append(unique)
     mass.append(mass0)
-    center.append(np.where(mass0[:, None] > 0.0, moment / np.where(mass0 > 0.0, mass0, 1.0)[:, None], plain))
+    center.append(center0)
     lo.append(start.astype(np.int64))
     hi.append(np.append(start[1:], count).astype(np.int64))
     sizes = [len(unique)]
     while sizes[-1] > 1:
         below = codes[-1] >> np.uint64(3)
-        unique, first = np.unique(below, return_index=True)
-        total = np.add.reduceat(mass[-1], first)
-        moment = np.stack([np.add.reduceat(mass[-1] * center[-1][:, k], first) for k in range(3)], 1)
-        plain = np.stack([np.add.reduceat(center[-1][:, k], first) for k in range(3)], 1) / np.diff(np.append(first, len(below)))[:, None]
+        unique, first, total, center_above = _aggregate(below, mass[-1], center[-1])
         codes.append(unique)
         mass.append(total)
-        center.append(np.where(total[:, None] > 0.0, moment / np.where(total > 0.0, total, 1.0)[:, None], plain))
+        center.append(center_above)
         base = int(np.sum(sizes[:-1]))
         lo.append(first.astype(np.int64) + base)
         hi.append(np.append(first[1:], len(below)).astype(np.int64) + base)

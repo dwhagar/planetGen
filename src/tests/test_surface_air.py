@@ -156,7 +156,8 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
     age_s = 4.5 * sa.GY_S
     wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0, LAND, {})(inventory)
-    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
+    dry_setting = dataclasses.replace(setting, water_kg=0.0)    # GEN.1562 N6: a layer of water over the full depth makes the sulfate sink wet whether or not an ocean stands
+    dry = sa._shares(dry_setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
     base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
     assert 0.0 < wet["S"] < base                        # the sinks take most of it
     assert wet["S"] == pytest.approx(base * lifetimes.wet_s / age_s, rel=1e-6)   # the steady-state burden of a day or so

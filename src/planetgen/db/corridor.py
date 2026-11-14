@@ -93,6 +93,14 @@ def generated_cells(conn, cells):
     return found
 
 
+def _cells_crossed(a_ly, b_ly, edge):
+    """The cells the straight line from `a_ly` to `b_ly` (galaxy-frame light-years) crosses, in the order it enters them, less the
+    two holding its ends (NAV.38, NAV.48): the one list `unknown_cells` and `UnknownEdges` both test."""
+    start, end = tuple(ly_to_pc(c) for c in a_ly), tuple(ly_to_pc(c) for c in b_ly)
+    ends = {sector_address_at(start, edge), sector_address_at(end, edge)}
+    return [cell for cell in sectors_along_segment(start, end, edge) if cell not in ends]
+
+
 def unknown_cells(conn, points_ly):
     """
     NAV.12, NAV.48: for each hop of a route (`points_ly`, the stops' galaxy-frame
@@ -109,11 +117,7 @@ def unknown_cells(conn, points_ly):
             listed like any other; the caller checks them against `GalaxyBounds`.
     """
     edge = _sector_edge_pc(conn)
-    per_hop = []
-    for a, b in zip(points_ly, points_ly[1:]):
-        start, end = tuple(ly_to_pc(c) for c in a), tuple(ly_to_pc(c) for c in b)
-        ends = {sector_address_at(start, edge), sector_address_at(end, edge)}
-        per_hop.append([cell for cell in sectors_along_segment(start, end, edge) if cell not in ends])
+    per_hop = [_cells_crossed(a, b, edge) for a, b in zip(points_ly, points_ly[1:])]
     known = generated_cells(conn, {cell for cells in per_hop for cell in cells})
     return [[cell for cell in cells if cell not in known] for cells in per_hop]
 
@@ -145,9 +149,7 @@ class UnknownEdges:
         if key not in self._answers:
             if len(self._answers) >= self._budget:
                 raise BypassBudgetExceeded
-            start, end = tuple(ly_to_pc(c) for c in a_ly), tuple(ly_to_pc(c) for c in b_ly)
-            ends = {sector_address_at(start, self._edge), sector_address_at(end, self._edge)}
-            cells = [cell for cell in sectors_along_segment(start, end, self._edge) if cell not in ends]
+            cells = _cells_crossed(a_ly, b_ly, self._edge)
             fresh = {cell for cell in cells if cell not in self._known}
             if fresh:
                 found = generated_cells(self._conn, fresh)

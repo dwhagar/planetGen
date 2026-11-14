@@ -237,25 +237,6 @@ ICE_VALID = {
 LIQUID_WATER_POINT = (0.1, 300.0, 996.56)
 """tuple: Liquid water at 1 bar and 300 K, kg/m3 (Bollengier spline, part C): the check value of the table."""
 
-# Class composition texts (tuning.PLANET_CLASSES) and what each names, as ids or legacy names.
-CLASS_COMPOSITIONS = {
-    "igneous silica and basalt": ["igneous silica", "basalt"],
-    "iron, potassium, silicon, and sulfur": ["iron", "potassium", "silicon", "sulfur"],
-    "anthracite, basalt, and hydrocarbons": ["anthracite", "basalt", "hydrocarbons"],
-    "frozen hydrocarbons and ice": ["frozen hydrocarbons", "ice"],
-    "rock, ice, and frozen hydrocarbons": ["rock", "ice", "frozen hydrocarbons"],
-    "silicon, iron, and magnesium": ["silicon", "iron", "magnesium"],
-    "rock, ice, methane, and ammonia": ["rock", "ice", "methane", "ammonia"],
-    "hydrogen and helium": ["hydrogen", "helium"],
-    "silicon, iron, magnesium, and ice": ["silicon", "iron", "magnesium", "ice"],
-    "silicon, iron, magnesium, ice, and hydrocarbons": ["silicon", "iron", "magnesium", "ice", "hydrocarbons"],
-    "silicon, iron, magnesium, water ice, and ammonia": ["silicon", "iron", "magnesium", "water ice", "ammonia"],
-    "silicon, iron, magnesium, and sulfur": ["silicon", "iron", "magnesium", "sulfur"],
-    "silicate rock over a large iron core": ["silicate rock", "iron"],
-    "hydrogen, helium, and hydrocarbons": ["hydrogen", "helium", "hydrocarbons"],
-    "iron, iridium, tungsten, and nickel": ["iron", "iridium", "tungsten", "nickel"],
-}
-
 # GEN.1355: the silicates and oxides the ground recipes and the norm name, read from the Webmineral data page of each mineral on 2026-11-07 (the research files
 # real-material-data/minerals_missing_from_table.csv and part 3 section 1 carry the same values; the pages were opened again for this table).
 # id: (formula the table reads or None, family, aliases, the formula as the page prints it, crystal system, Mohs (middle, low, high) or None, density g/cm3,
@@ -394,15 +375,13 @@ VOCABULARY_ONLY = {
     "goethite": "iron hydroxide: only the band albedo of the row exists, no recipe names it",
     "komatiite": "rock type: no recipe or taxon names it",
     "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
-    "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
-    "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    "hydrocarbons": "a row the table lists with no draw, recipe or taxon that names it yet",
+    "frozen_hydrocarbons": "a row the table lists with no draw, recipe or taxon that names it yet",
     # GEN.1359: the species rows the inventories name; a later item wires each to its draw
     "ice_ic": _ICE_PHASE, "ice_iv": _ICE_PHASE, "ice_ix": _ICE_PHASE, "ice_xi": _ICE_PHASE, "ice_xv": _ICE_PHASE,
     "o2_ice": _SPECIES_ROW, "xe_ice": _SPECIES_ROW, "ar_ice": _SPECIES_ROW, "kr_ice": _SPECIES_ROW, "c2h2_ice": _SPECIES_ROW,
     "nh4cl": _SPECIES_ROW, "nh4hco3": _SPECIES_ROW, "nh4sh": _SPECIES_ROW, "ammonium_formate": _SPECIES_ROW, "ammonium_sulfate": _SPECIES_ROW,
     "ammonia_monohydrate": _SPECIES_ROW, "sulfuric_acid_monohydrate": _SPECIES_ROW, "sulfuric_acid_tetrahydrate": _SPECIES_ROW,
-    "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
-    "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
     **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
         "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "alabandite", "daubreelite", "osbornite",
         "sinoite", "khamrabaevite")},

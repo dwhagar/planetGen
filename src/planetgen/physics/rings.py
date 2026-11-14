@@ -42,7 +42,7 @@ Use:
 
 import math
 
-from planetgen.physics import condensate_shares, constants as physical_constants, moon_composition, oddities, unit_registry as units
+from planetgen.physics import constants as physical_constants, moon_composition, oddities, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -165,7 +165,8 @@ def build_ring(origin, mass_kg, age_yr, radius_km, planet_mass_kg, cold, moon_di
     low, high = RANGES["ice_fraction"][kind]
     share = draw.uniform(low, high)
     ice_fraction = share if cold else 0.0
-    filling = log_uniform(*RANGES["filling"][kind]) if RANGES["filling"][kind][0] < RANGES["filling"][kind][1] else 1.0
+    filling_range = RANGES["filling"][kind]
+    filling = log_uniform(*filling_range) if filling_range[0] < filling_range[1] else 1.0
     planet_density = planet_mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3)
     roche = roche_limit_km(radius_km, planet_density, mixture_density_kg_m3(ice_fraction))
     outer = roche * draw.uniform(*RANGES["outer_over_roche"])

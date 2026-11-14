@@ -100,3 +100,14 @@ def test_every_forced_subdwarf_is_a_subdwarf_by_its_stored_numbers():
             star = make_star("K5VI")
         assert stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": star.luminosity / constants.SOLAR_LUMINOSITY,
                                                   "temperature_k": star.temperature}) == "VI", (seed, star.temperature, star.luminosity)
+@pytest.mark.parametrize("letter,subclass", [("K", 5), ("K", 0), ("G", 5), ("M", 9), ("M", 5), ("F", 2)])
+def test_a_forced_subdwarf_always_classifies_as_a_subdwarf_at_the_temperature_it_is_shown(letter, subclass):
+    """GEN.1669: the class is judged at the temperature the type stands for with the star's own luminosity, so no draw of a forced
+    `VI` star is a dwarf there. Seeded here (the draw is a function of the seed, so the check cannot flake)."""
+    import random
+    for seed in range(60):
+        found = forced_star.sample(letter, subclass, "VI", rng=random.Random(seed))
+        state = forced_star._shown(found.state, found.exact, letter, subclass)
+        assert (stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": state["luminosity_sol"],
+                                                   "temperature_k": state["temperature_k"]}) == "VI"
+                or forced_star._hot_subdwarf(found.state)), (letter, subclass, seed)

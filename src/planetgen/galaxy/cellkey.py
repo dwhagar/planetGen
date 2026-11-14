@@ -80,12 +80,7 @@ def cell_keys(points):
     valid = np.all(np.abs(points) < REACH_PC, axis=1)
     cells = np.floor((np.where(valid[:, None], points, 0.0) + REACH_PC) / CELL_PC).astype(np.uint64)
     cells = np.minimum(cells, np.uint64(LAST_CELL))
-    keys = np.zeros(len(points), dtype=np.uint64)
-    for axis, lift in enumerate((2, 1, 0)):
-        value = cells[:, axis]
-        for shift, mask in SPREAD_STEPS:
-            value = (value | (value << np.uint64(shift))) & np.uint64(mask)
-        keys |= value << np.uint64(lift)
+    keys = _weave(cells[:, 0], cells[:, 1], cells[:, 2])
     return np.where(valid, keys, np.uint64(0)), valid
 
 
@@ -143,7 +138,8 @@ _INFLATE_CELLS = 1e-6
 float rounding put on the wrong side of a cube's face is still inside a run."""
 
 
-def _spread_array(values):
+def spread_array(values):
+    """`spread` on an array of cube numbers (below `2 ** BITS`): bit i of each goes to bit 3i."""
     values = values.astype(np.uint64)
     for shift, mask in SPREAD_STEPS:
         values = (values | (values << np.uint64(shift))) & np.uint64(mask)
@@ -151,7 +147,7 @@ def _spread_array(values):
 
 
 def _weave(ix, iy, iz):
-    return (_spread_array(ix) << np.uint64(2)) | (_spread_array(iy) << np.uint64(1)) | _spread_array(iz)
+    return (spread_array(ix) << np.uint64(2)) | (spread_array(iy) << np.uint64(1)) | spread_array(iz)
 
 
 def _merged(lows, highs):

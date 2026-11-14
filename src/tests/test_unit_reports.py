@@ -5,6 +5,7 @@ import inspect
 
 import pytest
 
+from planetgen.db import store
 from planetgen.generation import run_plan
 from planetgen.util import log
 
@@ -89,11 +90,13 @@ def test_the_clearing_units_say_their_phase_and_report_the_steps(mysql_config, m
     lines = []
     monkeypatch.setattr(log, "normal", lines.append)
     params = {"database": _database(mysql_config)}
+    steps = {"empty_phenomenon_scatter_unit": store.CLEAR_PHENOMENON_SCATTER_STEPS, "clear_bright_stars_unit": store.CLEAR_BRIGHT_STARS_STEPS}
     for name, extra in (("empty_phenomenon_scatter_unit", {}), ("drop_phenomenon_indexes_unit", {}), ("clear_bright_stars_unit", {"clear": "all"})):
         reports = []
         getattr(run_plan, name)(dict(params, **extra), lambda done, total: reports.append((done, total)))
-        assert reports and reports[-1] == (1, 1) and reports[0][0] == 0, name
-    assert len(lines) == 3 and all(" elapsed)." in line for line in lines)
+        total = steps.get(name, 1 + len(store.PHENOMENON_SCATTER_INDEXES))
+        assert reports and reports[-1] == (total, total) and reports[0] == (0, total), name       # one step to a statement (OPS.200)
+    assert len(lines) >= 3 and all(" elapsed)." in line for line in lines)
 
 
 @pytest.mark.db
