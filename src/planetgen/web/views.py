@@ -6,7 +6,6 @@ home page (was `index.py`/`browse.py`), `/sectors` and `/systems` (the
 two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
-import re
 from urllib.parse import urlencode
 
 from flask import abort, flash, get_flashed_messages, redirect, request, url_for
@@ -147,12 +146,20 @@ _FLASH_UNCHARTED = "uncharted"
 _POPULATION_LABELS = {"young": "Young disk", "intermediate": "Disk", "old": "Old disk", "bulge": "Bulge"}
 
 
+def _cell_text(row):
+    """A scattered star's sector cell: "S12-B3-W7 (shell 12, band 3, wedge 7)"."""
+    return f"{row['designation']} (shell {row['shell_index']}, band {row['band_index']}, wedge {row['wedge_index']})"
+
+
+def _position_text(row, prefix=""):
+    """A scattered star's x, y, z in parsecs (`prefix` `local_` for its place in the sector)."""
+    return ", ".join(f"{row[f'{prefix}{axis}']:.2f}" for axis in ("x", "y", "z")) + " pc"
+
+
 def _uncharted_row(star, can_generate):
     """One Uncharted stars table row (UX.87): the scattered star's own data, where it is and a
     Generate button for an admin."""
     label = star.get("local_name") or f"Uncharted {star['star_type']} star {star['id']}"      # UX.259: the local name, its sector is a column of the table
-    coords = ", ".join(f"{star[axis]:.2f}" for axis in ("x", "y", "z"))
-    local = ", ".join(f"{star[f'local_{axis}']:.2f}" for axis in ("x", "y", "z"))
     generate = {"text": ""}
     if can_generate:
         generate = {"text": "", "form": {
@@ -165,11 +172,9 @@ def _uncharted_row(star, can_generate):
         {"text": f"{star['star_type']} ({_POPULATION_LABELS.get(star['population'], star['population'])})"},
         {"text": f"{format_number(round(star['temperature_k']))} K"},
         {"text": f"{star['age_gy']:.2f} Gyr"},
-        {"text": f"{star['designation']} (shell {star['shell_index']}, band {star['band_index']}, "
-                 f"wedge {star['wedge_index']})",
-         "href": page_url("galaxy", sector=star["designation"], open="1")},
-        {"text": f"{coords} pc"},
-        {"text": f"{local} pc"},
+        {"text": _cell_text(star), "href": page_url("galaxy", sector=star["designation"], open="1")},
+        {"text": _position_text(star)},
+        {"text": _position_text(star, "local_")},
         {"text": format_members(star.get("member_count"), star.get("system_mass_solar"))},
         generate,
     ]
@@ -323,9 +328,8 @@ def uncharted_star(bright_star_id):
         ("Age", f"{detail['age_gy']:.2f} Gyr"),
         *([("Rotation period", measured_html("h", detail["rotation_period_hours"]))]
           if detail.get("rotation_period_hours") is not None else []),
-        ("Sector cell", f"{detail['designation']} (shell {detail['shell_index']}, band {detail['band_index']}, "
-                        f"wedge {detail['wedge_index']})"),
-        ("Position x, y, z", ", ".join(f"{detail[axis]:.2f}" for axis in ("x", "y", "z")) + " pc"),
+        ("Sector cell", _cell_text(detail)),
+        ("Position x, y, z", _position_text(detail)),
     ]
     nebula = detail.get("hosted_nebula")
     if nebula:
@@ -365,7 +369,7 @@ def generate_uncharted_system(bright_star_id):
     except apiclient.ApiError as exc:
         if exc.status_code is None or exc.status_code >= 500:
             raise
-        flash(re.sub(r"^planetGen API error \(\d+\): ", "", str(exc)), _FLASH_UNCHARTED)
+        flash(apiclient.message_of(exc), _FLASH_UNCHARTED)
         return back
     if result.get("id"):
         return redirect(page_url("system", system_id=result["id"]), code=303)

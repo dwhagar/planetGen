@@ -176,6 +176,19 @@ def _info(unit):
     return column_units.unit_info(unit)
 
 
+def short_label(key):
+    """The label of `key` without its parenthesis: "Surface gravity (g)" is "Surface gravity"."""
+    return KEYS[key].label.split(" (")[0]
+
+
+def value_text(key, found):
+    """One value a search answered with (`found`: `{value, symbol}`) as a page writes it: "Surface gravity 1.02 g", or `None` for no value."""
+    if not found or found.get("value") is None:
+        return None
+    tail = f" {found['symbol']}" if found.get("symbol") else ""
+    return f"{short_label(key)} {found['value']:.4g}{tail}"
+
+
 def symbol(unit):
     """What is written after a number in `unit`."""
     if unit == "count":

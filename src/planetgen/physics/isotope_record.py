@@ -213,7 +213,7 @@ ROCK_OXIDE_ELEMENTS = {"rock_na2o_fraction": "Na", "rock_k2o_fraction": "K", "ro
 CORE_ELEMENTS = {"core_ni_fraction": "Ni", "core_s_fraction": "S", "core_si_fraction": "Si", "core_o_fraction": "O", "core_c_fraction": "C", "core_h_fraction": "H"}
 """dict: The light-element column of a core and the element it holds."""
 
-_EARTH_G = 9.80665
+_EARTH_G = constants.EARTH_GRAVITY
 AVOGADRO = constants.AVOGADRO
 _GY_S = radiogenic.GY_S
 
@@ -799,6 +799,7 @@ def mantle_sheet_rows(rows):
         ratio = SOLAR_XE_136_OVER_130 + excess
         add("136Xe/130Xe", "Xenon-136 over xenon-130 of the mantle's gas", f"136Xe/130Xe {ratio:.4g}", ratio)
     return shown
+
 
 def _one_row_per_isotope(rows):
     """

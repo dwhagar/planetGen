@@ -20,7 +20,9 @@ with `read_stored_trees` (every column of the member and node rows, GEN.315) and
 import collections
 import dataclasses
 
+from planetgen.db import batched
 from planetgen.physics import constants
+from planetgen.util import ticker
 from planetgen.physics.system_tree import OrbitNode, TreeMember, member_offsets_au
 
 SOURCES = {"bright_stars": 1, "phenomenon_scatter": 2}
@@ -226,8 +228,28 @@ def delete_all_member_trees(conn, table):
         if conn.execute(f"SELECT 1 FROM {child} WHERE source <> ? LIMIT 1", (source,)).fetchone() is None:
             conn.execute(f"TRUNCATE TABLE {child}")
             continue
-        while conn.execute(f"DELETE FROM {child} WHERE source = ? LIMIT {DELETE_BATCH}", (source,)).rowcount:
-            conn.commit()
+        batched.repeat(conn, f"DELETE FROM {child} WHERE source = ?", (source,), label=f"Removing the stored {child.split('_')[1]} of {table}", batch=DELETE_BATCH)
+
+
+def delete_member_trees_scanning(conn, table, where_sql, args=(), chunk=10_000):
+    """
+    `delete_member_trees_where` for a condition that picks millions of rows (the stars a scatter pass drew): the rows of `table` it selects are found a `chunk`
+    of ids at a time and their members and nodes removed (`delete_member_trees`), so the unit that does it moves between two chunks and says how many rows it has
+    been through (OPS.185), where the one `DELETE` over a join was minutes of a single statement. `where_sql` is written with the alias `t`.
+    """
+    pace = ticker.Ticker(f"Removing the member trees of the {table} rows picked")
+    last, done = 0, 0
+    while True:
+        ids = [row["id"] for row in conn.execute(
+            f"SELECT t.id FROM {table} t WHERE t.id > ? AND ({where_sql}) ORDER BY t.id LIMIT {int(chunk)}", (last, *args)).fetchall()]
+        if not ids:
+            return done
+        last = ids[-1]
+        delete_member_trees(conn, table, ids)
+        conn.commit()
+        done += len(ids)
+        batched.moving()
+        pace.tick(done)
 
 
 def delete_member_trees_where(conn, table, where_sql, args=()):

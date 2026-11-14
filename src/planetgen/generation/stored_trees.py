@@ -141,16 +141,7 @@ class StoredPlan:
         if pairs:
             return max(pairs, key=lambda node_no: mass[node_no])
         first, second = sorted(lit, key=lambda member: -member.mass_solar)[:2]
-        parent = {node.node_no: node.parent_node_no for node in self.nodes}
-        above = set()
-        node_no = first.parent_node_no
-        while node_no is not None:
-            above.add(node_no)
-            node_no = parent[node_no]
-        node_no = second.parent_node_no
-        while node_no not in above:
-            node_no = parent[node_no]
-        return node_no
+        return lowest_node_above(self.nodes, first.parent_node_no, second.parent_node_no)
 
     def pair_members(self):
         """`(low, high)`, the member numbers of the pair, by slot of the pair node (`None` for no pair): the two built children
@@ -173,6 +164,21 @@ class StoredPlan:
         while at != node_no:
             at, slot = parent[at]
         return slot
+
+
+def lowest_node_above(nodes, first_node_no, second_node_no):
+    """The lowest node of `nodes` (anything with `node_no` and `parent_node_no`) that is `first_node_no` or `second_node_no` or above
+    both: the node a pair hangs from, unless a dark member or a sub-pair is between the two."""
+    parent = {node.node_no: node.parent_node_no for node in nodes}
+    above = set()
+    node_no = first_node_no
+    while node_no is not None:
+        above.add(node_no)
+        node_no = parent[node_no]
+    node_no = second_node_no
+    while node_no not in above:
+        node_no = parent[node_no]
+    return node_no
 
 
 SINGLE = StoredPlan()

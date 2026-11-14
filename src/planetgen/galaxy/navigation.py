@@ -258,12 +258,7 @@ def fold_speed_c(fold_factor):
 
 def _travel_times(distance_ly, factors, speed_c, make_leg):
     """One leg per factor: `make_leg(factor, speed, years, formatted)`."""
-    legs = []
-    for factor in factors:
-        speed = speed_c(factor)
-        years = distance_ly / speed
-        legs.append(make_leg(factor, speed, years, format_period_years(years)))
-    return legs
+    return route_travel_times([distance_ly], 0.0, factors, speed_c, make_leg)
 
 
 MINUTES_PER_YEAR = 365.25 * 24 * 60

@@ -24,6 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
+from planetgen.physics import planet_moons
 from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
@@ -33,7 +34,7 @@ from planetgen.physics import orbits
 from planetgen.physics.orbits import calculate_hill_sphere, calculate_reflex_offset, minimum_update_interval_years
 from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
-from planetgen.util.random import sample_bounded_bell, sample_power_law
+from planetgen.util.random import sample_bounded_bell
 from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -87,12 +88,6 @@ def giant_radius_km(mass_kg):
     else:
         m0, r0, slope = constants.GIANT_JOVIAN_MASS_RADIUS
     return r0 * (mass_earth / m0) ** slope * constants.EARTH_RADIUS_KM
-
-
-def _sample_giant_mass_kg(low_kg, high_kg):
-    """A giant's mass in [low_kg, high_kg], from dN/dlogM ~
-    M^-GIANT_MASS_FUNCTION_SLOPE."""
-    return sample_power_law(low_kg, high_kg, tuning.GIANT_MASS_FUNCTION_SLOPE)
 
 
 def sample_giant_radius_km(mass_kg):
@@ -866,7 +861,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
         birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
-    if planet.is_moon and planet.moon_origin != "captured":
+    if planet.is_moon and planet.moon_origin not in moon_composition.CAPTURE_ORBIT_ORIGINS:
         planet.eccentricity = birth
         return
     planet.eccentricity = orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), primary_mass_kg, planet.distance)
@@ -1073,7 +1068,7 @@ def companion_modes(planet, host_mass_kg):
     return tuple(out)
 
 
-def settle_obliquity(planets, host_mass_kg):
+def settle_obliquity(planets, host_mass_kg, only=None):
     """
     GEN.1454: a free-spinning planet whose tilt lies in a chaotic zone of the spin-orbit secular resonances (`obliquity_variation`: the torques of the star and the planet's moons on its
     bulge against the nodal modes of the other planets' pull on its orbit) is not at the tilt it was made with: over the age of the star its axis has wandered over the zone, so it is
@@ -1081,6 +1076,7 @@ def settle_obliquity(planets, host_mass_kg):
     (`StarSystem._settle_to_final_age`) for one star's planets and belts in orbital order. A planet whose tilt is not chaotic keeps it (the regular wander of an Earth or a Mars
     is a few degrees to a few tens, and the stored tilt is one place in it); a locked or resonant body takes the Cassini state instead; a lone planet has the modes of the companion stars of its star (GEN.1535, `companion_modes`), none for a lone star. Every free-spinning planet it works keeps the range of its tilt (`obliquity_min_deg`, `obliquity_max_deg`, GEN.1535), a range of its own tilt when nothing drives it. The sky of the other
     suns follows the new tilt, the day and night shares it, and the moons are set in the new equator, as `carry_spin_with_orbit` does. Returns how many planets changed tilt.
+    `only` (GEN.1668): the planets to judge, where the others are already settled and only stand in the modes (the belt members promoted to planets, which are made after the first pass).
     """
     from planetgen.physics import obliquity_variation, tidal_spin
 
@@ -1094,6 +1090,8 @@ def settle_obliquity(planets, host_mass_kg):
     changed = 0
     all_modes = None
     for index, body in enumerate(bodies):
+        if only is not None and not any(body is chosen for chosen in only):
+            continue
         tilt = getattr(body, "axial_tilt_deg", None)
         rotation = getattr(body, "rotation_period_hours", None)
         axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
@@ -1127,17 +1125,19 @@ def settle_obliquity(planets, host_mass_kg):
     return changed
 
 
-def settle_moon_tilts(planets, host_mass_kg):
+def settle_moon_tilts(planets, host_mass_kg, only=None):
     """
     GEN.1556: a regular moon of one star's planets that is locked to its planet takes the tilt of its first Cassini state from its nodal regression (the planet's bulge and the star,
     `cassini_state.locked_moon_tilt_deg`) and its own figure, in place of the share `tidal_spin.cassini_tilt_deg` drew early. The moon's axis is turned in its planet's equator frame (where its
     inclination is measured) and back; its day and night shares follow. One draw per moon from a stream of its own. Called after `settle_obliquity` has set the planets' tilts (which turned the
-    moons with them). Returns how many moons changed tilt.
+    moons with them). Returns how many moons changed tilt. `only` (GEN.1668): the planets whose moons to judge (the belt members promoted to planets).
     """
     from planetgen.physics import cassini_state
 
     changed = 0
     for planet in planets:
+        if only is not None and not any(planet is chosen for chosen in only):
+            continue
         if getattr(planet, "is_moon", False) or not getattr(planet, "period", None) or not planet.mass or not planet.radius or not getattr(planet, "rotation_period_hours", None):
             continue
         for moon in getattr(planet, "moons", None) or ():
@@ -1339,7 +1339,12 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
         planet.rotation_period_hours = period_hours / found.ratio
         tilt = tidal_spin.cassini_tilt_deg(planet.orbital_inclination_deg, draw.random())    # GEN.1165: the first Cassini state, not exactly 0
     else:
-        planet.rotation_period_hours = 2.0 * math.pi / abs(found.rate) / 3600.0
+        rate = abs(found.rate)
+        if found.kind == "asynchronous" and not planet.is_moon:
+            # the balance of the thermal and the gravitational tide has no limit of its own: a puffy planet's (3.5 Earth masses at 9 Earth radii) came out at 6.2 hours,
+            # faster than the 24 hours at which its surface would leave the ground; no body turns past `spin.BREAKUP_FRACTION` of its breakup rate
+            rate = min(rate, spin.BREAKUP_FRACTION * spin.critical_spin_rad_s(planet.mass, planet.radius))
+        planet.rotation_period_hours = 2.0 * math.pi / rate / 3600.0
         if found.kind == "asynchronous":
             tilt = 0.0 if found.rate > 0.0 else 180.0      # the tides have brought it to its balance: upright, or upside down (Venus)
         else:
@@ -1773,6 +1778,24 @@ def generate_moons(planet, moon_count=None):
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
         if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more
             break
+
+    # GEN.1157: a giant may also hold one moon of planet size taken by capture (`planet_moons`), drawn after its disk moons and made as a planet is; only its orbit is a captured one
+    if parent_is_giant and (moon_count is None or len(planet.moons) < moon_count):
+        captured = planet_moons.draw_exchange_moon(planet.mass, draw)
+        if captured is not None and captured.mass_kg <= limit_mass_kg:
+            span_low, span_high = max(total_orbit_distance, low_orbit), high_orbit
+            if span_low >= span_high:    # no room left past the last moon
+                draw.redrawn("moon.exchange_no_room")
+            else:
+                moon_distance = _km_to_au(math.exp(draw.uniform(math.log(span_low), math.log(span_high))))
+                new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
+                                  mass=captured.mass_kg, zone_override=planet.zone,
+                                  distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
+                                  moon_origin=captured.origin, host_eccentricity=planet.eccentricity)
+                if new_moon.radius > limit_radius_km:
+                    draw.redrawn("moon.exchange_too_large")
+                else:
+                    planet.moons.append(new_moon)
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the
