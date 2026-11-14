@@ -6327,11 +6327,7 @@
           "what": "sulfur_balance.WATER_LAYER_FULL_M"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the redox shift of the rocky bodies is chosen so that about half of them are oxidized (GEN.1562 N4); no source measures the split of rocky mantles by oxygen fugacity across a galaxy of worlds, only the Earth's upper mantle at IW+3.5 to IW+4 and the recipe draw, so a measured population would have to replace it"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "Evidence",
@@ -13439,7 +13435,11 @@
           "what": "tuning.REQUEST_ODDS 10, REQUEST_PLANET_DRAW_BUDGET 60 and REQUEST_MAX_TIMELINE_TRIES 200 (what a request for a habitable world or intelligent life multiplies the odds of the outcome by, GEN.1130; the draw limit of a timeline)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the habitable-request ranges are a design choice about what a breathable world with land and sea asks for (GEN.1702, Boss's card); they are not a measured quantity"
+          ],
           "fields": [
             [
               "What it is",
@@ -13515,7 +13515,11 @@
           "what": "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the habitable-request ranges are a design choice about what a breathable world with land and sea asks for (GEN.1702, Boss's card); they are not a measured quantity"
+          ],
           "fields": [
             [
               "What it is",
@@ -35705,38 +35709,38 @@
           "fields": [
             [
               "What it is",
-              "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
+              "The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history"
             ],
             [
               "The range it moves in",
-              "temperature edges are the liquid-water range at the surface (verified physics); cover 10 to 30 percent low edge and 90 to 99 percent high edge"
+              "none"
             ],
             [
               "Where it holds",
-              "every request for a habitable world"
+              "all bodies"
             ],
             [
               "What would show it wrong",
-              "a request met by a body outside 273 to 323 K, without a surface ocean, or with under 20 or over 95 percent of its surface under water"
+              "a two-way coupled model whose mantle cools differently"
             ],
             [
               "What replaces it",
-              "the PHI-6 domains of habitable requests"
+              "a coupled core and mantle box"
             ],
             [
               "Evidence",
-              "design (the cover range asks for a world with both land and sea: Earth 71 percent; the temperature range is the liquid range of water at the surface)"
+              "design (the stored heat flow and Urey ratio stay as they were)"
             ]
           ],
           "id": "CC11",
           "key": "6.136:CC11",
           "kind": "P",
           "slug": "6-136-cc11",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
           "unread": null,
-          "what": "tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES (\"surface ocean\",) and REQUEST_WATER_COVER (0.20, 0.95) (the conditions a request for a habitable world asks of a finished body, GEN.916; the cover is the share of the surface under liquid sea, 20 to 95 percent so there is land and sea, GEN.1702, Boss's card 11:18 PM EST 2026-11-13)"
+          "what": "The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history"
         }
       ],
       "slug": "6-136-stand-ins-of-the-core-s-thermal-history",
