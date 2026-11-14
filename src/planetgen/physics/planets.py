@@ -825,10 +825,12 @@ def refresh_at_final_age(body):
 
 def _mantle_redox(planet, air, distance, water_lost):
     """The mantle redox (log10 above iron-wuestite) of a rocky body: the air mixture's when it has one, else (no air, or an envelope's
-    mixture, which has none) the recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
+    mixture, which has none) the recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`). One 64-bit seed is taken from the
+    unit's stream either way, so a body that gains or loses its air moves no draw of the bodies after it."""
+    seed = draw.getrandbits(64)
     if air is not None and air.mixture.redox_diw is not None:
         return air.mixture.redox_diw
-    return surface_air.mantle_redox_diw(planet, distance, water_lost)
+    return surface_air.mantle_redox_diw(planet, distance, water_lost, seed)
 
 
 def internal_heat_flux_w_m2(planet):
