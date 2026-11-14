@@ -888,8 +888,7 @@
     },
     {
       "epoch": 149,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.4111",
       "reason": "Train 27: stacked fixes to values, the Class M tiers' base, belt and clearance members, ozone flag, exchange bound, coverage ties",
       "affects": ["fill"]
     }

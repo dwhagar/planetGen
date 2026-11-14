@@ -1757,19 +1757,22 @@ def finite_row(row):
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
-def _node_pair_hosts(system, stars, planets):
+def _node_pair_hosts(system, stars, planets, belts=()):
     """
-    GEN.332, slice A: the inner pair nodes of the tree that hold planets (`planets.host_node_id`), each as `(host, its planets)` where `host` is a
+    GEN.332, slice A: the inner pair nodes of the tree that hold planets or belts (`planets.host_node_id`, `asteroid_belts.host_node_id`, slice C), each as `(host, its planets, its belts)` where `host` is a
     copy of the heaviest star of the node's subtree that stands for the pair as one body, as the generator's proxy does: the pair's name
     (`names.bodies.node_pair_label`), the stars' masses and lights added, the larger radius, the temperature weighted by light, the place of the
     stars' center of mass, `id` and `scene_id` `node-<n>` and `map_role` "Pair". A node whose stars are not among `stars` (a system stored before the tree) is left out and its
-    planets stay where they were.
+    planets and belts stay where they were.
     """
-    by_node = {}
+    by_node, belts_of = {}, {}
     for planet in planets:
         if planet.get("host_node_id") is not None:
             by_node.setdefault(planet["host_node_id"], []).append(planet)
-    if not by_node:
+    for belt in belts:
+        if belt.get("host_node_id") is not None:
+            belts_of.setdefault(belt["host_node_id"], []).append(belt)
+    if not by_node and not belts_of:
         return []
     children = {}
     for node in system.get("orbits") or ():
@@ -1782,7 +1785,8 @@ def _node_pair_hosts(system, stars, planets):
         return found
 
     hosts = []
-    for node_no, bodies in sorted(by_node.items()):
+    for node_no in sorted(set(by_node) | set(belts_of)):
+        bodies = by_node.get(node_no, [])
         leaves = below(node_no)
         light = sum(star["luminosity_w"] or 0.0 for star in leaves)
         mass = sum(star["mass_kg"] or 0.0 for star in leaves)
@@ -1802,7 +1806,7 @@ def _node_pair_hosts(system, stars, planets):
             planet["_star_temperature_k"] = host["temperature_k"]
             for moon in planet.get("moons") or []:
                 moon["_star_temperature_k"] = host["temperature_k"]
-        hosts.append((host, bodies, []))
+        hosts.append((host, bodies, belts_of.get(node_no, [])))
     return hosts
 
 
@@ -1924,12 +1928,13 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
                 [b for b in belts if b.get("star_id") == star["id"]])
                for star in stars if star.get("role") == "member"]
     member_ids = {star["id"] for star, _, _ in members}
-    node_hosts = _node_pair_hosts(system, stars, planets)    # GEN.332, slice A: the planets round an inner pair get a marker and a scene of their own, like a member's
+    node_hosts = _node_pair_hosts(system, stars, planets, belts)    # GEN.332, slices A and C: the planets and belts round an inner pair get a marker and a scene of their own, like a member's
     node_planet_ids = {id(p) for _, bodies, _ in node_hosts for p in bodies}
+    node_belt_ids = {id(b) for _, _, node_belts in node_hosts for b in node_belts}
     members.extend(node_hosts)
     stars = [star for star in stars if star["id"] not in member_ids]
     pair_planets = [p for p in planets if p.get("star_id") not in member_ids and id(p) not in node_planet_ids]
-    pair_belts = [b for b in belts if b.get("star_id") not in member_ids]
+    pair_belts = [b for b in belts if b.get("star_id") not in member_ids and id(b) not in node_belt_ids]
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
         scenes = _render_wide_binary_scenes(system, stars, pair_planets, pair_belts, facilities, members)
