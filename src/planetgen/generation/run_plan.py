@@ -2219,10 +2219,17 @@ def _nebula_field_task(payload):
             reach[1] = high if reach[1] is None else max(reach[1], high)
             yield row
 
+    pace = Ticker(f"Nebula field, slab {payload['i']:,}, columns of cells", say=log.debug)      # debug: a slab is one of many, the stage's bar carries the count
+
+    def column_done(done, total):          # OPS.185: a slab is thousands of cells and few of them hold a cloud, so a column of cells is what the unit counts
+        unitbeat.moving()
+        pace.total = total
+        pace.tick(done)
+
     conn = store.get_connection(payload["mysql_config"])
     try:
         written = store.insert_nebula_field(conn, watched(nebulaField.table_rows(
-            payload["galaxy_seed"], payload["shape"], payload["i"], payload["radius_pc"], payload["half_height_pc"])))
+            payload["galaxy_seed"], payload["shape"], payload["i"], payload["radius_pc"], payload["half_height_pc"], on_column=column_done)))
         conn.commit()
     finally:
         conn.close()

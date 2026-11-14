@@ -550,6 +550,6 @@ def column_g_cm2(pressure_pa, gravity_g):
     return pressure_pa / gravity * 0.1 if gravity > 0 and pressure_pa else 0.0
 
 
-def total_dose_msv_yr(gcr, helio_mult, sep, ground, belt=0.0):
-    """`surface_dose_msv_yr` from its parts."""
-    return gcr * helio_mult + sep + ground + (belt or 0.0)
+def total_dose_msv_yr(gcr, helio_mult, sep, ground, belt):
+    """`surface_dose_msv_yr` from its parts. Every stored body has its belt part (0.0 outside a belt), so it is required: a row without one is not read as zero."""
+    return gcr * helio_mult + sep + ground + belt
