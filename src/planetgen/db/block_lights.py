@@ -40,7 +40,7 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
 import math
 import struct
 
-from planetgen.db import query, store
+from planetgen.db import batched, query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
 from planetgen.physics import constants
 from planetgen.util.ticker import Ticker
@@ -81,8 +81,8 @@ def _order(block):
 
 
 def clear(conn):
-    """Empties the table."""
-    conn.execute("DELETE FROM galaxy_block_lights")
+    """Empties the table, a batch of rows at a time (`db.batched`, OPS.185): a real galaxy holds millions of blocks."""
+    batched.repeat(conn, "DELETE FROM galaxy_block_lights", label="Emptying the block light totals")
 
 
 _STAR_SUMS = (
@@ -345,8 +345,9 @@ def clear_parts(conn):
 def forget_parts(conn, kind):
     """The scatter of `kind` (`stars` or `points`) was cleared: its sums leave the parts, and a cell left with no object leaves with them."""
     names = SUMS[:6] if kind == "stars" else SUMS[6:]
-    conn.execute("UPDATE galaxy_block_light_parts SET " + ", ".join(f"{name} = 0" for name in names))
-    conn.execute("DELETE FROM galaxy_block_light_parts WHERE star_count = 0 AND point_count = 0")
+    batched.repeat(conn, "UPDATE galaxy_block_light_parts SET " + ", ".join(f"{name} = 0" for name in names) + " WHERE " + " OR ".join(f"{name} <> 0" for name in names),
+                   label=f"Taking the {kind} out of the block light parts")       # OPS.185: a batch of cells at a time, each said and counted
+    batched.repeat(conn, "DELETE FROM galaxy_block_light_parts WHERE star_count = 0 AND point_count = 0", label="Dropping the block light parts left empty")
 
 
 def sync_cells(conn, addresses):
