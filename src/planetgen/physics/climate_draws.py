@@ -37,7 +37,7 @@ BASIS_NAMES = {BASIS_GENERATED: "generated", BASIS_INVERSE: "exact inverse", BAS
 from the range of the body's regime because the row could not be inverted (2)."""
 
 DEFAULT_ALBEDO_RANGE = (0.12, 0.35)
-"""tuple: The Bond albedo range of a class that declares none (the generator's own default)."""
+"""tuple: The Bond albedo range a stored dry row is backfilled from when its albedo cannot be worked out (`backfill_albedo_range`); the generator no longer draws a dry body from it (GEN.684 part A: the ground gives the albedo)."""
 
 GIANT_BOND_ALBEDO_RANGE = (0.29, 0.503)
 """tuple: The Bond albedo a generated giant draws from (GEN.1030): the lowest and the highest of the four measured in the Solar System, Neptune 0.29 [R3466], Uranus 0.30 [R3466], Saturn 0.342 and Jupiter 0.503 (Li et al. 2018). Registry row CC9."""
@@ -147,18 +147,23 @@ def from_stored(row, flux_w_m2):
     return albedo, max(0.0, greenhouse), None
 
 
+def is_dry_ground(body_type, water_mass_fraction, flux_w_m2):
+    """Whether a body takes its Bond albedo from its dry ground (`ground_albedo.fresh_bond_albedo`, GEN.684): a rocky body with less than `tuning.ALBEDO_WET_MIN_WATER_FRACTION` of water or with no starlight."""
+    return body_type != "g" and (not water_mass_fraction or water_mass_fraction < tuning.ALBEDO_WET_MIN_WATER_FRACTION
+                                 or not flux_w_m2 or flux_w_m2 <= 0.0)
+
+
 def albedo_range(body_type, water_mass_fraction, flux_w_m2, star_temperature_k=None):
     """
-    The Bond albedo range a body draws from before its air is solved (GEN.684): `GIANT_BOND_ALBEDO_RANGE` for a giant (GEN.1030), `DEFAULT_ALBEDO_RANGE` for a dry body
-    and a body with no starlight; a body with surface water (`tuning.ALBEDO_WET_MIN_WATER_FRACTION` or more) draws the albedo of its ice-free
-    state, ocean and cloud (`tuning.ALBEDO_WET_RANGE`), scaled to the colour of the star of `star_temperature_k` (`albedo_color.shifted_range`,
-    GEN.912; with no star temperature it is the Sun's). The ice is not in the draw: the surface-air fixed point raises the albedo with the ice that
-    the temperature leaves (`surface_air.ice_albedo_law`, GEN.972), so a cold wet world is bright by its temperature.
+    The Bond albedo range a body draws from before its air is solved (GEN.684): `GIANT_BOND_ALBEDO_RANGE` for a giant (GEN.1030); a body with surface water (`tuning.ALBEDO_WET_MIN_WATER_FRACTION` or more) draws
+    the albedo of its ice-free state, ocean and cloud (`tuning.ALBEDO_WET_RANGE`), scaled to the colour of the star of `star_temperature_k` (`albedo_color.shifted_range`, GEN.912; with no star temperature it is the
+    Sun's). The ice is not in the draw: the surface-air fixed point raises the albedo with the ice that the temperature leaves (`surface_air.ice_albedo_law`, GEN.972), so a cold wet world is bright by its
+    temperature. A dry rocky body draws nothing (`is_dry_ground`, `ground_albedo.fresh_bond_albedo`); `DEFAULT_ALBEDO_RANGE` is returned for it only so a stored row whose albedo cannot be worked out has a
+    range to be backfilled from (`backfill_albedo_range`).
     """
     if body_type == "g":
         return GIANT_BOND_ALBEDO_RANGE
-    if (not water_mass_fraction or water_mass_fraction < tuning.ALBEDO_WET_MIN_WATER_FRACTION
-            or not flux_w_m2 or flux_w_m2 <= 0.0):
+    if is_dry_ground(body_type, water_mass_fraction, flux_w_m2):
         return DEFAULT_ALBEDO_RANGE
     return albedo_color.shifted_range(tuning.ALBEDO_WET_RANGE, "wet", star_temperature_k)
 

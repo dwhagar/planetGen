@@ -5,10 +5,14 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 There are 1663 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 =======
 There are 1658 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 >>>>>>> origin/claude/lane14-gen1678
+=======
+There are 1660 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/claude/lane15-gen684a
 
 ## The source tiers
 
@@ -48,8 +52,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1636 |
 =======
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1632 |
 >>>>>>> origin/claude/lane14-gen1678
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1634 |
+>>>>>>> origin/claude/lane15-gen684a
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -60,6 +68,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 155 | 64 | 1 | 1 | 0 | 221 |
 | T3 | 114 | 53 | 12 | 9 | 0 | 188 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
+<<<<<<< HEAD
 <<<<<<< HEAD
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
 | T6 | 217 | 113 | 31 | 76 | 4 | 441 |
@@ -75,6 +84,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T9 | 49 | 18 | 5 | 92 | 35 | 199 |
 | All | 958 | 325 | 81 | 238 | 56 | 1658 |
 >>>>>>> origin/claude/lane14-gen1678
+=======
+| T5 | 90 | 24 | 6 | 1 | 1 | 122 |
+| T6 | 218 | 112 | 31 | 77 | 4 | 442 |
+| T7 | 58 | 21 | 10 | 31 | 0 | 120 |
+| T8 | 1 | 0 | 0 | 5 | 1 | 7 |
+| T9 | 49 | 18 | 5 | 92 | 35 | 199 |
+| All | 959 | 325 | 81 | 239 | 56 | 1660 |
+>>>>>>> origin/claude/lane15-gen684a
 
 ## How the labels were given
 
@@ -2924,6 +2941,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+<<<<<<< HEAD
 | WDC1 | D | T2 | L1 | `tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL`: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside | none (the table) | carbon-oxygen cores; the models are at Z = 0.01 and the table is used at every metallicity | a model grid at another metallicity whose central oxygen differs by more than 0.05 | a grid of white dwarf models at the progenitor's metallicity (open item) | [R5238: Table 1] (READ) | predicted only | - | - |
 | WDC2 | P | T3 | L0 | `tuning.WD_CENTRAL_OXYGEN_RANGE` (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to | 0.55 to 0.9 | carbon-oxygen cores | a third pulsator fitted outside the range | more pulsators fitted | [R5239] (READ, two objects) | predicted only | - | - |
 | WDC3 | P | T6 | L0 | `tuning.WD_NEON22_PER_CNO` 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core | 0.5 to 1 | carbon-oxygen cores | a core whose measured 22Ne is under half the progenitor's CNO | a stellar model's 22Ne by progenitor metallicity | educated guess from physics (the CNO ends as 14N in the hydrogen shell and as 22Ne in helium burning; no source opened for the share) | predicted only | - | - |
@@ -2940,3 +2958,21 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | AF1 | P | T1 | L0 | `acid_freezing.freezing_point_k`: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K) | none (read, not fitted); the 1 K of the reading | acid mole fraction 0 to 1 at 0.1 MPa; the equilibrium freezing point, below which a solid can be present | a measured freezing point of a sulfuric acid solution more than 2 K from the curve | the Gibbs-energy fit of [R4877] itself (Tables 6 to 8) evaluated for the liquidus, which removes the digitising | read first-hand from the scan of [R4877]; laboratory freezing points of Gable, Betz and Maron and of Kunzler and Giauque | observed in a lab | - | - |
 | AF2 | P | T5 | L0 | `acid_freezing` is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides | none | cloud pressures up to a few bar | a melting-curve slope of the hydrates above 0.1 K per bar | the pressure dependence of the Gibbs-energy functions, if a source prints it | educated guess from physics (the slopes of the ice and acid melting curves) | predicted only | - | - |
+=======
+| WDC1 | D | T2 | L1 | `tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL`: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside | none (the table) | carbon-oxygen cores; the models are at Z = 0.01 and the table is used at every metallicity | a model grid at another metallicity whose central oxygen differs by more than 0.05 | a grid of white dwarf models at the progenitor's metallicity (open item) | [R5238: Table 1] (READ) | predicted only | GEN.1370 | - |
+| WDC2 | P | T3 | L0 | `tuning.WD_CENTRAL_OXYGEN_RANGE` (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to | 0.55 to 0.9 | carbon-oxygen cores | a third pulsator fitted outside the range | more pulsators fitted | [R5239] (READ, two objects) | predicted only | GEN.1370 | - |
+| WDC3 | P | T6 | L0 | `tuning.WD_NEON22_PER_CNO` 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core | 0.5 to 1 | carbon-oxygen cores | a core whose measured 22Ne is under half the progenitor's CNO | a stellar model's 22Ne by progenitor metallicity | educated guess from physics (the CNO ends as 14N in the hydrogen shell and as 22Ne in helium burning; no source opened for the share) | predicted only | GEN.1370 | - |
+| WDC4 | P | T6 | L1 | `tuning.POLLUTANT_CORE_RICH_METAL_FRACTION` 0.5: a fragment with at least this mass fraction of metal grains is core-rich | 0.3 to 0.7 | polluting belt bodies | polluted white dwarfs whose Fe/Mg indicates a metal share far from the draw's | the Bayesian classes of [R1832] built on the drawn fragment | [R1832] (READ, the classes only; the cut is a stand-in) | predicted only | GEN.1370 | - |
+| WDC5 | P | T6 | L1 | `tuning.POLLUTANT_CRUST_RICH_FACTOR` 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich | 1.5 to 4 | polluting belt bodies | a white dwarf population whose Ca/Mg crust-rich cut sits far from twice solar | the classes of [R1832] | educated guess from physics | predicted only | GEN.1370 | - |
+| WDC6 | P | T6 | L1 | `tuning.POLLUTANT_VOLATILE_RICH_FRACTION` 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich | 0.1 to 0.4 | polluting belt bodies | polluted white dwarfs whose measured water fractions put the cut elsewhere | the classes of [R1832] | educated guess from physics | predicted only | GEN.1370 | - |
+| WDC7 | P | T6 | L1 | `tuning.POLLUTANT_ELEMENT_SHARES`: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10 | the nickel in the table's ranges; the organics +-0.1 | the alloys and organics of the materials table that have no formula | a measured composition of those solids that differs by 0.1 in any share | per-material element lists in the materials table | the nickel is the middle of the ranges the table states; the organics are a kerogen-like stand-in | predicted only | GEN.1370 | - |
+| WDC8 | P | T3 | L1 | `tuning.POLLUTANT_FORMULAS`: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite) | the end member chosen | the six rows | an analysis of the mineral that differs by more than 0.05 in any element share | member lists in the materials table | the end members are the table's own member lists | predicted only | GEN.1370 | - |
+
+## 6.287 Stand-ins of the Bond albedo of a dry body's ground
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GA1 | P | T5 | L1 | `ground_albedo.VISIBLE_TO_BOND` 1.0: the factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (the conversion over the whole spectrum is an open gap) | 0.8 to 1.3 | a dry rocky ground (basalt powder 0.215) | a measured Bond albedo of an airless basalt surface outside 0.09 to 0.14 at 3 to 4.5 Gyr, or a measured fresh basalt outside 0.17 to 0.27 | the band-integrated Bond albedo of the table's spectra over the star's spectrum and the phase integral | the Moon's Bond albedo 0.11 and Mercury's 0.088 against 0.117 for the table's basalt after 3.5 Gyr at the middle of the weathering ranges; [R3425] for the table | predicted only | - | - |
+| GA2 | B | T6 | L0 | `ground_albedo.dry_ground_type`: a carbon rock is carbon, a body with a metal share of `surface_composition.RANGES["metal_stripped"]` (0.7) or more is metal (the stand-in ground albedo 0.15), else basalt, the ground the melt of an ordinary mantle makes | none (a rule) | a rocky body with no surface water, before its air and heat flow are solved | a dry airless body whose later drawn ground is mostly felsic, ultramafic or oxidised, which is brighter or darker than basalt | the dominant ground of the draw (`surface_composition.draw_surface`) made before the air, from the melt (`volcanic_ground_type`), once the heat flow is known earlier | the table of dominant grounds (`surface_composition.DOMINANT_TABLE`) and its gates | predicted only | - | - |
+| GA3 | P | T6 | L3 | `ground_albedo.weathered_albedo`: the fresh albedo times `1 - d (1 - exp(-t / tau_w))` with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, `ground_albedo.TAU_W_GY`, `DEPTH`) | tau_w 0.5 to 4 Gyr; d 0.2 to 0.8 | an airless dry surface older than 0.5 Gyr | a measured spread of airless Bond albedos wider than 0.07 to 0.16 for basalt | a fit of the darkening to lunar and asteroid reflectance by age | the decay of the unweathered fraction [R4713]; the placeholders are not fitted; the Moon 0.11 and Mercury 0.088 sit inside the range they give | predicted only | - | no data |
+>>>>>>> origin/claude/lane15-gen684a

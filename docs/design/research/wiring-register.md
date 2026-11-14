@@ -36,7 +36,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | function | planetgen.physics.equilibrium_edges.h2_dissociation_temperature | by design | the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation |
-| module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |

@@ -25,7 +25,7 @@ import math
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
 from planetgen.physics import planet_moons
-from planetgen.physics import disk_truncation, eclipses, formation_snow_line, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -669,8 +669,12 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * eclipses.kept_share(planet.light_factor)     # GEN.1441: the host's light and every other star's, by position
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
-    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
-                                                      getattr(planet.star, "temperature", None)))
+    dry_ground = planet_type.has_ground(planet) and climate_draws.is_dry_ground(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit)      # GEN.684 A: a dry rock's albedo is its ground's, not a draw
+    if dry_ground:
+        albedo = ground_albedo.fresh_bond_albedo(planet)
+    else:
+        albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
+                                                          getattr(planet.star, "temperature", None)))
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
@@ -684,9 +688,11 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     heat = interior_heat.update_heat(planet)
     giant = not planet_type.has_ground(planet)      # GEN.1334: a giant, or a rocky planet under a deep envelope, has no surface; the air is solved at its 1 bar level
     own_heat_w_m2 = (getattr(planet, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(planet, "tidal_flux_w_m2", None) or 0.0)
+    no_air_internal_w_m2 = 0.0
     if getattr(planet.star, "starless", False) and not giant and own_heat_w_m2 > 0.0:
         # GEN.1111: a body with no star (an ejected one) lives on its own heat, which is a flux through its surface; under a star it is below a part in
         # a thousand of the absorbed flux for an ordinary rocky planet and is left out, so a lit planet is as it was (a giant's is added by its setting)
+        no_air_internal_w_m2 = own_heat_w_m2
         surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit, internal_flux_w_m2=own_heat_w_m2)
     surface_w = None if giant else hydrosphere.draw_surface_water(planet)
     planet._surface_w = surface_w                   # GEN.839: kept for `refresh_at_final_age`, not stored
@@ -698,7 +704,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
                                      heat=heat, surface_w=surface_w, water_lost=water_lost)
     # GEN.1657: the start temperature, the oddities of the air and the airless state are the solver's own step (`air_final`); the body stores what comes out
-    final = air_final.make(planet, setting, surface_temperature_no_atmosphere, solar_output_at_orbit, distance, albedo, giant, surface_w)
+    final = air_final.make(planet, setting, surface_temperature_no_atmosphere, solar_output_at_orbit, distance, albedo, giant, surface_w,
+                           dry_ground=dry_ground, no_air_internal_w_m2=no_air_internal_w_m2)
     planet.surface_temperature = final.temperature_k
     planet.atmospheric_pressure = final.pressure_pa
     planet.atm_molar_density, planet.atm_density, planet.scale_height = final.molar_density_kg_mol, final.density_kg_m3, final.scale_height_km
