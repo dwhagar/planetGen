@@ -336,6 +336,10 @@ class _UnitPhases:
         self.next(text)
         return statementmark.labelled(text)
 
+    def nothing(self, text):
+        """A clear that found nothing to clear (OPS.254) says so as its one phase: the line, the unit's phase and the bar's first step, and `finish` fills the bar."""
+        self.next(text)
+
     def finish(self):
         self.report(self.total, self.total)
 

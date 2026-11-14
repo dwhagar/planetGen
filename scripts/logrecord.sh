@@ -41,7 +41,7 @@ LOG_COMPONENTS="update install warm tiles orbits generate queue web job activity
 log_mask() {
     local text="$1"
     if [[ "$text" != *"://"*@* ]] \
-            && [[ ! "$text" =~ ([Pp]ass(word|wd)?|[Tt]oken|[Ss]ecret|[Aa]pi[_-]?[Kk]ey|[Cc]redential|[Aa]uthorization)[\"\']?[[:space:]]*[=:] ]] \
+            && [[ ! "$text" =~ ([Pp]ass(word|wd|phrase)|[Tt]oken|[Ss]ecret|[Aa]pi[_-]?[Kk]ey|[Cc]redential|[Aa]uthorization)[\"\']?[[:space:]]*[=:] ]] \
             && [[ ! "$text" =~ --[a-z-]*(password|passwd|token|secret) ]]; then
         printf '%s' "$text"
         return 0
@@ -51,7 +51,7 @@ log_mask() {
             && [[ -n "$masked" ]]; then
         printf '%s' "$masked"
     else
-        printf '%s' "$text" | sed -E 's#(://[^/:@[:space:]]*:)[^/@[:space:]]+@#\1XXXXXX@#g; s#((pass(word|wd)?|token|secret|api[_-]?key)[a-z_-]*["'"'"']?[[:space:]]*[=:][[:space:]]*["'"'"']?)[^[:space:]"'"'"',;&]+#\1XXXXXX#Ig'
+        printf '%s' "$text" | sed -E 's#(://[^/:@[:space:]]*:)[^/@[:space:]]+@#\1XXXXXX@#g; s#((pass(word|wd|phrase)|token|secret|api[_-]?key)[a-z_-]*["'"'"']?[[:space:]]*[=:][[:space:]]*["'"'"']?)[^[:space:]"'"'"',;&]+#\1XXXXXX#Ig'
     fi
 }
 
