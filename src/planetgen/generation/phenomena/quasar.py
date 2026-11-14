@@ -65,12 +65,15 @@ class Quasar(LazySaladName):
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "black_hole_mass_solar", "event_horizon_radius_km", "eddington_ratio",
+        "name", "flavor_key", "black_hole_mass_solar", "event_horizon_radius_km", "eddington_ratio",
         "luminosity_w", "accretion_rate_solar_per_year", "broad_line_region_light_days",
         "is_radio_loud", "jet_length_ly", "active_age_years",
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference)."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None, black_hole_mass_solar=None):
         """

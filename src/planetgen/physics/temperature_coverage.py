@@ -47,6 +47,8 @@ NEARLY_ALWAYS = 0.9
 """float: The share of the time a place is livable for `area_most` (the research note, "at least 90 percent of the time"). Source tier T9, tweak level L0 (a definition)."""
 TIE_TOLERANCE = 1.0e-3
 """float: Cells whose livable time is within this of the best tie for the best site (a hundredth of a percent is a step or two of a year). Source tier T6, tweak level L0 (numerical)."""
+EXTREME_TIE_K = 1.0e-6
+"""float: Samples whose temperatures differ by less than this are the same extreme (a mirror-symmetric world gives two of them that differ in the last bits). Source tier T9, tweak level L0 (numerical)."""
 DAY_SIDE_DEG = 60.0
 """float: A cell of a world that turns once an orbit is on the day side within this angle of the point under the star. Source tier T9, tweak level L0 (a definition: a quarter of the surface)."""
 NIGHT_SIDE_DEG = 120.0
@@ -187,7 +189,10 @@ def longest_out_days(livable, step_days):
 def _extreme(series, mask, hottest):
     """The coldest (or hottest) sample of the series among the cells and steps where `mask` is true, as an `Extreme`."""
     temperature = np.where(mask, series.temperature_k, np.inf if not hottest else -np.inf)
-    flat = int(np.argmax(temperature) if hottest else np.argmin(temperature))
+    best = float(temperature.max() if hottest else temperature.min())
+    # a world with a mirror symmetry (an orbit with its spin axis in the plane of the perihelion) has two places and times with the one extreme, equal to the last
+    # bits: the first of those in the grid's order is the one, so the number a stored world gives and the one a re-score of it gives are the same
+    flat = int(np.flatnonzero((temperature >= best - EXTREME_TIE_K) if hottest else (temperature <= best + EXTREME_TIE_K))[0])
     row, column, step = np.unravel_index(flat, temperature.shape)
     return Extreme(float(temperature[row, column, step]), int(row), int(column), float(series.grid.latitude_deg[row]), float(series.grid.longitude_deg[column]),
                    float(series.time_days[step]))
@@ -272,7 +277,13 @@ def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     best = float(place_time.max())
     tied = np.argwhere(place_time >= best - TIE_TOLERANCE)
     swing = temperature.max(axis=2) - temperature.min(axis=2)
-    row, column = min((tuple(cell) for cell in tied), key=lambda cell: (swing[cell], cell))
+    blue_time = blue.mean(axis=2)
+    middle = 0.5 * (band[3] + band[4])
+    # the swings of two cells are the same to a millionth of a kelvin when the world has a mirror symmetry (or no swing at all): the tie then goes to the cell that is comfortable (blue) the
+    # larger share of the time, then to the one whose mean is nearest the middle of the blue band, then to the first of the grid, not to the last bits of a float, so a re-score of a stored
+    # world finds the site the first one did
+    row, column = min((tuple(cell) for cell in tied), key=lambda cell: (round(float(swing[cell]), 6), -round(float(blue_time[cell]), 6),
+                                                                      round(abs(float(celsius[cell].mean()) - middle), 6), cell))
     cell_series = temperature[row, column]
     site = BestSite(int(row), int(column), float(series.grid.latitude_deg[row]), float(series.grid.longitude_deg[column]), float(place_time[row, column]),
                     float(cell_series.min()), float(cell_series.max()), longest_out_days(livable[row, column], series.step_days), float(cell_series.mean()))
