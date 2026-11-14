@@ -2,6 +2,56 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4048] - 2026-11-14
+
+**Headline:** Keys, tokens, passwords and credentialed addresses no longer reach any log: every line is masked to its first 4 characters, its last 2 and X's between (`abcdXXXXXXyz`).
+
+### Changed
+- **One masking helper, `util/secrets_mask.py` (SEC.48).** It finds a secret by the name beside it (`api_key=`, `"password":`, `--mysql-password`, `Authorization: Bearer`, a log field called `token`), by its place in an address (`mysql://user:password@host`, `redis://:password@host`) and by its value (every secret option of `config.json` and the environment, every variable named like a secret). A value of 6 characters or fewer is all X's.
+- **It is applied at every way a line leaves the logging layer:** each record any logger makes (the program's and a library's, message, exception and stack), `logrecord.Record`, every formatter (so `error.log`, the job logs and the Queue stream), the live-log callback, the relay, `record_error` and `write_line`.
+- **`tests/test_log_masking.py` fails if** a key, token, password or credentialed address appears unmasked in any of them.
+- **The shell scripts mask too.** `update.sh`, `install.sh` and the other scripts print through `log_record`, which now masks each line (`log_mask`), so `Redis: answering at redis://planetgen:Sup3XXXXXXXXX99@127.0.0.1:6379/0` no longer shows the password. The Redis settings check and the "no Redis server answers at" messages mask the address too.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4047] - 2026-11-14
+
+**Headline:** The Gaia 25 parsec sample is fetched at setup from four sources in turn, so the ESA archive's 2,000-row cap or a full queue no longer leaves it missing.
+
+### Changed
+- **`datasets/fetch.py` takes mirrors for a piece (OPS.183).** When a piece's own address fails or serves the wrong bytes, `fetch` tries each `Mirror` in order and logs which one served and, for the Gaia file, how many sources it holds; it is missing only when all fail, with every reason. A mirror either gives the same bytes (checked against the sha256) or converts another catalogue's answer, which `accept` judges and a `.source.json` record keeps.
+- **`datasets/gaia_nearby.py` lists four:** the ESA archive's asynchronous query (with the optional `PLANETGEN_ESA_USER` and `PLANETGEN_ESA_PASSWORD` account, the password masked by SEC.48), the Heidelberg ARI mirror (byte for byte the same file), VizieR's Gaia DR3 table and the Gaia Catalogue of Nearby Stars (I/360), the last two kept only when they hold about 5,300 well-measured stars.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4046] - 2026-11-13
+
+**Headline:** A test now fails whenever a stage is flagged as byte identical at any cut size and is not.
+
+### Changed
+- **The cut-neutral check (PERF.260).** `tests/test_cut_neutral.py` finds every command the registry flags `byte-identical` (no list kept by hand), runs its stage at two cut sizes from the same stored state and fails on any difference, on a cut that does not reproduce itself, on two cuts that make the same number of units, on a stage that stores nothing and on a flagged command with no recipe. `tests/cut_neutral_recipes.py` holds the recipes for the refresh-block-lights, link-neighbors, settle-sector-paths, fill-map-luminosity, warm-sectors, warm-systems, warm-phenomena, warm-galaxy-nodes and warm-galaxy-deep-nodes stages.  Test code and notes only. generation-output: unchanged
+
+## [8.0.4045] - 2026-11-13
+
+**Headline:** Each galaxy measure on the Generate page shows its title, an unlabeled Default tick box beside its typed box, a disabled slider at the default, and its help behind a ? button.
+
+### Changed
+- **The galaxy measure sliders start on Default.** Each row has its title with a ? button beside it (the help text opens under the bar, reachable by keyboard and screen reader), then an unlabeled tick box right beside the typed box, then the slider. Ticked (the starting state) is Default: the box shows Auto, no flag goes to the plan, and the bar is disabled and set exactly at the default. Unticking frees both, and the box takes the default value. The bar still sticks to the default.
+
+generation-affects: none
+
+## [8.0.4044] - 2026-11-13
+
+**Headline:** A logged-in admin page no longer asks the server who is logged in every 3 seconds: the job strip asks once a minute when nothing runs or waits.
+
+### Changed
+- **The admin job strip polls by need (PERF.263).** Each ask of `/admin/generate/status` looks the admin up (`/api/auth/me`), which filled the warm-up log with a line every 3 seconds on any open admin page. The strip now asks every 3 seconds only while a job runs or waits, once a minute when none does, at once when the tab is shown or focused, and not again after a 401 or 403.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4043] - 2026-11-13
 
 **Headline:** The command-line, web, API and admin log lines now read as one sentence each, with no `error:` or `warning:` words in the text, and the log message check has no exceptions left.
