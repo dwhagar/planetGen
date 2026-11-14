@@ -267,6 +267,9 @@ NULL_IN_THIS_GALAXY = {
     # draws of the build) hold a moon is chance, so the column is either written or NULL here (TEST.645; test_parent_link and test_rogue_body_storage
     # write and read it back).
     ("moons", "rogue_planet_id"): CHANCE,
+    # GEN.332, slice D: a rogue stays a bound pair only when it is young (`physics/rogue_pairs.bound_share`: 9 percent of a fresh ejection, a fiftieth of that every 10 Myr), and the
+    # donors of this galaxy threw their planets out long ago, so no pair is made here; test_rogue_pair_storage writes and reads the three columns back.
+    **{("rogue_planets", column): CHANCE for column in ("pair_event_index", "pair_separation_au", "pair_period_yr")},
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
