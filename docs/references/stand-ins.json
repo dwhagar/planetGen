@@ -16365,6 +16365,82 @@
           "fields": [
             [
               "What it is",
+              "SECOND-HAND ([R0156] section 4.1, the quoted lines: \"the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s\"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11"
+            ],
+            [
+              "The range it moves in",
+              "the two ends of the range: the haze gate is 0 below 1e11 and 1 above 3e11 (linear between), times the ratio gate"
+            ],
+            [
+              "Where it holds",
+              "hazes of methane airs"
+            ],
+            [
+              "What would show it wrong",
+              "a haze in a model air whose methane source is under 1e11 molecules per cm2 per s"
+            ],
+            [
+              "What replaces it",
+              "[R0156] read in full; a photochemical model of the air"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_a_trace_of_methane_makes_no_haze_however_high_its_ratio_to_carbon_dioxide"
+            ]
+          ],
+          "id": "HZ4",
+          "key": "6.33:HZ4",
+          "kind": "P",
+          "slug": "6-33-hz4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "SECOND-HAND ([R0156] section 4.1, the quoted lines: \"the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11 molecules/cm2/s\"; the abiotic flux of 1.3e9 does not form a haze at any CO2 pressure of the model; GEN.1695); aerosols.HAZE_ONSET_FLUX_CM2_S 1e11 and HAZE_FULL_FLUX_CM2_S 3e11"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4"
+            ],
+            [
+              "The range it moves in",
+              "fixed; a hazy air's lifetime is shorter, so the haze gate of HZ4 is a little strict (the lowest methane of the hazy runs of [R0156], about 36 Pa, gives 2.5e10 molecules per cm2 per s against 1e11)"
+            ],
+            [
+              "Where it holds",
+              "anoxic airs; an oxygen-bearing air has a lifetime of years and is gated off by its CH4/CO2 ratio already"
+            ],
+            [
+              "What would show it wrong",
+              "a lifetime that depends on the star's far ultraviolet (no law found; a Segura-type lifetime study not read)"
+            ],
+            [
+              "What replaces it",
+              "the lifetime from the star's UV flux and the air's column"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_the_methane_source_flux_is_the_column_over_its_lifetime"
+            ]
+          ],
+          "id": "HZ5",
+          "key": "6.33:HZ5",
+          "kind": "P",
+          "slug": "6-33-hz5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "SECOND-HAND ([R5250]: the photochemical lifetime of methane in an anoxic air is about 10^4 years, a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv; GEN.1695); aerosols.METHANE_LIFETIME_YR 1e4"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "photolysis.shielded_column_mol_m2 (light is absorbed in one layer, the column of optical depth 1 at the species' mean UV cross section of Hu, [R2026] table 6, so a thick air is photolysed only in that column; GEN.982)"
             ],
             [

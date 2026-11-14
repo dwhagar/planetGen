@@ -386,3 +386,24 @@ def test_the_acid_cloud_of_a_stored_body_repeats_from_its_stored_values():
     drawn = aerosols.draw_aerosols(VENUS, 735.0, random.Random(8), aerosols.NO_HAZE, skin_k=VENUS_SKIN_K)
     tau, cover, radius = sulfuric_cloud.of_draw(VENUS, 735.0, drawn.aerosol_draw, VENUS_SKIN_K)
     assert (tau, cover) == (drawn.tau_cloud, drawn.cloud_cover) and 0.3 <= radius <= 3.85
+
+
+def test_the_methane_source_flux_is_the_column_over_its_lifetime():
+    """GEN.1695: the flux that holds an air's methane steady is its column over `METHANE_LIFETIME_YR`; a 100 Pa column at 9.8 m/s2 in an air of 28 g/mol is near the 1e11 onset."""
+    air = _air({"N2": 90000.0, "CO2": 5000.0, "CH4": 100.0}, 9.8)
+    column_mol_m2 = air.fraction("CH4") * air.pressure_pa / (9.8 * air.mean_molar_mass_kg_mol)
+    expected = column_mol_m2 * 6.02214076e23 * 1.0e-4 / (aerosols.METHANE_LIFETIME_YR * 31_557_600.0)
+    assert aerosols.methane_source_flux_cm2_s(air) == pytest.approx(expected)
+    assert 5.0e10 < aerosols.methane_source_flux_cm2_s(air) < 2.0e11
+
+
+def test_a_trace_of_methane_makes_no_haze_however_high_its_ratio_to_carbon_dioxide():
+    """GEN.1695, the Earth analog trial 510: 1.67 Pa of methane over 0.32 Pa of carbon dioxide (ratio 5) is fed by about 1e9 molecules per cm2 per s, a hundredth of the haze's onset, so no haze; a thick methane air is gated on as before."""
+    trace = _air({"N2": 95000.0, "CO2": 0.32, "CH4": 1.67}, 9.81)
+    assert aerosols.haze_gate(trace) == 0.0
+    assert aerosols.haze_in(trace, 288.0, aerosols.HazeDraws(1.0e4, 1.0, 5.0e-8), 5800.0, aerosols.FarUv(1.0, 0.0)) is aerosols.NO_HAZE
+    thick = _air({"N2": 20000.0, "CO2": 5000.0, "CH4": 4000.0}, 9.81)
+    assert aerosols.haze_gate(thick) == 1.0
+    onset = aerosols.HAZE_ONSET_FLUX_CM2_S
+    assert aerosols.methane_source_flux_cm2_s(trace) < 0.02 * onset
+

@@ -21,7 +21,8 @@ the acid the sulfur can make, based at the warmest level of the dry adiabat wher
 body's greenhouse factor). Its depth adds to the condensate cloud's, its cover is the larger of the two (the acid cloud covers the sky). It adds
 no draw. The same cloud has an infrared opacity in `radiative_convective` (`cloud_infrared`).
 
-**Haze (10.2, stand-in).** Above a CH4/CO2 ratio of 0.1 (thick above 0.2; a tenth of the production in hydrogen-rich air) methane
+**Haze (10.2, stand-in).** Above a CH4/CO2 ratio of 0.1 (thick above 0.2; a tenth of the production in hydrogen-rich air) and where the methane has a source to feed it (the
+column over its lifetime, `methane_source_flux_cm2_s`: 0 below 1e11 molecules per cm2 per s, full at 3e11, [R0156]; GEN.1695, which also caps the supply by that flux) methane
 photolysis makes a haze. The supply is the smaller of the diffusion-limited one, `N K_zz f_CH4 / H_a`, with `N` the air at the level where the methane
 column is one Lyman-alpha optical depth and `K_zz` log-uniform on 1e6 to 1e10 cm2/s (a nuisance parameter, decision 12), and the most methane the star's far
 ultraviolet can break (`photolysis.photon_limited_flux_mol_m2_s`, GEN.982), times a yield log-uniform on 0.01 to 1. The grains are fractal
@@ -86,6 +87,15 @@ row in part 06 2.8 and form no cloud until GEN.452 adds the condensate registry.
 HAZE_ONSET_CH4_CO2 = 0.1
 """float: The CH4/CO2 ratio above which a methane haze forms ([R0156]; part 06 2.9)."""
 HAZE_THICK_CH4_CO2 = 0.2
+HAZE_ONSET_FLUX_CM2_S = 1.0e11
+"""float: The methane source flux at which a haze starts to form, molecules per cm2 per s ([R0156] section 4.1: "the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11
+molecules/cm2/s", and the abiotic flux of 1.3e9 "will not form a haze in our model even at a pCO2 level four orders of magnitude smaller"; GEN.1695). The low end of the range; second
+hand, not opened beyond the quoted lines. [Stand-in, tier confident unverified, tweak L0.]"""
+HAZE_FULL_FLUX_CM2_S = 3.0e11
+"""float: The methane source flux at which the haze is fully made, molecules per cm2 per s: the high end of the same range ([R0156] section 4.1). [Stand-in, tier confident unverified, tweak L0.]"""
+METHANE_LIFETIME_YR = 1.0e4
+"""float: The photochemical lifetime of methane in an anoxic air, years ([R5250]: about 10^4 years; a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv). The star's
+ultraviolet is not in it (no law of the lifetime in the star's flux was found). [Stand-in, tier confident unverified, tweak L0.]"""
 HAZE_H2_CUT = 0.1
 """float: The share of the production left in hydrogen-rich air ([R1097], about a tenth)."""
 HAZE_H2_FRACTION = 0.3
@@ -400,16 +410,26 @@ def haze_supply_kg_m2_s(column, temperature_k, kzz_m2_s):
     return flux * gases.gas("CH4").molar_mass / 6.02214076e23
 
 
+def methane_source_flux_cm2_s(column):
+    """
+    The methane flux that holds the air's methane steady, molecules per cm2 per s: the column over its photochemical lifetime (`METHANE_LIFETIME_YR`). A haze cannot hold more carbon than this feeds
+    (GEN.1695), and one forms only where it is at least `HAZE_ONSET_FLUX_CM2_S`.
+    """
+    column_mol_m2 = column.fraction("CH4") * column.pressure_pa / (column.gravity_m_s2 * column.mean_molar_mass_kg_mol)
+    return column_mol_m2 * 6.02214076e23 * 1.0e-4 / (METHANE_LIFETIME_YR * constants.SECONDS_PER_YEAR)
+
+
 def haze_gate(column):
     """The share of the full haze production the air allows: 0 below a CH4/CO2 ratio of 0.1, 1 above 0.2 (linear between), a tenth of it in
-    hydrogen-rich air."""
+    hydrogen-rich air; times the share the methane source allows (0 below a flux of 1e11 molecules per cm2 per s, 1 above 3e11, `methane_source_flux_cm2_s`)."""
     methane = column.fraction("CH4")
     carbon_dioxide = max(column.fraction("CO2"), 1e-12)
     ratio = methane / carbon_dioxide
     share = min(1.0, max(0.0, (ratio - HAZE_ONSET_CH4_CO2) / (HAZE_THICK_CH4_CO2 - HAZE_ONSET_CH4_CO2)))
     if column.fraction("H2") > HAZE_H2_FRACTION:
         share *= HAZE_H2_CUT
-    return share
+    flux = methane_source_flux_cm2_s(column)
+    return share * min(1.0, max(0.0, (flux - HAZE_ONSET_FLUX_CM2_S) / (HAZE_FULL_FLUX_CM2_S - HAZE_ONSET_FLUX_CM2_S)))
 
 
 @dataclass(frozen=True)
@@ -500,7 +520,8 @@ def haze_in(column, temperature_k, draws, star_temperature_k, far_uv):
     gate = haze_gate(column)
     if gate <= 0.0:
         return NO_HAZE
-    supply = min(haze_supply_kg_m2_s(column, temperature_k, draws.kzz_m2_s), photon_limited_supply_kg_m2_s(column, star_temperature_k, far_uv))
+    source_kg_m2_s = methane_source_flux_cm2_s(column) * 1.0e4 / 6.02214076e23 * gases.gas("CH4").molar_mass       # the carbon the methane's own source can feed (GEN.1695)
+    supply = min(haze_supply_kg_m2_s(column, temperature_k, draws.kzz_m2_s), photon_limited_supply_kg_m2_s(column, star_temperature_k, far_uv), source_kg_m2_s)
     mdot = supply * draws.yield_ * gate
     top = min(column.pressure_pa * 1e-8, 1e-4)
     if mdot <= 0.0:
