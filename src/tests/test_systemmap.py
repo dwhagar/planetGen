@@ -850,6 +850,27 @@ def test_a_triple_system_draws_each_further_star_with_its_planets_in_a_scene_of_
     assert 'data-scene="planet-3"' in html
 
 
+def test_the_planets_round_an_inner_pair_node_get_a_marker_and_a_scene_of_their_own():
+    """GEN.332, slice A: a pair of pairs (nodes 1 and 2 under the root) whose second pair holds planets (`host_node_id` 2) draws the pair as one body."""
+    system = {"name": "Quad", "binary_configuration": "close", "binary_mutual_position_x_km": 0.05 * AU_KM,
+              "binary_mutual_position_y_km": 0.0, "binary_mutual_position_z_km": 0.0,
+              "orbits": [{"node_no": 0, "parent_node_no": None}, {"node_no": 1, "parent_node_no": 0}, {"node_no": 2, "parent_node_no": 0}]}
+    named = [("A", 1), ("B", 1), ("C", 2), ("D", 2)]
+    stars = [dict(_star(30 + n, mass_kg=(1.0 + 0.1 * n) * 1e30), name=f"Quad {letter}", parent_node_no=node,
+                  role="member" if n > 1 else "primary", offset_x_au=300.0 + n, offset_y_au=50.0)
+             for n, (letter, node) in enumerate(named)]
+    pair_planet = _planet(1, None, AU_KM * 1.2, AU_KM * 0.1)
+    node_planet = dict(_planet(2, None, AU_KM * 4.0, AU_KM * 0.1), host_node_id=2)
+    html = sm.render_system_map_panel(system, stars, [pair_planet, node_planet], [])
+    whole = _scene_html(html, "system")
+    marker = dict(_ATTR.findall(re.search(r'<g class="sysmap-body sysmap-star"[^>]*data-id="node-2"[^>]*>', whole).group(0)))
+    assert marker["data-scene"] == "node-2" and marker["data-role"] == "Pair" and marker["data-name"] == "Quad CD"
+    own = _scene_html(html, "node-2")
+    assert _marker_attrs(own, "planet", 2) and 'data-id="1"' not in own
+    assert _marker_attrs(whole, "planet", 1) and 'data-id="2"' not in whole
+    assert 'data-scene="star-32"' in html, "a member keeps its own scene as before"
+
+
 def test_the_further_stars_markers_clear_each_other_and_the_planets_labels():
     """Two further stars in nearly the same direction do not stack, and the real offsets are what a measure reads."""
     system = {"name": "Triple", "binary_configuration": "close", "binary_mutual_position_x_km": 0.05 * AU_KM,

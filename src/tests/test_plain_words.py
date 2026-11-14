@@ -213,10 +213,11 @@ def test_the_stored_system_flavour_lines_are_in_plain_words():
         for sentence in plainwords.sentences("Sensors show " + line):
             assert not plainwords.check_sentence(sentence), (sentence, plainwords.check_sentence(sentence))
 def test_the_stored_life_flavour_lines_are_in_plain_words():
-    """GEN.1431: every line of the life subtree, read after "Sensors show", meets the guide."""
+    """GEN.1431, GEN.1433: every line of the life, rogue planet, and moon branches, read after "Sensors show", meets the guide."""
     from planetgen.physics import flavor_tree
     ids = [i for i in flavor_tree.load()[1] if i.startswith("life:")]
-    assert len(ids) == 53
+    assert len(ids) == 64
+    ids += [i for i in flavor_tree.load()[1] if i.startswith("belt:")]     # GEN.1433: the belt scope
     for line_id in ids:
         for sentence in plainwords.sentences("Sensors show " + flavor_tree.text_of(line_id)):
             assert not plainwords.check_sentence(sentence), (line_id, sentence, plainwords.check_sentence(sentence))
