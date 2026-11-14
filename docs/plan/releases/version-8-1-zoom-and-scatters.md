@@ -779,6 +779,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | OPS.254 | (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s | none | Lane 05, 2026-11-14. |
 | OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | Lane 13, 2026-11-14
 | GEN.1715 | Bistable climates fell from 11 to 1 per 200 keys after Train 27 | none | Lane 15, 2026-11-14
+| GEN.1716 | (bug) The air and climate solve depends on its start temperature at its switches: the ocean on/off switch at 273 K and its flip-count lock (HCl and HF stay in the air or dissolve, 50 kPa against 14 kPa), the mixture recipe frozen at step 8 from the temperature then, and steam solutions on hot worlds | none | Lane 15, 2026-11-14
 | TEST.742 | (bug) sweep_bulk's text-materials check holds a stale phrase after Train 27 | none | Lane 22, 2026-11-14
 | TEST.741 | (bug) After Train 27 the W20 same-inventory test is red at bistable key 155 | none | Lane 21, 2026-11-14
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | Lane 05, 2026-11-14. |

@@ -13287,6 +13287,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1713, GEN.1696, GEN.1697.
   Filed by the TODO thread.
 
+- [ ] **GEN.1716 (bug) The air and climate solve depends on its start temperature at its switches: the ocean on/off switch at 273 K and its flip-count lock (HCl and HF stay in the air or dissolve, 50 kPa against 14 kPa), the mixture recipe frozen at step 8 from the temperature then, and steam solutions on hot worlds**
+  Lane 15, 11:54 AM EST on 2026-11-14, from GEN.1715 (reports/gen1715-bistable-climates-measure-2026-11-14.md): on 39 worlds of Train 27's head, six starts 150 to 360 K each with the ice albedo pinned, 7 worlds still end 20 K or more apart on the warm pin and 8 on the cold pin (one ends 227 K from a 150 K start and 187 K from 200 K). A stored climate should come from the world, not from where the solver began. Do: measure how many stored bodies change with the start; then a design that makes the solve start-independent at each switch (true bistability kept as two named branches), sent to TODO before building. Lock item, every body's chemistry.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1715, GEN.1696.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
