@@ -111,7 +111,7 @@ def _eta_text(eta, live):
     if eta is None or eta.get("seconds") is None:
         return "estimating"
     if eta.get("stalled"):
-        return "waiting on progress"
+        return f"waiting on progress ({eta['cause']})" if eta.get("cause") else "waiting on progress"
     low, high = progress_rate.eta_range(eta["seconds"])
     if eta.get("rough") and eta.get("low") is not None:       # PERF.184: a guess from the host, not from timings
         low, high = eta["low"], eta["high"]

@@ -569,7 +569,7 @@ def expand_backfill_bright_stars(params):
              for chunk in chunks]
     sky = _sky_units(params, centers) if params.get("sky_limit") is not None and centers else []
     return commands.Expansion((units or [({"database": params["database"], "items": []}, 1.0)]) + sky,
-                              {"sectors": len(addresses), **({"sky_cells": len(sky)} if sky else {}), **({} if skip is None else {"skip": skip})})
+                              {"sectors": len(addresses), **({"sky_cells": len(sky), "sky_costs": [cost for _unit, cost in sky]} if sky else {}), **({} if skip is None else {"skip": skip})})
 
 
 SKY_SECTOR_SECONDS = 6.0e-5
@@ -723,6 +723,9 @@ class BackfillFollower(followed.Follower):
         self.shells = {}
         self.sky = []
         self.bar = None
+        self.sky_costs = []
+        self.chunks = 0
+        self.credited = {}
 
     def params(self):
         from planetgen.generation import sky_charting
@@ -738,9 +741,27 @@ class BackfillFollower(followed.Follower):
         if plan["detail"].get("sky_cells"):
             log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill.")
         log.normal("Backfilling the bright stars out from the edge of the run...")
+        self.sky_costs = [float(cost) for cost in plan["detail"].get("sky_costs", ())]
+        self.chunks = plan["units"] - len(self.sky_costs)
         self.bar = self.hold(steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=self.args,
                                         progress=self.progress, workers=self.workers))
-        self.bar.update(total=max(plan["detail"]["sectors"], 1))
+        self.bar.update(total=max(plan["detail"]["sectors"] + sum(self.sky_costs), 1))
+
+    def _credit(self, unit, amount):
+        """Moves the bar to `amount` of the bar's own unit (sectors) for `unit`, never back: a unit's own counter and its result both say how far it is."""
+        before = self.credited.get(unit, 0.0)
+        if self.bar is not None and amount > before:
+            self.credited[unit] = amount
+            self.bar.update(advance=amount - before)
+
+    def on_progress(self, unit, done, estimate):
+        """A unit still working: a sector chunk counts the sectors it has drawn, a sky cell its share of the sectors its predicted seconds are worth (OPS.253: the bar did not move for the hours a sky cell takes)."""
+        if self.bar is None or estimate <= 0.0:
+            return
+        if unit < self.chunks:
+            self._credit(unit, min(done, estimate))
+        elif unit - self.chunks < len(self.sky_costs):
+            self._credit(unit, self.sky_costs[unit - self.chunks] * min(done / estimate, 1.0))
 
     def on_result(self, unit, result):
         self.summary["sectors"] += result["sectors"]
@@ -752,7 +773,8 @@ class BackfillFollower(followed.Follower):
             for label, plural, count in types:
                 counts[(label, plural)] += count
         if self.bar is not None:
-            self.bar.update(advance=result["visited"])
+            sky_at = unit - self.chunks
+            self._credit(unit, float(result["visited"]) if sky_at < 0 or sky_at >= len(self.sky_costs) else self.sky_costs[sky_at])
 
     def on_done(self, conclusion):
         if self.bar is None:
