@@ -201,6 +201,7 @@ def test_the_statement_mark_names_the_longest_running_statement_and_clears_on_er
     assert statementmark.running() is None
     assert len(statementmark.shorten("x " * 100)) == statementmark.LABEL_CHARS
 
+
 def test_progress_the_counter_does_not_show_starts_the_quiet_clock_again(conn, run_id):
     """OPS.184: a phase that counts only its cases, with sampling tables worked out inside one, tells the heartbeat it moves."""
     clock = [100.0]
