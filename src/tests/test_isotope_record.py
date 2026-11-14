@@ -181,6 +181,15 @@ def test_the_same_body_gets_the_same_record_and_the_run_stream_does_not_move(sun
     assert mark == mark_without and before == planet.isotopes
 
 
+def test_the_record_of_a_planet_with_a_field_is_made_with_the_field(sun):
+    """GEN.1544: the cosmogenic rows read the dipole moment, which is drawn after the air; the stored record is the one the finished body gives."""
+    planet = _planet(sun, seed=1)
+    assert planet.magnetic_moment_a_m2 > 0.0
+    assert planet.isotopes == ir.record_of(planet)
+    unshielded = ir.surface_cosmogenic_atoms_per_g(SimpleNamespace(**{**vars(planet), "magnetic_moment_a_m2": 0.0}), "Al-26")
+    assert ir.surface_cosmogenic_atoms_per_g(planet, "Al-26") < unshielded      # the field cuts the cascade, so a record made without it holds more
+
+
 def test_a_body_with_no_stored_composition_has_no_record():
     body = SimpleNamespace(star=None)
     ir.generate(body)

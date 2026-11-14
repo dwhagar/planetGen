@@ -1373,6 +1373,8 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
         daylight.generate(planet)
     # GEN.86: the field depends on the rotation just set.
     magnetism.generate_field(planet, None if planet.body_type == "g" else interior_heat.core_of(planet))
+    # GEN.1544: the cosmogenic rows of the isotope record read the dipole moment just drawn (the record made with the air did not have it yet); own streams, no draw of the run's
+    isotope_record.generate(planet)
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
     # DB.96: the atmosphere colour, from the air, the ozone and the aerosols above.
