@@ -275,6 +275,7 @@ planetgen.generation.companion_classes:CLOSE_RANGE_AU
 planetgen.generation.companion_classes:_GRID_POINTS
 planetgen.generation.component_pass:KEPT_SAMPLE_POINTS
 planetgen.generation.component_pass:PHENOMENON_SLICE_ROWS
+planetgen.generation.component_pass:SAMPLE_PLACES_KEPT
 planetgen.generation.component_pass:STAR_SLICE_STARS
 planetgen.generation.fill_order:BLOCK_EDGES
 planetgen.generation.fill_order:JUMP_EDGES

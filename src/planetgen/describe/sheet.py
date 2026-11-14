@@ -1479,6 +1479,13 @@ def sheet(conn, kind, object_id):
         if applies(kind):
             for group, sheet_row in provide(conn, kind, object_id, row):
                 by_group[group].append(sheet_row)
+    air = {spec.key[2:]: pascals or 0.0 for spec, pascals in _gas_rows(conn, kind, object_id)} if kind in GAS_TABLES else {}
+    if air:      # UX.309: the Venus-set gas line names only the gases the air holds above their floors
+        for group_rows in by_group.values():
+            for entry in group_rows:
+                if entry["key"] == sulfur_cloud_set.COLUMN and entry["raw"] is None and row[sulfur_cloud_set.COLUMN]:
+                    entry["value"] = [sulfur_cloud_set.sentence(row[sulfur_cloud_set.COLUMN], air)]
+                    entry["text"] = inline_text(entry["value"])
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     result = {"kind": kind, "groups": groups, "missing": missing(kind, stored)}

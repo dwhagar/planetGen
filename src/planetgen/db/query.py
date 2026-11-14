@@ -421,13 +421,13 @@ def count_uncharted_sector_rows(conn):
     """
     How many sector rows are uncharted placeholders (MAP.399): placed rows (`shell_index` set) beyond the cells the chart ledger holds. Every charted
     sector has its cell in the ledger (`store.save_sector` records it), so the difference of the two counts is the placeholders, each count read from an index.
-    Kept by `countcache` (OPS.154: it is read on every Sectors list); before the first count it is the table's estimated rows less the ledger.
+    Kept by `countcache` (OPS.154: it is read on every Sectors list); before the first count it is the table's estimated rows less the ledger's estimated rows (no request counts a table).
     """
     def exact(c):
         return max(0, c.execute("SELECT COUNT(shell_index) AS n FROM sectors").fetchone()["n"] - chart_ledger.count(c))
 
     def estimate(c):
-        return max(0, _estimated_rows(c, "sectors") - chart_ledger.count(c))
+        return max(0, _estimated_rows(c, "sectors") - _estimated_rows(c, "chart_ledger"))
 
     return _counted(conn, ["count_uncharted_sector_rows"], exact, estimate)
 

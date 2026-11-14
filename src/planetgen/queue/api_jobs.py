@@ -30,7 +30,7 @@ import time
 
 from planetgen.admin import updateguard
 from planetgen.queue import jobbeat, redisqueue, workers
-from planetgen.util import log
+from planetgen.util import log, secrets_mask
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
@@ -211,7 +211,7 @@ def submit(function, *args, expected_seconds=None):
     try:
         connection.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise NoQueue(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise NoQueue(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                       f"start Redis to run this: {exc}") from exc
     job_id = new_job_id()
     queue_name, cap = lane(expected_seconds)

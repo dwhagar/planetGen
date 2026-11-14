@@ -2,6 +2,143 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4057] - 2026-11-14
+
+**Headline:** The mass pass and the luminosity pass of one run look up the clusters' and satellites' sector addresses once, with no change to any generated star.
+
+### Changed
+- **The planning of the two bright-star passes shares the components' sample addresses.** Each pass's planning asks, for every cluster and satellite, which sector 256 sample positions lie in (`component_pass.kept_stars`, 5 million `sector_address_at` calls on the default galaxy, most of the 69 s serial planning step of a pass). The places depend on the component alone, not on the pass, so they are now kept by the digest of the positions (`component_pass._sample_places`) and the second pass finds them. The expected stars, the units and the stars drawn are unchanged (PERF.264).
+
+## [8.0.4056] - 2026-11-14
+
+**Headline:** The Sectors list no longer counts the chart ledger table on a request that has no stored answer yet; it uses the storage engine's estimate, as every other count does.
+
+### Fixed
+- **No table-wide count on a request (OPS.154).** The estimate that `count_uncharted_sector_rows` returns before its first stored count ran `SELECT COUNT(*) FROM chart_ledger`; it now reads the ledger's estimated rows, like the sectors table beside it. `test_count_cache.py::test_a_request_never_counts_the_table_itself_when_the_answer_is_not_there` was red on main since PR 6308 and passes again. The stored (exact) count is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4055] - 2026-11-14
+
+**Headline:** Four tests that went red on main this evening pass again; no behavior changes.
+
+### Fixed
+- **Main reds after OPS.183, OPS.184 and OPS.175 (TODO sweep).** The ESA account variables of the Gaia download (OPS.183) are named in the settings test with their reason; the generator battery's digest poll interval (OPS.184) says it is defined by the program; the VizieR source name reads "catalog"; the settings writer test reads the new refusal wording of OPS.175. generation-output: unchanged
+generation-affects: none
+
+## [8.0.4054] - 2026-11-14
+
+**Headline:** A long database statement of a command shows in the beat with its label and start, and the stage events of MySQL are used where the account may read them.
+
+### Changed
+- **One helper for a long statement (OPS.195).** `queue/longsql.run(conn, statement, label)` sends the statement and names it in the beat while it runs (`db/statementmark.py`, the unit's phase). Where the database account can read MySQL's current stage events the beat also carries the work done and estimated for the statement; the account the install creates cannot, so this is checked once and stays off.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4053] - 2026-11-14
+
+**Headline:** The beat of a running job now carries proof that it is working, so a long database statement no longer looks like a job that stopped.
+
+### Changed
+- **Evidence in the beat (OPS.193).** Every ten seconds a unit's beat also writes the processor seconds it has used, the bytes it has read and written (`/proc/self/io`), and, while a database statement is out, the statement's label and the time it was sent. The database layer marks the start and end of every statement it sends (`db/statementmark.py`, reused from the `store` connection), because MySQL's own progress figures are not readable by the account the install creates. Nothing reads the new fields yet: OPS.194 teaches the judge to call a unit that moves them busy instead of quiet.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4052] - 2026-11-14
+
+**Headline:** A new test keeps silent sleeps out of the code that jobs run.
+
+### Changed
+- **No sleep in command code (OPS.197).** A job that sleeps while it waits shows no activity, so it looks stuck. A syntax-tree test (`tests/test_no_sleep_in_commands.py`) now lists every `sleep` call in the package by its function and fails on any that is not named with its reason: a blocking primitive that declares its wait, a pause under a second between two tries of a transaction, or code that does not run in a unit. An entry that no longer matches a sleep fails as well.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4051] - 2026-11-14
+
+**Headline:** A planet's mass table now adds up to the whole body, because the water share is in it.
+
+### Changed
+- **The planet page review of Kiamtochen III (UX.308 to UX.311).** The Composition mass table now includes the water share, so metal, rock, water and the other ices add up to 100 percent (the ice row is "Other ices (not water)"). The Venus sulfur-cloud gas line names only the gases the air actually holds. A site that is never livable says so instead of repeating the length of the orbit, and the best-site temperature range says it covers the whole orbit and not a day.
+
+generation-affects: none
+
+## [8.0.4050] - 2026-11-14
+
+**Headline:** Every body of a belt at the class D size or larger now has a page and a class when you ask for it, however many the belt holds, made on the spot by the same generator that makes the planets and never stored.
+
+### Changed
+- **Bodies past the stored 300 (GEN.1674).** A belt keeps up to 300 bodies, but its size law holds many more over 1e19 kg (about 200 km across): about 230,000 in a median outer disk (Kuiper and scattered disk) and up to over a million. A rank past the stored ones is now a body of the same law, drawn from a stream of the belt's own, the same whenever it is asked for, down to the 1e19 kg floor. `GET /api/objects/<ref>/belt-members/<rank>` and the member page serve it with the same page as a stored body.
+- **Its class, on demand.** The member page and the API now give the body's class (`planet`: class, its description, mass, radius, density, gravity, surface temperature and air pressure) from the one planet generator (`belt_planets.planet_of`), for a stored body and a tail body alike; nothing is stored for it. The belt block gives `class_d_count`, the number of bodies the belt holds at the class D size or larger.
+- No stored value, no generated body and no generation output changes: the member rows and the planets are as they were. `belt_roster` and `belt_page` give the one function that makes a body's entry to both the stored bodies and the bodies drawn on demand.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4049] - 2026-11-14
+
+**Headline:** The galaxy skeleton step is no longer stopped as "stuck" while it waits for the generator battery's digest, and the wait now shows real counts: the battery's cases on the bar and the sampling tables built in the log.
+
+### Changed
+
+- OPS.184 (a bug from Boss's run on 8.0.4043, 5:36 PM EST on 2026-11-13): the plan's skeleton unit reports nine phases since OPS.170, and the phase "Waiting for the generator battery's digest" stood on one count while the digest process worked out the battery and the bright-star sampling tables of a code key it had not seen (minutes on a slow host), past the 300 s quiet limit twice. The run stopped with "unit 0 of stage Galaxy skeleton was stuck twice".
+- The digest process now counts its cases and every sampling table it works out in two shared numbers (`generation/battery_progress.py`). The plan's wait reads them every 2 s: the bar moves a case at a time between phase 5 and 6, the log says `Generator battery digest, cases: 3 of 8 done (37%), 40 sampling tables built, ...` every progress interval, and the unit's heartbeat is told (`unitbeat.moving`) whenever the counts change, so a digest process that works never looks quiet and one that stops still does.
+
+generation-output: unchanged
+
+## [8.0.4048] - 2026-11-14
+
+**Headline:** Keys, tokens, passwords and credentialed addresses no longer reach any log: every line is masked to its first 4 characters, its last 2 and X's between (`abcdXXXXXXyz`).
+
+### Changed
+- **One masking helper, `util/secrets_mask.py` (SEC.48).** It finds a secret by the name beside it (`api_key=`, `"password":`, `--mysql-password`, `Authorization: Bearer`, a log field called `token`), by its place in an address (`mysql://user:password@host`, `redis://:password@host`) and by its value (every secret option of `config.json` and the environment, every variable named like a secret). A value of 6 characters or fewer is all X's.
+- **It is applied at every way a line leaves the logging layer:** each record any logger makes (the program's and a library's, message, exception and stack), `logrecord.Record`, every formatter (so `error.log`, the job logs and the Queue stream), the live-log callback, the relay, `record_error` and `write_line`.
+- **`tests/test_log_masking.py` fails if** a key, token, password or credentialed address appears unmasked in any of them.
+- **The shell scripts mask too.** `update.sh`, `install.sh` and the other scripts print through `log_record`, which now masks each line (`log_mask`), so `Redis: answering at redis://planetgen:Sup3XXXXXXXXX99@127.0.0.1:6379/0` no longer shows the password. The Redis settings check and the "no Redis server answers at" messages mask the address too.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4047] - 2026-11-14
+
+**Headline:** The Gaia 25 parsec sample is fetched at setup from four sources in turn, so the ESA archive's 2,000-row cap or a full queue no longer leaves it missing.
+
+### Changed
+- **`datasets/fetch.py` takes mirrors for a piece (OPS.183).** When a piece's own address fails or serves the wrong bytes, `fetch` tries each `Mirror` in order and logs which one served and, for the Gaia file, how many sources it holds; it is missing only when all fail, with every reason. A mirror either gives the same bytes (checked against the sha256) or converts another catalogue's answer, which `accept` judges and a `.source.json` record keeps.
+- **`datasets/gaia_nearby.py` lists four:** the ESA archive's asynchronous query (with the optional `PLANETGEN_ESA_USER` and `PLANETGEN_ESA_PASSWORD` account, the password masked by SEC.48), the Heidelberg ARI mirror (byte for byte the same file), VizieR's Gaia DR3 table and the Gaia Catalogue of Nearby Stars (I/360), the last two kept only when they hold about 5,300 well-measured stars.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4046] - 2026-11-13
+
+**Headline:** A test now fails whenever a stage is flagged as byte identical at any cut size and is not.
+
+### Changed
+- **The cut-neutral check (PERF.260).** `tests/test_cut_neutral.py` finds every command the registry flags `byte-identical` (no list kept by hand), runs its stage at two cut sizes from the same stored state and fails on any difference, on a cut that does not reproduce itself, on two cuts that make the same number of units, on a stage that stores nothing and on a flagged command with no recipe. `tests/cut_neutral_recipes.py` holds the recipes for the refresh-block-lights, link-neighbors, settle-sector-paths, fill-map-luminosity, warm-sectors, warm-systems, warm-phenomena, warm-galaxy-nodes and warm-galaxy-deep-nodes stages.  Test code and notes only. generation-output: unchanged
+
+## [8.0.4045] - 2026-11-13
+
+**Headline:** Each galaxy measure on the Generate page shows its title, an unlabeled Default tick box beside its typed box, a disabled slider at the default, and its help behind a ? button.
+
+### Changed
+- **The galaxy measure sliders start on Default.** Each row has its title with a ? button beside it (the help text opens under the bar, reachable by keyboard and screen reader), then an unlabeled tick box right beside the typed box, then the slider. Ticked (the starting state) is Default: the box shows Auto, no flag goes to the plan, and the bar is disabled and set exactly at the default. Unticking frees both, and the box takes the default value. The bar still sticks to the default.
+
+generation-affects: none
+
+## [8.0.4044] - 2026-11-13
+
+**Headline:** A logged-in admin page no longer asks the server who is logged in every 3 seconds: the job strip asks once a minute when nothing runs or waits.
+
+### Changed
+- **The admin job strip polls by need (PERF.263).** Each ask of `/admin/generate/status` looks the admin up (`/api/auth/me`), which filled the warm-up log with a line every 3 seconds on any open admin page. The strip now asks every 3 seconds only while a job runs or waits, once a minute when none does, at once when the tab is shown or focused, and not again after a 401 or 403.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4043] - 2026-11-13
 
 **Headline:** The command-line, web, API and admin log lines now read as one sentence each, with no `error:` or `warning:` words in the text, and the log message check has no exceptions left.
