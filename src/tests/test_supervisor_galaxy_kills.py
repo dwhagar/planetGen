@@ -76,10 +76,17 @@ def _digest(config):
 
 
 def _galaxy(config):
-    from tests.bughunt_support import mysql_argv, run_cli
+    from planetgen.cli import generate as generate_cli
+    from tests.bughunt_support import mysql_argv
     from tests.test_galaxy_gen import _seed_skeleton
     _seed_skeleton(config, shells=[(0, 0), (1, 1), (2, 1)])
-    run_cli("galaxy", ["--shell", "2", "--num-systems", "2", *mysql_argv(config)])
+    # not `bughunt_support.run_cli`: it runs the command under `inline_queue`, a key prefix and workers of its own, and the real supervisor would never see the run
+    old_argv = sys.argv
+    try:
+        sys.argv = ["planetgen", "galaxy", "--shell", "2", "--num-systems", "2", *mysql_argv(config)]
+        generate_cli.main()
+    finally:
+        sys.argv = old_argv
     return _digest(config)
 
 
