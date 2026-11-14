@@ -9,7 +9,7 @@ import types
 
 import pytest
 
-from planetgen.physics import oddities
+from planetgen.physics import air_branches, oddities
 
 
 def _table(*rows):
@@ -519,7 +519,7 @@ def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_whe
 
 def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
     from tests.fuzz_support import first_seed_with
-    # train 27: the share of keys with a second branch fell from 11 in 200 to 1 in 200 (stacked physics: the snow line, the ground albedo, the warm start of ice-law bodies, the redox shift), so the search runs to 200 keys
+    # train 27: the share of keys with a second branch fell from 11 in 200 to 1 in 200 (the warm start of ice-law bodies, GEN.1696, left one cold start of 200 K to find the snowball; GEN.1715 tries four), so the search runs to 200 keys
     # TEST.714: a draw key whose planet has a second branch (50 K and 0.34 of albedo apart at the first search), found by search: the generator's draws moved at epoch 140 (GEN.1363, GEN.1374) and
     # again with GEN.993, each time replacing the key that had one
     pair = lambda number: (_planet_at("G2V", 1.2, f"w20-G2V-{number}", force=("W20",)), _planet_at("G2V", 1.2, f"w20-G2V-{number}", dial=0.0))
@@ -550,13 +550,65 @@ def test_the_other_branch_is_the_same_world_with_the_same_inventory_and_draws():
         return planet, airs
 
     # TEST.714: a draw key whose planet has a second branch, found by search (the draws behind a key move with every change to the generator)
-    _seed, (planet, airs) = first_seed_with(run, lambda both: "W20" in both[0].oddities and len(both[1]) >= 2, seeds=range(200), what="a G2V planet with a second climate branch")
+    # GEN.1715: W20 tries several starts and keeps the first answer that is a distinct branch, so the second air is the one kept: the first of the later solves that is 20 K or more from the first
+    other_of = lambda airs: next((air for air in airs[1:] if abs(air.temperature_k - airs[0].temperature_k) >= air_branches.MIN_BRANCH_GAP_K), None)
+    _seed, (planet, airs) = first_seed_with(run, lambda both: "W20" in both[0].oddities and other_of(both[1]) is not None, seeds=range(200), what="a G2V planet with a second climate branch")
     assert "W20" in planet.oddities and len(airs) >= 2
-    first, second = airs[0], airs[1]
+    first, second = airs[0], other_of(airs)
     assert first.entry_state is not None and second.entry_state == first.entry_state
     assert second.constants == first.constants and second.late == first.late
     assert second.mixture.inventory == first.mixture.inventory
     assert second.temperature_k != first.temperature_k      # a different branch of the same world
+
+
+def _w20_with_stubbed_solves(answers):
+    """GEN.1715: W20 on a real planet whose first air is set to a warm answer (300 K, 0.30 of albedo), with `surface_air.solve` stubbed to give `answers[start] = (temperature_k, albedo)`
+    (a start not in the dict gives the first answer again); returns `(result, starts tried, the body)`."""
+    import dataclasses
+    from types import SimpleNamespace
+
+    from planetgen.physics import surface_air
+
+    planet = _planet_at("G2V", 1.2, "w20-stub", dial=0.0)
+    calls = []
+    real = surface_air.solve
+
+    def spy(setting, start):
+        air = real(setting, start)
+        calls.append((setting, start, air))
+        return air
+
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(surface_air, "solve", spy)
+        _planet_at("G2V", 1.2, "w20-stub", dial=0.0)
+    setting, _start, solved = calls[0]
+    first = dataclasses.replace(solved, temperature_k=300.0, albedo=0.30)
+    air_branches.clear(planet)
+    setattr(planet, air_branches.CONTEXT_ATTRIBUTE, air_branches.Context(setting, first, 320.0, 0.0, 1.2, 0.3))
+    tried = []
+
+    def stub(setting_, start):
+        tried.append(start)
+        temperature_k, albedo = answers.get(start, (300.0, 0.30))
+        return dataclasses.replace(first, temperature_k=temperature_k, albedo=albedo)
+
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(surface_air, "solve", stub)
+        result = air_branches.other_branch(planet, SimpleNamespace(id="W20"))
+    return result, tried, planet
+
+
+def test_the_other_branch_tries_the_cold_starts_in_turn_and_stops_at_the_first_distinct_answer():
+    """GEN.1715: the air solve ends on a branch by its path as much as by its start, so a snowball is looked for from several cold starts, not from 200 K alone."""
+    result, tried, planet = _w20_with_stubbed_solves({220.0: (205.0, 0.62)})
+    assert result is None and tried == [200.0, 150.0, 220.0]
+    assert getattr(planet, air_branches.CHOICE_ATTRIBUTE).temperature_k == 205.0
+
+
+def test_the_other_branch_declines_when_no_start_ends_on_a_distinct_answer():
+    result, tried, planet = _w20_with_stubbed_solves({260.0: (290.0, 0.31)})        # 10 K and 0.01 of albedo away is the same branch
+    assert result is False and tried == list(air_branches.COLD_STARTS_K)
+    assert getattr(planet, air_branches.CHOICE_ATTRIBUTE, None) is None
 
 
 def test_a_world_with_no_second_branch_is_not_named_for_one():
