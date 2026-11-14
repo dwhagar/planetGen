@@ -808,4 +808,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1714 | Life-bearing planets fell 20 percent (2.39 to 1.91 per candidate system) and dead worlds 56 percent after GEN.492's potassium depletion by mass: Boss to decide whether to revisit the potassium range | none | Boss decides, 2026-11-14. |
 | PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | Lane 05, 2026-11-14. |
 | OPS.254 | (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s | none | Lane 05, 2026-11-14. |
+| OPS.255 | (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page | none | Lane 05, 2026-11-14
+| OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | Lane 13, 2026-11-14
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | Lane 05, 2026-11-14. |
