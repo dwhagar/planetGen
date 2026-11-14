@@ -16,7 +16,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
-from planetgen.physics import constants, planet_kind
+from planetgen.physics import constants, planet_kind, planet_moons
 
 EARTH = constants.EARTH_MASS_TO_KG
 
@@ -63,6 +63,8 @@ def assert_moons_are_valid(host):
         assert moon.zone == host.zone
         assert math.isfinite(moon.mass) and moon.mass > 0
         ceiling = planet_kind.moon_mass_ceiling_kg(host.mass, host.body_type == "g")
+        if moon.moon_origin == "exchange":     # GEN.1157: a giant's captured moon of planet size has its own ceiling
+            ceiling = planet_moons.exchange_ceiling_kg(host.mass)
         assert prog_c.MOON_MIN_MASS_KG * 0.999 <= moon.mass <= ceiling * 1.001
         assert moon.mass <= host.mass / 10 * 1.001
         assert moon.radius <= host.radius / (10 ** (1 / 3)) * 1.001

@@ -38,7 +38,7 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, envelope_escape, oddities, unit_registry as units
+from planetgen.physics import bulk_structure, constants, oddities, unit_registry as units
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 
@@ -73,8 +73,8 @@ STEP_SHARE = 0.02
 
 _M_H = constants.HYDROGEN_ATOM_MASS_KG
 _M_HE = HELIUM_ATOM_MASS_RATIO * _M_H
-_GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
-_R_EARTH_M = constants.EARTH_RADIUS_KM * 1.0e3
+_GY_S = constants.SECONDS_PER_GY
+_R_EARTH_M = constants.EARTH_RADIUS_M
 
 
 def binary_diffusion_m(temperature_k):

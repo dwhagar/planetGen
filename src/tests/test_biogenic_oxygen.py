@@ -200,7 +200,9 @@ def test_only_oxygenic_life_holds_oxygen_it_made_and_only_in_a_sunlit_sea(worlds
             # an abiotic oxygen air is allowed, but an oxygenic world is the only one that grows its own
             assert world.life_age_complex_cells_gyr is not None
         if evolution.releases_oxygen(world.life_class_id):
-            assert world.hydrosphere in bo.LIVING_HYDROSPHERES, (world.name, world.hydrosphere)
+            # TEST.740: the oxygen rise burns away the methane and the other reduced gases of the air and can cool the world until its sea freezes over (Earth's own went into the Huronian
+            # glaciation after its rise); the life was in a sunlit sea when it made the oxygen, so a world that ends under ice may still hold oxygenic life
+            assert world.hydrosphere in bo.LIVING_HYDROSPHERES + ("ice-covered ocean",), (world.name, world.hydrosphere)
             seen += 1
     assert seen >= 1
 

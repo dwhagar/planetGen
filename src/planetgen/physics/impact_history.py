@@ -39,7 +39,7 @@ from planetgen.util import detmath, draw
 G = physical_constants.G
 """float: Gravitational constant, SI."""
 
-K_BOLTZMANN = 1.380649e-23
+K_BOLTZMANN = physical_constants.BOLTZMANN
 """float: Boltzmann constant, J/K."""
 
 AMU_KG = 1.66053907e-27
@@ -148,11 +148,7 @@ def impactor_escape_share(speed_ms, escape_ms):
 
 def _plume_fraction(x_lower):
     """`int_x^1 (1 - x^2)^k dx / int_0^1 (1 - x^2)^k dx` for `k = 5`, in closed form (the integrand is a polynomial)."""
-    def antiderivative(x):
-        # (1 - x^2)^5 = 1 - 5x^2 + 10x^4 - 10x^6 + 5x^8 - x^10
-        return x - 5.0 * x ** 3 / 3.0 + 2.0 * x ** 5 - 10.0 * x ** 7 / 7.0 + 5.0 * x ** 9 / 9.0 - x ** 11 / 11.0
-    total = antiderivative(1.0)
-    return (total - antiderivative(min(max(x_lower, 0.0), 1.0))) / total
+    return (_ONE_MINUS_X2_TOTAL - _antiderivative(min(max(x_lower, 0.0), 1.0))) / _ONE_MINUS_X2_TOTAL
 
 
 def erosion_efficiency(density_kg_m3, scale_height_m, diameter_m, speed_ms, escape_ms):
@@ -175,7 +171,7 @@ def erosion_efficiency(density_kg_m3, scale_height_m, diameter_m, speed_ms, esca
     rho_i = IMPACTOR_DENSITY
     slowing = rho / rho_i * (h / d + 2.0 * h ** 2 * math.sqrt(rho) / (0.75 * d ** 2 * math.sqrt(rho_i)))
     ground = speed_ms * math.exp(-slowing)
-    plume = ground * math.sqrt(4.0 * SVETSOV_GAMMA / (SVETSOV_GAMMA - 1.0))
+    plume = ground * _PLUME_SPEED_FACTOR
     x_lower = min(1.0, escape_ms / plume) if plume > 0.0 else 1.0
     column = 2.0 * h / d + 16.0 * h ** 2 * math.sqrt(rho) / (3.0 * d ** 2 * math.sqrt(rho_i)) + 16.0 * h ** 3 * rho / (d ** 3 * rho_i)
     return 3.0 * rho / (4.0 * rho_i) * column * _plume_fraction(x_lower) * ANGLE_FACTOR
@@ -193,7 +189,16 @@ _GRID, _WEIGHTS = _diameter_grid_m()
 
 
 _SQRT_IMPACTOR_DENSITY = math.sqrt(IMPACTOR_DENSITY)
-_ONE_MINUS_X2_TOTAL = (1.0 - 5.0 / 3.0 + 2.0 - 10.0 / 7.0 + 5.0 / 9.0 - 1.0 / 11.0)
+_PLUME_SPEED_FACTOR = math.sqrt(4.0 * SVETSOV_GAMMA / (SVETSOV_GAMMA - 1.0))
+"""float: The plume's expansion speed over the impactor's speed at the ground, `sqrt(4 gamma / (gamma - 1))`, 5.1 for the plume's adiabatic index."""
+
+
+def _antiderivative(x):
+    """The antiderivative of `(1 - x^2)^5 = 1 - 5x^2 + 10x^4 - 10x^6 + 5x^8 - x^10`."""
+    return x - 5.0 * x ** 3 / 3.0 + 2.0 * x ** 5 - 10.0 * x ** 7 / 7.0 + 5.0 * x ** 9 / 9.0 - x ** 11 / 11.0
+
+
+_ONE_MINUS_X2_TOTAL = _antiderivative(1.0)
 """float: `_plume_fraction`'s denominator, the antiderivative at 1 (the same arithmetic, once)."""
 _GRID_FACTORS = tuple((d, w, 0.75 * d ** 2 * _SQRT_IMPACTOR_DENSITY, d ** 2, d ** 3) for d, w in zip(_GRID, _WEIGHTS))
 """tuple: For each size of the grid its diameter, weight and the parts of `erosion_efficiency` that depend on the diameter alone."""
@@ -207,15 +212,15 @@ def erosion_per_impactor_mass(density_kg_m3, scale_height_m, speed_ms, escape_ms
     """
     rho, h = density_kg_m3, scale_height_m
     if rho <= 0.0:
-        return math.fsum(0.0 for _ in _GRID_FACTORS)
+        return 0.0
     rho_i = IMPACTOR_DENSITY
     sqrt_rho = math.sqrt(rho)
-    exp, sqrt = math.exp, math.sqrt
+    exp = math.exp
     ratio = rho / rho_i
     slow_a = 2.0 * h ** 2 * sqrt_rho
     column_b = 16.0 * h ** 2 * sqrt_rho
     column_c = 16.0 * h ** 3 * rho
-    gamma_root = sqrt(4.0 * SVETSOV_GAMMA / (SVETSOV_GAMMA - 1.0))
+    gamma_root = _PLUME_SPEED_FACTOR
     front = 3.0 * rho / (4.0 * rho_i)
     terms = []
     for d, weight, slow_den, d_squared, d_cubed in _GRID_FACTORS:
@@ -227,10 +232,6 @@ def erosion_per_impactor_mass(density_kg_m3, scale_height_m, speed_ms, escape_ms
         fraction = (_ONE_MINUS_X2_TOTAL - _antiderivative(x)) / _ONE_MINUS_X2_TOTAL
         terms.append(weight * (front * column * fraction * ANGLE_FACTOR))
     return math.fsum(terms)
-
-
-def _antiderivative(x):
-    return x - 5.0 * x ** 3 / 3.0 + 2.0 * x ** 5 - 10.0 * x ** 7 / 7.0 + 5.0 * x ** 9 / 9.0 - x ** 11 / 11.0
 
 
 # --- the balance ------------------------------------------------------------------------------------------------------------------------

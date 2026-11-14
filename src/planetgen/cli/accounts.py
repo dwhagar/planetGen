@@ -15,25 +15,15 @@ The accounts are rows in the control database, which uses the same MySQL setting
 import argparse
 import sys
 
-import pymysql
-
 from planetgen.admin import activity_log, auth
-from planetgen.db.store import add_mysql_connection_args, control_mysql_config, get_control_connection, \
-    mysql_config_from_args
-from planetgen.util import log
+from planetgen.cli import admin_account_command
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Recover the accounts: make an account the Owner.")
     parser.add_argument("--set-owner", metavar="USER", required=True, help="The username that becomes the Owner.")
-    add_mysql_connection_args(parser)
-    log.add_debug_arguments(parser)
-    args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
-    try:
-        conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
-    except pymysql.MySQLError as exc:
-        log.error(f"The control database could not be opened ({exc}).")
+    args, conn = admin_account_command.parse_and_connect(parser, argv)
+    if conn is None:
         return 1
     try:
         try:

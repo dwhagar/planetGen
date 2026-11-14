@@ -135,17 +135,18 @@ def resident_digest(conn, sector_id):
         value["row"] = {column: item for column, item in value["row"].items() if column not in _RUN_TIME_COLUMNS}
         return value
 
+    def children_of(owner, rows):
+        """`{owner row id: [bare child rows]}` over the child tables of `owner` (`fingerprint.CHILD_TABLES`)."""
+        ids = [row["id"] for row in rows]
+        found = {}
+        for table, key, parent in fingerprint.CHILD_TABLES:
+            if parent == owner:
+                for row in reader.select_in(table, key, ids):
+                    found.setdefault(row[key], []).append(bare(table, row))
+        return found
     moons = reader.select_in("moons", "rogue_planet_id", [row["id"] for row in rogues])
-    moon_children = {}
-    for table, key, owner in fingerprint.CHILD_TABLES:
-        if owner == "moons":
-            for row in reader.select_in(table, key, [moon["id"] for moon in moons]):
-                moon_children.setdefault(row[key], []).append(bare(table, row))
-    own_children = {}
-    for table, key, owner in fingerprint.CHILD_TABLES:
-        if owner == "rogue_planets":
-            for row in reader.select_in(table, key, [rogue["id"] for rogue in rogues]):
-                own_children.setdefault(row[key], []).append(bare(table, row))
+    moon_children = children_of("moons", moons)
+    own_children = children_of("rogue_planets", rogues)
     moons_of = {}
     for moon in moons:
         moons_of.setdefault(moon["rogue_planet_id"], []).append(

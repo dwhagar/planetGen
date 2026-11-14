@@ -27,8 +27,9 @@ def _exempt():
 
 def check(path):
     """Raises `cachebuild.CacheRebuilding` for a visitor's heavy `path` while the caches are rebuilt."""
-    if cachebuild.is_heavy(path) and cachebuild.state() is not None and not _exempt():
-        raise cachebuild.CacheRebuilding(cachebuild.state())
+    state = cachebuild.state() if cachebuild.is_heavy(path) else None
+    if state is not None and not _exempt():
+        raise cachebuild.CacheRebuilding(state)
 
 
 def api_response(exc):

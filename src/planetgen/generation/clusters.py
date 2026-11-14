@@ -11,6 +11,7 @@ rows stand in for the real 157. How many it draws follows the galaxy's halo mass
 """
 
 import math
+import statistics
 
 from planetgen import tuning
 from planetgen.galaxy import components, enclosed_mass, potential, shape_draw
@@ -66,13 +67,12 @@ def _bulge_distance(stream):
 def _place(stream, group, scale, pot):
     """`(position, velocity)` in the galaxy frame (the position before `scale` is applied): a halo cluster on an isotropic orbit, a metal-rich one
     flattened towards the plane and rotating with the disk at the circular speed of the galaxy's own potential `pot` at its (scaled) radius (GEN.339)."""
+    dx, dy, dz = _direction(stream)
     if group == _GROUP_HALO:
-        dx, dy, dz = _direction(stream)
         distance = _halo_distance(stream)
         dispersion = tuning.CLUSTER_HALO_DISPERSION_KMS
         rotation = 0.0
     else:
-        dx, dy, dz = _direction(stream)
         distance = _bulge_distance(stream)
         dz *= tuning.CLUSTER_BULGE_FLATTENING
         dispersion = tuning.CLUSTER_BULGE_DISPERSION_KMS
@@ -90,7 +90,7 @@ def _place(stream, group, scale, pot):
 
 
 def _structure(stream, galactocentric_pc, scale=1.0):
-    """`(half_mass_radius_pc, king_w0, tidal_radius_pc, core_collapsed)` of one cluster at this distance from the
+    """`(half_mass_radius_pc, king_w0, core_collapsed)` of one cluster at this distance from the
     center: the King concentration is lowered where the Jacobi radius would cut the cluster's edge off."""
     low, high = tuning.CLUSTER_HALF_MASS_RADIUS_RANGE_PC
     reference_pc = tuning.CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS * tuning.HALO_SCALE_LENGTH_PC * scale
@@ -119,8 +119,7 @@ def mean_cluster_mass_solar():
     sigma = tuning.CLUSTER_MASS_SIGMA_DEX * math.log(10.0)
     low, high = (math.log(m / tuning.CLUSTER_MASS_PEAK_SOL) / sigma for m in tuning.CLUSTER_MASS_RANGE_SOL)
 
-    def cdf(z):
-        return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+    cdf = statistics.NormalDist().cdf
     kept = cdf(high) - cdf(low)
     return tuning.CLUSTER_MASS_PEAK_SOL * math.exp(0.5 * sigma * sigma) * (cdf(high - sigma) - cdf(low - sigma)) / kept
 

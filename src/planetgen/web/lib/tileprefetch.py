@@ -119,6 +119,14 @@ def _claim_name(db, generation, key):
     return f"{CLAIM_KEY}{os.path.basename(tilecache._db_dir('x', db))}:{generation}:{key}"
 
 
+def _claim(connection, db, generation, keys):
+    """Claims `keys` for `CLAIM_SECONDS` (one Redis key per node and generation); the keys this caller won, in order."""
+    pipe = connection.pipeline()
+    for key in keys:
+        pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
+    return [key for key, won in zip(keys, pipe.execute()) if won]
+
+
 def chunk_timeout(count):
     """The seconds RQ lets a job of `count` nodes run (PERF.144): `redisqueue.job_timeout` of the size of its work,
     `JOB_START_SECONDS` and `NODE_SECONDS` a node; at least `MIN_JOB_SECONDS`."""
@@ -175,11 +183,7 @@ def schedule(db, keys):
         queue = redisqueue.queue(redisqueue.NODES_QUEUE, connection)
         if queue.count >= settings.prefetch_max_queued:
             return 0
-        names = [_claim_name(db, generation, key) for key in missing]
-        pipe = connection.pipeline()
-        for name in names:
-            pipe.set(name, "1", nx=True, ex=CLAIM_SECONDS)
-        claimed = [key for key, won in zip(missing, pipe.execute()) if won]
+        claimed = _claim(connection, db, generation, missing)
         if not claimed:
             return 0
         minute = f"{MINUTE_KEY}{int(time.time() // 60)}"
@@ -229,10 +233,7 @@ def rebuild(db, generation, keys):
     try:
         connection = _redis()
         queue = redisqueue.queue(redisqueue.NODES_QUEUE, connection)
-        pipe = connection.pipeline()
-        for key in ordered:
-            pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
-        claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
+        claimed = _claim(connection, db, generation, ordered)
         _enqueue_chunks(queue, db, claimed, "rebuild")
         if claimed:
             workers.ensure_workers(redisqueue.NODES_QUEUE, connection, redisqueue.redis_url())

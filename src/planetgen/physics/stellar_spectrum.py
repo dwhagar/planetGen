@@ -45,8 +45,8 @@ in UV-B and UV-A against UV-C (radiation-model.md section 12). A stand-in until 
 SOLAR_CONSTANT_PER_LUMINOSITY = 1.0 / (4.0 * math.pi * constants.AU_M ** 2)
 """float: W/m2 at 1 AU per watt of luminosity (the Sun, 3.828e26 W, gives 1361 W/m2)."""
 
-_H = 6.62607015e-34
-_C = 299792458.0
+_H = constants.PLANCK_CONSTANT
+_C = constants.SPEED_OF_LIGHT_M_S
 _K = constants.BOLTZMANN
 
 _X = np.concatenate([np.geomspace(1e-6, 1.0, 400, endpoint=False), np.geomspace(1.0, 120.0, 2400)])

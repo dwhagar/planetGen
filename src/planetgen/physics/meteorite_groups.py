@@ -87,7 +87,8 @@ def nearest_group(fayalite_percent, metal_vol_percent, refractory_vol_percent, m
         metal_vol_percent, refractory_vol_percent, matrix_vol_percent (float): The body's volume percent of metal, of refractory inclusions and of matrix.
     """
     coordinates = (fayalite_percent, metal_vol_percent, refractory_vol_percent, matrix_vol_percent)
+    distances = {name: _distance(coordinates, name) for name in CHONDRITE_GROUPS}
     # equal distances go to the group compared on more axes (CK, with an olivine average, over CV, which has none)
-    best = min(CHONDRITE_GROUPS, key=lambda name: (_distance(coordinates, name)[0], -_distance(coordinates, name)[1]))
-    distance = _distance(coordinates, best)[0]
+    best = min(distances, key=lambda name: (distances[name][0], -distances[name][1]))
+    distance = distances[best][0]
     return (best if distance <= NEAREST_LIMIT else NONE), distance

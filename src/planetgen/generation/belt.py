@@ -90,14 +90,18 @@ def present_state(star, distance, lower_limit, upper_limit, primordial_earth=Non
     GEN.1000), from `primordial_earth` Earth masses when the giants have already acted on it (`belt_origin`, GEN.1068) or from the whole disk otherwise. `belt_birth` reads it to keep only the belts
     that are left to count.
     """
-    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth,
-                          ring_light_ratio(star, lower_limit, upper_limit))[:3]
+    return _settled(star, distance, lower_limit, upper_limit, primordial_earth)[:3]
 
 
 def present_settled(star, distance, lower_limit, upper_limit, primordial_earth=None):
     """The `belt_ledger.BeltLedger` that `present_state` settled (the stored bodies and the mass), or None where the giants took all of the belt's solids (GEN.1070)."""
+    return _settled(star, distance, lower_limit, upper_limit, primordial_earth)[3]
+
+
+def _settled(star, distance, lower_limit, upper_limit, primordial_earth):
+    """`_present_state` on the numbers `star` gives it."""
     return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth,
-                          ring_light_ratio(star, lower_limit, upper_limit))[3]
+                          ring_light_ratio(star, lower_limit, upper_limit))
 
 
 @functools.lru_cache(maxsize=4096)
@@ -266,12 +270,19 @@ class AsteroidBelt:
             self._members = self._draw_members()
         return self._members
 
+    def _left_earth(self):
+        """The mass the belt grinds from, Earth masses: what the giants left of what it formed with; None for a belt with no origin (the whole disk's)."""
+        return None if self.origin is None else self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
+
+    def _resettle(self, star):
+        """Settles the largest body, the mass and the density again for the belt as it now stands."""
+        self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, self.upper_limit, self._left_earth())
+
     def _draw_members(self):
         star = _STARS.get(self)
         if star is None:
             return []
-        left = None if self.origin is None else self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
-        settled = present_settled(star, self.distance, self.lower_limit, self.upper_limit, left)
+        settled = present_settled(star, self.distance, self.lower_limit, self.upper_limit, self._left_earth())
         if settled is None:
             return []
         ledger = settled.ledger
@@ -295,8 +306,7 @@ class AsteroidBelt:
         self.primordial_mass_earth += units.convert(mass_kg, "kg", "Mearth")
         self.implanted_kg += mass_kg
         self._members = None
-        left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
-        self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, self.upper_limit, left_earth)
+        self._resettle(star)
         if sentence:
             self.origin_sentence = f"{self.origin_sentence} {sentence}"
         return True
@@ -321,8 +331,7 @@ class AsteroidBelt:
         self.upper_limit = upper_limit
         self.distance = min(self.distance, upper_limit)     # a belt whose middle lay past the cut keeps it inside its limits (PERF.229: A2VII)
         self._members = None          # drawn again for the shorter belt, on next use
-        left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
-        self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, upper_limit, left_earth)
+        self._resettle(star)
         return True
 
     def to_dict(self):
