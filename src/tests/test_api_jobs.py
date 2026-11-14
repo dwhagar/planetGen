@@ -18,6 +18,13 @@ from tests.test_api import admin_client, client, default_admin_client, first_adm
 pytestmark = pytest.mark.real_queue
 
 
+@pytest.fixture(autouse=True)
+def _the_supervisor_acts_at_once(monkeypatch):
+    """OPS.209: a submit and a status poll leave an ask for workers, which the supervisor acts on a moment later. These tests run real workers and have no supervisor, so the ask is acted on in place."""
+    from planetgen.queue import workers
+    monkeypatch.setattr(workers, "ensure_workers", workers.start_workers)
+
+
 def _wait(job_id, timeout=60):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
