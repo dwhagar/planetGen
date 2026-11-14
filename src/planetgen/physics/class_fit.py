@@ -96,6 +96,17 @@ def _load():
 DOCUMENT, CLASSES, WIDTHS = _load()
 """tuple: The `FitClass` rows; `DOCUMENT` the whole file; `WIDTHS` the fudge table's width at each edge, `{quantity: {"unit": "ln" or "plain", "edges": {edge: width}}}`."""
 
+
+def floor_of(letter, quantity, kind=planet_classes.TERRESTRIAL):
+    """The least value (a `min` condition) that class `letter` of `kind` asks of `quantity`, in the unit the table holds it: the one place a rating that must agree with a class (the Air rating's Blue rung with the oxygen of class M, GEN.1703) reads its number from."""
+    for cls in CLASSES:
+        if cls.letter == letter and cls.kind == kind:
+            floors = [condition["min"] for condition in cls.when if condition["quantity"] == quantity and "min" in condition]
+            if len(floors) != 1:
+                raise FitError(f"class {letter} ({kind}) has {len(floors)} floors for {quantity!r}, not one")
+            return floors[0]
+    raise FitError(f"{letter!r} is not a class of kind {kind!r}")
+
 GATE_PRESSURE_PA = DOCUMENT["gate_pressure_pa"]
 LETTERS = tuple(sorted({c.letter for c in CLASSES}))
 

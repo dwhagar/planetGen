@@ -311,9 +311,20 @@ def test_low_oxygen_is_rated_by_the_air_and_not_by_the_mask_that_fixes_it():
     def air(o2_kpa):          # inspired O2 of o2_kpa at 100 kPa: the fraction F satisfies F (100 - 6.3) = o2_kpa
         return hab.air_score(World(100.0, 15, {"N2": 1.0 - o2_kpa / 93.7, "O2": o2_kpa / 93.7}))
     assert air(0.0) == 0.0 and hab.tier(air(0.0)) == "Red"
-    assert hab.tier(air(2.0)) == "Red" and hab.tier(air(4.5)) == "Yellow" and hab.tier(air(6.5)) == "Green" and hab.tier(air(8.0)) == "Blue"
+    assert hab.tier(air(2.0)) == "Red" and hab.tier(air(4.5)) == "Yellow" and hab.tier(air(6.5)) == "Green"
+    assert hab.tier(air(8.0)) == "Green" and hab.tier(air(14.8)) == "Green" and hab.tier(air(15.1)) == "Blue"      # GEN.1703: Blue needs the 16 kPa of oxygen of class M (at 100 kPa: 15.0 inspired), not only the 8 kPa a lung lives on
     assert air(0.0) < air(2.0) < air(4.0) < air(5.7) < air(8.0)
     assert air(5.7) == pytest.approx(0.75, abs=1e-3) and air(4.0) == pytest.approx(0.4, abs=1e-3)
+
+
+def test_the_blue_air_rung_reads_the_oxygen_floor_of_class_m_and_a_species_scales_it_with_its_own_minimum():
+    """GEN.1703: the one number is the `min` of class M's oxygen condition; a species that lowers its inspired minimum lowers the floor in proportion."""
+    from planetgen.physics import class_fit
+    assert hab.BLUE_O2_FLOOR_KPA == class_fit.floor_of("M", "o2_partial_pa") / 1000.0 == 16.0
+    thin = World(100.0, 15, {"N2": 0.9, "O2": 0.10})            # 10 kPa of oxygen
+    assert hab.tier(hab.air_score(thin)) == "Green"
+    hardy = hab.bands({"inspired_o2_min_kpa": 4.0})              # half the minimum: half the floor, 8 kPa
+    assert hab.tier(hab.air_score(thin, hardy)) == "Blue"
 
 
 def test_the_gases_a_filter_takes_out_are_scored_on_the_body_and_the_pressure_edge_is_the_everest_summit():
