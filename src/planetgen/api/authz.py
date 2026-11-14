@@ -123,24 +123,24 @@ def require_admin(fresh=False, session_only=False, scope="admin"):
             bearer = request.headers.get("Authorization", "").startswith(_BEARER_PREFIX)
             via = "API key" if bearer else "session cookie"
             if admin is None:
-                log.debug(f"Access to {request.path} denied: no valid {via} (401)")
+                log.debug(f"Access to {request.path} denied: no valid {via} (401).")
                 _log_refusal(bearer)
                 raise ApiError("authentication required", status_code=401)
             if session_only and bearer:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: API keys can't manage "
-                          f"the account (403)")
+                          f"the account (403).")
                 activity_log.event("AUTHZ", "apikey.refused", user=admin["username"], path=request.path)
                 raise ApiError("an API key can't do this; sign in with your password instead", status_code=403)
             if bearer and not adminAuth.scope_allows(admin["api_scopes"], scope):
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: the key lacks the "
-                          f"{scope!r} scope (403)")
+                          f"{scope!r} scope (403).")
                 activity_log.event("AUTHZ", "apikey.scope", user=admin["username"], path=request.path,
                                    key_id=admin["api_key_id"], key_prefix=admin["api_key_prefix"], required=scope)
                 raise ApiError(f"this key lacks the '{scope}' scope", status_code=403,
                                extra={"required_scope": scope})
             if fresh and admin["must_change_credentials"]:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: default credentials "
-                          f"not changed yet (403)")
+                          f"not changed yet (403).")
                 activity_log.event("AUTHZ", "credentials.unchanged", user=admin["username"], path=request.path)
                 raise ApiError(
                     "default credentials must be changed (POST /api/auth/change-credentials) "

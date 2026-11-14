@@ -85,14 +85,45 @@ _FILE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 
 
 @dataclass(frozen=True)
+class Mirror:
+    """
+    Another place to get a piece when its own address fails (OPS.183), tried in the order the piece lists them. `label` names it in the log. Three kinds:
+    - `url` only: another address that serves the same bytes, held to the piece's size and sha256 like the first;
+    - `get(opener, timeout)` instead of `url`: a function that runs the request itself (an asynchronous job, a login) and returns the bytes; the same check follows;
+    - `convert(bytes)` as well: this source's answer is a different file of the same data (other column names, other number formatting), which `convert` turns into the piece's
+      file and `accept(bytes)` judges (returns `None` to take it or the reason to refuse), because no sha256 can be known for it. `.<name>.source.json` then records the file's sha256 and
+      size and the mirror's label, so the next setup keeps it.
+    """
+
+    label: str
+    url: str = ""
+    get: object = None
+    convert: object = None
+    accept: object = None
+
+    def __post_init__(self):
+        if bool(self.url) == (self.get is not None):
+            raise ValueError(f"{self.label}: a mirror has an address or a `get` function, not both or neither")
+        if self.url and not self.url.startswith("https://"):
+            raise ValueError(f"{self.label}: a dataset is fetched over https, not {self.url!r}")
+        if bool(self.convert) != bool(self.accept):
+            raise ValueError(f"{self.label}: `convert` and `accept` go together")
+        if self.convert and self.get is None:
+            raise ValueError(f"{self.label}: a converting mirror reads its own answer, so it has a `get` function")
+
+
+@dataclass(frozen=True)
 class Piece:
-    """One file of a dataset: its name in the cache folder, where it comes from, its sha256 and its exact size."""
+    """One file of a dataset: its name in the cache folder, where it comes from, its sha256 and its exact size. `mirrors` are the other places to try, in order, when the address
+    fails or serves the wrong bytes; `describe(path)` says in a few words what the file holds, for the line that names the source that served it."""
 
     name: str
     url: str
     sha256: str
     size: int
     transient: bool = False
+    mirrors: tuple = ()
+    describe: object = None
 
     def __post_init__(self):
         if not _FILE_NAME.fullmatch(self.name) or self.name.startswith(".."):
@@ -291,7 +322,7 @@ def _is_good(path, piece):
     except OSError:
         return False
     if stat.st_size != piece.size:
-        return False
+        return _is_accepted_alternative(path, piece, stat)
     key = (path, stat.st_size, stat.st_mtime_ns, piece.sha256)
     if key in _VERIFIED:
         return True
@@ -301,7 +332,33 @@ def _is_good(path, piece):
         return False
     if good:
         _VERIFIED[key] = True
-    return good
+        return True
+    return _is_accepted_alternative(path, piece, stat)
+
+
+def _source_record_path(path):
+    return os.path.join(os.path.dirname(path), f".{os.path.basename(path)}.source.json")
+
+
+def _is_accepted_alternative(path, piece, stat):
+    """True when `path` is the file a converting mirror of `piece` made (OPS.183): its `.source.json` names a mirror of the piece and holds this file's size and sha256."""
+    if not any(mirror.convert for mirror in piece.mirrors):
+        return False
+    try:
+        with open(_source_record_path(path), encoding="utf-8") as handle:
+            record = json.load(handle)
+        labels = {mirror.label for mirror in piece.mirrors if mirror.convert}
+        if record.get("label") not in labels or record.get("size") != stat.st_size:
+            return False
+        key = (path, stat.st_size, stat.st_mtime_ns, record.get("sha256"))
+        if key in _VERIFIED:
+            return True
+        if _sha256_of(path) != record.get("sha256"):
+            return False
+        _VERIFIED[key] = True
+        return True
+    except (OSError, ValueError, AttributeError):
+        return False
 
 
 def _stamp_path(dataset):
@@ -349,7 +406,7 @@ def locate(dataset):
         if not os.path.exists(path):
             lacking.append((piece, f"{piece.name} has not been downloaded"))
         elif not _is_good(path, piece):
-            log.debug("dataset %s: %s does not match the catalog (size or sha256)", dataset.key, piece.name)
+            log.debug("The piece %s of dataset %s does not match the catalog (size or sha256).", piece.name, dataset.key)
             lacking.append((piece, f"{piece.name} does not match the catalog's size or sha256"))
     if lacking:
         return Located(dataset, None, lacking[0][1], tuple(lacking))
@@ -412,7 +469,7 @@ def _megabytes(count):
     return f"{count / 1e6:.1f} MB"
 
 
-def _request(piece, opener, out, progress=None):
+def _request(piece, opener, out, progress=None, url=None):
     """Streams the piece into the open file `out` from where it ends (a `Range` request when it already holds a start); returns the
     byte count the file holds. Raises `DownloadError`, also when the host stalls (`STALL_MIN_BYTES` in `STALL_WINDOW_SECONDS`)."""
     out.seek(0, os.SEEK_END)
@@ -420,7 +477,9 @@ def _request(piece, opener, out, progress=None):
     headers = {"User-Agent": user_agent()}
     if count:
         headers["Range"] = f"bytes={count}-"
-    request = urllib.request.Request(piece.url, headers=headers)
+    url = url or piece.url
+    request = urllib.request.Request(url, headers=headers)
+    where = url.split("?")[0]          # a query's text is long and says nothing the address does not
     limit = piece.size + 1
     try:
         with opener(request, timeout=TIMEOUT_SECONDS) as response:
@@ -439,14 +498,14 @@ def _request(piece, opener, out, progress=None):
                 now = _now()
                 if now - window_start >= STALL_WINDOW_SECONDS:
                     if count - window_count < STALL_MIN_BYTES:
-                        raise DownloadError(f"{piece.url}: stalled at {_megabytes(count)} of {_megabytes(piece.size)}")
+                        raise DownloadError(f"{where}: stalled at {_megabytes(count)} of {_megabytes(piece.size)}")
                     window_start, window_count = now, count
                 if progress:
                     progress.update(piece, count)
     except urllib.error.HTTPError as exc:
-        raise DownloadError(f"{piece.url}: the host answered {exc.code} {exc.reason}") from exc
+        raise DownloadError(f"{where}: the host answered {exc.code} {exc.reason}") from exc
     except (urllib.error.URLError, OSError, http.client.HTTPException) as exc:
-        raise DownloadError(f"{piece.url}: {getattr(exc, 'reason', None) or exc}") from exc
+        raise DownloadError(f"{where}: {getattr(exc, 'reason', None) or exc}") from exc
     return count
 
 
@@ -463,28 +522,82 @@ def _sha256_of_open(out):
 
 
 def _download(piece, path, opener, progress=None):
+    """Gets the piece from its own address and then from each mirror, in order, until one serves the right file (OPS.183); the log names the one that did. Raises the reasons of all
+    of them when none does."""
+    sources = [None, *piece.mirrors]
+    reasons = []
+    for number, mirror in enumerate(sources):
+        label = mirror.label if mirror else "its own address"
+        try:
+            _download_from(piece, path, opener, progress, mirror)
+        except DownloadError as exc:
+            reasons.append(f"{label}: {exc}")
+            if number + 1 < len(sources):
+                log.warning(f"{piece.name}: {label} failed ({exc}); trying {sources[number + 1].label}.")
+            continue
+        detail = ""
+        if piece.describe:
+            try:
+                detail = f", {piece.describe(path)}"
+            except Exception as exc:  # noqa: BLE001 -- the line is only a note
+                log.swallowed("datasets/fetch", "describe", exc)
+        log.normal(f"{piece.name}: served by {label}{detail}.")
+        return
+    raise DownloadError("; ".join(reasons) if len(reasons) > 1 else reasons[0])
+
+
+def _download_from(piece, path, opener, progress, mirror):
+    """One try at the piece from one source: `mirror` is `None` for the piece's own address."""
     handle, temporary = tempfile.mkstemp(prefix=f".{piece.name}.", dir=os.path.dirname(path))
+    converted = None
     try:
         with os.fdopen(handle, "w+b") as out:
             if progress:
                 progress.begin(piece)
-            for attempt in range(ATTEMPTS):
+            if mirror is not None and mirror.get is not None:
                 try:
-                    count = _request(piece, opener, out, progress)
-                    break
-                except DownloadError as exc:
-                    if attempt == ATTEMPTS - 1:
-                        raise
-                    if progress:
-                        progress.note(f"{exc}; trying again ({attempt + 2} of {ATTEMPTS})")
-                    time.sleep(RETRY_WAIT_SECONDS)
-            if count != piece.size:
-                raise _WrongBytes(f"{piece.url}: expected {piece.size} bytes, got {'more' if count > piece.size else count}")
-            found = _sha256_of_open(out)
-        if found != piece.sha256:
-            raise _WrongBytes(f"{piece.url}: sha256 is {found}, the catalog says {piece.sha256}; not kept")
+                    data = mirror.get(opener, TIMEOUT_SECONDS)
+                except DownloadError:
+                    raise
+                except (urllib.error.URLError, OSError, http.client.HTTPException, ValueError) as exc:
+                    raise DownloadError(f"{mirror.label}: {getattr(exc, 'reason', None) or exc}") from exc
+                out.write(data)
+                count = len(data)
+            else:
+                for attempt in range(ATTEMPTS):
+                    try:
+                        count = _request(piece, opener, out, progress, mirror.url if mirror else None)
+                        break
+                    except DownloadError as exc:
+                        if attempt == ATTEMPTS - 1:
+                            raise
+                        if progress:
+                            progress.note(f"{exc}; trying again ({attempt + 2} of {ATTEMPTS})")
+                        time.sleep(RETRY_WAIT_SECONDS)
+            where = mirror.label if mirror else piece.url
+            if mirror is not None and mirror.convert is not None:
+                out.seek(0)
+                try:
+                    converted = mirror.convert(out.read())
+                except Exception as exc:  # noqa: BLE001 -- an answer the converter cannot read is a source that failed
+                    raise _WrongBytes(f"{where}: its answer could not be read ({type(exc).__name__}: {exc})") from exc
+                why = mirror.accept(converted)
+                if why:
+                    raise _WrongBytes(f"{where}: {why}")
+                out.seek(0)
+                out.truncate()
+                out.write(converted)
+                found = hashlib.sha256(converted).hexdigest()
+            else:
+                if count != piece.size:
+                    raise _WrongBytes(f"{where}: expected {piece.size} bytes, got {'more' if count > piece.size else count}")
+                found = _sha256_of_open(out)
+        if converted is None and found != piece.sha256:
+            raise _WrongBytes(f"{where}: sha256 is {found}, the catalog says {piece.sha256}; not kept")
         os.chmod(temporary, 0o644)
         os.replace(temporary, path)
+        if converted is not None:
+            _write_atomically(_source_record_path(path), json.dumps({"label": mirror.label, "sha256": found, "size": len(converted)}, sort_keys=True).encode("utf-8"))
     except OSError as exc:
         _unlink(temporary)
         raise DownloadError(f"{path}: cannot be written ({exc})") from exc

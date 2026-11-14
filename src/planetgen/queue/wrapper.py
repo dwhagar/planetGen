@@ -31,7 +31,7 @@ import redis
 
 from planetgen.datasets import fetch
 from planetgen.queue import commandgaps, commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
-from planetgen.util import log, logrecord
+from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 
 
@@ -657,7 +657,7 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
     try:
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url): {exc}") from exc
+        raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url): {exc}") from exc
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     for index in range(len(steps)):
         plan = _await_plan(conn, run_id, index, None, touch=False)
@@ -806,7 +806,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     try:
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url); "
+        raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
                                      f"start Redis to run this: {exc}") from exc
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]

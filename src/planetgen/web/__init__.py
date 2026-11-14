@@ -418,6 +418,5 @@ def init_app(app, limiter=None):
     _install_page_cache(app)
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(
-            "The secret key could not be kept in the state folder: using a random key for this "
-            "process. Forms still work, but ones left open across a restart must be resubmitted."
+            "The secret key could not be kept in the state folder, so a random one is used and forms left open across a restart must be resubmitted."
         )

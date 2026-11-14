@@ -1381,10 +1381,18 @@ def sheet(conn, kind, object_id):
                                      "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
                                      "stored": stored is not None, "absent": absent, "source": source_of(kind, spec.key),
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    air = {}
     for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
+        air[spec.key[2:]] = pascals or 0.0
         value = _value(spec, GAS_TABLES[kind][0], pascals)
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    if air:      # UX.309: the Venus-set gas line names only the gases the air holds above their floors
+        for group_rows in by_group.values():
+            for entry in group_rows:
+                if entry["key"] == sulfur_cloud_set.COLUMN and entry["raw"] is None and row[sulfur_cloud_set.COLUMN]:
+                    entry["value"] = [sulfur_cloud_set.sentence(row[sulfur_cloud_set.COLUMN], air)]
+                    entry["text"] = inline_text(entry["value"])
     if kind in ISOTOPE_TABLES:
         recorded = conn.execute(f"SELECT isotope, fraction, initial_ratio FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
         for key, label, text, ratio in isotope_record.sheet_rows(recorded) + isotope_record.mantle_sheet_rows(recorded):

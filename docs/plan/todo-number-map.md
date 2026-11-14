@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.315 |
+| UX | UX.316 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1692 |
-| PERF | PERF.264 |
+| GEN | GEN.1694 |
+| PERF | PERF.266 |
 | DB | DB.131 |
 | API | API.49 |
 | ADM | ADM.155 |
 | SEC | SEC.50 |
 | TEST | TEST.739 |
 | USR | USR.33 |
-| OPS | OPS.183 |
+| OPS | OPS.253 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2950,10 +2950,12 @@ Parents marked "new parent" had no old number of their own.
 | OPS.156 | Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | OPS.157 | Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile | OPS.156 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | OPS.158 | Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
-| PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | open |
+| PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | done, PR #6317 (Lane 06, 6:55 PM EST 11-13) |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | open |
 | PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | done, PR #6360 |
 | PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | open |
+| PERF.264 | The mass and luminosity scatter passes share the component sector addresses in their planning step | none | open |
+| PERF.265 | The workers' table warm-up starts while the parent plans each scatter pass | PERF.264 | closed as finding (Lane 15): measured 270 s vs 277 s on a 4-core box, within noise; the memory gate lets only one warm-up run beside the cut; patch kept at /mnt/project-files/reports/gen1683-perf265-prewarm-attempt.patch |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | open |
@@ -2965,19 +2967,89 @@ Parents marked "new parent" had no old number of their own.
 | OPS.167 | Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels | none | done, PR #6279 |
 | OPS.168 | log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers | none | done, PR #6285 |
 | OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | done, PR #6296 |
-| OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | open |
+| OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | done, PR 6300, 3:58 PM EST 11-13 |
 | OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |
 | OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | done, PR #6281 |
-| OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | open |
-| OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | open |
-| OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | open |
+| OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | done, PR 6327, 4:44 PM EST 11-13 |
+| OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | done, PR 6328 via 6329, 4:45 PM EST 11-13 |
+| OPS.176 | Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied | OPS.173 | done, PR 6329, 4:45 PM EST 11-13 |
 | OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | open |
 | OPS.178 | CLI validate_sectors_args: the forty pairwise option exclusions become a mode table | none | open |
 | OPS.179 | cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list | none | open |
 | OPS.180 | (bug) Galaxy at a glance says no sectors are charted when sectors are charted | none | done, Ops train 2 PR 6398 (PR 6322, migration 0253), 5:02 AM EST 11-13 |
 | OPS.181 | Fold the queue, settings and command-line duplicates: the run percent, the empty-stage end, the settings loader and two /proc walkers | none | open |
 | OPS.182 | (bug) queue/progress_file.set_stage left its temp file behind on error | none | open |
+| OPS.183 | Nearby Gaia stars download: a fallback chain of four sources past the anonymous 2,000-row cap | none | done, PR #6408 (Lane 05, 7:04 PM EST 11-13) |
+| OPS.184 | (bug) New galaxy run fails at Stage 3: the skeleton unit is stopped as quiet while it waits for the generator battery's digest (regression of OPS.170) | none | done, PR #6421 (7:12 PM EST 11-13) |
+| OPS.185 | Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter | OPS.184 | open |
+| OPS.186 | (bug) A finished stage can fail to advance: if the horse running units._end_stage is killed with a retry left, or enqueue_open raises, the retry skips, unit_failed says the run goes on and no opening is queued, so the starter waits for ever | none | open |
+| OPS.187 | (bug) open_failed has no already-done guard, so an RQ housekeeping failure after a finished cut fails the run | none | open |
+| OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | open |
+| OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | open |
+| OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | open |
+| OPS.191 | Job engine stage 1: the engine owns the loop (CommandSpec pieces and do; units._do_unit counts pieces into the beat and checks pause and stop between pieces) | none | open |
+| OPS.192 | Job engine stage 1: second-level counts (ctx.step and ctx.advance; a second bar with real numbers and rate on the Queue and Generate pages) | none | open |
+| OPS.193 | Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s) | none | done, PR #6432 (Lane 05, 8:00 PM EST 11-13) |
+| OPS.194 | Job engine stage 1: beatjudge gains busy (no count moved but work did); busy is never stopped, only warned with a stack dump past the learned time | none | open |
+| OPS.195 | Job engine stage 1: ctx.sql long-statement helper with label and start time in the beat (MySQL stage events behind a check, off as installed) | none | open |
+| OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | open |
+| OPS.197 | Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives | none | done, PR #6431 (Lane 05, 8:00 PM EST 11-13) |
+| OPS.198 | Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity) | none | open |
+| OPS.199 | Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights) | none | open |
+| OPS.200 | Job engine stage 1 family: clears and drops step per statement through ctx.sql (clean-nebula-field, clear-scatter, empty-phenomenon-scatter, drop-phenomenon-indexes, clear-bright-stars, empty-nebula-field) | none | open |
+| OPS.201 | Job engine stage 1 family: stamped walkers move to pieces by id range (rescore-habitability, refill-effect-ledger) | none | open |
+| OPS.202 | Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two | none | open |
+| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | open |
+| OPS.204 | Job engine stage 1 family: checks (the eleven check-* commands, check-math, check-datasets) count tables or checks | none | open |
+| OPS.205 | Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text | none | open |
+| OPS.206 | Job engine stage 1 family: reset-galaxy steps per table group through ctx.sql | none | open |
+| OPS.207 | Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since | none | open |
+| OPS.208 | Job engine stage 2: UnitWatch and Stuck move into the supervisor; wrapper.run and units.follow_stage lose their watch argument | none | open |
+| OPS.209 | Job engine stage 2: only the supervisor starts, sheds and lends workers; web threads, CLI and enqueuers nudge it; host-wide deciding lock and starting counter deleted | none | open |
+| OPS.210 | Job engine stage 2: reconciler each turn and on start (stage done with no next plan gets its opening; running unit with no process is queued again; run whose starter is gone carries on); calls the OPS.186 repair function; holder_is_dead takeover deleted | none | open |
+| OPS.211 | Job engine stage 2: runs start through the supervisor (runline served by it; generate, Generate page and API submit and follow, no longer own); closes OPS.188 | none | open |
+| OPS.212 | Job engine stage 2: supervisor simulator under fake clock and store with kill faults; invariants: a finished stage advances exactly once, a run ends or says why, nothing queued twice | none | open |
+| OPS.213 | Job engine stage 2: kill tests with real Redis and MySQL on the small galaxy (kill starter, supervisor, last unit in conclusion); galaxy must match an undisturbed run | none | open |
+| OPS.214 | Job engine stage 2: supervisor on the Queue page (alive since, last turn, recent actions with reasons in words) | none | open |
+| OPS.215 | Job engine stage 3: ledger tables engine_runs, engine_jobs, engine_attempts (control database) and engine_items (galaxy database), written through a queue so the supervisor never waits on MySQL; absorbs OPS.122 with OPS.216 | none | open |
+| OPS.216 | Job engine stage 3: the plan is rows (the cut inserts its unit jobs and marks itself done in one transaction; the Redis plan string is no longer the truth) | none | open |
+| OPS.217 | Job engine stage 3: the fenced done mark (attempt number raised at hand-out; ctx.commit updates WHERE attempt = mine; Redis done set and advanced flag stop being the truth); closes OPS.190 | none | open |
+| OPS.218 | Job engine stage 3: open, conclude and finish become jobs with edges; units._end_stage and the prepare, conclude and finish hooks deleted; absorbs OPS.123 and the hook part of OPS.129; split per hook kind | none | open |
+| OPS.219 | Job engine stage 3: checkpoints (ctx.commit stores the last finished piece's cursor; a retry or resume starts after it) | none | open |
+| OPS.220 | Job engine stage 3: failure by kind (passing, killed, idle, lasting); passing failures retried with doubling waits 2 s to 5 min inside a run budget; Retry(max=1), hand-written deadlock retries and unit_failed ending the run deleted | none | open |
+| OPS.221 | Job engine stage 3: held items and held runs (a lasting failure holds the item, the rest goes on; Retry held and Cancel on the Queue page, CLI and API) | none | open |
+| OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | open |
+| OPS.223 | Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146 | none | open |
+| OPS.224 | Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits) | none | open |
+| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | open |
+| OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | open |
+| OPS.227 | Job engine stage 4: the dispatch rule over the whole backlog (site lanes first against kept places, then scheduler.judge; reservations last until used; each job's last reason stored); absorbs OPS.124 with OPS.231 and OPS.232 | none | open |
+| OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | open |
+| OPS.229 | Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189 | none | open |
+| OPS.230 | Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted) | none | open |
+| OPS.231 | Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot | none | open |
+| OPS.232 | Job engine stage 4: named resources (tokens mysql_write, alone, one per warm set; pause.hold_solo stops being a special case) | none | open |
+| OPS.233 | Job engine stage 4: Queue page for the new engine (why each job waits, oldest job age per class, ready-to-start time, last controller action); replaces OPS.150 | none | open |
+| OPS.234 | Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor | none | open |
+| OPS.235 | Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot | none | open |
+| OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | open |
+| OPS.237 | Job engine stage 4: warm star tables stored as packed arrays so a forked job does not copy them (stage 0: 120 MB copied after 416 stars, 464 MB after 8,336); every drawn star identical (golden), dropped if it cannot be | none | open |
+| OPS.238 | Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths | none | open |
+| OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | open |
+| OPS.240 | Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126 | none | open |
+| OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | open |
+| OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | open |
+| OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | open |
+| OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | open |
+| OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | open |
+| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
+| OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
+| OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | open |
+| OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
+| OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | open |
+| OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | open |
+| OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3908,15 +3980,17 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1680 | Galaxy run order: sectors, link, one hoisted clear that records the scatter limits, then backfill, then the mass and luminosity scatters and phenomena | none | open |
 | GEN.1681 | Luminous-star default floor rises from 9,000 to 18,000 solar luminosities | none | open |
 | GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | open |
-| GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | open |
+| GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | closed as finding (Lane 15, /mnt/project-files/reports/gen1683-combined-scatter-pass-2026-11-13.md): a combined pass saves about 13 percent and cannot share draws; follow-ups PERF.264 and PERF.265 |
 | GEN.1684 | Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread | none | open |
-| GEN.1685 | The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance) | none | open |
+| GEN.1685 | The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance) | none | closed by design, PR 6405 (Lane 05): clearance.py must not share code with the generator it checks, so it stays a test-side audit |
 | GEN.1686 | Radius and speed laws written twice: pulsar planets, rogue yield and the AM CVn donor use their own formulas instead of the shared ones | none | open |
 | GEN.1687 | Constants written by hand: 101300 Pa, 365.25-day years, a second Earth mass and a local MPC_PER_PC instead of the shared constants and units | none | open |
 | GEN.1688 | (bug) small_body_composition: the METAL_ROWS set is shadowed by a later tuple of the same name, so nickel and cohenite group as rock | none | open |
 | GEN.1689 | Roche coefficient written twice: rings uses 2.456, orbits uses 2.44 | none | open |
 | GEN.1690 | The sphere walk is written three times with different band order (spherical.sphere_rows, region._compute_arcs and _band_arc, window.cells_in_ball) | none | open |
 | GEN.1691 | Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice | none | open |
+| GEN.1692 | (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main | none | open |
+| GEN.1693 | (bug) Promoted belt members cross a neighbouring planet or reach into the next belt (secular forcing lifts e to 0.5), so test_clearance is red on main (34 of 95 seeds) | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4007,7 +4081,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | done, PR #5426 |
 | SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | done, PR #5442 |
 | SEC.47 | Integration keys: issue, hash, scope, rotate and revoke an API key made by the PlanetGen owner for a linked site, limited to read-only calls on the object API and the site identity call | USR.28 | open |
-| SEC.48 | Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters | none | open |
+| SEC.48 | Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters | none | done, carried in PR #6408 (PR 6319, Lane 05, 7:04 PM EST 11-13) |
 | SEC.49 | (bug) The API call log read SESSION_COOKIE_NAME, so __Host- sessions were logged as anonymous | none | open |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
@@ -4897,14 +4971,15 @@ Each citation below resolves to one item by its date.
 | UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | done, PR #6100 |
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | open |
 | UX.306 | (bug) Class descriptions in physics/data/planet_classes.json break the plain-words guide: two too long, three missing the Oxford comma | none | done, PR #6345 |
-| UX.307 | Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark | none | open |
-| UX.308 | Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices | none | open |
-| UX.309 | The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four | none | open |
-| UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | open |
-| UX.311 | The best-site coldest-to-hottest range says it spans the whole orbit, not a day | none | open |
+| UX.307 | Generate page: the 15 number and length galaxy measures become sliders with a tick box, typed box and sticky Auto mark | none | done, PR 6357, 4:21 PM EST 11-13 |
+| UX.308 | Planet mass table: add the Water row (water_mass_fraction) so the shares sum to 100 percent, and relabel Ice as non-water ices | none | done, PR #6372 (Lane 06 gate, 8:00 PM EST 11-13) |
+| UX.309 | The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four | none | done, PR #6372 (8:00 PM EST 11-13) |
+| UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | done, PR #6372 (8:00 PM EST 11-13) |
+| UX.311 | The best-site coldest-to-hottest range says it spans the whole orbit, not a day | none | done, PR #6372 (8:00 PM EST 11-13) |
 | UX.312 | Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators | none | open |
 | UX.313 | (bug) The system page command names its input file like the --output file | none | open |
 | UX.314 | (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system) | none | open |
+| UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
 
 ### Code tags `TODO(<area> #N)`
 
