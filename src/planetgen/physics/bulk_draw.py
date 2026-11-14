@@ -402,7 +402,8 @@ def origin_of(body):
     `ICY` for a body that formed beyond its star's snow line, else `ROCKY`. A moon takes its parent's (the distance it formed at is
     `body.formation_distance_au`, the parent's for a moon); a body with no snow line to compare, or no distance, is rocky.
     """
-    line = getattr(getattr(body, "star", None), "snow_line_au", None)
+    star = getattr(body, "star", None)
+    line = None if star is None else formation_snow_line.water_snow_line_au(star)      # GEN.1679: the line the water is read against too (GEN.1678)
     distance = _formation_distance_au(body)
     return ICY if line is not None and distance is not None and distance >= line else ROCKY
 

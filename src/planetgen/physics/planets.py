@@ -25,7 +25,7 @@ import math
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
 from planetgen.physics import planet_moons
-from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, formation_snow_line, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -200,8 +200,9 @@ def formation_distance_au(planet):
 
 
 def formed_beyond_snow_line(planet):
-    """Whether `planet` formed at or beyond its star's snow line (False for a star with none)."""
-    line = getattr(getattr(planet, "star", None), "snow_line_au", None)
+    """Whether `planet` formed at or beyond its star's snow line (False for a star with none): the water snow line (`formation_snow_line.water_snow_line_au`, GEN.1679), the one the water is read against."""
+    star = getattr(planet, "star", None)
+    line = None if star is None else formation_snow_line.water_snow_line_au(star)
     return line is not None and formation_distance_au(planet) >= line
 
 
