@@ -16,7 +16,7 @@ A command that declares `pieces` and `do` (`commands.CommandSpec`) does not writ
   data (OPS.219) that call is the one place that writes it, and a direct `.commit()` would be a second path.
 
 **The cursor is in the contract and not stored yet.** Every unit starts at cursor 0. Storing it, so a retry or a resume starts after the last committed piece, waits for the ledger (OPS.219);
-until then `ctx.commit()` is a plain commit.
+until then `ctx.commit()` stores no cursor; with a unit that has a ledger row it is the fence (OPS.217: `attempts.Attempt.commit`), without one a plain commit.
 
 **A command without `pieces` runs as it always has** (`commands.unit_function`) until the item of its family converts it. Nothing here changes what a command computes.
 """
@@ -46,10 +46,11 @@ class Context:
     What a piece is handed (`do(args, piece, ctx)`): the unit's arguments, where it stands, and the database and the long statements, so no command opens its own or writes its own commit.
     """
 
-    def __init__(self, kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, cursor=0, clock=time.monotonic):
+    def __init__(self, kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, cursor=0, clock=time.monotonic, attempt=None):
         self.kind, self.args, self.report, self.cursor = kind, args, report, cursor
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
+        self.attempt = attempt
         self._db = None
         self._checked_at = None
 
@@ -72,10 +73,15 @@ class Context:
 
     def commit(self):
         """
-        Commits what the piece wrote. In stage 1 of the engine this is a plain commit on `ctx.db`; with the ledger (OPS.219) it commits the cursor with the data. A command that has opened no
-        connection has nothing to commit.
+        Commits what the piece wrote, fenced (OPS.217): given the unit's attempt (`attempts.Attempt`) the unit's row in the galaxy is updated `WHERE attempt = mine` in the same transaction, and a
+        unit another attempt has taken over rolls back and raises `attempts.Replaced`. With the cursor in the ledger (OPS.219) the same statement stores it. Without an attempt (a unit with no ledger
+        row, a command run alone) it is a plain commit. A command that has opened no connection has nothing to commit.
         """
-        if self._db is not None:
+        if self._db is None:
+            return
+        if self.attempt is not None and self.attempt.config is not None:
+            self.attempt.commit(self._db)
+        else:
             self._db.commit()
 
     def sql(self, statement, label, params=()):
@@ -125,12 +131,13 @@ class Context:
                 time.sleep(PAUSE_POLL_SECONDS)
 
 
-def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, clock=time.monotonic):
+def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, clock=time.monotonic, attempt=None):
     """
     Runs one unit of command `kind` and returns its result: through the engine's loop for a command with `pieces` and `do`, as the command's own `unit` function for one without.
 
     Args:
         report: `report(done, estimate)` of the unit's beat (`unitbeat.UnitBeat`), or any callable taking the same two numbers.
+        attempt (attempts.Attempt, optional): The unit's attempt in the ledger; with it every `ctx.commit()` is fenced.
         redis, run_id, stage, unit, job: Where the unit runs; with them the engine honours a cancel and a pause between two pieces. Without them (`commands.run_alone`) it does neither.
 
     Returns:
@@ -144,7 +151,7 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
         return commands.unit_function(kind)(args, report)
     pieces_of, do, gather = commands.pieces_function(kind), commands.do_function(kind), commands.gather_function(kind)
     cursor = 0              # OPS.219 stores it; until then a unit always starts at the beginning
-    ctx = Context(kind, args, report, redis=redis, run_id=run_id, stage=stage, unit=unit, job=job, cursor=cursor, clock=clock)
+    ctx = Context(kind, args, report, redis=redis, run_id=run_id, stage=stage, unit=unit, job=job, cursor=cursor, clock=clock, attempt=attempt)
     try:
         pieces = list(pieces_of(args, cursor))
         total = cursor + len(pieces)

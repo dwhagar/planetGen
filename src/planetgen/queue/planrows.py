@@ -30,7 +30,7 @@ _PLANS = {}
 """dict: `(key prefix, run id, stage index)` to the plan read (it never changes once the stage is cut)."""
 
 
-def _control(conn, run_id):
+def control_connection(conn, run_id):
     """An open connection to the control database: on the server of the database the run's first step with one names, else on the configured one."""
     from planetgen.db import store
     for item in runrecord.read_steps(conn, run_id):
@@ -83,7 +83,7 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail):
     A stage already cut (its `open` row is done) is not cut again: the rows it has are returned, whatever this call was given.
     """
     stage = _stage_key(conn, run_id, index)
-    control = _control(conn, run_id)
+    control = control_connection(conn, run_id)
     try:
         run = engine_run(conn, run_id, control)
         if _cut_row(control, run, stage) is not None:
@@ -121,7 +121,7 @@ def read_plan(conn, run_id, index):
     found = conn.hget(runrecord.run_key(run_id), ENGINE_RUN_FIELD)
     if not found or index >= len(runrecord.declared_stages(conn, run_id)):
         return None
-    control = _control(conn, run_id)
+    control = control_connection(conn, run_id)
     try:
         row = _cut_row(control, int(runrecord._s(found)), _stage_key(conn, run_id, index))
     finally:

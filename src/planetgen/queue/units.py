@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, commandgaps, engine, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attempts, commands, commandgaps, engine, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -197,7 +197,7 @@ def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
             repair_unended_stages(conn, run_id)
             return {"resumed": True}
         return {"skipped": True}
-    return _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost))
+    return _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost, row))
 
 
 def _run_settings(conn, run_id):
@@ -265,14 +265,36 @@ def _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, figur
         log.debug(f"Job profiles: unit {unit} of stage {stage} of run {run_id} was not profiled ({exc}).", area="queue")
 
 
-def _do_unit(conn, run_id, stage, unit, kind, args, cost):
+def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None):
+    """
+    Takes the attempt in the ledger (`attempts.begin`, OPS.217: the unit's attempt number is raised and written to the galaxy), does the unit (`_work_of_unit`) and writes how the attempt ended.
+    An attempt that finds another has taken the unit over (`attempts.Replaced`) has rolled back, counts nothing and ends `replaced`; the other attempt's result stands.
+    """
+    attempt = attempts.begin(conn, run_id, row, args, pid=os.getpid())
+    try:
+        result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt)
+    except attempts.Replaced as replaced:
+        log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) was replaced by a later attempt and stops: {replaced}.", area="queue")
+        conn.hdel(runrecord.progress_key(run_id, stage), unit)
+        attempt.end("replaced")
+        return {"replaced": True}
+    except BaseException as exc:
+        if attempt is not None:
+            attempt.end("failed", error_kind=type(exc).__name__, error_text=_short(str(exc)))
+        raise
+    if attempt is not None:
+        attempt.end("done" if "seconds" in result else "lost")
+    return result
+
+
+def _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
     used = usage.Usage(resident_mb)         # OPS.155: the memory and processor of this unit, peak and average
     with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit), usage=used) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
         try:
-            result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit))
+            result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit), attempt=attempt)
         except engine.UnitStopped as stopped:         # OPS.191: the engine found the run no longer live between two pieces; the unit stays undone, as one a cancel stops does
             log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) ends between two pieces: {stopped}.", area="queue")
             conn.hdel(runrecord.progress_key(run_id, stage), unit)
@@ -286,6 +308,8 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
+    if attempt is not None:
+        attempt.finish()        # OPS.217: the done mark is true in the galaxy first, and only where this attempt is still the unit's (`attempts.Replaced` otherwise)
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
     outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak)
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
