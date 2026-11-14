@@ -154,7 +154,7 @@ class StarSystem:
         moon_count (int): The total number of moons in the system.
         hab_count (int): The total number of habitable worlds (overall PHI-6 Blue or Green, `habitability.is_habitable`).
         habitable_class_count (int): The planets and moons of a class that can carry life (`count_habitable_class_worlds`).
-        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`): `"aim"` when a body meets the request's conditions, else `"unmet"`.
+        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`): `"aim"` when a body meets the request's conditions, else `"unmet"` (`None` when the request is the abundance tier's, `REQUEST_FROM_TIER`).
         m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
         system_flavor_text (str or None): The system-level flavor text sentence,
@@ -2265,9 +2265,13 @@ class StarSystem:
         else `"unmet"`. A report only (GEN.1130, GEN.1248): the request raises the odds of a world that meets those conditions
         and steers by no score, so `"unmet"` is an ordinary answer, and it is the answer exactly when no body meets them.
         """
-        if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
+        config = getattr(self, "system_config", None)
+        if getattr(config, "HABITABLE_WORLD", None) is not True:
             return None
-        return "aim" if habitable_request.count(self.all_planets if planets is None else planets) > 0 else "unmet"
+        if habitable_request.count(self.all_planets if planets is None else planets) > 0:
+            return "aim"
+        # The abundance tier's request (GEN.1704) is not the user's: when it is not met the system says nothing.
+        return None if getattr(config, "REQUEST_FROM_TIER", False) else "unmet"
 
     def _finish_planet(self, obj):
         """The end of a planet's making, after the system is whole (the life data pass): the thermal history, the final-age refresh, the class,

@@ -332,7 +332,9 @@ class Star(StellarObject):
                                     galactic_center_dist_ly=self.galactic_center_dist_ly)
         if state is None:
             # No companion given.
-            habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
+            # A request the abundance tier gave acts on the planets only: it would thin out the white dwarfs and the A stars (GEN.1704).
+            habitable_host = ((self.system_config.HABITABLE_WORLD is True and not getattr(self.system_config, "REQUEST_FROM_TIER", False))
+                              or self.system_config.INTELLIGENT_LIFE is True)
             max_luminosity_sol = getattr(self.system_config, "MAX_STAR_LUMINOSITY_SOL", None)
             max_mass_sol = getattr(self.system_config, "MAX_STAR_MASS_SOL", None)
             try:

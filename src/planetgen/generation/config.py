@@ -260,6 +260,12 @@ class SystemConfig:
         sector sets it from the galaxy's stored choice with `POPULATION`. Not saved with the config.
         """
 
+        self.REQUEST_FROM_TIER = False
+        """
+        bool: Whether `HABITABLE_WORLD` was set to True by the Class M abundance tier's request dial (`prevalence`, GEN.1704) and not by the user.
+        The star is then drawn as without a request and an unmet request is not reported. Not saved with the config.
+        """
+
         self.POPULATION = None
         """
         str or None: The stellar population a random primary star is drawn
