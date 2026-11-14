@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1684 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1686 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1657 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1659 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 160 | 64 | 1 | 1 | 0 | 226 |
 | T3 | 113 | 55 | 13 | 9 | 0 | 190 |
 | T4 | 85 | 14 | 4 | 22 | 16 | 141 |
-| T5 | 91 | 24 | 7 | 1 | 1 | 124 |
-| T6 | 220 | 115 | 31 | 76 | 4 | 446 |
+| T5 | 92 | 24 | 7 | 1 | 1 | 125 |
+| T6 | 221 | 115 | 31 | 76 | 4 | 447 |
 | T7 | 58 | 22 | 10 | 31 | 0 | 121 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 6 | 95 | 38 | 206 |
-| All | 967 | 332 | 84 | 241 | 60 | 1684 |
+| All | 969 | 332 | 84 | 241 | 60 | 1686 |
 
 ## How the labels were given
 
@@ -2957,3 +2957,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | GA1 | P | T5 | L1 | `ground_albedo.VISIBLE_TO_BOND` 1.0: the factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (the conversion over the whole spectrum is an open gap) | 0.8 to 1.3 | a dry rocky ground (basalt powder 0.215) | a measured Bond albedo of an airless basalt surface outside 0.09 to 0.14 at 3 to 4.5 Gyr, or a measured fresh basalt outside 0.17 to 0.27 | the band-integrated Bond albedo of the table's spectra over the star's spectrum and the phase integral | the Moon's Bond albedo 0.11 and Mercury's 0.088 against 0.117 for the table's basalt after 3.5 Gyr at the middle of the weathering ranges; [R3425] for the table | predicted only | - | - |
 | GA2 | B | T6 | L0 | `ground_albedo.dry_ground_type`: a carbon rock is carbon, a body with a metal share of `surface_composition.RANGES["metal_stripped"]` (0.7) or more is metal (the stand-in ground albedo 0.15), else basalt, the ground the melt of an ordinary mantle makes | none (a rule) | a rocky body with no surface water, before its air and heat flow are solved | a dry airless body whose later drawn ground is mostly felsic, ultramafic or oxidised, which is brighter or darker than basalt | the dominant ground of the draw (`surface_composition.draw_surface`) made before the air, from the melt (`volcanic_ground_type`), once the heat flow is known earlier | the table of dominant grounds (`surface_composition.DOMINANT_TABLE`) and its gates | predicted only | - | - |
 | GA3 | P | T6 | L3 | `ground_albedo.weathered_albedo`: the fresh albedo times `1 - d (1 - exp(-t / tau_w))` with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, `ground_albedo.TAU_W_GY`, `DEPTH`) | tau_w 0.5 to 4 Gyr; d 0.2 to 0.8 | an airless dry surface older than 0.5 Gyr | a measured spread of airless Bond albedos wider than 0.07 to 0.16 for basalt | a fit of the darkening to lunar and asteroid reflectance by age | the decay of the unweathered fraction [R4713]; the placeholders are not fitted; the Moon 0.11 and Mercury 0.088 sit inside the range they give | predicted only | - | no data |
+
+## 6.291 Stand-ins of the shielding of a mixed air (GEN.444)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SHL1 | P | T5 | L0 | `surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2` for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31 | each within 5 percent | krypton and bromine as trace gases of an air (the table's only users of them) | a printed length of krypton or bromine outside 140 to 158 g/cm2 | the Particle Data Group's own krypton and bromine pages | [R4926] gives iron and xenon (READ); argon 119.7, potassium 119.0, calcium 119.8, titanium 126.2, vanadium 128.5, chromium 129.3 and iron 132.1 lie on a smooth curve of the same kind | predicted only | - | - |
+| SHL2 | B | T6 | L0 | `surface_dose.stopping_mixture`: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen | the mass stopping power of the neighboring rows differs by about 10 percent | an air whose heavier elements are trace gases (sulfur dioxide, sodium and potassium chlorides); the carriers C, N, O, H, He, Ne, Ar, Kr and Xe have rows | a stellar-proton cutoff of a sulfur-rich air that moves by more than 5 percent when sulfur gets its own row | rows of the proton range table (`scripts/build_proton_range.py`) for the missing elements | the mass stopping power of fast protons varies slowly with Z/A (ICRU 49 rows of the table); 0.4 to 0.5 for all of them | predicted only | - | - |
