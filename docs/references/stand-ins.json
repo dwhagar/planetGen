@@ -65513,8 +65513,8 @@
       "title": "Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)"
     },
     {
-      "key": "6.288",
-      "number": "6.288",
+      "key": "6.289",
+      "number": "6.289",
       "rows": [
         {
           "burn_down": null,
@@ -65545,9 +65545,9 @@
             ]
           ],
           "id": "GA1",
-          "key": "6.288:GA1",
+          "key": "6.289:GA1",
           "kind": "P",
-          "slug": "6-288-ga1",
+          "slug": "6-289-ga1",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L1",
@@ -65583,9 +65583,9 @@
             ]
           ],
           "id": "GA2",
-          "key": "6.288:GA2",
+          "key": "6.289:GA2",
           "kind": "B",
-          "slug": "6-288-ga2",
+          "slug": "6-289-ga2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -65625,9 +65625,9 @@
             ]
           ],
           "id": "GA3",
-          "key": "6.288:GA3",
+          "key": "6.289:GA3",
           "kind": "P",
-          "slug": "6-288-ga3",
+          "slug": "6-289-ga3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -65635,7 +65635,7 @@
           "what": "ground_albedo.weathered_albedo: the fresh albedo times 1 - d (1 - exp(-t / tau_w)) with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, ground_albedo.TAU_W_GY, DEPTH)"
         }
       ],
-      "slug": "6-288-stand-ins-of-the-bond-albedo-of-a-dry-body-s-ground",
+      "slug": "6-289-stand-ins-of-the-bond-albedo-of-a-dry-body-s-ground",
       "title": "Stand-ins of the Bond albedo of a dry body's ground"
     }
   ]

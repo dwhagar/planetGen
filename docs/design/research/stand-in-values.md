@@ -2932,7 +2932,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AF1 | P | T1 | L0 | `acid_freezing.freezing_point_k`: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K) | none (read, not fitted); the 1 K of the reading | acid mole fraction 0 to 1 at 0.1 MPa; the equilibrium freezing point, below which a solid can be present | a measured freezing point of a sulfuric acid solution more than 2 K from the curve | the Gibbs-energy fit of [R4877] itself (Tables 6 to 8) evaluated for the liquidus, which removes the digitising | read first-hand from the scan of [R4877]; laboratory freezing points of Gable, Betz and Maron and of Kunzler and Giauque | observed in a lab | - | - |
 | AF2 | P | T5 | L0 | `acid_freezing` is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides | none | cloud pressures up to a few bar | a melting-curve slope of the hydrates above 0.1 K per bar | the pressure dependence of the Gibbs-energy functions, if a source prints it | educated guess from physics (the slopes of the ice and acid melting curves) | predicted only | - | - |
 
-## 6.288 Stand-ins of the Bond albedo of a dry body's ground
+## 6.289 Stand-ins of the Bond albedo of a dry body's ground
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
