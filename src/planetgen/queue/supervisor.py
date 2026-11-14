@@ -21,7 +21,7 @@ import time
 
 from planetgen.admin import maintenance
 from planetgen.queue import redisqueue, runline, runrecord
-from planetgen.util import log
+from planetgen.util import log, logrecord
 
 LOCK_NAME = "supervisor.lock"
 """str: The file in the state folder the supervisor holds a lock on while it lives."""
@@ -282,6 +282,18 @@ class Reconciler:
         if self.supervisor is not None:
             self.supervisor.act(what, reason)
 
+    def _note_a_starter_that_stopped(self, run_id):
+        """The first time a live run is found with its starter's sign of life gone, says so once, in the run's own log and in the supervisor's acts (OPS.253): the process that started the run
+        is not following it any more, and the supervisor carries it on."""
+        if self.connection.exists(runrecord.alive_key(run_id)):
+            return
+        now = self.clock()
+        if not self.connection.set(runrecord.starter_gone_key(run_id), now, nx=True, ex=runrecord.KEEP_SECONDS):
+            return
+        line = f"the run's starter stopped by {logrecord.local_text(now)}; the supervisor carries the run on"
+        runrecord.log(self.connection, run_id, line[0].upper() + line[1:] + ".", level="warning", kind="run.starter_stopped", now=now)
+        self._act(f"carries run {run_id} on", line)
+
     def turn(self):
         """
         Marks the live runs watched and ends the stages that stand finished without their end.
@@ -293,6 +305,7 @@ class Reconciler:
         repair = self.repair or units.repair_unended_stages
         repaired = []
         for run_id in live_runs(self.connection):
+            self._note_a_starter_that_stopped(run_id)
             self.connection.set(runrecord.supervised_key(run_id), "1", ex=SUPERVISED_SECONDS)
             for stage in units.unended_stages(self.connection, run_id):
                 finished = runrecord._s(self.connection.hget(runrecord.stage_key(run_id, stage), "ended"))

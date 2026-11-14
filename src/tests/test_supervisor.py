@@ -321,3 +321,18 @@ def test_a_run_waiting_for_a_supervisor_that_never_comes_fails_naming_the_superv
     with pytest.raises(runline.NotStarted, match="supervisor"):
         runline.start_when_free(conn, _ask_for_a_run(), 3600, lambda: None, clock=clock.time, sleep=clock.sleep)
     assert runline.of_type(conn, runline.RUN) == []
+
+
+def test_a_live_run_whose_starter_stopped_is_noted_once_in_the_run_log_and_the_acts(conn):
+    run_id = runrecord.start_run(conn, "Orphan", [runrecord.Stage("mass", "Mass")])
+    acts = []
+    reconciler = supervisor.Reconciler(conn)
+    supervisor.Supervisor(FakeClock(), supervisor.RedisStore(conn), supervisor.ProcessTable(), pid=77, lines=acts.append, duties=(reconciler,))
+    reconciler.turn()
+    assert not any("starter stopped" in line for line in acts), "the starter is alive: nothing to say"
+    conn.delete(runrecord.alive_key(run_id))
+    reconciler.turn()
+    reconciler.turn()
+    assert sum("starter stopped" in line and "carries the run on" in line for line in acts) == 1
+    said = [fields for _id, fields in runrecord.read_events(conn, run_id) if fields.get("kind") == "run.starter_stopped"]
+    assert len(said) == 1

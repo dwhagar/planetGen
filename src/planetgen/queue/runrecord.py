@@ -166,6 +166,11 @@ def opened_key(run_id, index):
     return _k("run", run_id, f"s{index}", "opened")
 
 
+def starter_gone_key(run_id):
+    """OPS.253: set the first time the supervisor finds a live run whose starter's sign of life (`alive_key`) is gone, so it says so once."""
+    return _k("run", run_id, "starter_gone")
+
+
 def supervised_key(run_id):
     """OPS.210: set by the supervisor at each turn for each live run it watches, expiring a few turns later: while it is up, the run has a follower that is not the process that started it."""
     return _k("run", run_id, "supervised")
