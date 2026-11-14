@@ -254,10 +254,15 @@ CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 after it take a mass log-uniform over this range in Earth masses, so a class the disk rarely makes at that slot (an ice giant at a cold
 one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
-# class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
-# any (10 kPa), and the water a surface ocean.
+# class letter. The surface temperature range is the liquid-water range, the water a surface ocean, and (GEN.1702, Boss's card "Yes, add land and
+# pressure", 11:18 PM EST 2026-11-13) the ocean covers 20 to 95 percent of the surface, so there is land and there is sea, under an air of 50 to 250 kPa.
 REQUEST_TEMPERATURE_K = (273.15, 323.15)
-REQUEST_MIN_PRESSURE_PA = 10000.0
+REQUEST_WATER_COVER = (0.20, 0.95)
+"""tuple[float]: The share of the surface (`ocean_fraction`, the liquid sea) a world that meets a request for a habitable world has under water: some land and
+some sea. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC11)."""
+REQUEST_PRESSURE_PA = (50000.0, 250000.0)
+"""tuple[float]: The total air pressure range, in pascals, of a world that meets a request for a habitable world (50 to 250 kPa: Earth's 101 kPa to about 2.5 times it;
+replaces the floor of 10 kPa). A planetGen stand-in (tier "from needed output", tweak L3; registry row CC12)."""
 REQUEST_HYDROSPHERES = ("surface ocean",)
 REQUEST_PLANET_DRAW_BUDGET = 60
 """int: How many planets a request for a habitable world may draw again in all, over every try of one system (`StarSystem._planet_in_ecosphere`):
