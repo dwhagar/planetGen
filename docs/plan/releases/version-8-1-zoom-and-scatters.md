@@ -780,6 +780,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1717 | (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300) | none | Lane 15, 2026-11-14
 | GEN.1718 | (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes | none | Lane 15, 2026-11-14
 | OPS.257 | A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena) | none | Lane 06, 2026-11-14
+| OPS.258 | Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test | none | Train Manager, 2026-11-14
+| OPS.259 | Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs | none | Train Manager, 2026-11-14
 | UX.318 | (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand | none | the layered-fix thread, 2026-11-14
 | TEST.742 | (bug) sweep_bulk's text-materials check holds a stale phrase after Train 27 | none | Lane 22, 2026-11-14
 | TEST.741 | (bug) After Train 27 the W20 same-inventory test is red at bistable key 155 | none | Lane 21, 2026-11-14

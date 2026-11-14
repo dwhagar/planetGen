@@ -47,10 +47,7 @@ def _entry(planet_id, moon, belts, hill_km):
     q = page_data._q
     a, e = moon.orbit.semi_major_axis_au * _KM_PER_AU, moon.orbit.eccentricity
     belt_id = belts.get(moon.belt_order) if moon.belt_rank is not None else None
-    if belt_id is not None:
-        text, belt_designation = object_uid.designation(belt_id, moon.belt_rank), True
-    else:
-        text, belt_designation = object_uid.designation(planet_id, designation_rank(moon)), False
+    text, belt_designation = object_uid.irregular_designation(planet_id, moon.rank, belt_id, moon.belt_rank), belt_id is not None
     return {
         "rank": designation_rank(moon),
         "designation": text,

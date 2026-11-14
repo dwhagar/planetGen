@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4162] - 2026-11-14
+
+**Headline:** The three spreads of a trojan swarm now come from the Jupiter and Neptune Trojans, and a tadpole orbit is no longer cut at the wrong angle; nothing in the generator draws a swarm yet.
+
+### Changed
+
+- GEN.1643 (slice 1): `trojan_swarm.LIBRATION_SIGMA_DEG` 10 to 13 degrees (the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration, 13.0; the Neptune Trojans give 12 to 15). `ECC_SIGMA` 0.06 and `INCLINATION_SIGMA_DEG` 12 stay (the fit gives 0.058 and 11.7). Stand-ins TJ9 (tier T2, tweak L2), TJ10 and TJ11 (T2, L1) leave the burn-down register. Fit: `scripts/fit_trojan_scales.py`; report `reports/gen1643-trojan-scales-2026-11-12.md`.
+- GEN.1647: `trojans.TADPOLE_LIMIT_DEG` was 23.9, which is the nearest a tadpole comes to the secondary, not a libration amplitude. It is now the amplitude at the edge of the tadpole zone, (180 - 23.9) / 2 = 78.05 degrees, derived from the new `TADPOLE_NEAREST_APPROACH_DEG` 23.9; the swarm draw is cut at it and `trojans.motion` splits tadpole from horseshoe at it. With it the generated mean amplitude is 16.3 degrees against the Jupiter Trojans' 16.2, and about a fifth of the bodies librate wider than 23.9 degrees, as the real ones do. Row TJ3 of section 6.121 is corrected.
+- `trojan_swarm.draw_regions` and `trojans.motion` are read by no generation step yet (GEN.1151 wires the swarm), so no planet, moon or swarm in the output moves.
+
+generation-output: unchanged
+
+## [8.0.4161] - 2026-11-14
+
+**Headline:** The System Map now draws a planet's irregular moons on their own tilted, stretched orbits, many going backward, with an info panel and a link to each body's page.
+
+### Changed
+
+- GEN.1086 (slice 2): a planet that caught irregular moons has a scene of its own on the System Map (`planet-<id>-irregular`), opened from the planet when it has no regular moons, or by an "Irregular moons" button beside the moon system scene (and a "Moons" button back). The moons are tens of millions of kilometers out, so they have a scale of their own and the regular moons are not squeezed into a speck. Each body is drawn at its saved place on its saved orbit (eccentric, inclined, forward or backward); clicking one shows its type, radius, mass, distance, period, makeup and the window it was caught through, with a View button to its page.
+- `GET /api/systems/<id>`: each planet has `irregular_moons` (an empty list when it keeps none); a new key, the API version stays. The planet's own page links to the irregular scene when it keeps only irregular moons.
+- Not yet: the 3D view, and the clearance ledger taking the irregular zone as occupied space (the rest of GEN.1086).
+
+generation-output: unchanged
+
 ## [8.0.4160] - 2026-11-14
 
 **Headline:** The cache warm-up commands now run through the queue engine's loop, so the Queue page counts their pieces and a cancel or a pause takes hold between two of them.
