@@ -352,9 +352,11 @@ def _short(value, limit=300):
 
 
 TABLE_KINDS = frozenset({"scatter-mass", "scatter-luminosity", "scatter-backfill", "scatter-band", "generate-start-sector",
-                         "generate-neighborhood", "generate-sectors", "generate-unplaced-sector", "generate-system"})
+                         "generate-neighborhood", "generate-sectors", "generate-unplaced-sector"})
 """frozenset: The commands whose units draw stars from the bright-star sampling tables (PERF.226), so a worker builds the tables
-before it forks a horse for one (`warm_unit`) and keeps them; any other unit runs in a worker without them."""
+before it forks a horse for one (`warm_unit`) and keeps them; any other unit runs in a worker without them. `generate-system` is not one
+(PERF.266): a one-off system draws its star from the generator's own laws and never reads a sampling table, and building them all at the
+worker's start took 56 s on a cold table cache (a fresh checkout) for nothing."""
 
 
 def tables_held():

@@ -2,6 +2,99 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4097] - 2026-11-14
+
+**Headline:** Generating one system no longer builds the star sampling tables first, which took about a minute on a fresh checkout.
+
+### Fixed
+- **A one-off system (`planetgen system`, the Generate a system page) starts its worker without warming the bright-star sampling tables (PERF.266).** `units.TABLE_KINDS` listed `generate-system`, so a fresh worker built every population's table before the unit ran, 56 s on a cold table cache (any new code version or checkout), and the system never reads a table (it draws its star from the generator's own laws; no table file is written by a whole system run). The no-database system page test took 138 s from a fresh worker on the Train 26 commit and 76 s now (10 s of that is the worker's start), and the same seed gives the same document before and after. Sector, scatter and neighborhood units still warm the tables. Not a slowdown of generation: the 88 s to 142 s of the gate was the cold table cache of the new code version.
+
+## [8.0.4096] - 2026-11-14
+
+**Headline:** The one-off system page can ask for a planet class or a life class and shows what came of it.
+
+### Changed
+- **Ask for a class and Ask for a life class on the one-off system page (UX.302).** Two boxes under Options send `--force-class` and `--force-life-class` (GEN.1620). The result shows a line for each request above the system: which body holds the class and how well its conditions fit, or that none came out. A bad letter or life class, or a class letter together with a system file's slots, is refused on the form, and a rogue planet or comet result refuses them as it does the other star-only options. The check of a class request moved from the command line to `generation/run_system.py` so the page and the command share it.
+
+generation-output: unchanged
+
+## [8.0.4095] - 2026-11-14
+
+**Headline:** The fourth layered-fixes cleanup, from a read of every code section: the physics constants come from one table, and the helpers each package wrote two to sixteen times (host-star lookups, bracketing on a grid, npz loaders, hash loops, SQL position columns, FITS card parsing, name joins) are one function each; five real bugs found on the way are fixed, and nothing the generator draws or the pages show changes.
+
+### Fixed
+- **The system page could write over its own input.** `web/system_page` named its temporary input file the same as the `--output` file, so a run with both on the same path lost the input.
+- **A course inside a system gave a 404 page.** `web/system_pages._course_in_system` raised `NotFoundError` where the page expected a plain refusal.
+- **Secure sessions were logged as anonymous.** `api/calllog` read `SESSION_COOKIE_NAME` instead of `session_cookie_name()`, so a `__Host-` session cookie was never found.
+- **A failed stage write left its temporary file.** `queue/progress_file.set_stage` now removes the temporary file on every error path.
+- **A rearranger message read "comes laterrearranger".** Two string literals in `admin/plans.py` lacked their joining space.
+- **Unused imports** in `describe/sheet.py`, `describe/heavy_rows.py`, `admin/edits.py`, `admin/plans.py`, `cli/benchmark_suite.py`, `datasets/isochrones.py` and others are gone.
+
+### Changed
+- **Physics constants come from `physics/constants`.** About 340 hand-copied values across the physics package (G, the solar mass, radius and temperature, the astronomical unit, seconds per year, molar masses) read the one table; each fold was checked by running the same snippet before and after.
+- **The describe package.** `describe/host_star.py` is the one lookup of a body's star (by `star_id`, else the first star of its system), used by the clock, heavy-element, influx, sky-size and sheet rows; the sheet's strength, spin, habitability, ring and at-a-glance row sets are written once; `build.py` shares `_wobble_row`, `_barycenter_offsets` and `join_words`.
+- **The datasets package.** `datasets/axes.py` holds `bracket`, `cumulative_integral` and `cell_means` (the isochrone, track, ozone, CIA and stellar-spectra readers each had a copy); `fetch.load_arrays` is the one `.npz` loader (four copies); `fetch._sha256_of` reuses `_sha256_of_open`; `evolved_tracks.Grid._blend` serves `light` and `landmark_fracs` with the same float32-then-float64 arithmetic; `ir_ktables._card_value` parses a FITS card once; `isochrones` imports `evolved_tracks` at the top.
+- **The names package.** The codec's permute and unpermute share `_map_digits`, encode and decode share `_digits_per_word`; `naming_key._sector_hex` writes a sector's 14 digits once; `wordsalad._join` is the one prefix-and-suffix seam rule; `generate_sector_name` draws its two words in one expression. The names drawn under fixed streams are identical.
+- **The population package.** `model` shares `_POSITION_MPC` and `_position_pc` (two position queries), `_founding_row` (one `government_for` per polity), `_where` and `_one_species`; `facility_types.require_type` is public and `facility_attrs` uses it instead of its own 404.
+- **The backup package.** `core` shares `_hash_stream`, `_no_backup`, `_write_error` and `_ISO`; the archive writer resolves each source path once; `parts` shares `_coverage` and the busy message, and the parity restore resolves its folder once.
+- **The cli and admin packages.** `cli/generate` shares `WORKERS_HELP`, `_validate_workers`, `_validate_num_orbits`, `_validate_radius_pc`, `_validate_flavor_chances` and `_shape_like_sector`; `cli/benchmark.connection_args` and `GENERATE` serve the benchmark suite too; `util/process.interrupt_on_sigterm` replaces three SIGTERM handlers (`reset`, `checkdb`, `datasets`); `cli/config` shares `_write_as_host` and `settings_view.source_of`; `admin/auth` shares `_insert_audit_row` and the login-failure placeholders; `admin/edits.finish_new_planet` and `name_moons` serve `admin/plans`; `admin/updateguard` shares `_iso`, `_not_updating` and `stop_reason.open_shared_file`; `admin/maintenance._write_error`.
+- **The generation, galaxy, db, web, api, queue and util packages** each had their twice-written helpers folded the same way (listed in the pull request).
+
+- **Left out after Train 26:** the folds in the files Train 26 rewrote (`api/workqueue`, `db/column_units`, `db/store`, `db/nebula_volumes`, `describe/sheet`, `galaxy/nebula_density`, `generation/component_pass`, `planet`, `remnant_orbits`, `run_phenomenon`, `run_plan`, `run_system`, `sky_tiers`, `stellar_object`, `system`, `binary`, `physics/aerosols`, `greenhouse_table`, `mixture_rocky`, `planets`, `radiogenic`, `surface_air`, `queue/api_jobs`, `warmphases`, `web/lib/estimatecache`, `web/queue_page`) keep main's text; the shared helpers those folds would have called (`datasets/axes`, `describe/host_star`, `run_common.write_text_output`) stay for the files that use them.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4094] - 2026-11-14
+
+**Headline:** The third layered-fixes cleanup: the same code written two to six times across the queue, the admin tools, the web pages, the maps, the galaxy model, the physics and the store is one function each (the process-alive check alone had six copies, two of them without the zombie fix the others carried), with nothing the generator, the API or the pages produce changed.
+
+### Fixed
+- **One answer to "is this process alive".** `util/process.pid_alive` replaces the six copies in the queue (`workers.process_exists`, `runrecord._pid_alive`, `stopall._alive`, `memorygate.alive`, `unitstuck.alive`) and the update guard (`updateguard.pid_alive`); the names stay as aliases for the tests that patch them. Two copies treated a zombie (a worker that ended but was not reaped) as alive and one treated a permission error as dead; every caller now gets the complete check.
+- **The nebula field writer splits long statements.** `store.insert_nebula_field` writes through `_insert_literal_rows`, so its statements are capped by `LITERAL_STATEMENT_CHARS` like every other literal bulk insert; the rows written are the same.
+- **Two stale imports and one dead variable** are gone (`store`, `run_plan`, `query`, `system`).
+
+### Changed
+- **Queue plumbing written once.** `wrapper._await_plan` and `_await_conclusion` share `_await`; `unitstuck.records` and `unitwatch.read` share `runrecord.unit_json_hash`; `updateguard`'s two Redis sources share `_RedisSource`.
+- **Admin account scripts share their frame.** `cli/admin_account_command.py` holds the argument parsing, control-database connection and admin lookup that `forget_devices`, `reset_two_factor` and `accounts` each carried; each script keeps only its action and sentence.
+- **The web and the maps.** `tilecache._write_json` and `_write_bytes` share `_write_atomically`; the three map data routes (`galaxy_stage`, `galaxy_window`, `galaxy_near`) share `_tile_json`; `warmup`'s two node warmers share `_warm_node_keys`; `jobs`' three log readers share `_known_job_dir`; the system map's three planet and moon marker loops share `_body_marker_svgs`; the belt and field member pages share `bodyview.member_page_ref`.
+- **The galaxy model.** `gravity_cache.prune` and `clear` share `_remove`; `drill.block_key_parts` serves `parse_drill_key` and `window.parse_window_key`; `spherical`'s three sphere walks share `_check_sphere`; `sky_band`'s two cube-face lookups share `_face_coordinates`; `query`'s scattered-point and scattered-nebula box reads share `_scatter_address_clause` and `_scatter_box_params`.
+- **The physics.** `giant_interior`'s two table interpolations share `_bracket`; `king.TableMethods` holds the three profile-table methods `KingTable` and `component_profiles.ProfileTable` each had; `position`'s two sector-edge checks are `_sector_edge`; `co2_far_wing`'s two far-wing cross sections share `_layer_cross_sections` (each keeps only its tail).
+- **The store and the plan.** `_reserve_id_block` and `_reserve_counter` share `_reserve_range` (one connection, one upsert, one commit); `run_plan`'s `clean_nebula_field`, `redraw_nebula_field` and `clear_scatter` use `_refusals_as_errors` instead of three copies of its body.
+- **Settings.** `settings_writer`'s plan and update plan share `_load_document` and `_note_field_errors`; the `system` and `sector` subcommands share `_add_flavor_arguments`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4093] - 2026-11-14
+
+**Headline:** The second layered-fixes cleanup: eleven more places where the same code was written twice (child-row inserts, the two compact-remnant inserts, the four class and body-type facets, the orbit-tree writers, the checksum marks, the batched reads of the fingerprint and checksum readers, seven API routes, the galaxy's current shape and seed, the settings tree writer) are one function each, with nothing the generator, the API or the pages produce changed.
+
+### Changed
+- **One child-row insert in the store.** `_insert_deposit_types` and `_insert_isotopes` are one `_insert_child_rows(conn, table, id_column, owner_id, rows, fields)`; `body_gases` and `body_class_scores` read through one `_body_child_map`.
+- **One compact-remnant insert.** `insert_black_hole` and `insert_neutron_star` share `_insert_compact_remnant` (row, galactic motion, spin, name registration); each passes only its table, fields and kind.
+- **One facet builder.** The four class and body-type facet functions in `db/query.py` share `_class_facet` and `_body_type_facet`.
+- **One row insert for the orbit trees.** `orbit_trees.write_nodes` and `write_dark_members` insert through `_insert_rows`; each keeps its literal DELETE so the storage checksum's writer ledger still sees it mark the sector.
+- **One batched mark in the storage checksum.** `mark_sectors` and `mark_systems` share `_mark_each`; `fingerprint.select_in` is the one batched `IN (...)` reader, and the checksum's reader calls it.
+- **API routes written once.** The six routes about one kept body (belt page, belt member, irregular moons and moon, field members and member) share `_kept_body`; the job, page-job and page-job-cancel routes share `_job_answer`; the system and sector facilities routes share `_facilities_of`. Same status codes and messages.
+- **The galaxy's current shape and seed are read in one place.** `shape_draw.current_shape_and_seed` serves `potential.current` and `enclosed_mass.current_enclosed_mass_kg`.
+- **One settings tree writer.** `util/settings.set_path` (was `_set_path`) is what `settings_writer._put` points at.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4092] - 2026-11-14
+
+**Headline:** A white dwarf's page now shows the oxygen, carbon and neon-22 in its core, and a polluted one shows what kind of body it swallowed.
+
+### Changed
+
+- GEN.1370 (lock wiring of `physics/white_dwarf_core.py`): `star_makeup` gives a carbon-oxygen white dwarf the core of its mass and progenitor instead of the even carbon and oxygen split of the downloaded sequences: the central oxygen of the models by mass, the 22Ne of the progenitor's carbon, nitrogen and oxygen, and carbon for the rest. Its layers carry them (`neon22` is new), still adding to one, and the open item about the even split is gone for a carbon-oxygen core.
+- The property sheet of a white dwarf lists the central oxygen, carbon and neon-22. A polluted white dwarf whose system stores belt members also lists the class of the body it accreted (primitive, core-rich, crust-rich or volatile-rich) and its element ratios to magnesium: one stored member of its system's belts, picked in proportion to its mass by a new draw of the star's own that comes after every other, read as the mix of materials of its taxon. Stand-in WDC9 (tier T6, tweak L1) in section 6.286 of the gap-filling plan. Rows WDC1 to WDC8 are read now and leave the wiring register.
+- Nothing is stored and no drawn value moves: the new draw is last in the star's stream.
+
+generation-output: unchanged
+
 ## [8.0.4091] - 2026-11-14
 
 **Headline:** The Earth analog test now runs the generator's own steps in the generator's order, on a fresh body each trial, so its Class M rate is the generator's.

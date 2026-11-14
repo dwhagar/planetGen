@@ -286,7 +286,7 @@ def reference_fluence_j():
 
 SUN_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
 SUN_LOGG = 4.438
-"""float: The effective temperature and the surface gravity of the Sun, the model atmosphere that stands for the reference star."""
+"""float: The effective temperature and the surface gravity (measured: log g 4.438, cgs) of the Sun, the model atmosphere that stands for the reference star."""
 
 REFERENCE_FLUENCE_J = reference_fluence_j()
 
