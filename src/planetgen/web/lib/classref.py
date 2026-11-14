@@ -237,6 +237,7 @@ def _planet():
             ("Name", cls.name),
             ("Type", PLANET_TYPE_LABELS[cls.kind]),
             ("Conditions", _rule_html(lambda measure: class_fit.rule_words(fit, measure))),
+            ("Soft edges (the model's doubt)", "; ".join(class_fit.softness_words(fit)) or "none: every condition is a yes or no"),
             ("Core class", "Yes" if cls.core else "No"),
         ]
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
@@ -251,6 +252,10 @@ def _planet():
             "Each class asks about the mass, gravity, temperature, air, water, and starlight in its own conditions. A condition "
             "just outside its edge lowers the match instead of ruling the class out. A world that fits no class at all is "
             "shown with its nearest class at 0 percent.",
+            "Where a class edge falls is soft, and the softness is the model's doubt, not the variety of the worlds: it is how far the value could "
+            "move if the stand-ins that make it (the formulas and constants we could not take from a measurement) were wrong by what the stand-in list "
+            "says they could be. A world just past an edge, by less than that width, fits the class in part; a quantity made only of measured values has "
+            "almost none. As stand-ins are replaced by measured values, the widths shrink on their own.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",

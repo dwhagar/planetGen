@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4103] - 2026-11-14
+
+**Headline:** A hot giant's atmosphere can now be given a temperature profile from its light, its own heat and its gravity, ready for the cloud deck to be placed on.
+
+### Changed
+
+- GEN.1577 (built for Lane 14): new `physics/hot_giant_profile.py`, the Guillot 2010 semi-grey irradiated profile (`temperature_k`, `profile_function`, `skin_k`) over 1e-6 to 1e3 bar, checked against the research's worked example (1473 K at 66.7 mbar, 1647 K at 1 bar, 1648 K at 10 bar); stand-ins HGP1 to HGP3 (registry 6.288) and the design note `docs/design/composition/hot-giant-profile.md`. Nothing calls it yet; the hot-giant regime wiring (GEN.994) places the cloud decks on it, meeting it with `hot_condensates.cloud_temperature_k` (a test checks the profile against that form).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4102] - 2026-11-14
+
+**Headline:** the class pages say what the fudge is and how soft each class edge is, and a new ranking lists every stand-in by its share of the width of each class quantity.
+
+### Changed
+
+- `/classes/planet` says that the width of a class edge is the model's doubt about the value (what the stand-ins that make it could move it by), not the variety of the worlds; each planet class page gains a "Soft edges" line ("mean surface temperature at least 275 K: soft by 0.925 K"), read from the fudge table through the new `class_fit.softness_words`. `planet_classes.quantity_entry` is the label, unit and percent flag that `condition_words` already used, now shared.
+- `scripts/build_fudge_ranking.py` builds `docs/design/research/stand-in-fudge-ranking.md` from the fudge table, its matrix and the registry (reusing `build_fudge_table.column`): the quantities with what makes their width, and every stand-in with at least 1 percent of any quantity's variance, its tier, tweak and unreliability score, its shares and how far the width falls if it were exact. A test fails when the page differs.
+- `condition-based-planet-classes.md` gains the section "What the fudge is (GEN.1316)".
+- No stored value changes; the class table and the fudge table are untouched.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4101] - 2026-11-14
 
 **Headline:** The New galaxy page's properties have bold titles with their units underneath, and the boxes and bars line up across every row.

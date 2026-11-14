@@ -36,6 +36,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | function | planetgen.physics.equilibrium_edges.h2_dissociation_temperature | by design | the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation |
+
+
+
+| module | planetgen.physics.hot_giant_profile | GEN.1577 | the Guillot semi-grey profile of a hot giant's atmosphere; the hot-giant regime wiring (GEN.994) calls `profile_function` for the cloud deck and deletes this line |
+| row | 6.288:HGP1 | GEN.1577 | `hot_giant_profile.KAPPA_THERMAL_M2_KG`, not read until the hot-giant wiring calls the profile |
+| row | 6.288:HGP2 | GEN.1577 | `hot_giant_profile.GAMMA_AT_2000_K`, not read until the hot-giant wiring calls the profile |
+| module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
