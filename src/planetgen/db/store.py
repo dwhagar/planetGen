@@ -6736,25 +6736,37 @@ BRIGHT_STAR_COLUMNS = (
 `insert_bright_stars` expects each row's values."""
 
 
-def clear_bright_stars(conn):
+CLEAR_BRIGHT_STARS_STEPS = 7
+"""int: The steps `clear_bright_stars` takes, for the bar of the unit that calls it (OPS.200)."""
+
+
+def clear_bright_stars(conn, steps=statementmark.LABELS_ONLY):
     """
     Empties `bright_stars`, sets every sector's own bright-star level
     (`sector_stats`, v53, GEN.44) back to untouched (-1; a filled sector
     stays at 0, and the level a delete would put back is forgotten too)
     and forgets the scatter's threshold and seed -- a plan re-run or a new
     galaxy starts over. `TRUNCATE` (an implicit commit), since a real
-    scatter leaves tens of millions of rows.
+    scatter leaves tens of millions of rows. Each statement is a step of `steps`
+    (`CLEAR_BRIGHT_STARS_STEPS` of them), which names it for the beat (OPS.200).
     """
-    conn.execute("TRUNCATE TABLE bright_stars")
+    with steps.sql("Emptying bright_stars"):
+        conn.execute("TRUNCATE TABLE bright_stars")
     from planetgen.db import block_lights
 
-    block_lights.forget_parts(conn, "stars")      # GEN.1476: their light leaves the parts with them
-    scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
-    scatter_systems.delete_all_member_trees(conn, "bright_stars")
-    _forget_bright_levels(conn)
-    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
-                 " bright_star_mass_limit_sol = NULL")
-    forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
+    with steps.sql("Taking the star light out of the block parts"):
+        block_lights.forget_parts(conn, "stars")      # GEN.1476: their light leaves the parts with them
+    with steps.sql("Forgetting the star numbering"):
+        scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
+    with steps.sql("Deleting the bright stars' member systems"):
+        scatter_systems.delete_all_member_trees(conn, "bright_stars")
+    with steps.sql("Putting the sectors' bright-star levels back"):
+        _forget_bright_levels(conn)
+    with steps.sql("Forgetting the scatter's threshold and seed"):
+        conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
+                     " bright_star_mass_limit_sol = NULL")
+    with steps.sql("Forgetting that the scatter was drawn"):
+        forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
 
 
@@ -6809,7 +6821,11 @@ NO_MASS_LIMIT_SOL = 1.0e300
 """float: A mass limit above any star, for a clear that finds none recorded."""
 
 
-def clear_bright_star_pass(conn, part, limits):
+CLEAR_BRIGHT_STAR_PASS_STEPS = 6
+"""int: The most steps `clear_bright_star_pass` takes (OPS.200; the stars between the two limits are a step only when there are any)."""
+
+
+def clear_bright_star_pass(conn, part, limits, steps=statementmark.LABELS_ONLY):
     """
     Deletes one pass of the star scatter and leaves the other (GEN.196):
     `part` "mass" removes the stars born at their band's mass limit or more (the mass
@@ -6833,25 +6849,33 @@ def clear_bright_star_pass(conn, part, limits):
         masses = [found.mass_limit_sol for found in limits.tiers]
     low, high = min(masses), max(masses)
     if part == "mass":
-        scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
-        batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,), label="Emptying the mass pass of the bright stars")
+        with steps.sql("Deleting the member systems of the massive stars"):
+            scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
+        with steps.sql("Deleting the massive stars"):
+            batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,), label="Emptying the mass pass of the bright stars")
         forget = "bright_star_mass_limit_sol = NULL"
     else:
-        scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
-        batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,), label="Emptying the luminosity pass of the bright stars")
+        with steps.sql("Deleting the member systems of the lighter stars"):
+            scatter_systems.delete_member_trees_scanning(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
+        with steps.sql("Deleting the lighter stars"):
+            batched.repeat(conn, "DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,), label="Emptying the luminosity pass of the bright stars")
         forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
     if low < high:
         between = conn.execute(
             "SELECT id, shell_index, band_index, wedge_index, initial_mass_sol FROM bright_stars"
             " WHERE initial_mass_sol >= ? AND initial_mass_sol < ?", (low, high)).fetchall()
         tiers = _cell_tiers(limits, {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in between})
-        _delete_bright_stars_by_id(conn, [
-            row["id"] for row in between
-            if (row["initial_mass_sol"] >= masses[tiers[(row["shell_index"], row["band_index"], row["wedge_index"])]])
-            == (part == "mass")])
-    _forget_bright_levels(conn)
-    conn.execute(f"UPDATE galaxy_shape SET {forget}")
-    forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
+        with steps.sql("Deleting the stars between the two limits"):
+            _delete_bright_stars_by_id(conn, [
+                row["id"] for row in between
+                if (row["initial_mass_sol"] >= masses[tiers[(row["shell_index"], row["band_index"], row["wedge_index"])]])
+                == (part == "mass")])
+    with steps.sql("Putting the sectors' bright-star levels back"):
+        _forget_bright_levels(conn)
+    with steps.sql("Forgetting what the removed pass recorded"):
+        conn.execute(f"UPDATE galaxy_shape SET {forget}")
+    with steps.sql("Forgetting that the pass was drawn"):
+        forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()
 
 
@@ -7002,19 +7026,31 @@ def estimated_rows(conn, table):
     return int(row["n"] or 0) if row else 0
 
 
-def clear_phenomenon_scatter(conn):
+CLEAR_PHENOMENON_SCATTER_STEPS = 7
+"""int: The steps `clear_phenomenon_scatter` takes (OPS.200)."""
+
+
+def clear_phenomenon_scatter(conn, steps=statementmark.LABELS_ONLY):
     """Empties `phenomenon_scatter` and forgets the scatter's seed -- a
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
-    commit), since a real scatter leaves over a hundred million rows."""
-    conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    commit), since a real scatter leaves over a hundred million rows.
+    Each statement is a step of `steps` (`CLEAR_PHENOMENON_SCATTER_STEPS`), named for the beat."""
+    with steps.sql("Emptying phenomenon_scatter"):
+        conn.execute("TRUNCATE TABLE phenomenon_scatter")
     from planetgen.db import block_lights
 
-    block_lights.forget_parts(conn, "points")      # GEN.1476: their light leaves the parts with them
-    scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
-    scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
-    conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
-    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
-    forget_scatter_epoch(conn, "phenomena")
+    with steps.sql("Taking the point light out of the block parts"):
+        block_lights.forget_parts(conn, "points")      # GEN.1476: their light leaves the parts with them
+    with steps.sql("Forgetting the phenomenon numbering"):
+        scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
+    with steps.sql("Deleting the phenomena's member systems"):
+        scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
+    with steps.sql("Emptying phenomenon_scatter_classes"):
+        conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
+    with steps.sql("Forgetting the scatter's seed"):
+        conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
+    with steps.sql("Forgetting that the scatter was drawn"):
+        forget_scatter_epoch(conn, "phenomena")
     conn.commit()
 
 
@@ -7023,10 +7059,16 @@ NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radi
 """tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order): the place, then the composition (GEN.1277)."""
 
 
-def clear_nebula_field(conn):
+CLEAR_NEBULA_FIELD_STEPS = 2
+"""int: The steps `clear_nebula_field` takes (OPS.200)."""
+
+
+def clear_nebula_field(conn, steps=statementmark.LABELS_ONLY):
     """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
-    conn.execute("TRUNCATE TABLE nebula_field")
-    forget_scatter_epoch(conn, "nebula-field")
+    with steps.sql("Emptying nebula_field"):
+        conn.execute("TRUNCATE TABLE nebula_field")
+    with steps.sql("Forgetting that the field was drawn"):
+        forget_scatter_epoch(conn, "nebula-field")
     conn.commit()
 
 
@@ -7268,16 +7310,19 @@ def insert_phenomenon_scatter(conn, rows, batch_size=5000):
     return written
 
 
-def drop_phenomenon_scatter_indexes(conn):
+def drop_phenomenon_scatter_indexes(conn, steps=statementmark.LABELS_ONLY):
     """Drops the secondary indexes of `phenomenon_scatter` that exist, so a scatter's many inserts do not keep them
-    up to date row by row; `add_phenomenon_scatter_indexes` builds them again from the finished table."""
-    present = {row["name"] for row in conn.execute(
-        "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
-        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
+    up to date row by row; `add_phenomenon_scatter_indexes` builds them again from the finished table. Looking
+    them up and each index dropped are steps of `steps` (at most `1 + len(PHENOMENON_SCATTER_INDEXES)`, OPS.200)."""
+    with steps.sql("Looking up the phenomenon table's indexes"):
+        present = {row["name"] for row in conn.execute(
+            "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
+            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
     gone = [name for name in PHENOMENON_SCATTER_INDEXES if name in present]
     pace = ticker.Ticker("Phenomenon scatter indexes taken off", total=len(gone))
     for number, name in enumerate(gone, start=1):         # one statement an index, so there is something to count (OPS.185), as `add_phenomenon_scatter_indexes` does
-        conn.execute(f"ALTER TABLE phenomenon_scatter DROP INDEX {name}")
+        with steps.sql(f"Dropping the index {name} of phenomenon_scatter"):
+            conn.execute(f"ALTER TABLE phenomenon_scatter DROP INDEX {name}")
         batched.moving()
         pace.tick(number, detail=name)
 

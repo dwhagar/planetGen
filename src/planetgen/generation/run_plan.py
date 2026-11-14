@@ -24,7 +24,7 @@ import types
 import pymysql
 
 from planetgen.queue import commands, progress_rate, taskprogress, unitbeat, units, wrapper
-from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, derived_stamp, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
+from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, derived_stamp, nebula_blocks, query, sky_tier_ledger as skyTierLedger, statementmark, storage_checksum, store, uncharted_index
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -340,6 +340,14 @@ class _UnitPhases:
     def within(self, fraction):
         """The phase begun last is `fraction` (0 to under 1) done: the unit's count moves between two phases, for one that is long and counts its own work."""
         self.report(max(self.done - 1, 0) + min(max(fraction, 0.0), 0.999), self.total)
+
+    def sql(self, text):
+        """
+        `with phases.sql(text): ...` : the statement or statements of the block are the next step (OPS.200: `next(text)`), and while they run the beat names them
+        (`db/statementmark.py`), so a clear or a drop that takes minutes shows "in SQL since ...: text" and a bar that counts one step to a statement.
+        """
+        self.next(text)
+        return statementmark.labelled(text)
 
     def finish(self):
         self.report(self.total, self.total)
@@ -842,15 +850,14 @@ def clear_bright_stars_unit(params, report):
     clear = params.get("clear")
     if clear is None:
         return {"cleared": None}
-    phases = _UnitPhases(report, 1)
+    phases = _UnitPhases(report, store.CLEAR_BRIGHT_STARS_STEPS if clear == "all" else store.CLEAR_BRIGHT_STAR_PASS_STEPS)
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        phases.next("Emptying the bright stars" if clear == "all" else "Emptying the luminosity pass of the bright stars")
         if clear == "all":
-            store.clear_bright_stars(conn)
+            store.clear_bright_stars(conn, phases)
         else:
             store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
-                store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]))
+                store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]), phases)
     finally:
         conn.close()
     phases.finish()
@@ -2394,15 +2401,14 @@ def empty_nebula_field_unit(params, report):
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
     """
-    phases = _UnitPhases(report, 1)
+    phases = _UnitPhases(report, store.CLEAR_NEBULA_FIELD_STEPS)
     conn = store.get_connection(_mysql_config_of(params))
     try:
         if store.get_galaxy_shape(conn) is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
         emptied = bool(_outline(conn))
         if emptied:
-            phases.next("Emptying the nebula field")
-            store.clear_nebula_field(conn)
+            store.clear_nebula_field(conn, phases)
     finally:
         conn.close()
     phases.finish()
@@ -2978,6 +2984,7 @@ def clean_nebula_field_unit(params, report):
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
     """
+    phases = _UnitPhases(report, 4)
     conn = store.get_connection(_mysql_config_of(params))
     try:
         skeleton = store.get_galaxy_shape(conn)
@@ -2986,9 +2993,14 @@ def clean_nebula_field_unit(params, report):
         galaxy_seed = store.get_galaxy_seed(conn)
         draws = {}
         stored, rejected, doomed = collections.Counter(), collections.Counter(), []
-        for row in conn.execute(
+        with phases.sql("Reading the stored field clouds"):
+            clouds = conn.execute(
                 "SELECT id, nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc FROM nebulae"
-                " WHERE nebula_type = ? AND center_x_pc IS NOT NULL ORDER BY id", (nebulaField.FIELD_FAMILY,)).fetchall():
+                " WHERE nebula_type = ? AND center_x_pc IS NOT NULL ORDER BY id", (nebulaField.FIELD_FAMILY,)).fetchall()
+        phases.next("Checking each stored field cloud against the keep rates")
+        counted = _counting(report, "Field clouds checked", len(clouds))
+        for number, row in enumerate(clouds, start=1):
+            counted(number)
             center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
             index = nebulaField.cell_index(center)
             if index not in draws:
@@ -3007,7 +3019,9 @@ def clean_nebula_field_unit(params, report):
         if not params["apply"]:
             lines.append("Nothing was changed. Run again with --apply to delete them and draw "
                          "the nebula_field table again.")
+            phases.finish()
             return {"stored": dict(stored), "rejected": dict(rejected), "deleted": 0, "lines": lines}
+        phases.next("Deleting the rejected field clouds")
         sector_ids = set()
         for _nebula_id, center, radius_ly in doomed:
             sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
@@ -3017,8 +3031,10 @@ def clean_nebula_field_unit(params, report):
             conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
             conn.commit()
             report(min(start + 500, len(doomed)), len(doomed))
-        store.refresh_containment(conn, sorted(sector_ids))
+        with phases.sql("Refreshing containment in the sectors the clouds reached"):
+            store.refresh_containment(conn, sorted(sector_ids))
         conn.commit()
+        phases.finish()
         lines.append(f"Deleted {len(doomed):,} stored field clouds the current keep rates reject.")
         return {"stored": dict(stored), "rejected": dict(rejected), "deleted": len(doomed), "lines": lines}
     finally:
@@ -3456,11 +3472,10 @@ def empty_phenomenon_scatter_unit(params, report):
     Returns:
         dict: `emptied`, always true.
     """
-    phases = _UnitPhases(report, 1)
+    phases = _UnitPhases(report, store.CLEAR_PHENOMENON_SCATTER_STEPS)
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        phases.next("Emptying the phenomenon scatter")
-        store.clear_phenomenon_scatter(conn)
+        store.clear_phenomenon_scatter(conn, phases)
     finally:
         conn.close()
     phases.finish()
@@ -3481,11 +3496,10 @@ def drop_phenomenon_indexes_unit(params, report):
     Returns:
         dict: `dropped`, always true.
     """
-    phases = _UnitPhases(report, 1)
+    phases = _UnitPhases(report, 1 + len(store.PHENOMENON_SCATTER_INDEXES))
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        phases.next("Taking the indexes off the phenomenon scatter")
-        store.drop_phenomenon_scatter_indexes(conn)
+        store.drop_phenomenon_scatter_indexes(conn, phases)
     finally:
         conn.close()
     phases.finish()
@@ -3827,7 +3841,9 @@ def clear_scatter_unit(params, report):
     """
     part = params["part"]
     name = SCATTER_NAMES[part]
-    phases = _UnitPhases(report, 3)
+    clearing = {"mass": store.CLEAR_BRIGHT_STARS_STEPS, "luminosity": store.CLEAR_BRIGHT_STARS_STEPS, "phenomena": store.CLEAR_PHENOMENON_SCATTER_STEPS,
+                "nebula-field": store.CLEAR_NEBULA_FIELD_STEPS}[part]      # the most a clear of the part takes: the steps of an emptying that spares the other pass are fewer
+    phases = _UnitPhases(report, 1 + clearing + (part != "nebula-field"))
     conn = store.get_connection(_mysql_config_of(params))
     try:
         phases.next(f"Checking what the {name} scatter holds")
@@ -3838,16 +3854,15 @@ def clear_scatter_unit(params, report):
         if part == "mass" and store.scatter_stored(conn, "luminosity"):
             raise RuntimeError("The bright stars are split from the massive stars at the mass limit -- run "
                                "'planetgen clear-scatter --luminosity' first.")
-        phases.next(f"Emptying the {name} scatter")
         if part in ("mass", "luminosity"):
             if store.bright_star_mass_limit(conn) is None:      # no mass pass to split the stars at: they all go
-                store.clear_bright_stars(conn)
+                store.clear_bright_stars(conn, phases)
             else:
-                store.clear_bright_star_pass(conn, part, store.scatter_limits_of(conn))
+                store.clear_bright_star_pass(conn, part, store.scatter_limits_of(conn), phases)
         elif part == "phenomena":
-            store.clear_phenomenon_scatter(conn)
+            store.clear_phenomenon_scatter(conn, phases)
         else:
-            store.clear_nebula_field(conn)
+            store.clear_nebula_field(conn, phases)
     finally:
         conn.close()
     if part != "nebula-field":
