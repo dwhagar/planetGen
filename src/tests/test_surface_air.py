@@ -379,7 +379,10 @@ def test_a_system_replays_to_the_same_air():
 
 # --- the two bounds of the fixed point (GEN.646; stand-ins CC7 and CC8) ------------------------------------------------------------
 
-def _earth_like_planet(seed=3):
+def _earth_like_planet(seed=3, orbit_factor=1.01):
+    # The air of a body is drawn in a stream keyed by its mass, formation distance and star's mass (`draw.body_stream_of`), so `seed` does not change the water row the recipe draws: the
+    # fixture has ONE recipe draw. At the exact middle of the zone that draw came out as the water-rich row b4 after GEN.1646 moved the recipe into a stream of its own (and the air of
+    # that row is lost to escape in most seeds), so the orbit stands a hundredth outside the middle: an Earth-like draw (b3). A fixture whose air must survive should not rest on one lottery.
     from planetgen.generation.planet import Planet
     from planetgen.generation.star import Star
 
@@ -390,7 +393,7 @@ def _earth_like_planet(seed=3):
         star = Star(config)
     inner, outer = star.habitable_zone
     with draw.bound(seed):
-        return Planet(config, star, star.habitable_zone, 0.5 * (inner + outer), mass=constants.EARTH_MASS_TO_KG, moon_count=0)
+        return Planet(config, star, star.habitable_zone, 0.5 * (inner + outer) * orbit_factor, mass=constants.EARTH_MASS_TO_KG, moon_count=0)
 
 
 def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_named(monkeypatch, caplog):
