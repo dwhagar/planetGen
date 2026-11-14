@@ -404,7 +404,7 @@ class RunRecordSource:
                 run = runrecord.read_run(connection, run_id)
             except Exception:  # noqa: BLE001 -- one malformed record never aborts the update
                 from planetgen.util import log      # imported when asked: this module keeps its import-time reach small
-                log.warning("update guard: skipped the unreadable run record %s", run_id)
+                log.warning("Skipped the unreadable run record %s.", run_id)
                 continue
             if run is None or run["state"] not in runrecord.LIVE_STATES:
                 continue

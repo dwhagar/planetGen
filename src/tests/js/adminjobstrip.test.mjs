@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { STATIC_URL, installDom } from "./fakedom.mjs";
 
 installDom("http://site.test/admin");
-const { apply } = await import(new URL("adminjobstrip.js", STATIC_URL).href);
+const { apply, delayFor, POLL_MS, IDLE_POLL_MS } = await import(new URL("adminjobstrip.js", STATIC_URL).href);
 
 function parts() {
   const node = () => ({ hidden: false, textContent: "", value: 0, attrs: {},
@@ -94,4 +94,10 @@ test("only a waiting job keeps the strip open without a running job", () => {
   apply({ job: null, line: [{ ...waiting, held: "held", note: "held", startable: true }] }, p, null);
   assert.equal(p.root.hidden, false);
   assert.equal(p.run.hidden, true);
+});
+
+test("PERF.263: the strip asks every 3 seconds while a job runs or waits and once a minute when none does", () => {
+  assert.equal(delayFor(true), POLL_MS);
+  assert.equal(delayFor(false), IDLE_POLL_MS);
+  assert.ok(IDLE_POLL_MS >= 10 * POLL_MS);
 });

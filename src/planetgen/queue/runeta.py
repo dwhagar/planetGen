@@ -80,7 +80,7 @@ def _rough_remaining(stage, now):
     """`(seconds, ROUGH, False)`: `roughtime`'s guess for a stage nothing is known about, less the time it has run
     (held at `OVERRUN_FRACTION` of the guess while it outlasts it)."""
     workers = stage.get("workers") or 1
-    guess = roughtime.stage_seconds(stage["units"] or None, workers if workers > 1 else None)
+    guess = roughtime.stage_seconds(stage["units"] or None, workers if workers > 1 else None, stage.get("unit_seconds"))     # OPS.159: the job profile's unit time before the typed one
     if stage["started"] is None:
         return guess, ROUGH, False
     return max(guess - max(now - stage["started"], 0.0), OVERRUN_FRACTION * guess), ROUGH, False

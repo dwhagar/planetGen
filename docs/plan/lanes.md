@@ -8,7 +8,29 @@ shows the table, the stamp and the merged line as written here. Times are the la
 Boss ordered every lane retired and restarted at 12:56 PM EDT 2026-10-21; the rows below are the new threads'
 reports (Lane 15 as last reported before its restart).
 
-Updated: 2026-11-04 7:58 AM EST
+Updated: 2026-11-13 8:10 PM EST (TODO full sweep, Boss 7:53 PM EST: "run a full TODO, lane, and train sweep")
+
+CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows below where they differ)
+
+| Lane | Now | Next |
+|---|---|---|
+| 01 TODO | Sweep; merges lock-free PRs on lane greens | Retire items as PRs merge |
+| 02 Train Manager | Train 26 (PR 6402) in gate: epoch 148, migrations 0254-0257; civilization drop traced and test systems re-pinned; new time due 8:00 PM EST | Train 27: 6062 GEN.1403, 6366 GEN.1648, 6370 GEN.1561, 6387/6388/6430 GEN.332 A and C, 6389/6391 GEN.1678/1679, 6409 GEN.1684, 6416 GEN.1315, 6418 GEN.1692, 6423 GEN.1675 (waits on Lane 14's seed 8301 trace), 6428 GEN.1693 |
+| 03 Gate | test_count_cache red on main (bisect) | 6336 OPS.161 if Lane 06 has not started it |
+| 04 Bugs | Idle since 11-13 early morning (thread done) | Holds OPS.247 (full-galaxy trial); old PRs 6038, 6243 need a decision |
+| 05 Bugs 2 | Job engine stage 1: OPS.194 next (OPS.193, OPS.197 merged 8:00 PM EST) | OPS.195 with OPS.200, OPS.206; later OPS.220, 223, 227, 232, 248, 251 |
+| 06 Gate 2 | 6336 OPS.161 regate at 795dc6e13; OPS.181, 186, 187 coded | Job engine stage 2 OPS.207-214 one by one; then OPS.216-218 chain, 225, 234, 236, 245, 246 |
+| 11 Oddities | Review ready | Ask TODO |
+| 12 Storage | 6409 GEN.1684 (Train 27); 6224, 6099, 6378, 6396 in Train 26 | OPS.203, OPS.205, OPS.224, OPS.233, OPS.244, OPS.252 |
+| 13 Galaxy and admin | OPS.185; 6430 GEN.332 C up (Train 27); GEN.332 D design next | OPS.191, 192, 196, 199, then OPS.219, OPS.238-240 |
+| 14 Atmosphere | Seed 8301 trace for 6423 GEN.1675 | OPS.237 (star tables as arrays) |
+| 15 Air, climate, performance | 6413 PERF.264: golden on its own box | OPS.198, OPS.202 |
+| 21 Composition | Sulfur shift to 1.4 dex in GEN.1670 | Ask TODO |
+| 22 Belts | 6428 GEN.1693 (Train 27), then PERF.261 | OPS.215 (migrations), 221, 222, 226, 228-231, 235, 243, 249, 250 |
+| 23 Tides, spin, moons | Review ready | OPS.201, 204, then OPS.241, 242 |
+
+JOB ENGINE (Boss 6:35 PM, 6:57 PM and 7:52 PM EST 2026-11-13): stages 1 to 6 are OPS.191-252, merged one at a time on the lane's changed-only green, in dependency order, by TODO; the engine trains are dropped ("de-train the queue fixing code"). Merge order and lanes: /mnt/project-files/reports/job-engine-trains-2026-11-13.md. A converted command commits only through ctx.commit(). Watch list (OPS.218, 228, 237, 239, 240, 242, 243): if the golden galaxy cannot stay identical, the lane stops and reports to TODO; it never rewrites the golden for these.
+
 
 NON-LOCK LIST (TODO sweep, 2026-11-12; Boss 8:53 PM EST on 2026-11-11: 'redo the list of non-lock items and see what lock items can be split'). Each lane works these one at a time on its own branch, gated by Lane 03, merged by TODO, while its lock items wait for a train. 'slice 0' is the lock-free first slice of a split lock item (pure function or measurement script with tests, unwired); its slice 1 rides the earliest train. 'confirm step' is the confirming hand case and test of a bug-sweep low before the fix. Ask TODO before taking another lane's item.
 
