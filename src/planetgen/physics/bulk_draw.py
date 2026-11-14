@@ -38,7 +38,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.galaxy import scales
-from planetgen.generation import possibility_table as pt
+from planetgen.generation import abundance_tier, possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
                                disk_condensation, elements, hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
                                volatile_depletion)
@@ -419,11 +419,19 @@ def _snow_ratio(body):
 
 
 def _rocky_water(body):
-    """A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses."""
+    """
+    A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses.
+    Under a Class M abundance tier the share `abundance_tier.water_share(body)` of the candidates (rocky planets in the ecosphere) take Earth's class instead
+    (`body._water_dialed`, set on each draw under a tier and never on `science`; a body redrawn by `reconcile_zone` decides again).
+    """
     mass = getattr(body, "mass", None)
     mass_earth = _kg_to_mearth(mass) if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
     ratio = _snow_ratio(body)
-    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio)
+    share = abundance_tier.water_share(body)
+    dialed = delivered_water.drawn_for_earth(share)     # a tier: ONE extra draw; `science` (share 0) draws nothing and leaves the body untouched
+    if share > 0.0 or hasattr(body, "_water_dialed"):
+        body._water_dialed = dialed         # remembered so the body's air takes the same class (`mixture_subject`); a redraw decides again
+    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, earth=dialed)
 
 
 def _icy_water_range(body):
