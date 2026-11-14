@@ -892,34 +892,29 @@ def _check_sphere(radius_pc, edge_pc):
         raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
 
 
-def sphere_rows(center, radius_pc, edge_pc):
-    """
-    The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
-    lie in: the walk `enumerate_sectors_within_radius` makes before it tests one cell, so a caller that draws by blocks of
-    a row can skip the cells (BLOCK_WEDGES to a block) instead of listing them. The core cell is not a row.
+def sphere_direction(center):
+    """`(reach, colatitude, longitude)` of `center` from the core: its distance, parsecs, and the direction the sphere walks
+    (`sphere_shells`, `band_window`) measure their angles from."""
+    cx, cy, cz = center
+    return detmath.hypot(cx, cy, cz), math.atan2(detmath.hypot(cx, cy), cz), math.atan2(cy, cx) % TWO_PI
 
-    Args:
-        center (tuple): `(x, y, z)`, parsecs.
-        radius_pc (float): `>= 0`.
-        edge_pc (float): `> 0`.
+
+def sphere_shells(center, radius_pc, edge_pc):
+    """
+    The shells the sphere of `radius_pc` around `center` reaches and, on each, the bands whose centers can lie within it:
+    the first step of the sphere walks (`sphere_rows`, `region.Region`), which then window each band's wedges with
+    `band_window`. The core cell is not a shell.
 
     Yields:
-        tuple: `(shell, band, count, first, length)`: the row holds `count` wedges and the window is the `length` wedges
-        from `first` on, wrapping past `count` (`length == count`: the whole row). Every cell of the row whose center
-        is within `radius_pc` lies in the window; some in it may lie outside the sphere (`cell_in_sphere` tests one).
-
-    Raises:
-        ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
+        tuple: `(shell, cos_delta, delta, north, middle, south)`: `delta` is the angle on the shell's centerline sphere
+        the sphere cuts out around the center's direction (`cos_delta` its cosine, below -1 when it takes the whole
+        shell); `north` and `south` hold the cap band when the sphere reaches it (else empty) and `middle` the bands
+        between, north to south, padded by one band each way.
     """
-    _check_sphere(radius_pc, edge_pc)
     eps = 1e-9
-    cx, cy, cz = center
-    reach = math.sqrt(cx * cx + cy * cy + cz * cz)
+    reach, colat_c, _lon_c = sphere_direction(center)
     shell_min = max(1, math.ceil((reach - radius_pc) / edge_pc - eps))
     shell_max = math.floor((reach + radius_pc) / edge_pc + eps)
-    colat_c = math.atan2(math.sqrt(cx * cx + cy * cy), cz)
-    lon_c = math.atan2(cy, cx) % TWO_PI
-    on_axis = math.sqrt(cx * cx + cy * cy) < 1e-9
     for shell in range(shell_min, shell_max + 1):
         radius = shell * edge_pc
         if reach < 1e-9:
@@ -936,28 +931,60 @@ def sphere_rows(center, radius_pc, edge_pc):
         hi_colat = min(math.pi, colat_c + delta)
         first = max(0, int(math.floor((lo_colat - layout.cap_colatitude) / layout.band_step)) - 1)
         last = min(layout.band_count - 1, int(math.ceil((hi_colat - layout.cap_colatitude) / layout.band_step)) + 1)
-        bands = [layout.high_band - i for i in range(first, last + 1)]
-        if lo_colat <= layout.cap_colatitude + 1e-9:
-            bands.append(high)
-        if hi_colat >= math.pi - layout.cap_colatitude - 1e-9:
-            bands.append(low)
-        for band in bands:
+        middle = [layout.high_band - i for i in range(first, last + 1)]
+        north = [high] if lo_colat <= layout.cap_colatitude + 1e-9 else []
+        south = [low] if hi_colat >= math.pi - layout.cap_colatitude - 1e-9 else []
+        yield shell, cos_delta, delta, north, middle, south
+
+
+def band_window(n, shell, band, edge_pc, cos_delta, delta, colat_c, lon_c):
+    """
+    The wedges of `band` of `shell` (`n` of them) whose centers can lie within the sphere `sphere_shells` described by
+    `cos_delta` and `delta` around the direction `(colat_c, lon_c)`: `(first, length)` as `_wedge_window` gives it (`length`
+    0 when no wedge can), or None when the band lies wholly outside the sphere.
+    """
+    if n == 1 or delta >= math.pi:
+        return 0, n
+    plane, z = band_center_pc(shell, band, edge_pc)
+    colat_b = math.atan2(plane, z)
+    denominator = math.sin(colat_b) * math.sin(colat_c)
+    if denominator < 1e-12:
+        return 0, n
+    cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
+    if cos_width > 1.0 + 1e-6:
+        return None
+    width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
+    return _wedge_window(n, lon_c, width + 1e-6)
+
+
+def sphere_rows(center, radius_pc, edge_pc):
+    """
+    The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
+    lie in: the walk `enumerate_sectors_within_radius` makes before it tests one cell, so a caller that draws by blocks of
+    a row can skip the cells (BLOCK_WEDGES to a block) instead of listing them. The core cell is not a row. A shell's
+    rows come in the order the bands between the caps, then the north cap, then the south (`bright_stars` strides over
+    the numbering).
+
+    Args:
+        center (tuple): `(x, y, z)`, parsecs.
+        radius_pc (float): `>= 0`.
+        edge_pc (float): `> 0`.
+
+    Yields:
+        tuple: `(shell, band, count, first, length)`: the row holds `count` wedges and the window is the `length` wedges
+        from `first` on, wrapping past `count` (`length == count`: the whole row). Every cell of the row whose center
+        is within `radius_pc` lies in the window; some in it may lie outside the sphere (`cell_in_sphere` tests one).
+
+    Raises:
+        ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
+    """
+    _check_sphere(radius_pc, edge_pc)
+    _reach, colat_c, lon_c = sphere_direction(center)
+    for shell, cos_delta, delta, north, middle, south in sphere_shells(center, radius_pc, edge_pc):
+        for band in middle + north + south:
             n = wedge_count(shell, band)
-            plane, z = band_center_pc(shell, band, edge_pc)
-            if n == 1 or on_axis or delta >= math.pi:
-                window = (0, n)
-            else:
-                colat_b = math.atan2(plane, z)
-                denominator = math.sin(colat_b) * math.sin(colat_c)
-                if denominator < 1e-12:
-                    window = (0, n)
-                else:
-                    cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
-                    if cos_width > 1.0 + 1e-6:
-                        continue
-                    width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
-                    window = _wedge_window(n, lon_c, width + 1e-6)
-            if window[1]:
+            window = band_window(n, shell, band, edge_pc, cos_delta, delta, colat_c, lon_c)
+            if window is not None and window[1]:
                 yield (shell, band, n, window[0], window[1])
 
 

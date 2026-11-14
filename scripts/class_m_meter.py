@@ -59,9 +59,9 @@ def wilson(hits, total):
         return 0.0, 0.0
     p = hits / total
     denominator = 1 + Z95 ** 2 / total
-    centre = (p + Z95 ** 2 / (2 * total)) / denominator
+    center = (p + Z95 ** 2 / (2 * total)) / denominator
     half = Z95 * math.sqrt(p * (1 - p) / total + Z95 ** 2 / (4 * total ** 2)) / denominator
-    return max(0.0, centre - half), min(1.0, centre + half)
+    return max(0.0, center - half), min(1.0, center + half)
 
 
 def load(path):

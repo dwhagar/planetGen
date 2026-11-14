@@ -554,22 +554,26 @@ def expand_backfill_bright_stars(params):
     try:
         skeleton = store.get_galaxy_shape(conn)
         todo, centers = {}, []
-        skip = None
+        skip = sky_skip = None
         if skeleton is not None:
             limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
             centers = ([tuple(params["center_pc"])] if params.get("center_pc") is not None
                        else store.sector_centers_since(conn, params["since"]))
             todo = backfill_targets(conn, skeleton, limits, centers)
             skip = None if centers else "the run generated no sector"
+            if not limits.scatter_ran and params.get("sky_limit") is not None and centers:
+                # OPS.256: a plan-and-stop galaxy has no scatter, so no luminosity level or mass limit to cost and draw a sky ring by (`sky_charting.walk_edges_and_ceiling`): no sky yet
+                sky_skip = "the galaxy has no star scatter yet, so there is no level to chart a sky under"
     finally:
         conn.close()
     addresses = sorted(todo)
     _size, chunks = _chunks(addresses, BACKFILL_UNIT_CELLS, BACKFILL_UNITS_MAX)
     units = [({"database": params["database"], "items": [[*address, todo[address]] for address in chunk]}, float(len(chunk)))
              for chunk in chunks]
-    sky = _sky_units(params, centers) if params.get("sky_limit") is not None and centers else []
+    sky = _sky_units(params, centers) if params.get("sky_limit") is not None and centers and sky_skip is None else []
     return commands.Expansion((units or [({"database": params["database"], "items": []}, 1.0)]) + sky,
-                              {"sectors": len(addresses), **({"sky_cells": len(sky), "sky_costs": [cost for _unit, cost in sky]} if sky else {}), **({} if skip is None else {"skip": skip})})
+                              {"sectors": len(addresses), **({"sky_cells": len(sky), "sky_costs": [cost for _unit, cost in sky]} if sky else {}),
+                               **({} if sky_skip is None else {"sky_skip": sky_skip}), **({} if skip is None else {"skip": skip})})
 
 
 SKY_SECTOR_SECONDS = 6.0e-5
@@ -738,6 +742,8 @@ class BackfillFollower(followed.Follower):
         if plan["detail"].get("skip"):
             log.normal(f"Nothing to backfill: {plan['detail']['skip']}.")
             return
+        if plan["detail"].get("sky_skip"):
+            log.normal(f"No sky tiers are drawn: {plan['detail']['sky_skip']}.")
         if plan["detail"].get("sky_cells"):
             log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill.")
         log.normal("Backfilling the bright stars out from the edge of the run...")
@@ -3128,7 +3134,8 @@ def run_galaxy(args):
     Args:
         args (argparse.Namespace): Validated arguments (`command == "galaxy"`).
     """
-    args.stage_skips = run_plan.stored_scatter_skips(args)       # PERF.256: a scatter that is stored and current is not planned
+    # PERF.256: a scatter that is stored and current is not planned; OPS.257: nor a clear of a scatter that holds nothing (a wiped galaxy)
+    args.stage_skips = {**run_plan.empty_clear_skips(args, ("phenomena",)), **run_plan.stored_scatter_skips(args)}
 
     def tail(since):
         stars, _book = run_plan.bright_star_followers(args, prepare=True)
