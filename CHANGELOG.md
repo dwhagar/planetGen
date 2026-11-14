@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4149] - 2026-11-14
+
+**Headline:** The sky code itself now knows when no star scatter has run, so a sky draw never reaches the 0.0 luminosity ceiling, whichever way it is started.
+
+### Fixed
+- **No scatter, no sky tiers (OPS.256, follow-up).** The first fix left the sky out in the backfill's expansion only. The cause was `sky_charting.walk_edges_and_ceiling` turning "no scatter" (`ScatterLimits.tiers` is `None`) into a ceiling of 0.0. `ScatterLimits.scatter_ran` now says whether a scatter ran; `sky_charting.plan` returns no tier when it did not (so nothing is costed, owed or drawn), `walk_edges_and_ceiling` refuses to hand back a made-up ceiling, and `sky_charting.chart` (the sky unit, so a retry or a resume of a unit cut before a scatter was cleared) ends clean with nothing drawn. The backfill's expansion still logs why no sky is drawn. Covered for every entry of the backfill stage (`run_backfill`, which the web Add sectors and New galaxy steps and the CLI reach, and the one-sector fills around a centre) by tests.
+
 ## [8.0.4148] - 2026-11-14
 
 **Headline:** The shell log mask no longer takes the word "pass" for a password name, so "Skipping the population pass: the math check failed." prints whole.
