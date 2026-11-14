@@ -103,6 +103,10 @@ class Beat:
         active (float, optional): When the unit's processor time or bytes read and written last moved, or a statement was out (OPS.193, OPS.194); `None` while none has.
         sql (str): The label of the statement the unit is in, if it is in one; shown on the page, not judged.
         sql_since (float, optional): When that statement was sent.
+        step (str): The second-level count the unit is in (OPS.192: `ctx.step`, or a `Ticker` of its code), shown on the pages; not judged (the count moving is `moved`).
+        step_done (float): How far that count has got.
+        step_total (float): What it counts to, 0 where that is not known.
+        step_started (float, optional): When that count began.
     """
     beat: float
     started: float
@@ -117,6 +121,10 @@ class Beat:
     active: Optional[float] = None
     sql: str = ""
     sql_since: Optional[float] = None
+    step: str = ""
+    step_done: float = 0.0
+    step_total: float = 0.0
+    step_started: Optional[float] = None
 
 
 @dataclass(frozen=True)

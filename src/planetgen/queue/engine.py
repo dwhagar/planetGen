@@ -12,7 +12,7 @@ A command that declares `pieces` and `do` (`commands.CommandSpec`) does not writ
   live (canceled, failed, ended from outside) ends the unit with `UnitStopped`, which `units._do_unit` answers by leaving the unit undone; a pause holds the unit where it stands, shown in
   the beat as waiting on `pause`, until the queues are let go (a solo hold lets its own unit through, `pause.blocks`) or the run ends.
 * **`ctx`**, the one object a piece is handed: `ctx.args` and `ctx.kind`, `ctx.cursor`, the unit's database connection (`ctx.db`, opened from `args["database"]` the first time it is asked
-  for and closed by the engine), `ctx.commit()` and `ctx.sql(statement, label)` (`queue/longsql.py`). A converted command commits only through `ctx.commit()`: where the cursor is stored with the
+  for and closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (`queue/longsql.py`) and the second-level count, `ctx.step(name, total)` and `ctx.advance(n)` (OPS.192: a bar under the unit's own on the pages). A converted command commits only through `ctx.commit()`: where the cursor is stored with the
   data (OPS.219) that call is the one place that writes it, and a direct `.commit()` would be a second path.
 
 **The cursor is in the contract and not stored yet.** Every unit starts at cursor 0. Storing it, so a retry or a resume starts after the last committed piece, waits for the ledger (OPS.219);
@@ -81,6 +81,14 @@ class Context:
     def sql(self, statement, label, params=()):
         """One long statement with its label and start time in the beat (`longsql.run`); returns the cursor."""
         return longsql.run(self.db, statement, label, params, config=self.config)
+
+    def step(self, name, total=None):
+        """The piece begins a second-level count (OPS.192): `name`, `total` of what it counts (`None` where that is not known). The Queue page draws it as a bar under the unit's own, with its numbers and rate."""
+        unitbeat.step(name, total)
+
+    def advance(self, amount=1):
+        """The second-level count has done `amount` more."""
+        unitbeat.advance(amount)
 
     def moving(self):
         """The piece made progress its count does not show: the quiet clock starts again (`unitbeat.moving`)."""
