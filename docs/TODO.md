@@ -13301,6 +13301,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: none. Related: OPS.254.
   Filed by the TODO thread.
 
+- [ ] **OPS.258 Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test**
+  Boss, 5:24 PM EST on 2026-11-14 (as the coordinator relayed): no per-train golden renewal; golden renewed once at the 8.1 release; pinned galaxy test stays as smoke test. Do (Train Manager's breakdown, 5:24 PM EST): (1) testing mode: test_golden_seed becomes a smoke test (the pinned galaxy must generate and store; no digest compare with the golden files); golden files and epoch renewed once at 8.1; an output-changing note says generation-output: changed without golden files. (2) The release-note check (bump_version --check-pr) stops requiring golden files and an epoch bump together; epochs and affects renumbered once at 8.1. Add the one renewal to the 8.1 release gate (SEC.33, TEST.261 list). Train 28 keeps its renewed golden; from Train 29 on no lane PR needs a golden or epoch step. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **OPS.259 Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs**
+  Train Manager, 5:24 PM EST on 2026-11-14, with OPS.258: scripts/data/gate_durations.json holds skip-time values (test_fingerprint 6 s, runs 44 min; test_deferred_sectors 6 s, runs 19 min), so shards do not balance. Do: train_gate.py shard splits the gate across lanes from the start; refresh the durations from real DB-run times and keep them refreshed by each gate run. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: OPS.258.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
