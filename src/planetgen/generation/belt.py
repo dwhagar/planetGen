@@ -22,7 +22,7 @@ import math
 import weakref
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiation_field, radiogenic, small_body_composition
+from planetgen.physics import belt_forcing, belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiation_field, radiogenic, small_body_composition
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 from planetgen.util import log
@@ -109,6 +109,17 @@ def _present_state(star_mass_kg, snow_line_au, age_gy, metal_ratio, distance, lo
     stream = draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{star_mass_kg!r}")   # not the outer limit: a belt cut back keeps its own draw
     mass_kg, density, settled = belt_ledger.belt_state(lower_limit, upper_limit, star_mass_kg, snow_line_au, metal_ratio, age_gy, law, stream, primordial_earth)
     return (0.0 if settled is None else settled.largest_km), mass_kg, density, settled
+
+
+def member_row(body, entry):
+    """The member row (`AsteroidBelt.members`) of a belt page `body` entry (`belt_page.body_entry`) and its roster `entry` (`belt_roster.Entry`): the one place a row is made, for a stored member and for a body drawn on demand (`belt_ondemand`, GEN.1674)."""
+    composition = body["composition"]
+    return {
+        "rank": body["rank"], "mass_kg": body["mass"]["value"], "radius_km": body["diameter"]["value"] / 2.0, "distance_au": body["distance"]["value"],
+        "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
+        "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
+        "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
+        "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag}
 
 
 _STARS = weakref.WeakKeyDictionary()
@@ -205,6 +216,7 @@ class AsteroidBelt:
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
+            self.cleared_spans = tuple(origin.cleared_spans)
             self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, lit_luminosity_w(star, lower_limit, upper_limit), star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
@@ -212,6 +224,36 @@ class AsteroidBelt:
         self.chondrite_group = self.makeup.detail["group"]
 
     _members = None
+    _secular_planets = ((), ())
+    cleared_spans = ()
+    """tuple: The `(low, high)` stretches of the belt the giants cleared (GEN.1092, `belt_origin.BeltOrigin.cleared_spans`); the members are not placed in them. Not stored: a belt read back keeps the members it was saved with."""
+
+    def give_secular_planets(self, axes_au, masses_kg):
+        """
+        Tells the belt which planets of its star stand beside it (their semi-major axes in AU and masses in kg) once their orbits are final, for the apsidal rate that dilutes a companion
+        star's forcing of its members (GEN.1492, `belt_forcing`); the members are drawn again with it on next use.
+        """
+        self._secular_planets = (tuple(axes_au), tuple(masses_kg))
+        self._members = None
+
+    def _force_by_companions(self, star, rows):
+        """
+        The members' eccentricity and periapsis as a companion star's secular forcing leaves them (GEN.1492, `belt_forcing`): the vector sum of the drawn eccentricity and the forced one, at
+        each member's own distance, with the dilution of the planets given by `give_secular_planets`. A star with no companion, and a member outside the theory, keep what was drawn.
+        """
+        sources = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(star.mass, c.member_no, c.axis_au))
+                   for c in radiation_field.companions_of(star) if getattr(c.star, "mass", None)]
+        if not sources:
+            return rows
+        axes, masses = self._secular_planets
+        for row in rows:
+            distance = row["distance_au"]
+            vector = belt_forcing.forced_vector(distance, star.mass, sources, belt_forcing.planet_rate(distance, axes, masses, star.mass))
+            if vector == 0j:
+                continue
+            eccentricity, periapsis = belt_forcing.combined(row["eccentricity"], math.radians(row["periapsis_deg"]), vector)
+            row["eccentricity"], row["periapsis_deg"] = min(eccentricity, belt_roster.E_MAX), math.degrees(periapsis)
+        return rows
 
     @property
     def members(self):
@@ -236,19 +278,11 @@ class AsteroidBelt:
         stream = draw.Stream(f"belt-members:{self.distance!r}:{self.lower_limit!r}:{star.mass!r}")
         populations = None if self.scatter_fates is None else belt_populations.member_weights(self.scatter_fates)
         entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream,
-                                          populations, self.scatter_giant_au)
+                                          populations, self.scatter_giant_au, self.cleared_spans)
         record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), lit_luminosity_w(star, self.lower_limit, self.upper_limit),
                                       star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
-        rows = []
-        for body, entry in zip(belt_page.member_bodies(record), entries):
-            composition = body["composition"]
-            rows.append({
-                "rank": body["rank"], "mass_kg": body["mass"]["value"], "radius_km": body["diameter"]["value"] / 2.0, "distance_au": body["distance"]["value"],
-                "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
-                "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
-                "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
-                "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag})
-        return rows
+        rows = [member_row(body, entry) for body, entry in zip(belt_page.member_bodies(record), entries)]
+        return self._force_by_companions(star, rows)
 
     def receive(self, mass_kg, sentence=None):
         """
@@ -303,6 +337,7 @@ class AsteroidBelt:
         """
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["composition"] = [list(pair) for pair in self.composition]
+        data["history"] = list(self.history)        # a tuple until the star's evolution has written a line; a read-back belt holds a list, and the two must agree
         data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
         data["members"] = self.members
         return data
@@ -325,6 +360,7 @@ class AsteroidBelt:
         belt.system_config = system_config
         fields_from_dict(belt, data, cls.SERIALIZABLE_FIELDS)
         belt.composition = [tuple(pair) for pair in data["composition"]]
+        belt.history = tuple(data.get("history") or ())      # a tuple on a belt as on a new one (JSON gives a list), so what is read back equals what was saved
         belt.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
         belt._members = data.get("members") or []      # a belt read back keeps the members it was saved with, and none it was not (it is not drawn again)
         return belt

@@ -355,3 +355,9 @@ Wallis et al. 2020 (the report carried the numbers from the uploaded copy; no DO
 The strength set among these is Lineweaver and Norman 2010 (1004.1091), Sanchez and Scheeres 2014 (1306.1622), Walsh 2018 (1810.01815), Polishook et al. 2016
 (1512.07088), Hirabayashi and Scheeres (1411.5926), Leinhardt and Stewart 2009 (0811.0175), Borovicka et al. 2020 (2006.07080), Avdellidou et al. 2020
 (2111.15279), Umurhan et al. 2017 (1606.05734), Strauss et al. 2024 (DEEP VII, 2410.01147, CC BY 4.0) and Benz and Asphaug 1999 (astro-ph/9907117).
+
+## The Gaia DR3 stars within 25 parsecs (`src/planetgen/datasets/gaia_nearby.py`, GEN.1534)
+
+| Source | Terms known |
+|---|---|
+| Gaia DR3 (Gaia Collaboration, ESA/Gaia/DPAC), 5,323 sources with a parallax over 40 mas measured to better than 10 sigma, from the Gaia archive TAP service (`gea.esac.esa.int/tap-server`) | Gaia data are released under CC BY-SA 3.0 IGO with the acknowledgement "This work has made use of data from the European Space Agency (ESA) mission Gaia (https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis Consortium (DPAC)"; the file is fetched at setup into the cache folder and never put in the repository; only the nearest-neighbour distribution read from it (the fit of `tuning.SECTOR_HILL_SEPARATION_SHARE`) is kept in the code |

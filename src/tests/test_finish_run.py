@@ -53,7 +53,7 @@ def _conclude(params, plan, results, seconds):
 @pytest.fixture(autouse=True)
 def _commands(monkeypatch):
     for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
-                 "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
+                 "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
             kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), prepare=(__name__, "_prepare"),
             conclude=(__name__, "_conclude")))
@@ -152,14 +152,23 @@ def test_a_stage_whose_units_are_done_but_not_concluded_is_not_finished(conn):
     assert finish_run.first_unfinished(conn, run_id, queued) == 0
 
 
-def test_the_special_phenomena_are_rewound_with_the_scatter_they_were_written_into(conn):
-    steps = [_step("start", "plain"), _step("phenomena", "scatter-phenomena"), _step("phenomena-index", "finish-phenomena"),
-             _step("blocks", "plain")]
+def test_the_special_phenomena_are_rewound_with_the_scatter_they_were_written_into_and_its_clearing(conn):
+    """OPS.123: the clearing and the taking off of the indexes were the scatter's `prepare`; as stages of their own they are rewound with it."""
+    steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
+             _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena"),
+             _step("phenomena-index", "finish-phenomena"), _step("blocks", "plain")]
     run_id = _stopped(conn, steps, "phenomena-index", 0)
     found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (1, 2)
-    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None, None]
-    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
+    assert (found.first, found.stopped) == (1, 4)
+    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None, None, None, None]
+    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, None, None, True, None]
+
+
+def test_a_phenomena_scatter_that_stopped_is_carried_on_from_its_clearing(conn):
+    steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
+             _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena")]
+    found = _plan(conn, _stopped(conn, steps, "phenomena", 0))
+    assert (found.first, found.stopped) == (1, 3)
 
 
 def test_a_nebula_field_draw_that_stopped_is_carried_on_with_the_clearing_of_the_earlier_field(conn):

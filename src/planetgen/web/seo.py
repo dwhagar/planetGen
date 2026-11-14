@@ -42,6 +42,7 @@ LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "
 DETAIL = frozenset({
     "web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon", "web.uncharted_star",
     "web.object_page", "web.belt_info_page", "web.belt_member_page", "web.field_member_page",
+    "web.irregular_moons_page", "web.irregular_moon_page",
 })
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data",

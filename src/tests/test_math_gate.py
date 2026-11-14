@@ -66,9 +66,9 @@ def test_check_math_command_exits_1_naming_the_failure(monkeypatch):
     assert exit_info.value.code == 1
 
 
-def test_check_math_runs_from_the_command_line():
+def test_check_math_runs_from_the_command_line(queue_command_env):
     result = subprocess.run([sys.executable, "-m", "planetgen.cli.generate", "check-math", "-v"],
-                            capture_output=True, text=True, cwd=REPO, timeout=120)
+                            capture_output=True, text=True, cwd=REPO, timeout=120, env=queue_command_env)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "Math check passed" in result.stdout + result.stderr
     assert "sun_luminosity" in result.stdout + result.stderr

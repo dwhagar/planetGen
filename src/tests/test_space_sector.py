@@ -394,7 +394,7 @@ def test_system_config_to_dict_and_from_dict_round_trip():
     assert rebuilt.NUM_ORBITS == 6
     # Run-time bookkeeping fields are not part of the serialized recipe.
     assert "system_flavor_count" not in data
-    assert "recent_flavor_texts" not in data
+    assert "used_flavor_ids" not in data
 
 
 def test_default_sector_edge_constant_is_used_when_unspecified():

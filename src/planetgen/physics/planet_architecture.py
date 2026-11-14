@@ -249,6 +249,28 @@ def sculpt(chain, star_mass_kg, age_yr, stream=None):
     return bodies
 
 
+def giant_impacts(bodies, star_mass_kg, snow_line_au, start_au, spacing):
+    """
+    The giant-impact stage of the terrestrial zone (GEN.1560): the bodies of `bodies` (`sculpt`'s `[distance_au, mass_kg, merged]` lists) that lie from `start_au` to the snow line (or `GIANT_IMPACT_END_AU`, whichever is nearer, as the caller passes it)
+    collide and merge, the closest pair in mutual Hill radii first, until every pair of them is `spacing` mutual Hill radii apart or more. N-body runs of protoplanets spaced 10 Hill
+    radii apart in a gas-free disk end in a few planets, two of them Earth-sized, after 100 Myr ([R2431], each protoplanet 0.16 Earth masses at 1 AU before): the stability to a Gyr that
+    `sculpt` asks of the chain is the stability of the planets the stage leaves, not of the protoplanets that built them. Mass and angular momentum are kept as `_merge` keeps them.
+    The inner system (inside `start_au`) and the bodies past the snow line are left to `sculpt`. No draw (the closest pair merges first).
+    """
+    zone = [i for i, body in enumerate(bodies) if start_au <= body[0] < snow_line_au]
+    if len(zone) < 2 or spacing <= 0.0:
+        return bodies
+    head, tail = bodies[:zone[0]], bodies[zone[-1] + 1:]
+    inside = [list(bodies[i]) for i in zone]
+    while len(inside) > 1:
+        gaps = [spacing_k(inside[i][0], inside[i][1], inside[i + 1][0], inside[i + 1][1], star_mass_kg) for i in range(len(inside) - 1)]
+        i = min(range(len(gaps)), key=gaps.__getitem__)
+        if gaps[i] >= spacing:
+            break
+        inside[i:i + 2] = [_merge(inside[i], inside[i + 1])]
+    return head + inside + tail
+
+
 def migration_probability(fe_h):
     """The chance a giant migrates in to a hot Jupiter orbit: `GIANT_MIGRATION_SHARE` at solar metallicity, rising with [Fe/H] by the extra
     exponent hot Jupiters have over giants ([R3499] against [R2172]), never above 1."""
@@ -339,7 +361,7 @@ def next_distance_au(distance_au, mass_kg, star_mass_kg, separation=None):
     return distance_au * (1.0 + kappa / 2.0) / (1.0 - kappa / 2.0)
 
 
-def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au=0.0, stream=None):
+def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au=0.0, stream=None, gas_factor=1.0):
     """
     One more planet in an architecture's disk, for a system asked to hold more bodies than the thinning left: the next oligarch out from
     `previous` (a `Seed`, or `None` to start at the disk's inner edge, `first_distance_au`), at the isolation mass of its feeding zone and
@@ -351,7 +373,7 @@ def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, 
     else:
         distance = next_distance_au(previous.distance_au, previous.mass_kg, star_mass_kg, architecture.separation)
     core = planet_mass.oligarch_core_kg(distance, star_mass_kg, snow_line_au, metal_ratio, architecture.disk_scatter, architecture.separation)
-    outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source)
+    outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source, gas_factor)
     return Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, 1, False, distance)
 
 
@@ -361,8 +383,9 @@ class Plan:
     past the last one the next oligarchs out (`extra_seed`) for a system asked for more. `seed(i)` is the planet of slot `i`.
     """
 
-    def __init__(self, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, limit=None, floor_au=0.0):
+    def __init__(self, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, limit=None, floor_au=0.0, gas_factor=1.0):
         self.architecture = architecture
+        self.gas_factor = gas_factor
         self.seeds = list(architecture.planets if limit is None else architecture.planets[:limit])
         self._context = (star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au)
 
@@ -372,11 +395,11 @@ class Plan:
     def seed(self, i):
         """The seed of slot `i`, adding oligarchs beyond the last until there is one."""
         while len(self.seeds) <= i:
-            self.seeds.append(extra_seed(self.seeds[-1] if self.seeds else None, self.architecture, *self._context))
+            self.seeds.append(extra_seed(self.seeds[-1] if self.seeds else None, self.architecture, *self._context, gas_factor=self.gas_factor))
         return self.seeds[i]
 
 
-def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0):
+def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0, gas_factor=1.0):
     """
     The planets of a star (module docstring). Draws, in this order: the disk scatter, the inner system, the outer spacing, the thinning,
     then, for each core past the critical mass beyond the snow line, the gas and migration draws.
@@ -391,6 +414,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         inner (bool or None): `True` gives the star an inner system, `False` none, `None` the observed share (`inner_system_fraction`).
         maximum (bool): The most the disk holds: an inner system, and a starting count two widths of its spread above the mean.
         floor_au (float): The closest a body forms or migrates to, in AU (`sublimation_au`).
+        gas_factor (float): The factor on the chance a core finds gas (`disk_truncation.gas_survival_factor`, GEN.1475); 1 for a star with no companion inside 47 AU.
 
     Returns:
         Architecture: The planets by distance, and what built them.
@@ -408,6 +432,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         start_au = max(start_au, chain_inner[-1][0] * tuning.OUTER_CHAIN_START_RATIO)
     chain = chain_inner + oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation, start_au, outer_au)
     sculpted = sculpt(chain, star_mass_kg, tuning.SCULPT_AGE_YR, source)
+    sculpted = giant_impacts(sculpted, star_mass_kg, min(snow_line_au, tuning.GIANT_IMPACT_END_AU), tuning.PLANET_ROCKY_ZONE_START_AU, tuning.GIANT_IMPACT_SPACING)
     merge_debris = sum(body[1] for body in chain) - sum(body[1] for body in sculpted)
     merges = sum(body[2] for body in sculpted) - len(sculpted)
     thinned, small = [], []
@@ -419,7 +444,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
     capped_kg, capped = 0.0, 0
     for distance, core, merged in thinned:
         formed_au = distance
-        outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source)
+        outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source, gas_factor)
         if core > outcome.core_kg:
             capped_kg, capped = capped_kg + core - outcome.core_kg, capped + 1
         migrated = False

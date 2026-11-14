@@ -88,7 +88,7 @@ from planetgen.web.lib.tabledisplay import (
     to_plain_text,
 )
 
-from planetgen.physics import planet_class_text
+from planetgen.physics import planet_class_text, planet_type
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
 # short/wide letterboxed strip), since a true top-down position plot needs
@@ -816,6 +816,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "composition": planet.get("composition"),
         "surfacetemp": format_temperature_k(surface_temp_k) if surface_temp_k is not None else None,
         "surfacepressure": _pressure_text(planet, has_atmosphere),
+        "pressurelabel": planet_type.pressure_label(planet.get("planet_type")),      # UX.297: a body with no ground shows its reference-level pressure under that name
         # Raw, real (not log-scaled, not pixel) coordinates -- relative to
         # this body's own anchor (the star it orbits, or the planet it
         # moons), same units `_star_scene_svg`/`_render_system_scene`

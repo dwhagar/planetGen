@@ -149,8 +149,8 @@
    "basis": "measured",
    "rows": 19,
    "clip": 2.302585,
-   "sigma": 1.373568,
-   "width": 2.747137,
+   "sigma": 1.374405,
+   "width": 2.74881,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
@@ -161,28 +161,28 @@
      "tier": "T6",
      "tweak": "L0",
      "movement": 0.586352,
-     "share": 0.41
+     "share": 0.4095
     },
     {
      "fill_id": "PT1",
      "tier": "T9",
      "tweak": "L0",
      "movement": 0.300089,
-     "share": 0.1909
+     "share": 0.1907
     },
     {
      "fill_id": "AM70",
      "tier": "T3",
      "tweak": "L0",
      "movement": 0.439054,
-     "share": 0.1022
+     "share": 0.102
     },
     {
      "fill_id": "DSC9",
      "tier": "T6",
      "tweak": "L2",
      "movement": 0.237129,
-     "share": 0.0671
+     "share": 0.067
     },
     {
      "fill_id": "NEB6",
@@ -206,8 +206,8 @@
    "basis": "measured",
    "rows": 30,
    "clip": 2.5,
-   "sigma": 2.340023,
-   "width": 4.680046,
+   "sigma": 2.348152,
+   "width": 4.696303,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
@@ -218,35 +218,35 @@
      "tier": "T6",
      "tweak": "L1",
      "movement": 0.806603,
-     "share": 0.2673
+     "share": 0.2655
     },
     {
      "fill_id": "SS7",
      "tier": "T5",
      "tweak": "L1",
      "movement": 0.719572,
-     "share": 0.2128
+     "share": 0.2113
     },
     {
      "fill_id": "AM70",
      "tier": "T3",
      "tweak": "L0",
      "movement": 0.764259,
-     "share": 0.1067
+     "share": 0.1059
     },
     {
      "fill_id": "IC1",
      "tier": "T6",
      "tweak": "L1",
      "movement": 0.439907,
-     "share": 0.0795
+     "share": 0.079
     },
     {
      "fill_id": "OD1",
      "tier": "T6",
      "tweak": "L0",
      "movement": 0.414286,
-     "share": 0.0705
+     "share": 0.07
     }
    ],
    "edges": [
@@ -320,8 +320,8 @@
    "basis": "measured",
    "rows": 30,
    "clip": 5.0,
-   "sigma": 5.093801,
-   "width": 10.187601,
+   "sigma": 5.108742,
+   "width": 10.217484,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
@@ -332,35 +332,35 @@
      "tier": "T6",
      "tweak": "L1",
      "movement": 2.146297,
-     "share": 0.3995
+     "share": 0.3971
     },
     {
      "fill_id": "SS7",
      "tier": "T5",
      "tweak": "L1",
      "movement": 1.437613,
-     "share": 0.1792
+     "share": 0.1782
     },
     {
      "fill_id": "AM70",
      "tier": "T3",
      "tweak": "L0",
      "movement": 1.538904,
-     "share": 0.0913
+     "share": 0.0907
     },
     {
      "fill_id": "OD1",
      "tier": "T6",
      "tweak": "L0",
      "movement": 0.891763,
-     "share": 0.069
+     "share": 0.0686
     },
     {
      "fill_id": "IC1",
      "tier": "T6",
      "tweak": "L1",
      "movement": 0.87448,
-     "share": 0.0663
+     "share": 0.0659
     }
    ],
    "edges": [
@@ -434,47 +434,47 @@
    "basis": "measured",
    "rows": 31,
    "clip": 2.5,
-   "sigma": 2.23976,
-   "width": 4.479521,
+   "sigma": 2.248252,
+   "width": 4.496504,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
-   "tuned_share": 0.0041,
+   "tuned_share": 0.004,
    "contributors": [
     {
      "fill_id": "SS7",
      "tier": "T5",
      "tweak": "L1",
      "movement": 0.719572,
-     "share": 0.2322
+     "share": 0.2305
     },
     {
      "fill_id": "AM70",
      "tier": "T3",
      "tweak": "L0",
      "movement": 0.776127,
-     "share": 0.1201
+     "share": 0.1192
     },
     {
      "fill_id": "IC1",
      "tier": "T6",
      "tweak": "L1",
      "movement": 0.509734,
-     "share": 0.1165
+     "share": 0.1157
     },
     {
      "fill_id": "SAB2",
      "tier": "T6",
      "tweak": "L1",
      "movement": 0.468465,
-     "share": 0.0984
+     "share": 0.0977
     },
     {
      "fill_id": "OD1",
      "tier": "T6",
      "tweak": "L0",
      "movement": 0.425807,
-     "share": 0.0813
+     "share": 0.0807
     }
    ],
    "edges": [
@@ -559,9 +559,9 @@
    "unit": "plain",
    "basis": "measured",
    "rows": 7,
-   "clip": 0.095,
-   "sigma": 0.048192,
-   "width": 0.096383,
+   "clip": 0.025,
+   "sigma": 0.012966,
+   "width": 0.025932,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
@@ -571,36 +571,36 @@
      "fill_id": "PT1",
      "tier": "T9",
      "tweak": "L0",
-     "movement": 0.022351,
-     "share": 0.8604
+     "movement": 0.005986,
+     "share": 0.8525
     },
     {
      "fill_id": "CA2",
      "tier": "T6",
      "tweak": "L0",
-     "movement": 0.00555,
-     "share": 0.0298
-    },
-    {
-     "fill_id": "SAB2",
-     "tier": "T6",
-     "tweak": "L1",
-     "movement": 0.00555,
-     "share": 0.0298
-    },
-    {
-     "fill_id": "AM70",
-     "tier": "T3",
-     "tweak": "L0",
-     "movement": 0.008,
-     "share": 0.0276
+     "movement": 0.001461,
+     "share": 0.0285
     },
     {
      "fill_id": "OD1",
      "tier": "T6",
      "tweak": "L0",
-     "movement": 0.004907,
-     "share": 0.0233
+     "movement": 0.001461,
+     "share": 0.0285
+    },
+    {
+     "fill_id": "SAB2",
+     "tier": "T6",
+     "tweak": "L1",
+     "movement": 0.001461,
+     "share": 0.0285
+    },
+    {
+     "fill_id": "AM70",
+     "tier": "T3",
+     "tweak": "L0",
+     "movement": 0.002105,
+     "share": 0.0264
     }
    ],
    "edges": [
@@ -617,10 +617,10 @@
      "width": 0.095
     },
     {
-     "edge": 0.8,
-     "cap": 0.1,
+     "edge": 0.95,
+     "cap": 0.025,
      "binds": true,
-     "width": 0.1
+     "width": 0.025
     }
    ]
   },
@@ -1019,8 +1019,8 @@
    "basis": "measured",
    "rows": 25,
    "clip": 2.5,
-   "sigma": 3.651912,
-   "width": 7.303823,
+   "sigma": 3.655561,
+   "width": 7.311121,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
@@ -1031,35 +1031,35 @@
      "tier": "T6",
      "tweak": "L1",
      "movement": 1.268672,
-     "share": 0.2715
+     "share": 0.271
     },
     {
      "fill_id": "PT1",
      "tier": "T9",
      "tweak": "L0",
      "movement": 0.674438,
-     "share": 0.1364
+     "share": 0.1362
     },
     {
      "fill_id": "DSC9",
      "tier": "T6",
      "tweak": "L2",
      "movement": 0.783944,
-     "share": 0.1037
+     "share": 0.1035
     },
     {
      "fill_id": "HZ2",
      "tier": "T3",
      "tweak": "L1",
      "movement": 1.120304,
-     "share": 0.0941
+     "share": 0.0939
     },
     {
      "fill_id": "DSC8",
      "tier": "T6",
      "tweak": "L2",
      "movement": 0.661698,
-     "share": 0.0739
+     "share": 0.0737
     }
    ],
    "edges": [
@@ -1169,7 +1169,7 @@
      "edge": 1500.0,
      "cap": 550.0,
      "binds": false,
-     "width": 268.438716
+     "width": 268.43965
     }
    ]
   },
@@ -1177,48 +1177,48 @@
    "unit": "plain",
    "basis": "measured",
    "rows": 31,
-   "clip": 1.5,
-   "sigma": 1.657263,
-   "width": 3.314526,
+   "clip": 3.0,
+   "sigma": 3.122303,
+   "width": 6.244606,
    "fallback_base": null,
    "tier": "T6",
    "tweak": "L0",
-   "tuned_share": 0.0025,
+   "tuned_share": 0.0008,
    "contributors": [
     {
      "fill_id": "SAB2",
      "tier": "T6",
      "tweak": "L1",
-     "movement": 0.663804,
-     "share": 0.361
+     "movement": 1.325786,
+     "share": 0.4057
     },
     {
      "fill_id": "SS7",
      "tier": "T5",
      "tweak": "L1",
-     "movement": 0.433947,
-     "share": 0.1543
-    },
-    {
-     "fill_id": "AM70",
-     "tier": "T3",
-     "tweak": "L0",
-     "movement": 0.511125,
-     "share": 0.0951
+     "movement": 0.86351,
+     "share": 0.1721
     },
     {
      "fill_id": "IC1",
      "tier": "T6",
      "tweak": "L1",
-     "movement": 0.31082,
-     "share": 0.0791
+     "movement": 0.586784,
+     "share": 0.0795
+    },
+    {
+     "fill_id": "AM70",
+     "tier": "T3",
+     "tweak": "L0",
+     "movement": 0.876058,
+     "share": 0.0787
     },
     {
      "fill_id": "OD1",
      "tier": "T6",
      "tweak": "L0",
-     "movement": 0.28005,
-     "share": 0.0642
+     "movement": 0.525346,
+     "share": 0.0637
     }
    ],
    "edges": [
@@ -1230,21 +1230,15 @@
     },
     {
      "edge": 25.0,
-     "cap": 1.5,
+     "cap": 3.0,
      "binds": true,
-     "width": 1.5
-    },
-    {
-     "edge": 28.0,
-     "cap": 1.5,
-     "binds": true,
-     "width": 1.5
+     "width": 3.0
     },
     {
      "edge": 31.0,
-     "cap": 1.5,
+     "cap": 3.0,
      "binds": true,
-     "width": 1.5
+     "width": 3.0
     }
    ]
   }

@@ -225,8 +225,85 @@ def test_the_recipe_median_is_the_median_of_the_drawn_f7_and_not_the_center_of_i
 
 
 def test_a_giant_with_the_medians_f7_keeps_its_disks_c_over_o_and_a_lightly_mixed_envelope_is_the_gas_leaning_one():
-    from planetgen.physics import mixture_giant
+    from planetgen.physics import disk_drift, mixture_giant
     subject = {"formation_temperature_k": 100.0, "disk_carbon": 1.0, "disk_oxygen": 1.0}
     bulk = mixture_giant._disk_c_over_o(subject, math.log10(18.0))             # 18 times the star's heavy elements in the planet
-    assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0))
+    assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0, solids_edge_k=disk_drift.edge_temperature_k()))
     assert bulk > dc.envelope_c_over_o(100.0, 18.0) + 0.04                     # the envelope carries a share of the bulk, so less of the oxygen-rich solids
+
+
+# --- GEN.1516: the ice weights of the pebble drift reach the nitrogen, sulfur and noble gases -------------------------------------------------
+
+ALL_LINES = tuple(dc.LINES_K)
+
+
+def test_weights_of_one_give_the_static_envelope_factors_at_every_temperature():
+    for temperature in (30.0, 60.0, 110.0, 150.0, 300.0, 700.0):
+        weights = {species: 1.0 for species in ALL_LINES if species in dc.LINES_K and dc.LINES_K[species] <= temperature}
+        for enrichment in (0.2, 1.0, 4.0):
+            assert dc.envelope_enrichments(temperature, enrichment, ice_weights=weights) == pytest.approx(dc.envelope_enrichments(temperature, enrichment), rel=1e-12)
+    assert dc.envelope_enrichments(110.0, 4.0, ice_weights={}) == dc.envelope_enrichments(110.0, 4.0)
+
+
+def test_a_noble_gas_ice_that_the_pebbles_carried_in_is_the_gas_times_its_weight_and_one_that_was_not_is_absent():
+    got = dc.envelope_enrichments(300.0, 4.0, ice_weights={"Ar": 3.0, "Kr": 0.0, "Xe": 1.5})
+    assert got["Ar"] == pytest.approx(3.0) and got["Kr"] == 0.0 and got["Xe"] == pytest.approx(1.5)
+
+
+def test_the_nitrogen_and_the_sulfur_take_the_weights_of_their_ices():
+    n2 = 2.0 * dc.inventory().moles["N2"]
+    nh3 = dc.inventory().moles["NH3"]
+    total = n2 + nh3 + dc.ammonium_salts()
+    got = dc.envelope_enrichments(300.0, 4.0, ice_weights={"NH3": 3.0, "N2": 2.0, "H2S": 2.0})
+    assert got["N"] == pytest.approx((total + 2.0 * nh3 + n2) / total)
+    sulfur = dc.solar_per_1e4_h("S")
+    h2s = sulfur * dc.SULFUR_AS_H2S
+    troilite = sulfur * (1.0 - dc.SULFUR_AS_H2S)
+    assert got["S"] == pytest.approx((sulfur - troilite + h2s + 4.0 * troilite) / sulfur)
+
+
+def test_a_weight_on_an_ice_the_giant_formed_colder_than_the_line_of_is_ignored_because_that_ice_is_frozen_there():
+    assert dc.envelope_enrichments(40.0, 4.0, ice_weights={"H2O": 2.0, "NH3": 0.0, "Ar": 0.0}) == dc.envelope_enrichments(40.0, 4.0, ice_weights={"H2O": 1.0, "NH3": 1.0, "Ar": 1.0})
+    assert dc.envelope_enrichments(40.0, 4.0, ice_weights={"H2O": 2.0})["Ar"] > 1.0                    # argon still freezes at 40 K: the solids' share, whatever the water's weight
+
+
+# --- GEN.1519: the planetesimals a giant accretes formed between its place and the disk's edge ----------------------------------------------
+
+EDGE_K = dc.LINES_K["H2O"] / 18.0 ** 0.5
+
+
+def test_without_a_provenance_or_at_the_edge_the_solids_are_the_ones_that_froze_at_the_place():
+    assert dc.provenance_condensed(30.0, EDGE_K) == dc.condensed(30.0)                 # at or beyond the edge: nothing farther out
+    for temperature in (30.0, 110.0):
+        assert dc.envelope_enrichments(temperature, 4.0, solids_edge_k=None) == dc.envelope_enrichments(temperature, 4.0)
+    assert dc.envelope_enrichments(30.0, 4.0, solids_edge_k=EDGE_K) == pytest.approx(dc.envelope_enrichments(30.0, 4.0), rel=1e-12)
+    assert dc.envelope_c_over_o(30.0, 4.0, solids_edge_k=EDGE_K) == pytest.approx(dc.envelope_c_over_o(30.0, 4.0), rel=1e-12)
+
+
+def test_the_share_of_the_annuli_that_froze_an_ice_follows_the_distance_of_its_line():
+    temperature = 300.0
+    mixed = dc.provenance_condensed(temperature, EDGE_K)
+    held = dc.inventory()
+    edge_ratio = (temperature / EDGE_K) ** 2                                            # r_edge / r_place
+    for species in ("Ar", "Kr", "Xe"):
+        line_ratio = (temperature / dc.LINES_K[species]) ** 2                           # r_line / r_place
+        share = (edge_ratio - line_ratio) / (edge_ratio - 1.0)                          # the annuli beyond the line, equal per AU
+        assert mixed[species] == pytest.approx(share * held.moles[species], abs=2.0 / dc.PROVENANCE_SAMPLES * held.moles[species])
+    assert mixed["Xe"] / held.moles["Xe"] > mixed["Kr"] / held.moles["Kr"] > mixed["Ar"] / held.moles["Ar"] > 0.0      # the warmer the line, the larger the share of the disk beyond it
+    assert "CO" not in mixed and "N2" not in mixed                                     # colder than the edge: not solid anywhere in the disk
+
+
+def test_a_giant_that_formed_warm_takes_its_noble_gases_from_the_planetesimals_that_formed_beyond_their_lines():
+    warm = dc.envelope_enrichments(110.0, 4.0, solids_edge_k=EDGE_K)
+    local = dc.envelope_enrichments(110.0, 4.0)
+    assert local["Ar"] == local["Kr"] == local["Xe"] == 1.0                              # no solid noble gas at its own place
+    assert 1.0 < warm["Ar"] < warm["Kr"] < warm["Xe"]
+    assert warm["N"] == pytest.approx(local["N"], rel=0.1)                              # the nitrogen the probe measured is unchanged within a tenth
+    assert all(math.isfinite(value) and value > 0.0 for value in warm.values())
+
+
+def test_the_provenance_needs_positive_temperatures():
+    with pytest.raises(ValueError):
+        dc.provenance_condensed(0.0, EDGE_K)
+    with pytest.raises(ValueError):
+        dc.provenance_condensed(100.0, 0.0)

@@ -124,8 +124,8 @@ class Stuck:
         records = self.records()
         for unit in agreed:
             record = records.get(unit)
-            if unit in done or (record is not None and record.get("phase") == "stopping"):
-                continue
+            if unit in done or (record is not None and record.get("phase") == "stopping") or unit not in verdicts:
+                continue        # a unit queued again by this very pass was forgotten by the watch: its verdict belongs to the attempt that was stopped
             if runrecord._s(self.conn.hget(runrecord.run_key(self.run_id), "state")) not in runrecord.LIVE_STATES:
                 return
             self._act(unit, record, now, verdicts[unit])
@@ -159,6 +159,11 @@ class Stuck:
             except (ValueError, TypeError):
                 continue
         return out
+
+    def stack_of(self, unit):
+        """The stack of the unit's horse, asked for now (a busy unit that has run past its learned time: OPS.194); nothing is stopped."""
+        raw = unitbeat.parse(self.conn.hget(runrecord.progress_key(self.run_id, self.stage), unit) or b"{}") or {}
+        return self._dump(raw)
 
     # --- the action -------------------------------------------------------------------------------------------
 

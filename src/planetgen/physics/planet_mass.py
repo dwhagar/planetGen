@@ -61,6 +61,8 @@ def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatt
     `gas_outcome` returns the larger of the runaway mass and the core, so the core was the planet's mass).
     """
     density = solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter)
+    if tuning.PLANET_ROCKY_ZONE_START_AU <= distance_au < snow_line_au:
+        density *= tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST      # GEN.1560: the solids the terrestrial zone's oligarchs are built from, which the giant-impact stage then merges; belts and dust read the plain density
     mass = formation.isolation_mass_kg(distance_au, density, star_mass_kg, separation)
     if distance_au > tuning.PLANET_OUTER_GROWTH_AU:
         mass *= (tuning.PLANET_OUTER_GROWTH_AU / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
@@ -119,7 +121,7 @@ def runaway_mass_kg(star_mass_kg, stream=None):
     return (low_power - source.random() * (low_power - high_power)) ** (-1.0 / slope)
 
 
-def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1.0, stream=None):
+def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1.0, stream=None, gas_factor=1.0):
     """
     A planet's mass at its formation distance from a star (module docstring). Draws, in this order, the disk scatter and
     the spacing, then (only for a core past the critical mass beyond the snow line) the gas-survival draw and the runaway
@@ -132,16 +134,17 @@ def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1
         fe_h (float): The star's [Fe/H] in dex: the giant-planet occurrence law (Fischer and Valenti) is stated in it.
         metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disk's solids law is stated in it.
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
+        gas_factor (float): The factor on the chance a core finds gas (`disk_truncation.gas_survival_factor`, GEN.1475); 1 for a star with no close companion.
 
     Returns:
         PlanetMass: The mass, the core it grew from and whether it ran away.
     """
     source = stream or draw
     core = assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, source)
-    return gas_outcome(core, distance_au, star_mass_kg, snow_line_au, fe_h, source)
+    return gas_outcome(core, distance_au, star_mass_kg, snow_line_au, fe_h, source, gas_factor)
 
 
-def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=None):
+def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=None, gas_factor=1.0):
     """
     What a solid core of `core_kg` formed at `distance_au` becomes: a gas giant when it reaches the critical mass beyond the snow
     line and finds gas left (one draw, then the runaway mass), else a solid or ice-giant core pressed under its cap. Draws, only
@@ -158,6 +161,7 @@ def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stre
                  * metallicity.giant_occurrence_factor(fe_h))
         found *= min(1.0, (tuning.GIANT_GAS_SURVIVAL_CUT_AU / distance_au) ** 2)
         found *= min(1.0, star_mass_kg / constants.SOLAR_MASS_TO_KG) ** tuning.GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT
+        found *= gas_factor
         if source.random() < found:
             core = min(core, _BROWN_DWARF_LIMIT_KG)      # two giants' cores that merged past the deuterium limit leave a planet of at most the limit
             return PlanetMass(max(runaway_mass_kg(star_mass_kg, source), core), core, True)

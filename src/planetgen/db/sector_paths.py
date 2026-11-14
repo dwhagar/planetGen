@@ -92,9 +92,8 @@ def _read_masses(conn, centers):
         marks = ", ".join("?" for _ in batch)
         for row in conn.execute(
             f"SELECT ss.id, ss.sector_id, ss.position_x_mpc AS x, ss.position_y_mpc AS y, ss.position_z_mpc AS z,"
-            f" SUM(s.mass_kg) AS mass_kg FROM star_systems ss JOIN stars s ON s.star_system_id = ss.id"
-            f" WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL"
-            f" GROUP BY ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc"
+            f" sm.stars_mass_kg AS mass_kg FROM star_systems ss JOIN system_summary sm ON sm.star_system_id = ss.id"      # GEN.1478: kept with the system
+            f" WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL AND sm.stars_mass_kg IS NOT NULL"
             f" ORDER BY ss.sector_id, ss.id", batch
         ).fetchall():
             point = geometry.local_to_galaxy_pc(centers[row["sector_id"]], (row["x"] / 1000.0, row["y"] / 1000.0,

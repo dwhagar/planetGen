@@ -26,7 +26,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 # The SystemConfig attributes that make up a system's generation "recipe" --
 # i.e. everything a `--system-file` JSON document can set (see
 # `run_system.apply_system_file`) -- as opposed to `system_flavor_count` /
-# `recent_flavor_texts`, which are run-time bookkeeping rather than
+# `used_flavor_ids`, which are run-time bookkeeping rather than
 # configuration. `to_dict`/`from_dict` use this list so a config round-trips
 # through JSON in exactly the shape `--system-file` already expects.
 SERIALIZABLE_FIELDS = [
@@ -47,6 +47,14 @@ class SystemConfig:
     combined with `SLOTS` (slots already name classes). Defaults to None.
     """
 
+    FORCE_LIFE_CLASS = None
+    """
+    str or None: A life class (`"6"`, a number, or `"4c"`, a number and variant; `physics/life_classes.py`) the system must hold a planet or moon
+    living under (GEN.1620). Like `FORCE_CLASS` a class attribute: not saved with the system, off by default (a default run never sets it, so a
+    seeded system is unchanged). The class is judged on the finished bodies, so a system without it is drawn again by the caller's tries and
+    one that never gets it says "a world with life class X" in `StarSystem.unmet_requirements`. Defaults to None.
+    """
+
     FORCE_ODDITIES = None
     """
     tuple[str] or None: Oddity ids (`physics/oddities.py`, e.g. `("W10",)`) every body whose conditions allow them is given, without the roll
@@ -62,7 +70,7 @@ class SystemConfig:
 
     def __init__(self):
         self.system_flavor_count = 0
-        self.recent_flavor_texts = [] # Stores recently used flavor texts to avoid repetition
+        self.used_flavor_ids = [] # The flavor line ids this system has shown, so no line shows twice (GEN.1430; it replaces the recency list)
         self.TYPE_IA_SHARE = None
         """
         float or None: The share of supernova remnants that are Type Ia where the remnant is made (the sector

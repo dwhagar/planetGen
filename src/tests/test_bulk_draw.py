@@ -205,3 +205,37 @@ def test_the_disk_volatile_ratios_of_a_star_are_its_nitrogen_sulfur_and_argon_ov
     star = _body(1000.0, icy=True, distance=2.7).star
     nitrogen, sulfur, noble = bulk_draw.disk_volatile_ratios(star)
     assert 0.2 < nitrogen < 5.0 and 0.2 < sulfur < 5.0 and 0.2 < noble < 5.0          # a [Fe/H] 0 star: within a few times the Sun's per magnesium
+
+
+def test_the_core_light_elements_reach_the_mars_total_and_stay_in_the_clip():
+    """GEN.993, stand-in BC18: Earth's cores hold 0.05 to 0.10 of their metal as light elements and Mars's 0.07 to 0.20 [R4833]; the draw covers both and never leaves its clip."""
+    with draw.bound(draw.Stream(993)):
+        shares = sorted(bulk_draw.core_light_elements() for _ in range(4000))
+    low, high = bulk_draw.RANGES["core_light_elements"]
+    assert low <= shares[0] and shares[-1] <= high
+    assert shares[len(shares) // 2] == pytest.approx(bulk_draw.CORE_LIGHT_MEDIAN, abs=0.005)
+    assert sum(0.05 <= s <= 0.10 for s in shares) / len(shares) > 0.4      # the Earth's range
+    assert sum(0.15 <= s <= 0.20 for s in shares) / len(shares) > 0.08     # the high half of Mars's range, which the old uniform 0.03 to 0.12 never drew
+    assert max(shares) > 0.2
+
+def test_gen1603_a_moon_with_ice_draws_the_other_ices_and_does_not_leave_the_median_to_every_moon(monkeypatch):
+    """GEN.1603: a moon that holds its origin had `ice_shares=None`, so every such moon stored the median species; it draws the volatiles as an icy planet does."""
+    from planetgen.physics import compaction, moon_composition
+    makeup = SimpleNamespace(metal=0.1, rock=0.5, water=0.3, ice=0.1, porosity=0.0, grain_density_kg_m3=2500.0)
+    monkeypatch.setattr(moon_composition, "draw_moon", lambda origin, distance_km, system: makeup)
+    monkeypatch.setattr(moon_composition, "mass_from_radius_kg", lambda made, radius: 1.0e20)
+    seen = []
+    monkeypatch.setattr(bulk_draw, "_store", lambda body, bulk: seen.append(bulk))
+    part = bulk_draw.dry_partition(EARTH_RATIOS, 0.08, 0.07, False)
+    shares = []
+    for seed in range(1, 7):
+        body = _body(300.0, icy=True, is_moon=True, primary_mass_kg=1.9e27, moon_disk_system=object())
+        with draw.bound(seed):
+            bulk_draw._draw_moon(body, "disk", part, False)
+        shares.append(seen[-1].ice_shares)
+    assert all(share and abs(sum(share.values()) - 1.0) < 1e-9 for share in shares)
+    assert len({tuple(sorted(share.items())) for share in shares}) > 1
+    makeup.ice, makeup.water = 0.0, 0.4
+    with draw.bound(1):
+        bulk_draw._draw_moon(_body(300.0, icy=True, is_moon=True, primary_mass_kg=1.9e27, moon_disk_system=object()), "disk", part, False)
+    assert seen[-1].ice_shares is None

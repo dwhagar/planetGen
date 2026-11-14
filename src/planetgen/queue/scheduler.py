@@ -45,6 +45,7 @@ from typing import NamedTuple
 
 from planetgen.queue import memorygate
 from planetgen.queue.memorygate import Claim, Decision, Holder
+from planetgen.util import log
 
 LANE_WEIGHT = {
     memorygate.LANE_INTERACTIVE: 100.0,
@@ -129,8 +130,8 @@ def charge(conn, kind, core_seconds, now=None):
             row = json.loads(memorygate._decode(raw))
             old = float(row["v"]) * 0.5 ** (max(0.0, now - float(row["t"])) / USAGE_HALF_LIFE)
         conn.hset(memorygate._key("usage"), kind, json.dumps({"v": old + max(0.0, core_seconds), "t": now}))
-    except Exception:  # noqa: BLE001 -- bookkeeping
-        pass
+    except Exception as exc:  # noqa: BLE001 -- bookkeeping
+        log.swallowed("queue/scheduler", "charge", exc)
 
 
 def tickets(conn, now=None):
@@ -222,8 +223,8 @@ class Scheduler:
         """The job is done waiting (admitted, let in by the table cap, or the worker is leaving): its ticket goes."""
         try:
             conn.hdel(memorygate._key("tickets"), name)
-        except Exception:  # noqa: BLE001 -- the ticket expires by itself
-            pass
+        except Exception as exc:  # noqa: BLE001 -- the ticket expires by itself
+            log.swallowed("queue/scheduler", "Scheduler.done", exc)
 
 
 def snapshot(conn, now=None):

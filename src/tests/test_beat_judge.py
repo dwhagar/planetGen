@@ -137,3 +137,14 @@ def test_a_slow_unit_with_a_moving_counter_for_hours_is_never_acted_on():
         long_running = Beat(beat=now, started=T0, done=10.0 * hours, estimate=1000.0, moved=now - 20.0, phase="tier 3")
         verdict = judge(long_running, History(expected_seconds=600.0), now)
         assert not verdict.actionable and verdict.state in (beatjudge.WORKING, beatjudge.SLOW)
+
+
+def test_time_spent_waiting_is_not_time_the_counter_stood_still():
+    """A wait of 35 minutes that has ended leaves a counter that last changed 35 minutes ago: the unit is working, not quiet (the wait is subtracted)."""
+    ended = beat(T0, moved=T0 - 2100.0, waited=2100.0)
+    assert judge(ended, History(), T0).state == beatjudge.WORKING
+    assert judge(beat(T0, moved=T0 - 2100.0), History(), T0).state == beatjudge.QUIET, "without the record of the wait the same counter is quiet"
+    after = beat(T0, moved=T0 - 2100.0 - 301.0, waited=2100.0)
+    verdict = judge(after, History(), T0)
+    assert verdict.state == beatjudge.QUIET and verdict.still_seconds == pytest.approx(301.0), "a further five minutes of standing still is quiet again"
+    assert judge(beat(T0, waiting_on="gate", moved=T0 - 2100.0, waited=600.0), History(), T0).state == beatjudge.WAITING

@@ -70,6 +70,9 @@ os.environ.setdefault("PLANETGEN_JOBS_DIR", tempfile.mkdtemp(prefix="planetgen-t
 # it with tests/worker_patches.py, which reaches the workers as well.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
+# GEN.1580: a body held at the ionization ceiling of its air is an error in every test that makes one (`air_final.CEILING_IS_ERROR_VARIABLE`), never a state to keep.
+os.environ["PLANETGEN_CEILING_IS_ERROR"] = "1"
+
 # A run with more than one worker queues its tasks on Redis (PERF.24):
 # the test server's, when PLANETGEN_TEST_REDIS_URL names one (CI does), in a
 # database of this xdist worker's own (TEST.266, TEST.280): a process a test
@@ -95,6 +98,10 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+# OPS.155: the job profiles (what each kind of unit costs, in the control database) are not recorded by the tests; tests/test_job_profiles.py turns them on.
+os.environ.setdefault("PLANETGEN_JOB_PROFILES", "0")
+# OPS.156: claims come from the typed tables in the tests, not from a job profile; tests/test_profile_claim.py turns the profile on.
+os.environ.setdefault("PLANETGEN_SELF_TUNING", "0")
 # A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
 os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
 # VIEW.25: charting builds the sky tiers by default (`queue.sky_limit` 7.5, half an hour a cell on a real galaxy); a test galaxy would take minutes to
@@ -205,9 +212,17 @@ BROWSER_START_SKIPS = ("Playwright could not start", "No Chromium for Playwright
 """tuple: The start of the skip reasons the browser fixtures give when Playwright or its Chromium will not start (TEST.693)."""
 
 
+MYSQL_SKIPS = ("No MySQL test server reachable",)
+"""tuple: The start of the skip reason `_mysql_server_available` gives when the test server will not answer or refuses the login (TEST.723)."""
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
+    TEST.723: with `PLANETGEN_REQUIRE_MYSQL` set (every command of `scripts/test.py` that runs database tests sets it), a database test that skipped because the MySQL test server could not
+    be reached or refused the login is a failure, not a skip. A gate that comes back with hundreds of skips because MySQL died or a lane's login was refused looks green to anyone who reads
+    only the failure count (6055 came back 317 skipped and was nearly reported as a pass).
+
     TEST.693: with `PLANETGEN_REQUIRE_BROWSER` set (the browser phase of `scripts/test.py` sets it), a browser test that skipped because Playwright or
     its Chromium would not start is a failure, not a skip. Before this a version mismatch (every test skipped with "Executable doesn't exist") and
     one test that left an asyncio loop behind (every later test skipped with "inside the asyncio loop") each turned about 1,500 browser tests into skips
@@ -215,12 +230,18 @@ def pytest_runtest_makereport(item, call):
     """
     outcome = yield
     report = outcome.get_result()
-    if not report.skipped or not os.environ.get("PLANETGEN_REQUIRE_BROWSER"):
+    if not report.skipped:
+        return
+    require_browser, require_mysql = os.environ.get("PLANETGEN_REQUIRE_BROWSER"), os.environ.get("PLANETGEN_REQUIRE_MYSQL")
+    if not (require_browser or require_mysql):
         return
     reason = report.longrepr[2] if isinstance(report.longrepr, tuple) and len(report.longrepr) == 3 else str(report.longrepr)
-    if any(marker in reason for marker in BROWSER_START_SKIPS):
+    if require_browser and any(marker in reason for marker in BROWSER_START_SKIPS):
         report.outcome = "failed"
         report.longrepr = f"the browser could not start, so the test did not run: {reason}"
+    elif require_mysql and any(marker in reason for marker in MYSQL_SKIPS):
+        report.outcome = "failed"
+        report.longrepr = f"the MySQL test server could not be reached, so the test did not run (TEST.723): {reason}"
 
 
 def pytest_collection_modifyitems(config, items):
@@ -568,6 +589,26 @@ def _worker_redis_database():
     yield
     if url:
         stray_workers.reap_database(url)    # and the ones this session started and did not stop
+        private_redis.flush(url)
+
+
+@pytest.fixture
+def queue_command_env():
+    """
+    TEST.717: the environment for a test that runs a command in a process of its own and checks what the command says about THIS test's folders.
+
+    `datasets status` and `check-math` run as check runs through the queue (`wrapper.run`), which hands the work to whatever worker already serves the Redis database
+    (`ensure_workers` starts one only if none does), with that worker's environment: a worker left by an earlier test, or one started with the machine's own data folder,
+    answered with the machine's cache and not the test's. This gives the test the worker's own database with no worker on it, so the command's own workers (which
+    inherit this environment) do the work, and ends them and empties the database afterwards. Without Redis the command runs in its own process as before.
+    """
+    url = os.environ.get("PLANETGEN_REDIS_URL")
+    if url:
+        stray_workers.reap_database(url)
+        private_redis.flush(url)
+    yield dict(os.environ)
+    if url:
+        stray_workers.reap_database(url)
         private_redis.flush(url)
 
 

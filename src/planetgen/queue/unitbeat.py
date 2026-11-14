@@ -12,7 +12,7 @@ the follower can judge it (`queue/beatjudge.py`, OPS.137) and a person can see i
 * **The clock is Redis's.** `beat`, `started` and `moved` are seconds on the Redis server clock (`TIME`), so a lane machine and the server cannot disagree; `moved` is worked out from this process's
   monotonic clock when the counter changed, set against the server time of the write.
 * **The record** is one JSON object in the unit's field: `done`, `estimate`, `beat`, `started`, `moved` (absent until `done` first changes), `phase`, `waiting_on`, `restarts` (how many times the
-  current phase label has begun again), `resident_mb` (optional), and `pid`, `host` and `stack_file` (where the follower sends `DUMP_SIGNAL`, OPS.140). `read` gives a `beatjudge.Beat` for each unit of a stage.
+  current phase label has begun again), `resident_mb` (optional), and `pid`, `host` and `stack_file` (where the follower sends `DUMP_SIGNAL`, OPS.140), and the evidence of OPS.193 (`cpu_s`, `io_read`, `io_write` and, while a statement is out, `sql` and `sql_since`: see `evidence`) and `active` (when those figures last moved: processor time or bytes by more than a beat's own use, or a statement out; absent until they do). `read` gives a `beatjudge.Beat` for each unit of a stage.
 """
 
 import faulthandler
@@ -25,10 +25,17 @@ import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.queue import beatjudge, runrecord
+from planetgen.db import statementmark
+from planetgen.queue import beatjudge, runrecord, usage as usageModule
 
 COUNTER_WRITE_SECONDS = 2.0
 """float: A counter that moved is written at most this often, between two beats."""
+
+ACTIVE_CPU_SECONDS = 0.05
+"""float: Processor seconds used between two writes of the record that count as work (the beat thread's own use is far under this)."""
+
+ACTIVE_IO_BYTES = 16384
+"""int: Bytes read and written between two writes that count as work (a beat written to Redis is a few hundred)."""
 
 TICK_SECONDS = 0.5
 """float: How often the thread looks at whether a write is due (nothing is sent to Redis on a tick that writes nothing)."""
@@ -65,6 +72,40 @@ def register_dump(path):
     return True
 
 
+def io_bytes():
+    """`(read, written)`: the bytes this process has read and written so far (`/proc/self/io`: `rchar` and `wchar`, so a socket to the database counts as well as a file); `(0, 0)` where the system does not say."""
+    try:
+        with open("/proc/self/io", encoding="ascii") as handle:
+            found = dict(line.split(": ", 1) for line in handle.read().splitlines() if ": " in line)
+        return int(found["rchar"]), int(found["wchar"])
+    except (OSError, KeyError, ValueError) as exc:
+        from planetgen.util import log
+        log.swallowed("queue", "reading /proc/self/io for the beat", exc)
+        return 0, 0
+
+
+def evidence(now_server):
+    """
+    What the unit is doing besides moving its counter (OPS.193): `cpu_s` (processor seconds of this process and the children it waited for), `io_read` and `io_write` (bytes), and, while a
+    statement is out, `sql` (its label) and `sql_since` (server-clock seconds when it was sent). The judge (OPS.194) calls a unit whose counter stands still but whose figures move `busy`.
+    """
+    from planetgen.util import log
+    read, written = io_bytes()
+    made = {"cpu_s": round(usageModule.cpu_seconds(), 2), "io_read": read, "io_write": written}
+    sent = statementmark.running()
+    if sent is not None:
+        made["sql"], made["sql_since"] = sent[0], now_server - sent[1]
+        if sent[2] is not None:
+            try:
+                found = sent[2]()
+            except Exception as exc:        # noqa: BLE001 -- a reading of the server that fails must not stop the beat
+                log.swallowed("queue", "reading the progress of a statement for the beat", exc)
+                found = None
+            if found:
+                made["sql_done"], made["sql_estimated"] = found
+    return made
+
+
 def server_time(conn):
     """Seconds on the Redis server clock."""
     seconds, microseconds = conn.time()
@@ -78,8 +119,9 @@ class UnitBeat:
     """
 
     def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS,
-                 stack_file=None, hash_key=None, extra=None):
+                 stack_file=None, hash_key=None, extra=None, usage=None):
         self.stack_file = stack_file
+        self.usage = usage                          # OPS.155: a `usage.Usage` the thread feeds on every tick (memory and processor, peak and average)
         self.extra = dict(extra or {})
         self.conn, self.key, self.unit = conn, hash_key or runrecord.progress_key(run_id, stage), str(unit)
         self.clock = clock
@@ -94,12 +136,15 @@ class UnitBeat:
         self._moved_at = None                       # this process's monotonic clock when `done` last changed
         self._changed_at = self.clock()             # when the gap now running began: the unit's start, then each change of `done`
         self._waited = 0.0                          # seconds of the gap now running spent waiting on a lock or the gate (not stuck, so not part of the gap)
+        self._waited_total = 0.0                    # the same over the whole unit (PERF.147: a rate is items over the seconds worked)
         self._longest_gap = 0.0                     # the longest gap between two changes of `done` so far (OPS.135)
         self._phase, self._waiting, self._phases = "", "", {}
         self._started_at = self.clock()
         self._started_server = None
         self._last_write = None
         self._written_done = None
+        self._proof = None                          # (processor seconds, bytes read and written) at the last record, to see whether either moved (OPS.194)
+        self._active_at = None                      # this process's monotonic clock when the evidence last moved
 
     # --- what the work loop sets: numbers in this process, nothing sent ---------------------------------------
 
@@ -120,6 +165,17 @@ class UnitBeat:
         with self._lock:
             return max(self._longest_gap, self.clock() - self._changed_at - self._waited, 0.0)
 
+    def totals(self):
+        """`(done, seconds)` of the unit so far: the items finished and the seconds it worked, not counting the time spent waiting on a lock or the gate (PERF.147: `unitrates`)."""
+        with self._lock:
+            return self._done, max(self.clock() - self._started_at - self._waited_total, 0.0)
+
+    def moving(self):
+        """The unit has made progress its count does not show (OPS.184: a sampling table worked out inside a phase that counts only its cases): the quiet clock starts again."""
+        with self._lock:
+            self._moved_at = self.clock()
+            self._close_gap(self._moved_at)
+
     def phase(self, text):
         """The unit begins `text`; the same label beginning again counts as a restart of the phase."""
         with self._lock:
@@ -138,6 +194,7 @@ class UnitBeat:
             with self._lock:
                 self._waiting = before
                 self._waited += max(self.clock() - began, 0.0)
+                self._waited_total += max(self.clock() - began, 0.0)
 
     # --- the record and its thread ---------------------------------------------------------------------------
 
@@ -146,20 +203,32 @@ class UnitBeat:
         now_server = server_time(self.conn) if now_server is None else now_server
         if self._started_server is None:
             self._started_server = now_server - (self.clock() - self._started_at)
+        proof = evidence(now_server)
+        self._note_activity(proof)
         with self._lock:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
                     "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
-                    "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
+                    "waited": round(max(self._waited, 0.0), 1), "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
             if self.stack_file:
                 made["stack_file"] = self.stack_file
+            made.update(proof)
             made.update(self.extra)
             if self._moved_at is not None:
                 made["moved"] = now_server - (self.clock() - self._moved_at)
+            if self._active_at is not None:
+                made["active"] = now_server - (self.clock() - self._active_at)
             written = self._done
         if self.resident is not None:
             made["resident_mb"] = round(float(self.resident()), 1)
         self._written_done = written
         return made
+
+    def _note_activity(self, proof):
+        """Notes when the evidence of the record last moved: processor time or bytes by more than a beat's own use, or a statement out (OPS.194: the judge calls a still counter with this fresh busy)."""
+        now = (proof["cpu_s"], proof["io_read"] + proof["io_write"])
+        before, self._proof = self._proof, now
+        if "sql" in proof or (before is not None and (now[0] - before[0] >= ACTIVE_CPU_SECONDS or now[1] - before[1] >= ACTIVE_IO_BYTES)):
+            self._active_at = self.clock()
 
     def write(self):
         """One write of the record to the stage's progress hash."""
@@ -178,6 +247,8 @@ class UnitBeat:
 
     def _run(self):
         while not self._stop.is_set():
+            if self.usage is not None:
+                self.usage.tick()
             if self._due():
                 try:
                     self.write()
@@ -217,6 +288,12 @@ def waiting(tag):
         yield
 
 
+def moving():
+    """The running unit has made progress its count does not show; nothing happens outside a unit."""
+    if _current is not None:
+        _current.moving()
+
+
 def phase(text):
     """The running unit begins `text`; nothing happens outside a unit."""
     if _current is not None:
@@ -237,7 +314,9 @@ def beat_of(found):
     return beatjudge.Beat(beat=float(found["beat"]), started=float(found.get("started", found["beat"])), done=float(found.get("done", 0.0)),
                           estimate=float(found.get("estimate") or 0.0), moved=None if found.get("moved") is None else float(found["moved"]),
                           phase=str(found.get("phase", "")), waiting_on=str(found.get("waiting_on", "")), restarts=int(found.get("restarts", 0)),
-                          resident_mb=None if found.get("resident_mb") is None else float(found["resident_mb"]))
+                          waited=float(found.get("waited") or 0.0), resident_mb=None if found.get("resident_mb") is None else float(found["resident_mb"]),
+                          active=None if found.get("active") is None else float(found["active"]), sql=str(found.get("sql", "")),
+                          sql_since=None if found.get("sql_since") is None else float(found["sql_since"]))
 
 
 def read(conn, run_id, stage):

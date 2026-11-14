@@ -176,24 +176,54 @@ def test_a_gas_of_an_element_no_species_holds_still_raises():
         ge.solve({"Og": 1.0, "N": 1e-15}, 610.0, 1.0)
 
 
-# --- An element the table has gases of, but none in range at the temperature --------------------------------------------------
+# --- Phosphorus above 6000 K (GEN.1512) ------------------------------------------------------------------------------------------
 
 
-def test_phosphorus_has_no_gas_in_the_table_above_6000_k_and_the_gas_is_the_rest():
+def test_phosphorus_has_a_gas_above_6000_k_in_atomic_form():
     abundances = {"H": 1.0, "C": 3e-4, "P": 3e-7}
-    assert any(name for name, row in st.SPECIES.items() if "P" in row.elements and not row.condensed and row.range_k[1] <= 6000.0)
     cool = ge.solve(abundances, 3000.0, 1.0)
     hot = ge.solve(abundances, 7500.0, 1.0)
     assert any("P" in st.SPECIES[name].elements for name in cool.moles)
-    assert not any("P" in st.SPECIES[name].elements for name in hot.moles)
+    assert hot.moles["P"] > 0.0
     assert sum(hot.mole_fractions.values()) == pytest.approx(1.0)
 
 
-def test_a_named_list_of_species_drops_the_element_it_has_no_gas_of_in_range_too():
-    hot = ge.solve({"H": 1.0, "P": 3e-7}, 7500.0, 1.0, species=("H2", "H", "P2", "PH3"))
-    assert set(hot.moles) <= {"H2", "H"}
+def test_phosphorus_alone_still_settles_at_the_top_of_the_table():
+    hot = ge.solve({"P": 1.0}, 20000.0, 1.0)
+    assert hot.mole_fractions["P"] == pytest.approx(1.0, rel=1e-3)
 
 
-def test_an_element_with_no_gas_in_range_is_still_an_error_when_nothing_else_is_left():
+def test_phosphorus_monoxide_and_nitride_carry_the_phosphorus_of_a_hot_air_below_6000_k():
+    hot = ge.solve({"H": 1.0, "N": 1e-3, "O": 1e-3, "P": 1e-6}, 4500.0, 1.0)
+    carriers = {name for name in hot.moles if "P" in st.SPECIES[name].elements}
+    assert {"P", "PO"} <= carriers
+
+
+_DEEP_HOT_AIR = {"C": 0.0025434015400156223, "N": 8.91890392735706e-05, "S": 9.7e-09, "Ar": 1.34e-08}
+"""GEN.1613: the elements of a failing air of the GEN.1580 census (seed 2065): a carbon dioxide air under a 4,000 K surface and 9,255 bar."""
+
+
+def test_a_held_oxygen_fugacity_over_the_pressure_is_lowered_when_the_solve_cannot_settle(caplog):
+    """GEN.1613: 10^4.1 bar of oxygen in 9,255 bar never settles in an ideal gas; the solve is made again at `MAX_HELD_O2_SHARE` of the pressure and says so."""
+    import logging
     with pytest.raises(ge.EquilibriumError):
-        ge.solve({"P": 1.0}, 7500.0, 1.0)
+        ge._with_fewer_trace_elements(_DEEP_HOT_AIR, 3981.5, 9255.38, 4.108, None)
+    with pytest.raises(ge.EquilibriumError):         # the option is off by default: a gas whose pressure is free raises it instead (`mixture_lava.carbon_gas`)
+        ge.solve(_DEEP_HOT_AIR, 3981.5, 9255.38, fixed_o2_log_fugacity=4.108)
+    with caplog.at_level(logging.INFO):
+        result = ge.solve(_DEEP_HOT_AIR, 3981.5, 9255.38, fixed_o2_log_fugacity=4.108, lower_held_o2=True)
+    assert result.clamped_o2_log_fugacity == 4.108
+    assert result.mole_fractions["O2"] == pytest.approx(ge.MAX_HELD_O2_SHARE, rel=1e-6)
+    assert "Held oxygen" in caplog.text
+
+
+def test_a_held_oxygen_fugacity_the_solve_settles_at_is_kept():
+    """GEN.1613: only a solve that fails is lowered; one that settles keeps the value it was given."""
+    result = ge.solve(_DEEP_HOT_AIR, 3981.5, 9255.38, fixed_o2_log_fugacity=3.5)
+    assert result.clamped_o2_log_fugacity is None
+    assert result.mole_fractions["O2"] == pytest.approx(10 ** 3.5 / 9255.38, rel=1e-6)
+
+
+def test_an_unheld_solve_that_fails_still_raises():
+    with pytest.raises(ge.EquilibriumError):
+        ge.solve({"Xx": 1.0}, 1000.0, 1.0)

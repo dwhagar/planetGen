@@ -65,8 +65,8 @@ from planetgen.db import dataversion
 from planetgen.queue import redisclient
 from planetgen.util import log
 from planetgen.util.settings import PageCache
-from planetgen.web.lib.xfetch import XFETCH_BETA, XFETCH_MIN_SECONDS, xfetch_early
 from planetgen.web.lib import pagetags
+from planetgen.web.lib.xfetch import XFETCH_BETA, XFETCH_MIN_SECONDS, xfetch_early
 
 DEFAULTS = PageCache().model_dump()
 """dict: The model's defaults (`settings.PageCache`), the settings a cache
@@ -230,7 +230,8 @@ class ResponseCache:
             memory = self._redis().info("memory")
             limit = int(memory.get("maxmemory") or 0)
             room = limit <= 0 or int(memory.get("used_memory") or 0) < limit * REDIS_ROOM_FRACTION
-        except (redis.RedisError, OSError, ValueError, TypeError):
+        except (redis.RedisError, OSError, ValueError, TypeError) as exc:
+            log.degraded("pagecache", "the Redis memory check failed, so the page cache assumes there is room", exc)
             room = True
         self._room = (now, room)
         return room
@@ -284,7 +285,8 @@ class ResponseCache:
                         self._stamps[db] = (known[0], now, known[2], known[3], True)
                     return True
                 self._bump_from(db, changes, recorded)
-        except Exception:  # noqa: BLE001 -- fail open: just don't cache
+        except Exception as exc:  # noqa: BLE001 -- fail open: just don't cache
+            log.swallowed("web/lib/pagecache", "ResponseCache._fresh_stamp", exc)
             return False
         with self._lock:
             self._stamps[db] = (stamp, now, state, now, busy)
@@ -344,7 +346,8 @@ class ResponseCache:
         """The copy Redis holds (made by another process or the warm-up), taken into this process."""
         try:
             raw = self._redis().hmget(shared_key(db, target), "i", "v", "b", "c")
-        except (redis.RedisError, OSError):
+        except (redis.RedisError, OSError) as exc:
+            log.degraded("pagecache", "reading a shared page from Redis failed, so the page is built here", exc)
             return None
         if raw[0] is None or raw[1] is None or raw[2] is None:
             return None
@@ -391,7 +394,8 @@ class ResponseCache:
         try:
             self._redis().set(self._slice_key(db, name), json.dumps(recorded.as_dict(), sort_keys=True),
                               ex=max(60, self._shared_seconds // 2))
-        except (redis.RedisError, OSError):
+        except (redis.RedisError, OSError) as exc:
+            log.degraded("pagecache", "sharing a page slice through Redis failed", exc)
             return False
         return True
 
@@ -420,7 +424,8 @@ class ResponseCache:
                 pipe.exists(key)
             if not all(pipe.execute()):
                 return None
-        except (redis.RedisError, OSError, ValueError, KeyError, TypeError, dataversion.Unavailable):
+        except (redis.RedisError, OSError, ValueError, KeyError, TypeError, dataversion.Unavailable) as exc:
+            log.degraded("pagecache", "reading the shared page set from Redis failed", exc)
             return None
         return len(saved["keys"])
 
@@ -469,7 +474,8 @@ class ResponseCache:
             pipe.hset(key, mapping={"i": now_id, "v": json.dumps(found, sort_keys=True), "b": body, "c": cost})
             pipe.expire(key, self._shared_seconds)
             pipe.execute()
-        except (redis.RedisError, OSError):
+        except (redis.RedisError, OSError) as exc:
+            log.degraded("pagecache", "sharing a page through Redis failed", exc)
             return False
         self._note(db, target, now_id, found)
         return True
