@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4159] - 2026-11-14
+
+**Headline:** A guard test now keeps every queue command on the engine's loop, so no new command can go silent by writing a loop of its own.
+
+### Changed
+
+- OPS.196 (first part): `test_commands_have_pieces` fails for a registered command that gives the engine neither `pieces` and `do` nor a place in its list of commands waiting for the family item that converts them (OPS.198 to OPS.206). The list only gets shorter: a converted command still listed fails, and so does a name that is not a command. The second part (each command run on the small galaxy with its longest quiet stretch held to a budget, and the `whole` flag deleted) comes with the last family.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4158] - 2026-11-14
 
 **Headline:** The galaxy plan, the end of the phenomena scatter and the block light totals now run on the engine's loop, so each says how far it is by its pieces and by what it counts inside them.
