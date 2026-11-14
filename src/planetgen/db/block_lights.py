@@ -441,8 +441,6 @@ def _unit_rows(conn, shells):
     """All the rows of one unit (see `_unit_batches`), for callers that want them together."""
     return [row for batch in _unit_batches(conn, shells) for row in batch]
 
-PROGRESS_SAY_SECONDS = 30.0
-"""float: How long a long loop of the block light work goes without saying where it is (`on_phase`)."""
 
 ABOVE_ROLL_SHARE = 0.8
 """float: The share of `_above_unit`'s progress that adding up the stored rows takes (the rest is writing the rows made)."""
