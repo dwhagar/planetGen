@@ -67,6 +67,11 @@ class BinaryStarProxy(StellarObject):
         "binary_secondary_position_z": "au", "binary_secondary_mass_fraction": "ratio",
         "_binary_separation_au": "au", "_effective_mass": "kg", "_effective_luminosity": "W",
     }
+    host_node_no = None
+    """int or None: The node of the system's orbit tree this proxy stands for when it hosts the circumbinary planets of an inner
+    pair (GEN.332, `StarSystem._make_node_hosts`); `None` for the proxy of the system's own close pair, whose node the system
+    knows (`StarSystem.pair_node_no`)."""
+
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """
     Mirrors `Star.SERIALIZABLE_FIELDS`, minus `yerkes_class` (not set on a
@@ -164,6 +169,7 @@ class BinaryStarProxy(StellarObject):
         # Use only the primary star's own bare name for the system name --
         # see the matching super().__init__ call above.
         self.name = primary_star.name
+        lead = primary_star.leaf_stars[0] if isinstance(primary_star, BinaryStarProxy) else primary_star    # a pair of pairs (GEN.332) goes by its heaviest star
         self.type = f"Binary ({primary_star.type.split(' ')[0]}/{secondary_star.type.split(' ')[0]})" # Simplified type
         self.temperature = (primary_star.temperature + secondary_star.temperature) / 2 # Simple average
         self.radius = max(primary_star.radius, secondary_star.radius) # Use the larger radius for approximation
@@ -260,9 +266,14 @@ class BinaryStarProxy(StellarObject):
             self._effective_mass,
             self._effective_luminosity,
             self.radius, # Using the larger radius as an approximation
-            self._primary.type, # Using primary's type for wind model selection
-            self._primary.yerkes_class # Using primary's yerkes class for wind model selection
+            lead.type, # Using primary's type for wind model selection
+            lead.yerkes_class # Using primary's yerkes class for wind model selection
         )
+
+    @property
+    def leaf_stars(self):
+        """list of Star: The stars the proxy is made of, in order, a pair of pairs (an inner node holding a sub-node, GEN.332) flattened."""
+        return [leaf for part in self.stars for leaf in (part.leaf_stars if isinstance(part, BinaryStarProxy) else (part,))]
 
     @property
     def mass(self):

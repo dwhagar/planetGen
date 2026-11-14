@@ -77,6 +77,8 @@ def test_two_draws_are_used_per_body():
 
 class _Star:
     snow_line_au = 2.0
+    mass = 1.989e30          # a Sun: the water line (GEN.1678) reads the star's mass
+    initial_mass_sol = 1.0
 
 
 class _Body:

@@ -153,3 +153,11 @@ def test_the_small_body_fit_agrees_with_the_solver(mass, cmf, water):
 def test_the_solver_branch_is_still_there_when_asked_for():
     earth = _bulk(metal=0.3, rock=0.7)
     assert bs.structure(earth, 0.05 * bs.M_EARTH, prefer_solver=True).method == "solver"
+
+
+def test_a_planet_younger_than_the_envelope_laws_fit_has_the_radius_it_has_at_the_fits_youngest_age():
+    """GEN.1672: the age term (age / 5 Gyr)^-0.18 is [R2741]'s fit from 0.1 Gyr; younger, the thickness is held, not extrapolated (a 3.4 Earth mass planet with a 20 percent envelope was 0.02 g/cm3 at 0.05 Gyr)."""
+    held = bs.envelope_radius_earth(3.4, 0.2, 1.0, bs.ENVELOPE_LAW_MIN_AGE_GY)
+    assert bs.envelope_radius_earth(3.4, 0.2, 1.0, 0.05) == held
+    assert bs.envelope_radius_earth(3.4, 0.2, 1.0, 0.0) == held
+    assert bs.envelope_radius_earth(3.4, 0.2, 1.0, 0.2) < held

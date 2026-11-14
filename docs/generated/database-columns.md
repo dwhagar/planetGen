@@ -355,6 +355,7 @@ stars -- one row per single star, two rows (primary/secondary) per binary. Never
 | `star_system_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `role` | VARCHAR(16) | NOT NULL | v133 (GEN.630): 'member' |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the star shows, an id of the `star` scope of physics/data/flavor_tree.json (NULL for none) |
 | `star_type` | VARCHAR(64) | NOT NULL | Star.type, e.g. "G2V Yellow Main Sequence Star" |
 | `yerkes_class` | VARCHAR(16) | NOT NULL |  |
 | `mass_kg` | DOUBLE | NOT NULL |  |
@@ -1422,10 +1423,12 @@ asteroid_belts -- belts have no properties-dict data table (asteroidData.py:93-1
 | `stirred` | TINYINT(1) | NULL | v204 (GEN.1069): whether a giant stirs the belt |
 | `origin_history` | TEXT | NULL | v204 (GEN.1069): the sentences of what shaped the belt, a JSON list |
 | `origin_sentence` | TEXT | NULL | v204 (GEN.1069): the sentence of where the belt came from, for its page |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the belt shows, an id of the belt scope of physics/data/flavor_tree.json (NULL for none) |
 | `scatter_fates` | TEXT | NULL | v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object |
 | `makeup` | TEXT | NULL | v256 (DB.124): what the belt is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo, the taxon shares) |
 | `largest_body_km` | DOUBLE | NULL | v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass |
 | `history_text` | TEXT | NULL | v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205 |
+| `host_node_id` | SMALLINT | NULL | v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets` |
 
 ## `asteroid_belt_composition`
 
@@ -1536,6 +1539,7 @@ comets -- v19, a comet gravitationally bound to a star (planetgen/generation/com
 | `star_system_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `star_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the comet shows, an id of the `comet` scope of physics/data/flavor_tree.json (NULL for none) |
 | `orbit_type` | VARCHAR(16) | NOT NULL |  |
 | `period_class` | VARCHAR(16) | NULL |  |
 | `nucleus_diameter_km` | DOUBLE | NOT NULL |  |
@@ -1598,6 +1602,7 @@ black_holes / neutron_stars -- v16 exotic phenomena, see this file's header comm
 | `star_id` | BIGINT UNSIGNED | NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the black hole shows, an id of the `black_hole` scope of physics/data/flavor_tree.json (NULL for none) |
 | `mass_class` | VARCHAR(16) | NOT NULL |  |
 | `mass_solar` | DOUBLE | NOT NULL |  |
 | `event_horizon_radius_km` | DOUBLE | NOT NULL |  |
@@ -1642,6 +1647,7 @@ black_holes / neutron_stars -- v16 exotic phenomena, see this file's header comm
 | `star_id` | BIGINT UNSIGNED | NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the neutron star shows, an id of the `neutron_star` scope of physics/data/flavor_tree.json (NULL for none) |
 | `mass_solar` | DOUBLE | NOT NULL |  |
 | `radius_km` | DOUBLE | NOT NULL |  |
 | `spin_period_ms` | DOUBLE | NOT NULL |  |
@@ -1688,6 +1694,7 @@ nebulae -- v16 exotic phenomenon, always standalone. `sector_id` links it to the
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the nebula shows, an id of the `nebula` scope of physics/data/flavor_tree.json (NULL for none) |
 | `nebula_class` | CHAR(1) | NOT NULL |  |
 | `nebula_type` | VARCHAR(16) | NOT NULL |  |
 | `radius_ly` | DOUBLE | NOT NULL |  |
@@ -1763,6 +1770,7 @@ supernova_remnants -- v16 exotic phenomenon, always standalone. At most one of c
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the remnant shows, an id of the `remnant` scope of physics/data/flavor_tree.json (NULL for none) |
 | `remnant_class` | CHAR(1) | NOT NULL |  |
 | `morphology` | VARCHAR(16) | NOT NULL |  |
 | `age_years` | DOUBLE | NOT NULL |  |
@@ -1844,6 +1852,7 @@ quasars -- v31 exotic phenomenon: a galaxy's active nucleus, always at the galac
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the quasar shows, an id of the `quasar` scope of physics/data/flavor_tree.json (NULL for none) |
 | `black_hole_mass_solar` | DOUBLE | NOT NULL |  |
 | `event_horizon_radius_km` | DOUBLE | NOT NULL |  |
 | `eddington_ratio` | DOUBLE | NOT NULL |  |
@@ -2333,6 +2342,7 @@ interstellar_comets -- v16 exotic phenomenon, always standalone (an interstellar
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the interstellar comet shows, an id of the `interstellar_comet` scope of physics/data/flavor_tree.json (NULL for none) |
 | `nucleus_diameter_km` | DOUBLE | NOT NULL |  |
 | `velocity_kms` | DOUBLE | NOT NULL |  |
 | `is_active` | TINYINT(1) | NOT NULL |  |
@@ -2388,6 +2398,7 @@ asteroid_fields -- v17 exotic phenomenon (seventh phenomenon type), always stand
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `sector_id` | BIGINT UNSIGNED | NULL |  |
 | `name` | VARCHAR(255) | NOT NULL |  |
+| `flavor_key` | VARCHAR(32) | NULL | v259 (GEN.1433): the flavor line the asteroid field shows, an id of the `asteroid_field` scope of physics/data/flavor_tree.json (NULL for none) |
 | `field_class` | VARCHAR(4) | NOT NULL |  |
 | `composition_family` | VARCHAR(16) | NOT NULL |  |
 | `density` | VARCHAR(16) | NOT NULL |  |
@@ -2628,7 +2639,7 @@ body_numbers (v257, DB.75): the body number each slot of a system has had. A slo
 
 ## `body_history`
 
-body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version` of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no result: the draws are kept by the generator on the body and this keeps them for the stored galaxy. It goes with its system (`ON DELETE CASCADE`) and an edit of the system clears its rows (`db/edits.py`).
+v259 (GEN.1433): `asteroid_belts` gain `flavor_key` (VARCHAR(32), NULL): the id of the flavor line the belt shows, a line of the `belt` scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244. body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version` of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no result: the draws are kept by the generator on the body and this keeps them for the stored galaxy. It goes with its system (`ON DELETE CASCADE`) and an edit of the system clears its rows (`db/edits.py`).
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
