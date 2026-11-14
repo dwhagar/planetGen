@@ -6403,7 +6403,11 @@
           "what": "sulfur_balance.WATER_LAYER_FULL_M"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the redox shift of the rocky bodies is chosen so that about half of them are oxidized (GEN.1562 N4); no source measures the split of rocky mantles by oxygen fugacity across a galaxy of worlds, only the Earth's upper mantle at IW+3.5 to IW+4 and the recipe draw, so a measured population would have to replace it"
+          ],
           "fields": [
             [
               "Evidence",
@@ -21454,9 +21458,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1016",
-            "the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it"
+            "no data",
+            "-",
+            "the criterion holds only for q_out up to 5; GEN.1028 enforces the range, and GEN.1016 (built, Train 25) uses the quadruple fit and the 3+1 criterion beyond it; a fit of C over a wider q_out from the N-body papers would replace the hand value"
           ],
           "fields": [
             [
