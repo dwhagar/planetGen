@@ -8,8 +8,8 @@
 
 The generator made no Class M world and no world rated Blue in 2,750 plain systems and 455 Sun-like systems (`reports/class-m-blue-levers-2026-11-14.md`). Part of that was bugs, filed as GEN.1694 to GEN.1698. What is left is not a bug. With the bugs fixed, the generator's own laws give under one Class M world in ten thousand Sun-like systems, for three reasons that the science itself gives:
 
-1. A rocky planet in the ecosphere forms at a median 0.85 snow lines, where the Bern population synthesis (`physics/delivered_water.py`) gives it thousands of times Earth's water. Sixteen of eighteen candidates are 100 percent ocean. Earth formed at 0.37 snow lines and is in the law's `low` class.
-2. Thirty-four of seventy-five right-mass candidates keep a hydrogen envelope.
+1. A rocky planet in the ecosphere is usually born far wetter than Earth: the Bern population synthesis (`physics/delivered_water.py`) gives most of them hundreds to thousands of times Earth's water, and sixteen of eighteen measured candidates were 100 percent ocean. Part of that was a unit bug (the law read against the snow line of GEN.1611, about 1.7 times too far out; sent to TODO on 2026-11-13), but the published models agree on the direction: Earth's water class (`low`) is 1 to 8 percent of habitable-zone planets (`reports/water-rich-hz-births-2026-11-14.md`).
+2. Thirty-four of seventy-five right-mass candidates keep a hydrogen envelope, which is inside what the published work allows (`reports/hydrogen-envelopes-habitable-zone-2026-11-14.md`).
 3. The band of sunlight that gives a Class M surface is narrow: an exact copy of Earth is Class M 23 percent of the time at 1.00 AU, 9 percent at 0.95 AU and 2 percent at 1.10 AU.
 
 Nobody knows how common an Earth is. Earth may be one in a galaxy. So the rate is not a fact the generator can look up; it is a choice of the person who makes the galaxy, and the generator says plainly when that choice goes past the science.
