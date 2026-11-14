@@ -8,7 +8,7 @@ The cloud deck of a hot giant (Cr, MnS, Na2S, ZnS, KCl) is where the planet's te
 
 ## The form
 
-Guillot 2010 [R1715] equation 29, the analytic semi-grey irradiated atmosphere in radiative equilibrium, READ in the research (`atmosphere-composition-parts/03-infrared-greenhouse-thermal.md` section 5.1):
+[R1715] equation 29, the analytic semi-grey irradiated atmosphere in radiative equilibrium, READ in the research (`atmosphere-composition-parts/03-infrared-greenhouse-thermal.md` section 5.1):
 
     T^4 = (3 T_int^4 / 4)(2/3 + tau) + (3 f T_irr^4 / 4)[2/3 + 1/(gamma sqrt 3) + (gamma/sqrt 3 - 1/(gamma sqrt 3)) exp(-gamma tau sqrt 3)]
 

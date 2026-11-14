@@ -11903,16 +11903,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 23 (built parts 1 to 3, owns GEN.1314), lock item for Train 25 (Train 24 carries GEN.1314); the old owner, the fudge thread, was not a current lane, which is why it sat unscheduled. Filed by the TODO thread.
   Prerequisites: GEN.1314. Related: GEN.725, GEN.1306, TEST.430.
 
-- [ ] **GEN.1316 Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge**
-  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). The ranking report (reports/stand-in-reliability-ranking-2026-11-06.md)
-  gains a column for the share of the fudge of each quantity so research
-  goes to the stand-in that buys the most reduction; the class docs and
-  pages say what the fudge is (the model's uncertainty, not the world's
-  variety). Lock-free. Done: the column and the pages are built from the
-  table.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 14, lock-free, starts when Train 24 (GEN.1314) merges. Filed by the TODO thread.
-  Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
-
 - [ ] **GEN.1317 Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Boss, 6:28 PM EST on 2026-11-06: make the system check the data against
   the epoch during update, and if the epoch has changed regenerate the fudge
@@ -12419,6 +12409,7 @@ clears each one.
 
 - [ ] **GEN.1577 Upper-atmosphere temperature-pressure profile of a hot giant (1e-6 to 1e3 bar), so the cloud decks and trace-gas ceilings of GEN.994 (hot_condensates) have a profile to read**
   Lane 14 (as the lane reported 8:12 PM EST on 2026-11-11), from the GEN.1559 wiring triage: GEN.994 equilibrium_edges is wired (PR 5976), but hot_condensates cannot be wired yet. Lane 07's deck prebuild (PR 6096) needs a temperature-pressure profile for the upper atmosphere of a hot giant from 1e-6 to 1e3 bar, and nothing in the code makes one: giant_structure.fit_adiabat starts at 1 bar and radiative_convective is by design off the generation path. Do: a short design note first, then the build; the recommended form is the analytic grey profile of [R1715] on the giant's equilibrium temperature, internal flux and a two-band opacity, with the stand-ins registered in GEN.725 (tier and tweak level), reusing the existing giant structure and internal-flux code. A lock-free prebuild as a new module (Lane 07 may build it, Lane 14 reviews); the wiring behind it (deck columns, migration, unit entries in db/column_units.py, describe page, epoch) is a lock item for Lane 14. Done: the profile function with tests against a published hot-Jupiter profile, the registry rows, and then GEN.994 hot_condensates reads it.
+  TODO (2026-11-14): the pure profile merged in PR #6106 (Lane 14, 2:48 AM EST); the item stays open for the wiring the register names (the hot-giant profile, hot condensates and HK rows into the cloud decks).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 07 prebuild (profile function), Lane 14 review and the wiring. Prerequisites: GEN.994 (equilibrium_edges, PR 5976). Related: GEN.994, GEN.1559, GEN.725.
   Filed by the TODO thread.
 
@@ -13360,11 +13351,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): to be routed by TODO to the lane that built GEN.1157. Prerequisites: GEN.1157. Related: GEN.1157, GEN.466.
   Filed by the TODO thread.
 
-- [ ] **UX.317 (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too)**
-  Boss, relayed by the Generate sliders thread (2026-11-14, after UX.316 merged in PR 6441): the page looks messy. Do: (1) every property title in bold with its unit as a small subtitle under it (for example "Stellar mass" over "solar masses"), not inline units that wrap unevenly; (2) line up the box tops and slider bars across each row so the grid is clean, the Shape and Rogue planets rows included. Applies to every fold. Keep the Auto checkbox, the ? help, the folds and the defaults as merged. Lock-free, output unchanged, template and CSS only.
-  Version 8.1. Owner (TODO, 2026-11-14): New galaxy page layout thread (PR 6459). Prerequisites: UX.316. Related: UX.307, UX.315, UX.316.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1702 A habitable-world request asks only for temperature and a surface ocean, so its kept planets are all-ocean and none is Class M: also ask for 20 to 95 percent water cover and 50 to 250 kPa total pressure**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13, phase 2 card on the habitable request aim, chose "Yes, add land and pressure" (relayed by the thread "Find why no Class M or Blue worlds"). Evidence (/mnt/project-files/reports/class-m-blue-levers-2026-11-14.md, lever I2): 109 Sun-like request systems gave 0 Class M and the kept planets are 100 percent ocean. Code: tuning.py REQUEST_TEMPERATURE_K, REQUEST_MIN_PRESSURE_PA, REQUEST_HYDROSPHERES and generation/habitable_request.py. Do: add the water cover (20 to 95 percent) and total pressure (50 to 250 kPa) conditions to the request; the request still never forces a class. Lock item (output changes). Lands before GEN.1704, which reads the request share.
   Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread (its tier branch, the sub-thread that owns habitable_request.py). Prerequisites: none. Related: GEN.916, GEN.1704.
@@ -13386,18 +13372,13 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
-  Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level.
-  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, GEN.1704, GEN.1705, GEN.1708. Related: GEN.725.
+  Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level. Measured by the Class M thread on PR 6469 (2026-11-14): first-pass tier rates per 1,000 Sun-like systems are 0, 0, 2.5, 5.0 and 12.5 against targets none, 1, 10, 33 and 100; the water dial at share 1 reaches about 46 percent of final-zone candidates (icy-origin ones and planets moved into the ecosphere after their body is drawn are not reached), so calibration must decide whether the dials also act on moved planets.
+  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, GEN.1704, GEN.1705, GEN.1678. Related: GEN.725, GEN.1708.
   Filed by the TODO thread.
 
 - [ ] **GEN.1707 Two-threshold oxygen law: oxygen rises first to a plateau when the reductant sink falls below the source, then to the balance level when the sink falls below a third of the source**
   Boss, 11:23 PM EST on 2026-11-13 in the project chat: "approved", on the oxygen research result (/mnt/project-files/reports/oxygen-plateau-and-second-rise-2026-11-14.md, thread "Find why no Class M or Blue worlds"). Do: in biogenic_oxygen, the first rise goes to a plateau of about 0.6 kPa (educated guess, L1) when the reductant sink drops below the source; the second rise goes to the balance level when the sink drops below a third of the source (factor 3 educated guess, L1; heat-flow exponent about 2 is Earth-fitted, L3). The plateau lasts about tau times ln 3, about 1.75 Gyr on Earth numbers. No land plants built in. Register the stand-ins in GEN.725 with tier and tweak level. Changes output (epoch) and lowers Class M yield; a fidelity fix. Lock item.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 21. Prerequisites: none. Related: GEN.1704, GEN.1706, GEN.725.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1708 (bug) The Bern water law is read in the wrong snow-line unit since GEN.1611, so rocky planets sit about 1.7 times too far out on the law and are born too wet**
-  Found by the water research thread (/mnt/project-files/reports/water-rich-hz-births-2026-11-14.md, sections 2 and 7), cause traced by the thread "Find why no Class M or Blue worlds"; filed as a bug under Boss's rule of 10:43 PM EST 11-13 ("automatically send all bug fixes to TODO to fix"). The law (physics/delivered_water.py, rows b1 to b4) was fitted with x = a_form / a_snow, a_snow = 2.69 AU at 1 Lsun of present light (docs/design/composition/volatile-delivery-formation-distance.md). GEN.1611 (physics/formation_snow_line.py, star.py about line 279) made star.snow_line_au the line of the light the disk saw, about 1.61 AU at 1 Lsun, and bulk_draw._snow_ratio divides by it, so a planet at 1 AU is read at x = 0.62 to 0.68, not 0.37: a layered fix (the line moved, the law's unit did not). On the 75 measured habitable-zone planets, re-reading the law: rich 65 to 32 percent, dry or low 13 to 36 percent, land-and-sea window 5 to 13 percent. Do: read the law against the line it was fitted with (rescale to 2.69 AU times the square root of the present main-sequence light, about x times 0.60 for a Sun-like star), keeping the star's 0.2 dex scatter, the law's shape and the brackets; star.snow_line_au and the icy/rocky test stay as GEN.1611 made them; the air's b rows read the same ratio and move together. Changes output (epoch), lock item. It touches delivered_water.sample_fraction and bulk_draw._rocky_water, which the Class M tier branch (claude/project-thread-ji8qfe) is editing: start after the tier PR merges or coordinate through the Class M thread.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 21 (owner of GEN.1611). Prerequisites: none. Related: GEN.1611, GEN.1704, GEN.1706.
   Filed by the TODO thread.
 
 - [ ] **GEN.1709 Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star)**
