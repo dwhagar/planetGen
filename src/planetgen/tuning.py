@@ -166,7 +166,7 @@ VISCOUS_DISK_GAS_TO_DUST = 66.0
 VISCOUS_DISK_ALPHA = 0.01
 VISCOUS_DISK_ICE_K = 160.0
 # The Rosseland opacity of the disk's dust, cm2/g: the paper gives 570 for small (interstellar) grains and 20 for large ones (section 2.3) and the grain size of a disk is not known; this is
-# the geometric mean of the two, the centre of their range (sqrt(570 x 20) = 107): a Sun-like star's line is 2.4 au (3.5 au with small grains, 1.6 with large). A planetGen stand-in
+# the geometric mean of the two, the center of their range (sqrt(570 x 20) = 107): a Sun-like star's line is 2.4 au (3.5 au with small grains, 1.6 with large). A planetGen stand-in
 # (tier T6, tweak L1: inside the range of the source).
 VISCOUS_DISK_OPACITY_CM2_G = 107.0
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
