@@ -87,8 +87,6 @@ planetgen.galaxy.nebula_blocks:_CHUNK
 planetgen.galaxy.nebula_blocks:_SHELL_SHIFT
 planetgen.galaxy.nebula_blocks:_WEDGE_BITS
 planetgen.galaxy.nebula_density:BUBBLE_EDGE
-planetgen.galaxy.nebula_density:CLOUD_GAS_FLOOR
-planetgen.galaxy.nebula_density:FORM_LEVEL
 planetgen.galaxy.nebula_density:GAS_BACKGROUND
 planetgen.galaxy.nebula_density:MAX_DETAIL
 planetgen.galaxy.nebula_density:NOISE_AMPLITUDE
@@ -99,10 +97,6 @@ planetgen.galaxy.nebula_density:WARP_WAVELENGTH_PC
 planetgen.galaxy.nebula_density:YOUNG_CEILING
 planetgen.galaxy.nebula_density:YOUNG_SCALE
 planetgen.galaxy.nebula_density:_NOISE_OFFSET
-planetgen.galaxy.nebula_shape:SHAPE_VERSION
-planetgen.galaxy.nebula_shape:_FIT_GRID
-planetgen.galaxy.nebula_shape:_GRID_HALF_WIDTH
-planetgen.galaxy.nebula_shape:_MESH_REACH
 planetgen.galaxy.nebula_volume:DETAIL_WAVELENGTH_PC
 planetgen.galaxy.nebula_volume:LATTICE_BASE_PC
 planetgen.galaxy.nebula_volume:MAX_POINTS
@@ -448,8 +442,6 @@ planetgen.physics.activity:HOT_STAR_LOG_N33
 planetgen.physics.activity:MEDIAN_PERCENTILE
 planetgen.physics.activity:SN_MAX_BOOST
 planetgen.physics.activity:SN_RATE_AT_SUN_PER_GYR
-planetgen.physics.activity:SN_SCALE_LENGTH_PC
-planetgen.physics.activity:SUN_GALACTIC_RADIUS_PC
 planetgen.physics.activity:SUN_TEMPERATURE_K
 planetgen.physics.activity:XUV_EDGE_EV
 planetgen.physics.adaptation_traits:GRADES
@@ -507,7 +499,6 @@ planetgen.physics.atmospheric_radiation:SETLOW_NM
 planetgen.physics.atmospheric_radiation:UVI_PER_W_M2
 planetgen.physics.belt_history:_SECONDS_PER_MYR
 planetgen.physics.belt_mass:_Q
-planetgen.physics.belt_origin:JUPITER_MASS_RATIO
 planetgen.physics.belt_page:INTEGRAL_STEPS
 planetgen.physics.belt_roster:DRAWS_PER_BODY
 planetgen.physics.binding_energy:INFINITE
@@ -519,7 +510,6 @@ planetgen.physics.biogenic_oxygen:EARTH_MANTLE_DELTA_IW
 planetgen.physics.biogenic_oxygen:EARTH_O2_MOL
 planetgen.physics.biogenic_oxygen:MINIMUM_PA
 planetgen.physics.biogenic_oxygen:PAR_NM
-planetgen.physics.biogenic_oxygen:REBALANCE_DAMPING
 planetgen.physics.biogenic_oxygen:REBALANCE_TOLERANCE
 planetgen.physics.biogenic_oxygen:SUN_TEMPERATURE_K
 planetgen.physics.birth_radioisotopes:WINDOW_MEAN_LIVES
@@ -679,7 +669,6 @@ planetgen.physics.giant_structure:STEP_LN_PA
 planetgen.physics.giant_tilt:LARGE_TILT_DEG
 planetgen.physics.greenhouse_table:DEFAULT_ALOFT_SHARE_OF_PRESSURE
 planetgen.physics.greenhouse_table:FRACTION_FLOOR
-planetgen.physics.greenhouse_table:HIGHEST_SURFACE_K
 planetgen.physics.greenhouse_table:PRESSURE_MAX_PA
 planetgen.physics.ground_albedo:BAND_MICRONS
 planetgen.physics.ground_albedo:DEPTH
@@ -1097,11 +1086,6 @@ planetgen.physics.surface_cycle:MAX_STEPS
 planetgen.physics.surface_cycle:SAMPLES_PER_SOLAR_DAY
 planetgen.physics.surface_cycle:STEPS_PER_TIME_CONSTANT
 planetgen.physics.surface_dose:AIR_INTERACTION_LENGTH_G_CM2
-planetgen.physics.surface_dose:PROTON_REST_MEV
-planetgen.physics.surface_dose:SEP_REFERENCE_MEV
-planetgen.physics.surface_dose:WEIGHT_ALPHA_HEAVY_ION
-planetgen.physics.surface_dose:WEIGHT_PHOTON_ELECTRON_MUON
-planetgen.physics.surface_dose:WEIGHT_PROTON_PION
 planetgen.physics.surface_liquid_world:NACL_G_PER_MOL
 planetgen.physics.surface_liquid_world:NACL_SATURATION_ACTIVITY
 planetgen.physics.surface_liquid_world:WATER_MOLAR_MASS_KG
@@ -1294,7 +1278,6 @@ planetgen.tuning:MAGNETAR_YOUNG_STAR_SHARE
 planetgen.tuning:MAIN_SEQUENCE_GRID_MASS_RANGE_SOL
 planetgen.tuning:MASSLESS_MARKER_MASS_SOL
 planetgen.tuning:MAX_FLAVOR_TOTAL
-planetgen.tuning:MAX_PLANET_AGE_ADJUSTMENT_FACTOR
 planetgen.tuning:MAX_SYSTEM_GENERATION_ATTEMPTS
 planetgen.tuning:METALLICITY_CLUSTER_PEAKS
 planetgen.tuning:METALLICITY_DISK_FALL_DEX_PER_KPC
@@ -1449,7 +1432,6 @@ planetgen.tuning:TECH_WEIGHTS
 planetgen.tuning:TERRITORY_BASE_REACH_LY
 planetgen.tuning:TERRITORY_REACH_CAP_LY
 planetgen.tuning:UNIVERSE_AGE_GY
-planetgen.tuning:UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO
 planetgen.tuning:WARP_ASYMPTOTE_COEFFICIENT
 planetgen.tuning:WARP_ASYMPTOTE_EXPONENT
 planetgen.tuning:WARP_FACTORS_FOR_NAV
@@ -1463,7 +1445,6 @@ planetgen.tuning:WD_COOLING_EXPONENT
 planetgen.tuning:WD_COOLING_L0_SOL
 planetgen.tuning:WD_MIN_COOLING_AGE_GY
 planetgen.tuning:WEB_LOCK_WAIT_SECONDS
-planetgen.tuning:WHITE_DWARF_AGE_ADDITION_GY
 planetgen.tuning:WIDE_BINARY_ECCENTRICITY_MAX
 planetgen.tuning:WIDE_BINARY_SEPARATION_CEILING_AU
 planetgen.tuning:WIDE_BINARY_SEPARATION_MIN_AU
