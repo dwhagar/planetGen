@@ -12928,7 +12928,7 @@ clears each one.
 
 - [ ] **OPS.198 Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity)**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P8 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 15. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14, moved to spread idle lanes): Lane 21. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.199 Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights)**
@@ -12958,7 +12958,7 @@ clears each one.
 
 - [ ] **OPS.205 Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P15); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P15 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 12. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14, moved to spread idle lanes): Lane 14. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.207 Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since**
@@ -13232,11 +13232,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 22. Prerequisites: none. Related: GEN.1710, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1714 Life-bearing planets fell 20 percent (2.39 to 1.91 per candidate system) and dead worlds 56 percent after GEN.492's potassium depletion by mass: Boss to decide whether to revisit the potassium range**
-  Train Manager, measuring GEN.1699 (2026-11-14, /mnt/project-files/reports/civilization-drop-2026-11-14/report.md): the civilization drop was chance, but life-bearing planets are down 20 percent and dead worlds down 56 percent, caused by GEN.492 (potassium depletion drawn by body class and mass, Train 26); putting the old log-uniform draw back gives 2.24 per candidate. Class M and Blue are 0 in both builds. Do: put the choice to Boss (keep the sourced depletion law, or revisit its range against its source); build only on his answer. Changes output if built (lock item).
-  Version 8.1. Owner (TODO, 2026-11-14): waiting on Boss; then the lane that built GEN.492. Prerequisites: none. Related: GEN.492, GEN.1699.
-  Filed by the TODO thread.
-
 - [ ] **ADM.155 Default recipe as a JSON file with a "Set as default" button, a reset-or-hot-update prompt when the shipped default changes, and every recipe stored as a named JSON file with its creator**
   Boss, 9:41 AM EST on 2026-11-14 (project chat): "There will be a default recipe JSON file that will hold all the defaults the user wants. We'll add a button to the generator workflow labeled "Set as default" that will set as default whatever settings the user has currently put in. An "Update" that shows this default JSON recipe has changed will automatically ask the user if they wish to reset to default or attempt a hot update. The hot update will attempt to change any defaults in the recipe that were still defaults from the last run if they've changed. [...] Add a name flag to the JSON recipe index. All recipes will be stored as JSON files within the recipe subdirectory. The recipes subdirectory will be ignored by Git. We'll have a default recipe JSON example in examples that, upon first run, will be copied over. If it doesn't exist it'll be copied from the example automatically during the update or install to create our default JSON recipe. JSON recipe files will also have a name field and will contain the username that created them. If no username is specified they will be said to be created by CLI". Then, 9:41 AM EST: "We don't have to do that until 8.2 but if any of that work seems really relevant to what we're doing already, we can go ahead and do those pieces now". Do: (1) recipes move from the control database (ADM.125, admin/recipes.py, generate_recipes tables) to JSON files in a git-ignored recipes/ directory, each with a name and the creating username ("CLI" when none), with an index carrying the names; (2) examples/ gets the shipped default recipe, copied to recipes/ on first run and by update.sh and install when missing; (3) a "Set as default" button in the Generate workflow writes the current settings as the default recipe; (4) when update.sh brings a changed shipped default, the user is asked to reset to it or to hot update, which changes only the fields still equal to the old shipped default. No compatibility shim for the database recipes (moved once). Nothing pulled into 8.1: no 8.1 work touches the Generate recipes now (the 8.1 "recipe" items are atmosphere recipes, a different thing).
   Version 8.2. Owner (TODO, 2026-11-14): to be routed when 8.2 opens. Prerequisites: none. Related: ADM.125, API.28, UX.307.
@@ -13259,7 +13254,7 @@ clears each one.
 
 - [ ] **PERF.267 Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s**
   Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Stage 5 log: 109 of 109 sectors done after 6:05:18. Do: measure whether this is the expected cost per sector on that machine after Train 26 or a slowdown; report before any change.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: OPS.253.
+  Version 8.1. Owner (TODO, 2026-11-14, moved to spread idle lanes): Lane 22. Prerequisites: none. Related: OPS.253.
   Filed by the TODO thread.
 
 - [ ] **TEST.741 (bug) After Train 27 the W20 same-inventory test is red at bistable key 155**
@@ -13299,7 +13294,7 @@ clears each one.
 
 - [ ] **GEN.1717 (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300)**
   Lane 15, 12:54 PM EST on 2026-11-14, from GEN.1716 (reports/gen1716-start-dependence-measure-2026-11-14.md): on main already; looks like opacity feeding back on temperature with nothing to stop it. Do: trace the feedback, compare with published sub-Neptune 1 bar temperatures for the same irradiation (radiative-convective models), and fix at the cause so the envelope's temperature comes from its physics; measure first, report before building. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1716.
+  Version 8.1. Owner (TODO, 2026-11-14, moved to spread idle lanes): Lane 11. Prerequisites: none. Related: GEN.1716.
   Filed by the TODO thread.
 
 - [ ] **TEST.744 (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900)**
