@@ -597,7 +597,7 @@ def _dense_field():
         stars.append({
             "id": DENSE_PAIR_IDS[k], "name": None, "x": center[0] + side * DENSE_PAIR_GAP_PC / 2, "y": center[1] - 1.8, "z": center[2],
             "luminosity_sol": 30.0 - 10.0 * k, "temperature_k": 6000, "radius_sol": 2.0, "star_type": "fixture",
-            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": SYSTEMS[k][0],
+            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": DENSE_PAIR_SYSTEM,    # MAP.428: one system of its own, a wide pair
         })
     points = [
         _point("neutron_star", 1.4, id=141, name="Dense Pulsar", descriptor="millisecond",
@@ -615,6 +615,7 @@ def _dense_field():
 
 
 DENSE_PAIR_IDS = (23000, 23001)
+DENSE_PAIR_SYSTEM = 23500    # the pair's one system (the dense stars take their systems from SYSTEMS in turn, so no other star is in it)
 DENSE_PAIR_GAP_PC = 0.05
 DENSE_CLUSTER_STARS = 2200
 DENSE_HALO_STARS = 800
