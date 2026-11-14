@@ -12,13 +12,13 @@ temperature uses `datasets.white_dwarf_models.radius_solar`, the cooling tracks,
 """
 
 CHANDRASEKHAR_MASS_SOL = 1.44
-"""float: `M_Ch`, solar masses, where the radius of the relation reaches zero."""
+"""float: `M_Ch`, solar masses, where the radius of the relation reaches zero (read from the relation of [R5256], tier T2, GEN.1686)."""
 
 DEGENERACY_MASS_SOL = 0.00057
-"""float: `M_p`, solar masses, below which the body is a planet held up by Coulomb pressure rather than degenerate electrons."""
+"""float: `M_p`, solar masses, below which the body is a planet held up by Coulomb pressure rather than degenerate electrons (read from the relation of [R5256], tier T2, GEN.1686)."""
 
 RADIUS_SCALE_SOL = 0.0114
-"""float: The leading coefficient, solar radii."""
+"""float: The leading coefficient, solar radii (read from the relation of [R5256], tier T2, GEN.1686)."""
 
 
 def zero_temperature_radius_sol(mass_sol):

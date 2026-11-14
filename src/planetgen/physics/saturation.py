@@ -294,7 +294,7 @@ COLD_UNVERIFIED_BELOW_K, _TABLE = _load()
 """float: Below this temperature the answer is `cold-unverified` (model error of the fits in the cold, finding 11)."""
 
 SULFUR_MELTING_POINT_K = 388.36
-"""float: Condensed sulfur is solid below this temperature and liquid above it (the phase of the S2 curve's condensate)."""
+"""float: Condensed sulfur is solid below this temperature and liquid above it (the phase of the S2 curve's condensate; the melting point of sulfur, measured, GEN.1644)."""
 WATER_TRIPLE_POINT_K = 273.16
 WATER_TRIPLE_POINT_PA = 611.657
 
