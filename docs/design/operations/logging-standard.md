@@ -127,6 +127,22 @@ The component of a record is one of these names and nothing else. `Record` refus
 | `swap` | `scripts/enable-swap.sh`: the swap file |
 | `python-deps` | `scripts/install-python-deps.sh`: the virtual environment and its libraries |
 
+## Message text
+
+The shape of a line (time, zone, severity, component, message, fields) is one standard. These nine rules make the **message** inside it one style too (OPS.173; the review is `reports/logging-review-2026-11-12.md`, "The reformat"). Parts 2 to 4 of the reformat (OPS.174 to OPS.176) bring every existing line to them; until a place is converted it is named in `MESSAGE_TEXT_ALLOWED` of `src/tests/test_no_own_log_formatting.py`, and a new line is held to them at once.
+
+1. **One sentence: capital first, period last.** No severity word in the text (`Error:`, `warning:`, `problem:`, `planetgen: error:`; the severity column says it) and no component or module prefix (`worker exits:`, `gate:`, `jobs:`; the component column says it, and a sub-part such as the gate or a worker is an `area` or a field, not text). A message that starts or ends with a value (`f"{n} sectors saved"`) needs no capital or period of its own where that value stands.
+2. **Ids and figures as fields, words in the message.** `log.get("queue").error("Unit failed: the sector could not be saved.", run_id=run_id, stage=4, unit=17, kind="sectors", error="lost connection")`. The display line prints the fields once, so the message does not repeat them.
+3. **One duration form**, from `logrecord.duration_text`: under a second `340 ms`, under a minute `12.3 s`, then `4:07`, and `1:05:12` from an hour. A field `seconds=` is always a number of seconds, never that text.
+4. **Counts with thousands separators** (`1,240`), and `N of M` from `counting_text`.
+5. **At most 160 characters** of fixed text. Longer detail goes in fields or in a following `debug` line.
+6. **Progress lines** come from one ticker only: `Label: N of M done (rate, elapsed).`
+7. **Error lines** say what failed, then why: `Saving sector 'Arn 4' failed: the connection to MySQL was lost.`, with the traceback in `error.log` only (`exc_info`), never on the console at normal level.
+8. **Levels**: `debug` for decisions and per-object detail; `info` for stage and phase lines and results; `notice` for an expected but notable event (a retry, a cancel, a wait at the memory gate); `warning` for a degraded result the run survives (a fallback, a skipped part, a lost connection that recovered); `error` for a failed unit, step or run; `critical` for a crash.
+9. **f-strings for `info` and above; `%` arguments for per-object `debug` lines**, so the text is made only when a debug run records it (an f-string is built whether or not anyone reads it).
+
+The scan (TEST.183, third test of `src/tests/test_no_own_log_formatting.py`) reads the first argument of every logger call as a syntax tree and fails on a severity word, a component prefix, a lowercase first letter, a missing final period (when the message ends in fixed text) or more than 160 characters of fixed text, for every place not in `MESSAGE_TEXT_ALLOWED`. The allow list names a function and says which item converts it, and each of OPS.174 to OPS.176 empties its share of it; a place that is converted but still listed fails the second test of the pair.
+
 ## Rules for a place that writes a log
 
 1. Make a record through `log.get(component)` (`planetgen/util/log.py`; Python's `logging` underneath, so handlers and levels keep working) or `Record`/`stage_record`; do not format a line by hand. `util/log.py` is the one module that makes and writes a line (OPS.104): `util/logrecord.py` holds the record and its lines (file, JSON, display, plain), and `log.LineFormatter` is the one formatter class, with a form for each (`plain`, `display`, `debug`, `file`, `json`). A shell script prints the display line through `scripts/logrecord.sh` (UX.123; `tests/test_log_shell.py` checks its lines against `logrecord.display_line`).

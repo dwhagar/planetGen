@@ -254,8 +254,7 @@ def _planet():
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
-            "A rogue planet, adrift with no star, gets a class too, from the classes that list "
-            "interstellar space: with no starlight, no class with life qualifies.",
+            "A rogue planet, adrift with no star, gets a class too, by the same conditions as any other world.",
         ],
         "classes": classes,
     }
@@ -492,7 +491,7 @@ def preload():
     try:
         catalog()
     except DataMissing as missing:
-        log.warning("the class reference catalog was not built at start: %s", missing)
+        log.warning("The class reference catalog was not built at start: %s", missing)
         return False
     return True
 

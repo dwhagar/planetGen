@@ -386,7 +386,8 @@ def test_the_orbits_of_neighbours_do_not_cross():
         system = StarSystem(system_config=SystemConfig())
         for planets in (system.planets, getattr(system, "secondary_planets", [])):
             assert validation.check_orbit_spacing(planets) == []
-            for inner, outer in zip(planets, planets[1:]):
+            slots = validation.slot_planets(planets)       # GEN.1510: a body promoted from a belt is on the belt's orbit, not a slot
+            for inner, outer in zip(slots, slots[1:]):
                 if inner.body_type != "a" and outer.body_type != "a":
                     assert validation.apoapsis_au(inner) < validation.periapsis_au(outer)
 

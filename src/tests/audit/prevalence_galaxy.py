@@ -21,6 +21,8 @@ How a band is read for a mix that is not the census's:
 
 A flag names its cell and measure (the bin that left its band). The report also lists the class mix of the sample (planets and moons by final
 class, the habitable-class bodies per star counted from the stored life class), report only: no survey measures a class.
+Classes O, P and Q have no target rate (Boss, 2026-10-30: physics drives, no game rates); they are tested for being possible when conditions
+allow them, not for a share.
 """
 
 import collections

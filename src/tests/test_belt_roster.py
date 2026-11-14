@@ -93,7 +93,8 @@ def test_a_generated_belt_keeps_members_heaviest_first_inside_its_limits():
     belt = _generated_belt()
     members = belt.members
     assert members and len(members) <= belt_ledger.LEDGER_MAX_BODIES
-    assert [member["rank"] for member in members] == list(range(1, len(members) + 1))
+    first = members[0]["rank"]          # GEN.1510: the heaviest round bodies became planets and keep their ranks, so the members left start after them
+    assert first >= 1 and [member["rank"] for member in members] == list(range(first, first + len(members)))
     masses = [member["mass_kg"] for member in members]
     assert masses == sorted(masses, reverse=True)
     assert sum(masses) < belt.mass_kg * 1.0000001
@@ -123,3 +124,24 @@ def test_a_belt_read_back_keeps_the_members_it_was_saved_with():
     bare = belt.to_dict()
     bare["members"] = []
     assert AsteroidBelt.from_dict(bare, belt.system_config).members == []
+
+
+# --- GEN.1092: the members are not placed in what the giants cleared -------------------------------------------------------------------------
+
+def test_no_body_is_placed_in_a_cleared_stretch_and_the_rest_keep_their_share_of_the_solids():
+    table = belt_roster.cumulative_table(2.0, 4.0, 1.989e30, 2.7, 1.0)
+    cleared = [(2.4, 2.6), (3.1, 3.3)]
+    places = [belt_roster.semi_major_axis_au(table, (k + 0.5) / 2000.0, cleared) for k in range(2000)]
+    assert not any(low < a < high for a in places for low, high in cleared)
+    assert places == sorted(places) and 2.0 <= places[0] and places[-1] <= 4.0
+    free = belt_roster.mass_below(table, 4.0) - sum(belt_roster.mass_below(table, high) - belt_roster.mass_below(table, low) for low, high in cleared)
+    inner = sum(1 for a in places if a < 2.4) / 2000.0
+    assert inner == pytest.approx(belt_roster.mass_below(table, 2.4) / free, abs=0.01)
+
+
+def test_with_nothing_cleared_the_table_is_read_as_before():
+    table = belt_roster.cumulative_table(2.0, 4.0, 1.989e30, 2.7, 1.0)
+    assert belt_roster.semi_major_axis_au(table, 0.37, ()) == belt_roster.semi_major_axis_au(table, 0.37)
+    assert belt_roster.mass_below(table, 2.0) == 0.0 and belt_roster.mass_below(table, 9.0) == table[1][-1]
+    for u in (0.1, 0.5, 0.9):
+        assert belt_roster.mass_below(table, belt_roster.semi_major_axis_au(table, u)) == pytest.approx(u * table[1][-1], rel=1e-9)

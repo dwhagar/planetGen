@@ -65,7 +65,7 @@ def test_the_redraws_left_are_the_named_kinds():
     with draw.counting() as redraws:
         for seed in range(40):
             _tree(4, seed)
-    assert set(redraws) <= {"pair.no_allowed_period", "pair.axis_out_of_range", "tree.restart_pair_failed", "tree.member_dropped",
+    assert set(redraws) <= {"pair.no_allowed_period", "pair.axis_out_of_range", "tree.restart_pair_failed", "tree.restart_unstable_hierarchy", "tree.member_dropped",
                             "pair.kozai", "pair.interaction_gate", "pair.gravitational_waves", "pair.brown_dwarf_desert"}, redraws
 
 
