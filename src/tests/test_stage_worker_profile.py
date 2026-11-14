@@ -70,7 +70,7 @@ def test_the_next_run_of_the_kind_starts_at_the_settled_limit_and_logs_it(conn, 
     adaptive._remember(conn, f"unit:{KIND}", 3)
     assert adaptive.start_limit(conn, KIND, 8, now=1000.0) == 3
     assert adaptive.limit_of(conn) == 3 and adaptive.recent(conn)[0]["from"] == 8
-    assert f"start limit of unit:{KIND} was 8.0, now 3.0" in caplog.text
+    assert f"start limit of unit:{KIND} was 8, now 3" in caplog.text
     (change,) = profileclaim.changes(conn)
     assert change["what"] == "start limit" and change["new"] == 3
 
