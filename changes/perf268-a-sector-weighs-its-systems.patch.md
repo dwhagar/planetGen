@@ -1,0 +1,6 @@
+**Headline:** The bar, the estimate and the stuck judge of a sector stage now follow the systems a sector expects, not the number of sectors, so a dense sector counts as the several sparse ones it costs.
+
+### Changed
+- PERF.268: a piece of a unit may carry a `weight` (default 1) and the engine reports weight done of weight in all to the unit's beat (`engine.weight_of`); the cursor, the fence and the done mark still count pieces. The unit's finished figure, which the job profile and the unit rates take as its items, is then in weight too, so the profile's seconds per item and the judge's expected rate are per weight.
+- The sector stages (`generate-start-sector`, `generate-neighborhood`, `generate-sectors`, region runs) weigh each sector by the systems its density expects, at least 1 (`run_galaxy.sector_weights`), put the weights in the unit's arguments when the stage is cut, and cost each unit as their sum. Where the density cannot be read at the cut, a sector weighs 1 as before.
+- Job profile rows and stage rates recorded before this change count sectors, not systems, for these commands; they correct themselves over the next run (the stage's stored rate halves its weight each run).
