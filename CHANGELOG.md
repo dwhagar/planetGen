@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4306] - 2026-11-15
+
+**Headline:** finish-run now decides which stages of a stopped run are finished from the run's ledger rows, so it no longer depends on Redis keeping the run's stage records.
+
+### Changed
+
+- OPS.238, start paths: `finish_run.stage_finished` reads the stage's end rows (`planrows.ended`): a stage is finished when its `release` row is done (its units, conclusion and statistics are done and the next opening was queued). A stage that opens with no unit to wait for (a stage a run carries over from the run before, or one cut to no unit) now marks its three end rows done where `wrapper.advance` passes it, so the rows say it ended as they do for any other stage.
+
 ## [8.0.4305] - 2026-11-15
 
 **Headline:** The on-demand belt body tests look for a body that is round enough to have a class letter, as the generator does.
