@@ -12969,6 +12969,7 @@ clears each one.
 
 - [ ] **GEN.1732 Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change**
   Lane 02's GEN.1731 options, 1:18 AM EST 2026-11-15 (report /mnt/project-files/reports/gen1731-weathering-law-warm-side-2026-11-15.md): of 10 Abundant Earth-shaped worlds under 2 Pa CO2, 4 hold 2 Pa or more of carbon as methane in reduced airs (NH3, CH4, H2) although their mantles are oxidized. Measure why those airs are reduced; the recipe stream change of GEN.1646 is the suspect. No change before the measure; a fix that follows is filed from the findings.
+  Prototype measured (Lane 02, 4:59 AM EST 11-15, report /mnt/project-files/reports/gen1732-photochem-prototype-measure-2026-11-15.md): a photochemical cap on stored NH3 and CH4 removes the warm zero-CO2 ammonia worlds (Earth-shaped with NH3 over 10 Pa 9 to 0) and raises M 1 to 2 and R 0 to 3, but halves the Earth-shaped pool (13 to 6) as ammonia-warmed worlds freeze. Build decision with Boss.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
@@ -12977,19 +12978,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1723; same law as GEN.1729). Prerequisites: GEN.1723. Related: GEN.1729, GEN.1720, GEN.1706.
   Filed by the TODO thread.
 
-- [ ] **TEST.757 (bug) test_stage_worker_cap compares two peak_resident memory readings with no slack and fails under gate load**
-  Train Manager, 4:21 AM EST 2026-11-15 (Train 30 gate): test_stage_worker_cap's peak_resident check compares two memory readings with no slack; it failed once under gate load and passes 3 of 3 alone. Compare with a stated tolerance drawn from how the readings are taken (not a retry), or read one measurement.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318, PERF.270.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1735 Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place)**
   Lane 03, 4:39 AM EST 2026-11-15: GEN.1728 (PR #6596) adds physics/ice_growth.py (lid_of) with nothing reading it yet; GEN.1723's refuge term (surface_refuge.under_ice_light_share) reads only the fixed ice shell of an ice-covered ocean, not a lake or a seasonal lid. Wire lid_of into the refuge term for every surface-water place (mean temperature, year swing, absorbed flux), replacing the fixed shell thickness. This item is the wiring-guard owner of ice_growth.py and registry rows IG2 to IG8.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1733; same refuge law as GEN.1723). Prerequisites: GEN.1728. Related: GEN.1723, GEN.1727, GEN.1729.
   Filed by the TODO thread.
 
-- [ ] **TEST.759 (bug) test_stages: a failed stage's line says "failed after 4.48 ms" where five tests expect "0 s"**
-  Lane 13, 4:48 AM EST 2026-11-15, checked on main 0c395655d: five tests of tests/test_stages.py fail (for example test_a_command_that_raises_ends_its_open_stage_as_failed: "Stage 1 of 1 failed after 2.86 ms" against the expected "0 s"). The shared duration formatter of UX.318 now writes milliseconds for sub-second spans. Decide which side is right for a stage line (a stage line likely wants whole seconds or the formatter's choice) and make code and tests agree; no skip.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318, TEST.755, TEST.756.
+- [ ] **GEN.1736 (bug) Class M's 2 Pa CO2 floor is not rechecked after the CO2 rebalance (seed 30143: class M at 1.4 Pa)**
+  Lane 02, 4:59 AM EST 2026-11-15 (GEN.1732 prototype, report /mnt/project-files/reports/gen1732-photochem-prototype-measure-2026-11-15.md): the one baseline Class M world on the Abundant meter (seed 30143, 33 kPa O2, 1.4 Pa CO2) is under the 2 Pa CO2 floor, so the class gate is applied before the CO2 rebalance and not checked again after it. Classify on the final air.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02. Prerequisites: none. Related: GEN.1720, GEN.1731, GEN.1706.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
