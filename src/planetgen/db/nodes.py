@@ -195,9 +195,9 @@ def node_nebula_regions(conn, block, limit=NODE_NEBULA_REGIONS):
     """
     The nebula regions of a block node (MAP.173): the children of `block` that hold the center of at least one nebula, each
     a fixed-grid group, so a parent's groups are exactly the union of its children's (the nesting of the star lists, MAP.154)
-    and the map needs no clustering. A list of `{"key", "count", "volume_pc3", "center", "radius_pc", "shares", "class"}`: the
+    and the map needs no clustering. A list of `{"key", "count", "volume_pc3", "center", "radius_pc", "cover", "shares", "class"}`: the
     child's node key, its nebulae, their summed volume (pc3), the volume-weighted center `[x, y, z]` and the radius that
-    reaches the outer edge of its members (pc), the share of that volume in each family (the families that hold any), and the
+    reaches the outer edge of its members (pc), the child block's stored cover (the share of it inside a nebula, MAP.429: the map draws a group by it), the share of that volume in each family (the families that hold any), and the
     class with the most volume. Largest volume first, ties by the key, at most `limit`. Read from `nebula_block_stats`
     (`db.nebula_blocks`), so the list comes from the seed's field and the stored nebulae and needs no sector. Empty for a block whose
     children are not stored there (a level-3 block's are sectors: it lists its single nebulae in `clouds`, and so does every node).
@@ -213,7 +213,7 @@ def node_nebula_regions(conn, block, limit=NODE_NEBULA_REGIONS):
             continue
         listed.append({
             "key": format_drill_key(child), "count": int(row["count"]), "volume_pc3": float(row["volume_pc3"]),
-            "center": [float(v) for v in row["centroid"]], "radius_pc": float(row["bound_radius_pc"]),
+            "center": [float(v) for v in row["centroid"]], "radius_pc": float(row["bound_radius_pc"]), "cover": float(row["cover"]),
             "shares": {family: share for family, share in row["shares"].items() if share > 0},
             "class": row["dominant_class"]})
     listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))

@@ -10,6 +10,8 @@
 // screen (the node has long since split it), and at most REGION_BUDGET are drawn, the strongest on the screen. No DOM and no
 // three.js here: tests/js/galaxynebulae.test.mjs holds it to this description.
 
+import { COVER_EDGES } from "./galaxyblocks.js";
+
 // The most regions drawn at once; the weakest of more are not drawn, and the last tenth of the budget fades out so none pops.
 // MAP.367: half of what it was (600).
 export const REGION_BUDGET = 300;
@@ -22,14 +24,19 @@ export const FAMILY_LABELS = {
 };
 // The colour of a supernova remnant (nebulalook.js has no look for one: a remnant is drawn from its own texture).
 const REMNANT_COLOUR = "#f0a050";
-// A region is drawn from this radius in pixels (a nebula is, at 2 px across), its strength follows its count, and it fades
+// A region is drawn from this radius in pixels (a nebula is, at 2 px across), its strength follows the cover of its block (MAP.429), and it fades
 // out between the two radii of RESOLVE_PX: the camera is among its nebulae, which a haze would only hide.
 export const MIN_RADIUS_PX = 1;
 export const RESOLVE_PX = [220, 520];
 export const RADIUS_PX = [2, 320];
 export const ALPHA = [0.16, 0.42];
-// The count at which a region is as strong as it gets.
-export const STRONG_COUNT = 100;
+// MAP.429: how strongly a group shows follows the share of its block that lies inside a nebula (`cover`, stored in `nebula_block_stats`, the share
+// the Nebula cover colour of the blocks reads, MAP.177), not how many nebulae it holds: a block with a few small clouds is as many blobs as a block
+// full of them, and the map was an even lattice of them. A cover is a share of volume, so its mean is the same whatever the block's size. A group
+// under COVER_FLOOR, the last edge of that colour (3 percent, above the median of about 2, MAP.178), is not drawn: only the real concentrations
+// of gas show. The strength rises from the floor to its most at COVER_STRONG, a tenth of the block.
+export const COVER_FLOOR = COVER_EDGES[COVER_EDGES.length - 1];
+export const COVER_STRONG = 0.1;
 
 function ease(x) {
   const t = Math.min(1, Math.max(0, x));
@@ -63,21 +70,21 @@ export function dominantFamily(shares) {
 }
 
 // The blobs of the regions of the nodes in `entries` (`[{key, block, node}]`: the nodes being drawn): one for each group of
-// each node's `nebula_regions` whose family is shown (`isShown(family) -> boolean`). A blob is
-// `{ key, block, node, x, y, z, radiusPc, count, volume, family, nebulaClass, color, ring }`: `block` the node it was listed by (the share
+// each node's `nebula_regions` whose family is shown and whose cover is at least COVER_FLOOR (`isShown(family) -> boolean`). A blob is
+// `{ key, block, node, x, y, z, radiusPc, count, cover, volume, family, nebulaClass, color, ring }`: `block` the node it was listed by (the share
 // the cut gives that node is the region's) and `node` that node's key, `ring` always false (MAP.392: the circles were not wanted). In the order of the nodes' lists.
 export function regionBlobs(entries, looks, isShown) {
   const found = [];
   const seen = new Set();
   (entries || []).forEach((entry) => {
     ((entry.node && entry.node.nebula_regions) || []).forEach((region) => {
-      if (!region || !region.center || !(region.radius_pc > 0) || !(region.count > 0) || seen.has(region.key)) return;
+      if (!region || !region.center || !(region.radius_pc > 0) || !(region.count > 0) || !(region.cover >= COVER_FLOOR) || seen.has(region.key)) return;
       const family = dominantFamily(region.shares);
       if (!family || (isShown && !isShown(family))) return;
       seen.add(region.key);
       found.push({
         key: region.key, block: entry.block, node: entry.key, x: region.center[0], y: region.center[1], z: region.center[2],
-        radiusPc: region.radius_pc, count: region.count, volume: region.volume_pc3, family, nebulaClass: region.class || null,
+        radiusPc: region.radius_pc, count: region.count, cover: region.cover, volume: region.volume_pc3, family, nebulaClass: region.class || null,
         color: familyColour(family, looks), ring: false,
       });
     });
@@ -95,7 +102,7 @@ export function regionLook(blob, camera, focalPx) {
   const spherePx = (blob.radiusPc * focalPx) / distance;
   const seen = ease((spherePx - MIN_RADIUS_PX / 2) / MIN_RADIUS_PX);
   const resolved = ease((spherePx - RESOLVE_PX[0]) / (RESOLVE_PX[1] - RESOLVE_PX[0]));
-  const strong = Math.min(1, Math.log10(Math.max(1, blob.count)) / Math.log10(STRONG_COUNT));
+  const strong = Math.min(1, Math.max(0, (blob.cover - COVER_FLOOR) / (COVER_STRONG - COVER_FLOOR)));
   return {
     alpha: (ALPHA[0] + (ALPHA[1] - ALPHA[0]) * strong) * seen * (1 - resolved),
     radiusPx: Math.min(RADIUS_PX[1], Math.max(RADIUS_PX[0], spherePx)),
