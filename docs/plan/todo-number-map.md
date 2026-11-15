@@ -22,7 +22,7 @@ release is stamped.
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.755 |
+| TEST | TEST.757 |
 | USR | USR.33 |
 | OPS | OPS.260 |
 | DOC | DOC.121 |
@@ -4881,6 +4881,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.752 | (bug) scripts/earth_analog.py moves only planet.distance per trial, but the air is keyed on formation_distance_au (GEN.1547), so every trial shares one air draw; its baseline is stale | none | done, PR #6568 (8:51 PM EST 11-14) |
 | TEST.753 | (bug) tests/data/civilized_pins.json went stale at epoch 150 (pins 432 and 516 no longer hold a civilization), so tests needing two or more civilized systems hunt for new ones for tens of minutes; test_the_pinned_civilized_seeds_still_qualify checks only the first pin | none | done, PR #6586 (10:02 PM EST 11-14) |
 | TEST.754 | (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet | none | open |
+| TEST.755 | (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand | none | open |
+| TEST.756 | (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB" | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
