@@ -36,6 +36,7 @@ import uuid
 
 from planetgen.queue import memorygate, workers
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 MIN_WORKERS = 1
 """int: The limit never goes below this."""
@@ -149,7 +150,7 @@ def on_memory_wait(conn, name, kind, memory_waited, now=None):
     conn.hset(_key("state"), "memory_wait_at", now)
     from planetgen.queue import scheduler
     waiting = [ticket.name for ticket in scheduler.tickets(conn, now) if ticket.claim.lane == memorygate.LANE_BULK]
-    after = lower(conn, f"{kind} has waited {memory_waited:,.0f} s for memory", first=[name, *waiting], now=now)
+    after = lower(conn, f"{kind} has waited {format_duration_seconds(memory_waited)} for memory", first=[name, *waiting], now=now)
     if after is not None:
         _remember(conn, kind, after)
     return after
@@ -246,7 +247,7 @@ def _adapt(conn, cap, queued, host, held, now):
         state, limit = {}, None
     if pressure(host) and (bulk or queued):
         reserve = memorygate.reserve_mb(host)
-        lower(conn, f"the host has {host.available_mb:,.0f} MB available, under {PRESSURE_SHARE * reserve:,.0f} MB (the gate keeps {reserve:,.0f} MB back)", now=now)
+        lower(conn, f"the host has {format_megabytes(host.available_mb)} available, under {format_megabytes(PRESSURE_SHARE * reserve)} (the gate keeps {format_megabytes(reserve)} back)", now=now)
         limit = limit_of(conn)
     elif limit is not None and limit < cap:
         live = len(workers.staying_bulk_workers(conn))
@@ -262,8 +263,8 @@ def _adapt(conn, cap, queued, host, held, now):
                 try:
                     after = limit + 1
                     _record(conn, limit, after, "memory has been free", now)
-                    log.normal(f"Worker limit raised from {limit} to {after}: no job has waited for memory for {quiet:,.0f} s and "
-                               f"{free:,.0f} MB are free for a worker of {biggest:,.0f} MB.")
+                    log.normal(f"Worker limit raised from {limit} to {after}: no job has waited for memory for {format_duration_seconds(quiet)} and "
+                               f"{format_megabytes(free)} are free for a worker of {format_megabytes(biggest)}.")
                     kind = max(bulk, key=lambda holder: holder.claim.mb).claim.kind if bulk else None
                     if after >= cap:
                         conn.delete(_key("state"))

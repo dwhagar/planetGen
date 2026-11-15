@@ -508,11 +508,24 @@ function infoFields(el) {
   if (kind === "belt") {
     return [["Density", d.density], ["Distance", d.distance], ["Composition", d.composition]];
   }
+  if (kind === "irregular") {
+    return [["Type", d.bodytype], ["Radius", d.radius], ["Mass", d.mass], ["Distance", d.distance], ["Period", d.period],
+      ["Made of", d.composition], ["Caught through", d.caught], ["Orbits", d.parent]];
+  }
   return [["Class", classField(el)], ["Type", d.bodytype], ["Radius", d.radius], ["Mass", d.mass], ["Zone", d.zone],
     ["Distance", d.distance], ["Period", d.period], ["Gravity", d.gravity], ["Atmosphere", d.atmosphere],
     ["Surface composition", d.composition], ["Surface temperature", d.surfacetemp],
     [d.pressurelabel || "Surface pressure", d.surfacepressure], ["Life Class", d.life], ["Colour", d.looknote],
     kind === "moon" ? ["Orbits", d.parent] : ["Moons", d.moons], ["Note", d.note]];
+}
+
+// GEN.1086: the View button of an irregular moon (its page is /object/<planet>/irregular/<rank>, from the root's address template).
+function irregularLink(root, el) {
+  var template = root && root.dataset.navIrregular;
+  if (!template || (root.dataset.navTake) || !el.dataset.planetref || !el.dataset.rankhex) {
+    return null;
+  }
+  return { label: "View irregular moon →", href: template.replace("{ref}", encodeURIComponent(el.dataset.planetref).replace(/%3A/gi, ":")).replace("{rank}", el.dataset.rankhex) };
 }
 
 function showInfo(el) {
@@ -526,7 +539,7 @@ function showInfo(el) {
   panel.show({
     title: el.dataset.name || "Unknown",
     fields: infoFields(el),
-    view: viewLink(root, ref, kind),
+    view: kind === "irregular" ? irregularLink(root, el) : viewLink(root, ref, kind),
     nav: navActions(root, ref),
     links: nearbyLinks(root, ref),
     hint: el.dataset.scene ? "Click again to view its moon system." : null,
@@ -1112,6 +1125,23 @@ function initSystemMap(root) {
         note.textContent = active.dataset.scaleNote || "";
         crumb.appendChild(note);
       }
+      // GEN.1086: the planet's other scenes (the irregular moons, the regular moons), as buttons.
+      var links = [];
+      try {
+        links = active.dataset.sceneLinks ? JSON.parse(active.dataset.sceneLinks) : [];
+      } catch (e) {
+        links = [];
+      }
+      links.forEach(function (link) {
+        var linkBtn = document.createElement("button");
+        linkBtn.type = "button";
+        linkBtn.className = "starmap-btn sysmap-scene-link-btn";
+        linkBtn.textContent = link.label;
+        linkBtn.addEventListener("click", function () {
+          showScene(link.scene);
+        });
+        crumb.appendChild(linkBtn);
+      });
     }
     rememberScene(sceneId);
     root.dispatchEvent(new CustomEvent("sysmap-scene", { detail: { scene: sceneId } }));

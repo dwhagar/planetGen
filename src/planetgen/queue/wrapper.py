@@ -31,9 +31,10 @@ from dataclasses import asdict
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commands, planrows, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, supervisor, units, workers
+from planetgen.queue import commandgaps, commands, planrows, profiletime, progress_file, redisqueue, runline, runrecord, splitter, stagetimes, supervisor, unitrates, unitwatch, units, workers
 from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 
 JOB_ENV = "PLANETGEN_JOB_ID"
@@ -159,7 +160,7 @@ def _say_opening(conn, run_id, index, text, held):
     """Logs one step of an opening with the memory the process holds after it (`units.resident_mb`); returns the most it has held so far."""
     now = units.resident_mb()
     held = max(held, now)
-    runrecord.log(conn, run_id, f"Opening stage {index + 1}: {text}" + (f" (this process holds {now:,.0f} MB, at most {held:,.0f} MB so far)" if now else ""),
+    runrecord.log(conn, run_id, f"Opening stage {index + 1}: {text}" + (f" (this process holds {format_megabytes(now)}, at most {format_megabytes(held)} so far)" if now else ""),
                   kind="stage.opening", stage=index, peak_mb=round(held) if held else None)
     return held
 
@@ -180,9 +181,12 @@ def _open(conn, run_id, index):
         _ensure_cluster_field(params)
         held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
     expansion = commands.expand_function(step.kind)(params)
-    held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {time.time() - started:,.0f} s", held)
+    held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {format_duration_seconds(time.time() - started)}", held)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
-    rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan)       # OPS.216: the plan is rows, cut and marked done in one transaction
+    if expansion.split is not None:             # OPS.161: the cut the queue engine chose, fixed with the plan so a restarted unit has the same one
+        splitter.announce(conn, run_id, index, expansion.split)
+    rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan,       # OPS.216: the plan is rows, cut and marked done in one transaction
+                               split=None if expansion.split is None else expansion.split.as_dict())
     runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
     runrecord.begin_stage(conn, run_id, index, now=started)
     _log_released(conn, run_id, index, step)
@@ -528,8 +532,8 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
     ceiling = get_settings().queue.unit_ceiling_seconds
     if commands.spec(step.kind).whole or longest <= ceiling:
         return
-    runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {longest:,.0f} s, over the "
-                  f"{ceiling:,.0f} s unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
+    runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {format_duration_seconds(longest)}, over the "
+                  f"{format_duration_seconds(ceiling)} unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
                   level="warning", kind="unit.long", stage=index)
 
 
@@ -542,13 +546,13 @@ def _log_peak_memory(conn, run_id, index, step, declared, peak_mb):
     if not peak_mb:
         return
     figure = workers.stage_worker_mb(step.kind)
-    text = f"stage {declared['label']}: the largest worker held {peak_mb:,.0f} MB"
+    text = f"stage {declared['label']}: the largest worker held {format_megabytes(peak_mb)}"
     if figure is None:
         text += " (one worker by nature, so there is nothing to size)"
     elif peak_mb > figure:
-        text += f", over the {figure:,} MB its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure"
+        text += f", over the {format_megabytes(figure)} its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure"
     else:
-        text += f" of the {figure:,} MB its workers are sized by"
+        text += f" of the {format_megabytes(figure)} its workers are sized by"
     runrecord.log(conn, run_id, text, level="warning" if figure is not None and peak_mb > figure else "info", kind="stage.memory",
                   stage=index, peak_mb=round(peak_mb))
 
@@ -725,7 +729,7 @@ def _note_cap(conn, step_kind, cap, run_id):
     try:
         typed = workers.stage_worker_cap(step_kind)
         if typed is not None and cap != typed and conn.set(memorygate_key(f"capnote:{run_id}:{step_kind}"), "1", nx=True, ex=86400):
-            profileclaim.log_change(conn, "workers", f"unit:{step_kind}", typed, cap, f"the claim from the job profile is {workers.stage_worker_mb(step_kind, conn, run_id) or 0:,.0f} MB, the typed table {workers.stage_worker_mb(step_kind):,.0f} MB; run {run_id}",
+            profileclaim.log_change(conn, "workers", f"unit:{step_kind}", typed, cap, f"the claim from the job profile is {format_megabytes(workers.stage_worker_mb(step_kind, conn, run_id) or 0)}, the typed table {format_megabytes(workers.stage_worker_mb(step_kind))}; run {run_id}",
                                     run=run_id)
         adaptive.start_limit(conn, step_kind, cap)
     except Exception as exc:        # noqa: BLE001 -- a note is never worth a run

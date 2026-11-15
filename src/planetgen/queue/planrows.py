@@ -75,7 +75,7 @@ def _stage_key(conn, run_id, index):
     return runrecord._s(runrecord.declared_stages(conn, run_id)[index]["key"])
 
 
-def record_cut(conn, run_id, index, kind, units, cost, plan_detail):
+def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
     """
     Writes the cut of stage `index` as rows, in one transaction, and returns the unit rows' ids in unit order.
 
@@ -84,6 +84,7 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail):
         units (list[tuple]): `(args, cost)` per unit, as the stage's expansion gave them.
         cost (float): The units' total predicted cost.
         plan_detail: What the expansion said of the stage as a whole (`commands.Expansion.plan`).
+        split (dict): The cut the queue engine chose (OPS.161, `splitter.Decision.as_dict`), kept in the plan summary so a restarted unit has the same one; `None` when none was chosen.
 
     A stage already cut (its `open` row is done) is not cut again: the rows it has are returned, whatever this call was given.
     """
@@ -94,6 +95,8 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail):
         if _cut_row(control, run, stage) is not None:
             return unit_rows(control, run, stage)
         summary = {"kind": kind, "units": len(units), "cost": cost, "detail": plan_detail}
+        if split is not None:
+            summary["split"] = split
         try:
             ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": {"index": index, "plan": summary}}]
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}

@@ -92,6 +92,11 @@ CHILD_TABLES = (
 """tuple: `(table, foreign key, parent table)` of the child rows of an
 object a sector holds."""
 
+BODY_CHILD_SUFFIXES = tuple(table[len("planet_"):] for table, _column, parent in CHILD_TABLES
+                            if parent == "planets" and (f"moon_{table[len('planet_'):]}", "moon_id", "moons") in CHILD_TABLES)
+"""tuple: The child tables every body kind has (`planet_<name>`, `moon_<name>`, `rogue_planet_<name>`), in `CHILD_TABLES` order: the rows
+`store.body_child_rows` writes for a body, and an edit of a body deletes first."""
+
 ADDRESS_TABLES = ("bright_stars", "phenomenon_scatter")
 """tuple: Tables keyed by a sector address (`shell_index`, `band_index`,
 `wedge_index`) rather than a sector row."""

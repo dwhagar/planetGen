@@ -116,8 +116,9 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["water_mass_fraction"] = fractions.water
         quantities["rock_mass_fraction"] = fractions.rock
         quantities["metal_mass_fraction"] = fractions.metal        # GEN.1584: the core the nitrogen is partitioned into
-        if getattr(body, "_water_dialed", False):       # Class M abundance tier: the body's water class was dialed to Earth's, so its air takes that class's row (a candidate the law gave `low` by itself keeps the air the law draws)
-            quantities["pinned_row_b"] = next(row for row, name in delivered_water.ROWS.items() if name == delivered_water.EARTH_CLASS)
+        dialed = getattr(body, "_water_dialed", None)
+        if dialed:       # Class M abundance tier: the tier gave the body's water class (Earth's or the dry one), so its air takes that class's row (a candidate the law gave the class by itself keeps the air the law draws)
+            quantities["pinned_row_b"] = next(row for row, name in delivered_water.ROWS.items() if name == dialed)
     if getattr(body, "_envelope_helium_y", None) is not None:       # GEN.1527: the helium share of a hydrogen-first loss; the envelope mixture takes it for the star's
         quantities["envelope_helium_y"] = body._envelope_helium_y
     core = getattr(body, "core_mass_earth", None)

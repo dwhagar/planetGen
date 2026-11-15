@@ -5,7 +5,7 @@ The job engine's ledger (OPS.215, L1 of `docs/design/operations/job-engine.md`):
 
 Four tables. Three are in the control database (`control_schema.sql`, v23): `engine_runs` (a run), `engine_jobs` (the jobs of a run, with the number of
 the newest attempt) and `engine_attempts` (one row per attempt, with how it ended). The fourth, `engine_items`, is in each galaxy's own database (migration
-0260): one row per job that writes to that galaxy, so a job's commits and its done mark are one transaction.
+0261): one row per job that writes to that galaxy, so a job's commits and its done mark are one transaction.
 
 **Nothing reads or writes these rows yet.** The supervisor (OPS.207) is the writer and the plan-as-rows item (OPS.221) the first reader; this module is what
 both build on, so the column names live in one place.
@@ -26,10 +26,10 @@ import threading
 
 from planetgen.util import log
 
-RUN_STATES = ("waiting", "running", "held", "done", "cancelled")
+RUN_STATES = ("waiting", "running", "held", "done", "canceled")
 """tuple: The states of a run (the column's CHECK)."""
 
-JOB_STATES = ("waiting", "ready", "running", "done", "failed", "cancelled")
+JOB_STATES = ("waiting", "ready", "running", "done", "failed", "canceled")
 """tuple: The states of a job (the column's CHECK)."""
 
 ATTEMPT_OUTCOMES = ("running", "done", "failed", "killed_memory", "timed_out", "stuck", "replaced", "lost")
@@ -62,7 +62,7 @@ def set_run_state(conn, run_id, state, reason=None):
         raise ValueError(f"A run is never {state!r}: {RUN_STATES}.")
     conn.execute("UPDATE engine_runs SET state = ?, held_reason = ?,"
                  " started_at = IF(? = 'running' AND started_at IS NULL, NOW(6), started_at),"
-                 " finished_at = IF(? IN ('done', 'cancelled'), NOW(6), NULL) WHERE id = ?", (state, reason if state == "held" else None, state, state, run_id))
+                 " finished_at = IF(? IN ('done', 'canceled'), NOW(6), NULL) WHERE id = ?", (state, reason if state == "held" else None, state, state, run_id))
 
 
 def add_jobs(conn, run_id, jobs):

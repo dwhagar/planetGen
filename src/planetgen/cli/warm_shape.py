@@ -21,6 +21,7 @@ import time
 from planetgen.db import store
 from planetgen.generation import system_mass
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 
 def cluster_ages(config):
@@ -66,7 +67,7 @@ def main():
         started = time.perf_counter()
         log.normal(f"Working out the mean system mass of {len(ages)} cluster ages (a big galaxy takes a few minutes).")
         held = _save_with_bar(ages)
-        log.normal(f"Mean system mass worked out for {len(ages)} cluster ages in {time.perf_counter() - started:.1f} s; "
+        log.normal(f"Mean system mass worked out for {len(ages)} cluster ages in {format_duration_seconds(time.perf_counter() - started)}; "
                    f"{held} ages are stored in {system_mass.STORE_FILE}.")
     except Exception as exc:  # noqa: BLE001 -- the update carries on
         log.warning(f"The mean system masses could not be worked out ({exc}); the web app works them out when asked.")

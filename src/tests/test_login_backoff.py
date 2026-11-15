@@ -165,10 +165,11 @@ def test_private_addresses():
 
 
 def test_wait_text():
-    assert loginguard.wait_text(1) == "1 second"
-    assert loginguard.wait_text(45) == "45 seconds"
+    assert loginguard.wait_text(1) == "1 s"
+    assert loginguard.wait_text(45) == "45 s"
     assert loginguard.wait_text(300) == "5 minutes"
-    assert loginguard.wait_text(86400) == "24 hours"
+    assert loginguard.wait_text(0.2) == "1 s"
+    assert loginguard.wait_text(86400) == "1 day"
 
 
 # --- The login route and page (no database: the in-memory fallback) ---------
@@ -285,7 +286,7 @@ def test_login_page_names_the_wait(app, frozen_clock):
         assert client.post("/login", data=form, environ_base=_fresh_address()).status_code == 401
     response = client.post("/login", data=form, environ_base=_fresh_address())
     assert response.status_code == 429
-    assert "Too many failed logins for this username. Try again in 1 second." in response.get_data(as_text=True)
+    assert "Too many failed logins for this username. Try again in 1 s." in response.get_data(as_text=True)
 
 
 # --- The counts in Redis (SEC.30) ---------------------------------------------

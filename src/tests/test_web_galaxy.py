@@ -935,3 +935,20 @@ def test_a_page_that_waited_on_a_locked_row_answers_503_and_asks_again(client, f
     response = client.get("/galaxy")
     assert response.status_code == 503 and response.headers["Retry-After"] == "10"
     assert '<meta http-equiv="refresh" content="10">' in response.get_data(as_text=True)
+
+
+def test_nebula_volume_endpoint_takes_the_gas_lanes_key_and_still_refuses_a_bad_one(client, fake, monkeypatch):
+    """MAP.430: `?key=gas` (the far-zoom gas lanes of the whole galaxy) is passed to the API as it is, and a key that is neither a node's nor `gas` is a 400."""
+    import base64
+
+    asked = []
+
+    def fake_volume(db, key):
+        asked.append(key)
+        return {"key": key, "format": "NVOL1", "level": 9, "count": 0, "data": base64.b64encode(b"NVOL\x01\x09").decode("ascii")}
+
+    monkeypatch.setattr(apiclient, "get_galaxy_nebula_volume", fake_volume)
+    resp = client.get("/galaxy/nebula-volume?key=gas")
+    assert resp.status_code == 200 and resp.data == b"NVOL\x01\x09"
+    assert client.get("/galaxy/nebula-volume?key=gass").status_code == 400
+    assert asked == ["gas"]

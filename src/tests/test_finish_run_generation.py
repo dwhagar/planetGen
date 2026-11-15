@@ -125,8 +125,8 @@ def _sectors_then_tail(config, stops=None, tmp_path=None):
 
 
 @pytest.mark.parametrize("stage, stops", [
-    ("Sector paths", (sector_paths, "settle_sectors")),
-    ("Population pass", (model, "run_population")),
+    ("Sector paths", (sector_paths, "settle_batch")),
+    ("Population pass", (model, "do_population_piece")),
 ])
 def test_a_run_of_the_stages_after_the_sectors_stopped_in_a_stage_is_carried_on_to_the_uninterrupted_galaxy(
         mysql_config, second_mysql_config, tmp_path, conn, stage, stops):
@@ -159,7 +159,7 @@ def test_a_job_stopped_before_its_later_scatter_opened_is_carried_on_to_the_unin
     spec = [("scatter", ["--mass", *FLOOR]), ("scatter", ["--luminosity", *FLOOR])]
     _seed_galaxy(mysql_config)
     with pytest.MonkeyPatch.context() as failing:
-        _stops(failing, tmp_path, run_plan, "scatter_shells_unit", 1)
+        _stops(failing, tmp_path, run_plan, "scatter_shells_do", 1)
         with pytest.raises(units.RunStopped, match="Interrupted"):
             job.run_job(_job_args(mysql_config, spec))
     run_common._RUN_STATS.clear()

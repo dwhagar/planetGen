@@ -10,6 +10,7 @@ import shutil
 from dataclasses import dataclass, field
 
 from planetgen.backup.core import BackupError, Part, fsync_folder, match_owner, register
+from planetgen.util.format import format_bytes
 
 CONFIG_FILE = "config.json"
 PARITY_COPY = "sector-parity.pgpr"
@@ -54,7 +55,7 @@ class ParityRestore:
 
     def lines(self):
         found = self.found
-        out = [f"Put back the repair file: {self.bytes:,} bytes, {self.sectors:,} sector(s) in {self.groups:,} group(s).",
+        out = [f"Put back the repair file: {format_bytes(self.bytes)}, {self.sectors:,} sector(s) in {self.groups:,} group(s).",
                f"Checked against the database: {found.checked:,} sector(s), {found.healthy:,} matching, {found.recomputed:,} records made again "
                f"from the rows (the database had changed since the backup; not damage), {found.released:,} let go (sector gone)."]
         if found.unprotected:

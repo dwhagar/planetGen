@@ -171,15 +171,6 @@ _ALL_PARAMS = ("q",) + TEXT_FIELDS + TAG_FACETS + tuple(
     f"{panel}_{part}" for panel in PANEL_NAMES for part in ("page", "sort", "order"))
 
 
-def _valid_stars(text):
-    """The stars filter as typed when it is one (a count, a count and a plus, or a name), else empty: a hand-edited URL is ignored, not an error."""
-    try:
-        star_count.parse_star_count(text)
-    except ValueError:
-        return ""
-    return text.strip().lower()
-
-
 def _finite(text):
     """The number a range box holds, or `None` for an empty box or anything that is not a finite number (a hand-edited URL is ignored, not an error)."""
     try:
@@ -264,7 +255,7 @@ class SearchState:
         if found:       # `stars:3` typed in the search box is the stars filter, and the rest of the box stays a name
             q = _Q_STARS.sub("", q, count=1).strip()
             texts[STARS_FIELD] = texts[STARS_FIELD] or found.group(1)
-        texts[STARS_FIELD] = _valid_stars(texts[STARS_FIELD])
+        texts[STARS_FIELD] = star_count.valid_text(texts[STARS_FIELD]).lower()
         for entity in GAS_ENTITIES:      # the form's "another gas" row is the range of that gas's own key
             key = search_values.GAS_PREFIX + first(f"{entity}_{OTHER_GAS}")
             if key in search_values.KEYS and entity in search_values.KEYS[key].entities:

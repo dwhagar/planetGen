@@ -1,5 +1,5 @@
 """
-GEN.1557: the words of the gas dwarf (T) and ice giant (I) classes agree with the mix their bodies store: mostly rock and metal under an envelope for a gas dwarf, an interior of rock, metal and ices
+GEN.1557: the words of the gas dwarf (T) and ice giant (I) classes agree with the mix their bodies store: a solid interior of rock, metal and some ice under a small share of envelope for a gas dwarf, an interior of rock, metal and ices
 for an ice giant, and the day-counter line for a body with no surface says the rock lies deep under the envelope.
 """
 
@@ -34,7 +34,7 @@ def test_the_no_surface_line_says_any_rock_lies_under_the_envelope():
     assert "rock lies deep" in line
 
 
-def test_the_stored_gas_dwarfs_are_mostly_rock_and_metal_under_a_small_share_of_envelope():
+def test_the_stored_gas_dwarfs_are_mostly_solid_under_a_small_share_of_envelope():
     """The claim of the class T sentence, on the bodies a generated system stores (seed 2001 has several)."""
     config = SystemConfig()
     config.STAR_TYPE, config.PLANETS, config.COMETS, config.BINARY_SYSTEM = "G2V", True, False, False
@@ -43,5 +43,7 @@ def test_the_stored_gas_dwarfs_are_mostly_rock_and_metal_under_a_small_share_of_
     dwarfs = [p for p in system.planets if getattr(p, "planet_class", "") == "T"]
     assert dwarfs, "the seed no longer makes a gas dwarf; pick another"
     for body in dwarfs:
-        solids = (body.rock_mass_fraction or 0.0) + (body.metal_mass_fraction or 0.0)
+        solids = 1.0 - (body.envelope_mass_fraction or 0.0)
+        rock_and_metal = (body.rock_mass_fraction or 0.0) + (body.metal_mass_fraction or 0.0)
         assert solids > 0.5 > (body.envelope_mass_fraction or 0.0), (solids, body.envelope_mass_fraction)
+        assert rock_and_metal + (body.water_mass_fraction or 0.0) + (body.ice_mass_fraction or 0.0) > 0.5, rock_and_metal

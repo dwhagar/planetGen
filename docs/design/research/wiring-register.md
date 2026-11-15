@@ -181,7 +181,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.state_vectors.mean_anomaly_from_true | GEN.105 | the mean anomaly of an orbit the update reads from a state vector |
 | function | planetgen.physics.stellar_abundances.branch_probabilities | by design | the branch table probabilities for a test or a report, read by test_stellar_abundances |
 | function | planetgen.physics.stellar_spectrum.band_flux_w_m2 | by design | the band sum of a spectrum, read by test_stellar_spectrum and test_uv_shares_wiring to check the UV shares |
-| function | planetgen.physics.surface_dose.effective_air_column_g_cm2 | GEN.444 | the effective stopping column of a mixed air; `radiation.generate_dose` reads the air column of one gas, and the mixed column waits for interaction lengths of every gas the atmospheres hold (the table has air, CO2 and H2 only, and a gas not in it is an error) |
 | function | planetgen.physics.unit_registry.constant_in | by design | the number of a physical constant in another unit system (G in AU, year and solar mass); `relations.py` says a law in those units takes its G from it, and the Gaussian-constant test holds it |
 | function | planetgen.physics.unit_registry.units_of | by design | the registry's listing of a kind's units in declaration order; the registry audits and the page-side export tests walk it, the app looks units up by key |
 | function | planetgen.physics.unit_registry.parts_dimension | by design | the dimension a compound unit's parts give it; the registry's self-check holds every compound's stated dimension to it |
@@ -227,3 +226,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
 | row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
+| module | planetgen.physics.ice_light | GEN.1723 | the light that reaches the water under a lid of ice and snow; the refuge term of GEN.1723 reads `light_below` for the oxygen of lit water under ice (GEN.1726 built the law; the thickness of a world's ice and snow is not built yet) |
+| row | 6.293:IL1 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL2 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL3 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL4 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL5 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL6 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |

@@ -41,7 +41,7 @@ def _rocky(systems):
 
 
 def _with_dials(monkeypatch, bare):
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (0.0, bare, 0.0))
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (0.0, bare, 0.0, 0.0))
 
 
 def test_science_changes_nothing():

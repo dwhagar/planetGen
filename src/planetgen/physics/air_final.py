@@ -82,16 +82,13 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     Returns:
         FinalAir: What the body keeps.
     """
-    start_k = no_air_temperature_k
-    if past_runaway_with_water(planet, starlight_w_m2, surface_w):
-        start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `past_runaway_with_water`)
-    elif setting.albedo_law is not None and not giant:
-        start_k = max(start_k, air_branches.WARM_START_K)           # GEN.1696: a body with the ice law cooled from its formation, so it enters from the warm side
+    steam = past_runaway_with_water(planet, starlight_w_m2, surface_w)
+    start_k = air_branches.formation_start_k(no_air_temperature_k, steam=steam, ice_law=setting.albedo_law is not None and not giant)
     air = surface_air.solve(setting, start_k)
     if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
         planet._air_replay = (*planet._air_replay[:3], (setting, air.late_state, air.late, air.degassed))
     planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
-    air = _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant)
+    air = _air_oddities(planet, setting, air, steam, starlight_w_m2, distance_au, albedo, giant)
     planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
     planet._air_haze = None if air is None or setting.haze_draws is None else (setting.haze_draws, setting.star_temperature_k, setting.far_uv, setting.internal_flux_w_m2)    # GEN.1589: kept, not stored; the haze of the air kept, for the life stage
     if air is None or not air.partials_pa:
@@ -119,7 +116,13 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
         # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
         # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
         factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo_kept, starlight_w_m2)
-        factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
+        if factor is not None and factor < 0.0:
+            # Train 28 gate (test_sweep_atmosphere, system47/Ilrukbatus IV): the haze of a deep envelope keeps the 1 bar level 0.26 percent colder than its albedo alone gives. The greenhouse quantity is not
+            # negative, and clipping it to zero left the stored temperature off the formula on the stored albedo and greenhouse; the balance is kept in the albedo instead
+            albedo_kept = climate_draws.albedo_for_temperature(air.temperature_k, starlight_w_m2)
+            factor = 0.0
+        else:
+            factor = air.greenhouse_factor if factor is None else factor
     return FinalAir(air=air, temperature_k=air.temperature_k, albedo=albedo_kept, greenhouse_factor=factor, pressure_pa=air.pressure_pa,
                     molar_density_kg_mol=air.state.mean_molar_mass_kg_mol, density_kg_m3=air.state.density_kg_m3, scale_height_km=_m_to_km(air.state.scale_height_m),
                     partials_pa=air.partials_pa)
@@ -152,7 +155,7 @@ def _warn_at_ceiling(planet, air, distance_au):
         raise CeilingReached(message)
 
 
-def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):
+def _air_oddities(planet, setting, air, steam, starlight_w_m2, distance_au, albedo, giant):
     """
     The rows of the air lever (L7, GEN.1051: W19 the nightside collapse of a locked planet's air, W20 the other branch of a bistable climate) on the air just solved: they may replace it
     with the airless state (`None`) or with the air of the other branch (`physics/air_branches.py`). The rows are rolled again each time the air is made, from their own streams.
@@ -160,7 +163,7 @@ def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, al
     air_branches.clear(planet)
     if giant or planet.is_moon or air is None:
         return air
-    planet._air_context = air_branches.Context(setting, air, start_k, starlight_w_m2, distance_au, albedo)
+    planet._air_context = air_branches.Context(setting, air, steam, starlight_w_m2, distance_au, albedo)
     oddities.drop(planet, ("L7",))
     oddities.apply(planet, levers=("L7",))
     choice = getattr(planet, air_branches.CHOICE_ATTRIBUTE, None)
