@@ -19,7 +19,7 @@ Nobody knows how common an Earth is. Earth may be one in a galaxy. So the rate i
 | Tier | Target, Class M worlds per Sun-like system | What it means |
 |---|---|---|
 | Science (the default) | none | Only the laws. Nothing is moved. |
-| Sparse | 1 in 1,000 | |
+| Sparse | 1 in 500 | Raised from 1 in 1,000 by Boss, 9:28 PM EST 2026-11-14: the laws alone measured 1 in 2,800 on 2,800 Sun-like systems (`reports/train28-census-2026-11-14/meter2800.md`), and the tiers climb from there. |
 | Scattered | 1 in 100 | |
 | Plentiful | 1 in 30 | |
 | Abundant | 1 in 10 | |
