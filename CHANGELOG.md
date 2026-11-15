@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4224] - 2026-11-15
+
+**Headline:** The supervisor now judges the units of every live run, so a run whose starting process is gone is still watched.
+
+### Changed
+- **OPS.208, output unchanged.** The beat judge of the running units (`unitwatch.UnitWatch`) and the stuck action (`unitstuck.Stuck`: dump, stop, queue again once, then fail the run) run in the supervisor (`supervisor.RunWatches`), one turn a second while a run is live, for the stage in flight of each live run. `wrapper.run` and `units.follow_stage` only follow now: they lose their `watch` argument. A run whose starter was killed no longer goes unjudged. Judgments, log lines and the Queue page's unit states are the same.
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4223] - 2026-11-15
 
 **Headline:** A supervisor process, one per host, now starts when work arrives and shows on Redis that it is alive; it does nothing else yet.
