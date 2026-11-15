@@ -133,6 +133,9 @@ def _astropy_factor(symbol):
              "ZW": 1e21 * u.W, "YW": 1e24 * u.W, "RW": 1e27 * u.W, "QW": 1e30 * u.W,
              "°F": 5 / 9 * u.K,  # the size of a degree; the zero is checked against astropy's temperature scales below
              "psi": 4.4482216152605 / 0.0254 ** 2 * u.Pa,  # lbf (exact, in N) per square inch; astropy's imperial.psi is rounded
+             # astropy's byte has no SI decomposition: the information ladder is checked as powers of ten of one byte
+             "B": 1.0 * u.dimensionless_unscaled, "kB": 1e3 * u.dimensionless_unscaled, "MB": 1e6 * u.dimensionless_unscaled,
+             "GB": 1e9 * u.dimensionless_unscaled, "TB": 1e12 * u.dimensionless_unscaled,
              "kg": u.kg, "lunar masses": 7.342e22 * u.kg, "Earth masses": const.M_earth,
              "Jupiter masses": const.M_jup, "solar masses": const.M_sun}
     quantity = named.get(symbol)
@@ -200,6 +203,8 @@ def test_mass_switches_units_at_the_decided_points(kilograms, text):
     (ladders.RATE, 0.2 / 31557600.0, "0.2 1/yr"),
     (ladders.RATE, 25000 / (31557600.0 * 1e9), "25 1/Myr"),
     (ladders.MAGNETIC_FIELD, 1e8, "1.00 × 10¹² G"),
+    (ladders.INFORMATION, 512, "512 B"), (ladders.INFORMATION, 1500, "1.5 kB"), (ladders.INFORMATION, 1.5e9, "1.5 GB"),
+    (ladders.INFORMATION, 4e12, "4 TB"),
 ])
 def test_other_ladders_switch_units_at_the_decided_points(ladder, value, text):
     assert format_quantity(ladder, value) == text

@@ -51,6 +51,7 @@ from planetgen.galaxy import (core_gas as coreGas, density as galaxyDensity, gal
 from planetgen.physics import (constants as pc, formation, imf, interior_heat, kepler, main_sequence, orbits, planet_kind, planets,
                                radiogenic, relations, stellar_evolution, surface_composition, unit_registry, units)
 from planetgen.util import detmath, draw, log, random as sampling
+from planetgen.util.format import format_duration_seconds
 
 _msun_to_kg = unit_registry.converter("Msun", "kg")
 
@@ -1092,9 +1093,9 @@ def report_text(rows, verbose=False):
     seconds = sum(row["seconds"] for row in rows)
     if failed:
         lines.append(f"Math check FAILED: {len(failed)} of {len(rows)} checks failed "
-                     f"({', '.join(row['name'] for row in failed)}) in {seconds:.2f} s.")
+                     f"({', '.join(row['name'] for row in failed)}) in {format_duration_seconds(seconds)}.")
     else:
-        lines.append(f"Math check passed: all {len(rows)} checks in {seconds:.2f} s.")
+        lines.append(f"Math check passed: all {len(rows)} checks in {format_duration_seconds(seconds)}.")
     return "\n".join(lines)
 
 

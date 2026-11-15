@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen.physics import biogenic_oxygen as bo, habitability_world, life_classes, surface_refuge
+from planetgen.physics import biogenic_oxygen as bo, habitability_world, ice_light, life_classes, surface_refuge
 
 from tests.test_life_classes import world
 
@@ -70,7 +70,7 @@ def test_the_sea_under_a_thin_lid_counts_in_proportion_to_the_light_that_gets_th
     def lid(km):
         return surface_refuge.refuge_of(world(hydrosphere="ice-covered ocean", surface_temperature_k=230.0, ice_shell_km=km, ocean_fraction=0.7))
     bare, thin, thick = lid(0.0), lid(0.003), lid(0.005)
-    assert bare.area == pytest.approx(0.7 * (1.0 - surface_refuge.ICE_ALBEDO)) and bare.temperature_k == pytest.approx(surface_refuge.UNDER_ICE_K)
+    assert bare.area == pytest.approx(0.7 * (1.0 - ice_light.ALBEDO_BARE[ice_light.SEA])) and bare.temperature_k == pytest.approx(surface_refuge.UNDER_ICE_K)
     assert thin.area == pytest.approx(0.7 * surface_refuge.under_ice_light_share({"hydrosphere": "ice-covered ocean", "ice_shell_km": 0.003}))        # 3 m: a few percent of the light, as the lake mats get
     assert 0.0 < thick.area < thin.area < bare.area
     assert lid(0.01) == surface_refuge.NONE          # 10 m lets through less than the light floor

@@ -30,6 +30,7 @@ import time
 
 from planetgen.queue import memorygate
 from planetgen.util import log
+from planetgen.util.format import format_megabytes
 
 ENV_VAR = "PLANETGEN_SELF_TUNING"
 """str: Set to `0`, `off`, `no` or `false` and the profile is not read: every claim is what it was before OPS.156."""
@@ -136,8 +137,8 @@ def claim(conn, kind, typed_mb, token=None, read_rows=None, now=None):
 
 def _log_change(conn, kind, old, new, wanted, floor, details, typed_mb, now):
     held = "a memory kill floor" if floor and new == floor else ("limited to 25 percent a run" if abs(new - wanted) >= 1.0 else "the profile's figure")
-    reason = f"{held}; source {details['source']}, {details['samples']} samples" + (f", p95 {details['p95_mb']} MB x margin {details['margin']}" if "p95_mb" in details else "")
-    log.normal(f"Self-tuning: claim of {kind} {'was ' + format(old, ',.0f') + ' MB' if old is not None else 'had no earlier figure'}, now {new:,.0f} MB (typed {typed_mb if typed_mb is not None else 'none'}; {reason}).")
+    reason = f"{held}; source {details['source']}, {details['samples']} samples" + (f", p95 {format_megabytes(details['p95_mb'])} x margin {details['margin']}" if "p95_mb" in details else "")
+    log.normal(f"Self-tuning: claim of {kind} {'was ' + format_megabytes(old) if old is not None else 'had no earlier figure'}, now {format_megabytes(new)} (typed {format_megabytes(typed_mb) if typed_mb is not None else 'none'}; {reason}).")
     conn.lpush(_changes_key(), json.dumps({"at": now, "what": "claim", "kind": kind, "old": old, "new": new, "typed": typed_mb, "reason": reason, **details}))
     conn.ltrim(_changes_key(), 0, KEEP_CHANGES - 1)
 

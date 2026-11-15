@@ -12883,7 +12883,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics: the limits are measured (hypolith mats on about 75 h a year of liquid water, [[R5264]], from memory; mats in hot springs to about 73 C, Castenholz, from memory; the sodium chloride eutectic 252 K, a physics limit; the oxygen makers are active to about 253 K (LA1)), the step to every world is Boss's rule (8:38 PM EST 11-14: life will always find a way); reports/life-refuges-research-gen1722-2026-11-14.md"
+              "educated guess from physics: the limits are measured (hypolith mats on about 75 h a year of liquid water, [[R5269]], from memory; mats in hot springs to about 73 C, Castenholz, from memory; the sodium chloride eutectic 252 K, a physics limit; the oxygen makers are active to about 253 K (LA1)), the step to every world is Boss's rule (8:38 PM EST 11-14: life will always find a way); reports/life-refuges-research-gen1722-2026-11-14.md"
             ]
           ],
           "id": "RW1",
@@ -12901,7 +12901,7 @@
           "fields": [
             [
               "What it is",
-              "surface_refuge.LIGHT_FLOOR_W_M2 2e-3 (0.01 umol photons m-2 s-1, [R5268]): the least usable light under a lid of ice for the sea under it to count (GEN.1723); the class gate band_light_vs_earth min 0.01 (T7, L3, LF31) is higher and stays"
+              "surface_refuge.LIGHT_FLOOR_W_M2 2e-3 (0.01 umol photons m-2 s-1, [R5273]): the least usable light under a lid of ice for the sea under it to count (GEN.1723); the class gate band_light_vs_earth min 0.01 (T7, L3, LF31) is higher and stays"
             ],
             [
               "The range it moves in",
@@ -12921,7 +12921,7 @@
             ],
             [
               "Evidence",
-              "read [R5268]"
+              "read [R5273]"
             ]
           ],
           "id": "RW2",
@@ -12932,7 +12932,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "surface_refuge.LIGHT_FLOOR_W_M2 2e-3 (0.01 umol photons m-2 s-1, [R5268]): the least usable light under a lid of ice for the sea under it to count (GEN.1723); the class gate band_light_vs_earth min 0.01 (T7, L3, LF31) is higher and stays"
+          "what": "surface_refuge.LIGHT_FLOOR_W_M2 2e-3 (0.01 umol photons m-2 s-1, [R5273]): the least usable light under a lid of ice for the sea under it to count (GEN.1723); the class gate band_light_vs_earth min 0.01 (T7, L3, LF31) is higher and stays"
         },
         {
           "burn_down": null,
@@ -12959,7 +12959,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics (the duty cycle) on measured anchors (cover 0.1 to 28 percent and a turnover of 3,200 years in the driest core, [[R5264]]; cryoconite photosynthesis 2.9 times respiration, [[R5265]]; all cryoconite of Earth about 5e-4 of Earth's burial), the low end of the cover taken as the minimum reasonable one; the refuge source never beats the reductant flux R of a world with Earth's interior, so the lever for the oxygen of a dry world is R, not this number"
+              "educated guess from physics (the duty cycle) on measured anchors (cover 0.1 to 28 percent and a turnover of 3,200 years in the driest core, [[R5269]]; cryoconite photosynthesis 2.9 times respiration, [[R5270]]; all cryoconite of Earth about 5e-4 of Earth's burial), the low end of the cover taken as the minimum reasonable one; the refuge source never beats the reductant flux R of a world with Earth's interior, so the lever for the oxygen of a dry world is R, not this number"
             ]
           ],
           "id": "RW3",
@@ -12997,7 +12997,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics: 15 percent of Earth's land is groundwater-fed surface water [[R5266], read]; nearly all groundwater reaching the surface comes from a table within 0.5 m [[R5267], read]; the thickness of the aquifer does not scale it"
+              "educated guess from physics: 15 percent of Earth's land is groundwater-fed surface water [[R5271], read]; nearly all groundwater reaching the surface comes from a table within 0.5 m [[R5272], read]; the thickness of the aquifer does not scale it"
             ]
           ],
           "id": "RW4",
@@ -13035,7 +13035,7 @@
             ],
             [
               "Evidence",
-              "[R5272] and the field limit of Antarctic lichens (-20 C) (read; reports/ice-light-and-lichen-cold-edge-2026-11-14.md)"
+              "[R5275] and the field limit of Antarctic lichens (-20 C) (read; reports/ice-light-and-lichen-cold-edge-2026-11-14.md)"
             ]
           ],
           "id": "LA1",
@@ -13073,7 +13073,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics between two read points (carbon-14 fixation still clear at -10 C, the limit at -20 C: [R5272, R5273])"
+              "educated guess from physics between two read points (carbon-14 fixation still clear at -10 C, the limit at -20 C: [R5275, R5276])"
             ]
           ],
           "id": "LA1b",
@@ -13167,44 +13167,6 @@
           "fields": [
             [
               "What it is",
-              "surface_refuge.ICE_EXTINCTION_PER_M 1.26 and ICE_ALBEDO 0.6: the share of the light through a lid of ice is (1 - albedo) exp(-k thickness); snow left out"
-            ],
-            [
-              "The range it moves in",
-              "k 0.2 to 1.5 per m (fresh lake to sea ice); albedo 0.5 to 0.7"
-            ],
-            [
-              "Where it holds",
-              "an ice-covered ocean"
-            ],
-            [
-              "What would show it wrong",
-              "the same; a measured transmission of sea ice that disagrees"
-            ],
-            [
-              "What replaces it",
-              "GEN.1726, the full law of ice and snow (Lane 03)"
-            ],
-            [
-              "Evidence",
-              "[R5269] eq. 3.1; [R5270] (read; reports/ice-light-and-lichen-cold-edge-2026-11-14.md; checked against Lake A, 8 percent against 5.7 to 6.6 measured)"
-            ]
-          ],
-          "id": "LA5",
-          "key": "6.21:LA5",
-          "kind": "D",
-          "slug": "6-21-la5",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "surface_refuge.ICE_EXTINCTION_PER_M 1.26 and ICE_ALBEDO 0.6: the share of the light through a lid of ice is (1 - albedo) exp(-k thickness); snow left out"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "surface_refuge.ROOT_SEEP_SHARE 0.27 and ROOT_DEPTH_KM 0.0095: once the life has reached mosses and the first land plants (native_life macroscopic or biosphere), the roots draw on 0.27 of the land and a table falls by 1/e in 9.5 m"
             ],
             [
@@ -13225,7 +13187,7 @@
             ],
             [
               "Evidence",
-              "[R5266] (22 to 32 percent of land under shallow groundwater influence, read); [R5271] (desert mean maximum rooting depth 9.5 m, record 68 m, read at second hand); the stage stands for the macroscopic native life"
+              "[R5271] (22 to 32 percent of land under shallow groundwater influence, read); [R5274] (desert mean maximum rooting depth 9.5 m, record 68 m, read at second hand); the stage stands for the macroscopic native life"
             ]
           ],
           "id": "LA7",
@@ -66561,6 +66523,242 @@
       ],
       "slug": "6-292-stand-ins-of-the-shielding-of-a-mixed-air-gen-444",
       "title": "Stand-ins of the shielding of a mixed air (GEN.444)"
+    },
+    {
+      "key": "6.293",
+      "number": "6.293",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.K_ICE_PER_M sea ice 1.26 per metre and K_ICE_RANGE_PER_M 0.8 to 1.5: the attenuation of photosynthetic light by sea ice"
+            ],
+            [
+              "The range it moves in",
+              "0.8 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "ice of a salty ocean, photosynthetic light of a Sun-like star"
+            ],
+            [
+              "What would show it wrong",
+              "an under-ice light profile whose k is outside 0.8 to 1.5 for first-year or Antarctic sea ice"
+            ],
+            [
+              "What replaces it",
+              "a spectral law (ice absorption by wavelength) once a cool or hot star is the case"
+            ],
+            [
+              "Evidence",
+              "[R5264] measured 1.26 +- 0.13 under Antarctic pack ice; [R5267] median 0.8 at 600 nm for bare ice and 0.6 for ponded ice, against the older 1.5"
+            ]
+          ],
+          "id": "IL1",
+          "key": "6.293:IL1",
+          "kind": "B",
+          "slug": "6-293-il1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.K_ICE_PER_M sea ice 1.26 per metre and K_ICE_RANGE_PER_M 0.8 to 1.5: the attenuation of photosynthetic light by sea ice"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.K_ICE_PER_M fresh lake ice 0.32 per metre and K_ICE_RANGE_PER_M 0.2 to 0.32"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.32"
+            ],
+            [
+              "Where it holds",
+              "clear ice of a fresh lake or a fresh-water ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a thick perennial lake whose measured k is outside 0.2 to 0.35"
+            ],
+            [
+              "What replaces it",
+              "the same spectral law"
+            ],
+            [
+              "Evidence",
+              "[R5265] Lake A 0.32; the 0.2 end is the Antarctic perennial lake ice value cited there"
+            ]
+          ],
+          "id": "IL2",
+          "key": "6.293:IL2",
+          "kind": "B",
+          "slug": "6-293-il2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.K_ICE_PER_M fresh lake ice 0.32 per metre and K_ICE_RANGE_PER_M 0.2 to 0.32"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.K_SNOW_PER_M 30 per metre and K_SNOW_RANGE_PER_M 10 to 100: the attenuation of photosynthetic light by snow"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100"
+            ],
+            [
+              "Where it holds",
+              "dry or wind-packed snow of grain size 0.1 to 1 mm"
+            ],
+            [
+              "What would show it wrong",
+              "snow of a measured k outside 10 to 100 over a metre"
+            ],
+            [
+              "What replaces it",
+              "a grain-size and density law for snow"
+            ],
+            [
+              "Evidence",
+              "[R5264] measured 31.8 +- 0.7 and expected 10 to 100; [R5265] one wind-packed layer 2.1; [R5268] temperate snow 3 to 30 per metre"
+            ]
+          ],
+          "id": "IL3",
+          "key": "6.293:IL3",
+          "kind": "B",
+          "slug": "6-293-il3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.K_SNOW_PER_M 30 per metre and K_SNOW_RANGE_PER_M 10 to 100: the attenuation of photosynthetic light by snow"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.ALBEDO_BARE (sea 0.6, lake 0.84), ALBEDO_SNOW 0.9 and their ranges: the albedo of the top surface to photosynthetic light"
+            ],
+            [
+              "The range it moves in",
+              "sea 0.5 to 0.7; lake 0.7 to 0.9; snow 0.8 to 0.97"
+            ],
+            [
+              "Where it holds",
+              "the surface of cold bare ice or snow"
+            ],
+            [
+              "What would show it wrong",
+              "a surface albedo of cold ice or snow outside these ranges"
+            ],
+            [
+              "What replaces it",
+              "the generator's own ice albedo to photosynthetic light, if one is made"
+            ],
+            [
+              "Evidence",
+              "[R5266] bare ice 0.5 to 0.7 and snow-covered 0.6 to 0.8; [R5265] 0.84 candled lake ice, 0.97 snow; [R5264] 0.8 to 0.97; the lake range is the stand-in's own (one measurement)"
+            ]
+          ],
+          "id": "IL4",
+          "key": "6.293:IL4",
+          "kind": "B",
+          "slug": "6-293-il4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.ALBEDO_BARE (sea 0.6, lake 0.84), ALBEDO_SNOW 0.9 and their ranges: the albedo of the top surface to photosynthetic light"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.ALBEDO_MELTING 0.4 (0.2 to 0.6): the albedo of melting bare ice"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "ice at the melting point"
+            ],
+            [
+              "What would show it wrong",
+              "a melting ice surface of albedo outside 0.2 to 0.6"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5266] 0.78, 0.60, 0.44 and 0.20 as the ice warms and melts"
+            ]
+          ],
+          "id": "IL5",
+          "key": "6.293:IL5",
+          "kind": "B",
+          "slug": "6-293-il5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.ALBEDO_MELTING 0.4 (0.2 to 0.6): the albedo of melting bare ice"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.SNOW_COVER_DEPTH_M 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.1 m"
+            ],
+            [
+              "Where it holds",
+              "a snow layer of 1 to 30 cm over ice"
+            ],
+            [
+              "What would show it wrong",
+              "a measurement of the albedo of a few cm of snow over ice that differs by more than 0.1 from this blend"
+            ],
+            [
+              "What replaces it",
+              "a measured albedo by snow depth"
+            ],
+            [
+              "Evidence",
+              "no source for the form; 10 cm of temperate snow let 5 percent of the visible light through [R5268], which the same 10 cm makes snow-bright"
+            ]
+          ],
+          "id": "IL6",
+          "key": "6.293:IL6",
+          "kind": "P",
+          "slug": "6-293-il6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": "GEN.1723",
+          "what": "ice_light.SNOW_COVER_DEPTH_M 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm)"
+        }
+      ],
+      "slug": "6-293-stand-ins-of-the-light-through-ice-and-snow-gen-1726",
+      "title": "Stand-ins of the light through ice and snow (GEN.1726)"
     }
   ]
 }

@@ -70,7 +70,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent water: T9, L3. Liquid water; the index's own L_solv (water activity and chaotropicity) applies
 - energy light: T1, L0. A star spectrum rich in 400 to 700 nm: F, G, K and bright early M; the Sun's share of photons in the band is the reference (efficiency 1)
-- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
+- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
 - gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)
 - gate co2_partial_pa: T2, L1. Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
@@ -82,7 +82,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent water: T9, L3. Liquid water
 - energy light: T7, L3. Hot bright stars: late B to F; a UV shield from fluorescent proteins (life-classes.md 3.1); tier T6 to T7: a reasoned invention
-- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
+- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
 - gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)
 - gate co2_partial_pa: T2, L1. Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
@@ -93,7 +93,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent water: T9, L3. Liquid water
 - energy light: T7, L3. K and M stars; an efficiency penalty for the lower photon energy: the chemistry is T5, the penalty 0.8 is T7 (life-classes.md 3.1)
-- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
+- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
 - gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)
 - gate co2_partial_pa: T2, L1. Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
@@ -104,7 +104,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent water: T9, L3. Liquid water
 - energy light: T7, L3. Near-infrared light, 800 to 1050 nm; the lower photon energy costs efficiency (T7)
-- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
+- gate lit_liquid_hours: T6, L0. Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light
 - gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)
 - gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model

@@ -36,6 +36,7 @@ import time
 from planetgen.galaxy import component_field
 from planetgen.util import logrecord
 from planetgen.util import settings as settings_module
+from planetgen.util.format import format_duration_seconds
 
 FORMAT = 1
 """int: The file format; a change makes every earlier file unreadable (a different signature)."""
@@ -348,7 +349,7 @@ def gather_field(args, results, ctx):
     seconds = sum(result["seconds"] for result in results)
     return {"built": built, "cached": 1 - built, "warmed": 1, "left_out": 0, "seconds": seconds,
             "line": f"cluster-field: part {args['index'] + 1} {'worked out' if built else 'was already there'} "
-                    f"({len(wanted)} ages, {seconds:.1f} s)"}
+                    f"({len(wanted)} ages, {format_duration_seconds(seconds)})"}
 
 
 def run_unit(args):

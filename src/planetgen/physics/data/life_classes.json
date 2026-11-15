@@ -44,7 +44,7 @@
      "min": 75.0,
      "tier": "T6",
      "tweak": "L0",
-     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",
@@ -133,7 +133,7 @@
      "min": 75.0,
      "tier": "T6",
      "tweak": "L0",
-     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",
@@ -227,7 +227,7 @@
      "min": 75.0,
      "tier": "T6",
      "tweak": "L0",
-     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",
@@ -317,7 +317,7 @@
      "min": 75.0,
      "tier": "T6",
      "tweak": "L0",
-     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5264] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",

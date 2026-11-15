@@ -15,18 +15,18 @@ worked once and kept):
 
 * a `brine seep`: its liquid (`ocean_fraction`) where the temperature is in the range;
 * an `ice-covered ocean` or an `ice` world: the meltwater where a place rises above 273.15 K (the ice cover of the place for an `ice` world: a melt hole, a cryoconite pond);
-* the sea under the lid of an `ice-covered ocean` (GEN.1724 research, LA4, LA5): the lid lets `(1 - ICE_ALBEDO) * exp(-ICE_EXTINCTION_PER_M * thickness)` of the light through, and the sea (`ocean_fraction`) makes the
+* the sea under the lid of an `ice-covered ocean` (GEN.1724 research, LA4, LA5): the lid lets `ice_light.transmission` (GEN.1726) of the light through, and the sea (`ocean_fraction`) makes the
   ocean's own production in proportion to it, at 273.15 K, when what gets through is over the light floor (`LIGHT_FLOOR_W_M2`, RW2). A lid of a few metres counts (the lake mats under 3 to 5 m of ice, most of
   the Arctic Ocean's production is under ice), a lid of a kilometre does not. Snow on the ice is left out;
 * a world of `SURFACE_STATES` with an aquifer (`aquifers`): the springs and seeps where the water table meets the ground, `SEEP_LAND_SHARE` of the land at a table at the surface and
-  falling as `exp(-depth / SEEP_DEPTH_KM)` with the depth of its top ([R5266], [R5267]: nearly all the groundwater that reaches the surface comes from a table within a metre), in
+  falling as `exp(-depth / SEEP_DEPTH_KM)` with the depth of its top ([R5271, R5272]: nearly all the groundwater that reaches the surface comes from a table within a metre), in
   the range. A table deeper than a few metres gives none (the springs where relief cuts it are left out: the minimum reasonable case); the water of a deep aquifer reaches no light. Once the world's life has
   reached mosses and the first land plants (`native_life` `macroscopic` or `biosphere`, LA7), the roots reach the table: `ROOT_SEEP_SHARE` of the land (22 to 32 percent is under shallow groundwater influence) and the table's depth is
-  measured on the rooting depth of a desert plant, 9.5 m ([R5271]), in place of the metre. The oxygen of the rise is worked before that stage (the stage needs the oxygen), so the widening is in the scores and the source of a world already there.
+  measured on the rooting depth of a desert plant, 9.5 m [R5274], in place of the metre. The oxygen of the rise is worked before that stage (the stage needs the oxygen), so the widening is in the scores and the source of a world already there.
 
 **The production (RW3).** `lit_area` is the share of the world's surface that is wet and lit, each place weighed by `production_share(hours)`, the production per area against an
 ocean's: `(hours / 8760) ** k * cover`, with `cover` rising from `COVER_MIN` at the 75-hour limit to `COVER_MAX` at `COVER_FULL_HOURS` (a log scale; the hypolith and soil crust
-covers of [R5264] run 0.1 to 28 percent, and the minimum reasonable one is taken) and `k` 1 above `K_ONE_HOURS` rising to `K_MAX` at the limit (the five orders of
+covers of [R5269] run 0.1 to 28 percent, and the minimum reasonable one is taken) and `k` 1 above `K_ONE_HOURS` rising to `K_MAX` at the limit (the five orders of
 magnitude of the Warren-Rhodes gradient over a tenfold fall of the water, taken only as its direction). `biogenic_oxygen.productivity` turns that into the source `S` with
 Earth's own burial per area of ocean: **no new burial constant**. The result is small on purpose: about 1e-2 of Earth's `S` for a seep world with a year of warm light, 1e-3 or less for a melt hole or a cold edge, and 0.14 at the very most (the cover cap of 0.1 over a whole sea that melts all year), so it never beats the reductant flux `R` (0.3 of Earth's `S`) on a world whose interior is Earth's. If dry worlds are to hold oxygen, the lever is `R` (a
 more oxidised mantle), not this number.
@@ -41,7 +41,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import aquifers, constants, temperature_coverage
+from planetgen.physics import aquifers, constants, ice_light, temperature_coverage
 
 YEAR_HOURS = 8760.0
 """float: The hours of a year, 365 days of 24 hours (a definition: source tier T1, tweak level L0)."""
@@ -49,20 +49,20 @@ LIQUID_MIN_K = 252.0
 """float: The coldest a place's liquid water is counted at, K: the eutectic of a chloride brine (RW1, tweak level L0). The oxygen makers are active to about 253 K in the field (LA1; the production taper below)."""
 RATE_FULL_K = 263.0
 RATE_ZERO_K = 253.0
-"""float: The production factor of a wet place is 1 at `RATE_FULL_K` and above and falls linearly to 0 at `RATE_ZERO_K`, K: Antarctic lichens photosynthesise to -20 C in the field and the rate is small below -10 C ([R5273], [R5272] and the field limit of Antarctic lichens (-20 C), read; reports/ice-light-and-lichen-cold-edge-2026-11-14.md). LA1 (the edge, T1, L0) and LA1b (the straight line between the two points, T6, L1)."""
+"""float: The production factor of a wet place is 1 at `RATE_FULL_K` and above and falls linearly to 0 at `RATE_ZERO_K`, K: Antarctic lichens photosynthesise to -20 C in the field and the rate is small below -10 C ([R5275, R5276] and the field limit of Antarctic lichens (-20 C), read; reports/ice-light-and-lichen-cold-edge-2026-11-14.md). LA1 (the edge, T1, L0) and LA1b (the straight line between the two points, T6, L1)."""
 LIQUID_MAX_K = 346.0
 """float: The hottest, K: the upper limit of cyanobacterial mats in hot springs, about 73 C (Castenholz, from memory). RW1, tweak level L0."""
 MELT_K = 273.15
 """float: Meltwater needs a place above this temperature, K (ice has no liquid in it below it, a definition)."""
 MIN_HOURS_YR = 75.0
-"""float: The least hours of lit liquid water in a year a refuge has ([R5264]: the hypolith mats of the Mojave and Namib live on about 75 h a year of liquid water, from memory). RW1, educated guess from physics, tweak level L0."""
+"""float: The least hours of lit liquid water in a year a refuge has ([R5269]: the hypolith mats of the Mojave and Namib live on about 75 h a year of liquid water, from memory). RW1, educated guess from physics, tweak level L0."""
 SEEP_LAND_SHARE = 0.15
-"""float: The share of the land a groundwater-fed surface feature (a spring, seep, oasis, playa or wetland) covers on Earth ([R5266], Science). RW1, tweak level L2."""
+"""float: The share of the land a groundwater-fed surface feature (a spring, seep, oasis, playa or wetland) covers on Earth ([R5271], Science). RW1, tweak level L2."""
 SEEP_DEPTH_KM = 0.001
-"""float: The depth, km, of a water table over which the share of seeps falls by 1/e: 1 m ([R5267]: nearly all the groundwater that evaporates comes from a table within 0.5 m; the share ends at 30 to 100 cm). RW1, tweak level L2."""
+"""float: The depth, km, of a water table over which the share of seeps falls by 1/e: 1 m ([R5272]: nearly all the groundwater that evaporates comes from a table within 0.5 m; the share ends at 30 to 100 cm). RW1, tweak level L2."""
 COVER_MIN = 0.001
 COVER_MAX = 0.1
-"""float: The cover of the life on the wet lit area, 0.001 at the dry limit up to 0.1 on a wet crust (the low end of the 0.1 to 28 percent of [R5264]: the minimum reasonable one). RW3, educated guess from physics, tweak level L2."""
+"""float: The cover of the life on the wet lit area, 0.001 at the dry limit up to 0.1 on a wet crust (the low end of the 0.1 to 28 percent of [R5269]: the minimum reasonable one). RW3, educated guess from physics, tweak level L2."""
 COVER_FULL_HOURS = 2000.0
 """float: The hours a year at which a place has the full cover `COVER_MAX` (RW3, tweak level L2)."""
 K_ONE_HOURS = 500.0
@@ -70,19 +70,16 @@ K_MAX = 5.0
 """float: The hours a year above which production goes in proportion to them (`k` 1), and the exponent it rises to at the 75-hour limit (RW3, tweak level L2)."""
 EARTH_OCEAN_SHARE = 0.71
 """float: The share of its surface Earth's ocean covers (the area `biogenic_oxygen.EARTH_BURIAL_MOL_YR` is the burial of; the same 0.71 as `biogenic_oxygen.EARTH_OCEAN_FRACTION`). Source tier T1, tweak level L0."""
-ICE_EXTINCTION_PER_M = 1.26
-ICE_ALBEDO = 0.6
-"""float: The light through the ice lid of a sea is `(1 - ICE_ALBEDO) * exp(-ICE_EXTINCTION_PER_M * thickness)` ([R5269], [R5270], read: reports/ice-light-and-lichen-cold-edge-2026-11-14.md; a sea ice's bulk extinction is 1.26 per m, 0.3 for a fresh lake's, and the albedo of bare sea ice is 0.5 to 0.7). Snow is left out. Lane 03's GEN.1726 replaces this with the full law of ice and snow. LA5, tier T1, tweak level L0."""
 LIGHT_FLOOR_W_M2 = 2.0e-3
-"""float: The least usable light, W/m2, under which no photosynthesis is counted: 0.01 umol photons m-2 s-1 ([R5268], RW2), about 2e-3 W/m2 of photosynthetically active light. Tier T1, tweak level L0."""
+"""float: The least usable light, W/m2, under which no photosynthesis is counted: 0.01 umol photons m-2 s-1 ([R5273], RW2), about 2e-3 W/m2 of photosynthetically active light. Tier T1, tweak level L0."""
 UNDER_ICE_K = 273.15
 """float: The temperature of the water under a lid of ice, K (the melting point; a definition: source tier T1, tweak level L0)."""
 ROOTED = ("macroscopic", "biosphere")
 """tuple: The native-life stages (`habitability_world.native_life`) with mosses and the first land plants (`habitability.LIFE_STAGES`): the roots reach the water table (LA7)."""
 ROOT_SEEP_SHARE = 0.27
-"""float: The share of the land a rooted plant draws groundwater from once the stage is reached: the middle of the 22 to 32 percent of Earth's land under shallow groundwater influence ([R5266], read). LA7, tier T1 to T6, tweak level L1."""
+"""float: The share of the land a rooted plant draws groundwater from once the stage is reached: the middle of the 22 to 32 percent of Earth's land under shallow groundwater influence ([R5271], read). LA7, tier T1 to T6, tweak level L1."""
 ROOT_DEPTH_KM = 0.0095
-"""float: The depth, km, a water table falls by 1/e in the share of the land a rooted plant reaches: the mean maximum rooting depth of desert plants, 9.5 m (the record is 68 m; [R5271], read at second hand). LA7, tier T1, tweak level L0."""
+"""float: The depth, km, a water table falls by 1/e in the share of the land a rooted plant reaches: the mean maximum rooting depth of desert plants, 9.5 m (the record is 68 m; [R5274], read at second hand). LA7, tier T1, tweak level L0."""
 DEFAULT_LIT_SHARE = 0.5
 """float: The share of the time the star is up when `day_share_mean` is not stored (a half: stand-in, source tier T6, tweak level L0)."""
 
@@ -191,11 +188,11 @@ def refuge_of(values):
 
 
 def under_ice_light_share(values):
-    """The share of the usable light that gets through the ice lid of an `ice-covered ocean` (`exp(-ICE_EXTINCTION_PER_M * thickness)`, LA5) from its stored `ice_shell_km`; 0 for any other
+    """The share of the usable light that gets through the ice lid of an `ice-covered ocean` (`ice_light.transmission` of sea ice, GEN.1726, rows IL1 to IL7) from its stored `ice_shell_km`; 0 for any other
     state or a lid of unknown thickness."""
     if values.get("hydrosphere") != "ice-covered ocean" or values.get("ice_shell_km") is None:
         return 0.0
-    return (1.0 - ICE_ALBEDO) * math.exp(-min(ICE_EXTINCTION_PER_M * 1000.0 * max(float(values["ice_shell_km"]), 0.0), 700.0))
+    return ice_light.transmission(1000.0 * max(float(values["ice_shell_km"]), 0.0), kind=ice_light.SEA)
 
 
 def _under_ice(values, state, lit):

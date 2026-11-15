@@ -25,8 +25,8 @@ done); the time left comes from that overall rate only.
   whole warm-up and one for the stage in progress, each with elapsed time, time left and, for the stage, the seconds a
   chunk takes overall and how many run at once. Lines the warm-up logs are printed above the bars.
 * Without one (a log file, cron, a pipe) a stage of several chunks leaves a progress line when the log cadence (30 s) and ten
-  percentage points have both passed since the last one (OPS.99), `galaxy-nodes 16% (28 of 180 chunks), 1:56 elapsed, about
-  10:10 left`, with the whole warm-up's time left after it once that is known, then one closing line for the stage that
+  percentage points have both passed since the last one (OPS.99), `galaxy-nodes 16% (28 of 180 chunks), 1.93 minutes elapsed, about
+  10.2 minutes left`, with the whole warm-up's time left after it once that is known, then one closing line for the stage that
   also says how many chunks ran at once and how long a chunk took on its worker. A stage of one unit prints its own line.
 """
 
@@ -35,6 +35,7 @@ import time
 
 from planetgen import tuning
 from planetgen.util import logrecord
+from planetgen.util.format import format_rate
 
 PROGRESS_SECONDS = tuning.PROGRESS_LOG_SECONDS
 """float: Seconds that must pass since a stage's last progress line in a log before the next one (OPS.99): the one progress cadence (OPS.169,
@@ -242,7 +243,7 @@ class WarmProgress:
             self.progress.update(
                 self.task, completed=self.done, description=self._description(),
                 left="" if stage_left is None else f"about {logrecord.duration_text(stage_left)} left",
-                rate="" if at_once is None else f"{elapsed / self.done:.1f} s/chunk overall, {at_once} at once")
+                rate="" if at_once is None else f"{format_rate(self.done, elapsed, 'chunk')} overall, {at_once} at once")
             self.progress.update(self.overall, completed=self._weight_done(),
                                  left=self._overall_left_text())
         if self.units <= 1:
@@ -282,7 +283,7 @@ class WarmProgress:
         out = f", {self.sums['left_out']:,} left out" if self.sums["left_out"] else ""
         at_once = self._at_once(elapsed)
         together = ("" if at_once is None else
-                    f"; {at_once} chunk{'' if at_once == 1 else 's'} at once, {self.sums['seconds'] / self.done:.1f} s a chunk on its worker")
+                    f"; {at_once} chunk{'' if at_once == 1 else 's'} at once, {logrecord.duration_text(self.sums['seconds'] / self.done)} a chunk on its worker")
         overall = self._overall_left_text()
         return (f"{key}: {self.sums['warmed']:,} {self.noun} warmed ({self.sums['built']:,} built, "
                 f"{self.sums['cached']:,} already stored{out}) in {logrecord.duration_text(elapsed)} over {self.units} chunks of up "
