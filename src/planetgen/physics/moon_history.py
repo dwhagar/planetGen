@@ -28,7 +28,7 @@ and is left as it is. A history no integrator can finish (`moon_orbits.Integrati
 
 import math
 
-from planetgen.physics import body_spin, constants, moon_orbits, ring_origin, spin, spin_torques
+from planetgen.physics import body_spin, constants, hill_perturbers, moon_orbits, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
 RESPIN_FRACTION = 1.0e-4
@@ -101,7 +101,7 @@ def apply(planet, primary_mass_kg):
     moons = [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m)) for m in born]
     try:
         result = moon_orbits.evolve(body, star, body_spin.dissipation_of(planet, body), moons, birth[0], age_s, body_spin.thermal_tide_of(planet, star),
-                                    density_kg_m3(planet), (planet.hill_radius or 0.0) * 1000.0 or None)
+                                    density_kg_m3(planet), (hill_perturbers.tidal_hill_radius_km(planet) or 0.0) * 1000.0 or None)    # GEN.1449: against every body that pulls on the planet
     except moon_orbits.IntegrationFailed:
         # TM8: no integrator finished (a very stiff planet): the moons stay as they were born and the planet's spin is the one it would have without them
         planet.fallen_moons = ()

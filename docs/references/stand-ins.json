@@ -72079,6 +72079,90 @@
       ],
       "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",
       "title": "Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)"
+    },
+    {
+      "key": "6.300",
+      "number": "6.300",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hill_perturbers.NON_HOST_TIDE_WEIGHT 2.0: a companion star's or sibling's tide enters the field that sets the Hill radius as 2 m <1/d^3> against the host's 3 M / a^3 (the stretch without the centrifugal term of the rotating frame, which only the host's orbit makes)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "planets whose companions and siblings are far enough that their field is a fraction of the host's"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a planet with a Jupiter-mass sibling on a crossing orbit whose moons are stripped at a different fraction of the Hill radius than the rule gives"
+            ],
+            [
+              "What replaces it",
+              "a stripping fraction fitted to N-body runs with the perturber's mass and distance (the Domingos fit's own form with a perturber term)"
+            ],
+            [
+              "Evidence",
+              "design: Hill's criterion; the fit of [R1138] has the host and the planet's eccentricity only"
+            ]
+          ],
+          "id": "HP1",
+          "key": "6.300:HP1",
+          "kind": "P",
+          "slug": "6-300-hp1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "hill_perturbers.NON_HOST_TIDE_WEIGHT 2.0: a companion star's or sibling's tide enters the field that sets the Hill radius as 2 m <1/d^3> against the host's 3 M / a^3 (the stretch without the centrifugal term of the rotating frame, which only the host's orbit makes)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "<1/d^3> of each source is tide_sources.orbit_mean_inverse_cube (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters"
+            ],
+            [
+              "The range it moves in",
+              "the mean against the closest approach"
+            ],
+            [
+              "Where it holds",
+              "systems of a few planets in near-coplanar orbits; the mutual inclination only lengthens the mean separation, so the coplanar mean is the upper bound of the pull"
+            ],
+            [
+              "What would show it wrong",
+              "a sibling on a highly inclined orbit that strips moons the coplanar mean says are held, or one that spares moons the mean says are lost"
+            ],
+            [
+              "What replaces it",
+              "the inclination of the sibling and the encounter time (GEN.1449 slice 3)"
+            ],
+            [
+              "Evidence",
+              "design: reuse of tide_sources (GEN.1446)"
+            ]
+          ],
+          "id": "HP2",
+          "key": "6.300:HP2",
+          "kind": "P",
+          "slug": "6-300-hp2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "<1/d^3> of each source is tide_sources.orbit_mean_inverse_cube (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters"
+        }
+      ],
+      "slug": "6-300-stand-ins-of-the-planet-s-hill-sphere-against-the-bodies-besides-its-host-gen-1449",
+      "title": "Stand-ins of the planet's Hill sphere against the bodies besides its host (GEN.1449)"
     }
   ]
 }
