@@ -803,7 +803,7 @@ def take_held_back(conn, run_id, now=None):
 
 
 def _log_unrun_dependents(conn, run_id, state, now):
-    """PERF.247: a stage that requires (`queue.commands.REQUIRES`) a stage the run did not finish is written to the log as not run, with
+    """PERF.247: a stage that requires (`queue.needs.requires_of`) a stage the run did not finish is written to the log as not run, with
     the stage it waited for, so a failed or canceled run says what it left undone and why."""
     try:
         from planetgen.queue import commands

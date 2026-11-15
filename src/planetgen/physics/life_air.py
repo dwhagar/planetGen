@@ -8,6 +8,11 @@ The gases a life class puts into the air besides oxygen (GEN.891, GEN.857, GEN.8
 (`physics/data/life_ledger.json`, docs/design/habitability/life-classes.md section 4): the methane that anoxygenic, hydrogen-eating and
 (before the oxygen rise) oxygenic life makes, and the hydrogen the hydrogen-eaters draw down.
 
+**Reactions.** Every class variant also lists its balanced reactions (GEN.1743, `reactions_of`, `takes`, `gives`): what it takes and gives off, the energy it
+runs on, what limits its flux (`REACTION_FLUXES`) and whether it changes the air. The loader refuses a reaction that does not balance every element and the
+charge (`imbalance`), so no class can give off a gas without taking what it is made of. The present air reads the class rows below; the air history
+(GEN.1745) reads the reactions.
+
 **Methane.** A class's flux is its fuel supply (a share of Earth's, `physics/life_supply.py`; for the oxygenic class the organic carbon its
 photosynthesis buries, `biogenic_oxygen.productivity`) times the area over Earth's times the flux Earth's supply gives
 (`earth_donor_methane_tmol_yr`: the food web of the anoxygenic photoferrotrophs, 10 Tmol a year, inside the 9 to 67 Tmol of the published
@@ -43,6 +48,12 @@ FUELS = ("burial", "donor_supply", "h2_supply")
 STATUSES = ("built", "pending")
 DRAW_DOWN_CAPS = {"H2": "hydrogen_max_share", "H2S": "h2s_max_share"}
 """dict: Each gas a class may draw down and the ledger number that caps its share of the air's molecules where that life lives."""
+REACTION_FLUXES = ("burial", "donor_supply", "h2_supply", "food", "air_stock", "deposition", "sea_sulfate", "oxidant_supply", "recycled")
+"""tuple: What may limit a reaction's flux (GEN.1743): the carbon buried, a supply of `physics/life_supply.py`, the food the producers make, the air's own
+stock drawn down to a cap, a deposition velocity into the sea, the sea's sulfate, the oxidant the classes before it made, or nothing (a cycle whose net is
+another reaction's)."""
+REACTION_ENERGIES = ("light", "chemical")
+"""tuple: What a reaction runs on."""
 HISTORY_MINIMUM_KPA = 1.0e-4
 """float: A gas the Life and air chart draws is above this partial pressure, kPa, at some age (0.1 Pa)."""
 
@@ -54,6 +65,48 @@ class LifeLedgerError(ValueError):
 def _check_entry(owner, entry):
     if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) or not entry.get("basis"):
         raise LifeLedgerError(f"{owner}: every number and class needs a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+
+
+def species_atoms(species):
+    """
+    The atoms and the charge of a species of a reaction (GEN.1743) as `{symbol: count}` with the charge under `"charge"`: a formula of
+    `elements.parse_formula`, with its charge after a caret (`"SO4^2-"`, `"H^+"`, `"Fe^2+"`).
+    """
+    formula, _, charge = species.partition("^")
+    atoms = dict(elements.parse_formula(formula))
+    if charge:
+        magnitude, sign = charge[:-1], charge[-1:]
+        if sign not in "+-" or (magnitude and not magnitude.isdigit()):
+            raise LifeLedgerError(f"{species!r}: a charge is written as ^2- or ^+")
+        atoms["charge"] = (int(magnitude) if magnitude else 1) * (1 if sign == "+" else -1)
+    return atoms
+
+
+def imbalance(reaction):
+    """`{element or "charge": what the products have more than the reactants}` of a reaction, for the ones that differ (empty: it balances)."""
+    totals = {}
+    for side, sign in (("takes", -1.0), ("gives", 1.0)):
+        for species, count in reaction[side].items():
+            for symbol, number in species_atoms(species).items():
+                totals[symbol] = totals.get(symbol, 0.0) + sign * count * number
+    return {symbol: total for symbol, total in totals.items() if abs(total) > 1e-9}
+
+
+def _check_reaction(name, reaction, numbers):
+    _check_entry(f"reaction {name}", reaction)
+    if not reaction.get("classes") or not reaction.get("takes") or not reaction.get("gives"):
+        raise LifeLedgerError(f"reaction {name}: it needs the classes it belongs to and what it takes and gives")
+    if reaction.get("flux") not in REACTION_FLUXES or reaction.get("energy") not in REACTION_ENERGIES or not isinstance(reaction.get("air"), bool):
+        raise LifeLedgerError(f"reaction {name}: the flux is one of {REACTION_FLUXES}, the energy one of {REACTION_ENERGIES} and `air` true or false")
+    for used in reaction.get("uses", ()):
+        if used not in numbers:
+            raise LifeLedgerError(f"reaction {name}: it uses {used!r}, which is not a ledger number")
+    try:
+        left = imbalance(reaction)
+    except ValueError as error:
+        raise LifeLedgerError(f"reaction {name}: {error}") from error
+    if left:
+        raise LifeLedgerError(f"reaction {name} does not balance: {left}")
 
 
 def _load():
@@ -76,12 +129,15 @@ def _load():
         for gas, product in (row.get("products") or {}).items():
             if gas not in row.get("draws_down", ()) or product.get("per") not in document["numbers"] or not product.get("gas"):
                 raise LifeLedgerError(f"class {number}: a product is of a gas the class draws down, a gas and a ledger number per mole, got {gas!r}: {product!r}")
+    for name, reaction in document["reactions"].items():
+        _check_reaction(name, reaction, document["numbers"])
     return document
 
 
 DOCUMENT = _load()
 NUMBERS = DOCUMENT["numbers"]
 CLASSES = DOCUMENT["classes"]
+REACTIONS = DOCUMENT["reactions"]
 VERSION = DOCUMENT["version"]
 
 
@@ -110,6 +166,21 @@ def number(name):
 def row_of(life_class):
     """The ledger row of a `life_classes.LifeClass` (by its class number)."""
     return CLASSES[str(life_class.number)]
+
+
+def reactions_of(life_class):
+    """The reactions of a `life_classes.LifeClass` (by its id, `"1a"` or `"2"`), as `{name: reaction}` in the ledger's order (GEN.1743)."""
+    return {name: reaction for name, reaction in REACTIONS.items() if life_class.id in reaction["classes"]}
+
+
+def takes(life_class):
+    """The species the reactions of a class take, sorted (GEN.1743): what the class consumes."""
+    return sorted({species for reaction in reactions_of(life_class).values() for species in reaction["takes"]})
+
+
+def gives(life_class):
+    """The species the reactions of a class give, sorted (GEN.1743): what the class gives off."""
+    return sorted({species for reaction in reactions_of(life_class).values() for species in reaction["gives"]})
 
 
 def methane_flux_mol_yr(body, life_class, supplies=None):

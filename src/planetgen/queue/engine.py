@@ -111,6 +111,25 @@ class Context:
         else:
             self._db.commit()
 
+    def commit_piece(self, result=None):
+        """
+        Commits the piece in hand as finished (OPS.222), for a piece whose own commit must be the one that counts it: its data, the cursor past it and `result` land in one fenced transaction, so a
+        unit stopped after it starts at the piece that follows and one stopped before it does this piece again. A piece that would write twice if it ran twice (rows added to a total, rows inserted
+        with no key to refuse them) commits so. `result` is what the piece returns (the engine stores it here and not again). Without a database, an attempt or `resumes` it is a plain `commit()`.
+        """
+        if self._db is None:
+            return
+        if self._resumes and self.attempt is not None and self.attempt.config is not None:
+            number = len(self.results)          # the place of the piece in hand: the pieces before it, an earlier attempt's included, are `results`
+            pending = [(index, stored) for index, stored in enumerate(self.results[self._stored:], self._stored) if stored is not None]
+            stored = json.loads(json.dumps(result))
+            if stored is not None:
+                pending.append((number, stored))
+            self.attempt.commit(self._db, cursor_key=str(number + 1), results=pending)
+            self._stored = number + 1
+        else:
+            self.commit()
+
     def checkpoint(self):
         """
         After every piece (OPS.219): stores the number of pieces finished and what the new ones returned, with a commit of anything the piece left uncommitted, fenced like any `commit()`. A unit that does

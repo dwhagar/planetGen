@@ -80,7 +80,7 @@ def test_a_sector_run_stopped_before_a_save_is_carried_on_to_the_uninterrupted_g
         with pytest.raises(units.RunStopped, match="Interrupted"):
             run_cli("sectors", [*MODES["band"], "--num-systems", str(NUM_SYSTEMS), *mysql_argv(mysql_config)])
     stopped = _last_run(conn)
-    assert runrecord.read_run(conn, stopped)["state"] == "failed"
+    assert runrecord.read_run(conn, stopped)["state"] == "held"        # OPS.221: a failed unit holds the run
     saved = _digest(mysql_config, "sectors")[0]
     assert 0 < saved
 
@@ -132,7 +132,7 @@ def test_a_run_of_the_stages_after_the_sectors_stopped_in_a_stage_is_carried_on_
         mysql_config, second_mysql_config, tmp_path, conn, stage, stops):
     _sectors_then_tail(mysql_config, stops, tmp_path)
     stopped = runrecord.read_run(conn, _last_run(conn))
-    assert stopped["state"] == "failed" and stopped["title"] == "Tail"
+    assert stopped["state"] == "held" and stopped["title"] == "Tail"
     where = stopped["stages"][stopped["current"]]["label"]
     assert where == stage and stopped["galaxy_seed"] and stopped["build"]
     assert finish_run.last_incomplete(conn) == stopped["id"]
@@ -164,7 +164,7 @@ def test_a_job_stopped_before_its_later_scatter_opened_is_carried_on_to_the_unin
             job.run_job(_job_args(mysql_config, spec))
     run_common._RUN_STATS.clear()
     stopped = runrecord.read_run(conn, _last_run(conn))
-    assert stopped["state"] == "failed" and stopped["title"] == "Generate job"
+    assert stopped["state"] == "held" and stopped["title"] == "Generate job"
     assert stopped["stages"][stopped["current"]]["label"] != stopped["stages"][-1]["label"]
 
     run_cli("finish-run", mysql_argv(mysql_config))
@@ -173,4 +173,6 @@ def test_a_job_stopped_before_its_later_scatter_opened_is_carried_on_to_the_unin
     assert finished["state"] == "done" and finished["finishes"] == stopped["id"]
     _seed_galaxy(second_mysql_config)
     job.run_job(_job_args(second_mysql_config, spec))
-    assert _stars(mysql_config) == _stars(second_mysql_config) != []
+    # the units the stopped run finished are not done again, so the unit that stopped writes its rows last: the stars are the same, the order they were written in (their ids) is not
+    stars, undisturbed = ([{key: value for key, value in star.items() if key != "id"} for star in _stars(config)] for config in (mysql_config, second_mysql_config))
+    assert sorted(map(repr, stars)) == sorted(map(repr, undisturbed)) != []
