@@ -15,7 +15,7 @@ marks itself done, in one transaction, and everything that wants to know what a 
 
 The ledger lives in the control database, found from the database the run's steps name (`wrapper.expected_seconds` reads the same one).
 
-* **A run that names no database** (`generate system --output`, which touches none, TEST.769) has no ledger to write to. Its plan is kept in the run's own Redis record, which every process of the run
+* **A run that says it names no database** (every step has `database: None`: `generate system --output`, which touches none, TEST.769) has no ledger to write to. Its plan is kept in the run's own Redis record, which every process of the run
   shares, behind the same functions: `record_plan`, `record_cut`, `read_plan`, `ended` and `mark_ended` choose the store once, by `ledgered`, and give the same answers; its units have no row
   (`record_cut` returns `None` for each), so no attempt of theirs is written (`attempts.begin` takes `None`).
 """
@@ -35,8 +35,12 @@ OPS.260), else the role's name; `release` is always `release`."""
 
 
 def ledgered(conn, run_id):
-    """Whether the run's plan is rows of the job ledger: some step of the run names a database (the ledger is on that database's server). A run that names none keeps its plan in its Redis record."""
-    return any((item.get("params") or {}).get("database") for item in runrecord.read_steps(conn, run_id))
+    """
+    Whether the run's plan is rows of the job ledger. It is, unless the run says it touches no database: every step has `database` in its parameters, as `None` (`system --output`). A step with
+    no `database` at all is a run begun by hand or a test, which keeps the ledger on the configured server as it always has. A run that says it names none keeps its plan in its Redis record.
+    """
+    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
+    return not (params and all("database" in each and not each["database"] for each in params))
 
 
 def _kept(conn, run_id, field, value=None):
