@@ -49,6 +49,23 @@ class Exit:
     source: str = "template"
 
 
+def _pid_alive(pid):
+    """Whether a process with this pid still runs (a zombie does not count): the way to know a job ended where the kernel has no handle to give."""
+    try:
+        import psutil
+        return psutil.pid_exists(pid) and psutil.Process(pid).status() != psutil.STATUS_ZOMBIE
+    except ImportError:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
+    except psutil.NoSuchProcess:
+        return False
+
+
 class Job:
     """A running job as the supervisor holds it: its id, its pid, its pipe and a kernel handle on it."""
 
@@ -187,15 +204,19 @@ class JobHost:
                     held.release_handle()       # its pipe stays open: what the job said last is read, and the caller closes it
             if self._dead:
                 for held in list(self.jobs.values()):       # only the kernel can say: the template that would have read the status is gone
-                    if held.pidfd is not None and select.select([held.pidfd], [], [], 0.0)[0]:
+                    if held.pidfd is not None:
+                        gone, source = bool(select.select([held.pidfd], [], [], 0.0)[0]), "pidfd"
+                    else:                                    # no kernel handle (macOS): the pid is looked for, as `psutil` does
+                        gone, source = not _pid_alive(held.pid), "pid"
+                    if gone:
                         self.jobs.pop(held.id)
-                        ended.append(Exit(held.id, held.pid, source="pidfd"))
+                        ended.append(Exit(held.id, held.pid, source=source))
                         held.release_handle()
             if ended or time.monotonic() >= deadline:
                 return ended
             watched = [] if self._dead else [self.control]
             watched += [held.pidfd for held in self.jobs.values() if held.pidfd is not None and self._dead]
-            if not watched:                 # nothing can arrive: the template is gone and no job has a handle left
+            if not watched and not (self._dead and self.jobs):      # nothing can arrive: the template is gone and no job is left to look for
                 return ended
             select.select(watched, [], [], min(0.05, max(deadline - time.monotonic(), 0.0)))
 
@@ -215,3 +236,49 @@ class JobHost:
                 self.process.wait()
         if self.control is not None:
             self.control.close()
+
+
+WARM_SETS = {
+    "tables": ("planetgen.queue.units.warm_star_tables",),
+    "plain": (),
+}
+"""dict: The warm set of each template of a `TemplateSet`: the lane whose units draw stars (`units.TABLE_KINDS`) has the sampling tables built once, every other lane has nothing to warm."""
+
+
+def template_key(kind):
+    """Which template forks a unit of command `kind`: `tables` for the commands that draw from the sampling tables (`units.TABLE_KINDS`, the rule `units.warm_unit` has today), else `plain`."""
+    from planetgen.queue import units
+    return "tables" if kind in units.TABLE_KINDS else "plain"
+
+
+class TemplateSet:
+    """The supervisor's templates: one per warm set, each started when the first job that wants it is asked for (a host with no star-drawing work never builds the tables) and stopped together."""
+
+    def __init__(self, python=None, warm_sets=None, ready_seconds=READY_SECONDS):
+        self.python, self.warm_sets, self.ready_seconds = python, dict(WARM_SETS if warm_sets is None else warm_sets), ready_seconds
+        self.hosts = {}
+
+    def host(self, key):
+        """The running `JobHost` of template `key`, started now if it is not (the warm set is built before this returns)."""
+        if key not in self.hosts or self.hosts[key]._dead:
+            made = JobHost(python=self.python, warm=self.warm_sets[key])
+            made.start(self.ready_seconds)
+            self.hosts[key] = made
+        return self.hosts[key]
+
+    def fork(self, kind, runner, job=None):
+        """Forks the unit of `kind` from its template. Returns `(key, Job)`."""
+        key = template_key(kind)
+        return key, self.host(key).fork(runner, job)
+
+    def poll(self, timeout=0.0):
+        """`(key, Exit)` of every job that ended since the last call, over every template."""
+        found = []
+        for key, host in self.hosts.items():
+            found += [(key, exit_) for exit_ in host.poll(timeout if len(self.hosts) == 1 else 0.0)]
+        return found
+
+    def stop(self):
+        for host in self.hosts.values():
+            host.stop()
+        self.hosts = {}

@@ -42,6 +42,10 @@ EXIT_SUPERVISOR_GONE = 75
 EXIT_FAILED = 1
 """int: The exit code of a job whose runner raised."""
 
+USE_PIDFD = os.environ.get("PLANETGEN_TEMPLATE_PIDFD", "1") != "0" and hasattr(os, "pidfd_open")
+"""bool: Whether the template hands the supervisor a `pidfd` of each job (Linux). Off where the kernel has none (macOS), and when `PLANETGEN_TEMPLATE_PIDFD=0` says so, which is how the path without them is tried
+on Linux: the template's report of each exit is then the way, and a template that has died leaves the supervisor to look for each job's pid (`jobhost.JobHost.poll`)."""
+
 MESSAGE_BYTES = 1 << 20
 """int: The most one message may hold."""
 
@@ -204,7 +208,7 @@ class Template:
                 os._exit(code)
         job_end.close()
         self.children[pid] = job_id
-        pidfd = os.pidfd_open(pid) if hasattr(os, "pidfd_open") else None       # opened here, while the child is still this process's to reap: the pid cannot be gone or another process's
+        pidfd = os.pidfd_open(pid) if USE_PIDFD else None       # opened here, while the child is still this process's to reap: the pid cannot be gone or another process's
         try:
             self.say({"event": "forked", "id": job_id, "pid": pid, "pidfd": pidfd is not None}, fds=[supervisor_end.fileno()] + ([pidfd] if pidfd is not None else []))
         finally:
