@@ -78,6 +78,14 @@ one's (the solution has been overshot) has its share halved, down to `MIN_DAMPIN
 
 MIN_DAMPING = 0.05
 
+CREEP_STEPS = 8
+"""int: The last steps of the temperature residual read for a creep at the end of the fixed point (`_creeps`; a solver setting, GEN.1718): one sign, each over `TOLERANCE_K`."""
+
+CREEP_EXTENSION = MAX_STEPS
+"""int: The steps a fixed point that reaches `MAX_STEPS` still creeping in one direction is given once, with its damping restored to `DAMPING` (a solver setting, GEN.1718). A swing early in the solve
+halves the damping to `MIN_DAMPING`; an ice-albedo creep after it (the answers fall and the ice grows, one sign for dozens of steps) then moves 5 percent of the residual a step and had not reached its
+snowball in `MAX_STEPS` (key 175 on Train 30: 236 K to 202 K in 60 steps, not settled). A solve that settles inside `MAX_STEPS` is not touched, nor is one whose root find found no steady state (`jump_found`: the stored air is the one just above the jump)."""
+
 SLIDING_WINDOW = 12
 """int: The last steps of an unsettled fixed point read for a chatter (GEN.1344): twelve steps hold whole cycles of two, three, four and six."""
 
@@ -567,6 +575,12 @@ def _step(damping, residual, history):
     return plain * min(MAX_GAIN, 1.0 / (1.0 - q))
 
 
+def _creeps(residuals):
+    """Whether the last `CREEP_STEPS` residuals of the temperature all have one sign and are over `TOLERANCE_K` (the iterate runs away from where it began in one direction, not round a fixed point: `_swings` is the other case)."""
+    last = residuals[-CREEP_STEPS:]
+    return len(last) == CREEP_STEPS and (all(r > TOLERANCE_K for r in last) or all(r < -TOLERANCE_K for r in last))
+
+
 def _swings(residuals):
     """Whether the last `SWING_STEPS` residuals of the temperature have both signs, each at least twice, and are not small (the iterate goes round the fixed point, whatever the period; a creep has one sign and a settling is small)."""
     last = residuals[-SWING_STEPS:]
@@ -967,6 +981,7 @@ def solve(setting, start_temperature_k):
     root_here = False        # the root find settled the air at this step: its residual is the step's own sub-K steps (`ROOT_RESIDUAL_K`), not `TOLERANCE_K`
     root_tries = 0
     step, step_limit = 0, MAX_STEPS
+    creep_extended = False
     while step < step_limit:
         step += 1
         root_here = False
@@ -1047,6 +1062,10 @@ def solve(setting, start_temperature_k):
         else:
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
+        if step >= step_limit and not creep_extended and not setting.giant and jump_found is None and _creeps(history[1]):
+            creep_extended = True        # GEN.1718: still creeping at the end: the damping a swing took away is given back, and the steps to reach the end of the creep
+            step_limit += CREEP_EXTENSION
+            damping = [DAMPING, DAMPING]
     jumped = False
     if jump_found is not None and not gave_up and not setting.giant and not (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)):
         # GEN.1718: the air does not settle and the answers cross its iterate with no steady state between them. It is stored by a stated rule: the air just above the jump, the side the

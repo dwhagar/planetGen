@@ -425,6 +425,16 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
     assert air.temperature_k == pytest.approx(273.2, abs=1.0)
 
 
+def test_an_air_still_creeping_when_its_steps_run_out_is_given_more_and_settles(monkeypatch):
+    """GEN.1718 part 2: key 175 (an ice-albedo creep after an early swing had taken the damping to its floor) fell from 236 K to 202 K in the 60 steps and was stored unsettled; it is given `CREEP_EXTENSION`
+    more with the damping restored and settles; an air that settles inside `MAX_STEPS` (key 5) is not given them."""
+    _, creeping = _first_air_of(175, monkeypatch)
+    assert creeping.converged and creeping.steps > sa.MAX_STEPS and creeping.temperature_k == pytest.approx(190.1, abs=1.0)
+    _, plain = _first_air_of(5, monkeypatch)
+    assert plain.steps <= sa.MAX_STEPS
+    assert sa._creeps([-3.0] * 8) and sa._creeps([2.0] * 9) and not sa._creeps([-3.0] * 7 + [3.0]) and not sa._creeps([-0.05] * 8) and not sa._creeps([-3.0] * 5)
+
+
 def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began(monkeypatch):
     """GEN.1716: a giant took one step, so the haze its greenhouse was made under was the haze of the start temperature and the stored
     temperature moved with the start (28 K at the median of 59 generated giants, 300 K on hot ones). It iterates to `TOLERANCE_K` like a rocky body,
