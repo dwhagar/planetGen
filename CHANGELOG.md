@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4251] - 2026-11-15
+
+**Headline:** Three guard tests that went red with the template slices are green again.
+
+### Fixed
+- The runner of a unit forked from a template runs inside the unit's own memory claim, so it is named among the functions that take none of their own (`claims.CALLBACKS`).
+- The way to try the no-kernel-handle path is the template's `--no-pidfd` argument (`JobHost(pidfd=False)`), not an environment variable the settings model does not name.
+- The two handlers that turn a job's failure into an exit code now note it (`log.swallowed`).
+
 ## [8.0.4250] - 2026-11-15
 
 **Headline:** a unit that fails because the database or Redis hiccuped is now run again by the engine after a growing wait, and the run says what kind of failure ended it.
