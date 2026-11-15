@@ -67241,7 +67241,11 @@
           "what": "life_adaptations.json stages delays after the first life (cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8): when a life can have an adaptation that needs the stage"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the width of the table from the ordinary limit to the extreme grade (20 K for cold, 33 K for heat) is read off the three earlier traits; no census says how often a cold or heat trait falls on a world where the mean temperature does not press the life, and a draw on the local temperature of the life's habitat replaces it"
+          ],
           "fields": [
             [
               "What it is",
