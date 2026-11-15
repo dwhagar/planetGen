@@ -270,10 +270,10 @@ JOBS_TABLE = tables.register(Table(
 ))
 
 
-JOB_STATE_LABELS = {"waiting": "Waiting", "ready": "Ready", "running": "Running", "done": "Done", "failed": "Failed", "cancelled": "Cancelled"}
+JOB_STATE_LABELS = {"waiting": "Waiting", "ready": "Ready", "running": "Running", "done": "Done", "failed": "Failed", "canceled": "Canceled"}
 """dict: The ledger's job states (`ledger.JOB_STATES`) in words."""
 
-RUN_STATE_LABELS = {"waiting": "Planned", "running": "Running", "held": "Held", "done": "Done", "cancelled": "Cancelled"}
+RUN_STATE_LABELS = {"waiting": "Planned", "running": "Running", "held": "Held", "done": "Done", "canceled": "Canceled"}
 """dict: The ledger's run states (`ledger.RUN_STATES`) in words."""
 
 
@@ -324,8 +324,8 @@ def _attempt_text(last):
     """A job's newest attempt in a line: how it ended, what it cost."""
     if not last:
         return ""
-    cost = [f"{last['peak_mb']:,.0f} MB"] if last.get("peak_mb") else []
-    cost += [f"{_duration(last['cpu_seconds'])} of processor"] if last.get("cpu_seconds") else []
+    cost = [format_megabytes(last['peak_mb'])] if last.get("peak_mb") else []
+    cost += [f"{format_duration_seconds(last['cpu_seconds'])} of processor"] if last.get("cpu_seconds") else []
     return last["words"] + (f" ({', '.join(cost)})" if cost else "")
 
 
@@ -677,7 +677,7 @@ def admin_queue_job(run_id, job_id):
     except apiclient.NotFoundError:
         abort(404, description="No such job.")
     attempts = [{"number": item["attempt"], "words": item["words"], "outcome": item["outcome"], "pid": item["pid"] or "", "started": _time_cell(item["started"]),
-                 "ended": _time_cell(item["ended"]), "memory": f"{item['peak_mb']:,.0f} MB" if item["peak_mb"] else "", "cpu": _duration(item["cpu_seconds"]),
+                 "ended": _time_cell(item["ended"]), "memory": format_megabytes(item["peak_mb"]) if item["peak_mb"] else "", "cpu": format_duration_seconds(item["cpu_seconds"]) if item["cpu_seconds"] is not None else "",
                  "error_kind": item["error_kind"] or "", "error_text": item["error_text"] or "", "stack_file": item["stack_file"] or ""} for item in found["attempt_rows"]]
     name = f"{found['stage']} {found['command']}" + (f" {found['item']}" if found["item"] else "")
     return _render(

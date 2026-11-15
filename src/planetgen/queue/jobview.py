@@ -116,7 +116,7 @@ def why_waits(control, row, now):
     Why the job is not running, in words, or `""` for a job that is running or over (`row` as `jobs` reads it). In this order: a retry hold (`not_before` in the future), the
     last reason a worker held it (`waited`: the memory gate's own words), a job it still needs, and otherwise that it is queued and no worker has taken it.
     """
-    if row["state"] in ("running", "done", "failed", "cancelled"):
+    if row["state"] in ("running", "done", "failed", "canceled"):
         return ""
     held = _epoch(row["not_before"])
     if held is not None and held > now:

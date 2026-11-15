@@ -187,7 +187,7 @@ def test_a_jobs_page_shows_its_attempts_and_a_stack_file(admin_client, conn, run
     control.commit()
     html = admin_client.get(f"/admin/queue/{run}/job/{row}").get_data(as_text=True)
     assert 'id="attempt-1"' in html and "stopped as stuck" in html and "no count for 4 minutes" in html and "job9-attempt1-stack.txt" in html
-    assert "950 MB" in html and "1 m 05 s" in html and "777" in html
+    assert "950 MB" in html and "1.08 minutes" in html and "777" in html
     assert admin_client.get(f"/admin/queue/{run}/job/987654321").status_code == 404
     assert admin_client.get(f"/admin/queue/not-a-run/job/{row}").status_code == 404
     assert admin_client.get(f"/admin/queue/{run}/job/abc").status_code == 404
@@ -204,3 +204,15 @@ def test_the_queue_page_has_a_history_table_that_filters_by_state(admin_client, 
     done = admin_client.get("/table/queue-history?history_state=done").get_json()
     assert done["total"] >= 1 and all(row[2]["text"] == "Done" for row in done["rows"])
     assert any(row[1]["text"] == "old_galaxy" for row in done["rows"])
+
+
+def test_a_canceled_job_is_counted_and_shown_in_words(conn, run, control):
+    from planetgen.web import queue_page
+    engine = jobview.engine_run(conn, run)
+    row = _rows(control, engine)[0]["id"]
+    ledger.set_job_state(control, row, "canceled")
+    control.commit()
+    found = jobview.jobs(control, engine, time.time(), state="canceled")
+    assert found["total"] == 1 and found["items"][0]["waits"] == "" and found["counts"]["canceled"] == 1
+    assert "1 canceled" in queue_page._count_line(found["counts"]).lower()
+    assert queue_page.JOB_STATE_LABELS.keys() == set(ledger.JOB_STATES) and queue_page.RUN_STATE_LABELS.keys() == set(ledger.RUN_STATES)
