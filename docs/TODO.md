@@ -13039,6 +13039,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: MAP.429. Related: MAP.429, MAP.365, GEN.1267.
   Filed by the TODO thread.
 
+- [ ] **TEST.752 (bug) scripts/earth_analog.py moves only planet.distance per trial, but the air is keyed on formation_distance_au (GEN.1547), so every trial shares one air draw; its baseline is stale**
+  Census thread after Train 28 (epoch 150), 8:15 PM EST on 2026-11-14 (reports/train28-census-2026-11-14/, fixed copy earth_analog_vary.py there): scripts/data/earth_analog_baseline.json was written 11-13, before GEN.1547. Do: set planet.formation_distance_au beside planet.distance in each trial (formation distance follows the trial distance), then renew the baseline from main (13 Class M per 400 on main at epoch 150). Lock-free, script and baseline only.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 11 (beside TEST.739, same script). Prerequisites: none. Related: GEN.1547, TEST.739.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
