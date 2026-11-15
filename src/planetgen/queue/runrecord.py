@@ -196,6 +196,11 @@ def rates_key(run_id):
     return _k("run", run_id, "rates")
 
 
+def failures_key(run_id):
+    """The hash of what the run has spent of its budget for running units again after a passing failure (OPS.220: `failures`): `retries` and `waited` seconds."""
+    return _k("run", run_id, "failures")
+
+
 def held_key(run_id, index):
     """The hash of the units of stage `index` that failed for good and wait for a person (OPS.221: `held`): unit to its ledger row."""
     return _k("run", run_id, f"s{index}", "held")
@@ -823,7 +828,7 @@ def _keys_of(conn, run_id, every=False):
     """The keys the run keeps for `KEEP_SECONDS` once it is over (the stage count comes from the record), and with
     `every` the ones that expire by themselves too (the banner figure, the sign of life, the debug stream)."""
     stages = len(declared_stages(conn, run_id))
-    keys = [run_key(run_id), events_key(run_id), gaps_key(run_id), rates_key(run_id)]
+    keys = [run_key(run_id), events_key(run_id), gaps_key(run_id), rates_key(run_id), failures_key(run_id)]
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
