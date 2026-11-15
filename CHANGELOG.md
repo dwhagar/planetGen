@@ -2,6 +2,90 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4201] - 2026-11-15
+
+**Headline:** The Galaxy Map at galaxy scale no longer shows an even lattice of round brown blobs: a group of nebulae shows only where its block really holds gas, as strongly as the block is full of it.
+
+### Fixed
+
+- MAP.429: the nebula group sprites (`galaxynebulae.js`, MAP.176) were drawn for every block with any nebula, sized to its bounding sphere and as strong as the logarithm of the number of clouds, so the many tiny class N clouds made a sprite of every disk block. A node's `nebula_regions` now carry each block's stored `cover` (the share of it inside a nebula, `nebula_block_stats.cover`, the same share the Nebula cover colour reads), a group under the floor of 3 percent is not drawn, and the strength rises with the cover to its most at 10 percent. The count no longer sets the strength. The stored nodes are rebuilt once (`TILE_FORMAT` 13).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4200] - 2026-11-15
+
+**Headline:** An air that the solver used to swing round without settling is found by a root find of its temperature, so half of the airs that never settled now settle, and the ones with no steady state are stored by a stated rule and flagged.
+
+### Changed
+- **The air solve finds the root of a swinging temperature (GEN.1718).** The damped step of the fixed point of pressure and temperature goes round a fixed point that the step map crosses steeply (a carbon switch where the temperature found falls 375 K to 240 K over 1.1 K of the iterate), so about 7% of the airs never settled in 60 steps and stored a temperature that moved by tens of K with the start. The step is now a function of the temperature, the pressure and what the steps before left (`evaluate`); an air whose temperature swings across zero residual (`_swings`, from step 12) is solved by `scipy.optimize.brentq` on the temperature found minus the temperature started from, between the closest two starts the step answered on opposite sides, with the pressure following the temperature (two steps per candidate). In 160 generated bodies the unsettled airs go from 10 to 5, the steps taken from 1,952 to 1,565, and 8 bodies change their temperature by more than 0.5 K (all of them airs that never settled: 1 K for keys 20, 28 and 86, 2.5 K for 49, 5 K for 138 and 159, 6 K for 144, 7 K for 29); a body that settled before settles to the same temperature within 0.1 K.
+- **An air with no steady state is stored by a rule and says so.** Where the bracket closes with no root, or the root has a pressure that is not its own answer (the pressure has two branches there: 76 bar or 0.06 bar at the same temperature), and the damped step has not settled the air by the end, the air kept is the one just above the jump, the side the formation branch approaches from (it is cooled from its warm or steam start), `Air.jump` is true and `Air.knee` keeps the temperature of the jump. 2 of 134 airs in the 160 bodies.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4199] - 2026-11-15
+
+**Headline:** A world past its runaway greenhouse limit is no longer offered a cool air as its other climate branch.
+
+### Changed
+- **W20 declines for a body past the runaway limit (GEN.1716 B).** `air_final.past_runaway_with_water` says no ocean can stand past the limit, and the cool air a cold start finds there is the greenhouse table having no runaway limit, not a second branch. The branch a body is stored on is now named by one rule (`air_branches.formation_start_k`: steam past the limit, the warm side for the ice law, the airless temperature otherwise), which `air_final.make` applies as it did inline before, and the context W20 reads carries whether the body is past the limit, so the other branch declines there. Only a body that rolls W20 and stands past its runaway limit with a stored temperature under 330 K changes (it keeps its first air); nothing else does.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4198] - 2026-11-15
+
+**Headline:** The temperature of a giant, a brown dwarf or a planet under a deep envelope no longer depends on where the solve began; it is a fixed point like a rocky body's.
+
+### Fixed
+- **A giant's air is solved to a fixed point (GEN.1716).** `surface_air.solve` stopped a giant after its first step, so the haze its greenhouse was made under was the haze of the airless starting temperature and the stored temperature moved with that start: of 59 generated bodies solved at the 1 bar level, 50 changed by 5 K or more between a start of 150 K and one of 500 K (median 28.6 K, 18 by 50 K or more). A giant now iterates its temperature to `TOLERANCE_K` (its pressure stays the 1 bar reference) and says it settled, and the haze is read at the stored temperature as for every other body (`aerosols._haze_temperature_k` is gone). All 59 now give the same temperature from any start. Measured on the same 59 bodies at the production start, 44 change by 5 K or more (median 15 K, 28 by 20 K or more, 45 of 59 warmer): bodies under a deep envelope shift most (a 3.9 Earth mass body at 0.78 AU, 2,783 to 3,460 K; a 2.2 Earth mass one at 1.5 AU, 273 to 246 K). The giants of the Solar System's sizes move by 3 K or less at the production start (a Jupiter mass at 5.2 AU, 152 to 150 K; Saturn 139 to 139 K; Uranus 88 to 88 K; Neptune 71 to 72 K, against 165, 134, 76 and 72 K observed at 1 bar).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4197] - 2026-11-15
+
+**Headline:** A hot world with a moderate air, 400 K and up, 10 kPa to 10 bar and 0.5 g or more, now has a class of its own, Q, so no stored body is left at match 0 and class N keeps its meaning.
+
+### Changed
+- GEN.1618: no class covered a body of 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more (class Z stops at 10 kPa, N starts at 10 bar, F and G stop at 400 K), so such bodies, up to 2,000 K, sat in the class that needed the least moved at a match of 0 (7 of 26 stored class G and 2 of 49 class F in the audit). The new class Q, the Hot world (`planet_class_fit.json`, `planet_classes.json`, `tuning.PLANET_CLASSES`), holds them: 0.5 to 2 g (V starts at 2 g), 400 K and up with no top edge (as N has none), 10 kPa to 10 bar, hydrogen under 30 percent. Its edges are those of its neighbours, so N keeps its meaning (a hot world under a very thick air). The letter Q, free since GEN.1135, is revived for it (Boss), the class page and the search facet list it, and the map's class markers take it. Registered as stand-in AW9 in section 6.198.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4196] - 2026-11-15
+
+**Headline:** A Class M abundance tier now makes desert worlds beside the temperate ones, and the meter counts all five habitable classes.
+
+### Added
+- **The dry part of the water dial (GEN.1721, first slice; Boss, 8:24 PM EST 2026-11-14: classes H, O, P and R present beside M, M in front).** Under a tier other than Science, one in five of the rocky planets the water dial reaches takes the dry water class (under 0.025 percent of its mass, the water of a desert world) and the rest take Earth's as before; the planet's air takes the row of the same class. The dial makes no draw of its own (it splits the water dial's one draw), so the same planets are reached. `tuning.ABUNDANCE_TIER_DIALS` rows are now `(water_share, bare_share, request_share, dry_part)`; registry row 6.289:AT5 (tier T9, tweak L4, a first-pass value for the calibration of GEN.1706).
+- **The habitable family in the meter.** `scripts/class_m_meter.py report` prints, per tier, a table of classes M, H, O, P and R: worlds and systems holding one per 1,000 systems, the planets with each class's shape (its own limits of temperature, water cover and gravity) and how many of them pass its limits of pressure, oxygen and carbon dioxide. The limits are read from the class rules.
+- **Design:** `docs/design/habitability/class-m-abundance-tiers.md` section 8 (what stops each of the five classes and the dials still to build: groundwater, the early warm phase and hardier oxygen life).
+
+### Changed
+- **New tier targets (Boss, 9:28 and 9:30 PM EST 2026-11-14).** Sparse aims at 1 Class M world per 500 Sun-like systems, Scattered at 1 per 135, Plentiful at 1 per 37 and Abundant at 1 per 10 (were 1,000, 100, 30 and 10): Sparse and Abundant are the ends and the two between are split evenly on a log scale, each step about 3.7 times. The laws alone measured 1 in 2,800 on 2,800 Sun-like systems. A target is what the dials are calibrated to (GEN.1706); no dial value moves with it.
+- `delivered_water.drawn_for_earth` and the `earth` argument of `sample_fraction` are replaced by `dialed_class` and `dialed` (the class name); `body._water_dialed` holds the class name.
+
+Science is untouched: every dial is 0 there, no draw is made and the golden systems are byte for byte the same (no generator epoch, no migration). A dry planet is Class H only with groundwater and oxygen, which later slices of GEN.1721 address, so this slice alone makes desert-shaped planets, not yet many Class H worlds.
+
+Reuse: the water dial's draw and pin (`bulk_draw._rocky_water`, `mixture_subject`), the classes and rows of `physics/delivered_water.py`, `class_fit.overshoot` and `class_fit.CLASSES` for the meter's limits, and the census thread's `five_classes.py` for the table's shape.
+
+generation-affects: none
+
+## [8.0.4195] - 2026-11-15
+
+**Headline:** The neighbour link, the sector-path settle and the `sector` run's sectors now run as pieces the job engine counts, so their units show real counts and honour a cancel or a pause between two batches.
+
+### Changed
+
+- OPS.202, first part: `link-neighbors` gives the engine one piece per batch of `store.LINK_BATCH_SECTORS` sectors (each batch still one transaction under the neighbour lock, retried on a deadlock as before), `settle-sector-paths` one piece per batch of `sector_paths.SETTLE_BATCH` sectors that sit together (`sector_paths.settle_batch`; each sector committed through `ctx.commit()`), and `generate-unplaced-sector` one piece per sector of a `sector` run. The old unit functions `link_neighbors_unit`, `save_sector_paths_unit` and `unplaced_sectors_unit` are gone.
+- `settle_sectors` (for the API's edits and the tests) runs the same `settle_batch`; the process pool a crowded sector's bodies are integrated in is opened by the first batch and shut down when the unit ends (new `ctx.on_close`, which the engine runs last in first out however the unit ends).
+- A stage's results are unchanged: `linked`, `saved` and `visited`, and the sectors a `sector` run reports.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4194] - 2026-11-15
 
 **Headline:** The tests that need civilized systems start quickly again: their pinned candidates are refreshed for the current generator, and the guard now checks every pin, not the first.

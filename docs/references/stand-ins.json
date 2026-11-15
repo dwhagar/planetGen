@@ -40865,6 +40865,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "class W, the Frozen world (planet_class_fit.json, W: temperature_k min 233.15 and lt 273.15, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class Q, the Hot world (planet_class_fit.json, Q: gravity_g 0.5 to 2, temperature_k min 400, pressure_pa 10 kPa to 10 bar, hydrogen under 30 percent): the edges are the ones its neighbours already have (the 10 kPa top of Z, the 10 bar floor and 400 K of N, the 0.5 g floor of F and Z, the 2 g floor of V), so a hot world with a moderate air has a class and N keeps its meaning (GEN.1618, Boss)"
+            ],
+            [
+              "The range it moves in",
+              "none (the edges of Z, N, F and V)"
+            ],
+            [
+              "Where it holds",
+              "worlds of 400 K and up with 10 kPa to 10 bar of air at 0.5 to 2 g"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep with a hot body of this air whose best class is not Q"
+            ],
+            [
+              "What replaces it",
+              "the edges of Z, N and V once they are fitted"
+            ],
+            [
+              "Evidence",
+              "the class sweep of GEN.1618 (G 7 of 26 and F 2 of 49 stored bodies at match 0, hotter than 400 K)"
+            ]
+          ],
+          "id": "AW9",
+          "key": "6.198:AW9",
+          "kind": "P",
+          "slug": "6-198-aw9",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class Q, the Hot world (planet_class_fit.json, Q: gravity_g 0.5 to 2, temperature_k min 400, pressure_pa 10 kPa to 10 bar, hydrogen under 30 percent): the edges are the ones its neighbours already have (the 10 kPa top of Z, the 10 bar floor and 400 K of N, the 0.5 g floor of F and Z, the 2 g floor of V), so a hot world with a moderate air has a class and N keeps its meaning (GEN.1618, Boss)"
         }
       ],
       "slug": "6-198-stand-ins-of-the-heavy-oxygen-worlds-and-the-thin-oxygen-worlds",

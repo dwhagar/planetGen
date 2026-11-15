@@ -3271,7 +3271,7 @@ def test_at_most_six_hundred_nebula_regions_are_drawn_out_of_three_thousand_cand
         for (let i = 0; i < 3000; i++) {
             list.push({key: 'x' + i, block: layer.blobs()[0].block, ring: i % 2 === 0, color: [0.9, 0.4, 0.5],
                        x: here[0] + (random() - 0.5) * span, y: here[1] + (random() - 0.5) * span, z: here[2] + (random() - 0.5) * span,
-                       radiusPc: span * (0.03 + random() * 0.05), count: 2 + Math.floor(random() * 90), family: 'emission'});
+                       radiusPc: span * (0.03 + random() * 0.05), count: 2 + Math.floor(random() * 90), cover: 0.03 + random() * 0.07, family: 'emission'});
         }
         layer.setBlobs(list, [0, 0, 0]);
         return list.length;
