@@ -600,6 +600,15 @@ engine_items = sa.Table(
     mysql_engine="InnoDB",
 )
 
+engine_piece_results = sa.Table(
+    'engine_piece_results',
+    metadata,
+    sa.Column('job_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('piece_index', mysql.INTEGER(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('result', mysql.MEDIUMTEXT(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
 
 facilities = sa.Table(
     'facilities',
