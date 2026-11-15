@@ -258,7 +258,7 @@ def _planet():
             "no width. As measured values replace the formulas and constants, the widths shrink on their own.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
-            "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
+            *(["Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes."] if planet_classes.RESERVE else []),
             "A rogue planet, adrift with no star, gets a class too, by the same conditions as any other world.",
         ],
         "classes": classes,

@@ -2307,7 +2307,10 @@ PLANET_CLASSES = {
     'P': {
         "type": 't',
     },
-    # GEN.1207: the letters of the best-fit classes (GEN.1221, GEN.1258): R hothouse, U methane-ethane, X ammonia-water, Y sulfuric acid, Z hot thin-air.
+    # GEN.1207: the letters of the best-fit classes (GEN.1221, GEN.1258): Q hot moderate-air (GEN.1618), R hothouse, U methane-ethane, X ammonia-water, Y sulfuric acid, Z hot thin-air.
+    'Q': {
+        "type": 't',
+    },
     'R': {
         "type": 't',
     },

@@ -21,7 +21,7 @@ keeps its meaning with digit 0. Searching or filtering by a letter matches all i
 Digits 5 to 9 are reserved: one is switched on only when a registered stand-in (GEN.725) gives its ranges and a shadow report shows enough bodies.
 Every place that prints or sorts a class goes through `format_code`, `parse_code` and `sort_key`, so a digit appears everywhere at once.
 
-The letters Boss confirmed (11:59 AM EDT 2026-10-31) for the families the best-fit classifier (GEN.1207) will fill: `LETTERS` below. Q stays retired and W spare.
+The letters Boss confirmed (11:59 AM EDT 2026-10-31) for the families the best-fit classifier (GEN.1207) will fill: `LETTERS` below. Q names the hot moderate-air world (GEN.1618).
 
 Use:
 
