@@ -662,7 +662,7 @@ def black_hole(mass_sol, spin=0.0):
 
 # --- Brown dwarfs ------------------------------------------------------------------------------------------------------
 
-JUPITER_MASS_SOL = _kg_to_msun(1.89813e27)
+JUPITER_MASS_SOL = _kg_to_msun(constants.JUPITER_MASS_TO_KG)
 """float: One Jupiter mass in solar masses (IAU nominal values)."""
 
 def deuterium_burning_limit_mj(z, y=None):

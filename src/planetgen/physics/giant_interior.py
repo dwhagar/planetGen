@@ -1088,7 +1088,7 @@ STATE_NAMES = {"molecular_fluid": "molecular fluid", "metallic_fluid": "metallic
                "superionic": "superionic", "molten": "molten"}
 """dict: What each state is called in prose."""
 
-EARTH_MASS_JUPITER = 317.83
+EARTH_MASS_JUPITER = constants.JUPITER_MASS_EARTH
 """float: Earth masses in one Jupiter mass, for the prose."""
 
 

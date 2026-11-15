@@ -7,7 +7,7 @@ waiting units in this process."""
 import pytest
 
 from planetgen.generation import finish_run
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.queue import commands, redisqueue, resumed, runrecord, units, wrapper
 
 CALLS = []
 """list: What the test commands did, in order."""
@@ -43,6 +43,8 @@ def _cut(params):
 
 def _conclude(params, plan, results, seconds):
     CALLS.append(("conclude", params["name"]))
+    if FAULTS.get(("conclude", params["name"])):
+        raise RuntimeError(f"the end of {params['name']} stopped")
     return {"stage": params["name"], "units": len(results)}
 
 
@@ -96,10 +98,11 @@ def test_a_run_stopped_in_its_second_stage_is_carried_on_from_there(conn):
     found = _plan(conn, run_id)
     assert (found.first, found.stopped) == (1, 1)
     assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None]
-    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, True, None]
+    assert [step.params.get(resumed.RESUMES_FROM) for step in found.steps] == [None, run_id, run_id]
     new_id = _run(found.steps, finishes=run_id)
-    assert CALLS == [("unit", "second", 0), ("unit", "second", 1), ("conclude", "second"),
-                     ("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")], CALLS
+    assert CALLS == [("unit", "second", 1), ("conclude", "second"),
+                     ("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")], "the unit the run before finished is not done again, the one that stopped is"
+    assert runrecord.read_run(conn, run_id)["state"] == "canceled", "the held run it carries on is ended: its units are the new run's now"
     new = runrecord.read_run(conn, new_id)
     assert new["state"] == "done" and new["finishes"] == run_id and new["galaxy_seed"] == SEED and new["build"] == BUILD
     assert [stage["units"] for stage in new["stages"]] == [0, 2, 2]
@@ -124,9 +127,9 @@ def test_a_finish_that_stops_is_finished_in_turn(conn):
     found = _plan(conn, third)
     assert (found.first, found.stopped) == (2, 2)
     assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [third, third, None]
-    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True]
+    assert [step.params.get(resumed.RESUMES_FROM) for step in found.steps] == [None, None, third]
     done = _run(found.steps, finishes=third)
-    assert CALLS == [("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")]
+    assert CALLS == [("unit", "third", 0), ("conclude", "third")], "unit 1 was done by the run that stopped"
     assert runrecord.read_run(conn, done)["state"] == "done"
 
 
@@ -148,55 +151,65 @@ def test_a_stage_whose_units_are_done_but_not_concluded_is_not_finished(conn):
     assert finish_run.first_unfinished(conn, run_id, queued) == 0
 
 
-def test_the_special_phenomena_are_rewound_with_the_scatter_they_were_written_into_and_its_clearing(conn):
-    """OPS.123: the clearing and the taking off of the indexes were the scatter's `prepare`; as stages of their own they are rewound with it."""
+def test_the_special_phenomena_that_stopped_are_carried_on_in_their_own_stage_and_nothing_before_it_runs_again(conn):
+    """OPS.222: finish-run no longer rewinds a stage with the one before it (`REWIND_WITH` is gone): a stage that stopped is carried on from the rows, and the clearing stages the run finished stay finished."""
     steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
              _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena"),
              _step("phenomena-index", "finish-phenomena"), _step("blocks", "plain")]
     run_id = _stopped(conn, steps, "phenomena-index", 0)
     found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (1, 4)
-    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None, None, None, None]
-    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, None, None, True, None]
+    assert (found.first, found.stopped) == (4, 4)
+    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id] * 4 + [None, None]
+    assert [step.params.get(resumed.RESUMES_FROM) for step in found.steps] == [None] * 4 + [run_id, run_id]
 
 
-def test_a_phenomena_scatter_that_stopped_is_carried_on_from_its_clearing(conn):
-    steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
-             _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena")]
-    found = _plan(conn, _stopped(conn, steps, "phenomena", 0))
-    assert (found.first, found.stopped) == (1, 3)
-
-
-def test_a_nebula_field_draw_that_stopped_is_carried_on_with_the_clearing_of_the_earlier_field(conn):
-    """OPS.123: the clearing was the draw's `prepare`, run again with the draw; as a stage of its own it is rewound with it."""
-    steps = [_step("start", "plain"), _step("nebula-clear", "empty-nebula-field"), _step("nebula-draw", "draw-nebula-field"),
-             _step("blocks", "plain")]
-    run_id = _stopped(conn, steps, "nebula-draw", 0)
+@pytest.mark.parametrize("stage, kind, before", [
+    ("phenomena", "scatter-phenomena", ("phenomena-clear", "empty-phenomenon-scatter")),
+    ("nebula-draw", "draw-nebula-field", ("nebula-clear", "empty-nebula-field")),
+    ("mass", "scatter-mass", ("mass-clear", "clear-bright-stars")),
+    ("luminosity", "scatter-luminosity", ("mass", "scatter-mass")),
+])
+def test_a_scatter_that_stopped_is_carried_on_from_where_it_stopped_and_the_stage_before_it_is_not_run_again(conn, stage, kind, before):
+    steps = [_step("start", "plain"), _step(before[0], before[1]), _step(stage, kind)]
+    run_id = _stopped(conn, steps, stage, 0)
     found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (1, 2)
-    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
-    assert "empty-nebula-field" in finish_run.FINISHABLE and finish_run.REWIND_WITH["draw-nebula-field"] == ("empty-nebula-field",)
+    assert (found.first, found.stopped) == (2, 2)
+    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, run_id, None]
+    new_id = _run(found.steps, finishes=run_id)
+    assert [call for call in CALLS if call[0] == "unit"] == [("unit", stage, 0)], "the stage before it did not run again, nor the unit of the stage that was done"
+    assert runrecord.read_run(conn, new_id)["state"] == "done"
 
 
-def test_the_bright_stars_of_a_run_that_draws_both_passes_are_rewound_together_with_their_clearing(conn):
-    steps = [_step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass"), _step("luminosity", "scatter-luminosity")]
-    run_id = _stopped(conn, steps, "luminosity", 0)
+def test_no_stage_is_rewound_with_the_one_before_it():
+    assert not hasattr(finish_run, "REWIND_WITH") and not hasattr(finish_run, "AGAIN")
+
+
+def test_the_units_a_stopped_stage_finished_are_subtracted_and_their_results_reach_its_conclusion(conn):
+    run_id = _stopped(conn, [_step("first"), _step("second", count=4), _step("third")], "second", 2)
+    planned = {}
+    new_id = _run(_plan(conn, run_id).steps, finishes=run_id, on_plan=lambda index, plan: planned.update({index: plan}),
+                  on_stage_done=lambda index, conclusion: planned.update({("done", index): conclusion}))
+    assert [call[2] for call in CALLS if call[:2] == ("unit", "second")] == [2], "units 0, 1 and 3 were done (the others finish when one fails) and are not done again"
+    assert planned[("done", 1)] == {"stage": "second", "units": 4}, "the conclusion read all four results"
+    assert runrecord.read_run(conn, new_id)["stages"][1]["units"] == 4
+    assert runrecord.read_run(conn, new_id)["state"] == "done"
+
+
+def test_a_stage_whose_units_were_all_done_when_the_run_stopped_is_only_concluded(conn):
+    """A run stopped in the end of a stage (its units were done, its conclusion failed): nothing is queued again and the conclusion reads what the units stored."""
+    FAULTS[("conclude", "second")] = True
+    with pytest.raises(Exception):
+        _run([_step("first"), _step("second"), _step("third")])
+    FAULTS.clear()
+    CALLS.clear()
+    run_id = _newest(conn)
     found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (0, 2)
-
-
-def test_a_massive_star_pass_that_stopped_is_carried_on_from_its_clearing(conn):
-    steps = [_step("start", "plain"), _step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass")]
-    found = _plan(conn, _stopped(conn, steps, "mass", 0))
-    assert (found.first, found.stopped) == (1, 2)
-
-
-def test_the_bright_stars_of_a_run_that_clears_its_own_pass_are_not_rewound_with_the_massive_pass(conn):
-    steps = [_step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass"),
-             _step("luminosity-clear", "clear-bright-stars"), _step("luminosity", "scatter-luminosity")]
-    run_id = _stopped(conn, steps, "luminosity", 0)
-    found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (2, 3)
+    assert (found.first, found.stopped) == (1, 1)
+    concluded = {}
+    new_id = _run(found.steps, finishes=run_id, on_stage_done=lambda index, conclusion: concluded.update({index: conclusion}))
+    assert CALLS == [("conclude", "second"), ("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")], "no unit of the second stage ran again"
+    assert concluded[1] == {"stage": "second", "units": 2}
+    assert runrecord.read_run(conn, new_id)["state"] == "done"
 
 
 def test_a_run_already_carried_on_is_not_carried_on_twice(conn):
@@ -268,7 +281,7 @@ def test_a_run_whose_process_is_gone_is_taken_for_stopped(conn):
     assert finish_run.last_incomplete(conn) == run_id
     assert runrecord.read_run(conn, run_id)["state"] == "failed"
     found = _plan(conn, run_id)
-    assert found.first == 0 and found.steps[0].params[finish_run.AGAIN] is True
+    assert found.first == 0 and found.steps[0].params[resumed.RESUMES_FROM] == run_id
     assert runrecord.active_run(conn) is None, "the dead run no longer holds the machine"
 
 

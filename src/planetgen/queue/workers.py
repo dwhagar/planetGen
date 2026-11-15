@@ -96,12 +96,12 @@ STAGE_WORKER_MEMORY_MB = {
     "link-neighbors": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
     "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,
     "warm-sectors": LEAN_WORKER_MEMORY_MB, "warm-systems": LEAN_WORKER_MEMORY_MB, "warm-phenomena": LEAN_WORKER_MEMORY_MB,
-    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `whole` (no unit-length ceiling): the roll-up is the one unit (OPS.154 ended the uncharted index units of OPS.153)
+    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `one_unit` (no unit-length ceiling): the roll-up is the one unit (OPS.154 ended the uncharted index units of OPS.153)
     "warm-cluster-field": BULK_WORKER_MEMORY_MB,        # not measured yet (PERF.225 cuts it into parts): the larger figure
 }
 """dict: The command kinds of the stages with units, and what one worker takes at most in MB (`stage_worker_cap`). Every other
-command is one unit by nature (`CommandSpec.whole`) or inline, so one worker and nothing to limit. `whole` only exempts a command
-from the unit-length ceiling: a whole command that is cut into several units has a figure too (the block lights: the run of
+command is one unit by nature (`CommandSpec.one_unit`) or inline, so one worker and nothing to limit. `one_unit` only exempts a command
+from the unit-length ceiling: a one-unit command that is cut into several units has a figure too (the block lights: the run of
 2026-11-08 held 15 workers at 15,128 MB of 15,992 MB with no figure and no cap)."""
 
 REFUSED_KEY = "planetgen:workers:refused"

@@ -1755,8 +1755,6 @@ def expand_generate_sectors(params):
     for start in range(0, count, size):
         chunk = items[3 * start:3 * (start + size)]
         unit = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"], "items": chunk}
-        if params.get("again"):
-            unit["again"] = True
         if suffixes:
             unit["suffixes"] = suffixes[start:start + size]
         units.append((unit, float(len(chunk) // 3)))

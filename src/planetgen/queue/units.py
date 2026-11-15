@@ -146,7 +146,7 @@ EXPECTED_SECONDS_ARG = "expected_seconds"
 """str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for the heartbeat judge (its expected rate, OPS.135); the time limit does not read it (`unit_timeout`)."""
 
 
-def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None, rows=None):
+def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None, rows=None, skip=frozenset()):
     """
     Queues the units of stage `stage` of the run.
 
@@ -157,6 +157,7 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
         expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
             (`unit_timeout`).
         rows (list[int], optional): The id of each unit's row in the job ledger (`planrows.record_cut`, OPS.216), in unit order, handed to the unit (`run_unit`'s `row`).
+        skip (frozenset[int]): The numbers of units that are not queued: the ones the run this one carries on from did (`resumed.carry`, OPS.222). The others keep their numbers.
 
     Raises:
         ValueError: More than `MAX_UNITS` units, or a kind that is not a command with units.
@@ -170,8 +171,10 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
     queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
     timeout = unit_timeout(expected_seconds)
     for start in range(0, len(units), ENQUEUE_BATCH):
-        queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, None if rows is None else rows[index], timeout)
-                            for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
+        batch = [_prepared(queue, run_id, stage, index, kind, args, cost, None if rows is None else rows[index], timeout)
+                 for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start) if index not in skip]
+        if batch:
+            queue.enqueue_many(batch)
 
 
 def _prepared(queue, run_id, stage, index, kind, args, cost, row, timeout):

@@ -496,7 +496,7 @@ def test_the_two_passes_are_registered_commands_that_run_alone(mysql_config, gal
     params = {"database": wrapper.database_args(mysql_config)}
     _with_a_spacefaring_species(mysql_config, galaxy)
     for kind in ("run-population", "run-territories"):
-        assert commands.spec(kind).pieces is not None and commands.spec(kind).whole
+        assert commands.spec(kind).pieces is not None and commands.spec(kind).one_unit
     done = commands.run_alone("run-population", {**params, "rescan": False})
     assert done["species"] >= 2 and done["polities"] >= 1 and done["lines"] and "owned_systems" not in done
     assert _owners(mysql_config) == 0

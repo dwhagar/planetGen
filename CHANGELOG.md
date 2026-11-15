@@ -2,6 +2,91 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4296] - 2026-11-15
+
+**Headline:** A warm-up's units open the galaxy the warm-up names, whether it is given as a name or as host, port, user and name.
+
+### Fixed
+- `MySQLConfig.from_args` takes a database named by its name alone (a warm-up's steps) as well as the dict a generation run writes (`wrapper.database_args`); the plan cut, the unit's attempt and the engine's `ctx.config` all read it through that one function, so no entry point breaks on the other form.
+- `test_cache_warmup.py` makes its database "x" a real, empty one, since a unit takes its attempt in the galaxy (OPS.219).
+
+generation-output: unchanged
+
+## [8.0.4295] - 2026-11-15
+
+**Headline:** The splitter's stage test reads the plan from the plan rows, where OPS.216 moved it.
+
+### Fixed
+- `test_splitter.py` called `runrecord.read_plan`, which OPS.216 removed; it calls `planrows.read_plan` (the split is kept in the same plan summary).
+
+generation-output: unchanged
+
+## [8.0.4294] - 2026-11-15
+
+**Headline:** a run's whole sequence of stages is now stored as waiting rows in the ledger the moment the run starts, so the job view can say which stage each one waits for.
+
+### Added
+
+- OPS.238, third part (stored plan): `planrows.record_plan` writes one waiting `open` row per planned stage when `wrapper.run` starts. Each row's `needs` names the stage before it (`after:<stage>`) plus the artifacts that stage requires (`needs.required_stage_keys`), and its `makes` lists the artifacts it produces (`needs.makes_of`). When a stage opens, `planrows.record_cut` fills that row in with its plan and marks it done instead of adding a new row. The job view words the wait as "stage <key> to end".
+
+## [8.0.4293] - 2026-11-15
+
+**Headline:** the order of a run's stages is now checked and logged from what each command needs, not from a list of four requirements.
+
+### Changed
+
+- OPS.238, second part: `commands.REQUIRES` is deleted. `needs.requires_of` (the kinds that make what a command needs), `needs.required_stage_keys` and `needs.validate_order` take its place: a run whose steps are listed so that a need is met only after the step that has it is refused where the list is made; a stage's "released" line, a failed run's "did not run" line and a command's break-point dependencies (`after`) read the same edges. The four requirements the old table held are still there (a test says so); the run's stages still run in their listed order.
+
+## [8.0.4292] - 2026-11-15
+
+**Headline:** every command now says what it needs and what it makes, and a test holds that to the order a galaxy run has today.
+
+### Added
+
+- OPS.238, first part (the declarations): `queue/needs.py` names the artifacts of a generation run (the skeleton, the sectors, the bright-star passes, the phenomena, the nebula field, the population and the map totals) and gives each command its `needs` and `makes`. `tests/test_needs_and_makes.py` checks that every artifact has a maker, that the graph has no cycle, that the fixed stage order of a galaxy run and of each scatter run meets every need a command of the run can meet, and that everything `commands.REQUIRES` holds is a need the declarations state. Nothing reads the declarations to start a run yet: `REQUIRES` goes when the planner (the second part) reads them.
+
+## [8.0.4291] - 2026-11-15
+
+**Headline:** the `whole` flag of a command is gone: a command that is one unit by nature says so with the break declaration the queue already reads.
+
+### Changed
+
+- OPS.196: `CommandSpec.whole` is deleted. A command whose stage is one unit by nature gives `breaks=ONE_UNIT` (`commands.ONE_UNIT`, which names `breakpoints.whole_job`: one item, no cut), and `CommandSpec.one_unit` is what the unit-length ceiling (PERF.155) reads to leave it alone. The 33 commands that set `whole=True` are the same 33; the cut they get and the ceiling's exemption are unchanged.
+
+## [8.0.4290] - 2026-11-15
+
+**Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
+
+### Changed
+
+- OPS.196: `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes`, `clear-scatter`, `clean-nebula-field` and `reset-galaxy` give the engine `pieces` and `do` instead of a `unit` function. A clear's statements are a plan (`store.clear_bright_stars_plan`, `clear_bright_star_pass_plan`, `clear_phenomenon_scatter_plan`, `clear_nebula_field_plan`), one piece to a statement; the reset is one piece to a table and one to tidy after; the same plans are what `clear_*` and `wipe` run directly, so there is one list of the statements. Their results are unchanged.
+- `tests/test_commands_have_pieces.py` no longer has a list of commands still to convert: a command with a loop of its own fails. `tests/test_longest_silence.py` runs the commands of the last family under the unit beat and holds the longest stretch with no count, phase or statement moving to a budget.
+- `tests/test_long_sql_steps.py`: the clear tests were red on main (a new galaxy has nothing to clear since OPS.254 and OPS.257); they now say the galaxy holds something, and the reset test seeds a sector.
+
+## [8.0.4289] - 2026-11-15
+
+**Headline:** The law that takes ammonia and methane out of an air under the star's far ultraviolet is built as a module of its own, with no change to any generated world yet.
+
+### Added
+
+- GEN.1732: `physics/photochemical_loss.py` is the loss of an air's ammonia and methane: a source against the photolysis rate of `photolysis.rate_per_s` (GEN.496), the amount the light can break in the absorbing column (`photolysis.photon_limited_flux_mol_m2_s`, GEN.982), the exact step `advance`, the standing amount of a constant source over the body's age (`standing_from_inventory`) and what the loss leaves (ammonia to nitrogen, methane to carbon dioxide). Reuse: the rates, the shielded column and the molar masses are the existing ones. Four stand-in rows (PC1 to PC4, section 6.301 of the gap-filling plan, tiers T5 to T7, tweak L0 to L1). The history of the air (GEN.1745) calls it as a step term, where the methane-warming check is made; nothing in the generator reads it yet.
+
+## [8.0.4288] - 2026-11-15
+
+**Headline:** Finish the last run carries a stopped run on from what its records say is done: finished units are not done again and a unit that stopped starts after the pieces it finished.
+
+### Changed
+- `finish-run` plans the stopped run again and, for the stage that stopped and each stage after it, the new run subtracts what the stopped run's rows say is done (`queue/resumed.py`): a unit the rows say is done is marked done and its stored result kept for the stage's conclusion, and a unit that was not done gets the cursor and the stored piece results of the unit it continues, so it starts after the pieces it finished. A stage whose units were all done is only concluded.
+- A unit of a command that cannot resume is queued with `again` when its stage carries on from a stopped run (the sector stages skip the sectors already saved); its row is cut as before.
+- `finish-phenomena` resumes after its last finished piece: the drawn special rows are the first piece's stored result, the write and the record commit through the new `ctx.commit_piece()` (data, cursor and result in one fenced transaction), and the indexes are built only where missing.
+- The Generate page and the Queue page say that a stopped stage carries on from what the run's records say is done, not from its start.
+
+### Removed
+- `finish_run.REWIND_WITH` and `finish_run.AGAIN`: no stage is rerun from its start, and no stage is rewound with the one before it, to make a stopped stage safe to repeat.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4287] - 2026-11-15
 
 **Headline:** A world's air history has its first part: the step schedule and the clocks (the star's light, the interior's heat, the oxygen law's reductant sink and the water lost) at every age, with no change to any generated world.

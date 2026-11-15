@@ -68,7 +68,7 @@ def test_every_command_has_a_memory_figure_or_is_one_worker_on_purpose():
     """PERF.226: a command with units has a memory figure in the table, and every other command is one unit or inline, so no stage
     is left to the ordinary 300 MB guess by being forgotten."""
     for kind, spec in commands.REGISTRY.items():
-        by_nature = spec.inline or spec.whole
+        by_nature = spec.inline or spec.one_unit
         measured = kind in workers.STAGE_WORKER_MEMORY_MB
         assert measured or by_nature, f"{kind}: in the table {measured}, one unit by nature {by_nature}"
         assert not (measured and spec.inline), f"{kind}: an inline command has no workers to size"
