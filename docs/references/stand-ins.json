@@ -12109,7 +12109,7 @@
             ],
             [
               "Evidence",
-              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; Knittel and Boetius 2009; Tian et al. 2020; [R2336] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
+              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; [R2336, R5286, R5287] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
             ]
           ],
           "id": "LF73",
@@ -70108,7 +70108,7 @@
           "burn_down": [
             "no data",
             "-",
-            "Mercury's core shares follow ranges with no consensus ([R5147]) and are hand-set; a measured Mercury core replaces them"
+            "Mercury's core shares follow ranges with no consensus [R5147] and are hand-set; a measured Mercury core replaces them"
           ],
           "fields": [
             [
@@ -71873,7 +71873,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
+              "educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
             ]
           ],
           "id": "PC4",
