@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4187] - 2026-11-15
+
+**Headline:** Every rate, duration, size and memory figure the generator logs or shows comes from the units code, so a slow count reads "2.4 s a sector" instead of "0.0 sectors/s" and memory is never bytes in one line and MB in the next (UX.318).
+
+### Changed
+- **The units code formats the logs (UX.318, Boss 2026-11-14).** The unit registry and the ladders gain an information kind (`B`, `kB`, `MB`, `GB`, `TB`, decimal, with the browser mirrors regenerated), and `planetgen.util.format` gains one formatter per kind, reused everywhere: `format_bytes`, `format_megabytes`, `format_rate` (a rate of one a second or more as "41.3 sectors a second", slower as the time one item takes, "2.4 s a sector") and `format_byte_rate` ("12.5 MB/s"); durations are `format_duration_seconds` on the time ladder ("340 ms", "12.3 s", "4.12 minutes", "1.09 hours", "3 days"). `logrecord.duration_text` is that ladder with "?" for an unknown, so the `4:07` and `1:05:12` forms are gone from every log line.
+- **Routed through them, their own formatters removed:** the progress ticker and its stamp; the stage finish and failure records; the warm-up's progress, summary and cache-full lines; the memory watch summary; the step timer table; the generation size and disk estimates (`generation/stats`, whose `format_bytes` and `format_duration` are gone); the Queue page's durations, heartbeats, ETAs, memory figures and unit rates (`_duration`, `_beat_gap` and `_mb_text` are gone), the task bar's time left and the "What the queue has learned" panel; the Generate page's elapsed and remaining times (`format_elapsed` is gone); the admin Data, Images, Backups and Account pages' sizes and times (`admin_pages.format_bytes`, 1024-based, is gone); the login wait text; the Settings page's duration words and the Owner unlock message; the galaxy map tile build's size and time lines; the job wrapper, unit, memory gate, scheduler, adaptive worker, profile claim, profile time, beat judge, unit-stuck and API job lines; the run galaxy and run plan lines; the dataset download progress ("12.5 MB/s", time left) and wait messages; the benchmark and benchmark suite reports; the smoke, warm, warm-shape, worker, lockouts and reset-jobs command lines; the MySQL connection-loss explanations, contention retries and SQL trace timings; the backup repair-file summary; the Nav page's stay text; the API client's and the web app's byte and millisecond debug lines; the update guard, field job, system page, phenomenon render, math check and sync-period texts.
+- **A guard test (`src/tests/test_hand_formatted_units.py`)** fails on an f-string or template that spells a unit after a formatted value; the exact byte counts of a key or a packet budget and the prose refresh hints are the listed exceptions.
+- **The logging standard** (rule 3 and rule 6) now says the units code is the one source of these figures.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4186] - 2026-11-15
 
 **Headline:** The bright star backfill, the map's block totals refresh at the end of a run, the sector stages and the single system run now report what they have done a piece at a time, so a long run shows real counts and can be stopped or paused between pieces.
