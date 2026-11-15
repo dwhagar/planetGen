@@ -2248,6 +2248,9 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `since_ejection_gy` | DOUBLE | NULL | v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note |
 | `ejection_speed_kms` | DOUBLE | NULL | v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note |
 | `rogue_note` | TEXT | NULL | v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note |
+| `pair_event_index` | INT | NULL | v260 (GEN.332): the event index (same donor) of the companion it left its donor bound to, NULL for a rogue that left alone, each of the two rows naming the other |
+| `pair_separation_au` | DOUBLE | NULL | v260 (GEN.332): the distance to its companion, AU (the circular orbit of the pair), NULL without one |
+| `pair_period_yr` | DOUBLE | NULL | v260 (GEN.332): the period of the pair round each other, years, NULL without a companion |
 
 ## `rogue_planet_reflection_spectrum`
 

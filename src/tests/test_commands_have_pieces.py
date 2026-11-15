@@ -6,8 +6,6 @@ budget, and the `whole` flag deleted) comes with the last family (reports/job-en
 from planetgen.queue import commands
 
 NOT_YET = {
-    # OPS.198: scatters and fields
-    **dict.fromkeys(("scatter-mass", "scatter-phenomena", "scatter-luminosity", "scatter-band", "draw-nebula-field", "fill-map-luminosity"), "OPS.198"),
     # OPS.200: clears and drops, a step to each statement through ctx.sql
     **dict.fromkeys(("clean-nebula-field", "clear-scatter", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field"), "OPS.200"),
     # OPS.202: galaxy and sectors
