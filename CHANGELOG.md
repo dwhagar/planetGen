@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4189] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits gives the engine its pieces like the other converted commands.
+
+### Fixed
+
+- OPS.257: the `store-scatter-limits` command is a piece of the engine's loop (one piece, committed through the context), which the every-command-gives-pieces guard on main asked for.
+
 ## [8.0.4188] - 2026-11-15
 
 **Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
