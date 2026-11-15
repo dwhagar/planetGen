@@ -24,7 +24,7 @@ until then `ctx.commit()` is a plain commit.
 import time
 
 from planetgen.queue import commands, longsql, pause, runrecord, unitbeat
-from planetgen.util import log
+from planetgen.util import log, ticker
 
 CHECK_SECONDS = 1.0
 """float: At most how often the engine reads the run's state and the pause flag between two pieces. Defined by the program, not a physical value: a unit of thousands of pieces a second
@@ -50,7 +50,8 @@ class Context:
         self.kind, self.args, self.report, self.cursor = kind, args, report, cursor
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
-        self.scratch = {}
+        self.state = {}                 # what the pieces of this unit hand to each other: they run in one process, in order, so a piece may leave what the next reads
+        self.began = time.monotonic()
         self._db = None
         self._checked_at = None
 
@@ -74,11 +75,11 @@ class Context:
     def kept(self, name, make):
         """
         What the unit works out once and every piece reads (the galaxy's shape, a table of components): `make()` the first time `name` is asked for, the same value after, until the unit ends
-        (`scratch` is the unit's own, so a value never outlives it and a later unit reads the database afresh).
+        (`state` is the unit's own, so a value never outlives it and a later unit reads the database afresh).
         """
-        if name not in self.scratch:
-            self.scratch[name] = make()
-        return self.scratch[name]
+        if name not in self.state:
+            self.state[name] = make()
+        return self.state[name]
 
     def commit(self):
         """
@@ -103,6 +104,21 @@ class Context:
     def moving(self):
         """The piece made progress its count does not show: the quiet clock starts again (`unitbeat.moving`)."""
         unitbeat.moving()
+
+    def phase(self, text, keep=None, loud=True):
+        """
+        The piece says what it is doing (the standard's rule 6, OPS.170): a log line with the time since the unit began, the unit's phase for the heartbeat and, where `keep` is a list,
+        the line kept in it for the unit's result. `loud` false makes the line a debug record, for one unit of many.
+        """
+        line = ticker.stamp(text, self.began)
+        (log.normal if loud else log.debug)(line)
+        unitbeat.phase(text[:120])
+        if keep is not None:
+            keep.append(line)
+
+    def close_db(self):
+        """Closes the unit's connection now, where the rest of the unit needs none held (`ctx.db` opens another on the next use)."""
+        self.close()
 
     def close(self):
         """Closes the unit's connection if it opened one; called by the engine, once, when the unit ends."""
@@ -152,7 +168,7 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
         redis, run_id, stage, unit, job: Where the unit runs; with them the engine honours a cancel and a pause between two pieces. Without them (`commands.run_alone`) it does neither.
 
     Returns:
-        The unit's JSON-able result: what the command's `gather` makes of the pieces' results, or, with none, the list of them in order.
+        The unit's JSON-able result: what the command's `gather(args, results, ctx)` makes of the pieces' results (and `ctx.state`), or, with none, the list of them in order.
 
     Raises:
         UnitStopped: The run ended between two pieces.
@@ -172,6 +188,6 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
             ctx.between()
             results.append(do(args, piece, ctx))
             report(done, total)
+        return results if gather is None else gather(args, results, ctx)
     finally:
         ctx.close()
-    return results if gather is None else gather(args, results)

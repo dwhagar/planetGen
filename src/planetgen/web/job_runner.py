@@ -283,13 +283,14 @@ def _staged_command(argv):
 
 
 def runs_queue_run(job):
-    """Whether a step of `job` is a run on the queue (`planetgen run-job`, or a command of `commands.STAGED_COMMANDS`): its work is units that the run's watch judges by their progress, not by a clock (OPS.255). Read from the command line alone, so a spec that does not parse still counts."""
-    from planetgen.queue import commands
+    """
+    Whether a step of `job` is a command of the generator (`planetgen.cli.generate`: `galaxy`, `plan`, `sector`, `finish-run`, `run-job`, `warm`, `check-db` and the rest all make their work a run on the queue) whose work is units that the run's watch judges by their progress, not by a clock (OPS.255). Read from the command line alone, so a
+    command the runner does not know by name, or a spec that does not parse, still counts. Any other step (a reset, a download) is one process the clock is all there is to judge it by.
+    """
     from planetgen.web import jobs
 
     start = len(jobs.GENERATE_COMMAND) + 1
-    return any(len(step["argv"]) > start and step["argv"][1:start] == list(jobs.GENERATE_COMMAND) and (step["argv"][start] == "run-job" or step["argv"][start] in commands.STAGED_COMMANDS)
-               for step in job.get("steps", ()))
+    return any(len(step["argv"]) > start and step["argv"][1:start] == list(jobs.GENERATE_COMMAND) for step in job.get("steps", ()))
 
 
 def _job_entries(argv):

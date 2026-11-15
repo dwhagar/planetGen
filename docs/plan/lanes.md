@@ -21,13 +21,15 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 | 05 Bugs 2 | Job engine stage 1: OPS.194 next (OPS.193, OPS.197 merged 8:00 PM EST) | OPS.195 with OPS.200, OPS.206; later OPS.220, 223, 227, 232, 248, 251 |
 | 06 Gate 2 | 6336 OPS.161 regate at 795dc6e13; OPS.181, 186, 187 coded | Job engine stage 2 OPS.207-214 one by one; then OPS.216-218 chain, 225, 234, 236, 245, 246 |
 | 11 Oddities | Review ready | Ask TODO |
-| 12 Storage | 6409 GEN.1684 (Train 27); 6224, 6099, 6378, 6396 in Train 26 | OPS.203, OPS.205, OPS.224, OPS.233, OPS.244, OPS.252 |
+| 12 Storage | 6548 OPS.203 (refresh on main); OPS.202 part 1 (link-neighbors, settle-sector-paths, generate-unplaced-sector) | OPS.202 rest, OPS.224, OPS.233, OPS.244, OPS.252 |
 | 13 Galaxy and admin | OPS.185; 6430 GEN.332 C up (Train 27); GEN.332 D design next | OPS.191, 192, 196, 199, then OPS.219, OPS.238-240 |
 | 14 Atmosphere | Seed 8301 trace for 6423 GEN.1675 | OPS.237 (star tables as arrays) |
-| 15 Air, climate, performance | 6413 PERF.264: golden on its own box | OPS.198, OPS.202 |
+| 15 Air, climate, performance | GEN.1716 A and B, GEN.1718 part 1 (Train 29) | GEN.1718 rest; ask TODO |
 | 21 Composition | Sulfur shift to 1.4 dex in GEN.1670 | Ask TODO |
 | 22 Belts | 6428 GEN.1693 (Train 27), then PERF.261 | OPS.215 (migrations), 221, 222, 226, 228-231, 235, 243, 249, 250 |
 | 23 Tides, spin, moons | Review ready | OPS.201, 204, then OPS.241, 242 |
+
+GOLDEN (Boss, 5:24 PM EST on 2026-11-14): no golden renewal per train; the golden files are renewed once, at the 8.1 release. The pinned galaxy test stays as the trains' smoke test. Train 28 keeps its renewed golden; from Train 29 on, no lane PR needs a golden or epoch step (OPS.258, Train Manager); the gate shards across lanes (OPS.259).
 
 JOB ENGINE (Boss 6:35 PM, 6:57 PM and 7:52 PM EST 2026-11-13): stages 1 to 6 are OPS.191-252, merged one at a time on the lane's changed-only green, in dependency order, by TODO; the engine trains are dropped ("de-train the queue fixing code"). Merge order and lanes: /mnt/project-files/reports/job-engine-trains-2026-11-13.md. A converted command commits only through ctx.commit(). Watch list (OPS.218, 228, 237, 239, 240, 242, 243): if the golden galaxy cannot stay identical, the lane stops and reports to TODO; it never rewrites the golden for these.
 

@@ -159,7 +159,7 @@ def _scatter(args, index, _since):
         planned = run_plan.planned_phenomena(args, kind, tag)
     else:
         planned = run_plan.planned_bright_stars(args, (kind,), kind, tag, prepare=getattr(args, "prepare_limits", False))
-    listed = stages.scatter_stages(args)
+    listed = [stage for stage in stages.scatter_stages(args) if not stage.skip]       # a stage that is not planned is not listed
     if kind == "luminosity" and getattr(args, "prepare_limits", False):
         listed = [stage for stage in listed if stage.key != stages.BRIGHT_CLEAR_STAGE["luminosity"].key]
     return Part("scatter", args, listed, planned.followers)
@@ -185,6 +185,7 @@ def build_parts(entries, run_args):
     """
     since, parts = None, []
     flags = prepare_flags(entries)
+    leave_out_empty_clears(entries)
     for index, (command, args) in enumerate(entries):
         args.generation_run_id = getattr(run_args, "generation_run_id", None)
         args.prepare_limits = flags[index]
@@ -193,6 +194,19 @@ def build_parts(entries, run_args):
             since = wrapper.opened_by(part.followers[0].key)
         parts.append(part)
     return hoist_clears(parts)
+
+
+def leave_out_empty_clears(entries):
+    """
+    Names, on each scatter entry's arguments, the clearing stages that are left out because what they clear holds nothing (`args.stage_skips`, `run_plan.empty_clear_skips`, OPS.257), as the
+    database holds it when the job is planned. Only the first entry that changes a scatter is asked: an earlier one may write what a later clear would find.
+    """
+    fresh = True
+    for command, args in entries:
+        if command in ("scatter", "clear-scatter"):
+            kind = stages.scatter_kind(args) if command == "scatter" else None
+            args.stage_skips = run_plan.empty_clear_skips(args, (kind,), fresh) if kind else {}
+            fresh = False
 
 
 def prepare_flags(entries):
@@ -212,6 +226,18 @@ def prepare_flags(entries):
     return flags
 
 
+HOISTED_STAGES = (stages.BRIGHT_CLEAR_STAGE["mass"].key, stages.LIMITS_STAGE.key)
+"""tuple[str]: The stages of a prepared massive-star scatter that run before the backfill: the clear of the earlier bright stars (when there is any) and the recording of the limits."""
+
+
+def _leading_clear(part):
+    """How many of the part's first followers are the hoisted stages (the clear when planned, the limits stage)."""
+    count = 0
+    while count < len(part.followers) and part.followers[count].key in HOISTED_STAGES:
+        count += 1
+    return count
+
+
 def hoist_clears(parts):
     """
     The `parts` with the clearing stage of a massive-star scatter that follows a backfill made a part of its own just before that
@@ -223,10 +249,10 @@ def hoist_clears(parts):
         return parts
     moved = []
     for place, part in enumerate(parts):
-        if (place > first_backfill and part.command == "scatter" and getattr(part.args, "prepare_limits", False) and part.followers
-                and part.followers[0].key == stages.BRIGHT_CLEAR_STAGE["mass"].key):
-            moved.append((place, Part("scatter", part.args, part.stages[:1], part.followers[:1])))
-            part.stages, part.followers = part.stages[1:], part.followers[1:]
+        count = _leading_clear(part) if place > first_backfill and part.command == "scatter" and getattr(part.args, "prepare_limits", False) else 0
+        if count:
+            moved.append((place, Part("scatter", part.args, part.stages[:count], part.followers[:count])))
+            part.stages, part.followers = part.stages[count:], part.followers[count:]
     if not moved:
         return parts
     result = list(parts)
@@ -240,13 +266,14 @@ def hoist_rows(rows):
     """`rows` (`(stage key, seconds)`, in the order of the job's entries) with the massive-star clear moved before the first backfill, as
     `hoist_clears` places its stage."""
     keys = [key for key, _seconds in rows]
-    clear = stages.BRIGHT_CLEAR_STAGE["mass"].key
-    if clear not in keys or "backfill" not in keys or keys.index(clear) < keys.index("backfill"):
+    if "backfill" not in keys:
         return rows
-    row = rows[keys.index(clear)]
-    rest = [item for item in rows if item is not row]
-    rest.insert([key for key, _seconds in rest].index("backfill"), row)
-    return rest
+    moved = [item for item in rows if item[0] in HOISTED_STAGES and keys.index(item[0]) > keys.index("backfill")]
+    if not moved:
+        return rows
+    rest = [item for item in rows if item not in moved]
+    at = [key for key, _seconds in rest].index("backfill")
+    return rest[:at] + moved + rest[at:]
 
 
 def stage_list(parts):
@@ -266,10 +293,13 @@ def stage_estimates(conn, entries):
     (`stages.stage_estimates`, at the settings that command was given), the stage every scatter ends with only at its last place.
     """
     rows, flags = [], prepare_flags(entries)
+    for flag, (_command, args) in zip(flags, entries):
+        args.prepare_limits = flag
+    leave_out_empty_clears(entries)
     for flag, (command, args) in zip(flags, entries):
         rows += [(stage.key, seconds)
                  for stage, seconds in zip(stages.for_command(command, args), stages.stage_estimates(conn, command, args))
-                 if not (flag and stage.key == stages.BRIGHT_CLEAR_STAGE["luminosity"].key)]
+                 if not (flag and stage.key == stages.BRIGHT_CLEAR_STAGE["luminosity"].key) and not (command == "scatter" and stage.skip)]
     rows = hoist_rows(rows)
     last = max((place for place, (key, _seconds) in enumerate(rows) if key == stages.BLOCK_LIGHTS_STAGE.key), default=None)
     return [seconds for place, (key, seconds) in enumerate(rows) if key != stages.BLOCK_LIGHTS_STAGE.key or place == last]
