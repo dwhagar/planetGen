@@ -489,7 +489,7 @@ WHERE token_hash = ? AND revoked_at IS NULL
 </ul>
 <h3 id="b10-password-setting-reset-and-owner-flows-usr5-usr6">B10. Password setting, reset and Owner flows (USR.5, USR.6)</h3>
 <p>Lifetimes are in B3. Changing the email address needs the current password and a confirmation link to the new address, plus a notice to the old one, which stays until the new one confirms. An Owner reset works by email, but with TOTP enrolled the reset page also asks for the code, and each one emails the Owner and writes an <code>AUTH</code> event. Break-glass for an Owner without password and email is the console: <code>python -m planetgen.cli.accounts --reset-password OWNER</code> and <code>--set-owner</code> (API.15's &quot;console user is god&quot;).</p>
-<p><strong>Owner transfer</strong> is a state machine in <code>owner_transfers(id, from_id, to_id, state, confirm_token_hash, accept_token_hash, created_at, expires_at, ...)</code> with states <code>pending_owner</code>, <code>pending_target</code>, <code>done</code>, <code>canceled</code>, <code>expired</code>, and at most one active transfer:</p>
+<p><strong>Owner transfer</strong> is a state machine in <code>owner_transfers(id, from_id, to_id, state, confirm_token_hash, accept_token_hash, created_at, expires_at, ...)</code> with states <code>pending_owner</code>, <code>pending_target</code>, <code>done</code>, <code>cancelled</code>, <code>expired</code>, and at most one active transfer:</p>
 <ol>
 <li>The Owner picks an existing admin, retypes the password twice, enters the TOTP code if enrolled, ticks the explicit confirmation; an email goes to the Owner.</li>
 <li>The Owner clicks it; an email goes to the target.</li>

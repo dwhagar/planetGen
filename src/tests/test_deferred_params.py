@@ -180,7 +180,7 @@ def test_a_follower_hands_the_wrapper_the_deferred_clock_or_the_clock_it_was_giv
 def test_the_galaxy_run_gives_every_stage_that_works_on_its_sectors_the_clock_of_the_first_sectors_stage(monkeypatch):
     seen = {}
     monkeypatch.setattr(run_galaxy, "_run_stages", lambda args, title, tail: seen.update(tail=tail))
-    monkeypatch.setattr(run_galaxy.run_plan, "bright_star_followers", lambda args: ([], None))
+    monkeypatch.setattr(run_galaxy.run_plan, "bright_star_followers", lambda args, **kwargs: ([], None))
     monkeypatch.setattr(run_galaxy.run_plan, "phenomena_followers", lambda args: ([], None))
     monkeypatch.setattr(run_galaxy.run_plan, "stored_scatter_skips", lambda args: {})
     run_galaxy.run_galaxy(_args())

@@ -130,8 +130,8 @@ If this inequality holds and <span class="math">\(B^2 - 4A(C - (R_1 + R_2)^2) \g
             return False, delta_t
 
         # Smallest positive root represents entry point into collision sphere
-        sqrt_disk = math.sqrt(discriminant)
-        t_entry = (-B - sqrt_disk) / (2.0 * A)
+        sqrt_disc = math.sqrt(discriminant)
+        t_entry = (-B - sqrt_disc) / (2.0 * A)
 
         # Check if contact occurs within the discrete tick [0, delta_t]
         if 0.0 &lt;= t_entry &lt;= delta_t:

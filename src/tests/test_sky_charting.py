@@ -21,6 +21,7 @@ from planetgen.db.sky_tier_ledger import Draw, Ledger
 from planetgen.galaxy import sky_band, spherical
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import run_plan, sky_charting, sky_tiers
+from planetgen.queue import commands, engine
 from tests.test_bright_star_scatter import EDGE_PC, SMALL_E_VALUE, THRESHOLD, _scatter_args, _seed_galaxy, _stored_stars
 
 CENTER = (0.0, 0.0, 0.0)
@@ -196,6 +197,52 @@ def test_a_mass_ring_draws_the_cells_as_the_mass_backfill_does_and_records_the_m
     assert masses == {5.0}
 
 
+def _ring_walk(context, tier, expected, center=SPHERE_CENTER):
+    """What the walk of a ring's sphere does, counted: the `candidate_path` calls it makes and the cells it yields, and what `mass_sphere_walk_visits` says (GEN.1485)."""
+    radius = sky_charting.padded_radius(tier)
+    shape = context.skeleton.shape
+    args = (shape, center, radius, EDGE_PC, expected, float(tier.low), float(tier.high), context.walk_ceiling)
+    calls, real = [], brightStars.candidate_path
+    brightStars.candidate_path = lambda *a, **k: calls.append(1) or real(*a, **k)
+    try:
+        yielded = sum(len(addresses) for addresses, _memo in brightStars.mass_sphere_batches(*args, context.seed, context.edges))
+    finally:
+        brightStars.candidate_path = real
+    visits = brightStars.mass_sphere_walk_visits(*args, context.edges)
+    paths = len(brightStars._mass_paths(shape, float(tier.low), float(tier.high), context.walk_ceiling, context.edges, {})[0])
+    return calls, yielded, visits, paths, radius
+
+
+def test_a_sparse_rings_walk_visits_the_blocks_the_cost_counts_and_not_the_cells(galaxy):
+    """GEN.1485: with no band over the candidate bound every row takes the candidate path, one block lookup per band and block; the cost is those blocks."""
+    context = sky_charting._Context(galaxy)
+    tier = a_tier("mass", low=5.0, high=8.0)
+    calls, yielded, visits, paths, radius = _ring_walk(context, tier, context.expected * 1e-6)
+    assert visits > 0 and len(calls) == visits * paths
+    assert visits < sky_tiers.cells_in_sphere(radius, EDGE_PC) and yielded <= visits
+
+
+def test_a_dense_rings_walk_visits_every_cell_of_its_rows_and_the_cost_counts_them(galaxy):
+    context = sky_charting._Context(galaxy)
+    tier = a_tier("mass", low=5.0, high=8.0)
+    calls, yielded, visits, _paths, radius = _ring_walk(context, tier, context.expected * 1e6)
+    assert not calls
+    rows = sum(length for _shell, _band, _count, _first, length in spherical.sphere_rows(SPHERE_CENTER, radius, EDGE_PC))
+    assert visits == rows and yielded <= visits
+
+
+def test_cost_rings_replaces_a_rings_cell_visits_with_its_walks(galaxy):
+    context = sky_charting._Context(galaxy)
+    ring = a_tier("mass", low=5.0, high=8.0)._replace(visits=12345.0)
+    tiers = sky_tiers.SkyTiers(7.5, SPHERE_CENTER, EDGE_PC, 0.0, (), (), (ring,), None)
+    costed = sky_charting.cost_rings(SPHERE_CENTER, tiers, context.skeleton, context.limits)
+    [found] = costed.rings
+    expected = brightStars.mass_sphere_walk_visits(context.skeleton.shape, SPHERE_CENTER, sky_charting.padded_radius(ring), EDGE_PC, context.expected,
+                                                   5.0, 8.0, context.walk_ceiling, context.edges)
+    assert found.visits == expected and found.visits != 12345.0
+    assert sky_charting.cost_rings(SPHERE_CENTER, tiers._replace(rings=()), context.skeleton, context.limits).rings == ()
+
+
 def delete_since(conn, first_id):
     conn.execute("DELETE FROM bright_stars WHERE id > ?", (first_id,))
     conn.execute("DELETE FROM sector_stats")
@@ -252,18 +299,88 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
     assert len(units) == 1 and units[0][1] >= 1.0 and units[0][0]["sky"]["limit"] == 7.5
     assert units[0][0]["expected_seconds"] >= 0.0          # OPS.134: the unit's own time, for its own limit (the toy tiers predict no visits)
     before = _stored_stars(conn)
-    reports = []
-    result = run_galaxy.backfill_bright_stars_unit(units[0][0], lambda done, total: reports.append((done, total)))
+    counted = []
+    monkeypatch.setattr(engine.unitbeat, "step", lambda name, total=None: counted.append(("step", name, total)))
+    monkeypatch.setattr(engine.unitbeat, "advance", lambda amount=1: counted.append(("advance", amount)))
+    result = commands.run_alone("scatter-backfill", units[0][0])
     conn.commit()
-    # OPS.134: the counter moved with the batches and the tiers (it read 0 of 1 for the whole unit), up to every owed tier's visits
-    assert len(reports) >= 2 and len({total for _done, total in reports}) == 1
-    assert [done for done, _total in reports] == sorted(done for done, _total in reports) and reports[-1][0] == reports[-1][1] > reports[0][0] > 0.0                                                       # a new snapshot: the unit wrote through its own connection
+    # OPS.134: the second level (OPS.192) moved with the batches and the tiers (it read 0 of 1 for the whole unit), up to every owed tier's visits
+    steps = [item for item in counted if item[0] == "step"]
+    advances = [item[1] for item in counted if item[0] == "advance"]
+    assert len(steps) == 1 and steps[0][1] == "Sky tiers" and len(advances) >= 2 and all(amount >= 0.0 for amount in advances)
+    assert sum(advances) == pytest.approx(steps[0][2]) and sum(advances) > 0.0                                                       # a new snapshot: the unit wrote through its own connection
     assert result["sky"]["spheres"] == 2 and result["stars"] == result["sky"]["stars"] == len(new_stars(conn, before))
     assert len(ledger_module.read(conn).draws) == 2
     floors = result["sky"]["floors"]                                  # VIEW.47: the unit reports the floor against distance, whole enough to cross the queue as JSON
     assert [row["distance_pc"] for row in floors] == list(sky_tiers.FLOOR_DISTANCES_PC)
     assert floors == json.loads(json.dumps(floors)) and floors[0]["floor_sol"] < floors[-1]["floor_sol"]
     assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == []
+
+
+@pytest.fixture
+def plan_only_galaxy(mysql_config, monkeypatch):
+    """The toy galaxy after a plan-and-stop: its shape and outline are stored and no star scatter ever ran (OPS.256)."""
+    _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE * 5)
+    monkeypatch.setattr(sky_charting, "CELL_PAD_PC", 2.0 * EDGE_PC)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.bright_star_scatter_settings(conn) is None
+        yield conn
+    finally:
+        conn.close()
+
+
+def test_a_galaxy_with_no_scatter_has_no_sky_tiers_and_no_made_up_ceiling(plan_only_galaxy):
+    """OPS.256, at the cause: the limits say no scatter ran (`scatter_ran`), `plan` then holds no tier (so nothing is costed, owed or drawn), and `walk_edges_and_ceiling` refuses to hand back a 0.0
+    luminosity ceiling that every ring's cost and draw would then read as a threshold of 0 Lsun."""
+    conn = plan_only_galaxy
+    skeleton = store.get_galaxy_shape(conn)
+    limits = store.scatter_limits_of(conn, skeleton)
+    assert not limits.scatter_ran
+    center, tiers = sky_charting.plan(SPHERE_CENTER, 7.5, skeleton.edge_pc, limits=limits, skeleton=skeleton)
+    assert tiers.luminosity == () and tiers.rings == () and tiers.dropped == ()
+    assert sky_charting.owed_tiers(tiers, ledger_module.read(conn), center) == []
+    with pytest.raises(ValueError, match="no star scatter yet"):
+        sky_charting.walk_edges_and_ceiling(limits)
+
+
+def test_charting_the_sky_of_a_galaxy_with_no_scatter_draws_nothing(plan_only_galaxy):
+    """OPS.256: `chart` (the sky unit, run by a worker, a retry or a resume whatever expanded it) ends clean with nothing drawn, rather than raising a luminosity threshold of 0.0."""
+    before = _stored_stars(plan_only_galaxy)
+    result = sky_charting.chart(plan_only_galaxy, SPHERE_CENTER, 7.5)
+    plan_only_galaxy.commit()
+    assert result["tiers"] == [] and result["stars"] == 0 and result["cells"] == 0
+    assert _stored_stars(plan_only_galaxy) == before and not ledger_module.read(plan_only_galaxy).draws
+
+
+def test_a_sky_unit_of_a_scatter_that_was_cleared_since_it_was_cut_ends_clean(plan_only_galaxy, mysql_config):
+    """OPS.256: a queued sky unit (its params hold only the cell center and the limit) that runs after the scatter was cleared is the retry/resume path; it draws nothing and says so."""
+    from planetgen.generation import run_galaxy
+    named = {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}
+    result = commands.run_alone("scatter-backfill", {"database": named, "items": [], "sky": {"center": list(SPHERE_CENTER), "limit": 7.5}})
+    assert result["sky"]["spheres"] == 0 and result["sky"]["stars"] == 0
+
+
+@pytest.mark.parametrize("entry", ["since", "center_pc"])
+def test_every_backfill_entry_of_a_plan_only_galaxy_runs_with_the_default_sky(plan_only_galaxy, mysql_config, monkeypatch, entry):
+    """OPS.256: the backfill stage (`_backfill_on_queue`) is the one door of `run_backfill` (CLI `backfill`, the web Add sectors and New galaxy job steps: `since`), of the one-sector API fill and of a
+    galaxy run's fill around a sector (`center_pc`); each is asked for the default sky (7.5) and must end with the sectors' own backfill drawn and no sky."""
+    from planetgen.generation import run_galaxy
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests import first_fill
+    from tests.test_bright_star_scatter import _database_now
+    first_fill.without_the_deepest_floor(monkeypatch)
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    args.sky_limit = 7.5          # what the deployment's `queue.sky_limit` default asks for (the test settings leave it off)
+    address = (3, 0, 4)
+    started = _database_now(mysql_config)
+    position = sector_position_pc(*address, EDGE_PC)
+    run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
+    assert sky_charting.limit_of(args) == 7.5
+    summary = run_galaxy._backfill_on_queue(args, started, center_pc=position if entry == "center_pc" else None)
+    assert summary["sectors"] >= 1
+    assert not ledger_module.read(plan_only_galaxy).draws
 
 
 def test_a_charted_cell_is_built_out_to_its_spheres_and_a_half_chart_is_not(galaxy):

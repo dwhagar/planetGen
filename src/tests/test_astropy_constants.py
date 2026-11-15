@@ -81,6 +81,10 @@ ASTROPY_VALUES = [
     ("SOLAR_RADIUS_M", lambda c, u: c.R_sun.value, 0),
     ("SECONDS_PER_YEAR", lambda c, u: u.year.to(u.s), 0),
     ("ELECTRON_VOLT_J", lambda c, u: c.e.value, 0),
+    # GEN.1526: the physical constants the modules used to define each for themselves
+    ("AVOGADRO", lambda c, u: c.N_A.value, 0),
+    ("GAS_CONSTANT", lambda c, u: c.R.value, 1e-10),      # ten digits of the [R4361] value, as the interior and tide code was written with
+    ("WATER_MELTING_K", lambda c, u: u.deg_C.to(u.K, 0.0, equivalencies=u.temperature()), 1e-15),
 ]
 
 
@@ -98,3 +102,22 @@ def test_importing_the_constants_does_not_import_astropy():
     out = subprocess.run([sys.executable, "-c", "import sys, planetgen.physics.constants; print('astropy' in sys.modules)"],
                          capture_output=True, text=True, check=True)
     assert out.stdout.strip() == "False"
+
+
+SINGLE_DEFINITIONS = ("AVOGADRO", "GAS_CONSTANT", "ICE_DENSITY_KG_M3", "LIQUID_WATER_DENSITY_KG_M3", "WATER_MELTING_K", "BAND_COUNT")
+
+
+def test_a_repeated_physical_constant_is_defined_once_in_the_constants_module():
+    """GEN.1526: no module under `planetgen` gives one of these names a number of its own; each reads `physics/constants.py`."""
+    import ast
+    import pathlib
+    root = pathlib.Path(constants_module.__file__).resolve().parents[1]
+    again = []
+    for path in sorted(root.rglob("*.py")):
+        if path.name == "constants.py" and path.parent.name == "physics":
+            continue
+        for node in ast.parse(path.read_text(encoding="utf-8")).body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id in SINGLE_DEFINITIONS:
+                if isinstance(node.value, ast.Constant):
+                    again.append(f"{path.relative_to(root)}:{node.targets[0].id}")
+    assert not again, again

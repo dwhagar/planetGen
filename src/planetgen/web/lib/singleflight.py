@@ -22,6 +22,7 @@ import time
 import redis
 
 from planetgen.queue import redisqueue
+from planetgen.util import log
 
 LOCK_SECONDS = 60
 """int: How long a claim lives if its owner dies without releasing it."""
@@ -68,7 +69,8 @@ def claim(names, seconds=LOCK_SECONDS):
         for name in names:
             pipe.set(_PREFIX + name, "1", nx=True, ex=int(seconds))
         results = pipe.execute()
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("singleflight", "claiming a build in Redis failed, so every caller builds", exc)
         return names, []
     owned = [name for name, got in zip(names, results) if got]
     held = [name for name, got in zip(names, results) if not got]
@@ -82,8 +84,8 @@ def release(names):
         return
     try:
         _client().delete(*[_PREFIX + name for name in names])
-    except (redis.RedisError, OSError):
-        pass  # the claim expires on its own
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("singleflight", "releasing a build claim in Redis failed", exc)  # the claim expires on its own
 
 
 def wait(names, read, seconds=WAIT_SECONDS):

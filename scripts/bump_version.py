@@ -51,10 +51,11 @@ for each category added up"):
 The generator epoch (OPS.56)
 ============================
 `src/tests/golden/epochs.json` holds the generator epoch: an integer that goes up by one in a PR that changes what
-the generator produces, and only then. `--check-pr` enforces all or none of: a change to the golden files (everything
-under `src/tests/golden/` except `epochs.json`), the epoch bumped by exactly one, and a line `generation-output:
-changed` in the PR's note. The bump itself is made by `python -m tests.golden_update --reason "..."`, which leaves
-the new entry pending; stamping the release fills in its `first_release` (see `apply_release`).
+the generator produces. In testing mode (OPS.258, until the 8.1 release gate) `--check-pr` no longer requires the golden files
+(everything under `src/tests/golden/` except `epochs.json`), the epoch bump and the note line `generation-output: changed` to
+go together: a PR says `generation-output: changed` in its note and touches neither. The golden files are renewed and the epoch
+bumped once, at the release gate, by `python -m tests.golden_update --reason "..."`, which leaves the new entry pending; stamping
+the release fills in its `first_release` (see `apply_release`).
 
 Deliberately standard-library only, so it runs anywhere without installing
 the package first.
@@ -525,17 +526,12 @@ def _affects_problems(root):
     return problems
 
 
-def _golden_files_exist(root, ref):
-    """Whether any golden file other than `epochs.json` is checked in at `ref`. The PR that adds the first golden
-    files is judged as before them (the epoch and the note go together), since they are new, not changed."""
-    names = _git(root, "ls-tree", "-r", "--name-only", ref, "--", GOLDEN_DIR.replace(os.sep, "/")).split()
-    return any(os.path.basename(name) != "epochs.json" for name in names)
-
-
 def check_generator_epoch(root, base, merge_base, added_notes):
     """
-    The epoch rule (OPS.56): the golden files changed, the epoch was bumped by exactly one and the PR's note says
-    `generation-output: changed` either all happen or none does.
+    The epoch rule, in testing mode (OPS.258, Boss 2026-11-14): the epoch list must be in order, every epoch must name the stages it
+    affects, and a PR bumps it by one at most. A PR that changes what the generator makes does NOT have to renew the golden files or bump
+    the epoch (they are renewed once, at the 8.1 release gate); the note says `generation-output: changed` with its `generation-affects:`
+    line.
 
     Returns:
         list[str]: problems found (empty means the PR is fine or there is no epoch file yet).
@@ -553,24 +549,9 @@ def check_generator_epoch(root, base, merge_base, added_notes):
     if before is None:
         return []   # the PR that adds the counter
     bumped_by = len(after) - len(before)
-    golden = _git(root, "diff", "--name-only", merge_base, "HEAD", "--", GOLDEN_DIR.replace(os.sep, "/")).split()
-    golden = [path for path in golden if os.path.basename(path) != "epochs.json"]
-    said = any(GENERATION_OUTPUT_RE.search(_git(root, "show", f"HEAD:{path}")) for path in added_notes)
     if bumped_by not in (0, 1):
         return [f"{EPOCHS_FILE} went from epoch {len(before)} to {len(after)}; a PR bumps the epoch by one at most"]
-    changed = {"epoch bumped": bumped_by == 1, "note says 'generation-output: changed'": said}
-    if _golden_files_exist(root, merge_base):
-        changed = {"golden files changed": bool(golden), **changed}
-    if len(set(changed.values())) == 1:
-        return []
-    done = [what for what, yes in changed.items() if yes]
-    missing = [what for what, yes in changed.items() if not yes]
-    return [
-        "Golden files, the generator epoch and the note's 'generation-output: changed' line go together or not at "
-        f"all: this PR has {', '.join(done) or 'none of them'} but not {', '.join(missing)}. Change the golden files "
-        'with `python -m tests.golden_update --reason "..."` (it bumps the epoch) and add the line to the note; '
-        "a PR that changes no generated output touches none of them."
-    ]
+    return []
 
 
 def _api_state_at(root, ref):

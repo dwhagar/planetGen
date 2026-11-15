@@ -412,6 +412,7 @@ def run(config, control_config=None, dry_run=False, say=log.normal, wide_binarie
             try:
                 _redraw(config, found["redraw"], found["settings"], say)
             except Exception as exc:  # noqa: BLE001 -- say what is left to do by hand
+                log.swallowed("galaxy/bring_to_epoch", "run", exc)
                 result["failed"].append(("scatter", str(exc)))
                 say(f"The scatter could not be drawn again: {exc}")
                 say("The emptied sectors were not generated again. Draw the scatter by hand (planetgen scatter --KIND "
@@ -424,6 +425,7 @@ def run(config, control_config=None, dry_run=False, say=log.normal, wide_binarie
                 else:
                     made = api_jobs.regenerate_sector(item["id"], config)
             except Exception as exc:  # noqa: BLE001 -- one sector failing must not stop the others
+                log.swallowed("galaxy/bring_to_epoch", "run", exc)
                 result["failed"].append((item["label"], str(exc)))
                 say(f"sector {item['label']} ({number} of {len(found['refill'])}): FAILED: {exc}")
                 continue

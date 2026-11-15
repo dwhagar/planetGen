@@ -1,6 +1,6 @@
 """
 Solar energetic particle events (GEN.747, `planetgen.physics.solar_particles`): the 47 measured spectra, the yearly dose they bring and the
-share of it a column of air or a magnetic cutoff lets through, against the NOAA list of 255 events.
+share of it a column of air or a magnetic cutoff lets through, against the NOAA list of 265 events.
 """
 
 import math
@@ -23,7 +23,7 @@ def test_the_event_set_is_the_47_fits_of_the_two_tables():
 
 
 def test_the_set_is_the_events_of_100_pfu_and_above_in_the_noaa_list():
-    """NOAA's list has 2.6 events a year at 100 pfu or more (109 in 42 years); the 43 events of the set (the four `esp` rows are second fits of
+    """NOAA's list has 2.7 events a year at 100 pfu or more (112 in 42 years); the 43 events of the set (the four `esp` rows are second fits of
     four of them) over its 18 years are 2.4 a year, so the set misses almost none of the events that carry the fluence."""
     events = sum(1 for event in sp.EVENTS if "esp" not in event[1])
     assert events == 43
@@ -104,3 +104,16 @@ def test_the_dose_above_a_rigidity_is_continuous_and_falls_to_nothing_above_the_
     for a, b in zip(doses, doses[1:]):
         assert b >= a * 0.5 or b < 1e-6 * sp.FREE_MSV_YR
     assert sp.dose_above_msv_yr(1e4) == 0.0
+
+
+def test_the_typed_counts_are_the_counts_of_the_downloaded_list():
+    """GEN.805: `NOAA_CUMULATIVE_COUNTS` are the events of the NOAA list at or above each peak flux; the dataset is the source, so a run that has it checks the numbers typed here."""
+    from planetgen.datasets import fetch, noaa_proton_events
+    try:
+        listed = noaa_proton_events.events()
+    except fetch.DataMissing as missing:
+        pytest.skip(f"the NOAA proton events are not on this machine: {missing}")
+    assert {event.start.year for event in listed} >= {1976, 2017}
+    assert (listed[-1].start.year - listed[0].start.year + 1) == sp.NOAA_YEARS
+    for peak, count in sp.NOAA_CUMULATIVE_COUNTS:
+        assert sum(1 for event in listed if event.peak_flux_pfu >= peak) == count, peak

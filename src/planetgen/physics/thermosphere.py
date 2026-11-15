@@ -113,12 +113,12 @@ HYDRO_BASED_TEQ_RANGE_K = (300.0, 2000.0)
 
 _G = constants.G
 _K = constants.BOLTZMANN
-_AVOGADRO = 6.02214076e23
+_AVOGADRO = constants.AVOGADRO
 _M_HYDROGEN_KG = 1.6735575e-27
 _M_EARTH_KG = constants.EARTH_MASS_TO_KG
-_R_EARTH_M = constants.EARTH_RADIUS_KM * 1000.0
+_R_EARTH_M = constants.EARTH_RADIUS_M
 _AU_M = constants.AU_TO_M
-_GY_S = 1e9 * constants.SECONDS_PER_YEAR
+_GY_S = constants.SECONDS_PER_GY
 _ERG_CM2_S_PER_W_M2 = 1e3
 
 
@@ -170,10 +170,15 @@ def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
     limit = (MAX_EXOBASE_RADII - 1.0) * radius_m
     height = 0.0
     rise = temperature_k - mesopause_k
-    for _ in range(MAX_EXOBASE_STEPS):
+
+    def profile(height):
+        """`(decay, temperature, scale height)` of the Bates profile at `height`."""
         decay = math.exp(-height / length)
         temperature = temperature_k - rise * decay
-        scale = _K * temperature / (mean_mass * gravity_ms2 * (radius_m / (radius_m + height)) ** 2)
+        return decay, temperature, _K * temperature / (mean_mass * gravity_ms2 * (radius_m / (radius_m + height)) ** 2)
+
+    for _ in range(MAX_EXOBASE_STEPS):
+        decay, temperature, scale = profile(height)
         if math.exp(log_density) * COLLISION_CROSS_SECTION_M2 * scale <= 1.0 or height >= limit:
             break
         step = 0.25 * min(scale, length)
@@ -181,8 +186,7 @@ def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
         log_density -= (1.0 / scale + gradient) * step
         height += step
     # past the step bound the air is taken to reach the limit, as for a profile that never closes inside MAX_EXOBASE_RADII
-    temperature = temperature_k - (temperature_k - mesopause_k) * math.exp(-height / length)
-    scale = _K * temperature / (mean_mass * gravity_ms2 * (radius_m / (radius_m + height)) ** 2)
+    scale = profile(height)[2]
     return radius_m + height, 1.0 / (COLLISION_CROSS_SECTION_M2 * scale), scale
 
 
@@ -320,6 +324,7 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
     masses = {formula: gases.gas(formula).molar_mass / _AVOGADRO for formula in shares}
     gm = _G * mass_kg
     gravity = gm / radius_m ** 2
+    area = 4.0 * math.pi * radius_m ** 2
     meso = mesopause_k if mesopause_k is not None else mesopause_temperature_k(teq_k)
     mean = mean_mass_kg(shares)
     column0 = {formula: share * pressure_pa / (mean * gravity) for formula, share in shares.items()}
@@ -356,14 +361,14 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
                     limit = limits[formula] = diffusion_limited_flux(formula, now, gravity, meso, mean_now)
                 jeans = min(jeans, limit)
             rate[formula] = jeans
-        budget = energy_limited_mass_loss_kg_s(min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2, r_exo, mass_kg)
-        demanded = 4.0 * math.pi * radius_m ** 2 * sum(rate[f] * masses[f] for f in rate)
+        capped_w_m2 = min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2
+        budget = energy_limited_mass_loss_kg_s(capped_w_m2, r_exo, mass_kg)
+        demanded = area * sum(rate[f] * masses[f] for f in rate)
         scale = min(1.0, budget / demanded) if demanded > 0.0 else 1.0
         dt = (t1 - t0) * _GY_S
         ion_kg_s = 0.0 if magnetopause_rp is None else ion_escape.ion_loss_kg_s(
-            energy_limited_mass_loss_kg_s(min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2, 1.05 * radius_m, mass_kg, efficiency=1.0),
-            magnetopause_rp)
-        ion_per_m2 = ion_kg_s / (mean_now * 4.0 * math.pi * radius_m ** 2)     # molecules per m2 s, taken from the species in the proportion they are in
+            energy_limited_mass_loss_kg_s(capped_w_m2, 1.05 * radius_m, mass_kg, efficiency=1.0), magnetopause_rp)
+        ion_per_m2 = ion_kg_s / (mean_now * area)     # molecules per m2 s, taken from the species in the proportion they are in
         for formula, value in rate.items():
             column[formula] = alive[formula] * math.exp(-min((scale * value + ion_per_m2 * now[formula]) * dt / alive[formula], 700.0))
         t0 = t1

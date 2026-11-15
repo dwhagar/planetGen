@@ -4,6 +4,7 @@ started by the wrapper, `planetgen/queue/wrapper.py`, PERF.118).
 The autouse `_run_queue_inline` fixture gives each test a queue and key prefix of its own and runs the waiting units
 in this process when `ensure_workers` is called."""
 
+import re
 import socket
 import subprocess
 import sys
@@ -398,12 +399,17 @@ def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
 
 
 def test_only_the_table_names_what_a_unit_runs(monkeypatch):
-    assert callable(commands.unit_function("scatter-mass")) and callable(commands.expand_function("scatter-mass"))
+    assert callable(commands.pieces_function("scatter-mass")) and callable(commands.do_function("scatter-mass")) and callable(commands.expand_function("scatter-mass"))      # OPS.198: converted
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
-    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
-        assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
+    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena"):
+        assert callable(commands.pieces_function(kind)) and callable(commands.do_function(kind)) and callable(commands.expand_function(kind))
+        with pytest.raises(ValueError, match="engine"):
+            commands.unit_function(kind)
+    assert callable(commands.pieces_function("plan-skeleton")) and callable(commands.do_function("plan-skeleton")) and callable(commands.expand_function("plan-skeleton"))
+    with pytest.raises(ValueError, match="engine"):
+        commands.unit_function("plan-skeleton")
     monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
     with pytest.raises(ValueError, match="inline"):
         commands.unit_function("an-inline-command")
@@ -916,7 +922,8 @@ def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_unit
         paths = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
     finally:
         db.close()
-    assert saved > 0 and out.count("Saved sector '") == saved, "each charted sector logged once, as it was saved"
+    assert saved > 0 and "Saved sector '" not in out, "OPS.172: a sector's own line is a debug line, not one per sector at normal"
+    assert re.search(rf"\b{saved:,} of {saved:,} done \(100%\)", out), "the stage's closing line counts the sectors it saved"
     assert paths > 0 and "Linked " in out
 
 
@@ -956,6 +963,35 @@ def _backfilled_rows(config, monkeypatch, unit_cells):
 
 
 @pytest.mark.fresh_database
+def test_a_plan_only_galaxy_backfills_with_no_sky_to_draw(mysql_config, monkeypatch):
+    """OPS.256: Add sectors after a plan-and-stop (no bright-star scatter ever ran) crashed the backfill's expansion: the sky tiers are costed from the scatter's limits, which a galaxy
+    with no scatter has none of (a 0.0 luminosity ceiling), so the expansion raised `luminosity threshold 0.0 Lsun must be at least the brightest white dwarf`. With no scatter there is
+    no level for a sky to be drawn under: the backfill plans its sectors as before and leaves the sky out, saying why."""
+    from planetgen.db import store
+    from planetgen.generation import run_galaxy
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests import first_fill
+    from tests.test_bright_star_scatter import EDGE_PC, EXTENTS, SEED, SHAPE, _database_now
+    first_fill.without_the_deepest_floor(monkeypatch)
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=100.0, config=mysql_config, cell_star_ceiling=1e12, galaxy_seed=SEED)
+    store.replace_galaxy_shells(EXTENTS, config=mysql_config)
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    address = (3, 0, 4)
+    started = _database_now(mysql_config)
+    run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.bright_star_scatter_settings(conn) is None, "no scatter ran"
+    finally:
+        conn.close()
+    cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(mysql_config), "since": started.isoformat(sep=" "), "sky_limit": 7.5})
+    assert cut.plan["sectors"] >= 1
+    assert "sky_cells" not in cut.plan and "no star scatter" in cut.plan["sky_skip"]
+    assert all("sky" not in unit for unit, _cost in cut.units)
+
+
+@pytest.mark.fresh_database
 def test_the_backfill_gives_the_same_stars_in_one_unit_or_many(mysql_config, monkeypatch):
     from tests.test_gen_resume import second_mysql_config  # noqa: F401  (the fixture, to be called below)
     from planetgen.db import store
@@ -989,7 +1025,7 @@ def test_the_backfill_gives_the_same_stars_in_one_unit_or_many(mysql_config, mon
 def _backfilled_by(config, monkeypatch, how):
     """The bright stars the backfill around one new sector places in a toy galaxy, drawn `how`: "serial" is
     `backfill_bright_stars_around` (the form the older tests cover), "unit" cuts the same sectors with
-    `expand_backfill_bright_stars` and runs each unit through `backfill_bright_stars_unit` itself (the form a run takes).
+    `expand_backfill_bright_stars` and runs each unit through the engine (`commands.run_alone("scatter-backfill", ...)`, the form a run takes).
     Returns the rows, what was drawn and what the units reported."""
     from planetgen.db import store
     from planetgen.generation import run_galaxy
@@ -1010,7 +1046,7 @@ def _backfilled_by(config, monkeypatch, how):
         drawn = run_galaxy.backfill_bright_stars_around(config, [center])
     else:
         cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(config), "center_pc": list(center)})
-        results = [run_galaxy.backfill_bright_stars_unit(unit, lambda done, total: reports.append((done, total)))
+        results = [commands.run_alone("scatter-backfill", unit, lambda done, total: reports.append((done, total)))
                    for unit, _cost in cut.units]
         drawn = {"sectors": sum(r["sectors"] for r in results), "stars": sum(r["stars"] for r in results)}
         assert sum(r["visited"] for r in results) == cut.plan["sectors"]
@@ -1027,9 +1063,9 @@ def _backfilled_by(config, monkeypatch, how):
 
 @pytest.mark.fresh_database
 def test_the_backfill_unit_draws_the_stars_the_serial_backfill_draws_for_the_same_sector(mysql_config, monkeypatch):
-    """TEST.532: a run backfills through `backfill_bright_stars_unit`, so this runs that function itself on a second
+    """TEST.532: a run backfills through the `scatter-backfill` command, so this runs that command itself on a second
     database and compares it with `backfill_bright_stars_around` (the serial form) on the first: the same sectors, the
-    same stars (mass, luminosity, type, position and seed), and a unit reports each sector it visits."""
+    same stars (mass, luminosity, type, position and seed), and a unit reports each chunk of sectors it draws (OPS.202)."""
     from planetgen.db import store
     import tests.conftest as conftest
     import pymysql
@@ -1052,7 +1088,7 @@ def test_the_backfill_unit_draws_the_stars_the_serial_backfill_draws_for_the_sam
         server.close()
     assert serial_drawn["sectors"] >= 4 and serial_drawn["stars"] == len(serial)
     assert unit_drawn == serial_drawn and unit == serial
-    assert reports and reports[-1] == (unit_drawn["sectors"], unit_drawn["sectors"])
+    assert reports and reports[-1][0] == reports[-1][1] > 0
 
 
 @pytest.mark.fresh_database

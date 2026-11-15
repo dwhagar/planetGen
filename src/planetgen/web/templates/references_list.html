@@ -8,7 +8,7 @@
   {%- if found.names %}<li><span class="reference-place-label">{{ label }}:</span> {{ found.names | join(", ") }}{% if found.more %}, and {{ found.more }} more{% endif %}</li>{% endif -%}
 {%- endmacro %}
 {% macro stand_in_places(found) -%}
-  {%- if found.names %}<li><span class="reference-place-label">Stand-ins:</span> {% for name in found.names %}{% if name.url %}<a href="{{ name.url }}">{{ name.text }}</a>{% else %}{{ name.text }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% if found.more %}, and {{ found.more }} more{% endif %}</li>{% endif -%}
+  {%- if found.names %}<li><span class="reference-place-label">Stand-ins:</span> {% for name in found.names %}{% if name.url %}<a href="{{ name.url }}">{{ name.text|chem }}</a>{% else %}{{ name.text|chem }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% if found.more %}, and {{ found.more }} more{% endif %}</li>{% endif -%}
 {%- endmacro %}
 {% block content %}
 <aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>

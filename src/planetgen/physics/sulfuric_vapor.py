@@ -30,7 +30,7 @@ import math
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements, saturation
+from planetgen.physics import constants, elements, saturation
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfuric_vapor.json")
 
@@ -40,7 +40,7 @@ EXTRAPOLATED = "extrapolated"
 WATER_SATURATED = "water-saturated"
 """str: The air holds as much water as the pure liquid can, so the solution is pure water."""
 
-ATMOSPHERE_PA = 101325.0
+ATMOSPHERE_PA = constants.STANDARD_ATMOSPHERE_PA
 """float: Pascals in a standard atmosphere; the pure-acid curve is written in atmospheres."""
 
 BISECTIONS = 80
@@ -105,10 +105,15 @@ def _terms(temperature_k):
     )
 
 
+def _clamped(acid_fraction):
+    """The acid mole fraction held off 0 and 1 by `MOLE_FRACTION_FLOOR` (the logarithms are taken of both components)."""
+    return min(max(acid_fraction, MOLE_FRACTION_FLOOR), 1.0 - MOLE_FRACTION_FLOOR)
+
+
 def relative_gibbs(acid_fraction, temperature_k):
     """`(G/RT, d(G/RT)/dx)`, the relative molar Gibbs energy of the solution (Zeleznik equation 12, sign restored) and its slope in the acid mole
     fraction `x`, against the reference of the paper (not the pure liquid at the temperature; see `ln_acid_activity`)."""
-    x = min(max(acid_fraction, MOLE_FRACTION_FLOOR), 1.0 - MOLE_FRACTION_FLOOR)
+    x = _clamped(acid_fraction)
     fractions = (x, 1.0 - x)
     slopes = (1.0, -1.0)
     value = slope = 0.0
@@ -127,7 +132,7 @@ def relative_gibbs(acid_fraction, temperature_k):
 def relative_potentials(acid_fraction, temperature_k):
     """`(mu_acid/RT, mu_water/RT)`, the relative chemical potentials of Zeleznik's Table 7 (against the paper's reference, not the pure liquids)."""
     g, dg = relative_gibbs(acid_fraction, temperature_k)
-    x = min(max(acid_fraction, MOLE_FRACTION_FLOOR), 1.0 - MOLE_FRACTION_FLOOR)
+    x = _clamped(acid_fraction)
     return g + (1.0 - x) * dg, g - x * dg
 
 

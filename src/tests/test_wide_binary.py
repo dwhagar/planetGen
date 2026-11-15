@@ -543,9 +543,8 @@ def test_wide_binaries_never_overlap():
 
 @pytest.mark.parametrize("seed", [216, 420, 520, 738])
 def test_no_body_sits_past_the_ceiling_of_the_stars_final_age(seed):
-    # GEN.325: planets are placed under the star's provisional age, which `adjust_age_for_planets` only ever raises, and
-    # the place's survival limit falls with age, so a body placed past the final ceiling is trimmed once the age is
-    # settled. These four streams drew a planet or belt past it before (301 to 593 AU against 275 to 285 AU).
+    # GEN.325: the place's survival limit falls with the star's age, so no body may sit past the ceiling of the star's age. These four streams
+    # drew a planet or belt past it when the age was raised after the planets (301 to 593 AU against 275 to 285 AU); the age is now fixed first (GEN.1546).
     with draw.bound(draw.Stream(f"final-age-ceiling:{seed}")):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
     for star, planets in ((system.primary_star, system.planets), (system.secondary_star, system.secondary_planets)):

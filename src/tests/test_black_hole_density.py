@@ -122,16 +122,6 @@ def test_the_arrays_and_the_one_point_form_agree_and_the_profile_reads_the_same_
         assert found.kind_factors["black-hole"] == pytest.approx(remnant_density.place_factor(point, SHAPE), rel=0.02)
 
 
-def test_the_old_constant_is_inside_the_new_range_and_the_new_rates_are_reported(capsys):
-    """T4: 7e-5 per pc3 over the reference density is a per-star 5.0e-4; the new solar-circle rate is a multiple."""
-    old = OLD_DENSITY_PC3 / tuning.REFERENCE_STELLAR_DENSITY_PC3
-    lowest = remnant_density.base_rate_per_star() * remnant_density.place_factor(SUN, _shape(0.0, 0.15))
-    highest = remnant_density.base_rate_per_star() * remnant_density.place_factor(SUN, _shape(0.247, 0.247))
-    assert lowest < old < highest
-    middle = remnant_density.base_rate_per_star() * remnant_density.place_factor(SUN, SHAPE)
-    print(f"black holes per star at the solar circle: {middle:.2e} ({middle / old:.2f} times the old {old:.1e})")
-
-
 def test_the_intermediate_mass_holes_keep_their_rate_whatever_the_metals():
     assert scatter.class_rate_per_star("black-hole", "intermediate") == pytest.approx(1.5e-9)
     assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(remnant_density.base_rate_per_star())

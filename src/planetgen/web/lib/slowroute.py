@@ -48,10 +48,10 @@ def progress_text(job):
     """The line under the bar for `job` (`pagejobs.status`): an estimate, said so. `slowload.js` writes the same."""
     if job["state"] != "running" or job["total"] is None or job["done"] is None:
         return STATE_TEXT.get(job["state"], "")
-    percent = 0 if not job["total"] else min(99, int(100 * job["done"] / job["total"]))
+    shown = percent(job) or 0
     left = ("still working" if job["eta_seconds"] is None
             else f"about {format_duration_seconds(job['eta_seconds'])} left")
-    return (f"About {percent}% (an estimate: {format_number(job['done'])} of {format_number(job['total'])} rows), "
+    return (f"About {shown}% (an estimate: {format_number(job['done'])} of {format_number(job['total'])} rows), "
             f"{left}.")
 
 

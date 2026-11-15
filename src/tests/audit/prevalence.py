@@ -143,6 +143,7 @@ def draw_cell(star_type, zone, count):
     config = SystemConfig()
     config.STAR_TYPE = star_type
     config.PLANETS = False
+    config.BINARY_SYSTEM = False    # a lone star: with a companion the other star's light (GEN.1441) moves every orbit to the zone of the total light, and a cell can draw into another zone or none
     system = StarSystem(system_config=config)
     star = system.primary_star
     zone_edges = star.habitable_zone

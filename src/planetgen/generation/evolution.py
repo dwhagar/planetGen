@@ -49,7 +49,7 @@ def get_evolutionary_state(star, ages, max_stage=None):
     timeline = dict(zip(MILESTONE_KEYS, ages))
 
     # The current system age is always the star's actual, already-finalized age
-    # (see Star.adjust_age_for_planets) -- never inflated past it, so this sentence
+    # (fixed when the star is made, GEN.1546) -- never inflated past it, so this sentence
     # can never contradict the star's own stated age/lifespan elsewhere in the output.
     current_system_age = star.age
 

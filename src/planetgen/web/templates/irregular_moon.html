@@ -1,0 +1,64 @@
+{#- One irregular moon of a planet (/object/planet:<ID>/irregular/<rank>, web/irregular_moon_pages.py, GEN.1086): its mass, size, makeup, orbit about the planet and the window it was caught through. -#}
+{% extends "base.html" %}
+{% block head %}
+{% if example %}<script type="module" src="{{ static_url('bodyview.js') }}"></script>{% endif %}
+{% endblock %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">Irregular moon</span>
+    <span class="badge">Designation {{ designation }}</span>
+    <span class="badge">Goes round {{ name }}</span>
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+{%- if example %}
+<section class="panel" id="irregular-example" aria-labelledby="irregular-example-heading">
+  <div class="panel-header"><h2 id="irregular-example-heading">Sensor view</h2></div>
+  <figure class="body-view" hidden>
+    <canvas class="body-view-canvas" width="320" height="320" role="img" aria-label="{{ designation }}, drawn from its stored properties" data-look='{{ example.look }}'></canvas>
+    <button type="button" class="btn btn-small btn-secondary body-view-spin" data-spin aria-pressed="true" hidden>Spin</button>
+    {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
+  </figure>
+</section>
+{%- endif %}
+<section class="panel" id="irregular-body" aria-labelledby="irregular-body-heading">
+  <div class="panel-header"><h2 id="irregular-body-heading">The body</h2></div>
+  <p>This body has a designation, not a name. The planet caught it through {{ window_text }}.</p>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Planet</th><td><a href="{{ planet_url }}">{{ name }}</a> (<a href="{{ list_url }}">all its irregular moons</a>)</td></tr>
+      <tr><th scope="row">Mass</th><td>{{ quantity(moon.mass) }}</td></tr>
+      <tr><th scope="row">Diameter</th><td>{{ quantity(moon.diameter) }}</td></tr>
+      <tr><th scope="row">Density</th><td>{{ quantity(moon.density) }}</td></tr>
+      <tr><th scope="row">Type</th><td>{{ moon.analogue }} ({{ moon.taxon }})</td></tr>
+      <tr><th scope="row">Made of</th><td>{{ composition_text }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="panel" id="irregular-orbit" aria-labelledby="irregular-orbit-heading">
+  <div class="panel-header"><h2 id="irregular-orbit-heading">The orbit about {{ name }}</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Mean distance</th><td>{{ quantity(orbit.semi_major_axis) }}</td></tr>
+      {%- if orbit.hill_fraction is not none %}<tr><th scope="row">Share of the planet's Hill radius</th><td>{{ "%.2g"|format(orbit.hill_fraction * 100) }} percent</td></tr>{% endif %}
+      <tr><th scope="row">Closest</th><td>{{ quantity(orbit.closest_distance) }}</td></tr>
+      <tr><th scope="row">Farthest</th><td>{{ quantity(orbit.farthest_distance) }}</td></tr>
+      <tr><th scope="row">Orbit takes</th><td>{{ quantity(orbit.period) }}</td></tr>
+      <tr><th scope="row">Eccentricity</th><td>{{ "%.3g"|format(orbit.eccentricity) }}</td></tr>
+      <tr><th scope="row">Inclination</th><td>{{ quantity(orbit.inclination) }} ({{ "backward" if orbit.retrograde else "forward" }})</td></tr>
+      <tr><th scope="row">Longitude of the ascending node</th><td>{{ quantity(orbit.ascending_node) }}</td></tr>
+      <tr><th scope="row">Argument of the closest point</th><td>{{ quantity(orbit.argument_of_periapsis) }}</td></tr>
+      <tr><th scope="row">Mean anomaly</th><td>{{ quantity(orbit.mean_anomaly) }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<nav class="panel" id="irregular-neighbours" aria-label="Neighboring irregular moons of the planet">
+  {%- if previous_url %}<a href="{{ previous_url }}">Heavier: <code>{{ previous }}</code></a>{% endif %}
+  {%- if previous_url and next_url %} &middot; {% endif %}
+  {%- if next_url %}<a href="{{ next_url }}">Lighter: <code>{{ next }}</code></a>{% endif %}
+</nav>
+{% endblock %}

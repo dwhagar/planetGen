@@ -23,6 +23,7 @@ import redis
 from planetgen.admin import updateguard
 from planetgen.db import objectindex, uncharted
 from planetgen.queue import redisclient, warmstart
+from planetgen.util import log
 
 WAITING = "waiting"
 RUNNING = "running"
@@ -65,15 +66,16 @@ def _write(database, **fields):
             pipe.hset(key(database), name, json.dumps(value))
         pipe.expire(key(database), KEEP_SECONDS)
         pipe.execute()
-    except (redis.RedisError, OSError):
-        pass
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("warmphases", "keeping the warm-up phases in Redis failed", exc)
 
 
 def _read_field(database, name):
     try:
         raw = _client().hget(key(database), name)
         return json.loads(raw) if raw else None
-    except (redis.RedisError, OSError, ValueError):
+    except (redis.RedisError, OSError, ValueError) as exc:
+        log.degraded("warmphases", "reading a warm-up phase from Redis failed", exc)
         return None
 
 
@@ -147,7 +149,8 @@ def read(database, phases):
     stored, available = {}, True
     try:
         stored = _client().hgetall(key(database))
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("warmphases", "reading the warm-up phases from Redis failed", exc)
         available = False
     rows = []
     for name, text, families in phases:
@@ -178,7 +181,8 @@ def read(database, phases):
             auto["wanted"] = warmstart.pending(database, client)
             holder = client.get(warmstart.lock_key(database))
             auto["holder"] = int(holder) if holder and holder.isdigit() else None
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("warmphases", "reading the warm-up state from Redis failed", exc)
         available = False
     recorded = objectindex.recorded(database) if available else {}
     uncharted_counts = objectindex.recorded_uncharted(database) if available else {}

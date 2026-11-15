@@ -30,9 +30,9 @@ from urllib.parse import urlencode
 from planetgen.web.lib.fmt import esc
 
 PAGE_SIZE = 50
+"""int: Most rows any paged table shows at once, site-wide."""
 MAX_PAGE = 10 ** 9
 """int: The largest page number `parse_page` returns."""
-"""int: Most rows any paged table shows at once, site-wide."""
 
 _WINDOW = 2
 """int: Numbered page links shown either side of the current page."""

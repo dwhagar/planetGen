@@ -12,7 +12,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import activity, constants, mixture_draw, mixture_subject as ms, thermosphere
+from planetgen.physics import activity, constants, formation_snow_line, mixture_draw, mixture_subject as ms, thermosphere
 from planetgen.physics.mixture_base import MixtureError
 from planetgen.util import draw
 
@@ -40,7 +40,7 @@ def test_the_earth_gives_the_quantities_the_world_gives():
     assert q["insolation"] == pytest.approx(1.0)
     assert q["teq_k"] == pytest.approx(254.0, abs=2.0)
     assert q["xuv_index"] == pytest.approx(1.0)
-    assert q["snow_ratio"] == pytest.approx(1.0 / 2.7)
+    assert q["snow_ratio"] == pytest.approx(1.0 / formation_snow_line.water_snow_line_au(_sun()))      # GEN.1678: the water line, not the stored one
     assert q["zone"] == "e" and q["host_type"] == "G"
     assert q["age_gy"] == 4.5 and q["luminosity_solar"] == pytest.approx(1.0)
     assert q["runaway_ratio"] == pytest.approx(0.90, abs=0.03)

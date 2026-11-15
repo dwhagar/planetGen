@@ -28,7 +28,6 @@ Roles:
   length whose reach is the system's.
 * `size`: the extent of the object itself (a radius, a depth, a scale length); it keeps its relative precision at any
   size, so it declares no reach.
-* `relative`: a length in units of the object's own size (a nebula ball's center in nebula radii).
 * `derived`: a magnitude worked out from a position (the galactic radius of a point, the distance of a listed
   neighbour); it is not stored for precision.
 """
@@ -52,7 +51,7 @@ FLOOR_BODY_M = 10.0
 PLACEMENT_FRACTION = 10.0
 """float: A body is placed well when its size is this many times the column's spacing."""
 
-ROLES = ("position", "separation", "size", "relative", "derived")
+ROLES = ("position", "separation", "size", "derived")
 
 
 def spacing_m(value, unit):
@@ -145,7 +144,6 @@ _SEPARATION_WORDS = ("distance", "separation", "periapsis", "apoapsis", "perihel
                      "wobble", "min_orbit", "habitable_zone", "lower_limit", "upper_limit", "a_crit",
                      "binary_primary_position", "binary_secondary_position", "binary_mutual_position", "impact_parameter")
 _DERIVED = {("nearest_systems", "distance_pc"), ("system_owners", "distance_ly")}
-_RELATIVE_UNITS = ("nebula-radius",)
 _OTHER_POSITIONS = {
     ("sector_path_knots", "x_pc"): "galaxy", ("sector_path_knots", "y_pc"): "galaxy",
     ("sector_path_knots", "z_pc"): "galaxy",
@@ -169,8 +167,6 @@ def _classify(table, column, unit):
         return Precision("position", "galaxy", _FRAME_REACH["galaxy"])
     if (table, column) in _OTHER_POSITIONS:
         return Precision("position", _OTHER_POSITIONS[table, column], _FRAME_REACH["galaxy"])
-    if unit in _RELATIVE_UNITS:
-        return Precision("relative")
     if (table, column) in _DERIVED or column == "galactic_radius_pc":
         return Precision("derived")
     if any(word in column for word in _SEPARATION_WORDS):

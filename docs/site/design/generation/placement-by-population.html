@@ -202,7 +202,7 @@ one consistent trend: the intrinsic fraction of solar-type primaries (about 0.6 
 [S: the abstract, read through search results; the paper's full text could not be opened from this environment].
 [R0223] found the same direction in APOGEE: metal-poor stars ([Fe/H] below about -0.5) are
 two to three times as often in multiples as metal-rich ones (above about 0). [R0281] reproduces it in
-radiation-hydrodynamic simulations, where low opacity lets the disk fragment more and the companions migrate inside
+radiation-hydrodynamic simulations, where low opacity lets the disc fragment more and the companions migrate inside
 10 AU [R].</p>
 <p>Rule (Boss, 6:12 to 6:15 PM EDT, decided): the close-companion chance follows one pooled line in [Fe/H], read at the star's own
 [Fe/H] (<code>PopulationProfile.fe_h</code>, peak and scatter, drawn per population by the cell), for <strong>every primary mass, with no fade</strong>.
@@ -232,7 +232,7 @@ the primary's share of companions inside 10 AU is the part of its period law und
 gives the inside range the matching odds (<code>_Builder.period_days</code>). A system build passes the primary's [Fe/H] (<code>Placed.fe_h</code>), as the scatter does.</p>
 <p>What the sources limit:</p>
 <ul>
-<li><strong>Which stars the four points describe.</strong> Field solar-type dwarfs and subgiants, pooled over the disk and halo samples the
+<li><strong>Which stars the four points describe.</strong> Field solar-type dwarfs and subgiants, pooled over the disc and halo samples the
 five surveys hold; they are not four populations. The -3.0 end rests on the Carney-Latham halo sample and the +0.5 end on
 Kepler and APOGEE, so the line between them is an interpolation of a pooled trend, not a measurement per population. Boss chose
 the pooled line (answer 1) over a per-population one, which no source gives.</li>
@@ -247,7 +247,7 @@ say the wide fraction is flat in [Fe/H] beyond about 250 AU and anticorrelated b
 near [Fe/H] 0 and falls to both sides for 10^3 to 10^4 AU, and [R3298] say the sign depends on separation range
 and temperature. Wide pairs start at 0.25 AU (<code>WIDE_BINARY_SEPARATION_MIN_AU</code>, GEN.448); the outer range, 10 AU and out, carries no trend, and the inner range carries the close-binary one, so the 10 to 200 AU anticorrelation is left out; that is Boss's rule.</li>
 <li><strong>Iron or alpha.</strong> [R2965] find the close fraction follows the alpha abundance more
-steeply than iron, with a high alpha abundance suppressing it at most [Fe/H]. The generator has no alpha abundance. Used with [Fe/H] alone the rule would give the thick disk
+steeply than iron, with a high alpha abundance suppressing it at most [Fe/H]. The generator has no alpha abundance. Used with [Fe/H] alone the rule would give the thick disc
 more close pairs than a high-alpha sample shows. [R: from the abstract only]</li>
 </ul>
 <p>What the pooled line does to each class (chance of a companion inside 10 AU at the Sun's neighbourhood, with the factor on the odds, from the generator's table, all [C]):</p>
@@ -564,7 +564,7 @@ the one the orbital update uses. Where the cell holds only its density, (M / (3 
 mass density (1.9 pc for 0.1 solar masses per pc^3 [C]) and serves as the check.</p>
 <p>The widest axis a wide pair may keep is the smaller of the two (answer 4: a <strong>sharp cut</strong> at a_1/2, a pair wider than that does not exist). It takes the
 place of the fixed 10,000 AU cap (<code>WIDE_BINARY_SEPARATION_MAX_AU</code>, answer 5), as section 6.6 now says: the axis is drawn from the companion lines of Moe and Di Stefano (GEN.448, 3.1) from the 0.25 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 0.25 AU keeps no wide pair: the wide roll then gives the primary alone
-(the pair dissolved), which is the whole effect at the very center. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (<code>companion_classes.odds</code>). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
+(the pair dissolved), which is the whole effect at the very centre. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (<code>companion_classes.odds</code>). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
 model's <code>relative_density</code> times <code>E / edge^3</code> times the cell's mean system mass (<code>galaxy.system_mass</code>, GEN.545; the rows below are worked out at the derived mean, about 0.52, GEN.928), the default perturber mass of 1.19 (GEN.927; 1.01 on the Kroupa mass function, 1.44 before the black holes followed the failed share) and the one-dimensional sigma [C]:</p>
 <div class="table"><table>
 <thead>
@@ -587,7 +587,7 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 <td>13,900 AU</td>
 </tr>
 <tr>
-<td>bulge, 500 pc from the center</td>
+<td>bulge, 500 pc from the centre</td>
 <td>6.9</td>
 <td>120</td>
 <td>387 AU</td>
@@ -595,7 +595,7 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 <td>387 AU</td>
 </tr>
 <tr>
-<td>bulge, 100 pc from the center</td>
+<td>bulge, 100 pc from the centre</td>
 <td>77</td>
 <td>120</td>
 <td>35 AU</td>
@@ -603,7 +603,7 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 <td>35 AU</td>
 </tr>
 <tr>
-<td>10 pc from the center</td>
+<td>10 pc from the centre</td>
 <td>660</td>
 <td>120</td>
 <td>4 AU</td>
@@ -611,7 +611,7 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 <td>4 AU</td>
 </tr>
 <tr>
-<td>2 pc from the center</td>
+<td>2 pc from the centre</td>
 <td>61,000</td>
 <td>150</td>
 <td>under 1 AU</td>
@@ -620,11 +620,11 @@ model's <code>relative_density</code> times <code>E / edge^3</code> times the ce
 </tr>
 </tbody>
 </table></div>
-<p>So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disk's limit
+<p>So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disc's limit
 (13,900 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector holds only tight pairs. The reference density <code>rho_2</code> and sigma come from the profile (<code>gas.mass_solar</code>
 and <code>dark_matter</code> are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
-cell's populations (<code>profile._dispersion_kms</code>: the disk's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest the one-axis <code>tuning.STELLAR_POPULATION_DISPERSION_KMS</code> times root 3, so every value the profile holds is a three-axis total, and <code>place_terms.from_profile</code> divides by root 3 again, GEN.284). The age is the star's own, so a young pair keeps a wider axis than an old one.</p>
+cell's populations (<code>profile._dispersion_kms</code>: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest the one-axis <code>tuning.STELLAR_POPULATION_DISPERSION_KMS</code> times root 3, so every value the profile holds is a three-axis total, and <code>place_terms.from_profile</code> divides by root 3 again, GEN.284). The age is the star's own, so a young pair keeps a wider axis than an old one.</p>
 <h2 id="4-how-the-rules-reach-the-draw">4. How the rules reach the draw</h2>
 <p>Built. The close-pair factor reads the primary's own [Fe/H] (<code>primary_star.metallicity_fe_h</code>), so it needs nothing from the cell.
 The wide-pair limit needs the cell's density and dispersion: <code>place_terms.from_profile(profile)</code> builds a <code>PlaceTerms</code> once per
@@ -705,7 +705,7 @@ result appear together in at least one source result; numbers that rest on a sec
 <tr>
 <td>Gammie criterion, t_cool under 3 / Omega</td>
 <td>not checked</td>
-<td>Standard disk-fragmentation criterion; no source needed for the rule.</td>
+<td>Standard disc-fragmentation criterion; no source needed for the rule.</td>
 </tr>
 <tr>
 <td>Boss's diffusive formula</td>

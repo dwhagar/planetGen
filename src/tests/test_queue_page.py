@@ -20,6 +20,7 @@ from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.queue import commands, progress_rate, redisqueue, runcontrol, runrecord, units
 from planetgen.queue.runrecord import Stage
+from planetgen.util.format import format_duration_seconds
 from planetgen.web import csrf, jobs, queue_page
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient
@@ -237,7 +238,7 @@ def test_clear_finished_deletes_every_finished_run_and_keeps_the_live_one(web_ap
 def test_the_time_left_and_the_progress_read_as_words():
     estimate = {"seconds": 125.0, "stalled": False}
     low, high = progress_rate.eta_range(125.0)
-    assert queue_page._eta_text(estimate, True) == f"{queue_page._duration(low)} to {queue_page._duration(high)}"
+    assert queue_page._eta_text(estimate, True) == f"{format_duration_seconds(low)} to {format_duration_seconds(high)}"
     assert queue_page._eta_text(estimate, False) == ""
     assert queue_page._eta_text({"seconds": None, "stalled": False}, True) == "estimating"
     assert queue_page._eta_text(None, True) == "estimating"
@@ -276,8 +277,8 @@ def test_the_run_page_lists_the_running_units_with_their_beat_counter_phase_and_
     assert "Running units" in html and "3 units: 1 working, 1 slow, 1 quiet" in html
     assert html.index("unit-quiet") < html.index("unit-slow") < html.index("unit-working")
     assert "1,200 of 4,000" in html and "drawing tier 3" in html and "12.5 a second" in html and "812 MB" in html
-    assert "waiting (waiting on gate)" in html and "no counter" in html and "6 m 40 s ago" in html and "to be stopped" in html
-    assert "50.0 s each" in html and "1 h 00 m" in html
+    assert "waiting (waiting on gate)" in html and "no counter" in html and "6.67 minutes ago" in html and "to be stopped" in html
+    assert "50 s each" in html and "1 hour" in html
 
 
 def test_the_run_page_has_no_unit_table_without_running_units_or_once_the_run_is_over(admin_client, conn):
@@ -708,9 +709,80 @@ def test_the_jobs_route_and_the_page_list_the_jobs_that_are_running_by_their_bea
     assert "Jobs running now" not in admin_client.get("/admin/queue").get_data(as_text=True)
 
 
-def test_the_two_duration_formats_stay_apart():
-    """The run, stage, ETA and heartbeat figures use `_duration` ("3 m 05 s", "12.4 s"); only the other-job rows use `_beat_gap` ("4 min"). OPS.142 once defined a second `_duration` that replaced the first at import."""
-    assert queue_page._duration(185) == "3 m 05 s" and queue_page._duration(12.4) == "12.4 s" and queue_page._duration(None) == ""
-    assert queue_page._beat_gap(5) == "5 s" and queue_page._beat_gap(240) == "4 min" and queue_page._beat_gap(7800) == "2 h 10 min"
+def test_no_function_is_defined_twice_and_the_page_has_no_duration_formatter_of_its_own():
+    """OPS.142 once defined a second `_duration` that replaced the first at import; UX.318 removed both `_duration` and `_beat_gap`:
+    every run, stage, ETA, heartbeat and other-job figure is `format_duration_seconds` from the units code."""
+    assert not hasattr(queue_page, "_duration") and not hasattr(queue_page, "_beat_gap") and not hasattr(queue_page, "_mb_text")
     names = [node.name for node in ast.parse(inspect.getsource(queue_page)).body if isinstance(node, ast.FunctionDef)]
     assert len(names) == len(set(names)), "a function is defined twice in web/queue_page.py"
+
+
+# --- OPS.158: what the queue has learned per job kind -----------------------------------------------------------------
+
+@pytest.fixture
+def gate_keys(key_prefix, monkeypatch):
+    from planetgen.queue import memorygate, profileclaim
+    monkeypatch.setattr(memorygate, "PREFIX", f"{key_prefix}:gate")
+    monkeypatch.setenv(profileclaim.ENV_VAR, "1")
+
+
+def test_the_tuning_api_needs_an_admin(web_app):
+    client = web_app.test_client()
+    assert client.get("/api/admin/work/tuning").status_code == 401
+    assert client.post("/api/admin/work/tuning", json={"action": "clear", "kind": "unit:x"}).status_code == 401
+
+
+def test_the_tuning_api_pins_unpins_and_clears_a_kind_and_logs_each(admin_client, control_config, conn, gate_keys):
+    from planetgen.queue import memorygate, profileclaim
+    memorygate.learn(conn, "unit:link-neighbors", 900.0)
+    body = admin_client.post("/api/admin/work/tuning", json={"action": "pin", "kind": "unit:link-neighbors", "mb": 1500}).get_json()
+    (row,) = [r for r in body["kinds"] if r["kind"] == "unit:link-neighbors"]
+    assert row["pinned_mb"] == 1500.0 and row["typed_mb"] > 0 and body["self_tuning"] is True
+    assert body["changes"][0]["what"] == "pin" and body["changes"][0]["new"] == 1500.0
+    assert profileclaim.claim(conn, "unit:link-neighbors", 700.0, token="r1", read_rows=lambda kind: []) == 1500.0
+    assert memorygate.claim_mb(conn, "unit:link-neighbors", 700.0, known={}) == 1500.0
+    assert admin_client.post("/api/admin/work/tuning", json={"action": "unpin", "kind": "unit:link-neighbors"}).status_code == 200
+    assert admin_client.post("/api/admin/work/tuning", json={"action": "unpin", "kind": "unit:link-neighbors"}).status_code == 404
+    assert admin_client.post("/api/admin/work/tuning", json={"action": "clear", "kind": "unit:link-neighbors"}).status_code == 200
+    assert memorygate.learned(conn).get("unit:link-neighbors") is None
+    assert [c["what"] for c in admin_client.get("/api/admin/work/tuning").get_json()["changes"]][:3] == ["clear", "unpin", "pin"]
+    assert {"work.tuning.pin", "work.tuning.unpin", "work.tuning.clear"} <= set(_audit(control_config))
+
+
+@pytest.mark.parametrize("body", [{"action": "pin", "kind": "unit:x"}, {"action": "pin", "kind": "unit:x", "mb": 10}, {"action": "stir", "kind": "unit:x"},
+                                  {"action": "clear", "kind": "no spaces or colons"}, {"action": "clear"}])
+def test_the_tuning_api_refuses_a_bad_ask(admin_client, gate_keys, body):
+    assert admin_client.post("/api/admin/work/tuning", json=body).status_code == 400
+
+
+def test_the_queue_page_shows_the_learned_figures_and_the_latest_changes(admin_client, conn, gate_keys):
+    from planetgen.queue import profileclaim
+    assert "What the queue has learned" not in admin_client.get("/admin/queue").get_data(as_text=True)
+    profileclaim.pin(conn, "unit:link-neighbors", 1500.0, "boss")
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "What the queue has learned" in html and "unit:link-neighbors" in html and "1.5 GB" in html and "fixed by boss" in html
+
+
+def test_the_queue_page_controls_pin_release_and_forget(web_app, admin_client, conn, gate_keys):
+    from planetgen.queue import profileclaim
+    assert _post(web_app, admin_client, action="tuning-pin", kind="unit:link-neighbors", mb="1800").status_code == 303
+    assert profileclaim.pinned_mb(conn, "unit:link-neighbors") == 1800.0
+    assert _post(web_app, admin_client, action="tuning-pin", kind="unit:link-neighbors", mb="").status_code == 303
+    assert profileclaim.pinned_mb(conn, "unit:link-neighbors") == 1800.0
+    _post(web_app, admin_client, action="tuning-unpin", kind="unit:link-neighbors")
+    assert profileclaim.pinned_mb(conn, "unit:link-neighbors") is None
+    _post(web_app, admin_client, action="tuning-clear", kind="unit:link-neighbors")
+    assert profileclaim.changes(conn)[0]["what"] == "clear"
+
+
+def test_a_running_units_own_bar_and_time_left_show_under_its_counter_only_when_it_has_one(admin_client, conn):
+    """PERF.147 in the OPS.139 rows: a unit with a shown `progress` draws the bar macro under its counter, one without draws none."""
+    run_id = _run(conn, queued=False)
+    _publish_unit(conn, run_id, 0, done=300.0, estimate=1000.0,
+                  progress={"show": True, "percent": 30.0, "eta_seconds": 120.0, "source": "running"})
+    _publish_unit(conn, run_id, 1, done=5.0, estimate=10.0, progress={"show": False, "percent": 50.0, "eta_seconds": None, "source": "running"})
+    _publish_unit(conn, run_id, 2, done=1.0, estimate=100.0, progress={"show": True, "percent": 1.0, "eta_seconds": 600.0, "source": "stored"})
+    html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    assert html.count('class="task-bar"') == 2
+    assert "30%, about 2 minutes left" in html and "1%, about 10 minutes left (from earlier runs)" in html
+    assert "50%" not in html

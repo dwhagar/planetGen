@@ -32,7 +32,7 @@ of comets; the H2O line here (135 K) is the disk-density value and `condensate_s
 
 import math
 
-from planetgen.physics import condensate_shares
+from planetgen.physics import condensate_shares, constants
 from planetgen.util.checks import finite_domain
 
 ICE_LINES_K = {"H2O": 135.0, "CO2": 47.0, "CO": 20.0}
@@ -46,8 +46,8 @@ DISK_INDEX = 0.62
 LUMINOSITY_EXPONENT = 0.25
 """float: The disk temperature goes as the star's luminosity to this power (radiative equilibrium: T goes as L^(1/4)). [Stand-in CI2, tier T5, tweak L0.]"""
 
-SOLAR_LUMINOSITY_W = 3.828e26
-"""float: The luminosity the disk profile is for (IAU nominal solar luminosity)."""
+SOLAR_LUMINOSITY_W = constants.SOLAR_LUMINOSITY
+"""float: The luminosity the disk profile is for (the IAU nominal solar luminosity of `constants`)."""
 
 NEBULA_PER_1E4_H = {"H2O": 0.9, "CO2": 0.3, "CO": 1.5}
 """dict: The molecules of each carrier per 10^4 hydrogen atoms in the midplane of a typical disk ([R3322: Table 1]: nO of H2O 0.9, of CO2 0.6 (two atoms: 0.3 molecules), of CO 1.5; from

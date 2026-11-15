@@ -491,3 +491,122 @@ CREATE TABLE IF NOT EXISTS generate_recipe_fields (
     CONSTRAINT fk_generate_recipe_fields_recipe
         FOREIGN KEY (recipe_id) REFERENCES generate_recipes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v22 (OPS.155): what each kind of job costs in memory and time, one row per
+-- finished unit or job, for the self-tuning jobs (docs/design/operations/
+-- self-tuning-jobs.md). `kind` is the memory gate's string (`unit:<command>`,
+-- `cut:<command>`, `api:<ref>`, `fn:<name>`) or `stage:<key>` for a stage.
+-- `size_bucket` is the power of two of `items` (-1 for a job with no items),
+-- so a reader can fit peak = base + slope x items from two buckets. The raw
+-- `mb_per_item` is the peak over the items, base included. The host columns say
+-- which machine shape and generator epoch measured the row. A reading that was
+-- missing or implausible is NULL. Memory, time and processor each have a peak
+-- and an average (a stage's come from its units). Nothing reads the table yet,
+-- and each kind and bucket keeps its newest rows (`planetgen/queue/jobprofiles.py`).
+CREATE TABLE IF NOT EXISTS job_profiles (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    kind              VARCHAR(160) NOT NULL,
+    size_bucket       SMALLINT NOT NULL DEFAULT -1,
+    items             DOUBLE NULL,
+    parts             INT UNSIGNED NOT NULL DEFAULT 1,   -- 1 for a unit or job, the units for a stage
+    seconds           DOUBLE NULL,            -- worked seconds of a unit or job, wall seconds of a stage
+    seconds_peak      DOUBLE NULL,            -- the longest unit of a stage (the unit's own seconds for a unit)
+    seconds_avg       DOUBLE NULL,            -- the mean unit of a stage
+    peak_mb           DOUBLE NULL,
+    avg_mb            DOUBLE NULL,            -- mean of the readings taken while it ran
+    cpu_peak          DOUBLE NULL,            -- cores, the busiest interval
+    cpu_avg           DOUBLE NULL,            -- cores, processor seconds over seconds
+    seconds_per_item  DOUBLE NULL,
+    mb_per_item       DOUBLE NULL,
+    outcome           VARCHAR(16) NOT NULL DEFAULT 'done',
+    host_memory_mb    INT UNSIGNED NOT NULL,
+    host_cores        SMALLINT UNSIGNED NOT NULL,
+    buffer_pool_mb    INT UNSIGNED NULL,
+    generator_epoch   SMALLINT UNSIGNED NULL,
+    recorded_at       DATETIME(6) NOT NULL,
+
+    KEY idx_job_profiles_kind (kind, size_bucket, id),
+    CONSTRAINT chk_job_profiles_outcome CHECK (outcome IN ('done', 'killed_memory', 'timed_out', 'stuck'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v23 (OPS.215), made again in v24 with the state spelled `canceled` (the v23 tables had no rows and are dropped by `store._drop_engine_ledger_v23`): the job engine's ledger (docs/design/operations/job-engine.md,
+-- `planetgen/queue/ledger.py`). The rows are the truth about what ran: a plan,
+-- the jobs it holds and every attempt at each. Nothing reads them until the
+-- supervisor (OPS.207) and the plan-as-rows item (OPS.221) are merged, so
+-- nothing changes on a run today. A galaxy's own database holds the other half,
+-- `engine_items` (galaxy schema v259+), where a job's commits and its done mark
+-- are one transaction.
+--
+-- `engine_runs`: one row per run. `galaxy` is the database name the run writes to
+-- (NULL for a run that writes no galaxy). `state` is waiting (planned, nothing
+-- dispatched), running, held (`held_reason` says why), done or canceled.
+CREATE TABLE IF NOT EXISTS engine_runs (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    kind          VARCHAR(64) NOT NULL,
+    galaxy        VARCHAR(64) NULL,
+    state         VARCHAR(16) NOT NULL DEFAULT 'waiting',
+    held_reason   VARCHAR(255) NULL,
+    created_at    DATETIME(6) NOT NULL,
+    started_at    DATETIME(6) NULL,
+    finished_at   DATETIME(6) NULL,
+
+    KEY idx_engine_runs_state (state, id),
+    KEY idx_engine_runs_galaxy (galaxy, id),
+    CONSTRAINT chk_engine_runs_state CHECK (state IN ('waiting', 'running', 'held', 'done', 'canceled'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- `engine_jobs`: one row per job of a run. `stage` and `command` say what it is
+-- and `item_key` which part of the stage it does ('' for a job that is the whole
+-- stage), so a job has one row however many times its stage is cut again.
+-- `arguments`, `needs` and `makes` are JSON text. `job_class` is the admission
+-- class, `claim_mb` and `tokens` what it asks of the gate. `attempt` is the
+-- number of the newest attempt (0 before the first); the supervisor raises it
+-- when it hands the job out. `not_before` holds a retry back, `waited` is the last
+-- reason the job was not started.
+CREATE TABLE IF NOT EXISTS engine_jobs (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    run_id        BIGINT UNSIGNED NOT NULL,
+    stage         VARCHAR(64) NOT NULL,
+    command       VARCHAR(64) NOT NULL,
+    item_key      VARCHAR(160) NOT NULL DEFAULT '',
+    arguments     MEDIUMTEXT NULL,
+    needs         TEXT NULL,
+    makes         TEXT NULL,
+    job_class     VARCHAR(32) NOT NULL DEFAULT 'bulk',
+    claim_mb      INT UNSIGNED NULL,
+    tokens        SMALLINT UNSIGNED NULL,
+    state         VARCHAR(16) NOT NULL DEFAULT 'waiting',
+    attempt       INT UNSIGNED NOT NULL DEFAULT 0,
+    not_before    DATETIME(6) NULL,
+    waited        VARCHAR(255) NULL,
+    created_at    DATETIME(6) NOT NULL,
+    updated_at    DATETIME(6) NOT NULL,
+
+    UNIQUE KEY uq_engine_jobs_item (run_id, stage, command, item_key),
+    KEY idx_engine_jobs_state (state, not_before, id),
+    CONSTRAINT fk_engine_jobs_run FOREIGN KEY (run_id) REFERENCES engine_runs (id) ON DELETE CASCADE,
+    CONSTRAINT chk_engine_jobs_state CHECK (state IN ('waiting', 'ready', 'running', 'done', 'failed', 'canceled'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- `engine_attempts`: one row per attempt at a job, written when the attempt is
+-- handed out and finished when it ends. History that did not exist before: the
+-- process, times, how it ended, its peak memory and processor seconds, and for a
+-- failure the error kind, its text and the stack file the process left.
+CREATE TABLE IF NOT EXISTS engine_attempts (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    job_id        BIGINT UNSIGNED NOT NULL,
+    attempt       INT UNSIGNED NOT NULL,
+    pid           INT UNSIGNED NULL,
+    started_at    DATETIME(6) NOT NULL,
+    ended_at      DATETIME(6) NULL,
+    outcome       VARCHAR(16) NOT NULL DEFAULT 'running',
+    peak_mb       DOUBLE NULL,
+    cpu_seconds   DOUBLE NULL,
+    error_kind    VARCHAR(64) NULL,
+    error_text    TEXT NULL,
+    stack_file    VARCHAR(255) NULL,
+
+    UNIQUE KEY uq_engine_attempts_job (job_id, attempt),
+    CONSTRAINT fk_engine_attempts_job FOREIGN KEY (job_id) REFERENCES engine_jobs (id) ON DELETE CASCADE,
+    CONSTRAINT chk_engine_attempts_outcome CHECK (outcome IN ('running', 'done', 'failed', 'killed_memory', 'timed_out', 'stuck', 'replaced', 'lost'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -197,3 +197,33 @@ def test_phosphorus_monoxide_and_nitride_carry_the_phosphorus_of_a_hot_air_below
     hot = ge.solve({"H": 1.0, "N": 1e-3, "O": 1e-3, "P": 1e-6}, 4500.0, 1.0)
     carriers = {name for name in hot.moles if "P" in st.SPECIES[name].elements}
     assert {"P", "PO"} <= carriers
+
+
+_DEEP_HOT_AIR = {"C": 0.0025434015400156223, "N": 8.91890392735706e-05, "S": 9.7e-09, "Ar": 1.34e-08}
+"""GEN.1613: the elements of a failing air of the GEN.1580 census (seed 2065): a carbon dioxide air under a 4,000 K surface and 9,255 bar."""
+
+
+def test_a_held_oxygen_fugacity_over_the_pressure_is_lowered_when_the_solve_cannot_settle(caplog):
+    """GEN.1613: 10^4.1 bar of oxygen in 9,255 bar never settles in an ideal gas; the solve is made again at `MAX_HELD_O2_SHARE` of the pressure and says so."""
+    import logging
+    with pytest.raises(ge.EquilibriumError):
+        ge._with_fewer_trace_elements(_DEEP_HOT_AIR, 3981.5, 9255.38, 4.108, None)
+    with pytest.raises(ge.EquilibriumError):         # the option is off by default: a gas whose pressure is free raises it instead (`mixture_lava.carbon_gas`)
+        ge.solve(_DEEP_HOT_AIR, 3981.5, 9255.38, fixed_o2_log_fugacity=4.108)
+    with caplog.at_level(logging.INFO):
+        result = ge.solve(_DEEP_HOT_AIR, 3981.5, 9255.38, fixed_o2_log_fugacity=4.108, lower_held_o2=True)
+    assert result.clamped_o2_log_fugacity == 4.108
+    assert result.mole_fractions["O2"] == pytest.approx(ge.MAX_HELD_O2_SHARE, rel=1e-6)
+    assert "Held oxygen" in caplog.text
+
+
+def test_a_held_oxygen_fugacity_the_solve_settles_at_is_kept():
+    """GEN.1613: only a solve that fails is lowered; one that settles keeps the value it was given."""
+    result = ge.solve(_DEEP_HOT_AIR, 3981.5, 9255.38, fixed_o2_log_fugacity=3.5)
+    assert result.clamped_o2_log_fugacity is None
+    assert result.mole_fractions["O2"] == pytest.approx(10 ** 3.5 / 9255.38, rel=1e-6)
+
+
+def test_an_unheld_solve_that_fails_still_raises():
+    with pytest.raises(ge.EquilibriumError):
+        ge.solve({"Xx": 1.0}, 1000.0, 1.0)

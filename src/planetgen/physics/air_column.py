@@ -21,7 +21,7 @@ from dataclasses import dataclass
 
 from planetgen.physics import atmosphere, constants, gases
 
-AVOGADRO = 6.02214076e23
+AVOGADRO = constants.AVOGADRO
 """float: Molecules per mole (the 2019 SI value)."""
 
 

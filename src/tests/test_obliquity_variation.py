@@ -23,7 +23,7 @@ def _earth(with_moon):
     ellipticity = ov.dynamical_ellipticity(5.972e24, 6.371e6, 7.292e-5, 0.3307)
     torquers = [ov.Torquer(SUN, 1.0 * AU, 0.0167)] + ([MOON] if with_moon else [])
     alpha = ov.precession_constant_rad_yr(ellipticity, 7.292e-5, torquers)
-    return alpha, ov.sibling_modes(EARTH, A_AU, MASS, SUN, INCLINATION, NODE)
+    return alpha, ov.all_sibling_modes(A_AU, MASS, SUN, INCLINATION, NODE)[EARTH]
 
 
 def test_the_fluid_love_number_and_ellipticity_of_the_earth_are_the_measured_ones_to_a_few_percent():
@@ -45,7 +45,7 @@ def test_the_nodal_modes_of_the_solar_system_are_the_laplace_lagrange_ones():
     frequencies = sorted(f * ov.ARCSEC_PER_RAD for f in secular_chain._modes(B)[0])
     assert frequencies[0] == pytest.approx(-25.7, abs=1.0) and frequencies[1] == pytest.approx(-18.7, abs=1.0)
     assert frequencies[-2] == pytest.approx(-0.7, abs=0.3)                       # s1 to s8 of Laskar: -5.6, -7.1, -17.7, -18.8, -26.3 (first order, eight bodies)
-    assert all(abs(m.frequency_rad_yr) > ov.MODE_FLOOR_RAD_YR for m in ov.sibling_modes(EARTH, A_AU, MASS, SUN, INCLINATION, NODE))
+    assert all(abs(m.frequency_rad_yr) > ov.MODE_FLOOR_RAD_YR for m in ov.all_sibling_modes(A_AU, MASS, SUN, INCLINATION, NODE)[EARTH])
 
 
 def test_the_earth_with_its_moon_stays_inside_a_degree_or_so_of_its_measured_range():
@@ -68,7 +68,7 @@ def test_the_earth_without_its_moon_swings_several_times_as_far():
 
 def test_mars_at_its_measured_ellipticity_sits_inside_a_resonance_with_a_wide_swing():
     alpha = ov.precession_constant_rad_yr(0.0048, 7.088e-5, [ov.Torquer(SUN, 1.5237 * AU, 0.0934)])
-    variation = ov.analyse(alpha, 25.19, ov.sibling_modes(MARS, A_AU, MASS, SUN, INCLINATION, NODE))
+    variation = ov.analyse(alpha, 25.19, ov.all_sibling_modes(A_AU, MASS, SUN, INCLINATION, NODE)[MARS])
     assert variation.resonant and variation.maximum_deg - variation.minimum_deg > 15.0          # the full theory finds it chaotic, 0 to 60: this is the lower bound
 
 
@@ -84,10 +84,10 @@ def test_two_resonances_close_enough_to_overlap_make_the_zone_chaotic_and_far_ap
     alpha = 1.0e-4
     near = (ov.Mode(-0.50e-4, math.radians(1.0)), ov.Mode(-0.56e-4, math.radians(1.0)))
     far = (ov.Mode(-0.20e-4, math.radians(0.2)), ov.Mode(-0.85e-4, math.radians(0.2)))
-    centre = math.degrees(math.acos(0.53))
-    chaotic = ov.analyse(alpha, centre, near)
+    center = math.degrees(math.acos(0.53))
+    chaotic = ov.analyse(alpha, center, near)
     assert chaotic.chaotic and chaotic.resonant
-    assert chaotic.minimum_deg < centre < chaotic.maximum_deg
+    assert chaotic.minimum_deg < center < chaotic.maximum_deg
     lone = ov.analyse(alpha, math.degrees(math.acos(0.2)), far)
     assert lone.resonant and not lone.chaotic
     assert not ov.analyse(alpha, 5.0, far).resonant
@@ -96,7 +96,7 @@ def test_two_resonances_close_enough_to_overlap_make_the_zone_chaotic_and_far_ap
 def test_the_resonance_sits_where_the_axis_rate_matches_the_node_rate_and_its_width_follows_the_pendulum():
     alpha, mode = 1.0e-4, ov.Mode(-4.0e-5, math.radians(1.0))
     (resonance,) = ov.resonances_of(alpha, (mode,))
-    assert resonance.cos_centre == pytest.approx(0.4)
+    assert resonance.cos_center == pytest.approx(0.4)
     sine = math.sqrt(1.0 - 0.16)
     assert resonance.cos_half_width == pytest.approx(2.0 * math.sqrt(2.0 * math.radians(1.0) * 4.0e-5 * sine / alpha))
     assert ov.resonances_of(alpha, (ov.Mode(-2.0e-4, 0.01),)) == ()          # |s| above alpha: no tilt meets it

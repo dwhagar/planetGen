@@ -25,17 +25,23 @@
 {%- endif %}
 <section class="panel" id="member-body" aria-labelledby="member-body-heading">
   <div class="panel-header"><h2 id="member-body-heading">The body</h2></div>
-  <p>This body has a designation, not a name. It is number {{ member.rank }} by mass among the {{ belt.individual_count }} bodies its belt keeps one by one, and holds
-     {{ "%.3g"|format(share * 100) }} percent of the belt's mass.</p>
+  <p>This body has a designation, not a name. It is number {{ member.rank }} by mass among the {{ "{:,}".format(belt.class_d_count) }} bodies of its belt that are the size of a class D body or larger ({{ belt.individual_count }} of them kept one by one, the
+     rest made when asked for), and holds {{ "%.3g"|format(share * 100) }} percent of the belt's mass.</p>
   <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
     <tbody>
       <tr><th scope="row">Belt</th><td><a href="{{ belt_url }}">{{ name }}</a> (<a href="{{ belt_info_url }}">all its bodies</a>)</td></tr>
       <tr><th scope="row">Shape</th><td>{{ member.status.word or "" }}</td></tr>
+      {%- if planet %}<tr><th scope="row">Class</th><td>Class {{ planet.class }}: {{ planet.class_text }}</td></tr>{% endif %}
       <tr><th scope="row">Mass</th><td>{{ quantity(member.mass) }}</td></tr>
       <tr><th scope="row">Diameter</th><td>{{ quantity(member.diameter) }}</td></tr>
       <tr><th scope="row">Density</th><td>{{ quantity(member.density) }}</td></tr>
       <tr><th scope="row">Type</th><td>{{ member.analogue }} ({{ member.taxon }})</td></tr>
       <tr><th scope="row">Made of</th><td>{{ composition_text }}</td></tr>
+      {%- if planet %}
+      <tr><th scope="row">Surface temperature</th><td>{{ quantity(planet.surface_temperature) }}</td></tr>
+      <tr><th scope="row">Surface gravity</th><td>{{ quantity(planet.gravity) }}</td></tr>
+      <tr><th scope="row">Air pressure</th><td>{{ quantity(planet.surface_pressure) }}</td></tr>
+      {%- endif %}
       {%- if member.population %}<tr><th scope="row">Orbit group</th><td>{{ member.population|replace("_", " ") }}</td></tr>{% endif %}
     </tbody>
   </table></div>

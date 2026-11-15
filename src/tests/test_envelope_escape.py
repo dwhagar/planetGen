@@ -101,3 +101,12 @@ def test_a_planet_younger_than_the_onset_never_asks_for_a_ratio():
         raise AssertionError("no loss before the onset")
 
     assert ee.envelope_left_earth(6.0, 0.05, 15.0, host_mass_solar=1.0, luminosity_solar=1.0, age_gy=0.5, radius_ratio=ratio) > 0.0
+
+
+def test_the_trace_is_the_history_of_the_envelope_and_changes_no_result():
+    plain = ee.envelope_left_earth(6.0, 0.05, 15.0, **SUN)
+    trace = []
+    assert ee.envelope_left_earth(6.0, 0.05, 15.0, trace=trace, **SUN) == plain       # GEN.1527
+    assert trace[0] == (ee.ONSET_GY, pytest.approx(0.05 * 6.0 / 0.95)) and trace[-1][0] == pytest.approx(SUN["age_gy"])
+    assert all(later[1] <= earlier[1] and later[0] > earlier[0] for earlier, later in zip(trace, trace[1:]))
+    assert trace[-1][1] == pytest.approx(plain)

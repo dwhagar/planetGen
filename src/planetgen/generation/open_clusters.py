@@ -63,6 +63,17 @@ def _disk_population(age_gy):
     return np.where(np.asarray(age_gy) < tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY, 0, 1)
 
 
+def _kappa_per_myr(pot, radius_pc):
+    """The epicyclic frequency, per Myr, of the galaxy's own rotation curve `pot` at `radius_pc` (GEN.339)."""
+    return cluster_maximum_mass.epicyclic_frequency_per_myr(
+        float(potential.circular_speed_kms(pot, radius_pc)), radius_pc, potential.circular_speed_slope_kms_per_pc(pot, radius_pc))
+
+
+def _symmetric_unit(stream, count):
+    """`count` draws uniform on (-1, 1), kept off the ends."""
+    return np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12)
+
+
 def _disk_maximum_masses(found, radii, efficiency, pot):
     """
     The most massive cluster each cell of the formation table can form, solar masses (`physics.cluster_maximum_mass`, GEN.1196):
@@ -70,8 +81,7 @@ def _disk_maximum_masses(found, radii, efficiency, pot):
     radius (`pot`, GEN.339), the cell's bound share (its cluster formation efficiency) and the disk's gas
     dispersion (`tuning.DISK_GAS_DISPERSION_KMS`). A ring with no gas forms none above the least the mass function holds.
     """
-    kappa = np.array([cluster_maximum_mass.epicyclic_frequency_per_myr(
-        potential.circular_speed_kms(pot, float(r)), float(r), potential.circular_speed_slope_kms_per_pc(pot, float(r))) for r in radii])
+    kappa = np.array([_kappa_per_myr(pot, float(r)) for r in radii])
     gas = np.asarray(found.gas_now, dtype=float)
 
     def cap(ring, bound):
@@ -135,7 +145,7 @@ def _place(stream, radius_pc, age_gy, shape):
     young = age_gy < tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY
     ratio = galaxy_density.population_height_ratios(shape)
     height = shape.disk_scale_height_pc * np.where(young, ratio["young"], ratio["intermediate"])
-    u = np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12)
+    u = _symmetric_unit(stream, count)
     z = -np.sign(u) * height * np.log1p(-np.abs(u))      # the inverse of the profile's two-sided distribution
     phase = _arm_phase(radius_pc, shape)
     arms = max(int(shape.arm_count), 1)
@@ -190,8 +200,7 @@ def _ring_maximum_mass_sol(pot, core):
     """
     if core.rate_msun_yr <= 0.0 or core.gas_surface_density_msun_pc2 <= 0.0:
         return tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
-    speed = float(potential.circular_speed_kms(pot, core.radius_pc))
-    kappa = cluster_maximum_mass.epicyclic_frequency_per_myr(speed, core.radius_pc, potential.circular_speed_slope_kms_per_pc(pot, core.radius_pc))
+    kappa = _kappa_per_myr(pot, core.radius_pc)
     return cluster_maximum_mass.maximum_cluster_mass_sol(core.gas_surface_density_msun_pc2, kappa, core.bound_share,
                                                          tuning.CORE_RING_GAS_DISPERSION_KMS)
 
@@ -210,7 +219,7 @@ def _core_ring(stream, shape, core, pot, max_mass_sol=None):
     age = np.maximum(stream.random_array(count) * span_gy, 1.0e-9)
     radius = np.abs(core.radius_pc + core.sigma_pc * _normal(stream, count))
     phi = stream.random_array(count) * 2.0 * math.pi
-    z = 2.0 * core.height_pc * np.arctanh(np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12))
+    z = 2.0 * core.height_pc * np.arctanh(_symmetric_unit(stream, count))
     row = tuning.METALLICITY_BY_POPULATION["nuclear_disk"]
     fe_h = np.clip(row["offset"] + row["sigma"] * _normal(stream, count), *tuning.METALLICITY_RANGE_FE_H)
     speed = potential.circular_speed_kms(pot, radius)

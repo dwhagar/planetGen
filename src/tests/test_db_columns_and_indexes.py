@@ -33,6 +33,8 @@ PROSE_TEXT_COLUMNS = {
     # GEN.1069 and GEN.1232: what formed a belt (causes, sentences, scatter fates as JSON text) and what its star's evolution did to it
     ("asteroid_belts", "co_causes"), ("asteroid_belts", "history_text"), ("asteroid_belts", "origin_history"),
     ("asteroid_belts", "origin_sentence"), ("asteroid_belts", "scatter_fates"),
+    # DB.124: what a belt or a comet is made of, as the draw gave it, as a JSON document
+    ("asteroid_belts", "makeup"), ("comets", "makeup"),
     # GEN.1103: the sentence of where an asteroid field came from
     ("asteroid_fields", "history"),
     # GEN.1111: a rogue planet keeps the air text of a planet and the sentence of where it came from
@@ -56,6 +58,8 @@ PROSE_TEXT_COLUMNS = {
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
     # OPS.58: the generator battery's digest per case and the environment record, as JSON documents read whole
     ("galaxy_shape", "battery_cases"), ("version_key_history", "battery_cases"), ("version_key_history", "environment"),
+    # OPS.181: a job's arguments and what it needs and makes as JSON lists, and the text of an attempt's error
+    ("engine_jobs", "arguments"), ("engine_jobs", "needs"), ("engine_jobs", "makes"), ("engine_attempts", "error_text"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 

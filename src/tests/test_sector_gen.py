@@ -365,8 +365,10 @@ def test_generate_sector_real_capacity_overflow_returns_a_partial_sector(monkeyp
     # planet/moon generation) without touching the real placement logic
     # this test actually cares about. The spacing follows the galaxy's mass inside the
     # star's radius (GEN.370), wider the lighter the galaxy: at 1.15e12 solar masses 4 of 390 draws still fit all 120 (TEST.245), at
-    # 1.15e11 (a test value) 200 of 200 held 8 to 26, so the overflow does not depend on the draw.
-    monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e11 * constants.SOLAR_MASS_TO_KG)
+    # 1.15e11 (a test value) 200 of 200 held 8 to 26, so the overflow does not depend on the draw. Since GEN.1534 the placement keeps a twentieth
+    # of the Hill spheres' sum apart, not a half (fitted to the Gaia neighbours), so the same 120 systems fit at 1.15e11 and at 1.15e9; the test
+    # galaxy is lighter still, 1.15e7 solar masses (a test value), where the Hill spheres are wide again and 200 of 200 draws held 5 to 19.
+    monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e7 * constants.SOLAR_MASS_TO_KG)
     args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
     # at the Milky Way's 8.128 kpc, where the Hill spheres are as wide as the test was set for
     _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(mathcheck.SUN_REFERENCE_RADIUS_PC))

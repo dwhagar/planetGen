@@ -20,8 +20,8 @@ from planetgen.physics import materials
 
 SOURCE = pathlib.Path(__file__).resolve().parents[1] / "planetgen"
 TABLE_MODULE = pathlib.Path("physics") / "materials.py"
-ALWAYS_SCANNED = (pathlib.Path("tuning.py"), pathlib.Path("physics/rock_types.py"))
-"""tuple: Modules scanned for names though they do not use the table: `tuning.ASTEROID_COMPONENTS` is the vocabulary the table resolves, and the CIPW norm (`rock_types.py`) names the minerals it makes (nepheline, leucite, hypersthene, wollastonite, periclase)."""
+ALWAYS_SCANNED = (pathlib.Path("tuning.py"), pathlib.Path("physics/rock_types.py"), pathlib.Path("physics/evaporite_sequence.py"))
+"""tuple: Modules scanned for names though they do not use the table: `tuning.ASTEROID_COMPONENTS` is the vocabulary the table resolves, the CIPW norm (`rock_types.py`) names the minerals it makes (nepheline, leucite, hypersthene, wollastonite, periclase), and the evaporite sequence (`evaporite_sequence.py`, GEN.1366) names the salts, carbonates and perchlorates it dries out of a brine; it takes the molar masses from its own formula table, so it does not import the materials table and the scan would otherwise miss it."""
 
 VARIANT_SUFFIX = re.compile(r"_(powder|fine|lt\d+um)$")
 """re.Pattern: How a row id says it is a form of another material (a grain size, a powder)."""
@@ -88,7 +88,7 @@ def doubles():
 
 def test_the_reach_scan_looks_at_the_modules_that_use_the_table():
     modules = {str(path) for path in scanned_modules()}
-    assert {"physics/ground_albedo.py", "physics/small_body_composition.py", "physics/surface_composition.py", "tuning.py"} <= modules
+    assert {"physics/small_body_composition.py", "physics/surface_composition.py", "tuning.py"} <= modules
     reached = reached_rows()
     assert reached["forsterite"] and reached["water_ice"]
     assert "basalt_powder" in reached

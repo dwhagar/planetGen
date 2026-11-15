@@ -19,8 +19,8 @@ fixed and is part of the generator epoch:
    masses, a moon, a body whose heavy elements outweigh what the tables hold).
 4. **The interior** (`giant_interior.draw_interior`): the layers, whose whole-body totals are the body's bulk composition.
 
-The star's age is final only after the planets are (`Star.adjust_age_for_planets`), so a table radius is drawn at a provisional age and
-`settle` takes it again once the age and the orbit are final (GEN.961); the interior, which is made to that radius, is drawn again
+The star's age is fixed when the star is made (GEN.1546), so a table radius is drawn at the final age and
+`settle` takes it again only when the orbit has moved (GEN.961); the interior, which is made to that radius, is drawn again
 with it.
 
 The one-bar temperature that decides helium rain is the effective temperature (starlight and the planet's own heat) times
@@ -30,12 +30,10 @@ The one-bar temperature that decides helium rain is the effective temperature (s
 import math
 
 from planetgen import tuning
-from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, composition_text, constants, giant_interior, giant_radius,
-                               orbit_elements, rogue_surface)
+from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, composition_text, constants, eclipses, giant_interior,
+                               giant_radius, orbit_elements, radiation_field, rogue_surface, unit_registry as units)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
-from planetgen.physics import eclipses, radiation_field
-from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 
@@ -94,7 +92,7 @@ def starlight_w_m2(planet):
     """The starlight at a planet (not a moon), W/m2; `None` for a moon, which does not carry its parent's distance."""
     if planet.is_moon:
         return None
-    return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM) * (eclipses.light_factor_of(planet) or 1.0)       # GEN.1484
+    return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM) * eclipses.kept_share(eclipses.light_factor_of(planet))       # GEN.1484
 
 
 def own_flux_w_m2(planet):
@@ -144,7 +142,10 @@ def _table_radius_km(mass_earth, core_earth, flux_w_m2, age_gy):
 
 
 def _ice_shares(planet, regime):
-    if planet.is_moon or planet.distance < planet.star.snow_line_au:
+    """The ices a giant's interior holds: those of a giant that formed beyond its star's snow line, by where it formed and not where it orbits now (GEN.1606), none for a star with no line."""
+    line = getattr(planet.star, "snow_line_au", None)
+    formed = getattr(planet, "formation_distance_au", None)
+    if planet.is_moon or line is None or (planet.distance if formed is None else formed) < line:
         return {}
     low, high = WATER_SHARE_OF_HEAVY[regime]
     water = draw.uniform(low, high)
@@ -219,12 +220,10 @@ def _store_body(planet, mass_earth, ratios, regime, heavy_earth, envelope_z, flu
         setattr(planet, attribute, value)
 
 
-def settle_stream(planet, drawn):
+def settle_stream(planet):
     """The stream a settled giant's interior is drawn from: its own, keyed by what it is once the star's age is final (the run's stream
-    is not touched, so nothing drawn after it moves). The key is the giant's mass, distance, star and the age and radius it settles
-    from, which no other giant shares."""
-    return draw.Stream(f"settle-giant:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
-                       f"{float(planet.star.age)!r}:{drawn.radius_km!r}")
+    is not touched, so nothing drawn after it moves). The key is the giant's mass, formation distance and star mass (GEN.1547), which no other giant shares."""
+    return draw.body_stream_of("settle-giant", planet)      # GEN.1547: the giant's birth numbers alone; the radius it settles from is no part of the key
 
 
 def settle(planet):
@@ -232,8 +231,8 @@ def settle(planet):
     Takes a table-sized giant's radius again at the star's final age and the mean light of the orbit, and draws its interior again to it
     (GEN.961, GEN.976).
 
-    A giant is drawn when the star's age is provisional, and the eccentricity it is lit by comes after the radius; the age rises when the
-    planets are in (`Star.adjust_age_for_planets`) and the table radius falls with it, by up to 9 percent. The radius is the tables' (no
+    A giant is drawn at the star's final age, and the eccentricity it is lit by comes after the radius; the eccentricity settles when the
+    planets are in and the light of the orbit moves with it, so the table radius moves, by up to 9 percent. The radius is the tables' (no
     draw) at the age now and the light of `orbit_elements.flux_distance_au`. A giant that the tables moved by under `SETTLE_TOLERANCE`, one
     sized any other way and a moon are left as drawn. Otherwise the radius, the volume, the density and the gravity are set again, and the
     interior (the layers, the bulk composition and the text) is drawn from `settle_stream`. The star's ratios, the envelope's Z and the
@@ -253,11 +252,11 @@ def settle(planet):
     light_au = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)
     flux_w_m2 = climate_draws.starlight_w_m2(planet.star.luminosity, light_au * constants.AU_TO_KM) \
         + radiation_field.companion_light_w_m2(planet.star, light_au)       # GEN.1441: the other stars' light too
-    flux_w_m2 *= eclipses.light_factor_of(planet) or 1.0       # GEN.1484: a circumbinary giant keeps the share its two stars' eclipses leave
+    flux_w_m2 *= eclipses.kept_share(eclipses.light_factor_of(planet))       # GEN.1484: a circumbinary giant keeps the share its two stars' eclipses leave
     radius_km = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
     if abs(radius_km - drawn.radius_km) <= SETTLE_TOLERANCE * drawn.radius_km:
         return False
-    stream = settle_stream(planet, drawn)
+    stream = settle_stream(planet)
     planet.radius = radius_km
     with draw.bound(stream):
         _store_body(planet, mass_earth, drawn.ratios, regime, drawn.heavy_earth, drawn.envelope_z, flux_w_m2)

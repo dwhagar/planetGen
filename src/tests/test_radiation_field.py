@@ -54,7 +54,7 @@ def test_an_eccentric_companion_averages_to_more_light_than_a_circular_one_of_th
     eccentric = rf.companion_share(with_companion(star(), star(), 6.0, 0.5), 1.0)
     assert eccentric > circular
     point_mass = 1.0 / (6.0 ** 2 * math.sqrt(1.0 - 0.5 ** 2)) * 1.0 ** 2
-    assert eccentric == pytest.approx(point_mass, rel=0.10), "close to the 1 / (a^2 sqrt(1 - e^2)) of `planet_zones.flux_at` where the planet is far inside"
+    assert eccentric == pytest.approx(point_mass, rel=0.10), "close to the 1 / (a^2 sqrt(1 - e^2)) of a point mass on the orbit where the planet is far inside"
 
 
 def test_the_average_matches_a_brute_force_average_over_both_orbits():

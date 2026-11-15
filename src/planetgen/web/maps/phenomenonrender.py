@@ -72,7 +72,7 @@ def _params(phenomenon_type, detail):
         real_s = (detail.get("spin_period_ms") or 1000.0) / 1000
         shown_s = shown_spin_period_s(detail.get("spin_period_ms"))
         caption = (f"One turn every {format_duration_seconds(real_s)} in reality, slowed here to "
-                   f"one every {shown_s:.1f} s (about {format_number(shown_s / real_s)} times slower).")
+                   f"one every {format_duration_seconds(shown_s)} (about {format_number(shown_s / real_s)} times slower).")
         if pulsing:
             caption += " Each flash is a radio beam sweeping past you."
         else:

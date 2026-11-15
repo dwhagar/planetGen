@@ -209,10 +209,12 @@ def _type_dict(row, fields, facility_count):
     return found
 
 
+_FIELD_SELECT = f"SELECT {', '.join('`' + c + '`' for c in _FIELD_COLUMNS)} FROM facility_type_fields"
+"""str: The SELECT of every `_FIELD_COLUMNS` column of `facility_type_fields` (the columns are quoted: `key` is a reserved word)."""
+
+
 def _raw_fields(conn, type_id):
-    return conn.execute(
-        f"SELECT {', '.join('`' + c + '`' for c in _FIELD_COLUMNS)} FROM facility_type_fields WHERE type_id = ? "
-        "ORDER BY sort_order, id", (type_id,)).fetchall()
+    return conn.execute(f"{_FIELD_SELECT} WHERE type_id = ? ORDER BY sort_order, id", (type_id,)).fetchall()
 
 
 def definition_fields(conn, type_id):
@@ -242,16 +244,15 @@ def list_types(conn, kind=None, active_only=False):
         f"SELECT {', '.join(_TYPE_COLUMNS)} FROM facility_types"
         + (f" WHERE {' AND '.join(where)}" if where else "") + " ORDER BY sort_order, name, id", params).fetchall()
     fields = {}
-    for row in conn.execute(
-            f"SELECT {', '.join('`' + c + '`' for c in _FIELD_COLUMNS)} FROM facility_type_fields "
-            "ORDER BY sort_order, id").fetchall():
+    for row in conn.execute(f"{_FIELD_SELECT} ORDER BY sort_order, id").fetchall():
         fields.setdefault(row["type_id"], []).append(_field_dict(row))
     counts = {row["type_id"]: row["n"] for row in conn.execute(
         "SELECT type_id, COUNT(*) AS n FROM facilities WHERE type_id IS NOT NULL GROUP BY type_id").fetchall()}
     return [_type_dict(row, fields.get(row["id"], []), counts.get(row["id"], 0)) for row in rows]
 
 
-def _require_type(conn, type_id):
+def require_type(conn, type_id):
+    """`get_type`, or `FacilityTypeError` 404 for an unknown type."""
     found = get_type(conn, type_id)
     if found is None:
         raise FacilityTypeError(f"no such facility type: {type_id}", status=404)
@@ -301,7 +302,7 @@ def update_type(conn, type_id, changes):
         FacilityTypeError: 404 for an unknown type, 409 for a name already taken or a new kind while facilities
             use the type (a facility's kind and its type must agree).
     """
-    found = _require_type(conn, type_id)
+    found = require_type(conn, type_id)
     cleaned = _clean_type(changes, existing=found)
     if cleaned["kind"] != found["kind"] and found["facilities"]:
         raise FacilityTypeError(f"{found['facilities']} facilities use this type, so its kind stays "
@@ -321,7 +322,7 @@ def delete_type(conn, type_id):
     Raises:
         FacilityTypeError: 404 for an unknown type; 409 while facilities use it (make it inactive instead).
     """
-    found = _require_type(conn, type_id)
+    found = require_type(conn, type_id)
     if found["facilities"]:
         raise FacilityTypeError(f"{found['facilities']} facilities use this type; set it inactive instead of "
                                 "deleting it", status=409)
@@ -344,7 +345,7 @@ def _values_exist(conn, field_id):
 
 def add_field(conn, type_id, spec):
     """Adds one field to a type; returns its id. 409 for a key already on the type or a 25th field."""
-    found = _require_type(conn, type_id)
+    found = require_type(conn, type_id)
     field = _clean_field(spec)
     if len(found["fields"]) >= MAX_FIELDS:
         raise FacilityTypeError(f"a type has at most {MAX_FIELDS} fields", status=409)
@@ -380,7 +381,7 @@ def update_field(conn, type_id, field_id, changes):
     `sort_order`, `datatype`). The key never changes. While facilities hold values for the field, its datatype
     stays, no option in use is dropped and no stored number falls outside a narrowed range (409).
     """
-    found = _require_type(conn, type_id)
+    found = require_type(conn, type_id)
     old = next((field for field in found["fields"] if field["id"] == field_id), None)
     if old is None:
         raise FacilityTypeError(f"no such field {field_id} on facility type {type_id}", status=404)

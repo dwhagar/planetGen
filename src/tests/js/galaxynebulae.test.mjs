@@ -12,7 +12,7 @@ const looks = L.NEBULA_LOOKS;
 const block = { m: 81, shell: 4, band: 1, wedge: 2 };
 
 const region = (key, extra) => Object.assign({
-  key, count: 12, volume_pc3: 5000, center: [100, 20, 5], radius_pc: 40, shares: { emission: 0.7, reflection: 0.3 }, class: "H",
+  key, count: 12, volume_pc3: 5000, cover: 0.05, center: [100, 20, 5], radius_pc: 40, shares: { emission: 0.7, reflection: 0.3 }, class: "H",
 }, extra);
 const node = (regions) => ({ key: "81.4.1.2", block, node: { nebula_regions: regions } });
 
@@ -26,6 +26,15 @@ test("a region's blob is the group's sphere in the colour of its dominant family
   assert.equal(blob.ring, false, "a group of several has no ring: the circles were not wanted");
   const [one] = N.regionBlobs([node([region("27.1.1.1", { count: 1 })])], looks, null);
   assert.equal(one.ring, false);
+});
+
+test("a group under the cover floor is not drawn and one at it is (MAP.429)", () => {
+  const list = N.regionBlobs([node([
+    region("under", { cover: N.COVER_FLOOR / 2 }), region("none", { cover: 0 }), region("missing", { cover: undefined }),
+    region("at", { cover: N.COVER_FLOOR }), region("over", { cover: 0.2 }),
+  ])], looks, null);
+  assert.deepEqual(list.map((blob) => blob.key), ["at", "over"]);
+  assert.equal(list[1].cover, 0.2);
 });
 
 test("a malformed group, a repeated key and a hidden family are left out", () => {
@@ -54,12 +63,13 @@ test("every family has a colour and a label", () => {
 });
 
 test("a region shows from 2 px across, is stronger with more nebulae and is gone when it fills the screen", () => {
-  const at = (distance, extra) => N.regionLook(Object.assign({ x: distance, y: 0, z: 0, radiusPc: 40, count: 12 }, extra), [0, 0, 0], 1000);
+  const at = (distance, extra) => N.regionLook(Object.assign({ x: distance, y: 0, z: 0, radiusPc: 40, count: 12, cover: 0.05 }, extra), [0, 0, 0], 1000);
   assert.equal(at(1e6).alpha, 0, "a speck under a pixel is not drawn");
   assert.ok(at(40000 / 1.5).alpha > 0, "from a pixel and a half of radius");
   assert.ok(at(500).alpha > 0.1);
-  assert.ok(at(500, { count: 200 }).alpha > at(500, { count: 2 }).alpha);
-  assert.ok(at(500, { count: 200 }).alpha <= N.ALPHA[1] + 1e-9);
+  assert.ok(at(500, { cover: 0.09 }).alpha > at(500, { cover: 0.04 }).alpha, "the strength follows the block's cover (MAP.429), not its count");
+  assert.equal(at(500, { cover: 0.04, count: 2 }).alpha, at(500, { cover: 0.04, count: 900 }).alpha, "the count does not change it");
+  assert.ok(at(500, { cover: 0.5 }).alpha <= N.ALPHA[1] + 1e-9);
   assert.equal(at(40000 / N.RESOLVE_PX[1] / 2).alpha, 0, "inside its nebulae the haze is gone");
   const near = at(40000 / 100);
   assert.ok(near.radiusPx >= N.RADIUS_PX[0] && near.radiusPx <= N.RADIUS_PX[1]);
@@ -88,7 +98,7 @@ test("3,000 candidates: exactly the strongest REGION_BUDGET (300) are drawn, the
   for (let i = 0; i < 3000; i++) {
     regions.push(region("27." + i + ".0.0", {
       center: [(random() - 0.5) * 20000, (random() - 0.5) * 20000, (random() - 0.5) * 600],
-      radius_pc: 8 + random() * 120, count: 2 + Math.floor(random() * 300),
+      radius_pc: 8 + random() * 120, count: 2 + Math.floor(random() * 300), cover: 0.03 + random() * 0.07,
       shares: { [N.FAMILIES[i % N.FAMILIES.length]]: 1 },
     }));
   }

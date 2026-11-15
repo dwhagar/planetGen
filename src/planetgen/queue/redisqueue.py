@@ -24,7 +24,6 @@ import rq
 
 from planetgen.queue import allowlist, redisclient
 from planetgen.util import log
-from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
 """str: The queue of the first design (PERF.24), where the supervising process of a run put its tasks. Nothing is queued on
@@ -77,7 +76,7 @@ QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QU
 def redis_url():
     """The Redis server: `PLANETGEN_REDIS_URL`, else `config.json`'s
     `redis.url` (the settings model applies both)."""
-    return get_settings().redis.url
+    return redisclient.default_url()
 
 
 def connect(url=None, **options):
@@ -212,8 +211,8 @@ def requeue_job(job, connection, at_front=False):
     for registry in (target.started_job_registry, target.failed_job_registry):
         try:
             registry.remove(job, delete_job=False)
-        except Exception:       # noqa: BLE001 -- it was not in that one
-            pass
+        except Exception as exc:       # noqa: BLE001 -- it was not in that one
+            log.swallowed("queue/redisqueue", "requeue_job", exc)
     return target.enqueue_job(job, at_front=at_front)
 
 
@@ -265,8 +264,8 @@ def _reap(proc, argv):
     try:
         log.process_ended("queue", f"Worker process {proc.pid} ({' '.join(argv[3:]) if len(argv) > 3 else 'worker'})", status,
                           ignore=(0, os.EX_TEMPFAIL), pid=proc.pid)
-    except Exception:  # noqa: BLE001 -- a log line is never a reason to lose the reaper thread
-        pass
+    except Exception as exc:  # noqa: BLE001 -- a log line is never a reason to lose the reaper thread
+        log.swallowed("queue/redisqueue", "_reap", exc)
 
 
 class Unavailable(Exception):

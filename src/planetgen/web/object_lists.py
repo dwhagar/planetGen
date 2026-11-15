@@ -96,7 +96,7 @@ def _physics_cells(item, kind):
                 _plain(item.get("rotation_period_hours"), lambda v: measured_html("h", v))]
     if kind in ("planet", "moon"):
         return [_plain(item.get("distance_km"), distance_km_html),
-                {"text": _eccentricity(item["eccentricity"])} if item.get("eccentricity") is not None else {"text": "\u2013", "muted": True},
+                _plain(item.get("eccentricity"), _eccentricity),
                 _plain(item.get("surface_temperature_k"), lambda v: measured_html("K", v, companions=False)),
                 _plain(item.get("rotation_period_hours"), lambda v: measured_html("h", v)),
                 _plain(item.get("axial_tilt_deg"), lambda v: f"{format_number(v, '.4g')}\u00b0"),
@@ -159,12 +159,8 @@ def _extra_keys(kind, state):
 
 def _values_cell(item, keys):
     """The Values cell: each value the list was asked about, with its label and unit, or a muted dash for a body without any."""
-    parts = []
-    for key, _unit in keys:
-        found = (item.get("values") or {}).get(key)
-        if found and found["value"] is not None:
-            tail = f" {found['symbol']}" if found["symbol"] else ""
-            parts.append(f"{search_values.KEYS[key].label.split(' (')[0]} {found['value']:.4g}{tail}")
+    texts = (search_values.value_text(key, (item.get("values") or {}).get(key)) for key, _unit in keys)
+    parts = [text for text in texts if text]
     return {"text": "; ".join(parts)} if parts else {"text": "\u2013", "muted": True}
 
 
@@ -231,7 +227,7 @@ def _chips(kind, ranges):
     chips = value_chips({kind: ranges} if ranges else {}, pairs, page_url("object_list", kind=kind), with_entity=False)
     ordered = _value_state().value_sorts().get(kind)
     if ordered:
-        label = search_values.KEYS[ordered.lstrip("-")].label.split(" (")[0].lower()
+        label = search_values.short_label(ordered.lstrip("-")).lower()
         remaining = [(key, value) for key, value in pairs if key != f"{kind}_value_sort"]
         chips.append({"label": f"ordered by {label}, {'high to low' if ordered.startswith('-') else 'low to high'}",
                       "url": page_url("object_list", kind=kind, **dict(remaining))})

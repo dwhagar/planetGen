@@ -33,7 +33,7 @@ def test_the_build_is_reproducible():
 def test_every_shoulder_quantity_has_a_positive_width(table):
     from planetgen.physics import class_fit
 
-    assert set(table["quantities"]) == set(class_fit.SHOULDERS)
+    assert set(table["quantities"]) == set(class_fit.WIDTHS)
     for quantity, entry in table["quantities"].items():
         assert entry["width"] > 0.0 or not entry["edges"], quantity        # a quantity no class edge reads has no width to speak of
         assert entry["basis"] in ("measured", "fallback"), quantity
@@ -78,10 +78,9 @@ def test_build_sums_independent_movements_in_quadrature():
             self.when = when
 
     classes = [Cls([{"quantity": "temperature_k", "min": 250.0}]), Cls([{"quantity": "temperature_k", "lt": 330.0}])]
-    shoulders = {"temperature_k": {"absolute": 10.0}}
     matrix = {"sample": {}, "rows": {"A1": {"quantities": {"temperature_k": {"rms": 3.0}}}, "B1": {"quantities": {"temperature_k": {"rms": 4.0}}}}}
     rows = [{"fill_id": "A1", "tier": "T2", "tweak": "L0"}, {"fill_id": "B1", "tier": "T9", "tweak": "L3"}]
-    entry = builder.build(matrix, rows, classes, shoulders)["quantities"]["temperature_k"]
+    entry = builder.build(matrix, rows, classes)["quantities"]["temperature_k"]
     assert entry["sigma"] == pytest.approx(math.hypot(3.0, 8.0), rel=1e-5)
     assert entry["width"] == pytest.approx(2.0 * math.hypot(3.0, 8.0), rel=1e-5)
     assert entry["contributors"][0]["fill_id"] == "B1"

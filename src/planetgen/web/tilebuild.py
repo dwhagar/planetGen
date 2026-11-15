@@ -34,6 +34,7 @@ from planetgen.db import nodes, store
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import tilecache
+from planetgen.util.format import format_bytes, format_duration_seconds
 
 STAGING_NAME = ".build"
 """str: The folder under the cache root the new cache is built in."""
@@ -60,11 +61,15 @@ class BuildRefused(Exception):
 
 def levels_of(keys):
     """`{m: count}` of node keys, the biggest blocks first."""
-    counts = {}
+    return {m: len(level_keys) for m, level_keys in _by_level(keys).items()}
+
+
+def _by_level(keys):
+    """`{m: [keys]}` of node keys, the biggest blocks first, each level's keys in their given order."""
+    by_level = {}
     for key in keys:
-        m = int(key.split(".", 1)[0])
-        counts[m] = counts.get(m, 0) + 1
-    return dict(sorted(counts.items(), reverse=True))
+        by_level.setdefault(int(key.split(".", 1)[0]), []).append(key)
+    return dict(sorted(by_level.items(), reverse=True))
 
 
 def projected_bytes(counts):
@@ -79,8 +84,8 @@ def check_disk(root, counts, free_bytes=None):
     free = shutil.disk_usage(root).free if free_bytes is None else free_bytes
     if free < DISK_MARGIN * need:
         raise BuildRefused(
-            f"the whole map is projected at {need / 1073741824:.1f} GB ({sum(counts.values())} nodes) and the build needs "
-            f"{DISK_MARGIN:.0f} times that free while the live cache stays, but {free / 1073741824:.1f} GB is free under {root}")
+            f"the whole map is projected at {format_bytes(need)} ({sum(counts.values())} nodes) and the build needs "
+            f"{DISK_MARGIN:.0f} times that free while the live cache stays, but {format_bytes(free)} is free under {root}")
     return need
 
 
@@ -208,11 +213,9 @@ def build_all(database, workers=None, force=False, swap=True, progress=None, key
             raise
         say(f"warning: {exc}; building anyway (--force)")
     workers = workers or workers_setting()
-    say(f"whole-map build: {len(keys)} nodes in {len(counts)} levels, about {projected / 1073741824:.2f} GB, {workers} process(es)")
+    say(f"whole-map build: {len(keys)} nodes in {len(counts)} levels, about {format_bytes(projected)}, {workers} process(es)")
     staging = staging_root(root)
-    by_level = {}
-    for key in keys:
-        by_level.setdefault(int(key.split(".", 1)[0]), []).append(key)
+    by_level = _by_level(keys)
     total_built = total_already = 0
     pool = None
     try:
@@ -227,7 +230,7 @@ def build_all(database, workers=None, force=False, swap=True, progress=None, key
                 total_built += built
                 total_already += cached
                 say(f"level {m}: {len(level_keys)} nodes ({built} built, {cached} already stored) in "
-                    f"{time.monotonic() - level_started:.1f} s")
+                    f"{format_duration_seconds(time.monotonic() - level_started)}")
             # A change in the database meanwhile deletes just the nodes it touched (`current_stamp`): they are built again.
             for attempt in range(1, MAX_PASSES + 1):
                 lost = missing_keys(database, keys, staging)
@@ -247,6 +250,6 @@ def build_all(database, workers=None, force=False, swap=True, progress=None, key
         swapped = True
         say("swapped in: the new cache is live")
     seconds = time.monotonic() - started
-    say(f"whole-map build done: {len(keys)} nodes ({total_built} built, {total_already} already stored) in {seconds:.0f} s")
+    say(f"whole-map build done: {len(keys)} nodes ({total_built} built, {total_already} already stored) in {format_duration_seconds(seconds)}")
     return {"nodes": len(keys), "built": total_built, "already": total_already, "levels": counts,
             "seconds": seconds, "swapped": swapped}

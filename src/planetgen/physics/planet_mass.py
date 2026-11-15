@@ -61,6 +61,8 @@ def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatt
     `gas_outcome` returns the larger of the runaway mass and the core, so the core was the planet's mass).
     """
     density = solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter)
+    if tuning.PLANET_ROCKY_ZONE_START_AU <= distance_au < snow_line_au:
+        density *= tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST      # GEN.1560: the solids the terrestrial zone's oligarchs are built from, which the giant-impact stage then merges; belts and dust read the plain density
     mass = formation.isolation_mass_kg(distance_au, density, star_mass_kg, separation)
     if distance_au > tuning.PLANET_OUTER_GROWTH_AU:
         mass *= (tuning.PLANET_OUTER_GROWTH_AU / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT

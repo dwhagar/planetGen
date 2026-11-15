@@ -284,6 +284,7 @@ def draw_satellites(galaxy_seed, chain, epoch_unix=0.0):
         if hosts_galaxy and mass >= MIN_STELLAR_MASS_SOLAR:
             drawn.append((mass, distance, direction, deviation, fe_deviation, age_deviation, keeps_gas_draw))
     stripping_radius_pc = stripping_radius_kpc(chain.virial_radius_kpc) * 1000.0
+    low, high = tuning.METALLICITY_RANGE_FE_H
     found = []
     for index, (mass, distance, direction, deviation, fe_deviation, age_deviation, keeps_gas_draw) in enumerate(
             sorted(drawn, key=lambda row: -row[0])):
@@ -291,7 +292,6 @@ def draw_satellites(galaxy_seed, chain, epoch_unix=0.0):
         gas_rich = mass >= EXPONENTIAL_MIN_STELLAR_MASS_SOLAR
         profile = "exponential" if gas_rich else "plummer"
         radius = half_light_radius_pc(mass, deviation)
-        low, high = tuning.METALLICITY_RANGE_FE_H
         scatter = KIRBY_IRREGULAR_SCATTER_DEX if gas_rich else KIRBY_SCATTER_DEX
         fe_h = min(max(mean_fe_h(mass) + fe_deviation * scatter, low), high)
         age = min(max(mean_age_gy(mass) + age_deviation * AGE_SCATTER_GY, AGE_RANGE_GY[0]), AGE_RANGE_GY[1])

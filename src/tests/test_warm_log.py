@@ -46,7 +46,7 @@ def test_a_run_is_bracketed_and_every_line_has_the_local_time_and_zone(path):
     assert lines[0].endswith("Cache warm-up started (by hand)")
     assert lines[1].endswith("warm: galaxy-map: 1 warmed (0 already cached, 0 left out by the cap) in 4.0 s")
     assert lines[2].endswith("a line only the bars' console printed")
-    assert re.search(r"Cache warm-up finished after \d+:\d\d \(5 families\)$", lines[3])
+    assert re.search(r"Cache warm-up finished after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?) \(5 families\)$", lines[3])
 
 
 def test_runs_are_appended_not_overwritten(path):
@@ -79,9 +79,9 @@ def test_a_failed_run_says_why_and_a_stopped_one_says_by_what(path):
         with warm_log.RunLog():
             raise KeyboardInterrupt()
     ends = [line for line in _lines(path) if "started" not in line]
-    assert re.search(r"ERROR\s+warm: Cache warm-up failed after \d+:\d\d: no Redis server answers$", ends[0])
-    assert re.search(r"ended by a SIGTERM that left no reason after \d+:\d\d$", ends[1])
-    assert re.search(r"ended by Ctrl\+C after \d+:\d\d$", ends[2])
+    assert re.search(r"ERROR\s+warm: Cache warm-up failed after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?): no Redis server answers$", ends[0])
+    assert re.search(r"ended by a SIGTERM that left no reason after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?)$", ends[1])
+    assert re.search(r"ended by Ctrl\+C after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?)$", ends[2])
 
 
 def test_lines_printed_after_the_run_are_not_in_the_file(path):

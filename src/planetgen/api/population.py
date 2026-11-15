@@ -13,25 +13,13 @@ from planetgen.db import species_fit
 from planetgen.population import model
 
 from . import ids
-from .common import ApiError
+from .common import ApiError, truth
 from .routes import _paginate, _parse_sort, get_db
 
 bp = Blueprint("population", __name__, url_prefix="/api")
 
 TERRITORY_POINT_LIMIT = 20000
 """int: The most owned systems `/api/territories` returns in one call."""
-
-
-def _spacefaring_filter(raw):
-    """`?spacefaring=1|0|true|false`, or absent for no filter."""
-    if raw is None:
-        return None
-    value = raw.strip().lower()
-    if value in ("1", "true", "yes"):
-        return True
-    if value in ("0", "false", "no"):
-        return False
-    raise ApiError(f"spacefaring must be true or false, got {raw!r}")
 
 
 def _tech_ranges(args):
@@ -81,7 +69,7 @@ def species_list():
     `<domain>_min`/`<domain>_max` (`energy`, `materials`, `information`,
     `medical`, `propulsion`, `defense`) keep a range.
     """
-    spacefaring = _spacefaring_filter(request.args.get("spacefaring"))
+    spacefaring = truth(request.args.get("spacefaring"), "spacefaring")
     sort, descending = _parse_sort(request.args, model.SPECIES_SORTS)
     eras = [v for v in request.args.getlist("era") if v]
     ranges = _tech_ranges(request.args)
@@ -153,25 +141,27 @@ def system_habitable_species(system_id):
     return jsonify(found)
 
 
+def _species_worlds(species_id, **where):
+    """The worlds of one system or sector a species could live on (`species_fit.bodies_for_species`); 404 for an unknown species."""
+    found = species_fit.bodies_for_species(get_db(), species_id, **where)
+    if found is None:
+        raise ApiError(f"no such species: {species_id}", status_code=404)
+    return jsonify(found)
+
+
 @bp.route("/species/<int:species_id>/habitable-worlds/systems/<uid:system_id>")
 def species_habitable_in_system(species_id, system_id):
     """
     `GET /api/species/<id>/habitable-worlds/systems/<system>` -- the rocky planets and moons of one system that this
     species could live on (POP.12), as `unaided` and `equipped` lists of worlds with their verdicts.
     """
-    found = species_fit.bodies_for_species(get_db(), species_id, system_id=system_id)
-    if found is None:
-        raise ApiError(f"no such species: {species_id}", status_code=404)
-    return jsonify(found)
+    return _species_worlds(species_id, system_id=system_id)
 
 
 @bp.route("/species/<int:species_id>/habitable-worlds/sectors/<uid:sector_id>")
 def species_habitable_in_sector(species_id, sector_id):
     """`GET /api/species/<id>/habitable-worlds/sectors/<sector>` -- the same over every system of one sector."""
-    found = species_fit.bodies_for_species(get_db(), species_id, sector_id=sector_id)
-    if found is None:
-        raise ApiError(f"no such species: {species_id}", status_code=404)
-    return jsonify(found)
+    return _species_worlds(species_id, sector_id=sector_id)
 
 
 @bp.route("/planets/<uid:planet_id>/species")

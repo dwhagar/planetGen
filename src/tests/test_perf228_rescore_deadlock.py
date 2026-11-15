@@ -8,7 +8,7 @@ from planetgen.db import store
 from planetgen.generation import run_plan
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.queue import wrapper
+from planetgen.queue import commands, wrapper
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
@@ -34,7 +34,7 @@ def _save(mysql_config, count):
 
 def _unit(mysql_config, low, high):
     """`all` because GEN.1479 skips a system the running code already scored, and the contention these tests make needs every round to re-score."""
-    return run_plan.rescore_habitability_unit({"database": wrapper.database_args(mysql_config), "low": low, "high": high, "all": True}, None)
+    return commands.run_alone("rescore-habitability", {"database": wrapper.database_args(mysql_config), "low": low, "high": high, "all": True}, lambda done, total: None)
 
 
 def test_four_workers_re_scoring_neighbouring_ranges_all_finish(mysql_config):

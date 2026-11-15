@@ -170,7 +170,7 @@ class Nebula(LazySaladName):
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "nebula_class", "nebula_type", "radius_ly", "composition", "formation_cause",
+        "name", "flavor_key", "nebula_class", "nebula_type", "radius_ly", "composition", "formation_cause",
         "dominant_species", "density_cm3", "temperature_k", "extinction_av",
         "age_myr", "q_total", "hosts",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
@@ -179,6 +179,9 @@ class Nebula(LazySaladName):
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference, threaded into `from_dict` rather than
     serialized redundantly)."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None, nebula_type=None, nebula_class=None,
                  host=None, age_myr=None):
@@ -310,21 +313,6 @@ class Nebula(LazySaladName):
              data["extinction_av"]) = typical_class_contents(data["nebula_class"])
         fields_from_dict(nebula, data, cls.SERIALIZABLE_FIELDS)
         return nebula
-
-    def get_shape(self):
-        """
-        This nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`):
-        drawn the first time it is asked for, from the nebula's own
-        properties, so it takes nothing from the shared random state and
-        the same properties always give the same shape.
-        """
-        from planetgen.galaxy.nebula_shape import shape_for_nebula
-
-        shape = getattr(self, "_shape", None)
-        if shape is None:
-            shape = self._shape = shape_for_nebula(
-                self.nebula_class, self.radius_ly, self.density_cm3, self.temperature_k, self.extinction_av)
-        return shape
 
     @property
     def class_name(self):

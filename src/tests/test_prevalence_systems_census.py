@@ -142,7 +142,7 @@ def test_the_system_and_occurrence_census_raise_no_new_flag(expectations, occurr
     gap_path = census.write_report(occurrence.format_report(grouped, gaps, gap_header), name=occurrence.REPORT_NAME)
 
     odd_summary = oddity_census.summarize(records)
-    odd_findings = oddity_census.compare(odd_summary)
+    odd_findings = oddity_census.compare(odd_summary, known=oddity_census.KNOWN)
     odd_path = census.write_report(oddity_census.format_report(odd_summary, odd_findings), name=oddity_census.REPORT_NAME)
 
     new = [finding for finding in findings if not finding.known]

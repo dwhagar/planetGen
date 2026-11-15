@@ -161,10 +161,6 @@ def _check(center, radius_pc, min_luminosity_sol):
     return point, radius, floor
 
 
-def _number(value, empty=math.nan):
-    return empty if value is None else float(value)
-
-
 def _chunks(items, size=CHUNK):
     items = list(items)
     for start in range(0, len(items), size):
@@ -189,9 +185,9 @@ def _charted(conn, center, radius, floor_w, runs):
                 "SELECT id, star_system_id, luminosity_w, temperature_k, age_gy, lifespan_gy, cluster_id FROM stars"
                 f" WHERE star_system_id IN ({marks}) AND luminosity_w >= ?", (*chunk, floor_w)).fetchall():
             point, away, system = systems[star["star_system_id"]]
-            rows.append((CHARTED, star["id"], star["star_system_id"], *point, away, _number(system["velocity_x_kms"]), _number(system["velocity_y_kms"]),
-                         _number(system["velocity_z_kms"]), _number(system["epoch_unix"]), _to_solar(star["luminosity_w"]),
-                         _number(star["temperature_k"]), _number(star["age_gy"]), _number(star["lifespan_gy"], math.inf), star["cluster_id"] or 0, ""))
+            rows.append((CHARTED, star["id"], star["star_system_id"], *point, away, detmath.float_or(system["velocity_x_kms"]), detmath.float_or(system["velocity_y_kms"]),
+                         detmath.float_or(system["velocity_z_kms"]), detmath.float_or(system["epoch_unix"]), _to_solar(star["luminosity_w"]),
+                         detmath.float_or(star["temperature_k"]), detmath.float_or(star["age_gy"]), detmath.float_or(star["lifespan_gy"], math.inf), star["cluster_id"] or 0, ""))
     return rows
 
 
@@ -210,9 +206,9 @@ def _bright(conn, center, radius, floor_w, runs):
         point = (_mpc(row, "position_x_mpc"), _mpc(row, "position_y_mpc"), _mpc(row, "position_z_mpc"))
         away = detmath.dist(center, point)
         if away <= radius:
-            rows.append((BRIGHT, row["id"], 0, *point, away, _number(row["velocity_x_kms"]), _number(row["velocity_y_kms"]),
-                         _number(row["velocity_z_kms"]), _number(row["epoch_unix"]), _to_solar(row["luminosity_w"]), _number(row["temperature_k"]),
-                         _number(row["age_gy"]), _number(row["lifespan_gy"], math.inf), row["cluster_id"] or 0, ""))
+            rows.append((BRIGHT, row["id"], 0, *point, away, detmath.float_or(row["velocity_x_kms"]), detmath.float_or(row["velocity_y_kms"]),
+                         detmath.float_or(row["velocity_z_kms"]), detmath.float_or(row["epoch_unix"]), _to_solar(row["luminosity_w"]), detmath.float_or(row["temperature_k"]),
+                         detmath.float_or(row["age_gy"]), detmath.float_or(row["lifespan_gy"], math.inf), row["cluster_id"] or 0, ""))
     return rows
 
 
@@ -227,8 +223,8 @@ def _scatter(conn, center, radius, floor_sol, runs):
         point = (_mpc(row, "position_x_mpc"), _mpc(row, "position_y_mpc"), _mpc(row, "position_z_mpc"))
         away = detmath.dist(center, point)
         if away <= radius:
-            rows.append((SCATTER, row["id"], 0, *point, away, _number(row["velocity_x_kms"]), _number(row["velocity_y_kms"]),
-                         _number(row["velocity_z_kms"]), _number(row["epoch_unix"]), float(row["map_luminosity_sol"]), math.nan, math.nan,
+            rows.append((SCATTER, row["id"], 0, *point, away, detmath.float_or(row["velocity_x_kms"]), detmath.float_or(row["velocity_y_kms"]),
+                         detmath.float_or(row["velocity_z_kms"]), detmath.float_or(row["epoch_unix"]), float(row["map_luminosity_sol"]), math.nan, math.nan,
                          math.nan, 0, row["kind"]))
     return rows
 
@@ -251,9 +247,8 @@ def cell_levels(conn, center, radius_pc):
         return CellLevels((), scatter_level, math.inf)
     ledger = sky_tier_ledger.read(conn)
     if 4.0 / 3.0 * math.pi * ((radius_pc / edge) + spherical.CELL_REACH_EDGES) ** 3 > MAX_LEVEL_CELLS:
-        complete = math.inf if scatter_level is None else scatter_level
-        if scatter_level is not None:
-            complete = ledger.sphere_reached(sky_tier_ledger.LUMINOSITY, center, radius_pc, scatter_level)
+        complete = (math.inf if scatter_level is None
+                    else ledger.sphere_reached(sky_tier_ledger.LUMINOSITY, center, radius_pc, scatter_level))
         return CellLevels((), scatter_level, complete, truncated=True)
     addresses = sorted((shell, band, wedge) for shell, band, wedge, *_rest in spherical.cells_touching_sphere(center, radius_pc, edge))
     levels = store.sector_bright_levels(conn, addresses)

@@ -54,6 +54,12 @@ from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import any_float, deterministic_entropy as _seeded_generation, hostile_text, scaled
 
+
+@pytest.fixture(autouse=True)
+def _strong_exclusion(monkeypatch):
+    """GEN.1534: the placement share is 0.05 (fitted to Gaia), too weak to fill a sector with the stub systems of these tests; they pin what happens when a sector runs out of room, so they keep half the sum of the Hill radii apart as before."""
+    monkeypatch.setattr(prog, "SECTOR_HILL_SEPARATION_SHARE", 0.5)
+
 DEFAULT_EDGE = prog.DEFAULT_SECTOR_EDGE_LY
 SEEDS = st.integers(min_value=0, max_value=2**64 - 1)
 TOL = prog.SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY

@@ -34,7 +34,7 @@ import json
 import math
 import os
 
-from planetgen.physics import elements, gases
+from planetgen.physics import constants, elements, gases
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
@@ -173,7 +173,7 @@ HYDRATE_SKIN_RANGE_M = (1.0, 1000.0)
 """tuple: The depth of ice, m, whose water cages a body's atmosphere can reach (drawn log-uniform per body). A planetGen stand-in:
 the cages form where gas meets ice, and how deep that goes (kinetics, regolith, cracks) has no measured figure; the bracket runs from
 a frost skin to a regolith."""
-ICE_DENSITY_KG_M3 = 917.0
+ICE_DENSITY_KG_M3 = constants.ICE_DENSITY_KG_M3
 """float: Water ice Ih, kg/m3 (the density `water_layer.ICE_LID_DENSITY_KG_M3` uses)."""
 
 

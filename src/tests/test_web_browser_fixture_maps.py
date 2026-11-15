@@ -33,6 +33,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     map_site, nebula_volume_payload,
 )
 
+MIN_LINK_PX = 4    # systemgroups.js: the members are one dot closer than this
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
 """The designation of the fixture's Fixture Prime (shell 1, band 0, wedge 1)."""
 BESIDE_CODE = provisional_sector_designation(1, 0, 2)
@@ -123,7 +124,10 @@ def _shot(page, selector):
 
 # --- The Sector Map -------------------------------------------------------------------
 
-def _open_sector(page, base, query=""):
+def _open_sector(page, base, query="", wall_icons=False):
+    """Opens the sector page's map; the icons on the walls of its sector (MAP.427) are left out unless `wall_icons`, as they sit over the points the tests look for."""
+    if not wall_icons:
+        page.add_init_script(NO_WALL_ICONS)
     _open(page, f"{base}/sector/{SECTOR_ID}{query}", SECTOR_CANVAS)
     page.wait_for_selector(".starmap-sr-list button", state="attached")
 
@@ -1707,7 +1711,7 @@ def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_si
     shape_requests = []
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _volume_open(page, map_site)
-    volumes = page.evaluate(f"() => ({VOLUMES})().volumes()")
+    volumes = [volume for volume in page.evaluate(f"() => ({VOLUMES})().volumes()") if volume["key"] != "gas"]     # MAP.430: the gas lanes are checked on their own
     assert volumes, "a volume is held"
     spots = []
     for volume in volumes:
@@ -1719,7 +1723,20 @@ def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_si
     near = [p for p in spots if math.dist(p, cloud) <= 30.0 + 1e-6]
     assert len(near) > 80, len(near)
     assert _circularity([(p[0], p[1]) for p in near], volumes[0]["spacingPc"]) < 0.55
-    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().map((x) => v.coverage(x.key))); }}") > 0.5
+    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().filter((x) => x.key !== 'gas').map((x) => v.coverage(x.key))); }}") > 0.5
+
+
+def test_galaxy_map_holds_the_far_zoom_gas_lanes_and_fades_them_as_the_camera_comes_in(page, map_site):
+    """MAP.430: at galaxy scale the map also holds one volume of the galaxy's gas (the key `gas`: a lattice of the plane, in the dark family's colour), the
+    points a lane's strength follows the gas share (not all alike), and the lane's splats are faded by their width on the screen (the shader's `laneFade`),
+    so a close view shows no grid of big blobs but the nodes' nebulae."""
+    _volume_open(page, map_site)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((x) => x.key === 'gas'); }}", timeout=30000)
+    lanes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((x) => x.key === 'gas')[0]")
+    assert lanes["level"] == 9 and lanes["spacingPc"] == 128.0, lanes["level"]
+    assert len(lanes["ix"]) > 100 and set(lanes["iz"]) == {0} and set(lanes["family"]) == {4}, (len(lanes["ix"]), set(lanes["family"]))
+    assert len(set(lanes["strength"])) > 20, "a lane's strength follows the gas, not one value"
+    assert min(lanes["strength"]) >= 2 and max(lanes["strength"]) > 200
 
 
 def test_galaxy_map_default_view_shades_only_with_nebulae(page, map_site):
@@ -1811,7 +1828,7 @@ def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
     def answer(route):
         # The pair stands in for what the fixture's own nebulae make, in the nodes that would hold them.
         key = parse_qs(urlparse(route.request.url).query)["key"][0]
-        holds = nebula_volume_payload(key)["count"] > 0
+        holds = key != "gas" and nebula_volume_payload(key)["count"] > 0      # MAP.430: the gas lanes are not a node's nebulae
         given.append(key)
         route.fulfill(status=200, content_type="application/octet-stream", body=packed if holds else empty)
 
@@ -3267,7 +3284,7 @@ def test_at_most_six_hundred_nebula_regions_are_drawn_out_of_three_thousand_cand
         for (let i = 0; i < 3000; i++) {
             list.push({key: 'x' + i, block: layer.blobs()[0].block, ring: i % 2 === 0, color: [0.9, 0.4, 0.5],
                        x: here[0] + (random() - 0.5) * span, y: here[1] + (random() - 0.5) * span, z: here[2] + (random() - 0.5) * span,
-                       radiusPc: span * (0.03 + random() * 0.05), count: 2 + Math.floor(random() * 90), family: 'emission'});
+                       radiusPc: span * (0.03 + random() * 0.05), count: 2 + Math.floor(random() * 90), cover: 0.03 + random() * 0.07, family: 'emission'});
         }
         layer.setBlobs(list, [0, 0, 0]);
         return list.length;
@@ -4040,6 +4057,41 @@ def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_e
     page.wait_for_function("([d]) => location.search.includes('sector=' + d)", arg=[designation], timeout=20000)
     _settle(page)
     assert page.evaluate(SECTOR_FRAME_LINES) != before or not page.evaluate(SECTOR_VIEW)["opened"]
+
+
+def test_a_sector_page_keeps_one_wireframe_round_its_sector_and_an_icon_on_each_edge_that_opens_the_neighbour(page, map_site):
+    """MAP.427: the sector page's map draws one wireframe, round its own sector, that stays where the cell is however the view is turned or
+    moved, and no grid of other blocks; each wall that faces a sector with a page of its own has one labelled icon at its center whose click
+    opens that sector's page (with its own frame round it), and a wall that faces nothing charted has none."""
+    page.set_viewport_size(VIEWPORT)
+    _open(page, f"{map_site}/sector/{SECTOR_ID}", SECTOR_CANVAS)
+    _settle(page)
+    page.wait_for_function(f"() => {{ const f = ({SECTOR_FRAME})(); return f && f.framed && f.icons.some((i) => i.shown); }}", timeout=20000)
+    state = page.evaluate(SECTOR_FRAME)
+    # The fixture has one charted neighbour, Fixture Beside, across the east wall; the other walls face nothing charted or the galaxy's edge.
+    assert [(icon["dir"], icon["name"]) for icon in state["icons"]] == [("east", f"Sector {BESIDE_CODE}")], state["icons"]
+    spot = _screen_of(page, tuple(state["icons"][0]["wall"]))
+    assert spot
+    on = page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); const b = e && e.closest('.map-wall-icon'); return b && b.dataset.dir; }", [spot[0], spot[1]])
+    assert on == "east", on
+    # The frame is fixed: turning the view, moving it and zooming change nothing of where it stands in the galaxy.
+    before = page.evaluate(SECTOR_FRAME_LINES)
+    page.mouse.move(500, 450)
+    page.mouse.down()
+    page.mouse.move(380, 400, steps=8)
+    page.mouse.up()
+    page.keyboard.press("ArrowLeft")
+    page.mouse.wheel(0, -200)
+    page.wait_for_timeout(500)
+    _settle(page)
+    assert page.evaluate(SECTOR_FRAME_LINES) == before
+    assert page.evaluate(SECTOR_FRAME)["framed"] is True
+    # The clicked icon arrives at the neighbour's own page, with the frame round that sector.
+    page.locator('.map-wall-icon[data-dir="east"]').click()
+    page.wait_for_function("([id]) => location.pathname.endsWith('/sector/' + id)", arg=[str(BESIDE_ID)], timeout=20000)
+    page.wait_for_function(f"() => {{ const f = ({SECTOR_FRAME})(); return f && f.framed; }}", timeout=20000)
+    arrived = page.evaluate(SECTOR_FRAME)
+    assert [icon["dir"] for icon in arrived["icons"]] == ["west"] and arrived["icons"][0]["name"] == f"Sector {PRIME_CODE}", arrived["icons"]
 
 
 OPACITIES = "() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.opacities()"
@@ -6678,3 +6730,39 @@ def test_sector_map_gravity_layer_opens_from_the_address(page, map_site):
     assert _gravity_toggle(page).is_checked()
     assert page.locator('button[data-gravity-mode="depth"]').get_attribute("aria-pressed") == "true"
 
+
+
+def test_the_stars_of_a_wide_pair_are_linked_as_one_system(page, dense_site):
+    """MAP.428: the dense region's close pair (`DENSE_PAIR_IDS`) is one system (a wide pair): once the two stars stand apart on the screen a
+    dashed link joins them, from the brighter to the other, and once the view is far enough out for them to be one dot the link is gone."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 3.0, at=close_pair_center())
+    first, second = _close_pair_on_the_map(page)
+    links = "() => document.querySelector('#galaxymap3d-canvas').__mapSystemLinks()"
+
+    def screen_of(star):
+        return page.evaluate("(id) => { const s = document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().find((o) => o.id === id); return s ? {x: s.x, y: s.y} : null; }", star["id"])
+
+    try:
+        page.wait_for_function(f"() => ({links})().length > 0", timeout=20000)
+    except sync_api.TimeoutError:
+        drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().filter((s) => [23000, 23001].includes(s.id))")
+        raise AssertionError(f"no link: the pair is {drawn}, links {page.evaluate(links)}")
+    found = page.evaluate(links)
+    pair = [line for line in found if line["system"] == str(first["system_id"])]
+    assert len(pair) == 1, found    # one link: a pair has the brighter star and one other
+    one, other = screen_of(first), screen_of(second)    # the brighter first (30 against 20 L-sun)
+    line = pair[0]
+    assert math.hypot(line["x1"] - one["x"], line["y1"] - one["y"]) < 2, (line, one)
+    assert math.hypot(line["x2"] - other["x"], line["y2"] - other["y"]) < 2, (line, other)
+    # Far out the two stars are one dot, and no link is drawn.
+    page.locator(GALAXY_CANVAS).hover()
+    for _ in range(60):
+        one, other = _spot(page, first), _spot(page, second)
+        if math.hypot(one["x"] - other["x"], one["y"] - other["y"]) < MIN_LINK_PX - 1:
+            break
+        page.mouse.wheel(0, 400)
+        page.wait_for_timeout(150)
+        _settle(page)
+    assert math.hypot(one["x"] - other["x"], one["y"] - other["y"]) < MIN_LINK_PX, "the view never went far enough out"
+    page.wait_for_function(f"() => ({links})().filter((line) => line.system === '{first['system_id']}').length === 0", timeout=20000)
