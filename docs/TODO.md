@@ -13070,7 +13070,28 @@ clears each one.
 
 - [ ] **GEN.1731 Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side**
   Lane 02's GEN.1720 build (PR 6601, 12:56 AM EST 2026-11-15): the tier carbon-cycle dial fixes the cold, CO2-rich side (over 70 kPa 12 of 20 to 0 of 14 on 167 Abundant Sun-like seeds), but 10 of 14 Earth-shaped worlds still hold under 2 Pa. The traced worlds sit at 289 to 306 K with about 19,000 kPa of CO2 supplied, and the sink removes it even at the lowest published constants (Lambda 0.1, m 1.2): they are warm without CO2 (thick N2 and H2O air, more sunlight), so the weathering law as sourced takes it all. No published range moves them. Work: Lane 02 sets out options with physics (for example a supply- or kinetics-limited weathering floor if sourced, a lower Class M CO2 floor, or accept) and a recommendation; Boss decides; then build. Report /mnt/project-files/reports/gen1720-co2-attribution-2026-11-14.md.
+  Options (Lane 02, 1:18 AM EST 11-15, report /mnt/project-files/reports/gen1731-weathering-law-warm-side-2026-11-15.md): 1) keep the published GP20 weathering law (recommended, L0; Earth passes it exactly); 2) measure the reduced airs, filed as GEN.1732; 3) lower the Class M CO2 floor from 2 Pa to 0.5 to 1 Pa (Boss's call); 4) a weathering floor (not recommended, no source). Waiting on Boss.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (options for Boss, then build). Prerequisites: GEN.1720. Related: GEN.1706, GEN.1713, GEN.1721, GEN.1723.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1732 Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change**
+  Lane 02's GEN.1731 options, 1:18 AM EST 2026-11-15 (report /mnt/project-files/reports/gen1731-weathering-law-warm-side-2026-11-15.md): of 10 Abundant Earth-shaped worlds under 2 Pa CO2, 4 hold 2 Pa or more of carbon as methane in reduced airs (NH3, CH4, H2) although their mantles are oxidized. Measure why those airs are reduced; the recipe stream change of GEN.1646 is the suspect. No change before the measure; a fix that follows is filed from the findings.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
+  Filed by the TODO thread.
+
+- [ ] **TEST.754 (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet**
+  Train Manager, 1:50 AM EST 2026-11-15 (Train 30 round 2): src/tests/test_habitability_end_to_end_browser.py::test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main alone; Lane 03 found the seeded system has no habitable planet at line 119. Fix the seed choice the way PR 6605 did for HABITABLE_SEED (pick by what the test needs, not a fixed seed that generation changes can empty), no skip.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: TEST.737, TEST.740.
+  Filed by the TODO thread.
+
+- [ ] **TEST.755 (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand**
+  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_hand_formatted_units fails on main dc5567f47 for queue/units.py (line 714, " h ") and queue/splitter.py: UX.318 (PR #6574) requires planetgen.util.format helpers (format_duration_seconds and kin). Use the helpers; no allow-list entry.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
+  Filed by the TODO thread.
+
+- [ ] **TEST.756 (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB"**
+  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_run_record::test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it fails on main dc5567f47 ("1.49 GB" expected, "1487 MB" written). Decide which side follows the shared size formatter of UX.318 and make the other agree; no skip.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
