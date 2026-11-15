@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1853 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1856 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1826 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1829 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
 | T5 | 106 | 28 | 8 | 2 | 1 | 145 |
-| T6 | 238 | 124 | 34 | 79 | 4 | 479 |
-| T7 | 68 | 35 | 10 | 32 | 0 | 145 |
+| T6 | 238 | 126 | 34 | 79 | 4 | 481 |
+| T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1062 | 378 | 94 | 259 | 60 | 1853 |
+| All | 1063 | 380 | 94 | 259 | 60 | 1856 |
 
 ## How the labels were given
 
@@ -3281,6 +3281,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | PC2 | P | T7 | L1 | `photochemical_loss.standing_from_inventory`: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time | the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (`interior_heat.heat_at`), which moves the standing amount by the same ratio at the age of the loss | a body whose air gas stands for the life of the star | a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3 | the history's own supply at each step (GEN.1745) | educated guess from physics: the mean of the supply is what a constant source gives | predicted only | - | - |
 | PC3 | B | T5 | L0 | `photochemical_loss.light_limit`: the light breaks no more than the column of one optical depth times the rate (`photolysis.photon_limited_flux_mol_m2_s`, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes | the column within a factor of 2 (row SL6) | NH3 and CH4 in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's | a photochemical column model with the cross sections by wavelength | row SL6; [R2026] table 6 | predicted only | - | - |
 | PC4 | P | T7 | L1 | `photochemical_loss.LOST_TO`: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes) | the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state | an air with water and the escape of hydrogen of `thermosphere` | a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2 | the hydrogen escape and the photochemical network of the history's step | educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2) | predicted only | GEN.1745 | - |
+
+## 6.302 Stand-ins of a moon swept by the evection resonance (GEN.1750)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EV1 | P | T7 | L0 | `evection.RHO_SURE` 0.5, `RHO_PASS` 5.0 and `CAUGHT_BELOW` their geometric midpoint 1.58: a moon is caught when the sweep ratio `rho = abs(d nu / dt) / eps^2`, with `eps = (15/4) n_p^2 / n_m`, is at or under it (no draw) | 0.5 to 5 | a first-order sweep of a moon on a nearly circular orbit (entry eccentricity under about 0.03) | a measured or integrated crossing at a `rho` of 1 to 2 that goes the other way | the capture probability of the resonance's Hamiltonian against `rho` and the entry eccentricity ([R5290]) | derived: the 1 km a year (likely) and 10 km a year (unlikely) at 4.6 Earth radii of [R5289], second-hand through [R5291], come out as `rho` 0.54 and 5.4 | predicted only | - | - |
+| EV2 | P | T6 | L1 | `evection.SPIN_EXPONENT` 4/7: a caught moon is held at the resonance for the rest of the age, its distance following the planet's spin as `omega^(4/7)`, its tide still braking the planet, the planet's angular momentum leaving to the star's orbit; there is no exit from the resonance | 0.5 to 1 | a caught moon of a planet that is slowing | an integration with the moon's own tide that frees the moon from the resonance within a gigayear | the exit (dissipation faster than libration) and the resonant despinning of [R0958] | design: the resonance condition `nu = n_p` with `nu` going as `omega^2 a^(-7/2)` | predicted only | - | - |
+| EV3 | P | T6 | L1 | `evection.ECCENTRICITY_CEILING` 0.5 and `PERIAPSIS_MARGIN` 2.0: a held moon's eccentricity is `min(0.5, 1 - 2 R / a)`, a floor the tide does not wear away (`_resonance_e`) | 0.3 to 0.6 | a held moon of a rocky or giant planet | a held moon whose measured or integrated eccentricity stops well under 0.5 | the equilibrium eccentricity of the tide's damping against the resonance's growth | derived: [R5289] reached 0.5 (second-hand through [R5291]); the margin is a stand-in | predicted only | - | - |
 
 ## 6.300 Stand-ins of the planet's Hill sphere against the bodies besides its host and of the moons' resonances (GEN.1449)
 
