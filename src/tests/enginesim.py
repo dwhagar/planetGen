@@ -10,7 +10,7 @@ import math
 import random
 from dataclasses import dataclass, field
 
-from planetgen.queue import dispatch, memorygate, scheduler
+from planetgen.queue import dispatch, memorygate, scheduler, tokens
 from planetgen.queue.memorygate import Claim, Holder, Host
 
 PLACES = 2
@@ -36,7 +36,7 @@ class Job:
         return self.peak_mb * min(1.0, (now - self.started) / max(1.0, 0.2 * self.seconds))
 
 
-def scenario(rng, units, cut_at=None):
+def scenario(rng, units, cut_at=None, named=False):
     """One stage of bulk units, a warm-up beside it, a visitor's jobs through it and the cut that needs the lane to itself."""
     jobs = []
     for i in range(units):
@@ -54,6 +54,14 @@ def scenario(rng, units, cut_at=None):
         job = Job(f"page-{i}", Claim("fn:page", 300, 1.0, memorygate.LANE_INTERACTIVE), rng.uniform(0.5, 4.0), 250)
         job.queued = rng.uniform(0, units * 4.0)
         jobs.append(job)
+    if named:           # OPS.232: a tenth of the units hold the one writer's token, three warm-ups build one warm set and one restarted unit runs alone
+        for job in jobs[: units // 10 * 10 : 10]:
+            job.claim = Claim(job.claim.kind, job.claim.mb, job.claim.cpu, job.claim.lane, False, (tokens.MYSQL_WRITE,))
+        for job in [job for job in jobs if job.name.startswith("warm-")][:3]:
+            job.claim = Claim(job.claim.kind, job.claim.mb, job.claim.cpu, job.claim.lane, False, (tokens.warm_set("tables"),))
+        alone = Job("restarted-unit", Claim("scatter-mass", 900, 1.0, memorygate.LANE_BULK, False, (tokens.ALONE,)), 30.0, 700)
+        alone.queued = units * 0.5
+        jobs.append(alone)
     cut = Job("cut-next-stage", Claim("open:scatter-luminosity", 3000, 1.0, memorygate.LANE_BULK, exclusive=True), 90.0, 2600)
     cut.queued = units * 1.0 if cut_at is None else cut_at
     jobs.append(cut)
@@ -74,11 +82,11 @@ def old_rule(waiting, host, held, now, used, window, places):
     return dispatch.Turn(admitted, {})
 
 
-def run(seed, units=100, rule=None, window=dispatch.WINDOW, total_mb=16000.0, cores=8, horizon=100000.0, cut_at=None):
+def run(seed, units=100, rule=None, window=dispatch.WINDOW, total_mb=16000.0, cores=8, horizon=100000.0, cut_at=None, named=False):
     """One simulated run with `rule` (the dispatch rule by default). Returns `(measures, broken)`: what was measured and the invariants that failed."""
     rule = rule or (lambda waiting, host, held, now, used, window, places: dispatch.dispatch(waiting, host, held, now, used, window, places))
     rng = random.Random(seed)
-    jobs = scenario(rng, units, cut_at)
+    jobs = scenario(rng, units, cut_at, named)
     by_name = {job.name: job for job in jobs}
     now, used, broken = 0.0, {}, []
     measures = {"oom_kills": 0, "fault_kills": 0, "turns": 0}
@@ -103,6 +111,12 @@ def run(seed, units=100, rule=None, window=dispatch.WINDOW, total_mb=16000.0, co
             if all(job.peak_mb <= job.claim.mb for job in running):
                 broken.append(f"t={now:.0f}: the kernel killed {victim.name} though every job was inside its claim")
             running = [job for job in running if job is not victim]
+        running = [job for job in jobs if job.state == "running"]
+        for token in {t for job in running for t in job.claim.tokens if t != tokens.ALONE}:
+            if sum(token in job.claim.tokens for job in running) > 1:
+                broken.append(f"t={now:.0f}: {token} was held by two jobs at once")
+        if any(tokens.ALONE in job.claim.tokens for job in running) and any(job.claim.lane in (memorygate.LANE_BULK, memorygate.LANE_MAINTENANCE) and tokens.ALONE not in job.claim.tokens for job in running):
+            broken.append(f"t={now:.0f}: a job ran beside the one that runs alone")
         host = Host(total_mb, total_mb - BASE_MB - sum(job.held_mb(now) for job in running), cores, min(len(running) / cores, 1.0))
         held = [Holder(job.name, job.claim, 0, "sim", job.held_mb(now), job.peak_mb) for job in running]
         waiting = [scheduler.Ticket(job.name, job.claim, job.queued, 0, "sim") for job in jobs if job.state == "ready" and job.queued <= now]
