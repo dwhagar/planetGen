@@ -11,3 +11,5 @@
 Science is untouched: every dial is 0 there, no draw is made and the golden systems are byte for byte the same (no generator epoch, no migration). A dry planet is Class H only with groundwater and oxygen, which later slices of GEN.1721 address, so this slice alone makes desert-shaped planets, not yet many Class H worlds.
 
 Reuse: the water dial's draw and pin (`bulk_draw._rocky_water`, `mixture_subject`), the classes and rows of `physics/delivered_water.py`, `class_fit.overshoot` and `class_fit.CLASSES` for the meter's limits, and the census thread's `five_classes.py` for the table's shape.
+
+generation-affects: none
