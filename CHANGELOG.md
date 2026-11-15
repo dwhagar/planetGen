@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4183] - 2026-11-15
+
+**Headline:** The Earth analog now draws a different air in every trial, and its stored baseline is renewed on main (Class M 30 of 800).
+
+### Fixed
+
+- TEST.752: `scripts/earth_analog.py` moved only `planet.distance` per trial, but the air keys on `formation_distance_au` (GEN.1547), so every trial shared one air draw. It now sets `formation_distance_au` beside `distance`. The stored baseline `scripts/data/earth_analog_baseline.json` is measured again on main: 800 trials, Class M 30 (it was 20), no errors.
+
+generation-output: unchanged
+
 ## [8.0.4182] - 2026-11-15
 
 **Headline:** Twelve pieces of code that were written twice are written once: the body child tables, the block chain, the stored-tree read, the stars filter check, the admin check, the HTML and JSON escapes of the 3D map, and the rest of the list the layered-fixes read left (GEN.1691, UX.312). Pages and generated output are unchanged.
