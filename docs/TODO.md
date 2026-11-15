@@ -12852,11 +12852,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
   Filed by the TODO thread.
 
-- [ ] **GEN.1738 (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip**
-  Lane 16, 9:35 AM EST 2026-11-15 (OPS.219, PR #6632), and Lane 03 on the Train 31 gate: tests/test_db_column_round_trip.py fails while generating sectors when mixture_giant hands gas_equilibrium a negative abundance (src/planetgen/physics/gas_equilibrium.py raises). Do: find which giant step makes the negative share (a subtraction past zero, likely after Train 31's giant cloud oxygen bind, PR #6639), fix the cause there, not by clamping in gas_equilibrium, and add the failing seed as a test.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: none. Related: GEN.1717.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1740 Research: a shock-to-kill law for mass extinctions, verifying the Raup 1991 kill curve**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Version 8.1. Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: none. Related: GEN.1739, GEN.1746.
