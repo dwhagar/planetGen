@@ -546,7 +546,7 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200 and no_spawn == []
     assert _argv({"argv": asked[0]}) == ["sectors", "--shell", "40"]
-    assert "About 8.4 MB" in html and "1 m 15 s" in html and "400 GB free of 1.0 TB" in html
+    assert "About 8.4 MB" in html and "About 1.25 minutes with 2 workers" in html and "400 GB free of 1 TB" in html
     form = html[html.index('id="review"'):]
     form = form[:form.index("</section>")]
     assert 'name="estimate_ok" value="1"' in form
@@ -1507,7 +1507,7 @@ def test_system_request_passes_a_class_request_on_and_refuses_a_bad_one():
     spec = system_page.system_request({"force_class": "o", "force_life_class": "4C"})
     assert "--force-class=O" in spec["argv"] and "--force-life-class=4c" in spec["argv"] and spec["asks"] is True
     assert system_page.system_request({})["asks"] is False
-    for form, word in (({"force_class": "Q"}, "not a planet class"), ({"force_life_class": "12"}, "not a life class"),
+    for form, word in (({"force_class": "AB"}, "not a planet class"), ({"force_life_class": "12"}, "not a life class"),
                        ({"force_class": "O", "system_file": '{"slots": [{"type": "planet", "planet_class": "M"}]}'}, "slots")):
         with pytest.raises(generate_page.FormError, match=word):
             system_page.system_request(form)

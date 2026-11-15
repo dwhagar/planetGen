@@ -121,20 +121,33 @@ def test_states_by_temperature_and_pressure():
     assert all(getattr(giant, field) is None for field in hy.HYDROSPHERE_FIELDS if field != "water_mass_fraction")
 
 
-def test_a_liquid_surface_of_chloride_brine_is_a_brine_seep_not_a_sea():
-    """GEN.908: surface water under `BRINE_MAX_WATER_FRACTION` of the mass makes a concentrated brine, a puddle and not an ocean."""
-    draw.set_run_seed(908)
-    for temperature, pressure in ((288.0, 101325.0), (250.0, 30000.0), (265.0, 600.0)):
-        seep = _body("M", temperature, pressure, water_mass_fraction=3e-6)
-        _generate_hydrosphere(seep, 0.087)
-        if seep.ocean_depth_km:
-            assert seep.ocean_class == "chloride brine" and seep.hydrosphere == hy.BRINE_SEEP == "brine seep"
+def test_a_sea_of_so_little_water_that_it_holds_rock_salt_to_saturation_is_a_halite_sea_and_a_perchlorate_brine_is_a_seep(monkeypatch):
+    """GEN.1730 (after GEN.908): surface water under `BRINE_MAX_WATER_FRACTION` of the mass is saturated with rock salt (water activity 0.753) where it is liquid above 252 K, a surface ocean when it is deep enough; a
+    liquid colder than that is a perchlorate brine, a seep. A shallower sea than `SEA_MIN_DEPTH_KM` is a seep."""
+    draw.set_run_seed(1730)
+    for temperature, pressure in ((288.0, 101325.0), (262.0, 30000.0)):
+        sea = _body("M", temperature, pressure, water_mass_fraction=3e-6)
+        _generate_hydrosphere(sea, 0.087)
+        assert sea.ocean_class == "chloride brine" and sea.hydrosphere == "surface ocean" and sea.ocean_depth_km >= hy.SEA_MIN_DEPTH_KM
+        assert sea.water_activity == hy.NACL_SATURATION_ACTIVITY == 0.753
+    cold = _body("M", 240.0, 30000.0, water_mass_fraction=3e-6)
+    _generate_hydrosphere(cold, 0.087)
+    assert cold.ocean_class == "chloride brine" and cold.hydrosphere == hy.BRINE_SEEP == "brine seep" and cold.water_activity != hy.NACL_SATURATION_ACTIVITY
+    monkeypatch.setattr(hy, "SEA_MIN_DEPTH_KM", 10.0)
+    puddle = _body("M", 288.0, 101325.0, water_mass_fraction=3e-6)
+    _generate_hydrosphere(puddle, 0.087)
+    assert puddle.hydrosphere == "brine seep" and puddle.water_activity == hy.NACL_SATURATION_ACTIVITY and puddle.ocean_depth_km
     wet = _body("M", 288.0, 101325.0, water_mass_fraction=3e-4)
     _generate_hydrosphere(wet, 0.087)
     assert wet.hydrosphere == "surface ocean" and wet.ocean_class != "chloride brine"
-    warm_seep = _body("M", 288.0, 101325.0, water_mass_fraction=3e-6)
-    _generate_hydrosphere(warm_seep, 0.087)
-    assert warm_seep.hydrosphere == "brine seep" and warm_seep.ocean_depth_km
+
+
+def test_the_brine_line_is_the_water_that_holds_earths_salt_at_the_saturation_of_rock_salt():
+    earth_salt_per_mass = 4.9e19 / 6e24
+    assert hy.BRINE_MAX_WATER_FRACTION == pytest.approx(earth_salt_per_mass * 0.736 / 0.264, rel=0.15)
+    assert hy.salts_concentrated(hy.BRINE_MAX_WATER_FRACTION / 2.0) and not hy.salts_concentrated(hy.BRINE_MAX_WATER_FRACTION * 2.0)
+    assert hy.halite_sea(hy.BRINE_MAX_WATER_FRACTION / 2.0, 253.0) and not hy.halite_sea(hy.BRINE_MAX_WATER_FRACTION / 2.0, 250.0)
+    assert not hy.halite_sea(hy.BRINE_MAX_WATER_FRACTION * 2.0, 288.0)
 
 
 def test_a_brine_seep_is_liquid_water_but_not_a_sunlit_sea_nor_a_wet_world_nor_an_induction_ocean():

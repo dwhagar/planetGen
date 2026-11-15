@@ -12109,7 +12109,7 @@
             ],
             [
               "Evidence",
-              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; Knittel and Boetius 2009; Tian et al. 2020; [R2336] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
+              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; [R2336, R5286, R5287] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
             ]
           ],
           "id": "LF73",
@@ -12895,6 +12895,82 @@
           "tweak": "L1",
           "unread": null,
           "what": "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.OXIDATIVE_WEATHERING_EXPONENT 1.0 (linear, the top of the range; the COPSE square root 0.5 gave a window of the habitable classes too narrow, 7 oxygen-making sea worlds inside 16 to 35.4 kPa of 60 against 24 at 1.0 on 400 Abundant systems) and OXIDATIVE_WEATHERING_EXPONENT_RANGE (0.5, 1.0): the oxidative weathering of old organic carbon and pyrite goes with the oxygen's partial pressure to this power, so the balance pressure is Earth's times the surplus per area over Earth's to the power 1 / 1.0 (GEN.1733)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 (square root) to 1 (linear); some hold there is no dependence"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life that have spent the store"
+            ],
+            [
+              "What would show it wrong",
+              "a measured pO2 dependence of the oxidative weathering of old organic carbon (kerogen or pyrite) over a range of pO2, or a model with a feedback that holds the pressure near Earth's whatever the surplus"
+            ],
+            [
+              "What replaces it",
+              "a sourced weathering rate law of the rock at the oxygen of a world (kerogen kinetics by temperature and pO2)"
+            ],
+            [
+              "Evidence",
+              "READ ([R5280] equation 21: a weak square-root dependency taken from [R5282], pyrite linear, with a linear form used before and any dependency disputed; [R5281] full text: a dependency of pO2 to the 0.5 fits their results, consistent with coal oxidation kinetics); two models and a dispute, so it is tier 3"
+            ]
+          ],
+          "id": "BO13",
+          "key": "6.21:BO13",
+          "kind": "P",
+          "slug": "6-21-bo13",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.OXIDATIVE_WEATHERING_EXPONENT 1.0 (linear, the top of the range; the COPSE square root 0.5 gave a window of the habitable classes too narrow, 7 oxygen-making sea worlds inside 16 to 35.4 kPa of 60 against 24 at 1.0 on 400 Abundant systems) and OXIDATIVE_WEATHERING_EXPONENT_RANGE (0.5, 1.0): the oxidative weathering of old organic carbon and pyrite goes with the oxygen's partial pressure to this power, so the balance pressure is Earth's times the surplus per area over Earth's to the power 1 / 1.0 (GEN.1733)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.EARTH_O2_PA 21.2e3: the oxygen partial pressure of Earth's air, the point balance_pa scales the weathering from"
+            ],
+            [
+              "The range it moves in",
+              "20.9 to 21.3 kPa"
+            ],
+            [
+              "Where it holds",
+              "the oxygen balance"
+            ],
+            [
+              "What would show it wrong",
+              "test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air"
+            ],
+            [
+              "What replaces it",
+              "the same"
+            ],
+            [
+              "Evidence",
+              "READ (20.95 percent of the 101.325 kPa of the standard atmosphere, measured)"
+            ]
+          ],
+          "id": "BO14",
+          "key": "6.21:BO14",
+          "kind": "P",
+          "slug": "6-21-bo14",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.EARTH_O2_PA 21.2e3: the oxygen partial pressure of Earth's air, the point balance_pa scales the weathering from"
         },
         {
           "burn_down": null,
@@ -53731,6 +53807,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "hydrosphere.ISOSTATIC_BASIN_KM 11.4 (the deepest mean ocean basin before the continents are covered, km at Earth's gravity, scaling as 1 / g; the ocean crust of HYPSOMETRY sinks to the layer over its share of the area, no shallower than Earth's)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.BRINE_MAX_WATER_FRACTION 2e-5 (surface water under this fraction of the planet's mass holds Earth's salt, 8.2e-6 of the planet's mass, at or over the saturation of rock salt, 26.4 percent by mass: 8.2e-6 x 0.736 / 0.264 = 2.3e-5; the sea is then a halite-saturated sea, GEN.1730)"
+            ],
+            [
+              "The range it moves in",
+              "1e-5 to 3e-5 (Earth's salt per mass from 0.4 to 1.3 times)"
+            ],
+            [
+              "Where it holds",
+              "a liquid surface ocean of little water"
+            ],
+            [
+              "What would show it wrong",
+              "a sea of 5e-6 whose salt (Earth's per planet mass, 8.2e-6) is not over its saturation"
+            ],
+            [
+              "What replaces it",
+              "a salt balance of weathering supply against the water that holds it (GEN.1721 follow-up)"
+            ],
+            [
+              "Evidence",
+              "Earth's ocean salt 4.9e19 kg on 6e24 kg (the ocean of 1.4e21 kg holds 3.5 percent), rock salt saturated at 26.4 percent by mass (the standard solubility of halite in water)"
+            ]
+          ],
+          "id": "HY4",
+          "key": "6.134:HY4",
+          "kind": "P",
+          "slug": "6-134-hy4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrosphere.BRINE_MAX_WATER_FRACTION 2e-5 (surface water under this fraction of the planet's mass holds Earth's salt, 8.2e-6 of the planet's mass, at or over the saturation of rock salt, 26.4 percent by mass: 8.2e-6 x 0.736 / 0.264 = 2.3e-5; the sea is then a halite-saturated sea, GEN.1730)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.NACL_SATURATION_ACTIVITY 0.753 and NACL_EUTECTIC_K 251.85 (the water activity of a sodium chloride solution saturated at 25 C, and the sodium chloride eutectic, minus 21.3 C)"
+            ],
+            [
+              "The range it moves in",
+              "none (standard values)"
+            ],
+            [
+              "Where it holds",
+              "a halite-saturated sea (GEN.1730)"
+            ],
+            [
+              "What would show it wrong",
+              "none: a measured fixed point"
+            ],
+            [
+              "What replaces it",
+              "the temperature curve of the saturated solution's activity (small, 0.75 to 0.76 between 0 and 100 C)"
+            ],
+            [
+              "Evidence",
+              "the saturated NaCl solution of the Toner, Catling and Light eutectic table ([R4397]: NaCl, minus 21.3 C); the standard humidity fixed point 75.3 percent; [R5164] gives about 0.75 for the brine saturated with halite"
+            ]
+          ],
+          "id": "HY5",
+          "key": "6.134:HY5",
+          "kind": "D",
+          "slug": "6-134-hy5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrosphere.NACL_SATURATION_ACTIVITY 0.753 and NACL_EUTECTIC_K 251.85 (the water activity of a sodium chloride solution saturated at 25 C, and the sodium chloride eutectic, minus 21.3 C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.SEA_MIN_DEPTH_KM 0.01 (the least liquid depth of a halite-saturated sea that is a surface ocean, km, ten metres; a shallower one is a brine seep, a puddle the sea laws leave out)"
+            ],
+            [
+              "The range it moves in",
+              "1 m to 100 m"
+            ],
+            [
+              "Where it holds",
+              "a halite-saturated sea"
+            ],
+            [
+              "What would show it wrong",
+              "a measured lake of 5 m whose life and weathering the sea laws should count, or a 50 m one they should not"
+            ],
+            [
+              "What replaces it",
+              "a depth from the sea laws' own need (the lit and mixed layer of the oxygen law, the surface-area law of a lake)"
+            ],
+            [
+              "Evidence",
+              "needed output: a shallow lake is not a puddle; no source gives the line"
+            ]
+          ],
+          "id": "HY6",
+          "key": "6.134:HY6",
+          "kind": "P",
+          "slug": "6-134-hy6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrosphere.SEA_MIN_DEPTH_KM 0.01 (the least liquid depth of a halite-saturated sea that is a surface ocean, km, ten metres; a shallower one is a brine seep, a puddle the sea laws leave out)"
         }
       ],
       "slug": "6-134-stand-ins-of-the-ocean-cover-law-and-the-mantle-s-water-store",
@@ -66973,7 +67163,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
+              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) (a desert world a tier made draws its water in the part of the dry class that leaves a few small seas; its small sea is a halite-saturated sea, a lake and not a seep where it is deep enough, the same law as every other sea of so little water since GEN.1730, rows HY4 to HY6)"
             ],
             [
               "The range it moves in",
@@ -67004,7 +67194,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
+          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) (a desert world a tier made draws its water in the part of the dry class that leaves a few small seas; its small sea is a halite-saturated sea, a lake and not a seep where it is deep enough, the same law as every other sea of so little water since GEN.1730, rows HY4 to HY6)"
         }
       ],
       "slug": "6-289-stand-ins-of-the-class-m-abundance-tiers-gen-1704",
@@ -70108,7 +70298,7 @@
           "burn_down": [
             "no data",
             "-",
-            "Mercury's core shares follow ranges with no consensus ([R5147]) and are hand-set; a measured Mercury core replaces them"
+            "Mercury's core shares follow ranges with no consensus [R5147] and are hand-set; a measured Mercury core replaces them"
           ],
           "fields": [
             [
@@ -71379,8 +71569,8 @@
           "what": "tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes)"
         }
       ],
-      "slug": "6-124a-stand-ins-of-the-disc-infall-of-the-thin-disc-gen-1230-gen-1242",
-      "title": "Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)"
+      "slug": "6-124a-stand-ins-of-the-disk-infall-of-the-thin-disk-gen-1230-gen-1242",
+      "title": "Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)"
     },
     {
       "key": "6.179a",
@@ -71873,7 +72063,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
+              "educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
             ]
           ],
           "id": "PC4",
@@ -71889,6 +72079,204 @@
       ],
       "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",
       "title": "Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)"
+    },
+    {
+      "key": "6.300",
+      "number": "6.300",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hill_perturbers.NON_HOST_TIDE_WEIGHT 2.0: a companion star's or sibling's tide enters the field that sets the Hill radius as 2 m <1/d^3> against the host's 3 M / a^3 (the stretch without the centrifugal term of the rotating frame, which only the host's orbit makes)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "planets whose companions and siblings are far enough that their field is a fraction of the host's"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a planet with a Jupiter-mass sibling on a crossing orbit whose moons are stripped at a different fraction of the Hill radius than the rule gives"
+            ],
+            [
+              "What replaces it",
+              "a stripping fraction fitted to N-body runs with the perturber's mass and distance (the Domingos fit's own form with a perturber term)"
+            ],
+            [
+              "Evidence",
+              "design: Hill's criterion; the fit of [R1138] has the host and the planet's eccentricity only"
+            ]
+          ],
+          "id": "HP1",
+          "key": "6.300:HP1",
+          "kind": "P",
+          "slug": "6-300-hp1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "hill_perturbers.NON_HOST_TIDE_WEIGHT 2.0: a companion star's or sibling's tide enters the field that sets the Hill radius as 2 m <1/d^3> against the host's 3 M / a^3 (the stretch without the centrifugal term of the rotating frame, which only the host's orbit makes)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "<1/d^3> of each source is tide_sources.orbit_mean_inverse_cube (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters"
+            ],
+            [
+              "The range it moves in",
+              "the mean against the closest approach"
+            ],
+            [
+              "Where it holds",
+              "systems of a few planets in near-coplanar orbits; the mutual inclination only lengthens the mean separation, so the coplanar mean is the upper bound of the pull"
+            ],
+            [
+              "What would show it wrong",
+              "a sibling on a highly inclined orbit that strips moons the coplanar mean says are held, or one that spares moons the mean says are lost"
+            ],
+            [
+              "What replaces it",
+              "the inclination of the sibling and the encounter time (GEN.1449 slice 3)"
+            ],
+            [
+              "Evidence",
+              "design: reuse of tide_sources (GEN.1446)"
+            ]
+          ],
+          "id": "HP2",
+          "key": "6.300:HP2",
+          "kind": "P",
+          "slug": "6-300-hp2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "<1/d^3> of each source is tide_sources.orbit_mean_inverse_cube (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_resonances.CAPTURE_OFFSET 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at p/q (1 + 0.002); no escape by eccentricity or inclination, no second-order resonance"
+            ],
+            [
+              "The range it moves in",
+              "0.001 to 0.02"
+            ],
+            [
+              "Where it holds",
+              "the regular moons of a planet whose tide drives them out"
+            ],
+            [
+              "What would show it wrong",
+              "a measured moon pair that converged through a first-order resonance and passed it (Uranus' Miranda and the inclination escape; the Mimas and Tethys 4:2 is second order)"
+            ],
+            [
+              "What replaces it",
+              "the capture probability of the adiabatic theory against the migration rate and the eccentricity [R5288]"
+            ],
+            [
+              "Evidence",
+              "derived: the Galilean pairs sit within 0.001 of 2:1, Enceladus and Dione within 0.003; the census of 314 moon pairs gave 9 percent that swept a resonance"
+            ]
+          ],
+          "id": "HP3",
+          "key": "6.300:HP3",
+          "kind": "P",
+          "slug": "6-300-hp3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_resonances.CAPTURE_OFFSET 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at p/q (1 + 0.002); no escape by eccentricity or inclination, no second-order resonance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_resonances.capture shares the pair's orbital angular momentum sum m sqrt(a) (the integrator's finals) by the resonance condition sqrt(a_k) = K_k sqrt(a_0); a pair that would hold the inner moon inside its birth orbit is not captured"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "pairs whose outer moon is lighter than the inner one by a factor of 10 or more"
+            ],
+            [
+              "What would show it wrong",
+              "an integration of the pair's migration (moon_orbits with the pull of the moons) that ends at a different place"
+            ],
+            [
+              "What replaces it",
+              "the migration of a captured pair integrated with the planet's tide, the planet's spin following"
+            ],
+            [
+              "Evidence",
+              "derived: the planet's spin keeps the torque the integrator gave it because the moons' total angular momentum is kept"
+            ]
+          ],
+          "id": "HP4",
+          "key": "6.300:HP4",
+          "kind": "P",
+          "slug": "6-300-hp4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_resonances.capture shares the pair's orbital angular momentum sum m sqrt(a) (the integrator's finals) by the resonance condition sqrt(a_k) = K_k sqrt(a_0); a pair that would hold the inner moon inside its birth orbit is not captured"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "resonant_chains.pair_forced_eccentricities: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: settle_orbit keeps it)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "first-order pairs outside the resonance's width"
+            ],
+            [
+              "What would show it wrong",
+              "a near-resonant moon pair whose measured forced eccentricity differs by more than a factor of 3 (Io 0.0041, Europa 0.0094)"
+            ],
+            [
+              "What replaces it",
+              "the libration amplitude inside the resonance's width and the planet's flattening in the detuning"
+            ],
+            [
+              "Evidence",
+              "derived: Io 0.0051, Europa 0.0082, Ganymede 0.0007 from the Galilean masses and periods; the 33 percent of the census pairs that sit near a ratio mostly get under 0.003"
+            ]
+          ],
+          "id": "HP5",
+          "key": "6.300:HP5",
+          "kind": "P",
+          "slug": "6-300-hp5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "resonant_chains.pair_forced_eccentricities: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: settle_orbit keeps it)"
+        }
+      ],
+      "slug": "6-300-stand-ins-of-the-planet-s-hill-sphere-against-the-bodies-besides-its-host-and-of-the-moons-resonances-gen-1449",
+      "title": "Stand-ins of the planet's Hill sphere against the bodies besides its host and of the moons' resonances (GEN.1449)"
     }
   ]
 }
