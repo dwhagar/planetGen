@@ -12825,6 +12825,7 @@ clears each one.
   Lane 02's GEN.1731 options, 1:18 AM EST 2026-11-15 (report /mnt/project-files/reports/gen1731-weathering-law-warm-side-2026-11-15.md): of 10 Abundant Earth-shaped worlds under 2 Pa CO2, 4 hold 2 Pa or more of carbon as methane in reduced airs (NH3, CH4, H2) although their mantles are oxidized. Measure why those airs are reduced; the recipe stream change of GEN.1646 is the suspect. No change before the measure; a fix that follows is filed from the findings.
   Prototype measured (Lane 02, 4:59 AM EST 11-15, report /mnt/project-files/reports/gen1732-photochem-prototype-measure-2026-11-15.md): a photochemical cap on stored NH3 and CH4 removes the warm zero-CO2 ammonia worlds (Earth-shaped with NH3 over 10 Pa 9 to 0) and raises M 1 to 2 and R 0 to 3, but halves the Earth-shaped pool (13 to 6) as ammonia-warmed worlds freeze. Build decision with Boss.
   Check also (Class M tiers thread, 12:55 PM EST 2026-11-15): 6 to 25 Pa of methane from life under the ice warms a world 21 to 33 K (Eerosa I 267 to 288 K, Ilrusxohoe I 265 to 298 K); confirm that warming against sources as part of this item.
+  Boss, 1:04 PM EST 2026-11-15: "all recommendations in the last 5 hours are approved": build the photochemical NH3/CH4 cap (Lane 02), as a step term of GEN.1745 per the GEN.1739 design.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
@@ -12850,6 +12851,7 @@ clears each one.
 
 - [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
   Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
+  Boss, 1:03 PM EST 2026-11-15: "Class X, recommendation of 1 approved": class X allows worlds with an air (the GEN.1258 airless gate goes).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
   Filed by the TODO thread.
 
