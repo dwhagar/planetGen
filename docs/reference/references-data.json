@@ -20153,11 +20153,11 @@
    "n": 69
   },
   "Luhman||one|2024": {
+   "evidence": "registered at Train 28 (DOC.99): the paper the text names",
    "matched": [
     "10.3847/1538-3881/ad812a"
    ],
-   "n": 1,
-   "evidence": "registered at Train 28 (DOC.99): the paper the text names"
+   "n": 1
   },
   "Luna||etal|2006": {
    "matched": [
@@ -35516,11 +35516,11 @@
    "n": 1
   },
   "Zwart|Hochart|pair|2024": {
+   "evidence": "registered at Train 28 (DOC.99): the paper the text names",
    "matched": [
     "10.21468/scipostastro.3.1.001"
    ],
-   "n": 1,
-   "evidence": "registered at Train 28 (DOC.99): the paper the text names"
+   "n": 1
   },
   "Zwart||etal|2001": {
    "evidence": "a record already in the list has this author, year and (for a pair) second author",
@@ -74265,6 +74265,45 @@
    "volume": "121",
    "year": 2016
   },
+  "10.1002/2016jc012325": {
+   "authors": [
+    [
+     "Arndt",
+     "S."
+    ],
+    [
+     "Meiners",
+     "K. M."
+    ],
+    [
+     "Ricker",
+     "R."
+    ],
+    [
+     "Krumpen",
+     "T."
+    ],
+    [
+     "Katlein",
+     "C."
+    ],
+    [
+     "Nicolaus",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2016jc012325",
+   "editors": [],
+   "journal": "JGRC",
+   "page": "2108",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Influence of snow depth and surface flooding on light transmission through Antarctic pack ice",
+   "type": "journal-article",
+   "volume": "122",
+   "year": 2017
+  },
   "10.1002/2016jd025034": {
    "authors": [
     [
@@ -79606,6 +79645,45 @@
    "volume": "108",
    "year": 1991
   },
+  "10.1007/bf00329030": {
+   "authors": [
+    [
+     "Canadell",
+     "J."
+    ],
+    [
+     "Jackson",
+     "R. B."
+    ],
+    [
+     "Ehleringer",
+     "J. B."
+    ],
+    [
+     "Mooney",
+     "H. A."
+    ],
+    [
+     "Sala",
+     "O. E."
+    ],
+    [
+     "Schulze",
+     "E. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/bf00329030",
+   "editors": [],
+   "journal": "Oecologia",
+   "page": "583",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Maximum rooting depth of vegetation types at the global scale",
+   "type": "journal-article",
+   "volume": "108",
+   "year": 1996
+  },
   "10.1007/bf00541742": {
    "authors": [
     [
@@ -80214,6 +80292,57 @@
    "title": "Unitary Representations of Super Lie Groups and Applications to the Classification and Multiplet Structure of Super Particles",
    "type": "journal-article",
    "volume": "263",
+   "year": 2006
+  },
+  "10.1007/s00248-006-9055-7": {
+   "authors": [
+    [
+     "Warren-Rhodes",
+     "K. A."
+    ],
+    [
+     "Rhodes",
+     "K. L."
+    ],
+    [
+     "Pointing",
+     "S. B."
+    ],
+    [
+     "Ewing",
+     "S. A."
+    ],
+    [
+     "Lacap",
+     "D. C."
+    ],
+    [
+     "Gómez-Silva",
+     "B."
+    ],
+    [
+     "Amundson",
+     "R."
+    ],
+    [
+     "Friedmann",
+     "E. I."
+    ],
+    [
+     "McKay",
+     "C. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s00248-006-9055-7",
+   "editors": [],
+   "journal": "Microb Ecol",
+   "page": "389",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Hypolithic Cyanobacteria, Dry Limit of Photosynthesis, and Microbial Ecology in the Hyperarid Atacama Desert",
+   "type": "journal-article",
+   "volume": "52",
    "year": 2006
   },
   "10.1007/s00392-011-0331-2": {
@@ -104797,6 +104926,25 @@
    "volume": "27",
    "year": 2003
   },
+  "10.1017/s0954102089000064": {
+   "authors": [
+    [
+     "Kappen",
+     "L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s0954102089000064",
+   "editors": [],
+   "journal": "Antartic science",
+   "page": "31",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "Field measurements of carbon dioxide exchange of the Antarctic lichen Usnea sphacelata in the frozen state",
+   "type": "journal-article",
+   "volume": "1",
+   "year": 1989
+  },
   "10.1017/s1062798701000205": {
    "authors": [
     [
@@ -124832,6 +124980,97 @@
    "publisher": "Springer Science and Business Media LLC",
    "src": "crossref",
    "title": "Room temperature chirality switching and detection in a helimagnetic MnAu2 thin film",
+   "type": "journal-article",
+   "volume": "15",
+   "year": 2024
+  },
+  "10.1038/s41467-024-51636-8": {
+   "authors": [
+    [
+     "Hoppe",
+     "C. J. M."
+    ],
+    [
+     "Fuchs",
+     "N."
+    ],
+    [
+     "Notz",
+     "D."
+    ],
+    [
+     "Anderson",
+     "P."
+    ],
+    [
+     "Assmy",
+     "P."
+    ],
+    [
+     "Berge",
+     "J."
+    ],
+    [
+     "Bratbak",
+     "G."
+    ],
+    [
+     "Guillou",
+     "G."
+    ],
+    [
+     "Kraberg",
+     "A."
+    ],
+    [
+     "Larsen",
+     "A."
+    ],
+    [
+     "Lebreton",
+     "B."
+    ],
+    [
+     "Leu",
+     "E."
+    ],
+    [
+     "Lucassen",
+     "M."
+    ],
+    [
+     "Müller",
+     "O."
+    ],
+    [
+     "Oziel",
+     "L."
+    ],
+    [
+     "Rost",
+     "B."
+    ],
+    [
+     "Schartmüller",
+     "B."
+    ],
+    [
+     "Torstensson",
+     "A."
+    ],
+    [
+     "Wloka",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41467-024-51636-8",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "7385",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Photosynthetic light requirement near the theoretical minimum detected in Arctic microalgae",
    "type": "journal-article",
    "volume": "15",
    "year": 2024
@@ -217607,6 +217846,41 @@
    "volume": "186",
    "year": 2011
   },
+  "10.1111/j.1365-2486.2008.01758.x": {
+   "authors": [
+    [
+     "ANESIO",
+     "A. M."
+    ],
+    [
+     "HODSON",
+     "A. J."
+    ],
+    [
+     "FRITZ",
+     "A."
+    ],
+    [
+     "PSENNER",
+     "R."
+    ],
+    [
+     "SATTLER",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2486.2008.01758.x",
+   "editors": [],
+   "journal": "Global Change Biology",
+   "page": "955",
+   "publisher": "Wiley",
+   "src": "crossref",
+   "title": "High microbial activity on glaciers: importance to the global carbon cycle",
+   "type": "journal-article",
+   "volume": "15",
+   "year": 2009
+  },
   "10.1111/j.1365-2966.2004.07247.x": {
    "authors": [
     [
@@ -226112,6 +226386,33 @@
    "volume": "426",
    "year": 2012
   },
+  "10.1111/j.1745-6584.2007.00302.x": {
+   "authors": [
+    [
+     "Shah",
+     "N."
+    ],
+    [
+     "Nachabe",
+     "M."
+    ],
+    [
+     "Ross",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1745-6584.2007.00302.x",
+   "editors": [],
+   "journal": "Groundwater",
+   "page": "329",
+   "publisher": "Wiley",
+   "src": "crossref",
+   "title": "Extinction Depth and Evapotranspiration from Ground Water under Selected Land Covers",
+   "type": "journal-article",
+   "volume": "45",
+   "year": 2007
+  },
   "10.1111/j.1751-1097.1995.tb03961.x": {
    "authors": [
     [
@@ -230662,6 +230963,33 @@
    "type": "journal-article",
    "volume": "338",
    "year": 2012
+  },
+  "10.1126/science.1229881": {
+   "authors": [
+    [
+     "Fan",
+     "Y."
+    ],
+    [
+     "Li",
+     "H."
+    ],
+    [
+     "Miguez-Macho",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1229881",
+   "editors": [],
+   "journal": "Science",
+   "page": "940",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Global Patterns of Groundwater Table Depth",
+   "type": "journal-article",
+   "volume": "339",
+   "year": 2013
   },
   "10.1126/science.1231853": {
    "authors": [
@@ -237212,6 +237540,37 @@
    "volume": "42",
    "year": 2021
   },
+  "10.1139/f01-187": {
+   "authors": [
+    [
+     "Belzile",
+     "C."
+    ],
+    [
+     "Vincent",
+     "W. F."
+    ],
+    [
+     "Gibson",
+     "J. A."
+    ],
+    [
+     "Hove",
+     "P. V."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1139/f01-187",
+   "editors": [],
+   "journal": "Can. J. Fish. Aquat. Sci.",
+   "page": "2405",
+   "publisher": "Canadian Science Publishing",
+   "src": "crossref",
+   "title": "Bio-optical characteristics of the snow, ice, and water column of a perennially ice-covered lake in the High Arctic",
+   "type": "journal-article",
+   "volume": "58",
+   "year": 2001
+  },
   "10.1139/p03-042": {
    "authors": [
     [
@@ -241629,6 +241988,25 @@
    "type": "journal-article",
    "volume": "129",
    "year": 2006
+  },
+  "10.14430/arctic1356": {
+   "authors": [
+    [
+     "Kappen",
+     "L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.14430/arctic1356",
+   "editors": [],
+   "journal": "ARCTIC",
+   "page": "",
+   "publisher": "The Arctic Institute of North America",
+   "src": "crossref",
+   "title": "Plant Activity under Snow and Ice, with Particular Reference to Lichens",
+   "type": "journal-article",
+   "volume": "46",
+   "year": 1993
   },
   "10.1504/ijbsr.2024.10061056": {
    "authors": [
@@ -285062,7 +285440,7 @@
   "R5253": "R5248",
   "R5254": "R5250"
  },
- "id_next": 5264,
+ "id_next": 5274,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285088,6 +285466,7 @@
   "10.1002/2016gl071766": "R4770",
   "10.1002/2016gl071930": "R1302",
   "10.1002/2016jb013150": "R1073",
+  "10.1002/2016jc012325": "R5269",
   "10.1002/2016jd025034": "R5203",
   "10.1002/2016je005206": "R1727",
   "10.1002/2016je005240": "R2008",
@@ -285291,6 +285670,7 @@
   "10.1007/bf00168069": "R1799",
   "10.1007/bf00307281": "R1543",
   "10.1007/bf00307328": "R2486",
+  "10.1007/bf00329030": "R5271",
   "10.1007/bf00541742": "R0441",
   "10.1007/bf00623322": "R1230",
   "10.1007/bf00644558": "R2041",
@@ -285316,6 +285696,7 @@
   "10.1007/s001590050011": "R2103",
   "10.1007/s002110050024": "R1356",
   "10.1007/s00220-005-1452-0": "R0656",
+  "10.1007/s00248-006-9055-7": "R5264",
   "10.1007/s00392-011-0331-2": "R3223",
   "10.1007/s00411-025-01143-1": "R3386",
   "10.1007/s00421-022-04939-x": "R5020",
@@ -286097,6 +286478,7 @@
   "10.1017/s0252921100109674": "R0941",
   "10.1017/s0364009403390051": "R3423",
   "10.1017/s0364009403391007": "R3424",
+  "10.1017/s0954102089000064": "R5273",
   "10.1017/s1062798701000205": "R0004",
   "10.1017/s132335800001523x": "R3218",
   "10.1017/s1473550402001064": "R4709",
@@ -286692,6 +287074,7 @@
   "10.1038/s41467-022-27991-9": "R5149",
   "10.1038/s41467-022-31620-w": "R1912",
   "10.1038/s41467-024-46326-4": "R2938",
+  "10.1038/s41467-024-51636-8": "R5268",
   "10.1038/s41550-017-0042": "R4309",
   "10.1038/s41550-017-0102": "R0885",
   "10.1038/s41550-017-0148": "R3668",
@@ -288785,6 +289168,7 @@
   "10.1111/j.1365-246x.2010.04890.x": "R4232",
   "10.1111/j.1365-246x.2011.05023.x": "R1507",
   "10.1111/j.1365-246x.2011.05035.x": "R3883",
+  "10.1111/j.1365-2486.2008.01758.x": "R5265",
   "10.1111/j.1365-2966.2004.07247.x": "R4286",
   "10.1111/j.1365-2966.2004.07320.x": "R2738",
   "10.1111/j.1365-2966.2004.07591.x": "R3505",
@@ -289027,6 +289411,7 @@
   "10.1111/j.1745-3933.2012.01218.x": "R4533",
   "10.1111/j.1745-3933.2012.01272.x": "R2493",
   "10.1111/j.1745-3933.2012.01320.x": "R0177",
+  "10.1111/j.1745-6584.2007.00302.x": "R5267",
   "10.1111/j.1751-1097.1995.tb03961.x": "R0099",
   "10.1111/j.1751-8369.1987.tb00572.x": "R1367",
   "10.1111/j.1945-5100.1990.tb00717.x": "R2144",
@@ -289124,6 +289509,7 @@
   "10.1126/science.1226073": "R0638",
   "10.1126/science.1226477": "R0920",
   "10.1126/science.1227163": "R2155",
+  "10.1126/science.1229881": "R5266",
   "10.1126/science.1231853": "R4282",
   "10.1126/science.1233232": "R0127",
   "10.1126/science.1235989": "R4876",
@@ -289209,6 +289595,7 @@
   "10.1137/1.9781611971163": "R3435",
   "10.1137/1.9781611972894.7": "R1849",
   "10.1137/20m1338149": "R1935",
+  "10.1139/f01-187": "R5270",
   "10.1139/p03-042": "R1197",
   "10.1139/x90-114": "R4572",
   "10.1140/epja/s10050-021-00593-7": "R4461",
@@ -289387,6 +289774,7 @@
   "10.1371/journal.pone.0074988": "R0952",
   "10.1371/journal.pone.0144679": "R3924",
   "10.1378/chest.129.5.1188": "R0377",
+  "10.14430/arctic1356": "R5272",
   "10.1504/ijbsr.2024.10061056": "R1212",
   "10.1515/9781400828722": "R0398",
   "10.1515/9781400835300": "R3990",

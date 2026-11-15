@@ -35,7 +35,9 @@ The air is bookkept in moles: n_i = x_i P A / (g M), the new pressure is g sum(n
 
 ## 4. What the model leaves out
 
-Loss of oxygen to space, the hydrogen escape that adds oxygen, the phosphorus feedback and land plants (they would change S by a factor inside the 1.7 to 4 of this model's tweak level). Oxygenic chemistries are not viable under an ice lid here (the light a lid lets through is left out), so an ice-covered ocean makes no oxygen; whether life under ice could, is an open question.
+Loss of oxygen to space, the hydrogen escape that adds oxygen, the phosphorus feedback and land plants (they would change S by a factor inside the 1.7 to 4 of this model's tweak level). Oxygenic chemistries are not viable under an ice lid here (the light a lid lets through is left out), so an ice-covered ocean makes no oxygen unless its ice melts somewhere (GEN.1723); whether life under ice could, is an open question.
+
+**Refuges (GEN.1723).** Boss's rule is that life finds a way: oxygenic life is present wherever light and any liquid water reach the surface, a brine seep, a seasonal melt, a spring, not only in a wide sunlit sea. `physics/surface_refuge.py` counts the lit liquid hours of each place from the temperature of every place of the world, and `biogenic_oxygen.refuge_productivity` adds a source of Earth's own burial per area of ocean on that area, each place weighed by `(hours / 8760) ** k * cover`. It is about a hundredth of Earth's for a seep world and 0.14 of it at the very most (a whole sea that melts all year), so it never beats the reductant flux of a world with Earth's interior: the lever for oxygen on a dry world is the reductant flux (a more oxidised mantle), not this term. Research and sources: `reports/life-refuges-research-gen1722-2026-11-14.md`; registry rows RW1 to RW4.
 
 ## 5. What a player sees
 
