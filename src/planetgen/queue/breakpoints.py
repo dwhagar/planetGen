@@ -139,8 +139,8 @@ def from_chunks(chunks, **options):
     return Declaration(sum(sizes), tuple(cuts), **options)
 
 
-def whole_job(**options):
-    """The declaration of a job that is one unit by nature (`CommandSpec.whole`): one item, no cut, so the suggested split is the only split."""
+def whole_job(params=None, **options):
+    """The declaration of a job that is one unit by nature (`commands.ONE_UNIT`, which a command gives as its `breaks`, so `params` are the stage's and unused): one item, no cut, so the suggested split is the only split."""
     return Declaration(1, (), **options)
 
 

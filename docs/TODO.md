@@ -12578,12 +12578,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.217 (stage 3). Prerequisites: none. Related: OPS.181, OPS.130.
   Filed by the TODO thread.
 
-- [ ] **OPS.196 Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P6 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 16. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-  Part 1 merged, PR #6488 (TODO, 11-14). Open for the rest (the guard covers each family as it moves; whole flag deleted with the last family).
-
 - [ ] **OPS.225 Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L11); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L11 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.216-222. Related: OPS.191, OPS.207, OPS.212.
@@ -12895,6 +12889,11 @@ clears each one.
 - [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
   Lane 04, 1:25 PM EST 2026-11-15 (Class M thread's meter of 6645 and 6674 on Train 32): older than 6674, which only made the halite sea that showed it. Do: find why a rocky planet stores no P2O5 at all and fix the composition step so every rocky body carries its rock phosphorus; no default patched in at the reader.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
+  Filed by the TODO thread.
+
+- [ ] **TEST.771 (bug) test_cache_warmup (20 tests) is red on main**
+  Lane 16, 1:38 PM EST 2026-11-15 (OPS.196 part 2b, PR #6707): fails the same on origin/main. Do: find the merge that broke it and fix the cause, code or test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.770, OPS.196.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

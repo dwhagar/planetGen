@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4291] - 2026-11-15
+
+**Headline:** the `whole` flag of a command is gone: a command that is one unit by nature says so with the break declaration the queue already reads.
+
+### Changed
+
+- OPS.196: `CommandSpec.whole` is deleted. A command whose stage is one unit by nature gives `breaks=ONE_UNIT` (`commands.ONE_UNIT`, which names `breakpoints.whole_job`: one item, no cut), and `CommandSpec.one_unit` is what the unit-length ceiling (PERF.155) reads to leave it alone. The 33 commands that set `whole=True` are the same 33; the cut they get and the ceiling's exemption are unchanged.
+
+## [8.0.4290] - 2026-11-15
+
+**Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
+
+### Changed
+
+- OPS.196: `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes`, `clear-scatter`, `clean-nebula-field` and `reset-galaxy` give the engine `pieces` and `do` instead of a `unit` function. A clear's statements are a plan (`store.clear_bright_stars_plan`, `clear_bright_star_pass_plan`, `clear_phenomenon_scatter_plan`, `clear_nebula_field_plan`), one piece to a statement; the reset is one piece to a table and one to tidy after; the same plans are what `clear_*` and `wipe` run directly, so there is one list of the statements. Their results are unchanged.
+- `tests/test_commands_have_pieces.py` no longer has a list of commands still to convert: a command with a loop of its own fails. `tests/test_longest_silence.py` runs the commands of the last family under the unit beat and holds the longest stretch with no count, phase or statement moving to a budget.
+- `tests/test_long_sql_steps.py`: the clear tests were red on main (a new galaxy has nothing to clear since OPS.254 and OPS.257); they now say the galaxy holds something, and the reset test seeds a sector.
+
 ## [8.0.4289] - 2026-11-15
 
 **Headline:** The law that takes ammonia and methane out of an air under the star's far ultraviolet is built as a module of its own, with no change to any generated world yet.

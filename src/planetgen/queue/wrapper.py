@@ -560,10 +560,10 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
     """
     PERF.155: writes a warning to the run's log when the longest unit of the stage that just ended ran longer than
     `queue.unit_ceiling_seconds`, naming the stage, the unit's seconds and how many units the stage was cut into. A
-    command that is one unit by nature (`CommandSpec.whole`) is not held to the ceiling.
+    command that is one unit by nature (`CommandSpec.one_unit`) is not held to the ceiling.
     """
     ceiling = get_settings().queue.unit_ceiling_seconds
-    if commands.spec(step.kind).whole or longest <= ceiling:
+    if commands.spec(step.kind).one_unit or longest <= ceiling:
         return
     runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {format_duration_seconds(longest)}, over the "
                   f"{format_duration_seconds(ceiling)} unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
