@@ -12275,12 +12275,6 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
-- [ ] **GEN.1632 (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist**
-  Data audit batch 1, D12 (report reports/data-audit-2026-11-11.md, with file and line). Do: make ids unique, reconcile tier and tweak, add the missing rows, retire the dead ones; add a check so they cannot drift again. Lock-free (docs and a test).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.725.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1633 (bug) physics/belt_mass.py cannot be imported on its own**
   Data audit batch 1, D13 (report reports/data-audit-2026-11-11.md, with file and line). Do: fix the import cycle or missing import; test a bare import. Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.1201.
@@ -12841,29 +12835,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (planet composition), lock item, after GEN.1744. Prerequisites: GEN.1741. Related: GEN.1745, GEN.1741.
   Filed by the TODO thread.
 
-- [ ] **TEST.768 (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module**
-  Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15; confirmed red on main by the TODO thread at 12:47 PM EST. Do: give each constant its registry row, tag or a place in constants.py; never loosen the test.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1632.
-  Filed by the TODO thread.
-
 - [ ] **TEST.769 (bug) Six test_web_generate system-page tests are red on main**
   Lane 15, 1:13 PM EST 2026-11-15 (OPS.222 part B, PR #6703): red on main, not from that PR. Do: find the merge that broke them and fix the cause, code or test.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.222, OPS.216.
-  Filed by the TODO thread.
-
-- [ ] **TEST.770 (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216**
-  Lane 15, 1:13 PM EST 2026-11-15: red on main. Do: point the test at the stored plan reader that replaced runrecord.read_plan (OPS.216), keeping what it proves.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.222, OPS.216.
   Filed by the TODO thread.
 
 - [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
   Lane 04, 1:25 PM EST 2026-11-15 (Class M thread's meter of 6645 and 6674 on Train 32): older than 6674, which only made the halite sea that showed it. Do: find why a rocky planet stores no P2O5 at all and fix the composition step so every rocky body carries its rock phosphorus; no default patched in at the reader.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
-  Filed by the TODO thread.
-
-- [ ] **TEST.771 (bug) test_cache_warmup (20 tests) is red on main**
-  Lane 16, 1:38 PM EST 2026-11-15 (OPS.196 part 2b, PR #6707): fails the same on origin/main. Do: find the merge that broke it and fix the cause, code or test.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.770, OPS.196.
   Filed by the TODO thread.
 
 - [ ] **GEN.1750 Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it)**
