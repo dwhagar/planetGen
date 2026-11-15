@@ -89,10 +89,78 @@ def settle(conn, run_id):
     return False
 
 
+DRAIN_REASON = "stopped for update"
+"""str: Why a run is held when an update drains it (OPS.222, part A)."""
+
+
+def drain_run(conn, run_id, reason=DRAIN_REASON, now=None):
+    """
+    Drains the live run for an update (OPS.222, part A of L8): the run is held with `reason`, which frees the machine and takes it off every worker; each running unit stops at its next piece (the
+    engine finds the run no longer live, `engine.UnitStopped`), is not failed, and goes back to `waiting` in the ledger with what it committed kept. The retry of an unfinished unit is `retry_held`, which
+    the end of the update runs.
+
+    Returns:
+        bool: Whether this call held the run (`False` for a run that is not live).
+    """
+    if not runrecord.hold_run(conn, run_id, reason, now):
+        return False
+    conn.hset(runrecord.run_key(run_id), mapping={HELD_FOR: "update", HELD_EPOCH: _epoch()})
+    mark_run(conn, run_id, "held", reason)
+    return True
+
+
+HELD_FOR, HELD_EPOCH = "held_for", "held_epoch"
+"""str: The run-record fields of a drained run: what it is held for (`update`) and the generator epoch it was drained under."""
+
+
+def is_drained(conn, run_id):
+    """Whether the run is held for an update (`drain_run`): the update's stop of the job that follows it must not cancel it."""
+    return runrecord.run_state(conn, run_id) == runrecord.HELD and runrecord._s(conn.hget(runrecord.run_key(run_id), HELD_FOR)) == "update"
+
+
+def _epoch():
+    """The generator epoch the code makes galaxies by now (`util.generator_epoch`), or `""` where it cannot be read."""
+    try:
+        from planetgen.util import generator_epoch
+        return str(generator_epoch.generator_epoch())
+    except Exception as exc:  # noqa: BLE001 -- a drain must not fail for it; a resume then finds no epoch and leaves the run held
+        log.swallowed("queue/held", "_epoch", exc)
+        return ""
+
+
+def resume_after_update(conn, now=None):
+    """
+    The end of an update's drain (OPS.222, part A): every run held "for update" is carried on (`retry_held`) when the generator epoch is the one it was drained under, so the galaxy it finishes is the
+    one an undisturbed run makes; under another epoch (or one that cannot be read) it stays held and says why. Another run owning the machine leaves it held too.
+
+    Returns:
+        list[str]: One line for each held run, for the update's output (`updateguard.end`).
+    """
+    lines = []
+    here = _epoch()
+    for run_id in runrecord.recent_runs(conn, limit=100_000):
+        if runrecord.run_state(conn, run_id) != runrecord.HELD or runrecord._s(conn.hget(runrecord.run_key(run_id), HELD_FOR)) != "update":
+            continue
+        title = runrecord._s(conn.hget(runrecord.run_key(run_id), "title")) or run_id
+        then = runrecord._s(conn.hget(runrecord.run_key(run_id), HELD_EPOCH))
+        if not here or then != here:
+            lines.append(f"{title} ({run_id}) stays held: the generator changed with the update (epoch {then or '?'} then, {here or '?'} now), so it is run again, not carried on.")
+            continue
+        try:
+            carried = retry_held(conn, run_id, who="the update", now=now)
+        except runrecord.Busy as exc:
+            lines.append(f"{title} ({run_id}) stays held: {exc}")
+            continue
+        conn.hdel(runrecord.run_key(run_id), HELD_FOR, HELD_EPOCH)
+        lines.append(f"{title} ({run_id}) goes on: {carried['requeued']} unfinished {'unit' if carried['requeued'] == 1 else 'units'} queued again." if carried else f"{title} ({run_id}) was not held any more.")
+    return lines
+
+
 def retry_held(conn, run_id, who=None, now=None):
     """
-    Carries a held run on (OPS.221): takes the machine back for it, puts each held job back to `waiting` and queues it again as it was cut (the arguments and the cost its row holds), and makes the
-    run live. The supervisor carries it from there.
+    Carries a held run on (OPS.221, and the end of an update's drain, OPS.222): takes the machine back for it, puts each unit that is not done (the held ones, and the ones a drain stopped) back to
+    `waiting` and queues it again as it was cut (the arguments and the cost its row holds) unless the queue still has it, queues the opening of a stage whose opening the hold skipped, and makes the run live.
+    The supervisor carries it from there.
 
     Raises:
         runrecord.Busy: Another run of that kind owns the machine; the run stays held.
@@ -103,30 +171,53 @@ def retry_held(conn, run_id, who=None, now=None):
     from planetgen.queue import supervisor, units, wrapper
     if runrecord.run_state(conn, run_id) != runrecord.HELD:
         return None
-    items = held_units(conn, run_id)
     runrecord.take_held_back(conn, run_id, now)             # Busy leaves the run held and everything as it was
     kind = runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")) or runrecord.GENERATION
+    queue_name = wrapper.queue_of(kind)
     control = planrows.control_connection(conn, run_id)
     try:
-        rows = {row: control.execute("SELECT command, arguments FROM engine_jobs WHERE id = ?", (row,)).fetchone() for _stage, _unit, row in items}
-        for row in rows:
-            ledger.set_job_state(control, row, "waiting")
         engine = conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)
+        items = _unfinished(conn, control, run_id, int(runrecord._s(engine))) if engine else []
+        for _stage, _unit, row, _command, _planned in items:
+            ledger.set_job_state(control, row, "waiting")
         if engine:
             ledger.set_run_state(control, int(runrecord._s(engine)), "running")
         control.commit()
     finally:
         control.close()
-    for stage, unit, row in items:
-        planned = json.loads(rows[row]["arguments"])
+    queued = _queued_unit_ids(conn, queue_name)
+    requeued = 0
+    for stage, unit, row, command, planned in items:
         conn.hdel(runrecord.held_key(run_id, stage), unit)
-        units.requeue_unit(conn, run_id, stage, unit, rows[row]["command"], planned.get("args") or {}, planned.get("cost"), row, queue_name=wrapper.queue_of(kind))
-    runrecord.log(conn, run_id, f"{len(items)} held {'unit' if len(items) == 1 else 'units'} queued again" + (f" by {who}" if who else ""), kind="run.retry_held")
+        if units.job_id(run_id, stage, unit) in queued:
+            continue                                        # still waiting in the queue: it runs when a worker takes it
+        units.requeue_unit(conn, run_id, stage, unit, command, planned.get("args") or {}, planned.get("cost"), row, queue_name=queue_name)
+        requeued += 1
+    reopened = units.reopen_pending(conn, run_id, queue_name, queued)
+    runrecord.log(conn, run_id, f"{requeued} unfinished {'unit' if requeued == 1 else 'units'} queued again" + (f" and the opening of stage {reopened + 1}" if reopened is not None else "")
+                  + (f" by {who}" if who else ""), kind="run.retry_held")
     try:
-        supervisor.nudge(conn, wrapper.queue_of(kind))
+        supervisor.nudge(conn, queue_name)
     except Exception as exc:  # noqa: BLE001 -- the next poll of the page or the next supervisor start carries the run on
         log.swallowed("queue/held", "retry_held", exc)
-    return {"requeued": len(items)}
+    return {"requeued": requeued}
+
+
+def _unfinished(conn, control, run_id, engine_run):
+    """`[(stage index, unit, row, command, arguments)]` of the run's units the ledger does not say are done or canceled, in plan order."""
+    index_of = {planrows._stage_key(conn, run_id, index): index for index in range(len(runrecord.declared_stages(conn, run_id)))}
+    found = []
+    for row in control.execute("SELECT id, stage, command, item_key, arguments FROM engine_jobs WHERE run_id = ? AND item_key <> '' AND state NOT IN ('done', 'canceled') ORDER BY id", (engine_run,)).fetchall():
+        if row["stage"] in index_of:
+            found.append((index_of[row["stage"]], int(row["item_key"]), row["id"], row["command"], json.loads(row["arguments"] or "{}")))
+    return found
+
+
+def _queued_unit_ids(conn, queue_name):
+    """The RQ job ids waiting in or running on the queue (a unit in either is not queued again)."""
+    from planetgen.queue import redisqueue
+    queue = redisqueue.queue(queue_name, conn)
+    return set(queue.get_job_ids()) | set(queue.started_job_registry.get_job_ids())
 
 
 def _mark_job(conn, run_id, row, state):

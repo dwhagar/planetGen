@@ -845,7 +845,7 @@ def delete_run(conn, run_id):
         bool: Whether it was deleted.
     """
     state = run_state(conn, run_id)
-    if state is None or state in LIVE_STATES or state == HELD:           # a held run is cancelled first: the ledger's row and its jobs say how it ended
+    if state is None or state in LIVE_STATES or state == HELD:           # a held run is canceled first: the ledger's row and its jobs say how it ended
         return False
     conn.delete(*_keys_of(conn, run_id, every=True))
     return True

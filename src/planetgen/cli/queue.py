@@ -75,7 +75,7 @@ def _held(args):
     if carried is None:
         print("That run is not held.")
         return 1
-    print(f"Queued {carried['requeued']} held unit(s) again; the run goes on.")
+    print(f"Queued {carried['requeued']} unfinished unit(s) again; the run goes on.")
     return 0
 
 

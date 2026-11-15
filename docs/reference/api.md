@@ -1101,7 +1101,7 @@ forced credential change. They back the admin stats page
   `GET /api/admin/work/<id>/jobs` (OPS.224) answers one run's jobs from the job
   ledger, in the order they were planned: `{"engine_run", "counts": {state: n},
   "total", "items": [{"id", "stage", "command", "item", "state" ("waiting",
-  "ready", "running", "done", "failed" or "cancelled"), "attempts", "class",
+  "ready", "running", "done", "failed" or "canceled"), "attempts", "class",
   "claim_mb", "waits", "last", "created", "updated"}], "limit", "offset"}`.
   `waits` says why a job that is not running is not (the memory gate's own
   words a worker that held it was given, a retry hold with how long is left and

@@ -412,6 +412,22 @@ def stage_unended(conn, run_id, stage):
     return bool(conn.exists(runrecord.advanced_key(run_id, stage))) and planrows.RELEASE not in planrows.ended(conn, run_id, stage)
 
 
+def reopen_pending(conn, run_id, queue_name, queued=()):
+    """
+    OPS.222: queues the opening of the first stage that was never opened when the run was held (the opening job found the run not live and skipped itself, so nothing else would queue it), once the stage before
+    it has ended and unless the queue still holds the opening (`queued`: the job ids waiting or running). Returns the index of the stage whose opening it queued, or `None`.
+    """
+    count = len(runrecord.declared_stages(conn, run_id))
+    for index in range(count):
+        if conn.exists(runrecord.opened_key(run_id, index)):
+            continue
+        if (index == 0 or runrecord._s(conn.hget(runrecord.stage_key(run_id, index - 1), "ended"))) and open_job_id(run_id, index) not in queued:
+            enqueue_open(conn, run_id, index, queue_name)
+            return index
+        return None
+    return None
+
+
 def unended_stages(conn, run_id):
     """OPS.186: the stages of a live run that were completed and whose end has not queued the next opening, in order (what the reconciler of OPS.210 looks for)."""
     if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
