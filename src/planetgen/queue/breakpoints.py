@@ -14,7 +14,7 @@ A declaration is plain data and has no side effects. It says, for the `items` th
   `BYTE_IDENTICAL` to a test that gives the same output at two cuts.
 * **where a cut may fall** (`boundaries`, `whole`): `boundaries` are the item positions a cut may be at (`None` is any position), `whole` are spans of items `(start, end)` that
   must stay in one unit, so no cut falls strictly inside. `legal_cuts` is what is left.
-* **its dependencies** (`after`, `reads`, `writes`): `after` are the kinds of command that must be done first (the same edges as `commands.REQUIRES`, which a command that
+* **its dependencies** (`after`, `reads`, `writes`): `after` are the kinds of command that must be done first (the kinds a command needs something of, `needs.requires_of`, which a command that
   declares none takes); `reads` and `writes` are named facts, tables or files the job uses and changes. From them `conflicts` says whether two jobs touch the same thing, and so
   whether they may overlap (OPS.131/OPS.132: a pair overlaps only when both declared and nothing conflicts; the byte-for-byte proof of a pair stays the rule of those items).
 * **the clamp** (`floor_items`, `ceiling_items`): the fewest and most items the engine may put in a unit. Unset, a unit may hold a quarter to four times the suggested unit

@@ -455,44 +455,22 @@ END_COMMANDS = _end_commands(
 """dict: `(role, kind)` to the `EndCommand` that ends the stage of `kind` in that role. A stage whose kind has none ends that way with nothing of its own (`finish` still stores the stage's statistics)."""
 """dict: Every command the wrapper can name, by kind."""
 
-REQUIRES = {
-    "finish-phenomena": ("scatter-phenomena",),
-    "run-territories": ("run-population",),
-    "link-neighbors": ("generate-start-sector", "generate-neighborhood", "generate-sectors"),
-    "settle-sector-paths": ("generate-start-sector", "generate-neighborhood", "generate-sectors"),
-}
-"""dict: The commands that must not start before another command of the same run is done (PERF.247): each command's kinds it requires.
-A requirement not in the run is nothing to wait for (a run of one stage has none); one that is in the run must come before it
-(`validate_order`), and the stage is logged as released when its requirements are done and as not run when one of them did not
-finish (`runrecord.finish_run`). Only a requirement that is true is declared here: a stage with none may run beside the others
-(its units already run together)."""
-
-
 def requires_of(kind):
-    """The kinds of command `kind` requires, `()` for none."""
-    return REQUIRES.get(kind, ())
+    """The kinds of command `kind` waits for (OPS.238: from what it needs, `needs.requires_of`), `()` for none."""
+    from planetgen.queue import needs
+    return needs.requires_of(kind)
 
 
 def required_stage_keys(steps, index):
-    """The keys of the earlier steps of `steps` that step `index` requires: those of a kind in `requires_of` its kind."""
-    wanted = set(requires_of(steps[index].kind))
-    return [step.key for step in steps[:index] if step.kind in wanted]
+    """The keys of the earlier steps of `steps` that step `index` waits for (`needs.required_stage_keys`)."""
+    from planetgen.queue import needs
+    return needs.required_stage_keys(steps, index)
 
 
 def validate_order(steps):
-    """
-    Refuses a list of steps in which a step comes before a step it requires (a step of a kind in `requires_of` its own that is later
-    in the list), so the wrong order is found where the list is made and not by a run that reads rows that are not there yet.
-
-    Raises:
-        ValueError: Naming the step and the later step it requires.
-    """
-    for index, step in enumerate(steps):
-        wanted = set(requires_of(step.kind))
-        for later in steps[index + 1:]:
-            if later.kind in wanted:
-                raise ValueError(f"step {step.key!r} ({step.kind}) requires {later.key!r} ({later.kind}), which comes after it")
-    return steps
+    """Refuses a list of steps in which a step comes before a step that makes what it needs (`needs.validate_order`)."""
+    from planetgen.queue import needs
+    return needs.validate_order(steps)
 
 
 KIND_OF_STAGE = {
@@ -544,7 +522,7 @@ def spec(kind):
 def declaration(kind, params=None):
     """
     The break points command `kind` declares for a stage with `params` (OPS.161, `breakpoints.Declaration`), or `None` when it declares none, which keeps its typed split. A
-    command that is one unit by nature (`ONE_UNIT`) declares one item and no cut. A command that names no `after` takes its `REQUIRES` as its dependencies.
+    command that is one unit by nature (`ONE_UNIT`) declares one item and no cut. A command that names no `after` takes the kinds it needs (`needs.requires_of`) as its dependencies.
 
     Raises:
         KeyError: No such command.

@@ -232,7 +232,7 @@ def _say_carried(conn, run_id, index, prior, carried, total):
 
 
 def _log_released(conn, run_id, index, step):
-    """PERF.247: a stage that requires an earlier one (`commands.REQUIRES`) is written to the run's log as released when it opens,
+    """PERF.247: a stage that requires an earlier one (`needs.requires_of`) is written to the run's log as released when it opens,
     naming the stages it waited for."""
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     if step.key not in [item.key for item in steps]:

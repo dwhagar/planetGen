@@ -72,8 +72,20 @@ def test_the_order_of_a_scatter_run_meets_the_needs_too(scatter):
             assert not makers or any(kinds.index(maker) < place for maker in makers), f"{kind} needs {artifact}, made only after it by {makers}"
 
 
-def test_what_a_command_requires_today_is_a_need_the_declarations_have():
-    """`commands.REQUIRES` goes when the planner reads the declarations: until then every requirement it holds is one they state."""
-    for kind, required in commands.REQUIRES.items():
-        for other in required:
-            assert set(needs.needs_of(kind)) & set(needs.makes_of(other)), f"{kind} requires {other}, which no declared need of {kind} is made by"
+def test_what_a_command_waited_for_before_the_declarations_it_still_waits_for():
+    """The four requirements `commands.REQUIRES` held (PERF.247) before OPS.238 planned the order from the declarations."""
+    sectors = {"generate-start-sector", "generate-neighborhood", "generate-sectors"}
+    assert "scatter-phenomena" in needs.requires_of("finish-phenomena")
+    assert "run-population" in needs.requires_of("run-territories")
+    assert sectors <= set(needs.requires_of("link-neighbors")) | {"generate-unplaced-sector"} and "generate-sectors" in needs.requires_of("link-neighbors")
+    assert {"generate-start-sector", "generate-sectors"} <= set(needs.requires_of("settle-sector-paths"))
+
+
+def test_a_list_of_steps_is_refused_where_a_need_is_met_only_after_it():
+    def step(key, kind):
+        return commands.Step(key, kind, key, {})
+    ok = [step("limits-clear", "clear-bright-stars"), step("mass", "scatter-mass"), step("luminosity", "scatter-luminosity")]
+    assert needs.validate_order(ok) == ok and needs.required_stage_keys(ok, 2) == ["mass"]
+    with pytest.raises(ValueError, match="needs bright-stars-mass"):
+        needs.validate_order([ok[2], ok[1], ok[0]])
+    assert needs.validate_order([step("luminosity", "scatter-luminosity")])        # a need no step of the list makes is stored from an earlier run
