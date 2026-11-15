@@ -6,6 +6,7 @@ A list of how long each step of a command took, for the commands that print a ti
 
 import contextlib
 import time
+from planetgen.util.format import format_duration_seconds
 
 
 class StepTimer:
@@ -30,5 +31,5 @@ class StepTimer:
         costliest first."""
         total = self.total()
         shown = sorted(self.steps, key=lambda item: -item[1])
-        return [f"{title} ({total:.2f}s):"] + [
-            f"  {seconds:8.2f}s {100.0 * seconds / total if total else 0.0:5.1f}%  {label}" for label, seconds in shown]
+        return [f"{title} ({format_duration_seconds(total)}):"] + [
+            f"  {format_duration_seconds(seconds):>12} {100.0 * seconds / total if total else 0.0:5.1f}%  {label}" for label, seconds in shown]

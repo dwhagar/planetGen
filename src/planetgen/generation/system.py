@@ -47,6 +47,7 @@ from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
+from planetgen.util.format import format_duration_seconds, format_period_years
 
 _km_to_au = units.converter("km", "au")
 
@@ -1287,7 +1288,7 @@ class StarSystem:
             with draw.bound(draw.Stream(f"pair-activity:{star.mass!r}:{star.age!r}:{partner_kg!r}:{_km_to_au(node.separation_km)!r}")):
                 activity.generate_activity(star)
             if log.debug_log_active():
-                log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronization time {result.sync_time_yr:.3g} yr).")
+                log.debug(f"{star.name}: spin set by its partner's tide to {format_duration_seconds(result.rotation_period_hours * 3600.0)} (synchronization time {format_period_years(result.sync_time_yr)}).")
         for node_no, pair in under.items():
             if len(pair) == 2:
                 node = by_no[node_no]

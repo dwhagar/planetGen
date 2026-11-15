@@ -42,6 +42,7 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
 from planetgen.util import log as planetgen_log
 from planetgen.tuning import MAX_STARS_CEILING, MAX_STARS_DEFAULT
+from planetgen.util.format import format_duration_seconds
 
 TRISTATE_FIELDS = (
     # (planetgen option name, label) -- the same ten, in the same order,
@@ -308,7 +309,7 @@ def run_generator(spec):
         output = done["stdout"]
         ok = done["returncode"] == 0
         if done["timed_out"]:
-            output += f"\nThe generator took longer than {TIMEOUT_S} seconds and was stopped."
+            output += f"\nThe generator took longer than {format_duration_seconds(TIMEOUT_S)} and was stopped."
         elif done["error"]:
             output, ok = f"The generator could not be started: {done['error']}", False
         text = _read(page_path)

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.319 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1724 |
+| GEN | GEN.1730 |
 | PERF | PERF.268 |
 | DB | DB.131 |
 | API | API.51 |
@@ -4033,6 +4033,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1721 | Class M abundance tiers also raise classes H, O, P and R in proportion, with M in front: the water dial gets a dry share for H (Earth's class weighted most), and the meter prints a five-class table (shape, passes, first failing gate) | GEN.1706 | open |
 | GEN.1722 | Research first: can a desert, glaciated or hothouse world with no wide sunlit sea build 16 kPa of oxygen, and does the generator's oxygen chain deny it for a physical reason or by omission | none | done, research report life-refuges-research-gen1722-2026-11-14.md (8:55 PM EST 11-14); build in GEN.1723 and GEN.1721 |
 | GEN.1723 | Life will find a way: oxygenic life (classes 1a, 1b, 1c) is present wherever a world has light and any liquid water at its surface (a brine seep or seasonal melt as much as an open sea), on every galaxy including Science | none | open |
+| GEN.1724 | Research: a sourced table of life adaptations to cold, heat, dryness, salt and low light, by climate type and life type, feeding GEN.1721 and GEN.1723 | none | open |
+| GEN.1725 | A data table of adaptations for all life types (cold, heat, dry, low light and ice-cover traits) extending the GEN.876 life traits, widening the GEN.1723 refuge gate where sourced; not built until Boss says | GEN.1724, GEN.1723 | open |
+| GEN.1726 | A sourced law for light through ice and snow (transmission by thickness, grain and impurity) for the refuge gate and lit water under thin ice | none | done, PR #6583 (9:58 PM EST 11-14) |
+| GEN.1727 | Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit | none | open |
+| GEN.1728 | A world's ice and snow thickness from a growth law (temperature and snowfall), so the GEN.1726 light law can run on real worlds | none | open |
+| GEN.1729 | Land plants in the oxygen law, on every galaxy including Science: wet land adds to the oxygen source, so desert worlds (class H) can reach 16 kPa | GEN.1723 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

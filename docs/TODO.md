@@ -12950,7 +12950,8 @@ clears each one.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level. Measured by the Class M thread on PR 6469 (2026-11-14): first-pass tier rates per 1,000 Sun-like systems are 0, 0, 2.5, 5.0 and 12.5 against targets none, 1, 10, 33 and 100; the water dial at share 1 reaches about 46 percent of final-zone candidates (icy-origin ones and planets moved into the ecosphere after their body is drawn are not reached), so calibration must decide whether the dials also act on moved planets.
-  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, GEN.1704, GEN.1705, GEN.1678. Related: GEN.725, GEN.1708.
+  Boss, 9:28 PM EST on 2026-11-14: "increase sparse to be 1 in 500, and crawl up from there"; 9:30 PM EST: "So let's say 1 in 10 for top end, split the rest logarithmically from Sparse to Abundrant". New tier targets (in PR 6575, GEN.1721 slice 1): Sparse 1 in 500, Scattered 1 in 135, Plentiful 1 in 37, Abundant 1 in 10 Sun-like systems (were 1,000, 100, 30, 10). Calibrate to these against the Science baseline of 1 in 2,800 (95 percent 0.1 to 2.0 per 1,000; census /mnt/project-files/reports/train28-census-2026-11-14/five-classes-2800.md). Blocked in practice by GEN.1720.
+  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1698, GEN.1720, GEN.1704, GEN.1705. Related: GEN.725, GEN.1708, GEN.1721.
   Filed by the TODO thread.
 
 - [ ] **GEN.1709 Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star)**
@@ -13045,6 +13046,7 @@ clears each one.
   Boss, 8:33 PM EST on 2026-11-14 (Class M tiers thread): "Also, let's add another lever that will tweak oxygen producing life so that it is a little more resistant, for a desert world we can also tweak the underground water supply." Two more tier dials, off on Science, as registered stand-ins: hardy oxygen life and groundwater for desert worlds. Seven dials in all: water, bare, request, dry share, early warm phase, hardy oxygen life, groundwater.
   Boss, 8:38 PM EST on 2026-11-14 (Class M tiers thread): "give the photosynthetic life the assumption in the code that life will always find a way, there is life in the arctic circle after all, life will find a way is our assumption" Boss chose every galaxy, Science too (card, 8:39 PM EST), so the rule is its own lock item, GEN.1723; GEN.1721 stays byte-identical on Science (the hardy oxygen life dial is replaced by GEN.1723).
   GEN.1722 research (Lane 03, /mnt/project-files/reports/life-refuges-research-gen1722-2026-11-14.md): groundwater is plentiful but reaches the surface only where the table is within about 1 m (about 15 percent of Earth's land); the early warm phase needs 0.2 to 0.8 Gyr wet and warm, 0.8 Gyr minimum recommended. Use these for the groundwater and early warm phase dials.
+  Boss, 9:49 PM EST (card "Choose how desert worlds get breathable air": "Both, small seas first"): slice 2 (presets only, Science byte-identical, after PR 6575): groundwater share for dry dialed planets, small open seas on dialed desert worlds, and a "quiet volcanoes" share (reductant sink about a third, inside the published 1e12 to 5e12 mol/yr of registry row BO2). The every-galaxy half is GEN.1729.
   Version 8.1. Owner (TODO, 2026-11-14): the Class M tiers thread (Fable). Prerequisites: GEN.1706. Related: GEN.1704, GEN.1705, GEN.1722, GEN.1720.
   Filed by the TODO thread.
 
@@ -13053,12 +13055,39 @@ clears each one.
   Boss, 8:39 PM EST on 2026-11-14 (Class M tiers thread): "With the addition that...  For science we're tweaking the minimal amount that is a reasonable, educated, guess for how life could really evolve and how a planet could really do it, the idea is that this is filling that knowledge gap that we don't know how Earth formed". So on Science the rule goes only as far as real oxygenic life is known to go (sourced limits of temperature, water activity and light), registered as an educated guess from physics, not from needed output; anything past those limits is preset-only (GEN.1721).
   Lane 21 (8:40 PM EST): the gate cannot change alone: in physics/biogenic_oxygen.py the source S is 0 unless the hydrosphere is in LIVING_HYDROSPHERES and otherwise scales with the ocean share, and the store B and GEN.1707's plateau read the same S. So the same change adds a refuge term in S (production per lit area of liquid water, sourced, from GEN.1722's research). One item, one epoch. The Class M tiers thread runs the before and after Science census on Lane 21's branch.
   GEN.1722 research done (Lane 03, 8:55 PM EST, /mnt/project-files/reports/life-refuges-research-gen1722-2026-11-14.md): presence rule well supported: liquid water at the lit surface for 75 h a year or more, 252 to 346 K local, light floor 0.04 umol photons m-2 s-1; registry rows RW1 to RW3 proposed (add them in this PR). Production per lit area has no direct source: built from turnover and cover, educated guess at tweak L2. Refuge oxygen is small beside Earth's reductant flux, so it only tips worlds whose ocean source is just under it; it will not fix the dry class H census (19 of 19 fail oxygen).
+  Boss, 9:17 PM EST on 2026-11-14, after the GEN.1724 report: "Implment it, make it happen" (GEN.1724, /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md): fold the report's recommendations into this item: lit water under thin ice counts as surface water at reduced light, the refuge limits from the report, and deep-root groundwater access. The light through ice and snow uses GEN.1726 when it lands; until then a registered stand-in.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (holds the oxygen law and GEN.1722; the Class M tiers thread measures). Prerequisites: none. Related: GEN.1721, GEN.1722, GEN.1707, GEN.1699, GEN.1720.
   Filed by the TODO thread.
 
 - [ ] **TEST.753 (bug) tests/data/civilized_pins.json went stale at epoch 150 (pins 432 and 516 no longer hold a civilization), so tests needing two or more civilized systems hunt for new ones for tens of minutes; test_the_pinned_civilized_seeds_still_qualify checks only the first pin**
   Lane 15 (was 12), 8:51 PM EST on 2026-11-14, from the 6548 rerun: one system takes 16 to 34 s, no generation slowdown; the hunt is the cost. Do: refresh the pins (python -m tests.civilized_pins refresh --hunt 4) and make the guard check every pin, so a stale pin fails at once instead of slowing the suite.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: TEST.751.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1724 Research: a sourced table of life adaptations to cold, heat, dryness, salt and low light, by climate type and life type, feeding GEN.1721 and GEN.1723**
+  Boss, 9:11 PM EST on 2026-11-14 (as the coordinator relayed): research life adaptations to hot and cold. Research only, no code; report /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md. Sources per the source rules; proposed stand-ins carry tier and tweak level for GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1721, GEN.1723, GEN.876.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1725 A data table of adaptations for all life types (cold, heat, dry, low light and ice-cover traits) extending the GEN.876 life traits, widening the GEN.1723 refuge gate where sourced; not built until Boss says**
+  From GEN.1724 (research thread, 9:13 PM EST on 2026-11-14): extends docs/design/habitability/adaptation-traits.md. Design and build wait for Boss's word. Stand-ins the report proposes are registered in GEN.725 by this item's PR (no separate registry item).
+  Boss, 9:17 PM EST on 2026-11-14, after the GEN.1724 report: "Implment it, make it happen". Released for build, second priority behind the queue rework. Build the table data and traits now; the part that widens the class 1 gate lands on top of GEN.1723 (same file, physics/data/life_classes.json), after it merges. Report /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03 (released by Boss 9:17 PM EST; gate widening after GEN.1723 merges). Prerequisites: GEN.1724, GEN.1723. Related: GEN.876, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1727 Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit**
+  From GEN.1724 (/mnt/project-files/reports/life-adaptations-climate-2026-11-14.md): the figure is quoted second-hand. Do: read it from the paper or a verified second-hand citation (reports/secondhand-citations-2026-10-24.md if the paper is out of reach) and correct the report and the registry row.
+  Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1724, GEN.1723.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1728 A world's ice and snow thickness from a growth law (temperature and snowfall), so the GEN.1726 light law can run on real worlds**
+  Lane 03, 9:47 PM EST on 2026-11-14, from GEN.1726 (PR 6583): physics/ice_light.py takes a thickness from its caller; GEN.1723 and GEN.1725 need a stored or derived ice and snow thickness per world before they use it. Do: a sourced growth law (sea ice from the freezing balance, snowpack from snowfall and melt), registered in GEN.725, stored or computed where the life gate reads it.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1726, GEN.1723, GEN.1725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1729 Land plants in the oxygen law, on every galaxy including Science: wet land adds to the oxygen source, so desert worlds (class H) can reach 16 kPa**
+  Boss, 9:49 PM EST on 2026-11-14, card "Choose how desert worlds get breathable air" (Class M tiers thread): option 1, "Both, small seas first". Why: physics/biogenic_oxygen.py counts only open sea as the source (S goes as min(ocean/0.71, 1.3)); its docstring says it leaves out the land plants that raised Earth's burial, so a world under 20 percent sea cannot reach 16 kPa: 0 of 74 desert-shaped planets in 2,800 Science systems. Research first: the land-derived share of Earth's organic burial and since when; production per wet land area against rain- or groundwater-fed share (GEN.1722 report: groundwater-fed land about 15 percent of Earth's); the life stage it needs (land flora, after multicellularity). Sized by Boss's Science rule (minimal sourced educated guess, registered in GEN.725). Then build. Evidence: /mnt/project-files/reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md. Lock item, new epoch, on a train.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (after GEN.1723 lands; same law). Prerequisites: GEN.1723. Related: GEN.1721, GEN.1722, GEN.1707.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

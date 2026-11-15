@@ -18,7 +18,7 @@ def test_a_still_counter_with_fresh_evidence_is_busy_and_without_it_quiet():
     assert quiet.state == beatjudge.QUIET and quiet.actionable
     busy = beatjudge.judge(_beat(active=NOW - 8.0, sql="INSERT INTO scatter_masses"), HISTORY, NOW)
     assert busy.state == beatjudge.BUSY and not busy.actionable
-    assert "in SQL: INSERT INTO scatter_masses" in busy.reason and "900 s" in busy.reason
+    assert "in SQL: INSERT INTO scatter_masses" in busy.reason and "15 minutes" in busy.reason
     stale = beatjudge.judge(_beat(active=NOW - 120.0), HISTORY, NOW)
     assert stale.state == beatjudge.QUIET, "work seen minutes ago is no proof of work now"
 
