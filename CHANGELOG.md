@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4295] - 2026-11-15
+
+**Headline:** The splitter's stage test reads the plan from the plan rows, where OPS.216 moved it.
+
+### Fixed
+- `test_splitter.py` called `runrecord.read_plan`, which OPS.216 removed; it calls `planrows.read_plan` (the split is kept in the same plan summary).
+
+generation-output: unchanged
+
 ## [8.0.4294] - 2026-11-15
 
 **Headline:** a run's whole sequence of stages is now stored as waiting rows in the ledger the moment the run starts, so the job view can say which stage each one waits for.
