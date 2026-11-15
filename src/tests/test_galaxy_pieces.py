@@ -58,11 +58,11 @@ def test_a_sector_unit_has_a_piece_for_each_sector_and_none_for_the_ones_saved(m
     monkeypatch.setattr(run_galaxy, "_sector_args_of", lambda unit: None)       # (the unit's arguments are read only to find the saved sectors)
     unit = {"args": {}, "items": [1, 0, 0, 1, 0, 1, 1, 0, 2], "suffixes": ["a", "b", "c"]}
     pieces = run_galaxy.generate_sectors_pieces(unit, 0)
-    assert pieces == [{"address": [1, 0, 0], "suffix": "a"}, {"address": [1, 0, 1], "suffix": "b"}, {"address": [1, 0, 2], "suffix": "c"}]
+    assert pieces == [{"address": [1, 0, 0], "suffix": "a", "weight": 1}, {"address": [1, 0, 1], "suffix": "b", "weight": 1}, {"address": [1, 0, 2], "suffix": "c", "weight": 1}]
     assert run_galaxy.generate_sectors_pieces(unit, 2) == pieces[2:]
     monkeypatch.setattr(run_galaxy, "_saved_addresses", lambda args: {(1, 0, 1)})
     assert run_galaxy.generate_sectors_pieces({**unit, "again": True}, 0) == [pieces[0], pieces[2]]       # the suffix goes by place, so a skipped sector leaves the others theirs
-    assert run_galaxy.generate_sectors_pieces({"args": {}, "items": [1, 0, 0]}, 0) == [{"address": [1, 0, 0], "suffix": ""}]
+    assert run_galaxy.generate_sectors_pieces({"args": {}, "items": [1, 0, 0]}, 0) == [{"address": [1, 0, 0], "suffix": "", "weight": 1}]
 
 
 def test_the_sector_unit_result_is_what_each_sector_reported_and_this_process():
@@ -93,3 +93,45 @@ def test_a_system_unit_draws_its_tries_from_one_stream_across_its_two_pieces(mon
     result = run_system.system_do(unit, {"run": "finish"}, ctx)
     assert result == {"warning": None, "name": "Test", "text": "page", "star_system_id": None, "asked": None}
     assert len(seen) == 1 and seen[0] is ctx.state["stream"]
+
+
+class _Densities:
+    """A `_BatchDensity` that knows each sector's expected systems (by wedge) and the reach (shell 9 is beyond it)."""
+
+    def __init__(self, config):
+        pass
+
+    def resolve(self, args, address, position_pc):
+        if address[0] == 9:
+            return None
+        return types.SimpleNamespace(num_systems=[0.2, 3.0, 40.4][address[2]], density=None)
+
+
+def test_a_sector_weighs_the_systems_its_density_expects_and_never_less_than_one(monkeypatch):
+    """PERF.268: a dense sector is several sparse ones; a sparse one still costs a sector, and one beyond the reach weighs 1."""
+    items = [1, 0, 0, 1, 0, 1, 1, 0, 2, 9, 0, 0]
+    assert run_galaxy.sector_weights(_Densities(None), None, items, 10.0) == [1, 3, 40, 1]
+
+
+def test_the_cut_of_a_sector_stage_carries_each_sectors_weight_and_costs_the_sum(monkeypatch):
+    monkeypatch.setattr(run_galaxy, "_sector_args_of", lambda unit: types.SimpleNamespace(around=None))
+    monkeypatch.setattr(run_galaxy, "_BatchDensity", _Densities)
+    monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: None)
+    monkeypatch.setattr(run_galaxy, "SECTOR_UNITS_MAX", 2)
+    params = {"database": "d", "args": {}, "edge_pc": 10.0, "items": [1, 0, 0, 1, 0, 1, 1, 0, 2]}
+    expansion = run_galaxy.expand_generate_sectors(params)
+    (first, first_cost), (second, second_cost) = expansion.units
+    assert first["weights"] == [1, 3] and first_cost == 4.0 and second["weights"] == [40] and second_cost == 40.0
+    assert [piece["weight"] for piece in run_galaxy.generate_sectors_pieces(first, 0)] == [1, 3]
+
+
+def test_a_cut_that_cannot_read_the_density_weighs_each_sector_as_one(monkeypatch):
+    class Unreadable(_Densities):
+        def resolve(self, *_):
+            raise RuntimeError("no skeleton")
+
+    monkeypatch.setattr(run_galaxy, "_sector_args_of", lambda unit: types.SimpleNamespace(around=None))
+    monkeypatch.setattr(run_galaxy, "_BatchDensity", Unreadable)
+    monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: None)
+    expansion = run_galaxy.expand_generate_sectors({"database": "d", "args": {}, "edge_pc": 10.0, "items": [1, 0, 0, 1, 0, 1]})
+    assert all("weights" not in unit and cost == 1.0 for unit, cost in expansion.units)

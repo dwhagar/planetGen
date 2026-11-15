@@ -96,6 +96,28 @@ def test_the_engine_counts_the_pieces_done_of_the_pieces_in_all_into_the_beat(co
     assert report.seen == [(0, 3), (1, 3), (2, 3), (3, 3)]
 
 
+def weighed(args, cursor):
+    return [{"weight": weight} for weight in args["weights"]][cursor:]
+
+
+def worked(args, piece, ctx):
+    return piece.get("weight")
+
+
+def test_a_piece_may_weigh_more_than_one_and_the_beat_counts_the_weight_done_of_the_weight_in_all(command):
+    """PERF.268: a dense sector is several sparse ones, so the bar, the judge's rate and the profile follow the work and not the number of pieces."""
+    command(pieces=(__name__, "weighed"), do=(__name__, "worked"))
+    report = Report()
+    assert engine.run("engine-test", {"weights": [1, 40, 3]}, report) == [1, 40, 3]
+    assert report.seen == [(0, 44), (1, 44), (41, 44), (44, 44)]
+
+
+@pytest.mark.parametrize("piece, weight", [(7, 1.0), ({}, 1.0), ({"weight": 2.5}, 2.5), ({"weight": 0}, 1.0), ({"weight": -3}, 1.0), ({"weight": float("nan")}, 1.0),
+                                          ({"weight": True}, 1.0), ({"weight": "9"}, 1.0)])
+def test_a_piece_weighs_one_unless_it_names_a_positive_number(piece, weight):
+    assert engine.weight_of(piece) == weight
+
+
 def test_the_pieces_are_asked_for_after_the_cursor_and_every_piece_is_done_in_order(command):
     command()
     engine.run("engine-test", {"count": 2}, Report())
