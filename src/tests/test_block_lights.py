@@ -243,14 +243,13 @@ def _args(config):
 def _refresh(config, since):
     """The unit of the `run-blocks` stage, for the sectors saved since `since`."""
     from planetgen.generation import run_galaxy
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, wrapper
 
-    return run_galaxy.refresh_run_blocks_unit(
-        {"database": wrapper.database_args(config), "since": since.isoformat(sep=" ")}, lambda done, total: None)
+    return commands.run_alone("refresh-run-blocks", {"database": wrapper.database_args(config), "since": since.isoformat(sep=" ")})
 
 
 def test_a_galaxy_run_brings_its_sectors_into_both_block_tables(mysql_config):
-    """A sector save refreshes neither table; the run does it once at its end (`refresh_run_blocks_unit`)."""
+    """A sector save refreshes neither table; the run does it once at its end (`refresh-run-blocks`)."""
     import datetime
 
     from planetgen.generation import run_galaxy
