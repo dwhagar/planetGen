@@ -67681,6 +67681,90 @@
       ],
       "slug": "6-298-stand-ins-of-the-growth-of-ice-and-snow-on-a-world-s-water-gen-1728",
       "title": "Stand-ins of the growth of ice and snow on a world's water (GEN.1728)"
+    },
+    {
+      "key": "6.299",
+      "number": "6.299",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class_domains.SEA_COVER_MIN 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.016"
+            ],
+            [
+              "Where it holds",
+              "a cold body under a thick air with methane"
+            ],
+            [
+              "What would show it wrong",
+              "a body with lakes and seas of methane that covers less than a third of Titan's cover and is called a methane-ethane world by readers, or a Titan-like body below it that the table of seas calls dry"
+            ],
+            [
+              "What replaces it",
+              "the share a reader's word \"seas\" means, from lake counts"
+            ],
+            [
+              "Evidence",
+              "[R1857]: lakes and seas cover 1.6 percent of Titan; surface_liquid_world.SURFACE_SHARE_OF_ICE (LQ11) is tuned to it"
+            ]
+          ],
+          "id": "CL1",
+          "key": "6.299:CL1",
+          "kind": "P",
+          "slug": "6-299-cl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class_domains.SEA_COVER_MIN 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with an interior heat flow"
+            ],
+            [
+              "What would show it wrong",
+              "a body of less heat flow than that whose air is 3 percent sulfur dioxide from volcanoes"
+            ],
+            [
+              "What replaces it",
+              "the volcanism floor drawn by the ground (E 3.2 rule 4) for the body"
+            ],
+            [
+              "Evidence",
+              "the existing floor of the ground, reused; no new number"
+            ]
+          ],
+          "id": "CL2",
+          "key": "6.299:CL2",
+          "kind": "P",
+          "slug": "6-299-cl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A"
+        }
+      ],
+      "slug": "6-299-stand-ins-of-the-liquid-and-volcano-conditions-of-classes-u-y-a-and-x-gen-1617",
+      "title": "Stand-ins of the liquid and volcano conditions of classes U, Y, A and X (GEN.1617)"
     }
   ]
 }

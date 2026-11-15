@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1728 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1730 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1701 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1703 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 222 | 118 | 33 | 76 | 4 | 453 |
 | T7 | 58 | 30 | 10 | 32 | 0 | 130 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 50 | 18 | 6 | 95 | 41 | 210 |
-| All | 992 | 347 | 87 | 242 | 60 | 1728 |
+| T9 | 50 | 19 | 6 | 96 | 41 | 212 |
+| All | 992 | 348 | 87 | 243 | 60 | 1730 |
 
 ## How the labels were given
 
@@ -3031,3 +3031,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IG6 | P | T7 | L1 | `ice_growth.PRECIPITATION_ENERGY_SHARE` about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature | 0.15 to 0.35 | worlds with a water cycle like the Earth's, cold or warm | a snowfall on ice that differs from the law by more than a factor of 2 for the same starlight; the Arctic's, with no dry cold air in the law, comes out about 1.9 times high | a precipitation law that carries the dryness of cold air | the weathering law of [R1660] uses the same limit; the Arctic check of [R5278] (34 cm of snow) sets the 1.9 | predicted only | GEN.1735 | - |
 | IG7 | P | T7 | L1 | `ice_growth.SNOW_RETENTION` 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season | 0.4 to 0.9 | multiyear Arctic ice | a snow cover that keeps a share outside 0.4 to 0.9 | a wind and lead model | [R5278]: 11 cm of water standing in May of the 17 cm that fell (5 cm a month in September and October, 1 cm a month November to March, 2 cm in April, the rates it quotes) | predicted only | GEN.1735 | - |
 | IG8 | P | T7 | L1 | `ice_growth.ABLATION_M_YR` 0.4 m of ice a year: what the surface wears off a lid that does not thaw | 0.2 to 0.6 | multiyear Arctic ice under an Earth-like air | a perennial lid whose surface loses less than 0.2 or more than 0.6 m a year | a surface energy balance with the world's own air | [R5279]: surface ablation 40 cm in the standard case; the one measured case, taken for every perennial lid | predicted only | GEN.1735 | - |
+
+## 6.299 Stand-ins of the liquid and volcano conditions of classes U, Y, A and X (GEN.1617)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CL1 | P | T9 | L3 | `class_domains.SEA_COVER_MIN` 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover | 0.002 to 0.016 | a cold body under a thick air with methane | a body with lakes and seas of methane that covers less than a third of Titan's cover and is called a methane-ethane world by readers, or a Titan-like body below it that the table of seas calls dry | the share a reader's word "seas" means, from lake counts | [R1857]: lakes and seas cover 1.6 percent of Titan; `surface_liquid_world.SURFACE_SHARE_OF_ICE` (LQ11) is tuned to it | predicted only | - | - |
+| CL2 | P | T9 | L1 | `surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2` (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A | 1e-4 to 1e-3 | rocky bodies with an interior heat flow | a body of less heat flow than that whose air is 3 percent sulfur dioxide from volcanoes | the volcanism floor drawn by the ground (E 3.2 rule 4) for the body | the existing floor of the ground, reused; no new number | predicted only | - | - |
