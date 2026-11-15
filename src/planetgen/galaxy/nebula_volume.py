@@ -219,16 +219,16 @@ LANES_KEY = drill.LANES_KEY
 """str: The key under which the map asks for the far-zoom gas lanes (MAP.430) in place of a node key."""
 
 LANES_LEVEL = 9
-"""int: The lattice level of the lanes: 128 pc steps, so the whole disk is about 40,000 steps and the kept ones a few thousand."""
+"""int: The lattice level of the lanes: 128 pc steps, so the whole disk is about 40,000 steps and the kept ones a few thousand. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 LANES_FLOOR = 0.08
-"""float: The model gas share (0..1) under which the lanes draw nothing: the gaps between the arms and the thin outer disk stay dark."""
+"""float: The model gas share (0..1) under which the lanes draw nothing: the gaps between the arms and the thin outer disk stay dark. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 LANES_FULL = 0.95
-"""float: The gas share at which a lane is at full strength."""
+"""float: The gas share at which a lane is at full strength. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 LANES_EXTENT_SCALE_LENGTHS = 7.0
-"""float: How far out the lanes are sampled, in disk scale lengths: past it the gas share is under the floor."""
+"""float: How far out the lanes are sampled, in disk scale lengths: past it the gas share is under the floor. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 
 def sample_lanes(lane_density, extent_pc, family_index, level=LANES_LEVEL):

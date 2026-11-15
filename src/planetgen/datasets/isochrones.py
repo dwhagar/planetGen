@@ -146,7 +146,7 @@ DIFFUSION_MASS_LIMIT_SOL = 2.0
 """float: The heaviest initial mass (solar) whose surface the grid's atomic diffusion changes (GEN.1623): above it the surface's metals-to-hydrogen ratio
 moves by under 0.005 dex at every age of the grid (0.016 dex at 1.5 solar masses, 0.005 at 2, 0.001 from 3), and what moves it is the mixing and the winds of
 a heavy star, not diffusion, which is not a difference between the star's surface and its birth [Fe/H] that this reads. A star above it is read at its [Fe/H]
-as it is. [Part of stand-in SD1, tier T6, tweak L0.]"""
+as it is. [Part of stand-in 6.295 SD1, tier T6, tweak L0.]"""
 
 _STATE = slice(1, 5)
 """slice: The columns of a block that make a main-sequence point: log L, log Teff, log R and the present mass."""

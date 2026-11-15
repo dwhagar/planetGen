@@ -11,7 +11,7 @@ records the browser draws (`html/static/skysprites.js`, `docs/design/interface/s
 
 Per object, as the stars of `galaxy/sky.py` are:
 
-1. **Its velocity.** One with none stored gets the stand-in velocity of a star at its place (`sky.unbuilt_velocity_kms`, the same stand-in SKC1; a
+1. **Its velocity.** One with none stored gets the stand-in velocity of a star at its place (`sky.unbuilt_velocity_kms`, the same stand-in 6.175 SKC1; a
    cloud rides the galaxy's rotation). One with no epoch holds at the sky's time.
 2. **Where it appears.** `light_travel.retarded_offsets`: the center where it was when its light left it. `direction` is the unit vector of that offset
    in the galaxy frame, `distanceLy` its length.
@@ -31,13 +31,13 @@ from planetgen.physics import nebula_sprites
 from planetgen.physics import unit_registry as units
 
 MIN_ANGULAR_RADIUS_RAD = 0.002
-"""float: A sprite narrower than this (radius, radians; 0.115 degrees, a quarter of the Moon's width) is not sent (stand-in SPR1)."""
+"""float: A sprite narrower than this (radius, radians; 0.115 degrees, a quarter of the Moon's width) is not sent (stand-in 6.179 6.179a SPR1)."""
 
 MIN_EXTINCTION_MAG = 0.02
-"""float: A cloud with no light of its own is sent only if it dims what lies behind it by this much (magnitudes; the browser draws none under it, stand-in SPR2)."""
+"""float: A cloud with no light of its own is sent only if it dims what lies behind it by this much (magnitudes; the browser draws none under it, stand-in 6.179 6.179a SPR2)."""
 
 SEARCH_RADIUS_PC = 10000.0
-"""float: How far from the observer the sprites are looked for, parsecs (stand-in SPR3: the nebulae and remnants of the stored galaxy are few enough that the
+"""float: How far from the observer the sprites are looked for, parsecs (stand-in 6.179 6.179a SPR3: the nebulae and remnants of the stored galaxy are few enough that the
 search is bounded by the sphere query, and a sprite narrower than `MIN_ANGULAR_RADIUS_RAD` is left out anyway)."""
 
 _pc_to_ly = units.converter("pc", "ly")

@@ -27,18 +27,18 @@ from planetgen.physics import (field_composition, field_dispersal, field_mass, f
 from planetgen.util import draw
 
 CHARACTERISTIC_PAIR_EARTH = (1.0, 1.0)
-"""tuple: The masses, Earth masses, of the pair whose collisions are counted: two Earths, the design's pair (the rate for a pair of the rogues' mass spectrum is within a factor of a few of it). [Stand-in CF1,
+"""tuple: The masses, Earth masses, of the pair whose collisions are counted: two Earths, the design's pair (the rate for a pair of the rogues' mass spectrum is within a factor of a few of it). [Stand-in 6.211 CF1,
 tier T6, tweak L1.]"""
 ROGUE_SPEED_MS = 40.0e3
-"""float: The characteristic relative speed of two rogues in the thin disk, m/s (30 to 60 km/s). [Stand-in CF2, tier T6, tweak L1.]"""
+"""float: The characteristic relative speed of two rogues in the thin disk, m/s (30 to 60 km/s). [Stand-in 6.211 CF2, tier T3, tweak L1.]"""
 ROGUE_DISPERSION_MS = 25.0e3
-"""float: The one-dimensional speed dispersion of the rogues, m/s (the old disk's stars'). [Stand-in CF2, tier T6, tweak L1.]"""
+"""float: The one-dimensional speed dispersion of the rogues, m/s (the old disk's stars'). [Stand-in 6.211 CF2, tier T3, tweak L1.]"""
 TERRESTRIAL_SHARE = 0.78 / 0.91
-"""float: The share of the rogue planets that are terrestrial (0.78 of 0.91 per pc3, the design's figures, from the microlensing mass function). [Stand-in CF3, tier T3, tweak L1.]"""
+"""float: The share of the rogue planets that are terrestrial (0.78 of 0.91 per pc3, the design's figures, from the microlensing mass function). [Stand-in 6.211 CF3, tier T9, tweak L0.]"""
 ICE_FRACTION = 0.1
-"""float: The share of a terrestrial rogue's mass in an ice shell. [Stand-in CF3, tier T9, tweak L0.]"""
+"""float: The share of a terrestrial rogue's mass in an ice shell. [Stand-in 6.211 CF3, tier T9, tweak L0.]"""
 LARGEST_FRACTION_TYPICAL = 0.3
-"""float: The largest-remnant share of a typical collision of the rubble window (a half down to a tenth), which the lifetime of its field is worked out at. [Stand-in CF3, tier T9, tweak L0.]"""
+"""float: The largest-remnant share of a typical collision of the rubble window (a half down to a tenth), which the lifetime of its field is worked out at. [Stand-in 6.211 CF3, tier T9, tweak L0.]"""
 
 MAX_ATTEMPTS = 100
 """int: How many draws `build_asteroid_field` makes for a rolled collision field before it gives up (a draw leaves a field about three times in five)."""

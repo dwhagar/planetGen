@@ -57,7 +57,7 @@ TOP_FRACTION = 1.0e-4
 MAX_WATER_FRACTION = 0.5
 """float: The most vapor a layer holds, as a mole fraction (the model's, `radiative_convective.MAX_WATER_FRACTION`)."""
 SUB_STEPS = 12
-"""int: Points of the Planck function across one band, for the star's share in it."""
+"""int: Points of the Planck function across one band, for the star's share in it. (a numerical setting of the integral, defined by it: GEN.1717)"""
 
 Deposit = namedtuple("Deposit", "share pressure_pa")
 """The share of the absorbed starlight the gases take above the reference level, and the pressure (Pa) it is taken at (the mean of ln P, weighted by

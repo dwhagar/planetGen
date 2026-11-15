@@ -20,7 +20,7 @@ from planetgen.physics import body_status, body_strength, relations, roundness
 
 
 def bulk_density_kg_m3(makeup):
-    """The bulk density, kg/m^3, a body of the field has: the makeup's, or its grains' with the void share of the porosity taken out. [Stand-in FD1, tier T9, tweak level L1.]"""
+    """The bulk density, kg/m^3, a body of the field has: the makeup's, or its grains' with the void share of the porosity taken out. [Stand-in 6.207 FD1, tier T9, tweak L1.]"""
     if makeup.bulk_density_kg_m3 is not None:
         return makeup.bulk_density_kg_m3
     return makeup.grain_density_kg_m3 * (1.0 - makeup.porosity)

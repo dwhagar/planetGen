@@ -320,3 +320,18 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.294:AD7 | no data | - | L3, the width of the table from the ordinary limit to the extreme grade (20 K for cold, 33 K for heat) is read off the three earlier traits; no census says how often a cold or heat trait falls on a world where the mean temperature does not press the life, and a draw on the local temperature of the life's habitat replaces it |
 | 6.299:CL1 | no data | - | L3, the share of a cold body's surface that seas of methane or ethane must cover to be class U (a third of Titan's cover, 0.005) is a reader's word "seas", not a measurement; the lake counts of Titan are the only data, and a survey of methane worlds with their sea cover replaces it |
 | 6.3a:`--class-m` | no data | - | the Class M abundance tier is Boss's choice (card, 11:19 PM EST 2026-11-13) and nobody knows how common an Earth is; the dial values behind each word (6.289:AT1 to AT4) are calibrated by the meter, and the choice itself has no measurement to replace it |
+| 6.6b:IR12 | no data | - | the cloud's longwave share is fitted to the Earth's cloud effect at its surface humidity; no measured cloud longwave effect of another air exists to replace it |
+| 6.6c:IR19 | no data | - | the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it |
+| 6.179a:SPR1 | no data | - | a display limit chosen so a sprite narrower than a few pixels is left to the glow band; no measurement stands behind it |
+| 6.179a:SPR2 | no data | - | a display limit chosen so faint dark clouds are not drawn; no measurement stands behind it |
+| 6.179a:SPR3 | no data | - | a search distance chosen for the cost of the sky route; no measurement stands behind it |
+| 6.179a:SKV1 | no data | - | the faintest and brightest limiting magnitude are chosen for the cost of the star count (2.5 to 3 times a magnitude); no measurement stands behind them |
+| 6.179a:SKV2 | no data | - | the most sprites a sky sends is chosen for the cost of the route; no measurement stands behind it |
+| 6.179a:SKV3 | no data | - | the cell count past which a sphere is coarsened is chosen for the cost of the route; no measurement stands behind it |
+| 6.173:NS3 | no data | - | the share of the hydrogen-alpha line the V filter passes is recalled from the filter's red edge; a filter curve read from its table replaces it |
+| 6.173:NS5 | no data | - | the shell's hydrogen-alpha share is hand-set to the brightness of measured shells; a measured shell table replaces it |
+| 6.173:NS7 | no data | - | the central star of a reflection nebula is set so a 10 light-year nebula is near 22 to 23 magnitudes (recalled); a catalog of reflection nebulae replaces it |
+| 6.169:LC1 | no data | - | the share is the generator's own count (0.857 of 727 life worlds), not an observation; no count of living classes on real worlds exists |
+| 6.218:CX2 | no data | - | the exponent is hand-tuned so a 20 GPa core keeps about half the oxygen of an Earth-pressure one; the law is qualitative, a measured partition of O and Si into iron replaces it |
+| 6.218:CX7 | no data | - | Mercury's core shares follow ranges with no consensus [R5147] and are hand-set; a measured Mercury core replaces them |
+| 6.282:HO1 | no data | - | hand-set from a sweep of the solve at four temperatures and pressures; no measured limit of the oxygen a hot deep air holds exists |

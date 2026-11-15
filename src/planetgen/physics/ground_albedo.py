@@ -32,7 +32,7 @@ DEPTH = (0.3, 0.7)
 """tuple: The darkening amplitude `d`, uniform (a placeholder of the design note)."""
 
 VISIBLE_TO_BOND = 1.0
-"""float: The factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (stand-in GA1 of the registry, tweak L1). A reflectance factor of a powder is neither a geometric
+"""float: The factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (stand-in 6.290 GA1 of the registry, tweak L1). A reflectance factor of a powder is neither a geometric
 nor a Bond albedo and the conversion over the whole spectrum is an open gap; one makes the fresh basalt of the table (0.219) a Moon of 0.117 after 3.5 Gyr at the middle of the weathering ranges,
 against the measured 0.11."""
 
@@ -43,7 +43,7 @@ BASALTIC = "basaltic"
 
 def dry_ground_type(body):
     """The dominant dry ground of a body before its air is solved: `carbon` for a carbon rock, `metal` for a body whose mantle is stripped (`surface_composition.RANGES["metal_stripped"]`),
-    else `basaltic`, which the table of dominant grounds and the melt of a mantle give for an ordinary rock (stand-in GA2: the melt's own type needs the heat flow, which comes after)."""
+    else `basaltic`, which the table of dominant grounds and the melt of a mantle give for an ordinary rock (stand-in 6.290 GA2: the melt's own type needs the heat flow, which comes after)."""
     if getattr(body, "carbon_rock", False):
         return CARBON
     if (getattr(body, "metal_mass_fraction", None) or 0.0) >= surface_composition.RANGES["metal_stripped"]:

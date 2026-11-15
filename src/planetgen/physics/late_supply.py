@@ -30,14 +30,14 @@ import math
 from planetgen.physics import constants, influx
 
 INWARD_SHARE = 0.1
-"""float: The share of a reservoir's early (primordial) mass that is scattered onto planet-crossing orbits and so shared among the bodies. [Stand-in LS1, tier Marginal educated guess from physics, tweak L3.]"""
+"""float: The share of a reservoir's early (primordial) mass that is scattered onto planet-crossing orbits and so shared among the bodies. [Stand-in 6.254 LS1, tier T6, tweak L3.]"""
 
 RELATIVE_SPEED_SHARE = 0.4
-"""float: The speed of a scattered planetesimal against a body, as a share of the body's orbital speed (an eccentricity of a few tenths). [Stand-in LS2, tier Marginal educated guess from physics, tweak L4.]"""
+"""float: The speed of a scattered planetesimal against a body, as a share of the body's orbital speed (an eccentricity of a few tenths). [Stand-in 6.254 LS2, tier T6, tweak L4.]"""
 
 OUTER_REACH = 3.0
 """float: A body beyond a ring still takes part in sharing its planetesimals when it lies within this many times the ring's outer edge: scattering goes both ways, so a giant just outside a belt is
-the main sink of what the belt scatters, though nothing is sent outward past it by drift. [Stand-in LS3, tier Marginal educated guess from physics, tweak L4.]"""
+the main sink of what the belt scatters, though nothing is sent outward past it by drift. [Stand-in 6.254 LS3, tier T6, tweak L4.]"""
 
 AU_M = constants.AU_M
 

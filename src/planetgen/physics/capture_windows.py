@@ -26,10 +26,10 @@ Use:
 from collections import namedtuple
 
 ENCOUNTERS_PER_INSTABILITY = 130.0
-"""float: The close giant-giant encounters of one instability: the mean of the three histories of [R2158] (59, 280, 49 for Jupiter), the reference instability of `irregular_population.REFERENCE_ENCOUNTERS`, which the irregular-moon wiring reads and this must equal. [Stand-in CW1, tier T2, tweak L1.]"""
+"""float: The close giant-giant encounters of one instability: the mean of the three histories of [R2158] (59, 280, 49 for Jupiter), the reference instability of `irregular_population.REFERENCE_ENCOUNTERS`, which the irregular-moon wiring reads and this must equal. [Stand-in 6.190 CW1, tier T2, tweak L1.]"""
 
 FULL_INSTABILITIES = 1
-"""int: The number of instabilities that count as a full one for the scatter step (`instability_level` is 1): the reference instability the scatter step's hot population is scaled to is a single event. [Stand-in CW2, tier Marginal educated guess from needed output, tweak L3.]"""
+"""int: The number of instabilities that count as a full one for the scatter step (`instability_level` is 1): the reference instability the scatter step's hot population is scaled to is a single event. [Stand-in 6.190 CW2, tier T9, tweak L3.]"""
 
 Windows = namedtuple("Windows", ("instabilities", "encounters"))
 """The system's capture windows: how many giant-giant instabilities the architecture holds and the close giant-giant encounters they come to."""

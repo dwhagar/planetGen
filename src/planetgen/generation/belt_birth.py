@@ -25,7 +25,7 @@ Stand-in
 `MIN_PRESENT_MASS_EARTH`: the smallest mass a belt can have and be kept. It is the one number of the rule, tuned so that the share of main-sequence systems with an inner belt (the asteroid
 belt, out to `INNER_BELT_SNOW_LINE_RATIO` snow lines) lands near 9 percent, inside the 4 to 14 percent that the surveys of GEN.1148 leave (Boss, GEN.1156: the inner belt counts there, the outer
 and Kuiper belts are separate kinds). Without a floor 12 percent have one and the narrow belts near the star are ground to a few times 1e-10 Earth masses, a dust disk and not a belt. The
-mass is that of warm dust a survey could see, a stand-in. [Stand-in BG14, tier Marginal educated guess from needed output, tweak L3.]
+mass is that of warm dust a survey could see, a stand-in. [Stand-in 6.97 BG14, tier T9, tweak L3.]
 """
 
 from planetgen import tuning
@@ -40,13 +40,13 @@ _kg_to_mearth = units.converter("kg", "Mearth")
 _km_to_rearth = units.converter("km", "Rearth")
 
 MIN_PRESENT_MASS_EARTH = 1.0e-9
-"""float: The smallest mass, Earth masses, a belt can have after the star's age of collisions and be kept. [Stand-in BG14, tier Marginal educated guess from needed output, tweak L3.]"""
+"""float: The smallest mass, Earth masses, a belt can have after the star's age of collisions and be kept. [Stand-in 6.97 BG14, tier T9, tweak L3.]"""
 
 INNER_BELT_SNOW_LINE_RATIO = 1.2
-"""float: A belt that ends within this many snow lines of the star is an inner belt (the asteroid belt kind); one that reaches further is an outer or Kuiper belt. [Stand-in BG15, tier Marginal educated guess from physics, tweak L0.]"""
+"""float: A belt that ends within this many snow lines of the star is an inner belt (the asteroid belt kind); one that reaches further is an outer or Kuiper belt. [Stand-in 6.97 BG15, tier T6, tweak L0.]"""
 
 MIGRATED_RATIO = 1.25
-"""float: A giant ended this many times nearer (or further) than where it formed is one that moved (`belt_origin.Body.migrated`); the placement of a slot the planets were nudged to is less. [Stand-in BG16, tier Marginal educated guess from needed output, tweak L1.]"""
+"""float: A giant ended this many times nearer (or further) than where it formed is one that moved (`belt_origin.Body.migrated`); the placement of a slot the planets were nudged to is less. [Stand-in 6.97 BG16, tier T6, tweak L1.]"""
 
 
 def is_inner(belt, snow_line_au):

@@ -34,7 +34,7 @@ from planetgen.util import draw
 
 ALPHA_LIMIT = 0.3
 """float: The largest `a / a'` the first-order theory is used at (the belt is cut inside the companion's tide and the Holman and Wiegert window, `disk_truncation.star_disk_limit_au`, which keeps a belt under
-about this; beyond it the series in `alpha` and the 1:1 terms of the disturbing function no longer converge fast). [Stand-in FE4, tier Marginal educated guess from physics, tweak L1.]"""
+about this; beyond it the series in `alpha` and the 1:1 terms of the disturbing function no longer converge fast). [Stand-in 6.256 FE4, tier T6, tweak L1.]"""
 
 
 def _mean_motion_rad_yr(a_au, host_mass_kg):
@@ -65,7 +65,7 @@ def planet_rate(a_au, planet_axes_au, planet_masses_kg, host_mass_kg, ring_axes_
 
 
 def periapsis_rad(host_mass_kg, member_no, axis_au):
-    """The direction of a companion's periapsis, radians (one angle for a system, drawn from a stream of its own: the generator stores no orientation of a star's orbit). [Stand-in FE2, tier Marginal educated guess from physics, tweak L1.]"""
+    """The direction of a companion's periapsis, radians (one angle for a system, drawn from a stream of its own: the generator stores no orientation of a star's orbit). [Stand-in 6.256 FE2, tier T6, tweak L1.]"""
     return draw.Stream(f"belt-forcing:{host_mass_kg!r}:{member_no}:{axis_au!r}").uniform(0.0, 2.0 * math.pi)
 
 

@@ -20,7 +20,7 @@ The Tisserand parameter of an orbit of semi-major axis `a`, eccentricity `e` and
 import math
 
 JUPITER_FAMILY_TISSERAND = (2.0, 3.0)
-"""tuple: The Tisserand parameter range of a Jupiter-family comet about its controlling giant ([R5218], recalled; the Solar System's Jupiter family is 2 < T_J < 3). [Stand-in CT1, tier T2, tweak level L0.]"""
+"""tuple: The Tisserand parameter range of a Jupiter-family comet about its controlling giant ([R5218], recalled; the Solar System's Jupiter family is 2 < T_J < 3). [Stand-in 6.251 CT1, tier T2, tweak L0.]"""
 
 
 def tisserand(giant_au, perihelion_au, eccentricity, inclination_deg):
@@ -36,6 +36,6 @@ def controls(giant_au, perihelion_au, eccentricity, inclination_deg):
 
 
 def controlling_giant_au(planets):
-    """The distance (AU) of the most massive giant of `planets` (bodies with `body_type`, `mass` and `distance`), or `None` for a star with none. The first of equal mass in the order given wins. [Stand-in CT2, tier T4, tweak level L4.]"""
+    """The distance (AU) of the most massive giant of `planets` (bodies with `body_type`, `mass` and `distance`), or `None` for a star with none. The first of equal mass in the order given wins. [Stand-in 6.251 CT2, tier T6, tweak L0.]"""
     giants = [planet for planet in planets if getattr(planet, "body_type", None) == 'g']
     return max(giants, key=lambda planet: planet.mass).distance if giants else None

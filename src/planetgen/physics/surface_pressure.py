@@ -54,7 +54,7 @@ DEGAS_EFFICIENCY = {"C": 1.0, "Ar": 1.0, "S": 0.5}
 
 DEGAS_EFFICIENCY_N = (0.3, 0.55, "log")
 """tuple: The same for nitrogen, drawn (GEN.1584). [R2171] (their Table 4) keep 4 of 21 to 35 x 1e18 kg of the bulk silicate Earth's nitrogen in the air, 11 to 19
-percent, where the carbon-calibrated degassed share of the Earth twin is 36 percent: 0.31 to 0.53. Stand-in NB3 (tier T5, tweak level L1, a published ratio of two published numbers)."""
+percent, where the carbon-calibrated degassed share of the Earth twin is 36 percent: 0.31 to 0.53. Stand-in 6.281 NB3 (tier T5, tweak level L1, a published ratio of two published numbers)."""
 
 DEGAS_EFFICIENCY_H = (0.05, 0.5, "log")
 """tuple: The same for hydrogen, drawn: water is highly soluble and the magma ocean retains much of it ([R4413]; Bower et al.

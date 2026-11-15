@@ -93,14 +93,14 @@ DEBRIS_MIN_WIDTH = 0.05
 """float: The least half-width of the belt of debris round its distance, as a share of the distance (BG11)."""
 
 PEBBLE_CONVERSION_PER_ORBIT = 0.01
-"""float: The share of the pebbles of a patch of the disk that the streaming instability turns into planetesimals each orbit, where it works (pebble-to-planetesimal simulations set the rate at 0.01 of the pebble surface density per orbit). [Stand-in BG17, tier Confident Unverified, tweak L0.]"""
+"""float: The share of the pebbles of a patch of the disk that the streaming instability turns into planetesimals each orbit, where it works (pebble-to-planetesimal simulations set the rate at 0.01 of the pebble surface density per orbit). [Stand-in 6.97 BG17, tier T2, tweak L0.]"""
 
 PEBBLE_TO_GAS_SOLAR = 0.01
-"""float: The solids-to-gas ratio of a disk of solar metal content, the interstellar value; it scales with the star's `metal_ratio`. [Stand-in BG18, tier Confident Unverified, tweak L0.]"""
+"""float: The solids-to-gas ratio of a disk of solar metal content, the interstellar value; it scales with the star's `metal_ratio`. [Stand-in 6.97 BG18, tier T2, tweak L0.]"""
 
 PEBBLE_DRIFT_FACTOR = 1.1
 """float: The pebbles of a drift-limited disk fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)`: their Stokes number is the drift limit `0.55 Z / (eta)` of the drift-limited dust models
-and the drift speed `2 St eta v_K`, so the pressure gradient `eta` drops out and the time is 1.1 inverse growth rates, whatever the radius. [Stand-in BG19, tier Marginal educated guess from physics, tweak L0.]"""
+and the drift speed `2 St eta v_K`, so the pressure gradient `eta` drops out and the time is 1.1 inverse growth rates, whatever the radius. [Stand-in 6.97 BG19, tier T6, tweak L0.]"""
 
 
 def planetesimal_share(metal_ratio=1.0):

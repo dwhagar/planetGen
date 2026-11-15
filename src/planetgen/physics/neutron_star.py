@@ -13,7 +13,7 @@ and on its R(2.08) about the Miller et al. values, and for one too soft to hold 
 2021) a normal weight on the mass it falls short by. A star's radius is a weighted quantile of the radii, at its mass, of the equations
 of state that hold such a star: the standard-normal `deviation` the caller draws becomes the probability that picks the quantile
 (0 gives the weighted median, as the band's center did before), interpolated between the radii so that it is continuous.
-[Stand-in NS4, tier T2, tweak L1: the weights are a likelihood on the three numbers above, not a fit.]
+[Stand-in 6.32 NS4, tier T2, tweak L1: the weights are a likelihood on the three numbers above, not a fit.]
 """
 
 import math

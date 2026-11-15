@@ -129457,6 +129457,249 @@
    "volume": "585",
    "year": 2020
   },
+  "10.1038/s41586-020-2780-0": {
+   "authors": [
+    [
+     "Tian",
+     "H."
+    ],
+    [
+     "Xu",
+     "R."
+    ],
+    [
+     "Canadell",
+     "J. G."
+    ],
+    [
+     "Thompson",
+     "R. L."
+    ],
+    [
+     "Winiwarter",
+     "W."
+    ],
+    [
+     "Suntharalingam",
+     "P."
+    ],
+    [
+     "Davidson",
+     "E. A."
+    ],
+    [
+     "Ciais",
+     "P."
+    ],
+    [
+     "Jackson",
+     "R. B."
+    ],
+    [
+     "Janssens-Maenhout",
+     "G."
+    ],
+    [
+     "Prather",
+     "M. J."
+    ],
+    [
+     "Regnier",
+     "P."
+    ],
+    [
+     "Pan",
+     "N."
+    ],
+    [
+     "Pan",
+     "S."
+    ],
+    [
+     "Peters",
+     "G. P."
+    ],
+    [
+     "Shi",
+     "H."
+    ],
+    [
+     "Tubiello",
+     "F. N."
+    ],
+    [
+     "Zaehle",
+     "S."
+    ],
+    [
+     "Zhou",
+     "F."
+    ],
+    [
+     "Arneth",
+     "A."
+    ],
+    [
+     "Battaglia",
+     "G."
+    ],
+    [
+     "Berthet",
+     "S."
+    ],
+    [
+     "Bopp",
+     "L."
+    ],
+    [
+     "Bouwman",
+     "A. F."
+    ],
+    [
+     "Buitenhuis",
+     "E. T."
+    ],
+    [
+     "Chang",
+     "J."
+    ],
+    [
+     "Chipperfield",
+     "M. P."
+    ],
+    [
+     "Dangal",
+     "S. R. S."
+    ],
+    [
+     "Dlugokencky",
+     "E."
+    ],
+    [
+     "Elkins",
+     "J. W."
+    ],
+    [
+     "Eyre",
+     "B. D."
+    ],
+    [
+     "Fu",
+     "B."
+    ],
+    [
+     "Hall",
+     "B."
+    ],
+    [
+     "Ito",
+     "A."
+    ],
+    [
+     "Joos",
+     "F."
+    ],
+    [
+     "Krummel",
+     "P. B."
+    ],
+    [
+     "Landolfi",
+     "A."
+    ],
+    [
+     "Laruelle",
+     "G. G."
+    ],
+    [
+     "Lauerwald",
+     "R."
+    ],
+    [
+     "Li",
+     "W."
+    ],
+    [
+     "Lienert",
+     "S."
+    ],
+    [
+     "Maavara",
+     "T."
+    ],
+    [
+     "MacLeod",
+     "M."
+    ],
+    [
+     "Millet",
+     "D. B."
+    ],
+    [
+     "Olin",
+     "S."
+    ],
+    [
+     "Patra",
+     "P. K."
+    ],
+    [
+     "Prinn",
+     "R. G."
+    ],
+    [
+     "Raymond",
+     "P. A."
+    ],
+    [
+     "Ruiz",
+     "D. J."
+    ],
+    [
+     "van der Werf",
+     "G. R."
+    ],
+    [
+     "Vuichard",
+     "N."
+    ],
+    [
+     "Wang",
+     "J."
+    ],
+    [
+     "Weiss",
+     "R. F."
+    ],
+    [
+     "Wells",
+     "K. C."
+    ],
+    [
+     "Wilson",
+     "C."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Yao",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41586-020-2780-0",
+   "editors": [],
+   "journal": "Nature",
+   "page": "248",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A comprehensive quantification of global nitrous oxide sources and sinks",
+   "type": "journal-article",
+   "volume": "586",
+   "year": 2020
+  },
   "10.1038/s41586-021-03869-6": {
    "arxiv": "2110.07934",
    "authors": [
@@ -239949,6 +240192,29 @@
    "volume": "36",
    "year": 2008
   },
+  "10.1146/annurev.micro.61.080706.093130": {
+   "authors": [
+    [
+     "Knittel",
+     "K."
+    ],
+    [
+     "Boetius",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.micro.61.080706.093130",
+   "editors": [],
+   "journal": "Annu. Rev. Microbiol.",
+   "page": "311",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Anaerobic Oxidation of Methane: Progress with an Unknown Process",
+   "type": "journal-article",
+   "volume": "63",
+   "year": 2009
+  },
   "10.1146/annurev.ms.04.080174.001351": {
    "authors": [
     [
@@ -285723,7 +285989,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5287,
+ "id_next": 5289,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287418,6 +287684,7 @@
   "10.1038/s41586-020-2642-9": "R4611",
   "10.1038/s41586-020-2649-2": "R1823",
   "10.1038/s41586-020-2713-y": "R4494",
+  "10.1038/s41586-020-2780-0": "R5287",
   "10.1038/s41586-021-03869-6": "R0415",
   "10.1038/s41586-021-03912-6": "R2701",
   "10.1038/s41586-021-04095-w": "R3161",
@@ -287659,7 +287926,7 @@
   "10.1051/0004-6361/201936775": "R0373",
   "10.1051/0004-6361/201936804": "R3806",
   "10.1051/0004-6361/201936948": "R4051",
-  "10.1051/0004-6361/201937035": "R5286",
+  "10.1051/0004-6361/201937035": "R5288",
   "10.1051/0004-6361/201937151": "R4448",
   "10.1051/0004-6361/201937381": "R3512",
   "10.1051/0004-6361/202037569": "R1697",
@@ -289981,6 +290248,7 @@
   "10.1146/annurev.earth.34.031405.125211": "R5159",
   "10.1146/annurev.earth.36.031207.124214": "R0165",
   "10.1146/annurev.earth.36.031207.124322": "R1465",
+  "10.1146/annurev.micro.61.080706.093130": "R5286",
   "10.1146/annurev.ms.04.080174.001351": "R1394",
   "10.1152/jappl.1985.58.2.564": "R2989",
   "10.1152/jappl.1994.76.3.1113": "R0021",

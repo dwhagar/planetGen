@@ -31,9 +31,9 @@ from planetgen.physics import belt_history, belt_member, irregular_zone, moon_co
 from planetgen.util.checks import finite_domain
 
 FEEDING_ZONE_HILL_RADII = 2.0 * math.sqrt(3.0)
-"""float: The half-width of the zone a gas-era capture draws from, in the planet's Hill radii (the isolation spacing of planetesimal accretion, recalled, not read). [Stand-in CP1, tier T6, tweak L0.]"""
+"""float: The half-width of the zone a gas-era capture draws from, in the planet's Hill radii (the isolation spacing of planetesimal accretion, recalled, not read). [Stand-in 6.119 CP1, tier T6, tweak L0.]"""
 PARENT_LUMPS = 4
-"""int: The lumps a family's parent is made of, each from its own distance (the Himalia group has four known members of different spectra). [Stand-in CP3, tier T6, tweak L3.]"""
+"""int: The lumps a family's parent is made of, each from its own distance (the Himalia group has four known members of different spectra). [Stand-in 6.119 CP3, tier T6, tweak L3.]"""
 WINDOWS = ("gas", "encounter", "exchange")
 """tuple: The windows whose bodies have a composition (`irregular_population`; a temporary capture has no object)."""
 

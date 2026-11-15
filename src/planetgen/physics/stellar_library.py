@@ -55,7 +55,7 @@ MUSCLES_STARS = (
 
 FUV_OVER_XUV = 1.12
 """float: The far-ultraviolet (912 to 1700 A) power of a star's chromosphere over its XUV (5 to 911 A) power: the median of
-10 ** (f_FUV - f_XUV) over `MUSCLES_STARS` (0.32 to 1.15 for the 7 M dwarfs, 1.1 to 2.3 for the 4 K stars). [Stand-in SL2, tier T2,
+10 ** (f_FUV - f_XUV) over `MUSCLES_STARS` (0.32 to 1.15 for the 7 M dwarfs, 1.1 to 2.3 for the 4 K stars). [Stand-in 6.33 SL2, tier T2,
 tweak L0: eleven stars, one ratio, no dependence on temperature or age.]"""
 
 BANDS = ("ionizing", "uv_c", "uv_b", "uv_a", "visible", "near_infrared", "thermal_infrared")

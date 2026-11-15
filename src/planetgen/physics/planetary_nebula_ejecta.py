@@ -54,14 +54,14 @@ CLASSES = (H, J, K, L)
 """tuple: The nebula classes this module covers: H young and J evolved planetary nebulae, K carbon-rich, L nitrogen-rich bipolar."""
 
 MIN_MASS_SOL = 0.9
-"""float: The lightest progenitor drawn. [Stand-in PNE1, tier T6, tweak L1: a star must end its life within the age of the disk, about 10 Gy,
+"""float: The lightest progenitor drawn. [Stand-in 6.178 PNE1, tier T6, tweak L1: a star must end its life within the age of the disk, about 10 Gy,
 which is a little under a solar mass at the track's lifespans; the initial-final relation starts at 0.83.]"""
 
 MAX_MASS_SOL = tuning.WD_IFMR_PIECES[-1][1]
 """float: The heaviest progenitor drawn: the top of the initial-final relation of white dwarfs (7.2 solar masses), where core collapse begins."""
 
 RGB_MASS_LOSS_SOL = 0.2
-"""float: Mass lost on the red giant branch before the thermally pulsing branch begins. [Stand-in PNE2, tier T4, tweak L0: [R5098] says only that the
+"""float: Mass lost on the red giant branch before the thermally pulsing branch begins. [Stand-in 6.178 PNE2, tier T4, tweak L0: [R5098] says only that the
 loss on the branch may be "as much as 30 percent of the star's total mass for the lowest mass stars", which brackets 0.2 for a star of 1 to 2 solar masses
 (0.3 to 0.6) from above; the per-mass numbers are in the on-line tables of [R5100], which could not be read, so the value stays the recalled one.]"""
 
@@ -75,11 +75,11 @@ INTERSHELL_HE = 0.75
 INTERSHELL_O = 0.02
 INTERSHELL_REST = 0.01
 """float: The helium, oxygen and remaining (taken as neon-22) mass fractions of the intershell dredged up; the carbon is
-`agb_carbon.INTERSHELL_CARBON_FRACTION`, and the four add to 1. [Stand-in PNE4, tier T4, tweak L0: recalled, intershell 70 to 75 percent helium, 20
+`agb_carbon.INTERSHELL_CARBON_FRACTION`, and the four add to 1. [Stand-in 6.178 PNE4, tier T4, tweak L0: recalled, intershell 70 to 75 percent helium, 20
 to 25 percent carbon, about 2 percent oxygen.]"""
 
 HBB_CARBON_TO_NITROGEN = 0.9
-"""float: The share of the envelope's carbon hot bottom burning turns into nitrogen. [Stand-in PNE5, tier T6, tweak L3: set so that a solar-metallicity star of 5 solar
+"""float: The share of the envelope's carbon hot bottom burning turns into nitrogen. [Stand-in 6.178 PNE5, tier T6, tweak L3: set so that a solar-metallicity star of 5 solar
 masses comes out Type I (log N/O above -0.3), as the nitrogen-rich bipolar class is defined.]"""
 
 TYPE_I_HE_TO_H = 0.125

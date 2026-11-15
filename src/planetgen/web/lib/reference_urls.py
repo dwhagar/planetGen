@@ -89,7 +89,7 @@ def _method(entry):
     return f"{ROOT}/method/{area}", f"#{anchor(value)}" if value else ""
 
 
-STAND_IN_KEY = re.compile(r"\d+\.\d+a?:\S.*")
+STAND_IN_KEY = re.compile(r"\d+\.\d+[a-z]?:\S.*")
 """re.Pattern: The key of a stand-in (DOC.90): the section number of the registry, a colon and the row id (`6.7:AM1`)."""
 
 

@@ -91,7 +91,7 @@
    "value": 0.044,
    "tier": "T6",
    "tweak": "L0",
-   "basis": "The nitrous oxide nitrogen that leaks from nitrifiers and denitrifiers per nitrogen fixed: natural N2O 17.0 Tg N a year less 7.3 from people (Tian et al. 2020, read) over about 220 Tg N fixed; two read numbers carried to other worlds by inference (GEN.1742 section 2.4)"
+   "basis": "The nitrous oxide nitrogen that leaks from nitrifiers and denitrifiers per nitrogen fixed: natural N2O 17.0 Tg N a year less 7.3 from people ([R5287], read) over about 220 Tg N fixed; two read numbers carried to other worlds by inference (GEN.1742 section 2.4)"
   },
   "n2o_lifetime_yr": {
    "value": 109.0,
@@ -115,7 +115,7 @@
    "value": 0.9,
    "tier": "T1",
    "tweak": "L0",
-   "basis": "The share of the methane made under the seafloor that methane eaters take before it reaches the water above, once the sea holds sulfate: more than 90 percent (Knittel and Boetius 2009, read); the sea gives under 2 percent of the world's methane to the air"
+   "basis": "The share of the methane made under the seafloor that methane eaters take before it reaches the water above, once the sea holds sulfate: more than 90 percent ([R5286], read); the sea gives under 2 percent of the world's methane to the air"
   },
   "co_deposition_life_cm_s": {
    "value": 0.00012,
@@ -149,7 +149,7 @@
    "note": "Carbon is fixed with H2, Fe2+ or H2S for electrons; the food web makes the methane, donor-limited at 1e-4 to 1e-2 of today's biosphere. Never any oxygen.",
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The byproducts report section 4 ([R2336]; [R3393]; [R0693])"
+   "basis": "The byproducts report section 4 [R0693, R2336, R3393]"
   },
   "3": {
    "name": "Hydrogen eaters",
@@ -293,7 +293,7 @@
    "uses": ["earth_donor_methane_tmol_yr"],
    "tier": "T1",
    "tweak": "L0",
-   "basis": "4 Fe2+ + CO2 + 11 H2O -> CH2O + 4 Fe(OH)3 + 8 H+ ([R3393], read); the donor supply is Earth's 80 Tmol of Fe2+ a year ([R3393]). The Fe(III) buried is oxidant that is not oxygen; its buried share has no source yet, so the air history does not use it (GEN.1742 section 2.2)"
+   "basis": "4 Fe2+ + CO2 + 11 H2O -> CH2O + 4 Fe(OH)3 + 8 H+ ([R3393], read); the donor supply is Earth's 80 Tmol of Fe2+ a year [R3393]. The Fe(III) buried is oxidant that is not oxygen; its buried share has no source yet, so the air history does not use it (GEN.1742 section 2.2)"
   },
   "sulfide_to_sulfur": {
    "name": "Sulfide-using anoxygenic photosynthesis (to sulfur)",
@@ -408,7 +408,7 @@
    "uses": ["seafloor_methane_eaten_share"],
    "tier": "T1",
    "tweak": "L0",
-   "basis": "Archaea with sulfate reducers eat more than 90 percent of the methane made under the seafloor once the sea holds sulfate (Knittel and Boetius 2009, read; `seafloor_methane_eaten_share`); the sink that helped end the Archean methane air ([R5250]); stoichiometry: the balanced equation fixes every ratio"
+   "basis": "Archaea with sulfate reducers eat more than 90 percent of the methane made under the seafloor once the sea holds sulfate ([R5286], read; `seafloor_methane_eaten_share`); the sink that helped end the Archean methane air [R5250]; stoichiometry: the balanced equation fixes every ratio"
   },
   "aerobic_sulfide_oxidation": {
    "name": "Sulfide eaten with oxygen",

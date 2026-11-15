@@ -42,21 +42,21 @@ from planetgen.util import draw
 
 GAS_GRADIENT_DEX_PER_KPC = 0.034
 """float: The fall of the Milky Way gas's metallicity with galactic radius, dex per kpc: the oxygen gradient of 35 H II regions from 5 to 17 kpc
-[R5107] (abstract read by the research thread). Boss's answer: the gas has its own gradient, 0.03 to 0.04. [Stand-in NBC1, tier T2, tweak L0.]"""
+[R5107] (abstract read by the research thread). Boss's answer: the gas has its own gradient, 0.03 to 0.04. [Stand-in 6.179 NBC1, tier T2, tweak L0.]"""
 
 GAS_SCATTER_DEX = 0.14
-"""float: The scatter of the gas around its gradient, dex (the same 35 H II regions). [Stand-in NBC2, tier T2, tweak L0.]"""
+"""float: The scatter of the gas around its gradient, dex (the same 35 H II regions). [Stand-in 6.179 NBC2, tier T2, tweak L0.]"""
 
 GAS_OH_MAX_DEX = 0.7
 """float: The highest [O/H] the gas of a place can have, dex: the gradient is written against the Milky Way's, so a galaxy with a far larger reference radius (a wide disk) would put
-the gas at its center several dex above solar, where the dust law and the composition stop meaning anything (the dust would hold the hydrogen). The cap is above the gradient's value at the Milky Way's center plus three times the scatter (0.28 + 0.42), a recalled bound for the inner disk, not a measurement. [Stand-in NBC16, tier T6, tweak L0.]"""
+the gas at its center several dex above solar, where the dust law and the composition stop meaning anything (the dust would hold the hydrogen). The cap is above the gradient's value at the Milky Way's center plus three times the scatter (0.28 + 0.42), a recalled bound for the inner disk, not a measurement. [Stand-in 6.179 NBC16, tier T6, tweak L0.]"""
 
 SATELLITE_GAS_OFFSETS = ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26))
 """tuple: `([Fe/H] of a satellite, lowest, highest offset)` of the gas's [O/H] above that [Fe/H], dex, from the smaller to the larger [Fe/H]. The
 anchors are the two Clouds: the LMC (stored stand-in [Fe/H] about -0.4) has gas at [O/H] -0.34 to -0.14, the SMC (about -0.9) -0.66 to -0.28,
 the lower value from collisional lines and the higher from recombination lines [R5103: Tables 5 to 7 and 10]
 (read by the research thread). Boss: draw inside the widest range. Between the anchors the offsets are interpolated, outside them held.
-[Stand-in NBC3, tier T2, tweak L2: tuned to the two published ranges.]"""
+[Stand-in 6.179 NBC3, tier T2, tweak L2: tuned to the two published ranges.]"""
 
 SOLAR_OXYGEN_12LOG = 8.69
 """float: The solar 12 + log(O/H) the dust law is written against [R5102]."""
@@ -142,7 +142,7 @@ DUST_HIGH_METALLICITY = (2.21, 1.0)
 DUST_LOW_METALLICITY = (0.68, 3.08)
 """The broken power law of the gas-to-dust ratio of galaxies [R5102: Table 1] (Galactic X_CO): above
 `DUST_BREAK_12LOG`, log(gas/dust) = 2.21 + 1.0 (8.69 - x); at or below it, 0.68 + 3.08 (8.69 - x), with x = 12 + log(O/H). Accuracy a factor 1.6,
-scatter 0.37 dex. [Stand-in NBC4, tier T2, tweak L0.]"""
+scatter 0.37 dex. [Stand-in 6.179 NBC4, tier T2, tweak L0.]"""
 
 
 def gas_to_dust_law(x_12log):
@@ -159,7 +159,7 @@ def dust_to_gas_law(x_12log):
 MAX_IN_DUST = {"Mg": 0.95, "Si": 0.95, "Fe": 0.99, "C": 0.70, "O": 0.60}
 """dict: The most of an element that can sit in dust, as a share of its total (the rest stays in the gas). Iron is 96 percent in dust in Orion
 (1.4 dex below solar, [R5106: Tables 14 and 15]); the others are recalled depletion patterns ([R5105] has the coefficients, not
-yet read). [Stand-in NBC5, tier T4, tweak L0.]"""
+yet read). [Stand-in 6.179 NBC5, tier T4, tweak L0.]"""
 
 _SILICATE = {"Mg": 1.5, "Si": 1.0, "O": 3.5}   # number ratios of a pyroxene and olivine mix, without its iron (the iron is a grain of its own)
 
@@ -173,7 +173,7 @@ def _mass_shares(numbers):
 ICE_MANTLE_PER_100_H2O = {"H2O": 100.0, "CO": 25.0, "CO2": 26.0, "CH3OH": 8.0, "NH3": 6.0, "CH4": 4.5}
 """dict: The molecules of an interstellar ice mantle, in molecules per 100 of water: the medians of the ices toward background stars behind quiescent clouds for CO (25), CO2 (26)
 and CH3OH (8), and of the low-mass young stellar objects for NH3 (6) and CH4 (4.5), where the quiescent clouds give an upper limit only (< 7 and < 3) [R0461: Table 2, read from the
-arXiv text]. One mantle for every class that has ice. [Stand-in NBC17, tier T2, tweak L1: the medians of two environments joined.]"""
+arXiv text]. One mantle for every class that has ice. [Stand-in 6.179 NBC17, tier T2, tweak L1: the medians of two environments joined.]"""
 
 _MOLECULES = {"H2O": {"H": 2, "O": 1}, "CO": {"C": 1, "O": 1}, "CO2": {"C": 1, "O": 2}, "CH3OH": {"C": 1, "H": 4, "O": 1}, "NH3": {"N": 1, "H": 3}, "CH4": {"C": 1, "H": 4}}
 """dict: The atoms of each ice molecule."""
@@ -213,11 +213,11 @@ GRAINS = {
 """dict: The element mass shares of each grain kind: a magnesium silicate (Mg 1.5, Si 1, O 3.5 by number, the average of olivine and pyroxene), iron
 (metal and sulfide; the iron of the silicates is here, so the dust follows the iron a metal-poor gas has), amorphous carbon and graphite together, a PAH
 (92 percent carbon by mass, the rest hydrogen), an ice mantle (`ICE_MANTLE`: water with CO, CO2, methanol, ammonia and methane), and silicon carbide.
-[Stand-in NBC6, tier T6, tweak L0.]"""
+[Stand-in 6.179 NBC6, tier T6, tweak L3.]"""
 
 SIC_SI_SHARE_OF_SILICATE_SI = 0.025
 """float: The share of the silicon of the silicate grains that sits in SiC in the interstellar mixes. The absence of the 11.3 micron SiC band toward the Galactic center puts the
-silicon in SiC dust at less than 5 percent of the silicon in silicates [R5152: section 5.3]; the mixes take half the limit. [Stand-in NBC18, tier T2, tweak
+silicon in SiC dust at less than 5 percent of the silicon in silicates [R5152: section 5.3]; the mixes take half the limit. [Stand-in 6.179 NBC18, tier T2, tweak
 L1: inside a published upper limit.]"""
 
 GRAIN_MIXES = {
@@ -240,14 +240,14 @@ assert all(abs(sum(mix.values()) - 1.0) < 1e-12 for mix in GRAIN_MIXES.values())
 OLIVINE_SHARE_OF_AMORPHOUS_SILICATE = 0.849
 """float: The mass share of amorphous olivine in the amorphous silicate (the rest is amorphous pyroxene): 84.9 percent olivine and 15.1 percent pyroxene by mass fit the 10
 micron band of the diffuse interstellar medium toward the Galactic center [R5151: abstract]. A split of the mass only; the element content of the silicate kind stays that of
-`GRAINS`. [Stand-in NBC20, tier T1, tweak L0.]"""
+`GRAINS`. [Stand-in 6.179 NBC20, tier T1, tweak L0.]"""
 
 CRYSTALLINE_SHARE_OF_SILICATE = {
     "diffuse": 0.002, "dense": 0.002, "reflection": 0.002, "oxygen-rich": 0.15, "carbon-rich": 0.15, "ejecta": 0.15, "iron-group": 0.15,
 }
 """dict: By mix, the mass share of the silicate that is crystalline (forsterite and enstatite). The diffuse medium holds 0.2 +- 0.2 percent [R5151: abstract]; the silicates of
 stellar ejecta are 11 to 18 percent crystalline (about 10 percent around OH/IR stars, 15 to 20 around red supergiants) [R5151: section 4.1], so the mixes of stellar ejecta take 15
-percent. The ejecta of a supernova and the carbon-rich winds take the same value for want of a source of their own. [Stand-in NBC21, tier T2, tweak L1.]"""
+percent. The ejecta of a supernova and the carbon-rich winds take the same value for want of a source of their own. [Stand-in 6.179 NBC21, tier T2, tweak L1.]"""
 
 GRAPHITE_SHARE_OF_CARBON = {
     "diffuse": 0.5, "dense": 0.25, "reflection": 0.5, "oxygen-rich": 0.5, "carbon-rich": 0.1, "ejecta": 0.3, "iron-group": 0.0,
@@ -255,11 +255,11 @@ GRAPHITE_SHARE_OF_CARBON = {
 """dict: By mix, the mass share of the carbon grains (not the PAHs) that is graphite; the rest is amorphous carbon. Two models of the diffuse medium disagree: the
 silicate-graphite-PAH model puts all its large carbon in graphite [R5153], the astrodust model has none [R5155], so the diffuse mix takes the middle of the widest range; a
 dense cloud and a carbon star make amorphous carbon (a carbon star's dust is amorphous carbon with SiC); presolar graphite is a small part of the grains of a meteorite
-(1 ppm against 6 ppm of SiC) [R5152: Table 3]. [Stand-in NBC22, tier T6, tweak L3 where a mix is not the diffuse one, T3 and L1 where it is.]"""
+(1 ppm against 6 ppm of SiC) [R5152: Table 3]. [Stand-in 6.179 NBC22, tier T6, tweak L3 where a mix is not the diffuse one, T3 and L1 where it is.]"""
 
 assert set(CRYSTALLINE_SHARE_OF_SILICATE) == set(GRAPHITE_SHARE_OF_CARBON) == set(GRAIN_MIXES), "every mix needs a crystalline and a graphite share"
 SURVIVES_AS = {"SiC": "silicate"}
-"""dict: A grain kind with no survival share of its own is read as another's: SiC survives like the silicates. [Stand-in NBC23, tier T6, tweak L3: no source.]"""
+"""dict: A grain kind with no survival share of its own is read as another's: SiC survives like the silicates. [Stand-in 6.179 NBC23, tier T6, tweak L3: no source.]"""
 
 
 def molecular_column_scale():
@@ -279,7 +279,7 @@ PHASES = {
 """dict: `(ionized, atomic, molecular)` shares of a class's hydrogen mass; `None` for the atomic and molecular share of a cold neutral class means
 the neutral gas (1 - ionized) is split by `molecular_fraction`. A and B follow the warm neutral and warm ionized medium (recalled); the H II classes are
 Stromgren spheres; G has an ionized core in a dusty rim; the planetary nebulae keep a molecular envelope; hot remnants are plasma, an old
-radiative remnant half neutral; a remnant of Type Ia (W) holds no hydrogen at all, which the ejecta set. [Stand-in NBC10, tier T6, tweak L3; A and
+radiative remnant half neutral; a remnant of Type Ia (W) holds no hydrogen at all, which the ejecta set. [Stand-in 6.179 NBC10, tier T6, tweak L3; A and
 B tier T5, tweak L1.]"""
 
 KMT_CHI_COEFFICIENT = 0.77
@@ -289,7 +289,7 @@ KMT_S_COEFFICIENT = 0.04
 KMT_FRACTION_TERMS = (0.75, 0.25)
 """The molecular fraction of a cloud of column density Sigma (solar masses per pc2) and metallicity Z' = Z/Z0, after [R5104]: f = 1 - 0.75 s / (1 + 0.25 s) for s < 2 and 0 above, with s = ln(1 + 0.6 chi + 0.01 chi^2) / (0.04 Sigma Z') and
 chi = 0.77 (1 + 3.1 Z'^0.365). The chi coefficient is checked against its eq. 7 (2.3/3 = 0.77); the f form is recalled and its half-molecular column
-(34 solar masses per pc2 at solar Z') is near the 27 of the paper's summary. [Stand-in NBC11, tier T2, tweak L0.]"""
+(34 solar masses per pc2 at solar Z') is near the 27 of the paper's summary. [Stand-in 6.179 NBC11, tier T2, tweak L0.]"""
 
 _PC_CM = constants.PARSEC_M * 100.0
 _MSUN_PER_PC2_IN_G_PER_CM2 = 1.98847e33 / _PC_CM ** 2
@@ -297,7 +297,7 @@ _MSUN_PER_PC2_IN_G_PER_CM2 = 1.98847e33 / _PC_CM ** 2
 
 def column_density_msun_pc2(density_cm3, radius_ly):
     """The mean surface density of a uniform sphere of hydrogen density `density_cm3` (per cm3) and radius `radius_ly`: 4/3 n R of mass 1.4 m_H per
-    hydrogen atom, in solar masses per pc2. [Stand-in NBC12, tier T6, tweak L0: a uniform cloud; the stored density is the cloud's mean.]"""
+    hydrogen atom, in solar masses per pc2. [Stand-in 6.179 NBC12, tier T6, tweak L0: a uniform cloud; the stored density is the cloud's mean.]"""
     radius_cm = radius_ly * (constants.LY_TO_M * 100.0)
     grams = (4.0 / 3.0) * density_cm3 * radius_cm * molecular_column_scale()
     return grams / _MSUN_PER_PC2_IN_G_PER_CM2
@@ -365,7 +365,7 @@ T6, tweak L1, L0 and L3.]"""
 
 WIND_SHARE_OF_RING = 0.3
 """float: The share of a Wolf-Rayet ring's mass that is the host star's wind (helium and nitrogen rich); the rest is swept-up interstellar gas.
-[Stand-in NBC13, tier T6, tweak L3: the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen.]"""
+[Stand-in 6.179 NBC13, tier T6, tweak L3: the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen.]"""
 
 EJECTA_CLASSES = ("H", "J", "K", "L", "R", "T", "U", "W")
 """tuple: The classes whose gas is the ejecta of a star and not interstellar: they take `ejecta`."""

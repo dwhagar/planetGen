@@ -39,10 +39,10 @@ NO_SUN = "no sun"
 STATES = (NO_NIGHT, NO_SURFACE, NO_SUN, LOCKED, RESONANT, NON_ROTATING, POLAR, CYCLE)
 
 NON_ROTATING_TURNS = 0.01
-"""float: A body that turns fewer times than this in one orbit is taken as not rotating (the star goes round once a year to within a percent). [Stand-in DN1, tier T9, tweak L0.]"""
+"""float: A body that turns fewer times than this in one orbit is taken as not rotating (the star goes round once a year to within a percent). [Stand-in 6.133 DN1, tier T9, tweak L0.]"""
 
 POLAR_CIRCLE_MAX_DEG = 30.0
-"""float: A body whose polar circle is within this latitude has half its surface or more in the polar zone (the area beyond latitude L is `1 - sin L` of a sphere). [Stand-in DN1, tier T9, tweak L0.]"""
+"""float: A body whose polar circle is within this latitude has half its surface or more in the polar zone (the area beyond latitude L is `1 - sin L` of a sphere). [Stand-in 6.133 DN1, tier T9, tweak L0.]"""
 
 
 def state(rotation_period_hours, period_years, polar_circle_deg=None, solid=True, star=False, no_sun=False):
