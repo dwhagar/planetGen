@@ -59,6 +59,19 @@ def _light(mass_sol, age_yr, now):
             math.exp(math.log(t0) + share * (math.log(now_t) - math.log(t0))))
 
 
+def light_at(star, age_gyr):
+    """`(luminosity_w, temperature_k)` of `star` at `age_gyr` on the history `loss_kg` follows (GEN.1745: the contraction track, then the log-linear rise to the present values), or `None` for a
+    star whose past is not followed (`HISTORY_YERKES`), a heavy one (`tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL`) or one with no stored light. At and past the star's age it is its present light."""
+    if (getattr(star, "yerkes_class", None) not in HISTORY_YERKES or not star.luminosity or not star.temperature or not star.mass or not star.age):
+        return None
+    mass_sol = _kg_to_msun(star.mass)
+    if mass_sol >= tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL:
+        return None
+    if age_gyr >= star.age:
+        return star.luminosity, star.temperature
+    return _light(mass_sol, max(age_gyr, 0.0) * 1e9, (star.age * 1e9, star.luminosity, star.temperature))
+
+
 def _saturation_age_gy(star, mass_sol):
     """The saturation age of the star's own decay (GEN.800): the older of its age and the table's for a star stored as still saturated (`xuv_saturated`; its
     saturation has not ended), else the age `activity.effective_saturation_age_gy` finds from its stored `log_lx_lbol`."""
@@ -76,11 +89,12 @@ def _xuv_w(mass_sol, age_yr, luminosity_w, temperature_k, t_sat_gy):
     return activity.coronal_xuv_w(ratio * luminosity_w) + photosphere
 
 
-def loss_kg(star, distance_au, mass_kg, radius_km):
+def loss_kg(star, distance_au, mass_kg, radius_km, trace=None):
     """
     The water, kg, a body of `mass_kg` and `radius_km` at `distance_au` from `star` lost to the runaway greenhouse since the
     end of its disk. 0 for a star whose past is not followed (`HISTORY_YERKES`), a star younger than the start of the
-    history, or a body that never reached the runaway flux.
+    history, or a body that never reached the runaway flux. `trace`, a list, is filled with `(age_yr, water_lost_kg)` at the end of every step of the history (GEN.1745: the
+    water lost by that age; the answer is the last of them), and is left empty for a body that lost nothing.
     """
     if (getattr(star, "yerkes_class", None) not in HISTORY_YERKES or not star.luminosity or not star.temperature
             or not star.mass or not distance_au or distance_au <= 0 or not mass_kg or not radius_km):
@@ -114,4 +128,6 @@ def loss_kg(star, distance_au, mass_kg, radius_km):
             flux = _xuv_w(mass_sol, middle, luminosity, temperature, t_sat_gy) / (4.0 * math.pi * distance_m ** 2)
             hydrogen_kg += area_factor * flux * (t1 - t0) * _YEAR_S
         t0 = t1
+        if trace is not None:
+            trace.append((t1, hydrogen_kg * tuning.WATER_PER_HYDROGEN_MASS))
     return hydrogen_kg * tuning.WATER_PER_HYDROGEN_MASS
