@@ -237,7 +237,7 @@ def _planet():
             ("Name", cls.name),
             ("Type", PLANET_TYPE_LABELS[cls.kind]),
             ("Conditions", _rule_html(lambda measure: class_fit.rule_words(fit, measure))),
-            ("Soft edges (the model's doubt)", "; ".join(class_fit.softness_words(fit)) or "none: every condition is a yes or no"),
+            ("Soft edges (how far the value could move)", "; ".join(class_fit.softness_words(fit)) or "none: every condition is a yes or no"),
             ("Core class", "Yes" if cls.core else "No"),
         ]
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
@@ -252,7 +252,7 @@ def _planet():
             "Each class asks about the mass, gravity, temperature, air, water, and starlight in its own conditions. A condition "
             "just outside its edge lowers the match instead of ruling the class out. A world that fits no class at all is "
             "shown with its nearest class at 0 percent.",
-            "Where a class edge falls is soft. The softness is the model's doubt, not the variety of the worlds. It is how far the value "
+            "Where a class edge falls is soft. The softness is the doubt in the numbers, not the variety of the worlds. It is how far the value "
             "could move if the formulas and constants we could not take from a measurement were wrong by what the sources allow.",
             "A world just past an edge, by less than that width, fits the class in part. A quantity made only of measured values has almost "
             "no width. As measured values replace the formulas and constants, the widths shrink on their own.",
