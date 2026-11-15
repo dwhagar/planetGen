@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4218] - 2026-11-15
+
+**Headline:** The stage memory log test reads the figures the way the log now writes them.
+
+### Fixed
+- `tests/test_stage_worker_cap.py`: since UX.318 the stage memory line shows gigabytes ("2.37 GB of the 3.05 GB"); the test still looked for "2,370 MB of the 3,050 MB". It reads the new wording. Test only.
+
 ## [8.0.4217] - 2026-11-15
 
 **Headline:** The life-air history API tests find a planet that can take the forced oxygen in the redrawn systems of Train 30.
