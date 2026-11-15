@@ -32,7 +32,7 @@ import re
 from flask import request, url_for
 
 from planetgen.util import settings_view
-from planetgen.util.format import counted
+from planetgen.util.format import counted, format_duration_seconds
 from planetgen.web.lib import apiclient
 
 from . import bp
@@ -98,23 +98,14 @@ def parse_rate(text):
 
 
 def duration_text(value, unit):
-    """A duration in words ("6 hours", "15 seconds", "1 day 2 hours"); empty when `value` is not a number."""
+    """A duration on the units code's time ladder ("6 hours", "15 s", "1.04 days", UX.318); "off" at zero, empty when `value` is not a number."""
     try:
         seconds = float(value) * DURATION_UNITS.get(unit, 1)
     except (TypeError, ValueError):
         return ""
     if seconds < 0:
         return ""
-    if seconds == 0:
-        return "off"
-    parts = []
-    for name, size in (("day", 86400), ("hour", 3600), ("minute", 60), ("second", 1)):
-        count, seconds = divmod(seconds, size)
-        if count >= 1:
-            parts.append(f"{int(count)} {name}{'' if int(count) == 1 else 's'}")
-        if len(parts) == 2:
-            break
-    return " ".join(parts) if parts else f"{seconds:g} seconds"
+    return "off" if seconds == 0 else format_duration_seconds(seconds)
 
 
 def _option_text(option, key):
@@ -363,7 +354,7 @@ def _confirm_password(cookie_header, view):
     except apiclient.ApiError as exc:
         return _form_page(view, error=_api_message(exc), status=429 if getattr(exc, "status_code", 0) == 429 else 400)
     return _flash(_see_other(url_for("web.admin_settings")),
-                  message=f"Thank you. The Owner's settings are open for {done['minutes']} minutes.")
+                  message=f"Thank you. The Owner's settings are open for {format_duration_seconds(done['minutes'] * 60)}.")
 
 
 def _save(cookie_header, view):

@@ -50,6 +50,7 @@ from planetgen.generation import stages, steps
 from planetgen.generation import stats as generationStats
 from planetgen.util import draw
 from planetgen.util import detmath
+from planetgen.util.format import format_duration_seconds
 
 
 LARGE_RUN_WARNING_THRESHOLD = 2000
@@ -827,7 +828,7 @@ class BackfillFollower(followed.Follower):
             stars, seconds = sum(item["stars"] for item in self.sky), sum(item["seconds"] for item in self.sky)
             sectors = max(self.summary["sectors"], 1)
             log.normal(f"Sky tiers: {stars:,} bright stars in {sum(item['spheres'] for item in self.sky):,} spheres around {len(self.sky)} observer cell(s), "
-                       f"{seconds:,.0f} s of drawing ({seconds / sectors * 1000:.1f} ms a backfilled sector).")
+                       f"{format_duration_seconds(seconds)} of drawing ({format_duration_seconds(seconds / sectors)} a backfilled sector).")
             floors = next((item["floors"] for item in self.sky if item.get("floors")), [])
             if floors:
                 log.normal("Sky floor (the dimmest star the sky shows, least dust of any direction): "
@@ -1850,7 +1851,7 @@ class SectorsFollower(followed.Follower):
             log.warning(plan["detail"]["warning"])
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
-                       f"{program_constants.PROGRESS_LOG_SECONDS:g} s and each sector's own line is in the debug log.")
+                       f"{format_duration_seconds(program_constants.PROGRESS_LOG_SECONDS)} and each sector's own line is in the debug log.")
         self._ticker = Ticker(self.label, total=sectors or None)
         if self.bar_description is not None:
             self.bar = self.hold(run_common.sector_bar(self.progress, self.args, self.bar_description, sectors))

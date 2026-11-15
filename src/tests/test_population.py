@@ -258,12 +258,14 @@ def _has_civilization(system):
 
 
 def test_the_pinned_civilized_seeds_still_qualify():
-    """TEST.700: the first pinned candidate still holds a technological civilization with this generator (one system, about 23 s). When it does not, the
-    pins are old and every test that needs a civilized system hunts again: `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
+    """TEST.700, TEST.753: every pinned candidate still holds a technological civilization with this generator (a system each, about 25 s). A test that needs
+    two civilized systems takes the first two pins and the rest cover a number that stops qualifying, so a stale pin past the first is a hunt of tens of
+    minutes in the middle of a run (Train 28's epoch left only the first valid and the guard checked only it). When one does not, the pins are old:
+    `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
     seeds = pinned_seeds()
     assert seeds, "tests/data/civilized_pins.json names no candidate: python -m tests.civilized_pins refresh --hunt 4"
-    system, _cfg = _candidate(seeds[0])
-    assert _has_civilization(system), f"candidate {seeds[0]} no longer holds a civilization: python -m tests.civilized_pins refresh --hunt 4"
+    stale = [number for number in seeds if not _has_civilization(_candidate(number)[0])]
+    assert not stale, f"candidates {stale} no longer hold a civilization: python -m tests.civilized_pins refresh --hunt 4"
 
 
 def _next_candidate_number():

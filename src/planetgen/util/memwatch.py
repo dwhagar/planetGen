@@ -25,6 +25,7 @@ import threading
 import time
 
 from planetgen.util import log
+from planetgen.util.format import format_megabytes
 
 INTERVAL_SECONDS = 2.0
 """float: How often the processes are looked at."""
@@ -166,7 +167,7 @@ class PeakTracker:
 def format_line(peaks):
     """`"Memory peak: MySQL 884 MB, 6 workers 2,310 MB, the step itself 256 MB, the whole host 3,100 of 15,990 MB."`"""
     total = peaks.get("host_total")
-    host = f"{peaks['host']:,.0f} of {total:,.0f} MB" if total else f"{peaks['host']:,.0f} MB"
+    host = f"{format_megabytes(peaks['host'])} of {format_megabytes(total)}" if total else format_megabytes(peaks['host'])
     workers = peaks["workers_n"]
-    return (f"Memory peak: MySQL {peaks['mysql']:,.0f} MB, {workers} {'worker' if workers == 1 else 'workers'} "
-            f"{peaks['workers']:,.0f} MB, the step itself {peaks['step']:,.0f} MB, the whole host {host}.")
+    return (f"Memory peak: MySQL {format_megabytes(peaks['mysql'])}, {workers} {'worker' if workers == 1 else 'workers'} "
+            f"{format_megabytes(peaks['workers'])}, the step itself {format_megabytes(peaks['step'])}, the whole host {host}.")

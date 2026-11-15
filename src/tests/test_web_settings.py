@@ -390,8 +390,8 @@ def test_a_rate_control_is_composed_back_into_the_limit_text(config):
     assert settings_page.collect(list(options.values()), form)[0] == {"ratelimit.pages.search": ""}
 
 
-@pytest.mark.parametrize("value, unit, words", [("21600", "seconds", "6 hours"), ("15", "seconds", "15 seconds"),
-                                                 ("90000", "seconds", "1 day 1 hour"), ("24", "hours", "1 day"),
+@pytest.mark.parametrize("value, unit, words", [("21600", "seconds", "6 hours"), ("15", "seconds", "15 s"),
+                                                 ("90000", "seconds", "1.04 days"), ("24", "hours", "1 day"),
                                                  ("0", "seconds", "off"), ("soon", "seconds", "")])
 def test_a_duration_is_said_in_words(value, unit, words):
     assert settings_page.duration_text(value, unit) == words

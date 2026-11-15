@@ -31,6 +31,7 @@ import xml.etree.ElementTree as ET
 
 from planetgen.backup import core as backup_core
 from planetgen.util import settings as settingsModule
+from planetgen.util.format import format_bytes
 
 MAX_BYTES = 1024 * 1024
 """int: The largest upload (the API takes a request body of 2 MB, and a picture goes in it as base64)."""
@@ -163,7 +164,7 @@ def check(kind, data):
     if not data:
         raise AssetError("The file is empty.")
     if len(data) > MAX_BYTES:
-        raise AssetError(f"The file is {len(data) // 1024:,} KB; the most allowed is {MAX_BYTES // 1024:,} KB.")
+        raise AssetError(f"The file is {format_bytes(len(data))}; the most allowed is {format_bytes(MAX_BYTES)}.")
     if "svg" in spec["formats"] and data.lstrip()[:1] == b"<":
         _check_svg(data)
         return "svg", None, None
@@ -298,7 +299,7 @@ def prepare_avatar(data):
     if not data:
         raise AssetError("The file is empty.")
     if len(data) > MAX_BYTES:
-        raise AssetError(f"The file is {len(data) // 1024:,} KB; the most allowed is {MAX_BYTES // 1024:,} KB.")
+        raise AssetError(f"The file is {format_bytes(len(data))}; the most allowed is {format_bytes(MAX_BYTES)}.")
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
@@ -325,7 +326,7 @@ def prepare_avatar(data):
         raise AssetError("That file is not a readable picture (use a PNG, JPEG, ICO or GIF).") from exc
     stored = out.getvalue()
     if len(stored) > MAX_BYTES:
-        raise AssetError(f"The picture is {len(stored) // 1024:,} KB once cleaned; the most allowed is {MAX_BYTES // 1024:,} KB.")
+        raise AssetError(f"The picture is {format_bytes(len(stored))} once cleaned; the most allowed is {format_bytes(MAX_BYTES)}.")
     return kind, stored, width, height, len(frames)
 
 
