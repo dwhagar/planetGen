@@ -23,7 +23,7 @@ column (`photolysis.photon_limited_flux_mol_m2_s`) is not destroyed as it comes:
 
 **What the loss leaves.** The hydrogen of the gas leaves the air (`LOST_TO`): a mole of ammonia leaves half a mole of nitrogen, a mole of methane leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's).
 
-Stand-ins: `docs/design/research/gap-filling-plan.md` section 6.299.
+Stand-ins: `docs/design/research/gap-filling-plan.md` section 6.301 (PC1 to PC4); each is tagged where it is used.
 """
 
 import math
@@ -34,7 +34,7 @@ PHOTOLYSED = ("NH3", "CH4")
 """tuple: The gases of an air the loss acts on (the two the model held for ever; GEN.1732)."""
 
 LOST_TO = {"NH3": ("N2", 0.5), "CH4": ("CO2", 1.0)}
-"""dict: Formula of a photolysed gas to (the gas its loss leaves, the moles of it left per mole lost). The hydrogen escapes and is not stored; the oxygen of the CO2 is the water's (T7, L1: GEN.725 PC4)."""
+"""dict: Formula of a photolysed gas to (the gas its loss leaves, the moles of it left per mole lost). The hydrogen escapes and is not stored; the oxygen of the CO2 is the water's [Stand-in 6.301 PC4, tier T7, tweak L1.]"""
 
 YEAR_S = 365.25 * 86400.0
 
@@ -55,7 +55,7 @@ def standing(source_mol_m2_s, rate):
 
 def advance(amount_mol_m2, source_mol_m2_s, rate, seconds, light_limit_mol_m2_s=math.inf):
     """
-    The amount, mol per m2, of a gas after `seconds` with the source `source_mol_m2_s` and the loss `rate` per molecule per second (the exact step of `dN/dt = S - k N`, stable for any step). The light breaks no more than
+    The amount, mol per m2, of a gas after `seconds` with the source `source_mol_m2_s` and the loss `rate` per molecule per second (the exact step of `dN/dt = S - k N`, stable for any step). [Stand-in 6.301 PC1, tier T5, tweak L0.] The light breaks no more than
     `light_limit_mol_m2_s` (`photolysis.photon_limited_flux_mol_m2_s`) in the column that absorbs it: where the loss would pass it the amount is advanced at that loss.
     """
     amount = max(amount_mol_m2, 0.0)
@@ -73,7 +73,7 @@ def advance(amount_mol_m2, source_mol_m2_s, rate, seconds, light_limit_mol_m2_s=
 
 def standing_from_inventory(inventory_mol_m2, age_s, rate, light_limit_mol_m2_s=math.inf):
     """
-    The amount, mol per m2, of a gas of which the body's volcanoes and comets put `inventory_mol_m2` into the air over `age_s` (a source of the inventory over the age, constant), after the star's light has worked on it all that
+    [Stand-in 6.301 PC2, tier T7, tweak L1: the source is the inventory over the age.] The amount, mol per m2, of a gas of which the body's volcanoes and comets put `inventory_mol_m2` into the air over `age_s` (a source of the inventory over the age, constant), after the star's light has worked on it all that
     time: `S tau (1 - exp(-age / tau))` for the source `S = inventory / age` and the life `tau = 1 / rate` of the gas, which is the inventory less what was lost when the life is long and the source's `S tau` when it is short. Where the
     source is over what the light can break (`light_limit_mol_m2_s`) the air first fills to the absorbing column (`light_limit / rate`) and then gains the difference of source and limit.
     """
@@ -101,7 +101,7 @@ def partial_pa_of(column, formula, gravity_m_s2):
 
 
 def light_limit(formula, far_uv, star_temperature_k):
-    """The most the light can break of `formula` under `far_uv`, mol per m2 of ground per second: the column that absorbs it times the rate (`photolysis.photon_limited_flux_mol_m2_s`); infinity with no far ultraviolet."""
+    """The most the light can break of `formula` under `far_uv`, mol per m2 of ground per second: the column that absorbs it times the rate (`photolysis.photon_limited_flux_mol_m2_s`); infinity with no far ultraviolet. [Stand-in 6.301 PC3, tier T5, tweak L0.]"""
     if far_uv is None or not far_uv.ratio or not star_temperature_k:
         return math.inf
     return photolysis.photon_limited_flux_mol_m2_s(formula, far_uv.ratio, star_temperature_k, chromospheric_share=far_uv.chromospheric_share or 0.0)

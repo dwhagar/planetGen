@@ -3032,7 +3032,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IG7 | P | T7 | L1 | `ice_growth.SNOW_RETENTION` 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season | 0.4 to 0.9 | multiyear Arctic ice | a snow cover that keeps a share outside 0.4 to 0.9 | a wind and lead model | [R5278]: 11 cm of water standing in May of the 17 cm that fell (5 cm a month in September and October, 1 cm a month November to March, 2 cm in April, the rates it quotes) | predicted only | GEN.1735 | - |
 | IG8 | P | T7 | L1 | `ice_growth.ABLATION_M_YR` 0.4 m of ice a year: what the surface wears off a lid that does not thaw | 0.2 to 0.6 | multiyear Arctic ice under an Earth-like air | a perennial lid whose surface loses less than 0.2 or more than 0.6 m a year | a surface energy balance with the world's own air | [R5279]: surface ablation 40 cm in the standard case; the one measured case, taken for every perennial lid | predicted only | GEN.1735 | - |
 
-## 6.299 Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)
+## 6.301 Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
