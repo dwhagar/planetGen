@@ -18,9 +18,10 @@ OUTSIDE = "runs in a process that is not a unit (the web server, the CLI, the st
 ALLOWED = {
     ("db/contention.py", "_wait_while_closed"): BLOCKING,
     ("db/contention.py", "run_with_retries"): BLOCKING,
+    ("queue/engine.py", "Context._hold_while_paused"): BLOCKING + " (a unit held between two pieces by a pause, shown as `pause`; OPS.191)",
     ("queue/memorygate.py", "_decision_lock"): BLOCKING + " (the gate's lock, shown as `gate`)",
     ("queue/memorygate.py", "_acquire"): BLOCKING + " (waiting for memory, shown as `gate`)",
-    ("generation/run_plan.py", "_run_stale_unit"): RETRY,
+    ("generation/run_plan.py", "_stale_system_piece"): RETRY,
     ("db/store.py", "_save_with_retries"): RETRY,
     ("db/migrations/helpers.py", "_with_retries"): "the migration runner, not a unit; a pause between two tries of one statement",
     ("generation/generator_battery.py", "start_running_digest.finish"): "the battery digest wait of OPS.184: it waits on the digest's own thread and shows its progress line every poll",

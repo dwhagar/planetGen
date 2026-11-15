@@ -891,6 +891,12 @@
       "first_release": "8.0.4111",
       "reason": "Train 27: stacked fixes to values, the Class M tiers' base, belt and clearance members, ozone flag, exchange bound, coverage ties",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 150,
+      "first_release": "8.0.4168",
+      "reason": "GEN.332 slice D: a rogue planet of a young donor may leave bound to a companion (the observed share, fading with age), and rogue_planets keeps the link, the separation and the period",
+      "affects": ["fill"]
     }
   ]
 }

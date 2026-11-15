@@ -34,6 +34,14 @@ def test_every_region_is_a_tadpole_inside_the_orbit_limits():
             assert trojans.motion(region.libration_amplitude_deg, trojans.mass_parameter(SUN, JUPITER)) == "tadpole"
 
 
+def test_the_amplitudes_reach_past_the_nearest_approach_and_have_the_jupiter_mean():
+    """GEN.1647 and GEN.1643: the cut is the tadpole's amplitude limit, so a fifth of the bodies librate wider than 23.9 degrees and the mean is the Jupiter Trojans' (16 degrees)."""
+    amplitudes = [region.libration_amplitude_deg for seed in range(1000) for region in regions(seed)]
+    wide = sum(1 for a in amplitudes if a > trojans.TADPOLE_NEAREST_APPROACH_DEG) / len(amplitudes)
+    assert 0.12 < wide < 0.26
+    assert sum(amplitudes) / len(amplitudes) == pytest.approx(16.2, abs=1.0)
+
+
 def test_the_draw_is_repeatable_and_takes_exactly_nine_draws():
     assert regions(5) == regions(5)
 

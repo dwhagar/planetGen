@@ -3980,8 +3980,10 @@ ROGUE_HOST_ONLY_COLUMNS = frozenset({
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
 """tuple: The `Field`s of a planet that a rogue planet shares (every one but the orbit round a host)."""
 
-ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note")
-"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note."""
+ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note",
+                          "pair_event_index", "pair_separation_au", "pair_period_yr")
+"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note; and the companion it
+left bound to, its event index and the circular orbit of the two (GEN.332, slice D), all `None` for a rogue that left alone."""
 
 
 def _from_context(column):
@@ -4105,7 +4107,9 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
             row_ids.append(insert_rogue_body(
                 conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
                 event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
-                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note))
+                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note,
+                pair_event_index=rogue.pair.partner_index if rogue.pair else None, pair_separation_au=rogue.pair.separation_au if rogue.pair else None,
+                pair_period_yr=rogue.pair.period_yr if rogue.pair else None))
             if rogue.event.index in kept_uids:
                 row_kept[row_ids[-1]] = kept_uids[rogue.event.index]
         if row_ids:
@@ -7100,11 +7104,44 @@ CLEAR_PHENOMENON_SCATTER_STEPS = 7
 """int: The steps `clear_phenomenon_scatter` takes (OPS.200)."""
 
 
+def _counter_unmoved(conn, table):
+    """Whether the `AUTO_INCREMENT` of `table` has never moved (the table never held a row)."""
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
+    counter = conn.execute("SELECT auto_increment AS n FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", (table,)).fetchone()
+    return counter is None or int(counter["n"] or 1) <= 1
+
+
+def phenomenon_scatter_holds_nothing(conn):
+    """
+    Whether there is nothing for `clear_phenomenon_scatter` to clear (OPS.257): `phenomenon_scatter` and `phenomenon_scatter_classes` hold no row, `phenomenon_scatter` never took one,
+    the scatter's seed and mass cut are not recorded and no `phenomena` scatter epoch is. A galaxy made new has none of them.
+    """
+    for table in ("phenomenon_scatter", "phenomenon_scatter_classes"):
+        if conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is not None:
+            return False
+    if not _counter_unmoved(conn, "phenomenon_scatter"):
+        return False
+    if conn.execute("SELECT 1 FROM galaxy_shape WHERE phenomenon_scatter_seed IS NOT NULL OR phenomenon_min_mass_solar IS NOT NULL LIMIT 1").fetchone() is not None:
+        return False
+    return conn.execute("SELECT 1 FROM scatter_epochs WHERE kind = 'phenomena' LIMIT 1").fetchone() is None
+
+
+def nebula_field_holds_nothing(conn):
+    """Whether there is nothing for `clear_nebula_field` to clear (OPS.257): `nebula_field` holds no row, never took one and no `nebula-field` scatter epoch is recorded."""
+    if conn.execute("SELECT 1 FROM nebula_field LIMIT 1").fetchone() is not None or not _counter_unmoved(conn, "nebula_field"):
+        return False
+    return conn.execute("SELECT 1 FROM scatter_epochs WHERE kind = 'nebula-field' LIMIT 1").fetchone() is None
+
+
 def clear_phenomenon_scatter(conn, steps=statementmark.LABELS_ONLY):
     """Empties `phenomenon_scatter` and forgets the scatter's seed -- a
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows.
-    Each statement is a step of `steps` (`CLEAR_PHENOMENON_SCATTER_STEPS`), named for the beat."""
+    Each statement is a step of `steps` (`CLEAR_PHENOMENON_SCATTER_STEPS`), named for the beat.
+    With nothing to clear (`phenomenon_scatter_holds_nothing`) it reads and leaves (OPS.257)."""
+    if phenomenon_scatter_holds_nothing(conn):
+        steps.nothing("No phenomenon scatter is stored, nothing to clear")
+        return
     with steps.sql("Emptying phenomenon_scatter"):
         conn.execute("TRUNCATE TABLE phenomenon_scatter")
     from planetgen.db import block_lights
@@ -7134,7 +7171,10 @@ CLEAR_NEBULA_FIELD_STEPS = 2
 
 
 def clear_nebula_field(conn, steps=statementmark.LABELS_ONLY):
-    """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
+    """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed. With nothing to clear (`nebula_field_holds_nothing`) it reads and leaves (OPS.257)."""
+    if nebula_field_holds_nothing(conn):
+        steps.nothing("No nebula field is stored, nothing to clear")
+        return
     with steps.sql("Emptying nebula_field"):
         conn.execute("TRUNCATE TABLE nebula_field")
     with steps.sql("Forgetting that the field was drawn"):

@@ -68,6 +68,14 @@ class Follower:
     def on_progress(self, unit, done, estimate):
         """Unit `unit`, still working, has done `done` of `estimate`."""
 
+    def on_step(self, step):
+        """
+        The units still working count inside their own count (OPS.192): `step` is `{"name", "done", "total"}`, the same count summed over the units that share it, or `None` where none
+        does. Drawn as the run's second bar and in the Generate page's detail line.
+        """
+        if self.progress is not None and hasattr(self.progress, "show_step"):
+            self.progress.show_step(step)
+
     def on_done(self, conclusion):
         """Every unit is done and the command's `conclude` has run; `conclusion` is what it returned (or `None`)."""
 
@@ -181,6 +189,9 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
     def on_progress(index, unit, done, estimate):
         followers[index].on_progress(unit, done, estimate)
 
+    def on_step(index, step):
+        followers[index].on_step(step)
+
     def on_stage_done(index, conclusion):
         followers[index].end(conclusion)
         open_ones.remove(followers[index])
@@ -194,7 +205,7 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
             wrapper.run(title, steps, on_plan, on_result, on_progress, workers_count=workers,
                         who=getattr(args, "who", None), database=mysql_config.database,
                         argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None, kind=kind,
-                        on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build)
+                        on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build, on_step=on_step)
         except BaseException as exc:
             for follower in open_ones:
                 follower.abort(type(exc), exc, exc.__traceback__)
