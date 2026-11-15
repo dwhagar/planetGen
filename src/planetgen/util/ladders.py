@@ -330,6 +330,21 @@ FRACTION = Ladder(
     ),
 )
 
+# Bytes of storage or memory (UX.318): a disk estimate, a worker's memory, a cache size. Powers of 1000, as a disk is sold.
+INFORMATION = Ladder(
+    quantity="information",
+    base="B",
+    nonfinite="TB",
+    zero="B",
+    rungs=(
+        rung("B", start=0.0, singular="byte"),
+        rung("kB"),
+        rung("MB"),
+        rung("GB"),
+        rung("TB"),
+    ),
+)
+
 # A pressure on the SI ladder with customary units beside it (Boss,
 # 2026-10-01: "Atmospheric pressure and surface conditions should show
 # customary units as well as a secondary to help contextualize the metric
@@ -501,12 +516,12 @@ RATE = Ladder(
 )
 
 LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, TEMPERATURE_DIFFERENCE, FRACTION, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD,
-           DOSE_RATE, RATE)
+           DOSE_RATE, RATE, INFORMATION)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""
 
 _BY_KIND = dict(zip(
     ("length", "speed", "duration", "temperature", "delta_temperature", "fraction", "pressure", "acceleration", "mass", "power", "flux", "number_density",
-     "magnetic_field", "dose_rate", "frequency"), LADDERS))
+     "magnetic_field", "dose_rate", "frequency", "information"), LADDERS))
 _BY_KIND_OF_LADDER = {ladder.quantity: kind for kind, ladder in _BY_KIND.items()}
 LADDER_OF_KIND = {kind: ladder.quantity for kind, ladder in _BY_KIND.items()}
 """dict: The name of the ladder each registry kind is shown on (`unitladders.js` `LADDER_OF_KIND`)."""

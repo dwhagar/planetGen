@@ -3,7 +3,7 @@
 {%- if progress and progress.show and progress.percent is not none -%}
 <span class="task-bar">
   <progress max="100" value="{{ progress.percent }}" aria-label="{{ label ~ ' ' if label }}progress">{{ progress.percent }}%</progress>
-  <span class="task-bar-text">{{ progress.percent|round(0)|int }}%{% if progress.eta_seconds is not none %}, about {{ progress.eta_seconds|round(0)|int }} s left{% if progress.source == 'stored' %} (from earlier runs){% endif %}{% endif %}</span>
+  <span class="task-bar-text">{{ progress.percent|round(0)|int }}%{% if progress.eta_seconds is not none %}, about {{ duration_text(progress.eta_seconds) }} left{% if progress.source == 'stored' %} (from earlier runs){% endif %}{% endif %}</span>
 </span>
 {%- endif -%}
 {%- endmacro %}

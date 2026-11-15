@@ -31,6 +31,7 @@ import rq
 from planetgen.admin import updateguard
 from planetgen.queue import pause, redisqueue, runrecord, workers
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 STOP_SECONDS = 20
 """int: How long the polite cancel of the running work is given before the rest is removed by force."""
@@ -142,7 +143,7 @@ def reset_jobs(redis_url=None, assume_yes=False, dry_run=False, sources=None, wr
         updateguard.cancel_all(sources, running, write)
         left = updateguard.wait_until_idle(sources, timeout=stop_seconds, poll=0.5, write=write)
         if left:
-            write(f"Still there after {int(stop_seconds)} seconds, removed by force below:")
+            write(f"Still there after {format_duration_seconds(stop_seconds)}, removed by force below:")
             for line in updateguard.describe(left):
                 write(line)
     if connection is not None:

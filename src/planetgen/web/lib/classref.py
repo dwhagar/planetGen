@@ -266,11 +266,15 @@ def _planet():
 
 
 def _cloud_facts(data):
-    return [
+    """The facts a nebula and a supernova remnant share: the cloud's density, temperature and extinction, and what sits at its center when something does."""
+    facts = [
         ("Density", number_range(*data["density_range_cm3"], "particles/cm³")),
         ("Gas temperature", number_range(*data["temperature_range_k"], "K")),
         ("Extinction", number_range(*data["extinction_range_av"], "magnitudes (visual)")),
     ]
+    if data.get("center"):
+        facts.append(("At the center", _sentence(data["center"])))
+    return facts
 
 
 def _nebula():
@@ -284,8 +288,6 @@ def _nebula():
             ("Radius", number_range(*data["radius_range_ly"], "ly")),
             *_cloud_facts(data),
         ]
-        if data.get("center"):
-            facts.append(("At the center", _sentence(data["center"])))
         classes[code] = _entry(code, data["name"], escape(f"{_sentence(data['family'])} nebula: ") + _contents(data["species"]) + ".",
                                facts)
     return {
@@ -312,8 +314,6 @@ def _supernova_remnant():
             ("Compact remnant allowed", ", ".join(_COMPACT_LABELS.get(kind, str(kind)) for kind in data["compact"])),
             *_cloud_facts(data),
         ]
-        if data.get("center"):
-            facts.append(("At the center", _sentence(data["center"])))
         summary = escape(f"{_sentence(data['morphology'])} remnant: ") + _contents(data["species"]) + "."
         classes[code] = _entry(code, data["name"], summary, facts)
     return {

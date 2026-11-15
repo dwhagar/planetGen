@@ -23,6 +23,7 @@ import pymysql
 
 from planetgen.db import connection_loss, store
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 RETRYABLE_ERRORS = (1213, 1205)
 """tuple: The MySQL errors that are retried: a deadlock, and a lock wait timeout."""
@@ -141,7 +142,7 @@ def _wait_while_closed(gate, label):
         time.sleep(wait)
         waited += wait
     if said:
-        log.normal(f"{label} goes on after {waited:.1f} s.")
+        log.normal(f"{label} goes on after {format_duration_seconds(waited)}.")
 
 
 def begin_read_committed(conn):
@@ -189,13 +190,13 @@ def run_with_retries(conn, attempt, gate, label, attempts=ATTEMPTS, gate_object=
             if number == attempts:
                 break
             wait = next_wait(number, wait)
-            log.get("generate").notice(f"{label}: MySQL error {error} on try {number} of {attempts}; trying again in {wait:.2f} s "
+            log.get("generate").notice(f"{label}: MySQL error {error} on try {number} of {attempts}; trying again in {format_duration_seconds(wait)} "
                                        f"(this process's trouble level {_pressure:.2f}).")      # OPS.167: an expected, notable event
             time.sleep(wait)
     need = Need("exclusive", gate, label, attempts, error)
     log.normal(f"{need}: asking for it.")
     if not gate_object.grant(need):
-        raise pymysql.err.OperationalError(1205, f"{label}: the exclusive grant for {gate!r} did not come in {GRANT_TIMEOUT_S} s")
+        raise pymysql.err.OperationalError(1205, f"{label}: the exclusive grant for {gate!r} did not come in {format_duration_seconds(GRANT_TIMEOUT_S)}")
     log.normal(f"{label}: granted exclusive use of {gate!r}; trying once more alone.")
     try:
         result = attempt(conn)
