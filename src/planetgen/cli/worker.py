@@ -26,6 +26,7 @@ from planetgen import _version
 from planetgen.admin import updateguard
 from planetgen.queue import allowlist, claims, memorygate, pause, progress_file, redisqueue, runrecord, scheduler, stopall, units, work, workers
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 WARM_MODULES = (
     "planetgen.generation.run_plan",
@@ -152,7 +153,7 @@ def worker_class(round_robin=False):
             try:
                 claim = claims.claim_for(job, self.connection)
             except claims.NoClaim as exc:
-                log.error(f"The claim of job {job.id} fell back to the default {claims.DEFAULT_MB} MB: {exc}")
+                log.error(f"The claim of job {job.id} fell back to the default {format_megabytes(claims.DEFAULT_MB)}: {exc}")
                 claim = claims.default_claim(job)
             admission = memorygate.acquire(self.connection, claim, self.name, job=job.id, cap_of=claims.cap_of, scheduler=scheduler.Scheduler(),
                                            on_wait=lambda decision, waited: self._while_gated(job))
@@ -179,8 +180,8 @@ def worker_class(round_robin=False):
             if job.func_name not in (units.UNIT_FUNCTION, units.OPEN_FUNCTION):
                 return
             try:
-                runrecord.log(self.connection, job.args[0], f"Memory gate: {job.description or job.id} waited {admission.waited:,.0f} s for "
-                              f"{claim.mb:,.0f} MB ({admission.decision.reason}).", kind="gate.wait", level="warning" if admission.timed_out else "info")
+                runrecord.log(self.connection, job.args[0], f"Memory gate: {job.description or job.id} waited {format_duration_seconds(admission.waited)} for "
+                              f"{format_megabytes(claim.mb)} ({admission.decision.reason}).", kind="gate.wait", level="warning" if admission.timed_out else "info")
             except Exception as exc:  # noqa: BLE001 -- a log line is never a reason to fail the job
                 log.swallowed("cli/worker", "worker_class.WarmWorker._report_wait", exc)
 
@@ -274,7 +275,7 @@ def main(argv=None):
         log.error(exc)
         return updateguard.EX_TEMPFAIL
     log.debug("The worker starts on queues %s (%s) with release %s.", args.queues, "burst" if args.burst else
-              f"idle exit after {args.idle_seconds} s", _version.__version__, area="queue")
+              f"idle exit after {format_duration_seconds(args.idle_seconds)}", _version.__version__, area="queue")
     work.lower_priority(workers.niceness(args.queues))
     warm(args.queues)
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone

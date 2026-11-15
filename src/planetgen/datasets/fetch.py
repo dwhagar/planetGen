@@ -45,6 +45,7 @@ from planetgen import tuning
 import numpy as np
 
 from planetgen.util import log
+from planetgen.util.format import format_byte_rate, format_bytes, format_duration_seconds
 from planetgen.util.user_agent import user_agent
 
 CACHE_DIR_ENV = "PLANETGEN_DATA_DIR"
@@ -451,7 +452,7 @@ class PlainProgress:
 
     def begin(self, piece):
         if piece.size >= PROGRESS_MIN_BYTES:
-            self._write(f"    downloading {piece.name} ({_megabytes(piece.size)}) from {piece.url}")
+            self._write(f"    downloading {piece.name} ({format_bytes(piece.size)}) from {piece.url}")
         self._began[piece.name] = self._said[piece.name] = _now()
 
     def update(self, piece, count):
@@ -460,9 +461,9 @@ class PlainProgress:
             return
         self._said[piece.name] = now
         speed = count / max(now - self._began[piece.name], 1e-9)
-        left = f", about {int((piece.size - count) / speed)} s left" if speed > 0 and count < piece.size else ""
-        self._write(f"    {piece.name}: {_megabytes(count)} of {_megabytes(piece.size)} ({100 * count // max(piece.size, 1)}%), "
-                    f"{speed / 1e6:.2f} MB/s{left}")
+        left = f", about {format_duration_seconds((piece.size - count) / speed)} left" if speed > 0 and count < piece.size else ""
+        self._write(f"    {piece.name}: {format_bytes(count)} of {format_bytes(piece.size)} ({100 * count // max(piece.size, 1)}%), "
+                    f"{format_byte_rate(count, now - self._began[piece.name])}{left}")
 
     def note(self, text):
         self._write(f"    {text}")
@@ -471,9 +472,6 @@ class PlainProgress:
         self._began.pop(piece.name, None)
         self._said.pop(piece.name, None)
 
-
-def _megabytes(count):
-    return f"{count / 1e6:.1f} MB"
 
 
 def _request(piece, opener, out, progress=None, url=None):
@@ -505,7 +503,7 @@ def _request(piece, opener, out, progress=None, url=None):
                 now = _now()
                 if now - window_start >= STALL_WINDOW_SECONDS:
                     if count - window_count < STALL_MIN_BYTES:
-                        raise DownloadError(f"{where}: stalled at {_megabytes(count)} of {_megabytes(piece.size)}")
+                        raise DownloadError(f"{where}: stalled at {format_bytes(count)} of {format_bytes(piece.size)}")
                     window_start, window_count = now, count
                 if progress:
                     progress.update(piece, count)

@@ -58,6 +58,7 @@ def test_a_nodes_regions_hold_every_nebula_of_the_node_and_the_largest_come_firs
                 assert {r["key"] for r in regions} <= keys
                 for region in regions:
                     assert region["count"] > 0 and len(region["center"]) == 3 and region["radius_pc"] > 0
+                    assert 0 < region["cover"] <= 1, "MAP.429: the block's stored cover is on the wire, the map draws a group by it"
                     assert region["class"] and sum(region["shares"].values()) == pytest.approx(1.0)
                 checked += 1
             assert checked

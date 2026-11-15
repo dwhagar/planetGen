@@ -59,6 +59,7 @@ from alembic.migration import MigrationContext
 from planetgen.db import alembic_runner, models, storage_checksum, store
 from planetgen.generation import steps, validation
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 MAX_ROWS_SHOWN = 10
 """int: How many offending rows a problem lists before "and N more"."""
@@ -597,7 +598,7 @@ class DeepEstimate:
 
         if self.measured:
             return (f"Deep check: {self.systems:,} star systems to validate, about "
-                    f"{generation_stats.format_duration(self.seconds)} (from the speed this server recorded).")
+                    f"{format_duration_seconds(self.seconds)} (from the speed this server recorded).")
         return (f"Deep check: {self.systems:,} star systems to validate, about "
                 f"{generation_stats.time_text(self.seconds, False)}.")
 

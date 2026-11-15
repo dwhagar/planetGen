@@ -414,7 +414,7 @@ def _record_sector(args, result, seconds):
 
 
 def _count_reported(args, saved, elsewhere):
-    """A sector a unit reported saved (`run_galaxy.generate_sectors_unit`'s entry): counted for the run when the unit ran in
+    """A sector a unit reported saved (`run_galaxy.generate_sectors_do`'s entry): counted for the run when the unit ran in
     another process (`elsewhere`: a worker's own `RUN_COUNTS` die with it, the run's are here) and added to its density's speed
     bucket (`_record_sector`)."""
     if elsewhere:

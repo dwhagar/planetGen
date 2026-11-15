@@ -59,13 +59,14 @@ def test_a_sampler_that_fails_never_stops_the_step():
     assert watch.peaks["step"] == 0.0
 
 
-def test_the_line_names_each_group_in_whole_megabytes():
+def test_the_line_names_each_group_on_the_units_codes_ladder():
+    """UX.318: each figure on the information ladder (`format_megabytes`), so a worker pool reads 2.31 GB, not 2,310 MB."""
     peaks = {"mysql": 884.4, "workers": 2310.2, "workers_n": 6, "step": 255.9, "host": 3100.0, "host_total": 15990.0}
-    assert memwatch.format_line(peaks) == ("Memory peak: MySQL 884 MB, 6 workers 2,310 MB, the step itself 256 MB, "
-                                           "the whole host 3,100 of 15,990 MB.")
+    assert memwatch.format_line(peaks) == ("Memory peak: MySQL 884 MB, 6 workers 2.31 GB, the step itself 256 MB, "
+                                           "the whole host 3.1 GB of 16 GB.")
     peaks.update(workers_n=1, host_total=None)
-    assert "1 worker 2,310 MB" in memwatch.format_line(peaks)
-    assert "the whole host 3,100 MB." in memwatch.format_line(peaks)
+    assert "1 worker 2.31 GB" in memwatch.format_line(peaks)
+    assert "the whole host 3.1 GB." in memwatch.format_line(peaks)
 
 
 def test_the_sampler_sees_a_process_group_and_the_host():

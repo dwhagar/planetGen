@@ -365,6 +365,66 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     assert skipped <= max(1, bodies // 5)
 
 
+def _first_air_of(key, monkeypatch):
+    """The setting and the first air of a planet drawn under entropy `key`: a host of M2V, K2V, G2V or F7V, 0.3 to 5 Earth masses and 0.3 to 2.5 times the middle of the habitable zone, all three from
+    `random.Random(key)` (the way the start dependence of GEN.1716 was measured)."""
+    import random
+
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
+
+    rng = random.Random(key)
+    star_type = rng.choice(("M2V", "K2V", "G2V", "F7V"))
+    mass_earth = 10 ** rng.uniform(math.log10(0.3), math.log10(5.0))
+    relative_distance = 10 ** rng.uniform(-0.5, 0.4)
+    calls, real = [], sa.solve
+
+    def spy(setting, start_temperature_k):
+        air = real(setting, start_temperature_k)
+        calls.append((setting, air))
+        return air
+
+    monkeypatch.setattr(sa, "solve", spy)
+    with deterministic_entropy(key), draw.bound(f"startdep-{key}"):
+        config = SystemConfig()
+        config.STAR_TYPE, config.BINARY_SYSTEM, config.WEIRDNESS_DIAL = star_type, False, 0.0
+        star = Star(config)
+        inner, outer = star.habitable_zone
+        Planet(config, star, star.habitable_zone, relative_distance * 0.5 * (inner + outer), mass=mass_earth * 5.972e24, moon_count=0)
+    monkeypatch.setattr(sa, "solve", real)
+    return calls[0]
+
+
+def test_the_swing_of_a_fixed_point_is_told_from_a_creep_and_from_a_settling():
+    """GEN.1718: both signs, each at least twice, and not small."""
+    assert sa._swings([5.0, -4.0, 6.0, -5.0, 4.0, -6.0, 5.0, -4.0])
+    assert sa._swings([40.0, 30.0, -20.0, -30.0, 40.0, 35.0, -25.0, -30.0])        # a period of four swings across it too
+    assert not sa._swings([-0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3])        # a creep keeps one sign
+    assert not sa._swings([0.5, -0.4, 0.3, -0.2, 0.1, -0.1, 0.05, -0.02])        # a settling is small
+    assert not sa._swings([5.0, -4.0, 6.0])                                          # too few steps to say
+
+
+def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the_start(monkeypatch):
+    """GEN.1718: key 20 (a K2V planet, 0.62 Earth masses) sat on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate: the damped step went round it for
+    60 steps from every start and stored a temperature that moved by 35 K with the start. The root find of the temperature, with the pressure following it, settles it, to the same
+    temperature from a cold, a warm and a hot start (the step has a 0.6 K step in it at the root, `ROOT_RESIDUAL_K`)."""
+    setting, first = _first_air_of(20, monkeypatch)
+    assert first.converged and not first.jump
+    for start in (150.0, 250.0, 500.0):
+        draw.setstate(first.entry_state)
+        again = sa.solve(setting, start)
+        assert again.converged and again.temperature_k == pytest.approx(first.temperature_k, abs=0.5), start
+
+
+def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monkeypatch):
+    """GEN.1718: key 49 (a planet whose step answers cross its iterate with no temperature that is its own answer: the pressure is on two branches there, or the temperature found jumps by tens of K)
+    does not settle; the air kept is the one just above the jump (the side the formation branch approaches from), flagged `jump`, and its temperature is that of the jump."""
+    setting, air = _first_air_of(49, monkeypatch)
+    assert air.jump and air.knee and not air.converged
+    assert air.temperature_k == pytest.approx(290.1, abs=1.0)
+
+
 def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began(monkeypatch):
     """GEN.1716: a giant took one step, so the haze its greenhouse was made under was the haze of the start temperature and the stored
     temperature moved with the start (28 K at the median of 59 generated giants, 300 K on hot ones). It iterates to `TOLERANCE_K` like a rocky body,

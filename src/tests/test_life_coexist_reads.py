@@ -92,7 +92,7 @@ def test_the_system_detail_search_facet_and_species_read_every_class(mysql_confi
             population._set_watermark(conn, 0)
         monkeypatch.setattr(species_fit, "check_homeworld", lambda conn, planet_id: None)
         monkeypatch.setattr(population, "has_civilization", lambda *args, **kwargs: True)
-        assert population.scan_life_worlds(conn) >= 1
+        assert population.run_population(conn)["new_species"] >= 1
         found = conn.execute("SELECT life_class FROM species WHERE homeworld_planet_id = ?", (planet_id,)).fetchone()
         assert found["life_class"] == minor
     finally:

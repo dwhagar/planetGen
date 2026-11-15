@@ -810,7 +810,7 @@ Twenty-four tables, versioned independently via `control_schema_migrations`
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, v21 the drop of the work queue's four tables (PERF.100) and v22 `job_profiles` (OPS.155); the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, v21 the drop of the work queue's four tables (PERF.100) and v22 `job_profiles` (OPS.155) and v23 `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215); the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -937,6 +937,15 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   `stuck`), the machine that measured it (`host_memory_mb`, `host_cores`, `buffer_pool_mb`, `generator_epoch`) and `recorded_at`. A
   missing or implausible reading is NULL. Written by `planetgen.queue.jobprofiles`, which keeps each kind and bucket to its newest
   rows; nothing reads it yet.
+- **`engine_runs`**, **`engine_jobs`**, **`engine_attempts`** (v23, OPS.215) — the job engine's ledger (`planetgen/queue/ledger.py`,
+  `docs/design/operations/job-engine.md`); nothing reads or writes them until the supervisor (OPS.207) and the plan-as-rows item (OPS.221) are merged.
+  `engine_runs`: one row per run, with `kind`, `galaxy` (the database it writes to, NULL for none), `state` (`waiting`, `running`, `held`, `done`,
+  `canceled`), `held_reason`, `created_at`, `started_at` and `finished_at`. `engine_jobs`: one row per job (`run_id`, `stage`, `command`, `item_key` ('' for
+  a whole stage; the three are unique within a run, so a plan added twice is the same plan), `arguments`, `needs` and `makes` as JSON text, `job_class`,
+  `claim_mb`, `tokens`, `state` (`waiting`, `ready`, `running`, `done`, `failed`, `canceled`), `attempt` (the newest attempt's number), `not_before`, `waited`
+  (the last reason it was not started), `created_at` and `updated_at`). `engine_attempts`: one row per attempt (`job_id`, `attempt`, `pid`, `started_at`,
+  `ended_at`, `outcome` (`running`, `done`, `failed`, `killed_memory`, `timed_out`, `stuck`, `replaced`, `lost`), `peak_mb`, `cpu_seconds`, `error_kind`,
+  `error_text`, `stack_file`). Jobs go with their run and attempts with their job (`ON DELETE CASCADE`). The galaxy's half is `engine_items`.
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
   (`planetgen/generation/stats.py`, see
@@ -2058,6 +2067,18 @@ Added in v240 (GEN.1465). For every body of a system and every effect that acts 
 
 Primary key `(star_system_id, body_type, body_id, effect, source_type, source_id)`; no other index. Left out of the fingerprint (it records, it does not decide). A galaxy made before v240 has no rows, which reads as no ledger.
 
+### `engine_items`
+
+Added in v261 (OPS.215). The galaxy's half of the job engine's ledger (the control database holds `engine_runs`, `engine_jobs` and `engine_attempts`): one row per job that writes to this galaxy. A job's own commits update its row `WHERE attempt = mine` (`ledger.commit_item`), so a job another attempt replaced touches no row and stops, and the last commit sets `done_at` in the same transaction as the data. Holds no galaxy data and is left out of the fingerprint. Nothing writes it until the supervisor (OPS.207) is merged; a galaxy made before v261 has no rows.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `job_id` | BIGINT UNSIGNED | NOT NULL | The id of the job's row in the control database's `engine_jobs` (no foreign key: the two are different databases). Primary key. |
+| `attempt` | INT UNSIGNED | NOT NULL | The number of the attempt the supervisor handed the job, written before the job starts. Default 0. |
+| `cursor_key` | VARCHAR(255) | NULL | The place the job has reached. |
+| `done_at` | DATETIME(6) | NULL | When the job's last commit ran; NULL until then. |
+| `updated_at` | DATETIME(6) | NOT NULL | The last commit of the job. |
+
 ### `body_numbers`
 
 Added in v247 (DB.75; design draft `db75-stable-body-numbers-2026-11-12.md`). The body number (the last 12 bits of an Object ID) each slot of a system has had. A slot is where a body sits: its kind, the star it orbits (`primary`, `secondary`, `single`, `member`, or `system` for a circumbinary one) and its place in that star's orbits, a moon under its planet's slot (`store._body_slots`); `slot_key` is that path as text (`store._slot_key`: `star:primary:0`, `planet:primary:3`, `moon:planet:primary:3:1`).
@@ -2691,6 +2712,10 @@ Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatte
 ### v260 (GEN.332, slice D): `rogue_planets` keeps the companion a rogue left with
 
 Migration 0260 adds three nullable columns to `rogue_planets`, at the end of the table: `pair_event_index` (INT, the `event_index` of the companion, a rogue of the same `donor_uid`; each of the two rows names the other), `pair_separation_au` (DOUBLE, AU, the circular orbit of the pair) and `pair_period_yr` (DOUBLE, years). All three are NULL for a rogue that left alone and for every row made before v260; nothing is backfilled, a regenerated donor writes its pairs (`physics/rogue_pairs.py`, `generation/rogue_yield.py`).
+
+### v261 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
+
+Migration 0261 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
 
 ### v257 (DB.75): `body_numbers`, the body number each slot of a system has had
 

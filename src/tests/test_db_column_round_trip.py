@@ -28,6 +28,7 @@ BOOKKEEPING_TABLES = {
     "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
     "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
     "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "engine_items",        # OPS.215: the job engine's ledger row of a job, written and read by queue/ledger.py, not by an object loader
     "body_numbers",        # DB.75a: the slot numbers a redraw keeps (written on a first redraw only), read by the redraw, not by a page's loader
     "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
@@ -253,7 +254,7 @@ NULL_IN_THIS_GALAXY = {
     **{("field_members", column): CHANCE for column in (
         "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
     ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
-    **{(table, "class_fudge_values"): CHANCE for table in ("moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move
+    **{(table, "class_fudge_values"): CHANCE for table in ("planets", "moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move (class Q left fewer planets to move, GEN.1618)
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
@@ -304,7 +305,7 @@ NEVER_READ = {
         "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
+        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
@@ -312,7 +313,7 @@ NEVER_READ = {
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
     **{("irregular_moons", column): CHANCE for column in (
-        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
     # GEN.1209: the life rows of a moon are read back by `store.body_living` for every moon that bears life, and whether any moon of the seeded galaxy does is chance
     # (a generation change moves it), so a galaxy without one leaves every column unread.

@@ -1,8 +1,5 @@
 {
-  "aliases": {
-    "R5253": "R5248",
-    "R5254": "R5250"
-  },
+  "aliases": {},
   "sources": {
     "R0001": {
       "kind": "paper",
@@ -26226,8 +26223,8 @@
     },
     "R5248": {
       "kind": "paper",
-      "label": "Krivov and Wyatt 2020",
-      "title": "Solution to the debris disc mass problem: planetesimals are born small?"
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
     },
     "R5249": {
       "kind": "paper",
@@ -26236,8 +26233,8 @@
     },
     "R5250": {
       "kind": "paper",
-      "label": "Chambers 2020",
-      "title": "The Effect of Seafloor Weathering on Planetary Habitability"
+      "label": "Catling et al. 2007",
+      "title": "Anaerobic methanotrophy and the rise of atmospheric oxygen"
     },
     "R5251": {
       "kind": "paper",
@@ -26248,6 +26245,16 @@
       "kind": "paper",
       "label": "Alcott et al. 2019",
       "title": "Stepwise Earth oxygenation is an inherent property of global biogeochemical cycling"
+    },
+    "R5253": {
+      "kind": "paper",
+      "label": "Krivov and Wyatt 2020",
+      "title": "Solution to the debris disc mass problem: planetesimals are born small?"
+    },
+    "R5254": {
+      "kind": "paper",
+      "label": "Chambers 2020",
+      "title": "The Effect of Seafloor Weathering on Planetary Habitability"
     },
     "R5255": {
       "kind": "paper",
@@ -26293,6 +26300,31 @@
       "kind": "paper",
       "label": "Parker et al. 2025",
       "title": "Can planet-planet binaries survive in star-forming regions?"
+    },
+    "R5264": {
+      "kind": "paper",
+      "label": "Arndt et al. 2017",
+      "title": "Influence of snow depth and surface flooding on light transmission through Antarctic pack ice"
+    },
+    "R5265": {
+      "kind": "paper",
+      "label": "Belzile et al. 2001",
+      "title": "Bio-optical characteristics of the snow, ice, and water column of a perennially ice-covered lake in the High Arctic"
+    },
+    "R5266": {
+      "kind": "paper",
+      "label": "Perovich et al. 1998",
+      "title": "Variability in Arctic sea ice optical properties"
+    },
+    "R5267": {
+      "kind": "paper",
+      "label": "Light et al. 2008",
+      "title": "Transmission and absorption of solar radiation by Arctic sea ice during the melt season"
+    },
+    "R5268": {
+      "kind": "paper",
+      "label": "Perovich 2007",
+      "title": "Light reflection and transmission by a temperate snow cover"
     }
   }
 }

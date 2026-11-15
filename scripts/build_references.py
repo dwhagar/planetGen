@@ -35,7 +35,8 @@ ROOT = os.path.normpath(os.path.join(HERE, ".."))
 CACHE = os.path.join(ROOT, "docs", "reference", "references-data.json")
 OUT_MD = os.path.join(ROOT, "docs", "REFERENCES.md")
 OUT_HTML = os.path.join(ROOT, "docs", "REFERENCES.html")
-MAILTO = "david.hagar@gmail.com"
+MAILTO = os.environ.get("PLANETGEN_REFERENCES_CONTACT", "")
+"""str: The contact address the lookups send to Crossref's polite pool, read from the environment so no person's address is written in the repository or sent unless its owner sets it; empty by default (the lookups work without it)."""
 
 TEXT_EXT = (".md", ".py", ".js", ".mjs", ".html", ".json", ".sh", ".txt", ".csv", ".tsv", ".bib", ".yml", ".yaml", ".rst", ".toml")
 SKIP_PARTS = ("docs/REFERENCES", "docs/references/", "src/tests/test_citations_links.py", "docs/reference/references-data", "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py", "/node_modules/", "/vendor/",
@@ -188,7 +189,7 @@ def cmd_harvest(args):
     log("arXiv", len(arx), "DOI", len(dois), "bibcode", len(bibs), "author-year", len(ays))
 
 
-UA = "planetGen-references/1.0 (mailto:%s)" % MAILTO
+UA = "planetGen-references/1.0" + (" (mailto:%s)" % MAILTO if MAILTO else "")
 
 
 def http_get(url, tries=4):
@@ -334,7 +335,7 @@ def crossref_entry(d):
 
 
 def fetch_crossref(doi):
-    data = http_get("https://api.crossref.org/works/%s?mailto=%s" % (urllib.parse.quote(doi, safe="/()"), MAILTO))
+    data = http_get("https://api.crossref.org/works/%s%s" % (urllib.parse.quote(doi, safe="/()"), "?mailto=%s" % MAILTO if MAILTO else ""))
     if not data:
         return None
     try:
