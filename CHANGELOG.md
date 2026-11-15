@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4181] - 2026-11-15
+
+**Headline:** The galaxy generator's single-sector test checks the line a run now prints, so the last red of the galaxy tests is cleared.
+
+### Changed
+- `test_wedge_mode_reports_the_sector_it_made_like_every_sector_of_a_batch` expects the closing line and no per-sector lines, as OPS.172 made them debug lines (TEST.749).
+
+generation-output: unchanged
+
 ## [8.0.4180] - 2026-11-15
 
 **Headline:** The population and territories passes now run as pieces the job engine counts, so the Queue page shows real numbers for the scan, the dating and the territories instead of one quiet unit.

@@ -3005,7 +3005,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.200 | Job engine stage 1 family: clears and drops step per statement through ctx.sql (clean-nebula-field, clear-scatter, empty-phenomenon-scatter, drop-phenomenon-indexes, clear-bright-stars, empty-nebula-field) | none | done, PR #6439 (11-13) |
 | OPS.201 | Job engine stage 1 family: stamped walkers move to pieces by id range (rescore-habitability, refill-effect-ledger) | none | done, PR #6525 (6:09 PM EST 11-14) |
 | OPS.202 | Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two | none | open |
-| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | open |
+| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | done, PR #6548 (7:38 PM EST 11-14) |
 | OPS.204 | Job engine stage 1 family: checks (the eleven check-* commands, check-math, check-datasets) count tables or checks | none | done, PR #6528 (6:13 PM EST 11-14) |
 | OPS.205 | Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text | none | done, PR #6523 (5:12 PM EST 11-14) |
 | OPS.206 | Job engine stage 1 family: reset-galaxy steps per table group through ctx.sql | none | done, PR #6450 (11-13) |
@@ -4857,7 +4857,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.746 | (bug) test_giant_class_words is red on main for gas dwarfs at seed 2001 | none | done, PR #6553 (7:26 PM EST 11-14) |
 | TEST.747 | (bug) test_references is red on main: two references share an id (R5166 and R5164) | none | done, PR #6553 (7:26 PM EST 11-14) |
 | TEST.748 | (bug) test_plain_words is red on main | none | done, PR #6553 (7:26 PM EST 11-14) |
-| TEST.749 | (bug) test_galaxy_gen has two red tests on main | none | open |
+| TEST.749 | (bug) test_galaxy_gen has two red tests on main | none | done, PR #6557 (8:00 PM EST 11-14) |
 | TEST.750 | (bug) test_life_help is red on main | none | done, PR #6553 (7:26 PM EST 11-14) |
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | open |
 | USR.1.1 | USR.2 |
