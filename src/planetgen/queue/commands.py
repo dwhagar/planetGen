@@ -51,6 +51,9 @@ class CommandSpec:
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
     unit that runs longer than the ceiling anyway is written to the run's log.
 
+    The named resources (OPS.232, `queue/tokens.py`): `tokens` are the names a unit of the command must hold while it runs besides memory and cores (`tokens.MYSQL_WRITE` for a command that writes so much
+    that two at once only slow each other down); the gate lets one claim hold a name at a time.
+
     The break points (OPS.161): `breaks`, when given, is a `(module, function)` pair; `breaks(params)` returns the command's `breakpoints.Declaration` for a stage with those
     parameters (the suggested split, where a cut may fall, the split flag, what the command depends on), which the queue engine reads to choose the stage's cut (`splitter`). A
     command that is `whole` declares itself (one item, one unit). One that declares nothing keeps its typed split and runs in plan order (`declaration` is `None`).
@@ -74,6 +77,7 @@ class CommandSpec:
     pieces: tuple = None
     do: tuple = None
     gather: tuple = None
+    tokens: tuple = ()
 
     def __post_init__(self):
         if (self.pieces is None) != (self.do is None):

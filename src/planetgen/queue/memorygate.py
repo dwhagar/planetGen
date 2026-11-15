@@ -52,7 +52,7 @@ from dataclasses import dataclass
 
 import psutil
 
-from planetgen.queue import work
+from planetgen.queue import tokens, work
 from planetgen.util import log
 from planetgen.util.process import pid_alive
 from planetgen.util.format import format_duration_seconds, format_megabytes
@@ -129,15 +129,21 @@ def enabled():
 @dataclass(frozen=True)
 class Claim:
     """What one job asks of the host: its `kind` (the key claims are learned under), `mb` of memory, `cpu` cores, the `lane` it is on and
-    whether it needs the bulk lane to itself (`exclusive`: the cut of a stage). `solo` (OPS.145) is the claim of the restarted unit that runs alone: it asks for the whole
-    memory budget of the lanes that are not the site's (`solo_mb`) and waits for every other claim of those lanes to end, and none of them is admitted while it is held."""
+    whether it needs the bulk lane to itself (`exclusive`: the cut of a stage). `tokens` (OPS.232, `tokens`) are the named resources it must hold: `tokens.ALONE` is the claim of the restarted unit that
+    runs alone (OPS.145, `solo`): it asks for the whole memory budget of the lanes that are not the site's (`solo_mb`) and waits for every other claim of those lanes to end, and none of them is admitted
+    while it is held; any other name (`tokens.MYSQL_WRITE`, `tokens.warm_set`) is held by one claim at a time."""
 
     kind: str
     mb: float
     cpu: float = 1.0
     lane: str = LANE_OTHER
     exclusive: bool = False
-    solo: bool = False
+    tokens: tuple = ()
+
+    @property
+    def solo(self):
+        """Whether the claim runs alone (holds `tokens.ALONE`)."""
+        return tokens.holds_host(self.tokens)
 
 
 @dataclass(frozen=True)
@@ -246,7 +252,7 @@ def claim_of(row):
     Raises:
         KeyError, ValueError, TypeError: A row that is not a claim.
     """
-    return Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
+    return Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), tuple(row.get("tokens") or ()))
 
 
 def holders(conn, now=None):
@@ -340,6 +346,9 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
         return Decision(True, "solo: no claim of the bulk or maintenance lanes is held", need, host.available_mb)
     if not short and any(holder.claim.solo for holder in others):
         return Decision(False, "a solo run holds the host", need, host.available_mb)
+    held_token = tokens.clash(claim.tokens, others)
+    if held_token:
+        return Decision(False, held_token, need, host.available_mb)
     if claim.exclusive and any(holder.claim.lane == claim.lane for holder in others):
         names = sorted({holder.claim.kind for holder in others if holder.claim.lane == claim.lane})
         return Decision(False, f"waits for the {claim.lane} lane to be clear of {', '.join(names[:3])}", need, host.available_mb)
@@ -378,7 +387,7 @@ def _decision_lock(conn, wait=LOCK_SECONDS, sleep=time.sleep):
 
 def _write(conn, name, claim, pid, job, now):
     conn.hset(_key("claims"), name, json.dumps({
-        "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "solo": claim.solo, "pid": pid,
+        "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "tokens": list(claim.tokens), "pid": pid,
         "host": socket.gethostname(), "job": job, "started": now, "expires": now + CLAIM_SECONDS, "peak": 0.0}))
 
 
@@ -512,7 +521,7 @@ def release(conn, name):
                            avg_mb=float(row["sum"]) / int(row["n"]) if row.get("n") else None, cpu_peak=row.get("cpu_peak"),
                            cpu_avg=(float(row["cpu_last"]) - float(row["cpu0"])) / lived if lived >= 1.0 else None)
     from planetgen.queue import scheduler
-    if not row.get("solo"):         # OPS.145: a solo run is not a turn of its kind, so the jobs it held back are not behind it afterwards
+    if tokens.ALONE not in (row.get("tokens") or ()):         # OPS.145: a solo run is not a turn of its kind, so the jobs it held back are not behind it afterwards
         scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
     return peak
 

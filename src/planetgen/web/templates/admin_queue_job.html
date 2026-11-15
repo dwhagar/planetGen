@@ -1,0 +1,52 @@
+{#- planetgen/web/templates/admin_queue_job.html -- /admin/queue/<run id>/job/<job id> (OPS.224): one job and every attempt it has had. -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" aria-labelledby="job-heading">
+  <h2 id="job-heading">{{ name }}</h2>
+  <dl class="queue-facts">
+    <div><dt>State</dt><dd>{{ state_label }}</dd></div>
+    <div><dt>Attempts</dt><dd>{{ job.attempts }}</dd></div>
+    <div><dt>Class</dt><dd>{{ job.class }}{% if job.claim_mb %}, claims {{ bytes_text(job.claim_mb * 1000000) }}{% endif %}</dd></div>
+    {%- if job.waits %}<div><dt>Why it waits</dt><dd>{{ job.waits }}</dd></div>{% endif %}
+  </dl>
+  {%- if arguments %}
+  <details><summary>What it was told to do</summary><pre tabindex="0">{{ arguments }}</pre></details>
+  {%- endif %}
+</section>
+<section class="panel" aria-labelledby="attempts-heading">
+  <h2 id="attempts-heading">Attempts</h2>
+  {%- if attempts %}
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">Every attempt at the job, oldest first</caption>
+    <thead><tr><th scope="col">Attempt</th><th scope="col">How it ended</th><th scope="col">Started</th><th scope="col">Ended</th><th scope="col">Largest worker</th><th scope="col">Processor time</th><th scope="col">Process</th></tr></thead>
+    <tbody>
+    {%- for attempt in attempts %}
+      <tr id="attempt-{{ attempt.number }}">
+        <th scope="row">{{ attempt.number }}</th>
+        <td>{{ attempt.words }}{% if attempt.error_kind %} ({{ attempt.error_kind }}){% endif %}</td>
+        <td>{{ utc_time(attempt.started) if attempt.started else "" }}</td>
+        <td>{{ utc_time(attempt.ended) if attempt.ended else "" }}</td>
+        <td>{{ attempt.memory }}</td>
+        <td>{{ attempt.cpu }}</td>
+        <td>{{ attempt.pid }}</td>
+      </tr>
+      {%- if attempt.error_text or attempt.stack_file %}
+      <tr>
+        <td></td>
+        <td colspan="6">
+          {%- if attempt.error_text %}<pre tabindex="0">{{ attempt.error_text }}</pre>{% endif %}
+          {%- if attempt.stack_file %}<p class="hint">Where it was when it was stopped: <code>{{ attempt.stack_file }}</code> on the server.</p>{% endif %}
+        </td>
+      </tr>
+      {%- endif %}
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- else %}
+  <p class="hint">No worker has taken this job yet.</p>
+  {%- endif %}
+</section>
+<p><a href="{{ url_for('web.admin_queue_jobs', run_id=run_id) }}">Back to the run's jobs</a> · <a href="{{ url_for('web.admin_queue_run', run_id=run_id) }}">Back to the run</a></p>
+{% endblock %}

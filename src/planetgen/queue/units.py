@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, failures, held, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -85,7 +85,7 @@ class RunStopped(RuntimeError):
     """The run ended (failed, was canceled or went stale) before its stage was done."""
 
 
-KILLED_EXCEPTIONS = ("JobTimeoutException", "WorkerLostError", "AbandonedJobError")
+KILLED_EXCEPTIONS = failures.KILLED_EXCEPTIONS
 """tuple[str]: The names of the exceptions with which RQ ends a unit from outside (its time limit, its worker lost): a run a unit ended with one of them was killed (OPS.144), not failed by its own code."""
 
 
@@ -170,12 +170,29 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
     queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
     timeout = unit_timeout(expected_seconds)
     for start in range(0, len(units), ENQUEUE_BATCH):
-        queue.enqueue_many([
-            queue.prepare_data(
-                UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost, None if rows is None else rows[index]), job_id=job_id(run_id, stage, index),
-                timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
-                retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
-            for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
+        queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, None if rows is None else rows[index], timeout)
+                            for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
+
+
+def _prepared(queue, run_id, stage, index, kind, args, cost, row, timeout):
+    """The RQ job of one unit, ready to queue."""
+    return queue.prepare_data(
+        UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost, row), job_id=job_id(run_id, stage, index),
+        timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
+        retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
+
+
+def requeue_unit(conn, run_id, stage, index, kind, args, cost, row, queue_name=None, expected_seconds=None):
+    """
+    Queues one unit of the run again with the index and the row it was cut with (OPS.221: a held unit after "Retry held"). What RQ kept of the unit's failed job (its record and its place in the failed
+    registry, which share the job id) is removed first.
+    """
+    queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
+    try:
+        rq.job.Job.fetch(job_id(run_id, stage, index), connection=conn).delete()
+    except rq.exceptions.NoSuchJobError:
+        pass
+    queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, row, unit_timeout(expected_seconds))])
 
 
 def row_of(job):
@@ -195,7 +212,15 @@ def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
     Returns:
         dict: `seconds` the unit took, or `skipped`.
     """
-    conn = rq.get_current_job().connection
+    return run_unit_on(rq.get_current_job().connection, run_id, stage, unit, kind, args, cost, row)
+
+
+def run_unit_on(conn, run_id, stage, unit, kind, args, cost=None, row=None, halt=None):
+    """
+    A unit run on the Redis connection `conn`, whoever calls it: `run_unit` for the RQ job of a unit, `forkedjob.run` for the job process the template forked (OPS.226).
+
+    `halt`, when given, is a callable the engine asks between two pieces: it returns the reason the unit is to stop there (a request from the supervisor, the supervisor gone) or `None`.
+    """
     live, wanted = _run_settings(conn, run_id)
     if not live:
         return {"skipped": True}
@@ -204,7 +229,11 @@ def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
             repair_unended_stages(conn, run_id)
             return {"resumed": True}
         return {"skipped": True}
-    return _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost, row))
+    if held.is_held(conn, run_id, stage, unit):         # OPS.221: RQ's retry of a unit that failed for good; "Retry held" queues it again by hand
+        return {"skipped": True}
+    result = _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost, row, halt))
+    held.settle(conn, run_id)                           # a unit that ends beside a held one may have been the last thing that could run
+    return result
 
 
 def _run_settings(conn, run_id):
@@ -272,42 +301,89 @@ def _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, figur
         log.debug(f"Job profiles: unit {unit} of stage {stage} of run {run_id} was not profiled ({exc}).", area="queue")
 
 
-def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None):
+def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None, halt=None):
     """
     Takes the attempt in the ledger (`attempts.begin`, OPS.217: the unit's attempt number is raised and written to the galaxy), does the unit (`_work_of_unit`) and writes how the attempt ended.
-    An attempt that finds another has taken the unit over (`attempts.Replaced`) has rolled back, counts nothing and ends `replaced`; the other attempt's result stands.
+    An attempt that finds another has taken the unit over (`attempts.Replaced`) has rolled back, counts nothing and ends `replaced`; the other attempt's result stands. A unit run again after a
+    passing failure (OPS.220) has an attempt for each run; the one that ends here is the last.
     """
     attempt = attempts.begin(conn, run_id, row, args, pid=os.getpid())
+    latest = [attempt]            # `_work_of_unit` puts the attempt of each run again here
     with attemptlog.capture(conn, attempt, run_id, stage, unit, kind):        # OPS.223: a restarted attempt writes a debug log of its own
         try:
-            result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt)
+            result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt, halt, latest)
         except attempts.Replaced as replaced:
             log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) was replaced by a later attempt and stops: {replaced}.", area="queue")
             conn.hdel(runrecord.progress_key(run_id, stage), unit)
-            attempt.end("replaced", peak_mb=peak_resident_mb())
+            if latest[0] is not None:
+                latest[0].end("replaced", peak_mb=peak_resident_mb())
             return {"replaced": True}
         except BaseException as exc:
-            if attempt is not None:
+            if latest[0] is not None:
                 kind_of_error, text, outcome = attempts.failure(exc)
-                attempt.end(outcome, error_kind=kind_of_error, error_text=text, stack_text=text, peak_mb=peak_resident_mb())
+                latest[0].end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}] {text}", stack_text=text, peak_mb=peak_resident_mb())
             raise
-        if attempt is not None:
-            attempt.end("done" if "seconds" in result else "lost", peak_mb=peak_resident_mb())
+        if latest[0] is not None:
+            latest[0].end("done" if "seconds" in result else "lost", peak_mb=peak_resident_mb())
     return result
 
 
-def _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt):
+SLEEP = time.sleep
+"""callable: How the engine waits before it runs a unit again (a test puts its own clock here)."""
+
+
+def _wait_to_retry(conn, run_id, seconds):
+    """Waits `seconds`, a second at a time; returns whether the run is still live at the end (a cancel or a failure of the run in the meantime ends the wait)."""
+    left = seconds
+    while left > 0:
+        SLEEP(min(left, 1.0))
+        left -= 1.0
+        if not _run_settings(conn, run_id)[0]:
+            return False
+    return _run_settings(conn, run_id)[0]
+
+
+def _retry_attempt(conn, run_id, attempt, args, latest, exc):
+    """The attempt of the next run of a unit that failed with `exc` (OPS.220): this one ends `failed`, with its kind, and the next is begun (a unit with no row has none to end or begin)."""
+    if attempt is None:
+        return None
+    kind_of_error, text, outcome = attempts.failure(exc)
+    attempt.end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}] {text}", stack_text=text, peak_mb=peak_resident_mb())
+    latest[0] = attempts.begin(conn, run_id, attempt.row, args, pid=os.getpid())
+    return latest[0]
+
+
+def _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt, halt=None, latest=None):
     started = time.monotonic()
+    latest = [attempt] if latest is None else latest
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
     used = usage.Usage(resident_mb)         # OPS.155: the memory and processor of this unit, peak and average
     with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit), usage=used) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
-        try:
-            result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit), attempt=attempt)
-        except engine.UnitStopped as stopped:         # OPS.191: the engine found the run no longer live between two pieces; the unit stays undone, as one a cancel stops does
-            log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) ends between two pieces: {stopped}.", area="queue")
-            conn.hdel(runrecord.progress_key(run_id, stage), unit)
-            return {"stopped": True}
+        retries = 0
+        while True:
+            try:
+                result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit), attempt=attempt, halt=halt)
+                break
+            except engine.UnitStopped as stopped:         # OPS.191: the engine found the run no longer live between two pieces; the unit stays undone, as one a cancel stops does
+                log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) ends between two pieces: {stopped}.", area="queue")
+                conn.hdel(runrecord.progress_key(run_id, stage), unit)
+                return {"stopped": True}
+            except Exception as exc:        # noqa: BLE001 -- what to do with a failure is `failures`' to say (OPS.220)
+                wait = failures.retry_wait(conn, run_id, exc, retries)
+                if wait is None:
+                    raise
+                retries += 1
+                log.warning(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) failed with a passing error ({type(exc).__name__}: {_short(str(exc))}); "
+                            f"it is run again in {format_duration_seconds(wait)} (run again {retries} time(s) in a row).")
+                runrecord.log(conn, run_id, f"unit {unit} of stage {stage} run again in {format_duration_seconds(wait)} after {type(exc).__name__}", level="warning", kind="unit.retry",
+                              stage=stage)
+                attempt = _retry_attempt(conn, run_id, attempt, args, latest, exc)
+                with unitbeat.waiting("retry"):
+                    live = _wait_to_retry(conn, run_id, wait)
+                if not live:
+                    conn.hdel(runrecord.progress_key(run_id, stage), unit)
+                    return {"stopped": True}
         gap = report.longest_gap()
         finished, worked = report.totals()
     commandgaps.note(conn, run_id, kind, gap)       # OPS.135
@@ -536,25 +612,39 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     already stored and counted (RQ failed it after it was done, say `ValueError: Execution ... not found in Redis`
     when it cleaned up): its sector or shells are saved, so the run goes on."""
     run_id, stage, unit = job.args[:3]
+    kind = job.args[3] if len(job.args) > 3 else "?"
+    if fail_unit(connection, run_id, stage, unit, kind, getattr(job, "retries_left", None), exc_type, exc_value, _traceback, row=row_of(job)):
+        requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
+
+
+def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc_value, _traceback, row=None):
+    """
+    What a unit's failure does to its run, whoever ran the unit (`unit_failed` for RQ, `forkedjob.run` for a forked job): the run fails with the unit and the error recorded, unless the
+    unit's result is stored and counted already. `row` is the unit's row in the job ledger: a unit that has one is held for a person instead (OPS.221, `held.hold_unit`) and the run goes on.
+    Returns whether the unit failed for good (the run was failed or the unit held).
+    """
     unqueued = ""
     if connection.sismember(runrecord.done_key(run_id, stage), unit):
         unended = stage_unended(connection, run_id, stage) and runrecord._s(connection.hget(runrecord.run_key(run_id), "state")) == "running"
-        if not unended or (getattr(job, "retries_left", None) or 0) > 0:
+        if not unended or (retries_left or 0) > 0:
             # OPS.186: with the stage's end unfinished, a retry left is what finishes it (`run_unit` resumes it); with none left the run fails below
             log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
                       f"{exc_value}); the run goes on.")
-            return
+            return False
         unqueued = " (the stage was finished but the opening of the next could not be queued)"
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     stage_name = wrapper.stage_name(connection, run_id, stage)
     # OPS.162: the failure reaches error.log with the run, stage, unit and kind beside the traceback (RQ's own copy has none of them)
     log.record_error("queue", f"Unit {unit} of stage {stage_name} failed: {exc_type.__name__}: {exc_value}",
-                     exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit,
-                     kind=job.args[3] if len(job.args) > 3 else "?")
+                     exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit, kind=kind)
+    if row is not None and not unqueued:
+        # OPS.221: a unit with a row in the ledger is held for a person; the rest of the run goes on, and the run is held when nothing more can run
+        held.hold_unit(connection, run_id, stage, unit, row, f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
+        return True
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage_name} failed: "
+                         error=f"unit {unit} of stage {stage_name} failed{failures.describe(connection, run_id, exc_value)}: "
                                f"{exc_type.__name__}: {exc_value}{unqueued}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
-    requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
+    return True
 
 
 def horse_killed(job, retpid, ret_val, _rusage):
@@ -603,7 +693,11 @@ def horse_killed(job, retpid, ret_val, _rusage):
         else:
             doing, what = f"opening stage {index} of run {run_id}", f"the opening of stage {wrapper.stage_name(conn, run_id, index)}"
         log.process_ended("queue", f"The process {doing}, pid {retpid},", status, deliberate=(), pid=retpid)
-        runrecord.finish_run(conn, run_id, "failed", error=f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
+        error = f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}"
+        if job.func_name == UNIT_FUNCTION and row_of(job) is not None and runrecord.run_state(conn, run_id) in runrecord.LIVE_STATES:
+            held.hold_unit(conn, run_id, index, unit, row_of(job), error, killed=True)         # OPS.221: held for a person, as a unit that failed
+        else:
+            runrecord.finish_run(conn, run_id, "failed", error=error, killed=True)
     else:
         log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
 
