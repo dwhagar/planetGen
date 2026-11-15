@@ -163,10 +163,12 @@ def store_member_trees(conn, table, items, epoch_unix, batch_rows=2000):
 
 
 StoredMember = collections.namedtuple(
-    "StoredMember", "member_no parent_node_no slot kind state flags mass_solar initial_mass_solar seed epoch_unix radius_au")
+    "StoredMember", "member_no parent_node_no slot kind state flags mass_solar initial_mass_solar seed epoch_unix radius_au offset_au velocity_kms",
+    defaults=(None, None))
 StoredMember.__doc__ = """One stored member with the columns a build needs: its kind and state, flag bits, present and birth
 mass, the seed its star is built from, and the radius the tree drew it with (`generation.multistar.Member` less the largest
-radius and mass, which only the history rule reads); a row made before v184 has no radius (None)."""
+radius and mass, which only the history rule reads); a row made before v184 has no radius (None). `offset_au` and `velocity_kms`
+are the `(x, y, z)` of a member of a group node (`physics.system_tree.TreeMember`), `None` for one on an orbit."""
 
 StoredTree = collections.namedtuple("StoredTree", "members nodes")
 StoredTree.__doc__ = """A row's stored tree: `members` (`StoredMember`s by member number, the placed object first) and
@@ -187,11 +189,14 @@ def read_stored_trees(conn, table, row_ids):
         marks = ", ".join("?" * len(chunk))
         for r in conn.execute(
                 "SELECT source_id, member_no, parent_node_no, slot, kind, state, flags, mass_solar, initial_mass_solar,"
-                f" seed, epoch_unix, radius_au FROM scatter_members WHERE source = ? AND source_id IN ({marks})"
+                " seed, epoch_unix, radius_au, offset_x_au, offset_y_au, offset_z_au, velocity_x_kms, velocity_y_kms, velocity_z_kms"
+                f" FROM scatter_members WHERE source = ? AND source_id IN ({marks})"
                 " ORDER BY source_id, member_no", (source, *chunk)).fetchall():
             members[r["source_id"]].append(StoredMember(
                 r["member_no"], r["parent_node_no"], r["slot"], r["kind"], r["state"], r["flags"], r["mass_solar"],
-                r["initial_mass_solar"], r["seed"], r["epoch_unix"], r["radius_au"]))
+                r["initial_mass_solar"], r["seed"], r["epoch_unix"], r["radius_au"],
+                None if r["offset_x_au"] is None else (r["offset_x_au"], r["offset_y_au"], r["offset_z_au"]),
+                None if r["velocity_x_kms"] is None else (r["velocity_x_kms"], r["velocity_y_kms"], r["velocity_z_kms"])))
         for r in conn.execute(
                 "SELECT source_id, node_no, parent_node_no, slot, mass_solar, separation_km, eccentricity,"
                 " inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years,"
@@ -265,27 +270,12 @@ def delete_member_trees_where(conn, table, where_sql, args=()):
 
 
 def read_member_tree(conn, table, row_id):
-    """A row's stored tree as `(members, nodes)`: lists of `TreeMember` and `OrbitNode`, both empty for a single object."""
-    source = _source(table)
-    members = [
-        TreeMember(
-            member_no=r["member_no"], parent_node_no=r["parent_node_no"], slot=r["slot"], mass_solar=r["mass_solar"],
-            offset_au=(None if r["offset_x_au"] is None else (r["offset_x_au"], r["offset_y_au"], r["offset_z_au"])),
-            velocity_kms=(None if r["velocity_x_kms"] is None
-                          else (r["velocity_x_kms"], r["velocity_y_kms"], r["velocity_z_kms"])))
-        for r in conn.execute(
-            "SELECT member_no, parent_node_no, slot, mass_solar, offset_x_au, offset_y_au, offset_z_au,"
-            " velocity_x_kms, velocity_y_kms, velocity_z_kms FROM scatter_members"
-            " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, row_id)).fetchall()]
-    nodes = [
-        OrbitNode(**{name: r[name] for name in (
-            "node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "eccentricity", "inclination_deg",
-            "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "epoch_unix", "period_years", "kind")})
-        for r in conn.execute(
-            "SELECT node_no, parent_node_no, slot, mass_solar, separation_km, eccentricity, inclination_deg,"
-            " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind"
-            " FROM scatter_nodes WHERE source = ? AND source_id = ? ORDER BY node_no", (source, row_id)).fetchall()]
-    return members, nodes
+    """A row's stored tree as `(members, nodes)`: lists of `TreeMember` and `OrbitNode` (`read_stored_trees` of the one row), both empty for a single object."""
+    tree = read_stored_trees(conn, table, [row_id]).get(row_id)
+    if tree is None:
+        return [], []
+    members = [TreeMember(m.member_no, m.parent_node_no, m.slot, m.mass_solar, m.offset_au, m.velocity_kms) for m in tree.members]
+    return members, list(tree.nodes)
 
 
 def groups_past_decay(conn):

@@ -23,9 +23,10 @@ from planetgen.admin import recipes
 from planetgen.util import log
 
 from . import adminregistry, bp, generate_commands, jobs
+from .admin_pages import _require_admin
 from .generate_page import (
     ESTIMATE_CONFIRM_FIELD, ESTIMATE_RETRY_SECONDS, GENERATE_ANYWAY_FIELD, EstimatePending, FormError, _admin_or_403,
-    _admin_or_redirect, _edge_pc, _estimate_view, _no_store, build_job, epoch_status, estimate_for, estimate_needed,
+    _edge_pc, _estimate_view, _no_store, build_job, epoch_status, estimate_for, estimate_needed,
     finish_status, page_context,
 )
 from .helpers import crumb, db_name, page_url, render_page
@@ -247,7 +248,7 @@ def generate_task(key):
     lands (`generate_commands`); nothing runs until Run is pressed on that step.
     """
     if request.method in ("GET", "HEAD"):
-        admin, response = _admin_or_redirect()
+        admin, response = _require_admin(fresh=True)
         if response:
             return response
     else:
@@ -317,7 +318,7 @@ def generate_size(key):
     same `planetgen galaxy --estimate-only` and its cache), `none` (this form's job has no estimate) or `invalid`
     (`message`: why the values cannot be sized yet). Nothing is started or written.
     """
-    admin, response = _admin_or_redirect()
+    admin, response = _require_admin(fresh=True)
     if response:
         return jsonify({"error": "sign in"}), 403
     task = task_for_key(key)
@@ -344,7 +345,7 @@ def generate_command():
     What a typed command line means (`generate_commands.parse`), for the palette: JSON with `command` (its label, summary
     and the address it opens) or `error`, or `command: null` for text that is not a command.
     """
-    admin, response = _admin_or_redirect()
+    admin, response = _require_admin(fresh=True)
     if response:
         return jsonify({"error": "sign in"}), 403
     try:
@@ -420,5 +421,5 @@ def generate_recipe_delete(recipe_id):
 @bp.route("/admin/generate/history")
 def generate_history():
     """Every recent job, a page at a time."""
-    admin, response = _admin_or_redirect()
+    admin, response = _require_admin(fresh=True)
     return response or render_screen("generate_history.html", admin, "Generate history", [crumb("History")], tab="history")
