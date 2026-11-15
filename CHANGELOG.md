@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4205] - 2026-11-15
+
+**Headline:** The engine tables are named in the column unit and prose-column lists.
+
+### Fixed
+- `engine_items` has its units declared in `db/column_units.py`, and the engine's text columns are listed as prose, so the two column checks pass again.
+
+## [8.0.4204] - 2026-11-15
+
+**Headline:** A job entering the queue can now declare where it may be cut, whether the engine may choose the cut, and what it depends on; the engine that reads this is in and logs every decision, but no stage uses it yet
+
+### Changed
+- **The declaration (OPS.161).** `queue/breakpoints.py` holds what a job declares: its suggested split, the positions a cut may fall at, spans of items that must stay whole, a split flag (`byte-identical`: the engine may choose any legal cut; `suggested`: the job's own cut is used exactly, which is also the default for a job that declares nothing), and its dependencies (`after`, `reads`, `writes`). `CommandSpec.breaks` names a command's declaration; a `whole` command declares itself as one unit; a command that declares nothing keeps its typed split and runs in plan order, as now.
+- **The engine (OPS.161).** `queue/splitter.py` chooses the cut of a job flagged byte identical from its profile and the host's free memory and cores: units of about a fifth of the unit ceiling, fewer items if the unit's memory would not fit its share, between a quarter and four times the suggested unit (the typed figure stays the default and the clamp), never inside a span that must stay whole, never more than `MAX_UNITS` units. The decision (flag, old and new units and items, samples, the reason) is written to the stage's plan in the run record when the stage opens and to the run's log. `queue/splitprofile.py` reads the finished-unit rows OPS.155 records (median seconds per item, a memory line from the size buckets, this machine's rows in full and others at half trust, none below 3 samples), so a kind with no history still takes its suggested split.
+- No stage declares a split yet and no output changes; PERF.261 moves the stages onto this one at a time, behind PERF.260's byte-identical test.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4203] - 2026-11-15
 
 **Headline:** The Galaxy Map at galaxy scale now draws smooth gas and dust lanes from the galaxy model's gas density (the arms and the inner disk), which fade as the camera comes in and the nebulae of the nodes take over.
