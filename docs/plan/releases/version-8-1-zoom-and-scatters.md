@@ -773,6 +773,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1728 | A world's ice and snow thickness from a growth law (temperature and snowfall), so the GEN.1726 light law can run on real worlds | none | Lane 03, 2026-11-14
 | GEN.1729 | Land plants in the oxygen law, on every galaxy including Science: wet land adds to the oxygen source, so desert worlds (class H) can reach 16 kPa | GEN.1723 | Lane 04, 2026-11-14
 | GEN.1730 | Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first) | GEN.1721 slice 2 | Lane 04, 2026-11-14 |
+| GEN.1731 | Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side | GEN.1720 | Lane 02, 2026-11-15 |
 | MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | Lane 15, 2026-11-14
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | Lane 14, 2026-11-14. |

@@ -12986,6 +12986,7 @@ clears each one.
   Census thread, 8:28 PM EST (/mnt/project-files/reports/train28-census-2026-11-14/five-classes-800.md): of 31 class O shapes, CO2 fails 28, pressure 25, oxygen 16; they were stored as G 27 and O 1.
   PRIORITY (Class M tiers thread, 8:34 PM EST): on main 33bed421 the Abundant tier makes no Class M (0 in the first 234 Sun-like systems, against 5 per 400 on the tier branch before Train 27, same seeds). Of 26 Earth-shaped worlds with land and a liquid sea, CO2 split: 11 under 2 Pa (no photosynthesis), 13 over 70 kPa (70 to 940 kPa at Earth's land share and near Earth's heat flow), 2 between; before Train 27 it was 6, 2 and 13 between. These worlds have land, the branch GEN.1713 rewrote, so GEN.1713 is the first suspect, unproven; before and after with script /mnt/project-files/reports/class-m-tiers-build/co2_bands.py. Every one of classes M, H, O, P, R needs CO2 under 1 kPa and oxygenic life needs over 2 Pa, so GEN.1721 and GEN.1722 yield nothing until this is fixed. Do: merge-by-merge attribution first.
   Attribution done (Lane 02, 11:57 PM EST 11-14; report /mnt/project-files/reports/gen1720-co2-attribution-2026-11-14.md): no single defect. The snow line fix (GEN.1678) moved Earth-shaped worlds to the outer zone, where CO2 splits near zero or 50 to 900 kPa under the sourced law (CO2 goes as outgassing to about the fifth power); GEN.1713 is a minor part, GEN.1696's warm start and PR 6509 change nothing, GEN.1646 moved the warm end. Boss, 11:58 PM EST 11-14: "recommendation approved" (option 1): the Abundant tier picks the outgassing exponent and weathering constant inside their published ranges (Tweak L1, presets only, Science byte-identical, registered in GEN.725). Lane 02 builds it after or beside GEN.1718 part 2.
+  Built, PR #6601 (Lane 02, stacked on #6599, lock item, registry row 6.289:AT8, Tweak L1, Science unchanged), in review for a train. The warm side is split out as GEN.1731.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 02. Prerequisites: none. Related: GEN.1713, GEN.1706, GEN.1715.
   Filed by the TODO thread.
 
@@ -13065,6 +13066,11 @@ clears each one.
 - [ ] **PERF.272 Promote belt members only when they are read (15 percent of a system's time)**
   Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing). PERF.267 finding (3): belt-member promotion takes 15 percent of each system's generation time. Make it on demand where nothing in generation reads the members.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1731 Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side**
+  Lane 02's GEN.1720 build (PR 6601, 12:56 AM EST 2026-11-15): the tier carbon-cycle dial fixes the cold, CO2-rich side (over 70 kPa 12 of 20 to 0 of 14 on 167 Abundant Sun-like seeds), but 10 of 14 Earth-shaped worlds still hold under 2 Pa. The traced worlds sit at 289 to 306 K with about 19,000 kPa of CO2 supplied, and the sink removes it even at the lowest published constants (Lambda 0.1, m 1.2): they are warm without CO2 (thick N2 and H2O air, more sunlight), so the weathering law as sourced takes it all. No published range moves them. Work: Lane 02 sets out options with physics (for example a supply- or kinetics-limited weathering floor if sourced, a lower Class M CO2 floor, or accept) and a recommendation; Boss decides; then build. Report /mnt/project-files/reports/gen1720-co2-attribution-2026-11-14.md.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (options for Boss, then build). Prerequisites: GEN.1720. Related: GEN.1706, GEN.1713, GEN.1721, GEN.1723.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
