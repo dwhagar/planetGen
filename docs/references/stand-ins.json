@@ -68595,7 +68595,11 @@
           "what": "IR11: the fitted greenhouse table (physics/greenhouse_table.py, physics/data/greenhouse_table.json): a network of the 16 features of an air (GEN.850) fitted to the model's surface temperature on the airs the generator makes, perturbed copies, designed families and (GEN.1304) 10,000 temperate wet airs with their vapor free, refitted from the previous file with the hot airs and the airs the tests check held at their old answers; its error is the file's own stated validation, the table is refused when the datasets it was fitted to change, and an air outside the fitted range is held at the range's edge"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the cloud's longwave share is fitted to the Earth's cloud effect at its surface humidity; no measured cloud longwave effect of another air exists to replace it"
+          ],
           "fields": [
             [
               "what stands in (constant)",
@@ -68706,7 +68710,7 @@
         }
       ],
       "slug": "6-6b-stand-ins-of-the-infrared-opacity-the-radiative-convective-column-and-its-fitted-table-gen-715-gen-717-gen-718-gen-850-gen-851",
-      "title": "6.6b Stand-ins of the infrared opacity, the radiative-convective column and its fitted table (GEN.715, GEN.717, GEN.718, GEN.850, GEN.851)"
+      "title": "Stand-ins of the infrared opacity, the radiative-convective column and its fitted table (GEN.715, GEN.717, GEN.718, GEN.850, GEN.851)"
     },
     {
       "key": "6.6c",
@@ -68789,7 +68793,11 @@
           "what": "greenhouse_table.FITTED_UP_TO_K 4000 is no longer a clamp (GEN.1580): above the fit's 4,000 K the table gives T_e exp(ratio) of the same log ratio, an extrapolation of the fit; the surface stops at the ionization ceiling (CC7)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -68828,7 +68836,7 @@
         }
       ],
       "slug": "6-6c-stand-ins-of-the-greenhouse-table-above-and-below-what-it-was-fitted-on-gen-1238-gen-1580-gen-1588",
-      "title": "6.6c Stand-ins of the greenhouse table above and below what it was fitted on (GEN.1238, GEN.1580, GEN.1588)"
+      "title": "Stand-ins of the greenhouse table above and below what it was fitted on (GEN.1238, GEN.1580, GEN.1588)"
     },
     {
       "key": "6.123",
@@ -68957,7 +68965,11 @@
           "what": "nebula_sprites.V_ZERO_FLUX_ERG_CM2_S_A 3.63e-9 and V_EFFECTIVE_WIDTH_A 880: the V zero point and band width"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the share of the hydrogen-alpha line the V filter passes is recalled from the filter's red edge; a filter curve read from its table replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -69033,7 +69045,11 @@
           "what": "nebula_sprites.SHELL_COMPRESSION 4 and SHELL_THICKNESS_OVER_RADIUS 1/12: a strong shock's density over the ambient and the Sedov-Taylor shell's thickness"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the shell's hydrogen-alpha share is hand-set to the brightness of measured shells; a measured shell table replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -69109,7 +69125,11 @@
           "what": "nebula_sprites.REFLECTION_ALBEDO 0.5: the albedo of interstellar grains in V"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the central star of a reflection nebula is set so a 10 light-year nebula is near 22 to 23 magnitudes (recalled); a catalog of reflection nebulae replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -69155,7 +69175,11 @@
       "number": "6.169",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the share is the generator's own count (0.857 of 727 life worlds), not an observation; no count of living classes on real worlds exists"
+          ],
           "fields": [
             [
               "What it is",
@@ -69811,7 +69835,11 @@
           "what": "core_composition.METAL_X_FE 0.85: the mole fraction of Fe in the metal the silicate equilibrates with, in delta_IW = 2 log10(x_FeO / x_Fe) (the reaction Fe + 1/2 O2 = FeO)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the exponent is hand-tuned so a 20 GPa core keeps about half the oxygen of an Earth-pressure one; the law is qualitative, a measured partition of O and Si into iron replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -70001,7 +70029,11 @@
           "what": "core_composition.ENERGY_FACTOR_LIMITS (0, 4) and core_heat.Stepper.gravitational_j_kg: the compositional energy per kilogram of inner core frozen is CC6's value times the light mass left in the liquid per kilogram frozen over the Earth's (not scaled by the core's size: scaling by G M / R, which is the physical expectation, stopped the dynamo of about 80 percent of the small bodies in the census and is left for a re-tune of the dynamo thresholds)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "Mercury's core shares follow ranges with no consensus ([R5147]) and are hand-set; a measured Mercury core replaces them"
+          ],
           "fields": [
             [
               "What it is",
@@ -70215,7 +70247,11 @@
       "number": "6.282",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "hand-set from a sweep of the solve at four temperatures and pressures; no measured limit of the oxygen a hot deep air holds exists"
+          ],
           "fields": [
             [
               "What it is",
@@ -71275,7 +71311,11 @@
       "number": "6.179a",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "a display limit chosen so a sprite narrower than a few pixels is left to the glow band; no measurement stands behind it"
+          ],
           "fields": [
             [
               "What it is",
@@ -71313,7 +71353,11 @@
           "what": "sky_sprites.MIN_ANGULAR_RADIUS_RAD 0.002: a sprite narrower than this (radius, 0.115 degrees, a quarter of the Moon's width) is not sent"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "a display limit chosen so faint dark clouds are not drawn; no measurement stands behind it"
+          ],
           "fields": [
             [
               "What it is",
@@ -71351,7 +71395,11 @@
           "what": "sky_sprites.MIN_EXTINCTION_MAG 0.02: a cloud with no light of its own is sent only if it dims what lies behind it by at least this (the browser draws none under it, skysprites.js MIN_EXTINCTION)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "a search distance chosen for the cost of the sky route; no measurement stands behind it"
+          ],
           "fields": [
             [
               "What it is",
@@ -71389,7 +71437,11 @@
           "what": "sky_sprites.SEARCH_RADIUS_PC 10,000: how far from the observer the stored nebulae and remnants are looked for"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the faintest and brightest limiting magnitude are chosen for the cost of the star count (2.5 to 3 times a magnitude); no measurement stands behind them"
+          ],
           "fields": [
             [
               "What it is",
@@ -71427,7 +71479,11 @@
           "what": "skypack.MIN_LIMIT 2.0 and MAX_LIMIT 9.0: the faintest and the brightest limiting magnitude the route takes"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the most sprites a sky sends is chosen for the cost of the route; no measurement stands behind it"
+          ],
           "fields": [
             [
               "What it is",
@@ -71465,7 +71521,11 @@
           "what": "system_sky.MAX_SPRITES 600: the most sprites a sky sends, the widest first"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the cell count past which a sphere is coarsened is chosen for the cost of the route; no measurement stands behind it"
+          ],
           "fields": [
             [
               "What it is",
