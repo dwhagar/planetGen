@@ -126,6 +126,8 @@ class Stage:
 
 
 RUN_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}$")
+LEDGER_JOB_ID_RE = re.compile(r"^[0-9]{1,15}$")
+"""re.Pattern: A job of the ledger as a path names it (`engine_jobs.id`, OPS.224): plain ASCII digits; the routes take it as text because the site's id converters accept other scripts' digits."""
 """re.Pattern: A run's id (`new_run_id`), checked before an id from a URL is used."""
 
 

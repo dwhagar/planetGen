@@ -1528,6 +1528,26 @@ def admin_work_units(cookie_header, run_id):
     return body["units"]
 
 
+def admin_work_history(cookie_header, limit=50, offset=0, **filters):
+    """`GET /api/admin/work/history` -- the runs the job ledger holds, newest first (OPS.224): `{"available", "total", "items", "facets"}`. `filters` are `state`, `kind` and `galaxy`."""
+    query = urllib.parse.urlencode({"limit": limit, "offset": offset, **{name: value for name, value in filters.items() if value}})
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/history?{query}", cookie_header=cookie_header)
+    return body
+
+
+def admin_work_run_jobs(cookie_header, run_id, limit=50, offset=0, **filters):
+    """`GET /api/admin/work/<id>/jobs` -- the run's jobs from the ledger, with why each waits (OPS.224): `{"counts", "total", "items"}`. `filters` are `state`, `stage` and `command`."""
+    query = urllib.parse.urlencode({"limit": limit, "offset": offset, **{name: value for name, value in filters.items() if value}})
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/jobs?{query}", cookie_header=cookie_header)
+    return body
+
+
+def admin_work_run_job(cookie_header, run_id, job_id):
+    """`GET /api/admin/work/<id>/jobs/<job id>` -- one job of the run with every attempt it has had (OPS.224)."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/jobs/{int(job_id)}", cookie_header=cookie_header)
+    return body
+
+
 def admin_work_run_log(cookie_header, run_id):
     """`GET /api/admin/work/<id>/log` -- the run's whole log as text."""
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/log",

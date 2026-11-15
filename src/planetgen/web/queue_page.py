@@ -12,13 +12,14 @@ Reads and controls go through the API (`api/workqueue.py`); Retry starts a Gener
 Generate page's own forms.
 """
 
+import json
 import time
 
 from flask import Response, abort, current_app, request, url_for
 
 from planetgen.web.lib import apiclient
-from planetgen.web.lib.datatable import Column, Result, Table, time_text
-from planetgen.queue import progress_rate, runline, runrecord, warmphases
+from planetgen.web.lib.datatable import Column, Facet, Result, Table, time_text
+from planetgen.queue import jobview, ledger, progress_rate, runline, runrecord, warmphases
 from planetgen.admin import activity_log
 from planetgen.util import log, logrecord
 from planetgen.util.format import counted
@@ -284,6 +285,96 @@ JOBS_TABLE = tables.register(Table(
 ))
 
 
+JOB_STATE_LABELS = {"waiting": "Waiting", "ready": "Ready", "running": "Running", "done": "Done", "failed": "Failed", "cancelled": "Cancelled"}
+"""dict: The ledger's job states (`ledger.JOB_STATES`) in words."""
+
+RUN_STATE_LABELS = {"waiting": "Planned", "running": "Running", "held": "Held", "done": "Done", "cancelled": "Cancelled"}
+"""dict: The ledger's run states (`ledger.RUN_STATES`) in words."""
+
+
+def _facet_options(counts, labels):
+    """Filter-menu options from `{value: count}`, in the order of `labels`, then the others by name."""
+    order = {value: number for number, value in enumerate(labels)}
+    return [{"value": value, "label": labels.get(value, value), "count": counts[value]}
+            for value in sorted(counts, key=lambda value: (order.get(value, len(order)), value)) if counts[value]]
+
+
+def _history_cells(item):
+    """One run of the ledger as the History table's cells."""
+    jobs = item["jobs"]
+    total = sum(jobs.values())
+    failed = f", {jobs['failed']:,} failed" if jobs.get("failed") else ""
+    held = f" ({item['held_reason']})" if item["state"] == "held" and item["held_reason"] else ""
+    return [{"text": f"Run {item['id']}: {KIND_LABELS.get(item['kind'], item['kind'])}"},
+            {"text": item["galaxy"] or "", "muted": not item["galaxy"]},
+            {"text": RUN_STATE_LABELS.get(item["state"], item["state"]) + held},
+            {"text": time_text(_iso(item["started"])) or "not yet"},
+            {"text": time_text(_iso(item["finished"])) or ""},
+            {"text": f"{jobs.get('done', 0):,} of {total:,} {counted('job', total)} done{failed}, {item['attempts']:,} {counted('attempt', item['attempts'])}"}]
+
+
+def _history_load(state, limit, offset, want_facets):
+    """The ledger's runs, newest first, `limit` from `offset`, under the filters of the state and kind menus."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        abort(403)
+    body = apiclient.admin_work_history(_cookie_header(), limit=limit, offset=offset, state=(state.filters["history_state"] or [None])[0],
+                                        kind=(state.filters["history_kind"] or [None])[0])
+    facets = None
+    if want_facets:
+        facets = {"history_state": _facet_options(body["facets"]["state"], RUN_STATE_LABELS),
+                  "history_kind": _facet_options(body["facets"]["kind"], KIND_LABELS)}
+    return Result([_history_cells(item) for item in body["items"]], body["total"], facets)
+
+
+HISTORY_TABLE = tables.register(Table(
+    "queue-history", "Run history",
+    [Column("run", "Run", sortable=False), Column("galaxy", "Galaxy", sortable=False), Column("state", "State", sortable=False), Column("started", "Started", sortable=False),
+     Column("finished", "Finished", sortable=False), Column("jobs", "Jobs", sortable=False)],
+    _history_load, facets=[Facet("history_state", "State"), Facet("history_kind", "Kind")], prefix="history_", noun=("run", "runs"),
+))
+
+
+def _attempt_text(last):
+    """A job's newest attempt in a line: how it ended, what it cost."""
+    if not last:
+        return ""
+    cost = [f"{last['peak_mb']:,.0f} MB"] if last.get("peak_mb") else []
+    cost += [f"{_duration(last['cpu_seconds'])} of processor"] if last.get("cpu_seconds") else []
+    return last["words"] + (f" ({', '.join(cost)})" if cost else "")
+
+
+def _run_jobs_load(state, limit, offset, want_facets):
+    """The jobs of the run `?run=` names, from the ledger, `limit` from `offset`, under the state menu and the `?stage=` and `?command=` filters."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        abort(403)
+    run_id = request.view_args.get("run_id") or request.args.get("run") or ""
+    if not runrecord.RUN_ID_RE.match(run_id):
+        abort(404, description="No such run.")
+    try:
+        body = apiclient.admin_work_run_jobs(_cookie_header(), run_id, limit=limit, offset=offset, state=(state.filters["rjobs_state"] or [None])[0],
+                                             stage=request.args.get("stage"), command=request.args.get("command"))
+    except apiclient.NotFoundError:
+        return Result([], 0, None)
+    rows = [[{"text": f"{item['stage']} {item['command']}" + (f" {item['item']}" if item["item"] else ""),
+              "href": url_for("web.admin_queue_job", run_id=run_id, job_id=item["id"])},
+             {"text": JOB_STATE_LABELS.get(item["state"], item["state"])},
+             {"text": str(item["attempts"])},
+             {"text": _attempt_text(item["last"])},
+             {"text": item["waits"]}] for item in body["items"]]
+    facets = {"rjobs_state": _facet_options(body["counts"], JOB_STATE_LABELS)} if want_facets else None
+    return Result(rows, body["total"], facets)
+
+
+RUN_JOBS_TABLE = tables.register(Table(
+    "queue-run-jobs", "Jobs",
+    [Column("job", "Job", sortable=False), Column("state", "State", sortable=False), Column("attempts", "Attempts", sortable=False),
+     Column("last", "Newest attempt", sortable=False), Column("waits", "Why it waits", sortable=False)],
+    _run_jobs_load, facets=[Facet("rjobs_state", "State")], prefix="rjobs_", noun=("job", "jobs"),
+))
+
+
 def _warm_view(warm):
     """The cache warm-up panel (PERF.141): its phases, the run they belong to and what the automatic start waits for, or `None`."""
     if warm is None or not warm["available"]:
@@ -388,7 +479,7 @@ def admin_queue():
         return bounce
     cookie_header = _cookie_header()
     error = None
-    jobs_table = None
+    jobs_table = history_table = None
     workers = warm = held = beating = tuning = supervisor = None
     try:
         try:
@@ -418,6 +509,11 @@ def admin_queue():
         body = apiclient.admin_work(cookie_header, limit=1, offset=0)
         if body["available"]:
             jobs_table = tables.render(JOBS_TABLE, request.path, anchor="jobs")
+            try:
+                if apiclient.admin_work_history(cookie_header, limit=1)["total"]:
+                    history_table = tables.render(HISTORY_TABLE, request.path, anchor="history")
+            except apiclient.ApiError:
+                history_table = None             # the ledger is not there: the page has no history panel
     except apiclient.ApiError as exc:
         body, error = {"available": False, "status": {}, "items": [], "total": 0}, _api_message(exc)
     flashed = _take_flash()
@@ -425,7 +521,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating, tuning=tuning, supervisor=supervisor,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, workers=workers, held=held, beating=beating, tuning=tuning, supervisor=supervisor,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -552,12 +648,73 @@ def admin_queue_run(run_id):
         abort(404, description="No such run.")
     flashed = _take_flash()
     unit_rows, unit_summary, unit_hidden = _unit_rows(run, _live_units(_cookie_header(), run))
+    try:
+        job_counts = _count_line(apiclient.admin_work_run_jobs(_cookie_header(), run_id, limit=1)["counts"])
+    except apiclient.NotFoundError:
+        job_counts = ""                          # a run not cut yet has no jobs in the ledger
     return _render(
         "admin_queue_run.html", flashed=True, title=run["title"][:80] or "Run", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run")],
-        admin=admin, run=run_view(run), stages=_stage_rows(run), unit_rows=unit_rows, unit_summary=unit_summary, unit_hidden=unit_hidden, events=[_event_view(event) for event in body["events"]],
+        admin=admin, run=run_view(run), stages=_stage_rows(run), job_counts=job_counts, unit_rows=unit_rows, unit_summary=unit_summary, unit_hidden=unit_hidden, events=[_event_view(event) for event in body["events"]],
         back_url=_run_back_url(),
         error=flashed.get("error"), message=flashed.get("message"),
+    )
+
+
+@bp.route("/admin/queue/<run_id>/jobs")
+def admin_queue_jobs(run_id):
+    """One run's jobs from the ledger (OPS.224), filtered by state, each with its attempts and why it waits."""
+    admin, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    if not runrecord.RUN_ID_RE.match(run_id):
+        abort(404, description="No such run.")
+    body, run = _load(_cookie_header(), run_id)
+    if run is None:
+        abort(404, description="No such run.")
+    try:
+        counts = apiclient.admin_work_run_jobs(_cookie_header(), run_id, limit=1)["counts"]
+    except apiclient.NotFoundError:
+        counts = None
+    return _render(
+        "admin_queue_jobs.html", flashed=False, title=f"Jobs of {run['title'][:60]}", section="admin_queue",
+        breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run", "admin_queue_run", run_id=run_id), crumb("Jobs")],
+        description="The jobs of one run as the job ledger records them, with every attempt and why a job is waiting.",
+        admin=admin, run=run_view(run), counts=_count_line(counts), table=None if counts is None else tables.render(RUN_JOBS_TABLE, request.path, anchor="jobs", run=run_id),
+    )
+
+
+def _count_line(counts):
+    """The jobs by state as one line ("12 waiting, 3 running, 40 done"), `""` for none."""
+    return "" if counts is None else ", ".join(f"{count:,} {JOB_STATE_LABELS[state].lower()}" for state, count in counts.items() if count)
+
+
+def _time_cell(seconds):
+    return time_text(_iso(seconds)) or ""
+
+
+@bp.route("/admin/queue/<run_id>/job/<job_id>")
+def admin_queue_job(run_id, job_id):
+    """One job of a run with every attempt it has had: how each ended, what it cost, its error, its stack file (OPS.224)."""
+    admin, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    if not runrecord.RUN_ID_RE.match(run_id) or not runrecord.LEDGER_JOB_ID_RE.match(job_id):
+        abort(404, description="No such job.")
+    try:
+        found = apiclient.admin_work_run_job(_cookie_header(), run_id, job_id)
+    except apiclient.NotFoundError:
+        abort(404, description="No such job.")
+    attempts = [{"number": item["attempt"], "words": item["words"], "outcome": item["outcome"], "pid": item["pid"] or "", "started": _time_cell(item["started"]),
+                 "ended": _time_cell(item["ended"]), "memory": f"{item['peak_mb']:,.0f} MB" if item["peak_mb"] else "", "cpu": _duration(item["cpu_seconds"]),
+                 "error_kind": item["error_kind"] or "", "error_text": item["error_text"] or "", "stack_file": item["stack_file"] or ""} for item in found["attempt_rows"]]
+    name = f"{found['stage']} {found['command']}" + (f" {found['item']}" if found["item"] else "")
+    return _render(
+        "admin_queue_job.html", flashed=False, title=name[:80], section="admin_queue",
+        breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run", "admin_queue_run", run_id=run_id), crumb("Jobs", "admin_queue_jobs", run_id=run_id), crumb("Job")],
+        description="One job of a run: its state, why it waits and every attempt it has had.",
+        admin=admin, run_id=run_id, job=found, name=name, state_label=JOB_STATE_LABELS.get(found["state"], found["state"]), attempts=attempts,
+        arguments=json.dumps(found["arguments"], indent=2, sort_keys=True)[:4000] if found["arguments"] is not None else "",
     )
 
 

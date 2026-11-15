@@ -1094,6 +1094,27 @@ forced credential change. They back the admin stats page
   `"phase"`, `"waiting_on"`, `"done"`, `"estimate"`, `"restarts"`,
   `"resident_mb"`, `"beat_age_seconds"`, `"running_seconds"`, as the process
   that follows the run last judged them; empty once the run is over.
+  `GET /api/admin/work/<id>/jobs` (OPS.224) answers one run's jobs from the job
+  ledger, in the order they were planned: `{"engine_run", "counts": {state: n},
+  "total", "items": [{"id", "stage", "command", "item", "state" ("waiting",
+  "ready", "running", "done", "failed" or "cancelled"), "attempts", "class",
+  "claim_mb", "waits", "last", "created", "updated"}], "limit", "offset"}`.
+  `waits` says why a job that is not running is not (the memory gate's own
+  words a worker that held it was given, a retry hold with how long is left and
+  how the last attempt ended, or what it still needs; `""` for a job that is
+  running or over); `last` is the newest attempt (`"outcome"`, `"words"`,
+  `"error_kind"`, `"peak_mb"`, `"cpu_seconds"`, `"started"`, `"ended"`). The query
+  takes `state`, `stage`, `command`, `limit` and `offset`; 404 for a run that
+  has not been cut yet. `GET /api/admin/work/<id>/jobs/<job id>` answers the job
+  as above with `"arguments"` and `"attempt_rows"`, every attempt oldest first
+  (`"attempt"`, `"pid"`, `"outcome"`, `"words"`, `"started"`, `"ended"`,
+  `"peak_mb"`, `"cpu_seconds"`, `"error_kind"`, `"error_text"`, `"stack_file"`).
+  `GET /api/admin/work/history` answers the runs the ledger holds, newest first:
+  `{"available", "total", "items": [{"id", "kind", "galaxy", "state" ("waiting",
+  "running", "held", "done" or "cancelled"), "held_reason", "created",
+  "started", "finished", "jobs": {state: n}, "attempts"}], "facets": {"state":
+  {value: runs}, "kind": {...}}, "limit", "offset"}`, filtered by `state`, `kind`
+  and `galaxy`.
 - `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}` —
   cancel stops a live run now: its waiting units are taken off the queue,
   its started units are sent RQ's stop command, and the machine is free

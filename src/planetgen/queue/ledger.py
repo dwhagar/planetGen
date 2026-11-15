@@ -92,6 +92,19 @@ def set_job_state(conn, job_id, state, waited=None, not_before=None):
     conn.execute("UPDATE engine_jobs SET state = ?, waited = ?, not_before = ?, updated_at = NOW(6) WHERE id = ?", (state, waited, not_before, job_id))
 
 
+WAITED_CHARS = 255
+"""int: How much of a reason a job's `waited` column keeps (`VARCHAR(255)`)."""
+
+
+def set_wait(conn, job_id, reason):
+    """
+    Notes why a job that has not started is not starting (`reason`, the words the memory gate gave a worker that held it, OPS.224), on the row of a job that is still `waiting`; a job that has begun
+    (or is over) keeps its state. Returns whether the row took it. The caller commits.
+    """
+    reason = None if reason is None else (reason if len(reason) <= WAITED_CHARS else reason[:WAITED_CHARS - 3] + "...")
+    return conn.execute("UPDATE engine_jobs SET waited = ?, updated_at = NOW(6) WHERE id = ? AND state = 'waiting'", (reason, job_id)).rowcount > 0
+
+
 def begin_attempt(conn, job_id, galaxy_conn=None, pid=None):
     """
     The dispatch write: raises the job's attempt number, opens its attempt row (`running`) and sets the job running, and returns the new number. Given the galaxy's
