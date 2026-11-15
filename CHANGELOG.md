@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4270] - 2026-11-15
+
+**Headline:** A cool giant with a carbon-rich envelope no longer stops a galaxy run with "an abundance must not be negative".
+
+### Fixed
+
+- The clouds of a giant's layer (`mixture_giant.remove_clouds`) took the oxygen the oxides bind off a budget whose carbon and oxygen had been re-split to a high carbon to oxygen ratio (`element_budget`), so a metal-rich envelope at a cool layer was left a negative oxygen and the equilibrium refused it (`test_db_column_round_trip`, Train 31). The oxides now bind at most the oxygen the gas has. It showed only once GEN.1717 gave such a giant its true, cooler 1 bar temperature (the table had given it thousands of kelvin, above every condensation). No value changes where the oxygen was enough.
+
 ## [8.0.4269] - 2026-11-15
 
 **Headline:** The generator can now say how thick the ice and the snow on a world's water are, so the light that gets through a frozen ocean or lake can be worked out for a real world.
