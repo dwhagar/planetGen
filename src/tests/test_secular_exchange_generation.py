@@ -67,11 +67,14 @@ def test_a_belt_just_short_of_its_keep_out_is_pushed_and_one_on_the_limit_is_not
     """`space_orbits` and the exchange's guard share one rule (`validation.belt_needs_pushing`); a belt placed on the limit, as generation does, is not pushed by a rounding error."""
     from types import SimpleNamespace
     last = SimpleNamespace(body_type="t", distance=1.0, eccentricity=0.0, min_orbit_distance=0.05)
-    assert not validation.belt_needs_pushing(SimpleNamespace(body_type="a", distance=1.05), last)
-    assert not validation.belt_needs_pushing(SimpleNamespace(body_type="a", distance=1.05 - 1e-12), last)
-    assert validation.belt_needs_pushing(SimpleNamespace(body_type="a", distance=1.05 - 1e-6), last)
+    def belt(inner):        # GEN.1592: the rule reads the belt's inner edge
+        return SimpleNamespace(body_type="a", distance=inner, lower_limit=inner)
+
+    assert not validation.belt_needs_pushing(belt(1.05), last)
+    assert not validation.belt_needs_pushing(belt(1.05 - 1e-12), last)
+    assert validation.belt_needs_pushing(belt(1.05 - 1e-6), last)
     last.eccentricity = 0.01        # a raised eccentricity moves the apoapsis out, and the belt is then short of its keep-out
-    assert validation.belt_needs_pushing(SimpleNamespace(body_type="a", distance=1.05), last)
+    assert validation.belt_needs_pushing(belt(1.05), last)
 
 
 def test_a_rocky_planet_the_exchange_moved_has_its_air_made_on_its_final_orbit(systems):
