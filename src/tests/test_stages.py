@@ -448,7 +448,17 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     assert "Stage 20 of 22: Save the sector paths" in text
 
 
-def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
+@pytest.fixture
+def stage_clock(monkeypatch):
+    """TEST.759: the stage lines say how long the stage took on the units code's ladder (`1.15 ms`, `30.6 s`), so a test that checks the words
+    holds the clock the stages read (`stages.time.perf_counter`) still, and moves it by the time it wants the stage to have taken."""
+    import types
+    now = [100.0]
+    monkeypatch.setattr(stages, "time", types.SimpleNamespace(perf_counter=lambda: now[0]))
+    return lambda seconds: now.__setitem__(0, now[0] + seconds)
+
+
+def test_a_run_on_its_own_counts_its_own_stages(monkeypatch, stage_clock):
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
@@ -565,6 +575,19 @@ def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_j
         stages.finish()
 
 
+def test_a_stage_line_gives_the_time_the_stage_took_on_the_units_ladder(monkeypatch, stage_clock):
+    """TEST.759: a stage of a few milliseconds says so (`2.86 ms`), not `0 s`: the one ladder of the units code (UX.318) is the only way a duration is written."""
+    lines = []
+    monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+    monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
+    monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
+    stages.begin(stages.scatter_stages(_scatter("--band")))
+    stages.enter("band")
+    stage_clock(0.00286)
+    stages.finish()
+    assert lines[-1] == "Stage 1 of 1 finished after 2.86 ms"
+
+
 def test_every_stage_marker_comes_from_one_formatter():
     """UX.98: one wording for a single stage and for a run, in the section headers and the closing line."""
     from planetgen.util import stagemark
@@ -575,11 +598,11 @@ def test_every_stage_marker_comes_from_one_formatter():
     from planetgen.util import logrecord
     done = logrecord.stage_record(logrecord.STAGE_FINISH, "job", 4, 12, seconds=30.6, count=9)
     failed = logrecord.stage_record(logrecord.STAGE_FAILED, "job", 2, 12, seconds=4, reason="exited with status 1")
-    assert logrecord.plain_line(done) == "=== Stages 4 to 12 of 12 finished after 31 s ==="
+    assert logrecord.plain_line(done) == "=== Stages 4 to 12 of 12 finished after 30.6 s ==="
     assert logrecord.plain_line(failed) == "=== Stage 2 of 12 failed after 4 s: exited with status 1 ==="
 
 
-def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_the_record_file(tmp_path, monkeypatch, capsys):
+def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_the_record_file(tmp_path, monkeypatch, capsys, stage_clock):
     """UX.122: the same stage mark is the plain divider the console shows and the record the record file holds."""
     from planetgen.util import logrecord
     monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
@@ -605,7 +628,7 @@ def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_th
                                                     "=== Stage 1 of 1 finished after 0 s ==="]
 
 
-def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path, monkeypatch, capsys):
+def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path, monkeypatch, capsys, stage_clock):
     """UX.122: an error ends the open stage with its failure line, as the job runner's banner does for a web job's step."""
     from planetgen.util import logrecord
     monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
@@ -632,7 +655,7 @@ def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path,
     assert stages._state["stages"] == [] and stages._state["open"] is None
 
 
-def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys):
+def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys, stage_clock):
     """UX.122: `planetgen` closes the run's open stage with the error's name and message."""
     from planetgen.cli import generate
 
