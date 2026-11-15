@@ -51,8 +51,8 @@ def _commands(monkeypatch):
     for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
                  "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
-            kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"),
-            conclude=(__name__, "_conclude")))
+            kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut")))
+        monkeypatch.setitem(commands.END_COMMANDS, ("conclude", kind), commands.EndCommand("conclude", kind, (__name__, "_conclude")))
     monkeypatch.setitem(commands.REGISTRY, "plain", commands.CommandSpec(
         "plain", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut")))
     monkeypatch.setattr(finish_run, "FINISHABLE", finish_run.FINISHABLE | {"hooked", "plain"})
