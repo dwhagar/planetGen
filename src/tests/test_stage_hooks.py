@@ -109,7 +109,7 @@ def test_the_plan_of_a_stage_with_nothing_to_do_stores_its_row_as_skipped(conn, 
     monkeypatch.setitem(commands.REGISTRY, "idle", commands.CommandSpec(
         "idle", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut_nothing")))
     row = {"command": "test", "n": 1, "total": 1, "label": "Idle", "settings": {}}
-    step = commands.Step("idle", "idle", "Idle", {"name": "idle", "database": {"database": "d"}})
+    step = commands.Step("idle", "idle", "Idle", {"name": "idle", "database": "d"})
     wrapper.run("Skipped", [step], lambda index, plan: None, lambda index, unit, result: None, rows={"idle": row})
     assert stored == {"key": "idle", "reason": "nothing was saved"}
 

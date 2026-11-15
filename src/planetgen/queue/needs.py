@@ -7,6 +7,8 @@ draws into. The names are the vocabulary of this module (`ARTIFACTS`); a test ho
 declarations, so the order a planner chooses (the second part of OPS.238) is checked against the order the runs have today. The order of a run is planned from these (OPS.238, second part): `requires_of` is the kinds a command waits for, `required_stage_keys` the earlier steps of a run it waits for, and `validate_order`
 refuses a run whose steps are listed so that a need is only met after the step that needs it.
 
+The stored plan (`planrows.record_plan`) says which needs of a run are unmet (`unmet`: no earlier step makes them and the rows of the galaxy's earlier runs do not say they exist, `planrows.made_artifacts`, `exists_after`). The checks and the warm families declare nothing: a check reads the database as it is and a warm family builds its own input.
+
 A need is met in a run when no command of the run makes it (it is stored from an earlier run: a scatter of one pass needs the skeleton, which `planetgen plan` made) or a command of the run that makes it comes earlier.
 """
 
@@ -136,3 +138,36 @@ def validate_order(steps):
             if makers and min(makers) > index:
                 raise ValueError(f"step {step.key!r} ({step.kind}) needs {artifact}, which only {', '.join(repr(steps[place].key) for place in makers)} (later in the list) makes")
     return steps
+
+
+RESETS = frozenset({"reset-galaxy", "plan-skeleton"})
+"""frozenset: The commands that leave nothing a galaxy had made before them (`reset-galaxy` empties it, `plan-skeleton` plans it again with a new seed): `exists_after` starts again from their stage."""
+
+
+def exists_after(stages):
+    """
+    The artifacts a galaxy has when `stages` (`(kind, made)` per finished stage, oldest first: the stages whose rows say they ended, with the artifacts their row says they made) are over. A stage of a command in `RESETS`
+    first forgets everything the stages before it made.
+    """
+    found = set()
+    for kind, made in stages:
+        if kind in RESETS:
+            found.clear()
+        found.update(made)
+    return found
+
+
+def unmet(steps, exists):
+    """
+    `[(step, artifact)]`: each need of a step that no earlier step of the list makes and `exists` (the artifacts the ledger's rows say the galaxy has, `planrows.made_artifacts`) does not hold. A need that a later step of the list
+    makes is `validate_order`'s to refuse; here it is unmet as well, since nothing has made it when the step starts.
+    """
+    lacking = []
+    for index, step in enumerate(steps):
+        have = set(exists)
+        for other in steps[:index]:
+            if other.kind in RESETS:
+                have.clear()
+            have.update(makes_of(other.kind))
+        lacking.extend((step, artifact) for artifact in needs_of(step.kind) if artifact not in have)
+    return lacking

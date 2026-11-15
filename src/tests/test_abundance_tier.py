@@ -26,7 +26,7 @@ def test_science_is_the_default_and_every_dial_is_off():
     for tier in (None, "science"):
         planet = _planet(tier)
         assert abundance_tier.water_share(planet) == 0.0 and abundance_tier.bare_share(planet) == 0.0 and abundance_tier.dry_part(planet) == 0.0
-        assert abundance_tier.quiet_share(planet) == 0.0 and not abundance_tier.quiet_interior(planet) and not abundance_tier.desert_sea(planet)
+        assert abundance_tier.quiet_share(planet) == 0.0 and not abundance_tier.quiet_interior(planet)
         assert abundance_tier.cycle_share(planet) == 0.0
 
 
@@ -75,13 +75,11 @@ def test_the_water_and_envelope_dials_act_on_rocky_planets_in_the_ecosphere_only
     assert abundance_tier.quiet_share(outside) == 0.0
 
 
-def test_a_desert_world_and_a_quiet_interior_are_read_from_what_the_tier_set_on_the_body():
+def test_a_quiet_interior_is_read_from_what_the_tier_set_on_the_body():
     plain = _planet("abundant")
-    assert not abundance_tier.desert_sea(plain) and not abundance_tier.quiet_interior(plain)
-    plain._water_dialed = "low"
-    assert not abundance_tier.desert_sea(plain)          # Earth's class is not a desert world
-    plain._water_dialed, plain._quiet_interior = "dry", True
-    assert abundance_tier.desert_sea(plain) and abundance_tier.quiet_interior(plain)
+    assert not abundance_tier.quiet_interior(plain)
+    plain._quiet_interior = True
+    assert abundance_tier.quiet_interior(plain)
 
 
 def test_the_desert_water_range_is_inside_the_dry_class_and_the_quiet_sink_is_inside_earths_published_range():

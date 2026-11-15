@@ -26381,6 +26381,21 @@
       "label": "Maykut and Untersteiner 1971",
       "title": "Some results from a time-dependent thermodynamic model of sea ice"
     },
+    "R5280": {
+      "kind": "paper",
+      "label": "Bergman 2004",
+      "title": "COPSE: A new model of biogeochemical cycling over Phanerozoic time"
+    },
+    "R5281": {
+      "kind": "paper",
+      "label": "Daines et al. 2017",
+      "title": "Atmospheric oxygen regulation at low Proterozoic levels by incomplete oxidative weathering of sedimentary organic carbon"
+    },
+    "R5282": {
+      "kind": "paper",
+      "label": "Lasaga and Ohmoto 2002",
+      "title": "The oxygen geochemical cycle: dynamics and stability"
+    },
     "R5283": {
       "kind": "paper",
       "label": "Lenton et al. 2016",
@@ -26405,6 +26420,11 @@
       "kind": "paper",
       "label": "Tian et al. 2020",
       "title": "A comprehensive quantification of global nitrous oxide sources and sinks"
+    },
+    "R5288": {
+      "kind": "paper",
+      "label": "Borderies and Goldreich 1984",
+      "title": "A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems"
     },
     "R5292": {
       "kind": "paper",
