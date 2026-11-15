@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.766 |
+| TEST | TEST.768 |
 | USR | USR.33 |
 | OPS | OPS.263 |
 | DOC | DOC.121 |
@@ -4911,6 +4911,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.763 | test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run | none | done, PR #6667 (9:29 AM EST 11-15) |
 | TEST.764 | (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB" | none | done, PR #6681 (10:55 AM EST 11-15) |
 | TEST.765 | (bug) test_queue_commands::test_a_unit_that_fails_in_a_later_stage_fails_the_run is red on main | none | done, PR #6690 (11:41 AM EST 11-15): OPS.221 holds the run; the test now expects held |
+| TEST.766 | (bug) test_step_registry is red on main: an unused step kind db-check | none | open |
+| TEST.767 | (bug) test_web_adminregistry is red on main: admin_queue_job and admin_queue_jobs are missing from PAGES or EXEMPT | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

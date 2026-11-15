@@ -12898,6 +12898,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after OPS.196. Prerequisites: OPS.196. Related: OPS.196, OPS.191.
   Filed by the TODO thread.
 
+- [ ] **TEST.766 (bug) test_step_registry is red on main: an unused step kind db-check**
+  Lane 14, 11:56 AM EST 2026-11-15 (GEN.1632, PR #6692), confirmed on origin/main. Do: find which job engine merge added or orphaned the db-check kind and either use it or delete it; never loosen the test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.765.
+  Filed by the TODO thread.
+
+- [ ] **TEST.767 (bug) test_web_adminregistry is red on main: admin_queue_job and admin_queue_jobs are missing from PAGES or EXEMPT**
+  Lane 14, 11:56 AM EST 2026-11-15 (GEN.1632, PR #6692), confirmed on origin/main. Do: register the two queue admin views where they belong (PAGES if they are pages, EXEMPT with the reason if not), naming the merge that added them.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.765.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
