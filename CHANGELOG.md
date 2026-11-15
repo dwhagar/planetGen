@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4250] - 2026-11-15
+
+**Headline:** a unit that fails because the database or Redis hiccuped is now run again by the engine after a growing wait, and the run says what kind of failure ended it.
+
+### Added
+
+- OPS.220: `queue/failures.py` names every failure one of four kinds (passing, killed, idle, lasting). A passing failure (MySQL deadlock 1213, lock wait 1205, connection lost 2006 or 2013, a closed connection, a Redis connection that failed) runs the unit again after a wait that doubles from 2 s to 5 min, spread at random, inside a per-run budget of 40 retries and 30 minutes of waiting. Every attempt is a row in the ledger, and the budget is one Redis hash per run.
+
+### Changed
+
+- OPS.220: the run's error text names the kind of failure. A killed or idle unit keeps the existing alone-with-a-bigger-claim and stack-dump paths. `rq.Retry(max=1)` and the in-transaction deadlock retries stay until OPS.219 (checkpoints), OPS.221 (held items) and the supervisor hand-out remove their last users.
+
 ## [8.0.4249] - 2026-11-15
 
 **Headline:** A unit that fails for good no longer ends the run: it is held, the rest goes on, and a run held for a person can be carried on after the fix.
