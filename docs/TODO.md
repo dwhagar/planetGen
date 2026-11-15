@@ -12664,11 +12664,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.223 Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L9); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L9 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15 (moved from Lane 14 at 11:05 PM EST, not started there; Lane 15 builds it before OPS.224). Prerequisites: OPS.215. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.224 Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits)**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L10); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L10 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: OPS.216, OPS.223. Related: OPS.191, OPS.207, OPS.212.
@@ -12691,12 +12686,12 @@ clears each one.
 
 - [ ] **OPS.228 Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane)**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.226, OPS.227. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). Prerequisites: OPS.226, OPS.227. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.229 Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.230 Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted)**
@@ -12987,19 +12982,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318, PERF.270.
   Filed by the TODO thread.
 
-- [ ] **TEST.758 (bug) test_hand_formatted_units red on main: generation/run_galaxy.py line 1790 formats MB by hand (PERF.270's sector line)**
-  Found by the TODO thread on main e1bc04fa4 (4:25 AM EST 2026-11-15): test_no_python_module_formats_a_unit_by_hand[generation/run_galaxy.py] fails at line 1790 (' MB.'), the per-sector line of PERF.270 (PR #6618). Use planetgen.util.format (UX.318).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: UX.318, PERF.270.
-  Filed by the TODO thread.
-
-- [ ] **OPS.260 Job engine stage 2, OPS.218 slice 3: conclude and finish hooks become commands of their own, and the engine stops reading CommandSpec.conclude and finish**
-  Split from OPS.218 (Lane 13, 4:27 AM EST 2026-11-15): slices 1 and 2 merged in the stage 2 stack (PR #6571), but slice 3 is not built: the 8 conclude and 5 warm finish hooks are still hooks of CommandSpec that the end rows only run, and the engine still reads `CommandSpec.conclude` and `finish`. Make each a command of its own run by the end rows, delete the hooks and their reads (no shim). Spec: /mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md and the job engine design.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 13. Prerequisites: none. Related: OPS.218, OPS.225, OPS.219.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1735 Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place)**
   Lane 03, 4:39 AM EST 2026-11-15: GEN.1728 (PR #6596) adds physics/ice_growth.py (lid_of) with nothing reading it yet; GEN.1723's refuge term (surface_refuge.under_ice_light_share) reads only the fixed ice shell of an ice-covered ocean, not a lake or a seasonal lid. Wire lid_of into the refuge term for every surface-water place (mean temperature, year swing, absorbed flux), replacing the fixed shell thickness. This item is the wiring-guard owner of ice_growth.py and registry rows IG2 to IG8.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1733; same refuge law as GEN.1723). Prerequisites: GEN.1728. Related: GEN.1723, GEN.1727, GEN.1729.
+  Filed by the TODO thread.
+
+- [ ] **TEST.759 (bug) test_stages: a failed stage's line says "failed after 4.48 ms" where five tests expect "0 s"**
+  Lane 13, 4:48 AM EST 2026-11-15, checked on main 0c395655d: five tests of tests/test_stages.py fail (for example test_a_command_that_raises_ends_its_open_stage_as_failed: "Stage 1 of 1 failed after 2.86 ms" against the expected "0 s"). The shared duration formatter of UX.318 now writes milliseconds for sub-second spans. Decide which side is right for a stage line (a stage line likely wants whole seconds or the formatter's choice) and make code and tests agree; no skip.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318, TEST.755, TEST.756.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
