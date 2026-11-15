@@ -29,7 +29,8 @@ def test_the_cut_of_a_stage_is_its_unit_rows_and_its_own_done_row(monkeypatch, m
     conn = redisqueue.connect()
     ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)))
     jobs = _jobs(mysql_config, ledger_run)
-    assert [(job["stage"], job["command"], job["item_key"]) for job in jobs] == [("a", "open", ""), ("a", "first", "0"), ("a", "first", "1"), ("a", "first", "2")]
+    assert [(job["stage"], job["command"], job["item_key"]) for job in jobs] == [("a", "open", ""), ("a", "first", "0"), ("a", "first", "1"), ("a", "first", "2"),
+                                                                                  ("a", "conclude", ""), ("a", "finish", ""), ("a", "release", "")]       # OPS.218: the end of the stage is rows too
     assert jobs[0]["state"] == "done"
     assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 3, "cost": 3.0, "detail": {"count": 3}}
 
@@ -84,3 +85,13 @@ def test_a_stage_with_no_unit_still_has_its_plan_as_a_row(monkeypatch, mysql_con
     _register(monkeypatch, first=_units(0))
     run_id = wrapper.run("None", [commands.Step("a", "first", "A", {"database": wrapper.database_args(mysql_config)})], lambda index, plan: None, lambda index, unit, result: None)
     assert planrows.read_plan(redisqueue.connect(), run_id, 0)["units"] == 0
+
+
+def test_the_cut_writes_the_jobs_that_end_the_stage_with_an_edge_each_and_the_run_marks_them_done(monkeypatch, mysql_config):
+    run_id = _run(monkeypatch, mysql_config, 2)
+    conn = redisqueue.connect()
+    ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)))
+    ends = [(job["command"], job["needs"], job["state"]) for job in _jobs(mysql_config, ledger_run) if job["item_key"] == "" and job["command"] != "open"]
+    assert ends == [("conclude", '["units"]', "done"), ("finish", '["conclude"]', "done"), ("release", '["finish"]', "done")]
+    assert planrows.ended(conn, run_id, 0) == {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
+    assert len(planrows.record_cut(conn, run_id, 0, "first", [], 0.0, {})) == 2, "the end rows are not unit rows"

@@ -6,7 +6,7 @@ import types
 import pytest
 import rq
 
-from planetgen.queue import jobprofiles, memorygate, redisqueue, runrecord, units, wrapper
+from planetgen.queue import jobprofiles, memorygate, planrows, redisqueue, runrecord, units, wrapper
 
 
 @pytest.fixture
@@ -21,7 +21,13 @@ def ended(conn, monkeypatch):
     runrecord.begin_stage(conn, run_id, 0)
     assert runrecord.unit_done(conn, run_id, 0, 0).advance
     concluded, queued = [], []
-    monkeypatch.setattr(wrapper, "conclude_and_finish_stage", lambda c, r, i, label=None: concluded.append(i))
+    def conclude(c, r, i, label=None):
+        concluded.append(i)
+        planrows.mark_ended(c, r, i, planrows.CONCLUDE)
+        return 0.0
+
+    monkeypatch.setattr(wrapper, "conclude_stage_job", conclude)
+    monkeypatch.setattr(wrapper, "finish_stage_job", lambda c, r, i, took=0.0: planrows.mark_ended(c, r, i, planrows.FINISH))
     monkeypatch.setattr(units, "enqueue_open", lambda c, r, i, q: queued.append(i))
     return types.SimpleNamespace(run_id=run_id, concluded=concluded, queued=queued)
 

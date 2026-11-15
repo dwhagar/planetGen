@@ -378,11 +378,13 @@ def _carry_finished_stage(conn, run_id, index, step, now):
         runrecord.set_conclusion(conn, run_id, index, stored if stored is not None else {})
 
 
-def conclude_and_finish_stage(conn, run_id, index, label=None):
+def conclude_stage_job(conn, run_id, index, label=None):
     """
-    Runs the conclusion of stage `index` and stores the stage's row (`conclude_stage`, `finish_stage`). A failure in the conclusion is the run's failure, said at once with the stage named
-    (`label`, read from the run when not given) and raised: left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage nobody queues. The unit
-    that completes a stage does this (`units._end_stage`), and so does the process that cut a stage with no unit (`_conclude_empty_stage`).
+    The `conclude` job of stage `index` (OPS.218): the command's conclusion, then its row marked done in the ledger. A failure in the conclusion is the run's failure, said at once with the stage
+    named (`label`, read from the run when not given) and raised: left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage nobody queues.
+
+    Returns:
+        float: The seconds the conclusion took, which the stage's row counts.
     """
     try:
         took = conclude_stage(conn, run_id, index)
@@ -390,7 +392,19 @@ def conclude_and_finish_stage(conn, run_id, index, label=None):
         runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {label if label is not None else stage_label(conn, run_id, index)} "
                                                            f"failed: {type(exc).__name__}: {exc}")
         raise
-    finish_stage(conn, run_id, index, took)
+    planrows.mark_ended(conn, run_id, index, planrows.CONCLUDE)
+    return took
+
+
+def finish_stage_job(conn, run_id, index, concluded_seconds=0.0):
+    """The `finish` job of stage `index` (OPS.218): the stage's statistics and row (`finish_stage`), then its ledger row marked done."""
+    finish_stage(conn, run_id, index, concluded_seconds)
+    planrows.mark_ended(conn, run_id, index, planrows.FINISH)
+
+
+def conclude_and_finish_stage(conn, run_id, index, label=None):
+    """Both end jobs of stage `index` in turn: the end of a stage that has no unit to carry it (`_conclude_empty_stage`)."""
+    finish_stage_job(conn, run_id, index, conclude_stage_job(conn, run_id, index, label))
 
 
 def _conclude_empty_stage(conn, run_id, index, label):

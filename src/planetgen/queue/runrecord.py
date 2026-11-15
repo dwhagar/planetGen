@@ -149,11 +149,6 @@ def advanced_key(run_id, index):
     return _k("run", run_id, f"s{index}", "advanced")
 
 
-def ended_key(run_id, index):
-    """OPS.186: how far the end of stage `index` got: `concluded` (the command's conclusion and the stage's row are done), then `queued` (the next opening is queued)."""
-    return _k("run", run_id, f"s{index}", "ended")
-
-
 def ending_key(run_id, index):
     """OPS.186: the lease of the process that is ending stage `index` now, so a second attempt does not end it beside the first."""
     return _k("run", run_id, f"s{index}", "ending")
@@ -773,7 +768,7 @@ def _keys_of(conn, run_id, every=False):
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
-        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index), ended_key(run_id, index), ending_key(run_id, index), opened_key(run_id, index),
+        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index), ending_key(run_id, index), opened_key(run_id, index),
                  results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index)]
     return keys
 

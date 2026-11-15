@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attempts, commands, commandgaps, engine, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attempts, commands, commandgaps, engine, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -61,9 +61,6 @@ sensible pool (the 2 million-object ceiling's 95% of 64 cores) busy to the end."
 FAILED_KEEP_SECONDS = 86400
 """int: How long RQ keeps a failed unit's job."""
 
-ENDED_CONCLUDED = "concluded"
-ENDED_QUEUED = "queued"
-"""str: What `runrecord.ended_key` holds as the end of a stage gets on (OPS.186): its conclusion is done, then the next opening is queued."""
 
 ENDING_LEASE_SECONDS = 1800
 """int: How long the process that ends a stage holds the lease (`runrecord.ending_key`) against a second attempt; a kill with a retry left frees it (`horse_killed`)."""
@@ -324,7 +321,7 @@ def _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt):
 
 def stage_unended(conn, run_id, stage):
     """OPS.186: whether `stage` was completed (its `advanced` flag is set) and its end has not queued the next opening: the state a kill or a failure in the end leaves."""
-    return bool(conn.exists(runrecord.advanced_key(run_id, stage))) and runrecord._s(conn.get(runrecord.ended_key(run_id, stage))) != ENDED_QUEUED
+    return bool(conn.exists(runrecord.advanced_key(run_id, stage))) and planrows.RELEASE not in planrows.ended(conn, run_id, stage)
 
 
 def unended_stages(conn, run_id):
@@ -368,12 +365,12 @@ def _end_stage(conn, run_id, stage, wrapper, sleep=time.sleep):
     if not conn.set(lease, os.getpid(), nx=True, ex=ENDING_LEASE_SECONDS):
         return                      # another attempt is ending this stage
     try:
-        progress = runrecord._s(conn.get(runrecord.ended_key(run_id, stage)))
-        if progress == ENDED_QUEUED:
+        got = planrows.ended(conn, run_id, stage)
+        if planrows.RELEASE in got:
             return
-        if progress != ENDED_CONCLUDED:
-            wrapper.conclude_and_finish_stage(conn, run_id, stage)
-            conn.set(runrecord.ended_key(run_id, stage), ENDED_CONCLUDED, ex=runrecord.KEEP_SECONDS)
+        took = 0.0 if planrows.CONCLUDE in got else wrapper.conclude_stage_job(conn, run_id, stage)
+        if planrows.FINISH not in got:
+            wrapper.finish_stage_job(conn, run_id, stage, took)
         queue_name = wrapper.queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")))
         for attempt in range(OPEN_TRIES):
             try:
@@ -384,7 +381,7 @@ def _end_stage(conn, run_id, stage, wrapper, sleep=time.sleep):
                     raise
                 log.warning(f"Run {run_id}: queuing the opening of stage {stage + 1} failed ({type(exc).__name__}: {exc}); trying again.")
                 sleep(0.5 * 2 ** attempt)
-        conn.set(runrecord.ended_key(run_id, stage), ENDED_QUEUED, ex=runrecord.KEEP_SECONDS)
+        planrows.mark_ended(conn, run_id, stage, planrows.RELEASE)
     finally:
         conn.delete(lease)
 

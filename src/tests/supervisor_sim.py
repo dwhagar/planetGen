@@ -25,7 +25,7 @@ import random
 
 import redis
 
-from planetgen.queue import runline, runrecord, supervisor, units
+from planetgen.queue import planrows, runline, runrecord, supervisor, units
 
 TURN = 2.0
 STAGES = 3
@@ -94,9 +94,9 @@ class Sim:
         return found
 
     def end_stage(self, run_id, stage):
-        """The end of a stage: the next stage's opening queued once (`ENDED_QUEUED`) and the stage begun; the last stage ends the run."""
+        """The end of a stage: the next stage's opening queued once (its `release` job done in the ledger) and the stage begun; the last stage ends the run."""
         self.ends.append((run_id, stage))
-        self.real.set(runrecord.ended_key(run_id, stage), units.ENDED_QUEUED, ex=runrecord.KEEP_SECONDS)
+        planrows.mark_ended(self.real, run_id, stage, planrows.RELEASE)
         if stage + 1 < STAGES:
             self.begun.add((run_id, stage + 1))
             runrecord.begin_stage(self.real, run_id, stage + 1, now=self.clock.t)
