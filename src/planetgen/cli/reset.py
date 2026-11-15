@@ -66,7 +66,7 @@ from planetgen.queue import commands, longsql, redisqueue, runrecord, units, wra
 from planetgen.util import log, process
 from planetgen.util.format import counted
 
-_EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
+_EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters", "engine_items"}       # engine_items: the reset is itself a job, and wiping its own fence row would end it "replaced" (OPS.217)
 """set: Real tables that exist in every fresh database but hold
 bookkeeping, not galaxy content -- never truncated (`id_blocks`: see this
 module's docstring, DB.3; `id_counters`, DB.20: a number is never given twice). `sector_objects` (a

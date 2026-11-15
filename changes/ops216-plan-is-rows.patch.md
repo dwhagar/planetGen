@@ -1,0 +1,6 @@
+**Headline:** What a stage is made of is now written down as rows in the job ledger, in one step with the cut itself, instead of one Redis string.
+
+### Changed
+- **OPS.216 (job engine stage 3), output unchanged.** The opening of a stage (`wrapper._open`) now writes its cut to the control database through `queue/planrows.py`: one `engine_jobs` row per unit, and one row for the cut itself marked done, committed together. A cut that stopped half way leaves nothing; a cut that finished is found again by its row, so the retry of a killed opening reuses the same rows and never makes a second set of units. Each queued unit now carries its row's id (`units.run_unit`'s `row`), for the fenced done mark that follows (OPS.217). Everything that read the Redis `plan` string (the supervisor's idea of the stage in flight, the conclusion and finish of a stage, the deferred parameters that read a plan field, a run carried on from an earlier one) reads the rows. The run record names its `engine_run`. The Redis key `<prefix>:run:<id>:s<k>:plan` is no longer written; `runrecord.set_stage_plan` is `set_stage_size` (the unit count and cost of the stage, which the bar and the completing unit read).
+generation-output: unchanged
+generation-affects: none
