@@ -59747,6 +59747,120 @@
           "fields": [
             [
               "What it is",
+              "secular_chain.evolve(damping_per_yr=...) (GEN.1459): each planet's tide wears its eccentricity vector at 1 / orbit_elements.circularisation_time_yr (the cold tide) while the planets exchange it, dz/dt = (i A - Gamma) z, started from the birth eccentricity (_orbit_birth) and run over the star's age; inclinations are not damped"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets whose tide is linear in the eccentricity (the cold circularisation time is the rate)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose tide softens its own mantle (the heat of the eccentricity tide changes k2/Q; XD2 handles it as a factor), or an eccentricity above the theory's 0.3 (held, undamped)"
+            ],
+            [
+              "What replaces it",
+              "the damped modes of the chain with the tide's own k2/Q of each mode's eccentricity"
+            ],
+            [
+              "Evidence",
+              "derived: the linear damping of the Laplace-Lagrange equations by a tide that cuts e at the rate 1 / tau (Murray and Dermott section 7; the damped secular matrix)"
+            ]
+          ],
+          "id": "XD1",
+          "key": "6.244:XD1",
+          "kind": "P",
+          "slug": "6-244-xd1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "secular_chain.evolve(damping_per_yr=...) (GEN.1459): each planet's tide wears its eccentricity vector at 1 / orbit_elements.circularisation_time_yr (the cold tide) while the planets exchange it, dz/dt = (i A - Gamma) z, started from the birth eccentricity (_orbit_birth) and run over the star's age; inclinations are not damped"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.settle_orbit (GEN.1459): a planet the damped exchange has worn takes the harder tide of orbit_elements.settled_eccentricity (the heat softening the mantle) only as the share it adds to the cold decay from birth, settled / circularised(cold), applied to the exchanged eccentricity"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets with a strong tide (a hot, close, eccentric planet)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose pumped eccentricity is far from its birth value, where the share from the birth value is not the share at the pumped one"
+            ],
+            [
+              "What replaces it",
+              "the nonlinear damping run inside the exchange (a time-stepped integration)"
+            ],
+            [
+              "Evidence",
+              "design: the ratio keeps the existing melt-feedback result for a lone planet and the exchange's balance for a pumped one"
+            ]
+          ],
+          "id": "XD2",
+          "key": "6.244:XD2",
+          "kind": "P",
+          "slug": "6-244-xd2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.settle_orbit (GEN.1459): a planet the damped exchange has worn takes the harder tide of orbit_elements.settled_eccentricity (the heat softening the mantle) only as the share it adds to the cold decay from birth, settled / circularised(cold), applied to the exchanged eccentricity"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the forcing of a companion star on the planets' eccentricity (a source term in the exchange, GEN.1499) and the pumping of a moon's eccentricity by the other moons (GEN.1449 slice 2 gives a resonance's forced eccentricity as a floor, outside this equation) are not in the damped equation; a Kozai-pumped moon wears from the pumped value (kozai_bodies)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets of single stars and of wide binaries"
+            ],
+            [
+              "What would show it wrong",
+              "a planet in a close binary whose forced eccentricity survives the tide"
+            ],
+            [
+              "What replaces it",
+              "the inhomogeneous equation dz/dt = (i A - Gamma) z + f"
+            ],
+            [
+              "Evidence",
+              "design: the next items (GEN.1499, GEN.1449 slice 2)"
+            ]
+          ],
+          "id": "XD3",
+          "key": "6.244:XD3",
+          "kind": "T",
+          "slug": "6-244-xd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the forcing of a companion star on the planets' eccentricity (a source term in the exchange, GEN.1499) and the pumping of a moon's eccentricity by the other moons (GEN.1449 slice 2 gives a resonance's forced eccentricity as a floor, outside this equation) are not in the damped equation; a Kozai-pumped moon wears from the pumped value (kozai_bodies)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "planets.secular_exchange: an eccentricity the exchange raises is raised to the most the generator's spacing screen allows (a bisection, SECULAR_BISECTION_STEPS 12); one it lowers is lowered"
             ],
             [
@@ -67681,6 +67795,166 @@
       ],
       "slug": "6-298-stand-ins-of-the-growth-of-ice-and-snow-on-a-world-s-water-gen-1728",
       "title": "Stand-ins of the growth of ice and snow on a world's water (GEN.1728)"
+    },
+    {
+      "key": "6.301",
+      "number": "6.301",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.advance and standing_from_inventory: a source S against a loss k N leaves N(t) = N e^(-k t) + (S / k)(1 - e^(-k t)), S / k when the age is over a few lives, and never more than the inventory"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any gas whose loss is first order in its amount"
+            ],
+            [
+              "What would show it wrong",
+              "an air whose ammonia or methane stands over the source over the rate at a measured loss"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the solution of the linear balance; the rates are GEN.496's own"
+            ]
+          ],
+          "id": "PC1",
+          "key": "6.301:PC1",
+          "kind": "D",
+          "slug": "6-301-pc1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photochemical_loss.advance and standing_from_inventory: a source S against a loss k N leaves N(t) = N e^(-k t) + (S / k)(1 - e^(-k t)), S / k when the age is over a few lives, and never more than the inventory"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.standing_from_inventory: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time"
+            ],
+            [
+              "The range it moves in",
+              "the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (interior_heat.heat_at), which moves the standing amount by the same ratio at the age of the loss"
+            ],
+            [
+              "Where it holds",
+              "a body whose air gas stands for the life of the star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the history's own supply at each step (GEN.1745)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the mean of the supply is what a constant source gives"
+            ]
+          ],
+          "id": "PC2",
+          "key": "6.301:PC2",
+          "kind": "P",
+          "slug": "6-301-pc2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "photochemical_loss.standing_from_inventory: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.light_limit: the light breaks no more than the column of one optical depth times the rate (photolysis.photon_limited_flux_mol_m2_s, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes"
+            ],
+            [
+              "The range it moves in",
+              "the column within a factor of 2 (row SL6)"
+            ],
+            [
+              "Where it holds",
+              "NH3 and CH4 in a thick air"
+            ],
+            [
+              "What would show it wrong",
+              "a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's"
+            ],
+            [
+              "What replaces it",
+              "a photochemical column model with the cross sections by wavelength"
+            ],
+            [
+              "Evidence",
+              "row SL6; [R2026] table 6"
+            ]
+          ],
+          "id": "PC3",
+          "key": "6.301:PC3",
+          "kind": "B",
+          "slug": "6-301-pc3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photochemical_loss.light_limit: the light breaks no more than the column of one optical depth times the rate (photolysis.photon_limited_flux_mol_m2_s, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+            ],
+            [
+              "The range it moves in",
+              "the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state"
+            ],
+            [
+              "Where it holds",
+              "an air with water and the escape of hydrogen of thermosphere"
+            ],
+            [
+              "What would show it wrong",
+              "a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2"
+            ],
+            [
+              "What replaces it",
+              "the hydrogen escape and the photochemical network of the history's step"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
+            ]
+          ],
+          "id": "PC4",
+          "key": "6.301:PC4",
+          "kind": "P",
+          "slug": "6-301-pc4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": "GEN.1745",
+          "what": "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+        }
+      ],
+      "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",
+      "title": "Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)"
     }
   ]
 }
