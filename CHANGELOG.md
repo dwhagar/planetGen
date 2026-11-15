@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4190] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits has its memory figure like every other command.
+
+### Fixed
+
+- OPS.257: `store-scatter-limits` is a lean worker in the memory table (one row write), which the every-command-has-a-memory-figure guard asked for.
+
 ## [8.0.4189] - 2026-11-15
 
 **Headline:** the stage that stores the star scatter's limits gives the engine its pieces like the other converted commands.
