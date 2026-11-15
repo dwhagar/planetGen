@@ -22,7 +22,7 @@ release is stamped.
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.761 |
+| TEST | TEST.763 |
 | USR | USR.33 |
 | OPS | OPS.262 |
 | DOC | DOC.121 |
@@ -4892,7 +4892,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.757 | (bug) test_stage_worker_cap compares two peak_resident memory readings with no slack and fails under gate load | none | done, PR #6636 (4:52 AM EST 11-15) |
 | TEST.758 | (bug) test_hand_formatted_units red on main: generation/run_galaxy.py line 1790 formats MB by hand (PERF.270's sector line) | none | done, PRs #6628 and #6630 (4:42 AM EST 11-15) |
 | TEST.759 | (bug) test_stages: a failed stage's line says "failed after 4.48 ms" where five tests expect "0 s" | none | done, PR #6637 (4:57 AM EST 11-15) |
-| TEST.760 | (bug) test_heartbeat_rules: same_rules_on_the_same_clock expects a 10 minute stall limit where beatjudge now says 5 minutes | none | open |
+| TEST.760 | (bug) test_heartbeat_rules: same_rules_on_the_same_clock expects a 10 minute stall limit where beatjudge now says 5 minutes | none | done, PR #6658 (6:50 AM EST 11-15) |
+| TEST.761 | (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only | none | open |
+| TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
