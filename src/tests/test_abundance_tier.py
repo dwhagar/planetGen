@@ -21,20 +21,21 @@ def test_science_is_the_default_and_every_dial_is_off():
     config = SystemConfig()
     assert config.ABUNDANCE_TIER is None and abundance_tier.tier_of(config) == "science"
     assert "ABUNDANCE_TIER" not in vars(config)      # a class attribute: a config on science holds no field of it (the golden digests list every field)
-    assert abundance_tier.dials_of(config) == abundance_tier.OFF == (0.0, 0.0, 0.0, 0.0)
+    assert abundance_tier.dials_of(config) == abundance_tier.OFF == (0.0, 0.0, 0.0, 0.0, 0.0)
     assert not abundance_tier.active(config) and abundance_tier.request_share(config) == 0.0
     for tier in (None, "science"):
         planet = _planet(tier)
         assert abundance_tier.water_share(planet) == 0.0 and abundance_tier.bare_share(planet) == 0.0 and abundance_tier.dry_part(planet) == 0.0
+        assert abundance_tier.cycle_share(planet) == 0.0
 
 
-def test_every_other_tier_has_a_row_of_four_shares_that_never_fall_from_one_tier_to_the_next():
+def test_every_other_tier_has_a_row_of_five_shares_that_never_fall_from_one_tier_to_the_next():
     assert set(tuning.ABUNDANCE_TIER_DIALS) == set(abundance_tier.TIERS) - {"science"}
     assert set(abundance_tier.TARGET_SYSTEMS_PER_CLASS_M) == set(abundance_tier.TIERS)
     rows = [abundance_tier.dials_of(_planet(tier)) for tier in abundance_tier.TIERS]
     for lower, higher in zip(rows, rows[1:]):
         assert all(0.0 <= a <= b <= 1.0 for a, b in zip(lower, higher))
-    assert all(len(row) == 4 and 0.0 < row.dry_part < 0.5 for row in rows[1:])        # desert worlds beside the temperate one, which stays the larger part (GEN.1721)
+    assert all(len(row) == 5 and 0.0 < row.dry_part < 0.5 and row.cycle_share > 0.0 for row in rows[1:])        # desert worlds beside the temperate one, which stays the larger part (GEN.1721)
     targets = [abundance_tier.TARGET_SYSTEMS_PER_CLASS_M[tier] for tier in abundance_tier.TIERS[1:]]
     assert targets == sorted(targets, reverse=True)
 

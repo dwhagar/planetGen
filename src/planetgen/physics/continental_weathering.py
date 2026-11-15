@@ -41,8 +41,10 @@ Every number that is not read from a source is a design constant with its source
 
 import math
 
+from planetgen import tuning
 from planetgen.physics import surface_pressure, waterworld_carbon
 from planetgen.physics.mixture_base import bracket
+from planetgen.util import draw
 
 # --- [R1660: Table 1] (read) -----------------------------------------------------------------------------------
 
@@ -107,9 +109,18 @@ LAMBDA_SCALE = (0.1, 10.0, "log")
 (stand-in AM109, tier T1, tweak level L0)."""
 
 
-def draw_cycle(constants):
-    """`(lambda_scale, m)`: the factor of the thermodynamic limit and the exponent of the heat flow in the outgassing, drawn and recorded in `constants`."""
-    return (bracket(constants, "weathering_lambda_scale", LAMBDA_SCALE), bracket(constants, "outgassing_exponent", surface_pressure.OUTGASSING_EXPONENT))
+def draw_cycle(constants, nudge_share=0.0):
+    """
+    `(lambda_scale, m)`: the factor of the thermodynamic limit and the exponent of the heat flow in the outgassing, drawn and recorded in `constants`.
+
+    `nudge_share` is the `cycle_share` of a Class M abundance tier (GEN.1720): that share of the bodies draw both from the part of their published range that holds the balance nearest the Earth's
+    (`tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE`, `ABUNDANCE_CYCLE_OUTGASSING_RANGE`; recorded as `cycle_nudged`). It makes one draw when it is above 0 and none at 0, so a body outside a tier draws as it always did.
+    """
+    nudged = nudge_share > 0.0 and draw.random() < nudge_share
+    if nudge_share > 0.0:
+        constants["cycle_nudged"] = nudged
+    return (bracket(constants, "weathering_lambda_scale", tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE if nudged else LAMBDA_SCALE),
+            bracket(constants, "outgassing_exponent", tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE if nudged else surface_pressure.OUTGASSING_EXPONENT))
 
 
 # --- the land law -----------------------------------------------------------------------------------------------------------------

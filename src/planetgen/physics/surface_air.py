@@ -48,6 +48,7 @@ from planetgen.physics import (
     mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
+from planetgen.generation import abundance_tier
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import bracket
@@ -247,6 +248,7 @@ class Setting:
             (`impact_history.impact_speed_ms`); `None` for a body with no star, which takes no late accretion (GEN.819).
         ice_kg (dict or None): The mass of each surface ice of `ICE_VAPOR_FORMULAS` the body holds (formula -> kg, from its `ice_<formula>_mass_fraction`), the reservoirs whose vapor the air carries (GEN.1675); `None` or empty for
             a body with none, a giant and a setting built by hand.
+        cycle_share (float): The share of bodies of its kind whose carbon-cycle constants a Class M abundance tier draws from the part of their ranges nearest the Earth's balance (`abundance_tier.cycle_share`, GEN.1720); 0 outside a tier.
         steam_possible (bool): Whether the body can hold its water as steam: its effective flux (the starlight and its own heat) is past the runaway
             greenhouse limit (`orbits.runaway_greenhouse_flux`, GEN.1329). Under the limit a hot steam air radiates the steam limit of about 280 W/m2, more
             than the body absorbs, and cools, so a body with water is held under `MOIST_LIMIT_K`. True for a setting built by hand, as it was before GEN.1329.
@@ -277,6 +279,7 @@ class Setting:
     steam_possible: bool = True
     late_accreted_percent: object = None
     ice_kg: object = None
+    cycle_share: float = 0.0
 
     def albedo_at(self, temperature_k, ocean=True):
         """The Bond albedo of the step at `temperature_k`: the ice law's (GEN.972) plus the cloud's (`cloud_albedo`, GEN.974, nil with no liquid ocean at the step), held under
@@ -792,7 +795,7 @@ def solve(setting, start_temperature_k):
     entry_state = draw.getstate()
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = continental_weathering.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design, setting.cycle_share)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     water_world = water_world_of(setting, design)
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
@@ -1206,4 +1209,4 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
         cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au),
         late_accreted_percent=getattr(body, "_late_accreted_percent", None),
-        ice_kg=None if giant else surface_ice_kg(body))
+        ice_kg=None if giant else surface_ice_kg(body), cycle_share=abundance_tier.cycle_share(body))
