@@ -13084,6 +13084,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: TEST.737, TEST.740.
   Filed by the TODO thread.
 
+- [ ] **TEST.755 (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand**
+  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_hand_formatted_units fails on main dc5567f47 for queue/units.py (line 714, " h ") and queue/splitter.py: UX.318 (PR #6574) requires planetgen.util.format helpers (format_duration_seconds and kin). Use the helpers; no allow-list entry.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
+  Filed by the TODO thread.
+
+- [ ] **TEST.756 (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB"**
+  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_run_record::test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it fails on main dc5567f47 ("1.49 GB" expected, "1487 MB" written). Decide which side follows the shared size formatter of UX.318 and make the other agree; no skip.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
