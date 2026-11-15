@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1709 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1711 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1682 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1684 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 222 | 118 | 33 | 76 | 4 | 453 |
 | T7 | 58 | 24 | 10 | 31 | 0 | 123 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 50 | 18 | 6 | 95 | 39 | 208 |
-| All | 982 | 341 | 87 | 241 | 58 | 1709 |
+| T9 | 50 | 18 | 6 | 95 | 41 | 210 |
+| All | 982 | 341 | 87 | 241 | 60 | 1711 |
 
 ## How the labels were given
 
@@ -2960,6 +2960,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AT3 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by `tuning.REQUEST_ODDS` (row CC10) and forces nothing | each share 0 to 1 | galaxies made under Plentiful or Abundant | as AT1 | none: the strength of a request is the maker's choice | needed output: the two top targets (1 in 37, 1 in 10) are past what the water and envelope dials reach by the report's estimate | predicted only | - | no data |
 | AT4 | P | T9 | L3 | `abundance_tier.TARGET_SYSTEMS_PER_CLASS_M` (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy | each target by a factor of 3 (the choice Boss was given) | the calibration only | none: a setting of the galaxy's maker | none | Boss, card "Set the target Class M rate of each tier", 11:19 PM EST 2026-11-13 (1,000, 100, 30, 10); replaced by Boss, 9:28 and 9:30 PM EST 2026-11-14: Sparse 1 in 500, Abundant 1 in 10, the rest split logarithmically | predicted only | GEN.1706 | no data |
 | AT5 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (`dry` of `delivered_water`, under 0.025 percent of the mass: a desert world) and not Earth's | 0 to 0.5 (Earth's class stays the larger part, so the temperate world stays in front) | as AT1 | the meter's family table (`scripts/class_m_meter.py`) reading more Class H worlds than Class M, or none, under a tier whose other family dials are set | a formation law that gives the share of habitable-zone planets drier than Earth | needed output: Boss, 8:24 PM EST 2026-11-14 (classes H, O, P and R beside M, M in front); on 800 Sun-like systems the laws gave 19 desert-shaped planets beside 3 temperate-shaped ones and no Class H (reports/train28-census-2026-11-14/five-classes-800.md); a dry planet is Class H only with groundwater and oxygen, which this dial does not give | predicted only | - | no data |
+| AT6 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` quiet share (Sparse 0; the other tiers 0.5) and `tuning.ABUNDANCE_QUIET_SINK_FACTOR` 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (`biogenic_oxygen.reductant_flux`) | share 0 to 1; factor 0.33 to 1 (1e12 to 3e12 mol a year at Earth's heat, the low half of row BO2's range) | as AT1 | the meter's family table reading no gain in planets that pass their oxygen limit against a run with the share at 0 | a law for the reductant flux of a planet from its mantle and tectonic state | needed output: Boss, 9:43 PM EST 2026-11-14 ("tweak the volcanic activity a bit"); at a third of the sink the planets whose source beats it rise from 19 to 31 of 38 land-and-sea shapes under Abundant (reports/class-m-tiers-build/meter-main-33bed421-2026-11-14.md, source_vs_sink.py) | predicted only | - | no data |
+| AT7 | P | T9 | L4 | `tuning.ABUNDANCE_DESERT_WATER_RANGE` (4e-6 to 3e-5 of the mass) and the desert sea rule (`abundance_tier.desert_sea`, `hydrosphere.salts_concentrated`): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (`surface ocean`, water activity 0.97 to 0.99), not the concentrated brine (`brine seep`, 0.30 to 0.65) so little water makes on any other world | range inside the dry class (1e-6 to 2.5e-4); the sea between an ordinary one and one saturated with rock salt (water activity about 0.75, where salt-loving oxygen-making algae still live) | as AT1 | the meter reading desert worlds with water cover outside 5 to 20 percent for most of the dialed ones, or more Class H than Class M | land plants in the oxygen law (GEN.1729) and a salt balance for small seas (salt supplied by weathering against the water that holds it) | needed output: Boss, card "Choose how desert worlds get breathable air", 9:49 PM EST 2026-11-14 (both, small seas first); on 400 Sun-like systems the water of 5 to 20 percent cover lies at 3e-6 to 5e-5 of the mass, every such sea is a brine seep with no oxygen source (reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md), and with the brine left as it is 31 of 44 desert worlds hold no life at all (water activity under 0.6; reports/class-m-tiers-build/meter-gen1721-slice2-prototype-2026-11-14.md) | predicted only | - | no data |
 
 ## 6.290 Stand-ins of the Bond albedo of a dry body's ground
 

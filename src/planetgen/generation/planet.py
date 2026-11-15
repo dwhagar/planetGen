@@ -529,6 +529,11 @@ class Planet(PlanetaryObject):
         share = abundance_tier.bare_share(self)
         if share > 0.0 and not self._late_core and draw.random() < share:
             self._late_core = True
+        # Class M tiers, quiet interior (GEN.1721): under a tier a share of the candidates has volcanic gases that take less oxygen; one draw, made here once, and the
+        # attribute is set only when the draw says so (a planet on `science`, or not drawn quiet, holds no such field: the golden digests list every field).
+        quiet = abundance_tier.quiet_share(self)
+        if quiet > 0.0 and draw.random() < quiet:
+            self._quiet_interior = True
         # GEN.1323: the envelope the planet kept at the star's age now, on a circular orbit (settled again when the age and the orbit are final); before the orbit is
         # shaped, since the tide that wears an eccentricity down reads the radius
         planetPhysics.apply_envelope(self)
