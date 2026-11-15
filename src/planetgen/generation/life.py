@@ -36,6 +36,9 @@ from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits
 from planetgen.util import draw
 from planetgen.util import log
 
+CARBON_GATE = "co2_partial_pa"
+"""str: The name of the gate of a life class that holds the carbon dioxide its carbon fixers need (`life_classes` rows, GEN.1581); a dominant class that fails it on the air it made is dropped (GEN.1736)."""
+
 def apply_life_data(planet, keep_stored=False):
     """
     Determines and assigns the life of a planet or moon: the class that lives on it (`life_class`, `life_class_variant`), the classes it
@@ -144,6 +147,12 @@ def _apply(planet, keep_stored, key, barred):
             # Its own air (the greenhouse gas it drew down) took the liquid it lives in: a class cannot live without its solvent (GEN.1298)
             if log.debug_log_active():
                 log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it.")
+            return row.id
+        if row.id in final and CARBON_GATE in final[row.id].failed:
+            # Its own air (the oxygen it raised, and the carbon sink asked again at the temperature the oxygen left, `biogenic_oxygen.rebalance_co2`) holds less carbon dioxide
+            # than the class needs to fix carbon: a class passed the gate before its air, and a class cannot live on carbon its own air no longer holds (GEN.1736)
+            if log.debug_log_active():
+                log.debug(f"Life class: {row.id} dropped, its own air left it too little carbon dioxide.")
             return row.id
         # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
         # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).

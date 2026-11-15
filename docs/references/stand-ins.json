@@ -12901,6 +12901,44 @@
           "fields": [
             [
               "What it is",
+              "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
+            ],
+            [
+              "The range it moves in",
+              "0.20 to 0.33 (plants add 25 percent at C/P 1000 to 50 percent at C/P 2000 to the burial without them)"
+            ],
+            [
+              "Where it holds",
+              "worlds with no wide sea whose life has reached mosses and the first land plants"
+            ],
+            [
+              "What would show it wrong",
+              "a measured land share of organic carbon burial outside 0.20 to 0.33, or an oxygen model in which plants add much more or less to the burial"
+            ],
+            [
+              "What replaces it",
+              "the land and marine burial from a sourced budget (the flux of [R5284] and the terrestrial share of burial of [R5285], not read)"
+            ],
+            [
+              "Evidence",
+              "READ ([R5283] full text: land plants raise total organic carbon burial by about 25 percent with C/P 1000 and about 50 percent with C/P 2000, oxygen reaching present levels by 420 to 400 Ma); one model, so it is tier 3"
+            ]
+          ],
+          "id": "BO15",
+          "key": "6.21:BO15",
+          "kind": "P",
+          "slug": "6-21-bo15",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "surface_refuge.MIN_HOURS_YR 75, LIQUID_MIN_K 252, LIQUID_MAX_K 346, MELT_K 273.15 and life_classes.json gate lit_liquid_hours min 75 (GEN.1723): oxygenic life lives wherever light and any liquid water reach the surface, an open sea, a brine seep, a seasonal melt, a spring or a hot pool, 75 h a year or more at 252 to 346 K"
             ],
             [
@@ -67681,6 +67719,254 @@
       ],
       "slug": "6-298-stand-ins-of-the-growth-of-ice-and-snow-on-a-world-s-water-gen-1728",
       "title": "Stand-ins of the growth of ice and snow on a world's water (GEN.1728)"
+    },
+    {
+      "key": "6.299",
+      "number": "6.299",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the share of a cold body's surface that seas of methane or ethane must cover to be class U (a third of Titan's cover, 0.005) is a reader's word \"seas\", not a measurement; the lake counts of Titan are the only data, and a survey of methane worlds with their sea cover replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "class_domains.SEA_COVER_MIN 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.016"
+            ],
+            [
+              "Where it holds",
+              "a cold body under a thick air with methane"
+            ],
+            [
+              "What would show it wrong",
+              "a body with lakes and seas of methane that covers less than a third of Titan's cover and is called a methane-ethane world by readers, or a Titan-like body below it that the table of seas calls dry"
+            ],
+            [
+              "What replaces it",
+              "the share a reader's word \"seas\" means, from lake counts"
+            ],
+            [
+              "Evidence",
+              "[R1857]: lakes and seas cover 1.6 percent of Titan; surface_liquid_world.SURFACE_SHARE_OF_ICE (LQ11) is tuned to it"
+            ]
+          ],
+          "id": "CL1",
+          "key": "6.299:CL1",
+          "kind": "P",
+          "slug": "6-299-cl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class_domains.SEA_COVER_MIN 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with an interior heat flow"
+            ],
+            [
+              "What would show it wrong",
+              "a body of less heat flow than that whose air is 3 percent sulfur dioxide from volcanoes"
+            ],
+            [
+              "What replaces it",
+              "the volcanism floor drawn by the ground (E 3.2 rule 4) for the body"
+            ],
+            [
+              "Evidence",
+              "the existing floor of the ground, reused; no new number"
+            ]
+          ],
+          "id": "CL2",
+          "key": "6.299:CL2",
+          "kind": "P",
+          "slug": "6-299-cl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A"
+        }
+      ],
+      "slug": "6-299-stand-ins-of-the-liquid-and-volcano-conditions-of-classes-u-y-a-and-x-gen-1617",
+      "title": "Stand-ins of the liquid and volcano conditions of classes U, Y, A and X (GEN.1617)"
+    },
+    {
+      "key": "6.301",
+      "number": "6.301",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.advance and standing_from_inventory: a source S against a loss k N leaves N(t) = N e^(-k t) + (S / k)(1 - e^(-k t)), S / k when the age is over a few lives, and never more than the inventory"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any gas whose loss is first order in its amount"
+            ],
+            [
+              "What would show it wrong",
+              "an air whose ammonia or methane stands over the source over the rate at a measured loss"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the solution of the linear balance; the rates are GEN.496's own"
+            ]
+          ],
+          "id": "PC1",
+          "key": "6.301:PC1",
+          "kind": "D",
+          "slug": "6-301-pc1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photochemical_loss.advance and standing_from_inventory: a source S against a loss k N leaves N(t) = N e^(-k t) + (S / k)(1 - e^(-k t)), S / k when the age is over a few lives, and never more than the inventory"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.standing_from_inventory: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time"
+            ],
+            [
+              "The range it moves in",
+              "the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (interior_heat.heat_at), which moves the standing amount by the same ratio at the age of the loss"
+            ],
+            [
+              "Where it holds",
+              "a body whose air gas stands for the life of the star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the history's own supply at each step (GEN.1745)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the mean of the supply is what a constant source gives"
+            ]
+          ],
+          "id": "PC2",
+          "key": "6.301:PC2",
+          "kind": "P",
+          "slug": "6-301-pc2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "photochemical_loss.standing_from_inventory: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.light_limit: the light breaks no more than the column of one optical depth times the rate (photolysis.photon_limited_flux_mol_m2_s, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes"
+            ],
+            [
+              "The range it moves in",
+              "the column within a factor of 2 (row SL6)"
+            ],
+            [
+              "Where it holds",
+              "NH3 and CH4 in a thick air"
+            ],
+            [
+              "What would show it wrong",
+              "a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's"
+            ],
+            [
+              "What replaces it",
+              "a photochemical column model with the cross sections by wavelength"
+            ],
+            [
+              "Evidence",
+              "row SL6; [R2026] table 6"
+            ]
+          ],
+          "id": "PC3",
+          "key": "6.301:PC3",
+          "kind": "B",
+          "slug": "6-301-pc3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photochemical_loss.light_limit: the light breaks no more than the column of one optical depth times the rate (photolysis.photon_limited_flux_mol_m2_s, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+            ],
+            [
+              "The range it moves in",
+              "the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state"
+            ],
+            [
+              "Where it holds",
+              "an air with water and the escape of hydrogen of thermosphere"
+            ],
+            [
+              "What would show it wrong",
+              "a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2"
+            ],
+            [
+              "What replaces it",
+              "the hydrogen escape and the photochemical network of the history's step"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
+            ]
+          ],
+          "id": "PC4",
+          "key": "6.301:PC4",
+          "kind": "P",
+          "slug": "6-301-pc4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": "GEN.1745",
+          "what": "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+        }
+      ],
+      "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",
+      "title": "Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)"
     }
   ]
 }

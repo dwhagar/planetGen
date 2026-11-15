@@ -549,6 +549,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.298", "6.298 Stand-ins of the growth of ice and snow on a world's water (GEN.1728)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.299", "6.299 Stand-ins of the liquid and volcano conditions of classes U, Y, A and X (GEN.1617)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.301", "6.301 Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )

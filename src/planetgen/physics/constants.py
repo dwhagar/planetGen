@@ -73,6 +73,7 @@ MIN_TIDAL_DISTANCE_LY = 4.89  # 1.5 pc, a point's mean distance in the 2 pc core
 EARTH_MASS_TO_KG = 5.972167867791379e+24  # Earth mass to kilograms conversion factor
 MOON_MASS_KG = 7.342e+22  # The Moon's mass, kg: project-nominal (the IAU defines no lunar mass), for the mass ladder's lunar rung
 JUPITER_MASS_TO_KG = 1.8981245973360505e+27  # Jupiter mass to kilograms conversion factor
+JUPITER_MASS_EARTH = JUPITER_MASS_TO_KG / EARTH_MASS_TO_KG  # Jupiter's mass in Earth masses (317.83): the one ratio of the two conversion factors above; the planet classes' mass boundaries and the prose read it
 JUPITER_RADIUS_KM = 71_492.0  # Jupiter's mean equatorial radius in kilometers
 
 # Minimum Mass Solar Nebula [R1854] *solid* surface density at
