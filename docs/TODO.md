@@ -12702,11 +12702,6 @@ clears each one.
   Filed by the TODO thread.
   Part 1 merged, PR #6488 (TODO, 11-14). Open for the rest (the guard covers each family as it moves; whole flag deleted with the last family).
 
-- [ ] **OPS.198 Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity)**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P8 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 21. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-
 - [ ] **OPS.202 Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P12); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P12 says (reuse and delete columns named there; name reuse in the PR). Size L. Lock-free. Output unchanged, no epoch, no migration.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 12 (moved from Lane 15). Prerequisites: OPS.191, OPS.192, PERF.264, PERF.261. Related: OPS.186, OPS.188, OPS.181, OPS.185.
@@ -13034,39 +13029,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: GEN.1716 part B. Related: GEN.1716, GEN.1715.
   Filed by the TODO thread.
 
-- [ ] **OPS.258 Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test**
-  Boss, 5:24 PM EST on 2026-11-14 (as the coordinator relayed): no per-train golden renewal; golden renewed once at the 8.1 release; pinned galaxy test stays as smoke test. Do (Train Manager's breakdown, 5:24 PM EST): (1) testing mode: test_golden_seed becomes a smoke test (the pinned galaxy must generate and store; no digest compare with the golden files); golden files and epoch renewed once at 8.1; an output-changing note says generation-output: changed without golden files. (2) The release-note check (bump_version --check-pr) stops requiring golden files and an epoch bump together; epochs and affects renumbered once at 8.1. Add the one renewal to the 8.1 release gate (SEC.33, TEST.261 list). Train 28 keeps its renewed golden; from Train 29 on no lane PR needs a golden or epoch step. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
-- [ ] **OPS.259 Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs**
-  Train Manager, 5:24 PM EST on 2026-11-14, with OPS.258: scripts/data/gate_durations.json holds skip-time values (test_fingerprint 6 s, runs 44 min; test_deferred_sectors 6 s, runs 19 min), so shards do not balance. Do: train_gate.py shard splits the gate across lanes from the start; refresh the durations from real DB-run times and keep them refreshed by each gate run. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: OPS.258.
-  Filed by the TODO thread.
-
-- [ ] **TEST.746 (bug) test_giant_class_words is red on main for gas dwarfs at seed 2001**
-  Lane 14, 6:29 PM EST, and Train Manager, 6:54 PM EST on 2026-11-14 (Train 28 known issues): red on main, not from any one open PR. Do: find which merge turned it red and fix at the cause (the words or the class, whichever is wrong).
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
-  Filed by the TODO thread.
-
-- [ ] **TEST.747 (bug) test_references is red on main: two references share an id (R5166 and R5164)**
-  Train Manager, 6:54 PM EST on 2026-11-14 (Train 28 known issues). Do: find the merge that gave two entries one id, keep one id per source and fix the citing lines.
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
-  Filed by the TODO thread.
-
-- [ ] **TEST.748 (bug) test_plain_words is red on main**
-  Train Manager, 6:54 PM EST on 2026-11-14 (Train 28 known issues). Do: fix the words the test names at their source.
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
-  Filed by the TODO thread.
-
 - [ ] **TEST.749 (bug) test_galaxy_gen has two red tests on main**
   Train Manager, 6:54 PM EST on 2026-11-14 (Train 28 known issues). Do: find which merge turned them red and fix at the cause.
   Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
   Filed by the TODO thread.
 
-- [ ] **TEST.750 (bug) test_life_help is red on main**
-  Train Manager, 6:54 PM EST on 2026-11-14 (Train 28 known issues). Do: fix the help text or the test at the cause.
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
+- [ ] **TEST.751 (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback**
+  Stacked-fixes thread (Fable), 7:30 PM EST on 2026-11-14, with Lane 22 on PR 6510: on main f94663af2 the test passes alone in 1,438 s with the limit raised; under the 900 s limit plus 120 s grace it is ended at about 17 minutes on main as on 6510. The guard's HUNG TEST line goes to the worker's stderr, which the runner does not show. Do: make the row-id check generate less (it builds two galaxies) so it runs well under the limit while still proving row ids do not change the fingerprint; and make the hang guard's line reach the runner's output. No skip, no raised limit as the fix.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1691.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
