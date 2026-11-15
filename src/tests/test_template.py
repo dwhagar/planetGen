@@ -99,3 +99,41 @@ def test_the_star_tables_are_a_warm_set_a_template_may_build():
     from planetgen.queue import units
     allowlist.check_function("planetgen.queue.units.warm_star_tables", "a warm set")
     assert template._function("planetgen.queue.units.warm_star_tables") is units.warm_star_tables
+
+
+def test_without_kernel_handles_the_template_reports_every_exit_and_a_dead_template_leaves_the_pids_to_look_for(monkeypatch):
+    """The path macOS takes (OPS.226): no `pidfd`, so the template's report is the way, and when the template is the one that died each job's pid is looked for."""
+    monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
+    monkeypatch.setenv("PLANETGEN_TEMPLATE_PIDFD", "0")
+    made = jobhost.JobHost()
+    made.start(ready_seconds=60)
+    try:
+        quick, lingering = made.fork(f"{R}.quick", {"code": 4}), made.fork(f"{R}.lingers")
+        assert quick.pidfd is None and lingering.pidfd is None
+        assert [(exit_.id, exit_.code, exit_.source) for exit_ in _exits(made, 1)] == [(quick.id, 4, "template")]
+        os.kill(made.template_pid, signal.SIGKILL)
+        time.sleep(0.2)
+        os.kill(lingering.pid, signal.SIGKILL)
+        exit_ = _exits(made, 1)[0]
+        assert (exit_.id, exit_.code, exit_.signal, exit_.source) == (lingering.id, None, None, "pid")
+    finally:
+        made.stop()
+
+
+def test_each_kind_is_forked_from_the_template_of_its_lane_and_a_template_starts_when_first_asked_for(monkeypatch):
+    monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
+    assert jobhost.template_key("scatter-mass") == "tables" and jobhost.template_key("generate-system") == "plain"
+    templates = jobhost.TemplateSet(warm_sets={"tables": [f"{R}.warm"], "plain": []}, ready_seconds=60)
+    try:
+        assert templates.hosts == {}, "nothing is started before a job asks"
+        key, plain = templates.fork("generate-system", f"{R}.quick", {"code": 0})
+        assert key == "plain" and list(templates.hosts) == ["plain"], "a host with no star-drawing work never builds the tables"
+        key, tables = templates.fork("scatter-mass", f"{R}.uses_the_warm_set")
+        assert key == "tables" and set(templates.hosts) == {"plain", "tables"}
+        found, deadline = {}, time.monotonic() + 20
+        while len(found) < 2 and time.monotonic() < deadline:
+            for lane, exit_ in templates.poll(0.2):
+                found[(lane, exit_.id)] = exit_.code
+        assert sorted(found.values()) == [0, 0] and {lane for lane, _ in found} == {"plain", "tables"}
+    finally:
+        templates.stop()
