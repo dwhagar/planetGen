@@ -73,12 +73,29 @@ def test_a_stored_rank_is_the_stored_member_and_a_rank_the_belt_does_not_hold_is
     assert all(od.member_of_rank(belt, system.star, system.system_config, rank) is None for rank in promoted)
 
 
+ASTEROID_SEARCH_RANKS = 60
+"""int: How many ranks past the first the tests look through for a body whose planet is round enough to have a class letter."""
+
+
+def _first_with_a_class(system, order, belt, ranks):
+    """
+    `(rank, planet)` of the first of `ranks` whose planet has a class letter. A body under a roundness ratio of 1 is an Asteroid, an object type with no letter (GEN.1160): the belt's status reads the median
+    strength and the planet draws its own, so a body just over the round mass can come out one, as `belt_planets.promote` knows (it takes the next heaviest), and the on-demand path gives the same planet.
+    """
+    for rank in ranks:
+        planet = od.planet_of_rank(system, system.star, belt, order, rank)
+        if planet.planet_class is not None:
+            return rank, planet
+        assert planet.roundness_ratio < 1.0          # no letter only for an Asteroid
+    pytest.fail(f"none of {len(ranks)} bodies of the belt came out round enough to have a class")
+
+
 def test_the_class_of_a_body_is_the_planet_the_generator_makes_of_it(case):
     system, order, belt, settled = case
-    rank = od.stored_count(settled) + 5
-    planet = od.planet_of_rank(system, system.star, belt, order, rank)
+    first = od.stored_count(settled) + 5
+    rank, planet = _first_with_a_class(system, order, belt, range(first, first + ASTEROID_SEARCH_RANKS))
     member = od.tail_member(belt, system.star, system.system_config, rank)
-    assert planet.planet_class is not None and len(planet.planet_class) == 1
+    assert len(planet.planet_class) == 1
     assert planet.mass == pytest.approx(member["mass_kg"]) and planet.belt_order == order
     again = od.planet_of_rank(system, system.star, belt, order, rank)
     assert (again.planet_class, again.mass, again.radius) == (planet.planet_class, planet.mass, planet.radius)
@@ -88,8 +105,9 @@ def test_the_class_of_a_body_is_the_planet_the_generator_makes_of_it(case):
 
 def test_a_stored_member_is_made_a_planet_by_the_same_path(case):
     system, order, belt, _settled = case
-    member = belt.members[len(belt.members) // 2]
-    planet = od.planet_of_rank(system, system.star, belt, order, member["rank"])
+    ranks = [member["rank"] for member in belt.members[len(belt.members) // 2:]]
+    rank, planet = _first_with_a_class(system, order, belt, ranks)
+    member = next(member for member in belt.members if member["rank"] == rank)
     assert planet.mass == pytest.approx(member["mass_kg"]) and planet.planet_class is not None
 
 
