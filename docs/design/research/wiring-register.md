@@ -226,3 +226,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
 | row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
+| module | planetgen.physics.ice_light | GEN.1723 | the light that reaches the water under a lid of ice and snow; the refuge term of GEN.1723 reads `light_below` for the oxygen of lit water under ice (GEN.1726 built the law; the thickness of a world's ice and snow is not built yet) |
+| row | 6.293:IL1 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL2 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL3 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL4 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL5 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |
+| row | 6.293:IL6 | GEN.1723 | read by `physics/ice_light.py`, which GEN.1723 wires |

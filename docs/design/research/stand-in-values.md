@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1693 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1699 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1666 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1672 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 190 | 20 | 12 | 1 | 0 | 223 |
+| T1 | 195 | 20 | 12 | 1 | 0 | 228 |
 | T2 | 160 | 66 | 2 | 1 | 0 | 229 |
 | T3 | 115 | 56 | 13 | 9 | 0 | 193 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
 | T6 | 221 | 116 | 31 | 76 | 4 | 448 |
-| T7 | 58 | 23 | 10 | 31 | 0 | 122 |
+| T7 | 58 | 24 | 10 | 31 | 0 | 123 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 38 | 207 |
-| All | 973 | 337 | 85 | 241 | 57 | 1693 |
+| All | 978 | 338 | 85 | 241 | 57 | 1699 |
 
 ## How the labels were given
 
@@ -2976,3 +2976,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | SHL1 | P | T5 | L0 | `surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2` for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31 | each within 5 percent | krypton and bromine as trace gases of an air (the table's only users of them) | a printed length of krypton or bromine outside 140 to 158 g/cm2 | the Particle Data Group's own krypton and bromine pages | [R4926] gives iron and xenon (READ); argon 119.7, potassium 119.0, calcium 119.8, titanium 126.2, vanadium 128.5, chromium 129.3 and iron 132.1 lie on a smooth curve of the same kind | predicted only | - | - |
 | SHL2 | B | T6 | L0 | `surface_dose.stopping_mixture`: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen | the mass stopping power of the neighboring rows differs by about 10 percent | an air whose heavier elements are trace gases (sulfur dioxide, sodium and potassium chlorides); the carriers C, N, O, H, He, Ne, Ar, Kr and Xe have rows | a stellar-proton cutoff of a sulfur-rich air that moves by more than 5 percent when sulfur gets its own row | rows of the proton range table (`scripts/build_proton_range.py`) for the missing elements | the mass stopping power of fast protons varies slowly with Z/A (ICRU 49 rows of the table); 0.4 to 0.5 for all of them | predicted only | - | - |
+
+## 6.293 Stand-ins of the light through ice and snow (GEN.1726)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| IL1 | B | T1 | L0 | `ice_light.K_ICE_PER_M` sea ice 1.26 per metre and `K_ICE_RANGE_PER_M` 0.8 to 1.5: the attenuation of photosynthetic light by sea ice | 0.8 to 1.5 | ice of a salty ocean, photosynthetic light of a Sun-like star | an under-ice light profile whose k is outside 0.8 to 1.5 for first-year or Antarctic sea ice | a spectral law (ice absorption by wavelength) once a cool or hot star is the case | [R5264] measured 1.26 +- 0.13 under Antarctic pack ice; [R5267] median 0.8 at 600 nm for bare ice and 0.6 for ponded ice, against the older 1.5 | predicted only | GEN.1723 | - |
+| IL2 | B | T1 | L0 | `ice_light.K_ICE_PER_M` fresh lake ice 0.32 per metre and `K_ICE_RANGE_PER_M` 0.2 to 0.32 | 0.2 to 0.32 | clear ice of a fresh lake or a fresh-water ocean | a thick perennial lake whose measured k is outside 0.2 to 0.35 | the same spectral law | [R5265] Lake A 0.32; the 0.2 end is the Antarctic perennial lake ice value cited there | predicted only | GEN.1723 | - |
+| IL3 | B | T1 | L0 | `ice_light.K_SNOW_PER_M` 30 per metre and `K_SNOW_RANGE_PER_M` 10 to 100: the attenuation of photosynthetic light by snow | 10 to 100 | dry or wind-packed snow of grain size 0.1 to 1 mm | snow of a measured k outside 10 to 100 over a metre | a grain-size and density law for snow | [R5264] measured 31.8 +- 0.7 and expected 10 to 100; [R5265] one wind-packed layer 2.1; [R5268] temperate snow 3 to 30 per metre | predicted only | GEN.1723 | - |
+| IL4 | B | T1 | L0 | `ice_light.ALBEDO_BARE` (sea 0.6, lake 0.84), `ALBEDO_SNOW` 0.9 and their ranges: the albedo of the top surface to photosynthetic light | sea 0.5 to 0.7; lake 0.7 to 0.9; snow 0.8 to 0.97 | the surface of cold bare ice or snow | a surface albedo of cold ice or snow outside these ranges | the generator's own ice albedo to photosynthetic light, if one is made | [R5266] bare ice 0.5 to 0.7 and snow-covered 0.6 to 0.8; [R5265] 0.84 candled lake ice, 0.97 snow; [R5264] 0.8 to 0.97; the lake range is the stand-in's own (one measurement) | predicted only | GEN.1723 | - |
+| IL5 | B | T1 | L0 | `ice_light.ALBEDO_MELTING` 0.4 (0.2 to 0.6): the albedo of melting bare ice | 0.2 to 0.6 | ice at the melting point | a melting ice surface of albedo outside 0.2 to 0.6 | none | [R5266] 0.78, 0.60, 0.44 and 0.20 as the ice warms and melts | predicted only | GEN.1723 | - |
+| IL6 | P | T7 | L1 | `ice_light.SNOW_COVER_DEPTH_M` 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm) | 0.01 to 0.1 m | a snow layer of 1 to 30 cm over ice | a measurement of the albedo of a few cm of snow over ice that differs by more than 0.1 from this blend | a measured albedo by snow depth | no source for the form; 10 cm of temperate snow let 5 percent of the visible light through [R5268], which the same 10 cm makes snow-bright | predicted only | GEN.1723 | - |

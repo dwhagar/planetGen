@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4194] - 2026-11-15
+
+**Headline:** The tests that need civilized systems start quickly again: their pinned candidates are refreshed for the current generator, and the guard now checks every pin, not the first.
+
+### Fixed
+
+- TEST.753: Train 28's epoch 150 changed the draws, so two of the three pinned candidates in `tests/data/civilized_pins.json` no longer held a civilization and every test needing two civilized systems hunted for new ones at 20 to 30 s each (tens of minutes). The pins are written again (`tests/civilized_pins.py`, hunted across three processes) and `test_the_pinned_civilized_seeds_still_qualify` checks every pin.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4193] - 2026-11-15
+
+**Headline:** A law for the light that reaches the water under ice and snow now exists (`physics/ice_light.py`), so the oxygen that life makes under a frozen lid can be counted by the light that gets through.
+
+### Added
+- GEN.1726: `ice_light.transmission` gives the share of the photosynthetic light that reaches the water under a lid, `(1 - albedo) exp(-k_ice h_ice) exp(-k_snow h_snow)`, with coefficients from measurements under Antarctic pack ice, Arctic first-year ice and a perennially ice-covered lake (sea ice k 1.26 per metre, clear lake ice 0.32, snow 30; bare sea ice albedo 0.6, snow 0.9). It reproduces Lake A (8.5 percent against 5.7 to 6.6 measured) and the under-0.1-percent of spring pack ice. `thickest_ice_m` and `deepest_snow_m` give the lid that still passes a given share of the light (about 6.6 m of sea ice for one part in ten thousand). Registered as stand-ins IL1 to IL6 in section 6.293 of the gap plan; design note `docs/design/habitability/light-through-ice.md`. Nothing reads it yet: the oxygen under ice is GEN.1723, and the thickness of a world's ice and snow is an open gap.
+
+### Changed
+- `scripts/build_references.py` no longer carries a person's address: the contact it sends to Crossref's lookups is read from `PLANETGEN_REFERENCES_CONTACT` and is empty by default. Five papers added to the reference list (R5264 to R5268).
+
+## [8.0.4192] - 2026-11-15
+
+**Headline:** The job engine's ledger spells the state of a run or job that was stopped on purpose `canceled`, as the rest of the project does.
+
+### Changed
+- **The ledger's canceled state is spelled the American way (OPS.215).** The spelling check flagged the British spelling in `queue/ledger.py` and `control_schema.sql`, and the run state on Redis is already `canceled`, so the state stored in `engine_runs.state` and `engine_jobs.state` is now `canceled` too. The control schema is v24: a control database at v23 has the three ledger tables dropped and made again by `store._drop_engine_ledger_v23`, since the v23 check allowed only the old spelling and nothing has written a row. No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.4191] - 2026-11-15
+
+**Headline:** The reference list no longer redirects the ids R5253 and R5254 to other papers, so citations to them point at the right sources.
+
+### Fixed
+- Two old aliases (R5253 to R5248, R5254 to R5250) were left from the days the papers shared ids; they are removed and the citation list is rebuilt, which clears the citations-links test.
+
+generation-output: unchanged
+
 ## [8.0.4190] - 2026-11-15
 
 **Headline:** the stage that stores the star scatter's limits has its memory figure like every other command.
