@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4303] - 2026-11-15
+
+**Headline:** Two checks that were red on main are green: an unused year constant is gone, and one registry row is spelled the way the guide asks.
+
+### Fixed
+- `photochemical_loss.YEAR_S`, which nothing read and which had no registry row, is removed.
+- Row SEP1 of the registry says "nearest-neighbor", so the sentence of its stand-in page keeps the spelling guide.
+
+generation-output: unchanged
+
 ## [8.0.4302] - 2026-11-15
 
 **Headline:** Every stand-in tag in the code now names its registry section and matches its row, and the registry lists every stand-in table of the plan.
