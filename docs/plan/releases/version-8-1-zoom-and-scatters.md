@@ -744,6 +744,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | Lane 04, 2026-11-15 |
 | GEN.1735 | Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place) | GEN.1728 | Lane 04, 2026-11-15 |
 | GEN.1736 | (bug) Class M's 2 Pa CO2 floor is not rechecked after the CO2 rebalance (seed 30143: class M at 1.4 Pa) | none | Lane 02, 2026-11-15 |
+| GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | Lane 03, 2026-11-15 |
 | TEST.761 | (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only | none | Lane 14, 2026-11-15 |
 | TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | Lane 14, 2026-11-15 |
 | TEST.763 | test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run | none | Lane 07, 2026-11-15 |

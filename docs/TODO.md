@@ -12235,7 +12235,7 @@ clears each one.
 - [ ] **GEN.1617 (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores**
   Boss, 2:34 PM EST on 2026-11-14 (card): option (a), store the surface liquid (kind and amount) and make classes U, Y, A and X test it, after the current generation fixes land (GEN.1716, GEN.1717 and Train 28). Lock item.
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do, Boss's call between: (a) store the liquid (surface liquid kind and amount) and make the condition read it (lock item), or (b) soften the sentences to say what the condition checks (text only, lock-free). Default if no answer: (b) now, (a) as a later lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1557, GEN.1212. Boss's call on the choice where noted.
+  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-15): Lane 03; in review as PR #6668 (lock, section 6.299), with Train Manager. Prerequisites: none. Related: GEN.1557, GEN.1212. Boss's call on the choice where noted.
   Filed by the TODO thread.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
@@ -12893,6 +12893,11 @@ clears each one.
 - [ ] **TEST.763 test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run**
   Lane 07, 8:58 AM EST 2026-11-15 (job engine check on main 36d6ee28a0, log /mnt/project-files/reports/train28/lane23/main-wu.log): test_work_units::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units passes alone in 21 min 12 s with -o timeout=7200 but ends with exit 70 under pytest.ini's 900 s. Do: give the case its own pytest.mark.timeout with a comment naming the measured time, as test_sky_hyg_calibration and test_prevalence_life_census do, or shrink its galaxy so it fits, whichever keeps what it proves.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: TEST.621, PERF.241.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
+  Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
