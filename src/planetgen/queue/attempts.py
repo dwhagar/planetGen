@@ -16,6 +16,7 @@ does the unit write its result and join the done set in Redis.
 * **A unit with no row** (a run cut before the plan was rows, a test's own stage) or no database in its arguments has nothing to fence and runs as before.
 """
 
+import time
 import traceback
 
 from planetgen.db import store
@@ -121,6 +122,43 @@ def failure(exc):
     kind = type(exc).__name__
     text = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
     return kind, text, "timed_out" if kind == "JobTimeoutException" else "failed"
+
+
+WAIT_NOTE_SECONDS = 15.0
+"""float: How often a worker that goes on waiting at the gate writes the same reason again (a changed reason is written at once)."""
+
+_NOTED = {}
+"""dict: Job row to `(reason, time)` of the last note written, so a wait of an hour writes a few rows, not one at every poll."""
+
+
+def note_wait(conn, run_id, row, reason, now=None):
+    """
+    Writes why a unit is not starting (OPS.224): the reason the memory gate gave the worker that holds it, onto the job's ledger row (`engine_jobs.waited`), where the Queue page reads it. Called at
+    every poll of a wait at the gate; written when the reason changes and then at most every `WAIT_NOTE_SECONDS`. Best effort: a failure to write is logged, never raised. `conn` is the run's Redis.
+    """
+    if row is None:
+        return False
+    now = time.time() if now is None else now
+    before = _NOTED.get(row)
+    if before is not None and before[0] == reason and now - before[1] < WAIT_NOTE_SECONDS:
+        return False
+    try:
+        control = planrows.control_connection(conn, run_id)
+    except Exception as exc:  # noqa: BLE001 -- a note on a wait is never a reason to stop the wait
+        log.swallowed("queue/attempts", "note_wait", exc)
+        return False
+    try:
+        taken = ledger.set_wait(control, row, reason)
+        control.commit()
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("queue/attempts", "note_wait", exc)
+        return False
+    finally:
+        control.close()
+    _NOTED[row] = (reason, now)
+    if len(_NOTED) > 1000:
+        _NOTED.pop(next(iter(_NOTED)))
+    return taken
 
 
 def close_lost(conn, run_id, row, outcome, error_kind=None, error_text=None, stack_text=None):

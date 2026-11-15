@@ -49,6 +49,12 @@
   </table>
   </div>
 </section>
+{%- if job_counts %}
+<section class="panel" aria-labelledby="jobs-heading">
+  <h2 id="jobs-heading">Jobs</h2>
+  <p>{{ job_counts }}. <a href="{{ url_for('web.admin_queue_jobs', run_id=run.id) }}">Every job with its attempts and why it waits</a></p>
+</section>
+{%- endif %}
 {%- if unit_rows %}
 <section class="panel" aria-labelledby="units-heading">
   <h2 id="units-heading">Running units</h2>
