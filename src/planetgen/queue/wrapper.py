@@ -630,6 +630,8 @@ def advance(conn, run_id, index):
     while index < count:
         if _expand(conn, run_id, index):
             return
+        for role in planrows.END_ROLES:         # OPS.238: a stage with no unit to wait for ends where it opened: its rows say so, as a stage a unit completed does
+            planrows.mark_ended(conn, run_id, index, role)
         index += 1
     runrecord.finish_run(conn, run_id, "done")
 
