@@ -11257,7 +11257,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+              "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
             ],
             [
               "The range it moves in",
@@ -11288,7 +11288,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+          "what": "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
         },
         {
           "burn_down": [
@@ -11299,7 +11299,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+              "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
             ],
             [
               "The range it moves in",
@@ -11330,7 +11330,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+          "what": "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
         },
         {
           "burn_down": [
@@ -11341,7 +11341,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+              "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
             ],
             [
               "The range it moves in",
@@ -11372,7 +11372,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+          "what": "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
         },
         {
           "burn_down": [
@@ -11383,7 +11383,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate o2_partial_pa lt 3000; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
+              "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate o2_partial_pa lt 3000; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
             ],
             [
               "The range it moves in",
@@ -11414,7 +11414,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate o2_partial_pa lt 3000; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
+          "what": "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate lit_liquid_hours min 75 (GEN.1723: light and liquid water at the surface, an open sea has the whole year); gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate o2_partial_pa lt 3000; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
         },
         {
           "burn_down": [
@@ -12857,6 +12857,348 @@
           "tweak": "L1",
           "unread": null,
           "what": "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.MIN_HOURS_YR 75, LIQUID_MIN_K 252, LIQUID_MAX_K 346, MELT_K 273.15 and life_classes.json gate lit_liquid_hours min 75 (GEN.1723): oxygenic life lives wherever light and any liquid water reach the surface, an open sea, a brine seep, a seasonal melt, a spring or a hot pool, 75 h a year or more at 252 to 346 K"
+            ],
+            [
+              "The range it moves in",
+              "50 to 200 h; 250 to 255 K and 340 to 350 K"
+            ],
+            [
+              "Where it holds",
+              "every rocky world with water"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge; a measured place of Earth with oxygenic life and under 75 lit hours of liquid water a year, or a hot-spring mat above 346 K"
+            ],
+            [
+              "What replaces it",
+              "a model of the water a surface holds hour by hour"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the limits are measured (hypolith mats on about 75 h a year of liquid water, [[R5269]], from memory; mats in hot springs to about 73 C, Castenholz, from memory; the sodium chloride eutectic 252 K, a physics limit; the oxygen makers are active to about 253 K (LA1)), the step to every world is Boss's rule (8:38 PM EST 11-14: life will always find a way); reports/life-refuges-research-gen1722-2026-11-14.md"
+            ]
+          ],
+          "id": "RW1",
+          "key": "6.21:RW1",
+          "kind": "P",
+          "slug": "6-21-rw1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.MIN_HOURS_YR 75, LIQUID_MIN_K 252, LIQUID_MAX_K 346, MELT_K 273.15 and life_classes.json gate lit_liquid_hours min 75 (GEN.1723): oxygenic life lives wherever light and any liquid water reach the surface, an open sea, a brine seep, a seasonal melt, a spring or a hot pool, 75 h a year or more at 252 to 346 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.LIGHT_FLOOR_W_M2 2e-3 (0.01 umol photons m-2 s-1, [R5273]): the least usable light under a lid of ice for the sea under it to count (GEN.1723); the class gate band_light_vs_earth min 0.01 (T7, L3, LF31) is higher and stays"
+            ],
+            [
+              "The range it moves in",
+              "0.005 to 0.02 umol"
+            ],
+            [
+              "Where it holds",
+              "the sea under an ice lid"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_the_sea_under_a_thin_lid_counts_in_proportion_to_the_light_that_gets_through; a measured photosynthesis at a lower light"
+            ],
+            [
+              "What replaces it",
+              "the class gate"
+            ],
+            [
+              "Evidence",
+              "read [R5273]"
+            ]
+          ],
+          "id": "RW2",
+          "key": "6.21:RW2",
+          "kind": "P",
+          "slug": "6-21-rw2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.LIGHT_FLOOR_W_M2 2e-3 (0.01 umol photons m-2 s-1, [R5273]): the least usable light under a lid of ice for the sea under it to count (GEN.1723); the class gate band_light_vs_earth min 0.01 (T7, L3, LF31) is higher and stays"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.production_share, COVER_MIN 0.001, COVER_MAX 0.1, COVER_FULL_HOURS 2000, K_ONE_HOURS 500, K_MAX 5: the production per area of a refuge against an ocean's is (hours / 8760) ** k times a cover rising from 0.001 at 75 h to 0.1 at 2000 h and more, k 1 above 500 h and rising to 5 at 75 h; the source S of refuge life is Earth's burial per area of ocean (no new burial constant) times that area (biogenic_oxygen.refuge_productivity)"
+            ],
+            [
+              "The range it moves in",
+              "cover 0.001 to 0.3; k 1 to 5"
+            ],
+            [
+              "Where it holds",
+              "worlds whose life is in refuges"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_the_refuge_source_is_a_hundredth_of_earths_at_the_most_and_under_the_reductants_of_an_earth_interior; a measured productivity of a hypolith, seep or cryoconite community per area against an ocean's"
+            ],
+            [
+              "What replaces it",
+              "a stand and sea model of the oxygen of a refuge world"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the duty cycle) on measured anchors (cover 0.1 to 28 percent and a turnover of 3,200 years in the driest core, [[R5269]]; cryoconite photosynthesis 2.9 times respiration, [[R5270]]; all cryoconite of Earth about 5e-4 of Earth's burial), the low end of the cover taken as the minimum reasonable one; the refuge source never beats the reductant flux R of a world with Earth's interior, so the lever for the oxygen of a dry world is R, not this number"
+            ]
+          ],
+          "id": "RW3",
+          "key": "6.21:RW3",
+          "kind": "P",
+          "slug": "6-21-rw3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "surface_refuge.production_share, COVER_MIN 0.001, COVER_MAX 0.1, COVER_FULL_HOURS 2000, K_ONE_HOURS 500, K_MAX 5: the production per area of a refuge against an ocean's is (hours / 8760) ** k times a cover rising from 0.001 at 75 h to 0.1 at 2000 h and more, k 1 above 500 h and rising to 5 at 75 h; the source S of refuge life is Earth's burial per area of ocean (no new burial constant) times that area (biogenic_oxygen.refuge_productivity)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.SEEP_LAND_SHARE 0.15 and SEEP_DEPTH_KM 0.001: the share of the land of a world with an aquifer where the water table meets the ground is 0.15 at a table at the surface and falls as exp(-depth / 1 m)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.3; 0.5 to 3 m"
+            ],
+            [
+              "Where it holds",
+              "dry, vapor and ice worlds with an aquifer"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_a_dry_world_with_its_water_table_at_the_surface_has_seeps_and_a_deeper_table_has_fewer_and_none; a measured spring and seep share of a dry world's land, or relief cutting the table (left out: the minimum reasonable case)"
+            ],
+            [
+              "What replaces it",
+              "a groundwater head (G / G_Earth of the research) the generator does not keep"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: 15 percent of Earth's land is groundwater-fed surface water [[R5271], read]; nearly all groundwater reaching the surface comes from a table within 0.5 m [[R5272], read]; the thickness of the aquifer does not scale it"
+            ]
+          ],
+          "id": "RW4",
+          "key": "6.21:RW4",
+          "kind": "P",
+          "slug": "6-21-rw4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "surface_refuge.SEEP_LAND_SHARE 0.15 and SEEP_DEPTH_KM 0.001: the share of the land of a world with an aquifer where the water table meets the ground is 0.15 at a table at the surface and falls as exp(-depth / 1 m)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.RATE_ZERO_K 253: the cold edge of oxygen-making activity, -20 C in the field (lab -24 C, field -17 C for one lichen)"
+            ],
+            [
+              "The range it moves in",
+              "249 to 256 K"
+            ],
+            [
+              "Where it holds",
+              "oxygenic life"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_a_wet_place_at_the_cold_edge_makes_next_to_nothing; a measured oxygen maker active in water colder than -24 C"
+            ],
+            [
+              "What replaces it",
+              "a read paper"
+            ],
+            [
+              "Evidence",
+              "[R5275] and the field limit of Antarctic lichens (-20 C) (read; reports/ice-light-and-lichen-cold-edge-2026-11-14.md)"
+            ]
+          ],
+          "id": "LA1",
+          "key": "6.21:LA1",
+          "kind": "B",
+          "slug": "6-21-la1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.RATE_ZERO_K 253: the cold edge of oxygen-making activity, -20 C in the field (lab -24 C, field -17 C for one lichen)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.RATE_FULL_K 263 and the straight line to 0 at RATE_ZERO_K: the production factor of a wet place is 1 at 263 K and above and falls linearly to 0 at 253 K"
+            ],
+            [
+              "The range it moves in",
+              "258 to 268 K for the full-rate point"
+            ],
+            [
+              "Where it holds",
+              "oxygenic life"
+            ],
+            [
+              "What would show it wrong",
+              "the same; a measured rate of oxygen makers at -15 C"
+            ],
+            [
+              "What replaces it",
+              "a measured rate curve"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics between two read points (carbon-14 fixation still clear at -10 C, the limit at -20 C: [R5275, R5276])"
+            ]
+          ],
+          "id": "LA1b",
+          "key": "6.21:LA1b",
+          "kind": "P",
+          "slug": "6-21-la1b",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_refuge.RATE_FULL_K 263 and the straight line to 0 at RATE_ZERO_K: the production factor of a wet place is 1 at 263 K and above and falls linearly to 0 at 253 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.LIQUID_MAX_K 346: the hottest a place's liquid water is counted at for oxygenic life"
+            ],
+            [
+              "The range it moves in",
+              "340 to 350 K"
+            ],
+            [
+              "Where it holds",
+              "oxygenic life"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_too_hot_or_too_cold_a_seep_is_dry; a measured oxygen maker active above 73 C"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "the limit of cyanobacterial mats in hot springs, about 73 C (Castenholz, from memory; GEN.1722 RF10)"
+            ]
+          ],
+          "id": "LA2",
+          "key": "6.21:LA2",
+          "kind": "B",
+          "slug": "6-21-la2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.LIQUID_MAX_K 346: the hottest a place's liquid water is counted at for oxygenic life"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge._under_ice: the sea under a lid that lets light through makes the ocean's production times the transmitted share of the light, linear below saturation (and nothing under the light floor RW2)"
+            ],
+            [
+              "The range it moves in",
+              "linear to the 0.5 power"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean with a thin lid"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_the_sea_under_a_thin_lid_counts_in_proportion_to_the_light_that_gets_through; a measured production of the sea under ice that does not follow the light"
+            ],
+            [
+              "What replaces it",
+              "a light-limited growth law with a saturation"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (light-limited growth is linear below saturation); most of the Arctic Ocean's production is in ice-covered water (Arrigo's model, read at second hand)"
+            ]
+          ],
+          "id": "LA4",
+          "key": "6.21:LA4",
+          "kind": "T",
+          "slug": "6-21-la4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_refuge._under_ice: the sea under a lid that lets light through makes the ocean's production times the transmitted share of the light, linear below saturation (and nothing under the light floor RW2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.ROOT_SEEP_SHARE 0.27 and ROOT_DEPTH_KM 0.0095: once the life has reached mosses and the first land plants (native_life macroscopic or biosphere), the roots draw on 0.27 of the land and a table falls by 1/e in 9.5 m"
+            ],
+            [
+              "The range it moves in",
+              "0.22 to 0.32; 9.5 to 68 m"
+            ],
+            [
+              "Where it holds",
+              "dry, vapor and ice worlds with an aquifer and rooted life"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_refuge.test_rooted_plants_reach_a_deeper_water_table_and_more_of_the_land; a measured share or depth"
+            ],
+            [
+              "What replaces it",
+              "a groundwater head of the generator"
+            ],
+            [
+              "Evidence",
+              "[R5271] (22 to 32 percent of land under shallow groundwater influence, read); [R5274] (desert mean maximum rooting depth 9.5 m, record 68 m, read at second hand); the stage stands for the macroscopic native life"
+            ]
+          ],
+          "id": "LA7",
+          "key": "6.21:LA7",
+          "kind": "B",
+          "slug": "6-21-la7",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_refuge.ROOT_SEEP_SHARE 0.27 and ROOT_DEPTH_KM 0.0095: once the life has reached mosses and the first land plants (native_life macroscopic or biosphere), the roots draw on 0.27 of the land and a table falls by 1/e in 9.5 m"
         }
       ],
       "slug": "6-21-stand-ins-of-the-life-timeline-and-the-biogenic-oxygen",
@@ -60994,90 +61336,6 @@
           "burn_down": [
             "replace",
             "GEN.1493",
-            "L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
-            ],
-            [
-              "The range it moves in",
-              "0.01 to 0.2"
-            ],
-            [
-              "Where it holds",
-              "rocky planets of 0.3 to 3 Earth masses"
-            ],
-            [
-              "What would show it wrong",
-              "a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass"
-            ],
-            [
-              "What replaces it",
-              "a model of the leftover planetesimals of a system with no belt"
-            ],
-            [
-              "Evidence",
-              "recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, reports/gen1493-late-accretion-census-2026-11-09.md: 43 percent of 246 planets take the floor)"
-            ]
-          ],
-          "id": "LA1",
-          "key": "6.255:LA1",
-          "kind": "P",
-          "slug": "6-255-la1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": null,
-          "what": "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
-        },
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "rocky planets of single and multiple stars"
-            ],
-            [
-              "What would show it wrong",
-              "a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains"
-            ],
-            [
-              "What replaces it",
-              "a draw of the belt's mass and reach from the nebula"
-            ],
-            [
-              "Evidence",
-              "design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent"
-            ]
-          ],
-          "id": "LA2",
-          "key": "6.255:LA2",
-          "kind": "T",
-          "slug": "6-255-la2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": null,
-          "what": "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
-        },
-        {
-          "burn_down": [
-            "replace",
-            "GEN.1493",
             "L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it"
           ],
           "fields": [
@@ -66385,7 +66643,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.K_ICE_PER_M sea ice 1.26 per metre and K_ICE_RANGE_PER_M 0.8 to 1.5: the attenuation of photosynthetic light by sea ice"
         },
         {
@@ -66423,7 +66681,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.K_ICE_PER_M fresh lake ice 0.32 per metre and K_ICE_RANGE_PER_M 0.2 to 0.32"
         },
         {
@@ -66461,7 +66719,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.K_SNOW_PER_M 30 per metre and K_SNOW_RANGE_PER_M 10 to 100: the attenuation of photosynthetic light by snow"
         },
         {
@@ -66499,7 +66757,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.ALBEDO_BARE (sea 0.6, lake 0.84), ALBEDO_SNOW 0.9 and their ranges: the albedo of the top surface to photosynthetic light"
         },
         {
@@ -66537,7 +66795,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.ALBEDO_MELTING 0.4 (0.2 to 0.6): the albedo of melting bare ice"
         },
         {
@@ -66575,7 +66833,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.SNOW_COVER_DEPTH_M 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm)"
         }
       ],
