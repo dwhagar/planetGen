@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4221] - 2026-11-15
+
+**Headline:** a worker killed while ending a stage no longer fails the run when a retry is left to finish the end.
+
+### Fixed
+
+- OPS.186: a unit that completed its stage and was killed (`kill -9`, not only the memory killer) in the end of it is retried by RQ, which finishes the end; the run is failed only when no retry is left. Found by Lane 07's galaxy kill test on a second box.
+
 ## [8.0.4220] - 2026-11-15
 
 **Headline:** The queue, the benchmark and the database walks each keep one copy of code they had written twice.
