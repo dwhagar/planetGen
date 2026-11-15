@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.771 |
+| TEST | TEST.772 |
 | USR | USR.33 |
 | OPS | OPS.263 |
 | DOC | DOC.121 |
@@ -3004,7 +3004,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.193 | Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s) | none | done, PR #6432 (Lane 05, 8:00 PM EST 11-13) |
 | OPS.194 | Job engine stage 1: beatjudge gains busy (no count moved but work did); busy is never stopped, only warned with a stack dump past the learned time | none | done, PR #6434 (8:05 PM EST 11-13) |
 | OPS.195 | Job engine stage 1: ctx.sql long-statement helper with label and start time in the beat (MySQL stage events behind a check, off as installed) | none | done, PR #6435 (8:08 PM EST 11-13) |
-| OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | open |
+| OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | done, PRs #6688 (11:33 AM EST) and #6707 (1:39 PM EST 11-15); the all-commands silence run split out as OPS.262 |
 | OPS.197 | Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives | none | done, PR #6431 (Lane 05, 8:00 PM EST 11-13) |
 | OPS.198 | Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity) | none | done, PR #6535 (7:24 PM EST 11-14) |
 | OPS.199 | Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights) | none | done, PR #6487 (4:58 PM EST 11-14) |
@@ -4918,6 +4918,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.768 | (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module | none | open |
 | TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | open |
 | TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | open |
+| TEST.771 | (bug) test_cache_warmup (20 tests) is red on main | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
