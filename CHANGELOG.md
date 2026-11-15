@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4256] - 2026-11-15
+
+**Headline:** three tests that expected a duration written one way now read it from the formatter the pages use.
+
+### Fixed
+
+- TEST.760: the heartbeat rules test looked for "600" in a quiet reason, the Queue page row test for "2.0 s each" and the update guard test for "30 seconds", while `format_duration_seconds` writes "10 minutes", "2 s" and "30 s" (the limits and clocks agree; only the wording moved). Each test now builds the expected text from the same formatter, so the next change of wording moves them together.
+
 ## [8.0.4255] - 2026-11-15
 
 **Headline:** An update no longer cancels a generation run: it holds the run "stopped for update", and the end of a good update carries it on.
