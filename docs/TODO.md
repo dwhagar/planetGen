@@ -12459,7 +12459,7 @@ clears each one.
 
 - [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
   Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section H, with file:line, shape, risk and output impact). Same PR and epoch as GEN.1652.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1652. Related: GEN.1652.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02, folded into GEN.1745 slice 3 (Boss 11:25 AM EST: no class until the evolution is finished); moved from Lane 14, not started there. Prerequisites: none. Related: GEN.1652, GEN.1745.
   Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
   Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
   Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): apply_class is the last entry of PlanetaryObject's FINISH_STEPS (GEN.1652).
@@ -12824,6 +12824,7 @@ clears each one.
 - [ ] **GEN.1732 Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change**
   Lane 02's GEN.1731 options, 1:18 AM EST 2026-11-15 (report /mnt/project-files/reports/gen1731-weathering-law-warm-side-2026-11-15.md): of 10 Abundant Earth-shaped worlds under 2 Pa CO2, 4 hold 2 Pa or more of carbon as methane in reduced airs (NH3, CH4, H2) although their mantles are oxidized. Measure why those airs are reduced; the recipe stream change of GEN.1646 is the suspect. No change before the measure; a fix that follows is filed from the findings.
   Prototype measured (Lane 02, 4:59 AM EST 11-15, report /mnt/project-files/reports/gen1732-photochem-prototype-measure-2026-11-15.md): a photochemical cap on stored NH3 and CH4 removes the warm zero-CO2 ammonia worlds (Earth-shaped with NH3 over 10 Pa 9 to 0) and raises M 1 to 2 and R 0 to 3, but halves the Earth-shaped pool (13 to 6) as ammonia-warmed worlds freeze. Build decision with Boss.
+  Check also (Class M tiers thread, 12:55 PM EST 2026-11-15): 6 to 25 Pa of methane from life under the ice warms a world 21 to 33 K (Eerosa I 267 to 288 K, Ilrusxohoe I 265 to 298 K); confirm that warming against sources as part of this item.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
@@ -12847,24 +12848,46 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
   Filed by the TODO thread.
 
-- [ ] **TEST.761 (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only**
-  Lane 14, 7:52 AM EST 2026-11-15 (found during GEN.1152): four parity cases fail on main because the bound and rogue paths differ in two private attributes, _envelope_helium_y and _tidal_radius_km. Do: find whether the parity test should exclude private attributes or whether one path skips a step the other runs (rogue planets use the same generator, no star), and fix the real cause.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1152, TEST.760.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
   Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
   Filed by the TODO thread.
 
-- [ ] **GEN.1738 (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip**
-  Lane 16, 9:35 AM EST 2026-11-15 (OPS.219, PR #6632), and Lane 03 on the Train 31 gate: tests/test_db_column_round_trip.py fails while generating sectors when mixture_giant hands gas_equilibrium a negative abundance (src/planetgen/physics/gas_equilibrium.py raises). Do: find which giant step makes the negative share (a subtraction past zero, likely after Train 31's giant cloud oxygen bind, PR #6639), fix the cause there, not by clamping in gas_equilibrium, and add the failing seed as a test.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: none. Related: GEN.1717.
+- [ ] **GEN.1744 Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes)**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (biogenic_oxygen owner), lock item. Prerequisites: none. Related: GEN.1739, GEN.1745.
   Filed by the TODO thread.
 
-- [ ] **GEN.1739 Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database**
-  Boss, 10:42 AM EST 2026-11-15: research thread "Design planet air history simulation". Research and proposal only, nothing built until Boss picks an option; the build items get their own numbers from the TODO thread then. Coordinate with Lane 02 (GEN.1732) and Lane 03 so open air and life items are not stepped on.
-  Version 8.1 (research). Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: none. Related: GEN.1729, GEN.1732, GEN.1723, GEN.1465.
+- [ ] **GEN.1745 A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Boss, 11:25 AM EST 2026-11-15 (research thread): "NO class is assigned until the evolution is finished and we have a finished planet, this way we settle the planet after the physics not before." So nothing in the air history reads a class letter; the class is assigned once from the finished body after the last step; the in-between apply_class calls (generation/life.py 89 and 473, generation/system.py 2410 and 2419) go with this item, and forced requests judge only that final class (report section 5.8.1). Overlaps GEN.1653.
+  Must cover (Class M tiers thread, 12:55 PM EST 2026-11-15, reports/class-m-tiers-build/meter-main-after-train31-2026-11-15.md, last section): a world its own life thaws keeps the life it was given while frozen. life.py dates the hard steps and calls _build_oxygen once, before life_air.apply_gases adds 6 to 25 Pa of methane that warms it 21 to 33 K and opens its ice-covered ocean; nothing re-dates or asks for the oxygen again (3 of the 9 no-oxygen in-band worlds on main 329c26d3, e.g. Ehinas II waits 10.8 Gyr for photosynthesis). The forward history replaces that one-shot order, so this is an acceptance case for it, not a separate fix (no layered fix): the history steps must re-date life and oxygen as the life gases move the temperature and hydrosphere, until the state settles.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (owns surface_air and the carbon cycle), reviewed by the research thread "Design planet air history simulation"; after Train 32 (GEN.1729, GEN.1736); GEN.1732 becomes a step term if Boss approves it; lock item, migration number from TODO at merge. Prerequisites: GEN.1743, GEN.1741. Related: GEN.1739, GEN.1743.
+  Filed by the TODO thread.
+
+- [ ] **API.51 The life-air API and the page chart read the stored air history, every gas**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after its job engine items. Prerequisites: GEN.1745. Related: GEN.1739, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1746 Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
+  Filed by the TODO thread.
+
+- [ ] **OPS.262 Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget**
+  Lane 16, 11:43 AM EST 2026-11-15 (OPS.196 part 2): the silence budget test from OPS.196 covers the converted commands one at a time; a run of every command needs a built galaxy per command across many commands, so it is split out of OPS.196.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after OPS.196. Prerequisites: OPS.196. Related: OPS.196, OPS.191.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1748 Nebular hydrogen envelopes for bodies under 1 Earth mass (Young et al. 2023): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state**
+  Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15 (GEN.1741 report reports/early-envelope-gen1741-2026-11-15.md). Do: give bodies of 0.2 to 1 Earth mass the sourced nebular envelope and its loss, feeding GEN.1745's history; register stand-ins in GEN.725. Changes output (lock item).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (planet composition), lock item, after GEN.1744. Prerequisites: GEN.1741. Related: GEN.1745, GEN.1741.
+  Filed by the TODO thread.
+
+- [ ] **TEST.768 (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module**
+  Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15; confirmed red on main by the TODO thread at 12:47 PM EST. Do: give each constant its registry row, tag or a place in constants.py; never loosen the test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1632.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

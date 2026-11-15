@@ -175,7 +175,8 @@ def test_the_plan_of_a_stage_is_rows_for_any_process_following_the_run(monkeypat
     assert runrecord.read_steps(conn, run_id)[0]["params"] == {"x": 1}
 
 
-def test_a_unit_that_fails_in_a_later_stage_fails_the_run(monkeypatch, conn):
+def test_a_unit_that_fails_in_a_later_stage_holds_the_run(monkeypatch, conn):
+    """A unit that fails for good holds the run for a person (OPS.221): the run is `held`, not `failed`, and its record names the unit."""
     _register(monkeypatch, first=_units(1), second=_units(2))
 
     def explode(args, report):
@@ -187,7 +188,8 @@ def test_a_unit_that_fails_in_a_later_stage_fails_the_run(monkeypatch, conn):
     with pytest.raises(units.RunStopped, match="unit 1 of stage B failed: ValueError: no stars here"):
         wrapper.run("Fails", [commands.Step("a", "first", "A"), commands.Step("b", "second", "B")],
                     lambda index, plan: None, lambda index, unit, result: None)
-    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "failed"
+    state = runrecord.read_run(conn, runrecord.recent_runs(conn)[0])
+    assert state["state"] == "held" and "unit 1 of stage B" in state["error"]
 
 
 def test_a_full_redis_stops_the_run_with_one_plain_error(monkeypatch, conn):
