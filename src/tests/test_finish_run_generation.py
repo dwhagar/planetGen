@@ -99,7 +99,7 @@ def test_a_sector_run_stopped_before_a_save_is_carried_on_to_the_uninterrupted_g
 def _tail(args, started_at):
     """The stages after the sectors that need no scatter: link, the sector paths, the population and the territories."""
     return [run_galaxy.LinkFollower(args, started_at), run_galaxy.SettleFollower(args, started_at),
-            run_population.population_follower(args), run_population.territories_follower(args)]
+            *run_population.population_followers(args), run_population.territories_follower(args)]
 
 
 def _sectors_then_tail(config, stops=None, tmp_path=None):

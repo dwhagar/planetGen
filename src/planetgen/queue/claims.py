@@ -39,7 +39,7 @@ processes it starts hold the memory, and the gate counts them under the worker (
 UNIT_BY_NATURE_MB = {
     "plan-skeleton": 1000, "write-special-phenomena": 1000, "build-phenomenon-indexes": 1000, "refresh-run-blocks": 1000, "clean-nebula-field": 700, "clear-scatter": 700,
     "generate-system": workers.BULK_WORKER_MEMORY_MB,       # the largest worker seen held 1.9 GB (measured with no sampling tables built, PERF.266)
-    "run-population": 2100, "run-territories": 1000, "reset-galaxy": 700,
+    "scan-species": 2100, "date-civilizations": 2100, "refresh-technology": 1000, "count-population": 700, "run-territories": 1000, "reset-galaxy": 700,
     "check-math": 700, "check-datasets": 700, "check-revision": 700, "check-tables": 700, "check-tables-extended": 1000, "check-orphans": 1000,
     "check-ids": 700, "check-values": 1000, "check-counts": 700, "check-version-keys": 700, "check-storage": 700, "check-systems": 1000,
     "check-object-index": 1000, "warm-object-index": 1000, "warm-galaxy-map": 1000, "warm-lists": 700, "warm-search": 1000,

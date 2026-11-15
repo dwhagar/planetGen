@@ -491,13 +491,17 @@ def test_population_cli_founds_polities_and_leaves_the_territories_to_their_own_
 
 
 def test_the_two_passes_are_registered_commands_that_run_alone(mysql_config, galaxy):
-    """PERF.125: `run-population` and `run-territories` are one-unit registry commands with JSON arguments."""
+    """PERF.125, OPS.239: the four commands of the population pass and `run-territories` are one-unit registry commands with JSON arguments."""
     from planetgen.queue import commands, wrapper
     params = {"database": wrapper.database_args(mysql_config)}
     _with_a_spacefaring_species(mysql_config, galaxy)
-    for kind in ("run-population", "run-territories"):
+    for kind in ("scan-species", "date-civilizations", "refresh-technology", "count-population", "run-territories"):
         assert commands.spec(kind).pieces is not None and commands.spec(kind).one_unit
-    done = commands.run_alone("run-population", {**params, "rescan": False})
+    scanned = commands.run_alone("scan-species", {**params, "rescan": False})
+    assert scanned["added"] >= 0 and scanned["lines"]
+    for kind in ("date-civilizations", "refresh-technology"):
+        commands.run_alone(kind, params)
+    done = commands.run_alone("count-population", params)
     assert done["species"] >= 2 and done["polities"] >= 1 and done["lines"] and "owned_systems" not in done
     assert _owners(mysql_config) == 0
     owned = commands.run_alone("run-territories", params)
@@ -508,7 +512,7 @@ def test_a_galaxy_run_asks_for_the_population_pass_and_then_the_territories_pass
     from planetgen.generation import stages
     parser, _commands = generate_cli.build_parser()
     keys = [stage.key for stage in stages.galaxy_stages(parser.parse_args(["galaxy"]))]
-    assert keys[keys.index("population"):keys.index("population") + 3] == ["population", "territories", "settle"]
+    assert keys[keys.index("species"):keys.index("species") + 6] == ["species", "civilizations", "technology", "population", "territories", "settle"]
 
 
 # ---------------------------------------------------------------------------
