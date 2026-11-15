@@ -84,7 +84,7 @@ CREEP_STEPS = 8
 CREEP_EXTENSION = MAX_STEPS
 """int: The steps a fixed point that reaches `MAX_STEPS` still creeping in one direction is given once, with its damping restored to `DAMPING` (a solver setting, GEN.1718). A swing early in the solve
 halves the damping to `MIN_DAMPING`; an ice-albedo creep after it (the answers fall and the ice grows, one sign for dozens of steps) then moves 5 percent of the residual a step and had not reached its
-snowball in `MAX_STEPS` (key 175 on Train 30: 236 K to 202 K in 60 steps, not settled). A solve that settles inside `MAX_STEPS` is not touched, nor is one whose root find found no steady state (`jump_found`: the stored air is the one just above the jump)."""
+snowball in `MAX_STEPS` (key 175 on the first Train 30 head: 236 K to 202 K in 60 steps, not settled). A solve that settles inside `MAX_STEPS` is not touched, nor is one whose root find found no steady state (`jump_found`: the stored air is the one just above the jump)."""
 
 SLIDING_WINDOW = 12
 """int: The last steps of an unsettled fixed point read for a chatter (GEN.1344): twelve steps hold whole cycles of two, three, four and six."""
