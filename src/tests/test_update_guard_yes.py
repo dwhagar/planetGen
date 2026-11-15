@@ -15,6 +15,7 @@ import pytest
 from planetgen.admin import updateguard
 from planetgen.queue import commands, redisqueue, runrecord, units
 from planetgen.queue.runrecord import Stage
+from planetgen.util.format import format_duration_seconds
 from planetgen.admin import maintenance
 from tests.test_update_guard import FakeWork, REPO, begin, lines, say  # noqa: F401 -- fixtures
 
@@ -53,7 +54,7 @@ def test_with_jobs_thirty_seconds_of_silence_is_a_no(say, lines):
     fake = FakeWork("Generate sectors")
     assert not begin(sources=[fake], interactive=True, answer=lambda text: None, write=say)
     text = "\n".join(lines)
-    assert f"No answer in {updateguard.PROMPT_SECONDS} seconds: taking that as no." in text
+    assert f"No answer in {format_duration_seconds(updateguard.PROMPT_SECONDS)}: taking that as no." in text
     assert "nothing was changed" in text
     sure_nothing_changed(fake)
     assert updateguard.PROMPT_SECONDS == 30
