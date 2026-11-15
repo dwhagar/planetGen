@@ -12,6 +12,7 @@ JSON, never a database row or connection.
 import datetime as _dt
 import hashlib
 import html
+import json
 import math
 import os
 import re
@@ -247,6 +248,14 @@ def static_url(name):
     fingerprint = _static_fingerprint()
     token = f"{STATIC_VERSION}-{fingerprint}" if fingerprint else STATIC_VERSION
     return f"static/{name}?v={quote(token, safe='')}"
+
+
+def json_script(data):
+    """
+    `data` as JSON for the body of a `<script type="application/json">`: `<`, `>` and `&` are written as `\\u` escapes, so a value that holds
+    `</script>` (a database name or label can) cannot end the element early. JSON-LD and the maps' scene data are written with it.
+    """
+    return json.dumps(data).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 def esc(value):

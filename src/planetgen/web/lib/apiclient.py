@@ -37,6 +37,7 @@ from planetgen.util.user_agent import user_agent
 from planetgen.util.settings import get_settings
 
 from planetgen.web.lib import pagecache, slowpages
+from planetgen.util.format import format_bytes
 
 API_BASE_URL = get_settings().api_base_url
 """str: Base URL of the planetGen API's `/api` mount point, empty when none is configured (there is no default, OPS.86:
@@ -296,7 +297,7 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
             raise GoneError(detail)
         raise ApiError(f"planetGen API error ({response.status}): {detail}", status_code=response.status)
     # Request bodies aren't logged: login and credential changes carry passwords.
-    _log_call(method, where, start, f"HTTP {response.status}, {len(response.body)} bytes, "
+    _log_call(method, where, start, f"HTTP {response.status}, {format_bytes(len(response.body))}, "
                                     f"{len(response.set_cookie_headers)} Set-Cookie header(s), "
                                     f"{'a' if json_body is not None else 'no'} JSON request body")
     return response

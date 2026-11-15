@@ -339,10 +339,11 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
         mysql_config, monkeypatch):
     import json
 
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, unitbeat, wrapper
     monkeypatch.setattr(component_pass, "STAR_SLICE_STARS", 100.0)
     monkeypatch.setattr(run_plan, "COMPONENT_REPORT_ROWS", 4)
-    monkeypatch.setattr(run_plan, "CHANNEL_INTERVAL_SECONDS", 0.0)
+    advances, running = {}, [None]
+    monkeypatch.setattr(unitbeat, "advance", lambda amount=1: advances.setdefault(running[0], []).append(amount))      # OPS.198: the unit's second-level count, what the pages show
     _seed_components(mysql_config, [_satellite("Big Cloud", mass=1.0e7, half=40.0, center=(150.0, -90.0, 60.0)),
                                     _cluster("Small One", mass=1.0e6, half=30.0, w0=5, center=(160.0, -90.0, 60.0)),
                                     _cluster("Small Two", mass=1.0e6, half=30.0, w0=5, center=(170.0, -90.0, 60.0))])
@@ -369,19 +370,18 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
             conn.commit()
         finally:
             conn.close()
-        reports = []
+        advances.clear()
         for args, _cost in units:
-            run_plan.scatter_shells_unit(json.loads(json.dumps(args)), lambda done, estimate: reports.append(
-                (args["key"], done, estimate)))
+            running[0] = args["key"]
+            commands.run_alone("scatter-luminosity", json.loads(json.dumps(args)))
         _assert_every_row_has_its_own_id(mysql_config, "bright_stars")
-        return _stored(mysql_config, "bright_stars"), reports
+        return _stored(mysql_config, "bright_stars"), dict(advances)
 
-    stars, reports = run_all(mine)
+    stars, advanced = run_all(mine)
     assert len(stars) > 60
     heaviest = max(mine, key=lambda unit: unit[1])[0]["key"]
-    seen = [(done, estimate) for key, done, estimate in reports if key == heaviest]
-    assert len(seen) >= 3 and seen == sorted(seen), "a component's stars report their progress as they are drawn"
-    assert all(estimate >= done for done, estimate in seen)
+    seen = advanced[heaviest]
+    assert len(seen) >= 3 and all(amount > 0 for amount in seen), "a component's stars report their progress as they are drawn"
     assert run_all(list(reversed(mine)))[0] == stars, "the stars do not depend on the order the units run in"
 
 
@@ -389,7 +389,7 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
 def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_order(mysql_config, monkeypatch):
     import json
 
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, wrapper
     monkeypatch.setattr(component_pass, "PHENOMENON_SLICE_ROWS", 40000.0)
     _seed_components(mysql_config, [_cluster("Rich", mass=1.0e7, half=30.0, w0=5, center=(150.0, -90.0, 60.0)),
                                     _satellite("Cloud", mass=1.0e7, half=40.0, center=(150.0, -90.0, 60.0))])
@@ -412,7 +412,7 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
         finally:
             conn.close()
         for args, _cost in units:
-            run_plan.scatter_phenomena_unit(json.loads(json.dumps(args)), lambda done, estimate: None)
+            commands.run_alone("scatter-phenomena", json.loads(json.dumps(args)))
         _assert_every_row_has_its_own_id(mysql_config, "phenomenon_scatter")
         return _stored(mysql_config, "phenomenon_scatter")
 

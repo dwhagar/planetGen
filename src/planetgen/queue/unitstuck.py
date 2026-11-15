@@ -29,6 +29,7 @@ from rq import command
 
 from planetgen.queue import pause, redisqueue, runrecord, unitbeat
 from planetgen.util import process
+from planetgen.util.format import format_duration_seconds
 
 DUMP_WAIT_SECONDS = 3.0
 """float: How long the follower waits for a horse to write its stack after the signal."""
@@ -186,7 +187,7 @@ class Stuck:
         if job is not None and (status in (rq.job.JobStatus.STOPPED, rq.job.JobStatus.FAILED) or (status == rq.job.JobStatus.STARTED and gone)):
             self._requeue(unit, record, job)
         elif job is None or now - float(record.get("at", now)) > STOP_WAIT_SECONDS:
-            reason = f"unit {unit} could not be stopped (job {'missing' if job is None else status}) within {STOP_WAIT_SECONDS:.0f} s of being found stuck: {record.get('reason', '')}"
+            reason = f"unit {unit} could not be stopped (job {'missing' if job is None else status}) within {format_duration_seconds(STOP_WAIT_SECONDS)} of being found stuck: {record.get('reason', '')}"
             self._fail(unit, reason, record.get("dump", ""), "", now)
 
     def _requeue(self, unit, record, job):

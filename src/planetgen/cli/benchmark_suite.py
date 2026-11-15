@@ -43,6 +43,7 @@ import uuid
 from planetgen import _version
 from planetgen.cli import benchmark
 from planetgen.db import store
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 SUITE_VERSION = 1
 """int: The layout of the suite's JSON; a change that breaks a reader of an earlier result raises it."""
@@ -656,19 +657,13 @@ def run_suite(args):
 # --- The report ------------------------------------------------------------------------------------------------------
 
 def _seconds(value):
-    if value is None:
-        return "-"
-    if value >= 3600:
-        return f"{value / 3600:.2f} h"
-    if value >= 120:
-        return f"{value / 60:.1f} min"
-    return f"{value:.1f} s"
+    return "-" if value is None else format_duration_seconds(value)
 
 
 def _rate(record):
     if record["seconds_per"] is None:
         return ""
-    return f"{record['seconds_per'] * 1000:,.2f} ms per {record['made']['noun'].rstrip('s')}"
+    return f"{format_duration_seconds(record['seconds_per'])} per {record['made']['noun'].rstrip('s')}"
 
 
 def format_report(result):
@@ -684,7 +679,7 @@ def format_report(result):
         status = " NOT FINISHED" if record["timed_out"] else (" FAILED" if record.get("failed") else "")
         cpu = "-" if record["cpu_seconds"] is None else _seconds(record["cpu_seconds"])
         lines.append(f"  {record['label'][:44]:44} {_seconds(record['wall_seconds']):>9} {100 * record['wall_seconds'] / total:6.1f}% "
-                     f"{cpu:>8} {record['peak_rss_total_mb']:8.0f} MB ({record['peak_rss_process_mb']:.0f} one)  "
+                     f"{cpu:>8} {format_megabytes(record['peak_rss_total_mb']):>11} ({format_megabytes(record['peak_rss_process_mb'])} one)  "
                      f"{record['made']['count']:,} {record['made']['noun']}  {_rate(record)}{status}")
         for stage in record["stages"]:
             if stage["key"] in ("job", "scatter"):
@@ -707,8 +702,8 @@ def format_report(result):
                              f"{_seconds(wall['max']):>9}  spread {100 * (entry['spread'] or 0):.0f}%")
     startup = result.get("worker_startup")
     if startup:
-        lines += ["", f"  worker start-up: {startup['process_seconds']:.2f} s a process (imports {startup['import_seconds']:.2f} s, "
-                      f"first connection {startup['connect_seconds']:.2f} s)"]
+        lines += ["", f"  worker start-up: {format_duration_seconds(startup['process_seconds'])} a process (imports {format_duration_seconds(startup['import_seconds'])}, "
+                      f"first connection {format_duration_seconds(startup['connect_seconds'])})"]
     lines += ["", "  ranked by wall time:"]
     for entry in result["ranking"]:
         lines.append(f"    {entry['share'] * 100:5.1f}%  {_seconds(entry['wall_seconds']):>9}  {STEP_LABELS[entry['step']]}")

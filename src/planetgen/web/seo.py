@@ -21,12 +21,13 @@ The absolute address of the site is `base_url` (never the request's Host header)
 This module imports Flask only for the request.
 """
 
-import json
 from xml.sax.saxutils import escape
 import re
 import threading
 import time
 from urllib.parse import urlencode, urlsplit
+
+from planetgen.web.lib import fmt
 
 from flask import current_app, request, url_for
 
@@ -177,7 +178,7 @@ def head(title, description=None):
     json_ld = None
     if settings.seo.json_ld and endpoint == "web.index" and base:
         document = {"@context": "https://schema.org", "@type": "WebSite", "name": settings.site_name, "url": base}
-        json_ld = json.dumps(document).replace("<", "\\u003c")
+        json_ld = fmt.json_script(document)
     return {
         "title": _title(settings, title), "lang": settings.site.language, "description": text,
         "keywords": ", ".join(settings.seo.keywords) or None, "robots": robots, "canonical": canonical,

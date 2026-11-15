@@ -132,9 +132,9 @@ def test_a_finished_stage_leaves_one_row_worked_out_from_its_units(redis_server,
     assert kind == "stage:stage-17" and readings["seconds"] == 45.0 and readings["parts"] == 2 and readings["seconds_peak"] == 30.0 and readings["peak_mb"] == 1200.0
 
 
-def test_the_control_schema_is_at_v22_with_the_table(control):
-    assert store.CONTROL_SCHEMA_VERSION == 22
-    assert control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"] == 22
+def test_the_control_schema_holds_the_table_from_v22_on(control):
+    assert store.CONTROL_SCHEMA_VERSION >= 22
+    assert control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"] == store.CONTROL_SCHEMA_VERSION
 
 
 def test_a_finished_unit_leaves_a_row_with_its_items_seconds_and_peak(redis_server, control, monkeypatch):

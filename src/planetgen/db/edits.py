@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
+from planetgen.db import fingerprint, fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
 from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import effect_ledger, insolation, unit_registry as units
 
@@ -56,10 +56,6 @@ def _star_ids(conn, system_id, system):
     return [(row["id"] if row else None, system.planets, None), *members]
 
 
-_BODY_CHILD_TABLES = ("reflection_spectrum", "interior_layers", "deposit_types", "isotopes", "gases", "life_class_scores", "life")
-"""tuple: The child tables of a planet or moon (`planet_<name>` / `moon_<name>`) that `store.body_child_rows` writes again after an edit."""
-
-
 def _update_body(conn, table, body, assignments, key_values):
     """UPDATEs one `planets`/`moons` row from `body` and rewrites its
     reflection spectrum rows."""
@@ -73,7 +69,7 @@ def _update_body(conn, table, body, assignments, key_values):
         (*values, body.db_id),
     )
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
-    for child in _BODY_CHILD_TABLES:
+    for child in fingerprint.BODY_CHILD_SUFFIXES:     # the rows `store.body_child_rows` writes again below
         conn.execute(f"DELETE FROM {prefix}_{child} WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
 

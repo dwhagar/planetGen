@@ -55,6 +55,7 @@ import psutil
 from planetgen.queue import work
 from planetgen.util import log
 from planetgen.util.process import pid_alive
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 MB = 2 ** 20
 
@@ -347,8 +348,8 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     reserve = reserve_mb(host) / (2.0 if short else 1.0)
     free = host.available_mb - reserve - keep - unrealised
     if need > free:
-        return Decision(False, f"needs {need:,.0f} MB, {free:,.0f} MB are free ({host.available_mb:,.0f} available, {reserve:,.0f} kept for the host, "
-                               f"{keep:,.0f} for the short lanes, {unrealised:,.0f} still to be taken by the claims held)", need, free, True)
+        return Decision(False, f"needs {format_megabytes(need)}, {format_megabytes(free)} are free ({format_megabytes(host.available_mb)} available, {format_megabytes(reserve)} kept for the host, "
+                               f"{format_megabytes(keep)} for the short lanes, {format_megabytes(unrealised)} still to be taken by the claims held)", need, free, True)
     cap = host.cores * (INTERACTIVE_CPU_SHARE if short else CPU_SHARE) - (0.0 if short else kept_cores(others, host, places))
     busy = sum(holder.claim.cpu for holder in others)
     if busy + claim.cpu > cap:
@@ -356,7 +357,7 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     limit = INTERACTIVE_LOAD_LIMIT if short else LOAD_LIMIT
     if host.load_per_core > limit:
         return Decision(False, f"the load is {host.load_per_core:.2f} a core, over {limit:g}", need, free)
-    return Decision(True, f"fits: needs {need:,.0f} MB of {free:,.0f} free", need, free)
+    return Decision(True, f"fits: needs {format_megabytes(need)} of {format_megabytes(free)} free", need, free)
 
 
 @contextlib.contextmanager
@@ -430,12 +431,12 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
                 decision = Decision(True, "the gate is off", claim.mb, host.available_mb)
             timed_out = False
             if not decision.admit and waited >= max_wait and wait_is_over(conn, claim, [h for h in held if h.name != name], cap_of):
-                decision, timed_out = Decision(True, f"waited {waited:,.0f} s; the table cap lets it in ({decision.reason})", decision.need_mb, decision.free_mb), True
+                decision, timed_out = Decision(True, f"waited {format_duration_seconds(waited)}; the table cap lets it in ({decision.reason})", decision.need_mb, decision.free_mb), True
             if decision.admit:
                 _write(conn, name, claim, pid, job, time.time())
-                log.debug("The memory gate admits %s (%s MB, %g core(s), %s) for %s after %.1f s: %s", claim.kind, f"{claim.mb:,.0f}", claim.cpu, claim.lane, name, waited, decision.reason, area="queue")
+                log.debug("The memory gate admits %s (%s, %g core(s), %s) for %s after %s: %s", claim.kind, format_megabytes(claim.mb), claim.cpu, claim.lane, name, format_duration_seconds(waited), decision.reason, area="queue")
                 if timed_out:
-                    log.warning(f"The memory gate let {claim.kind} in after {waited:,.0f} s of waiting, by the table cap: {decision.reason}")
+                    log.warning(f"The memory gate let {claim.kind} in after {format_duration_seconds(waited)} of waiting, by the table cap: {decision.reason}")
                 return Admission(waited, timed_out, decision)
         if decision.memory:
             memory_since = clock() if memory_since is None else memory_since
@@ -444,7 +445,7 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
             memory_since = None
         if waited - announced >= 60.0:
             announced = waited
-            log.normal(f"The memory gate holds {claim.kind} ({claim.mb:,.0f} MB) for {name}: {decision.reason}.")
+            log.normal(f"The memory gate holds {claim.kind} ({format_megabytes(claim.mb)}) for {name}: {decision.reason}.")
         if on_wait is not None:
             on_wait(decision, waited)
         sleep(POLL_SECONDS)

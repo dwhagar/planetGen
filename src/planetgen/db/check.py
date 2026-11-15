@@ -8,12 +8,14 @@ The database check (DB.8)
 button, which runs it as a job) looks for damage in a galaxy database and
 changes nothing. See `docs/design/operations/db-check-and-parity-repair.md` section 6.
 
-Each check is a function of a `_Context` that returns a list of `Problem`s
-(empty when the check passes), and a command of its own on the work queue
-(`check-revision`, `check-tables`, ... `queue/commands.py`, PERF.126), whose unit
-(`run_check`) opens its own connection, runs that one check and returns its
-`CheckResult`: a check that itself failed to run is an "error" result (could not
-check, which is not the same as damaged), never an exception. `planetgen check-db`
+Each check is a command of its own on the work queue (`check-revision`,
+`check-tables`, ... `queue/commands.py`, PERF.126) whose unit the engine runs
+as a list of pieces (OPS.204, `queue/engine.py`): a table, a foreign key, a
+sector, a star system (`Check.pieces`, `Check.piece`). The unit's result is the
+`CheckResult` that `Check.combine` makes of what the pieces found (`Problem`s,
+none when the check passes): a check that itself failed to run is an "error"
+result (could not check, which is not the same as damaged), never an exception.
+Every piece opens its own read-only connection. `planetgen check-db`
 only builds the list of the checks asked for and hands it to the wrapper; `Report`
 turns the results of the list into the lines and the exit code.
 
@@ -46,6 +48,7 @@ to check in one go is checked a region at a time.
 """
 
 import re
+import time
 import warnings
 from dataclasses import dataclass, field
 
@@ -56,6 +59,7 @@ from alembic.migration import MigrationContext
 from planetgen.db import alembic_runner, models, storage_checksum, store
 from planetgen.generation import steps, validation
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 MAX_ROWS_SHOWN = 10
 """int: How many offending rows a problem lists before "and N more"."""
@@ -235,8 +239,6 @@ class _Context:
     conn: object
     config: object
     scope: Scope
-    report: object = None
-    """callable or None: `report(done, estimate)` for a check that can say how far it is (the systems check)."""
 
     def rows(self, sql, params=()):
         return self.conn.execute(sql, params).fetchall()
@@ -251,9 +253,27 @@ def _table_exists(ctx, name):
     return name in {t.lower() for t in ctx.tables()}
 
 
-def check_revision(ctx):
-    """The three records of the schema version agree with the code, and the
-    tables match the models."""
+def _dicts(problems):
+    """What a piece hands the engine: its problems as plain JSON."""
+    return [problem.as_dict() for problem in problems]
+
+
+def _problems_of(outputs):
+    """The usual `combine` of a check: the problems of every piece, in the order of the pieces."""
+    return [Problem.from_dict(data) for output in outputs for data in output]
+
+
+# --- revision: the records of the version, then the tables against the models ------------------------------------------------------
+
+def _revision_pieces(ctx):
+    return ["versions", "models"]
+
+
+def _revision_piece(ctx, piece):
+    """The three records of the schema version agree with the code (`versions`), and the tables match the models (`models`)."""
+    if piece == "models":
+        drift = _model_drift(ctx.config)
+        return _dicts([Problem("The tables differ from db/models.py:", drift)] if drift else [])
     problems = []
     head = store.SCHEMA_VERSION
     expected = alembic_runner.revision_id(head)
@@ -274,10 +294,7 @@ def check_revision(ctx):
     # table is normal, a different or doubled revision is not.
     if revision not in (None, [], expected):
         problems.append(Problem(f"alembic_version says {revision!r}; version {head} is revision {expected!r}."))
-    drift = _model_drift(ctx.config)
-    if drift:
-        problems.append(Problem("The tables differ from db/models.py:", drift))
-    return problems
+    return _dicts(problems)
 
 
 def _model_drift(config):
@@ -311,29 +328,38 @@ def _diff_text(diff):
     return f"{kind} {' '.join(parts)}"
 
 
-def check_tables(ctx):
-    """`CHECK TABLE ... QUICK` on every table."""
-    return _check_tables(ctx, "QUICK")
+# --- tables: one table a piece -----------------------------------------------------------------------------------------------------
+
+def _tables_pieces(ctx):
+    return ctx.tables()
 
 
-def check_tables_extended(ctx):
-    """`CHECK TABLE ... EXTENDED` on every table: slow, so a check of its own."""
-    return _check_tables(ctx, "EXTENDED")
+def _tables_piece(ctx, table):
+    """`CHECK TABLE ... QUICK` on one table."""
+    return _check_table(ctx, table, "QUICK")
 
 
-def _check_tables(ctx, mode):
+def _tables_extended_piece(ctx, table):
+    """`CHECK TABLE ... EXTENDED` on one table: slow, so a check of its own."""
+    return _check_table(ctx, table, "EXTENDED")
+
+
+def _check_table(ctx, table, mode):
     problems = []
-    for table in ctx.tables():
-        for row in ctx.rows(f"CHECK TABLE `{table}` {mode}"):
-            kind = str(row.get("Msg_type", "")).lower()
-            if kind in ("error", "corrupt") or (kind == "status" and str(row.get("Msg_text")).upper() != "OK"):
-                problems.append(Problem(f"CHECK TABLE {table}: {row.get('Msg_text')}"))
-    return problems
+    for row in ctx.rows(f"CHECK TABLE `{table}` {mode}"):
+        kind = str(row.get("Msg_type", "")).lower()
+        if kind in ("error", "corrupt") or (kind == "status" and str(row.get("Msg_text")).upper() != "OK"):
+            problems.append(Problem(f"CHECK TABLE {table}: {row.get('Msg_text')}"))
+    return _dicts(problems)
 
 
-def check_orphans(ctx):
-    """Child rows whose parent row is gone."""
-    problems = []
+# --- orphans: one foreign key a piece, then the pointers no key covers --------------------------------------------------------------
+
+POINTER_TABLES = ("nearest_systems", "sector_paths")
+"""tuple: The tables whose rows name an object by `object_table` and `object_id`, which no foreign key covers (the target table varies)."""
+
+
+def _orphans_pieces(ctx):
     keys = ctx.rows(
         "SELECT constraint_name AS c, table_name AS t, column_name AS col,"
         " referenced_table_name AS rt, referenced_column_name AS rcol"
@@ -342,23 +368,28 @@ def check_orphans(ctx):
         " ORDER BY constraint_name, ordinal_position")
     grouped = {}
     for key in keys:
-        grouped.setdefault((key["c"], key["t"], key["rt"]), []).append((key["col"], key["rcol"]))
-    for (name, table, parent), pairs in grouped.items():
-        join = " AND ".join(f"c.`{a}` = p.`{b}`" for a, b in pairs)
-        present = " AND ".join(f"c.`{a}` IS NOT NULL" for a, _ in pairs)
-        orphans = ctx.rows(
-            f"SELECT c.`{pairs[0][0]}` AS v FROM `{table}` c LEFT JOIN `{parent}` p ON {join}"
-            f" WHERE {present} AND p.`{pairs[0][1]}` IS NULL LIMIT {MAX_ROWS_SHOWN + 1}")
-        if orphans:
-            total = ctx.rows(
-                f"SELECT COUNT(*) AS n FROM `{table}` c LEFT JOIN `{parent}` p ON {join}"
-                f" WHERE {present} AND p.`{pairs[0][1]}` IS NULL")[0]["n"]
-            shown = [f"{table}.{pairs[0][0]} = {row['v']} (no row in {parent})" for row in orphans]
-            problems.append(Problem(f"{total} row(s) of {table} have no parent in {parent} ({name}).",
-                                    shown + ["..."] * (total > len(shown))))
-    problems.extend(_pointer_orphans(ctx, "nearest_systems", "object_table", "object_id"))
-    problems.extend(_pointer_orphans(ctx, "sector_paths", "object_table", "object_id"))
-    return problems
+        grouped.setdefault((key["c"], key["t"], key["rt"]), []).append([key["col"], key["rcol"]])
+    return [{"key": [name, table, parent, pairs]} for (name, table, parent), pairs in grouped.items()] \
+        + [{"pointer": table} for table in POINTER_TABLES]
+
+
+def _orphans_piece(ctx, piece):
+    """Child rows of one foreign key whose parent row is gone, or the rows of one pointer table that name an object that is gone."""
+    if "pointer" in piece:
+        return _dicts(_pointer_orphans(ctx, piece["pointer"], "object_table", "object_id"))
+    name, table, parent, pairs = piece["key"]
+    join = " AND ".join(f"c.`{a}` = p.`{b}`" for a, b in pairs)
+    present = " AND ".join(f"c.`{a}` IS NOT NULL" for a, _ in pairs)
+    orphans = ctx.rows(
+        f"SELECT c.`{pairs[0][0]}` AS v FROM `{table}` c LEFT JOIN `{parent}` p ON {join}"
+        f" WHERE {present} AND p.`{pairs[0][1]}` IS NULL LIMIT {MAX_ROWS_SHOWN + 1}")
+    if not orphans:
+        return []
+    total = ctx.rows(
+        f"SELECT COUNT(*) AS n FROM `{table}` c LEFT JOIN `{parent}` p ON {join}"
+        f" WHERE {present} AND p.`{pairs[0][1]}` IS NULL")[0]["n"]
+    shown = [f"{table}.{pairs[0][0]} = {row['v']} (no row in {parent})" for row in orphans]
+    return _dicts([Problem(f"{total} row(s) of {table} have no parent in {parent} ({name}).", shown + ["..."] * (total > len(shown)))])
 
 
 def _pointer_orphans(ctx, table, table_column, id_column):
@@ -381,21 +412,26 @@ def _pointer_orphans(ctx, table, table_column, id_column):
     return problems
 
 
-def check_ids(ctx):
-    """`id_blocks.next_id` is above the largest id of each table it serves."""
-    problems = []
-    blocks = {row["t"]: row["n"] for row in ctx.rows("SELECT table_name AS t, next_id AS n FROM id_blocks")}
-    for table in sorted(store.ID_BLOCK_TABLES):
-        top = ctx.rows(f"SELECT MAX(id) AS m FROM `{table}`")[0]["m"]
-        if top is None:
-            continue
-        if table not in blocks:
-            problems.append(Problem(f"{table} has rows (largest id {top}) but no id_blocks entry."))
-        elif blocks[table] <= top:
-            problems.append(Problem(f"id_blocks.next_id for {table} is {blocks[table]}, "
-                                    f"not above its largest id {top}; the next row would clash."))
-    return problems
+# --- ids: one table a piece --------------------------------------------------------------------------------------------------------
 
+def _ids_pieces(ctx):
+    return sorted(store.ID_BLOCK_TABLES)
+
+
+def _ids_piece(ctx, table):
+    """`id_blocks.next_id` is above the largest id of one table it serves."""
+    top = ctx.rows(f"SELECT MAX(id) AS m FROM `{table}`")[0]["m"]
+    if top is None:
+        return []
+    rows = ctx.rows("SELECT next_id AS n FROM id_blocks WHERE table_name = %s", (table,))
+    if not rows:
+        return _dicts([Problem(f"{table} has rows (largest id {top}) but no id_blocks entry.")])
+    if rows[0]["n"] <= top:
+        return _dicts([Problem(f"id_blocks.next_id for {table} is {rows[0]['n']}, not above its largest id {top}; the next row would clash.")])
+    return []
+
+
+# --- values: one table a piece -----------------------------------------------------------------------------------------------------
 
 def _bad_value_sql(column, low, high, low_in, high_in):
     """The SQL condition under which a value of `column` (the row aliased `t`) breaks its `VALUE_RULES` rule."""
@@ -407,106 +443,131 @@ def _bad_value_sql(column, low, high, low_in, high_in):
     return f"t.`{column}` IS NOT NULL AND ({' OR '.join(bad)})"
 
 
-def check_values(ctx):
-    """Columns holding numbers no generator can write. One scan of each table counts every rule on it (a conditional sum per rule,
+def _values_pieces(ctx):
+    return list(dict.fromkeys(rule[0] for rule in VALUE_RULES))
+
+
+def _values_piece(ctx, table):
+    """Columns of one table holding numbers no generator can write. One scan of the table counts every rule on it (a conditional sum per rule,
     PERF.258); only a rule that finds rows is read again, for the rows it lists."""
+    rules = [rule for rule in VALUE_RULES if rule[0] == table]
+    scope_sql, params = ctx.scope.where(_SECTOR_OF[table])
+    sums = ", ".join(f"COALESCE(SUM(CASE WHEN {_bad_value_sql(*rule[1:])} THEN 1 ELSE 0 END), 0) AS n{index}" for index, rule in enumerate(rules))
+    counts = ctx.rows(f"SELECT {sums} FROM `{table}` t WHERE 1 = 1{scope_sql}", params)[0]
     problems = []
-    rules_by_table = {}
-    for rule in VALUE_RULES:
-        rules_by_table.setdefault(rule[0], []).append(rule)
-    counts = {}
-    for table, rules in rules_by_table.items():
-        scope_sql, params = ctx.scope.where(_SECTOR_OF[table])
-        sums = ", ".join(f"COALESCE(SUM(CASE WHEN {_bad_value_sql(*rule[1:])} THEN 1 ELSE 0 END), 0) AS n{index}"
-                         for index, rule in enumerate(rules))
-        row = ctx.rows(f"SELECT {sums} FROM `{table}` t WHERE 1 = 1{scope_sql}", params)[0]
-        for index, rule in enumerate(rules):
-            counts[rule] = int(row[f"n{index}"])
-    for rule in VALUE_RULES:
-        table, column = rule[0], rule[1]
-        total = counts[rule]
+    for index, rule in enumerate(rules):
+        column, total = rule[1], int(counts[f"n{index}"])
         if total:
-            scope_sql, params = ctx.scope.where(_SECTOR_OF[table])
             where = f"{_bad_value_sql(*rule[1:])}{scope_sql}"
-            rows = ctx.rows(f"SELECT t.id AS id, t.`{column}` AS v FROM `{table}` t WHERE {where}"
-                            f" LIMIT {MAX_ROWS_SHOWN}", params)
+            rows = ctx.rows(f"SELECT t.id AS id, t.`{column}` AS v FROM `{table}` t WHERE {where} LIMIT {MAX_ROWS_SHOWN}", params)
             problems.append(Problem(
                 f"{total} row(s) of {table} have {column} out of range.",
                 [f"{table} id {row['id']}: {column} = {row['v']}" for row in rows] + ["..."] * (total > len(rows))))
-    return problems
+    return _dicts(problems)
 
 
-def check_counts(ctx):
-    """A sector's stats count the systems it holds, and the galaxy's stored counts (DB.121) the rows the tables hold (a warning only)."""
-    scope_sql, params = ctx.scope.where("s.id")
-    rows = ctx.rows(
-        "SELECT s.shell_index AS r, s.band_index AS l, s.wedge_index AS p, st.actual_systems AS stated,"
-        " (SELECT COUNT(*) FROM star_systems y WHERE y.sector_id = s.id) AS actual"
-        " FROM sectors s JOIN sector_stats st ON st.shell_index = s.shell_index"
-        " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index"
-        f" WHERE st.actual_systems IS NOT NULL{scope_sql}"
-        " HAVING stated <> actual ORDER BY r, l, p", params)
+# --- counts: the sectors' stats, then the galaxy's stored counts -------------------------------------------------------------------
+
+def _counts_pieces(ctx):
+    return ["sectors", "galaxy"] if ctx.scope.everything else ["sectors"]
+
+
+def _counts_piece(ctx, piece):
+    """A sector's stats count the systems it holds (`sectors`), and the galaxy's stored counts (DB.121) the rows the tables hold (`galaxy`); a warning only."""
     problems = []
-    if rows:
-        problems.append(Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
-                                [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}"
-                                 for row in rows], warning=True))
-    if ctx.scope.everything:
+    if piece == "sectors":
+        scope_sql, params = ctx.scope.where("s.id")
+        rows = ctx.rows(
+            "SELECT s.shell_index AS r, s.band_index AS l, s.wedge_index AS p, st.actual_systems AS stated,"
+            " (SELECT COUNT(*) FROM star_systems y WHERE y.sector_id = s.id) AS actual"
+            " FROM sectors s JOIN sector_stats st ON st.shell_index = s.shell_index"
+            " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index"
+            f" WHERE st.actual_systems IS NOT NULL{scope_sql}"
+            " HAVING stated <> actual ORDER BY r, l, p", params)
+        if rows:
+            problems.append(Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
+                                    [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}" for row in rows], warning=True))
+    else:
         # DB.121: the running totals and the sectors' facet rows against a full count of the tables (`planetgen fill-block-totals` repairs).
         from planetgen.db import galaxy_counts
         found = galaxy_counts.problems(ctx.conn)
         if found:
             problems.append(Problem("The stored galaxy counts differ from a full count.", found, warning=True))
-    return problems
+    return _dicts(problems)
 
 
-def check_object_index(ctx):
-    """The object index (DB.79, PERF.140) holds a row for every object, no row for a gone object and what each object
+# --- object index: one kind of object a piece --------------------------------------------------------------------------------------
+
+def _object_index_pieces(ctx):
+    from planetgen.db import objectindex
+    return list(objectindex.KINDS) if _table_exists(ctx, "object_index") else ["no table"]
+
+
+def _object_index_piece(ctx, kind):
+    """The object index (DB.79, PERF.140) holds a row for one kind of object for every object, no row for a gone object and what each object
     holds. An index nothing has built yet is a warning, not damage."""
     from planetgen.db import objectindex
-    if not _table_exists(ctx, "object_index"):
-        return [Problem("The object index table is not there: run the update.", warning=True)]
-    problems = []
-    for kind, found in objectindex.check(ctx.conn).items():
-        if not found["indexed"] and found["live"]:
-            problems.append(Problem(f"The object index holds no {kind} yet ({found['live']} exist): run `planetgen warm "
-                                    "object-index`.", warning=True))
-        elif found["missing"] or found["extra"] or found["different"]:
-            problems.append(Problem(
-                f"The object index differs from the {kind} table: {found['missing']} missing, {found['extra']} "
-                f"extra, {found['different']} different (of {found['live']}). `planetgen warm object-index` rebuilds it.",
-                warning=False))
-    return problems
+    if kind == "no table":
+        return _dicts([Problem("The object index table is not there: run the update.", warning=True)])
+    found = objectindex.check(ctx.conn, [kind])[kind]
+    if not found["indexed"] and found["live"]:
+        return _dicts([Problem(f"The object index holds no {kind} yet ({found['live']} exist): run `planetgen warm object-index`.", warning=True)])
+    if found["missing"] or found["extra"] or found["different"]:
+        return _dicts([Problem(
+            f"The object index differs from the {kind} table: {found['missing']} missing, {found['extra']} "
+            f"extra, {found['different']} different (of {found['live']}). `planetgen warm object-index` rebuilds it.", warning=False)])
+    return []
 
 
-def check_version_keys(ctx):
-    """Every sector points at a generation run that carries a 22 hex digit version key (DB.16)."""
+# --- version keys: a run of sector ids a piece ---------------------------------------------------------------------------------------
+
+VERSION_KEY_SECTORS = 2000
+"""int: Sectors a piece of `check-version-keys` reads. Defined by the program, not a physical value: a piece is one read, and the bar counts them."""
+
+
+def _version_keys_pieces(ctx):
+    scope_sql, params = ctx.scope.where("s.id")
+    ids = [row["id"] for row in ctx.rows(f"SELECT s.id AS id FROM sectors s WHERE 1 = 1{scope_sql} ORDER BY s.id", params)]
+    return [[ids[start], ids[min(start + VERSION_KEY_SECTORS, len(ids)) - 1]] for start in range(0, len(ids), VERSION_KEY_SECTORS)]
+
+
+def _version_keys_piece(ctx, span):
+    """Every sector of ids `span` (in scope) points at a generation run that carries a 22 hex digit version key (DB.16): the sectors that do not, as text."""
     scope_sql, params = ctx.scope.where("s.id")
     rows = ctx.rows("SELECT s.id AS id, r.version_key AS k FROM sectors s LEFT JOIN generation_runs r ON r.id = s.run_id"
-                    f" WHERE 1 = 1{scope_sql}", params)
-    bad = [row for row in rows if not row["k"] or not _VERSION_KEY.match(str(row["k"]))]
-    if not bad:
-        return []
-    return [Problem(f"{len(bad)} sector(s) have a missing or malformed version key.",
-                    [f"sector id {row['id']}: {row['k']!r}" for row in bad])]
+                    f" WHERE s.id BETWEEN %s AND %s{scope_sql}", (span[0], span[1], *params))
+    return [f"sector id {row['id']}: {row['k']!r}" for row in rows if not row["k"] or not _VERSION_KEY.match(str(row["k"]))]
 
 
-def check_storage(ctx):
+def _version_keys_combine(outputs):
+    bad = [text for output in outputs for text in output]
+    return [Problem(f"{len(bad)} sector(s) have a missing or malformed version key.", bad)] if bad else []
+
+
+# --- storage: one sector a piece -----------------------------------------------------------------------------------------------------
+
+def _storage_pieces(ctx):
+    scope_sql, params = ctx.scope.where("s.id")
+    return [row["id"] for row in ctx.rows(f"SELECT s.id AS id FROM sectors s WHERE 1 = 1{scope_sql} ORDER BY s.id", params)]
+
+
+def _storage_piece(ctx, sector_id):
     """
     A sector whose `parity_dirty` flag is clear still hashes to its stored checksum (DB.45, DB.8): the rows are as they were when
-    the parity record was made. A mismatch is damage. A sector whose flag is set, or that was never sealed, is not checked (a writer
-    changed it since, or nothing has sealed it yet): it is one warning with the count, because nothing protects it until the
-    parity update seals it.
+    the parity record was made. Gives `["damaged", id]` for a mismatch, `["unprotected", id]` for a sector whose flag is set or that was never sealed (a writer changed it since,
+    or nothing has sealed it yet: not checked), else `None`.
     """
-    scope_sql, params = ctx.scope.where("s.id")
-    rows = ctx.rows("SELECT s.id AS id, s.parity_dirty AS dirty, s.storage_checksum AS sum FROM sectors s"
-                    f" WHERE 1 = 1{scope_sql} ORDER BY s.id", params)
-    unprotected, damaged = [], []
-    for row in rows:
-        if row["dirty"] or row["sum"] is None:
-            unprotected.append(row["id"])
-        elif storage_checksum.check_sector(ctx.conn, row["id"]) == storage_checksum.DAMAGED:
-            damaged.append(f"sector id {row['id']}")
+    row = ctx.rows("SELECT s.parity_dirty AS dirty, s.storage_checksum AS sum FROM sectors s WHERE s.id = %s", (sector_id,))
+    if not row:
+        return None
+    if row[0]["dirty"] or row[0]["sum"] is None:
+        return ["unprotected", sector_id]
+    return ["damaged", sector_id] if storage_checksum.check_sector(ctx.conn, sector_id) == storage_checksum.DAMAGED else None
+
+
+def _storage_combine(outputs):
+    damaged = [f"sector id {found[1]}" for found in outputs if found and found[0] == "damaged"]
+    unprotected = [found[1] for found in outputs if found and found[0] == "unprotected"]
     problems = []
     if damaged:
         problems.append(Problem(f"{len(damaged)} sector(s) no longer hash to their stored checksum.", damaged))
@@ -537,7 +598,7 @@ class DeepEstimate:
 
         if self.measured:
             return (f"Deep check: {self.systems:,} star systems to validate, about "
-                    f"{generation_stats.format_duration(self.seconds)} (from the speed this server recorded).")
+                    f"{format_duration_seconds(self.seconds)} (from the speed this server recorded).")
         return (f"Deep check: {self.systems:,} star systems to validate, about "
                 f"{generation_stats.time_text(self.seconds, False)}.")
 
@@ -574,76 +635,80 @@ def deep_estimate(conn, config, scope=None):
     return DeepEstimate(count, seconds, True)
 
 
-def check_systems(ctx):
-    """Every star system in scope loads and passes `validation.check_star_system`. One problem lists each
-    failing system with what is wrong (a system that cannot be loaded says so)."""
-    from planetgen.generation import run_common
+def _systems_pieces(ctx):
+    return _system_ids(ctx.conn, ctx.scope)
 
-    ids = _system_ids(ctx.conn, ctx.scope)
-    failing = []
-    stats = run_common._stats_for_config(ctx.config)
-    with steps.step("Validating star systems", "db-check", len(ids), stats=stats, own=True) as bar:
-        for number, system_id in enumerate(ids, 1):
-            try:
-                system = store.load_star_system(ctx.conn, system_id)
-                found = validation.check_star_system(system)
-                lines = [f"{problem.body}: {problem.message}" for problem in found]
-                name = system.name
-            except Exception as exc:  # noqa: BLE001 -- a system that will not load is the finding
-                log.swallowed("db/check", "check_systems", exc)
-                lines, name = [f"could not be loaded or checked: {type(exc).__name__}: {exc}"], "?"
-            if lines:
-                failing.append(f"star system {name!r} (id {system_id}): " + "; ".join(lines))
-            bar.advance()
-            if ctx.report is not None:
-                ctx.report(number, len(ids))
-    if not failing:
-        return []
-    return [Problem(f"{len(failing)} star system(s) fail validation.", failing)]
+
+def _systems_piece(ctx, system_id):
+    """One star system in scope loads and passes `validation.check_star_system`. Gives `{"seconds", "failing"}`: the seconds it took (the speed of the pass is recorded
+    from them, `DEEP_STATS_KIND`) and, for a system that fails, the text that says what is wrong (a system that cannot be loaded says so), else `None`."""
+    started = time.monotonic()
+    try:
+        system = store.load_star_system(ctx.conn, system_id)
+        found = validation.check_star_system(system)
+        lines = [f"{problem.body}: {problem.message}" for problem in found]
+        name = system.name
+    except Exception as exc:  # noqa: BLE001 -- a system that will not load is the finding
+        log.swallowed("db/check", "_systems_piece", exc)
+        lines, name = [f"could not be loaded or checked: {type(exc).__name__}: {exc}"], "?"
+    failing = f"star system {name!r} (id {system_id}): " + "; ".join(lines) if lines else None
+    return {"seconds": time.monotonic() - started, "failing": failing}
+
+
+def _systems_combine(outputs):
+    failing = [output["failing"] for output in outputs if output["failing"]]
+    return [Problem(f"{len(failing)} star system(s) fail validation.", failing)] if failing else []
+
+
+def _record_systems_speed(config, outputs):
+    """Records how long the pass took a system (`DEEP_STATS_KIND`), so the next estimate (`deep_estimate`) knows this server's speed; never fails a check."""
+    from planetgen.generation import run_common
+    seconds = sum(output["seconds"] for output in outputs)
+    if not outputs or seconds <= 0:
+        return
+    try:
+        stats = run_common._stats_for_config(config)
+        stats.record(DEEP_STATS_KIND, 0.0, seconds, systems=len(outputs), stars=len(outputs), workers=1)
+        stats.flush()
+    except Exception as exc:  # noqa: BLE001 -- statistics never fail a check
+        log.debug(f"Database check: could not record the speed of the systems pass: {exc}")
 
 
 @dataclass(frozen=True)
 class Check:
-    """One check: its `name` (the word `planetgen check-db NAME` takes, and the tail of its command `check-NAME`),
-    the `label` its result line carries, its `function`, and whether it takes the sector `scoped` list and
-    `wide_binaries`."""
+    """One check: its `name` (the word `planetgen check-db NAME` takes, and the tail of its command `check-NAME`), the `label` its result line
+    carries, and how the engine runs it (OPS.204): `pieces(ctx)` lists the pieces of the one unit (JSON-able: a table, a key, a sector, a system),
+    `piece(ctx, piece)` does one and gives what it found (JSON-able), and `combine(outputs)` makes the problems of the pieces' outputs
+    (`_problems_of`, the pieces' problems one after another, unless the check says another). `scoped` marks the checks that take the
+    sector list, `wide_binaries` the one that takes that."""
     name: str
     label: str
-    function: object
+    pieces: object
+    piece: object
+    combine: object = _problems_of
     scoped: bool = False
     wide_binaries: bool = False
 
 
 CHECKS = (
-    Check("revision", "revision", check_revision),
-    Check("tables", "tables", check_tables),
-    Check("tables-extended", "tables (extended)", check_tables_extended),
-    Check("orphans", "orphans", check_orphans),
-    Check("ids", "ids", check_ids),
-    Check("values", "values", check_values, scoped=True),
-    Check("counts", "counts", check_counts, scoped=True),
-    Check("version-keys", "version keys", check_version_keys, scoped=True),
-    Check("storage", "storage checksums", check_storage, scoped=True),
-    Check("systems", "systems", check_systems, scoped=True, wide_binaries=True),
-    Check("object-index", "object index", check_object_index),
+    Check("revision", "revision", _revision_pieces, _revision_piece),
+    Check("tables", "tables", _tables_pieces, _tables_piece),
+    Check("tables-extended", "tables (extended)", _tables_pieces, _tables_extended_piece),
+    Check("orphans", "orphans", _orphans_pieces, _orphans_piece),
+    Check("ids", "ids", _ids_pieces, _ids_piece),
+    Check("values", "values", _values_pieces, _values_piece, scoped=True),
+    Check("counts", "counts", _counts_pieces, _counts_piece, scoped=True),
+    Check("version-keys", "version keys", _version_keys_pieces, _version_keys_piece, _version_keys_combine, scoped=True),
+    Check("storage", "storage checksums", _storage_pieces, _storage_piece, _storage_combine, scoped=True),
+    Check("systems", "systems", _systems_pieces, _systems_piece, _systems_combine, scoped=True, wide_binaries=True),
+    Check("object-index", "object index", _object_index_pieces, _object_index_piece),
 )
 """tuple: Every check, in the order a list of them runs and reports."""
 
 BY_NAME = {check.name: check for check in CHECKS}
 
-
-def run_check(check, ctx):
-    """Runs one check and returns its `CheckResult`. A check that raises a database error is "could not check"
-    with its error, not damage."""
-    try:
-        problems = check.function(ctx)
-    except (sqlalchemy.exc.SQLAlchemyError, store.pymysql.err.MySQLError, KeyError) as exc:
-        return CheckResult(check.label, ERROR, error=f"{type(exc).__name__}: {exc}")
-    if any(not p.warning for p in problems):
-        status = FAIL
-    else:
-        status = WARN if problems else PASS
-    return CheckResult(check.label, status, problems)
+_CHECK_ERRORS = (sqlalchemy.exc.SQLAlchemyError, store.pymysql.err.MySQLError, KeyError)
+"""tuple: What a check that fails to run raises: "could not check", which is not the same as damage."""
 
 
 def scope_of(args):
@@ -656,72 +721,166 @@ def _config_of(args):
     return store.MySQLConfig.from_args(args["database"])
 
 
-def _unit(name, args, report):
-    """The unit of the command `check-<name>`: opens this worker's own connection to the database the run named
-    (`wrapper.database_args`; the password is the worker's settings'), runs the one check and returns its result as
-    JSON."""
+def _read_only(args, work):
+    """`work(_Context)` on a connection of the database the run named (`wrapper.database_args`; the password is this worker's settings'), opened as the checks always did: without
+    `ensure_schema`, so a check never mends the schema it is looking at, and closed after. A check writes nothing, so it has nothing to commit."""
     config = _config_of(args)
     conn = store.get_connection(config, ensure_schema=False)
     try:
-        return run_check(BY_NAME[name], _Context(conn, config, scope_of(args), report)).as_dict()
+        return work(_Context(conn, config, scope_of(args)))
     finally:
         conn.close()
 
 
-def check_revision_unit(args, report):
-    """The unit of `check-revision`: `check_revision` (PERF.126)."""
-    return _unit("revision", args, report)
+def _pieces_of(name, args, cursor):
+    """The pieces of the unit of the command `check-<name>` after the first `cursor` of them. A check that cannot list its pieces gives one piece that says so."""
+    def list_them(ctx):
+        try:
+            return list(BY_NAME[name].pieces(ctx))
+        except _CHECK_ERRORS as exc:
+            return [{"could_not_check": f"{type(exc).__name__}: {exc}"}]
+    return _read_only(args, list_them)[cursor:]
 
 
-def check_tables_unit(args, report):
-    """The unit of `check-tables`: `CHECK TABLE ... QUICK` on every table."""
-    return _unit("tables", args, report)
+def check_piece(args, piece, ctx):
+    """
+    One piece of a check (`do` of every `check-NAME` command; the command is `ctx.kind`): runs it on a connection of its own and gives `{"found": what it found}`, or
+    `{"could_not_check": the error}` when the database refused a query (a check that cannot run is "could not check", never an exception and never damage).
+    """
+    if isinstance(piece, dict) and "could_not_check" in piece:
+        return piece
+    check = BY_NAME[ctx.kind[len("check-"):]]
+    try:
+        return {"found": _read_only(args, lambda context: check.piece(context, piece))}
+    except _CHECK_ERRORS as exc:
+        return {"could_not_check": f"{type(exc).__name__}: {exc}"}
 
 
-def check_tables_extended_unit(args, report):
-    """The unit of `check-tables-extended`: `CHECK TABLE ... EXTENDED` on every table."""
-    return _unit("tables-extended", args, report)
+def _result_of(name, args, results):
+    """The unit's result: the `CheckResult` of the check `name` as JSON, from what its pieces found."""
+    check = BY_NAME[name]
+    for result in results:
+        if "could_not_check" in result:
+            return CheckResult(check.label, ERROR, error=result["could_not_check"]).as_dict()
+    outputs = [result["found"] for result in results]
+    if name == "systems":
+        _record_systems_speed(_config_of(args), outputs)
+    problems = check.combine(outputs)
+    if any(not p.warning for p in problems):
+        status = FAIL
+    else:
+        status = WARN if problems else PASS
+    return CheckResult(check.label, status, problems).as_dict()
 
 
-def check_orphans_unit(args, report):
-    """The unit of `check-orphans`: child rows whose parent is gone."""
-    return _unit("orphans", args, report)
+def check_revision_pieces(args, cursor):
+    """The pieces of `check-revision`: the records of the version, then the tables against the models (PERF.126)."""
+    return _pieces_of("revision", args, cursor)
 
 
-def check_ids_unit(args, report):
-    """The unit of `check-ids`: `id_blocks` is ahead of every id."""
-    return _unit("ids", args, report)
+def check_revision_gather(args, results, ctx):
+    """The result of `check-revision`."""
+    return _result_of("revision", args, results)
 
 
-def check_values_unit(args, report):
-    """The unit of `check-values`: columns holding numbers no generator can write, in the scope the arguments name."""
-    return _unit("values", args, report)
+def check_tables_pieces(args, cursor):
+    """The pieces of `check-tables`: one table each, `CHECK TABLE ... QUICK`."""
+    return _pieces_of("tables", args, cursor)
 
 
-def check_counts_unit(args, report):
-    """The unit of `check-counts`: a sector's stats count its systems, in the scope the arguments name."""
-    return _unit("counts", args, report)
+def check_tables_gather(args, results, ctx):
+    """The result of `check-tables`."""
+    return _result_of("tables", args, results)
 
 
-def check_version_keys_unit(args, report):
-    """The unit of `check-version-keys`: every sector in scope has a well formed version key."""
-    return _unit("version-keys", args, report)
+def check_tables_extended_pieces(args, cursor):
+    """The pieces of `check-tables-extended`: one table each, `CHECK TABLE ... EXTENDED`."""
+    return _pieces_of("tables-extended", args, cursor)
 
 
-def check_storage_unit(args, report):
-    """The unit of `check-storage`: every sealed sector in scope still hashes to its storage checksum (DB.45)."""
-    return _unit("storage", args, report)
+def check_tables_extended_gather(args, results, ctx):
+    """The result of `check-tables-extended`."""
+    return _result_of("tables-extended", args, results)
 
 
-def check_systems_unit(args, report):
-    """The unit of `check-systems`: every star system in scope (the wide binaries only with `wide_binaries`)
-    validates; reports `(done, systems)` as it goes."""
-    return _unit("systems", args, report)
+def check_orphans_pieces(args, cursor):
+    """The pieces of `check-orphans`: one foreign key each, then the pointer tables no key covers."""
+    return _pieces_of("orphans", args, cursor)
 
 
-def check_object_index_unit(args, report):
-    """The unit of `check-object-index`: the object index matches the tables (PERF.140)."""
-    return _unit("object-index", args, report)
+def check_orphans_gather(args, results, ctx):
+    """The result of `check-orphans`: child rows whose parent is gone."""
+    return _result_of("orphans", args, results)
+
+
+def check_ids_pieces(args, cursor):
+    """The pieces of `check-ids`: one table each of those `id_blocks` serves."""
+    return _pieces_of("ids", args, cursor)
+
+
+def check_ids_gather(args, results, ctx):
+    """The result of `check-ids`: `id_blocks` is ahead of every id."""
+    return _result_of("ids", args, results)
+
+
+def check_values_pieces(args, cursor):
+    """The pieces of `check-values`: one table each of those with a value rule, in the scope the arguments name."""
+    return _pieces_of("values", args, cursor)
+
+
+def check_values_gather(args, results, ctx):
+    """The result of `check-values`: columns holding numbers no generator can write."""
+    return _result_of("values", args, results)
+
+
+def check_counts_pieces(args, cursor):
+    """The pieces of `check-counts`: the sectors' stats, then (with no scope) the galaxy's stored counts."""
+    return _pieces_of("counts", args, cursor)
+
+
+def check_counts_gather(args, results, ctx):
+    """The result of `check-counts`: a sector's stats count its systems."""
+    return _result_of("counts", args, results)
+
+
+def check_version_keys_pieces(args, cursor):
+    """The pieces of `check-version-keys`: a run of `VERSION_KEY_SECTORS` sectors each, in the scope the arguments name."""
+    return _pieces_of("version-keys", args, cursor)
+
+
+def check_version_keys_gather(args, results, ctx):
+    """The result of `check-version-keys`: every sector in scope has a well formed version key."""
+    return _result_of("version-keys", args, results)
+
+
+def check_storage_pieces(args, cursor):
+    """The pieces of `check-storage`: one sector each, in the scope the arguments name."""
+    return _pieces_of("storage", args, cursor)
+
+
+def check_storage_gather(args, results, ctx):
+    """The result of `check-storage`: every sealed sector in scope still hashes to its storage checksum (DB.45)."""
+    return _result_of("storage", args, results)
+
+
+def check_systems_pieces(args, cursor):
+    """The pieces of `check-systems`: one star system each, in the scope the arguments name (the wide binaries only with `wide_binaries`)."""
+    return _pieces_of("systems", args, cursor)
+
+
+def check_systems_gather(args, results, ctx):
+    """The result of `check-systems`: every star system in scope validates; its speed is recorded for the next estimate."""
+    return _result_of("systems", args, results)
+
+
+def check_object_index_pieces(args, cursor):
+    """The pieces of `check-object-index`: one kind of object each (PERF.140)."""
+    return _pieces_of("object-index", args, cursor)
+
+
+def check_object_index_gather(args, results, ctx):
+    """The result of `check-object-index`: the object index matches the tables."""
+    return _result_of("object-index", args, results)
 
 
 def expand_check(params):

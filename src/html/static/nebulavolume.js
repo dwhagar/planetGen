@@ -143,6 +143,31 @@ export const NEBULA_TINT_GLSL = [
   "}",
 ].join("\n");
 
+// MAP.430: the far-zoom gas lanes. The galaxy's gas (the model density every nebula contour reads, GEN.1267) is one more volume, asked for as the key
+// LANES_KEY (`GET /galaxy/nebula-volume?key=gas`, planetgen/db/nebula_volumes.py `gas_lanes_volume`): a coarse lattice of the galaxy plane, 128 pc
+// apart, each point as strong as the gas there. It is held whenever the layer is on, drawn dimly (LANES_ALPHA: a point's splat overlaps its neighbours
+// four or five deep, so a point at full strength adds a little), and each splat is faded where it is large on the screen (LANES_FADE_PX, the width of
+// one splat, LANES_SPLAT_STEPS lattice steps wide, before the clamp): as the camera comes in, the lanes dissolve into the nebulae of the nodes, which have been loading and fading in
+// (volumeAlpha) since a nebula was MIN_RADIUS_PX across, and a lane never shows as a grid of big blobs.
+export const LANES_KEY = "gas";
+export const LANES_ALPHA = 0.007;
+export const LANES_FADE_PX = [80, 320];
+// A lane's splat is this many lattice steps wide, not SPLAT_STEPS: the lattice is coarse (128 pc) and wide, soft splats overlapping many deep keep a lane
+// smooth, where two steps showed the lattice as faint stripes (a screenshot of the fixture map, MAP.430).
+export const LANES_SPLAT_STEPS = 4;
+
+// How much of a lane splat shows when it is `splatWidthPx` wide on the screen (1 small, 0 at LANES_FADE_PX[1] and wider); the vertex shader's
+// `laneFade` is the same formula.
+export function lanesFade(splatWidthPx) {
+  return 1 - ease((splatWidthPx - LANES_FADE_PX[0]) / (LANES_FADE_PX[1] - LANES_FADE_PX[0]));
+}
+
+// The source of the lanes, for `update`'s list: no block to take a share from and no nebula to measure, so `wanted` never picks it; the layer holds it
+// whenever it is on.
+export function lanesSource() {
+  return { key: LANES_KEY, lanes: true, block: null, reaches: [] };
+}
+
 // How strongly a node's volume shows: from the largest nebula in it on the screen, `radiusPx`, and the share the cut gives the node.
 export function volumeAlpha(radiusPx, share) {
   return ease((radiusPx - MIN_RADIUS_PX) / (FULL_RADIUS_PX - MIN_RADIUS_PX)) * Math.min(1, Math.max(0, share));

@@ -79,11 +79,11 @@ out:
   to cross the galaxy or too coarse to land on one sector.
 """
 
-import json
 
 import math
 
 from planetgen.galaxy.nodecut import MAX_NODES, node_cut
+from planetgen.web.lib import fmt
 from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
 from planetgen.tuning import GALAXY_RADIUS_PC
 from planetgen.physics.units import pc_to_ly
@@ -279,30 +279,6 @@ def _density_shape(galaxy_shape):
     return shape
 
 
-def _escape(text):
-    """Text as HTML, for the course hint's names and URLs (a sector or
-    system name is generated, but never trusted as markup)."""
-    return (
-        str(text)
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-    )
-
-
-def _json_script(data):
-    """Same `<script type="application/json">`-safe escaping
-    `planetgen/web/maps/starmap.py`'s own `_json_script` uses -- see that function's
-    docstring for why (a database name/label can contain `</script>`)."""
-    return (
-        json.dumps(data)
-        .replace("<", "\\u003c")
-        .replace(">", "\\u003e")
-        .replace("&", "\\u0026")
-    )
-
-
 GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
     <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll, or pinch to zoom. Turning and zooming go about the cross in the middle of the map; Shift-click (or right-click) a spot to make it the new center, or use the direction star on the map (its middle button puts the center back at the middle of the region you are viewing) and the zoom slider beside it.</li>
@@ -463,8 +439,8 @@ def _course_readout_html(course):
     rows = [("Distance", readout.get("distance")), ("Course", readout.get("course")),
             ("Frame", readout.get("frame")), ("Route length", readout.get("route_distance"))]
     rows += [(item["label"], item["text"]) for item in readout.get("times", [])]
-    facts = "".join(f"<dt>{_escape(label)}</dt><dd>{_escape(value)}</dd>" for label, value in rows if value)
-    stops = "".join(f'<li><a href="{_escape(stop["url"])}">{_escape(stop["name"])}</a></li>'
+    facts = "".join(f"<dt>{fmt.esc(label)}</dt><dd>{fmt.esc(value)}</dd>" for label, value in rows if value)
+    stops = "".join(f'<li><a href="{fmt.esc(stop["url"])}">{fmt.esc(stop["name"])}</a></li>'
                     for stop in readout.get("stops", []))
     return (
         '<div class="course-readout"><ul class="course-key" aria-label="Legend">' + "".join(key) + "</ul>"
@@ -674,14 +650,14 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     if pick:
         # The Bookmarks menu keeps the pick (NAV.40, static/bookmarks.js).
         bookmark_pick = "".join(
-            f' data-{name}="{_escape(pick[key])}"'
+            f' data-{name}="{fmt.esc(pick[key])}"'
             for name, key in (("pick", "pick"), ("keep-name", "keep_name"), ("keep-value", "keep_value"),
                               ("nav-url", "nav_url"))
         )
         pick_banner = (
-            '<p class="pick-banner" role="status"><strong>' + _escape(pick["banner"]) + ":</strong> drill down"
+            '<p class="pick-banner" role="status"><strong>' + fmt.esc(pick["banner"]) + ":</strong> drill down"
             " to a charted sector and click it, then pick a system or phenomenon there &middot; "
-            '<a href="' + _escape(pick["cancel"]) + '">Cancel</a></p>\n'
+            '<a href="' + fmt.esc(pick["cancel"]) + '">Cancel</a></p>\n'
         )
     course_hint = ""
     if course and course.get("points"):
@@ -692,20 +668,20 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             count = len(course.get("waypoints") or [])
             course_hint = (
                 '<p class="hint">Showing the course through your <strong>' + f"{count} waypoints</strong>, from <strong>"
-                + _escape(ends[0]) + "</strong> to <strong>" + _escape(ends[1]) + "</strong>"
-                + ' &middot; <a href="' + _escape(course["navUrl"]) + '">NAV for the first and the last</a></p>'
+                + fmt.esc(ends[0]) + "</strong> to <strong>" + fmt.esc(ends[1]) + "</strong>"
+                + ' &middot; <a href="' + fmt.esc(course["navUrl"]) + '">NAV for the first and the last</a></p>'
             ) + _course_readout_html(course)
         else:
             course_hint = (
-                '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
-                + _escape(ends[1]) + "</strong>"
+                '<p class="hint">Showing the course from <strong>' + fmt.esc(ends[0]) + "</strong> to <strong>"
+                + fmt.esc(ends[1]) + "</strong>"
                 + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
-                + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
+                + ' &middot; <a href="' + fmt.esc(course["navUrl"]) + '">back to NAV</a></p>'
             ) + _course_readout_html(course)
     elif course and course.get("sector"):
         course_hint = (
-            '<p class="hint">That whole course sits inside <strong>' + _escape(course["sector"]["name"])
-            + '</strong>, so the map shows that sector &middot; <a href="' + _escape(course["navUrl"])
+            '<p class="hint">That whole course sits inside <strong>' + fmt.esc(course["sector"]["name"])
+            + '</strong>, so the map shows that sector &middot; <a href="' + fmt.esc(course["navUrl"])
             + '">back to NAV</a></p>'
         )
 
@@ -774,11 +750,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             ' aria-label="Step to the neighbouring region at this level">\n'
             + "".join(
                 f'    <button type="button" class="starmap-btn" data-action="step" data-step="{direction}"'
-                f' title="{_escape(title)}" disabled>{label}</button>\n'
+                f' title="{fmt.esc(title)}" disabled>{label}</button>\n'
                 for direction, label, title in STEP_BUTTONS)
             + "    </div>\n")
         address_block, crumbs_block, history_buttons = ADDRESS_BLOCK, CRUMBS_BLOCK, HISTORY_BUTTONS
-        bookmarks_block = f"""  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}"{bookmark_pick}>
+        bookmarks_block = f"""  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{fmt.esc(db_name)}"{bookmark_pick}>
     <summary class="starmap-btn" data-icon="bookmarks"
              title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
     <div class="bookmarks-panel" data-bookmarks-panel></div>
@@ -872,6 +848,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   {help_html}
   <sl-button slot="footer" data-dialog-close>Close</sl-button>
 </sl-dialog>
-<script type="application/json" id="galaxymap3d-data">{_json_script(scene_data)}</script>
+<script type="application/json" id="galaxymap3d-data">{fmt.json_script(scene_data)}</script>
 </section>
 """

@@ -43,6 +43,7 @@ import traceback
 
 from planetgen.queue import runrecord
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 from planetgen.util.settings import get_settings
 
 RUN = "run"
@@ -342,9 +343,9 @@ def start_when_free(conn, start, limit_seconds, ask, on_wait=None, kind=runrecor
                                                      + "".join(traceback.format_stack(limit=25)))
                 raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; this run is started by the same process "
                                      f"that follows it, so it would wait for itself for ever (a run started inside a run)")
-            if waits and clock() >= deadline and holder is not None:
-                raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; waited {limit_seconds / 60:g} minutes for it")
-            if on_wait is not None and waits and holder is not None and (holder, position) != shown:
+            if clock() >= deadline:
+                raise runrecord.Busy(f"{last}; waited {format_duration_seconds(limit_seconds)} for it")
+            if on_wait is not None and (holder, position) != shown:
                 shown = (holder, position)
                 on_wait(holder, position)
             sleep(POLL_SECONDS)

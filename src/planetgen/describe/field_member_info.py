@@ -10,6 +10,7 @@ designations of the heavier and the lighter neighbour. A field has no star, so a
 `GET /api/objects/<ref>/field-members` and `GET /api/objects/<ref>/field-members/<rank>` serve them and the pages show them. Nothing here is stored.
 """
 
+from planetgen.describe.belt_member_info import neighbour_designations
 from planetgen.galaxy import object_uid
 from planetgen.physics import belt_page as page_data
 
@@ -40,6 +41,11 @@ def _entry(object_id, row):
     }
 
 
+def _field_block(field, object_id, **more):
+    """The field as a page block: its `designation` and `name`, then `more`."""
+    return {"designation": object_uid.format_id(object_id), "name": field["name"], **more}
+
+
 def _rows(conn, field_id):
     return conn.execute("SELECT member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status"
                         " FROM field_members WHERE field_id = ? ORDER BY member_rank", (field_id,)).fetchall()
@@ -56,7 +62,7 @@ def members_of(conn, field_id):
     object_id = object_uid.from_bytes(field["uid"])
     rows = _rows(conn, field_id)
     return {
-        "field": {"designation": object_uid.format_id(object_id), "name": field["name"], "mass": page_data._q(field["mass_kg"], "kg") if field["mass_kg"] else None},
+        "field": _field_block(field, object_id, mass=page_data._q(field["mass_kg"], "kg") if field["mass_kg"] else None),
         "count": len(rows),
         "bodies": [_entry(object_id, row) for row in rows],
     }
@@ -77,7 +83,7 @@ def member_info(conn, field_id, rank):
     if rank not in ranks:
         raise FieldMemberNotFound(f"the field keeps {len(rows)} bodies one by one and none of rank {rank}")
     place = ranks.index(rank)
-    neighbour = lambda i: object_uid.field_designation(object_id, ranks[i]) if 0 <= i < len(ranks) else None
+    previous, following = neighbour_designations(ranks, place, lambda r: object_uid.field_designation(object_id, r))
     shown = _entry(object_id, rows[place])
     mass = field["mass_kg"]
     return {
@@ -85,7 +91,7 @@ def member_info(conn, field_id, rank):
         "rank": rank,
         "member": shown,
         "share": rows[place]["mass_kg"] / float(mass) if mass else None,
-        "field": {"designation": object_uid.format_id(object_id), "name": field["name"], "origin": field["origin"], "history": field["history"] or None, "individual_count": len(rows)},
-        "previous": neighbour(place - 1),
-        "next": neighbour(place + 1),
+        "field": _field_block(field, object_id, origin=field["origin"], history=field["history"] or None, individual_count=len(rows)),
+        "previous": previous,
+        "next": following,
     }

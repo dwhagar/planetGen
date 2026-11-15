@@ -53,6 +53,7 @@ from planetgen.admin import maintenance, stop_reason
 from planetgen.queue import stopall
 from planetgen.util import log
 from planetgen.util import process
+from planetgen.util.format import format_duration_seconds
 
 UPDATE_CAUSE = "update"
 """str: The maintenance `cause` of an update."""
@@ -582,7 +583,7 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         elif asks:
             reply = answer("Cancel these and go on with the update? [y/N] ")
             if reply is None:
-                write(f"No answer in {PROMPT_SECONDS} seconds: taking that as no.")
+                write(f"No answer in {format_duration_seconds(PROMPT_SECONDS)}: taking that as no.")
             agreed = str(reply or "").strip().lower() in ("y", "yes")
         elif unattended:
             write(f"This run was started by {unattended}, with nobody to ask: taking that as no.")
@@ -617,7 +618,7 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
             remaining = protected(list_running(sources))
         if remaining:
             return _not_updating(already_closed, write,
-                                 f"this did not stop within {int(timeout)} seconds, and nothing was changed:", remaining)
+                                 f"this did not stop within {format_duration_seconds(timeout)}, and nothing was changed:", remaining)
         write("Everything stopped; the update has the machine to itself.")
     return True
 

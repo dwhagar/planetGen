@@ -51,6 +51,7 @@ class Context:
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
         self.attempt = attempt
+        self._closers = []
         self.state = {}                 # what the pieces of this unit hand to each other: they run in one process, in order, so a piece may leave what the next reads
         self.began = time.monotonic()
         self._db = None
@@ -72,6 +73,15 @@ class Context:
             from planetgen.db import store
             self._db = store.get_connection(self.config)
         return self._db
+
+    def kept(self, name, make):
+        """
+        What the unit works out once and every piece reads (the galaxy's shape, a table of components): `make()` the first time `name` is asked for, the same value after, until the unit ends
+        (`state` is the unit's own, so a value never outlives it and a later unit reads the database afresh).
+        """
+        if name not in self.state:
+            self.state[name] = make()
+        return self.state[name]
 
     def commit(self):
         """
@@ -115,13 +125,19 @@ class Context:
 
     def close_db(self):
         """Closes the unit's connection now, where the rest of the unit needs none held (`ctx.db` opens another on the next use)."""
-        self.close()
-
-    def close(self):
-        """Closes the unit's connection if it opened one; called by the engine, once, when the unit ends."""
         db, self._db = self._db, None
         if db is not None:
             db.close()
+
+    def on_close(self, closer):
+        """Registers `closer()` to be called, last in first out, when the unit ends, however it ends: a resource the pieces share (a pool of processes) that no single piece can close."""
+        self._closers.append(closer)
+
+    def close(self):
+        """Closes what the unit opened, called by the engine, once, when the unit ends: what `on_close` registered, then the unit's connection if it opened one."""
+        while self._closers:
+            self._closers.pop()()
+        self.close_db()
 
     # --- between two pieces ----------------------------------------------------------------------------------
 

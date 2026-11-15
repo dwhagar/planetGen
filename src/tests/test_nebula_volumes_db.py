@@ -6,6 +6,8 @@ the block, only the lattice points that lie in it, the same bytes every time, no
 
 import math
 
+import numpy as np
+
 import pytest
 
 from planetgen import tuning
@@ -146,3 +148,40 @@ def test_a_nebula_in_a_galaxy_never_planned_is_header_only(mysql_config):
         assert int.from_bytes(packed[6:10], "little") == 0
     finally:
         conn.close()
+
+
+class _LaneModel:
+    """A gas share that is 1 within 200 pc of the origin and 0 beyond, for the lanes' reader."""
+    lane_density = staticmethod(lambda seed, shape, points: (np.hypot(points[:, 0], points[:, 1]) < 200.0).astype(float))
+
+
+def test_the_gas_lanes_key_draws_the_galaxy_plane_from_the_lane_density(planned):
+    """MAP.430: the key `gas` is no block: it answers the points of the galaxy's gas on the plane (the dark family, level 9), sampled out to seven
+    disk scale lengths from the model's lane density, the same bytes every time."""
+    conn = store.get_connection(planned)
+    try:
+        packed = nebula_volumes.group_volume(conn, nebula_volume.LANES_KEY, _LaneModel)
+        assert packed == nebula_volumes.group_volume(conn, nebula_volume.LANES_KEY, _LaneModel)
+        volume = _decode(packed)
+        assert volume["level"] == nebula_volume.LANES_LEVEL and volume["count"] > 5
+        assert set(volume["iz"]) == {0} and set(volume["family"]) == {4}
+        assert max(math.hypot(x, y) for x, y in zip(volume["ix"], volume["iy"])) * 128.0 <= 200.0 + 1e-6
+    finally:
+        conn.close()
+
+
+def test_the_gas_lanes_of_a_galaxy_never_planned_are_header_only(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        if query.get_galaxy_shape(conn, light=True) is not None:
+            pytest.skip("this database already holds a plan")
+        assert int.from_bytes(nebula_volumes.group_volume(conn, nebula_volume.LANES_KEY, _LaneModel)[6:10], "little") == 0
+    finally:
+        conn.close()
+
+
+def _decode(packed):
+    count = int.from_bytes(packed[6:10], "little")
+    columns = [np.frombuffer(packed, dtype="<i4", count=count, offset=14 + 4 * count * i).tolist() for i in range(3)]
+    return {"level": packed[5], "count": count, "ix": columns[0], "iy": columns[1], "iz": columns[2],
+            "family": list(packed[14 + 13 * count:14 + 14 * count])}

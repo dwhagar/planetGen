@@ -124,6 +124,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+from planetgen.util.format import format_duration_seconds
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
 
@@ -250,7 +251,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 23
+CONTROL_SCHEMA_VERSION = 24
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -261,7 +262,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215), v24 the same three tables again with the state spelled `canceled`. New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -1012,11 +1013,11 @@ class Connection:
                 activity_log.event("DB", "statement_timeout", db=self._config.database if self._config else "?",
                                    seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
             if traced:
-                log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: "
+                log.trace(f"SQL failed after {format_duration_seconds(time.perf_counter() - start)}: "
                           f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)
             raise
         if traced:
-            log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
+            log.trace(f"SQL {format_duration_seconds(time.perf_counter() - start)}, {cur.rowcount} row(s): "
                       f"{_sql_for_log(sql, params)}", area="sql", stacklevel=4)
         return _Cursor(cur)
 
@@ -1169,7 +1170,7 @@ class Connection:
                     cur.execute(head + ",".join(chunk))
                 statements += 1
         if log.debug_log_active():
-            log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
+            log.trace(f"SQL batch {format_duration_seconds(time.perf_counter() - start)}: "
                       f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", area="sql", stacklevel=3)
 
     def executemany(self, sql, seq_of_params):
@@ -1189,7 +1190,7 @@ class Connection:
         with statementmark.statement(sql):
             cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
-            log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
+            log.trace(f"SQL executemany {format_duration_seconds(time.perf_counter() - start)}, {len(rows)} parameter "
                       f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
                       stacklevel=3)
         return _Cursor(cur)
@@ -1205,7 +1206,7 @@ class Connection:
         with statementmark.statement(sql):
             cur.execute(sql)
         if log.debug_log_active():
-            log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
+            log.trace(f"SQL literal {format_duration_seconds(time.perf_counter() - start)}, {cur.rowcount} row(s): {sql[:120]}",
                       area="sql", stacklevel=3)
         return _Cursor(cur)
 
@@ -1864,6 +1865,8 @@ def _apply_control_schema(conn):
     _refuse_newer(conn, _stored_version(conn, "control_schema_migrations"), CONTROL_SCHEMA_VERSION,
                   "control schema")
     _drop_old_generation_stats(conn)
+    if _stored_version(conn, "control_schema_migrations") == 23:
+        _drop_engine_ledger_v23(conn)
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     _add_control_columns(conn)
@@ -1923,6 +1926,16 @@ def _drop_old_generation_stats(conn):
     if old:
         conn.execute("DROP TABLE generation_stats")
         conn.commit()
+
+
+def _drop_engine_ledger_v23(conn):
+    """
+    v24 (OPS.215): drops the job engine's ledger tables, `engine_attempts`, `engine_jobs` and `engine_runs` (the children first), which the schema then makes again
+    with the state spelled `canceled`, as the rest of the project spells it. Nothing has written a row to them, so nothing is lost.
+    """
+    for table in ("engine_attempts", "engine_jobs", "engine_runs"):
+        conn.execute(f"DROP TABLE IF EXISTS {table}")
+    conn.commit()
 
 
 def _drop_work_queue_tables(conn):
@@ -3994,8 +4007,10 @@ ROGUE_HOST_ONLY_COLUMNS = frozenset({
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
 """tuple: The `Field`s of a planet that a rogue planet shares (every one but the orbit round a host)."""
 
-ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note")
-"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note."""
+ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note",
+                          "pair_event_index", "pair_separation_au", "pair_period_yr")
+"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note; and the companion it
+left bound to, its event index and the circular orbit of the two (GEN.332, slice D), all `None` for a rogue that left alone."""
 
 
 def _from_context(column):
@@ -4119,7 +4134,9 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
             row_ids.append(insert_rogue_body(
                 conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
                 event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
-                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note))
+                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note,
+                pair_event_index=rogue.pair.partner_index if rogue.pair else None, pair_separation_au=rogue.pair.separation_au if rogue.pair else None,
+                pair_period_yr=rogue.pair.period_yr if rogue.pair else None))
             if rogue.event.index in kept_uids:
                 row_kept[row_ids[-1]] = kept_uids[rogue.event.index]
         if row_ids:
@@ -7114,11 +7131,44 @@ CLEAR_PHENOMENON_SCATTER_STEPS = 7
 """int: The steps `clear_phenomenon_scatter` takes (OPS.200)."""
 
 
+def _counter_unmoved(conn, table):
+    """Whether the `AUTO_INCREMENT` of `table` has never moved (the table never held a row)."""
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
+    counter = conn.execute("SELECT auto_increment AS n FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", (table,)).fetchone()
+    return counter is None or int(counter["n"] or 1) <= 1
+
+
+def phenomenon_scatter_holds_nothing(conn):
+    """
+    Whether there is nothing for `clear_phenomenon_scatter` to clear (OPS.257): `phenomenon_scatter` and `phenomenon_scatter_classes` hold no row, `phenomenon_scatter` never took one,
+    the scatter's seed and mass cut are not recorded and no `phenomena` scatter epoch is. A galaxy made new has none of them.
+    """
+    for table in ("phenomenon_scatter", "phenomenon_scatter_classes"):
+        if conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is not None:
+            return False
+    if not _counter_unmoved(conn, "phenomenon_scatter"):
+        return False
+    if conn.execute("SELECT 1 FROM galaxy_shape WHERE phenomenon_scatter_seed IS NOT NULL OR phenomenon_min_mass_solar IS NOT NULL LIMIT 1").fetchone() is not None:
+        return False
+    return conn.execute("SELECT 1 FROM scatter_epochs WHERE kind = 'phenomena' LIMIT 1").fetchone() is None
+
+
+def nebula_field_holds_nothing(conn):
+    """Whether there is nothing for `clear_nebula_field` to clear (OPS.257): `nebula_field` holds no row, never took one and no `nebula-field` scatter epoch is recorded."""
+    if conn.execute("SELECT 1 FROM nebula_field LIMIT 1").fetchone() is not None or not _counter_unmoved(conn, "nebula_field"):
+        return False
+    return conn.execute("SELECT 1 FROM scatter_epochs WHERE kind = 'nebula-field' LIMIT 1").fetchone() is None
+
+
 def clear_phenomenon_scatter(conn, steps=statementmark.LABELS_ONLY):
     """Empties `phenomenon_scatter` and forgets the scatter's seed -- a
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows.
-    Each statement is a step of `steps` (`CLEAR_PHENOMENON_SCATTER_STEPS`), named for the beat."""
+    Each statement is a step of `steps` (`CLEAR_PHENOMENON_SCATTER_STEPS`), named for the beat.
+    With nothing to clear (`phenomenon_scatter_holds_nothing`) it reads and leaves (OPS.257)."""
+    if phenomenon_scatter_holds_nothing(conn):
+        steps.nothing("No phenomenon scatter is stored, nothing to clear")
+        return
     with steps.sql("Emptying phenomenon_scatter"):
         conn.execute("TRUNCATE TABLE phenomenon_scatter")
     from planetgen.db import block_lights
@@ -7148,7 +7198,10 @@ CLEAR_NEBULA_FIELD_STEPS = 2
 
 
 def clear_nebula_field(conn, steps=statementmark.LABELS_ONLY):
-    """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
+    """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed. With nothing to clear (`nebula_field_holds_nothing`) it reads and leaves (OPS.257)."""
+    if nebula_field_holds_nothing(conn):
+        steps.nothing("No nebula field is stored, nothing to clear")
+        return
     with steps.sql("Emptying nebula_field"):
         conn.execute("TRUNCATE TABLE nebula_field")
     with steps.sql("Forgetting that the field was drawn"):
