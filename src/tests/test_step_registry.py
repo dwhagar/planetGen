@@ -46,10 +46,11 @@ def test_every_step_kind_in_the_code_is_registered():
 def test_the_registry_holds_no_kind_nothing_uses():
     # `sector_bar` fixes "sector"; StageProgress defaults to "stages"; the scatter passes pick theirs by variable and
     # the batch fills pick theirs by variable too (PERF.106), so do the link and settle stages (PERF.107), and the
-    # phenomena layer's write time is only recorded (PERF.54)
+    # phenomena layer's write time is only recorded (PERF.54), and the deep database check names its kind by the constant
+    # `check.DEEP_STATS_KIND` (TEST.766)
     used = set(_kinds_used()) | {"sector", "stages", "scatter-mass", "scatter-bright", "phenomena-write",
                               "map-luminosity", "habitability", "ledger", "link", "paths", "population",
-                              "territories"}
+                              "territories", "db-check"}
     assert set(steps.STEP_KINDS) <= used, f"unused kinds: {sorted(set(steps.STEP_KINDS) - used)}"
 
 

@@ -3640,8 +3640,8 @@ FINISH_PHENOMENA_PIECES = ("draw", "write", "indexes", "record")
 
 
 def finish_phenomena_pieces(params, cursor):
-    """The pieces of the `finish-phenomena` unit (OPS.199): `FINISH_PHENOMENA_PIECES`. They hand each other the special rows through `ctx.state`, so a unit starts from its first piece whatever the cursor says."""
-    return list(FINISH_PHENOMENA_PIECES)
+    """The pieces of the `finish-phenomena` unit (OPS.199, OPS.222), after `cursor`: `FINISH_PHENOMENA_PIECES`. They hand each other the special rows through the unit's stored results, so a unit stopped partway starts at the piece after the last one it finished."""
+    return list(FINISH_PHENOMENA_PIECES)[cursor:]
 
 
 def finish_phenomena_do(params, piece, ctx):
@@ -3650,6 +3650,10 @@ def finish_phenomena_do(params, piece, ctx):
     special phenomena (the nucleus and the hypervelocity stars, minus any in a cell already filled) and writes them, builds
     the table's indexes one at a time (PERF.101), stamps the hypervelocity stars' epoch and records the scatter's seed and
     mass cut, which tells a sector fill to build its objects from the table (`store.record_phenomenon_scatter`).
+
+    The unit can be stopped between two pieces and started again after the last one it finished (OPS.222, `resumes`): the drawn rows are the first piece's result, which a later piece reads from the
+    results the engine kept (`ctx.results`); the two pieces that would write twice if they ran twice, the write and the record, commit through `ctx.commit_piece()`, so their data and the cursor past them
+    land together; and the indexes are built only where they are missing.
     """
     conn = ctx.db
     lines = ctx.state.setdefault("lines", [])
@@ -3658,15 +3662,14 @@ def finish_phenomena_do(params, piece, ctx):
         extents = _outline(conn)
         filled = store.filled_sector_addresses(conn)
         reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
-        ctx.state["special"] = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach))
-    elif piece == "write":
-        special = ctx.state["special"]
-
+        return [list(row) for row in phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach)]
+    special = ctx.results[0]
+    if piece == "write":
         def write_special(c):
             """The special rows and their Object IDs as one transaction (DB.114): other phenomenon units write the same table."""
             contention.begin_read_committed(c)
             store.insert_phenomenon_scatter(c, special)
-            ctx.commit()
+            ctx.commit_piece()
 
         contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
     elif piece == "indexes":
@@ -3684,19 +3687,20 @@ def finish_phenomena_do(params, piece, ctx):
         store.add_phenomenon_scatter_indexes(conn, on_index=built)
         store.stamp_phenomenon_scatter_epoch(conn)
     else:
-        special = ctx.state["special"]
         store.record_phenomenon_scatter(conn, params["seed"], params["min_mass_solar"])
         store.record_scatter_epoch(conn, "phenomena", params.get("run_id"))
         special_counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in special)
         store.add_phenomenon_scatter_classes(
             conn, {phenomenon_scatter.split_label(label): count for label, count in special_counts.items()})
-        ctx.commit()
-        ctx.state["special_counts"] = special_counts
+        counts = dict(special_counts)
+        ctx.commit_piece(counts)
+        return counts
+    return None
 
 
 def finish_phenomena_result(params, results, ctx):
-    """The `finish-phenomena` unit's result: `special`, how many special phenomena of each class were written, and `lines`, what the run says about it."""
-    return {"special": dict(ctx.state["special_counts"]), "lines": ctx.state.get("lines", [])}
+    """The `finish-phenomena` unit's result: `special`, how many special phenomena of each class were written (the last piece's result), and `lines`, what the run says about it."""
+    return {"special": dict(results[-1]), "lines": ctx.state.get("lines", [])}
 
 
 def run_plan(args):
