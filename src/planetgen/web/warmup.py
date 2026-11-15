@@ -36,6 +36,7 @@ from planetgen.util import log, logrecord
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient, tilecache
 from planetgen.web.lib.tilecache import fetch_nodes, fetch_stage
+from planetgen.util.format import format_bytes, format_duration_seconds
 from planetgen.web.maps.galaxymap3d import (
     camera_position_pc, initial_node_request, node_bounds_pc,
     view_radius_bounds)
@@ -138,8 +139,8 @@ class PhaseTally:
         if not warmed and not left_out:
             return f"{head}: nothing to warm."
         if not built and not left_out:
-            return f"{head}: unchanged, nothing built ({cached:,} already stored) in {seconds:.1f} s."
-        return (f"{head}: {built:,} built, {cached:,} already stored, {left_out:,} left out in {seconds:.1f} s"
+            return f"{head}: unchanged, nothing built ({cached:,} already stored) in {format_duration_seconds(seconds)}."
+        return (f"{head}: {built:,} built, {cached:,} already stored, {left_out:,} left out in {format_duration_seconds(seconds)}"
                 f"{'; stopped at the cache budget' if left_out and name in ('built-levels', 'deep-nodes') else ''}.")
 
     def _ready(self):
@@ -568,7 +569,7 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None, report
     seconds = time.monotonic() - started
     result.update(family=family, cached=visitor.cached, built=visitor.built, seconds=seconds)
     result["line"] = (f"{family}: {result['warmed']} {result['noun']} warmed ({visitor.built} answers built, "
-                      f"{visitor.cached} already cached, {result['left_out']} left out by the cap) in {seconds:.1f} s")
+                      f"{visitor.cached} already cached, {result['left_out']} left out by the cap) in {format_duration_seconds(seconds)}")
     if visitor.failed:
         shown = "; ".join(visitor.failed[:5]) + (f"; and {len(visitor.failed) - 5} more" if len(visitor.failed) > 5 else "")
         raise WarmupFailed(f"{family}: {len(visitor.failed)} of {visitor.pages} pages did not answer: {shown}")
@@ -681,7 +682,7 @@ def _gather_objects(family, args, results):
     noun = results[0].get("noun", _OBJECT_NOUNS[family]) if results else _OBJECT_NOUNS[family]
     return {"family": family, "warmed": warmed, "noun": noun, "left_out": left_out, "chunk": sum(r.get("chunk", 0) for r in results),
             "cached": cached, "built": built, "seconds": seconds,
-            "line": f"{family}: {warmed} {noun} warmed ({built} answers built, {cached} already cached, {left_out} left out by the cap) in {seconds:.1f} s"}
+            "line": f"{family}: {warmed} {noun} warmed ({built} answers built, {cached} already cached, {left_out} left out by the cap) in {format_duration_seconds(seconds)}"}
 
 
 def pieces_warm_sectors(args, cursor):
@@ -758,7 +759,7 @@ def gather_warm_object_index(args, results, ctx):
     return {"family": "object-index", "warmed": rows, "noun": "objects", "cached": max(rows - written, 0),
             "built": written, "left_out": 0, "seconds": seconds,
             "line": (f"object-index: {rows:,} objects indexed ({written:,} rows written, {max(rows - written, 0):,} "
-                     f"already current, 0 left out by the cap) in {seconds:.1f} s")}
+                     f"already current, 0 left out by the cap) in {format_duration_seconds(seconds)}")}
 
 
 OBJECT_CHUNK = 250
@@ -873,13 +874,13 @@ def _gather_nodes(family, args, results):
     if left_out == count and results[0]["full"]:
         return _node_result(family, stored, stored, 0, count, 0.0, f"{family}: {count} nodes left out, " + (
             "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
-            f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)"))
+            f"the cache is full ({format_bytes(tilecache.max_cache_bytes())}, cache.max_mb)"))
     cached = sum(result["cached"] for result in results)
     seconds = sum(result["seconds"] for result in results)
     warmed = count - left_out
     built = warmed - cached
     return _node_result(family, warmed + stored, cached + stored, built, left_out, seconds,
-                        f"{family}: {warmed + stored} nodes warmed ({built} built, {cached + stored} already stored) in {seconds:.1f} s"
+                        f"{family}: {warmed + stored} nodes warmed ({built} built, {cached + stored} already stored) in {format_duration_seconds(seconds)}"
                         + (f", {left_out} left out as the cache filled" if left_out else ""))
 
 

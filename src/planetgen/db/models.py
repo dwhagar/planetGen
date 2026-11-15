@@ -589,6 +589,18 @@ effect_ledger = sa.Table(
 )
 
 
+engine_items = sa.Table(
+    'engine_items',
+    metadata,
+    sa.Column('job_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('attempt', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('cursor_key', sa.String(255), nullable=True),
+    sa.Column('done_at', mysql.DATETIME(fsp=6), nullable=True),
+    sa.Column('updated_at', mysql.DATETIME(fsp=6), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 facilities = sa.Table(
     'facilities',
     metadata,
@@ -3408,6 +3420,9 @@ rogue_planets = sa.Table(
     sa.Column('since_ejection_gy', mysql.DOUBLE(), nullable=True),
     sa.Column('ejection_speed_kms', mysql.DOUBLE(), nullable=True),
     sa.Column('rogue_note', sa.Text(), nullable=True),
+    sa.Column('pair_event_index', mysql.INTEGER(), nullable=True),
+    sa.Column('pair_separation_au', mysql.DOUBLE(), nullable=True),
+    sa.Column('pair_period_yr', mysql.DOUBLE(), nullable=True),
     sa.Index('fk_rogue_planets_inside_nebula', 'inside_nebula_id'),
     sa.Index('fk_rogue_planets_inside_remnant', 'inside_remnant_id'),
     sa.Index('idx_rogue_planets_cell', 'cell_key', 'center_x_pc', 'center_y_pc', 'center_z_pc'),

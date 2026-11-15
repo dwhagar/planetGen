@@ -43,6 +43,7 @@ from planetgen.datasets import fetch
 from planetgen.db import store
 from planetgen.queue import commands, commandgaps, engine, jobprofiles, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 FAILURE_FUNCTION = "planetgen.queue.units.unit_failed"
@@ -66,6 +67,9 @@ POLL_SECONDS = 0.25
 
 ENSURE_SECONDS = 5.0
 """float: How often `follow_stage` has the workers topped up, so a dead one is replaced."""
+
+QUIET_LINE_SECONDS = 1800.0
+"""float: How long a stage may finish no unit before `follow_stage` says so in the log, and how often it says so after (OPS.253): a stage whose units are long, or wait on one another, was silent for hours."""
 
 ENQUEUE_BATCH = 500
 """int: How many units go to Redis in one pipeline."""
@@ -264,7 +268,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     peak = peak_resident_mb()
     _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, used.summary())       # OPS.155: what this kind of unit costs, kept for the self-tuning jobs (nothing reads it yet)
     seconds = time.monotonic() - started
-    log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
+    log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {format_duration_seconds(seconds)}", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
     outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak)
@@ -464,12 +468,12 @@ def horse_killed(job, retpid, ret_val, _rusage):
     memory_kill = _killed_by_sigkill(ret_val)
     detail = ""
     if note is not None and memory_kill:
-        detail = f"; it claimed {note['claimed_mb']:,.0f} MB on the memory gate and the most seen was {note['peak_mb']:,.0f} MB"
+        detail = f"; it claimed {format_megabytes(note['claimed_mb'])} on the memory gate and the most seen was {format_megabytes(note['peak_mb'])}"
         bigger = memorygate.grow(conn, note["kind"], job.id, note["claimed_mb"], note["peak_mb"])
         jobprofiles.record(note["kind"], peak_mb=bigger / memorygate.LEARN_MARGIN, outcome="killed_memory")     # OPS.155: a kill is data; its peak is the size the retry was given less the margin (OPS.156 floors the kind there)
         retry = (getattr(job, "retries_left", None) or 0) > 0
-        log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {note['claimed_mb']:,.0f} MB (most seen {note['peak_mb']:,.0f} MB); "
-                    + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))
+        log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {format_megabytes(note['claimed_mb'])} (most seen {format_megabytes(note['peak_mb'])}); "
+                    + (f"it is queued again with a claim of {format_megabytes(bigger)}." if retry else "it has no retry left."))
         if retry:
             return
     if job.func_name in (UNIT_FUNCTION, OPEN_FUNCTION):
@@ -594,17 +598,29 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
                 log.swallowed("queue/units", "follow_stage", exc)
 
 
+def _quiet_line(conn, run_id, stage, units, seen, quiet_for):
+    """The line the log gets when a stage has finished no unit for `quiet_for` seconds (OPS.253): how long, how many units are done, and what the running ones are doing."""
+    from planetgen.queue import runview, unitwatch
+    cause = runview.stall_cause(unitwatch.read(conn, run_id, stage))
+    hours, rest = divmod(int(quiet_for), 3600)
+    since = f"{hours} h {rest // 60:02d} m" if hours else f"{rest // 60} m"
+    return f"Stage {stage + 1}: no unit has finished for {since}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".")
+
+
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch, on_step=None):
     seen = set()
     last_ensure = float("-inf")
+    last_finish = last_said = clock()
 
     def drain():
+        nonlocal last_finish
         done = {int(unit) for unit in conn.smembers(runrecord.done_key(run_id, stage))} - seen
         if done:
             ordered = sorted(done)
             for unit, raw in zip(ordered, conn.hmget(runrecord.results_key(run_id, stage), ordered)):
                 on_result(unit, json.loads(runrecord._s(raw)))
             seen.update(ordered)
+            last_finish = clock()
 
     while True:
         if touch:
@@ -631,6 +647,10 @@ def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, s
             on_step(_step_now(conn, run_id, stage, seen))
         if watch is not None:
             watch.check()
+        now = clock()
+        if now - max(last_finish, last_said) >= QUIET_LINE_SECONDS:
+            last_said = now
+            log.normal(_quiet_line(conn, run_id, stage, units, len(seen), now - last_finish))
         if ensure is not None and clock() - last_ensure >= ENSURE_SECONDS:
             last_ensure = clock()
             ensure()

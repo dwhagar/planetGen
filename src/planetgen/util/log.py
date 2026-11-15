@@ -110,6 +110,7 @@ import time
 from contextlib import contextmanager
 
 from planetgen.util import draw, logpaths, logrecord, secrets_mask
+from planetgen.util.format import format_duration_seconds
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -1657,7 +1658,7 @@ def degraded(area, what, exc):
     last = _degraded_said.get(key)
     if last is None or now - last >= DEGRADED_WARN_SECONDS:
         _degraded_said[key] = now
-        _logger.warning(f"A fallback is in use ({text}); this warns again in {DEGRADED_WARN_SECONDS // 60} min.", stacklevel=2)
+        _logger.warning(f"A fallback is in use ({text}); this warns again in {format_duration_seconds(DEGRADED_WARN_SECONDS)}.", stacklevel=2)
 
 
 def trace(message, *args, area="decision", **kwargs):

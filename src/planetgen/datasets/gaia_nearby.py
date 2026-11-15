@@ -26,6 +26,7 @@ import urllib.request
 
 from planetgen.datasets import fetch
 from planetgen.util import secrets_mask
+from planetgen.util.format import format_duration_seconds
 from planetgen.util.user_agent import user_agent
 
 FILE = "gaia_dr3_25pc.csv"
@@ -106,7 +107,7 @@ def esa_async(opener, timeout, wait=ASYNC_WAIT_SECONDS, poll=ASYNC_POLL_SECONDS,
             if phase in ("ERROR", "ABORTED"):
                 raise fetch.DownloadError(f"{job}: the job ended {phase.lower()}")
             if time.monotonic() > deadline:
-                raise fetch.DownloadError(f"{job}: still {phase.lower() or 'waiting'} after {wait} seconds")
+                raise fetch.DownloadError(f"{job}: still {phase.lower() or 'waiting'} after {format_duration_seconds(wait)}")
             time.sleep(poll)
     finally:
         try:

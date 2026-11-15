@@ -29,6 +29,7 @@ import os
 import time
 
 from planetgen.util import log
+from planetgen.util.format import format_megabytes
 
 ENV_VAR = "PLANETGEN_JOB_PROFILES"
 """str: Set to `0`, `off`, `no` or `false` and nothing is recorded (tests set it; `tests/test_job_profiles.py` turns it on)."""
@@ -132,7 +133,7 @@ def record(kind, items=None, seconds=None, peak_mb=None, outcome="done", conn=No
             f" VALUES ({', '.join('?' * (len(_COLUMNS) + 4))}, NOW(6))",
             tuple(row[name] for name in _COLUMNS) + (memory, cores, pool, generator_epoch.generator_epoch()))
         conn.commit()
-        log.debug(f"Job profile sample: {_said(row)} host={memory}MB/{cores}cores.", area="queue")
+        log.debug(f"Job profile sample: {_said(row)} host {format_megabytes(memory)}, {cores} cores.", area="queue")
         if cursor.lastrowid % 25 == 0:
             prune(conn, row["kind"], row["size_bucket"])
         return True

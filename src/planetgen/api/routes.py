@@ -149,6 +149,7 @@ from .schemas import (
     SystemRename, given, parse_body,
 )
 from .limiter import limiter, page_limit
+from planetgen.util.format import format_duration_seconds
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -1088,7 +1089,7 @@ def _nav_stay_param(query_args):
     except ValueError:
         raise ApiError(f"stay must be a number of minutes, got {raw_value!r}")
     if not 0.0 <= minutes <= NAV_MAX_STAY_MINUTES:
-        raise ApiError(f"stay must be between 0 and {NAV_MAX_STAY_MINUTES:g} minutes, got {raw_value!r}")
+        raise ApiError(f"stay must be between 0 and {format_duration_seconds(NAV_MAX_STAY_MINUTES * 60.0)}, got {raw_value!r}")
     return minutes
 
 

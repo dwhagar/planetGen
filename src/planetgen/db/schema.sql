@@ -4643,6 +4643,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     since_ejection_gy                DOUBLE,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
     ejection_speed_kms               DOUBLE,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
     rogue_note                       TEXT,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    pair_event_index                 INT,  -- v260 (GEN.332): the event index (same donor) of the companion it left its donor bound to, NULL for a rogue that left alone, each of the two rows naming the other
+    pair_separation_au               DOUBLE,  -- v260 (GEN.332): the distance to its companion, AU (the circular orbit of the pair), NULL without one
+    pair_period_yr                   DOUBLE,  -- v260 (GEN.332): the period of the pair round each other, years, NULL without a companion
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
     UNIQUE KEY uq_rogue_planets_donor_event (donor_uid, event_index),  -- v207 (GEN.1111): a donor's rogues are replaced, never duplicated
@@ -6639,3 +6642,15 @@ CREATE OR REPLACE VIEW sector_objects AS
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- v259 (GEN.1433): `stars`, `comets`, `black_holes`, `neutron_stars`, `nebulae`, `supernova_remnants`, `quasars`, `interstellar_comets` and `asteroid_fields` gain `flavor_key` (VARCHAR(32), NULL) as `asteroid_belts` do: the id of the flavor line the object shows, a line of its own scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244.
+
+-- engine_items (v261, OPS.215): the galaxy's half of the job engine's ledger (`planetgen/queue/ledger.py`; the control database holds `engine_runs`, `engine_jobs` and `engine_attempts`). One row per job
+-- that writes to this galaxy: `job_id` is the id of the job's row in the control database's `engine_jobs` (the two databases are not joined by a key), `attempt` the number of the attempt the supervisor
+-- handed the job, `cursor_key` the place the job has reached and `done_at` when it finished. A job's own commits update its row `WHERE attempt = mine`, so a job that was replaced touches no row and stops, and the
+-- last commit sets `done_at` in the same transaction as the data (the fence). The table holds no galaxy data and goes with the galaxy. A galaxy made before v261 has no rows.
+CREATE TABLE IF NOT EXISTS engine_items (
+    job_id        BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    attempt       INT UNSIGNED NOT NULL DEFAULT 0,
+    cursor_key    VARCHAR(255) NULL,
+    done_at       DATETIME(6) NULL,
+    updated_at    DATETIME(6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -32,6 +32,11 @@ fsum = math.fsum
 _sqrt = math.sqrt
 
 
+def float_or(value, empty=math.nan):
+    """`value` as a float, or `empty` for `None` (a NULL column read into an array)."""
+    return empty if value is None else float(value)
+
+
 def hypot(*components):
     """The square root of the squares of `components` added left to right: `hypot(x, y)` is `sqrt(x*x + y*y)`."""
     if len(components) == 2:

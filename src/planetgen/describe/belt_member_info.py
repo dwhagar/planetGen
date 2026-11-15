@@ -77,6 +77,13 @@ def planet_block(system, star, belt, rank):
     }
 
 
+def neighbour_designations(ranks, place, designation):
+    """The designations (`designation(rank)`) of the members before and after `ranks[place]`, `None` at the ends."""
+    def at(index):
+        return designation(ranks[index]) if 0 <= index < len(ranks) else None
+    return at(place - 1), at(place + 1)
+
+
 def member_info(conn, belt_id, rank):
     """
     The page data of the member of `rank` (1 is the heaviest) of the stored belt `belt_id`: `member` (the belt page's entry), `orbit`, `share` of the belt's mass, `belt`, the `previous` and `next`
@@ -99,9 +106,7 @@ def member_info(conn, belt_id, rank):
     count = belt_ondemand.individual_count(belt_ondemand.settled_of(belt, star))
     ranks = [member["rank"] for member in members]
     if rank in ranks:
-        place = ranks.index(rank)
-        neighbour = lambda i: object_uid.designation(object_id, ranks[i]) if 0 <= i < len(ranks) else None
-        previous, following = neighbour(place - 1), neighbour(place + 1)
+        previous, following = neighbour_designations(ranks, ranks.index(rank), lambda r: object_uid.designation(object_id, r))
     else:
         previous = object_uid.designation(object_id, rank - 1) if rank > 1 else None
         following = object_uid.designation(object_id, rank + 1) if rank < count else None

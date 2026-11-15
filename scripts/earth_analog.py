@@ -117,7 +117,7 @@ def trials(block, start, count, age_gy=AGE_GY, water="sample", full=False):
     for i in range(start, start + count):
         planet = copy.deepcopy(planet0)      # a fresh body per trial: nothing of the trial before is left on it
         with draw.bound(block * 100000 + i):
-            planet.distance = 1.0 + i * DISTANCE_STEP_AU      # GEN.1646: the oddities' streams are keyed on the body (`oddities.body_key`: star, distance, mass), so one reused planet drew every trial's second climate branch from one stream
+            planet.formation_distance_au = planet.distance = 1.0 + i * DISTANCE_STEP_AU      # GEN.1547: the air keys on the formation distance, so it moves with the distance; GEN.1646: the oddities' streams are keyed on the body (`oddities.body_key`: star, distance, mass), so one reused planet drew every trial's second climate branch from one stream
             planet.water_mass_fraction = _water(water)
             planet.__dict__.pop("_formation_fractions", None)
             planet.metal_mass_fraction, planet.ice_mass_fraction, planet.envelope_mass_fraction = 0.32, 0.0, 0.0

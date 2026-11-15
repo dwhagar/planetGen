@@ -46,6 +46,7 @@ from typing import NamedTuple
 from planetgen.queue import memorygate
 from planetgen.queue.memorygate import Claim, Decision, Holder
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 LANE_WEIGHT = {
     memorygate.LANE_INTERACTIVE: 100.0,
@@ -191,7 +192,7 @@ def judge(me, others, host, held, now, used, places=None):
                 continue                # room for both: the lower job does not hold the higher one up
             return Decision(False, f"{other.claim.kind} ({other.claim.lane}, ahead by priority) fits now and goes first", base.need_mb, base.free_mb)
         if RESERVE_AFTER_SECONDS <= waited < memorygate.MAX_WAIT_SECONDS:
-            return Decision(False, f"room is kept for {other.claim.kind} ({other.claim.lane}), which has waited {waited:,.0f} s", base.need_mb, base.free_mb)
+            return Decision(False, f"room is kept for {other.claim.kind} ({other.claim.lane}), which has waited {format_duration_seconds(waited)}", base.need_mb, base.free_mb)
     return base
 
 

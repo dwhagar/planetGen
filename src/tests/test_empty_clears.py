@@ -63,9 +63,15 @@ def test_a_run_with_no_skeleton_or_an_earlier_scatter_in_its_job_plans_every_cle
     assert run_plan.empty_clear_skips(args, ("phenomena",), fresh=False) == {}
 
 
-def test_the_bright_star_clear_stays_for_the_limits_it_stores(mysql_config):
+def test_the_bright_star_clear_of_a_new_galaxy_is_not_planned_and_the_limits_stage_stays(mysql_config):
     _seed_galaxy(mysql_config)
-    assert run_plan.empty_clear_skips(_scatter_args(mysql_config, "--mass"), ("mass", "luminosity")) == {}
+    args = _galaxy_args(mysql_config, "--bright-star-min-luminosity", "18000")
+    args.stage_skips = run_plan.empty_clear_skips(args, ("mass", "luminosity"))
+    assert set(args.stage_skips) == {"mass-clear"}
+    listed = {stage.key: stage.skip for stage in stages.galaxy_stages(args)}
+    assert listed["mass-clear"] and listed["scatter-limits"] is None
+    followers, _book = run_plan.bright_star_followers(args, prepare=True)
+    assert [f.key for f in followers][:2] == ["scatter-limits", "mass"]
 
 
 def test_a_cli_scatter_of_the_phenomena_on_a_new_galaxy_clears_nothing(mysql_config, monkeypatch):

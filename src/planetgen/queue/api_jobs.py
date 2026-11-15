@@ -31,6 +31,7 @@ import time
 from planetgen.admin import updateguard
 from planetgen.queue import jobbeat, redisqueue, workers
 from planetgen.util import log, secrets_mask
+from planetgen.util.format import format_duration_seconds
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
@@ -433,7 +434,7 @@ def run_command(argv, env, cwd, timeout, merge_stderr=False):
     except subprocess.TimeoutExpired as exc:
         out["timed_out"] = True
         out["stdout"] = (exc.stdout or b"").decode("utf-8", errors="replace")
-        log.get("queue").error(f"The command {_command_words(argv)} timed out after {timeout} s.")
+        log.get("queue").error(f"The command {_command_words(argv)} timed out after {format_duration_seconds(timeout)}.")
     except OSError as exc:
         out["error"] = str(exc)
         log.get("queue").error(f"The command {_command_words(argv)} could not be started: {exc}")
