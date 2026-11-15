@@ -157,6 +157,10 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
     ("rogue_planets", "surface_liquid_ammonia_wt"): CHANCE,    # the same, for a free planet
+    # a free planet holds a surface liquid only when it is cold and pressed enough, and whether the seeded galaxy has one is chance (a generation change moves it)
+    **{("rogue_planets", column): CHANCE for column in (
+        "surface_liquid", "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction",
+        "surface_liquid_methane_mol", "surface_liquid_nitrogen_mol")},
     # GEN.1218b: the makeup, salt and second liquid exist only for the liquids that have them, and whether this small galaxy has one is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in (*surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS)},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
