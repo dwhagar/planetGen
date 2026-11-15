@@ -12085,6 +12085,44 @@
           "what": "life_ledger.json numbers (GEN.891, GEN.857, GEN.859): Earth's methane from the donor food web 10 Tmol/yr (inside the published 9 to 67), Earth's hydrogen 2.3 Tmol/yr with 4 H2 per CH4, 0.5 CH4 per buried carbon, the life of methane in an oxygen-free air 30,000 yr, the methane cap 3.5 percent of molecules, 10 percent of the carbon dioxide kept, the oxygen limit 0.001 and the hydrogen floor 1e-4 of molecules, the 1 percent rise that counts as a change"
         },
         {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
+            ],
+            [
+              "The range it moves in",
+              "fixation 150 to 300 Tg N/yr; the N2O leak 0.03 to 0.07; the N2O life 100 to 120 yr; methane life 7 to 10 yr; the soil share 0.03 to 0.07; the eaten share 0.9 to 0.99; the deposition velocities a factor of 3"
+            ],
+            [
+              "Where it holds",
+              "the air history of GEN.1745 (the present air does not read them)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured N2O or CO of a world whose life class is known, or a published Archean CO sink that differs by more than a factor of 10"
+            ],
+            [
+              "What replaces it",
+              "the air history's own photochemistry of CO, CH4 and N2O"
+            ],
+            [
+              "Evidence",
+              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; Knittel and Boetius 2009; Tian et al. 2020; [R2336] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
+            ]
+          ],
+          "id": "LF73",
+          "key": "6.19:LF73",
+          "kind": "P",
+          "slug": "6-19-lf73",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
+        },
+        {
           "burn_down": [
             "no data",
             "-",
