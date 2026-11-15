@@ -21,10 +21,10 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 | 05 Bugs 2 | Job engine stage 1: OPS.194 next (OPS.193, OPS.197 merged 8:00 PM EST) | OPS.195 with OPS.200, OPS.206; later OPS.220, 223, 227, 232, 248, 251 |
 | 06 Gate 2 | 6336 OPS.161 regate at 795dc6e13; OPS.181, 186, 187 coded | Job engine stage 2 OPS.207-214 one by one; then OPS.216-218 chain, 225, 234, 236, 245, 246 |
 | 11 Oddities | Review ready | Ask TODO |
-| 12 Storage | 6409 GEN.1684 (Train 27); 6224, 6099, 6378, 6396 in Train 26 | OPS.203, OPS.205, OPS.224, OPS.233, OPS.244, OPS.252 |
+| 12 Storage | 6548 OPS.203 (refresh on main); OPS.202 part 1 (link-neighbors, settle-sector-paths, generate-unplaced-sector) | OPS.202 rest, OPS.224, OPS.233, OPS.244, OPS.252 |
 | 13 Galaxy and admin | OPS.185; 6430 GEN.332 C up (Train 27); GEN.332 D design next | OPS.191, 192, 196, 199, then OPS.219, OPS.238-240 |
 | 14 Atmosphere | Seed 8301 trace for 6423 GEN.1675 | OPS.237 (star tables as arrays) |
-| 15 Air, climate, performance | 6413 PERF.264: golden on its own box | OPS.198, OPS.202 |
+| 15 Air, climate, performance | GEN.1716 A and B, GEN.1718 part 1 (Train 29) | GEN.1718 rest; ask TODO |
 | 21 Composition | Sulfur shift to 1.4 dex in GEN.1670 | Ask TODO |
 | 22 Belts | 6428 GEN.1693 (Train 27), then PERF.261 | OPS.215 (migrations), 221, 222, 226, 228-231, 235, 243, 249, 250 |
 | 23 Tides, spin, moons | Review ready | OPS.201, 204, then OPS.241, 242 |

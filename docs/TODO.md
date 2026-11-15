@@ -12709,7 +12709,7 @@ clears each one.
 
 - [ ] **OPS.202 Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P12); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P12 says (reuse and delete columns named there; name reuse in the PR). Size L. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 15 (after PERF.264; beside PERF.261, Lane 22). Prerequisites: OPS.191, OPS.192, PERF.264, PERF.261. Related: OPS.186, OPS.188, OPS.181, OPS.185.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 12 (moved from Lane 15). Prerequisites: OPS.191, OPS.192, PERF.264, PERF.261. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
 - [ ] **OPS.203 Job engine stage 1 family: population (run-population, run-territories)**
