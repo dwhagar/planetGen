@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4271] - 2026-11-15
+
+**Headline:** Two belt tests now read what the generator reads: a promoted belt body's strength from its water and other ices together, and a belt's inner edge in the spacing rule.
+
+### Changed
+- `test_belt_planets` asks the roundness of a promoted body with its water and other ices together (as the belt's own status does), not with the other ices alone.
+- `test_secular_exchange_generation` builds its stand-in belts with the `lower_limit` the spacing rule reads since GEN.1592.
+
 ## [8.0.4270] - 2026-11-15
 
 **Headline:** A cool giant with a carbon-rich envelope no longer stops a galaxy run with "an abundance must not be negative".
