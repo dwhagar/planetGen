@@ -12893,14 +12893,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
   Filed by the TODO thread.
 
-- [ ] **TEST.765 (bug) test_queue_commands::test_a_unit_that_fails_in_a_later_stage_fails_the_run is red on main**
-  Lane 16, 11:32 AM EST 2026-11-15 (OPS.196 part 2a, PR #6688): red on main, not from that PR. Do: find which job engine change broke it (stage 2 to 4 merges, OPS.219 checkpoints, OPS.222 part A drain, OPS.261 piece-0) and fix the cause, code or test, whichever is wrong.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.196, OPS.219, OPS.222.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1747 (bug) life_ledger.json and three source sites cite R3394 and R3395 (two 2018 aurora papers) for the photoferrotroph iron supply and Earth H2 outgassing; the paper meant is R3393 (Ozaki et al., primitive photosynthesis and Earth's early climate)**
   Research thread "Design planet air history simulation", 11:32 AM EST 2026-11-15 (GEN.1742). Do: point the citations at R3393; fixed inside GEN.1743's ledger rewrite.
   Version 8.1. Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation", with GEN.1743. Prerequisites: none. Related: GEN.1743, GEN.1742.
+  Filed by the TODO thread.
+
+- [ ] **OPS.262 Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget**
+  Lane 16, 11:43 AM EST 2026-11-15 (OPS.196 part 2): the silence budget test from OPS.196 covers the converted commands one at a time; a run of every command needs a built galaxy per command across many commands, so it is split out of OPS.196.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after OPS.196. Prerequisites: OPS.196. Related: OPS.196, OPS.191.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
