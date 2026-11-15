@@ -329,7 +329,7 @@ def _supervisor_view(body, now=None):
     if not body.get("alive"):
         return {"alive": False, "state": "Not running. It starts again by itself when work arrives or this page is polled.", "acts": acts}
     since, turn_at = body["since"], body["turn_at"]
-    return {"alive": True, "pid": body["pid"], "since": since, "up": _duration(max(now - since, 0.0)), "turn": _duration(max(now - turn_at, 0.0)),
+    return {"alive": True, "pid": body["pid"], "since": since, "up": format_duration_seconds(max(now - since, 0.0)), "turn": format_duration_seconds(max(now - turn_at, 0.0)),
             "turns": f"{body['turns']:,}", "acts": acts,
             "state": ""}
 
