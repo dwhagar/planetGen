@@ -1,5 +1,7 @@
 # Adaptation traits: how life on a hard world is tougher than life on an easy one
 
+GEN.1725 (2026-11-14) added the traits `cold` and `heat`, drawn from the table of [life-adaptations.md](life-adaptations.md); the sections below are GEN.876's.
+
 Written the evening of 2026-10-28 EDT by the life chemistry lane (Aux 2, GEN.875). Design only: no code was changed. It feeds GEN.876 (the traits built) and sits inside the life class system ([life-classes.md](life-classes.md), section 7.4): the life of a world is the triple (class, pigment or habitat letter, trait set), and this page is the trait set.
 
 Sources: the life chemistry review (`reports/life-chemistry-review-2026-10-28.md`, section 6 and 6.3, called "the review"), the life class design, and the habitability code on main (`physics/habitability.py`, `habitability_world.py`). Tier labels T1 to T9 and tweak levels L0 to L4 are Boss's ladder (`docs/design/research/stand-in-values.md`). A fact marked (read) was opened in a source for this page or by an earlier lane; (recalled) means from memory or from the review and must be spot-checked before it becomes a hard number in a test. Boss's scope still stands (Boss, 9:12 PM EDT 2026-10-28): open build, if life is possible it develops, most life stops at animals, sentient life is rarest and waits for 9.5.

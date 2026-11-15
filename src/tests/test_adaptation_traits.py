@@ -61,7 +61,7 @@ def test_a_body_with_no_stress_draws_no_trait_whatever_the_seed():
         assert adaptation_draw.draw(calm, draw.Stream(seed)) == {}
 
 
-def test_a_body_draws_six_uniforms_whatever_it_holds():
+def test_a_body_draws_two_uniforms_for_each_stress_whatever_it_holds():
     """The draw count is fixed, so changing a trait's numbers moves no other draw of any body."""
     harsh = {"surface_dose_msv_yr": 1.0e9, "gas_partial_pa": {"co2": 9.0e4, "h2s": 5.0e3}, "atmospheric_pressure_pa": 1.0e5}
     for values in ({}, harsh):
@@ -96,7 +96,7 @@ STRESSED = {
 }
 
 
-@pytest.mark.parametrize("stress", traits.STRESSES)
+@pytest.mark.parametrize("stress", list(STRESSED))
 def test_a_trait_widens_its_own_limit_and_lowers_no_life_score(stress):
     plain = _world(**STRESSED[stress])
     tough = _world(**STRESSED[stress], traits={stress: 3})
@@ -106,7 +106,7 @@ def test_a_trait_widens_its_own_limit_and_lowers_no_life_score(stress):
     assert widened(tough) > widened(plain) + 0.05, "the stress is chosen so that the ordinary limit costs the life something"
 
 
-@pytest.mark.parametrize("stress", traits.STRESSES)
+@pytest.mark.parametrize("stress", list(STRESSED))
 def test_a_trait_never_changes_a_human_score(stress):
     plain = _world(**STRESSED[stress])
     tough = _world(**STRESSED[stress], traits={stress: 3})

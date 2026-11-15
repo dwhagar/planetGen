@@ -57,6 +57,7 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
+from planetgen.generation import abundance_tier
 from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, mantle_reservoirs, planet_type, runaway_history, saturation, unit_registry, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -272,11 +273,17 @@ def surface_water_fraction(water_mass_fraction, mass_kg, radius_m, rock_fraction
     return max(water_mass_fraction / buffer, water_mass_fraction - mantle_max_water_fraction(mass_kg, radius_m, rock_fraction))
 
 
+def salts_concentrated(body, surface_fraction):
+    """Whether so little water lies at the surface that its salts fix its chemistry (rules 3 and 5). Never on a desert world that a Class M abundance tier
+    made (`abundance_tier.desert_sea`, GEN.1721; no body on `science`): its small sea is taken as an ordinary salt sea (stand-in row 6.289:AT7)."""
+    return surface_fraction < BRINE_MAX_WATER_FRACTION and not abundance_tier.desert_sea(body)
+
+
 def ocean_class(body, hp_ice_km, surface_fraction, covered):
     """Rule 5's class for a liquid ocean."""
     if hp_ice_km > 0:
         return "ice-sealed"
-    if surface_fraction < BRINE_MAX_WATER_FRACTION:
+    if salts_concentrated(body, surface_fraction):
         return "chloride brine"
     so2 = atmosphere.partial_kpa(body, "so2")
     co2 = atmosphere.partial_kpa(body, "co2")
@@ -377,7 +384,7 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     else:
         flux = internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0)  # GEN.737: the tide stored with the heat model (GEN.700: the heat an ice-covered ocean's life can use)
         melting_k = WATER_MELTING_K
-        if surface_w < BRINE_MAX_WATER_FRACTION:
+        if salts_concentrated(body, surface_w):
             salt, melting_k = clathrate_brine.draw_brine()  # GEN.762: little water, so the salts are concentrated and the ice melts at their eutectic
         shell = pressure_melted_shell_km(max(flux, 1e-6), max(temperature, 1.0), gravity, melting_k)
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, shell_km=shell,
