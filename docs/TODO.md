@@ -12728,6 +12728,7 @@ clears each one.
 - [ ] **PERF.272 Promote belt members only when they are read (15 percent of a system's time)**
   Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing). PERF.267 finding (3): belt-member promotion takes 15 percent of each system's generation time. Make it on demand where nothing in generation reads the members.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Boss, 6:09 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiXMTDQXwZf1M4vPEnYyuBPV, "no"): promoted bodies are NOT built bare or on demand; every promoted Class D rock stays fully built, classed and searchable. Lane 06 design option (a) (reports/perf272-ondemand-promotion-design-2026-11-15.md) is rejected. Only a saving that keeps every stored field of a promoted body is open.
   Filed by the TODO thread.
 
 - [ ] **GEN.1732 Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change**
@@ -12784,6 +12785,7 @@ clears each one.
 - [ ] **GEN.1748 Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state**
   Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15 (GEN.1741 report reports/early-envelope-gen1741-2026-11-15.md). Do: give bodies of 0.2 to 1 Earth mass the sourced nebular envelope and its loss, feeding GEN.1745's history; register stand-ins in GEN.725. Changes output (lock item).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (planet composition), lock item, after GEN.1744. Prerequisites: GEN.1741. Related: GEN.1745, GEN.1741.
+  Boss, 6:09 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiXMTDQXwZf1M4vPEnYyuBPV, "1"): option 1, build both the nebular envelope and the water its hydrogen makes.
   Filed by the TODO thread.
 
 - [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
