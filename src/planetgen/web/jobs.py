@@ -750,11 +750,11 @@ def cancel_runs(job_id, who=None):
         int: How many runs were canceled.
     """
     try:
-        from planetgen.queue import runcontrol, runrecord
+        from planetgen.queue import held, runcontrol, runrecord
 
         connection = redisqueue.connect()
         return sum(runcontrol.cancel_run(connection, run_id, who=who) is not None
-                   for run_id in runrecord.job_runs(connection, job_id))
+                   for run_id in runrecord.job_runs(connection, job_id) if not held.is_drained(connection, run_id))      # OPS.222: a run the update drained is not canceled with the job that followed it
     except Exception as exc:  # noqa: BLE001 -- the runner's own stop still follows
         log.debug("Cancel of job %s: its runs were not canceled (%s).", job_id, exc)
         return 0
