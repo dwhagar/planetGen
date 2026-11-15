@@ -91,6 +91,10 @@ BRIGHT_CLEAR_STAGE = {"mass": Stage("mass-clear", "Clear the earlier bright star
 """dict: The emptying of the bright stars before a scatter draws them again, by the scatter's first pass (OPS.123: the `clear-bright-stars`
 command, once the `prepare` of the shell scatter commands): the whole scatter before a mass pass, the luminosity pass alone before that."""
 
+LIMITS_STAGE = Stage("scatter-limits", "Store the star scatter's limits")
+"""Stage: The recording of the limits the star scatter will run at (its luminosity floor, mass limit and seed), before the backfill that draws what the passes leave out (OPS.257: once part of the
+clear of the earlier bright stars, which a new galaxy has no use for)."""
+
 BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
 """Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172) and of a galaxy run (PERF.251: after the backfill, the population and the
 run's own block totals, so it adds up what the run left and nothing after it changes a light)."""
@@ -106,6 +110,7 @@ def galaxy_stages(args):
     listed = sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
         BRIGHT_CLEAR_STAGE["mass"],
+        LIMITS_STAGE,
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
@@ -157,7 +162,7 @@ def scatter_stages(args):
     if kind == "phenomena":
         listed = [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
     elif kind in ("mass", "luminosity"):
-        listed = [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+        listed = [BRIGHT_CLEAR_STAGE[kind], *([LIMITS_STAGE] if kind == "mass" and getattr(args, "prepare_limits", False) else []), SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
     elif kind == "nebula-field":
         listed = [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
     else:

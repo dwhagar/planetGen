@@ -226,6 +226,18 @@ def prepare_flags(entries):
     return flags
 
 
+HOISTED_STAGES = (stages.BRIGHT_CLEAR_STAGE["mass"].key, stages.LIMITS_STAGE.key)
+"""tuple[str]: The stages of a prepared massive-star scatter that run before the backfill: the clear of the earlier bright stars (when there is any) and the recording of the limits."""
+
+
+def _leading_clear(part):
+    """How many of the part's first followers are the hoisted stages (the clear when planned, the limits stage)."""
+    count = 0
+    while count < len(part.followers) and part.followers[count].key in HOISTED_STAGES:
+        count += 1
+    return count
+
+
 def hoist_clears(parts):
     """
     The `parts` with the clearing stage of a massive-star scatter that follows a backfill made a part of its own just before that
@@ -237,10 +249,10 @@ def hoist_clears(parts):
         return parts
     moved = []
     for place, part in enumerate(parts):
-        if (place > first_backfill and part.command == "scatter" and getattr(part.args, "prepare_limits", False) and part.followers
-                and part.followers[0].key == stages.BRIGHT_CLEAR_STAGE["mass"].key):
-            moved.append((place, Part("scatter", part.args, part.stages[:1], part.followers[:1])))
-            part.stages, part.followers = part.stages[1:], part.followers[1:]
+        count = _leading_clear(part) if place > first_backfill and part.command == "scatter" and getattr(part.args, "prepare_limits", False) else 0
+        if count:
+            moved.append((place, Part("scatter", part.args, part.stages[:count], part.followers[:count])))
+            part.stages, part.followers = part.stages[count:], part.followers[count:]
     if not moved:
         return parts
     result = list(parts)
@@ -254,13 +266,14 @@ def hoist_rows(rows):
     """`rows` (`(stage key, seconds)`, in the order of the job's entries) with the massive-star clear moved before the first backfill, as
     `hoist_clears` places its stage."""
     keys = [key for key, _seconds in rows]
-    clear = stages.BRIGHT_CLEAR_STAGE["mass"].key
-    if clear not in keys or "backfill" not in keys or keys.index(clear) < keys.index("backfill"):
+    if "backfill" not in keys:
         return rows
-    row = rows[keys.index(clear)]
-    rest = [item for item in rows if item is not row]
-    rest.insert([key for key, _seconds in rest].index("backfill"), row)
-    return rest
+    moved = [item for item in rows if item[0] in HOISTED_STAGES and keys.index(item[0]) > keys.index("backfill")]
+    if not moved:
+        return rows
+    rest = [item for item in rows if item not in moved]
+    at = [key for key, _seconds in rest].index("backfill")
+    return rest[:at] + moved + rest[at:]
 
 
 def stage_list(parts):
@@ -280,6 +293,8 @@ def stage_estimates(conn, entries):
     (`stages.stage_estimates`, at the settings that command was given), the stage every scatter ends with only at its last place.
     """
     rows, flags = [], prepare_flags(entries)
+    for flag, (_command, args) in zip(flags, entries):
+        args.prepare_limits = flag
     leave_out_empty_clears(entries)
     for flag, (command, args) in zip(flags, entries):
         rows += [(stage.key, seconds)

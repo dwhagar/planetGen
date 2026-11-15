@@ -28,8 +28,9 @@ The step is damped, in the logarithm of the pressure and in the temperature, and
 the start, and the mixture is replayed from the same seed at every step: the regimes of the recipe are drawn again at each step's
 temperature (they depend on it), and kept from the `FREEZE_AFTER` th step on so that a regime on the edge of its gate cannot flip the
 solution back and forth. A giant, a brown dwarf and an envelope have no surface: their reference level is `REFERENCE_PRESSURE_BAR`,
-and the mixture there is drawn from the layer temperature of the body, not from the temperature the step solves, so one step is the
-solution. The vapor over a melt or an ice sets its own pressure.
+and the mixture there is drawn from the layer temperature of the body, not from the temperature the step solves, so the pressure is the
+reference one at every step; the temperature is a fixed point like a rocky body's, because the haze the step's greenhouse is made under is the haze of
+the temperature the step starts from (GEN.1716: one step stored a temperature that depended on where the solve began, 28 K at the median of 59 giants). The vapor over a melt or an ice sets its own pressure.
 
 What it does not do: the magma-ocean epoch, the water the impacts brought (the hydrosphere's draw holds the body's water once, GEN.819), non-thermal escape of the heavy gases (the retention rows stand in), the seafloor
 weathering of an ocean world, a tectonic switch of the heat loss, the helium-rain share of a giant's own heat (GEN.810: its temperature at the reference
@@ -1007,7 +1008,7 @@ def solve(setting, start_temperature_k):
         window.append((temperature, new_temperature))
         del window[:-SLIDING_WINDOW]
         last = record
-        if setting.giant or (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)):
+        if (change_t < TOLERANCE_K or root_here) and (setting.giant or change_p < TOLERANCE_LN_P):        # GEN.1716: a giant's pressure is the reference one, its temperature settles like a rocky body's
             if setting.giant or st['escape_bar'] is not None or family not in mixture_escape.FAMILIES:
                 break
             # The air has settled without the escape. The loss acts on the air that stands, so it is compared to this pressure (the pressure of a step
@@ -1056,7 +1057,7 @@ def solve(setting, start_temperature_k):
         # A settled air under the vacuum floor is an exosphere (a trace of sulfur vapor over a cold body, 1.3 mPa on a 120 K one): the
         # floor the equilibrium stall applies above applies to the air that settles too, so a body never stores an air it calls thin.
         return _airless(setting, mixture, step, design, ocean)
-    converged = not gave_up and not jumped and (setting.giant or (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)))
+    converged = not gave_up and not jumped and (change_t < TOLERANCE_K or root_here) and (setting.giant or change_p < TOLERANCE_LN_P)
     knee = False
     if jumped:
         temperature_k, knee = jump_k, True

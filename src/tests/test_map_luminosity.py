@@ -120,3 +120,31 @@ def test_a_stopped_fill_carries_on_where_it_was(mysql_config):
     filled = run_plan.fill_map_luminosity(args)
     assert 0 < filled
     assert all(row["map_luminosity_sol"] is not None for row in _rows(mysql_config) if row["mass_solar"] is not None)
+
+
+def test_a_fill_cut_into_small_pieces_gives_the_values_of_one_piece(mysql_config, monkeypatch):
+    """OPS.198: a unit's ids are filled a piece at a time, each with its own statement and commit; the values and the count are the same as one statement over the whole range."""
+    from planetgen.queue import commands
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    written = _rows(mysql_config)
+    massive = [row for row in written if row["mass_solar"] is not None]
+    assert len(massive) > 50 and len(written) > 120
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE phenomenon_scatter SET map_luminosity_sol = NULL")
+        conn.commit()
+        top = int(conn.execute("SELECT MAX(id) AS n FROM phenomenon_scatter").fetchone()["n"])
+    finally:
+        conn.close()
+    monkeypatch.setattr(run_plan, "MAP_LUMINOSITY_PIECE_IDS", 40)
+    params = {"low": 1, "high": top, "database": run_plan.wrapper.database_args(mysql_config)}
+    assert len(run_plan.fill_map_luminosity_pieces(params, 0)) > 3
+    reported = []
+    result = commands.run_alone("fill-map-luminosity", params, lambda done, total: reported.append((done, total)))
+    assert result == {"filled": len(massive), "ids": top}
+    assert reported[0][0] == 0 and reported[-1] == (len(run_plan.fill_map_luminosity_pieces(params, 0)),) * 2
+    assert [row["map_luminosity_sol"] is None for row in _rows(mysql_config)] == [row["mass_solar"] is None for row in written]
+    for before, after in zip(written, _rows(mysql_config)):
+        if before["mass_solar"] is not None:
+            assert math.isclose(after["map_luminosity_sol"], before["map_luminosity_sol"], rel_tol=1e-5)

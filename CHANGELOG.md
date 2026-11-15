@@ -2,6 +2,78 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4180] - 2026-11-15
+
+**Headline:** The population and territories passes now run as pieces the job engine counts, so the Queue page shows real numbers for the scan, the dating and the territories instead of one quiet unit.
+
+### Changed
+
+- OPS.203: `run-population` and `run-territories` hand the engine their pieces (`population.model.population_pieces`, `territories_pieces`). Population: a forget for a rescan, one scan piece for each batch of planet ids, the drop, the dating of the civilizations, the map's technology rows, and the counts. Territories: the recompute, which counts the polities that have claimed and the owner rows written as its second-level bars (OPS.192).
+- The engine commits after every piece through `ctx.commit()`; the model's pass code has no commit of its own. A scan piece the watermark has already passed (another pass took the lock first) leaves its planets alone. The old whole-unit drivers `population_unit` and `territories_unit` and the `on_stage` announcements (UX.83's three steps) are gone: the engine's counts are the bar. A bring-to-epoch redo and the tests run the same pieces through `model.run_population` and `model.run_territories`, one commit a piece.
+- The pass lock is taken around each piece (the unit's beat says it waits on `mysql` while it waits) and let go after the piece's commit, so a pooled connection never carries it away and two passes take turns a piece at a time.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4179] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits gives the engine its pieces like the other converted commands.
+
+### Fixed
+
+- OPS.257: the `store-scatter-limits` command is a piece of the engine's loop (one piece, committed through the context), which the every-command-gives-pieces guard on main asked for.
+
+## [8.0.4178] - 2026-11-15
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
+## [8.0.4177] - 2026-11-15
+
+**Headline:** The train gate runs on every ready lane from the first file, with no split to agree on first, and its file times now come from real database runs.
+
+### Changed
+- `train_gate.py run --claims DIR` has each lane take the next unclaimed test file, longest first, so an idle or fast lane takes more and the lanes finish together (OPS.259). `train_gate.py status` counts what is passed, failed, running and waiting, and `--release-older SECONDS` frees the claim of a lane that died.
+- `train_gate.py learn --replace` sets each file's time to its longest pass, and `scripts/data/gate_durations.json` is refreshed from the train 27 and 28 runs: database files such as the fingerprint, old-schema and round-trip tests had been listed at their skipped seconds, not the 20 to 45 minutes they take.
+
+generation-output: unchanged
+
+## [8.0.4176] - 2026-11-15
+
+**Headline:** A change of generated output no longer needs the golden files or an epoch bump in its pull request, so trains stop waiting on a golden rebuild.
+
+### Changed
+- `test_golden_seed.py` is a smoke test in an ordinary run (OPS.258): the battery, the Rosetta text and the pinned galaxy must be built whole and are not compared with the golden files; the exact comparison runs at the end-of-version gate (`PLANETGEN_VERSION_GATE`).
+- `bump_version.py --check-pr` no longer requires the golden files, the epoch bump and the note line `generation-output: changed` together; the epoch list must still be in order, name its stages and rise by one at most.
+- The golden files are renewed and the epoch bumped once, before the 8.1 release gate, with `python -m tests.golden_update --reason "..."`.
+
+generation-output: unchanged
+
+## [8.0.4175] - 2026-11-15
+
+**Headline:** The star and phenomenon scatters, the nebula field and the map luminosity fill now report what they have done a piece at a time, so a long run shows real counts and can be stopped or paused between pieces.
+
+### Changed
+
+- OPS.198: `scatter-mass`, `scatter-luminosity`, `scatter-band`, `scatter-phenomena`, `draw-nebula-field` and `fill-map-luminosity` hand the engine `pieces`, `do` and `gather` (OPS.191) in place of a `unit` function with a loop of its own. The pieces are a shell (with its part beyond the outline for the phenomena), the far shells together, the clusters' and satellites' stars, a first-index slab of nebula cells, and a range of 20,000 ids of the map luminosity fill. The engine counts pieces done of pieces in all, honours a cancel and a pause between two pieces, and each piece commits through `ctx.commit()`. The second level counts the stars or phenomena placed and the columns of nebula cells (`ctx.step`, `ctx.advance`, OPS.192). The unit's result has the same fields as before, so the stage's followers, statistics and speed samples are unchanged.
+- Removed with the old loops: `scatter_shells_unit`, `scatter_phenomena_unit`, `draw_nebula_field_unit`, `fill_map_luminosity_unit`, the shells and phenomena tasks, `_nebula_field_task`, `_ReportChannel` and `CHANNEL_INTERVAL_SECONDS`. The free-text phases of the nebula field and the map luminosity fill are gone with them.
+- `engine.Context` gains `kept(name, make)`, so a unit reads the galaxy's shape and its components once for all its pieces.
+- A map luminosity fill piece covers `MAP_LUMINOSITY_PIECE_IDS` (20,000) ids with its own statement and commit; the block light parts of its cells are put right in the same piece, and the values are those of one statement over the whole range.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4174] - 2026-11-14
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
 ## [8.0.4173] - 2026-11-14
 
 **Headline:** A rocky planet under a deep envelope whose haze keeps its 1 bar level colder than its albedo alone gives now stores a temperature that matches its stored albedo and greenhouse quantity.
