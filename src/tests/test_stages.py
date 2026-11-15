@@ -112,15 +112,15 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     stages.enter("settle")         # the ones between are skipped
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 1 of 19: Generate the starting sector")
+    assert text.startswith("Stage 1 of 21: Generate the starting sector")
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
-    assert "Stage 2 of 19: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 7 of 19: Scatter the massive stars -- skipped: no layers" in text
-    assert "Stage 15 of 19: Run the population pass -- skipped: not needed" in text
-    assert "Stage 16 of 19: Recompute the territories -- skipped: not needed" in text
-    assert "Stage 17 of 19: Save the sector paths" in text
-    assert "Stage 18 of 19: Update the map's block totals -- skipped: not needed" in text
-    assert "Stage 19 of 19: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
+    assert "Stage 2 of 21: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 7 of 21: Scatter the massive stars -- skipped: no layers" in text
+    assert "Stage 17 of 21: Run the population pass -- skipped: not needed" in text
+    assert "Stage 18 of 21: Recompute the territories -- skipped: not needed" in text
+    assert "Stage 19 of 21: Save the sector paths" in text
+    assert "Stage 20 of 21: Update the map's block totals -- skipped: not needed" in text
+    assert "Stage 21 of 21: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
     assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 21
 
 
@@ -153,9 +153,9 @@ def test_ticking_skip_the_scatter_leaves_the_scatter_steps_out():
 
 def test_a_plan_job_lists_its_scatter_steps_stages():
     found = jobs.job_stages(_steps("plan", {"confirm": "db"}))
-    assert [s["label"] for s in found][-13:] == [
+    assert [s["label"] for s in found][-15:] == [
         "Clear the earlier bright stars", "Scatter the massive stars", "Make the block light totals",
-        "Clear the earlier bright stars of the luminosity pass", "Scatter the bright stars", "Make the block light totals", "Clear the earlier phenomena", "Take off the phenomenon indexes", "Scatter the phenomena", "Index the phenomena", "Clear the earlier nebula field", "Draw the nebula field",
+        "Clear the earlier bright stars of the luminosity pass", "Scatter the bright stars", "Make the block light totals", "Clear the earlier phenomena", "Take off the phenomenon indexes", "Scatter the phenomena", "Write the special phenomena", "Index the phenomena", "Record the phenomena", "Clear the earlier nebula field", "Draw the nebula field",
         "Make the block light totals"]
 
 
@@ -164,7 +164,7 @@ def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     job = {"stages": jobs.job_stages(steps), "step": 7, "finished": False,
            "progress": {"stage": {"index": 2, "total": 3, "label": "Scatter the massive stars", "skipped": None}}}
     view = generate_page.stage_view(job)
-    assert view["stage_text"] == "Stage 9 of 21: Scatter the massive stars"
+    assert view["stage_text"] == "Stage 9 of 23: Scatter the massive stars"
     states = [s["state"] for s in view["stage_list"]]
     assert states[:8] == ["done"] * 8 and states[8] == "running" and "waiting" in states
     assert "skipped" not in states
@@ -296,7 +296,7 @@ def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(contr
                 " VALUES ('d', 'plan', ?, 1, 4, 'x', 0, NOW(6), NOW(6), ?, 1, ?, '{}', ?)",
                 (key, seconds, json.dumps(settings), generation_stats.current_version_key()))
         conn.commit()
-        assert [stages.estimate_seconds(conn, command, args) for command, args in runs] == [5.0, 16.0, 15.0, 17.0]
+        assert [stages.estimate_seconds(conn, command, args) for command, args in runs] == [5.0, 18.0, 15.0, 17.0]
         # A stage with no time stored makes the estimate unknown.
         assert stages.estimate_seconds(conn, "scatter", _scatter("--band")) is None
     finally:
@@ -436,16 +436,16 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
-    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "22")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "24")
     stages.begin(stages.galaxy_stages(_galaxy()))
     stages.enter("start")
     stages.enter("settle")
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 4 of 22: Generate the starting sector")      # a step of 19 stages: the banner names the step
+    assert text.startswith("Stage 4 of 24: Generate the starting sector")      # a step of 21 stages: the banner names the step
     assert "stages (stages" not in text
-    assert "Stage 5 of 22: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 20 of 22: Save the sector paths" in text
+    assert "Stage 5 of 24: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 22 of 24: Save the sector paths" in text
 
 
 @pytest.fixture
@@ -516,7 +516,7 @@ def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "9")
     stages.begin(stages.galaxy_stages(_galaxy()))
     try:
-        assert stages._numbering() == (0, 19)
+        assert stages._numbering() == (0, 21)
     finally:
         stages.finish()
 
@@ -543,15 +543,15 @@ def test_the_new_galaxy_log_counts_every_stage_not_every_step(tmp_path):
         "cwd": str(tmp_path), "env": {}, "steps": shown}))
     assert job_runner.run(str(job_dir)) == 0
     log_text = (job_dir / "output.log").read_text()
-    assert "=== Stage 1 of 21: " in log_text and "=== Stage 3 of 21: " in log_text
-    assert "=== Stages 4 to 5 of 21: " in log_text and "of 10" not in log_text
-    assert "=== Stages 4 to 5 of 21 finished after " in log_text
+    assert "=== Stage 1 of 23: " in log_text and "=== Stage 3 of 23: " in log_text
+    assert "=== Stages 4 to 5 of 23: " in log_text and "of 10" not in log_text
+    assert "=== Stages 4 to 5 of 23 finished after " in log_text
     from planetgen.util import logrecord
     records = [logrecord.parse_file_line(line) for line in (job_dir / "records.log").read_text().splitlines()]
     # UX.123: the page and the download hold the display line (with its time) of each stage mark, the records file the record
     assert [logrecord.display_line(r) for r in records if r.event] == [line for line in log_text.splitlines() if " job: === " in line]
     assert sum(1 for r in records if r.event == logrecord.STAGE_START) == 10
-    assert "\n3 21\n" in log_text      # the sectors step's process was told its stages start at 4 of 21
+    assert "\n3 23\n" in log_text      # the sectors step's process was told its stages start at 4 of 23
 
 
 def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_jobs_until_the_last(monkeypatch):
