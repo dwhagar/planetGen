@@ -11729,12 +11729,8 @@ clears each one.
 
 - [ ] **GEN.1449 Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons**
   Boss, 2:57 PM EST on 2026-11-08 ('Yes build it and ship it', adding companion tides and Kozai pumping to the radiation-field work of GEN.1441) and 2:58 PM EST ('Everything in a system effects everything else in the system'): every body acts on every other body of its system, by 3D position, averaged over the orbits (stars, planets, moons, belts, asteroids, comets); a host-only or pair-only effect needs a reason registered in GEN.725. Design note: docs/design/generation/system-interactions.md. Found by a code check on 2026-11-08: the moon Hill limit and survival are worked out against the host star alone, and the spin and orbit evolution of the planet (physics/moon_orbits.py evolve) takes the star's torque and the planet's own moons only. Do: a moon's outer stability limit takes the Hill sphere of the planet against the star and against any companion or massive sibling at its 3D position, averaged over the planet's orbit (planet-eccentricity and inclination dependent); moon-moon mean-motion resonances and Laplace-type chains (physics/tidal_heating.py already knows Laplace resonances) keep stored eccentricities; evection and perturbation of inclination by the star and the siblings are included. Stand-ins registered in GEN.725. Done: an isolated planet gives the moons of today; a planet whose orbit passes close to a massive sibling loses its far moons; a sample shows moons that change. Lock item (epoch).
+  Slices (TODO, 2026-11-15): slice 1 PR #6700 (perturbed Hill sphere, section 6.300), slice 2 PR #6710 (moon-moon resonances), both in Train 33; slice 3 measured as too small to build here (evection crossing filed as GEN.1750). Retire when 6700 and 6710 merge.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 07 (tides, spin and moons), after GEN.1446. Prerequisites: none. Related: GEN.1446, GEN.1447, GEN.1448.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1454 Spin and obliquity under every body: the torques of sibling planets, a companion star and the moons on a planet's spin axis over time**
-  Boss, 2:57 PM EST on 2026-11-08 ('Yes build it and ship it', adding companion tides and Kozai pumping to the radiation-field work of GEN.1441) and 2:58 PM EST ('Everything in a system effects everything else in the system'): every body acts on every other body of its system, by 3D position, averaged over the orbits (stars, planets, moons, belts, asteroids, comets); a host-only or pair-only effect needs a reason registered in GEN.725. Design note: docs/design/generation/system-interactions.md. Found by a code check on 2026-11-08: the spin torques of a planet (physics/spin_torques.py, physics/tidal_spin.py, physics/giant_tilt.py) take the host star's tide and the planet's own moons; the secular drift of the axis from the precession of the orbit by sibling planets, spin-orbit secular resonance and the companion star are not included. Do: the obliquity and its variation over time take the orbit precession from all bodies (Laplace-Lagrange of GEN.1450) against the spin precession, the companion's torque and the siblings' gravity; chaotic obliquity of a moonless planet follows from the overlap, and the seasonal-swing code reads the result. Stand-ins registered in GEN.725. Done: a lone star with no sibling is unchanged; a moonless planet beside a giant shows the expected obliquity range; a sample shows which bodies change. Lock item (epoch).
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 07 (tides, spin and moons), after GEN.1450. Prerequisites: none. Related: GEN.1446, GEN.1448, GEN.1450.
   Filed by the TODO thread.
 
 - [ ] **GEN.1459 Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down**
@@ -12578,12 +12574,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.217 (stage 3). Prerequisites: none. Related: OPS.181, OPS.130.
   Filed by the TODO thread.
 
-- [ ] **OPS.196 Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P6 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 16. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-  Part 1 merged, PR #6488 (TODO, 11-14). Open for the rest (the guard covers each family as it moves; whole flag deleted with the last family).
-
 - [ ] **OPS.225 Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L11); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L11 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.216-222. Related: OPS.191, OPS.207, OPS.212.
@@ -12775,11 +12765,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: none. Related: GEN.1691.
   Filed by the TODO thread.
 
-- [ ] **MAP.430 At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in**
-  From the MAP.429 diagnosis, relayed 7:39 PM EST on 2026-11-14 (Boss wants the map organic, nebula clouds not circles). Do: draw the far-zoom gas from the same model density the nebula contour follows (GEN.1267), and hand over smoothly to the volume layer (MAP.365) as nodes load. Lock-free, display only.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: MAP.429. Related: MAP.429, MAP.365, GEN.1267.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1724 Research: a sourced table of life adaptations to cold, heat, dryness, salt and low light, by climate type and life type, feeding GEN.1721 and GEN.1723**
   Boss, 9:11 PM EST on 2026-11-14 (as the coordinator relayed): research life adaptations to hot and cold. Research only, no code; report /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md. Sources per the source rules; proposed stand-ins carry tier and tweak level for GEN.725.
   Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1721, GEN.1723, GEN.876.
@@ -12895,6 +12880,21 @@ clears each one.
 - [ ] **TEST.770 (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216**
   Lane 15, 1:13 PM EST 2026-11-15: red on main. Do: point the test at the stored plan reader that replaced runrecord.read_plan (OPS.216), keeping what it proves.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.222, OPS.216.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
+  Lane 04, 1:25 PM EST 2026-11-15 (Class M thread's meter of 6645 and 6674 on Train 32): older than 6674, which only made the halite sea that showed it. Do: find why a rocky planet stores no P2O5 at all and fix the composition step so every rocky body carries its rock phosphorus; no default patched in at the reader.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
+  Filed by the TODO thread.
+
+- [ ] **TEST.771 (bug) test_cache_warmup (20 tests) is red on main**
+  Lane 16, 1:38 PM EST 2026-11-15 (OPS.196 part 2b, PR #6707): fails the same on origin/main. Do: find the merge that broke it and fix the cause, code or test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.770, OPS.196.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1750 Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it)**
+  Lane 07, 1:56 PM EST 2026-11-15 (GEN.1449 slice 3 measure): in 150 sampled systems, 4 of 116 moons sit inside the evection radius, 6 lie within a factor of 2 and 2 cross it while migrating out; star inclination is already in (Laplace plane) and siblings only nod the plane by degrees, so GEN.1449's done-when is met by slices 1 and 2. Do: research Touma and Wisdom 1998 and Cuk and Stewart 2012 for the capture eccentricity and the escape, then add the crossing with its migration-rate treatment; register stand-ins in GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 07, after GEN.1459; lock item for the build. Prerequisites: GEN.1449. Related: GEN.1449, GEN.1447.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

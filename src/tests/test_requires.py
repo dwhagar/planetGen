@@ -132,7 +132,7 @@ def test_the_steps_of_a_run_come_after_the_steps_they_require():
     ok = [step("phenomena", "scatter-phenomena"), step("phenomena-index", "finish-phenomena")]
     assert commands.validate_order(ok) == ok
     assert commands.required_stage_keys(ok, 1) == ["phenomena"] and commands.required_stage_keys(ok, 0) == []
-    with pytest.raises(ValueError, match="comes after it"):
+    with pytest.raises(ValueError, match="later in the list"):
         commands.validate_order(list(reversed(ok)))
     assert commands.validate_order([step("phenomena-index", "finish-phenomena")])        # a requirement that is not in the run is nothing to wait for
 

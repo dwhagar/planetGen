@@ -45,7 +45,7 @@ UNIT_BY_NATURE_MB = {
     "check-object-index": 1000, "warm-object-index": 1000, "warm-galaxy-map": 1000, "warm-lists": 700, "warm-search": 1000,
     "end-map-rebuild-maintenance": 700,
 }
-"""dict: What a unit of a command that is one unit by nature (`CommandSpec.whole`) claims, MB, where `workers.STAGE_WORKER_MEMORY_MB` has no figure.
+"""dict: What a unit of a command that is one unit by nature (`CommandSpec.one_unit`) claims, MB, where `workers.STAGE_WORKER_MEMORY_MB` has no figure.
 Unmeasured: first claims by what the command reads, until the gate has learned the kind."""
 
 FUNCTION_CLAIMS = {
