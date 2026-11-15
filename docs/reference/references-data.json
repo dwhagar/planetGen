@@ -79996,6 +79996,29 @@
    "volume": "36",
    "year": 1985
   },
+  "10.1007/bf01231120": {
+   "authors": [
+    [
+     "Borderies",
+     "N."
+    ],
+    [
+     "Goldreich",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/bf01231120",
+   "editors": [],
+   "journal": "Celestial Mechanics",
+   "page": "127",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems",
+   "type": "journal-article",
+   "volume": "32",
+   "year": 1984
+  },
   "10.1007/bf01235540": {
    "authors": [
     [
@@ -286031,7 +286054,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5288,
+ "id_next": 5289,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286275,6 +286298,7 @@
   "10.1007/bf00897085": "R0913",
   "10.1007/bf01042549": "R0387",
   "10.1007/bf01227493": "R4597",
+  "10.1007/bf01231120": "R5288",
   "10.1007/bf01235540": "R1632",
   "10.1007/bf01386217": "R0287",
   "10.1007/bf02424427": "R4128",

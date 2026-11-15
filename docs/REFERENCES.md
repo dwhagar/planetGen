@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5164 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5165 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -518,6 +518,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0466"></a>**R0466** Boothby, T. C., et al. 2017, Tardigrades Use Intrinsically Disordered Proteins to Survive Desiccation, Molecular Cell, 65, 975, doi:10.1016/j.molcel.2017.02.018. [paper](https://doi.org/10.1016/j.molcel.2017.02.018) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.molcel.2017.02.018/abstract)
 - <a id="paper-r0467"></a>**R0467** Boothroyd, A. I. & Sackmann, I. 1999, The CNO Isotopes: Deep Circulation in Red Giants and First and Second Dredge‐up, ApJ, 510, 232, doi:10.1086/306546. [paper](https://doi.org/10.1086/306546) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/306546/abstract)
 - <a id="paper-r0468"></a>**R0468** Boothroyd, A. I. & Sackmann, I. J. 1995, The CNO Isotopes: Deep Circulation in Red Giants and First and Second Dredge-up, arXiv:astro-ph/9512121. [paper](https://arxiv.org/abs/astro-ph/9512121) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:astro-ph/9512121/abstract)
+- <a id="paper-r5288"></a>**R5288** Borderies, N. & Goldreich, P. 1984, A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems, Celestial Mechanics, 32, 127, doi:10.1007/bf01231120. [paper](https://doi.org/10.1007/bf01231120) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/bf01231120/abstract)
 - <a id="paper-r0469"></a>**R0469** Bordoloi, R., et al. 2011, THE RADIAL AND AZIMUTHAL PROFILES OF Mg II ABSORPTION AROUND 0.5 &lt; z &lt; 0.9 zCOSMOS GALAXIES OF DIFFERENT COLORS, MASSES, AND ENVIRONMENTS, ApJ, 743, 10, doi:10.1088/0004-637x/743/1/10. [paper](https://doi.org/10.1088/0004-637x/743/1/10) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/743/1/10/abstract)
 - <a id="paper-r0470"></a>**R0470** Borlaff, A., et al. 2014, Formation of S0 galaxies through mergers, A&A, 570, A103, doi:10.1051/0004-6361/201424299, arXiv:1407.5097. [paper](https://doi.org/10.1051/0004-6361/201424299) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201424299/abstract)
 - <a id="paper-r0471"></a>**R0471** Borovička, J., Spurný, P., & Shrbený, L. 2020, Two Strengths of Ordinary Chondritic Meteoroids as Derived from Their Atmospheric Fragmentation Modeling, AJ, 160, 42, doi:10.3847/1538-3881/ab9608, arXiv:2006.07080. [paper](https://doi.org/10.3847/1538-3881/ab9608) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-3881/ab9608/abstract)
