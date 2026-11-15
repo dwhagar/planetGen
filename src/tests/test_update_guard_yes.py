@@ -143,7 +143,7 @@ def test_a_live_run_is_listed_once_without_its_units_and_a_finished_one_is_not(c
     assert any(isinstance(source, updateguard.RunRecordSource) for source in updateguard.default_sources())
 
 
-def test_a_live_run_stops_the_update_without_the_word_and_is_canceled_with_it(conn, redis_server, say, lines):
+def test_a_live_run_stops_the_update_without_the_word_and_is_drained_with_it(conn, redis_server, say, lines):
     run_id = _live_run(conn)
     sources = [updateguard.RunRecordSource(redis_server), updateguard.QueuedJobSource(redis_server)]
     assert not begin(sources=sources, write=say)
@@ -152,9 +152,9 @@ def test_a_live_run_stops_the_update_without_the_word_and_is_canceled_with_it(co
     sure_nothing_changed()
     assert begin(sources=sources, yes=True, write=say, timeout=30, poll=0.1)
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "canceled" and run["error"] == "canceled by update"
+    assert run["state"] == "held" and run["error"] == "stopped for update", "OPS.222: a generation run is held for the update, not canceled"
     assert runrecord.active_run(conn) is None
-    assert redisqueue.queue(redisqueue.BULK_QUEUE, conn).count == 0
+    # its queued units stay queued: the workers skip them while the run is held, and the end of the update queues again what the ledger does not say is done
 
 
 def test_a_run_record_with_no_stages_does_not_stop_the_guard(conn, redis_server):
