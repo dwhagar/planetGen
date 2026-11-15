@@ -24,6 +24,9 @@ from tests import render_support
 
 TRIALS = 20
 
+DRAWN_AS = {"halley_type": ("long_period",), "long_period": ("jupiter_family", "halley_type")}
+"""dict: The classes a comet of each class may have been drawn as before `comet.period_class_of` moved it across the 200-year line (GEN.1608)."""
+
 
 def make_config(**overrides):
     cfg = SystemConfig()
@@ -42,7 +45,8 @@ def test_elliptical_comet_within_configured_ranges():
         assert comet.orbit_type == "elliptical"
         assert comet.period_class in tuning.COMET_PERIOD_CLASSES
         class_data = tuning.COMET_PERIOD_CLASSES[comet.period_class]
-        assert class_data["eccentricity_range"][0] <= comet.eccentricity <= class_data["eccentricity_range"][1]
+        low, high = zip(*(tuning.COMET_PERIOD_CLASSES[name]["eccentricity_range"] for name in (comet.period_class, *DRAWN_AS.get(comet.period_class, ()))))
+        assert min(low) <= comet.eccentricity <= max(high)       # GEN.1608: the class follows the period, so a comet keeps the eccentricity range of the class it was drawn as
         assert 0 <= comet.inclination_deg <= class_data["inclination_max_deg"]
         assert tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM[0] <= comet.nucleus_diameter_km <= tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM[1]
         assert tuning.COMET_PERIHELION_DISTANCE_RANGE_AU[0] <= comet.perihelion_distance_au <= tuning.COMET_PERIHELION_DISTANCE_RANGE_AU[1]
