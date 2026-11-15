@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4308] - 2026-11-15
+
+**Headline:** a run's stored plan now says which of its stages need something that neither an earlier stage of the run nor the galaxy's earlier runs made, and the run logs it when it starts.
+
+### Added
+
+- OPS.238, planner: `planrows.made_artifacts` reads what the ledger's rows say a galaxy has (the artifacts the stages that ended made, in order, forgetting what came before a reset or a new skeleton: `needs.exists_after`). `needs.unmet` lists the needs of a run's steps that no earlier step makes and the rows do not hold; `planrows.record_plan` stores them in the planned rows' `unmet` and `wrapper.run` logs a warning for each when the run starts, instead of the stage finding the gap in the middle of its work. Nothing is refused: a galaxy made before the ledger kept plans has no rows, and the stage still finds its own stored result. A run with no ledger (OPS.263) keeps no rows and says nothing.
+- The checks, the warm families and the map-rebuild step declare no needs or makes (a test says so): a check reads the database as it is and a warm family builds its own input.
+
 ## [8.0.4307] - 2026-11-15
 
 **Headline:** `update.sh` no longer stops at the math check on a database that has no job-ledger tables yet.
