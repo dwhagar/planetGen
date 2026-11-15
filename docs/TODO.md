@@ -13034,6 +13034,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
   Filed by the TODO thread.
 
+- [ ] **TEST.751 (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback**
+  Stacked-fixes thread (Fable), 7:30 PM EST on 2026-11-14, with Lane 22 on PR 6510: on main f94663af2 the test passes alone in 1,438 s with the limit raised; under the 900 s limit plus 120 s grace it is ended at about 17 minutes on main as on 6510. The guard's HUNG TEST line goes to the worker's stderr, which the runner does not show. Do: make the row-id check generate less (it builds two galaxies) so it runs well under the limit while still proving row ids do not change the fingerprint; and make the hang guard's line reach the runner's output. No skip, no raised limit as the fix.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1691.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

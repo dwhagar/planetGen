@@ -22,7 +22,7 @@ release is stamped.
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.751 |
+| TEST | TEST.752 |
 | USR | USR.33 |
 | OPS | OPS.260 |
 | DOC | DOC.121 |
@@ -4859,6 +4859,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.748 | (bug) test_plain_words is red on main | none | done, PR #6553 (7:26 PM EST 11-14) |
 | TEST.749 | (bug) test_galaxy_gen has two red tests on main | none | open |
 | TEST.750 | (bug) test_life_help is red on main | none | done, PR #6553 (7:26 PM EST 11-14) |
+| TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
