@@ -120,8 +120,7 @@ def _galaxy_name(conn, run_id):
     for item in runrecord.read_steps(conn, run_id):
         named = (item.get("params") or {}).get("database")
         if named:
-            from planetgen.db import store
-            return store.MySQLConfig.from_args(named).database
+            return named if isinstance(named, str) else named.get("database")      # the name only: a step may give the database alone, with no server to build a config from
     return None
 
 
