@@ -13046,7 +13046,18 @@ clears each one.
 
 - [ ] **GEN.1720 (bug) Class G (thick CO2 of 46 to 4,700 kPa over a global ocean) takes 19 of 27 right-gravity liquid-ocean planets around Sun-like stars, and G rose from 27 to 47 per 346 systems between the Train 26 and Train 28 censuses**
   Class M tiers thread, 8:21 PM EST on 2026-11-14, from the Train 28 census (/mnt/project-files/reports/train28-census-2026-11-14/). Nobody has measured the cause. GEN.1713 (full carbon balance) merged between the two censuses and must be checked, though it changed the land-and-sea branch and most of these worlds have no land; the census thread is splitting these worlds by ocean cover and CO2. Do: measure first: which merge moved them (bisect Trains 27 and 28 on the census keys), and whether a global ocean with no land has the seafloor weathering and carbonate sinks physics gives it; a level physics explains is kept, a defect is fixed at the cause. Report before building.
+  Class M tiers thread, 8:29 PM EST: GEN.1720 is also the gate for class O (all 13 O-shaped worlds fail on CO2 over 1 kPa), not only a G count (GEN.1721).
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: GEN.1713, GEN.1706, GEN.1715.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1721 Class M abundance tiers also raise classes H, O, P and R in proportion, with M in front: the water dial gets a dry share for H (Earth's class weighted most), and the meter prints a five-class table (shape, passes, first failing gate)**
+  Boss, 8:24 PM EST on 2026-11-14 (Class M tiers thread): "So H, O, P, and R worlds need to be present too so when you're researching the levers and presets for our M class abundance, let's move things so we get propotionally more H, P, R, and O worlds as well but bring M to the front?" Class M tiers thread, 8:29 PM EST: M, H, O, P and R share one air core (O2 16 to 35.5 kPa, CO2 under 1 kPa, 50 to 250 kPa, 0.75 to 2 g) and differ by water and temperature; first count on main 33bed421 (Science, 400 Sun-like systems), worlds with each class's shape: H 7, M 2, O 13, P 15, R 8, and only the M passes (O fails CO2 on all 13; H, P, R fail oxygen on all 30). Do: on a branch off main, Science stays byte-identical; joins the GEN.1706 calibration hold. Nothing forces a class or a count.
+  Version 8.1. Owner (TODO, 2026-11-14): the Class M tiers thread (Fable). Prerequisites: GEN.1706. Related: GEN.1704, GEN.1705, GEN.1722, GEN.1720.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1722 Research first: can a desert, glaciated or hothouse world with no wide sunlit sea build 16 kPa of oxygen, and does the generator's oxygen chain deny it for a physical reason or by omission**
+  Boss, 8:24 PM EST on 2026-11-14 (Class M tiers thread): "So H, O, P, and R worlds need to be present too so when you're researching the levers and presets for our M class abundance, let's move things so we get propotionally more H, P, R, and O worlds as well but bring M to the front?" From the GEN.1721 count: H, P and R worlds fail the oxygen gate on all 30 of 30. Do: research per the source rules (findings, sources, tiers), then say whether the oxygen chain omits a real path; report before any build, no tuning before the answer.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 21 (holds GEN.1707). Prerequisites: none. Related: GEN.1707, GEN.1721.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
