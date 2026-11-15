@@ -73,27 +73,19 @@ class Plan:
         return self.steps[self.first].label
 
 
-def stage_finished(conn, run_id, index, step):
+def stage_finished(conn, run_id, index):
     """
-    Whether stage `index` of the run finished: every unit done (the counter marks the stage `ended`) and, for a command
-    with a `conclude`, the conclusion stored. A stage cut to no unit never gets an `ended` mark; the run having
-    begun the stage after it says it finished.
+    Whether stage `index` of the run finished, from the run's rows (OPS.238): every unit done, the conclusion stored for a command with one, and the next stage's opening queued
+    (the stage's `release` row is done, `planrows.ended`). A stage that stopped before its end, or that never opened, has no done `release` row; a stage cut to no unit ends the way any other does.
+    A run with no ledger rows (begun by hand) has finished no stage.
     """
-    fields = {runrecord._s(name): runrecord._s(value)
-              for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
-    if "started" not in fields:
-        return False
-    if conn.hget(runrecord.stage_key(run_id, index + 1), "started") is not None:
-        return True
-    if "ended" not in fields:
-        return False
-    return commands.end_command(step.kind, "conclude") is None or "concluded" in fields
+    return planrows.RELEASE in planrows.ended(conn, run_id, index)
 
 
 def first_unfinished(conn, run_id, steps):
     """The index of the first stage of the run that did not finish, `len(steps)` when every one did."""
-    for index, step in enumerate(steps):
-        if not stage_finished(conn, run_id, index, step):
+    for index in range(len(steps)):
+        if not stage_finished(conn, run_id, index):
             return index
     return len(steps)
 

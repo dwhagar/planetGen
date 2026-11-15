@@ -3470,3 +3470,6 @@ Baseline: PR #1817.
 | TEST.771 | 8.1 | TODO sweep |
 | TEST.769 | 8.1 | TODO sweep |
 | PERF.263 | 8.1 | TODO sweep |
+| OPS.263 | 8.1 | TODO sweep |
+| TEST.772 | 8.1 | TODO sweep |
+| OPS.238 | 8.1 | TODO sweep |
