@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4195] - 2026-11-15
+
+**Headline:** The neighbour link, the sector-path settle and the `sector` run's sectors now run as pieces the job engine counts, so their units show real counts and honour a cancel or a pause between two batches.
+
+### Changed
+
+- OPS.202, first part: `link-neighbors` gives the engine one piece per batch of `store.LINK_BATCH_SECTORS` sectors (each batch still one transaction under the neighbour lock, retried on a deadlock as before), `settle-sector-paths` one piece per batch of `sector_paths.SETTLE_BATCH` sectors that sit together (`sector_paths.settle_batch`; each sector committed through `ctx.commit()`), and `generate-unplaced-sector` one piece per sector of a `sector` run. The old unit functions `link_neighbors_unit`, `save_sector_paths_unit` and `unplaced_sectors_unit` are gone.
+- `settle_sectors` (for the API's edits and the tests) runs the same `settle_batch`; the process pool a crowded sector's bodies are integrated in is opened by the first batch and shut down when the unit ends (new `ctx.on_close`, which the engine runs last in first out however the unit ends).
+- A stage's results are unchanged: `linked`, `saved` and `visited`, and the sectors a `sector` run reports.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4194] - 2026-11-15
 
 **Headline:** The tests that need civilized systems start quickly again: their pinned candidates are refreshed for the current generator, and the guard now checks every pin, not the first.
