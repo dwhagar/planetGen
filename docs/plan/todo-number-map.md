@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.769 |
+| TEST | TEST.771 |
 | USR | USR.33 |
 | OPS | OPS.263 |
 | DOC | DOC.121 |
@@ -3030,7 +3030,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.219 | Job engine stage 3: checkpoints (ctx.commit stores the last finished piece's cursor; a retry or resume starts after it) | none | done, PR #6632 (9:36 AM EST 11-15, migration 0263) |
 | OPS.220 | Job engine stage 3: failure by kind (passing, killed, idle, lasting); passing failures retried with doubling waits 2 s to 5 min inside a run budget; Retry(max=1), hand-written deadlock retries and unit_failed ending the run deleted | none | done, PR #6647 (6:24 AM EST 11-15); deletions left as OPS.261 |
 | OPS.221 | Job engine stage 3: held items and held runs (a lasting failure holds the item, the rest goes on; Retry held and Cancel on the Queue page, CLI and API) | none | done, PR #6646 (6:18 AM EST 11-15) |
-| OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | open |
+| OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | done, part A PR #6657 (6:49 AM EST 11-15), part B PR #6703 (1:14 PM EST 11-15) |
 | OPS.223 | Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146 | none | done, PR #6621 (4:38 AM EST 11-15) |
 | OPS.224 | Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits) | none | done, PRs #6622 (5:02 AM EST) and #6644 (5:44 AM EST 11-15) |
 | OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | open |
@@ -4915,6 +4915,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.766 | (bug) test_step_registry is red on main: an unused step kind db-check | none | done, PR #6694 (12:00 PM EST 11-15) |
 | TEST.767 | (bug) test_web_adminregistry is red on main: admin_queue_job and admin_queue_jobs are missing from PAGES or EXEMPT | none | done, PR #6694 (12:00 PM EST 11-15) |
 | TEST.768 | (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module | none | open |
+| TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | open |
+| TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
