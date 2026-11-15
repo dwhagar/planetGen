@@ -45,7 +45,7 @@ from scipy.optimize import brentq
 from planetgen.physics import (
     ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
-    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
+    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
 from planetgen.generation import abundance_tier
@@ -916,8 +916,14 @@ def solve(setting, start_temperature_k):
         absorbed_w_m2 = setting.absorbed_flux_at(temperature, ocean)
         albedo_of_step = setting.albedo_at(temperature, ocean)
         radiated_w_m2 = absorbed_w_m2 + setting.internal_flux_w_m2
-        aloft_share = haze.absorbed_share * absorbed_w_m2 / radiated_w_m2
-        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, haze.pressure_pa)
+        aloft_share, aloft_pressure_pa = haze.absorbed_share, haze.pressure_pa
+        if setting.giant and absorbed_w_m2 > 0.0:
+            # GEN.1717: a body with no ground has no surface to take the starlight the air's own gases took on the way down (the near-infrared bands of its water, methane and
+            # ammonia), so that share is deposited where it was taken, with the haze's
+            taken = starlight_aloft.combine(aloft_share, aloft_pressure_pa, starlight_aloft.of_air(partials, setting.gravity_m_s2, setting.star_temperature_k, temperature))
+            aloft_share, aloft_pressure_pa = taken.share, taken.pressure_pa or aloft_pressure_pa
+        aloft_share = aloft_share * absorbed_w_m2 / radiated_w_m2
+        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, aloft_pressure_pa)
         # GEN.1580: the surface stops where the air's main gas is half ionized at its pressure (`ionization.ceiling_k`), a limit no generated body should reach
         ceiling_of_step = ionization.ceiling_k(partials, new_pressure)
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), ceiling_of_step)

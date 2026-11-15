@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -353,7 +353,9 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
             # the air it has is warmed under the starlight and its own heat together
             radiated = absorbed + giant_draw.own_flux_w_m2(body)
-            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, haze.absorbed_share * absorbed / radiated, haze.pressure_pa)
+            # GEN.1717: and the starlight the air's own gases take aloft goes where they take it, with the haze's
+            taken = starlight_aloft.combine(haze.absorbed_share, haze.pressure_pa, starlight_aloft.of_air(air, gravity, body.star.temperature, body.surface_temperature))
+            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, taken.share * absorbed / radiated, taken.pressure_pa or haze.pressure_pa)
             assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
             continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
