@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4248] - 2026-11-15
+
+**Headline:** Three places that wrote a unit by hand (the job page's memory claim, a retry hold's seconds, the unit beat's debug line) now use the shared units formatters.
+
+### Fixed
+
+- OPS.224 follow-up: `queue/jobview.py` (the retry hold's time left), `web/templates/admin_queue_job.html` (a job's memory claim) and `queue/unitbeat.py` (a restarted unit's wait and its debug beat line, OPS.223) wrote a number followed by its unit; they use `format_duration_seconds`, `format_megabytes` and the page's `bytes_text` (UX.318), which `test_hand_formatted_units` guards.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4247] - 2026-11-15
 
 **Headline:** One warm template per lane, a path for hosts with no kernel handle on a job, and a memory proof on the real star tables; built and tested, not yet used.
