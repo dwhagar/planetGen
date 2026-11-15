@@ -62,7 +62,8 @@ def _galaxy_name(conn, run_id):
     for item in runrecord.read_steps(conn, run_id):
         named = (item.get("params") or {}).get("database")
         if named:
-            return named.get("database")
+            from planetgen.db import store
+            return store.MySQLConfig.from_args(named).database
     return None
 
 

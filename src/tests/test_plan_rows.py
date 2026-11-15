@@ -124,3 +124,13 @@ def _conclusion(params, plan, results, seconds):
 def _metrics(params, plan, results, seconds):
     CALLS.append("finish")
     return {}
+
+
+def test_a_database_named_by_its_name_alone_opens_on_the_configured_server():
+    """A warm-up's steps name the galaxy database by its name, a generation run's by a dict (`wrapper.database_args`): both open (TEST.771)."""
+    from planetgen.db import store
+    configured = store.MySQLConfig()
+    by_name = store.MySQLConfig.from_args("a_galaxy")
+    assert by_name.database == "a_galaxy" and (by_name.host, by_name.port, by_name.user) == (configured.host, configured.port, configured.user)
+    by_dict = store.MySQLConfig.from_args({"host": "db.example", "port": 3307, "user": "gen", "database": "other"})
+    assert (by_dict.host, by_dict.port, by_dict.user, by_dict.database) == ("db.example", 3307, "gen", "other")
