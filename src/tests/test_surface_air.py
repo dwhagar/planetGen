@@ -315,7 +315,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
     the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
     at the starlight the body absorbs, with the sunlight its haze takes aloft (GEN.851), which is the one its stored temperature `T_e (1 + G)^(1/4)` is made
-    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away; a giant's haze is the one of its single step), and a giant that radiates more than it absorbs
+    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away; a giant's too since GEN.1716, its temperature is a fixed point), and a giant that radiates more than it absorbs
     (its internal flux) has a haze share of the radiated flux, which the test scales from the starlight it absorbs."""
     unsettled, real_solve = [], sa.solve
 
@@ -347,12 +347,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # the table holds its edge above 1000 bar and the fixed point stops at the ionization ceiling of the air: no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
-        haze_temperature = body.surface_temperature
-        if not planet_type.has_ground(body):
-            # a giant takes one step of the fixed point, so its haze is the one of the temperature the step starts from (the no-air one at the stored albedo)
-            starlight = body.star.luminosity / (4.0 * math.pi * (body._star_distance_au * constants.AU_M) ** 2)
-            haze_temperature = climate_draws.equilibrium_temperature_k(body.bond_albedo, starlight)
-        haze = aerosols.haze_of(air, gravity, haze_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
+        haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
         if not planet_type.has_ground(body):
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
@@ -368,6 +363,32 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     # solver (a world near its boiling point swings between a cool air and a steam one, GEN.1344), not of one sample: over seeds 10 to 59 it is 10 of
     # 132 airs on main and 8 of 129 on Train 24 (GEN.993), and a draw of ten seeds ranges from none to three of 28, so a tenth was a luck bound, a fifth is three times the share
     assert skipped <= max(1, bodies // 5)
+
+
+def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began(monkeypatch):
+    """GEN.1716: a giant took one step, so the haze its greenhouse was made under was the haze of the start temperature and the stored
+    temperature moved with the start (28 K at the median of 59 generated giants, 300 K on hot ones). It iterates to `TOLERANCE_K` like a rocky body,
+    keeps the reference pressure, says it settled, and gives the same temperature from a cold, a warm and a hot start."""
+    seen, real_solve = [], sa.solve
+
+    def recording_solve(setting, start_temperature_k):
+        entry = draw.getstate()
+        result = real_solve(setting, start_temperature_k)
+        if setting.giant and result is not None and result.partials_pa:
+            seen.append((setting, entry, result))
+        return result
+
+    monkeypatch.setattr(sa, "solve", recording_solve)
+    for _ in _generated(range(6)):
+        pass
+    assert len(seen) >= 3, "the seeds make giants"
+    for setting, entry, first in seen[:6]:
+        assert first.converged and first.steps > 1 and first.pressure_pa == pytest.approx(sa.REFERENCE_PRESSURE_BAR * 1.0e5)
+        for start in (150.0, 600.0, 1500.0):
+            draw.setstate(entry)
+            again = real_solve(setting, start)
+            assert again.converged
+            assert again.temperature_k == pytest.approx(first.temperature_k, abs=5.0 * sa.TOLERANCE_K), start
 
 
 def test_a_system_replays_to_the_same_air():
