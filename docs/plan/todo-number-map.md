@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.319 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1750 |
+| GEN | GEN.1751 |
 | PERF | PERF.273 |
 | DB | DB.131 |
 | API | API.52 |
@@ -4068,6 +4068,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1747 | (bug) life_ledger.json and three source sites cite R3394 and R3395 (two 2018 aurora papers) for the photoferrotroph iron supply and Earth H2 outgassing; the paper meant is R3393 (Ozaki et al., primitive photosynthesis and Earth's early climate) | none | done, PR #6697 (12:47 PM EST 11-15) |
 | GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (Young et al. 2023): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | open |
 | GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | open |
+| GEN.1750 | Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it) | GEN.1449 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
