@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attempts, commands, commandgaps, engine, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attempts, commands, commandgaps, engine, failures, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -85,7 +85,7 @@ class RunStopped(RuntimeError):
     """The run ended (failed, was canceled or went stale) before its stage was done."""
 
 
-KILLED_EXCEPTIONS = ("JobTimeoutException", "WorkerLostError", "AbandonedJobError")
+KILLED_EXCEPTIONS = failures.KILLED_EXCEPTIONS
 """tuple[str]: The names of the exceptions with which RQ ends a unit from outside (its time limit, its worker lost): a run a unit ended with one of them was killed (OPS.144), not failed by its own code."""
 
 
@@ -269,37 +269,83 @@ def _profile_unit(conn, run_id, stage, unit, kind, finished, worked, peak, figur
 def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None):
     """
     Takes the attempt in the ledger (`attempts.begin`, OPS.217: the unit's attempt number is raised and written to the galaxy), does the unit (`_work_of_unit`) and writes how the attempt ended.
-    An attempt that finds another has taken the unit over (`attempts.Replaced`) has rolled back, counts nothing and ends `replaced`; the other attempt's result stands.
+    An attempt that finds another has taken the unit over (`attempts.Replaced`) has rolled back, counts nothing and ends `replaced`; the other attempt's result stands. A unit run again after a
+    passing failure (OPS.220) has an attempt for each run; the one that ends here is the last.
     """
     attempt = attempts.begin(conn, run_id, row, args, pid=os.getpid())
+    held = [attempt]            # `_work_of_unit` puts the attempt of each run again here
     try:
-        result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt)
+        result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt, held)
     except attempts.Replaced as replaced:
         log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) was replaced by a later attempt and stops: {replaced}.", area="queue")
         conn.hdel(runrecord.progress_key(run_id, stage), unit)
-        attempt.end("replaced")
+        if held[0] is not None:
+            held[0].end("replaced")
         return {"replaced": True}
     except BaseException as exc:
-        if attempt is not None:
-            attempt.end("failed", error_kind=type(exc).__name__, error_text=_short(str(exc)))
+        if held[0] is not None:
+            held[0].end("failed", error_kind=type(exc).__name__, error_text=f"[{failures.classify(exc)}] {_short(str(exc))}")
         raise
-    if attempt is not None:
-        attempt.end("done" if "seconds" in result else "lost")
+    if held[0] is not None:
+        held[0].end("done" if "seconds" in result else "lost")
     return result
 
 
-def _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt):
+SLEEP = time.sleep
+"""callable: How the engine waits before it runs a unit again (a test puts its own clock here)."""
+
+
+def _wait_to_retry(conn, run_id, seconds):
+    """Waits `seconds`, a second at a time; returns whether the run is still live at the end (a cancel or a failure of the run in the meantime ends the wait)."""
+    left = seconds
+    while left > 0:
+        SLEEP(min(left, 1.0))
+        left -= 1.0
+        if not _run_settings(conn, run_id)[0]:
+            return False
+    return _run_settings(conn, run_id)[0]
+
+
+def _retry_attempt(conn, run_id, attempt, args, held, exc):
+    """The attempt of the next run of a unit that failed with `exc` (OPS.220): this one ends `failed`, with its kind, and the next is begun (a unit with no row has none to end or begin)."""
+    if attempt is None:
+        return None
+    attempt.end("failed", error_kind=type(exc).__name__, error_text=f"[{failures.classify(exc)}] {_short(str(exc))}")
+    held[0] = attempts.begin(conn, run_id, attempt.row, args, pid=os.getpid())
+    return held[0]
+
+
+def _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt, held=None):
     started = time.monotonic()
+    held = [attempt] if held is None else held
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
     used = usage.Usage(resident_mb)         # OPS.155: the memory and processor of this unit, peak and average
     with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit), usage=used) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
-        try:
-            result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit), attempt=attempt)
-        except engine.UnitStopped as stopped:         # OPS.191: the engine found the run no longer live between two pieces; the unit stays undone, as one a cancel stops does
-            log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) ends between two pieces: {stopped}.", area="queue")
-            conn.hdel(runrecord.progress_key(run_id, stage), unit)
-            return {"stopped": True}
+        retries = 0
+        while True:
+            try:
+                result = engine.run(kind, args, report, redis=conn, run_id=run_id, stage=stage, unit=unit, job=job_id(run_id, stage, unit), attempt=attempt)
+                break
+            except engine.UnitStopped as stopped:         # OPS.191: the engine found the run no longer live between two pieces; the unit stays undone, as one a cancel stops does
+                log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) ends between two pieces: {stopped}.", area="queue")
+                conn.hdel(runrecord.progress_key(run_id, stage), unit)
+                return {"stopped": True}
+            except Exception as exc:        # noqa: BLE001 -- what to do with a failure is `failures`' to say (OPS.220)
+                wait = failures.retry_wait(conn, run_id, exc, retries)
+                if wait is None:
+                    raise
+                retries += 1
+                log.warning(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) failed with a passing error ({type(exc).__name__}: {_short(str(exc))}); "
+                            f"it is run again in {format_duration_seconds(wait)} (run again {retries} time(s) in a row).")
+                runrecord.log(conn, run_id, f"unit {unit} of stage {stage} run again in {format_duration_seconds(wait)} after {type(exc).__name__}", level="warning", kind="unit.retry",
+                              stage=stage)
+                attempt = _retry_attempt(conn, run_id, attempt, args, held, exc)
+                with unitbeat.waiting("retry"):
+                    live = _wait_to_retry(conn, run_id, wait)
+                if not live:
+                    conn.hdel(runrecord.progress_key(run_id, stage), unit)
+                    return {"stopped": True}
         gap = report.longest_gap()
         finished, worked = report.totals()
     commandgaps.note(conn, run_id, kind, gap)       # OPS.135
@@ -544,7 +590,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
                      exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit,
                      kind=job.args[3] if len(job.args) > 3 else "?")
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage_name} failed: "
+                         error=f"unit {unit} of stage {stage_name} failed{failures.describe(connection, run_id, exc_value)}: "
                                f"{exc_type.__name__}: {exc_value}{unqueued}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
