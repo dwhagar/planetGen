@@ -34,8 +34,8 @@ with another light, water, heat, redox and gravity gets another oxygen. Every co
 A world with no wide sunlit sea but with light and liquid water at its surface (a brine seep, a seasonal melt, a spring) has the small source of `refuge_productivity` (GEN.1723, `physics/surface_refuge.py`).
 
 What it leaves out: the loss of oxygen to space (a few parts in 1e4 of the inventory a Gyr for a habitable-zone world, far under the
-weathering), the hydrogen escape that adds oxygen, the phosphorus feedback and the land plants that raised Earth's burial (they would
-change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak already stands for).
+weathering), the hydrogen escape that adds oxygen, the phosphorus feedback and, for a world with a wide sea, the land plants that raised Earth's burial (they would
+change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak already stands for; a world with no wide sea has them from the rooted stage on, GEN.1729, in `refuge_productivity`).
 """
 
 import math
@@ -53,6 +53,13 @@ EARTH_BURIAL_MOL_YR = 1.0e13
 EARTH_REDUCTANT_MOL_YR = 3.0e12
 """float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; [R1980] few 1e12). T3, L3."""
 
+LAND_SHARE_OF_BURIAL = 0.27
+"""float: The share of Earth's organic carbon burial that land plants carry (GEN.1729): they add 25 to 50 percent to the burial ([R5283], C/P 1000 to 2000), so 0.20 to 0.33 of today's total; the middle. Used only for a
+world with no wide sea, since `EARTH_BURIAL_MOL_YR` of a sea world already has the plants inside it. One model, so tier 3 (the sources of its flux, [R5284], are images on the page; the land share of burial in [R5285] was not read). [BO15, T3, L0.]"""
+
+LAND_SHARE_OF_BURIAL_RANGE = (0.20, 0.33)
+"""tuple: The range of `LAND_SHARE_OF_BURIAL` ([R5283]: 25 percent at C/P 1000 to 50 percent at C/P 2000 over the burial without plants). [BO15, T3, L0.]"""
+
 EARTH_STORE_MOL = 4.0e21
 """float: The oxygen the ocean's iron and the crust's sulfides and iron take before the air holds any, mol (`B`), chosen so that the first
 oxygen follows the first photosynthesis by 0.7 Gyr when `S` is Earth's and `R` is Earth's at that age, from the model's own heat history of an
@@ -64,6 +71,8 @@ RISE_STEP_GYR = 0.25
 
 EARTH_AREA_M2 = 4.0 * math.pi * constants.EARTH_RADIUS_M ** 2
 EARTH_OCEAN_FRACTION = 0.71
+EARTH_LAND_FRACTION = 1.0 - EARTH_OCEAN_FRACTION
+"""float: The share of Earth's surface that is land, 0.29 (the land the plants' share of the burial is over; with the ocean's 0.71 it makes the surface)."""
 EARTH_HEAT_W = 4.4e13
 """float: Earth's own heat flow now, W (44 TW)."""
 
@@ -234,6 +243,10 @@ def refuge_productivity(body, area_m2):
     (`surface_refuge`, GEN.1723): Earth's burial per area of ocean (no new constant) on the area where those are wet and lit, each place weighed by its production against an ocean's
     (`surface_refuge.Refuge.area`), under the same light and temperature factors as a sea. 0 for a body with none. About 1e-2 of Earth's source for a seep world and 0.14 at the very most (the cover cap over a whole sea that melts all year), so it never
     beats the reductant flux of a world whose interior is Earth's: if a dry world is to hold oxygen the lever is `R`, not this term.
+
+    Once the life has reached the rooted stage (`surface_refuge.ROOTED`) the groundwater-fed places carry land plants (GEN.1729): their wet land (`Refuge.plants`) makes Earth's burial per area of land under plants, `LAND_SHARE_OF_BURIAL`
+    of the total over Earth's 0.29 of land, in place of the cover law on those places (`Refuge.plants_cover`). A mostly-land desert world with roots over a quarter of its land makes about 0.2 of Earth's source then, which beats the
+    reductants of a quiet interior (under about 0.7 of Earth's) and not an Earth-like one.
     """
     if not getattr(body, "surface_temperature", None) or not area_m2:
         return 0.0
@@ -243,7 +256,9 @@ def refuge_productivity(body, area_m2):
     if refuge.area <= 0.0 or not refuge.temperature_k:
         return 0.0
     light = _clamp(active_light_ratio(body), *LIGHT_RANGE) ** LIGHT_EXPONENT
-    return (EARTH_BURIAL_MOL_YR * (area_m2 / EARTH_AREA_M2) * (refuge.area / EARTH_OCEAN_FRACTION) * light * temperature_factor(refuge.temperature_k))
+    sea_like = (refuge.area - refuge.plants_cover) / EARTH_OCEAN_FRACTION
+    land_plants = LAND_SHARE_OF_BURIAL * refuge.plants / EARTH_LAND_FRACTION      # GEN.1729: the wet land that roots reach, at Earth's burial per area of land under plants
+    return EARTH_BURIAL_MOL_YR * (area_m2 / EARTH_AREA_M2) * (sea_like + land_plants) * light * temperature_factor(refuge.temperature_k)
 
 
 def productivity(body, area_m2):

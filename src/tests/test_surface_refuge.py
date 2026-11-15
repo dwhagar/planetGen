@@ -133,3 +133,33 @@ def test_an_open_sea_source_is_what_it_was():
     body = _body(world(), ocean_fraction=0.71)
     assert bo.productivity(body, bo.area_m2(body)) == pytest.approx(bo.EARTH_BURIAL_MOL_YR, rel=0.2)
     assert bo.refuge_productivity(_body(world(), ocean_fraction=0.71), bo.area_m2(body)) >= 0.0
+
+
+def test_rooted_plants_stand_on_the_wet_land_in_proportion_to_the_time_it_is_wet_and_microbes_do_not():
+    """GEN.1729: the places the roots reach carry land plants once the stage is reached; before it there are none."""
+    microbes = surface_refuge.refuge_of(_dry(0.0))
+    rooted = surface_refuge.refuge_of({**_dry(0.0), "native_life": "macroscopic"})
+    assert microbes.plants == 0.0 and microbes.plants_cover == 0.0
+    assert 0.0 < rooted.plants and 0.0 < rooted.plants_cover <= rooted.area
+    assert rooted.plants == pytest.approx(surface_refuge.ROOT_SEEP_SHARE, rel=0.02)      # 0.27 of the land, wet the whole year (lit half of it, Earth's own half): Earth's land is wet all year too
+    assert rooted.plants > 10.0 * rooted.plants_cover                                          # the cover law (0.001 to 0.1) held the same places to a small part of it
+    assert surface_refuge.refuge_of({**_dry(0.2), "native_life": "biosphere"}) == surface_refuge.NONE      # no table the roots reach, no plants
+    open_sea = surface_refuge.refuge_of({**world(), "native_life": "biosphere"})
+    assert open_sea.plants == 0.0          # a sea world has its plants inside Earth's burial already
+
+
+def test_land_plants_carry_a_quiet_desert_world_to_a_surplus_and_not_one_with_earths_interior_at_earths_temperature(monkeypatch):
+    """GEN.1729: a quarter of Earth's source on a mostly-land world with roots over a quarter of its land at the reference temperature, under Earth's reductant sink of 0.3 (size in
+    land-plants-oxygen-gen1729-2026-11-15.md); a warmer world gets more through the Boltzmann factor, so the margin over Earth's interior is thin and is not a lever to lean on."""
+    values = {**_dry(0.0, temperature_k=bo.REFERENCE_TEMPERATURE_K), "native_life": "macroscopic"}
+    monkeypatch.setattr(habitability_world, "values_from_body", lambda b: values)
+    body = _body(values)
+    area = bo.area_m2(body)
+    with_plants = bo.productivity(body, area)
+    microbes_values = {**values, "native_life": "microbial"}
+    monkeypatch.setattr(habitability_world, "values_from_body", lambda b: microbes_values)
+    without = bo.productivity(body, area)
+    assert with_plants > 10.0 * without > 0.0
+    assert with_plants / bo.EARTH_BURIAL_MOL_YR == pytest.approx(bo.LAND_SHARE_OF_BURIAL * surface_refuge.ROOT_SEEP_SHARE / bo.EARTH_LAND_FRACTION, rel=0.05)          # 0.25
+    assert with_plants > bo.reductant_flux(_body(values, internal_heat_flux_w_m2=0.04), area)          # a quiet interior
+    assert with_plants < bo.reductant_flux(body, area)                                                 # Earth's does not
