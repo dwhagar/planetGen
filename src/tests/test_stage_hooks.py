@@ -42,8 +42,8 @@ def _conclude(params, plan, results, seconds):
 @pytest.fixture(autouse=True)
 def _commands(monkeypatch):
     monkeypatch.setitem(commands.REGISTRY, "hooked", commands.CommandSpec(
-        "hooked", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"),
-        conclude=(__name__, "_conclude")))
+        "hooked", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut")))
+    monkeypatch.setitem(commands.END_COMMANDS, ("conclude", "hooked"), commands.EndCommand("conclude", "hooked", (__name__, "_conclude")))
     monkeypatch.setitem(commands.REGISTRY, "plain", commands.CommandSpec(
         "plain", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut")))
 

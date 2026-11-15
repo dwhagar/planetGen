@@ -175,6 +175,14 @@ def _deep_air_rise(total_pa, vector):
     return max(1.0 - 1.0 / gamma, 0.0) * math.log(total_pa / top_pa)
 
 
+def strip_traces(partial_pressures_pa):
+    """The air without its minor gases under `TRACE_FULL_SHARE` (the base `_ratio_with_traces` reads, GEN.1588; the air itself if nothing is left). The refit of the table
+    is made on airs stripped like this (`scripts/fit_greenhouse_table.py envelope`, GEN.1717), so the network is asked at runtime about the airs it was fitted on."""
+    total = mixture.total_pressure_pa(partial_pressures_pa)
+    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula in TRACE_EXEMPT or not 0.0 < pascal / total < TRACE_FULL_SHARE}
+    return base if base else dict(partial_pressures_pa)
+
+
 def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
     """
     `ln(T_s / T_e)` of the air with each minor gas under `TRACE_FULL_SHARE` counted by its share (GEN.1588): the air without them gives the base, and each one adds its share over
@@ -183,8 +191,8 @@ def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, abs
     """
     traces = {formula: pascal for formula, pascal in partial_pressures_pa.items()
               if formula not in TRACE_EXEMPT and 0.0 < pascal / total_pa < TRACE_FULL_SHARE}
-    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula not in traces}
-    if not traces or not base:
+    base = strip_traces(partial_pressures_pa)
+    if not traces or len(base) == len(partial_pressures_pa):
         return log_ratio(vector)
     base_ratio = log_ratio(features(base, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
     ratio = base_ratio

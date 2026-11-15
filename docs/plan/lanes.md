@@ -20,11 +20,11 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 | 03 Atmosphere classes | Train 29 gate share; GEN.1722 research (life levers) | GEN.1698, GEN.1617 (after GEN.1716 and GEN.1717) |
 | 04 Planet composition | OPS.202 part 2 | GEN.1723 (life will find a way, lock) |
 | 05 Oddities and census | 6565 GEN.1623 (Train 30) | TEST.752, TEST.739, then GEN.1717 A and B |
-| 06 Belts and small bodies | PERF.267 (log analysis) | Train 30 gate share; then OPS.226, 228-231, 235, 243, 249, 250 |
+| 06 Belts and small bodies | PERF.267 (log analysis) | Train 31 gate share; PERF.268; then OPS.229-231, 235, 243, 249, 250 |
 | 07 Tides, spin, moons | Kill tests on the stage 2 stack (6539 head) | OPS.241, OPS.242, OPS.247 |
 | 08 Materials (reserved) | none | GEN.1382, GEN.1383, TEST.686 |
 | 12 Gate | TEST.751 (fingerprint row-id test over the 900 s limit) | Gate runs on request |
-| 13 Job engine | Stage 2 stack 6443 to 6501, then 6537, 6539, 6552 (OPS.216-218); OPS.218 slice 2 | OPS.225, 234, 236, 245, 246 |
+| 13 Job engine | OPS.260 (6634) merged; OPS.225 proof slices | OPS.226, OPS.228 (from Lane 06), OPS.234, 236, 245, 246 |
 | 14 Bugs 2 | OPS.253 B (6591) for Train 30 | OPS.220, then OPS.227, 232, 248, 251 |
 | 15 Storage and volatility | OPS.223 (6621), OPS.224 (6622) | OPS.221, OPS.222 (from Lane 06), OPS.233, OPS.244, OPS.252 |
 | 16 Galaxy and admin | Train 29 gate share | OPS.196 (with the last family), OPS.219, OPS.238-240 |

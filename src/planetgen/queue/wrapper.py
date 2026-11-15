@@ -190,7 +190,7 @@ def _open(conn, run_id, index):
     runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
     runrecord.begin_stage(conn, run_id, index, now=started)
     _log_released(conn, run_id, index, step)
-    if not expansion.units and commands.conclude_function(step.kind) is not None:
+    if not expansion.units and commands.end_command(step.kind, planrows.CONCLUDE) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
     units.enqueue_units(conn, run_id, index, step.kind, expansion.units, queue_name=queue_of(run_kind(conn, run_id)),
@@ -373,7 +373,7 @@ def _carry_finished_stage(conn, run_id, index, step, now):
     runrecord.set_stage_size(conn, run_id, index, 0, 0.0)
     runrecord.begin_stage(conn, run_id, index, now=now)
     runrecord.end_stage(conn, run_id, index, now=now)
-    if commands.conclude_function(step.kind) is not None:
+    if commands.end_command(step.kind, planrows.CONCLUDE) is not None:
         stored = runrecord.stored_conclusion(conn, earlier, step.key)
         runrecord.set_conclusion(conn, run_id, index, stored if stored is not None else {})
 
@@ -460,7 +460,7 @@ def _stage_results(conn, run_id, index):
 
 def conclude_stage(conn, run_id, index):
     """
-    What the unit that completes stage `index` does first (PERF.172): the command's `conclude`, with the step's
+    What the unit that completes stage `index` does first (PERF.172): the command's `conclude` end command (OPS.260), with the step's
     parameters, the stage's plan, every unit's result and the seconds the stage took. What it returns is stored
     with the stage (`read_conclusion`), and the stage counts as concluded (`wait_concluded`). A command with no
     `conclude` records nothing. Unlike `finish_stage` a failure here is not swallowed: it is the stage's own work,
@@ -473,7 +473,7 @@ def conclude_stage(conn, run_id, index):
         _declared, step = _stage_step(conn, run_id, index)
     except StopIteration:        # a run that holds no steps (it was started by hand) has no command to conclude
         return 0.0
-    hook = commands.conclude_function(step.kind)
+    hook = commands.end_function(step.kind, planrows.CONCLUDE)
     if hook is None:
         return 0.0
     record = runrecord.text_hash(conn.hgetall(runrecord.stage_key(run_id, index)))
@@ -489,7 +489,7 @@ def conclude_stage(conn, run_id, index):
 def finish_stage(conn, run_id, index, concluded_seconds=0.0):
     """
     What the unit that completes stage `index` does before the run moves on (PERF.106): the command's `finish`
-    records its units' speeds and gives the stage's metrics (`CommandSpec.finish`), and the stage's row
+    records its units' speeds and gives the stage's metrics (its end command, `commands.END_COMMANDS`), and the stage's row
     (`runrecord.Stage.row`) is stored in `generation_stage_runs` with the seconds from the stage's start to its last
     unit's end, and those the command's `conclude` took (`concluded_seconds`). A stage whose expansion said it had
     nothing to do (`detail["skip"]`, the reason) is stored as skipped. Statistics are a nicety: a failure here is
@@ -502,7 +502,7 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         _log_long_unit(conn, run_id, index, step, declared, float(record.get("longest_unit") or 0.0))
         _log_peak_memory(conn, run_id, index, step, declared, float(record.get("peak_mb") or 0.0))
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
-        hook = commands.finish_function(step.kind)
+        hook = commands.end_function(step.kind, planrows.FINISH)
         plan = planrows.read_plan(conn, run_id, index)
         results = _stage_results(conn, run_id, index)
         # OPS.123: the speeds and the row's counts are what the units report, written here, not a hook of each command
@@ -670,7 +670,7 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
                                None, touch=False,
                                on_step=None if on_step is None else (lambda step, index=index: on_step(index, step)))
         conclusion = None
-        if commands.spec(steps[index].kind).conclude is not None:
+        if commands.end_command(steps[index].kind, planrows.CONCLUDE) is not None:
             conclusion = _await_conclusion(conn, run_id, index, None, touch=False)
         if on_stage_done is not None:
             on_stage_done(index, conclusion)
@@ -862,7 +862,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
                     ensure, on_debug=on_debug,
                     on_step=None if on_step is None else (lambda step, index=index: on_step(index, step)))
-            if commands.spec(steps[index].kind).conclude is not None:
+            if commands.end_command(steps[index].kind, planrows.CONCLUDE) is not None:
                 conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)
             if on_stage_done is not None:
                 on_stage_done(index, conclusion)

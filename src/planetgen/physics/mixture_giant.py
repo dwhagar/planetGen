@@ -240,11 +240,16 @@ def remove_clouds(budget, temperature_k, pressure_bar, log_enrichment, *, keep_t
         left[symbol] -= amount
         return amount
 
+    def bind_oxygen(atoms):
+        # GEN.1717 follow-up: the oxides take the oxygen there is: an envelope of a high carbon to oxygen ratio has re-split its carbon and oxygen (`element_budget`) to an oxygen under what its rock-forming
+        # elements bind at a cool layer, and the budget went negative (a giant 1,200 K cooler than the table gave it, GEN.1717, reached a layer cold enough for it)
+        left["O"] = max(left["O"] - atoms, 0.0)
+
     if temperature_k < cond["titanate"]:
         # the refractory oxides condense before the iron (GEN.1374: at the titanate's temperature, not the forsterite's), so TiO and VO are gone from the
         # gas of a dwarf while its FeH and CrH are still in it ([R2731: section 1.5.3], the M to L transition)
         for symbol in ("Ca", "Ti", "V"):
-            left["O"] -= OXIDE_OXYGEN[symbol] * take(symbol)
+            bind_oxygen(OXIDE_OXYGEN[symbol] * take(symbol))
         condensed["oxides"] = cond["titanate"]
     if temperature_k < cond["iron"]:
         take("Fe")
@@ -253,18 +258,18 @@ def remove_clouds(budget, temperature_k, pressure_bar, log_enrichment, *, keep_t
         magnesium = take("Mg")
         silicon = min(left["Si"], magnesium / 2.0)
         left["Si"] -= silicon
-        left["O"] -= OXIDE_OXYGEN["Mg"] * magnesium + OXIDE_OXYGEN["Si"] * silicon
+        bind_oxygen(OXIDE_OXYGEN["Mg"] * magnesium + OXIDE_OXYGEN["Si"] * silicon)
         condensed["forsterite"] = cond["forsterite"]
     if temperature_k < cond["chromium"]:
         take("Cr")
         condensed["chromium"] = cond["chromium"]
     if temperature_k < cond["enstatite"]:
         silicon = take("Si")
-        left["O"] -= OXIDE_OXYGEN["Si"] * silicon
+        bind_oxygen(OXIDE_OXYGEN["Si"] * silicon)
         condensed["enstatite"] = cond["enstatite"]
     if not keep_titanium_vanadium:
         for symbol in ("Ti", "V"):
-            left["O"] -= OXIDE_OXYGEN[symbol] * take(symbol)
+            bind_oxygen(OXIDE_OXYGEN[symbol] * take(symbol))
     if not keep_sodium:
         sodium = take("Na")
         left["S"] -= min(left["S"], sodium / 2.0)

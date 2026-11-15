@@ -4,7 +4,7 @@
 Adaptation traits (GEN.876, docs/design/habitability/adaptation-traits.md): how the life of a hard world is tougher than the life of an easy one.
 
 A trait widens one named limit of the habitability index that the body's own stress presses on, and nothing else. Three stresses have a limit in
-the index to widen, so three traits are built:
+the index to widen, so three traits are built (GEN.876):
 
 * `radiation`: the absorbed dose where the life is (`habitability.l_rad`); a microbe's threshold and an animal's are separate numbers
   (`habitability.MICROBE_DOSE_THRESH_GY`, `habitability.DOSE_THRESH_GY`), and a trait multiplies each side's own;
@@ -21,16 +21,23 @@ A trait has a grade: 1 ordinary (none), 2 tolerant, 3 extreme. It is stored as t
 
 This module holds the grades, their factors and the text; the draw, which reads the body's stress and the limits it moves, is `physics/adaptation_draw.py`.
 Every number here is a stand-in with a registry row (`docs/design/research/gap-filling-plan.md` section 6.18, LF66 to LF69).
+
+GEN.1725 adds two stresses that move a **limit in the units of an axis** and not a factor on one the index holds: `cold` (the temperature a life is active down to) and `heat` (up to).
+Their grades say how far the life's limit goes (`limit`, from the table of `physics/life_adaptations.py`), not by what the limit is multiplied, so they have no row in the two factor
+tables. They are drawn and stored now (`adaptation_draw`) and read by the refuge gate of GEN.1723 when it has merged; nothing in the scores reads them yet. A third axis the table
+holds, the light floor under ice, has no trait because nothing stores the ice a world's ocean wears (the stress cannot be read).
 """
 
-STRESSES = ("radiation", "sulfide", "carbon_dioxide")
-"""tuple: The stresses that have a trait, in the order they are drawn and listed."""
+from planetgen.physics import life_adaptations
+
+STRESSES = ("radiation", "sulfide", "carbon_dioxide", "cold", "heat")
+"""tuple: The stresses that have a trait, in the order they are drawn and listed (the three of GEN.876, then the two of GEN.1725, so no earlier draw moves)."""
 
 GRADES = (1, 2, 3)
 GRADE_WORDS = {1: "ordinary", 2: "tolerant", 3: "extreme"}
 """dict: The words for a grade, as the object page shows it (grade 1 is never shown)."""
 
-STRESS_WORDS = {"radiation": "radiation", "sulfide": "sulfide", "carbon_dioxide": "carbon dioxide"}
+STRESS_WORDS = {"radiation": "radiation", "sulfide": "sulfide", "carbon_dioxide": "carbon dioxide", "cold": "cold", "heat": "heat"}
 """dict: Each stress as a person reads it."""
 
 MICROBE_FACTOR = {"radiation": {1: 1.0, 2: 10.0, 3: 100.0}}
@@ -57,6 +64,15 @@ def factor(traits, stress, animal):
     grade = (traits or {}).get(stress, 1)
     table = ANIMAL_FACTOR if animal else MICROBE_FACTOR
     return table.get(stress, {}).get(grade, 1.0)
+
+
+def limit(traits, stress, **where):
+    """How far the limit of a limit-type stress (`cold`, `heat`) goes for a life with `traits` (`{stress: grade}`, or `None`): the ordinary limit at grade 1, else the widest the table gives at
+    the body's grade (`life_adaptations.limit`; `where` names the kinds of life, the class and the age its life has reached). Raises for a stress that moves no axis."""
+    axis = life_adaptations.stress_axis(stress)
+    if axis is None:
+        raise ValueError(f"{stress!r} is a stress whose trait is a factor, not a limit (see `factor`)")
+    return life_adaptations.limit(axis, (traits or {}).get(stress, 1), **where)
 
 
 def parse(text):

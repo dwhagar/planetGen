@@ -70,7 +70,11 @@ def test_making_the_air_again_twice_with_one_percent_is_the_same_air():
 
 
 def test_a_different_late_accretion_changes_the_air_and_not_the_run_stream():
-    planet, percent = _earth_like(2)
+    # TEST.714: a seed whose planet keeps a temperate air (one that came out a runaway steam world of 30 MPa holds that air whatever it accreted late, and which seeds do moves with every
+    # change to the star draws, GEN.1623), found by search
+    from tests.fuzz_support import first_seed_with
+    _seed, (planet, percent) = first_seed_with(_earth_like, lambda made: made[0].body_type == "t" and made[0].surface_temperature < 400.0, seeds=range(1, 20),
+                                               what="an Earth-like planet of a G star at 1 AU with a temperate air")
     before = _air(planet)
     draw.set_run_seed(77)
     state = draw.getstate()

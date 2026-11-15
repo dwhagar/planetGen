@@ -182,5 +182,5 @@ def test_a_tier_the_ledger_holds_is_not_owed_again_and_a_held_cell_makes_no_unit
 
 def test_the_stage_command_concludes_the_spheres(galaxy):
     from planetgen.queue import commands
-    assert commands.conclude_function("scatter-backfill") is run_galaxy.conclude_backfill
+    assert commands.end_function("scatter-backfill", "conclude") is run_galaxy.conclude_backfill
     assert run_galaxy.conclude_backfill({"database": {}}, {"sectors": 5}, [], 0.0) == {}          # no sky in the stage: nothing recorded, nothing connected to

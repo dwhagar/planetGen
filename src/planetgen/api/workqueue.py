@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, warmphases, work as workQueue, workers as queueWorkers
 from planetgen.util import log
 
 from .authz import audit, require_admin
@@ -167,6 +167,102 @@ def run_units(run_id):
     return jsonify({"units": units})
 
 
+def _control(connection=None, run_id=None):
+    """The ledger's control connection: the one that holds the run's rows, or the configured one for the history of every run."""
+    from planetgen.db import store
+    if run_id is not None:
+        return planrows.control_connection(connection, run_id)
+    return store.get_control_connection(store.control_mysql_config())
+
+
+def _one_of(name, allowed):
+    value = request.args.get(name) or None
+    if value is not None and value not in allowed:
+        raise ApiError(f"`{name}` is one of {', '.join(allowed)}.", 400)
+    return value
+
+
+_NAME_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,160}$")
+"""re.Pattern: A stage key, command name, kind or galaxy name as the ledger's filters take it."""
+
+
+def _name(name):
+    value = request.args.get(name) or None
+    if value is not None and not _NAME_RE.match(value):
+        raise ApiError(f"`{name}` is not a valid name.", 400)
+    return value
+
+
+@bp.route("/history")
+@require_admin()
+def history():
+    """
+    `GET /api/admin/work/history[?state=&kind=&galaxy=&limit=&offset=]` -- the runs the job ledger holds (OPS.224, `jobview.history`), newest first: `{"available", "total", "items":
+    [{"id", "kind", "galaxy", "state", "held_reason", "created", "started", "finished", "jobs": {state: n}, "attempts"}], "limit", "offset"}`. `state` is one of the ledger's run states.
+    """
+    limit, offset = _paginate(request.args)
+    filters = {"state": _one_of("state", ledger.RUN_STATES), "kind": _name("kind"), "galaxy": _name("galaxy")}
+    try:
+        control = _control()
+    except Exception as exc:  # noqa: BLE001 -- no control database: the page says the ledger is not there
+        log.swallowed("api/workqueue", "history", exc)
+        return jsonify({"available": False, "total": 0, "items": [], "limit": limit, "offset": offset})
+    try:
+        found = jobview.history(control, limit=limit, offset=offset, **filters)
+    finally:
+        control.close()
+    return jsonify({"available": True, **found, "limit": limit, "offset": offset})
+
+
+def _ledger_run(run_id):
+    """`(redis, run's engine_runs id)` of the run `run_id`, or a 404 for a run that is unknown or has not been cut yet (it has no rows)."""
+    connection = _connection()
+    if connection is None or runrecord.read_run(connection, run_id) is None:
+        raise ApiError("No such run.", 404)
+    engine = jobview.engine_run(connection, run_id)
+    if engine is None:
+        raise ApiError("This run has no jobs in the ledger yet.", 404)
+    return connection, engine
+
+
+@bp.route("/<run_id>/jobs")
+@require_admin()
+def run_jobs(run_id):
+    """
+    `GET /api/admin/work/<id>/jobs[?state=&stage=&command=&limit=&offset=]` -- the run's jobs from the ledger, in the order they were planned (OPS.224, `jobview.jobs`): `{"engine_run", "counts":
+    {state: n}, "total", "items": [{"id", "stage", "command", "item", "state", "attempts", "class", "claim_mb", "waits", "last", "created", "updated"}], "limit", "offset"}`. `waits` says why a job
+    that is not running is not: the gate's reason, a retry hold, or what it needs. `state` is one of the ledger's job states.
+    """
+    run_id = _run_id(run_id)
+    limit, offset = _paginate(request.args)
+    filters = {"state": _one_of("state", ledger.JOB_STATES), "stage": _name("stage"), "command": _name("command")}
+    connection, engine = _ledger_run(run_id)
+    control = _control(connection, run_id)
+    try:
+        found = jobview.jobs(control, engine, time.time(), limit=limit, offset=offset, **filters)
+    finally:
+        control.close()
+    return jsonify({**found, "limit": limit, "offset": offset})
+
+
+@bp.route("/<run_id>/jobs/<job_id>")
+@require_admin()
+def run_job(run_id, job_id):
+    """`GET /api/admin/work/<id>/jobs/<job id>` -- one job of the run with every attempt it has had (OPS.224, `jobview.job`): the job as `jobs` gives it, `arguments` and `attempt_rows`."""
+    run_id = _run_id(run_id)
+    if not runrecord.LEDGER_JOB_ID_RE.match(job_id):
+        raise ApiError("No such job.", 404)
+    connection, engine = _ledger_run(run_id)
+    control = _control(connection, run_id)
+    try:
+        found = jobview.job(control, engine, int(job_id), time.time())
+    finally:
+        control.close()
+    if found is None:
+        raise ApiError("No such job.", 404)
+    return jsonify(found)
+
+
 @bp.route("/<run_id>/log")
 @require_admin(fresh=True)
 def run_log(run_id):
@@ -190,7 +286,8 @@ def run_log(run_id):
 @require_admin(fresh=True)
 def control(run_id):
     """
-    `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}`. Cancel stops a live run now (its waiting units are
+    `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"|"retry-held"}`. `retry-held` carries a run held for a person on (OPS.221: its held units are queued again, `held.retry_held`) and returns `{"ok",
+    "requeued"}`; 409 when another run owns the machine. Cancel stops a live run now (its waiting units are
     taken off the queue, its started ones sent the stop command, the machine is freed); clear ends a run that has stopped
     answering (`runcontrol.is_clearable`) and frees the machine. Returns `{"ok": bool, "canceled", "stopped"}`: false
     when the run is over or, for clear, still answering.
@@ -204,6 +301,14 @@ def control(run_id):
     if run is None:
         raise ApiError("No such run.", 404)
     who = g.admin_user["username"]
+    if action == "retry-held":
+        try:
+            carried = held.retry_held(connection, run_id, who=who)
+        except runrecord.Busy as exc:
+            raise ApiError(str(exc), 409) from exc
+        if carried is not None:
+            audit("work.retry-held", target=f"run:{run_id}", detail=f"{carried['requeued']} units; {run['title'][:150]}")
+        return jsonify({"ok": carried is not None, **(carried or {})})
     stopped = (runcontrol.cancel_run if action == "cancel" else runcontrol.clear_run)(connection, run_id, who=who)
     if stopped is not None:
         audit(f"work.{action}", target=f"run:{run_id}", detail=run["title"][:200])

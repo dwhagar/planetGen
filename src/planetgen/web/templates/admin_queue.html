@@ -222,5 +222,12 @@
   {{ datatable(jobs_table) }}
   {%- endif %}
 </section>
+{%- if history_table %}
+<section class="panel" aria-labelledby="history-heading">
+  <h2 id="history-heading">Run history</h2>
+  <p class="hint">Every run the job ledger holds, newest first, whether or not its page above still exists. Filter by state or kind; the jobs of a run are on the run's page.</p>
+  {{ datatable(history_table) }}
+</section>
+{%- endif %}
 {%- endif %}
 {% endblock %}

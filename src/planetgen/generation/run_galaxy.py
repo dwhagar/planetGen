@@ -50,7 +50,7 @@ from planetgen.generation import stages, steps
 from planetgen.generation import stats as generationStats
 from planetgen.util import draw
 from planetgen.util import detmath
-from planetgen.util.format import format_duration_seconds
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 
 LARGE_RUN_WARNING_THRESHOLD = 2000
@@ -1871,7 +1871,7 @@ SECTOR_TIMING_LINES_MAX = 2000
 def timing_line(saved, address):
     """The line that says what one sector cost (PERF.270): its designation, systems, planets, the worked seconds and what the worker held, so a stage that ran long says which sectors took the time."""
     return (f"Sector [{provisional_sector_designation(*address)}] {_format_address(address)}: {saved['systems']:,} systems, {saved.get('planets', 0):,} planets in "
-            f"{format_duration_seconds(saved['seconds'])}, the worker at {saved.get('memory_mb', 0.0):,.0f} MB.")
+            f"{format_duration_seconds(saved['seconds'])}, the worker at {format_megabytes(saved.get('memory_mb', 0.0))}.")
 
 
 def _log_saved(saved, address, suffix=""):

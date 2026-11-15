@@ -2,6 +2,395 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4275] - 2026-11-15
+
+**Headline:** The queue's comment and the API reference say "canceled", like the rest of the program.
+
+### Fixed
+- `queue/runrecord.py` (a comment) and `docs/reference/api.md` (the list of attempt states) said "cancelled"; the spelling sweep writes "canceled". Wording only.
+
+## [8.0.4274] - 2026-11-15
+
+**Headline:** The asteroid vocabulary says "oxidizing" and "oxidized", like the rest of the program.
+
+### Fixed
+- `physics/asteroid_vocabulary.py`: the text of the supergene and hematite names used the British "oxidising" and "OXIDISED"; the spelling sweep writes them "oxidizing" and "OXIDIZED". The name of the constant changed with it.
+
+## [8.0.4273] - 2026-11-15
+
+**Headline:** A belt body made a planet no longer lies past the orbit the place's passing stars let a planet keep.
+
+### Fixed
+- `belt_planets.promote` checked a promoted member's reach against the star's stable limit only, so in a dense place (a core or a cluster, where the survival limit of GEN.325 is a few AU) a promoted belt planet could lie past the limit the ordinary planets keep. It now uses the same ceiling as the planet slots (`StarSystem._orbit_ceiling_au`). In the Sun's neighbourhood the limit is hundreds of AU and nothing changes.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4272] - 2026-11-15
+
+**Headline:** The comet range test follows GEN.1608: a comet whose class moved with its period keeps the eccentricity range of the class it was drawn as.
+
+### Changed
+- `test_comet_data` allows a comet's eccentricity to lie in the range of the class it was drawn as (a long-period comet under 200 years is Halley-type, one over it from the other two is long-period).
+
+## [8.0.4271] - 2026-11-15
+
+**Headline:** Two belt tests now read what the generator reads: a promoted belt body's strength from its water and other ices together, and a belt's inner edge in the spacing rule.
+
+### Changed
+- `test_belt_planets` asks the roundness of a promoted body with its water and other ices together (as the belt's own status does), not with the other ices alone.
+- `test_secular_exchange_generation` builds its stand-in belts with the `lower_limit` the spacing rule reads since GEN.1592.
+
+## [8.0.4270] - 2026-11-15
+
+**Headline:** A cool giant with a carbon-rich envelope no longer stops a galaxy run with "an abundance must not be negative".
+
+### Fixed
+
+- The clouds of a giant's layer (`mixture_giant.remove_clouds`) took the oxygen the oxides bind off a budget whose carbon and oxygen had been re-split to a high carbon to oxygen ratio (`element_budget`), so a metal-rich envelope at a cool layer was left a negative oxygen and the equilibrium refused it (`test_db_column_round_trip`, Train 31). The oxides now bind at most the oxygen the gas has. It showed only once GEN.1717 gave such a giant its true, cooler 1 bar temperature (the table had given it thousands of kelvin, above every condensation). No value changes where the oxygen was enough.
+
+## [8.0.4269] - 2026-11-15
+
+**Headline:** The generator can now say how thick the ice and the snow on a world's water are, so the light that gets through a frozen ocean or lake can be worked out for a real world.
+
+### Added
+- GEN.1728: `physics/ice_growth.py` gives the ice and the snow on a world's water from its mean surface temperature, the swing of its year, the starlight it absorbs and the heat the water gives up: the ice a freezing season grows (Stefan's law with the snow and the air in the way, the freezing degree days of the year in closed form), the thickness of a lid that never thaws (a heat balance against the water's flux and the wear of the surface, 2.9 m in the Arctic standard case against the 2.88 m of the model it comes from), and the snow of the year (the Earth's share of the starlight that goes into the water cycle, about two thirds of it kept as on the Arctic ice). Stand-ins IG1 to IG8 in section 6.298 of the gap plan; design note `docs/design/habitability/ice-and-snow-growth.md`.
+
+### Changed
+- `continental_weathering.latent_j_m3` is the latent heat of its energy limit, factored out of `runoff_m_yr` with the same value. Nothing reads the new law yet (the refuge term of GEN.1723 will): no body, no stored value and no page changes.
+
+## [8.0.4268] - 2026-11-15
+
+**Headline:** Life on a cold or hot world can now carry a cold or heat adaptation: a table of how life widens where it can live (ice, rock, crust, salt, hot springs) is in the data, and the two new traits are drawn and shown.
+
+### Added
+- GEN.1725: `physics/data/life_adaptations.json` and `physics/life_adaptations.py` hold 36 adaptations of life to cold, heat, dryness, salt and dim light from the GEN.1724 research (the climate, the life that carries it, the axis and the limit at the tolerant and extreme grades, the stage the life must have reached, the habitat it opens, source, tier and tweak). At the extreme grade for an oxygen-making class the table reaches the measured edges: 253 K (lichen, -20 C), 346 K (cyanobacteria), 0.04 umol photons m-2 s-1 under the Arctic pack, 75 hours of liquid water a year, a root 68 m deep. Stand-ins AD1 to AD7 in section 6.294 of the gap plan; design note `docs/design/habitability/life-adaptations.md`.
+- Two adaptation traits, cold and heat, join GEN.876's three: a body whose mean surface temperature is past the ordinary limit of an oxygen-making life (under 273 K or over 313 K) draws the trait with the same law as the others (chance 0.8 times the score, extreme with chance 0.5 times the score squared), stores it in `life_traits` (`cold:3`) and the object page shows "cold (extreme)". They come last in the draw order, so every body's radiation, sulfide and carbon dioxide traits are what they were.
+
+### Changed
+- Nothing reads the new traits yet: the scores of the habitability index and the life classes are unchanged. The refuge gate of GEN.1723 will read `adaptation_traits.limit`; widening the class 1 gate waits for it.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4267] - 2026-11-15
+
+**Headline:** The desert-interior test builds its tier row with all six dials.
+
+### Changed
+
+- GEN.1721, GEN.1720: `test_class_m_tier_desert.py` set a tier row of five dials (the sixth, `cycle_share`, came with GEN.1720); it now sets six, with the carbon cycle dial at 0. Test only.
+
+## [8.0.4266] - 2026-11-15
+
+**Headline:** A Class M abundance tier now gives its desert worlds small living seas and gives half of its candidates quiet volcanoes.
+
+### Added
+- **Desert seas (GEN.1721, second slice; Boss, card of 9:49 PM EST 2026-11-14: "both, small seas first").** Under a tier other than Science, a desert world (the dry part of the water dial) draws its water inside the part of the dry class that leaves a few small seas (`tuning.ABUNDANCE_DESERT_WATER_RANGE`), and its small sea is an ordinary salt sea that life can start in, not the concentrated brine so little water makes on any other world (`abundance_tier.desert_sea`, `hydrosphere.salts_concentrated`). On every other world a brine seep is what it was. Registry row 6.289:AT7.
+- **Quiet interiors (Boss, 9:43 PM EST 2026-11-14: "tweak the volcanic activity a bit").** A fifth dial, `quiet_share` (0 on Sparse, 0.5 on the other tiers): the share of the rocky planets in the ecosphere drawn with a quiet interior, whose volcanic gases take a third of the oxygen a body of the same heat loses (`tuning.ABUNDANCE_QUIET_SINK_FACTOR`, the low end of Earth's own published range). One draw per candidate under a tier. Registry row 6.289:AT6.
+- **Design:** `docs/design/habitability/class-m-abundance-tiers.md` sections 3, 6 and 8.
+
+Science is untouched: every dial is 0 there, no draw is made, no planet holds a new field and the golden systems are byte for byte the same (no generator epoch, no migration). Desert worlds stay rare until the land plants of GEN.1729: the oxygen law counts the open sea alone, so a world with under 20 percent sea reaches breathable oxygen only when it is warm, bright and quiet inside.
+
+Reuse: the envelope dial's draw point in `Planet._draw_body`, the water dial's class and pin (`delivered_water.dialed_class`, `body._water_dialed`), `hydrosphere.ocean_class` and `biogenic_oxygen.reductant_flux` unchanged for every other body; the oxygen source law is not touched.
+
+generation-affects: none
+
+## [8.0.4265] - 2026-11-15
+
+**Headline:** A Class M abundance tier now draws the carbon cycle of its Earth-shaped planets from the part of the published ranges that keeps their CO2 where life can use it.
+
+### Added
+- **The carbon-cycle dial (GEN.1720; Boss, 11:58 PM EST 2026-11-14: "recommendation approved").** A sixth dial, `cycle_share` (0.5 on Sparse, 1 on the other tiers): the share of rocky planets in the ecosphere that draw the exponent of the heat flow in the volcanic outgassing (published 1 to 2) from 1 to 1.25 and the factor of the weathering law's thermodynamic limit (published a tenth to ten) from 0.1 to 1. The balance of the carbon cycle goes as the outgassing to about the fifth power, so over the whole ranges most Earth-shaped planets hold under 2 Pa or over 100 kPa of CO2 and few the 2 Pa to 1 kPa the life classes ask for; in the narrower ranges a planet with a heat flow of 0.6 to 2 times the Earth's holds CO2 inside that band at an Earth-like temperature. The dial moves the draw of two constants and conditions nothing on the CO2 that follows. One draw per candidate under a tier. Registry row 6.289:AT8; `tuning.ABUNDANCE_TIER_DIALS` rows are now six values.
+- **Attribution:** `reports/gen1720-co2-attribution-2026-11-14.md` (GEN.1713 is a minor part; the snow line fix and the reshuffled draws of GEN.1646 moved the population and the warm end).
+
+Science is untouched: its dial is 0, no draw is made, no body holds a new field. The nudge is rolled on a stream of its own (seeded from the run stream's state, which it does not move), so a tier's body draws the two constants from the ambient stream as Science does and nothing else of it (the air recipe, the sulfur lifetimes, the seafloor law) is reshuffled (the first form took one ambient draw and moved them; found by the Class M tiers meter, Edabihion VIII).
+
+Reuse: `continental_weathering.draw_cycle` and `mixture_base.bracket` (the constants are drawn and recorded as they were), `abundance_tier.candidate`, the dial table and its helpers of GEN.1704.
+
+generation-output: changed (a tier other than Science only)
+generation-affects: none
+
+## [8.0.4264] - 2026-11-15
+
+**Headline:** An air that is still creeping toward an ice-albedo snowball when its 60 steps run out is given the steps to get there, instead of being stored as unsettled.
+
+### Changed
+
+- GEN.1718 part 2: `surface_air.solve` gives a fixed point that reaches `MAX_STEPS` with its last eight temperature residuals all of one sign (`_creeps`) one more `CREEP_EXTENSION` of 60 steps, with its damping restored to `DAMPING`. A swing early in the solve halves the damping to its floor of 0.05; an ice-albedo creep after it (the answers fall and the ice grows) then moved 5 percent of the residual a step and had not arrived in 60 (key 175 on the first Train 30 head: 236 K to 202 K, unsettled). On the Train 30 head ba4a3515a1, of 500 seeded keys (0 to 499) 14 were stored unsettled (ten of them no steady state, kept by the rule of GEN.1718 part 1, and unchanged); keys 81 and 276 are creeps and now settle (at 187 and 231 K). A solve that settles inside 60 steps, a giant, and an air whose root find found no steady state are not touched: 498 of 500 keys are identical. Keys 128 (a runaway at 950 K) and 194 (273 K) stay unsettled: they are not creeps.
+- The new settings, `CREEP_STEPS` and `CREEP_EXTENSION`, are solver settings (GEN.1718), not physical values.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4263] - 2026-11-15
+
+**Headline:** The test of the extended solve steps names the airs that creep on the refitted greenhouse table.
+
+### Changed
+
+- GEN.1718 part 2: the refit of the greenhouse table (6612) moved the star-and-air draws so that keys 81 and 276 settle inside 60 steps; `CREEP_KEYS` of `test_surface_air.py` now lists keys 274 and 387 (66 to 79 steps, from a scan of keys 0 to 499 on the Train 31 head, where five keys settle after `MAX_STEPS`). Test only; the solver is unchanged.
+
+## [8.0.4262] - 2026-11-15
+
+**Headline:** The greenhouse of a planet under a hydrogen envelope, and of a giant, is read much closer to the model it stands for: the table was on average 20 percent off the model on those airs (a 90th percentile of 62 percent), and is now 3 percent (17 percent).
+
+### Fixed
+
+- **GEN.1717 B: the greenhouse table is refitted on the airs of hydrogen envelopes and giants.** The fitted table that stands for `radiative_convective` (`greenhouse_table.json`, GEN.850) had never seen the air a planet under a few percent hydrogen makes at its 1 bar reference level (hydrogen and helium with several percent of water, carbon monoxide, methane and ammonia), so it read 2,900 K where the model gives 1,200 K for a 5 Earth-mass core at 0.5 AU, and the same value for envelopes of 2 to 20 percent. `scripts/fit_greenhouse_table.py envelope` collects the generator's own envelope and giant airs (800 bodies, 4,528 airs with perturbed copies), `solve` asks the model about them (1,728 solved), and `fit --start --distill` refits from the file in the repository with the airs it had been right on held at its own answers (4,200 designed airs, 12,710 airs of 200 generated systems, 2,000 copies of the airs the tests hold it to, 5,000 temperate wet airs, 12,240 hot rocky airs so that a Venus twin stays a steam world). On 397 envelope and giant airs the fit never saw: median error 20 to 3.1 percent, 90th percentile 62 to 17, 99th percentile 183 to 37. On 1,446 cool airs of today's generator the table is as before (median 1.7 against 1.6 percent). The file states both (`summary.validation`, `summary.envelope_validation`), the tests hold it to them.
+- **GEN.1717 A: a body with no ground deposits the starlight its own gases take where they take it.** `starlight_aloft` reads the near-infrared bands of the air's water, methane, ammonia and collision-induced hydrogen from the same k-tables (stand-ins SA1 to SA3, section 6.296 of the gap-filling plan) and `surface_air.solve` passes the share and its pressure to the greenhouse with the haze's. A 5 Earth-mass core under a hydrogen envelope takes 39 percent aloft near 1 kPa; the 1 bar temperature of the model falls 3 to 5 percent for it (1,218 to 1,178 K at 0.5 AU), because the layers under the tropopause are convective and where the light lands matters little there; Jupiter's air takes 26 percent and its 1 bar temperature falls 5 percent.
+- `fit_greenhouse_table.py` can fit the table to airs stripped of their minor gases as `greenhouse_table.strip_traces` does at runtime (GEN.1588), so the network is asked at runtime about the airs it was fitted on.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4261] - 2026-11-15
+
+**Headline:** A comet's period class now agrees with its orbit across the 200-year line that makes it periodic.
+
+### Changed
+- GEN.1608 (bug): the period class of an elliptical comet is drawn before its orbit, and the orbit is drawn from eccentricity ranges (cut by the star's orbit ceiling), so a comet drawn `long_period` could have a period of tens of years and get the periodic `P/` designation, which reads the real period. `comet.period_class_of` now moves the class to follow the period across `PERIODIC_COMET_MAX_PERIOD_YEARS` (a `long_period` comet under 200 years is `halley_type`; a `jupiter_family` or `halley_type` comet at 200 years or over is `long_period`), before the nucleus makeup is drawn, so the ices follow the class it ends with. No draw is added or removed. In a run of 1,500 elliptical comets about 10 percent change class (148 for a Sun-like star with no ceiling, 322 for a 0.2 solar-mass host with a 20 AU ceiling); their stored class and nucleus makeup move.
+- `tests/test_comet_period_class.py`: the rule for each case, and a census that a drawn comet is `long_period` exactly when it is not periodic and that its designation agrees.
+
+generation-output: changed
+generation-affects: fill
+TODO items resolved: GEN.1608
+
+## [8.0.4260] - 2026-11-15
+
+**Headline:** A wide asteroid belt is now kept clear of the planet inside it by its inner edge, not only by its center.
+
+### Changed
+- GEN.1592 (bug): `validation.space_orbits` and `belt_needs_pushing` tested a belt's spacing from the planet or belt inside it by the belt's center (`distance`), while `check_orbit_spacing` holds it to its inner edge (`lower_limit`). A wide belt whose center cleared the keep-out zone but whose lower limit lay inside it was not pushed. The spacing pass and the secular exchange now measure a belt from its `lower_limit`, the same edge the check uses; a belt that moves keeps its width. Belts that were inside the keep-out zone now sit outside it, so the stored belt limits of those systems move. `tests/test_validation.py` pins a wide belt with a clear center and an inside edge (red before, green after) and a belt whose edge clears (not moved).
+
+generation-output: changed
+generation-affects: fill
+TODO items resolved: GEN.1592
+
+## [8.0.4259] - 2026-11-15
+
+**Headline:** The cosmogenic isotopes of a planet's surface (10Be, 26Al) are now made with the planet's magnetic field, which the first record was made without.
+
+### Changed
+- GEN.1544: the isotope record is first made with the air (`planets.calculate_atmospheric_conditions`), before `magnetism.generate_field` draws the dipole, but the surface cosmogenic rows (GEN.1489) are cut by the dipole moment. A planet or moon with a field stored rows made as if it had none until the final-age pass ran them again. `generate_spin` now makes the record again right after the field (own streams, no draw of the run's moves). Planets with a field store smaller 10Be and 26Al surface amounts, by up to the field factor (about 0.59 for an Earth-size dipole). `tests/test_isotope_record.py` pins a planet with a field: its stored record is the one the finished body gives.
+
+generation-output: changed
+generation-affects: fill
+TODO items resolved: GEN.1544
+
+## [8.0.4258] - 2026-11-15
+
+**Headline:** Each of the 84 old asteroid component names now has a host mineral in a primitive body's mix or is tagged vocabulary-only, and a belt records the names its minerals can carry.
+
+### Added
+- **Asteroid vocabulary hosts (GEN.1369, `physics/asteroid_vocabulary.py`).** Every name of the old `tuning.ASTEROID_COMPONENTS` list is either hosted (the platinum-group elements and gold in kamacite and taenite, the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides) or vocabulary-only with the setting that forms it and the item that builds it (magmatic sulfide ores, carbonatites and pegmatites, supergene zones, evaporites, igneous crusts). The host table is a recalled stand-in (section 6.214, ACV1). A test enforces both lists and that every key the mixes use is a row id and not an alias.
+
+### Changed
+- A belt's stored makeup detail gains `hosted`: the vocabulary names its mixes can carry, each with its largest host row. No mass is drawn for them, so the shares, porosities and densities are unchanged; the stored belt detail moves, so the next epoch is needed.
+
+generation-output: changed
+TODO items resolved: GEN.1369
+
+## [8.0.4257] - 2026-11-15
+
+**Headline:** A law for the light that reaches the water under ice and snow now exists (`physics/ice_light.py`), so the oxygen that life makes under a frozen lid can be counted by the light that gets through.
+
+### Added
+- GEN.1726: `ice_light.transmission` gives the share of the photosynthetic light that reaches the water under a lid, `(1 - albedo) exp(-k_ice h_ice) exp(-k_snow h_snow)`, with coefficients from measurements under Antarctic pack ice, Arctic first-year ice and a perennially ice-covered lake (sea ice k 1.26 per metre, clear lake ice 0.32, snow 30; bare sea ice albedo 0.6, snow 0.9). It reproduces Lake A (8.5 percent against 5.7 to 6.6 measured) and the under-0.1-percent of spring pack ice. `thickest_ice_m` and `deepest_snow_m` give the lid that still passes a given share of the light (about 6.6 m of sea ice for one part in ten thousand). Registered as stand-ins IL1 to IL6 in section 6.293 of the gap plan; design note `docs/design/habitability/light-through-ice.md`. Nothing reads it yet: the oxygen under ice is GEN.1723, and the thickness of a world's ice and snow is an open gap.
+
+### Changed
+- `scripts/build_references.py` no longer carries a person's address: the contact it sends to Crossref's lookups is read from `PLANETGEN_REFERENCES_CONTACT` and is empty by default. Five papers added to the reference list (R5264 to R5268).
+
+## [8.0.4256] - 2026-11-15
+
+**Headline:** three tests that expected a duration written one way now read it from the formatter the pages use.
+
+### Fixed
+
+- TEST.760: the heartbeat rules test looked for "600" in a quiet reason, the Queue page row test for "2.0 s each" and the update guard test for "30 seconds", while `format_duration_seconds` writes "10 minutes", "2 s" and "30 s" (the limits and clocks agree; only the wording moved). Each test now builds the expected text from the same formatter, so the next change of wording moves them together.
+
+## [8.0.4255] - 2026-11-15
+
+**Headline:** An update no longer cancels a generation run: it holds the run "stopped for update", and the end of a good update carries it on.
+
+### Changed
+
+- OPS.222 part A (job engine stage 3, L8): when the operator agrees to stop the work, `update.sh` (`updateguard`) drains a generation run in the run record instead of canceling it: `held.drain_run` holds it with the reason "stopped for update" (the machine is free, no worker takes a unit of it), each running unit stops at its next piece (the engine finds the run no longer live) and goes back to `waiting` in the ledger, not failed. The run is drained before the process that follows it is stopped, so that process cannot end it. At the end of a good update `held.resume_after_update` carries each drained run on (`retry_held`): every unit the ledger does not say is done is queued again unless the queue still has it, the opening of a stage the hold skipped is queued, and the output says what was queued. When the generator epoch changed with the update (`generator_epoch`) the run stays held and the output says to run it again. A run started by systemd is still never stopped (the update refuses while it generates), and a Generate job stays protected as before.
+- `retry_held` queues every unfinished unit of the run, not only the held ones, so it also carries a drained run. Reused: `retry_held`, `hold_run`, `units.requeue_unit`, the engine's stop between two pieces, `generator_epoch`, the guard's source and cancel path.
+
+Part B (finish-run plans from the rows, `REWIND_WITH` deleted) waits for the checkpoints of OPS.219.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4254] - 2026-11-15
+
+**Headline:** The supervisor's hand-out turn is built and tested, used by nothing yet.
+
+### Added
+- `queue/launcher.py` (OPS.228, slice A): each turn closes the attempt of every job process that ended (done, failed, or lost with the signal named), reads the `ready` rows of the ledger as tickets, asks `dispatch.dispatch` which go, writes each reason a job waits onto its row, writes the attempt (and its number to the galaxy's `engine_items`) and forks the job from its lane's template. The bulk lane moves to it in the cutover slice, a run at a time.
+
+## [8.0.4253] - 2026-11-15
+
+**Headline:** a job can now hold a named resource besides memory, so two heavy writers or two builds of one warm set never run at once, and the unit that runs alone is a claim like any other.
+
+### Added
+
+- OPS.232: `queue/tokens.py` and `Claim.tokens`: the gate lets a claim go only when no claim held holds one of its names (`alone`, `mysql_write`, `warm:<set>`), and a job that waits is told which job holds the token. A command names its tokens in `CommandSpec.tokens` and the claim of its unit holds them. The stage 0 simulator checks that no token is held twice and that the job that runs alone has the bulk and maintenance lanes to itself.
+
+### Changed
+
+- OPS.232: the claim of the restarted unit that runs alone (OPS.145) holds the `alone` token instead of a `solo` flag; the gate's rows carry `tokens` in place of `solo`. `pause.hold_solo` stays as the way workers on main hold the queue until their lanes move onto the supervisor (OPS.228 and OPS.229).
+
+## [8.0.4252] - 2026-11-15
+
+**Headline:** the rule that decides which waiting jobs start now is written for the whole backlog at once, so a visitor's page job waits under a second however long a stage's backlog is.
+
+### Added
+
+- OPS.227: `queue/dispatch.py`, the dispatch rule the job engine's supervisor will ask each turn: the site's lanes first, oldest first, against the places kept for them; then every other lane ranked and judged by `scheduler.judge`; only the top 64 of each group judged; each waiting job's last reason returned and written onto its ledger row. A reservation made for a job that has waited 120 s lasts until that job runs (`scheduler.judge(reserve_until=)`). In the stage 0 simulator (300 units) a visitor's job waited over half an hour at the 99th percentile when the whole backlog is ranked as one, and under 1.5 s with this rule. Nothing calls it from a worker yet: OPS.228 and the other stage 4 items move the lanes onto it, and the old per-worker tickets go with them.
+
+## [8.0.4251] - 2026-11-15
+
+**Headline:** Three guard tests that went red with the template slices are green again.
+
+### Fixed
+- The runner of a unit forked from a template runs inside the unit's own memory claim, so it is named among the functions that take none of their own (`claims.CALLBACKS`).
+- The way to try the no-kernel-handle path is the template's `--no-pidfd` argument (`JobHost(pidfd=False)`), not an environment variable the settings model does not name.
+- The two handlers that turn a job's failure into an exit code now note it (`log.swallowed`).
+
+## [8.0.4250] - 2026-11-15
+
+**Headline:** a unit that fails because the database or Redis hiccuped is now run again by the engine after a growing wait, and the run says what kind of failure ended it.
+
+### Added
+
+- OPS.220: `queue/failures.py` names every failure one of four kinds (passing, killed, idle, lasting). A passing failure (MySQL deadlock 1213, lock wait 1205, connection lost 2006 or 2013, a closed connection, a Redis connection that failed) runs the unit again after a wait that doubles from 2 s to 5 min, spread at random, inside a per-run budget of 40 retries and 30 minutes of waiting. Every attempt is a row in the ledger, and the budget is one Redis hash per run.
+
+### Changed
+
+- OPS.220: the run's error text names the kind of failure. A killed or idle unit keeps the existing alone-with-a-bigger-claim and stack-dump paths. `rq.Retry(max=1)` and the in-transaction deadlock retries stay until OPS.219 (checkpoints), OPS.221 (held items) and the supervisor hand-out remove their last users.
+
+## [8.0.4249] - 2026-11-15
+
+**Headline:** A unit that fails for good no longer ends the run: it is held, the rest goes on, and a run held for a person can be carried on after the fix.
+
+### Added
+
+- OPS.221 (job engine stage 3, L7): a unit that fails for good (the error reached `units.unit_failed`, or a kill with no retry left) is written to its stage's held hash and its job row is `failed`; its queued retry finds it held and does nothing. Every other unit goes on. When every unit of the stage is done or held, the run takes the new state `held` (`runrecord.hold_run`): it frees the machine, shows as Held on the Queue page and in `GET /api/admin/work`, no worker takes a unit of it, and the ledger's run row says `held` with why. Retry held (`held.retry_held`; the Queue page, `planetgen queue retry-held RUN_ID`, `POST /api/admin/work/<id>/control` `{"action": "retry-held"}`) takes the machine back, sets each held job to `waiting` and queues it again with the arguments its row holds (`units.requeue_unit`, reused from `enqueue_units`). Cancel ends a held run. `planetgen queue held` lists them.
+- A unit that has no ledger row, and a piece of an opening, a conclusion or an end of a stage, still fail the run as before until OPS.218's jobs carry the same state. The failure kind seam for OPS.220 is the one call `units.unit_failed` makes: everything that reaches it is lasting.
+
+### Fixed
+
+- A held run's starter ends with the reason and does not end the run (`runrecord.finish_run` leaves a held run alone unless it is the cancel of it).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4248] - 2026-11-15
+
+**Headline:** Three places that wrote a unit by hand (the job page's memory claim, a retry hold's seconds, the unit beat's debug line) now use the shared units formatters.
+
+### Fixed
+
+- OPS.224 follow-up: `queue/jobview.py` (the retry hold's time left), `web/templates/admin_queue_job.html` (a job's memory claim) and `queue/unitbeat.py` (a restarted unit's wait and its debug beat line, OPS.223) wrote a number followed by its unit; they use `format_duration_seconds`, `format_megabytes` and the page's `bytes_text` (UX.318), which `test_hand_formatted_units` guards.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4247] - 2026-11-15
+
+**Headline:** One warm template per lane, a path for hosts with no kernel handle on a job, and a memory proof on the real star tables; built and tested, not yet used.
+
+### Added
+- `jobhost.TemplateSet` starts one template per warm set when the first job that wants it is asked for: the lane whose units draw stars (`units.TABLE_KINDS`) gets the sampling tables built once, every other lane gets none (`WARM_SETS`, `template_key`). A host with no star-drawing work never builds the tables.
+- A slow test (`tests/test_template_memory.py`) forks three star-drawing jobs from one template that built the real tables and checks that the template and its jobs hold well under what as many workers would each hold.
+
+### Changed
+- Where the kernel gives no handle on a job (macOS; `PLANETGEN_TEMPLATE_PIDFD=0` tries it on Linux), the template's report of each exit is the way, and a template that has died leaves the supervisor to look for each job's pid (OPS.226, the third slice).
+
+## [8.0.4246] - 2026-11-15
+
+**Headline:** A unit can run as a job process the template forked, built and tested, not yet used.
+
+### Added
+- `queue/forkedjob.py` runs a unit in a forked job: its own Redis connection, the same `units.run_unit_on` the RQ job runs, and a say on the job's pipe when it ends. A stop request or a supervisor that went ends it between two pieces; a failure fails the run as RQ's failure callback does (`units.fail_unit`).
+- The engine asks an optional `halt` before every piece (`engine.run(..., halt=)`), a local read.
+
+### Changed
+- `units.run_unit` and `units.unit_failed` are split so the RQ job and the forked job share the code that runs a unit and that fails a run (`run_unit_on`, `fail_unit`); nothing changes for the RQ path (OPS.226, the second slice).
+
+## [8.0.4245] - 2026-11-15
+
+**Headline:** A warm template process and the jobs forked from it exist, built and tested, not yet used.
+
+### Added
+- `queue/template.py` is the template process: it builds a warm set, holds no connection and one thread, forks one job per request, and reports each job's exit code or killing signal at once. A job has a pipe to the supervisor and finishes its piece and exits (`EXIT_SUPERVISOR_GONE`) when the pipe closes.
+- `queue/jobhost.py` is the supervisor's side: it starts the template, forks jobs, holds each job's pipe and a kernel handle (`pidfd`, opened by the template while the job is still its child) and reports every job's end once, even when the template died first.
+- Nothing runs on it yet; the bulk lane moves to it in OPS.228 (OPS.226, the first slice).
+
+## [8.0.4244] - 2026-11-15
+
+**Headline:** The Queue page now shows every job of a run with its attempts and why it waits, and a history of runs, read from the job ledger.
+
+### Added
+
+- OPS.224 (job engine stage 3, L10): `GET /api/admin/work/<id>/jobs` and `/jobs/<job id>` serve a run's jobs and one job's attempts from the ledger (`queue/jobview.py`), and `GET /api/admin/work/history` the runs the ledger holds, filtered by state, kind or galaxy. The run page gets a Jobs panel; `/admin/queue/<id>/jobs` lists the jobs under a state menu, each with its attempts, how its newest attempt ended and, when it is not running, why it waits; `/admin/queue/<id>/job/<job>` shows every attempt with its cost, error text and stack file; the queue page ends with a Run history table.
+- A job that a worker holds at the memory gate now says why in the ledger (`engine_jobs.waited`, the gate's own words from `memorygate.decide`, written when the reason changes and at most every 15 s), a retry hold shows how long is left, and the end of a stage names what it still needs. Reused: `runview`, `planrows.control_connection`, `datatable`, the run page's panel and table markup.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4243] - 2026-11-15
+
+**Headline:** The stage-wording tests no longer expect "0 s" from a stage that really took a few milliseconds.
+
+### Changed
+
+- TEST.759: a stage line says how long the stage took on the units code's one duration ladder (UX.318), so a stage of 2.86 ms says "2.86 ms". The code is right; five tests in `test_stages.py` read the real clock and expected "0 s" or a whole-second "31 s". They now hold the clock the stages read still (`stage_clock`), and one new test pins that a stage of a few milliseconds says so.
+
+## [8.0.4242] - 2026-11-15
+
+**Headline:** The memory-reading test of the worker cap no longer fails under gate load.
+
+### Changed
+
+- `test_peak_counts_the_worker_beside_its_horse` (TEST.757) held `peak_resident_mb` to a reading of the worker and its horse taken afterwards; the system divides a shared page by the processes sharing it, so the later reading can be higher when another test worker ends in between. The test now takes the reading before and after the call and holds the figure to the lower of the two.
+
+## [8.0.4241] - 2026-11-15
+
+**Headline:** The hooks that end a stage are commands of their own, named by the rows that end it.
+
+### Changed
+- The seven `conclude` and five `finish` hooks of `CommandSpec` are now `EndCommand`s in `commands.END_COMMANDS` (`conclude-scatter-mass`, `finish-warm-systems` and so on). The `conclude` and `finish` rows of a stage in the job ledger carry the stage's own end command as their command, so what ended a stage is read from its rows. The engine no longer reads `CommandSpec.conclude` or `finish`, and the fields are gone (OPS.260, OPS.218 slice 3).
+
+## [8.0.4240] - 2026-11-15
+
+**Headline:** The help text of the light-and-water gate writes its hours through the units code, so the gate reads "3.13 days a year" in place of a hand-formatted "75 hours a year".
+
+### Fixed
+
+- TEST.758: `web/lib/life_help.py` formatted the GEN.1723 gate's hours by hand (UX.318); it uses `format_duration_seconds` now.
+
+## [8.0.4239] - 2026-11-15
+
+**Headline:** The line that tells how long a sector took now spells the worker's memory with the units code, so the same size reads the same in the log as everywhere else.
+
+### Changed
+- The per-sector line in the job log writes the worker's memory with `format_megabytes` (for example "2.18 GB" instead of "2,181 MB").
+
+## [8.0.4238] - 2026-11-15
+
+**Headline:** Every attempt at a queue unit now leaves a full row in the job ledger (what it cost, how it ended, its stack), and a unit that runs again writes a debug log of its own.
+
+### Added
+
+- OPS.223 (job engine stage 3, L9; absorbs OPS.146): an attempt's row in `engine_attempts` keeps its processor seconds and peak memory, and for a failure its error kind, its traceback and a stack file in the log folder's `unit-debug` folder. An attempt nobody could close (its horse killed for memory or `kill -9`, a unit stopped as stuck, a process gone) is closed by whoever saw it go as `killed_memory`, `lost` or `stuck`, with the stack the follower had the horse write; the next attempt closes any left open as `lost`; the time limit is `timed_out`.
+- A unit that runs again (the second and later attempt: a retry after a kill, a stuck stop or a failure, a resume) runs in debug mode: every debug area, plus the beat's counter, memory and processor lines and each wait, goes to `job<job>-unit<unit>-attempt<n>.log` in the `unit-debug` folder, which opens with how the attempt before it ended and its stack; the run's log names the file. The new setting `queue.debug_restarts` (on by default) turns it off; each file is capped at 20 MB and the folder keeps the newest 400 files. `log.captured` is the one place a block of code is written to a file of its own at debug level.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4237] - 2026-11-15
 
 **Headline:** The job engine's fence and the end of a stage are proved by seeded scenarios.

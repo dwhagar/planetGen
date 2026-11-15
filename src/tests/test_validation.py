@@ -78,6 +78,37 @@ def test_check_orbit_spacing_and_space_orbits(star):
     assert validation.check_orbit_spacing(planets) == []
 
 
+def test_a_wide_belt_is_pushed_by_its_inner_edge_not_its_center(star):
+    """GEN.1592: a belt whose center clears the planet inside it but whose lower limit is in that planet's keep-out zone is pushed out until its inner edge clears."""
+    from planetgen.generation.belt import AsteroidBelt
+    inner = planet_at(star, 1.0, EARTH)
+    keep_out = inner.min_orbit_distance
+    reach = validation.apoapsis_au(inner)
+    belt = AsteroidBelt(star.system_config, star, reach + 3.0 * keep_out, reach + 0.2 * keep_out, reach + 6.0 * keep_out)
+    assert belt.distance - validation.apoapsis_au(inner) > keep_out              # the center clears the keep-out zone
+    assert belt.lower_limit - validation.apoapsis_au(inner) < keep_out           # the inner edge does not
+    planets = [inner, belt]
+    assert any("too close" in p.message for p in validation.check_orbit_spacing(planets))
+    assert validation.belt_needs_pushing(belt, inner)
+    width = belt.upper_limit - belt.lower_limit
+    assert validation.space_orbits(planets) == [belt]
+    assert belt.lower_limit - validation.apoapsis_au(inner) >= keep_out * (1.0 - validation.RELATIVE_TOLERANCE)
+    assert belt.upper_limit - belt.lower_limit == pytest.approx(width)           # moved, not resized
+    assert validation.check_orbit_spacing(planets) == [] and not validation.belt_needs_pushing(belt, inner)
+    assert validation.space_orbits(planets) == []                                # a second pass finds nothing
+
+
+def test_a_belt_whose_inner_edge_clears_is_not_moved(star):
+    from planetgen.generation.belt import AsteroidBelt
+    inner = planet_at(star, 1.0, EARTH)
+    keep_out = inner.min_orbit_distance
+    reach = validation.apoapsis_au(inner)
+    belt = AsteroidBelt(star.system_config, star, reach + 4.0 * keep_out, reach + 2.0 * keep_out, reach + 6.0 * keep_out)
+    before = (belt.distance, belt.lower_limit, belt.upper_limit)
+    assert validation.space_orbits([inner, belt]) == []
+    assert (belt.distance, belt.lower_limit, belt.upper_limit) == before
+
+
 def test_a_planet_space_orbits_pushes_out_of_its_zone_has_its_class_derived_again(star):
     inner = planet_at(star, star.habitable_zone[0] * 1.01, GIANT_EARTH)
     outer = planet_at(star, star.habitable_zone[0] * 1.02, EARTH)
