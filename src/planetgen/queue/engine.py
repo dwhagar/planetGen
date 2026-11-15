@@ -7,7 +7,9 @@ A command that declares `pieces` and `do` (`commands.CommandSpec`) does not writ
 `cursor`, and calls `do(args, piece, ctx)` for each in order. What the engine does for every such command, so that no command writes it:
 
 * **Counts.** Pieces done of pieces in all go to the unit's beat (`report(done, total)`) before the first piece and after every one, so a unit that works never goes quiet and the bar of the run
-  shows real numbers. A command cannot forget it.
+  shows real numbers. A command cannot forget it. A piece that is a dict may carry `weight`, how much of the unit's work it is (default 1; PERF.268): the beat counts weight done of weight in all, so
+  a unit of pieces that cost unequal amounts (a dense sector against a sparse one) has a bar, a judge's expected rate and a profile that follow the work and not the number of pieces. The cursor,
+  the fence and the done mark count pieces, never weights.
 * **Stop and pause between two pieces.** Before a piece, at most every `CHECK_SECONDS`, the engine reads whether the run is still live and whether the queues are held. A run that is no longer
   live (canceled, failed, ended from outside) ends the unit with `UnitStopped`, which `units._do_unit` answers by leaving the unit undone; a pause holds the unit where it stands, shown in
   the beat as waiting on `pause`, until the queues are let go (a solo hold lets its own unit through, `pause.blocks`) or the run ends.
@@ -21,6 +23,7 @@ until then `ctx.commit()` stores no cursor; with a unit that has a ledger row it
 **A command without `pieces` runs as it always has** (`commands.unit_function`) until the item of its family converts it. Nothing here changes what a command computes.
 """
 
+import math
 import time
 
 from planetgen.queue import commands, longsql, pause, runrecord, unitbeat
@@ -35,6 +38,22 @@ PAUSE_POLL_SECONDS = 2.0
 
 PAUSE_TAG = "pause"
 """str: What the beat says a unit held between two pieces by a pause waits on (`unitbeat.waiting`)."""
+
+
+def weight_of(piece):
+    """
+    How much of its unit's work a piece is (PERF.268): the `weight` of a piece that is a dict and names a positive finite number, else 1.
+
+    Args:
+        piece: One piece, as the command's `pieces` made it.
+
+    Returns:
+        float: The weight, over 0.
+    """
+    weight = piece.get("weight") if isinstance(piece, dict) else None
+    if isinstance(weight, bool) or not isinstance(weight, (int, float)) or not math.isfinite(weight) or weight <= 0:
+        return 1.0
+    return float(weight)
 
 
 class UnitStopped(Exception):
@@ -195,12 +214,15 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
     ctx = Context(kind, args, report, redis=redis, run_id=run_id, stage=stage, unit=unit, job=job, cursor=cursor, clock=clock, attempt=attempt)
     try:
         pieces = list(pieces_of(args, cursor))
-        total = cursor + len(pieces)
-        report(cursor, total)
+        weights = [weight_of(piece) for piece in pieces]
+        done = cursor * (sum(weights) / len(weights)) if weights else float(cursor)      # the cursor counts pieces: the ones before it weigh what the rest weigh on average
+        total = done + sum(weights)
+        report(done, total)
         results = []
-        for done, piece in enumerate(pieces, cursor + 1):
+        for piece, weight in zip(pieces, weights):
             ctx.between()
             results.append(do(args, piece, ctx))
+            done += weight
             report(done, total)
         return results if gather is None else gather(args, results, ctx)
     finally:
