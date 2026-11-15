@@ -488,7 +488,7 @@ def _draw_owed(context, tiers, center, ledger, owed, *, generator_epoch=None, on
             if on_batch is not None:
                 on_batch(batches, cells, stars)
             if progress is not None:
-                progress(finished + tier_progress(cost, seen[0]), total)
+                progress(finished + min(tier_progress(cost, seen[0]), cost), total)
 
         result = draw_tier(context, tier, center, generator_epoch=generator_epoch, on_batch=tick, ledger=ledger, part=part)
         drawn.append(result)
