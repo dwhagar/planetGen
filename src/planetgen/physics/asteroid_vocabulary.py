@@ -29,11 +29,11 @@ from planetgen.physics import materials
 MAGMATIC_SULFIDE = "forms in a magmatic sulfide ore of a differentiated body (ore processes, GEN.1380); a primitive body carries its platinum-group elements in its metal"
 RARE_EARTH_ORE = "a rare-earth mineral of carbonatite, granite and pegmatite (ore processes, GEN.1382); a primitive body holds its rare earths in hibonite, perovskite, oldhamite and merrillite"
 URANIUM_ORE = "a uranium or thorium ore mineral (ore processes, GEN.1381); a primitive body holds its uranium and thorium in the inclusion phases and merrillite"
-SUPERGENE = "a supergene mineral of a weathered ore on a wet, oxidising body (ore processes, GEN.1381 and GEN.1382)"
+SUPERGENE = "a supergene mineral of a weathered ore on a wet, oxidizing body (ore processes, GEN.1381 and GEN.1382)"
 IGNEOUS = "an igneous, pegmatitic or metamorphic mineral of an evolved crust (the crust and rock types of a differentiated body), not of a primitive taxon's mix"
 TITANIUM_OXIDE = "a titanium oxide or silicate of igneous and placer settings (ilmenite and perovskite carry a primitive body's titanium)"
 EVAPORITE = "an evaporite salt (the evaporite sequence, GEN.1366), made where a brine dries"
-OXIDISED = "an oxidation product of iron on a weathered surface (a primitive body's iron oxide is the magnetite its mix draws)"
+OXIDIZED = "an oxidation product of iron on a weathered surface (a primitive body's iron oxide is the magnetite its mix draws)"
 
 PGE_HOSTS = ("kamacite", "taenite")
 """tuple: The rows that carry the platinum-group elements in a primitive body: the iron-nickel metal, at 0.01 to 10 ppm (stand-in ACV1)."""
@@ -78,7 +78,7 @@ HOSTED = {
 """dict: Row id of a vocabulary name -> the rows of a primitive body's mix that host it (`hosted`)."""
 
 VOCABULARY_ONLY = {
-    "hematite": OXIDISED,
+    "hematite": OXIDIZED,
     "sperrylite": MAGMATIC_SULFIDE, "cooperite": MAGMATIC_SULFIDE, "braggite": MAGMATIC_SULFIDE, "laurite": MAGMATIC_SULFIDE, "vysotskite": MAGMATIC_SULFIDE,
     "bastnasite": RARE_EARTH_ORE, "monazite": RARE_EARTH_ORE, "xenotime": RARE_EARTH_ORE, "cerite": RARE_EARTH_ORE, "gadolinite": RARE_EARTH_ORE,
     "samarskite": RARE_EARTH_ORE, "fergusonite": RARE_EARTH_ORE, "euxenite": RARE_EARTH_ORE,
