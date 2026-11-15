@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4313] - 2026-11-15
+
+**Headline:** A planet that is moved to resolve an overlap keeps the spin it was born with, and its air is solved on the orbital period it has now.
+
+### Changed
+
+- GEN.1597: `generation/validation.reconcile_moved_planet` drew a new birth spin for a moved planet and its moons (`generate_spin` without `birth=`) and set the orbital period after the air was solved, so the air saw the old period. It now passes each body's own `_birth_spin` (the orbit moved, the planet did not), and sets the period before the air. Stored values change for a planet that was moved: its day length, tilt and what follows from them, and the draws after it.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4312] - 2026-11-15
 
 **Headline:** Two moons whose periods closed on a 2:1, 3:2 or 4:3 on the way out are now held in that resonance, and moons near such a ratio force an eccentricity on each other that the planet's tide does not wear away, so an Io and Europa pair is flexed by its neighbour.
