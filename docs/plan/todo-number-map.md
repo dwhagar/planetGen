@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.319 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1720 |
+| GEN | GEN.1721 |
 | PERF | PERF.268 |
 | DB | DB.131 |
 | API | API.51 |
@@ -4029,6 +4029,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1717 | (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300) | none | open |
 | GEN.1718 | (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes | none | open |
 | GEN.1719 | Hazy-envelope balance fix found by the Train 28 gate (Lane 15) | none | done, in Train 28 PR #6546 (6:54 PM EST 11-14, epoch 150) |
+| GEN.1720 | (bug) Class G (thick CO2 of 46 to 4,700 kPa over a global ocean) takes 19 of 27 right-gravity liquid-ocean planets around Sun-like stars, and G rose from 27 to 47 per 346 systems between the Train 26 and Train 28 censuses | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
