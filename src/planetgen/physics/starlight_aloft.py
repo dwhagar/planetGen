@@ -16,7 +16,7 @@ This module finds how much of the starlight the gases take above the reference l
 pairs the model reads for the infrared (`line_opacity`), on the bands below 12,000 cm-1 (0.83 micron and longer), weighted by the star's own
 blackbody. What it returns is `(share, pressure_pa)` in the form `the infrared model's `solve`` takes (`aloft_share`, `aloft_pressure_pa`).
 
-Limits (stand-ins, registry rows SA1 to SA3, docs/design/research/gap-filling-plan.md section 6.294):
+Limits (stand-ins, registry rows SA1 to SA3, docs/design/research/gap-filling-plan.md section 6.296):
 
 * Starlight shortward of 12,000 cm-1 (the visible and the ultraviolet, about 60 percent of a Sun's) is taken to reach the reference level (the tables
   stop there; Rayleigh scattering and the visible bands of methane and ammonia are left to the albedo and to the haze).
