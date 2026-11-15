@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4225] - 2026-11-15
+
+**Headline:** Only the supervisor starts workers now; a submit, a status poll or a web thread leaves it a request.
+
+### Changed
+- **OPS.209, output unchanged.** `workers.ensure_workers` no longer counts or starts anything: it leaves a request for the queue (`supervisor.nudge`: the latest ask for each queue, with its worker count) and starts the supervisor if none is alive, so it is cheap to call from any web thread or enqueuer. The supervisor takes the requests at each turn (`supervisor.WorkerStarts`) and acts on each with `workers.start_workers`, which is the old function with the same rules (caps, lanes, memory limit, shedding the bulk lane for the maintenance one, lending). With one process deciding, the host-wide lock between callers (PERF.181) is gone. The count of workers started and not yet registered stays, because a worker clears it as it registers. A supervisor with a request waiting does not end for being idle.
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4224] - 2026-11-15
 
 **Headline:** The supervisor now judges the units of every live run, so a run whose starting process is gone is still watched.
