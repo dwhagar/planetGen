@@ -226,3 +226,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
 | row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
+| function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
+| function | planetgen.physics.ice_light.thickest_ice_m | by design | the thickest bare ice that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
+| function | planetgen.physics.ice_light.deepest_snow_m | by design | the deepest snow that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |

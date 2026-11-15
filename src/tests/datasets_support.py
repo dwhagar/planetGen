@@ -86,6 +86,7 @@ def _iso_row(eep, log_age, mass, fe_h, phase):
     columns[7] = 4 * np.log10(mass) + 0.1 * fe_h
     columns[10] = 3.7 + 0.5 * np.log10(mass)
     columns[11] = 0.8 * np.log10(mass)
+    columns[13], columns[15] = 1.0 - 0.27 - 0.014, 0.27       # the surface keeps the birth hydrogen and helium: no diffusion in the fixture
     columns[24] = phase
     return " ".join(f"{value:.16E}" for value in columns)
 

@@ -212,6 +212,7 @@ _kind("acceleration", _ACCELERATION, "m_s2")
 _kind("temperature", dimension(temperature=1), "K", NON_NEGATIVE)
 _kind("delta_temperature", dimension(temperature=1), "dK")
 _kind("fraction", dimension(), "frac", NON_NEGATIVE)
+_kind("information", dimension(), "B", NON_NEGATIVE)
 _kind("angle", dimension(angle=1), "rad")
 _kind("angular_rate", dimension(time=-1, angle=1), "rad_s")
 _kind("angular_momentum", dimension(length=2, mass=1, time=-1), "kg_m2_s")
@@ -412,6 +413,15 @@ def _fractions():
 _lengths()
 _masses()
 _fractions()
+
+
+def _information():
+    """Bytes of storage or memory (UX.318): a disk estimate, a worker's memory, a cache size. SI prefixes (powers of 1000, as a disk is
+    sold and as `generation.stats` has always written them), kilobyte to terabyte."""
+    _prefixed("information", "B", "B", "bytes", 1.0, SI_PREFIXES[3:8], singular="byte")
+
+
+_information()
 _times()
 _kinematics()
 _thermal()

@@ -75,7 +75,7 @@ from planetgen.galaxy import bring_to_epoch, dials, drill, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.util.format import counted, format_number
+from planetgen.util.format import counted, format_bytes, format_duration_seconds, format_number
 from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
@@ -1115,7 +1115,7 @@ def _job_view(job):
     view["created_text"] = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(job["created_at"])) \
         if job.get("created_at") else ""
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
-    view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
+    view["elapsed_text"] = format_duration_seconds(job.get("elapsed_s"))
     view["rerun_url"] = generate_flow.rerun_url(job)
     # ADM.151: the Generated so far page, from this run's start.
     view["systems_url"] = None
@@ -1128,7 +1128,7 @@ def _job_view(job):
     if eta_s is not None and not job.get("finished"):
         updated_at = progress.get("updated_at") or time.time()
         remaining = max(0.0, float(eta_s) - max(0.0, time.time() - float(updated_at)))
-    view["remaining_text"] = format_elapsed(remaining)
+    view["remaining_text"] = format_duration_seconds(remaining) if remaining is not None else ""
     view["remaining_label"] = remaining_label(
         remaining, running=not job.get("finished") and bool(progress.get("description")))
     view["progress_text"] = _progress_text(progress)
@@ -1141,7 +1141,7 @@ def _job_view(job):
     if detail:
         text = _progress_text(detail)
         if detail.get("eta_s") is not None:
-            text += f", about {format_elapsed(detail['eta_s'])} left"
+            text += f", about {format_duration_seconds(detail['eta_s'])} left"
         view["progress_detail_text"] = text
     return view
 
@@ -1319,9 +1319,9 @@ def remaining_label(remaining, running=True, rough=False):
         return "estimating the time left" if running else ""
     if rough:
         low, high = roughtime.rough_range(remaining)
-        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (not timed yet)"
+        return f"roughly {format_duration_seconds(low)} to {format_duration_seconds(high)} left (not timed yet)"
     low, high = progress_rate.eta_range(remaining)
-    low_text, high_text = format_elapsed(low), format_elapsed(high)
+    low_text, high_text = format_duration_seconds(low), format_duration_seconds(high)
     if low_text == high_text:
         return f"about {high_text} left"
     return f"about {low_text} to {high_text} left"
@@ -1343,20 +1343,6 @@ def _progress_text(progress):
     if unit and not description.lower().endswith(counted(unit, 2)):
         text += f" {counted(unit, total or completed)}"
     return text
-
-
-def format_elapsed(seconds):
-    """`"1 h 02 m"`, `"3 m 05 s"`, `"12 s"`, or `""` for `None`."""
-    if seconds is None:
-        return ""
-    seconds = int(seconds)
-    hours, rest = divmod(seconds, 3600)
-    minutes, secs = divmod(rest, 60)
-    if hours:
-        return f"{hours} h {minutes:02d} m"
-    if minutes:
-        return f"{minutes} m {secs:02d} s"
-    return f"{secs} s"
 
 
 def page_context(admin, form=None, error=None, status=200):
@@ -1583,10 +1569,10 @@ def _estimate_view(estimate):
     view["time_text"] = stats.time_text(estimate.get("seconds"), estimate.get("measured", True))
     if estimate.get("deep_check"):      # DB.21: a time and a count of systems, no size or disk
         return view
-    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
+    view["size_text"] = format_bytes(estimate.get("bytes"))
     disk = estimate.get("disk")
-    view["disk_text"] = (f"{stats.format_bytes(disk['free_bytes'])} free of "
-                         f"{stats.format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None
+    view["disk_text"] = (f"{format_bytes(disk['free_bytes'])} free of "
+                         f"{format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None
     note = estimate.get("disk_note")
     view["disk_note_text"] = f"Not measured: {note}. Nothing is refused for space." if note else None
     return view

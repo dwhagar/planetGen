@@ -124,6 +124,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+from planetgen.util.format import format_duration_seconds
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
 
@@ -250,7 +251,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 23
+CONTROL_SCHEMA_VERSION = 24
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -261,7 +262,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215), v24 the same three tables again with the state spelled `canceled`. New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -1012,11 +1013,11 @@ class Connection:
                 activity_log.event("DB", "statement_timeout", db=self._config.database if self._config else "?",
                                    seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
             if traced:
-                log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: "
+                log.trace(f"SQL failed after {format_duration_seconds(time.perf_counter() - start)}: "
                           f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)
             raise
         if traced:
-            log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
+            log.trace(f"SQL {format_duration_seconds(time.perf_counter() - start)}, {cur.rowcount} row(s): "
                       f"{_sql_for_log(sql, params)}", area="sql", stacklevel=4)
         return _Cursor(cur)
 
@@ -1169,7 +1170,7 @@ class Connection:
                     cur.execute(head + ",".join(chunk))
                 statements += 1
         if log.debug_log_active():
-            log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
+            log.trace(f"SQL batch {format_duration_seconds(time.perf_counter() - start)}: "
                       f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", area="sql", stacklevel=3)
 
     def executemany(self, sql, seq_of_params):
@@ -1189,7 +1190,7 @@ class Connection:
         with statementmark.statement(sql):
             cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
-            log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
+            log.trace(f"SQL executemany {format_duration_seconds(time.perf_counter() - start)}, {len(rows)} parameter "
                       f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
                       stacklevel=3)
         return _Cursor(cur)
@@ -1205,7 +1206,7 @@ class Connection:
         with statementmark.statement(sql):
             cur.execute(sql)
         if log.debug_log_active():
-            log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
+            log.trace(f"SQL literal {format_duration_seconds(time.perf_counter() - start)}, {cur.rowcount} row(s): {sql[:120]}",
                       area="sql", stacklevel=3)
         return _Cursor(cur)
 
@@ -1850,6 +1851,8 @@ def _apply_control_schema(conn):
     _refuse_newer(conn, _stored_version(conn, "control_schema_migrations"), CONTROL_SCHEMA_VERSION,
                   "control schema")
     _drop_old_generation_stats(conn)
+    if _stored_version(conn, "control_schema_migrations") == 23:
+        _drop_engine_ledger_v23(conn)
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     _add_control_columns(conn)
@@ -1909,6 +1912,16 @@ def _drop_old_generation_stats(conn):
     if old:
         conn.execute("DROP TABLE generation_stats")
         conn.commit()
+
+
+def _drop_engine_ledger_v23(conn):
+    """
+    v24 (OPS.215): drops the job engine's ledger tables, `engine_attempts`, `engine_jobs` and `engine_runs` (the children first), which the schema then makes again
+    with the state spelled `canceled`, as the rest of the project spells it. Nothing has written a row to them, so nothing is lost.
+    """
+    for table in ("engine_attempts", "engine_jobs", "engine_runs"):
+        conn.execute(f"DROP TABLE IF EXISTS {table}")
+    conn.commit()
 
 
 def _drop_work_queue_tables(conn):

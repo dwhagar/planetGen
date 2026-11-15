@@ -37,7 +37,7 @@ def test_a_loss_is_described_from_the_servers_own_figures(monkeypatch):
     monkeypatch.setattr(connection_loss.log, "warning", warned.append)
     connection_loss.explain_lost(object(), pymysql.err.OperationalError(2013, "Lost connection"))
     (line,) = warned
-    assert "uptime is 40 s" in line and "wait_timeout 28800 s" in line and "2013" in line
+    assert "uptime is 40 s" in line and "wait_timeout 8 hours" in line and "2013" in line
 
 
 def test_a_server_that_cannot_be_asked_still_leaves_a_warning_and_never_raises(monkeypatch):

@@ -193,6 +193,8 @@ def values_from_body(body):
         "bond_albedo": getattr(body, "bond_albedo", None),                         # GEN.1265: the temperature of every place is worked from these
         "greenhouse_factor": getattr(body, "greenhouse_factor", None),
         "ground_ocean_fraction": getattr(body, "ground_ocean_fraction", None),
+        "ocean_fraction": getattr(body, "ocean_fraction", None),                 # GEN.1723: the sea under a lid and the lid's thickness give the light that reaches it (`surface_refuge`)
+        "ice_shell_km": getattr(body, "ice_shell_km", None),
         "ground_ice_fraction": getattr(body, "ground_ice_fraction", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),

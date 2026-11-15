@@ -35,7 +35,7 @@ import math
 from collections import namedtuple
 
 from planetgen.datasets.fetch import DataMissing
-from planetgen.physics import (atmosphere, constants, habitability_world, life_classes, life_supply, main_sequence, orbits,
+from planetgen.physics import (alpha_tracks, atmosphere, constants, habitability_world, life_classes, life_supply, main_sequence, orbits,
                                stellar_evolution, unit_registry)
 
 _kg_to_msun = unit_registry.converter("kg", "Msun")
@@ -125,8 +125,9 @@ def _luminosity_ratio(star, years_gyr):
     try:
         if age + years_gyr >= stellar_evolution.main_sequence_lifetime_gy(mass, fe_h):
             return math.inf
-        now = main_sequence.state(mass, age, fe_h).luminosity_sol
-        later = main_sequence.state(mass, age + years_gyr, fe_h).luminosity_sol
+        birth = alpha_tracks.track_fe_h(fe_h, age, mass)     # GEN.1623: the one star's birth composition, held fixed as it brightens (its surface value would move with the age)
+        now = main_sequence.state(mass, age, birth).luminosity_sol
+        later = main_sequence.state(mass, age + years_gyr, birth).luminosity_sol
     except DataMissing:
         return None
     return later / now if now > 0 else None

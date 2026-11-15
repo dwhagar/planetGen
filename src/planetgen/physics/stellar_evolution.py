@@ -485,7 +485,8 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         # GEN.242: still contracting, a protostar (Class 0 and I) or a pre-main-sequence star.
         state.update(young)
     elif age_gy < t_ms:
-        on_sequence = main_sequence.state(mass_sol, age_gy, track)
+        # GEN.1623: the table is labelled by birth [Fe/H], the star's own is a surface value: read it at the birth one
+        on_sequence = main_sequence.state(mass_sol, age_gy, alpha_tracks.track_fe_h(fe_h, age_gy, mass_sol))
         state.update(yerkes_class="V", luminosity_sol=on_sequence.luminosity_sol, mass_sol=on_sequence.mass_sol,
                      temperature_k=on_sequence.temperature_k, phase_end_gy=t_ms)
     elif wr_start is not None and wr_start <= age_gy < t_end:

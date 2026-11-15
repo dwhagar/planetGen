@@ -137,7 +137,7 @@ def test_prune_counts_only_the_nodes_a_visit_asked_for(tmp_path):
 def test_a_disk_without_twice_the_room_refuses_to_start(api, tmp_path):  # noqa: F811
     with pytest.raises(tilebuild.BuildRefused) as refused:
         tilebuild.build_all("mydb", workers=1, keys=KEYS, free_bytes=1000, progress=lambda line: None)
-    assert "GB" in str(refused.value) and "free" in str(refused.value)
+    assert "8.02 MB" in str(refused.value) and "1 kB is free" in str(refused.value)
     assert not api.node_calls, "nothing was built"
     forced = tilebuild.build_all("mydb", workers=1, keys=KEYS, free_bytes=1000, force=True, progress=lambda line: None)
     assert forced["swapped"]

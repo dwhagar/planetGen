@@ -21,6 +21,7 @@ from planetgen.web.lib import apiclient
 from . import bp
 from .admin_pages import _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb
+from planetgen.util.format import format_bytes
 
 
 @bp.route("/admin/settings/images", methods=["GET", "POST"])
@@ -45,7 +46,7 @@ def admin_images():
             if not data:
                 return _flash(_see_other(target), error=f"{title}: choose a file to upload.")
             if len(data) > assets.MAX_BYTES:
-                return _flash(_see_other(target), error=f"{title}: the file is larger than {assets.MAX_BYTES // 1024} KB.")
+                return _flash(_see_other(target), error=f"{title}: the file is larger than {format_bytes(assets.MAX_BYTES)}.")
             apiclient.admin_image_upload(cookie_header, kind, base64.b64encode(data).decode("ascii"))
         except apiclient.ApiError as exc:
             return _flash(_see_other(target), error=f"{title}: {_api_message(exc)}")

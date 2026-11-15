@@ -72,8 +72,8 @@ def test_an_opening_logs_each_step_with_the_memory_the_process_holds(monkeypatch
     for text in ("is being cut into its units", "its preparation is done", "cut into 3 unit(s) after 4 s"):
         held = wrapper._say_opening(None, "r1", 9, text, held)
     assert held == 1900.0
-    assert logged[0][0] == "Opening stage 10: is being cut into its units (this process holds 1,200 MB, at most 1,200 MB so far)"
-    assert logged[2][0].endswith("(this process holds 1,500 MB, at most 1,900 MB so far)") and logged[2][1]["peak_mb"] == 1900
+    assert logged[0][0] == "Opening stage 10: is being cut into its units (this process holds 1.2 GB, at most 1.2 GB so far)"
+    assert logged[2][0].endswith("(this process holds 1.5 GB, at most 1.9 GB so far)") and logged[2][1]["peak_mb"] == 1900
     assert all(fields["kind"] == "stage.opening" and fields["stage"] == 9 for _text, fields in logged)
 
 

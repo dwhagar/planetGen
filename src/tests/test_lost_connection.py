@@ -53,6 +53,20 @@ def test_which_errors_say_the_connection_is_gone():
     assert not store.is_lost_connection(ValueError("x"))
 
 
+SKY = {"observers": [[[0, 0, 0], []]], "limit": 7.5, "part": [0, 1]}
+
+
+def _run_sky(sky):
+    """The piece of a sky unit (`run_galaxy._sky_cell`) as the engine runs it, with the unit's connection closed when it ends."""
+    from planetgen.queue import engine
+    unit = {"database": {"host": "h", "port": 1, "user": "u", "database": "d"}, "items": [], "sky": sky}
+    ctx = engine.Context("scatter-backfill", unit, lambda done, total: None)
+    try:
+        return run_galaxy._sky_cell(unit, ctx)
+    finally:
+        ctx.close()
+
+
 def test_a_sky_unit_goes_on_after_losing_its_connection(monkeypatch):
     opened, calls = [], []
 
@@ -70,14 +84,12 @@ def test_a_sky_unit_goes_on_after_losing_its_connection(monkeypatch):
 
     monkeypatch.setattr(store, "get_connection", get_connection)
     monkeypatch.setattr(sky_charting, "chart_part", chart)
-    monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
-    result = run_galaxy._sky_unit({"database": {}, "sky": {"observers": [[[0, 0, 0], []]], "limit": 7.5, "part": [0, 1]}}, lambda done, total: None)
+    result = _run_sky(SKY)
     assert len(calls) == 2 and opened == ["opened", "closed", "opened", "closed"] and result["stars"] == 7
 
 
 def test_a_sky_unit_gives_up_after_its_tries_and_other_errors_fail_at_once(monkeypatch):
     monkeypatch.setattr(store, "get_connection", lambda config=None, **options: a_store_connection(DeadConnection()))
-    monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
     calls = []
 
     def lost(conn, observers, limit, part, on_batch=None, progress=None):
@@ -85,9 +97,9 @@ def test_a_sky_unit_gives_up_after_its_tries_and_other_errors_fail_at_once(monke
         raise pymysql.err.OperationalError(2006, "gone away")
 
     monkeypatch.setattr(sky_charting, "chart_part", lost)
-    unit = {"database": {}, "sky": {"observers": [[[0, 0, 0], []]], "limit": 7.5, "part": [0, 1]}}
+    unit = SKY
     with pytest.raises(pymysql.err.OperationalError):
-        run_galaxy._sky_unit(unit, lambda done, total: None)
+        _run_sky(unit)
     assert len(calls) == run_galaxy.SKY_UNIT_CONNECTION_TRIES
     calls.clear()
 
@@ -97,7 +109,7 @@ def test_a_sky_unit_gives_up_after_its_tries_and_other_errors_fail_at_once(monke
 
     monkeypatch.setattr(sky_charting, "chart_part", other)
     with pytest.raises(ValueError):
-        run_galaxy._sky_unit(unit, lambda done, total: None)
+        _run_sky(unit)
     assert len(calls) == 1
 
 
@@ -132,7 +144,6 @@ def test_a_sky_unit_that_loses_its_connection_says_why_on_the_new_one(monkeypatc
     monkeypatch.setattr(loss, "facts", lambda conn: facts(uptime=40 if calls else 5000))
     monkeypatch.setattr(run_galaxy.log, "warning", said.append)       # OPS.171: the explanation is a warning
     monkeypatch.setattr(store, "get_connection", lambda config=None, **options: a_store_connection(DeadConnection()))
-    monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
 
     def chart(conn, observers, limit, part, on_batch=None, progress=None):
         calls.append(1)
@@ -141,7 +152,7 @@ def test_a_sky_unit_that_loses_its_connection_says_why_on_the_new_one(monkeypatc
         return {"tiers": [], "stars": 1, "seconds": 1.0, }
 
     monkeypatch.setattr(sky_charting, "chart_part", chart)
-    run_galaxy._sky_unit({"database": {}, "sky": {"observers": [[[0, 0, 0], []]], "limit": 7.5, "part": [0, 1]}}, lambda done, total: None)
+    _run_sky(SKY)
     assert any("MySQL connection lost: MySQL was restarted" in line for line in said)
 
 

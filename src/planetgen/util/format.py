@@ -325,6 +325,50 @@ def format_duration_seconds(seconds):
     return format_quantity(ladders.TIME, seconds)
 
 
+def format_bytes(count):
+    """
+    Bytes of storage or memory on the ladder B < kB < MB < GB < TB (`ladders.INFORMATION`, UX.318), the one way a size is
+    written in a log line, a report or a page: "512 B", "12.3 kB", "820 MB", "1.4 GB". `None` gives an en dash; an
+    infinite count "inf TB".
+    """
+    return format_quantity(ladders.INFORMATION, count)
+
+
+def format_megabytes(megabytes):
+    """`format_bytes` for a figure held in megabytes (a memory claim, a worker's resident size): "640 MB", "2.05 GB"."""
+    return format_quantity(ladders.INFORMATION, None if megabytes is None else megabytes * 1e6)
+
+
+def format_byte_rate(count, seconds):
+    """How fast bytes moved (UX.318): `count` bytes in `seconds` on the information ladder, "12.5 MB/s"; "" with no count or time."""
+    if not count or not seconds or count < 0 or seconds < 0:
+        return ""
+    return f"{format_bytes(count / seconds)}/s"
+
+
+def format_rate(count, seconds, noun=None, plural=None):
+    """
+    How fast something went, for a progress line or a report (UX.318): `count` items in `seconds`. At one an item a second
+    or faster the rate, "41.3 a second" ("41.3 sectors a second" with a `noun`); slower, the time one item takes on the
+    duration ladder, "2.4 s each" ("2.4 s a sector"), because "0.0 a second" says nothing. An empty string with no
+    count or no time yet. `plural` is the noun's plural when it is not the noun with an "s".
+
+    Args:
+        count (float): How many were done.
+        seconds (float): The time they took.
+        noun (str, optional): What one item is ("sector"); left out, the rate reads "a second" and "each".
+        plural (str, optional): The noun for several ("bodies"); `noun` + "s" by default.
+    """
+    if not count or not seconds or count < 0 or seconds < 0:
+        return ""
+    rate = count / seconds
+    if rate >= 1.0:
+        what = f" {plural or noun + 's'}" if noun else ""
+        return f"{format_number(rate, ',.1f')}{what} a second"
+    each = f" a {noun}" if noun else " each"
+    return f"{format_duration_seconds(seconds / count)}{each}"
+
+
 def format_period_years(years):
     """`format_duration_seconds` for a value in (Julian) years -- every
     orbital period the generator stores is in years or Gyr."""

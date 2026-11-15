@@ -46,10 +46,10 @@ DATASET = fetch.Dataset(
     fallback="no MIST point, so no luminosity, temperature, radius or lifetime for a star (an open item on the star)",
     derived=(DERIVED, POST_DERIVED),
     derive=lambda folder: derive(folder),
-    derive_version=3,
+    derive_version=4,
 )
 
-_COLUMNS = {"log_age": 1, "initial_mass": 2, "star_mass": 3, "log_l": 7, "log_teff": 10, "log_r": 11, "h1": 13, "c12": 16,
+_COLUMNS = {"log_age": 1, "initial_mass": 2, "star_mass": 3, "log_l": 7, "log_teff": 10, "log_r": 11, "h1": 13, "he3": 14, "he4": 15, "c12": 16,
             "phase": 24}
 _ABUNDANCES = re.compile(rb"^#\s+([0-9.]+)\s+([0-9.Ee+-]+)\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+([0-9.]+)\s*$")
 FIRST_POST_EEP = 454
@@ -57,10 +57,25 @@ FIRST_POST_EEP = 454
 belongs to `post_main_sequence.npz`."""
 
 
+def surface_change_dex(y_init, z_init, h1, he3, he4):
+    """
+    How far a MIST star's surface metals-to-hydrogen ratio has moved from its birth composition, in dex: `log10((Z/X)_surface / (Z/X)_birth)`,
+    the surface Z being what its hydrogen and helium leave (`1 - h1 - he3 - he4`). MIST's atomic diffusion settles the metals out of the surface of a
+    low-mass star as it ages (the 1 solar mass track at [Fe/H] 0 loses 0.05 dex of surface iron by 4.6 Gy, read from its track file), so its surface [Fe/H]
+    is lower than the [Fe/H] the grid is labelled with. The basic isochrones hold no surface iron: the change of the metals together stands for it
+    (the track's iron falls 0.006 dex more than its metals together at 1 solar mass). A row with no surface abundances (a fixture) has no change.
+    """
+    metals = 1.0 - h1 - he3 - he4
+    if h1 <= 0.0 or metals <= 0.0:
+        return 0.0
+    return math.log10((metals / h1) / (z_init / (1.0 - y_init - z_init)))
+
+
 def parse_isochrone_file(lines):
     """Reads one MIST `.iso` file (an iterable of byte lines): returns `(y_init, z_init, fe_h, rows, post_rows, pre_edge)` where
-    `rows` is a float32 array of the main-sequence rows with columns log age, initial mass, log L, log Teff, log R and
-    present mass, and `post_rows` a float64 array of the rows from `FIRST_POST_EEP` on with the columns of
+    `rows` is a float32 array of the main-sequence rows with columns log age, initial mass, log L, log Teff, log R,
+    present mass and the change of the surface's metals-to-hydrogen ratio from the birth composition, in dex (`surface_change_dex`:
+    MIST's atomic diffusion settles metals out of the surface, GEN.1623), and `post_rows` a float64 array of the rows from `FIRST_POST_EEP` on with the columns of
     `evolved_tracks.ROW_COLUMNS` (equivalent evolutionary point, log age, initial mass, present mass, log L, log Teff,
     log R, surface hydrogen and carbon fractions, phase), and `pre_edge` the heaviest star still contracting at each age (GEN.947: the
     rows of phase -1), a float64 array of `(log age, initial mass)` from the youngest age to the oldest."""
@@ -89,7 +104,8 @@ def parse_isochrone_file(lines):
             contracting[age] = max(contracting.get(age, 0.0), mass)
         elif phase == 0.0:
             rows.append([float(parts[_COLUMNS[name]])
-                         for name in ("log_age", "initial_mass", "log_l", "log_teff", "log_r", "star_mass")])
+                         for name in ("log_age", "initial_mass", "log_l", "log_teff", "log_r", "star_mass")]
+                        + [surface_change_dex(y_init, z_init, *(float(parts[_COLUMNS[name]]) for name in ("h1", "he3", "he4")))])
         elif float(parts[0]) >= FIRST_POST_EEP:
             post.append([float(parts[0])] + [float(parts[_COLUMNS[name]]) for name in (
                 "log_age", "initial_mass", "star_mass", "log_l", "log_teff", "log_r", "h1", "c12", "phase")])
@@ -126,6 +142,19 @@ def derive(folder):
     return {DERIVED: buffer.getvalue(), POST_DERIVED: post_buffer.getvalue()}
 
 
+DIFFUSION_MASS_LIMIT_SOL = 2.0
+"""float: The heaviest initial mass (solar) whose surface the grid's atomic diffusion changes (GEN.1623): above it the surface's metals-to-hydrogen ratio
+moves by under 0.005 dex at every age of the grid (0.016 dex at 1.5 solar masses, 0.005 at 2, 0.001 from 3), and what moves it is the mixing and the winds of
+a heavy star, not diffusion, which is not a difference between the star's surface and its birth [Fe/H] that this reads. A star above it is read at its [Fe/H]
+as it is. [Part of stand-in SD1, tier T6, tweak L0.]"""
+
+_STATE = slice(1, 5)
+"""slice: The columns of a block that make a main-sequence point: log L, log Teff, log R and the present mass."""
+
+_CHANGE = slice(5, 6)
+"""slice: The column of a block that holds the change of the surface's metals-to-hydrogen ratio from birth, in dex (`surface_change_dex`)."""
+
+
 @dataclass(frozen=True)
 class _Isochrone:
     """One [Fe/H]: its main-sequence blocks, one per age."""
@@ -139,7 +168,7 @@ class _Isochrone:
     """`(log age, heaviest initial mass still contracting)` rows, youngest first (GEN.947); empty when the file holds none."""
 
     @staticmethod
-    def _on_block(block, mass):
+    def _on_block(block, mass, columns=_STATE):
         masses = block[:, 0]
         if mass < masses[0] or mass > masses[-1]:
             return None
@@ -147,27 +176,36 @@ class _Isochrone:
         # The block is float32 and the mass a float64: a mass a hair past the last (or before the first) row compares
         # equal to it in float32 and the search puts it just outside, so it takes that row.
         if upper >= len(masses):
-            return block[-1, 1:5]
+            return block[-1, columns]
         if upper == 0 or masses[upper] == mass:
-            return block[upper, 1:5]
+            return block[upper, columns]
         weight = (mass - masses[upper - 1]) / (masses[upper] - masses[upper - 1])
-        return block[upper - 1, 1:5] * (1.0 - weight) + block[upper, 1:5] * weight
+        return block[upper - 1, columns] * (1.0 - weight) + block[upper, columns] * weight
 
-    def point(self, mass, log_age):
+    def point(self, mass, log_age, columns=_STATE):
         """`(log L, log Teff, log R, present mass)` on this metallicity's isochrone at `log_age`, or None if off the main
-        sequence."""
+        sequence (`columns` reads other columns of the rows in the same way)."""
         ages = self.log_ages
         if log_age < ages[0] or log_age > ages[-1]:
             return None
         upper = int(np.searchsorted(ages, log_age))
         if ages[upper] == log_age:
-            found = self._on_block(self.blocks[upper], mass)
+            found = self._on_block(self.blocks[upper], mass, columns)
             return None if found is None else tuple(found)
-        younger, older = self._on_block(self.blocks[upper - 1], mass), self._on_block(self.blocks[upper], mass)
+        younger, older = self._on_block(self.blocks[upper - 1], mass, columns), self._on_block(self.blocks[upper], mass, columns)
         if younger is None or older is None:
             return None
         weight = (log_age - ages[upper - 1]) / (ages[upper] - ages[upper - 1])
         return tuple(younger * (1 - weight) + older * weight)
+
+    def surface_change(self, mass, log_age):
+        """The change of the surface's metals-to-hydrogen ratio from the birth composition (dex, 0 or below on the main sequence: diffusion lowers it) of
+        `mass` at `log_age` on this isochrone, the age held to the mass's own span as `clamped_point` holds it; 0 for a mass the grid does not hold or one above `DIFFUSION_MASS_LIMIT_SOL`."""
+        span = self.span(mass)
+        if span is None or mass > DIFFUSION_MASS_LIMIT_SOL:
+            return 0.0
+        found = self.point(mass, min(max(log_age, span[0]), span[1]), _CHANGE)
+        return 0.0 if found is None else min(float(found[0]), 0.0)       # diffusion only lowers the surface metals
 
     def span(self, mass):
         """`(first, last)` log10 age (years) of the isochrones this mass has a main-sequence row on: from the age it
@@ -450,9 +488,32 @@ def pre_main_sequence_arrival_yr(mass_sol, fe_h):
     return 10.0 ** (found[0] + (found[1] - found[0]) * weight)
 
 
+INITIAL_FE_H_PASSES = 2
+"""int: How many times `initial_fe_h` reads the surface change at the [Fe/H] it has found (the change depends only slightly on the birth [Fe/H], so the second read settles it to a few thousandths of a dex)."""
+
+
+def initial_fe_h(mass_sol, age_gy, surface_fe_h):
+    """
+    The [Fe/H] the grid is labelled with (the birth composition) of a star of initial mass `mass_sol` solar masses that is `age_gy` Gy old on the main
+    sequence and has `surface_fe_h` at its surface now (GEN.1623). MIST includes atomic diffusion, so a star's surface metals fall as it ages (the Sun's
+    surface is about 0.07 dex under its birth value): the grid's label is the birth value and the [Fe/H] a generated star carries, drawn on the scale of
+    observed stars (spectroscopic, so a surface value), is the present one. The birth value is the surface one less the grid's own change of surface
+    [Fe/H] for the mass and age (`surface_change_dex`, read from MIST's surface hydrogen and helium), found by reading that change at the birth value the
+    first pass gives. The same star in a younger or lighter place changes less: a star at its arrival on the main sequence has its birth value.
+    """
+    log_age = float(np.log10(max(age_gy, 1e-300) * 1e9))
+    grid = _grid()
+    fe_h = surface_fe_h
+    for _ in range(INITIAL_FE_H_PASSES):
+        low, high, weight = _bracket(grid, fe_h)
+        change = low.surface_change(mass_sol, log_age) * (1 - weight) + high.surface_change(mass_sol, log_age) * weight
+        fe_h = surface_fe_h - change
+    return fe_h
+
+
 def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):
     """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a main-sequence star of initial mass `mass_sol` solar masses
-    and `age_gy` Gy at `fe_h`, or None when it has left the main sequence, is not yet on it, or its age is outside
+    and `age_gy` Gy at the grid's `fe_h` (a star's birth value: `initial_fe_h` finds it from the surface value a star carries, GEN.1623), or None when it has left the main sequence, is not yet on it, or its age is outside
     the grid (10^5 to about 10^10.3 years). With `clamp` the age is held to the mass's own span on each isochrone, the
     first row it has on the main sequence to the last (GEN.652): a star that the generator's phase times keep on the
     main sequence a little past or before MIST's own edge of it takes the row at that edge; None then only for a

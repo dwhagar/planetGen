@@ -25,6 +25,7 @@ from planetgen.admin import throttle
 from planetgen.api.config import RATELIMIT_KEY_PREFIX, ratelimit_storage_uri
 from planetgen.api.loginguard import REDIS_SCHEMES
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 
 def redis_store():
@@ -54,7 +55,7 @@ def main(argv=None):
         print("Nothing is locked.")
     for row in rows:
         until = time.strftime("%Y-%m-%d %H:%M:%SZ", time.gmtime(row["locked_until"]))
-        print(f"{row['scope']:4}  {row['subject']:40}  until {until} ({row['retry_after']} s left)")
+        print(f"{row['scope']:4}  {row['subject']:40}  until {until} ({format_duration_seconds(row['retry_after'])} left)")
     return 0
 
 

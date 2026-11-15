@@ -15,6 +15,7 @@ from planetgen.db import sky_tier_ledger as ledger_module
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import run_galaxy, sky_charting
+from planetgen.queue import commands
 from tests.test_bright_star_scatter import EDGE_PC, _stored_stars
 from tests.test_sky_charting import SPHERE_CENTER, a_tier, delete_since, galaxy  # noqa: F401 (the fixture)
 
@@ -62,7 +63,7 @@ def run_stage(conn, mysql_config, order=None, stop=None):
     params = {"database": named(mysql_config), "sky_limit": 7.5}
     units, detail = run_galaxy._sky_units(params, observers_of())
     for index in order if order is not None else range(len(units)):
-        run_galaxy.backfill_bright_stars_unit(units[index][0], lambda done, total: None)
+        commands.run_alone("scatter-backfill", units[index][0])
         conn.commit()
     run_galaxy.conclude_backfill(params, detail, [], 0.0)
     conn.commit()
@@ -108,7 +109,7 @@ def test_nothing_counts_in_the_ledger_until_the_stage_ends(galaxy, mysql_config,
     params = {"database": named(mysql_config), "sky_limit": 7.5}
     units, detail = run_galaxy._sky_units(params, observers_of())
     for args, _cost in units:
-        run_galaxy.backfill_bright_stars_unit(args, lambda done, total: None)
+        commands.run_alone("scatter-backfill", args)
         conn.commit()
     assert not ledger_module.read(conn).draws
     assert conn.execute("SELECT COUNT(*) AS n FROM sky_tier_draws WHERE part_count > 0 AND complete = 1").fetchone()["n"] == PARTS * 6
@@ -145,13 +146,13 @@ def test_a_part_stopped_part_way_goes_on_and_the_stage_ends_with_the_same_stars(
     sky_charting.draw_tier = draw_and_stop
     try:
         with pytest.raises(Stop):
-            run_galaxy.backfill_bright_stars_unit(units[1][0], lambda done, total: None)
+            commands.run_alone("scatter-backfill", units[1][0])
     finally:
         sky_charting.draw_tier = real
     conn.rollback()
     assert stopped, "the part must have been stopped after a first batch"
     for args, _cost in units:
-        run_galaxy.backfill_bright_stars_unit(args, lambda done, total: None)
+        commands.run_alone("scatter-backfill", args)
         conn.commit()
     run_galaxy.conclude_backfill(params, detail, [], 0.0)
     conn.commit()

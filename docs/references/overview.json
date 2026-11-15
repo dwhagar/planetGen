@@ -6,31 +6,31 @@
   "papers": {
     "books": 31,
     "datasets": 26,
-    "entries": 5166,
+    "entries": 5179,
     "with_arxiv": 1533,
-    "with_doi": 4928,
+    "with_doi": 4941,
     "without_doi": 238
   },
   "stand_ins": {
     "by_tier": {
-      "T1": 223,
+      "T1": 232,
       "T2": 229,
       "T3": 193,
       "T4": 138,
       "T5": 126,
-      "T6": 448,
-      "T7": 122,
+      "T6": 451,
+      "T7": 123,
       "T8": 7,
-      "T9": 206
+      "T9": 208
     },
     "by_tweak": {
-      "L0": 972,
-      "L1": 337,
-      "L2": 85,
-      "L3": 241,
-      "L4": 57
+      "L0": 982,
+      "L1": 341,
+      "L2": 87,
+      "L3": 239,
+      "L4": 58
     },
-    "rows": 1692
+    "rows": 1707
   },
   "tiers": [
     [
@@ -109,22 +109,22 @@
   "verdict": {
     "chosen_for_the_output": {
       "percent": 12,
-      "rows": 206
+      "rows": 208
     },
     "educated_guess_from_physics": {
-      "percent": 42,
-      "rows": 703
+      "percent": 41,
+      "rows": 707
     },
     "fitted_to_a_result": {
-      "percent": 23,
-      "rows": 383
+      "percent": 22,
+      "rows": 384
     },
     "read_from_a_source": {
       "percent": 27,
-      "rows": 452
+      "rows": 461
     },
     "unverified": {
-      "percent": 20,
+      "percent": 19,
       "rows": 331
     }
   }
