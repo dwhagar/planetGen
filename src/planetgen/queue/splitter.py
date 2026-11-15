@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 
 from planetgen.queue import breakpoints, splitprofile
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 TARGET_SHARE = 0.2
 """float: The share of `queue.unit_ceiling_seconds` a unit is aimed at (300 s ceiling, 60 s unit)."""
@@ -176,7 +177,7 @@ def choose(kind, decl, reading=None, resources=None, seconds=None, max_units=Non
     usual = int(sorted(sizes)[len(sizes) // 2]) if sizes else 0
     old_sizes = decl.sizes()
     shown = (round(resources.available_mb), resources.cores, resources.workers)
-    reason = (f"about {seconds:,.0f} s a unit at {reading.seconds_per_item * 1000:,.2f} ms an item on {resources.workers} worker(s) with {resources.available_mb:,.0f} MB free; "
+    reason = (f"about {format_duration_seconds(seconds)} a unit at {format_duration_seconds(reading.seconds_per_item)} an item on {resources.workers} worker(s) with {format_megabytes(resources.available_mb)} free; "
               f"limited by {limit}")
     return Decision(kind, decl.split, BY_PROFILE, reason, decl.items, cuts, len(old_sizes), decl.suggested_unit_items(), len(sizes), usual,
                     samples=reading.samples, seconds_per_item=reading.seconds_per_item, limit=limit, resources=shown)

@@ -12739,12 +12739,12 @@ clears each one.
 
 - [ ] **OPS.221 Job engine stage 3: held items and held runs (a lasting failure holds the item, the rest goes on; Retry held and Cancel on the Queue page, CLI and API)**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L7 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.218, OPS.220. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.218, OPS.220. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.222 Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.223 Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146**
@@ -13079,19 +13079,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
-- [ ] **TEST.754 (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet**
-  Train Manager, 1:50 AM EST 2026-11-15 (Train 30 round 2): src/tests/test_habitability_end_to_end_browser.py::test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main alone; Lane 03 found the seeded system has no habitable planet at line 119. Fix the seed choice the way PR 6605 did for HABITABLE_SEED (pick by what the test needs, not a fixed seed that generation changes can empty), no skip.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: TEST.737, TEST.740.
+- [ ] **GEN.1733 Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling**
+  Class M tiers thread, 2:27 AM EST 2026-11-15 (meter rows /mnt/project-files/reports/class-m-tiers-build/meter-gen1720-cycle-dial-04c9b239-abundant-400.jsonl.gz, Abundant, 400 Sun-like systems on PR #6601): on 6 of the 7 oxygen-rich worlds in the right CO2 band, oxygen sits at 35.5 to 35.7 kPa, at or a hair over the 35.5 kPa limit of the five habitable classes, so they pass only by the class rules' tolerance and none sits near Earth's 21 kPa. Measure first why the oxygen law's balance lands on that value (a cap, a fire limit or a sink that does not bite), then fix on physics, every galaxy.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1723; same law as GEN.1729). Prerequisites: GEN.1723. Related: GEN.1729, GEN.1720, GEN.1706.
   Filed by the TODO thread.
 
-- [ ] **TEST.755 (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand**
-  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_hand_formatted_units fails on main dc5567f47 for queue/units.py (line 714, " h ") and queue/splitter.py: UX.318 (PR #6574) requires planetgen.util.format helpers (format_duration_seconds and kin). Use the helpers; no allow-list entry.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
-  Filed by the TODO thread.
-
-- [ ] **TEST.756 (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB"**
-  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_run_record::test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it fails on main dc5567f47 ("1.49 GB" expected, "1487 MB" written). Decide which side follows the shared size formatter of UX.318 and make the other agree; no skip.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
+- [ ] **GEN.1734 (bug) RecursionError in copy.deepcopy of a Planet in life._trial_copy from run_sector._add_planetary_nebula**
+  Train Manager, 2:28 AM EST 2026-11-15: tests/test_census_component_wholesphere fails on main (dc5567f470) with a RecursionError in copy.deepcopy of a Planet inside life._trial_copy (life.py:303), reached from run_sector._add_planetary_nebula. Train 30 passes only because its star draws differ, so the cause likely remains (a Planet chain copied too deep, or a planet reached through a back-reference again and again). Find the cycle and copy only what the trial needs; no recursion-limit raise.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 05 (planetary nebula hosts; coordinate with Lane 04 on life.py). Prerequisites: none. Related: GEN.1723.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
