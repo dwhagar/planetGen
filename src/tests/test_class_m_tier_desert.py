@@ -65,7 +65,7 @@ def test_with_a_quiet_interior_a_warm_desert_sea_out_produces_its_volcanoes_and_
 
 def _planets(tier, count, quiet=None, monkeypatch=None):
     if quiet is not None:
-        monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, tier, (0.0, 0.0, 0.0, 0.0, quiet))
+        monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, tier, (0.0, 0.0, 0.0, 0.0, quiet, 0.0))
     config = SystemConfig()
     config.STAR_TYPE = "G2V"
     config.ABUNDANCE_TIER = tier
