@@ -358,3 +358,23 @@ def test_a_unit_may_let_go_of_its_connection_early_and_ctx_db_opens_another_on_t
     assert closed == [1] and ctx.db is not first and len(opened) == 2
     ctx.close()
     assert closed == [1, 2]
+
+
+def test_what_a_piece_registered_with_on_close_is_closed_when_the_unit_ends_however_it_ends_last_in_first_out(command):
+    """OPS.202: a resource the pieces share (a pool of processes) is closed by the engine, also when a piece fails."""
+    order = []
+
+    def piece(args, piece, ctx):
+        ctx.on_close(lambda: order.append(f"closed {piece}"))
+        if piece == 1:
+            raise RuntimeError("boom")
+
+    STATE["piece"] = piece
+    command(do=(__name__, "registering"))
+    with pytest.raises(RuntimeError):
+        engine.run("engine-test", {"count": 3}, Report())
+    assert order == ["closed 1", "closed 0"]
+
+
+def registering(args, piece, ctx):
+    return STATE["piece"](args, piece, ctx)

@@ -21,21 +21,30 @@ def test_science_is_the_default_and_every_dial_is_off():
     config = SystemConfig()
     assert config.ABUNDANCE_TIER is None and abundance_tier.tier_of(config) == "science"
     assert "ABUNDANCE_TIER" not in vars(config)      # a class attribute: a config on science holds no field of it (the golden digests list every field)
-    assert abundance_tier.dials_of(config) == abundance_tier.OFF == (0.0, 0.0, 0.0)
+    assert abundance_tier.dials_of(config) == abundance_tier.OFF == (0.0, 0.0, 0.0, 0.0)
     assert not abundance_tier.active(config) and abundance_tier.request_share(config) == 0.0
     for tier in (None, "science"):
         planet = _planet(tier)
-        assert abundance_tier.water_share(planet) == 0.0 and abundance_tier.bare_share(planet) == 0.0
+        assert abundance_tier.water_share(planet) == 0.0 and abundance_tier.bare_share(planet) == 0.0 and abundance_tier.dry_part(planet) == 0.0
 
 
-def test_every_other_tier_has_a_row_of_three_shares_that_never_fall_from_one_tier_to_the_next():
+def test_every_other_tier_has_a_row_of_four_shares_that_never_fall_from_one_tier_to_the_next():
     assert set(tuning.ABUNDANCE_TIER_DIALS) == set(abundance_tier.TIERS) - {"science"}
     assert set(abundance_tier.TARGET_SYSTEMS_PER_CLASS_M) == set(abundance_tier.TIERS)
     rows = [abundance_tier.dials_of(_planet(tier)) for tier in abundance_tier.TIERS]
     for lower, higher in zip(rows, rows[1:]):
         assert all(0.0 <= a <= b <= 1.0 for a, b in zip(lower, higher))
+    assert all(len(row) == 4 and 0.0 < row.dry_part < 0.5 for row in rows[1:])        # desert worlds beside the temperate one, which stays the larger part (GEN.1721)
     targets = [abundance_tier.TARGET_SYSTEMS_PER_CLASS_M[tier] for tier in abundance_tier.TIERS[1:]]
     assert targets == sorted(targets, reverse=True)
+
+
+def test_the_targets_run_from_one_in_500_to_one_in_10_in_even_log_steps():
+    targets = [abundance_tier.TARGET_SYSTEMS_PER_CLASS_M[tier] for tier in abundance_tier.TIERS[1:]]
+    assert targets[0] == 500 and targets[-1] == 10          # Boss, 9:28 and 9:30 PM EST 2026-11-14
+    step = (targets[0] / targets[-1]) ** (1.0 / (len(targets) - 1))
+    for lower, higher in zip(targets, targets[1:]):
+        assert abs(lower / higher / step - 1.0) < 0.02       # whole numbers, so even to within 2 percent
 
 
 def test_the_tier_is_not_saved_with_a_system_config():
@@ -56,6 +65,7 @@ def test_the_water_and_envelope_dials_act_on_rocky_planets_in_the_ecosphere_only
     assert abundance_tier.candidate(inside)
     assert abundance_tier.water_share(inside) == tuning.ABUNDANCE_TIER_DIALS["abundant"][0] > 0.0
     assert abundance_tier.bare_share(inside) == tuning.ABUNDANCE_TIER_DIALS["abundant"][1] > 0.0
+    assert abundance_tier.dry_part(inside) == tuning.ABUNDANCE_TIER_DIALS["abundant"][3] > 0.0
     outside = _planet("abundant", **changes)
     assert not abundance_tier.candidate(outside)
     assert abundance_tier.water_share(outside) == 0.0 and abundance_tier.bare_share(outside) == 0.0

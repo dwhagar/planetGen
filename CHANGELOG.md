@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4196] - 2026-11-15
+
+**Headline:** A Class M abundance tier now makes desert worlds beside the temperate ones, and the meter counts all five habitable classes.
+
+### Added
+- **The dry part of the water dial (GEN.1721, first slice; Boss, 8:24 PM EST 2026-11-14: classes H, O, P and R present beside M, M in front).** Under a tier other than Science, one in five of the rocky planets the water dial reaches takes the dry water class (under 0.025 percent of its mass, the water of a desert world) and the rest take Earth's as before; the planet's air takes the row of the same class. The dial makes no draw of its own (it splits the water dial's one draw), so the same planets are reached. `tuning.ABUNDANCE_TIER_DIALS` rows are now `(water_share, bare_share, request_share, dry_part)`; registry row 6.289:AT5 (tier T9, tweak L4, a first-pass value for the calibration of GEN.1706).
+- **The habitable family in the meter.** `scripts/class_m_meter.py report` prints, per tier, a table of classes M, H, O, P and R: worlds and systems holding one per 1,000 systems, the planets with each class's shape (its own limits of temperature, water cover and gravity) and how many of them pass its limits of pressure, oxygen and carbon dioxide. The limits are read from the class rules.
+- **Design:** `docs/design/habitability/class-m-abundance-tiers.md` section 8 (what stops each of the five classes and the dials still to build: groundwater, the early warm phase and hardier oxygen life).
+
+### Changed
+- **New tier targets (Boss, 9:28 and 9:30 PM EST 2026-11-14).** Sparse aims at 1 Class M world per 500 Sun-like systems, Scattered at 1 per 135, Plentiful at 1 per 37 and Abundant at 1 per 10 (were 1,000, 100, 30 and 10): Sparse and Abundant are the ends and the two between are split evenly on a log scale, each step about 3.7 times. The laws alone measured 1 in 2,800 on 2,800 Sun-like systems. A target is what the dials are calibrated to (GEN.1706); no dial value moves with it.
+- `delivered_water.drawn_for_earth` and the `earth` argument of `sample_fraction` are replaced by `dialed_class` and `dialed` (the class name); `body._water_dialed` holds the class name.
+
+Science is untouched: every dial is 0 there, no draw is made and the golden systems are byte for byte the same (no generator epoch, no migration). A dry planet is Class H only with groundwater and oxygen, which later slices of GEN.1721 address, so this slice alone makes desert-shaped planets, not yet many Class H worlds.
+
+Reuse: the water dial's draw and pin (`bulk_draw._rocky_water`, `mixture_subject`), the classes and rows of `physics/delivered_water.py`, `class_fit.overshoot` and `class_fit.CLASSES` for the meter's limits, and the census thread's `five_classes.py` for the table's shape.
+
+generation-affects: none
+
+## [8.0.4195] - 2026-11-15
+
+**Headline:** The neighbour link, the sector-path settle and the `sector` run's sectors now run as pieces the job engine counts, so their units show real counts and honour a cancel or a pause between two batches.
+
+### Changed
+
+- OPS.202, first part: `link-neighbors` gives the engine one piece per batch of `store.LINK_BATCH_SECTORS` sectors (each batch still one transaction under the neighbour lock, retried on a deadlock as before), `settle-sector-paths` one piece per batch of `sector_paths.SETTLE_BATCH` sectors that sit together (`sector_paths.settle_batch`; each sector committed through `ctx.commit()`), and `generate-unplaced-sector` one piece per sector of a `sector` run. The old unit functions `link_neighbors_unit`, `save_sector_paths_unit` and `unplaced_sectors_unit` are gone.
+- `settle_sectors` (for the API's edits and the tests) runs the same `settle_batch`; the process pool a crowded sector's bodies are integrated in is opened by the first batch and shut down when the unit ends (new `ctx.on_close`, which the engine runs last in first out however the unit ends).
+- A stage's results are unchanged: `linked`, `saved` and `visited`, and the sectors a `sector` run reports.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4194] - 2026-11-15
+
+**Headline:** The tests that need civilized systems start quickly again: their pinned candidates are refreshed for the current generator, and the guard now checks every pin, not the first.
+
+### Fixed
+
+- TEST.753: Train 28's epoch 150 changed the draws, so two of the three pinned candidates in `tests/data/civilized_pins.json` no longer held a civilization and every test needing two civilized systems hunted for new ones at 20 to 30 s each (tens of minutes). The pins are written again (`tests/civilized_pins.py`, hunted across three processes) and `test_the_pinned_civilized_seeds_still_qualify` checks every pin.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4193] - 2026-11-15
+
+**Headline:** A law for the light that reaches the water under ice and snow now exists (`physics/ice_light.py`), so the oxygen that life makes under a frozen lid can be counted by the light that gets through.
+
+### Added
+- GEN.1726: `ice_light.transmission` gives the share of the photosynthetic light that reaches the water under a lid, `(1 - albedo) exp(-k_ice h_ice) exp(-k_snow h_snow)`, with coefficients from measurements under Antarctic pack ice, Arctic first-year ice and a perennially ice-covered lake (sea ice k 1.26 per metre, clear lake ice 0.32, snow 30; bare sea ice albedo 0.6, snow 0.9). It reproduces Lake A (8.5 percent against 5.7 to 6.6 measured) and the under-0.1-percent of spring pack ice. `thickest_ice_m` and `deepest_snow_m` give the lid that still passes a given share of the light (about 6.6 m of sea ice for one part in ten thousand). Registered as stand-ins IL1 to IL6 in section 6.293 of the gap plan; design note `docs/design/habitability/light-through-ice.md`. Nothing reads it yet: the oxygen under ice is GEN.1723, and the thickness of a world's ice and snow is an open gap.
+
+### Changed
+- `scripts/build_references.py` no longer carries a person's address: the contact it sends to Crossref's lookups is read from `PLANETGEN_REFERENCES_CONTACT` and is empty by default. Five papers added to the reference list (R5264 to R5268).
+
 ## [8.0.4192] - 2026-11-15
 
 **Headline:** The job engine's ledger spells the state of a run or job that was stopped on purpose `canceled`, as the rest of the project does.
