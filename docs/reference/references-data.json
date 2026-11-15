@@ -79996,6 +79996,29 @@
    "volume": "36",
    "year": 1985
   },
+  "10.1007/bf01231120": {
+   "authors": [
+    [
+     "Borderies",
+     "N."
+    ],
+    [
+     "Goldreich",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/bf01231120",
+   "editors": [],
+   "journal": "Celestial Mechanics",
+   "page": "127",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems",
+   "type": "journal-article",
+   "volume": "32",
+   "year": 1984
+  },
   "10.1007/bf01235540": {
    "authors": [
     [
@@ -102211,6 +102234,29 @@
    "volume": "176",
    "year": 2000
   },
+  "10.1016/s0016-7037(01)00685-8": {
+   "authors": [
+    [
+     "Lasaga",
+     "A. C."
+    ],
+    [
+     "Ohmoto",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s0016-7037(01)00685-8",
+   "editors": [],
+   "journal": "GeCoA",
+   "page": "361",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The oxygen geochemical cycle: dynamics and stability",
+   "type": "journal-article",
+   "volume": "66",
+   "year": 2002
+  },
   "10.1016/s0016-7037(02)00950-x": {
    "authors": [
     [
@@ -124218,6 +124264,33 @@
    "type": "journal-article",
    "volume": "7",
    "year": 2016
+  },
+  "10.1038/ncomms14379": {
+   "authors": [
+    [
+     "Daines",
+     "S. J."
+    ],
+    [
+     "Mills",
+     "B. J. W."
+    ],
+    [
+     "Lenton",
+     "T. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/ncomms14379",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "14379",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Atmospheric oxygen regulation at low Proterozoic levels by incomplete oxidative weathering of sedimentary organic carbon",
+   "type": "journal-article",
+   "volume": "8",
+   "year": 2017
   },
   "10.1038/ncomms15423": {
    "authors": [
@@ -244174,6 +244247,25 @@
    "volume": "296",
    "year": 1996
   },
+  "10.2475/ajs.304.5.397": {
+   "authors": [
+    [
+     "Bergman",
+     "N. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.2475/ajs.304.5.397",
+   "editors": [],
+   "journal": "American Journal of Science",
+   "page": "397",
+   "publisher": "American Journal of Science (AJS)",
+   "src": "crossref",
+   "title": "COPSE: A new model of biogeochemical cycling over Phanerozoic time",
+   "type": "journal-article",
+   "volume": "304",
+   "year": 2004
+  },
   "10.2514/6.1996-3346": {
    "authors": [
     [
@@ -285962,7 +286054,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5288,
+ "id_next": 5289,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286206,6 +286298,7 @@
   "10.1007/bf00897085": "R0913",
   "10.1007/bf01042549": "R0387",
   "10.1007/bf01227493": "R4597",
+  "10.1007/bf01231120": "R5288",
   "10.1007/bf01235540": "R1632",
   "10.1007/bf01386217": "R0287",
   "10.1007/bf02424427": "R4128",
@@ -286895,6 +286988,7 @@
   "10.1016/s0012-821x(03)00297-8": "R4891",
   "10.1016/s0012-821x(03)00506-5": "R2926",
   "10.1016/s0012-821x(99)00318-0": "R3170",
+  "10.1016/s0016-7037(01)00685-8": "R5282",
   "10.1016/s0016-7037(02)00950-x": "R1980",
   "10.1016/s0016-7037(02)01407-2": "R1492",
   "10.1016/s0016-7037(03)00259-x": "R2675",
@@ -287577,6 +287671,7 @@
   "10.1038/ncomms11201": "R2772",
   "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
+  "10.1038/ncomms14379": "R5281",
   "10.1038/ncomms15423": "R2489",
   "10.1038/news.2011.205": "R4645",
   "10.1038/ng.3067": "R2748",
@@ -290364,6 +290459,7 @@
   "10.2475/001c.118215": "R2694",
   "10.2475/ajs.293.8.758": "R4284",
   "10.2475/ajs.296.1.23": "R2882",
+  "10.2475/ajs.304.5.397": "R5280",
   "10.2514/6.1996-3346": "R4758",
   "10.2514/6.2008-7661": "R0196",
   "10.2514/6.2009-6597": "R0195",
