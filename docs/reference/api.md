@@ -1115,11 +1115,15 @@ forced credential change. They back the admin stats page
   `"peak_mb"`, `"cpu_seconds"`, `"error_kind"`, `"error_text"`, `"stack_file"`).
   `GET /api/admin/work/history` answers the runs the ledger holds, newest first:
   `{"available", "total", "items": [{"id", "kind", "galaxy", "state" ("waiting",
-  "running", "held", "done" or "cancelled"), "held_reason", "created",
+  "running", "held", "done" or "canceled"), "held_reason", "created",
   "started", "finished", "jobs": {state: n}, "attempts"}], "facets": {"state":
   {value: runs}, "kind": {...}}, "limit", "offset"}`, filtered by `state`, `kind`
   and `galaxy`.
-- `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}` —
+- `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"|"retry-held"}` —
+  retry-held (OPS.221) carries a run that is held for a person on: it takes
+  the machine back, queues each held unit again as it was cut and answers
+  `{"ok": true, "requeued": n}`; `{"ok": false}` for a run that is not held,
+  409 when another run owns the machine. cancel also ends a held run.
   cancel stops a live run now: its waiting units are taken off the queue,
   its started units are sent RQ's stop command, and the machine is free
   (measured under a second for a run of 4,000 units); clear ends a run that

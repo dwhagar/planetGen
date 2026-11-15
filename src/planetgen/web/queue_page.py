@@ -32,6 +32,7 @@ KIND_LABELS = {"generation": "Generation", "maintenance": "Maintenance", "check"
 
 STATE_LABELS = {
     "running": "Running",
+    "held": "Held",
     "canceling": "Canceling",
     "done": "Done",
     "failed": "Failed",
@@ -43,6 +44,8 @@ STAGE_STATE_LABELS = {"waiting": "Waiting", "running": "Running", "done": "Done"
 ACTION_TEXT = {
     "cancel": ("Cancel", "Its running units are stopped and nothing more is started; the units that finished keep "
                          "what they saved. The machine is free for the next run at once."),
+    "retry-held": ("Retry held", "Every unit that failed for good is queued again as it was cut, and the run takes the machine back and goes on. Use it after the cause is fixed (the "
+                                 "failed jobs list each error). Refused while another run owns the machine."),
     "clear": ("Clear", "It has stopped answering: its process is gone or it has not been heard from for too long. It is "
                        "ended as failed and the machine is freed so the next run can start."),
     "resume": ("Resume run", "The run was ended from outside its work (killed, canceled or cleared). A new run carries it on: the stages it finished are kept, and the first stage it did not finish "
@@ -119,6 +122,8 @@ def _can_resume(run):
 
 def _actions(run):
     """The controls an admin can use on `run` now."""
+    if run["state"] == "held":
+        return ["retry-held", "cancel"]
     if run["live"]:
         return ["cancel", "clear"] if run["stale"] else ["cancel"]
     actions = ["resume"] if _can_resume(run) else []
@@ -899,7 +904,7 @@ def admin_queue_action():
             message, error = _start_resume(admin, cookie_header, run)
             if message:
                 target = url_for("web.generate", _anchor="current-job")
-        elif action in ("cancel", "clear", "retry", "delete"):
+        elif action in ("cancel", "clear", "retry", "retry-held", "delete"):
             _body, run = _load(cookie_header, run_id) if runrecord.RUN_ID_RE.match(run_id) else (None, None)
             if run is None:
                 return _flash(_see_other(target), error="That run is no longer there.")
@@ -918,10 +923,14 @@ def admin_queue_action():
                         target = url_for("web.generate", _anchor="current-job")
             else:
                 ok = apiclient.admin_work_control(cookie_header, run_id, action)
-                if ok:
+                if ok and action == "retry-held":
+                    message = f"The held units of “{run['title']}” are queued again and the run goes on."
+                elif ok:
                     message = f"{'Canceled' if action == 'cancel' else 'Cleared'} “{run['title']}”."
                     if action == "cancel":     # back to the page the run's page was opened from, as the Generate job page does
                         target = safe_next(request.form.get("next"), default=target)
+                elif action == "retry-held":
+                    error = f"“{run['title']}” is not held any more."
                 elif action == "clear":
                     error = f"“{run['title']}” is still answering, or has finished. Cancel it instead."
                 else:

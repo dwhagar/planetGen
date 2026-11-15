@@ -19,6 +19,7 @@
   </dl>
   {%- if run.error %}<p class="error">{{ run.error }}</p>{% endif %}
   {%- if run.killed %}<p class="error">This run was killed{% if run.killed_reason %}: {{ run.killed_reason }}{% endif %}. A killed run can be carried on from the stage it did not finish.</p>{% endif %}
+  {%- if run.state == 'held' %}<p class="error">This run is held: units failed for good and nothing more can run. <a href="{{ url_for('web.admin_queue_jobs', run_id=run.id, rjobs_state='failed') }}">The failed jobs and their errors</a>. Fix the cause, then Retry held; Cancel ends the run.</p>{% endif %}
   {%- if run.stale %}<p class="error">This run has not been heard from for too long: it has stopped answering.</p>{% endif %}
   <p class="queue-actions">
     {%- for action, label in run.actions %}

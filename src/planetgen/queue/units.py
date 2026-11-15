@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, held, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -170,12 +170,29 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
     queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
     timeout = unit_timeout(expected_seconds)
     for start in range(0, len(units), ENQUEUE_BATCH):
-        queue.enqueue_many([
-            queue.prepare_data(
-                UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost, None if rows is None else rows[index]), job_id=job_id(run_id, stage, index),
-                timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
-                retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
-            for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
+        queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, None if rows is None else rows[index], timeout)
+                            for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
+
+
+def _prepared(queue, run_id, stage, index, kind, args, cost, row, timeout):
+    """The RQ job of one unit, ready to queue."""
+    return queue.prepare_data(
+        UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost, row), job_id=job_id(run_id, stage, index),
+        timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
+        retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
+
+
+def requeue_unit(conn, run_id, stage, index, kind, args, cost, row, queue_name=None, expected_seconds=None):
+    """
+    Queues one unit of the run again with the index and the row it was cut with (OPS.221: a held unit after "Retry held"). What RQ kept of the unit's failed job (its record and its place in the failed
+    registry, which share the job id) is removed first.
+    """
+    queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
+    try:
+        rq.job.Job.fetch(job_id(run_id, stage, index), connection=conn).delete()
+    except rq.exceptions.NoSuchJobError:
+        pass
+    queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, row, unit_timeout(expected_seconds))])
 
 
 def row_of(job):
@@ -204,7 +221,11 @@ def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
             repair_unended_stages(conn, run_id)
             return {"resumed": True}
         return {"skipped": True}
-    return _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost, row))
+    if held.is_held(conn, run_id, stage, unit):         # OPS.221: RQ's retry of a unit that failed for good; "Retry held" queues it again by hand
+        return {"skipped": True}
+    result = _relayed(conn, run_id, wanted, lambda: _do_unit(conn, run_id, stage, unit, kind, args, cost, row))
+    held.settle(conn, run_id)                           # a unit that ends beside a held one may have been the last thing that could run
+    return result
 
 
 def _run_settings(conn, run_id):
@@ -551,6 +572,11 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     log.record_error("queue", f"Unit {unit} of stage {stage_name} failed: {exc_type.__name__}: {exc_value}",
                      exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit,
                      kind=job.args[3] if len(job.args) > 3 else "?")
+    if row_of(job) is not None and not unqueued:
+        # OPS.221: a unit with a row in the ledger is held for a person; the rest of the run goes on, and the run is held when nothing more can run
+        held.hold_unit(connection, run_id, stage, unit, row_of(job), f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
+        requires.job_failed(job, connection, exc_type, exc_value)
+        return
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {stage_name} failed: "
                                f"{exc_type.__name__}: {exc_value}{unqueued}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
@@ -603,7 +629,11 @@ def horse_killed(job, retpid, ret_val, _rusage):
         else:
             doing, what = f"opening stage {index} of run {run_id}", f"the opening of stage {wrapper.stage_name(conn, run_id, index)}"
         log.process_ended("queue", f"The process {doing}, pid {retpid},", status, deliberate=(), pid=retpid)
-        runrecord.finish_run(conn, run_id, "failed", error=f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
+        error = f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}"
+        if job.func_name == UNIT_FUNCTION and row_of(job) is not None and runrecord.run_state(conn, run_id) in runrecord.LIVE_STATES:
+            held.hold_unit(conn, run_id, index, unit, row_of(job), error, killed=True)         # OPS.221: held for a person, as a unit that failed
+        else:
+            runrecord.finish_run(conn, run_id, "failed", error=error, killed=True)
     else:
         log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
 

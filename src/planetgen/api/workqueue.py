@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, warmphases, work as workQueue, workers as queueWorkers
 from planetgen.util import log
 
 from .authz import audit, require_admin
@@ -286,7 +286,8 @@ def run_log(run_id):
 @require_admin(fresh=True)
 def control(run_id):
     """
-    `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}`. Cancel stops a live run now (its waiting units are
+    `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"|"retry-held"}`. `retry-held` carries a run held for a person on (OPS.221: its held units are queued again, `held.retry_held`) and returns `{"ok",
+    "requeued"}`; 409 when another run owns the machine. Cancel stops a live run now (its waiting units are
     taken off the queue, its started ones sent the stop command, the machine is freed); clear ends a run that has stopped
     answering (`runcontrol.is_clearable`) and frees the machine. Returns `{"ok": bool, "canceled", "stopped"}`: false
     when the run is over or, for clear, still answering.
@@ -300,6 +301,14 @@ def control(run_id):
     if run is None:
         raise ApiError("No such run.", 404)
     who = g.admin_user["username"]
+    if action == "retry-held":
+        try:
+            carried = held.retry_held(connection, run_id, who=who)
+        except runrecord.Busy as exc:
+            raise ApiError(str(exc), 409) from exc
+        if carried is not None:
+            audit("work.retry-held", target=f"run:{run_id}", detail=f"{carried['requeued']} units; {run['title'][:150]}")
+        return jsonify({"ok": carried is not None, **(carried or {})})
     stopped = (runcontrol.cancel_run if action == "cancel" else runcontrol.clear_run)(connection, run_id, who=who)
     if stopped is not None:
         audit(f"work.{action}", target=f"run:{run_id}", detail=run["title"][:200])

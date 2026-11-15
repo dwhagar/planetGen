@@ -5,7 +5,7 @@ What an admin can do to a run in Redis (PERF.99, docs/design/operations/redis-an
 it, clear one that has stopped answering, delete a finished one, and keep its log. The Queue page and the Generate page
 call these; nothing here knows a page.
 
-* `cancel_run` -- sets the run to `canceling` (the unit that completes a stage then queues no next one, and a unit that
+* `cancel_run` -- (also for a run held for a person, OPS.221) sets the run to `canceling` (the unit that completes a stage then queues no next one, and a unit that
   has not started finds the run not running and does nothing), cancels the stage's waiting units, sends RQ's stop command
   to the started ones, and ends the run `canceled`, which frees the machine. The job ids follow from the run id, the
   stage and the unit's index (`units.job_id`), so there is no list to keep; the lookups are one pipeline, so a run of
@@ -21,7 +21,7 @@ import os
 import rq
 from rq import command
 
-from planetgen.queue import redisqueue, runrecord, units, wrapper
+from planetgen.queue import held, redisqueue, runrecord, units, wrapper
 from planetgen.util import log
 
 KEEP_LOGS = 20
@@ -96,10 +96,13 @@ def cancel_run(conn, run_id, who=None, now=None):
         dict | None: What was stopped (`stop_units`), or `None` when the run is unknown or already over.
     """
     run = runrecord.read_run(conn, run_id)
-    if run is None or run["state"] not in runrecord.LIVE_STATES:
+    if run is None or run["state"] not in runrecord.LIVE_STATES + (runrecord.HELD,):
         return None
-    runrecord.request_cancel(conn, run_id, now)
-    return _end(conn, run, "canceled", f"canceled by {who}" if who else "canceled", now)
+    runrecord.request_cancel(conn, run_id, now)         # a held run is not live: it is ended below with nothing to stop
+    ended = _end(conn, run, "canceled", f"canceled by {who}" if who else "canceled", now)
+    if run["state"] == runrecord.HELD:
+        held.mark_run(conn, run_id, "canceled", f"canceled by {who}" if who else "canceled")      # OPS.221: the ledger's run row follows
+    return ended
 
 
 def is_clearable(conn, run, now=None):
@@ -125,7 +128,7 @@ def clear_run(conn, run_id, who=None, now=None):
 def _end(conn, run, state, error, now, killed=False):
     """Stops the run's units, ends the run in `state` with `error` and writes its log; returns what `stop_units` stopped."""
     stopped = stop_units(conn, run)
-    runrecord.finish_run(conn, run["id"], state, error=error, now=now, killed=killed)
+    runrecord.finish_run(conn, run["id"], state, error=error, now=now, killed=killed, from_held=run["state"] == runrecord.HELD)
     write_log(conn, run["id"])
     return stopped
 
