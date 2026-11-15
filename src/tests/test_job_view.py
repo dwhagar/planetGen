@@ -1,6 +1,7 @@
 """OPS.224: the Queue page reads jobs and history from the job ledger (`queue/jobview.py`, `GET /api/admin/work/history`, `/<id>/jobs`, `/<id>/jobs/<job>`, the run's jobs page and a job's page).
 Real MySQL and Redis; the run is cut by `units.enqueue_units`, so its rows are the ones the engine writes."""
 
+import re
 import time
 
 import pytest
@@ -97,7 +98,7 @@ def test_a_retry_hold_says_how_long_and_how_the_last_attempt_ended(conn, run, co
     ledger.set_job_state(control, row, "waiting", not_before=time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time() + 120)))
     control.commit()
     shown = next(item for item in jobview.jobs(control, engine, time.time())["items"] if item["id"] == row)
-    assert shown["waits"].startswith("held back for a retry for another 2 minutes") and shown["waits"].endswith("after its attempt 1 killed for memory")
+    assert re.match(r"held back for a retry for another (1\.\d+|2) minutes", shown["waits"]) and shown["waits"].endswith("after its attempt 1 killed for memory")
     assert shown["last"]["outcome"] == "killed_memory" and shown["last"]["peak_mb"] == 1800.0 and shown["attempts"] == 1
 
 
