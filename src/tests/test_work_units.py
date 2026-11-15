@@ -897,6 +897,7 @@ def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():
     assert "secret" not in json.dumps(unit_args)
 
 
+@pytest.mark.timeout(3600)    # TEST.763: it runs a whole 36-sector galaxy through the real queue, 21 min 12 s on a 4-core lane box (11-15), against the default 900 s that ends it (TEST.621)
 @pytest.mark.fresh_database
 def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units(mysql_config, monkeypatch, capsys):
     from planetgen.db import store
