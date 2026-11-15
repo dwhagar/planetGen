@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1707 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1709 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1680 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1682 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 115 | 56 | 13 | 9 | 0 | 193 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
-| T6 | 222 | 118 | 33 | 74 | 4 | 451 |
+| T6 | 222 | 118 | 33 | 76 | 4 | 453 |
 | T7 | 58 | 24 | 10 | 31 | 0 | 123 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 39 | 208 |
-| All | 982 | 341 | 87 | 239 | 58 | 1707 |
+| All | 982 | 341 | 87 | 241 | 58 | 1709 |
 
 ## How the labels were given
 
@@ -2742,6 +2742,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| LA1 | P | T6 | L3 | `late_accretion.FLOOR_SHARE` 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches) | 0.01 to 0.2 | rocky planets of 0.3 to 3 Earth masses | a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass | a model of the leftover planetesimals of a system with no belt | recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, `reports/gen1493-late-accretion-census-2026-11-09.md`: 43 percent of 246 planets take the floor) | predicted only | - | replace (GEN.1493) |
+| LA2 | T | T6 | L3 | a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do | none | rocky planets of single and multiple stars | a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains | a draw of the belt's mass and reach from the nebula | design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent | predicted only | - | no data |
 | LA3 | P | T6 | L3 | `planets.LATE_ACCRETION_GATE` 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does) | 0.1 to 1 | rocky planets of 0.3 to 3 Earth masses with an air | a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found | the full replay for every planet, when the cost allows | fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, `reports/gen1493-late-accretion-census-2026-11-09.md`); at 1.0 the worst of 60 planets was 29 percent | predicted only | - | replace (GEN.1493) |
 
 ## 6.256 Stand-ins of a companion star's secular forcing of a belt
