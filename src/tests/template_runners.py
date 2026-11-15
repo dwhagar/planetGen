@@ -61,3 +61,11 @@ def pieces(job, link):
 def lingers(job, link):
     """Lives until killed, checking nothing: a job that outlasts its template."""
     time.sleep(60)
+
+
+def unit_in_the_tests_queue(job, link):
+    """`forkedjob.run` for a test: the key prefix and queue names the test's own queue uses (`tests/inline_queue.py`) are the process's own settings in production, so a test hands them over."""
+    from planetgen.queue import forkedjob, memorygate, redisqueue, runrecord
+    runrecord.PREFIX, memorygate.PREFIX = job["prefix"], job["gate_prefix"]
+    redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE = job["bulk_queue"], job["maintenance_queue"]
+    return forkedjob.run(job, link)
