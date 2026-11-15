@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4205] - 2026-11-15
+
+**Headline:** The engine tables are named in the column unit and prose-column lists.
+
+### Fixed
+- `engine_items` has its units declared in `db/column_units.py`, and the engine's text columns are listed as prose, so the two column checks pass again.
+
 ## [8.0.4204] - 2026-11-15
 
 **Headline:** A job entering the queue can now declare where it may be cut, whether the engine may choose the cut, and what it depends on; the engine that reads this is in and logs every decision, but no stage uses it yet
