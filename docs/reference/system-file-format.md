@@ -143,6 +143,7 @@ web interface lists them for each letter.
 | `A` | Volcanic world | terrestrial | Sulfur dioxide 3 percent or more of the air. |
 | `T` | Gas dwarf | terrestrial | Hydrogen 30 percent or more of the air and under 10 Earth masses. |
 | `N` | Hot dense world | terrestrial | Air of 10 bar or more, a mean surface of 400 K or more, hydrogen under 30 percent. |
+| `Q` | Hot world | terrestrial | Air of 10 kPa to 10 bar, a mean surface of 400 K or more, 0.5 to 2 g, hydrogen under 30 percent. |
 | `V` | High-gravity world | terrestrial | Air, 2 g or more, hydrogen under 30 percent, sulfur dioxide under 3 percent. |
 | `L` | Marginal thin-air world | terrestrial | Air of 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 kPa or more, oxygen 3 to 16 kPa, 0.5 to 2 g. |
 | `K` | Thin-air world | terrestrial | Air under 3 kPa, 273.15 to 320 K, under 2 g, any oxygen. |

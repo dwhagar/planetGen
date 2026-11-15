@@ -26,7 +26,7 @@ from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
-from planetgen.queue import commands, wrapper
+from planetgen.queue import commands, engine, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.util.ticker import Ticker
@@ -902,22 +902,38 @@ def expand_link_neighbors(params):
                               {"sectors": len(ordered), **({} if ordered else {"skip": SAVED_NO_SECTOR})})
 
 
-def link_neighbors_unit(params, report):
+def link_neighbors_pieces(params, cursor):
     """
-    The `link-neighbors` command's unit (PERF.45, PERF.107, PERF.113): links a chunk of the sectors a `galaxy` run created
-    to their neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems
-    merged into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
-    so the workers no longer queue for it; the stored result is the same. The run's other sectors (found again from
-    `params["since"]` or `params["sector_ids"]`) are left to their own units.
+    The `link-neighbors` command's pieces (OPS.202; PERF.45, PERF.107, PERF.113): the unit's chunk of the sectors a `galaxy` run created, in the order
+    `store.link_order` gives (consecutive sectors sit near each other), cut into batches of `store.LINK_BATCH_SECTORS`, each a transaction under the neighbour lock
+    (the batch size is the unit's own, so the unit's count moves every batch). An empty chunk has no piece.
+    """
+    ordered = store.link_order(_mysql_config_of(params), params["chunk"])
+    return [ordered[start:start + store.LINK_BATCH_SECTORS] for start in range(0, len(ordered), store.LINK_BATCH_SECTORS)][cursor:]
+
+
+def link_neighbors_do(params, piece, ctx):
+    """
+    One batch of the `link-neighbors` command (`store.link_sector_neighbors`, which saves the batch in one transaction of its own under the neighbour lock and retries it
+    on a deadlock): containment, nearest systems and quadrants, and the new systems merged into the lists of the sectors around. The run's other sectors (found again
+    from `params["since"]` or `params["sector_ids"]`, once for the unit) are left to their own units.
+
+    Returns:
+        int: How many sectors were linked.
+    """
+    if "skip" not in ctx.state:
+        ctx.state["skip"] = _sectors_since(params)
+    return store.link_sector_neighbors(_mysql_config_of(params), piece, skip=ctx.state["skip"])
+
+
+def link_neighbors_gather(params, results, ctx):
+    """
+    The `link-neighbors` unit's result.
 
     Returns:
         dict: `linked`, how many sectors were linked.
     """
-    def on_progress(done, total, step=""):
-        report(done, total)
-
-    return {"linked": store.link_sector_neighbors(_mysql_config_of(params), params["chunk"], on_progress,
-                                                  skip=_sectors_since(params))}
+    return {"linked": sum(results)}
 
 
 class LinkFollower(followed.Follower):
@@ -1078,23 +1094,43 @@ def expand_save_sector_paths(params):
                               {"sectors": len(sectors), **({"skip": SAVED_NO_SECTOR} if not created and params.get("sector_ids") is None else {})})
 
 
-def save_sector_paths_unit(params, report):
+def save_sector_paths_pieces(params, cursor):
     """
-    The `settle-sector-paths` command's unit (GEN.126, PERF.107, PERF.115): saves the path of every body in the chunk of
-    sectors it was given (`sector_paths.settle_sectors`, `expand=False`: the stage's expansion already added the sectors
-    around the run's), so each path sees the final set of neighbours whatever order the workers filled sectors in. A
-    crowded sector's bodies are integrated in `params["workers"]` processes.
+    The `settle-sector-paths` command's pieces (OPS.202): the unit's chunk of sectors (those that still exist; the stage's expansion already added the sectors around
+    the run's) in batches of `sector_paths.SETTLE_BATCH` that sit together, the neighbourhoods around a batch read once.
+    """
+    reader = engine.Context("settle-sector-paths", params, None)
+    try:
+        sectors = sector_paths.sectors_to_settle_in(reader.db, params["sector_ids"], expand=False)
+    finally:
+        reader.close()
+    return [sectors[start:start + sector_paths.SETTLE_BATCH] for start in range(0, len(sectors), sector_paths.SETTLE_BATCH)][cursor:]
+
+
+def save_sector_paths_do(params, batch, ctx):
+    """
+    One batch of the `settle-sector-paths` command (GEN.126, PERF.107, PERF.115): saves the path of every body in the batch (`sector_paths.settle_batch`), each sector
+    committed through `ctx.commit()` as it finishes, so each path sees the final set of neighbours whatever order the workers filled sectors in. A crowded sector's
+    bodies are integrated in `params["workers"]` processes, a pool the first batch opens and the unit's end shuts down (`ctx.on_close`).
+
+    Returns:
+        int: How many paths were saved.
+    """
+    if "pool" not in ctx.state:
+        ctx.state["pool"] = sector_paths.settle_pool(params["workers"])
+        if ctx.state["pool"] is not None:
+            ctx.on_close(ctx.state["pool"].shutdown)
+    return sector_paths.settle_batch(ctx.db, batch, ctx.state["pool"], ctx.commit)
+
+
+def save_sector_paths_gather(params, results, ctx):
+    """
+    The unit's result.
 
     Returns:
         dict: `saved`, how many paths were saved, and `visited`, the chunk's sectors.
     """
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        return {"saved": sector_paths.settle_sectors(conn, params["sector_ids"], report, workers=params["workers"],
-                                                     expand=False),
-                "visited": len(params["sector_ids"])}
-    finally:
-        conn.close()
+    return {"saved": sum(results), "visited": len(params["sector_ids"])}
 
 
 class SettleFollower(followed.Follower):

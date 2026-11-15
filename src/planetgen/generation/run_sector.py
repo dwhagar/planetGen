@@ -1193,28 +1193,36 @@ def _task_seed(run_seed, number):
     return int.from_bytes(digest[:16], "big")
 
 
-def unplaced_sectors_unit(unit_args, report):
+def unplaced_sectors_pieces(unit_args, cursor):
+    """The pieces of a `sector` run's unit (OPS.202; `generate-unplaced-sector`): the numbers of its sectors, one sector a piece."""
+    return list(unit_args["numbers"])[cursor:]
+
+
+def unplaced_sectors_do(unit_args, number, ctx):
     """
-    The unit of a `sector` run: generates and saves each sector of the chunk (`_unplaced_sector_task`), each on its
-    own stream (`_task_seed`).
+    One sector of a `sector` run: generated and saved (`_unplaced_sector_task`, the save a transaction of its own) on its own stream (`_task_seed`).
 
     Returns:
-        dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there
-            already) and `sectors`, one entry per sector in order: `number`, `sector_id`, `name`, `systems`, `stars`,
-            `density`, `phenomena`, `summary` and `seconds`.
+        dict: `number`, `sector_id`, `name`, `systems`, `stars`, `density`, `phenomena`, `summary` and `seconds`.
     """
     from planetgen.generation import run_galaxy
-    args = run_galaxy._sector_args_of(unit_args)
-    numbers = unit_args["numbers"]
-    done = []
-    for number in numbers:
-        started = time.monotonic()
-        with draw.bound(_task_seed(unit_args["run_seed"], number)):
-            saved = _unplaced_sector_task(args)
-        saved.update(number=number, seconds=time.monotonic() - started)
-        done.append(saved)
-        report(len(done), len(numbers))
-    return {"sectors": done, "pid": os.getpid()}
+    if "args" not in ctx.state:
+        ctx.state["args"] = run_galaxy._sector_args_of(unit_args)
+    started = time.monotonic()
+    with draw.bound(_task_seed(unit_args["run_seed"], number)):
+        saved = _unplaced_sector_task(ctx.state["args"])
+    saved.update(number=number, seconds=time.monotonic() - started)
+    return saved
+
+
+def unplaced_sectors_gather(unit_args, results, ctx):
+    """
+    The unit's result.
+
+    Returns:
+        dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there already) and `sectors`, what each piece returned in order.
+    """
+    return {"sectors": results, "pid": os.getpid()}
 
 
 def _forced_args(args, count):

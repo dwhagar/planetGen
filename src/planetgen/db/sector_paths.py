@@ -327,12 +327,59 @@ def sectors_in_cell_order(conn, sector_ids):
     return keyed + [sector_id for sector_id in ids if sector_id not in placed]
 
 
+def sectors_to_settle_in(conn, sector_ids, expand=True):
+    """
+    The sectors a settle works on, in the order it works on them: `sector_ids` and the sectors around them (`sectors_to_settle`) when `expand`; otherwise exactly
+    `sector_ids`, ascending, those that still exist (for a caller that worked the neighbours out before deleting a sector).
+    """
+    if expand:
+        return sectors_to_settle(conn, list(sector_ids))
+    sectors = sorted(set(sector_ids))
+    existing = {row["id"] for row in conn.execute(
+        f"SELECT id FROM sectors WHERE id IN ({', '.join('?' for _ in sectors)})", sectors).fetchall()} if sectors else set()
+    return [sector_id for sector_id in sectors if sector_id in existing]
+
+
+def settle_batch(conn, batch, pool, commit, on_sector=None):
+    """
+    Saves the paths of one batch of sectors (OPS.202): the neighbourhoods around the batch read once together (GEN.1477), then each sector's paths computed and
+    committed as it finishes (`commit()`, the job engine's `ctx.commit` for the queue's command).
+
+    Args:
+        conn (Connection): An open, schema-initialized, read-write connection.
+        batch (list): The sectors, at most `SETTLE_BATCH`, sitting together.
+        pool (concurrent.futures.Executor or None): Where a crowded sector's bodies are integrated (PERF.80).
+        commit (callable): Called after each sector.
+        on_sector (callable, optional): Called after each sector, once it is committed.
+
+    Returns:
+        int: How many paths were saved.
+    """
+    neighbourhoods = _Neighbourhoods(conn, [_sector(conn, sector_id) for sector_id in batch])
+    saved = 0
+    for sector_id in batch:
+        saved += compute_sector_paths(conn, sector_id, pool, neighbourhoods)
+        commit()
+        if on_sector is not None:
+            on_sector()
+    return saved
+
+
+def settle_pool(workers):
+    """The pool a settle integrates a crowded sector's bodies in (PERF.80): `workers` spawned processes, or `None` for one worker."""
+    if workers <= 1:
+        return None
+    return concurrent.futures.ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn"))
+
+
 def settle_sectors(conn, sector_ids, on_progress=None, expand=True, workers=1):
     """
     Recomputes the saved paths of `sector_ids` and the sectors around them
     (`sectors_to_settle`), committing every sector as it finishes: the last
     step of a generation run or of an edit that changes the masses in a
-    sector (GEN.126), when the neighbour set is final.
+    sector (GEN.126), when the neighbour set is final. The queue's
+    `settle-sector-paths` command runs the same batches through the job
+    engine (`settle_batch`); this is for a caller that settles on its own.
     Nothing here is random or depends on the clock, so it leaves a
     reproducible galaxy reproducible.
 
@@ -350,29 +397,19 @@ def settle_sectors(conn, sector_ids, on_progress=None, expand=True, workers=1):
     Returns:
         int: How many paths were saved.
     """
-    if expand:
-        sectors = sectors_to_settle(conn, list(sector_ids))
-    else:
-        sectors = sorted(set(sector_ids))
-        existing = {row["id"] for row in conn.execute(
-            f"SELECT id FROM sectors WHERE id IN ({', '.join('?' for _ in sectors)})", sectors).fetchall()} if sectors else set()
-        sectors = [sector_id for sector_id in sectors if sector_id in existing]
+    sectors = sectors_to_settle_in(conn, sector_ids, expand)
     saved = 0
-    pool = None
-    if workers > 1 and len(sectors) > 0:
-        pool = concurrent.futures.ProcessPoolExecutor(max_workers=workers,
-                                                      mp_context=multiprocessing.get_context("spawn"))
+    pool = settle_pool(workers) if sectors else None
+    done = [0]
+
+    def sector_done():
+        done[0] += 1
+        if on_progress is not None:
+            on_progress(done[0], len(sectors))
+
     try:
-        done = 0
         for start in range(0, len(sectors), SETTLE_BATCH):
-            batch = sectors[start:start + SETTLE_BATCH]
-            neighbourhoods = _Neighbourhoods(conn, [_sector(conn, sector_id) for sector_id in batch])
-            for sector_id in batch:
-                saved += compute_sector_paths(conn, sector_id, pool, neighbourhoods)
-                conn.commit()
-                done += 1
-                if on_progress is not None:
-                    on_progress(done, len(sectors))
+            saved += settle_batch(conn, sectors[start:start + SETTLE_BATCH], pool, conn.commit, sector_done)
     finally:
         if pool is not None:
             pool.shutdown()
