@@ -294,28 +294,37 @@ planet, a timeline that does not reach a civilization within the star's age and 
 in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
 ABUNDANCE_TIER_DIALS = {
-    "sparse": (0.5, 0.0, 0.0, 0.2, 0.5),
-    "scattered": (1.0, 1.0, 0.0, 0.2, 1.0),
-    "plentiful": (1.0, 1.0, 0.5, 0.2, 1.0),
-    "abundant": (1.0, 1.0, 1.0, 0.2, 1.0),
+    "sparse": (0.5, 0.0, 0.0, 0.2, 0.0, 0.5),
+    "scattered": (1.0, 1.0, 0.0, 0.2, 0.5, 1.0),
+    "plentiful": (1.0, 1.0, 0.5, 0.2, 0.5, 1.0),
+    "abundant": (1.0, 1.0, 1.0, 0.2, 0.5, 1.0),
 }
-"""dict: Class M abundance tier -> `(water_share, bare_share, request_share, dry_part, cycle_share)`, the five dials of `generation.abundance_tier` (GEN.1704: the share of
+"""dict: Class M abundance tier -> `(water_share, bare_share, request_share, dry_part, quiet_share, cycle_share)`, the six dials of `generation.abundance_tier` (GEN.1704: the share of
 rocky planets in the ecosphere whose water class the tier gives, the share of them whose starting hydrogen envelope is taken as lost, and the share of
 systems given the request for a habitable world; GEN.1721: the part of the planets the water dial reaches that take the dry class, the water of a desert
-world, the rest taking Earth's, so the temperate world stays in front; GEN.1720: the share of rocky planets in the ecosphere whose carbon-cycle constants are drawn from the part of their published
-ranges that holds the balance nearest the Earth's, `ABUNDANCE_CYCLE_OUTGASSING_RANGE` and `ABUNDANCE_CYCLE_LAMBDA_RANGE`). `science`, the default, is not a row: it moves nothing. FIRST-PASS values from the estimates of
+world, the rest taking Earth's, so the temperate world stays in front, and the share of the candidates whose interior is quiet, `ABUNDANCE_QUIET_SINK_FACTOR`; GEN.1720: the share of the candidates whose carbon-cycle constants are drawn from the part of their published ranges that holds the balance nearest the Earth's, `ABUNDANCE_CYCLE_OUTGASSING_RANGE` and `ABUNDANCE_CYCLE_LAMBDA_RANGE`). `science`, the default, is not a row: it moves nothing. FIRST-PASS values from the estimates of
 reports/class-m-blue-levers-2026-11-14.md section 8, not yet calibrated by census (GEN.1706): the targets are 1 Class M world per 500, 135, 37 and 10
-Sun-like systems (Boss, 9:30 PM EST 2026-11-14). A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3, AT5 and AT6)."""
+Sun-like systems (Boss, 9:30 PM EST 2026-11-14). A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3 and AT5 to AT8)."""
+
+ABUNDANCE_DESERT_WATER_RANGE = (4.0e-6, 3.0e-5)
+"""tuple: The water mass fraction a desert world of a Class M abundance tier is given (the dry part of the water dial, `delivered_water.sample_fraction`), drawn log-uniform: the
+part of the dry class in which the water measured on 400 Sun-like systems covers about 5 to 20 percent of the surface, a few small seas (below it the cover is under 5 percent,
+above it over 20: reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md). A planetGen stand-in (tier T9 "from needed output", tweak L4; registry row 6.289:AT7)."""
+
+ABUNDANCE_QUIET_SINK_FACTOR = 1.0 / 3.0
+"""float: The oxygen that the volcanic and metamorphic gases of a quiet interior take, against a body of the same heat (`biogenic_oxygen.reductant_flux`), on the share of a
+tier's candidates that `quiet_share` names: a third, which is Earth's own published range (1e12 against the 3e12 mol a year of row BO2, whose range is 1e12 to 5e12). A planetGen
+stand-in (tier T9 "from needed output", tweak L4; registry row 6.289:AT6)."""
 
 ABUNDANCE_CYCLE_OUTGASSING_RANGE = (1.0, 1.25, "uniform")
 """tuple: The exponent `m` of the heat flow in the volcanic outgassing flux (`surface_pressure.OUTGASSING_EXPONENT`, 1 to 2 over [R2628: Table 1]) for the rocky planets in the ecosphere that a Class M abundance tier's
 `cycle_share` reaches (GEN.1720): the lowest quarter of the published range, where a world whose heat flow is within a factor of two of the Earth's holds a CO2 between 2 Pa and 1 kPa at an Earth-like temperature
-(the carbon balance goes as the outgassing to about the fifth power, so the upper half of the range, 1.5 to 2, puts a world at 0.6 of the Earth's heat flow under 2 Pa). Inside the source range: tier T9 "from needed output", tweak L1; registry row 6.289:AT6."""
+(the carbon balance goes as the outgassing to about the fifth power, so the upper half of the range, 1.5 to 2, puts a world at 0.6 of the Earth's heat flow under 2 Pa). Inside the source range: tier T9 "from needed output", tweak L1; registry row 6.289:AT8."""
 
 ABUNDANCE_CYCLE_LAMBDA_RANGE = (0.1, 1.0, "log")
 """tuple: The factor of the thermodynamic limit `Lambda` of the weathering law (`continental_weathering.LAMBDA_SCALE`, a tenth to ten times [R1660: Table 1], the range that paper tested) for the planets a tier's `cycle_share`
 reaches (GEN.1720): the lower half of the published range, where the weathering saturates at the Earth's rate and the balance stays within an order of the Earth's CO2 for a heat flow up to twice the Earth's. Inside the source range:
-tier T9 "from needed output", tweak L1; registry row 6.289:AT6."""
+tier T9 "from needed output", tweak L1; registry row 6.289:AT8."""
 
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies

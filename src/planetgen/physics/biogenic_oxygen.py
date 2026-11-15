@@ -39,6 +39,8 @@ change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak
 import math
 from dataclasses import dataclass
 
+from planetgen import tuning
+from planetgen.generation import abundance_tier
 from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum, surface_air
 from planetgen.util import log
 
@@ -201,9 +203,13 @@ def active_light_ratio(body):
 
 
 def reductant_flux(body, area_m2):
-    """`R`, mol/yr: Earth's, times the heat the body's interior and tide give off over Earth's, times `redox_factor`."""
+    """
+    `R`, mol/yr: Earth's, times the heat the body's interior and tide give off over Earth's, times `redox_factor`. A body a Class M abundance tier drew with a quiet interior
+    (`abundance_tier.quiet_interior`, GEN.1721; never on `science`) gives `tuning.ABUNDANCE_QUIET_SINK_FACTOR` of that.
+    """
     flux = (getattr(body, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(body, "tidal_flux_w_m2", None) or 0.0)
-    return EARTH_REDUCTANT_MOL_YR * (flux * area_m2 / EARTH_HEAT_W) * redox_factor(getattr(body, "mantle_delta_iw", None))
+    quiet = tuning.ABUNDANCE_QUIET_SINK_FACTOR if abundance_tier.quiet_interior(body) else 1.0
+    return EARTH_REDUCTANT_MOL_YR * (flux * area_m2 / EARTH_HEAT_W) * redox_factor(getattr(body, "mantle_delta_iw", None)) * quiet
 
 
 def reductant_history_factor(body, age_gyr):

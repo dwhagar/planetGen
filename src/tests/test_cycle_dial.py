@@ -53,7 +53,7 @@ def test_a_tier_draws_both_constants_inside_the_nudged_ranges_and_the_published_
 
 
 def test_the_dial_reaches_rocky_planets_in_the_ecosphere_only():
-    assert abundance_tier.cycle_share(_body("abundant")) == tuning.ABUNDANCE_TIER_DIALS["abundant"][4] > 0.0
+    assert abundance_tier.cycle_share(_body("abundant")) == tuning.ABUNDANCE_TIER_DIALS["abundant"][5] > 0.0
     for changes in ({"zone": "h"}, {"zone": None}, {"body_type": "j"}, {"is_moon": True}):
         assert abundance_tier.cycle_share(_body("abundant", **changes)) == 0.0
 

@@ -65895,6 +65895,90 @@
           "tweak": "L4",
           "unread": null,
           "what": "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the share of rocky planets whose volcanic gases take less oxygen than Earth's at the same heat is not measured on any planet but Earth; the maker's choice (Boss, 9:43 PM EST 2026-11-14), calibrated by the meter (GEN.1706)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ABUNDANCE_TIER_DIALS quiet share (Sparse 0; the other tiers 0.5) and tuning.ABUNDANCE_QUIET_SINK_FACTOR 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (biogenic_oxygen.reductant_flux)"
+            ],
+            [
+              "The range it moves in",
+              "share 0 to 1; factor 0.33 to 1 (1e12 to 3e12 mol a year at Earth's heat, the low half of row BO2's range)"
+            ],
+            [
+              "Where it holds",
+              "as AT1"
+            ],
+            [
+              "What would show it wrong",
+              "the meter's family table reading no gain in planets that pass their oxygen limit against a run with the share at 0"
+            ],
+            [
+              "What replaces it",
+              "a law for the reductant flux of a planet from its mantle and tectonic state"
+            ],
+            [
+              "Evidence",
+              "needed output: Boss, 9:43 PM EST 2026-11-14 (\"tweak the volcanic activity a bit\"); at a third of the sink the planets whose source beats it rise from 19 to 31 of 38 land-and-sea shapes under Abundant (reports/class-m-tiers-build/meter-main-33bed421-2026-11-14.md, source_vs_sink.py)"
+            ]
+          ],
+          "id": "AT6",
+          "key": "6.289:AT6",
+          "kind": "P",
+          "slug": "6-289-at6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.ABUNDANCE_TIER_DIALS quiet share (Sparse 0; the other tiers 0.5) and tuning.ABUNDANCE_QUIET_SINK_FACTOR 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (biogenic_oxygen.reductant_flux)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how much water a desert world in the habitable zone holds or what a small salt sea produces; the maker's choice (Boss, card of 9:49 PM EST 2026-11-14), to be replaced in part by the land plants of GEN.1729"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
+            ],
+            [
+              "The range it moves in",
+              "range inside the dry class (1e-6 to 2.5e-4); the sea between an ordinary one and one saturated with rock salt (water activity about 0.75, where salt-loving oxygen-making algae still live)"
+            ],
+            [
+              "Where it holds",
+              "as AT1"
+            ],
+            [
+              "What would show it wrong",
+              "the meter reading desert worlds with water cover outside 5 to 20 percent for most of the dialed ones, or more Class H than Class M"
+            ],
+            [
+              "What replaces it",
+              "land plants in the oxygen law (GEN.1729) and a salt balance for small seas (salt supplied by weathering against the water that holds it)"
+            ],
+            [
+              "Evidence",
+              "needed output: Boss, card \"Choose how desert worlds get breathable air\", 9:49 PM EST 2026-11-14 (both, small seas first); on 400 Sun-like systems the water of 5 to 20 percent cover lies at 3e-6 to 5e-5 of the mass, every such sea is a brine seep with no oxygen source (reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md), and with the brine left as it is 31 of 44 desert worlds hold no life at all (water activity under 0.6; reports/class-m-tiers-build/meter-gen1721-slice2-prototype-2026-11-14.md)"
+            ]
+          ],
+          "id": "AT7",
+          "key": "6.289:AT7",
+          "kind": "P",
+          "slug": "6-289-at7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
         }
       ],
       "slug": "6-289-stand-ins-of-the-class-m-abundance-tiers-gen-1704",
