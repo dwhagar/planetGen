@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4285] - 2026-11-15
+
+**Headline:** A queue-commands test now expects the held run that a unit failing for good leaves since OPS.221.
+
+### Fixed
+- `test_queue_commands.py` expected the run of a failed unit to be `failed`; OPS.221 holds it for a person (`held`, with the unit in its error), so the test says that.
+
+generation-output: unchanged
+
 ## [8.0.4284] - 2026-11-15
 
 **Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
