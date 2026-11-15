@@ -811,7 +811,7 @@ class StarSystem:
         The unit normal `(x, y, z)` of the plane that member `member_no` moves in about `host` (the star of the zone `(kind, number)`), in the system's frame, from its place now (`first_offset`) and a tenth of its period later
         (`_offsets_from_host` again at that time): the cross product of the two places, taken in the direction of the motion. `None` when the tree gives no places, the period is not known or the two are in line.
         """
-        total_solar = (self.stars[member_no].mass + host.mass) / constants.SOLAR_MASS_TO_KG
+        total_solar = _kg_to_msun(self.stars[member_no].mass + host.mass)
         if not (axis_au > 0.0 and total_solar > 0.0):
             return None
         period_s = math.sqrt(axis_au ** 3 / total_solar) * constants.SECONDS_PER_YEAR
@@ -1273,7 +1273,7 @@ class StarSystem:
             if node is None:
                 continue
             under.setdefault(node.node_no, []).append(star)
-            partner_kg = (node.mass_solar - _kg_to_msun(star.mass)) * constants.SOLAR_MASS_TO_KG
+            partner_kg = _msun_to_kg(node.mass_solar - _kg_to_msun(star.mass))
             if partner_kg <= 0.0 or not star.age:
                 continue
             result = star_pair_tides.spin_state(star, partner_kg, _km_to_au(node.separation_km), node.eccentricity, star.age * 1.0e9)
@@ -2799,6 +2799,7 @@ class StarSystem:
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
 _kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 _kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 object_timing.track(StarSystem, "system")
