@@ -67409,7 +67409,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.AIR_COUPLING_W_M2_K 17.5 W per m2 and K and AIR_COUPLING_RANGE_W_M2_K 10 to 25: the heat the ice or snow surface gives to the air per kelvin"
         },
         {
@@ -67447,7 +67447,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.SNOW_DENSITY_KG_M3 300 kg per m3 and SNOW_DENSITY_RANGE_KG_M3 250 to 320: the density of snow on sea ice"
         },
         {
@@ -67485,7 +67485,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.SNOW_CONDUCTIVITY_COEFFICIENT 2.22362 and SNOW_CONDUCTIVITY_EXPONENT 1.885: the conductivity of snow from its density, W per m and K"
         },
         {
@@ -67523,7 +67523,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.OCEAN_FLUX_W_M2 2.0 W per m2: the heat the water gives up to the bottom of the ice"
         },
         {
@@ -67561,7 +67561,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.PRECIPITATION_ENERGY_SHARE about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature"
         },
         {
@@ -67599,7 +67599,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.SNOW_RETENTION 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season"
         },
         {
@@ -67637,7 +67637,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1728",
+          "unread": "GEN.1735",
           "what": "ice_growth.ABLATION_M_YR 0.4 m of ice a year: what the surface wears off a lid that does not thaw"
         }
       ],
