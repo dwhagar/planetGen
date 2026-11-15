@@ -67687,7 +67687,11 @@
       "number": "6.299",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, half a percent of the surface (a third of Titan's 1.6 percent) is the least cover of methane or ethane seas that makes a methane-ethane world; no count of the seas a reader calls seas says where the edge lies, and Titan is the only world measured, so a lake census of the outer Solar System system replaces it"
+          ],
           "fields": [
             [
               "What it is",
