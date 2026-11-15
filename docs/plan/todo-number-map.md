@@ -22,7 +22,7 @@ release is stamped.
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.764 |
+| TEST | TEST.765 |
 | USR | USR.33 |
 | OPS | OPS.262 |
 | DOC | DOC.121 |
@@ -2962,7 +2962,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.266 | (bug) planetgen system got about 55 s slower in a day: the no-database system page test took 88 s on main 75ef1017e and 142 s on 92855b9c7, past its 120 s limit | none | done, PR #6477 (Lane 15, 12:51 AM EST 11-14) |
 | PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | done as analysis (Lane 06, 12:55 AM EST 11-15, report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md); the fixes are PERF.268 to PERF.272 |
 | PERF.268 | Stage 5 progress and ETA weighed by expected systems per sector, not one per sector | none | open |
-| PERF.269 | Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s | OPS.207 | open |
+| PERF.269 | Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s | OPS.207 | done, PR #6671 (9:23 AM EST 11-15) |
 | PERF.270 | A per-sector timing line in the job log for the neighborhood stage | none | done, PR #6618 (2:47 AM EST 11-15) |
 | PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | open |
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
@@ -4897,6 +4897,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.761 | (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only | none | open |
 | TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | open |
 | TEST.763 | test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run | none | open |
+| TEST.764 | (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB" | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
