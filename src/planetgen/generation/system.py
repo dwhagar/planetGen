@@ -40,7 +40,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, belt_planets, disk_ejection, abundance_tier, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
-from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -2471,6 +2471,17 @@ class StarSystem:
                     self.kozai_outcomes["lost"] += 1
                     log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
 
+    def _moon_resonances(self):
+        """GEN.1449 slice 2: every moon pair near a first-order period ratio (captured on the way out, `moon_history`, or just close) forces an eccentricity on both (`moon_resonances`). `self.resonance_outcomes`
+        counts the moons screened and the moons raised (a record for the census, not stored)."""
+        self.resonance_outcomes = {"screened": 0, "raised": 0}
+        for _star, planets in validation.star_lists(self):
+            for planet in planets:
+                if planet.body_type == 'a' or len(planet.moons) < 2:
+                    continue
+                self.resonance_outcomes["screened"] += len(planet.moons)
+                self.resonance_outcomes["raised"] += len(moon_resonances.give_forced_eccentricities(planet))
+
     @staticmethod
     def _problem_key(problem):
         """A problem as the secular exchange compares it (GEN.1600): its body and its message with the numbers taken out, because the message quotes distances and a planet that
@@ -2532,6 +2543,7 @@ class StarSystem:
                 if obj.body_type != 'a':
                     obj.finish_climate()
             self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
+            self._moon_resonances()     # GEN.1449: the eccentricity moons near a first-order ratio force on each other, before the tide wears an eccentricity down
             for obj in self.all_planets:
                 if obj.body_type == 'a':
                     continue

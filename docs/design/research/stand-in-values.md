@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1847 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1850 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1820 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1823 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
 | T5 | 106 | 28 | 8 | 2 | 1 | 145 |
-| T6 | 237 | 123 | 34 | 79 | 4 | 477 |
-| T7 | 65 | 34 | 10 | 32 | 0 | 141 |
+| T6 | 237 | 124 | 34 | 79 | 4 | 478 |
+| T7 | 66 | 35 | 10 | 32 | 0 | 143 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1058 | 376 | 94 | 259 | 60 | 1847 |
+| All | 1059 | 378 | 94 | 259 | 60 | 1850 |
 
 ## How the labels were given
 
@@ -3279,9 +3279,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | PC3 | B | T5 | L0 | `photochemical_loss.light_limit`: the light breaks no more than the column of one optical depth times the rate (`photolysis.photon_limited_flux_mol_m2_s`, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes | the column within a factor of 2 (row SL6) | NH3 and CH4 in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's | a photochemical column model with the cross sections by wavelength | row SL6; [R2026] table 6 | predicted only | - | - |
 | PC4 | P | T7 | L1 | `photochemical_loss.LOST_TO`: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes) | the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state | an air with water and the escape of hydrogen of `thermosphere` | a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2 | the hydrogen escape and the photochemical network of the history's step | educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2) | predicted only | GEN.1745 | - |
 
-## 6.300 Stand-ins of the planet's Hill sphere against the bodies besides its host (GEN.1449)
+## 6.300 Stand-ins of the planet's Hill sphere against the bodies besides its host and of the moons' resonances (GEN.1449)
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | HP1 | P | T6 | L1 | hill_perturbers.NON_HOST_TIDE_WEIGHT 2.0: a companion star's or sibling's tide enters the field that sets the Hill radius as `2 m <1/d^3>` against the host's `3 M / a^3` (the stretch without the centrifugal term of the rotating frame, which only the host's orbit makes) | 1 to 3 | planets whose companions and siblings are far enough that their field is a fraction of the host's | an N-body run of a planet with a Jupiter-mass sibling on a crossing orbit whose moons are stripped at a different fraction of the Hill radius than the rule gives | a stripping fraction fitted to N-body runs with the perturber's mass and distance (the Domingos fit's own form with a perturber term) | design: Hill's criterion; the fit of [R1138] has the host and the planet's eccentricity only | predicted only | - | - |
 | HP2 | P | T6 | L0 | `<1/d^3>` of each source is `tide_sources.orbit_mean_inverse_cube` (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters | the mean against the closest approach | systems of a few planets in near-coplanar orbits; the mutual inclination only lengthens the mean separation, so the coplanar mean is the upper bound of the pull | a sibling on a highly inclined orbit that strips moons the coplanar mean says are held, or one that spares moons the mean says are lost | the inclination of the sibling and the encounter time (GEN.1449 slice 3) | design: reuse of `tide_sources` (GEN.1446) | predicted only | - | - |
+| HP3 | P | T7 | L1 | `moon_resonances.CAPTURE_OFFSET` 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at `p/q (1 + 0.002)`; no escape by eccentricity or inclination, no second-order resonance | 0.001 to 0.02 | the regular moons of a planet whose tide drives them out | a measured moon pair that converged through a first-order resonance and passed it (Uranus' Miranda and the inclination escape; the Mimas and Tethys 4:2 is second order) | the capture probability of the adiabatic theory against the migration rate and the eccentricity (Borderies and Goldreich 1984) | derived: the Galilean pairs sit within 0.001 of 2:1, Enceladus and Dione within 0.003; the census of 314 moon pairs gave 9 percent that swept a resonance | predicted only | - | - |
+| HP4 | P | T6 | L1 | `moon_resonances.capture` shares the pair's orbital angular momentum `sum m sqrt(a)` (the integrator's finals) by the resonance condition `sqrt(a_k) = K_k sqrt(a_0)`; a pair that would hold the inner moon inside its birth orbit is not captured | none | pairs whose outer moon is lighter than the inner one by a factor of 10 or more | an integration of the pair's migration (`moon_orbits` with the pull of the moons) that ends at a different place | the migration of a captured pair integrated with the planet's tide, the planet's spin following | derived: the planet's spin keeps the torque the integrator gave it because the moons' total angular momentum is kept | predicted only | - | - |
+| HP5 | P | T7 | L0 | `resonant_chains.pair_forced_eccentricities`: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: `settle_orbit` keeps it) | none | first-order pairs outside the resonance's width | a near-resonant moon pair whose measured forced eccentricity differs by more than a factor of 3 (Io 0.0041, Europa 0.0094) | the libration amplitude inside the resonance's width and the planet's flattening in the detuning | derived: Io 0.0051, Europa 0.0082, Ganymede 0.0007 from the Galilean masses and periods; the 33 percent of the census pairs that sit near a ratio mostly get under 0.003 | predicted only | - | - |
