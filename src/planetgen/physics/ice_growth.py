@@ -46,7 +46,7 @@ ICE_DENSITY_KG_M3 = hydrosphere.ICE_DENSITY_KG_M3
 """float: The density of the ice, reused from the hydrosphere ([R5277] uses 917)."""
 
 LATENT_HEAT_J_KG = 3.352e5
-"""float: The latent heat of fusion of water, joules per kg: 3.88 W d per kg, which is 3.352e5 J per kg ([R5277]). [IG1, T1, L0.]"""
+"""float: The latent heat of fusion of water, joules per kg: 3.88 W d per kg, which is 3.352e5 J per kg [R5277]. [IG1, T1, L0.]"""
 
 AIR_COUPLING_W_M2_K = 17.5
 """float: `h_air`, the heat the ice or snow surface gives to the air per metre squared and kelvin, W per m2 and K: [R5277] gives 10 to 25, the middle. [IG2, T1, L0.]"""
@@ -54,7 +54,7 @@ AIR_COUPLING_RANGE_W_M2_K = (10.0, 25.0)
 """tuple: The range of `h_air`, from the same source. [IG2, T1, L0.]"""
 
 SNOW_DENSITY_KG_M3 = 300.0
-"""float: The density of snow lying on sea ice, kg per cubic metre: 300 averaged over the season, 250 in September to 320 in May ([R5278]). [IG3, T1, L0.]"""
+"""float: The density of snow lying on sea ice, kg per cubic metre: 300 averaged over the season, 250 in September to 320 in May [R5278]. [IG3, T1, L0.]"""
 SNOW_DENSITY_RANGE_KG_M3 = (250.0, 320.0)
 """tuple: The range of the snow's density, the Arctic season's. [IG3, T1, L0.]"""
 
@@ -63,7 +63,7 @@ SNOW_CONDUCTIVITY_EXPONENT = 1.885
 """floats: The snow's conductivity `k_s = 2.22362 rho^1.885` in W per m and K, for `rho` in Mg per cubic metre ([R5277]: 0.23 at 300 kg per m3). [IG4, T1, L0.]"""
 
 OCEAN_FLUX_W_M2 = 2.0
-"""float: The heat the water gives up to the bottom of the ice in the Arctic, W per m2: the ocean must supply 1 to 2 kcal per cm2 and year, about 1.3 to 2.7, and the standard case is 2.0 ([R5279]). The
+"""float: The heat the water gives up to the bottom of the ice in the Arctic, W per m2: the ocean must supply 1 to 2 kcal per cm2 and year, about 1.3 to 2.7, and the standard case is 2.0 [R5279]. The
 default `ocean_flux_w_m2` of a world with no better figure; an icy body passes its own interior heat. [IG5, T1, L0.]"""
 
 ABLATION_M_YR = 0.4
@@ -71,10 +71,10 @@ ABLATION_M_YR = 0.4
 with another air is not known; this is the one measured case. [IG8, T7, L1.]"""
 
 PRECIPITATION_ENERGY_SHARE = continental_weathering.PRECIPITATION_REF_M_YR * continental_weathering.latent_j_m3(continental_weathering.REFERENCE_K) / continental_weathering.SECONDS_PER_YEAR / continental_weathering.EARTH_ABSORBED_FLUX_W_M2
-"""float: The share of the absorbed starlight that goes into the water cycle: the Earth's, 0.99 m of rain a year at 288 K for 238 W per m2 absorbed, which is the same energy limit the weathering law uses ([R1660]); about 0.33. [IG6, T7, L1.]"""
+"""float: The share of the absorbed starlight that goes into the water cycle: the Earth's, 0.99 m of rain a year at 288 K for 238 W per m2 absorbed, which is the same energy limit the weathering law uses [R1660]; about 0.33. [IG6, T7, L1.]"""
 
 SNOW_RETENTION = 11.0 / 17.0
-"""float: The share of the snow that falls on the ice that is still on it at the end of the season: 11 cm of water standing in May ([R5278]) of 17 cm that fell (5 cm of water a month in September and October,
+"""float: The share of the snow that falls on the ice that is still on it at the end of the season: 11 cm of water standing in May [R5278] of 17 cm that fell (5 cm of water a month in September and October,
 1 cm a month from November to March, 2 cm in April; the rates [R5278] quotes); the rest blows into leads and sublimes. About 0.65. [IG7, T7, L1.]"""
 
 WATER_DENSITY_KG_M3 = 1000.0
