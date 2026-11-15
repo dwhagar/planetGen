@@ -32,6 +32,8 @@ from collections import namedtuple
 
 import numpy as np
 
+from planetgen.galaxy import drill
+
 LATTICE_BASE_PC = 0.25
 """float: The finest lattice spacing, parsecs (level 0); level n is this times 2**n."""
 
@@ -211,6 +213,53 @@ def sample_group(nebulae, inside, density, form_level, max_detail, families, lev
     keep = quantised >= MIN_STRENGTH
     return Volume(level, spacing, lattice[keep, 0].astype(np.int32), lattice[keep, 1].astype(np.int32),
                   lattice[keep, 2].astype(np.int32), quantised[keep].astype(np.uint8), owner_family[keep])
+
+
+LANES_KEY = drill.LANES_KEY
+"""str: The key under which the map asks for the far-zoom gas lanes (MAP.430) in place of a node key."""
+
+LANES_LEVEL = 9
+"""int: The lattice level of the lanes: 128 pc steps, so the whole disk is about 40,000 steps and the kept ones a few thousand."""
+
+LANES_FLOOR = 0.08
+"""float: The model gas share (0..1) under which the lanes draw nothing: the gaps between the arms and the thin outer disk stay dark."""
+
+LANES_FULL = 0.95
+"""float: The gas share at which a lane is at full strength."""
+
+LANES_EXTENT_SCALE_LENGTHS = 7.0
+"""float: How far out the lanes are sampled, in disk scale lengths: past it the gas share is under the floor."""
+
+
+def sample_lanes(lane_density, extent_pc, family_index, level=LANES_LEVEL):
+    """
+    The far-zoom gas lanes (MAP.430): the points of the galaxy plane, on the same absolute lattice the nodes use, where the model's gas is dense
+    enough to show, each with a strength that rises from `LANES_FLOOR` to `LANES_FULL`. A single plane (z = 0): the layer is thin
+    against a step of the lattice, and a lane is seen face-on from far away.
+
+    Args:
+        lane_density (callable): `lane_density(points_pc) -> array in 0..1`, one value per row of the (n, 3) points
+            (`nebula_density.lane_density` with the galaxy's seed and shape filled in).
+        extent_pc (float): The radius of the disk sampled, parsecs.
+        family_index (int): The `family` byte of every point (the dark family: gas and dust).
+        level (int): The lattice level.
+
+    Returns:
+        Volume: The points, in lattice order, with the family byte `family_index`.
+    """
+    spacing = spacing_pc(level)
+    reach = int(math.ceil(extent_pc / spacing))
+    axis = np.arange(-reach, reach + 1, dtype=np.int64)
+    grid = np.stack(np.meshgrid(axis, axis, indexing="ij"), axis=-1).reshape(-1, 2)
+    grid = grid[(grid * grid).sum(axis=1) * spacing * spacing <= extent_pc * extent_pc]
+    lattice = np.concatenate([grid, np.zeros((len(grid), 1), dtype=np.int64)], axis=1)
+    if not len(lattice):
+        return _empty_volume(level)
+    value = np.asarray(lane_density(lattice * spacing), dtype=np.float64)
+    quantised = np.rint(_smoothstep(LANES_FLOOR, LANES_FULL, value) * 255.0).astype(np.int64)
+    keep = quantised >= MIN_STRENGTH
+    return Volume(level, spacing, lattice[keep, 0].astype(np.int32), lattice[keep, 1].astype(np.int32),
+                  lattice[keep, 2].astype(np.int32), quantised[keep].astype(np.uint8), np.full(int(keep.sum()), family_index, dtype=np.uint8))
 
 
 MAGIC = b"NVOL"

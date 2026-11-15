@@ -12,6 +12,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
   CAP, POINT_ALPHA, SPLAT_STEPS, MIN_SPLAT_PX, MAX_SPLAT_PX, positionsOf, centerOf, wanted, volumeAlpha, createVolumeStore, MAX_LOADED,
+  LANES_ALPHA, LANES_FADE_PX, LANES_SPLAT_STEPS,
 } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 
 const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
@@ -59,6 +60,8 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         // MAP.222: a group window cuts the shape to its sphere: the center in the mesh's frame, and the radius (0 for none).
         clipCenter: { value: new THREE.Vector3() },
         clipRadius: { value: 0 },
+        // MAP.430: the lanes' splats fade out between these two widths in pixels (0, 0: no fade, a node's volume).
+        laneFade: { value: new THREE.Vector2(0, 0) },
       },
       vertexShader: [
         "attribute vec2 corner;",
@@ -71,6 +74,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         `uniform vec4 families[${MAX_FAMILIES}];`,
         "uniform vec3 clipCenter;",
         "uniform float clipRadius;",
+        "uniform vec2 laneFade;",
         "varying vec2 vCorner;",
         "varying vec3 vColor;",
         "void main() {",
@@ -79,7 +83,9 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         `  vColor = f.rgb * (strength * ${POINT_ALPHA.toFixed(5)} * alpha * f.a);`,
         "  if (clipRadius > 0.0) vColor *= 1.0 - smoothstep(0.9 * clipRadius, clipRadius, distance(position, clipCenter));",
         "  vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
-        `  float px = clamp(splat * focal / max(clip.w, 1e-6), ${MIN_SPLAT_PX.toFixed(1)}, ${MAX_SPLAT_PX.toFixed(1)});`,
+        "  float raw = splat * focal / max(clip.w, 1e-6);",
+        "  if (laneFade.y > 0.0) vColor *= 1.0 - smoothstep(laneFade.x, laneFade.y, raw);",
+        `  float px = clamp(raw, ${MIN_SPLAT_PX.toFixed(1)}, ${MAX_SPLAT_PX.toFixed(1)});`,
         "  clip.xy += corner * (0.5 * px) * 2.0 / viewport * clip.w;",
         "  gl_Position = clip;",
         "}",
@@ -215,6 +221,9 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
     const keep = new Set();
     nodeAlpha = new Map();
     const weigh = found.some((item) => !item.source.single) && makeWeigh ? makeWeigh() : null;
+    // MAP.430: the gas lanes are held whenever the layer is on: one volume of the whole galaxy, faded by the width of its splats on the screen.
+    const lanes = on ? sources.find((source) => source.lanes) : null;
+    if (lanes) found.push({ source: lanes, radiusPx: 0 });
     found.forEach((item) => {
       const key = item.source.key;
       keep.add(key);
@@ -227,11 +236,16 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         held.set(key, entry);
         accumulation.add(entry.mesh);
       }
-      const share = item.source.single ? item.source.weight : (weigh ? weigh(item.source.block) : 1);
-      const alpha = volumeAlpha(item.radiusPx, share);
+      const isLanes = !!item.source.lanes;
+      const share = isLanes ? 1 : item.source.single ? item.source.weight : (weigh ? weigh(item.source.block) : 1);     // the lanes have no block to weigh
+      const alpha = isLanes ? 1 : volumeAlpha(item.radiusPx, share);
       nodeAlpha.set(key, alpha);
       const uniforms = entry.mesh.material.uniforms;
-      uniforms.alpha.value = alpha;
+      uniforms.alpha.value = isLanes ? LANES_ALPHA : alpha;
+      if (isLanes) {
+        uniforms.laneFade.value.set(LANES_FADE_PX[0], LANES_FADE_PX[1]);
+        uniforms.splat.value = LANES_SPLAT_STEPS * entry.volume.spacingPc;
+      }
       uniforms.focal.value = focalPx;
       uniforms.viewport.value.set(Math.max(1, canvasEl.clientWidth), Math.max(1, canvasEl.clientHeight));
       applyClip(entry.mesh);

@@ -180,6 +180,37 @@ def _warped(galaxy_seed, points):
     return points + WARP_PC * push
 
 
+LANES_WARP_PC = 250.0
+"""float: How far the far-zoom gas lanes' sample points are pushed about by a smooth warp, parsecs (MAP.430): a few lattice steps of the lanes, so the arms'
+edges are wavy and the lattice never shows."""
+
+LANES_WARP_WAVELENGTH_PC = 1800.0
+"""float: The wavelength of the lanes' warp, parsecs: longer than the lattice step by a dozen, so the arms bend and are not jittered."""
+
+LANES_NOISE_AMPLITUDE = 0.3
+"""float: How much a smooth noise (wavelength `LANES_NOISE_WAVELENGTH_PC`) lifts and lowers the lanes' gas share, so a lane breaks into clumps and gaps
+along its length as the real gas does, and does not run as an even band. A display setting, not a measurement."""
+
+LANES_NOISE_WAVELENGTH_PC = 900.0
+"""float: The wavelength of that noise, parsecs."""
+
+
+def lane_density(galaxy_seed, shape, points):
+    """
+    The model's molecular gas at `points` (an (n, 3) array, parsecs) as a share in 0..1, for the far-zoom gas lanes of the Galaxy Map (MAP.430): the
+    same gas the nebula field and every nebula contour read (`nebula_field.gas_factor_array`: the young stars' disk, the arms' contrast for gas, the thin
+    layer), as a share of its cap (`NEBULA_FIELD_MAX_GAS_FACTOR`, the gas of the inner disk), linear so the arms stand out of the inner disk, read at points a smooth warp has bent and lifted or lowered by
+    a smooth noise. The warp and the noise only shape the look; nothing of the model's own numbers is changed, and the object IDs are never read.
+    """
+    points = np.asarray(points, dtype=float)
+    lattice = points / LANES_WARP_WAVELENGTH_PC
+    push = np.stack([_noise(galaxy_seed, -4 - channel)(lattice + _NOISE_OFFSET * (channel + 1)) for channel in range(3)], axis=-1)
+    moved = points + LANES_WARP_PC * push
+    share = nebula_field.gas_factor_array(moved[..., 0], moved[..., 1], moved[..., 2], shape) / tuning.NEBULA_FIELD_MAX_GAS_FACTOR
+    wisp = _noise(galaxy_seed, -7)(points / LANES_NOISE_WAVELENGTH_PC + _NOISE_OFFSET)
+    return np.clip(share * (1.0 + LANES_NOISE_AMPLITUDE * wisp), 0.0, 1.0)
+
+
 def _smooth_gas(galaxy_seed, shape, points, low, high):
     share = _model_gas_share(points, shape)
     reach = WARP_PC * 1.8

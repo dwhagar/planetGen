@@ -1711,7 +1711,7 @@ def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_si
     shape_requests = []
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _volume_open(page, map_site)
-    volumes = page.evaluate(f"() => ({VOLUMES})().volumes()")
+    volumes = [volume for volume in page.evaluate(f"() => ({VOLUMES})().volumes()") if volume["key"] != "gas"]     # MAP.430: the gas lanes are checked on their own
     assert volumes, "a volume is held"
     spots = []
     for volume in volumes:
@@ -1723,7 +1723,20 @@ def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_si
     near = [p for p in spots if math.dist(p, cloud) <= 30.0 + 1e-6]
     assert len(near) > 80, len(near)
     assert _circularity([(p[0], p[1]) for p in near], volumes[0]["spacingPc"]) < 0.55
-    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().map((x) => v.coverage(x.key))); }}") > 0.5
+    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().filter((x) => x.key !== 'gas').map((x) => v.coverage(x.key))); }}") > 0.5
+
+
+def test_galaxy_map_holds_the_far_zoom_gas_lanes_and_fades_them_as_the_camera_comes_in(page, map_site):
+    """MAP.430: at galaxy scale the map also holds one volume of the galaxy's gas (the key `gas`: a lattice of the plane, in the dark family's colour), the
+    points a lane's strength follows the gas share (not all alike), and the lane's splats are faded by their width on the screen (the shader's `laneFade`),
+    so a close view shows no grid of big blobs but the nodes' nebulae."""
+    _volume_open(page, map_site)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((x) => x.key === 'gas'); }}", timeout=30000)
+    lanes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((x) => x.key === 'gas')[0]")
+    assert lanes["level"] == 9 and lanes["spacingPc"] == 128.0, lanes["level"]
+    assert len(lanes["ix"]) > 100 and set(lanes["iz"]) == {0} and set(lanes["family"]) == {4}, (len(lanes["ix"]), set(lanes["family"]))
+    assert len(set(lanes["strength"])) > 20, "a lane's strength follows the gas, not one value"
+    assert min(lanes["strength"]) >= 2 and max(lanes["strength"]) > 200
 
 
 def test_galaxy_map_default_view_shades_only_with_nebulae(page, map_site):
@@ -1815,7 +1828,7 @@ def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
     def answer(route):
         # The pair stands in for what the fixture's own nebulae make, in the nodes that would hold them.
         key = parse_qs(urlparse(route.request.url).query)["key"][0]
-        holds = nebula_volume_payload(key)["count"] > 0
+        holds = key != "gas" and nebula_volume_payload(key)["count"] > 0      # MAP.430: the gas lanes are not a node's nebulae
         given.append(key)
         route.fulfill(status=200, content_type="application/octet-stream", body=packed if holds else empty)
 
