@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4194] - 2026-11-15
+
+**Headline:** The tests that need civilized systems start quickly again: their pinned candidates are refreshed for the current generator, and the guard now checks every pin, not the first.
+
+### Fixed
+
+- TEST.753: Train 28's epoch 150 changed the draws, so two of the three pinned candidates in `tests/data/civilized_pins.json` no longer held a civilization and every test needing two civilized systems hunted for new ones at 20 to 30 s each (tens of minutes). The pins are written again (`tests/civilized_pins.py`, hunted across three processes) and `test_the_pinned_civilized_seeds_still_qualify` checks every pin.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4193] - 2026-11-15
 
 **Headline:** A law for the light that reaches the water under ice and snow now exists (`physics/ice_light.py`), so the oxygen that life makes under a frozen lid can be counted by the light that gets through.
