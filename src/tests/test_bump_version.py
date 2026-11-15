@@ -387,23 +387,24 @@ def test_check_pr_passes_a_pr_that_touches_none_of_them(tmp_path):
 
 
 @needs_git
-@pytest.mark.parametrize("golden, epoch, line, missing", [
-    (True, False, False, "epoch bumped"),
-    (True, True, False, "generation-output: changed"),
-    (True, False, True, "epoch bumped"),
-    (False, True, True, "golden files changed"),
-    (False, True, False, "golden files changed"),
-    (False, False, True, "golden files changed"),
+@pytest.mark.parametrize("golden, epoch, line", [
+    (True, False, False),
+    (True, True, False),
+    (True, False, True),
+    (False, True, True),
+    (False, True, False),
+    (False, False, True),
 ])
-def test_check_pr_rejects_a_partial_epoch_change(tmp_path, golden, epoch, line, missing):
+def test_check_pr_no_longer_pairs_the_golden_files_the_epoch_and_the_note_line(tmp_path, golden, epoch, line):
+    """OPS.258, testing mode: a PR may say `generation-output: changed` with no golden files and no epoch bump, and any other
+    mix; the golden files are renewed once at the 8.1 release gate."""
     root = _epoch_repo(tmp_path)
     if golden:
         _golden(root, "two")
     if epoch:
         _epochs(root, 2, pending=True)
     _commit(root, GENERATION_NOTE if line else FIXED_NOTE)
-    problems = bump_version.check_pr(root, "main")
-    assert len(problems) == 1 and "go together" in problems[0] and missing in problems[0], problems
+    assert bump_version.check_pr(root, "main") == []
 
 
 @needs_git
@@ -424,30 +425,11 @@ def _no_golden_repo(tmp_path):
 
 
 @needs_git
-def test_with_no_golden_file_checked_in_the_epoch_and_the_note_go_together(tmp_path):
-    root = _no_golden_repo(tmp_path)
-    _epochs(root, 2, pending=True)
-    _commit(root, GENERATION_NOTE)
-    assert bump_version.check_pr(root, "main") == []
-
-
-@needs_git
 def test_the_pr_that_adds_the_first_golden_files_needs_no_epoch_bump(tmp_path):
     root = _no_golden_repo(tmp_path)
     _golden(root, "one")
     _commit(root, FIXED_NOTE)
     assert bump_version.check_pr(root, "main") == []
-
-
-@needs_git
-@pytest.mark.parametrize("epoch, line, missing", [(True, False, "generation-output"), (False, True, "epoch bumped")])
-def test_with_no_golden_file_a_lone_epoch_or_note_line_is_still_refused(tmp_path, epoch, line, missing):
-    root = _no_golden_repo(tmp_path)
-    if epoch:
-        _epochs(root, 2, pending=True)
-    _commit(root, GENERATION_NOTE if line else FIXED_NOTE)
-    problems = bump_version.check_pr(root, "main")
-    assert len(problems) == 1 and missing in problems[0] and "golden files changed" not in problems[0].split("but not")[1], problems
 
 
 @needs_git

@@ -121,7 +121,9 @@ def body_nav(args, course=True):
     pick = _pick_mode(args) if course else None
     nearby = {"nearby": nearby_url(token, DEFAULT_DISTANCE_PC).replace(token, "{ref}"),
               "nearby-label": f"What’s within {DEFAULT_DISTANCE_PC} pc",
-              "view": page_url("object_page", ref=token).replace(token, "{ref}")}
+              "view": page_url("object_page", ref=token).replace(token, "{ref}"),
+              # GEN.1086: the page of an irregular moon of a planet, `{ref}` the planet's reference and `{rank}` the rank its designation writes
+              "irregular": page_url("irregular_moon_page", planet_ref=token, rank="__RANK__").replace(token, "{ref}").replace("__RANK__", "{rank}")}
     if pick is None:
         nav = ({"start": nav_url(origin=token).replace(token, "{ref}"),
                 "end": nav_url(destination=token).replace(token, "{ref}")} if course else {})
@@ -770,6 +772,8 @@ FIELD_SPECS = {
         ("rogue_note", "Where It Came From", str),      # GEN.1111: a rogue planet is made by the system that threw it out
         ("since_ejection_gy", "Time Since It Was Thrown Out", lambda v: f"{format_number(v, ',.3f')} Gyr"),
         ("ejection_speed_kms", "Speed It Left At", lambda v: f"{format_number(v, ',.1f')} km/s"),
+        ("pair_separation_au", "Distance To Its Companion", _optional(_quantity("au"))),       # GEN.332: a rogue that left its donor bound to another
+        ("pair_period_yr", "Period Round Its Companion", _optional(lambda v: f"{format_number(v, ',.0f')} years")),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", _quantity("kg")),
         ("radius_km", "Radius", _body_radius),

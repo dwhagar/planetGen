@@ -561,7 +561,7 @@ def expand_backfill_bright_stars(params):
                        else store.sector_centers_since(conn, params["since"]))
             todo = backfill_targets(conn, skeleton, limits, centers)
             skip = None if centers else "the run generated no sector"
-            if limits.tiers is None and params.get("sky_limit") is not None and centers:
+            if not limits.scatter_ran and params.get("sky_limit") is not None and centers:
                 # OPS.256: a plan-and-stop galaxy has no scatter, so no luminosity level or mass limit to cost and draw a sky ring by (`sky_charting.walk_edges_and_ceiling`): no sky yet
                 sky_skip = "the galaxy has no star scatter yet, so there is no level to chart a sky under"
     finally:
@@ -3112,12 +3112,14 @@ def run_galaxy(args):
     Args:
         args (argparse.Namespace): Validated arguments (`command == "galaxy"`).
     """
-    args.stage_skips = run_plan.stored_scatter_skips(args)       # PERF.256: a scatter that is stored and current is not planned
+    # PERF.256: a scatter that is stored and current is not planned; OPS.257: nor a clear of a scatter that holds nothing (a wiped galaxy)
+    args.stage_skips = {**run_plan.empty_clear_skips(args, ("mass", "phenomena")), **run_plan.stored_scatter_skips(args)}
 
     def tail(since):
         stars, _book = run_plan.bright_star_followers(args, prepare=True)
         phenomena, _book = run_plan.phenomena_followers(args)
-        clear, passes = (stars[:1], stars[1:]) if stars and stars[0].key == stages.BRIGHT_CLEAR_STAGE["mass"].key else ([], stars)
+        before = (stages.BRIGHT_CLEAR_STAGE["mass"].key, stages.LIMITS_STAGE.key)
+        clear, passes = [f for f in stars if f.key in before], [f for f in stars if f.key not in before]
         # the backfill goes out from the filled sectors before the scatters, so the scatters draw everything past it: the clear (which also
         # stores the scatter's limits, so the backfill draws only what the passes leave out) is the first thing after the link
         planned = [LinkFollower(args, since), *clear, BackfillFollower(args, since), *passes, *phenomena,
