@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4210] - 2026-11-15
+
+**Headline:** The light-through-ice module spells "center" the American way again, which clears the spelling test on main.
+
+### Fixed
+- `physics/ice_light.py` (GEN.1726): "centre" in the comment of `ALBEDO_BARE` is "center"; `test_american_spelling::test_no_british_word_is_left_in_the_tree` passes.
+
 ## [8.0.4209] - 2026-11-15
 
 **Headline:** A belt that is copied or sent to another process before its members were read now carries them.
