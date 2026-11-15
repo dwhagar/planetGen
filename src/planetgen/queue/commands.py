@@ -150,6 +150,7 @@ REGISTRY = _commands(
     CommandSpec("scatter-backfill", "Scatter the massive stars from the neighborhood: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "backfill_bright_stars_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars"),
+                conclude=("planetgen.generation.run_galaxy", "conclude_backfill"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=12),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",

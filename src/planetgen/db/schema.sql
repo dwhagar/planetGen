@@ -5364,10 +5364,12 @@ CREATE TABLE IF NOT EXISTS sky_tier_draws (
     batches_done     INT UNSIGNED NOT NULL DEFAULT 0,
     complete         TINYINT(1) NOT NULL DEFAULT 1,
     drawn_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    part_index       SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    part_count       SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 
     CONSTRAINT chk_sky_tier_draws_kind CHECK (kind IN ('luminosity', 'mass')),
     CONSTRAINT chk_sky_tier_draws_radius CHECK (radius_pc >= 0),
-    UNIQUE KEY uq_sky_tier_draws_cell (kind, band_low, center_x_pc, center_y_pc, center_z_pc, radius_pc),
+    UNIQUE KEY uq_sky_tier_draws_cell (kind, band_low, center_x_pc, center_y_pc, center_z_pc, radius_pc, part_count, part_index),
     KEY idx_sky_tier_draws_kind (kind, band_low)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
