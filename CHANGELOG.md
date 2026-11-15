@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4234] - 2026-11-15
+
+**Headline:** the unused `prepare` hook of the queue's commands is gone.
+
+### Changed
+
+- OPS.218 (slice 2): `CommandSpec.prepare`, `commands.prepare_function` and the call in the stage opening are removed; no command used the hook since OPS.123 made the clears stages of their own. The `conclude` and `finish` hooks stay until their commands give the engine pieces.
+
 ## [8.0.4233] - 2026-11-15
 
 **Headline:** The galaxy reset no longer wipes the job engine's own fence rows.
