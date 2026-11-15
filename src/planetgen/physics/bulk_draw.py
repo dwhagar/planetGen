@@ -315,7 +315,7 @@ fraction by a few thousandths, so the second pass is within 1e-4 of the fixed po
 
 
 def _minor_oxides(part):
-    """The seven minor oxides of `part` as the `BulkFractions` keywords (all None for a carbon rock, which holds none)."""
+    """The seven minor oxides of `part` as the `BulkFractions` keywords (a carbon rock holds only its phosphorus, GEN.1749; the other six are None)."""
     oxides = part.oxides or {}
     return {f"rock_{name.lower()}": oxides.get(name) for name in mantle_oxides.OXIDE_NAMES}
 
@@ -350,7 +350,7 @@ def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_r
     the Fe the mantle does not hold, with the star's Ni per Fe, and `light_elements` of the metal's mass as S, Si, O and C.
     A mantle that would take more Fe than the star has takes all of it and the metal is zero. A silicate rock also holds Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5
     (`mantle_oxides`, GEN.1362): the star's ratio of each times the share its volatility keeps at `cut_k`, less what the core took, which joins the metal (Cr, Mn, P, Na, K)
-    or, for nickel, is what the mantle does not keep of the star's Ni. A carbon rock holds none (`oxides` is None).
+    or, for nickel, is what the mantle does not keep of the star's Ni. A carbon rock holds only its phosphorus (GEN.1749: `oxides` is `{"P2O5": ...}` and its core takes the P) and none of the other six.
 
     Args:
         ratios (HostRatios): The star's ratios.
@@ -377,10 +377,9 @@ def _partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock
     shell = mgo + si_mass + ratios.ca * _grams("CaO") + 0.5 * ratios.al * _grams("Al2O3")
     al2o3 = 0.5 * ratios.al * _grams("Al2O3")
     graphite = graphite_over_rock * shell if carbon_rock else 0.0
+    oxide_grams, core_grams, nickel_core = mantle_oxides.oxides(ratios, cut_k, core_fraction, rock_feo)
     if carbon_rock:
-        oxide_grams, core_grams, nickel_core = {}, {}, ratios.ni * _grams("Ni")
-    else:
-        oxide_grams, core_grams, nickel_core = mantle_oxides.oxides(ratios, cut_k, core_fraction, rock_feo)
+        oxide_grams, core_grams, nickel_core = {"P2O5": oxide_grams["P2O5"]}, {"P": core_grams["P"]}, ratios.ni * _grams("Ni")     # GEN.1749: the rock holds its phosphorus, as the silicate rock does (the P2O5 the life law reads), and none of the other six
     rock_no_feo = shell + graphite + sum(oxide_grams.values())
     rock = rock_no_feo / (1.0 - rock_feo)
     n_feo = rock_feo * rock / _grams("FeO")
