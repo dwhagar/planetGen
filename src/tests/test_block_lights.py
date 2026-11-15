@@ -13,7 +13,7 @@ import pytest
 
 from planetgen.db import block_lights, store
 from planetgen.galaxy import spherical
-from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
+from planetgen.galaxy.drill import DRILL_LEVELS, chain_blocks, drill_chain_of
 from planetgen.physics import constants
 
 from tests.test_block_stats import _addresses
@@ -72,7 +72,7 @@ def _expected(stars, points):
     """`{(m, shell, band, wedge): [the eleven sums]}` worked out from the objects and the chains."""
     found = {}
     for address, x, y, z, luminosity, temperature in stars:
-        for block in block_lights.chain_blocks(address):
+        for block in chain_blocks(address):
             sums = found.setdefault(tuple(block), [0.0] * len(block_lights.SUMS))
             sums[0] += 1
             sums[1] += luminosity
@@ -83,7 +83,7 @@ def _expected(stars, points):
     for address, x, y, z, luminosity, built in points:
         if built:
             continue
-        for block in block_lights.chain_blocks(address):
+        for block in chain_blocks(address):
             sums = found.setdefault(tuple(block), [0.0] * len(block_lights.SUMS))
             sums[6] += 1
             sums[7] += luminosity
@@ -192,8 +192,8 @@ def test_no_row_for_a_block_without_a_pre_placed_object(lit):
     config, stars, points = lit
     conn = store.get_connection(config)
     try:
-        everything = {tuple(b): True for s in stars for b in block_lights.chain_blocks(s[0])}
-        everything.update({tuple(b): True for p in points if not p[5] for b in block_lights.chain_blocks(p[0])})
+        everything = {tuple(b): True for s in stars for b in chain_blocks(s[0])}
+        everything.update({tuple(b): True for p in points if not p[5] for b in chain_blocks(p[0])})
         assert set(_stored(conn)) == set(everything)
         assert not conn.execute("SELECT 1 FROM galaxy_block_lights WHERE star_count = 0 AND point_count = 0").fetchall()
     finally:
