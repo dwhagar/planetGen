@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4207] - 2026-11-15
+
+**Headline:** The queue's quiet-stage line and the splitter's reason write their times and memory through the shared formatter.
+
+### Fixed
+- The "no unit has finished for ..." line and the splitter's reason line spell durations and memory with `format_duration_seconds` and `format_megabytes` (UX.318), so the hand-formatted-units test passes again. The run-record test and the stall-words test expect the same words (1.49 GB, 35 minutes, 1.17 hours).
+
 ## [8.0.4206] - 2026-11-15
 
 **Headline:** The habitability browser tests have a seeded system that holds rated planets and moons again.
