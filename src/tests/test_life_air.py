@@ -59,7 +59,7 @@ def _methane(body):
 
 
 def test_the_ledger_file_carries_a_tier_a_tweak_and_a_basis_on_every_number_and_class():
-    assert life_air.VERSION == 1
+    assert life_air.VERSION == 2
     assert set(life_air.CLASSES) == {str(n) for n in range(1, 10)}
     for entry in (*life_air.NUMBERS.values(), *life_air.CLASSES.values()):
         assert entry["tier"] and entry["tweak"] and entry["basis"]
@@ -484,3 +484,69 @@ def test_the_history_factor_is_one_now_and_larger_before_for_a_body_with_a_therm
     assert bo.reductant_history_factor(world, 10.0 * world.star.age) == pytest.approx(1.0)       # past the star's age R is what it is now
     assert bo.reductant_history_factor(world, 0.5) > 1.2
     assert bo.reductant_history_factor(None, 0.5) == 1.0
+
+
+# --- the reactions of every class (GEN.1743) ----------------------------------------------------------------------------------------------
+
+WORDS = (("hydrogen sulfide", {"H2S"}), ("reduced sulfur", {"H2S"}), ("organic carbon", {"CH2O"}), ("carbon dioxide", {"CO2"}),
+         ("ferrous iron", {"Fe^2+"}), ("Fe(III)", {"Fe(OH)3"}), ("ammonium", {"NH4^+"}), ("acetylene", {"C2H2"}), ("acetate", {"CH3COOH"}),
+         ("methane", {"CH4"}), ("hydrogen", {"H2"}), ("oxygen", {"O2"}), ("sulfate", {"SO4^2-"}), ("sulfide", {"H2S", "HS^-"}),
+         ("chloride", {"Cl^-"}), ("SO2", {"SO2"}), ("sulfur", {"S"}), ("nitrogen", {"N2", "NH3", "NO3^-", "N2O"}))
+"""The words of `life_classes.json` that name a species, longest first, and the species any one of which a reaction must take or give for them."""
+
+
+def _named(text):
+    found = []
+    for word, species in WORDS:
+        if word in text:
+            found.append((word, species))
+            text = text.replace(word, "")
+    return found
+
+
+def test_a_species_carries_its_charge_after_a_caret():
+    assert life_air.species_atoms("SO4^2-") == {"S": 1, "O": 4, "charge": -2}
+    assert life_air.species_atoms("H^+") == {"H": 1, "charge": 1}
+    assert life_air.species_atoms("Fe(OH)3") == {"Fe": 1, "O": 3, "H": 3}
+
+
+def test_every_reaction_balances_its_elements_and_its_charge():
+    for name, reaction in life_air.REACTIONS.items():
+        assert life_air.imbalance(reaction) == {}, name
+
+
+def test_a_reaction_that_does_not_balance_is_refused(tmp_path, monkeypatch):
+    with open(life_air.DATA_FILE, encoding="utf-8") as handle:
+        document = json.load(handle)
+    document["reactions"]["oxygenic_photosynthesis"]["gives"]["O2"] = 2
+    path = tmp_path / "life_ledger.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    monkeypatch.setattr(life_air, "DATA_FILE", str(path))
+    with pytest.raises(life_air.LifeLedgerError, match="does not balance"):
+        life_air._load()
+
+
+def test_every_class_variant_has_reactions_and_every_reaction_names_real_variants():
+    ids = {row.id for row in life_classes.CLASSES}
+    for name, reaction in life_air.REACTIONS.items():
+        assert set(reaction["classes"]) <= ids, name
+    assert all(life_air.reactions_of(row) for row in life_classes.CLASSES)
+
+
+@pytest.mark.parametrize("row", life_classes.CLASSES, ids=lambda row: row.id)
+def test_the_reactions_of_a_class_take_what_its_words_say_it_eats_and_give_what_they_say_it_gives_off(row):
+    for word, species in _named(row.eats):
+        assert species & set(life_air.takes(row)), (row.id, word)
+    for word, species in _named(row.gives_off):
+        assert species & set(life_air.gives(row)), (row.id, word)
+
+
+@pytest.mark.parametrize("row", life_classes.CLASSES, ids=lambda row: row.id)
+def test_the_reactions_of_a_class_hold_the_gases_its_ledger_row_draws_down_and_makes(row):
+    ledger = life_air.row_of(row)
+    for gas in ledger["draws_down"]:
+        assert gas in life_air.takes(row), (row.id, gas)
+    for product in (ledger.get("products") or {}).values():
+        assert product["gas"] in life_air.gives(row), row.id
+    if ledger.get("methane"):
+        assert "CH4" in life_air.gives(row), row.id
