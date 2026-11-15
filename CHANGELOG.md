@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4241] - 2026-11-15
+
+**Headline:** The hooks that end a stage are commands of their own, named by the rows that end it.
+
+### Changed
+- The seven `conclude` and five `finish` hooks of `CommandSpec` are now `EndCommand`s in `commands.END_COMMANDS` (`conclude-scatter-mass`, `finish-warm-systems` and so on). The `conclude` and `finish` rows of a stage in the job ledger carry the stage's own end command as their command, so what ended a stage is read from its rows. The engine no longer reads `CommandSpec.conclude` or `finish`, and the fields are gone (OPS.260, OPS.218 slice 3).
+
 ## [8.0.4240] - 2026-11-15
 
 **Headline:** The help text of the light-and-water gate writes its hours through the units code, so the gate reads "3.13 days a year" in place of a hand-formatted "75 hours a year".
