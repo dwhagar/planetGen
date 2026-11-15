@@ -15,7 +15,7 @@ marks itself done, in one transaction, and everything that wants to know what a 
 
 The ledger lives in the control database, found from the database the run's steps name (`wrapper.expected_seconds` reads the same one).
 
-* **A run that says it names no database** (every step has `database: None`: `generate system --output`, which touches none, TEST.769) has no ledger to write to. Its plan is kept in the run's own Redis record, which every process of the run
+* **A run with no usable ledger** (no control database, or one with no ledger tables yet: `generate system --output` touches none, TEST.769, and the update's math check runs before the migration, OPS.263) has none to write to. Its plan is kept in the run's own Redis record, which every process of the run
   shares, behind the same functions: `record_plan`, `record_cut`, `read_plan`, `ended` and `mark_ended` choose the store once, by `ledgered`, and give the same answers; its units have no row
   (`record_cut` returns `None` for each), so no attempt of theirs is written (`attempts.begin` takes `None`).
 """
@@ -23,6 +23,7 @@ The ledger lives in the control database, found from the database the run's step
 import json
 
 from planetgen.queue import ledger, runrecord
+from planetgen.util import log
 
 OPEN = "open"
 """str: The command of the row that is the cut of a stage."""
@@ -34,13 +35,44 @@ They are rows of the stage with no item key, as the opening is. The command of t
 OPS.260), else the role's name; `release` is always `release`."""
 
 
+LEDGER_FIELD = "ledger"
+"""str: The field of the run record that holds which store the run's plan is in (`1` the job ledger, `0` the run's own record), chosen once, by the first call."""
+
+
+def _ledger_usable(conn, run_id):
+    """Whether the control database answers and has the ledger's tables: not so on a machine with no database, or during `update.sh` before its migration step (the math check runs first)."""
+    try:
+        control = control_connection(conn, run_id)
+    except Exception as exc:  # noqa: BLE001 -- no way to reach the control database is "no ledger"
+        log.swallowed("queue/planrows", "open the control database", exc)
+        return False
+    try:
+        control.execute("SELECT 1 FROM engine_runs LIMIT 1").fetchall()
+        return True
+    except Exception as exc:  # noqa: BLE001 -- a missing table (1146) or any other error is "no ledger"
+        log.swallowed("queue/planrows", "probe the ledger", exc)
+        return False
+    finally:
+        control.close()
+
+
+def _names_no_database(conn, run_id):
+    """Whether the run says it touches no database: every step has `database` in its parameters, as `None` (`generate system --output`); a step with no `database` at all is a run begun by hand or a test."""
+    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
+    return bool(params) and all("database" in each and not each["database"] for each in params)
+
+
 def ledgered(conn, run_id):
     """
-    Whether the run's plan is rows of the job ledger. It is, unless the run says it touches no database: every step has `database` in its parameters, as `None` (`system --output`). A step with
-    no `database` at all is a run begun by hand or a test, which keeps the ledger on the configured server as it always has. A run that says it names none keeps its plan in its Redis record.
+    Whether the run's plan is rows of the job ledger. It is when the control database is there and has the ledger's tables; otherwise (OPS.263, TEST.769: the update's math check runs before the migration that
+    makes the tables, and `generate system --output` has no database) the plan is kept in the run's own Redis record. Chosen by the first call and kept in the record, so a run never changes store.
     """
-    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
-    return not (params and all("database" in each and not each["database"] for each in params))
+    key = runrecord.run_key(run_id)
+    found = conn.hget(key, LEDGER_FIELD)
+    if found is None:
+        conn.hsetnx(key, LEDGER_FIELD, "1" if not _names_no_database(conn, run_id) and _ledger_usable(conn, run_id) else "0")
+        found = conn.hget(key, LEDGER_FIELD)
+    return runrecord._s(found) == "1"
 
 
 def _kept(conn, run_id, field, value=None):
