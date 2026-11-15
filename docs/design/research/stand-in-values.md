@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1718 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1727 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1691 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1700 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 200 | 21 | 12 | 1 | 0 | 234 |
+| T1 | 205 | 21 | 12 | 1 | 0 | 239 |
 | T2 | 161 | 66 | 2 | 1 | 0 | 230 |
-| T3 | 115 | 56 | 13 | 9 | 0 | 193 |
+| T3 | 116 | 56 | 13 | 9 | 0 | 194 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
 | T6 | 222 | 118 | 33 | 76 | 4 | 453 |
-| T7 | 58 | 27 | 10 | 32 | 0 | 127 |
+| T7 | 58 | 30 | 10 | 32 | 0 | 130 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 41 | 210 |
-| All | 985 | 344 | 87 | 242 | 60 | 1718 |
+| All | 991 | 347 | 87 | 242 | 60 | 1727 |
 
 ## How the labels were given
 
@@ -3010,4 +3010,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AD4 | B | T2 | L0 | `life_adaptations.json` grade 2 (tolerant) limits taken from a measurement: `t_cold` 263.15 K (carbon-14 fixation to -10.9 C), `t_hot` 333.15 K (hot-spring mats at 60 C) and 323.15 K, 318.15 K (Cyanidium, Tidestromia), `water_activity` 0.75 (Dunaliella), `ground_water_depth` 9.5 m (desert mean rooting depth) | the spread of the examples | the life type of the row | a measurement outside the example | the example's own measured limit | GEN.1727 LC2; GEN.1722 RF10; GEN.1724 H2, H5, S1, D7 (some recalled, marked in the file) | predicted only | - | - |
 | AD5 | P | T7 | L1 | `life_adaptations.json` grade 2 of C1 (0.2 umol m-2 s-1: the geometric mean of the ordinary 1.0 and the extreme 0.04) and the grade 2 of C14, C15, C16 (antifreeze and cryoprotectants, 1 to 6 K below freezing) | one decade for the light floor; 1 to 6 K | the rows named | a measured light floor for a shade-adapted alga between 0.04 and 1.0 that differs from 0.2 by a factor of 3 | the measured values | no source for the interpolation; the recalled 1 to 2 C of antifreeze and -3 to -6 C of the wood frog (GEN.1724 C14, C15) | predicted only | - | - |
 | AD6 | P | T7 | L1 | `life_adaptations.json` `stages` delays after the first life (cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8): when a life can have an adaptation that needs the stage | one example (Earth) | any life | a second world whose life reaches a stage in a very different time | a life timeline per stage (`life_timeline.py`) | GEN.1724 LA8, one world, ages recalled | predicted only | - | - |
-| AD7 | P | T7 | L3 | `adaptation_draw.ONSET` 0 K and `adaptation_draw.FULL` (the width of the table from the ordinary limit to the extreme grade for class 1a: 20 K for cold, 33 K for heat) for the traits cold and heat, scored on a straight line (`adaptation_draw.SHORTFALL_STRESSES`): the world's mean surface temperature past the ordinary limit | 10 to 40 K | any world with life | a census where the cold and heat traits fall on worlds a mean temperature does not press | a draw on the local temperature of the life's habitat | the shape follows the three earlier traits (LF68, LF69, `P_CAP` and `GRADE3_SHARE` shared); the mean temperature stands for the habitat's until GEN.1723 stores the local one | predicted only | - | - |
+| AD7 | P | T7 | L3 | `adaptation_draw.ONSET` 0 K and `adaptation_draw.FULL` (the width of the table from the ordinary limit to the extreme grade for class 1a: 20 K for cold, 33 K for heat) for the traits cold and heat, scored on a straight line (`adaptation_draw.SHORTFALL_STRESSES`): the world's mean surface temperature past the ordinary limit | 10 to 40 K | any world with life | a census where the cold and heat traits fall on worlds a mean temperature does not press | a draw on the local temperature of the life's habitat | the shape follows the three earlier traits (LF68, LF69, `P_CAP` and `GRADE3_SHARE` shared); the mean temperature stands for the habitat's until GEN.1723 stores the local one | predicted only | - | no data |
+
+## 6.297 Stand-in of the hosts of the asteroid vocabulary names
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ACV1 | T | T3 | L0 | asteroid_vocabulary.HOSTED: the platinum-group elements and gold in kamacite and taenite (0.01 to 10 ppm), the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides | the host list of each element group | the primitive taxa of the mixes | a meteorite analysis that puts the element group in a host the list lacks, or finds it in none of them | a speciation of the bulk into the minerals (GEN.1362 and its successors) | the research file's table of hosts in a primitive body, recalled from the ore and meteorite literature; not opened | predicted only | - | - |
+
+## 6.298 Stand-ins of the growth of ice and snow on a world's water (GEN.1728)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| IG1 | B | T1 | L0 | `ice_growth.LATENT_HEAT_J_KG` 3.352e5 J per kg: the latent heat of fusion of the ice | none | water ice at its melting point | a measured latent heat of fusion of ice outside 3.3e5 to 3.4e5 | none | [R5277] gives 3.88 W d per kg | predicted only | - | - |
+| IG2 | B | T1 | L0 | `ice_growth.AIR_COUPLING_W_M2_K` 17.5 W per m2 and K and `AIR_COUPLING_RANGE_W_M2_K` 10 to 25: the heat the ice or snow surface gives to the air per kelvin | 10 to 25 | a lid under an air of Earth's pressure and wind | a measured coefficient outside 10 to 25 on sea ice or lake ice | a surface energy balance with the world's own wind and air | [R5277] gives 10 to 25 W per m2 and K | predicted only | GEN.1735 | - |
+| IG3 | B | T1 | L0 | `ice_growth.SNOW_DENSITY_KG_M3` 300 kg per m3 and `SNOW_DENSITY_RANGE_KG_M3` 250 to 320: the density of snow on sea ice | 250 to 320 | snow on Arctic sea ice over a season | a snow cover of a measured density outside 200 to 400 over a season | a snow density law of age and wind | [R5278] gives 300 averaged, 250 in September to 320 in May | predicted only | GEN.1735 | - |
+| IG4 | B | T1 | L0 | `ice_growth.SNOW_CONDUCTIVITY_COEFFICIENT` 2.22362 and `SNOW_CONDUCTIVITY_EXPONENT` 1.885: the conductivity of snow from its density, W per m and K | none | snow of 200 to 450 kg per m3 | a measured conductivity more than a third off the fit at those densities | none | [R5277] gives the fit and 0.23 W per m and K at 300 kg per m3 | predicted only | GEN.1735 | - |
+| IG5 | B | T1 | L0 | `ice_growth.OCEAN_FLUX_W_M2` 2.0 W per m2: the heat the water gives up to the bottom of the ice | 1.3 to 2.7 | the Arctic Ocean under multiyear ice | a heat flux under the ice outside 1 to 3 W per m2 on a world with an ocean under its ice | the world's own ocean heat flux | [R5279]: 1 to 2 kcal per cm2 and year, 2.0 W per m2 in the standard case | predicted only | GEN.1735 | - |
+| IG6 | P | T7 | L1 | `ice_growth.PRECIPITATION_ENERGY_SHARE` about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature | 0.15 to 0.35 | worlds with a water cycle like the Earth's, cold or warm | a snowfall on ice that differs from the law by more than a factor of 2 for the same starlight; the Arctic's, with no dry cold air in the law, comes out about 1.9 times high | a precipitation law that carries the dryness of cold air | the weathering law of [R1660] uses the same limit; the Arctic check of [R5278] (34 cm of snow) sets the 1.9 | predicted only | GEN.1735 | - |
+| IG7 | P | T7 | L1 | `ice_growth.SNOW_RETENTION` 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season | 0.4 to 0.9 | multiyear Arctic ice | a snow cover that keeps a share outside 0.4 to 0.9 | a wind and lead model | [R5278]: 11 cm of water standing in May of the 17 cm that fell (5 cm a month in September and October, 1 cm a month November to March, 2 cm in April, the rates it quotes) | predicted only | GEN.1735 | - |
+| IG8 | P | T7 | L1 | `ice_growth.ABLATION_M_YR` 0.4 m of ice a year: what the surface wears off a lid that does not thaw | 0.2 to 0.6 | multiyear Arctic ice under an Earth-like air | a perennial lid whose surface loses less than 0.2 or more than 0.6 m a year | a surface energy balance with the world's own air | [R5279]: surface ablation 40 cm in the standard case; the one measured case, taken for every perennial lid | predicted only | GEN.1735 | - |

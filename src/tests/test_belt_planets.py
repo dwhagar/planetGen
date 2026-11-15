@@ -73,7 +73,7 @@ def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_syste
         shares = {"metal": member["metal_fraction"], "rock": member["rock_fraction"], "water": member["water_fraction"], "ice": member["ice_fraction"]}
         if body.mass < compaction.TAPER_END_KG:
             assert body.density == pytest.approx(member["density_g_cm3"], rel=1e-6)          # the member's own density, below the taper's end
-        assert body_strength.ratio_for(body.mass, body.ice_mass_fraction) >= 1.0          # the floor is roundness, as Lane 21 asked, one call
+        assert body_strength.ratio_for(body.mass, body.water_mass_fraction + body.ice_mass_fraction) >= 1.0          # the floor is roundness, as Lane 21 asked, one call; the ice of the strength is the water and the other ices together, as the belt's own status reads it (`belt_page`)
         assert body.envelope_mass_fraction == 0.0 and body.planet_class is not None        # no gas captured, a class from the finished body
         total = sum(shares.values())
         for name, share in shares.items():

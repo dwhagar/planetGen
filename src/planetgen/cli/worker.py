@@ -24,7 +24,7 @@ from rq.worker import RoundRobinWorker
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import allowlist, claims, memorygate, pause, progress_file, redisqueue, runrecord, scheduler, stopall, units, work, workers
+from planetgen.queue import allowlist, attempts, claims, memorygate, pause, progress_file, redisqueue, runrecord, scheduler, stopall, units, work, workers
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -156,14 +156,17 @@ def worker_class(round_robin=False):
                 log.error(f"The claim of job {job.id} fell back to the default {format_megabytes(claims.DEFAULT_MB)}: {exc}")
                 claim = claims.default_claim(job)
             admission = memorygate.acquire(self.connection, claim, self.name, job=job.id, cap_of=claims.cap_of, scheduler=scheduler.Scheduler(),
-                                           on_wait=lambda decision, waited: self._while_gated(job))
+                                           on_wait=lambda decision, waited: self._while_gated(job, decision))
             if admission.waited >= GATE_REPORT_SECONDS:
                 self._report_wait(job, claim, admission)
 
-        def _while_gated(self, job):
-            """What the worker does at every poll of a wait at the gate: keeps its heartbeat, and gives the job back to the front of its queue
+        def _while_gated(self, job, decision=None):
+            """What the worker does at every poll of a wait at the gate: keeps its heartbeat, notes in the ledger why a unit waits (OPS.224: the gate's own words, `decision`), and gives the job back to the front of its queue
             and ends if everything was stopped or it was asked to stop, so a stopped worker never starts a job it was holding."""
             self.heartbeat()
+            row = units.row_of(job)
+            if row is not None and decision is not None:
+                attempts.note_wait(self.connection, job.args[0], row, decision.reason)
             origin = next(queue for queue in self.queues if queue.name == job.origin)
             if stopall.is_stopped() or self._stop_requested:
                 log.debug("The worker exits, asked to stop while %s waited at the memory gate.", job.id, area="queue")

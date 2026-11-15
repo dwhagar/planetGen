@@ -255,7 +255,7 @@ def test_a_small_galaxy_is_built_in_the_request_and_a_worker_may_build_a_big_one
 def test_the_job_is_a_warm_command_and_the_first_step_of_the_opening_phase():
     from planetgen.web import warmup
     spec = commands.REGISTRY["warm-cluster-field"]
-    assert spec.pieces == ("planetgen.galaxy.field_job", "pieces_field") and spec.unit is None and spec.conclude and spec.unit_seconds
+    assert spec.pieces == ("planetgen.galaxy.field_job", "pieces_field") and spec.unit is None and commands.end_command("warm-cluster-field", "conclude") and spec.unit_seconds
     assert commands.KIND_OF_WARM_FAMILY["cluster-field"] == "warm-cluster-field"
     assert warmup.phase_of("cluster-field") == "opening" and list(warmup.FAMILIES)[0] == "cluster-field"
     args = type("Args", (), {"database": "d", "cap": None, "families": None})()

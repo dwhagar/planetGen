@@ -27,7 +27,8 @@ from contextlib import contextmanager
 
 from planetgen.db import statementmark
 from planetgen.queue import beatjudge, runrecord, usage as usageModule
-from planetgen.util import ticker
+from planetgen.util import log, ticker
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 COUNTER_WRITE_SECONDS = 2.0
 """float: A counter that moved is written at most this often, between two beats."""
@@ -46,6 +47,11 @@ DUMP_SIGNAL = getattr(signal, "SIGUSR1", None)
 """The signal that has a horse write the stack of every thread of its process (OPS.140); `None` where the system has none."""
 
 _dump_file = None       # the file `faulthandler` writes to; kept open for the life of the process, because a signal after the unit must still land somewhere harmless
+
+
+def _figure(value, formatter):
+    """`value` through the units code's `formatter`, or `?` when the figure is not known yet."""
+    return "?" if value is None else formatter(value)
 
 
 def stack_path(run_id, stage, unit):
@@ -80,7 +86,6 @@ def io_bytes():
             found = dict(line.split(": ", 1) for line in handle.read().splitlines() if ": " in line)
         return int(found["rchar"]), int(found["wchar"])
     except (OSError, KeyError, ValueError) as exc:
-        from planetgen.util import log
         log.swallowed("queue", "reading /proc/self/io for the beat", exc)
         return 0, 0
 
@@ -90,7 +95,6 @@ def evidence(now_server):
     What the unit is doing besides moving its counter (OPS.193): `cpu_s` (processor seconds of this process and the children it waited for), `io_read` and `io_write` (bytes), and, while a
     statement is out, `sql` (its label) and `sql_since` (server-clock seconds when it was sent). The judge (OPS.194) calls a unit whose counter stands still but whose figures move `busy`.
     """
-    from planetgen.util import log
     read, written = io_bytes()
     made = {"cpu_s": round(usageModule.cpu_seconds(), 2), "io_read": read, "io_write": written}
     sent = statementmark.running()
@@ -229,6 +233,7 @@ class UnitBeat:
         with self._lock:
             before, self._waiting = self._waiting, tag
         began = self.clock()
+        log.trace(f"unit {self.unit} waits for {tag}", area="queue")
         try:
             yield
         finally:
@@ -237,6 +242,7 @@ class UnitBeat:
                 waited = max(self.clock() - began, 0.0)
                 self._waited += waited
                 self._waited_total += waited
+            log.trace(f"unit {self.unit} waited {format_duration_seconds(waited)} for {tag}", area="queue")
 
     # --- the record and its thread ---------------------------------------------------------------------------
 
@@ -277,8 +283,12 @@ class UnitBeat:
 
     def write(self):
         """One write of the record to the stage's progress hash."""
-        self.conn.hset(self.key, self.unit, json.dumps(self.record()))
+        made = self.record()
+        self.conn.hset(self.key, self.unit, json.dumps(made))
         self._last_write = self.clock()
+        if log.debug_log_active():        # OPS.223: a restarted unit's debug log (and any debug run) follows the counter, the waits and the memory
+            log.trace(f"unit {self.unit} beat: phase {made['phase']!r}, {made['done']:g} of {made['estimate']:g} done, waiting on {made['waiting_on'] or 'nothing'}, "
+                      f"{_figure(made.get('resident_mb'), format_megabytes)} resident, {_figure(made.get('cpu_s'), format_duration_seconds)} of processor", area="queue")
 
     def _due(self):
         if self._last_write is None:
@@ -298,7 +308,6 @@ class UnitBeat:
                 try:
                     self.write()
                 except Exception as exc:        # a Redis that cannot be reached must not end good work (the follower judges only fresh reads)
-                    from planetgen.util import log
                     log.trace(f"unit {self.unit}: the beat could not be written: {type(exc).__name__}: {exc}", area="queue")
             self._stop.wait(self.tick_seconds)
 

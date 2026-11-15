@@ -169,11 +169,12 @@ def rank(waiting, now, used):
     return sorted(waiting, key=lambda ticket: (-priority(ticket, now, used), ticket.since, ticket.name))
 
 
-def judge(me, others, host, held, now, used, places=None):
+def judge(me, others, host, held, now, used, places=None, reserve_until=memorygate.MAX_WAIT_SECONDS):
     """
     The scheduler's rule, pure: may the ticket `me` be admitted now, given the other waiting tickets, the host and the claims held? The gate's own rule
-    (`memorygate.decide`) must pass first; then no higher ticket may fit now, and none that has waited `RESERVE_AFTER_SECONDS` (inside the gate's bound)
-    may be held up by this job's taking room.
+    (`memorygate.decide`) must pass first; then no higher ticket may fit now, and none that has waited `RESERVE_AFTER_SECONDS` may be held up by this job's taking room.
+    The room is kept for a ticket until it has waited `reserve_until` seconds: the gate's own bound for a worker that may go in by the table cap after it (the default), never
+    for the central dispatch (`dispatch`, OPS.227: `math.inf`), where the job is not let in until it runs and a reservation lasts until then.
     """
     base = memorygate.decide(me.claim, host, held, own_mb=0.0, places=places, name=me.name)
     if not base.admit:
@@ -191,7 +192,7 @@ def judge(me, others, host, held, now, used, places=None):
             if after.admit:
                 continue                # room for both: the lower job does not hold the higher one up
             return Decision(False, f"{other.claim.kind} ({other.claim.lane}, ahead by priority) fits now and goes first", base.need_mb, base.free_mb)
-        if RESERVE_AFTER_SECONDS <= waited < memorygate.MAX_WAIT_SECONDS:
+        if RESERVE_AFTER_SECONDS <= waited < reserve_until:
             return Decision(False, f"room is kept for {other.claim.kind} ({other.claim.lane}), which has waited {format_duration_seconds(waited)}", base.need_mb, base.free_mb)
     return base
 
@@ -211,7 +212,7 @@ class Scheduler:
         since = mine.since if mine is not None else now - waited
         ticket = Ticket(name, claim, since, pid, _here())
         conn.hset(memorygate._key("tickets"), name, json.dumps({
-            "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "solo": claim.solo, "since": since, "pid": pid,
+            "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "tokens": list(claim.tokens), "since": since, "pid": pid,
             "host": ticket.host, "expires": now + TICKET_SECONDS}))
         others = [other for other in waiting if other.name != name]
         if not others:

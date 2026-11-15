@@ -16,8 +16,11 @@ does the unit write its result and join the done set in Redis.
 * **A unit with no row** (a run cut before the plan was rows, a test's own stage) or no database in its arguments has nothing to fence and runs as before.
 """
 
+import time
+import traceback
+
 from planetgen.db import store
-from planetgen.queue import ledger, planrows
+from planetgen.queue import attemptlog, ledger, planrows, usage
 from planetgen.util import log
 
 Replaced = ledger.Replaced
@@ -29,6 +32,7 @@ class Attempt:
 
     def __init__(self, control, row, number, config):
         self.control, self.row, self.number, self.config = control, row, number, config
+        self._cpu_at_start = usage.cpu_seconds()
 
     def commit(self, galaxy, cursor_key=None, done=False):
         """
@@ -55,10 +59,27 @@ class Attempt:
         finally:
             galaxy.close()
 
-    def end(self, outcome, error_kind=None, error_text=None, peak_mb=None, cpu_seconds=None):
-        """Writes how the attempt ended and the job's state to the ledger (a failure to write is logged: the unit's own outcome stands), and closes the control connection."""
+    def previous(self):
+        """The row of the attempt before this one (`ledger.attempt_row`), or `None` for a first attempt or a row that cannot be read."""
+        if self.number < 2:
+            return None
         try:
-            ledger.end_attempt(self.control, self.row, self.number, outcome, peak_mb=peak_mb, cpu_seconds=cpu_seconds, error_kind=error_kind, error_text=error_text)
+            return ledger.attempt_row(self.control, self.row, self.number - 1)
+        except Exception as exc:  # noqa: BLE001 -- the header of a debug log is not worth the attempt
+            log.swallowed("queue/attempts", "previous", exc)
+            return None
+
+    def end(self, outcome, error_kind=None, error_text=None, peak_mb=None, cpu_seconds=None, stack_text=None):
+        """
+        Writes how the attempt ended and the job's state to the ledger (a failure to write is logged: the unit's own outcome stands), and closes the control connection. The row keeps what
+        the attempt cost: the processor seconds this process and its children used since it began (`cpu_seconds`, measured here unless given), the most memory it held (`peak_mb`) and, for
+        a failure, the text of `stack_text` in a stack file (`attemptlog.keep_stack`) its row names.
+        """
+        try:
+            stack_file = attemptlog.keep_stack(self.row, self.number, stack_text)
+            if cpu_seconds is None:
+                cpu_seconds = round(max(0.0, usage.cpu_seconds() - self._cpu_at_start), 3)
+            ledger.end_attempt(self.control, self.row, self.number, outcome, peak_mb=peak_mb, cpu_seconds=cpu_seconds, error_kind=error_kind, error_text=error_text, stack_file=stack_file)
             ledger.set_job_state(self.control, self.row, {"done": "done", "failed": "failed"}.get(outcome, "waiting"))
             self.control.commit()
         except Exception as exc:  # noqa: BLE001 -- the ledger's history never ends a unit that did its work
@@ -94,3 +115,75 @@ def begin(conn, run_id, row, args, pid=None):
         control.close()
         raise
     return Attempt(control, row, number, config)
+
+
+def failure(exc):
+    """`(error kind, error text, outcome)` of an exception that ended an attempt: the kind is its class, the text its traceback, the outcome `timed_out` for the time limit and `failed` otherwise."""
+    kind = type(exc).__name__
+    text = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    return kind, text, "timed_out" if kind == "JobTimeoutException" else "failed"
+
+
+WAIT_NOTE_SECONDS = 15.0
+"""float: How often a worker that goes on waiting at the gate writes the same reason again (a changed reason is written at once)."""
+
+_NOTED = {}
+"""dict: Job row to `(reason, time)` of the last note written, so a wait of an hour writes a few rows, not one at every poll."""
+
+
+def note_wait(conn, run_id, row, reason, now=None):
+    """
+    Writes why a unit is not starting (OPS.224): the reason the memory gate gave the worker that holds it, onto the job's ledger row (`engine_jobs.waited`), where the Queue page reads it. Called at
+    every poll of a wait at the gate; written when the reason changes and then at most every `WAIT_NOTE_SECONDS`. Best effort: a failure to write is logged, never raised. `conn` is the run's Redis.
+    """
+    if row is None:
+        return False
+    now = time.time() if now is None else now
+    before = _NOTED.get(row)
+    if before is not None and before[0] == reason and now - before[1] < WAIT_NOTE_SECONDS:
+        return False
+    try:
+        control = planrows.control_connection(conn, run_id)
+    except Exception as exc:  # noqa: BLE001 -- a note on a wait is never a reason to stop the wait
+        log.swallowed("queue/attempts", "note_wait", exc)
+        return False
+    try:
+        taken = ledger.set_wait(control, row, reason)
+        control.commit()
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("queue/attempts", "note_wait", exc)
+        return False
+    finally:
+        control.close()
+    _NOTED[row] = (reason, now)
+    if len(_NOTED) > 1000:
+        _NOTED.pop(next(iter(_NOTED)))
+    return taken
+
+
+def close_lost(conn, run_id, row, outcome, error_kind=None, error_text=None, stack_text=None):
+    """
+    Writes the end of an attempt that could not write it itself (OPS.223): a horse killed for memory (`killed_memory`) or by something else (`lost`), a unit the follower stopped as stuck
+    (`stuck`, with the stack it had the horse write). Closes the job's attempts that are still `running` in the ledger and moves the job back to `waiting`, for the retry. Best effort:
+    a failure to write is logged, never raised. `conn` is the run's Redis, which names the control database. Returns whether an attempt was closed.
+    """
+    if row is None:
+        return False
+    try:
+        control = planrows.control_connection(conn, run_id)
+    except Exception as exc:  # noqa: BLE001 -- the ledger's history never stops what saw the kill
+        log.swallowed("queue/attempts", "close_lost", exc)
+        return False
+    try:
+        newest = control.execute("SELECT attempt FROM engine_jobs WHERE id = ?", (row,)).fetchone()
+        stack_file = attemptlog.keep_stack(row, newest["attempt"], stack_text) if newest else None
+        numbers = ledger.end_running(control, row, outcome, error_kind=error_kind, error_text=error_text, stack_file=stack_file)
+        if numbers:
+            ledger.set_job_state(control, row, "waiting")
+        control.commit()
+        return bool(numbers)
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("queue/attempts", "close_lost", exc)
+        return False
+    finally:
+        control.close()

@@ -227,3 +227,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
 | function | planetgen.physics.ice_light.thickest_ice_m | by design | the thickest bare ice that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
 | function | planetgen.physics.ice_light.deepest_snow_m | by design | the deepest snow that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
+| module | planetgen.physics.ice_growth | GEN.1735 | the thickness of the ice a world's water wears and the snow on it (GEN.1728); the refuge term (GEN.1735) is to call `lid_of` for the lid it passes to `ice_light.transmission` |
+| row | 6.298:IG2 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.298:IG3 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.298:IG4 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.298:IG5 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.298:IG6 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.298:IG7 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.298:IG8 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |

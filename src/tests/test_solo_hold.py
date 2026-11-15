@@ -12,7 +12,7 @@ import uuid
 import pytest
 import rq
 
-from planetgen.queue import api_jobs, memorygate, pause, redisqueue, runrecord, scheduler
+from planetgen.queue import api_jobs, memorygate, pause, redisqueue, runrecord, scheduler, tokens
 from planetgen.queue.memorygate import Claim, Holder, Host
 
 
@@ -34,11 +34,11 @@ def host(available=8000.0, total=16000.0, cores=8, load=0.5):
 
 
 def holder(name, mb, held=0.0, lane="bulk", kind="unit:x", solo=False):
-    return Holder(name, Claim(kind, mb, 1.0, lane, solo=solo), 1, "h", held, held)
+    return Holder(name, Claim(kind, mb, 1.0, lane, tokens=(tokens.ALONE,) if solo else ()), 1, "h", held, held)
 
 
 def solo_claim(kind="unit:scatter"):
-    return Claim(kind, 500.0, 1.0, "bulk", solo=True)
+    return Claim(kind, 500.0, 1.0, "bulk", tokens=(tokens.ALONE,))
 
 
 # --- the hold is the pause flag ------------------------------------------------------------------------------

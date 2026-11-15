@@ -46,11 +46,12 @@ class Context:
     What a piece is handed (`do(args, piece, ctx)`): the unit's arguments, where it stands, and the database and the long statements, so no command opens its own or writes its own commit.
     """
 
-    def __init__(self, kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, cursor=0, clock=time.monotonic, attempt=None):
+    def __init__(self, kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, cursor=0, clock=time.monotonic, attempt=None, halt=None):
         self.kind, self.args, self.report, self.cursor = kind, args, report, cursor
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
         self.attempt = attempt
+        self.halt = halt
         self._closers = []
         self.state = {}                 # what the pieces of this unit hand to each other: they run in one process, in order, so a piece may leave what the next reads
         self.began = time.monotonic()
@@ -143,11 +144,15 @@ class Context:
 
     def between(self):
         """
-        Called before every piece: when `CHECK_SECONDS` have passed since the last look, reads whether the run is still live and holds the unit while the queues are paused.
+        Called before every piece: first what `halt` says (a local read, every piece), then, when `CHECK_SECONDS` have passed since the last look, reads whether the run is still live and holds the unit while the queues are paused.
 
         Raises:
             UnitStopped: The run is no longer live.
         """
+        if self.halt is not None:
+            reason = self.halt()
+            if reason:
+                raise UnitStopped(reason)
         if self.redis is None or self.run_id is None:
             return
         now = self.clock()
@@ -172,13 +177,14 @@ class Context:
                 time.sleep(PAUSE_POLL_SECONDS)
 
 
-def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, clock=time.monotonic, attempt=None):
+def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, job=None, clock=time.monotonic, attempt=None, halt=None):
     """
     Runs one unit of command `kind` and returns its result: through the engine's loop for a command with `pieces` and `do`, as the command's own `unit` function for one without.
 
     Args:
         report: `report(done, estimate)` of the unit's beat (`unitbeat.UnitBeat`), or any callable taking the same two numbers.
         attempt (attempts.Attempt, optional): The unit's attempt in the ledger; with it every `ctx.commit()` is fenced.
+        halt (callable, optional): Asked before every piece (a local read, no throttle): returns why the unit is to stop there, or `None`. The job process the template forked (OPS.226) passes what the supervisor asks and whether it is still there.
         redis, run_id, stage, unit, job: Where the unit runs; with them the engine honours a cancel and a pause between two pieces. Without them (`commands.run_alone`) it does neither.
 
     Returns:
@@ -192,7 +198,7 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
         return commands.unit_function(kind)(args, report)
     pieces_of, do, gather = commands.pieces_function(kind), commands.do_function(kind), commands.gather_function(kind)
     cursor = 0              # OPS.219 stores it; until then a unit always starts at the beginning
-    ctx = Context(kind, args, report, redis=redis, run_id=run_id, stage=stage, unit=unit, job=job, cursor=cursor, clock=clock, attempt=attempt)
+    ctx = Context(kind, args, report, redis=redis, run_id=run_id, stage=stage, unit=unit, job=job, cursor=cursor, clock=clock, attempt=attempt, halt=halt)
     try:
         pieces = list(pieces_of(args, cursor))
         total = cursor + len(pieces)
