@@ -20153,11 +20153,11 @@
    "n": 69
   },
   "Luhman||one|2024": {
+   "evidence": "registered at Train 28 (DOC.99): the paper the text names",
    "matched": [
     "10.3847/1538-3881/ad812a"
    ],
-   "n": 1,
-   "evidence": "registered at Train 28 (DOC.99): the paper the text names"
+   "n": 1
   },
   "Luna||etal|2006": {
    "matched": [
@@ -35516,11 +35516,11 @@
    "n": 1
   },
   "Zwart|Hochart|pair|2024": {
+   "evidence": "registered at Train 28 (DOC.99): the paper the text names",
    "matched": [
     "10.21468/scipostastro.3.1.001"
    ],
-   "n": 1,
-   "evidence": "registered at Train 28 (DOC.99): the paper the text names"
+   "n": 1
   },
   "Zwart||etal|2001": {
    "evidence": "a record already in the list has this author, year and (for a pair) second author",
@@ -74265,6 +74265,45 @@
    "volume": "121",
    "year": 2016
   },
+  "10.1002/2016jc012325": {
+   "authors": [
+    [
+     "Arndt",
+     "S."
+    ],
+    [
+     "Meiners",
+     "K. M."
+    ],
+    [
+     "Ricker",
+     "R."
+    ],
+    [
+     "Krumpen",
+     "T."
+    ],
+    [
+     "Katlein",
+     "C."
+    ],
+    [
+     "Nicolaus",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2016jc012325",
+   "editors": [],
+   "journal": "JGRC",
+   "page": "2108",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Influence of snow depth and surface flooding on light transmission through Antarctic pack ice",
+   "type": "journal-article",
+   "volume": "122",
+   "year": 2017
+  },
   "10.1002/2016jd025034": {
    "authors": [
     [
@@ -110974,6 +111013,33 @@
    "volume": "34",
    "year": 2007
   },
+  "10.1029/2006jc003977": {
+   "authors": [
+    [
+     "Light",
+     "B."
+    ],
+    [
+     "Grenfell",
+     "T. C."
+    ],
+    [
+     "Perovich",
+     "D. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2006jc003977",
+   "editors": [],
+   "journal": "JGRC",
+   "page": "2006JC003977",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Transmission and absorption of solar radiation by Arctic sea ice during the melt season",
+   "type": "journal-article",
+   "volume": "113",
+   "year": 2008
+  },
   "10.1029/2006je002845": {
    "authors": [
     [
@@ -115906,6 +115972,33 @@
    "type": "journal-article",
    "volume": "24",
    "year": 1997
+  },
+  "10.1029/97jc01614": {
+   "authors": [
+    [
+     "Perovich",
+     "D. K."
+    ],
+    [
+     "Roesler",
+     "C. S."
+    ],
+    [
+     "Pegau",
+     "W. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/97jc01614",
+   "editors": [],
+   "journal": "JGRC",
+   "page": "1193",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Variability in Arctic sea ice optical properties",
+   "type": "journal-article",
+   "volume": "103",
+   "year": 1998
   },
   "10.1029/97jd01621": {
    "authors": [
@@ -237212,6 +237305,37 @@
    "volume": "42",
    "year": 2021
   },
+  "10.1139/f01-187": {
+   "authors": [
+    [
+     "Belzile",
+     "C."
+    ],
+    [
+     "Vincent",
+     "W. F."
+    ],
+    [
+     "Gibson",
+     "J. A."
+    ],
+    [
+     "Hove",
+     "P. V."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1139/f01-187",
+   "editors": [],
+   "journal": "Can. J. Fish. Aquat. Sci.",
+   "page": "2405",
+   "publisher": "Canadian Science Publishing",
+   "src": "crossref",
+   "title": "Bio-optical characteristics of the snow, ice, and water column of a perennially ice-covered lake in the High Arctic",
+   "type": "journal-article",
+   "volume": "58",
+   "year": 2001
+  },
   "10.1139/p03-042": {
    "authors": [
     [
@@ -244019,6 +244143,25 @@
    "type": "journal-article",
    "volume": "5",
    "year": 2022
+  },
+  "10.3189/172756507782202919": {
+   "authors": [
+    [
+     "Perovich",
+     "D. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3189/172756507782202919",
+   "editors": [],
+   "journal": "J. Glaciol.",
+   "page": "201",
+   "publisher": "International Glaciological Society",
+   "src": "crossref",
+   "title": "Light reflection and transmission by a temperate snow cover",
+   "type": "journal-article",
+   "volume": "53",
+   "year": 2007
   },
   "10.3189/s0260305500005358": {
    "authors": [
@@ -285062,7 +285205,7 @@
   "R5253": "R5248",
   "R5254": "R5250"
  },
- "id_next": 5264,
+ "id_next": 5269,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285088,6 +285231,7 @@
   "10.1002/2016gl071766": "R4770",
   "10.1002/2016gl071930": "R1302",
   "10.1002/2016jb013150": "R1073",
+  "10.1002/2016jc012325": "R5264",
   "10.1002/2016jd025034": "R5203",
   "10.1002/2016je005206": "R1727",
   "10.1002/2016je005240": "R2008",
@@ -286302,6 +286446,7 @@
   "10.1029/2006gl026789": "R3202",
   "10.1029/2006gl027494": "R5006",
   "10.1029/2006gl028779": "R0727",
+  "10.1029/2006jc003977": "R5267",
   "10.1029/2006je002845": "R4553",
   "10.1029/2006je002882": "R4912",
   "10.1029/2007gl030598": "R3364",
@@ -286447,6 +286592,7 @@
   "10.1029/96je03991": "R3326",
   "10.1029/97gl01205": "R4805",
   "10.1029/97gl01879": "R4289",
+  "10.1029/97jc01614": "R5266",
   "10.1029/97jd01621": "R0822",
   "10.1029/97je00916": "R1190",
   "10.1029/97je01875": "R1796",
@@ -289209,6 +289355,7 @@
   "10.1137/1.9781611971163": "R3435",
   "10.1137/1.9781611972894.7": "R1849",
   "10.1137/20m1338149": "R1935",
+  "10.1139/f01-187": "R5265",
   "10.1139/p03-042": "R1197",
   "10.1139/x90-114": "R4572",
   "10.1140/epja/s10050-021-00593-7": "R4461",
@@ -289468,6 +289615,7 @@
   "10.3168/jds.2019-17877": "R0917",
   "10.31725/0367-7966-2023-228-3": "R0701",
   "10.31881/tlr.2021.25": "R4185",
+  "10.3189/172756507782202919": "R5268",
   "10.3189/s0260305500005358": "R2188",
   "10.33232/001c.116675": "R1239",
   "10.33232/001c.121261": "R1237",
