@@ -14,7 +14,7 @@ not, does not. The oxygen a world holds is the balance of a source and its sinks
 * **Reductant flux** `R`: the volcanic and metamorphic gases (H2, CO, H2S) that take oxygen as they are released, which goes with the
   heat the interior gives off and with how reduced the mantle is (`reductant_flux`).
 * **Oxidative weathering** `W`: the rocks at the surface (kerogen, pyrite, ferrous iron) take oxygen at a rate per area of land that goes with the oxygen's
-  partial pressure `p` to a power, `W = W0 (p / p0)^m` per area with `m = OXIDATIVE_WEATHERING_EXPONENT` (GEN.1733; the square root of the COPSE model [R5280] and the fit of [R5281]),
+  partial pressure `p` to a power, `W = W0 (p / p0)^m` per area with `m = OXIDATIVE_WEATHERING_EXPONENT` (GEN.1733; linear, the top of the range the sources give: the square root of the COPSE model [R5280] and the fit of [R5281] to a linear form),
   where `W0` and `p0` are Earth's (`EARTH_SURPLUS_MOL_YR`, `EARTH_O2_PA`). The weathering depends on the pressure, not the moles, because the rock meets the air's oxygen
   at its partial pressure: a heavier world with the same oxygen per area has the larger pressure and weathers faster, so its pressure is no larger.
 * **A store of reductants** `B`: the ocean's ferrous iron and the crust's sulfides and iron, and the reduced gases of the air itself (H2, CO,
@@ -76,11 +76,13 @@ EARTH_SURPLUS_MOL_YR = EARTH_BURIAL_MOL_YR - EARTH_REDUCTANT_MOL_YR
 """float: The surplus of Earth's oxygen budget, mol a year, which Earth's oxidative weathering takes at `EARTH_O2_PA` (`W0`)."""
 
 OXIDATIVE_WEATHERING_EXPONENT = 1.0
-"""float: The power of the oxygen partial pressure that oxidative weathering goes with: the square root of the baseline of the COPSE model [R5280] (taken from [R5282]), which the weathering model of
-[R5281] fits to within its own scatter ("consistent with coal oxidation kinetics"). The sources differ: a linear dependency has been used, and the evidence for any dependency has been disputed [R5280]. [BO13, T3, L0.]"""
+"""float: The power of the oxygen partial pressure that oxidative weathering goes with: linear, the top of the sourced range. The baseline of the COPSE model [R5280] (taken from [R5282]) is the square root, which the weathering
+model of [R5281] fits to within its own scatter ("consistent with coal oxidation kinetics"); a linear dependency has been used, and the evidence for any dependency has been disputed [R5280]. At the square root the balance pressure
+goes with the surplus per area squared and the 16 to 35.5 kPa window of the habitable classes is a surplus of 0.87 to 1.29 of Earth's, too narrow: measured on 400 Abundant systems the oxygen-making sea worlds inside the window were 7 at 0.5
+against 24 at 1.0 (11 under the old moles law). At 1.0 the window is 0.75 to 1.67 of Earth's surplus. [BO13, T3, L1: the end of its range, chosen for the width of the window.]"""
 
 OXIDATIVE_WEATHERING_EXPONENT_RANGE = (0.5, 1.0)
-"""tuple: The range of `OXIDATIVE_WEATHERING_EXPONENT` of the sources that give a dependence (square root to linear). [BO13, T3, L0.]"""
+"""tuple: The range of `OXIDATIVE_WEATHERING_EXPONENT` of the sources that give a dependence (square root to linear). [BO13, T3, L1.]"""
 
 REDOX_DECADE_PER_UNIT = 0.25
 REDOX_FACTOR_RANGE = (0.2, 5.0)
