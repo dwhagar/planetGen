@@ -132,3 +132,19 @@ def test_a_random_terrestrial_body_gets_a_mixture_from_the_inputs_the_function_n
         assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12) or result.family == "airless"
         assert all(gases.has(formula) for formula in result.mole_fractions)
     assert {"rocky", "airless", "lava"} <= families
+
+
+def test_the_design_constants_after_the_recipe_do_not_depend_on_which_rows_the_recipe_drew():
+    """GEN.1646: a world's second climate branch draws other rows (a cold one has no ocean for the c-after row) yet keeps the same volatile inventory."""
+    warm = Subject("terrestrial", EARTH)
+    frozen = Subject("terrestrial", {**EARTH, "ts_k": 220.0, "ocean_present": False})
+    differed = 0
+    for seed in range(12):
+        with draw.bound(seed):
+            first = md.draw_mixture(warm)
+        with draw.bound(seed):
+            second = md.draw_mixture(warm, recipe_subject=frozen)
+        differed += first.drawn != second.drawn
+        if first.family == second.family:
+            assert first.inventory == second.inventory, seed
+    assert differed > 0        # the case the test is for did occur

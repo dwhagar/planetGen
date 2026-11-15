@@ -87,6 +87,15 @@ def greenhouse_from_temperature(surface_k, albedo, flux_w_m2):
     return 4.0 * constants.STEFAN_BOLTZMANN_CONSTANT * surface_k ** 4 / ((1.0 - albedo) * flux_w_m2) - 1.0
 
 
+def albedo_for_temperature(surface_k, flux_w_m2):
+    """The Bond albedo at which a surface of `surface_k` with no greenhouse is in balance with the starlight `flux_w_m2` (`1 - A = 4 sigma T^4 / S`), or `None` when the starlight is zero.
+    A body whose haze keeps more sunlight from the ground than its greenhouse returns (the anti-greenhouse of Titan) is colder than its albedo alone gives; the greenhouse quantity is not
+    negative, so the balance is kept in the albedo."""
+    if not flux_w_m2 or flux_w_m2 <= 0.0:
+        return None
+    return 1.0 - 4.0 * constants.STEFAN_BOLTZMANN_CONSTANT * surface_k ** 4 / flux_w_m2
+
+
 def record(planet, albedo, greenhouse_factor):
     """Sets the three fields on a body just drawn."""
     planet.bond_albedo = albedo

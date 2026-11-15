@@ -1077,14 +1077,24 @@ def format_report(results, verbose=False):
     A plain-text report: one line per failure (or per check, `verbose`),
     then a summary line.
     """
-    failed = failures(results)
-    lines = [r.describe() for r in results if verbose or not r.passed]
-    seconds = sum(r.seconds for r in results)
+    return report_text([_row_of(result) for result in results], verbose)
+
+
+def _row_of(result):
+    """A `Result` as plain JSON, as a piece of the `check-math` unit hands it to the engine: its `name`, whether it `passed`, the `line` that describes it and the `seconds` it took."""
+    return {"name": result.name, "passed": result.passed, "line": result.describe(), "seconds": result.seconds}
+
+
+def report_text(rows, verbose=False):
+    """`format_report` from the rows of `_row_of` (the report of a unit whose pieces are the checks)."""
+    failed = [row for row in rows if not row["passed"]]
+    lines = [row["line"] for row in rows if verbose or not row["passed"]]
+    seconds = sum(row["seconds"] for row in rows)
     if failed:
-        lines.append(f"Math check FAILED: {len(failed)} of {len(results)} checks failed "
-                     f"({', '.join(r.name for r in failed)}) in {seconds:.2f} s.")
+        lines.append(f"Math check FAILED: {len(failed)} of {len(rows)} checks failed "
+                     f"({', '.join(row['name'] for row in failed)}) in {seconds:.2f} s.")
     else:
-        lines.append(f"Math check passed: all {len(results)} checks in {seconds:.2f} s.")
+        lines.append(f"Math check passed: all {len(rows)} checks in {seconds:.2f} s.")
     return "\n".join(lines)
 
 
@@ -1094,19 +1104,23 @@ def expand_check_math(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def check_math_unit(params, report):
-    """
-    The `check-math` command (PERF.119): runs every check and reports (TEST.68).
+def check_math_pieces(params, cursor):
+    """The pieces of the `check-math` unit (OPS.204): one check each, as its place in `all_checks()`, after the first `cursor` of them."""
+    return list(range(len(all_checks())))[cursor:]
 
-    Args:
-        params (dict): `verbose` (a line for every check, not only the failures).
-        report (callable): Unused: the unit is one step.
 
-    Returns:
-        dict: `failed` (how many checks failed) and `report`, the text `format_report` gives.
+def check_math_piece(params, index, ctx):
     """
-    results = run_all()
-    return {"failed": len(failures(results)), "report": format_report(results, verbose=bool(params.get("verbose")))}
+    One piece of the `check-math` command (PERF.119): runs check number `index` of `all_checks()` and gives its row (`_row_of`); a check that raises is a failure, never a crash.
+    """
+    return _row_of(run_check(all_checks()[index]))
+
+
+def check_math_gather(params, rows, ctx):
+    """
+    The result of the `check-math` command (TEST.68): `failed` (how many checks failed) and `report`, the text `format_report` gives (a line for every check with `verbose`, not only the failures).
+    """
+    return {"failed": sum(1 for row in rows if not row["passed"]), "report": report_text(rows, verbose=bool(params.get("verbose")))}
 
 
 _STARTUP_RESULTS = None
