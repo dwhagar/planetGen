@@ -100,21 +100,20 @@ def test_clearing_the_bright_stars_of_a_scatter_that_was_drawn_clears_it_all(mys
 def test_the_queue_units_that_every_new_galaxy_goes_through_take_the_same_cheap_way(mysql_config, monkeypatch):
     """Every entry (the Generate page's New galaxy, `planetgen reset`, the galaxy command's plan) reaches the one wipe and the one clear through these units, so the rule is theirs and not an entry's."""
     from planetgen.generation import run_plan
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, wrapper
     from tests.test_galaxy_gen import _seed_skeleton
     store.get_connection(mysql_config).close()
     seen = _truncated(monkeypatch)
-    result = reset.reset_galaxy_unit({"database": wrapper.database_args(mysql_config)}, lambda done, total: None)
+    result = commands.run_alone("reset-galaxy", {"database": wrapper.database_args(mysql_config)})
     assert seen == [] and result["with_rows"] == 0
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
-    spies = []
-    real = store.clear_bright_stars
+    steps = []
+    real = store.run_step
 
-    def through_a_spy(conn, steps=store.statementmark.LABELS_ONLY):
-        spies.append(_Spy(conn))
-        return real(spies[-1], steps)
+    def through_a_spy(conn, plan, label):
+        steps.append(label)
+        return real(conn, plan, label)
 
-    monkeypatch.setattr(store, "clear_bright_stars", through_a_spy)
-    assert run_plan.clear_bright_stars_unit({"database": wrapper.database_args(mysql_config), "clear": "all"}, lambda done, total: None) == {"cleared": "all"}
-    written = [sql for sql in spies[0].sql if sql.lstrip().split(None, 1)[0].upper() in ("TRUNCATE", "DELETE", "UPDATE", "INSERT", "ALTER")]
-    assert len(spies) == 1 and written == [], f"the clear unit of a new galaxy wrote: {written}"
+    monkeypatch.setattr(store, "run_step", through_a_spy)
+    assert commands.run_alone("clear-bright-stars", {"database": wrapper.database_args(mysql_config), "clear": "all"}) == {"cleared": "all"}
+    assert steps == [], f"the clear unit of a new galaxy ran steps: {steps}"      # OPS.196: the look piece found nothing to clear, so no piece after it runs a statement
