@@ -435,8 +435,8 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-CREEP_KEYS = (81, 276)
-"""tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws move which keys
+CREEP_KEYS = (274, 387)
+"""tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
 these are (key 175 before GEN.1623's star table); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
 
 
