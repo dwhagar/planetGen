@@ -166,11 +166,15 @@ def test_the_cut_of_a_planned_stage_fills_its_row_in_and_marks_it_done(monkeypat
     assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
 
 
-def test_a_run_that_names_no_database_keeps_its_plan_in_its_record_and_writes_no_ledger_row(monkeypatch):
-    """TEST.769: `system --output` touches no database; its plan, cut, end marks and rows answer as the ledger's do, and no connection to the control database is opened."""
+def _no_ledger(monkeypatch, error):
+    def refuse(*args):
+        raise error
+    monkeypatch.setattr(planrows, "control_connection", refuse)
+
+
+def _check_plan_kept_in_the_record(monkeypatch, steps):
     _register(monkeypatch, first=_units(2))
-    monkeypatch.setattr(planrows, "control_connection", lambda *args: pytest.fail("a run with no database opened the ledger"))
-    run_id = wrapper.run("Rows", [commands.Step("a", "first", "A", {"x": 1, "database": None})], lambda index, plan: None, lambda index, unit, result: None)
+    run_id = wrapper.run("Rows", steps, lambda index, plan: None, lambda index, unit, result: None)
     conn = redisqueue.connect()
     assert not planrows.ledgered(conn, run_id)
     assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
@@ -178,3 +182,21 @@ def test_a_run_that_names_no_database_keeps_its_plan_in_its_record_and_writes_no
     assert planrows.ended(conn, run_id, 0) >= {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
     planrows.mark_ended(conn, run_id, 0, planrows.RELEASE)
     assert planrows.RELEASE in planrows.ended(conn, run_id, 0)
+
+
+def test_a_run_with_no_control_database_keeps_its_plan_in_its_record_and_writes_no_ledger_row(monkeypatch):
+    """TEST.769: `system --output` touches no database; its plan, cut, end marks and rows answer as the ledger's do."""
+    _no_ledger(monkeypatch, OSError("no control database"))
+    _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1, "database": None})])
+
+
+def test_a_run_before_the_migration_made_the_ledger_tables_still_runs(monkeypatch):
+    """OPS.263: `update.sh` runs the math check (stage 4) before the migration (stage 5) makes the ledger's tables; the run must not fail with `Table 'engine_runs' doesn't exist`."""
+    class NoTable:
+        def execute(self, *args, **kwargs):
+            raise RuntimeError("(1146, \"Table 'planetgen_control.engine_runs' doesn't exist\")")
+
+        def close(self):
+            pass
+    monkeypatch.setattr(planrows, "control_connection", lambda *args: NoTable())
+    _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1})])
