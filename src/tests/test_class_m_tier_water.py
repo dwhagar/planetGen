@@ -74,8 +74,8 @@ def test_the_dial_makes_one_extra_draw_only_under_a_tier_and_a_body_not_dialed_r
         Counter.calls = 0
         water = delivered_water.sample_fraction(1.0, 0.4, rng=Counter(3), dialed=dialed)
         assert Counter.calls == 1           # no class draw: the share inside the dialed class
-        low, high = delivered_water.bracket(dialed)
-        assert low <= water <= high
+        low, high = abundance_tier.tuning.ABUNDANCE_DESERT_WATER_RANGE if dialed == "dry" else delivered_water.bracket(dialed)
+        assert low <= water <= high          # a desert world draws inside the part of the dry class that leaves small seas (GEN.1721)
     Counter.calls = 0
     delivered_water.sample_fraction(1.0, 0.4, rng=Counter(3), dialed=None)
     assert Counter.calls == 2           # the law's own two
@@ -94,7 +94,7 @@ def test_the_dry_part_splits_the_dials_one_draw_and_a_part_of_zero_draws_as_the_
 
 
 def test_at_share_one_every_candidate_holds_earths_class_and_nothing_else_moves(monkeypatch):
-    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0))
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0, 0.0, 0.0))
     waters = _waters(_Body("abundant"), 200)
     assert all(LOW[0] <= water <= LOW[1] for water in waters)
     for other in (_Body("abundant", zone="h"), _Body("abundant", zone="c"), _Body("abundant", is_moon=True), _Body("abundant", zone=None)):
@@ -102,14 +102,14 @@ def test_at_share_one_every_candidate_holds_earths_class_and_nothing_else_moves(
 
 
 def test_with_a_dry_part_every_candidate_holds_a_dialed_class_the_dry_one_the_smaller_part_and_remembers_which(monkeypatch):
-    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.25))
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.25, 0.0, 0.0))
     body = _Body("abundant")
     dry = 0
     for index in range(300):
         with draw.bound(f"tier-dry:{index}"):
             water = bulk_draw._rocky_water(body)
         assert body._water_dialed in ("dry", "low")
-        low, high = delivered_water.bracket(body._water_dialed)
+        low, high = abundance_tier.tuning.ABUNDANCE_DESERT_WATER_RANGE if body._water_dialed == "dry" else delivered_water.bracket(body._water_dialed)
         assert low <= water <= high
         dry += body._water_dialed == "dry"
     assert abs(dry / 300 - 0.25) < 0.08
@@ -120,7 +120,7 @@ def test_with_a_dry_part_every_candidate_holds_a_dialed_class_the_dry_one_the_sm
 
 
 def test_at_half_share_about_half_of_the_candidates_are_dialed(monkeypatch):
-    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.5, 0.0, 0.0, 0.0))
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.5, 0.0, 0.0, 0.0, 0.0, 0.0))
     natural = delivered_water.class_shares(bulk_draw._kg_to_mearth(5.97e24), 0.5)[delivered_water.EARTH_CLASS]
     count = 600
     low = sum(1 for water in _waters(_Body("sparse"), count) if LOW[0] <= water <= LOW[1])

@@ -1,0 +1,1182 @@
+{
+ "version": 1,
+ "title": "Adaptations of life to cold, heat, dryness, salt and dim light (GEN.1725)",
+ "description": "One row per adaptation of the table of docs/design/habitability/life-adaptations.md (from reports/life-adaptations-climate-2026-11-14.md): the climate it serves, the life that carries it, the axis whose limit it widens, the limit at the tolerant (grade 2) and extreme (grade 3) grades, the stage the life must have reached, and where it came from. The ordinary limit is one number for each axis (`axes`), so no two rows disagree about it. Every number is a stand-in of section 6.294 of docs/design/research/gap-filling-plan.md with its tier and tweak.",
+ "source_report": "reports/life-adaptations-climate-2026-11-14.md",
+ "axes": {
+  "t_cold": {
+   "unit": "K",
+   "wider": "lower",
+   "ordinary": 273.15,
+   "ordinary_tier": "T1",
+   "ordinary_tweak": "L0",
+   "basis": "the freezing point of water: without an adaptation the life is active only above it (physics)",
+   "stress": "cold"
+  },
+  "t_hot": {
+   "unit": "K",
+   "wider": "higher",
+   "ordinary": 313.15,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "40 C: the upper edge of ordinary (mesophilic) oxygen makers; a stand-in between the 30 to 37 C optimum of freshwater cyanobacteria and the thermophile mats",
+   "stress": "heat"
+  },
+  "light_floor": {
+   "unit": "umol photons m-2 s-1",
+   "wider": "lower",
+   "ordinary": 1.0,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "the middle of the older estimates of the minimum light for net growth, 0.3 to 5 umol m-2 s-1 (the measured floor is 0.04)",
+   "stress": "low_light"
+  },
+  "water_hours": {
+   "unit": "h per year",
+   "wider": "lower",
+   "ordinary": 8760.0,
+   "ordinary_tier": "T1",
+   "ordinary_tweak": "L0",
+   "basis": "liquid water all year: a life with no tolerance of drying needs it",
+   "stress": null
+  },
+  "water_activity": {
+   "unit": "water activity",
+   "wider": "lower",
+   "ordinary": 0.9,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "the water activity under which most ordinary cells stop dividing (the lowest at which any cell divides is 0.585)",
+   "stress": null
+  },
+  "ground_water_depth": {
+   "unit": "m",
+   "wider": "higher",
+   "ordinary": 1.0,
+   "ordinary_tier": "T1",
+   "ordinary_tweak": "L0",
+   "basis": "a water table within about 1 m reaches the surface by capillary rise and evaporation (extinction depth 0.3 to 1 m for deep-rooted cover)",
+   "stress": null
+  },
+  "insulation": {
+   "unit": "K",
+   "wider": "higher",
+   "ordinary": 0.0,
+   "ordinary_tier": "T1",
+   "ordinary_tweak": "L0",
+   "basis": "no cover: the ground is at the air's temperature",
+   "stress": null
+  }
+ },
+ "stages": {
+  "microbe": {
+   "delay_gyr": [
+    0.0,
+    0.0
+   ],
+   "basis": "with the first life"
+  },
+  "cyanobacteria": {
+   "delay_gyr": [
+    0.8,
+    1.1
+   ],
+   "basis": "oxygen-making cyanobacteria by about 2.7 to 3.0 Ga on a life started at about 3.8 Ga (GEN.1724 LA8)"
+  },
+  "land_mats": {
+   "delay_gyr": [
+    0.6,
+    0.6
+   ],
+   "basis": "microbial mats on land by about 3.2 Ga (LA8)"
+  },
+  "algae": {
+   "delay_gyr": [
+    2.2,
+    2.2
+   ],
+   "basis": "eukaryotic algae by about 1.6 Ga (LA8)"
+  },
+  "mosses": {
+   "delay_gyr": [
+    3.3,
+    3.3
+   ],
+   "basis": "mosses about 0.47 Ga (LA8)"
+  },
+  "rooted_plants": {
+   "delay_gyr": [
+    3.4,
+    3.4
+   ],
+   "basis": "deep-rooted trees about 0.385 Ga (LA8)"
+  },
+  "c4_plants": {
+   "delay_gyr": [
+    3.8,
+    3.8
+   ],
+   "basis": "C4 about 35 Ma (LA8)"
+  },
+  "animals": {
+   "delay_gyr": null,
+   "basis": "no delay in GEN.1724: the animal stage of the life timeline decides"
+  }
+ },
+ "habitats": [
+  {
+   "id": "open_water",
+   "climate": [
+    "WT",
+    "HW"
+   ],
+   "gate": "liquid, lit, local temperature inside the life's cold and hot limits",
+   "opened_by": [],
+   "production": "ocean"
+  },
+  {
+   "id": "water_under_ice",
+   "climate": [
+    "IC"
+   ],
+   "gate": "liquid water under a lid of ice, the light that gets through it (ice_light.transmission) at or above the light floor",
+   "opened_by": [
+    "C1",
+    "C2",
+    "C3",
+    "C4"
+   ],
+   "production": "ocean times the transmitted light"
+  },
+  {
+   "id": "melt_film",
+   "climate": [
+    "SN"
+   ],
+   "gate": "melt hours at or above the water-hours limit",
+   "opened_by": [
+    "C6",
+    "C7"
+   ],
+   "production": "refuge"
+  },
+  {
+   "id": "crust_land",
+   "climate": [
+    "FM",
+    "HD"
+   ],
+   "gate": "liquid hours at or above the water-hours limit, local temperature at or above the cold limit",
+   "opened_by": [
+    "C8",
+    "C9",
+    "C10",
+    "D1"
+   ],
+   "production": "crust"
+  },
+  {
+   "id": "seep",
+   "climate": [
+    "HD",
+    "XA"
+   ],
+   "gate": "water table within the ground-water depth limit of the surface, or cut by relief (spring, oasis, playa)",
+   "opened_by": [
+    "D7"
+   ],
+   "production": "refuge, or plant once rooted plants exist"
+  },
+  {
+   "id": "brine",
+   "climate": [
+    "SB"
+   ],
+   "gate": "water activity at or above the water-activity limit",
+   "opened_by": [
+    "C5",
+    "D3",
+    "S1"
+   ],
+   "production": "refuge"
+  },
+  {
+   "id": "hot_pool",
+   "climate": [
+    "HW"
+   ],
+   "gate": "water at or under the hot limit",
+   "opened_by": [
+    "H1",
+    "H2"
+   ],
+   "production": "refuge"
+  }
+ ],
+ "adaptations": [
+  {
+   "id": "C1",
+   "name": "shade adaptation under ice (more pigment, low light floor)",
+   "climate": [
+    "IC"
+   ],
+   "life_types": [
+    "oxygenic_microbe",
+    "alga"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "light_floor",
+   "grade2": 0.2,
+   "grade3": 0.04,
+   "activity": "active",
+   "production_factor": 1.0,
+   "stage_needed": "microbe",
+   "opens_habitat": "water_under_ice",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C1; GEN.1722 RF1",
+   "tier": "T1",
+   "tweak": "L1",
+   "note": "grade 3 is the measured 0.04 umol m-2 s-1 (daily mean, under the Arctic pack); grade 2 is the geometric mean of the ordinary 1.0 and that, a straight guess"
+  },
+  {
+   "id": "C2",
+   "name": "plankton blooms under sea ice",
+   "climate": [
+    "IC"
+   ],
+   "life_types": [
+    "alga",
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "water_under_ice",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C2",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "over 40 percent of the modelled Arctic production is in water with more than 85 percent ice cover"
+  },
+  {
+   "id": "C3",
+   "name": "mats under perennial lake ice",
+   "climate": [
+    "IC"
+   ],
+   "life_types": [
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "water_under_ice",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C3; GEN.1722 RF11",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "year-round under 3 to 5 m of ice"
+  },
+  {
+   "id": "C4",
+   "name": "thin-ice refugia on a frozen-over world",
+   "climate": [
+    "IC"
+   ],
+   "life_types": [
+    "oxygenic_microbe",
+    "alga"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "water_under_ice",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C4",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "survived global glaciations where the ice was thin enough to admit light"
+  },
+  {
+   "id": "C5",
+   "name": "sea-ice brine-channel algae",
+   "climate": [
+    "IC",
+    "SB"
+   ],
+   "life_types": [
+    "alga"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "t_cold",
+   "grade2": 267.15,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "algae",
+   "opens_habitat": "brine",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C5; GEN.1722 RF9",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "growth in brine at about -2 to -6 C, recalled"
+  },
+  {
+   "id": "C6",
+   "name": "snow algae with a carotenoid sunscreen",
+   "climate": [
+    "SN"
+   ],
+   "life_types": [
+    "alga"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "algae",
+   "opens_habitat": "melt_film",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C6",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "microbes caused 17 percent of the melt of an Alaskan icefield"
+  },
+  {
+   "id": "C7",
+   "name": "cryoconite holes (dark mats melt pits into the ice)",
+   "climate": [
+    "SN"
+   ],
+   "life_types": [
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": 1.0,
+   "stage_needed": "microbe",
+   "opens_habitat": "melt_film",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C7; GEN.1722 RF7",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "photosynthesis 2.9 times respiration with water seldom above 0.1 C; all holes on Earth about 5e-4 of Earth's burial"
+  },
+  {
+   "id": "C8",
+   "name": "lichen photosynthesis while frozen or nearly so",
+   "climate": [
+    "FM"
+   ],
+   "life_types": [
+    "lichen_crust"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "t_cold",
+   "grade2": 263.15,
+   "grade3": 253.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "land_mats",
+   "opens_habitat": "crust_land",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C8; GEN.1727 LC1-LC6",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "carbon-14 fixation confirmed at -10.9 C (grade 2); field activity as low as -20 C (grade 3); range -24 C (laboratory) to -17 C"
+  },
+  {
+   "id": "C9",
+   "name": "rock-hidden (cryptoendolith) communities",
+   "climate": [
+    "FM"
+   ],
+   "life_types": [
+    "lichen_crust",
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "crust_land",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C9; GEN.1722 RF8",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "active only above freezing and wet; carbon turnover about 20,000 years"
+  },
+  {
+   "id": "C10",
+   "name": "moss banks and carpets (the ice blanket)",
+   "climate": [
+    "FM",
+    "CT"
+   ],
+   "life_types": [
+    "moss"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "insulation",
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "mosses",
+   "opens_habitat": "crust_land",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C10",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "grow where the mean year is -4.8 C; bank depth and age recalled; the insulation in kelvin is not sourced"
+  },
+  {
+   "id": "C11",
+   "name": "snow cover as insulation",
+   "climate": [
+    "FM",
+    "CT"
+   ],
+   "life_types": [
+    "moss",
+    "plant",
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "insulation",
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "mosses",
+   "opens_habitat": null,
+   "effect_on_habitat": "ground under deep snow stays near 0 to -5 C while the air is far colder",
+   "source_rows": "GEN.1724 C11",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "physical, recalled"
+  },
+  {
+   "id": "C12",
+   "name": "photosynthesis under thin snow",
+   "climate": [
+    "FM",
+    "CT"
+   ],
+   "life_types": [
+    "moss",
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "light_floor",
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "mosses",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C12",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "lengthens the season by days to weeks, recalled"
+  },
+  {
+   "id": "C13",
+   "name": "cushion and rosette form",
+   "climate": [
+    "CT"
+   ],
+   "life_types": [
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "insulation",
+   "grade2": null,
+   "grade3": 15.0,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "rooted_plants",
+   "opens_habitat": null,
+   "effect_on_habitat": "the plant runs several degrees above the air; soil under cushions differs by up to about 15 C",
+   "source_rows": "GEN.1724 C13",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "the up-to-15 C is a maximum, not a typical value"
+  },
+  {
+   "id": "C14",
+   "name": "antifreeze and ice-binding proteins",
+   "climate": [
+    "any_cold"
+   ],
+   "life_types": [
+    "microbe",
+    "alga",
+    "plant",
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "t_cold",
+   "grade2": 272.15,
+   "grade3": 271.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C14",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "lowers the freezing point by about 1 to 2 C in fish blood; recalled"
+  },
+  {
+   "id": "C15",
+   "name": "freeze tolerance (sugar or glycerol cryoprotectants)",
+   "climate": [
+    "any_cold"
+   ],
+   "life_types": [
+    "animal",
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "t_cold",
+   "grade2": 270.15,
+   "grade3": 267.15,
+   "activity": "dormant",
+   "production_factor": null,
+   "stage_needed": "animals",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C15",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "wood frog survives 65 to 70 percent of its body water frozen at -3 to -6 C; dormant while frozen, so it moves no activity limit"
+  },
+  {
+   "id": "C16",
+   "name": "cold-active enzymes and membranes (psychrophily)",
+   "climate": [
+    "any_cold"
+   ],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [],
+   "axis": "t_cold",
+   "grade2": 263.15,
+   "grade3": 258.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 C16",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "bacterial growth to about -15 C, activity to about -25 C in permafrost brine; not oxygen makers, so no oxygen class carries it"
+  },
+  {
+   "id": "H1",
+   "name": "thermophilic cyanobacterial mats",
+   "climate": [
+    "HW"
+   ],
+   "life_types": [
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "t_hot",
+   "grade2": 333.15,
+   "grade3": 346.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "cyanobacteria",
+   "opens_habitat": "hot_pool",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H1; GEN.1722 RF10",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "mats at 53 to 63 C (grade 2 is 60 C); the limit for oxygen-making cells is about 73 to 75 C (346 to 348 K)"
+  },
+  {
+   "id": "H2",
+   "name": "acid hot-spring red algae (Cyanidium type)",
+   "climate": [
+    "HW"
+   ],
+   "life_types": [
+    "alga"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "t_hot",
+   "grade2": 323.15,
+   "grade3": 330.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "algae",
+   "opens_habitat": "hot_pool",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H2",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "to about 56 to 57 C at pH 0.5 to 3, recalled"
+  },
+  {
+   "id": "H3",
+   "name": "hyperthermophily",
+   "climate": [
+    "HW"
+   ],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [],
+   "axis": "t_hot",
+   "grade2": 368.15,
+   "grade3": 395.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H3",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "growth to 122 C (optimum 98 C); gives no oxygen, no oxygen class carries it"
+  },
+  {
+   "id": "H4",
+   "name": "heat-shock proteins (chaperones)",
+   "climate": [
+    "any_hot"
+   ],
+   "life_types": [
+    "microbe",
+    "oxygenic_microbe",
+    "alga",
+    "lichen_crust",
+    "moss",
+    "plant",
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H4",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "survive brief heat a few to ten degrees above the growth limit; moves no steady limit"
+  },
+  {
+   "id": "H5",
+   "name": "fast heat acclimation of photosynthesis",
+   "climate": [
+    "HD"
+   ],
+   "life_types": [
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "t_hot",
+   "grade2": 318.15,
+   "grade3": 322.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "rooted_plants",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H5",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "Tidestromia thrives above 45 C and raises its photosynthesis optimum within a day; land plants stop near 47 to 50 C"
+  },
+  {
+   "id": "H6",
+   "name": "reflective hairs and waxes",
+   "climate": [
+    "HD"
+   ],
+   "life_types": [
+    "plant",
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "rooted_plants",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H6",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "plants: less light used, so lower production"
+  },
+  {
+   "id": "H7",
+   "name": "behavioural timing (short safe forage window, burrow, nocturnal)",
+   "climate": [
+    "HD"
+   ],
+   "life_types": [
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "animals",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H7",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "lets animals live where the surface passes their limit"
+  },
+  {
+   "id": "H8",
+   "name": "hot-vent animals",
+   "climate": [
+    "HW"
+   ],
+   "life_types": [
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "t_hot",
+   "grade2": 318.15,
+   "grade3": 323.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "animals",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 H8",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "about 50 C is the highest known for animals, recalled"
+  },
+  {
+   "id": "D1",
+   "name": "biological soil crusts (cyanobacteria, lichens, mosses)",
+   "climate": [
+    "HD",
+    "XA",
+    "FM"
+   ],
+   "life_types": [
+    "oxygenic_microbe",
+    "lichen_crust",
+    "moss"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "water_hours",
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "land_mats",
+   "opens_habitat": "crust_land",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D1; GEN.1722 RF6",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "wake only with liquid water, light and warmth together; cryptogamic covers fix about 7 percent of land production"
+  },
+  {
+   "id": "D2",
+   "name": "hypoliths under translucent stones",
+   "climate": [
+    "XA"
+   ],
+   "life_types": [
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "water_hours",
+   "grade2": null,
+   "grade3": 75.0,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "crust_land",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D2; GEN.1722 RF2, RF3",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "down to about 5 mm of rain a year and 75 h a year of liquid water; falls about five orders of magnitude for a tenfold drop in rain"
+  },
+  {
+   "id": "D3",
+   "name": "halite endoliths (water drawn from the air by salt)",
+   "climate": [
+    "XA",
+    "SB"
+   ],
+   "life_types": [
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "water_hours",
+   "grade2": null,
+   "grade3": 75.0,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "brine",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D3; GEN.1722 RF5",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "lives where rain is under 1 mm a year; the hours are the GEN.1722 floor, not a measurement of the salt's own hours"
+  },
+  {
+   "id": "D4",
+   "name": "desiccation tolerance (anhydrobiosis, resurrection plants)",
+   "climate": [
+    "HD",
+    "XA"
+   ],
+   "life_types": [
+    "oxygenic_microbe",
+    "lichen_crust",
+    "moss",
+    "plant",
+    "animal"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "water_hours",
+   "grade2": null,
+   "grade3": null,
+   "activity": "dormant",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D4",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "survive near-total drying for years and revive on wetting; dormant, so it moves no activity limit"
+  },
+  {
+   "id": "D5",
+   "name": "CAM (pores open at night)",
+   "climate": [
+    "HD"
+   ],
+   "life_types": [
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "rooted_plants",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D5",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "far less water lost per carbon; a lower top rate than C3 or C4"
+  },
+  {
+   "id": "D6",
+   "name": "C4 (carbon pump)",
+   "climate": [
+    "HD",
+    "HW"
+   ],
+   "life_types": [
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "c4_plants",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D6",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "about 3 percent of plant species and about 23 percent of land carbon fixation; needs low carbon dioxide"
+  },
+  {
+   "id": "D7",
+   "name": "deep roots to groundwater (phreatophytes)",
+   "climate": [
+    "HD"
+   ],
+   "life_types": [
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "ground_water_depth",
+   "grade2": 9.5,
+   "grade3": 68.0,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "rooted_plants",
+   "opens_habitat": "seep",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D7; GEN.1722 section 3",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "desert mean maximum rooting depth 9.5 m, record 68 m; widens the seep from a table within 1 m to one within rooting depth"
+  },
+  {
+   "id": "D8",
+   "name": "dormancy and seed or spore banks",
+   "climate": [
+    "HD",
+    "XA"
+   ],
+   "life_types": [
+    "microbe",
+    "plant"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "dormant",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 D8",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "wait out dry years"
+  },
+  {
+   "id": "S1",
+   "name": "compatible solutes (glycerol, betaine)",
+   "climate": [
+    "SB"
+   ],
+   "life_types": [
+    "alga",
+    "oxygenic_microbe",
+    "microbe"
+   ],
+   "classes": [
+    "all"
+   ],
+   "axis": "water_activity",
+   "grade2": 0.75,
+   "grade3": 0.585,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "brine",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 S1",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "oxygen-making algae (Dunaliella) live in brine near water activity 0.75; any life to 0.585 (not oxygen makers)"
+  },
+  {
+   "id": "L1",
+   "name": "far-red pigments (chlorophyll d and f)",
+   "climate": [
+    "DL"
+   ],
+   "life_types": [
+    "oxygenic_microbe"
+   ],
+   "classes": [
+    "1b",
+    "1c"
+   ],
+   "axis": "light_floor",
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "cyanobacteria",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 L1",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "use light out to about 750 nm in shade; already class 1c"
+  },
+  {
+   "id": "L2",
+   "name": "deep red seaweeds",
+   "climate": [
+    "DL"
+   ],
+   "life_types": [
+    "alga"
+   ],
+   "classes": [
+    "1a",
+    "1b",
+    "1c"
+   ],
+   "axis": "light_floor",
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "algae",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 L2",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "fix carbon at a tiny fraction of a percent of surface light, recalled"
+  },
+  {
+   "id": "L3",
+   "name": "retinal light pumps",
+   "climate": [
+    "DL"
+   ],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [],
+   "axis": null,
+   "grade2": null,
+   "grade3": null,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": null,
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1724 L3",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "energy, not oxygen (GEN.881)"
+  }
+ ]
+}

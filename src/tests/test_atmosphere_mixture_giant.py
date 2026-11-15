@@ -82,6 +82,18 @@ def test_clouds_take_iron_silicates_and_about_a_fifth_of_the_oxygen():
     assert no_alkali["Na"] == 0.0 and no_alkali["K"] == 0.0 and no_alkali["S"] < budget["S"]
 
 
+def test_clouds_never_take_more_oxygen_than_the_gas_has_and_the_gas_still_solves():
+    """GEN.1717 follow-up: a carbon-rich envelope 200 times the reference in metals (carbon to oxygen near 60, the oxygen re-split under what its silicates bind) was left a negative
+    oxygen by the clouds of a cool layer, and the equilibrium refused it ("an abundance must not be negative", `test_db_column_round_trip`)."""
+    from planetgen.physics import gas_equilibrium
+
+    budget = mg.element_budget(2.3, c_over_o=60.0)
+    assert budget["O"] < mg.OXIDE_OXYGEN["Mg"] * budget["Mg"], "the case: the rock asks for more oxygen than the budget has"
+    cold, clouds = mg.remove_clouds(budget, 300.0, 0.3, 2.3)
+    assert "forsterite" in clouds and cold["O"] == 0.0 and all(value >= 0.0 for value in cold.values())
+    assert gas_equilibrium.solve(cold, 300.0, 0.3).mole_fractions["CH4"] > 0.0
+
+
 def test_ammonium_hydrosulfide_forms_where_the_fit_says_and_leaves_the_gas_at_its_boundary():
     budget = mg.element_budget(0.0)
     warm, taken = mg.remove_ammonium_hydrosulfide(budget, 250.0, 0.3, 0.0)
