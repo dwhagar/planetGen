@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.319 |
-| MAP | MAP.429 |
+| MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1720 |
+| GEN | GEN.1724 |
 | PERF | PERF.268 |
 | DB | DB.131 |
 | API | API.51 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.751 |
+| TEST | TEST.754 |
 | USR | USR.33 |
 | OPS | OPS.260 |
 | DOC | DOC.121 |
@@ -3000,12 +3000,12 @@ Parents marked "new parent" had no old number of their own.
 | OPS.195 | Job engine stage 1: ctx.sql long-statement helper with label and start time in the beat (MySQL stage events behind a check, off as installed) | none | done, PR #6435 (8:08 PM EST 11-13) |
 | OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | open |
 | OPS.197 | Job engine stage 1: guard test that no command sleeps or polls outside the listed blocking primitives | none | done, PR #6431 (Lane 05, 8:00 PM EST 11-13) |
-| OPS.198 | Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity) | none | open |
+| OPS.198 | Job engine stage 1 family: scatters and fields move to pieces and do (scatter-mass, scatter-phenomena, scatter-luminosity, scatter-band, draw-nebula-field, fill-map-luminosity) | none | done, PR #6535 (7:24 PM EST 11-14) |
 | OPS.199 | Job engine stage 1 family: skeleton and lights move to pieces and do (plan-skeleton, finish-phenomena, refresh-block-lights) | none | done, PR #6487 (4:58 PM EST 11-14) |
 | OPS.200 | Job engine stage 1 family: clears and drops step per statement through ctx.sql (clean-nebula-field, clear-scatter, empty-phenomenon-scatter, drop-phenomenon-indexes, clear-bright-stars, empty-nebula-field) | none | done, PR #6439 (11-13) |
 | OPS.201 | Job engine stage 1 family: stamped walkers move to pieces by id range (rescore-habitability, refill-effect-ledger) | none | done, PR #6525 (6:09 PM EST 11-14) |
 | OPS.202 | Job engine stage 1 family: galaxy and sectors move to pieces and do (scatter-backfill, refresh-run-blocks, the generate-* sector commands, link-neighbors, settle-sector-paths, generate-system); split in two | none | open |
-| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | open |
+| OPS.203 | Job engine stage 1 family: population (run-population, run-territories) | none | done, PR #6548 (7:38 PM EST 11-14) |
 | OPS.204 | Job engine stage 1 family: checks (the eleven check-* commands, check-math, check-datasets) count tables or checks | none | done, PR #6528 (6:13 PM EST 11-14) |
 | OPS.205 | Job engine stage 1 family: warm-up (the ten warm-* commands, end-map-rebuild-maintenance, warm-cluster-field); second level replaces warmphases free text | none | done, PR #6523 (5:12 PM EST 11-14) |
 | OPS.206 | Job engine stage 1 family: reset-galaxy steps per table group through ctx.sql | none | done, PR #6450 (11-13) |
@@ -3060,8 +3060,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.255 | (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page | none | done, PR #6502 (11:05 AM EST 11-14) |
 | OPS.256 | (bug) Adding a sector group by hand after a galaxy plan, without the scatter, crashes | none | done, PR #6511 (12:25 PM EST 11-14): with no star scatter after a plan-and-stop the sky is left out of the backfill |
 | OPS.257 | A galaxy run that starts with a database wipe plans no scatter clear steps at all (bright-star, mass, luminosity, phenomena) | none | done, PRs #6543 and #6549 (7:00 PM EST 11-14) |
-| OPS.258 | Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test | none | open |
-| OPS.259 | Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs | none | open |
+| OPS.258 | Trains stop renewing the golden files: renew them once at the 8.1 release; the pinned galaxy test stays as each train's smoke test | none | done, PR #6553 (7:26 PM EST 11-14) |
+| OPS.259 | Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs | none | done, PR #6553 (7:26 PM EST 11-14) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4000,7 +4000,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1688 | (bug) small_body_composition: the METAL_ROWS set is shadowed by a later tuple of the same name, so nickel and cohenite group as rock | none | done, PR #6471 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1689 | Roche coefficient written twice: rings uses 2.456, orbits uses 2.44 | none | done, PR #6471 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1690 | The sphere walk is written three times with different band order (spherical.sphere_rows, region._compute_arcs and _band_arc, window.cells_in_ball) | none | done, PR #6471 in Train 27, PR #6485 (11:13 AM EST 11-14) |
-| GEN.1691 | Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice | none | open |
+| GEN.1691 | Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice | none | done, PR #6510 (8:48 PM EST 11-14) |
 | GEN.1692 | (bug) Belt members promoted to planets keep the member's radius instead of the structure model's, so test_sweep_bulk is red on main | none | done, PR #6418 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1693 | (bug) Promoted belt members cross a neighbouring planet or reach into the next belt (secular forcing lifts e to 0.5), so test_clearance is red on main (34 of 95 seeds) | none | done, PR #6428 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1694 | (bug) The galactic ozone-loss flag is always on: activity.lethal_event_rate_per_gyr uses Milky Way constants, treats an event rate as a permanent state, and the default galactic distance (4,228 ly) gives 164.7 per Gyr against the limit of 10, so every oxygen world keeps 10 percent of its ozone and no world is ever Blue | none | done, PR #6470 in Train 27, PR #6485 (11:13 AM EST 11-14) |
@@ -4029,6 +4029,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1717 | (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300) | none | open |
 | GEN.1718 | (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes | none | open |
 | GEN.1719 | Hazy-envelope balance fix found by the Train 28 gate (Lane 15) | none | done, in Train 28 PR #6546 (6:54 PM EST 11-14, epoch 150) |
+| GEN.1720 | (bug) Class G (thick CO2 of 46 to 4,700 kPa over a global ocean) takes 19 of 27 right-gravity liquid-ocean planets around Sun-like stars, and G rose from 27 to 47 per 346 systems between the Train 26 and Train 28 censuses | none | open |
+| GEN.1721 | Class M abundance tiers also raise classes H, O, P and R in proportion, with M in front: the water dial gets a dry share for H (Earth's class weighted most), and the meter prints a five-class table (shape, passes, first failing gate) | GEN.1706 | open |
+| GEN.1722 | Research first: can a desert, glaciated or hothouse world with no wide sunlit sea build 16 kPa of oxygen, and does the generator's oxygen chain deny it for a physical reason or by omission | none | done, research report life-refuges-research-gen1722-2026-11-14.md (8:55 PM EST 11-14); build in GEN.1723 and GEN.1721 |
+| GEN.1723 | Life will find a way: oxygenic life (classes 1a, 1b, 1c) is present wherever a world has light and any liquid water at its surface (a brine seep or seasonal melt as much as an open sea), on every galaxy including Science | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4854,11 +4858,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.743 | (bug) test_galaxy_density_shape_serializes_the_stored_skeleton fails with KeyError abundance_tier after GEN.1704 | none | done, PR #6530 (3:56 PM EST 11-14) |
 | TEST.744 | (bug) Five tests red on main after the 11-14 merges: test_no_sleep_in_commands (2), test_ticker::test_no_place_keeps_its_own_progress_clock, test_unit_reports::test_the_clearing_units_say_their_phase_and_report_the_steps, test_db_scatter_limits core baseline (19800 against 9900) | none | done, PRs #6527, #6529, #6531 (4:05 PM EST 11-14) |
 | TEST.745 | Remove the stray root script m.py and guard the repo root against stray .py files | none | done, PR #6526 (3:30 PM EST 11-14) |
-| TEST.746 | (bug) test_giant_class_words is red on main for gas dwarfs at seed 2001 | none | open |
-| TEST.747 | (bug) test_references is red on main: two references share an id (R5166 and R5164) | none | open |
-| TEST.748 | (bug) test_plain_words is red on main | none | open |
-| TEST.749 | (bug) test_galaxy_gen has two red tests on main | none | open |
-| TEST.750 | (bug) test_life_help is red on main | none | open |
+| TEST.746 | (bug) test_giant_class_words is red on main for gas dwarfs at seed 2001 | none | done, PR #6553 (7:26 PM EST 11-14) |
+| TEST.747 | (bug) test_references is red on main: two references share an id (R5166 and R5164) | none | done, PR #6553 (7:26 PM EST 11-14) |
+| TEST.748 | (bug) test_plain_words is red on main | none | done, PR #6553 (7:26 PM EST 11-14) |
+| TEST.749 | (bug) test_galaxy_gen has two red tests on main | none | done, PR #6557 (8:00 PM EST 11-14) |
+| TEST.750 | (bug) test_life_help is red on main | none | done, PR #6553 (7:26 PM EST 11-14) |
+| TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | open |
+| TEST.752 | (bug) scripts/earth_analog.py moves only planet.distance per trial, but the air is keyed on formation_distance_au (GEN.1547), so every trial shares one air draw; its baseline is stale | none | done, PR #6568 (8:51 PM EST 11-14) |
+| TEST.753 | (bug) tests/data/civilized_pins.json went stale at epoch 150 (pins 432 and 516 no longer hold a civilization), so tests needing two or more civilized systems hunt for new ones for tens of minutes; test_the_pinned_civilized_seeds_still_qualify checks only the first pin | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -5027,7 +5034,7 @@ Each citation below resolves to one item by its date.
 | UX.309 | The V3 sulfur-cloud line (GEN.1425) lists only the gases actually above the floor, not all four | none | done, PR #6372 (8:00 PM EST 11-13) |
 | UX.310 | "Longest stay indoors at the best site" is reworded when a site is never livable, instead of showing the whole orbit | none | done, PR #6372 (8:00 PM EST 11-13) |
 | UX.311 | The best-site coldest-to-hottest range says it spans the whole orbit, not a day | none | done, PR #6372 (8:00 PM EST 11-13) |
-| UX.312 | Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators | none | open |
+| UX.312 | Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators | none | done, PR #6510 (8:48 PM EST 11-14) |
 | UX.313 | (bug) The system page command names its input file like the --output file | none | done, PR #6454 (11:25 PM EST 11-13) |
 | UX.314 | (bug) A course inside a system raised NotFoundError and showed the 404 page (system_pages._course_in_system) | none | done, PR #6454 (11:25 PM EST 11-13) |
 | UX.315 | Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above | UX.307 | open |
@@ -5078,6 +5085,8 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.426 | (bug) After the wheel carries the map from the whole galaxy into a system, the page URL still holds sector=, so test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main | none | done, PR #6190 (the sector= fault; the wheel-in stall folded into TEST.696) |
 | MAP.427 | Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge | none | open |
 | MAP.428 | Wide binaries and multiples read as one system in the nav and sector views: a link line or ring around the group and one shared system label | none | open |
+| MAP.429 | (bug) The Galaxy Map at galaxy scale is covered by an even lattice of round brown fuzzy blobs behind the stars: one soft round sprite per grid block holding any nebula, sized to the block's bounding sphere, strength from log10(count) only | none | open |
+| MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | open |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 

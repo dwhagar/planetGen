@@ -2,6 +2,133 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4186] - 2026-11-15
+
+**Headline:** The bright star backfill, the map's block totals refresh at the end of a run, the sector stages and the single system run now report what they have done a piece at a time, so a long run shows real counts and can be stopped or paused between pieces.
+
+### Changed
+
+- OPS.202 (second part): `scatter-backfill`, `refresh-run-blocks`, `generate-start-sector`, `generate-neighborhood`, `generate-sectors` and `generate-system` hand the engine `pieces`, `do` and `gather` (OPS.191) in place of a `unit` function with a loop of its own. The pieces are a chunk of `BACKFILL_CHUNK_SECTORS` sectors (the transaction the backfill already made of them) or one observer cell's sky tiers; the nebulae and then the sectors of the block totals; one sector of a sector stage (a stage run again leaves out the ones already saved); and the tries and then the saving of a system. The engine counts pieces done of pieces in all, honours a cancel and a pause between two pieces, and the second level counts the sectors drawn, the nebulae and blocks brought in, the cell visits of the sky tiers, and the tries of a system (`ctx.step`, `ctx.advance`, OPS.192). The unit's result has the same fields as before, so the stage's followers, statistics and speed samples are unchanged.
+- The unit's galaxy shape, scatter limits, blocks' candidates and sky ledger are read once for all its pieces (`ctx.kept`), and `run_plan._draw_sector_masses` takes the last two, so the backfill draws what it drew before the engine cut it into pieces.
+- Removed with the old loops: `backfill_bright_stars_unit`, `refresh_run_blocks_unit`, `generate_sectors_unit`, `system_unit` and `_sky_unit` (now the sky piece `_sky_cell`, which goes on after a lost MySQL connection as before).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4185] - 2026-11-15
+
+**Headline:** The job engine has its ledger tables: a run, its jobs and every attempt are rows in the control database, and each galaxy holds the table a job's done mark commits into.
+
+### Changed
+- **Ledger tables and the module that reads and writes them (OPS.215).** The control database gains `engine_runs`, `engine_jobs` and `engine_attempts` (control schema v23); each galaxy gains `engine_items` (schema v261, migration 0261), the row a job's own commits update `WHERE attempt = mine` so its data and its done mark are one transaction. `planetgen/queue/ledger.py` adds a run and its jobs (repeating a plan adds nothing), raises an attempt at dispatch and writes it to the galaxy before the job starts, closes an attempt with how it ended and what it cost, and holds the fence (`commit_item` raises `Replaced` for a job another attempt took). A `Writer` runs ledger calls on a thread of its own so the supervisor's loop never waits on MySQL. Nothing reads or writes the rows yet: the supervisor (OPS.207) and the plan-as-rows item (OPS.221) build on it, so no run changes. A galaxy made before v261 gets the empty table at its next migrate.
+
+generation-output: unchanged
+
+## [8.0.4184] - 2026-11-15
+
+**Headline:** A stage that waits says what it waits on, in the run line and the log.
+
+### Fixed
+
+- OPS.253: a stage that finishes no unit says what it waits on. The run line of a stalled stage names what its units are doing ("waiting on progress (4 waiting on sky lock, 1 working)"), the job log says so every 30 minutes while no unit finishes, and the bright-star backfill's bar counts a sky cell by its own counter instead of standing still for the hours one cell takes.
+
+## [8.0.4183] - 2026-11-15
+
+**Headline:** The Earth analog now draws a different air in every trial, and its stored baseline is renewed on main (Class M 30 of 800).
+
+### Fixed
+
+- TEST.752: `scripts/earth_analog.py` moved only `planet.distance` per trial, but the air keys on `formation_distance_au` (GEN.1547), so every trial shared one air draw. It now sets `formation_distance_au` beside `distance`. The stored baseline `scripts/data/earth_analog_baseline.json` is measured again on main: 800 trials, Class M 30 (it was 20), no errors.
+
+generation-output: unchanged
+
+## [8.0.4182] - 2026-11-15
+
+**Headline:** Twelve pieces of code that were written twice are written once: the body child tables, the block chain, the stored-tree read, the stars filter check, the admin check, the HTML and JSON escapes of the 3D map, and the rest of the list the layered-fixes read left (GEN.1691, UX.312). Pages and generated output are unchanged.
+
+### Fixed
+- **A bad tier or tweak code on the References pages is an error, not a blank (GEN.1691).** `references_site._lookup` raises `KeyError` for a code the legend has no row for, where it returned an empty name and the page showed a blank.
+
+### Changed
+- **Storage and generation (GEN.1691).** `fingerprint.BODY_CHILD_SUFFIXES` is the one list of the child tables every body kind has, and an edit deletes those rows by it (`db/edits`). `galaxy/drill.chain_blocks` and `drill.STORED_LEVELS` are the one block chain `db/block_stats` and `db/block_lights` walk (their own `chain_blocks` and `LEVELS` are gone); `block_stats.clear` empties its table in batches as `block_lights.clear` does. `scatter_systems.read_member_tree` reads through `read_stored_trees` (whose `StoredMember` now carries a group member's `offset_au` and `velocity_kms`). `detmath.float_or` is the NULL-to-float helper of `db/sky_sphere` and `db/sky_sprites`. The belt and field member pages share `belt_member_info.neighbour_designations`, and the field pages build their field block once (`_field_block`).
+- **Web (UX.312).** `db/route_neighbours` reads the nearest ladder from `db/near` (`ladder_pc`) instead of its own copy. The Generate pages, the job page and the system page check the admin with `admin_pages._require_admin`; `generate_page._admin_or_redirect` is gone. The center fact of a nebula or remnant class is a cloud fact (`classref._cloud_facts`). The life-air chart picks each gas's series class once. `fmt.json_script` is the one `<script type="application/json">` escape (the 3D map and the JSON-LD of the front page), and the 3D map escapes text with `fmt.esc`. `util/star_count.valid_text` is the one stars-filter check of the Nearby and Search pages.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4181] - 2026-11-15
+
+**Headline:** The galaxy generator's single-sector test checks the line a run now prints, so the last red of the galaxy tests is cleared.
+
+### Changed
+- `test_wedge_mode_reports_the_sector_it_made_like_every_sector_of_a_batch` expects the closing line and no per-sector lines, as OPS.172 made them debug lines (TEST.749).
+
+generation-output: unchanged
+
+## [8.0.4180] - 2026-11-15
+
+**Headline:** The population and territories passes now run as pieces the job engine counts, so the Queue page shows real numbers for the scan, the dating and the territories instead of one quiet unit.
+
+### Changed
+
+- OPS.203: `run-population` and `run-territories` hand the engine their pieces (`population.model.population_pieces`, `territories_pieces`). Population: a forget for a rescan, one scan piece for each batch of planet ids, the drop, the dating of the civilizations, the map's technology rows, and the counts. Territories: the recompute, which counts the polities that have claimed and the owner rows written as its second-level bars (OPS.192).
+- The engine commits after every piece through `ctx.commit()`; the model's pass code has no commit of its own. A scan piece the watermark has already passed (another pass took the lock first) leaves its planets alone. The old whole-unit drivers `population_unit` and `territories_unit` and the `on_stage` announcements (UX.83's three steps) are gone: the engine's counts are the bar. A bring-to-epoch redo and the tests run the same pieces through `model.run_population` and `model.run_territories`, one commit a piece.
+- The pass lock is taken around each piece (the unit's beat says it waits on `mysql` while it waits) and let go after the piece's commit, so a pooled connection never carries it away and two passes take turns a piece at a time.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4179] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits gives the engine its pieces like the other converted commands.
+
+### Fixed
+
+- OPS.257: the `store-scatter-limits` command is a piece of the engine's loop (one piece, committed through the context), which the every-command-gives-pieces guard on main asked for.
+
+## [8.0.4178] - 2026-11-15
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
+## [8.0.4177] - 2026-11-15
+
+**Headline:** The train gate runs on every ready lane from the first file, with no split to agree on first, and its file times now come from real database runs.
+
+### Changed
+- `train_gate.py run --claims DIR` has each lane take the next unclaimed test file, longest first, so an idle or fast lane takes more and the lanes finish together (OPS.259). `train_gate.py status` counts what is passed, failed, running and waiting, and `--release-older SECONDS` frees the claim of a lane that died.
+- `train_gate.py learn --replace` sets each file's time to its longest pass, and `scripts/data/gate_durations.json` is refreshed from the train 27 and 28 runs: database files such as the fingerprint, old-schema and round-trip tests had been listed at their skipped seconds, not the 20 to 45 minutes they take.
+
+generation-output: unchanged
+
+## [8.0.4176] - 2026-11-15
+
+**Headline:** A change of generated output no longer needs the golden files or an epoch bump in its pull request, so trains stop waiting on a golden rebuild.
+
+### Changed
+- `test_golden_seed.py` is a smoke test in an ordinary run (OPS.258): the battery, the Rosetta text and the pinned galaxy must be built whole and are not compared with the golden files; the exact comparison runs at the end-of-version gate (`PLANETGEN_VERSION_GATE`).
+- `bump_version.py --check-pr` no longer requires the golden files, the epoch bump and the note line `generation-output: changed` together; the epoch list must still be in order, name its stages and rise by one at most.
+- The golden files are renewed and the epoch bumped once, before the 8.1 release gate, with `python -m tests.golden_update --reason "..."`.
+
+generation-output: unchanged
+
+## [8.0.4175] - 2026-11-15
+
+**Headline:** The star and phenomenon scatters, the nebula field and the map luminosity fill now report what they have done a piece at a time, so a long run shows real counts and can be stopped or paused between pieces.
+
+### Changed
+
+- OPS.198: `scatter-mass`, `scatter-luminosity`, `scatter-band`, `scatter-phenomena`, `draw-nebula-field` and `fill-map-luminosity` hand the engine `pieces`, `do` and `gather` (OPS.191) in place of a `unit` function with a loop of its own. The pieces are a shell (with its part beyond the outline for the phenomena), the far shells together, the clusters' and satellites' stars, a first-index slab of nebula cells, and a range of 20,000 ids of the map luminosity fill. The engine counts pieces done of pieces in all, honours a cancel and a pause between two pieces, and each piece commits through `ctx.commit()`. The second level counts the stars or phenomena placed and the columns of nebula cells (`ctx.step`, `ctx.advance`, OPS.192). The unit's result has the same fields as before, so the stage's followers, statistics and speed samples are unchanged.
+- Removed with the old loops: `scatter_shells_unit`, `scatter_phenomena_unit`, `draw_nebula_field_unit`, `fill_map_luminosity_unit`, the shells and phenomena tasks, `_nebula_field_task`, `_ReportChannel` and `CHANNEL_INTERVAL_SECONDS`. The free-text phases of the nebula field and the map luminosity fill are gone with them.
+- `engine.Context` gains `kept(name, make)`, so a unit reads the galaxy's shape and its components once for all its pieces.
+- A map luminosity fill piece covers `MAP_LUMINOSITY_PIECE_IDS` (20,000) ids with its own statement and commit; the block light parts of its cells are put right in the same piece, and the values are those of one statement over the whole range.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4174] - 2026-11-14
 
 **Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.

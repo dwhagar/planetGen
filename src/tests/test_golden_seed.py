@@ -13,9 +13,12 @@ TEST.77: a fixed seed makes what the pinned golden files say (`src/tests/golden/
   about as long again as the first, so an ordinary merge's gate leaves it to the version gate.
 - Tier C, the hash-seed and locale probe, is `test_reproducible_draws.test_a_sector_does_not_depend_on_hash_seed_or_locale`.
 
-A change of what the generator makes fails these until the golden files are rewritten with
-`python -m tests.golden_update --reason "..."`, which also bumps the generator epoch (OPS.56); `bump_version.py
---check-pr` then wants the note's `generation-output: changed` line.
+Testing mode (OPS.258, Boss 2026-11-14): an ordinary run is a SMOKE test. The battery, the Rosetta text and the pinned galaxy
+are built and must come out whole (the battery lists every case, the text is not empty, the galaxy stores its plan, its sectors and
+its region), but they are not compared with the golden files. A change of what the generator makes does not fail them and a PR that
+makes one renews no golden file and bumps no epoch. The exact comparison runs at the end-of-version gate (`PLANETGEN_VERSION_GATE`,
+`scripts/test.py full`), and there the golden files are rewritten ONCE with `python -m tests.golden_update --reason "..."`, which also
+bumps the generator epoch (OPS.56).
 """
 
 import difflib
@@ -30,11 +33,18 @@ from tests.test_galaxy_gen import _plan_wide_galaxy
 from tests.test_parallel_generation import _run, make_database  # noqa: F401 -- a fixture
 
 
+VERSION_GATE = "PLANETGEN_VERSION_GATE"
+"""str: The environment variable `scripts/test.py full` sets: the end-of-version run, which compares with the golden files and also builds
+the golden galaxy at four workers."""
+
+
 def _check_or_write(path, actual, written=None):
-    """Compares `actual` with the golden file at `path`, or writes the file (`written`, else `actual`) when this run
-    rewrites the goldens; a missing file is an error."""
+    """Compares `actual` with the golden file at `path` at the end-of-version gate, or writes the file (`written`, else `actual`) when
+    this run rewrites the goldens; any other run is the smoke test and compares nothing (None). At the gate a missing file is an error."""
     if golden_seed.writing():
         golden_seed.write(path, actual if written is None else written)
+        return None
+    if not os.environ.get(VERSION_GATE):
         return None
     assert path.exists(), f"{path.name} is missing: run `python -m tests.golden_update --reason \"...\"`"
     return golden_seed.read(path)
@@ -44,6 +54,7 @@ def test_the_battery_makes_the_pinned_digests():
     actual = golden_seed.battery_record()
     expected = _check_or_write(golden_seed.BATTERY_FILE, actual, golden_seed.written_battery())
     if expected is None:
+        assert actual["overall"] and actual["cases"], "the battery came out empty"      # the smoke test
         return
     expected.pop("made_on", None)
     differences = golden_seed.describe_difference(expected, actual)
@@ -55,15 +66,12 @@ def test_the_rosetta_text_is_the_pinned_text():
     actual = golden_seed.rosetta_text()
     expected = _check_or_write(golden_seed.ROSETTA_FILE, actual)
     if expected is None:
+        assert actual.strip(), "the Rosetta text came out empty"      # the smoke test
         return
     diff = "".join(difflib.unified_diff(expected.splitlines(True), actual.splitlines(True), "rosetta.txt (pinned)",
                                         "rosetta.txt (made now)", n=1))
     assert not diff, "\n" + diff[:4000]
 
-
-VERSION_GATE = "PLANETGEN_VERSION_GATE"
-"""str: The environment variable `scripts/test.py full` sets: the end-of-version run, which also builds the golden galaxy
-at four workers."""
 
 _ONE_WORKER = {}
 """dict: The one-worker galaxy record of this process (built by the first test that needs it, then reused)."""
@@ -108,6 +116,7 @@ def test_the_pinned_galaxy_is_the_pinned_one(make_database, monkeypatch):
     one = _one_worker_record(make_database, monkeypatch)
     expected = _check_or_write(golden_seed.GALAXY_FILE, one)
     if expected is None:
+        assert one["plan"] and one["region"] and one["sectors"], "the pinned galaxy stored no plan, region or sectors"      # the smoke test
         return
     assert _sector_differences(expected, one) == []
     assert (expected["plan"], expected["region"]) == (one["plan"], one["region"])

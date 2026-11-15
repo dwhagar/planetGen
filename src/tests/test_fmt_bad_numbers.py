@@ -39,6 +39,7 @@ _GARBAGE = re.compile(r"\b(?:nan|inf|infinity|none)\b", re.IGNORECASE)
 NOT_NUMBER_FORMATTERS = {
     (fmt, "dash_unless_finite"),  # the guard itself
     (fmt, "esc"),  # escapes any value's str(): "nan" is the value's own text
+    (fmt, "json_script"),  # JSON for a <script> body; a NaN float is JSON's NaN, tested below
     (fmt, "static_url"),
     (fmt, "quote"),  # urllib's, imported
     (fmt, "quantity_html"),  # the page spans (UX.78), tested below
@@ -238,6 +239,15 @@ def test_esc_and_static_url_take_any_value(value):
     assert isinstance(fmt.esc(value), str)
     assert fmt.esc(None) == ""
     assert fmt.static_url("style.css").startswith("static/style.css?v=")
+
+
+@pytest.mark.parametrize("value", BAD_NUMBERS, ids=_id)
+def test_json_script_never_raises_and_cannot_end_the_script_element(value):
+    """`json_script` writes any value as JSON for a `<script type="application/json">` body: a bad number is `json.dumps`'s own text
+    (`NaN`, `Infinity`), never an error, and `<`, `>` and `&` in a string are `\\u` escapes, so `</script>` cannot close the element early."""
+    text = fmt.json_script({"value": value, "label": "</script>&<b>"})
+    assert isinstance(text, str) and "</script>" not in text and "<" not in text and ">" not in text and "&" not in text
+    assert text.startswith('{"value": ') and text.endswith('"label": "\\u003c/script\\u003e\\u0026\\u003cb\\u003e"}')
 
 
 @pytest.mark.parametrize("distance", [float("nan"), float("inf"), float("-inf"), None, 10 ** 400])
