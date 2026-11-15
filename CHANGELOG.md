@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4185] - 2026-11-15
+
+**Headline:** The job engine has its ledger tables: a run, its jobs and every attempt are rows in the control database, and each galaxy holds the table a job's done mark commits into.
+
+### Changed
+- **Ledger tables and the module that reads and writes them (OPS.215).** The control database gains `engine_runs`, `engine_jobs` and `engine_attempts` (control schema v23); each galaxy gains `engine_items` (schema v261, migration 0261), the row a job's own commits update `WHERE attempt = mine` so its data and its done mark are one transaction. `planetgen/queue/ledger.py` adds a run and its jobs (repeating a plan adds nothing), raises an attempt at dispatch and writes it to the galaxy before the job starts, closes an attempt with how it ended and what it cost, and holds the fence (`commit_item` raises `Replaced` for a job another attempt took). A `Writer` runs ledger calls on a thread of its own so the supervisor's loop never waits on MySQL. Nothing reads or writes the rows yet: the supervisor (OPS.207) and the plan-as-rows item (OPS.221) build on it, so no run changes. A galaxy made before v261 gets the empty table at its next migrate.
+
+generation-output: unchanged
+
+## [8.0.4184] - 2026-11-15
+
+**Headline:** A stage that waits says what it waits on, in the run line and the log.
+
+### Fixed
+
+- OPS.253: a stage that finishes no unit says what it waits on. The run line of a stalled stage names what its units are doing ("waiting on progress (4 waiting on sky lock, 1 working)"), the job log says so every 30 minutes while no unit finishes, and the bright-star backfill's bar counts a sky cell by its own counter instead of standing still for the hours one cell takes.
+
+## [8.0.4183] - 2026-11-15
+
+**Headline:** The Earth analog now draws a different air in every trial, and its stored baseline is renewed on main (Class M 30 of 800).
+
+### Fixed
+
+- TEST.752: `scripts/earth_analog.py` moved only `planet.distance` per trial, but the air keys on `formation_distance_au` (GEN.1547), so every trial shared one air draw. It now sets `formation_distance_au` beside `distance`. The stored baseline `scripts/data/earth_analog_baseline.json` is measured again on main: 800 trials, Class M 30 (it was 20), no errors.
+
+generation-output: unchanged
+
 ## [8.0.4182] - 2026-11-15
 
 **Headline:** Twelve pieces of code that were written twice are written once: the body child tables, the block chain, the stored-tree read, the stars filter check, the admin check, the HTML and JSON escapes of the 3D map, and the rest of the list the layered-fixes read left (GEN.1691, UX.312). Pages and generated output are unchanged.

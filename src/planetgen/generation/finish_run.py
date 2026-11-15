@@ -53,7 +53,7 @@ of a run that draws both passes are split from the massive ones at a limit the r
 alone."""
 
 AGAIN = "again"
-"""str: The step parameter that marks the stage that stopped: it is run again from its start (`generate_sectors_unit`
+"""str: The step parameter that marks the stage that stopped: it is run again from its start (`generate_sectors_pieces`
 leaves the sectors already saved alone)."""
 
 
