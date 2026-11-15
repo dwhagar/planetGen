@@ -164,3 +164,17 @@ def test_the_cut_of_a_planned_stage_fills_its_row_in_and_marks_it_done(monkeypat
     opened = [job for job in _jobs(mysql_config, ledger_run) if job["command"] == "open"]
     assert len(opened) == 1 and opened[0]["state"] == "done"
     assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
+
+
+def test_a_run_that_names_no_database_keeps_its_plan_in_its_record_and_writes_no_ledger_row(monkeypatch):
+    """TEST.769: `system --output` touches no database; its plan, cut, end marks and rows answer as the ledger's do, and no connection to the control database is opened."""
+    _register(monkeypatch, first=_units(2))
+    monkeypatch.setattr(planrows, "control_connection", lambda *args: pytest.fail("a run with no database opened the ledger"))
+    run_id = wrapper.run("Rows", [commands.Step("a", "first", "A", {"x": 1, "database": None})], lambda index, plan: None, lambda index, unit, result: None)
+    conn = redisqueue.connect()
+    assert not planrows.ledgered(conn, run_id)
+    assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
+    assert planrows.record_cut(conn, run_id, 0, "first", [({}, 1.0)], 1.0, {}) == [None, None], "a stage already cut is not cut again, and its units have no rows"
+    assert planrows.ended(conn, run_id, 0) >= {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
+    planrows.mark_ended(conn, run_id, 0, planrows.RELEASE)
+    assert planrows.RELEASE in planrows.ended(conn, run_id, 0)
