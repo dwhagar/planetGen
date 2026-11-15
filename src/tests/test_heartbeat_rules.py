@@ -17,6 +17,7 @@ import pytest
 import rq
 
 from planetgen.queue import beatjudge, commands, jobbeat, pause, redisqueue, runrecord, unitbeat, units, unitwatch
+from planetgen.util.format import format_duration_seconds
 
 POLL_SECONDS = 30.0
 """float: How often the follower polls in these runs (the real poll is about this)."""
@@ -308,7 +309,7 @@ def test_api_web_and_tile_prefetch_jobs_are_judged_by_the_same_rules_on_the_same
     _job_record(conn, "web", "looping", now, done=1500.0, still=2.0)
     rows = {(row["kind"], row["job"]): row for row in jobbeat.states(conn, now=now)}
     assert rows[("api", "working")]["state"] == beatjudge.WORKING
-    assert rows[("web", "quiet")]["state"] == beatjudge.QUIET and "600" in rows[("web", "quiet")]["reason"]
+    assert rows[("web", "quiet")]["state"] == beatjudge.QUIET and format_duration_seconds(600.0) in rows[("web", "quiet")]["reason"]      # the reason says how long in the units the pages use (TEST.760: it said seconds once)
     assert rows[("tile-prefetch", "dead")]["state"] == beatjudge.DEAD
     assert rows[("api", "waiting")]["state"] == beatjudge.WAITING
     assert rows[("web", "looping")]["state"] == beatjudge.LOOPING
