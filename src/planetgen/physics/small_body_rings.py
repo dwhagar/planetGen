@@ -37,24 +37,24 @@ from planetgen.util.checks import finite_domain
 from planetgen.util.random import log_uniform
 
 RESONANCE_ORDER = 3
-"""int: How many times slower than the body's rotation the ring goes round (Quaoar 1/3, Haumea 3:1, Chariklo near it). [Stand-in RR1, tier T4, tweak L3.]"""
+"""int: How many times slower than the body's rotation the ring goes round (Quaoar 1/3, Haumea 3:1, Chariklo near it). [Stand-in 6.71 RR1, tier T4, tweak L3.]"""
 
 RESONANCE_RING_RATE = 0.10
 """float: The chance that a small body that meets the conditions of R4 has the ring: three of the roughly twenty bodies whose shape or rotation has been mapped by occultation are known to have one,
-a selection-biased count. [Stand-in RR1, tier T4, tweak L3.]"""
+a selection-biased count. [Stand-in 6.71 RR1, tier T4, tweak L3.]"""
 
 HILL_FRACTION_MAX = 0.5
-"""float: The widest circular prograde orbit that stays bound to a body, in its Hill radii ([R1138, R1771]: 0.49). [Stand-in RR3, tier T2, tweak L0.]"""
+"""float: The widest circular prograde orbit that stays bound to a body, in its Hill radii ([R1138, R1771]: 0.49). [Stand-in 6.71 RR3, tier T2, tweak L0.]"""
 
 INNER_RING_LIMIT_AU = 0.1
-"""float: Inside this distance from its star a planet holds no ring (R9; [R3957] via the design note, 2ND-HAND, 'about 0.1 AU'). [Stand-in RR2, tier T3, tweak L0.]"""
+"""float: Inside this distance from its star a planet holds no ring (R9; [R3957] via the design note, 2ND-HAND, 'about 0.1 AU'). [Stand-in 6.71 RR2, tier T3, tweak L0.]"""
 
 RESONANCE_RING_MASS_KG = (1.0e10, 1.0e14)
 """tuple: The ring's mass, log-uniform, kg: the range that gives a mean optical depth from about 0.001 to 10 over the covered share of a thin ring at a few thousand km, the span of the dense
-narrow rings measured. [Stand-in RR4, tier T6, tweak L3.]"""
+narrow rings measured. [Stand-in 6.71 RR4, tier T6, tweak L3.]"""
 
 RESONANCE_WIDTH_FRACTION = (0.002, 0.05)
-"""tuple: The ring's width over its radius, log-uniform (Quaoar's ring is 5 to 200 km wide at 4 100 km). [Stand-in RR4, tier T6, tweak L3.]"""
+"""tuple: The ring's width over its radius, log-uniform (Quaoar's ring is 5 to 200 km wide at 4 100 km). [Stand-in 6.71 RR4, tier T6, tweak L3.]"""
 
 NARROW = "narrow"
 ORIGIN = "disrupted_moon"

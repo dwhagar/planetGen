@@ -232,7 +232,7 @@ def _say_carried(conn, run_id, index, prior, carried, total):
 
 
 def _log_released(conn, run_id, index, step):
-    """PERF.247: a stage that requires an earlier one (`commands.REQUIRES`) is written to the run's log as released when it opens,
+    """PERF.247: a stage that requires an earlier one (`needs.requires_of`) is written to the run's log as released when it opens,
     naming the stages it waited for."""
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     if step.key not in [item.key for item in steps]:
@@ -881,6 +881,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                   + (f", debug areas {debug}" if debug else ""), area="queue")
         events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
         log.attach(events)
+        planrows.record_plan(conn, run_id, steps)       # OPS.238: the whole run as rows before its first stage opens
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             stage_at = index

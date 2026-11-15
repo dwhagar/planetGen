@@ -47,7 +47,7 @@ vapor-pressure curve lives; the callers (GEN.452) read it.
 * **Known departures at the triple point** from the gas table's pressure: SO2 3.8 percent over, benzene 7 percent over,
   acetylene 3.6 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
 * **Sulfur (S2) is a fit to a computed table** (GEN.1564, `log-fit`): `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent at
-  worst against the gas table's NASA-polynomial vapor pressure over condensed sulfur, stand-in SV1), carried on outside the window; the condensate is solid
+  worst against the gas table's NASA-polynomial vapor pressure over condensed sulfur, stand-in 6.285 SV1), carried on outside the window; the condensate is solid
   below 388.36 K and liquid above. The gas table has no triple point for it, so the checks that read one skip it.
 * **Hydrogen's solid** is Clausius-Clapeyron from its triple point with a latent heat of sublimation of 1.02 kJ/mol (the
   gas table's 0.90 of vaporisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species

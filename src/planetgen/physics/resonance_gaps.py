@@ -39,46 +39,46 @@ from dataclasses import dataclass
 from planetgen.util.checks import finite_domain
 
 CHAOTIC_ZONE_COEFFICIENT = 1.3
-"""float: The half-width of a giant's chaotic zone over its distance is this times `mu^(2/7)` for particles of low eccentricity ([R3226, R4727]: 1.3, numerically 1.35). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The half-width of a giant's chaotic zone over its distance is this times `mu^(2/7)` for particles of low eccentricity ([R3226, R4727]: 1.3, numerically 1.35). [Stand-in 6.116 RGP1, tier T1, tweak L0.]"""
 
 EXTENDED_ZONE_COEFFICIENT = 1.8
-"""float: The same above the critical eccentricity: `1.8 (e mu)^(1/5)` ([R3226: Eq. 10]). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The same above the critical eccentricity: `1.8 (e mu)^(1/5)` ([R3226: Eq. 10]). [Stand-in 6.116 RGP1, tier T1, tweak L0.]"""
 
 CRITICAL_ECCENTRICITY_COEFFICIENT = 0.21
-"""float: The critical eccentricity is this times `mu^(3/7)` ([R3226: Eq. 11]). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The critical eccentricity is this times `mu^(3/7)` ([R3226: Eq. 11]). [Stand-in 6.116 RGP1, tier T1, tweak L0.]"""
 
 MAX_ECCENTRICITY_COEFFICIENT = 2.1
-"""float: Above this times `mu^(1/4)` particles are removed by close encounters ([R3226: Eq. 12]). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: Above this times `mu^(1/4)` particles are removed by close encounters ([R3226: Eq. 12]). [Stand-in 6.116 RGP1, tier T1, tweak L0.]"""
 
 LOW_ECCENTRICITY_WIDTH = 3.2
-"""float: A first-order resonance's width over its distance is this times `mu^(2/3) j^(1/3)` for low eccentricity ([R3226, R4727], Eq. 3). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: A first-order resonance's width over its distance is this times `mu^(2/3) j^(1/3)` for low eccentricity ([R3226, R4727], Eq. 3). [Stand-in 6.116 RGP1, tier T1, tweak L0.]"""
 
 HIGH_ECCENTRICITY_WIDTH = 7.78
-"""float: The same above the critical eccentricity: this times `(e mu j)^(1/2)` ([R3226: Eq. 9]). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The same above the critical eccentricity: this times `(e mu j)^(1/2)` ([R3226: Eq. 9]). [Stand-in 6.116 RGP1, tier T1, tweak L0.]"""
 
 ORDER_WIDTH_EXPONENT = 0.5
-"""float: A resonance of order `k` is narrower than a first-order one by `e^(EXPONENT (k - 1))`: the libration width of a resonance goes as `e^(k/2)`. [Stand-in RGP2, tier T6, tweak L1.]"""
+"""float: A resonance of order `k` is narrower than a first-order one by `e^(EXPONENT (k - 1))`: the libration width of a resonance goes as `e^(k/2)`. [Stand-in 6.116 RGP2, tier T6, tweak L1.]"""
 
 ZONE_ECCENTRICITY_FLOOR = 0.005
-"""float: The least free eccentricity the zones and widths are worked out for, a cold belt's (the giants' forcing replaces it when larger). [Stand-in RGP7, tier T6, tweak L1.]"""
+"""float: The least free eccentricity the zones and widths are worked out for, a cold belt's (the giants' forcing replaces it when larger). [Stand-in 6.116 RGP7, tier T6, tweak L1.]"""
 
 MAX_ORDER = 4
-"""int: Resonances of this order (`p - q`) and less are listed. [Numerical, stand-in RGP4, tier T9, tweak L0.]"""
+"""int: Resonances of this order (`p - q`) and less are listed. [Numerical, stand-in 6.116 RGP4, tier T9, tweak L0.]"""
 
 MAX_P = 12
-"""int: The largest `p` of a listed resonance; a bound on the list for a belt close to a giant, where the chaotic zone is the better description. [Numerical, stand-in RGP4, tier T9, tweak L0.]"""
+"""int: The largest `p` of a listed resonance; a bound on the list for a belt close to a giant, where the chaotic zone is the better description. [Numerical, stand-in 6.116 RGP4, tier T9, tweak L0.]"""
 
 RESONANCE_CLEARING_MYR = 10.0
-"""float: A belt older than this has emptied its resonance zones (the design note's "1 to 10 Myr"; [R3093] for the tail after it). [Stand-in RGP3, tier T2, tweak L1.]"""
+"""float: A belt older than this has emptied its resonance zones (the design note's "1 to 10 Myr"; [R3093] for the tail after it). [Stand-in 6.116 RGP3, tier T2, tweak L1.]"""
 
 YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR = 9.3e-4
-"""float: `da/dt` times the diameter, au km/Myr, at `YARKOVSKY_REFERENCE_AU` (Bennu: 493 m across, 18.95e-4 au/Myr at 1.10 au; [R4568], READ). [Stand-in BR1 of 6.95, tier T2, tweak L1; row RGP6.]"""
+"""float: `da/dt` times the diameter, au km/Myr, at `YARKOVSKY_REFERENCE_AU` (Bennu: 493 m across, 18.95e-4 au/Myr at 1.10 au; [R4568], READ). [Stand-in 6.95 BR1, tier T2, tweak L1; row RGP6.]"""
 
 YARKOVSKY_REFERENCE_AU = 1.1
-"""float: The distance the drift coefficient is measured at; the drift is taken to go as the flux, `1/a^2`. [Stand-in RGP6, tier T2, tweak L1.]"""
+"""float: The distance the drift coefficient is measured at; the drift is taken to go as the flux, `1/a^2`. [Stand-in 6.116 RGP6, tier T2, tweak L1.]"""
 
 FORCED_ECCENTRICITY_COEFFICIENT = 1.25
-"""float: The eccentricity a giant forces on a belt: this times `(a / a_giant) e_giant / (1 - e_giant^2)` (the leading secular term; [R4784], recalled, not opened). [Stand-in RGP5, tier T2, tweak L0.]"""
+"""float: The eccentricity a giant forces on a belt: this times `(a / a_giant) e_giant / (1 - e_giant^2)` (the leading secular term; [R4784], recalled, not opened). [Stand-in 6.116 RGP5, tier T2, tweak L0.]"""
 
 INTERIOR = "interior"
 EXTERIOR = "exterior"

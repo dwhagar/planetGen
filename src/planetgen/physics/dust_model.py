@@ -16,11 +16,11 @@ dust-to-gas law of its metals (`physics.nebula_composition`, GEN.1269), and the 
 
    `Z(R)` is the gas metallicity at the ring's radius (`nebula_composition.GAS_GRADIENT_DEX_PER_KPC`, zero at the galaxy's reference radius) and the
    dust-to-gas ratio is the broken power law of [R5102] (`nebula_composition.gas_to_dust_law`), linear in the metals above 12 + log(O/H) 7.96.
-   `f_vis` is the share of the gas column that dims the stars a catalogue or a person can use (stand-in DU2: the model column at the Sun is twice the
+   `f_vis` is the share of the gas column that dims the stars a catalogue or a person can use (stand-in 6.188 DU2: the model column at the Sun is twice the
    measured high-latitude one, 0.24 mag through the layer, [R5132]; stars behind dense clouds are not in the maps and part of the gas is not in the thin layer).
 
 2. **The layer.** Gas in the disk's own gravity is a sech^2 sheet of scale height `h(R) = sigma_g^2 / (pi G (Sigma_gas + Sigma_stars))`, with the
-   velocity dispersion of the neutral gas `sigma_g` (stand-in DU3). It is 113 pc at the Sun and flares to 470 pc at 12.5 kpc, as the dust does
+   velocity dispersion of the neutral gas `sigma_g` (stand-in 6.188 DU3). It is 113 pc at the Sun and flares to 470 pc at 12.5 kpc, as the dust does
    (thin and thick disks of [R5131] at 12 to 13 kpc: 340 and 1,000 pc), because the surface density falls outward. A floor `LAYER_FLOOR_PC` (DU4) stands in for
    the bulge's pull and the central molecular zone's thickness, which the surface density of the disk alone leaves out (VIEW.46 replaces it with the vertical force of the
    potential, GEN.115).
@@ -48,12 +48,12 @@ from planetgen import tuning
 from planetgen.physics import constants, nebula_composition, sky_photometry, stellar_abundances, unit_registry
 
 HYDROGEN_ATOMS_PER_AV_CM2 = 2.21e21
-"""float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5130: Eq. 1]. Stand-in DU1,
+"""float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5130: Eq. 1]. Stand-in 6.188 DU1,
 tier T1, tweak L0."""
 
 VISIBLE_SHARE = 0.5
 """float: The share of the gas column that dims the stars a catalogue or a person can use: the model column at the Sun (0.47 mag for 11.8 solar masses per pc2) over the
-measured one through a half layer at high latitude doubled (0.24, [R5132]); the maps leave out the stars behind dense clouds. Stand-in DU2, tier T6, tweak L2."""
+measured one through a half layer at high latitude doubled (0.24, [R5132]); the maps leave out the stars behind dense clouds. Stand-in 6.188 DU2, tier T6, tweak L2."""
 
 GAS_DISPERSION_KMS = 9.0
 """float: The velocity dispersion of the neutral gas, km/s, that holds a layer of scale height sigma^2 / (pi G Sigma) up (the HI of the Galaxy is 7 to 11, recalled, not read). Stand-in

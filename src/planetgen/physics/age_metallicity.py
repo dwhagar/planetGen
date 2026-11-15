@@ -35,12 +35,12 @@ THIN_SLOPE_DEX_PER_GY = -0.025
 THICK_SLOPE_DEX_PER_GY = -0.15
 """float: d[Fe/H]/d(age) of the thick disk ([R1863]: about 0.15 dex per Gyr)."""
 THIN_BIRTH_FE_H = 0.05
-"""float: The thin disk's mean [Fe/H] at age 0. [Stand-in AR1, tier T6, tweak L1: the young and intermediate disk of today average 0.]"""
+"""float: The thin disk's mean [Fe/H] at age 0. [Stand-in 6.34 AR1, tier T6, tweak L1: the young and intermediate disk of today average 0.]"""
 THICK_ANCHOR_FE_H = -0.10
-"""float: The thick disk's mean [Fe/H] at `tuning.STELLAR_THICK_START_GY`, where it ends. [Stand-in AR2, tier T6, tweak L1: Haywood's Fig. 9
+"""float: The thick disk's mean [Fe/H] at `tuning.STELLAR_THICK_START_GY`, where it ends. [Stand-in 6.34 AR2, tier T6, tweak L1: Haywood's Fig. 9
 runs from about -0.8 at 12 Gyr to about 0 at 8 Gyr.]"""
 SIGMA = {stellar_abundances.BRANCH_THIN: 0.15, stellar_abundances.BRANCH_HIGH_ALPHA: 0.10}
-"""dict: The scatter about the mean, dex, by branch. [Stand-in AR3, tier T6, tweak L1: the thin disk's is the generator's own 0.15; the
+"""dict: The scatter about the mean, dex, by branch. [Stand-in 6.34 AR3, tier T6, tweak L1: the thin disk's is the generator's own 0.15; the
 thick disk's is tighter, "a much tighter correlation".]"""
 THICK_OLDEST_GY = 13.0
 """float: The oldest thick-disk age; the relation is held at its end beyond it."""
@@ -58,7 +58,7 @@ def mean_fe_h(age_gy, branch):
 
 THICK_SHARE = 0.8
 """float: The share of the disk's stars older than `tuning.STELLAR_THICK_START_GY` that are thick-disk, the rest being the thin disk's oldest.
-[Stand-in AR4, tier T6, tweak L1: [R1863] have the thin disk start forming 8 to 9 Gyr ago, so little of it is older.]"""
+[Stand-in 6.34 AR4, tier T6, tweak L1: [R1863] have the thin disk start forming 8 to 9 Gyr ago, so little of it is older.]"""
 AGE_CANDIDATES = 8
 """int: How many ages `tilted_age` draws to pick one from. A numerical resolution of the tilt, not a physical value: more candidates follow
 the relation more closely."""

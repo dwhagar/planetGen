@@ -37,29 +37,29 @@ from planetgen.physics import chemically_peculiar, spin
 from planetgen.util import draw
 
 DIPOLE_DOMINATED_SHARE = 0.5
-"""float: A dynamo whose dipole holds at least this share of its field is dipole-dominated (`magnetism.generate_field` calls a lower one multipolar). [Stand-in DP1, tier T5, tweak level L0.]"""
+"""float: A dynamo whose dipole holds at least this share of its field is dipole-dominated (`magnetism.generate_field` calls a lower one multipolar). [Stand-in 6.212 DP1, tier T5, tweak L0.]"""
 
 AXIAL_TILT_SIGMA_DEG = 6.0
 """float: The Rayleigh scale, degrees, of the tilt of a dipole-dominated dynamo's axis from the spin axis: a median of 7 degrees, 18 percent of bodies over 11 (Earth), Jupiter's
-9.6, Ganymede's 4, Saturn's 0 and Mercury's under 3 inside the draw. [Stand-in DP2, tier T4, tweak level L2.]"""
+9.6, Ganymede's 4, Saturn's 0 and Mercury's under 3 inside the draw. [Stand-in 6.212 DP2, tier T4, tweak L2.]"""
 
 OFFSET_CLASS_RP = 0.15
-"""float: The dipole's offset, in radii, over which the class is `offset`: Earth 0.07 and Jupiter 0.1 lie under it, Mercury 0.19, Uranus 0.3 and Neptune 0.55 over it. [Stand-in DP3, tier T4, tweak level L0.]"""
+"""float: The dipole's offset, in radii, over which the class is `offset`: Earth 0.07 and Jupiter 0.1 lie under it, Mercury 0.19, Uranus 0.3 and Neptune 0.55 over it. [Stand-in 6.212 DP3, tier T4, tweak L0.]"""
 
 ALIGNMENT_TIMESCALE_YR = 7.0e6
-"""float: The e-folding time, years, in which the dipole of a neutron star aligns with its spin (`tan(alpha)` falls as `exp(-t / tau)`). [Stand-in DP4, tier T3, tweak level L1.]"""
+"""float: The e-folding time, years, in which the dipole of a neutron star aligns with its spin (`tan(alpha)` falls as `exp(-t / tau)`). [Stand-in 6.212 DP4, tier T3, tweak L1.]"""
 
 B_SUN_POLAR_GAUSS = 1.5
-"""float: The polar dipole field, gauss, of the Sun at its activity-cycle mean (1 to 3 gauss over the cycle). [Stand-in DP5, tier T2, tweak level L1.]"""
+"""float: The polar dipole field, gauss, of the Sun at its activity-cycle mean (1 to 3 gauss over the cycle). [Stand-in 6.212 DP5, tier T2, tweak L1.]"""
 
 ROSSBY_SLOPE = -1.40
-"""float: The slope of the large-scale field against the Rossby number ([R4544]: -1.40 +/- 0.14). [Stand-in DP6, tier T2, tweak level L0.]"""
+"""float: The slope of the large-scale field against the Rossby number ([R4544]: -1.40 +/- 0.14). [Stand-in 6.212 DP6, tier T2, tweak L0.]"""
 
 FIELD_SCATTER_DEX = 0.35
-"""float: The scatter, dex, of a cool dwarf's dipole field about the trend. [Stand-in DP7, tier T4, tweak level L1.]"""
+"""float: The scatter, dex, of a cool dwarf's dipole field about the trend. [Stand-in 6.212 DP7, tier T4, tweak L1.]"""
 
 MAX_FIELD_GAUSS = 5000.0
-"""float: The cap, gauss, of a cool dwarf's dipole (the strongest large-scale fields of the M dwarfs are about 1 to 2 kG; [R5144]). [Stand-in DP7, tier T4, tweak level L1.]"""
+"""float: The cap, gauss, of a cool dwarf's dipole (the strongest large-scale fields of the M dwarfs are about 1 to 2 kG; [R5144]). [Stand-in 6.212 DP7, tier T4, tweak L1.]"""
 
 SUN_MASS_SOL = 1.0
 SUN_PERIOD_DAYS = 25.4

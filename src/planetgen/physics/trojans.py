@@ -53,31 +53,31 @@ DOCUMENT = _load()
 NUMBERS = DOCUMENT["numbers"]
 
 MU_CRIT = (1.0 - math.sqrt(23.0 / 27.0)) / 2.0
-"""float: The largest m2 / (m1 + m2) for which L4 and L5 are linearly stable. [Stand-in TJ1, tier T1, tweak L0.]"""
+"""float: The largest m2 / (m1 + m2) for which L4 and L5 are linearly stable. [Stand-in 6.121 TJ1, tier T1, tweak L0.]"""
 
 TADPOLE_NEAREST_APPROACH_DEG = NUMBERS["tadpole_nearest_approach_deg"]["value"]
-"""float: The smallest angle from the secondary (degrees) that a tadpole reaches: a distance from the secondary, not a libration amplitude. [Stand-in TJ3, tier T2, tweak L0.]"""
+"""float: The smallest angle from the secondary (degrees) that a tadpole reaches: a distance from the secondary, not a libration amplitude. [Stand-in 6.121 TJ3, tier T2, tweak L0.]"""
 
 TADPOLE_LIMIT_DEG = (180.0 - TADPOLE_NEAREST_APPROACH_DEG) / 2.0
-"""float: The libration amplitude (degrees, half the range of the angle from the secondary) past which a tadpole is a horseshoe: the orbit that reaches `TADPOLE_NEAREST_APPROACH_DEG` on one side and 180 degrees on the other, (180 - 23.9) / 2. [Stand-in TJ3, tier T2, tweak L0.]"""
+"""float: The libration amplitude (degrees, half the range of the angle from the secondary) past which a tadpole is a horseshoe: the orbit that reaches `TADPOLE_NEAREST_APPROACH_DEG` on one side and 180 degrees on the other, (180 - 23.9) / 2. [Stand-in 6.121 TJ3, tier T2, tweak L0.]"""
 
 LEADING_SHARE_RANGE = tuple(NUMBERS["leading_share_range"]["value"])
-"""tuple: The range the share of a swarm in L4 is drawn from. [Stand-in TJ4, tier T4, tweak L4.]"""
+"""tuple: The range the share of a swarm in L4 is drawn from. [Stand-in 6.121 TJ4, tier T4, tweak L4.]"""
 
 ECC_MAX = NUMBERS["ecc_max"]["value"]
-"""float: The largest orbital eccentricity a trojan may have. [Stand-in TJ5, tier T4, tweak L4.]"""
+"""float: The largest orbital eccentricity a trojan may have. [Stand-in 6.121 TJ5, tier T4, tweak L4.]"""
 
 INCLINATION_MAX_DEG = NUMBERS["inclination_max_deg"]["value"]
-"""float: The largest inclination to the secondary's orbit (degrees). [Stand-in TJ5, tier T4, tweak L4.]"""
+"""float: The largest inclination to the secondary's orbit (degrees). [Stand-in 6.121 TJ5, tier T4, tweak L4.]"""
 
 HILL_SEPARATION_K = NUMBERS["hill_separation_k"]["value"]
-"""float: The separation, in mutual Hill radii, below which another giant or a companion takes the whole swarm (GEN.1455). [Stand-in TJ6, tier T2, tweak L0.]"""
+"""float: The separation, in mutual Hill radii, below which another giant or a companion takes the whole swarm (GEN.1455). [Stand-in 6.121 TJ6, tier T2, tweak L0.]"""
 
 STABLE_RAMP = NUMBERS["stable_ramp"]["value"]
-"""float: How fast the surviving share of a swarm grows with the separation past that limit. [Stand-in TJ7, tier T4, tweak L4.]"""
+"""float: How fast the surviving share of a swarm grows with the separation past that limit. [Stand-in 6.121 TJ7, tier T4, tweak L4.]"""
 
 STAR_LIMIT_MARGIN = NUMBERS["star_limit_margin"]["value"]
-"""float: A swarm needs its giant inside the companion-star stability limit over this. [Stand-in TJ8, tier T4, tweak L4.]"""
+"""float: A swarm needs its giant inside the companion-star stability limit over this. [Stand-in 6.121 TJ8, tier T4, tweak L4.]"""
 
 POINTS = ("L4", "L5")
 """tuple: The only points that hold natural bodies."""

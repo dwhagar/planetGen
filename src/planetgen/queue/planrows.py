@@ -41,6 +41,9 @@ def _kind_of(conn, run_id, index):
     key = _stage_key(conn, run_id, index)
     return next((item["kind"] for item in runrecord.read_steps(conn, run_id) if item["key"] == key), None)
 
+AFTER = "after:"
+"""str: What a `needs` entry of a stage's `open` row starts with when it names a stage: `after:<stage key>` is met when that stage's `release` row is done."""
+
 ENGINE_RUN_FIELD = "engine_run"
 """str: The field of the run record that holds the run's `engine_runs` id."""
 
@@ -62,7 +65,8 @@ def _galaxy_name(conn, run_id):
     for item in runrecord.read_steps(conn, run_id):
         named = (item.get("params") or {}).get("database")
         if named:
-            return named.get("database")
+            from planetgen.db import store
+            return store.MySQLConfig.from_args(named).database
     return None
 
 
@@ -86,6 +90,33 @@ def engine_run(conn, run_id, control):
 
 def _stage_key(conn, run_id, index):
     return runrecord._s(runrecord.declared_stages(conn, run_id)[index]["key"])
+
+
+def record_plan(conn, run_id, steps):
+    """
+    Writes the whole run as rows when it starts (OPS.238, the stored plan): one `open` row for each step, waiting, which `needs` the stages it comes after (`after:<stage key>`: the step before it, and
+    the earlier steps that make what it needs, `needs.required_stage_keys`) and `makes` the artifacts its command makes (`needs.makes_of`). The cut of a stage (`record_cut`) later fills the
+    row in and marks it done, so a run's order can be read from the rows before its first stage opens. A plan that was written already is left as it is.
+
+    Args:
+        steps (list[commands.Step]): The run's steps, in order, as `wrapper.run` has them.
+    """
+    from planetgen.queue import needs
+    control = control_connection(conn, run_id)
+    try:
+        run = engine_run(conn, run_id, control)
+        jobs = []
+        for index, step in enumerate(steps):
+            earlier = ([steps[index - 1].key] if index else []) + needs.required_stage_keys(steps, index)
+            jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True},
+                         "needs": [AFTER + key for key in dict.fromkeys(earlier)], "makes": list(needs.makes_of(step.kind))})
+        ledger.add_jobs(control, run, jobs)
+        control.commit()
+    except Exception:
+        control.rollback()
+        raise
+    finally:
+        control.close()
 
 
 def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
@@ -115,7 +146,8 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                for number, (args, unit_cost) in enumerate(units)]
                             + _end_jobs(stage, kind))
-            control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPEN))
+            control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
+                            (ledger._text({"index": index, "plan": summary}), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
         except Exception:
             control.rollback()

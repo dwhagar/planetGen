@@ -41,7 +41,7 @@ _EDGE_STEP = 1.2
 LOW_MASS_BLEND_FLOOR_SOL = 0.07
 """float: The mass at which a star under the MIST grid takes the Baraffe table's luminosity and radius as they are: the table's
 own hydrogen-burning limit at solar metallicity ([R0254], section 3.3: 0.07 solar masses). Between it and the grid's edge
-the ratio of the two tables at the edge fades out linearly in mass (GEN.936). [Stand-in ST1 of GEN.936, tier T7, tweak L0.]"""
+the ratio of the two tables at the edge fades out linearly in mass (GEN.936). [Stand-in 6.66 LM1 of GEN.936, tier T7, tweak L0.]"""
 
 
 def _point(mass_sol, age_gy, fe_h):

@@ -42,19 +42,19 @@ MOON = "moon"
 WORDS = (PLANET, DWARF_PLANET, MINOR_BODY, MOON)
 
 SOTER_MU_PLANET = 100.0
-"""float: A body whose mass is more than this many times the mass of the others in its zone is a planet ([R4159]; the Solar System's gap is mu 0.3 to 1e5). [Stand-in BR6, tier T1, tweak L0.]"""
+"""float: A body whose mass is more than this many times the mass of the others in its zone is a planet ([R4159]; the Solar System's gap is mu 0.3 to 1e5). [Stand-in 6.95 BR6, tier T1, tweak L0.]"""
 
 MARGOT_COEFFICIENT = 1.9e-4
-"""float: Margot's clearing mass at 1 AU round the Sun is this times `C^(3/2)` Earth masses ([R2871, R2874], printed). [Stand-in BR7, tier T1, tweak L0.]"""
+"""float: Margot's clearing mass at 1 AU round the Sun is this times `C^(3/2)` Earth masses ([R2871, R2874], printed). [Stand-in 6.95 BR7, tier T1, tweak L0.]"""
 
 MARGOT_C = 2.0 * math.sqrt(3.0)
-"""float: Margot's `C`, the width in Hill radii of the zone a planet must clear (2 sqrt 3, printed). [Stand-in BR7, tier T1, tweak L0.]"""
+"""float: Margot's `C`, the width in Hill radii of the zone a planet must clear (2 sqrt 3, printed). [Stand-in 6.95 BR7, tier T1, tweak L0.]"""
 
 ZONE_HILL_RADII = MARGOT_C
-"""float: The half-width of the zone of a body, in its Hill radii: Margot's `C`, so Soter's zone and Margot's agree. [Stand-in BR22, tier T2, tweak L0.]"""
+"""float: The half-width of the zone of a body, in its Hill radii: Margot's `C`, so Soter's zone and Margot's agree. [Stand-in 6.95 BR22, tier T2, tweak L0.]"""
 
 LAMBDA_K = 1.0 / (MARGOT_COEFFICIENT * MARGOT_C ** 1.5) ** 2
-"""float: The `k` of Stern and Levison's `Lambda = k m^2 / P` (m in Earth masses per solar mass of the star, P in years), fixed so that Lambda is 1 at Margot's clearing mass at 1 AU round the Sun. [Stand-in BR23, tier T2, tweak L0.]"""
+"""float: The `k` of Stern and Levison's `Lambda = k m^2 / P` (m in Earth masses per solar mass of the star, P in years), fixed so that Lambda is 1 at Margot's clearing mass at 1 AU round the Sun. [Stand-in 6.95 BR23, tier T2, tweak L0.]"""
 
 _MARGOT_MASS_EARTH_AT_1AU = MARGOT_COEFFICIENT * MARGOT_C ** 1.5
 

@@ -773,7 +773,7 @@ def apply_finished_body_oddities(planet):
 LATE_ACCRETION_GATE = 0.5
 """float: The air is not made again for a new late accretion when it moves the carbon and the nitrogen the late accretion left by less than this share of what the volcanoes gave. The share is how far the
 inventory moves, not how far the air does (a carbonate sink holds the carbon of a wet world whatever is added): in 246 planets of 240 seeds 201 are identical to the full replay, 13 differ by more than 1 percent
-(the worst by a branch of a bistable climate, 99 percent in pressure), and the pass costs 8.8 percent of generation against 18 for every planet; at gate 1.0 a 30-seed trial had a worst of 29 percent. [Stand-in LA3, tier Marginal educated guess from physics, tweak L3.]"""
+(the worst by a branch of a bistable climate, 99 percent in pressure), and the pass costs 8.8 percent of generation against 18 for every planet; at gate 1.0 a 30-seed trial had a worst of 29 percent. [Stand-in 6.255 LA3, tier T6, tweak L3.]"""
 
 
 def remake_air(planet, late_accreted_percent, gate=LATE_ACCRETION_GATE):

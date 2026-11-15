@@ -364,7 +364,10 @@ class MySQLConfig:
 
     @classmethod
     def from_args(cls, named):
-        """The config a step's `database` parameters name (`host`, `port`, `user`, `database`; the password is this process's settings')."""
+        """The config a step's `database` parameters name (`host`, `port`, `user`, `database`; the password is this process's settings'), or, where the step
+        names only the galaxy database (a warm-up's steps do), that database on the configured server."""
+        if isinstance(named, str):
+            return cls(database=named)
         return cls(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
 
     def _key(self):

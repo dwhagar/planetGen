@@ -38,19 +38,19 @@ from planetgen.util.checks import finite_domain
 from planetgen.util.format import format_number
 
 BIN_EDGES_KM = (1.0, 10.0, 100.0, 1000.0)
-"""tuple: The decades where the size table splits, km (presentation). [Stand-in BP1, tier T9, tweak L0.]"""
+"""tuple: The decades where the size table splits, km (presentation). [Stand-in 6.120 BP1, tier T9, tweak L0.]"""
 BIN_LOW_KM = 1.0e-3
-"""float: The size the lowest bin runs down to, km (a metre; the mass below it is a few parts in 10^4 of a belt whose size law has a cumulative index under 2). [Stand-in BP1, tier T9, tweak L0.]"""
+"""float: The size the lowest bin runs down to, km (a metre; the mass below it is a few parts in 10^4 of a belt whose size law has a cumulative index under 2). [Stand-in 6.120 BP1, tier T9, tweak L0.]"""
 DENSITY_DIAMETERS_KM = (1.0, 10.0, 100.0)
-"""tuple: The diameters the density factor counts objects above, km (Boss's 1, 10 and 100 km). [Stand-in BP2, tier T9, tweak L0.]"""
+"""tuple: The diameters the density factor counts objects above, km (Boss's 1, 10 and 100 km). [Stand-in 6.120 BP2, tier T9, tweak L0.]"""
 L2_FLOOR_KG = 1.0e15
-"""float: Bodies from this mass up to the stored ones are drawn on demand from the belt's seed (the design's L2 tier, about 10 km). [Stand-in BP3, tier T9, tweak L1.]"""
+"""float: Bodies from this mass up to the stored ones are drawn on demand from the belt's seed (the design's L2 tier, about 10 km). [Stand-in 6.120 BP3, tier T9, tweak L1.]"""
 SHARE_SAMPLES = 24
-"""int: The distances across the belt at which the kernel's taxon shares are averaged for the typical composition (numerical). [Stand-in BP4, tier T9, tweak L0.]"""
+"""int: The distances across the belt at which the kernel's taxon shares are averaged for the typical composition (numerical). [Stand-in 6.120 BP4, tier T9, tweak L0.]"""
 INTEGRAL_STEPS = 200
 """int: The log-spaced steps of the sum that gives a bin's mass (numerical)."""
 MIN_SHARE = 0.005
-"""float: A taxon with a share under this is left out of a composition list (presentation). [Stand-in BP4, tier T9, tweak L0.]"""
+"""float: A taxon with a share under this is left out of a composition list (presentation). [Stand-in 6.120 BP4, tier T9, tweak L0.]"""
 
 
 class BeltPageError(ValueError):

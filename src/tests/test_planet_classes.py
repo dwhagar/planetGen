@@ -74,7 +74,7 @@ CASES = {
     "D": airless(mass_earth=0.01, roundness_ratio=3.0),
     "S": airless(mass_earth=3.0, gravity_g=1.4),
     "C": airless(mass_earth=0.2, gravity_g=0.3),
-    "A": body(share_so2=0.2, p_o2_kpa=0.0),
+    "A": body(share_so2=0.2, p_o2_kpa=0.0, internal_heat_flux_w_m2=0.09),
     "N": body(atmospheric_pressure_pa=9e6, surface_temperature_k=700.0, hydrosphere="vapor", ocean_fraction=0.0,
               p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=8800.0),
     "Q": body(atmospheric_pressure_pa=2e5, surface_temperature_k=500.0, hydrosphere="vapor", ocean_fraction=0.0,
@@ -96,9 +96,9 @@ CASES = {
     "Z": no_oxygen(gravity_g=1.6, mass_earth=3.0, surface_temperature_k=500.0, atmospheric_pressure_pa=5000.0, hydrosphere="vapor", ocean_fraction=0.0,
                    p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=5.0),
     "U": no_oxygen(surface_temperature_k=94.0, atmospheric_pressure_pa=150000.0, hydrosphere="dry", ocean_fraction=0.3, gravity_g=0.14, mass_earth=0.0225,
-                   share_ch4=0.05, p_n2_kpa=140.0, p_ar_kpa=0.0),
+                   share_ch4=0.05, p_n2_kpa=140.0, p_ar_kpa=0.0, surface_liquid="methane", surface_liquid_fraction=0.016),      # GEN.1617: Titan's seas cover 1.6 percent
     "Y": no_oxygen(surface_temperature_k=320.0, atmospheric_pressure_pa=20000.0, hydrosphere="dry", ocean_fraction=0.0, share_so2=0.05, p_n2_kpa=5.0,
-                   p_ar_kpa=0.0),
+                   p_ar_kpa=0.0, surface_liquid_acid_layer="pool"),
     "W": body(surface_temperature_k=250.0),      # GEN.1306: a cold air world with no melting region is the frozen world, not the glaciated P
     "X": dict(body(atmospheric_pressure_pa=0.0, surface_temperature_k=210.0, gravity_g=0.3, mass_earth=0.03, ocean_fraction=0.5,
                    hydrosphere="ice-covered ocean", surface_liquid_ammonia_wt=20.0), **{atmosphere.GAS_FIELD: {}}),
@@ -138,7 +138,7 @@ def test_the_narrower_box_decides_a_tie_and_each_body_has_a_best_class():
     assert pc.classify(airless(mass_earth=0.5)) == "C"
     # A hot small world with sulfur dioxide air is volcanic: A (sulfur dioxide 3 percent or more) fits at 100 percent and B has the gravity and the temperature
     # too; both match fully, and the class with more conditions takes it.
-    detail = pc.classify_detail(body(gravity_g=0.3, share_so2=0.1))
+    detail = pc.classify_detail(body(gravity_g=0.3, share_so2=0.1, internal_heat_flux_w_m2=0.09))
     assert detail.match == pytest.approx(1.0) and detail.letter in ("A", "B")
     if detail.runner_up_match == pytest.approx(1.0):
         assert len([c for c in cf.CLASSES if c.letter == detail.letter and c.kind == "t"][0].when) >= len(
@@ -336,3 +336,28 @@ def test_a_hot_world_under_a_moderate_air_is_class_q_between_z_and_n_and_v():
     assert pc.classify(hot(atmospheric_pressure_pa=3e5, p_co2_kpa=300.0, surface_temperature_k=1900.0)) == "Q"      # no top edge, like N: bodies up to 2,000 K had no class
     cool = hot(atmospheric_pressure_pa=3e5, p_co2_kpa=300.0, surface_temperature_k=330.0)
     assert pc.classify(cool) != "Q" and pc.classify_detail(cool).match > 0.0
+
+
+def test_the_liquid_and_volcano_classes_read_what_the_body_stores_gen1617():
+    """GEN.1617 (Boss, 2:34 PM EST 2026-11-14, option a): U needs seas of methane or ethane that the body stores, Y liquid acid at its ground (a cloud is not a pool), X an ocean that
+    holds ammonia, A an interior hot enough to melt rock; the same body without the stored thing is another class."""
+    u, y, a, x = CASES["U"], CASES["Y"], CASES["A"], CASES["X"]
+    assert [pc.classify(v) for v in (u, y, a, x)] == ["U", "Y", "A", "X"]
+    assert pc.classify(dict(u, surface_liquid=None, surface_liquid_fraction=None)) != "U"                  # the phase window and the methane alone are no seas
+    assert pc.classify(dict(u, surface_liquid="nitrogen")) != "U"                                         # a sea, but not of methane or ethane
+    assert pc.classify(dict(u, surface_liquid_fraction=0.001)) != "U"                                     # a lake or two is under a third of Titan's cover
+    assert pc.classify(dict(u, surface_liquid="nitrogen", surface_liquid_2="ethane", surface_liquid_2_fraction=0.02)) == "U"      # the second liquid counts
+    assert pc.classify(dict(y, surface_liquid_acid_layer="cloud")) != "Y"                                   # Venus's acid is a cloud
+    assert pc.classify(dict(y, surface_liquid_acid_layer=None)) != "Y"
+    assert pc.classify(dict(a, internal_heat_flux_w_m2=1.0e-5)) != "A"                                      # sulfur dioxide with no heat to make it
+    assert pc.classify(dict(a, internal_heat_flux_w_m2=1.0e-5, tidal_flux_w_m2=2.0)) == "A"                 # a tide's heat melts rock as well (Io)
+    assert pc.classify(dict(x, surface_liquid_ammonia_wt=None, ice_mass_fraction=0.2)) != "X"               # ammonia in the bulk ice is no ocean that holds it
+
+
+def test_the_liquid_and_volcano_conditions_read_in_plain_words_gen1617():
+    words = {c.letter: [pc.condition_words(cond) for cond in cf_row.when] for c in pc.CLASSES if c.letter in "UYAX" and c.kind == "t"
+             for cf_row in cf.CLASSES if cf_row.letter == c.letter and cf_row.kind == "t"}
+    assert any("seas of liquid methane or ethane" in w for w in words["U"])
+    assert any("sulfuric acid lies at the ground" in w for w in words["Y"])
+    assert any("melt rock" in w for w in words["A"])
+    assert any("holds ammonia" in w for w in words["X"])

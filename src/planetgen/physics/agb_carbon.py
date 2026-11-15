@@ -32,49 +32,48 @@ S_STAR = "S star"
 KINDS = (CARBON_STAR, S_STAR)
 
 PULSES_BY_MASS_SOL = ((1.5, 17.0), (1.75, 19.0), (2.75, 25.0), (3.25, 22.0), (3.75, 22.5))
-"""tuple: `(initial mass, thermal pulses over the asymptotic branch)`, linear between, held outside. [Stand-in CS1, tier T3, tweak L0: [R2244: Table 1] ([R2244]; Z 0.007 and 0.014 rows; 1.5 solar masses has 18 and 16, 1.75 has 17 and 20, 2.75 25, 3.25 22, 3.75 22 and 23).]"""
+"""tuple: `(initial mass, thermal pulses over the asymptotic branch)`, linear between, held outside. [Stand-in 6.139 CS1, tier T3, tweak L0: [R2244: Table 1] ([R2244]; Z 0.007 and 0.014 rows; 1.5 solar masses has 18 and 16, 1.75 has 17 and 20, 2.75 25, 3.25 22, 3.75 22 and 23).]"""
 
 LAMBDA_MAX_BY_MASS_SOL = ((1.5, 0.41), (1.75, 0.50), (2.75, 0.80), (3.25, 0.92), (3.75, 0.96))
-"""tuple: `(initial mass, largest dredge-up share of the core growth)`, linear between, held outside. [Stand-in CS2, tier T3, tweak L0: the
+"""tuple: `(initial mass, largest dredge-up share of the core growth)`, linear between, held outside. [Stand-in 6.139 CS2, tier T3, tweak L0: the
 lambda_max column of [R2244: Table 1] (1.5: 0.31 at Z 0.007 and 0.51 at 0.014; 1.75: 0.51 and 0.50; 2.75: 0.80; 3.25: 0.92; 3.75: 0.97
 and 0.95).]"""
 
 DREDGE_RISE_PULSES = 4.0
-"""float: Pulses over which the dredge-up share rises to 63 percent of its largest. [Stand-in CS3, tier T6, tweak L1: [R2243] fit it to
+"""float: Pulses over which the dredge-up share rises to 63 percent of its largest. [Stand-in 6.139 CS3, tier T6, tweak L1: [R2243] fit it to
 models; their coefficients are not at hand, and a handful of pulses is what the published lambda-against-pulse curves show.]"""
 
 CORE_GROWTH_PER_PULSE_SOL = 0.004
-"""float: Core mass added by one thermal pulse cycle, solar masses. [Stand-in CS4, tier T6, tweak L2: the core grows by about 0.1 solar masses over
+"""float: Core mass added by one thermal pulse cycle, solar masses. [Stand-in 6.139 CS4, tier T6, tweak L2: the core grows by about 0.1 solar masses over
 the 20 to 25 pulses of the models in CS1, 0.004 per pulse.]"""
 
 INTERSHELL_CARBON_FRACTION = 0.22
-"""float: The carbon mass fraction of the dredged intershell material. [Stand-in CS5, tier T6, tweak L1: about a fifth to a quarter of
+"""float: The carbon mass fraction of the dredged intershell material. [Stand-in 6.139 CS5, tier T6, tweak L1: about a fifth to a quarter of
 the intershell is carbon in the published AGB models; read second-hand.]"""
 
 CORE_MASS_SOL = 0.6
-"""float: The core's mass for the envelope, solar masses. [Stand-in CS6, tier T6, tweak L0: the helium core of a thermally pulsing star is 0.55
+"""float: The core's mass for the envelope, solar masses. [Stand-in 6.139 CS6, tier T6, tweak L0: the helium core of a thermally pulsing star is 0.55
 to 0.7.]"""
 
 TDU_MIN_MASS_AT_SOLAR_SOL = 1.5
-"""float: The lightest star at solar [Fe/H] that dredges carbon up. [Stand-in CS7, tier T3, tweak L1: [R2244] (1.5 solar masses
+"""float: The lightest star at solar [Fe/H] that dredges carbon up. [Stand-in 6.139 CS7, tier T3, tweak L1: [R2244] (1.5 solar masses
 becomes carbon-rich at Z 0.007 and 0.014 in their models with overshoot); [R0925] find 1.5 at Z 0.02 and 1.4 at 0.01; the models
 without overshoot put the solar minimum at 2.]"""
 
 TDU_MIN_MASS_SLOPE_PER_DEX = 0.2
-"""float: How the lightest dredging mass falls per dex of [Fe/H] below solar, solar masses (a metal-poor star dredges at lower mass). [Stand-in
-CS8, tier T6, tweak L2: the Cristallo step from 1.5 at Z 0.02 to 1.4 at 0.01 is 0.33 per dex and the carbon stars of the metal-poor dwarf galaxies
+"""float: How the lightest dredging mass falls per dex of [Fe/H] below solar, solar masses (a metal-poor star dredges at lower mass). [Stand-in 6.139 CS8, tier T6, tweak L2: the Cristallo step from 1.5 at Z 0.02 to 1.4 at 0.01 is 0.33 per dex and the carbon stars of the metal-poor dwarf galaxies
 reach below 1.2, so 0.2 per dex.]"""
 
 TDU_MIN_MASS_FLOOR_SOL = 1.0
-"""float: The lightest star that dredges at any [Fe/H]. [Stand-in CS9, tier T6, tweak L1.]"""
+"""float: The lightest star that dredges at any [Fe/H]. [Stand-in 6.139 CS9, tier T6, tweak L1.]"""
 
 HBB_MIN_MASS_SOL = 4.0
-"""float: A star of this mass or more burns its dredged carbon at the base of its envelope and stays oxygen-rich. [Stand-in CS10, tier T3, tweak L0:
+"""float: A star of this mass or more burns its dredged carbon at the base of its envelope and stays oxygen-rich. [Stand-in 6.139 CS10, tier T3, tweak L0:
 [R2244] (hot bottom burning from about 4 solar masses); Izzard-style synthesis [R0796] takes the same 4.0 as the
 upper edge of the carbon stars.]"""
 
 S_STAR_MIN_C_TO_O = 0.9
-"""float: A star with C/O from this to 1 whose dredge-up has run is an S star. [Stand-in CS11, tier T6, tweak L1: S stars run from about 0.5 to
+"""float: A star with C/O from this to 1 whose dredge-up has run is an S star. [Stand-in 6.139 CS11, tier T6, tweak L1: S stars run from about 0.5 to
 0.99 in C/O but the ones with the dredged s-process come up with the carbon, so near 1.]"""
 
 

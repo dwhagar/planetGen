@@ -182,17 +182,17 @@ def _warped(galaxy_seed, points):
 
 LANES_WARP_PC = 250.0
 """float: How far the far-zoom gas lanes' sample points are pushed about by a smooth warp, parsecs (MAP.430): a few lattice steps of the lanes, so the arms'
-edges are wavy and the lattice never shows."""
+edges are wavy and the lattice never shows. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 LANES_WARP_WAVELENGTH_PC = 1800.0
-"""float: The wavelength of the lanes' warp, parsecs: longer than the lattice step by a dozen, so the arms bend and are not jittered."""
+"""float: The wavelength of the lanes' warp, parsecs: longer than the lattice step by a dozen, so the arms bend and are not jittered. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 LANES_NOISE_AMPLITUDE = 0.3
 """float: How much a smooth noise (wavelength `LANES_NOISE_WAVELENGTH_PC`) lifts and lowers the lanes' gas share, so a lane breaks into clumps and gaps
-along its length as the real gas does, and does not run as an even band. A display setting, not a measurement."""
+along its length as the real gas does, and does not run as an even band. A display setting, not a measurement. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 LANES_NOISE_WAVELENGTH_PC = 900.0
-"""float: The wavelength of that noise, parsecs."""
+"""float: The wavelength of that noise, parsecs. (a display setting of the far-zoom lanes, defined by the look of the map: MAP.430)"""
 
 
 def lane_density(galaxy_seed, shape, points):

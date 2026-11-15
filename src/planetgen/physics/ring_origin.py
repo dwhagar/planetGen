@@ -87,7 +87,7 @@ FEEDER_RADIUS_KM_RANGE = (5.0, 100.0)
 FEEDER_DISTANCE_RADII_RANGE = (1.5, 3.0)
 """tuple: The distances, in planet radii, of the moonlets drawn, uniform (the Roche limit of a ring-forming body is at 1.5 to 2.5 radii; the moonlets of the four giants lie between 1.7 and 3). Source tier T6, tweak level L1 (GEN.1233)."""
 
-SATURN = dict(mass_kg=5.683e26, radius_km=58232.0, distance_au=9.58, star_mass_kg=1.989e30)
+SATURN = dict(mass_kg=5.683e26, radius_km=58232.0, distance_au=9.58, star_mass_kg=constants.SOLAR_MASS_TO_KG)
 """dict: The reference situation of `COMET_PASSAGES_PER_GYR`."""
 
 

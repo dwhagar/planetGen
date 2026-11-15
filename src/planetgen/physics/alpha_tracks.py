@@ -28,7 +28,7 @@ ALPHA_SYMBOLS = ("O", "Mg", "Si", "Ca")
 """tuple: The alpha elements that the branch fits hold; their mean is the star's [alpha/Fe]."""
 
 ALPHA_SHARE = 0.638
-"""float: The alpha elements' share of the metals in the solar mixture [R3878]. [Stand-in AL1, tier T2, tweak L0: read
+"""float: The alpha elements' share of the metals in the solar mixture [R3878]. [Stand-in 6.34 AL1, tier T2, tweak L0: read
 second-hand [R3877], not in a paper opened here.]"""
 
 

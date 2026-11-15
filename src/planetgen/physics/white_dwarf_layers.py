@@ -14,7 +14,7 @@ in them. This module gives those two their layers as the total mass fractions of
   hydrogen of an atmosphere of hydrogen is the 1e-6 solar masses those models adopt as the most they expect. The log of the helium
   layer runs straight between the models and is held outside them; the layers are then fractions of the star's own mass.
 * A **helium-core** star has a core of helium alone, whatever the layer on it: a hydrogen envelope that is a large share of a very
-  light star's mass (the stand-in WL5) and nothing else, so the helium fraction is what the hydrogen leaves.
+  light star's mass (the stand-in 6.197 WL5) and nothing else, so the helium fraction is what the hydrogen leaves.
 
 A helium-atmosphere star of either kind carries the thin hydrogen layer of the sequences' own thin case.
 The radius of both is still the nearest carbon-oxygen sequence scaled by the zero-temperature relation (`stellar_composition`).

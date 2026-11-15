@@ -312,10 +312,10 @@ MATRIX_ROWS = ("serpentine", "cronstedtite", "saponite", "tochilinite", "magneti
 """tuple: The rows of the fine-grained matrix of its matrix axis: the water-altered minerals and the organics (ice is not matrix; an icy mix is far from every group, `ICE_MAX`)."""
 
 OLIVINE_MIN_VOLUME = 0.05
-"""float: The share of the grains' volume below which a mix has no olivine to give an oxidation state. [Stand-in MG3, tier T9, tweak L1.]"""
+"""float: The share of the grains' volume below which a mix has no olivine to give an oxidation state. [Stand-in 6.44 MG3, tier T9, tweak L1.]"""
 
 ICE_MAX = 0.05
-"""float: The ice (and water) mass share from which a mix is far from every chondrite group: the groups are rocks, and the nearest one would mislabel an icy body. [Stand-in MG3, tier T9, tweak L1.]"""
+"""float: The ice (and water) mass share from which a mix is far from every chondrite group: the groups are rocks, and the nearest one would mislabel an icy body. [Stand-in 6.44 MG3, tier T9, tweak L1.]"""
 
 
 def group_axes(components):

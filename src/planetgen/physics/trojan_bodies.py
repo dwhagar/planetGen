@@ -32,10 +32,10 @@ Use:
 from planetgen.physics import trojans
 
 FORMATION_EFFICIENCY = 0.1
-"""float: The share of the solids in the secondary's co-orbital zone that grow into the trojan; the zone must hold `trojan mass / this`. [Stand-in TB3, tier T4, tweak L4.]"""
+"""float: The share of the solids in the secondary's co-orbital zone that grow into the trojan; the zone must hold `trojan mass / this`. [Stand-in 6.125 TB3, tier T4, tweak L4.]"""
 
 MIN_DISK_LIFETIME_MYR = 1.0
-"""float: The shortest gas-disk life (Myr) in which a trojan of planet mass can grow beside its secondary. [Stand-in TB4, tier T4, tweak L4.]"""
+"""float: The shortest gas-disk life (Myr) in which a trojan of planet mass can grow beside its secondary. [Stand-in 6.125 TB4, tier T4, tweak L4.]"""
 
 CASES = ("star_giant", "star_substellar", "star_star", "planet_moon", "moon_moon")
 

@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from planetgen.physics import atmosphere_colour, constants, daylight, photometry, radiation_field, sky_suns
 
 NIGHT_LIGHT_W_M2 = 2.6e-3
-"""float: The light, W/m2, that makes a source show in the sky text: a full Moon at Earth, 0.25 lux over about 96 lux per W/m2 (the Sun's 1.3e5 lux over 1361 W/m2). [Stand-in SKY1, tier T5, tweak L0.]"""
+"""float: The light, W/m2, that makes a source show in the sky text: a full Moon at Earth, 0.25 lux over about 96 lux per W/m2 (the Sun's 1.3e5 lux over 1361 W/m2). [Stand-in 6.259 SKY1, tier T5, tweak L0.]"""
 
 _KINDS = {"white-dwarf": "white dwarf", "brown-dwarf": "brown dwarf", "neutron-star": "neutron star", "black-hole-disk": "black hole with an accretion disk", "red-giant": "red giant", "asymptotic-giant": "giant", "helium-burning": "giant",
           "supergiant": "supergiant", "hypergiant": "hypergiant", "cepheid": "pulsating giant", "wolf-rayet": "Wolf-Rayet star",

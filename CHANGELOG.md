@@ -2,6 +2,118 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4303] - 2026-11-15
+
+**Headline:** Two checks that were red on main are green: an unused year constant is gone, and one registry row is spelled the way the guide asks.
+
+### Fixed
+- `photochemical_loss.YEAR_S`, which nothing read and which had no registry row, is removed.
+- Row SEP1 of the registry says "nearest-neighbor", so the sentence of its stand-in page keeps the spelling guide.
+
+generation-output: unchanged
+
+## [8.0.4302] - 2026-11-15
+
+**Headline:** Every stand-in tag in the code now names its registry section and matches its row, and the registry lists every stand-in table of the plan.
+
+### Fixed
+- The registry now reads 21 tables of the gap-filling plan that it skipped (66 rows), and rows that sat after a blank line or a repeated block (LQ12 to LQ16, GN1 to GN4, OB9 to OB14, LM6) are in their tables; two stale copies (LQ11, CMX7 and CMX8) are gone, and the second LM6 row is the first LM5.
+- A tag such as `[Stand-in 6.294 AD1, tier T7, tweak L1.]` carries the section, because the same id is used in several sections; its tier and tweak are the row's. Ids of the nightside collapse tags (NC1 to NC6) are the rows NEB1 to NEB6.
+- Rows that named constants that moved (OE9, EC8, CC7, DE4, SC6, GM3) now name the real ones.
+- `src/tests/test_stand_in_tags.py` fails when a tag has no section, names no row, states another tier or tweak than its row, or when a plan row falls outside the registry, a section repeats an id, or a row names a constant that does not exist.
+- TEST.768: the 19 constants that `test_constants_completeness` found without a tag (the far-zoom lanes settings, the run and dealing settings, the air history steps, the starlight sub-steps) say what they are; `ice_growth` reads the Julian year and the water density from `constants` instead of its own copies.
+
+generation-output: unchanged
+
+## [8.0.4301] - 2026-11-15
+
+**Headline:** The references pages show the right paper count again.
+
+### Changed
+
+- `docs/REFERENCES.md` and `docs/REFERENCES.html` are rebuilt, so the paper count includes the three papers GEN.1729 added (R5283 to R5285); `tests/test_references.py` was red on the train without this.
+
+## [8.0.4300] - 2026-11-15
+
+**Headline:** A life class whose own air leaves it too little carbon dioxide to fix carbon is no longer kept on its world with oxygen it could not have raised.
+
+### Changed
+
+- GEN.1736: `life._apply` drops the dominant class when the final air fails its carbon dioxide gate (`CARBON_GATE`, 2 Pa for the oxygen-making classes, GEN.1581), as it already did for a class whose own air took its solvent (GEN.1298): the world is made again from the body as it was, without that class. The oxygen rise burns the methane to carbon dioxide and asks the carbon sink again at the colder temperature (`biogenic_oxygen.rebalance_co2`); on some worlds the sink then holds under 2 Pa (seed 30143 of the class M meter on the first GEN.1720 run: class M with 33 kPa of oxygen and 1.4 Pa of carbon dioxide), and the class stayed as one that "used up what it lived on" (TEST.486). A class whose donor or hydrogen the life used up is still kept; only the carbon gate and the solvent drop it.
+- Measure: on the Train 31 head (ca9678de94) the class M meter over the first 140 Abundant Sun-like systems (seeds 30000 on) gives the same classes and life in every system with and without the change, and no world there holds 1 kPa of oxygen with under 2 Pa of carbon dioxide. The case is rare: on the eb8af8f1d1 head one of 66 systems kept a class 1b with 35 kPa of oxygen and 1.2 Pa (the two heads differ by the greenhouse refit of 6612). The change closes the door, it does not move the counts today.
+
+generation-output: changed
+
+## [8.0.4299] - 2026-11-15
+
+**Headline:** A world with no wide sea but with wet land that rooted plants reach now has land plants in its oxygen source, at the minimal sourced size, so a quiet-interior desert world can hold some free oxygen.
+
+### Changed
+
+- GEN.1729 (every galaxy, Science too: Boss's 9:49 PM EST 11-14 card "Both, small seas first" and his 8:39 PM EST minimal-sourced-guess rule): once a world's life has reached mosses and the first land plants (`native_life` macroscopic or biosphere), the groundwater-fed places it has (the refuges of GEN.1723) carry plants, and `biogenic_oxygen.refuge_productivity` gives them Earth's burial per area of land under plants, `LAND_SHARE_OF_BURIAL` (0.27, the land plants' share of Earth's organic carbon burial, [R5283]) over Earth's 0.29 of land, on the wet land the roots reach (0.27 of the land), in place of the cover law (0.001 to 0.1) on those places.
+- Size: about a quarter of Earth's oxygen source on a mostly-land desert world at Earth's temperature (more when warmer, by the Boltzmann factor), against Earth's reductant sink of 0.3 of the source. So plants alone carry a desert world with a quiet interior (heat flow under about 0.07 W/m2) to a surplus, and under the oxygen balance of GEN.1733 that holds a few hundred pascals to a kilopascal of oxygen, not a breathable air; a world with Earth's interior stays near zero. Worlds with a wide sea are unchanged (Earth's burial already has the plants inside it).
+- Registry row BO15 (tier 3: one model; the flux of [R5284] and the terrestrial share of burial of [R5285] were not read); reference R5283.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4298] - 2026-11-15
+
+**Headline:** Classes U, Y, A and X now keep their promise: a methane-ethane world must hold stored seas of methane or ethane, a sulfuric acid world stored liquid acid at its ground, a volcanic world an interior hot enough to melt rock, and an ammonia-water world an ocean that stores its ammonia.
+
+### Changed
+- GEN.1617 (Boss, 2:34 PM EST 2026-11-14, option a): the four classes test what the body stores of its liquids and its heat instead of only the phase window, 3 percent sulfur dioxide or a bulk ice share. Four yes-or-no quantities are read by the class fit (`class_domains.liquid_quantities`): `sea_methane_ethane` (stored seas of methane or ethane, main or second liquid, covering half a percent of the surface or more, a third of Titan's 1.6 percent; registry CL1), `acid_pool` (the stored `surface_liquid_acid_layer` is a pool; a cloud layer is not), `ammonia_ocean` (a stored `surface_liquid_ammonia_wt`) and `volcanic_heat` (the interior heat flow with the tide's at least the middle of the ground's volcanism floor, `surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2`, reused; registry CL2). Class Y no longer asks for 3 percent sulfur dioxide: its acid pool already needs a sulfur air.
+- In a draw of 480 natural systems (7,414 bodies) U falls from 4 bodies to 2 (the two that lose it store a water ice-covered ocean and no sea of methane), A stays 1; no body anywhere stores an acid pool, and the 309 bodies that store an ammonia ocean are not class X for their own reasons (216 hold an air, 92 are under 190 K, 77 hold under 10 percent ammonia): classes Y and X still do not appear in a natural galaxy.
+- The class sentences of U, Y and A say what the conditions now check, and the class page words the four new conditions. `scripts/class_census.py` records the surface liquid columns of every body.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4297] - 2026-11-15
+
+**Headline:** the mass of Jupiter and of the Sun are written once, so the moons, rings, giants and rogue-planet classes no longer disagree by a part in a million.
+
+### Changed
+
+- GEN.1152: moon_composition's `JUPITER_MASS_KG` (1.89813e27), the star mass of ring_origin's Saturn reference (1.989e30), giant_interior's `EARTH_MASS_JUPITER` (317.83), stellar_abundances' `JUPITER_MASS_SOL` and the rogue-planet mass bins of `tuning` (317.8) now read `physics/constants.py` (`JUPITER_MASS_TO_KG`, `SOLAR_MASS_TO_KG`, and the new `JUPITER_MASS_EARTH`, their ratio of the two conversion factors). A test fails on any of the rounded copies written again. The values move by 2.5e-6 (Jupiter in kg), 2e-4 (the Sun in kg) and 1e-4 (the rogue bins' edge), so a number computed from them can move in its last digits and a draw that lands within that of a threshold can fall on the other side; the pinned golden galaxy is unchanged.
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4296] - 2026-11-15
+
+**Headline:** A warm-up's units open the galaxy the warm-up names, whether it is given as a name or as host, port, user and name.
+
+### Fixed
+- `MySQLConfig.from_args` takes a database named by its name alone (a warm-up's steps) as well as the dict a generation run writes (`wrapper.database_args`); the plan cut, the unit's attempt and the engine's `ctx.config` all read it through that one function, so no entry point breaks on the other form.
+- `test_cache_warmup.py` makes its database "x" a real, empty one, since a unit takes its attempt in the galaxy (OPS.219).
+
+generation-output: unchanged
+
+## [8.0.4295] - 2026-11-15
+
+**Headline:** The splitter's stage test reads the plan from the plan rows, where OPS.216 moved it.
+
+### Fixed
+- `test_splitter.py` called `runrecord.read_plan`, which OPS.216 removed; it calls `planrows.read_plan` (the split is kept in the same plan summary).
+
+generation-output: unchanged
+
+## [8.0.4294] - 2026-11-15
+
+**Headline:** a run's whole sequence of stages is now stored as waiting rows in the ledger the moment the run starts, so the job view can say which stage each one waits for.
+
+### Added
+
+- OPS.238, third part (stored plan): `planrows.record_plan` writes one waiting `open` row per planned stage when `wrapper.run` starts. Each row's `needs` names the stage before it (`after:<stage>`) plus the artifacts that stage requires (`needs.required_stage_keys`), and its `makes` lists the artifacts it produces (`needs.makes_of`). When a stage opens, `planrows.record_cut` fills that row in with its plan and marks it done instead of adding a new row. The job view words the wait as "stage <key> to end".
+
+## [8.0.4293] - 2026-11-15
+
+**Headline:** the order of a run's stages is now checked and logged from what each command needs, not from a list of four requirements.
+
+### Changed
+
+- OPS.238, second part: `commands.REQUIRES` is deleted. `needs.requires_of` (the kinds that make what a command needs), `needs.required_stage_keys` and `needs.validate_order` take its place: a run whose steps are listed so that a need is met only after the step that has it is refused where the list is made; a stage's "released" line, a failed run's "did not run" line and a command's break-point dependencies (`after`) read the same edges. The four requirements the old table held are still there (a test says so); the run's stages still run in their listed order.
+
 ## [8.0.4292] - 2026-11-15
 
 **Headline:** every command now says what it needs and what it makes, and a test holds that to the order a galaxy run has today.

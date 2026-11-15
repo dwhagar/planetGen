@@ -4,8 +4,8 @@
 What each command needs and makes (OPS.238, first part: the declarations). A command that `makes` an artifact leaves it stored; a command that `needs` one cannot run before something has made it. An artifact is a
 name for a stored result of the galaxy, not a table: "skeleton" is the density skeleton the plan stores, "sectors" the sectors the generators save, "bright-stars-cleared" the emptied bright-star scatter that a mass pass
 draws into. The names are the vocabulary of this module (`ARTIFACTS`); a test holds every command to it, every need to a maker, and the fixed order of a galaxy run (`generation.stages.galaxy_stages`) to the
-declarations, so the order a planner chooses (the second part of OPS.238) is checked against the order the runs have today. Nothing reads this to start a run yet: `commands.REQUIRES` still holds the stages that wait
-for another, and goes when the planner reads these.
+declarations, so the order a planner chooses (the second part of OPS.238) is checked against the order the runs have today. The order of a run is planned from these (OPS.238, second part): `requires_of` is the kinds a command waits for, `required_stage_keys` the earlier steps of a run it waits for, and `validate_order`
+refuses a run whose steps are listed so that a need is only met after the step that needs it.
 
 A need is met in a run when no command of the run makes it (it is stored from an earlier run: a scatter of one pass needs the skeleton, which `planetgen plan` made) or a command of the run that makes it comes earlier.
 """
@@ -104,3 +104,35 @@ def makers_of(artifact):
 def edges():
     """`{(needer, maker)}`: every pair of commands where the first needs what the second makes."""
     return {(kind, maker) for kind, needed in NEEDS.items() for artifact in needed for maker in makers_of(artifact)}
+
+
+def requires_of(kind):
+    """The kinds of command that make what command `kind` needs, in the order of `MAKES` (not `kind` itself): the kinds a stage of `kind` waits for when the run has them."""
+    found = []
+    for artifact in needs_of(kind):
+        for maker in makers_of(artifact):
+            if maker != kind and maker not in found:
+                found.append(maker)
+    return tuple(found)
+
+
+def required_stage_keys(steps, index):
+    """The keys of the earlier steps of `steps` that step `index` waits for: those of a kind in `requires_of` its kind."""
+    wanted = set(requires_of(steps[index].kind))
+    return [step.key for step in steps[:index] if step.kind in wanted]
+
+
+def validate_order(steps):
+    """
+    Refuses a list of steps in which a need is met only after the step that has it: for each artifact a step needs that some step of the list makes, a maker comes before the step. A need no
+    step of the list makes is a stored result of an earlier run. The wrong order is found where the list is made and not by a run that reads rows that are not there yet.
+
+    Raises:
+        ValueError: Naming the step, the artifact and the later steps that make it.
+    """
+    for index, step in enumerate(steps):
+        for artifact in needs_of(step.kind):
+            makers = [place for place, other in enumerate(steps) if place != index and artifact in makes_of(other.kind)]
+            if makers and min(makers) > index:
+                raise ValueError(f"step {step.key!r} ({step.kind}) needs {artifact}, which only {', '.join(repr(steps[place].key) for place in makers)} (later in the list) makes")
+    return steps

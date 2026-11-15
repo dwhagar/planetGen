@@ -416,7 +416,7 @@ def build_stand_ins():
                 "tweak": registry_text(cells[header[lowered.index("tweak")]]), "what": head, "fields": fields,
                 "unread": unread.get(row_key), "burn_down": list(disposition) if disposition else None,
             })
-        sections.append({"key": key, "number": number, "title": re.sub(r"^\d+\.\d+a? ", "", title), "slug": reference_urls.anchor(title), "rows": out})
+        sections.append({"key": key, "number": number, "title": re.sub(r"^\d+\.\d+[a-z]? ", "", title), "slug": reference_urls.anchor(title), "rows": out})
     return {"kinds": KINDS, "sections": sections}
 
 

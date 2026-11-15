@@ -36,7 +36,7 @@ D_N_MAX = 265.0
 """float: The most `D_N` takes (the oxidized value at 5 GPa and 2000 K of the same table)."""
 CORE_FORMATION_OFFSET = -2.5
 """float: The redox the metal separated at, below the magma-ocean surface redox `a1` of the recipes: the Earth's surface magma ocean ended near IW+0.5 ([R4154] scale) while its core formed near IW-2 (the
-`a1` row's own note: about IW-2 for a small body whose redox was set at core formation). Stand-in NB2 (tier T6, tweak level L2)."""
+`a1` row's own note: about IW-2 for a small body whose redox was set at core formation). Stand-in 6.281 NB2 (tier T6, tweak level L2)."""
 REFERENCE_DIW = 0.5
 """float: The magma-ocean redox (`a1`) at which the inventory's bracket already holds the Earth's partition: the Earth-mass mean."""
 

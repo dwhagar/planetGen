@@ -10,9 +10,9 @@ Once the system is whole, `apply` takes that number from the system instead: the
 
 * **The supply.** `late_supply.veneer_fraction` over the planets and belts of the planet's own star.
 * **The floor.** A planet no belt reaches (31 percent of 581 sampled planets) still took the planetesimals that never formed a belt: it gets at least `FLOOR_SHARE` of the mean the law gives its mass
-  (`impact_history.late_accreted_percent_mean`). [Stand-in LA1, tier Marginal educated guess from physics, tweak L3.]
+  (`impact_history.late_accreted_percent_mean`). [Stand-in 6.255 LA1, tier T6, tweak L3.]
 * **The ceiling.** The old cap `impact_history.LATE_ACCRETED_PERCENT_MAX` stands.
-* **The spread.** There is no scatter of its own: the planets of different systems differ because their belts and neighbours do (the law's log-normal scatter is replaced by that). [Stand-in LA2, tier Marginal educated guess from physics, tweak L3.]
+* **The spread.** There is no scatter of its own: the planets of different systems differ because their belts and neighbours do (the law's log-normal scatter is replaced by that). [Stand-in 6.255 LA2, tier T6, tweak L3.]
 
 The air is made again for every rocky planet of a star (a moon, a giant and a planet with no star are left), from a stream of its own, so no draw of the run's stream moves; the cost is one more
 solve of the air for each rocky planet.
@@ -25,7 +25,7 @@ _kg_to_msun = units.converter("kg", "Msun")
 
 FLOOR_SHARE = 0.05
 """float: The least a planet takes, as a share of the mean the present law gives its mass: the planetesimals that never formed a belt. The lowest published veneers (a few hundredths of a percent for the Moon against
-about half a percent for the Earth) are about 0.05 of the mean of a body of their mass, recalled, not registered. [Stand-in LA1, tier Marginal educated guess from physics, tweak L3.]"""
+about half a percent for the Earth) are about 0.05 of the mean of a body of their mass, recalled, not registered. [Stand-in 6.255 LA1, tier T6, tweak L3.]"""
 
 EARTH_KG = 5.9722e24
 

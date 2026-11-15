@@ -41,7 +41,7 @@ from planetgen.queue import unitbeat
 from planetgen.util import detmath
 
 CELL_PAD_PC = sky_band.CELL_PC * math.sqrt(3.0) / 2.0
-"""float: What every radius is padded by: the half diagonal of the observer's cell, so a system anywhere in it is inside the sphere (stand-in SKT7 in 6.176)."""
+"""float: What every radius is padded by: the half diagonal of the observer's cell, so a system anywhere in it is inside the sphere (stand-in 6.176 SKT7 in 6.176)."""
 
 BATCH_COMMIT_STARS = 20000
 """int: A batch that has written this many stars is committed at once (a batch is a few hundred cells; this only bounds a transaction)."""

@@ -48,11 +48,20 @@ ALL_DOMAINS = DOMAINS + EXTRA_DOMAINS
 
 PHASE_PREFIX = "phase_"
 
+SEA_COVER_MIN = 0.005
+"""float: STAND-IN CL1 (GEN.1617, T9, L3): the least share of the surface that a sea of methane or ethane covers for a body to hold the seas class U names. Titan's lakes and seas cover 1.6
+percent of it [R1857], and `surface_liquid_world.SURFACE_SHARE_OF_ICE` is tuned to that; a third of Titan's cover is a body whose seas are more than a lake or two."""
+
+METHANE_ETHANE_SEAS = ("methane", "ethane")
+"""tuple: The liquids of `surface_liquids` that are the seas of class U."""
+
+
 QUANTITY_DOMAIN = {
     "mass_earth": "structure", "gravity_g": "gravity", "temperature_k": "thermal", "pressure_pa": "air_amount",
     "ocean_fraction": "water", "water_mass_fraction": "water", "relative_humidity": "water", "groundwater_present": "water",
     "hottest_region_k": "regional", "coldest_region_k": "regional", "day_temperature_k": "day", "night_temperature_k": "night",
     "wet_bulb_c": "wet_bulb", "reducing_share": "air_chemistry", "o2_partial_pa": "air_chemistry", "co2_partial_pa": "air_chemistry", "ammonia_water_mass_fraction": "water",
+    "sea_methane_ethane": "water", "acid_pool": "water", "ammonia_ocean": "water", "volcanic_heat": "structure",
 }
 """dict: The domain of each quantity of the fit table that is not a gas share (`share_<gas>` is air chemistry, `phase_<family>` is the phase gate)."""
 
@@ -115,10 +124,40 @@ def derived(values):
     from planetgen.physics import habitability_world
     if found["groundwater_present"] == 0.0 and values.get("hydrosphere") in habitability_world.LIQUID_WATER_STATES and (values.get("ocean_fraction") or 0.0) > 0.0:
         found["groundwater_present"] = 1.0      # GEN.1638: a world with liquid at its surface has a water table under its land; the stored `groundwater` stays the water held only underground, which the habitability score reads
+    found.update(liquid_quantities(values))
     temperature, pressure = values.get("surface_temperature_k"), values.get("atmospheric_pressure_pa") or 0.0
     for family in phase_gate.FAMILIES:
         found[PHASE_PREFIX + family] = None if temperature is None else (1.0 if phase_gate.holds(family, temperature, pressure) else 0.0)
     return found
+
+
+def _cover_of(values, liquids):
+    """The share of the surface that the stored liquids named in `liquids` cover: the main liquid and the second one (GEN.1218b), 0 for none."""
+    cover = 0.0
+    for liquid, fraction in (("surface_liquid", "surface_liquid_fraction"), ("surface_liquid_2", "surface_liquid_2_fraction")):
+        if values.get(liquid) in liquids:
+            cover += values.get(fraction) or 0.0
+    return cover
+
+
+def liquid_quantities(values):
+    """
+    The quantities of the classes that name a liquid or a volcano, from what a body stores of its liquids (GEN.1617; each is 1.0 or 0.0, a condition `equals` 1.0):
+
+    * `sea_methane_ethane`: seas of liquid methane or ethane cover at least `SEA_COVER_MIN` of the surface (class U; the stored `surface_liquid` and `surface_liquid_2`).
+    * `acid_pool`: liquid sulfuric acid lies at the ground (class Y; the stored `surface_liquid_acid_layer` is `pool`; a body with no layer has no acid).
+    * `ammonia_ocean`: the liquid of the surface or under its lid holds ammonia (class X; a stored `surface_liquid_ammonia_wt`, which a liquid water ocean and the ammonia-water solution both store).
+    * `volcanic_heat`: the heat that flows out of the interior, with the tide's, is at least the middle of the range the ground's volcanism gate draws its floor from
+      (`surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2`), so the rock melts and resurfaces (class A; reused from the ground, not a second rule).
+    """
+    from planetgen.physics import surface_composition, surface_liquid_world
+    heat = (values.get("internal_heat_flux_w_m2") or 0.0) + (values.get("tidal_flux_w_m2") or 0.0)
+    return {
+        "sea_methane_ethane": 1.0 if _cover_of(values, METHANE_ETHANE_SEAS) >= SEA_COVER_MIN else 0.0,
+        "acid_pool": 1.0 if values.get("surface_liquid_acid_layer") == surface_liquid_world.POOL_LAYER else 0.0,
+        "ammonia_ocean": 1.0 if values.get("surface_liquid_ammonia_wt") is not None else 0.0,
+        "volcanic_heat": 1.0 if heat >= surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 else 0.0,
+    }
 
 
 def matrix(cls):
