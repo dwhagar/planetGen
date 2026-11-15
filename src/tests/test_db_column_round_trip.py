@@ -157,6 +157,10 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
     ("rogue_planets", "surface_liquid_ammonia_wt"): CHANCE,    # the same, for a free planet
+    # a free planet holds a surface liquid only when it is cold and pressed enough, and whether the seeded galaxy has one is chance (a generation change moves it)
+    **{("rogue_planets", column): CHANCE for column in (
+        "surface_liquid", "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction",
+        "surface_liquid_methane_mol", "surface_liquid_nitrogen_mol")},
     # GEN.1218b: the makeup, salt and second liquid exist only for the liquids that have them, and whether this small galaxy has one is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in (*surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS)},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
@@ -273,7 +277,7 @@ NULL_IN_THIS_GALAXY = {
     ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
     # VIEW.25: the sky charting step writes the draws of a sky tier, and the seeded galaxy has not run it.
     **{("sky_tier_draws", column): "no sky charting in this galaxy (VIEW.25)" for column in
-       ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at")},
+       ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at", "part_index", "part_count")},
     ("planets", "parent_shadow_share"): "only a moon is in its planet's shadow (GEN.767)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
@@ -337,7 +341,7 @@ NEVER_READ = {
     ("species", "generator_epoch"): "read by galaxy/epoch_record (GEN.764)",
     # VIEW.25: the ledger of the sky tiers is read by `db/sky_tier_ledger.read` and the charting step, not by a page's loader.
     **{("sky_tier_draws", column): "read by db/sky_tier_ledger (VIEW.25)" for column in
-       ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at")},
+       ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at", "part_index", "part_count")},
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",

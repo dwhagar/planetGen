@@ -49,8 +49,8 @@ def test_a_stage_with_no_unit_finished_says_so_every_half_hour_and_names_what_th
             conn.hset(runrecord.results_key(run_id, 0), mapping={0: "{}", 1: "{}"})
 
     units.follow_stage(conn, run_id, 0, 2, lambda unit, result: None, clock=lambda: now[0], sleep=sleep)
-    assert len(said) == 2 and said[0].startswith("Stage 1: no unit has finished for 35 m; 0 of 2 units are done, the others: ")
-    assert "1 waiting on sky lock" in said[0] and "1 working" in said[0] and "1 h 10 m" in said[1]
+    assert len(said) == 2 and said[0].startswith("Stage 1: no unit has finished for 35 minutes; 0 of 2 units are done, the others: ")
+    assert "1 waiting on sky lock" in said[0] and "1 working" in said[0] and "1.17 hours" in said[1]
 
 
 class _Bar:

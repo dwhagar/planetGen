@@ -40,14 +40,11 @@
    },
    "gates": [
     {
-     "quantity": "hydrosphere",
-     "in": [
-      "surface ocean",
-      "hycean"
-     ],
-     "tier": "T9",
-     "tweak": "L3",
-     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+     "quantity": "lit_liquid_hours",
+     "min": 75.0,
+     "tier": "T6",
+     "tweak": "L0",
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",
@@ -132,14 +129,11 @@
    },
    "gates": [
     {
-     "quantity": "hydrosphere",
-     "in": [
-      "surface ocean",
-      "hycean"
-     ],
-     "tier": "T9",
-     "tweak": "L3",
-     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+     "quantity": "lit_liquid_hours",
+     "min": 75.0,
+     "tier": "T6",
+     "tweak": "L0",
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",
@@ -229,14 +223,11 @@
    },
    "gates": [
     {
-     "quantity": "hydrosphere",
-     "in": [
-      "surface ocean",
-      "hycean"
-     ],
-     "tier": "T9",
-     "tweak": "L3",
-     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+     "quantity": "lit_liquid_hours",
+     "min": 75.0,
+     "tier": "T6",
+     "tweak": "L0",
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",
@@ -322,14 +313,11 @@
    },
    "gates": [
     {
-     "quantity": "hydrosphere",
-     "in": [
-      "surface ocean",
-      "hycean"
-     ],
-     "tier": "T9",
-     "tweak": "L3",
-     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+     "quantity": "lit_liquid_hours",
+     "min": 75.0,
+     "tier": "T6",
+     "tweak": "L0",
+     "basis": "Light and any liquid water at the surface (GEN.1723, RW1): an open sea has the whole year, a brine seep, a seasonal melt, a spring or a hot pool at least 75 h a year at 252 to 346 K ([R5269] and others; the step to every world is an educated guess from physics); under ice or in an aquifer there is no light"
     },
     {
      "quantity": "pressure_pa",

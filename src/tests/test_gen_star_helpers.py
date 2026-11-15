@@ -14,8 +14,8 @@ import random
 
 import pytest
 
-from planetgen.generation import star_population
-from planetgen.physics import constants, imf, main_sequence, stellar_evolution
+from planetgen.generation import forced_star, star_population
+from planetgen.physics import alpha_tracks, constants, imf, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
@@ -264,7 +264,7 @@ def test_a_main_sequence_star_brightens_with_age_and_ends_on_its_end_row():
         ages = [t_ms * share for share in (0.25, 0.5, 0.75, 0.999)]
         lums = [stellar_evolution.evolve_star(mass, age, fe_h=0.0)["luminosity_sol"] for age in ages]
         assert lums == sorted(lums), mass
-        assert lums[-1] == pytest.approx(main_sequence.end_state(mass, 0.0).luminosity_sol, rel=0.15)
+        assert lums[-1] == pytest.approx(main_sequence.end_state(mass, alpha_tracks.track_fe_h(0.0, ages[-1], mass)).luminosity_sol, rel=0.15)    # GEN.1623: its own birth [Fe/H]'s end row
 
 
 def test_the_age_a_main_sequence_star_reaches_a_brightness_is_where_its_row_does():
@@ -484,7 +484,8 @@ def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type
 
 def test_hot_white_dwarf_temperature_follows_the_subclass():
     assert make_star("O3VII").temperature > make_star("O9VII").temperature >= make_star("B0VII").temperature
-    assert make_star("B0VII").temperature >= constants.TEMP_RANGES["B"][1] * 0.9
+    # a B0 white dwarf is any of the 28,900 to 31,900 K the subclass spans (which one the draw gives moves with every change to the star draws, GEN.1623), so the floor is the subclass's own, not the top of the letter
+    assert make_star("B0VII").temperature >= forced_star.target_temperature_k("B", 0) * 0.9
 
 
 def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():

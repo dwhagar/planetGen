@@ -254,11 +254,12 @@ def test_relayed_puts_the_loggers_back(redis_server, key_prefix, monkeypatch):
     assert not getattr(draw.Stream.random, "_planetgen_traced", False)
 
 
-def test_a_debug_run_prints_the_lines_its_workers_wrote(mysql_config, redis_server, monkeypatch, capsys, tmp_path):
+def test_a_debug_run_prints_the_lines_its_workers_wrote(mysql_config, redis_server, monkeypatch, capsys, tmp_path, request):
     """`planetgen system --debug`: the generator runs in a queue worker, whose stdout goes nowhere; its decisions and
     draws still reach this process's stdout (before: 4 lines)."""
     from tests.bughunt_support import mysql_argv, run_cli
 
+    request.addfinalizer(lambda: log.configure(log.NORMAL))     # `--debug` turns debug logging on in this process: left on, every later test in it runs several times slower
     monkeypatch.setenv("PLANETGEN_DEBUG", "0")
     out_path = tmp_path / "system.txt"
     run_cli("system", ["--debug", "--output", str(out_path), "--star-type", "K2V"] + mysql_argv(mysql_config))

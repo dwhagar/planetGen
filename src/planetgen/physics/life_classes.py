@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply, planet_type, strange_solvents, surface_liquid_world
+from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply, planet_type, strange_solvents, surface_liquid_world, surface_refuge
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -334,6 +334,8 @@ def quantities(values):
     habitat = life_supply.habitat_temperature_k(values)
     if habitat is not None:
         found["habitat_temperature_k"] = habitat
+    refuge = surface_refuge.refuge_of(values) if values.get("surface_temperature_k") else surface_refuge.NONE
+    found["lit_liquid_hours"] = refuge.hours
     temperature = found["temperature_k"]
     if temperature:
         phase = co2_phase(temperature, pressure) if found["share_co2"] >= CO2_DENSE_SHARE else "gas"
@@ -343,6 +345,15 @@ def quantities(values):
         found["starlight_w_m2"] = flux / habitability_world.LIGHT_SHARE
     if teff:
         found["_teff_k"] = teff
+    if refuge.temperature_k is not None:           # GEN.1723: a world whose light life lives in refuges (a seep, a melt), not in an open sea
+        if refuge.temperature_k:
+            found["temperature_k"] = refuge.temperature_k        # where the water is liquid, not the mean of a frozen or dry surface
+        light = surface_refuge.surface_light_w_m2(values)
+        found["_refuge_sunlit"] = 1.0
+        found["_refuge_npp_share"] = min(1.0, refuge.area / surface_refuge.EARTH_OCEAN_SHARE)       # a refuge makes its area's share of an ocean's production (RW3)
+        if light and (values.get("hydrosphere") == "ice-covered ocean" or habitability_world.groundwater(values) != "none"):
+            found["starlight_w_m2"] = light / habitability_world.LIGHT_SHARE     # the stored flux of these worlds is the chemical one (`energy_flux_w_m2`): the light of the refuge is the star's
+            found["_refuge_flux_w_m2"] = light
     for name in OPTIONAL_QUANTITIES:
         if values.get(name) is not None:
             found[name] = values[name]
@@ -446,10 +457,10 @@ def _energy_term(row, found, world, values):
     if energy["source"] == "chemical":
         heat = (values.get("internal_heat_flux_w_m2") or 0.0) + (values.get("tidal_flux_w_m2") or 0.0)
         return _energy_curve(habitability_world.CHEMICAL_SHARE * heat + retinal_supplement_w_m2(row, found, world, values))
-    sunlit = values.get("hydrosphere") not in ("ice-covered ocean",) and world.life_on_surface
+    sunlit = found.get("_refuge_sunlit") or (values.get("hydrosphere") not in ("ice-covered ocean",) and world.life_on_surface)
     if not sunlit:
         return 0.0
-    return _energy_curve(world.energy_flux_w_m2 * band_ratio(row, found))
+    return _energy_curve(max(world.energy_flux_w_m2, found.get("_refuge_flux_w_m2", 0.0)) * band_ratio(row, found))
 
 
 def score_class(row, found, world, values):
@@ -515,11 +526,12 @@ def net_primary_production(row, found, world, values):
     """
     if row.energy["source"] == "chemical":
         return tuning.LIFE_NPP["chemosynthesis_share"] * life_supply.heat_share(values)
-    if not (values.get("hydrosphere") != "ice-covered ocean" and world.life_on_surface):
+    if not (found.get("_refuge_sunlit") or (values.get("hydrosphere") != "ice-covered ocean" and world.life_on_surface)):
         return 0.0
     teff = found.get("_teff_k")
     ratio = 1.0 if not teff else band_fraction(teff, row.energy["band_nm"]) * row.energy["efficiency"] / _earth_band_flux()
-    return world.energy_flux_w_m2 / earth_light_w_m2() * min(ratio, tuning.LIFE_NPP["light_ratio_max"])
+    flux = max(world.energy_flux_w_m2, found.get("_refuge_flux_w_m2", 0.0))
+    return flux / earth_light_w_m2() * min(ratio, tuning.LIFE_NPP["light_ratio_max"]) * found.get("_refuge_npp_share", 1.0)
 
 
 def derived_quantities(values):
