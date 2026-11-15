@@ -28,11 +28,33 @@ def test_a_belt_sends_its_collisional_loss_to_the_planets_inside_it():
     assert flux(10.0) == 0.0, "nothing is sent outward"
 
 
-def test_the_influx_falls_as_the_square_of_the_distance_and_grows_with_the_planet_and_the_belt():
-    assert flux(0.5) == pytest.approx(4.0 * flux(1.0))
+def test_the_influx_grows_with_the_planet_and_the_belt_and_is_a_share_of_the_belts_dust():
     big = influx.Reservoir("belt", 2.0e21, 2.2, 3.2, 4.6e9)
     assert flux(1.0, [big]) == pytest.approx(2.0 * flux(1.0))
-    assert influx.planet_influx_kg_per_yr(2.0 * EARTH_KM, 1.0, 1.0, [BELT], [])[0] == pytest.approx(4.0 * flux(1.0))
+    assert influx.planet_influx_kg_per_yr(2.0 * EARTH_KM, 1.0, 1.0, [BELT], [])[0] > 3.5 * flux(1.0), "the radius squared, less the share that saturates"
+    assert flux(1.0) < influx.supply_kg_per_yr(BELT), "a planet never takes more than the belt sends"
+    assert flux(0.5) > flux(1.0), "the nearer the star the larger the share of the passes"
+
+
+def test_a_grain_crosses_a_planets_orbit_tens_of_thousands_of_times_on_its_way_in():
+    assert influx.crossings(1.0, 1.0) == pytest.approx(3.2e4, rel=0.05)
+    assert influx.crossings(4.0, 1.0) == pytest.approx(2.0 * influx.crossings(1.0, 1.0)), "N goes as the square root of the distance"
+    assert influx.crossings(1.0, 1.0, luminosity_solar=2.0) == pytest.approx(0.5 * influx.crossings(1.0, 1.0)), "a brighter star blows the grains faster"
+    assert influx.grain_beta(1.0) == influx.GRAIN_BETA
+    assert influx.crossings(0.0, 1.0) == 0.0
+
+
+def test_the_earth_takes_from_a_solar_system_belt_within_a_factor_of_twenty_of_the_measured_influx():
+    """The asteroid belt alone (2.4e21 kg, 4.6 Gyr) is not all of the Sun's dust (the Jupiter-family comets are the larger share), the measured influx is 1e7 kg a year: it was 45 kg a year before the crossings."""
+    asteroid_belt = influx.Reservoir("belt", 2.4e21, 2.2, 3.2, 4.6e9)
+    earth = influx.planet_influx_kg_per_yr(EARTH_KM, 1.0, 1.0, [asteroid_belt], [], 1.0)[0]
+    assert 1.0e7 / 20.0 < earth < 1.0e7 * 20.0
+
+
+def test_a_comet_nucleus_is_not_multiplied_by_the_crossings():
+    comet = influx.Reservoir("comet", 1.0e14, 0.5, 0.5)
+    expected = influx.supply_kg_per_yr(comet) * influx.cross_section_share(EARTH_KM, 1.0)
+    assert flux(1.0, [comet]) == pytest.approx(expected)
 
 
 def test_a_planet_inside_the_ring_gets_the_part_of_the_ring_outside_its_orbit():

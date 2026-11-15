@@ -186,6 +186,12 @@
    "tier": "T9",
    "tweak": "L3",
    "basis": "The sulfur dioxide share of the air at which the absorber reaches its full strength; the strength falls in proportion below it and stays at the full value above. Venus's lower air is 1.3e-4 to 1.8e-4 (the Venus acid-cloud report), a hand-set reference"
+  },
+  "dust_min_influx_kg_m2_yr": {
+   "value": 2.4e-10,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The least cosmic-dust influx per area that gate 5 calls a supply for V8, a tenth of Venus's by `influx.py` with a Solar-System asteroid belt (2.4e21 kg, 2.2 to 3.2 AU, 4.6 Gyr: 1.1e6 kg a year, 2.4e-9 per m2). The one paper that proposes V8 needs the cloud-top carbon and iron to be 600 and 3 thousand years of the influx at the least ([R5170], abstract only), so a tenfold weaker supply stretches those to 6 thousand and 30 thousand years; from needed output, no source gives the share. The comets and the Kuiper belt, the larger share of the real dust, are not in the reference belt, so the number is on the model's own scale"
   }
  }
 }
