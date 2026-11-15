@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4174] - 2026-11-14
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
 ## [8.0.4173] - 2026-11-14
 
 **Headline:** A rocky planet under a deep envelope whose haze keeps its 1 bar level colder than its albedo alone gives now stores a temperature that matches its stored albedo and greenhouse quantity.
