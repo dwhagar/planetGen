@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4243] - 2026-11-15
+
+**Headline:** The stage-wording tests no longer expect "0 s" from a stage that really took a few milliseconds.
+
+### Changed
+
+- TEST.759: a stage line says how long the stage took on the units code's one duration ladder (UX.318), so a stage of 2.86 ms says "2.86 ms". The code is right; five tests in `test_stages.py` read the real clock and expected "0 s" or a whole-second "31 s". They now hold the clock the stages read still (`stage_clock`), and one new test pins that a stage of a few milliseconds says so.
+
 ## [8.0.4242] - 2026-11-15
 
 **Headline:** The memory-reading test of the worker cap no longer fails under gate load.
