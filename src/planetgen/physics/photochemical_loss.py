@@ -36,8 +36,6 @@ PHOTOLYSED = ("NH3", "CH4")
 LOST_TO = {"NH3": ("N2", 0.5), "CH4": ("CO2", 1.0)}
 """dict: Formula of a photolysed gas to (the gas its loss leaves, the moles of it left per mole lost). The hydrogen escapes and is not stored; the oxygen of the CO2 is the water's [Stand-in 6.301 PC4, tier T7, tweak L1.]"""
 
-YEAR_S = 365.25 * 86400.0
-
 
 def rate_per_s(formula, far_uv, star_temperature_k):
     """The photolysis rate, per second, of `formula` under `far_uv` (`aerosols.FarUv`: the far ultraviolet flux relative to the quiet Sun at 1 AU, and its chromospheric share) from a star of `star_temperature_k`; 0 with no far ultraviolet."""
