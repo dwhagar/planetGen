@@ -9,7 +9,7 @@ not, does not. The oxygen a world holds is the balance of a source and its sinks
 
 * **Source** `S`: the organic carbon its life buries, which leaves the oxygen of the water it was made from behind. It goes with the
   area where light, water and warmth meet (`productivity`): the planet's area, the share the ocean covers, the square root of the
-  photosynthetically active light it gets (the production saturates), and a Boltzmann factor for the temperature of the surface, to zero
+  light of its band it gets (class 1a's photosynthetically active 400 to 700 nm, 1b's blue and 1c's far red, GEN.1744; the production saturates), and a Boltzmann factor for the temperature of the surface, to zero
   outside the liquid range of the sea.
 * **Reductant flux** `R`: the volcanic and metamorphic gases (H2, CO, H2S) that take oxygen as they are released, which goes with the
   heat the interior gives off and with how reduced the mantle is (`reductant_flux`).
@@ -38,6 +38,7 @@ weathering), the hydrogen escape that adds oxygen, the phosphorus feedback and, 
 change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak already stands for; a world with no wide sea has them from the rooted stage on, GEN.1729, in `refuge_productivity`).
 """
 
+import collections
 import math
 from dataclasses import dataclass
 
@@ -93,7 +94,13 @@ LIGHT_EXPONENT = 0.5
 
 LIGHT_RANGE = (0.0, 2.0)
 PAR_NM = (400.0, 700.0)
-"""tuple[float]: The photosynthetically active band, nm."""
+"""tuple[float]: The photosynthetically active band, nm: class 1a's (chlorophyll a), the band Earth's production is counted in."""
+
+Band = collections.namedtuple("Band", ("nm", "efficiency"))
+"""namedtuple: The light an oxygenic class eats: its band `nm` (low, high) and the `efficiency` of using it against class 1a's (`life_classes.json` `energy`: 1b blue 300 to 500 nm at 1.0, 1c far red 700 to 800 nm at 0.8; GEN.1744)."""
+
+PAR_BAND = Band(PAR_NM, 1.0)
+"""Band: Class 1a's, and the band of Earth's production: the one a body's production is counted in when no class is named."""
 
 SUN_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
 
@@ -198,16 +205,16 @@ def temperature_factor(temperature_k):
     return edge * boltzmann
 
 
-def active_light_ratio(body):
-    """The photosynthetically active light the body gets, over Earth's: the star's flux at the body's distance times the share of a blackbody
-    of the star's temperature in `PAR_NM`. 0 when the star states no light."""
+def active_light_ratio(body, band=PAR_BAND):
+    """The light of `band` the body gets, over Earth's photosynthetically active light: the star's flux at the body's distance times the share of a blackbody
+    of the star's temperature in the band's `nm`, times its `efficiency` (GEN.1744: class 1b eats 300 to 500 nm, 1c 700 to 800 nm at 0.8, 1a `PAR_NM`). 0 when the star states no light."""
     star = getattr(body, "star", None)
     luminosity = getattr(star, "luminosity", None)
     temperature = getattr(star, "temperature", None)
     distance = getattr(body, "_star_distance_au", None) or getattr(body, "distance", None)
     if not luminosity or not temperature or not distance:
         return 0.0
-    here = stellar_spectrum.bolometric_flux_w_m2(luminosity, distance) * float(stellar_spectrum.blackbody_fraction(*PAR_NM, temperature))
+    here = stellar_spectrum.bolometric_flux_w_m2(luminosity, distance) * float(stellar_spectrum.blackbody_fraction(*band.nm, temperature)) * band.efficiency
     earth = stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0) * float(
         stellar_spectrum.blackbody_fraction(*PAR_NM, SUN_TEMPERATURE_K))
     return here / earth
@@ -243,7 +250,7 @@ def reductant_history_factor(body, age_gyr):
     return 1.0 if flux_now <= 0.0 else (then.own_flux_w_m2 + tide) / flux_now
 
 
-def refuge_productivity(body, area_m2):
+def refuge_productivity(body, area_m2, band=PAR_BAND):
     """
     `S`, mol/yr, of the oxygenic life of a body that has no wide sunlit sea but has light and liquid water at its surface, in a brine seep, a seasonal melt or a spring
     (`surface_refuge`, GEN.1723): Earth's burial per area of ocean (no new constant) on the area where those are wet and lit, each place weighed by its production against an ocean's
@@ -261,18 +268,18 @@ def refuge_productivity(body, area_m2):
     refuge = surface_refuge.refuge_of(habitability_world.values_from_body(body))
     if refuge.area <= 0.0 or not refuge.temperature_k:
         return 0.0
-    light = _clamp(active_light_ratio(body), *LIGHT_RANGE) ** LIGHT_EXPONENT
+    light = _clamp(active_light_ratio(body, band), *LIGHT_RANGE) ** LIGHT_EXPONENT
     sea_like = (refuge.area - refuge.plants_cover) / EARTH_OCEAN_FRACTION
     land_plants = LAND_SHARE_OF_BURIAL * refuge.plants / EARTH_LAND_FRACTION      # GEN.1729: the wet land that roots reach, at Earth's burial per area of land under plants
     return EARTH_BURIAL_MOL_YR * (area_m2 / EARTH_AREA_M2) * (sea_like + land_plants) * light * temperature_factor(refuge.temperature_k)
 
 
-def productivity(body, area_m2):
-    """`S`, mol/yr, of a body with a sunlit sea (a body with a refuge only: `refuge_productivity`; 0 for one with neither)."""
+def productivity(body, area_m2, band=PAR_BAND):
+    """`S`, mol/yr, of a body with a sunlit sea (a body with a refuge only: `refuge_productivity`; 0 for one with neither) of the oxygenic class that eats `band` (GEN.1744; class 1a's by default)."""
     if getattr(body, "hydrosphere", None) not in LIVING_HYDROSPHERES:
-        return refuge_productivity(body, area_m2)
+        return refuge_productivity(body, area_m2, band)
     ocean = getattr(body, "ocean_fraction", None) or 0.0
-    light = _clamp(active_light_ratio(body), *LIGHT_RANGE) ** LIGHT_EXPONENT
+    light = _clamp(active_light_ratio(body, band), *LIGHT_RANGE) ** LIGHT_EXPONENT
     return (EARTH_BURIAL_MOL_YR * (area_m2 / EARTH_AREA_M2) * min(ocean / EARTH_OCEAN_FRACTION, 1.3) * light
             * temperature_factor(getattr(body, "surface_temperature", None)))
 
@@ -359,10 +366,22 @@ def partials_pa(body, moles):
     return {formula: amount / column * total for formula, amount in moles.items() if amount > 0.0}
 
 
-def profile_of(body, share=1.0, extra_store_mol=0.0):
+def band_of(life_class):
+    """The `Band` of the light the oxygenic class `life_class` eats: its `energy` row's `band_nm` and `efficiency` in `life_classes.json` (GEN.1744)."""
+    energy = life_class.energy
+    return Band(tuple(energy["band_nm"]), energy["efficiency"])
+
+
+def source_of(body, area, producers):
+    """`S`, mol/yr, of the oxygenic classes `producers`, a list of `(share, band)`: each class carries its share of the body's food production (GEN.1213) in the light of its own band (GEN.1744)."""
+    return sum(share * productivity(body, area, band) for share, band in producers)
+
+
+def profile_of(body, share=1.0, extra_store_mol=0.0, producers=None):
     """
     The `Profile` of a rocky body (`NONE` for a giant, or a body missing the radius, gravity or air to read). `share` is the part of the body's food
-    production that oxygenic life carries (GEN.1213: the classes of a body share its production, so the source `S` goes with their summed share);
+    production that oxygenic life carries (GEN.1213: the classes of a body share its production, so the source `S` goes with their summed share), counted in class 1a's light (`PAR_BAND`);
+    `producers`, a list of `(share, band)` of the oxygenic classes (GEN.1744: 1b eats blue, 1c far red), is that sum in each class's own band and replaces `share`;
     `extra_store_mol` is the oxygen, mol, that other reduced things the life made (the methane of the classes before the rise) take first, which adds to the store.
     """
     radius_km, gravity = getattr(body, "radius", None), getattr(body, "gravity", None)
@@ -371,7 +390,7 @@ def profile_of(body, share=1.0, extra_store_mol=0.0):
     area = area_m2(body)
     moles = air_moles(body)
     burnt, taken = burn(moles)
-    source, reductant = productivity(body, area) * share, reductant_flux(body, area)
+    source, reductant = source_of(body, area, producers if producers is not None else [(share, PAR_BAND)]), reductant_flux(body, area)
     store = EARTH_STORE_MOL * (area / EARTH_AREA_M2) * redox_factor(getattr(body, "mantle_delta_iw", None)) + taken + extra_store_mol
     surplus = source - reductant
     if surplus <= 0.0 or not burnt:
@@ -386,28 +405,30 @@ def profile_of(body, share=1.0, extra_store_mol=0.0):
 def rise_age_gyr(body, starts, extra_store_mol=0.0):
     """
     The age, Gyr, at which the oxygen of several oxygenic classes first rises on `body` (GEN.1213), or `None` when it never does. `starts` is a list of
-    `(age_gyr, share)`: each class's producers begin at its age and carry its share of the food production. The surplus `S - R(age)` of the producers
-    there are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the summed share of the classes begun and `R` with the
+    `(age_gyr, share)` or `(age_gyr, share, band)`: each class's producers begin at its age and carry its share of the food production, in the light of its own `band` (GEN.1744; class 1a's
+    when not given). The surplus `S - R(age)` of the producers
+    there are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the shares of the classes begun, each in its band (`carried`, mol a year), and `R` with the
     heat the body gave off at that age (GEN.1463, `reductant_history_factor`); the oxygen rises when it is full. The surplus is summed in steps of `RISE_STEP_GYR` (the
     last step cut where the store fills) from the first producers' age; past the star's age the reductant is held at its value now.
     """
-    starts = sorted((age, share) for age, share in starts if age is not None and share > 0.0)
+    starts = sorted((age, share, (rest[0] if rest else PAR_BAND)) for age, share, *rest in starts if age is not None and share > 0.0)
     if not starts:
         return None
     full = profile_of(body, 1.0, extra_store_mol)
-    if full.source_mol_yr <= 0.0:
+    unit = {band: profile_of(body, 1.0, extra_store_mol, producers=[(1.0, band)]).source_mol_yr for band in {band for _, _, band in starts}}       # S of a class that carries it all, in its own band
+    if max(unit.values()) <= 0.0:
         return None
     horizon = getattr(getattr(body, "star", None), "age", None) or 0.0       # the thermal history ends at the star's age; past it R is what it is now
     filled, age, carried, index = 0.0, starts[0][0], 0.0, 0
     while True:
         while index < len(starts) and starts[index][0] <= age + 1e-12:
-            carried += starts[index][1]
+            carried += starts[index][1] * unit[starts[index][2]]
             index += 1
         if age >= horizon and index >= len(starts):
-            surplus = full.source_mol_yr * carried - full.reductant_mol_yr
+            surplus = carried - full.reductant_mol_yr
             return None if surplus <= 0.0 else age + (full.store_mol - filled) / surplus / 1e9      # the surplus at the horizon runs on
         end = min(age + RISE_STEP_GYR, starts[index][0]) if index < len(starts) else age + RISE_STEP_GYR
-        surplus = full.source_mol_yr * carried - full.reductant_mol_yr * reductant_history_factor(body, 0.5 * (age + end))
+        surplus = carried - full.reductant_mol_yr * reductant_history_factor(body, 0.5 * (age + end))
         if surplus > 0.0:
             need = full.store_mol - filled
             if surplus * (end - age) * 1e9 >= need:
