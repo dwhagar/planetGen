@@ -104,7 +104,7 @@ def test_a_unit_that_raised_fails_its_run_as_rqs_failure_callback_does_and_the_j
         raise ValueError("the unit broke")
 
     monkeypatch.setattr(units, "run_unit_on", boom)
-    monkeypatch.setattr(units, "fail_unit", lambda conn, run_id, stage, unit, kind, retries, exc_type, exc_value, tb: failed.append((run_id, stage, unit, kind, exc_type.__name__, str(exc_value))) or True)
+    monkeypatch.setattr(units, "fail_unit", lambda conn, run_id, stage, unit, kind, retries, exc_type, exc_value, tb, row=None: failed.append((run_id, stage, unit, kind, exc_type.__name__, str(exc_value))) or True)
     link = _Link()
     code = forkedjob.run({"run_id": "r1", "stage": 2, "unit": 5, "kind": "scatter-mass", "args": {}, "redis_url": redis_server}, link)
     assert code == template.EXIT_FAILED and failed == [("r1", 2, 5, "scatter-mass", "ValueError", "the unit broke")]
