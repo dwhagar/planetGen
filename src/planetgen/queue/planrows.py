@@ -147,6 +147,26 @@ def _stage_key(conn, run_id, index):
     return runrecord._s(runrecord.declared_stages(conn, run_id)[index]["key"])
 
 
+def made_artifacts(control, galaxy, run=None):
+    """
+    The artifacts the ledger's rows say the galaxy `galaxy` has (`needs.exists_after`): what the stages that ended (their `release` row is done) made, in the order they ran, forgetting what came before a reset or a new skeleton.
+    The rows of run `run` (the run being planned) are left out. A galaxy with no rows has none, as does one whose runs began before the ledger kept plans.
+    """
+    from planetgen.queue import needs
+    if galaxy is None:
+        return set()
+    rows = control.execute(
+        "SELECT o.makes, o.arguments FROM engine_jobs o JOIN engine_runs r ON r.id = o.run_id"
+        " WHERE r.galaxy = ? AND o.run_id <> ? AND o.command = ? AND o.item_key = '' AND o.state = 'done'"
+        " AND EXISTS (SELECT 1 FROM engine_jobs e WHERE e.run_id = o.run_id AND e.stage = o.stage AND e.command = ? AND e.item_key = '' AND e.state = 'done')"
+        " ORDER BY o.run_id, o.id", (galaxy, run if run is not None else 0, OPEN, RELEASE)).fetchall()
+    stages = []
+    for row in rows:
+        kind = (json.loads(row["arguments"] or "{}").get("plan") or {}).get("kind")
+        stages.append((kind, json.loads(row["makes"] or "[]")))
+    return needs.exists_after(stages)
+
+
 def record_plan(conn, run_id, steps):
     """
     Writes the whole run as rows when it starts (OPS.238, the stored plan): one `open` row for each step, waiting, which `needs` the stages it comes after (`after:<stage key>`: the step before it, and
@@ -155,17 +175,24 @@ def record_plan(conn, run_id, steps):
 
     Args:
         steps (list[commands.Step]): The run's steps, in order, as `wrapper.run` has them.
+
+    Returns:
+        dict: `{step key: [artifacts]}` for the steps that need what no earlier step makes and the galaxy's rows do not say exists (`needs.unmet` against `made_artifacts`); each such row also says so in its `unmet`.
     """
     from planetgen.queue import needs
     if not ledgered(conn, run_id):
-        return          # a run with no database keeps no rows; its plan is read from its steps
+        return {}       # a run with no ledger keeps no rows (and so no unmet needs to say); its plan is read from its steps
     control = control_connection(conn, run_id)
     try:
         run = engine_run(conn, run_id, control)
+        lacking = {}
+        for step, artifact in needs.unmet(steps, made_artifacts(control, _galaxy_name(conn, run_id), run)):
+            lacking.setdefault(step.key, []).append(artifact)
         jobs = []
         for index, step in enumerate(steps):
             earlier = ([steps[index - 1].key] if index else []) + needs.required_stage_keys(steps, index)
-            jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True},
+            extra = {"unmet": lacking[step.key]} if step.key in lacking else {}
+            jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True, **extra},
                          "needs": [AFTER + key for key in dict.fromkeys(earlier)], "makes": list(needs.makes_of(step.kind))})
         ledger.add_jobs(control, run, jobs)
         control.commit()
@@ -174,6 +201,7 @@ def record_plan(conn, run_id, steps):
         raise
     finally:
         control.close()
+    return lacking
 
 
 def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
