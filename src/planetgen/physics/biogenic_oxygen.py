@@ -13,16 +13,18 @@ not, does not. The oxygen a world holds is the balance of a source and its sinks
   outside the liquid range of the sea.
 * **Reductant flux** `R`: the volcanic and metamorphic gases (H2, CO, H2S) that take oxygen as they are released, which goes with the
   heat the interior gives off and with how reduced the mantle is (`reductant_flux`).
-* **Oxidative weathering** `k N`: the rocks at the surface (kerogen, pyrite, ferrous iron) take oxygen in proportion to what the air holds,
-  `N` moles, with the rate constant that balances the budget on the world the numbers are taken from (`WEATHERING_PER_YR`).
+* **Oxidative weathering** `W`: the rocks at the surface (kerogen, pyrite, ferrous iron) take oxygen at a rate per area of land that goes with the oxygen's
+  partial pressure `p` to a power, `W = W0 (p / p0)^m` per area with `m = OXIDATIVE_WEATHERING_EXPONENT` (GEN.1733; the square root of the COPSE model [R5280] and the fit of [R5281]),
+  where `W0` and `p0` are Earth's (`EARTH_SURPLUS_MOL_YR`, `EARTH_O2_PA`). The weathering depends on the pressure, not the moles, because the rock meets the air's oxygen
+  at its partial pressure: a heavier world with the same oxygen per area has the larger pressure and weathers faster, so its pressure is no larger.
 * **A store of reductants** `B`: the ocean's ferrous iron and the crust's sulfides and iron, and the reduced gases of the air itself (H2, CO,
   CH4, NH3, H2S, C2H6: `REDUCED_GASES`), take the first oxygen the surplus makes, so the air holds none until `B / (S - R)` has passed
   (`Profile.delay_gyr`, the time the Great Oxidation took after the first oxygenic photosynthesis). The reduced gases are burned away by
   then: `apply` turns them into their oxides (CO2, N2) and the water they make goes to the ocean.
 
-`dN/dt = S - R - k N` once the store is spent, so the air settles to `N* = (S - R) / k` in a few million years, a time short beside the
-Gyr the schedule runs in, and the world holds `N*` (as the partial pressure `p = N M g / A`) when its photosynthesis is older than the
-delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is the oxygen pressure `mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA`, the
+`dN/dt = S - R - W(p)` once the store is spent, so the air settles to the pressure `p* = p0 ((S - R) A0 / (A (S0 - R0)))^(1/m)` (`balance_pa`: the surplus per area over
+Earth's, to the power 1/m) in a few million years, a time short beside the Gyr the schedule runs in, and the world holds `p*` (as the moles that make that partial pressure
+among the other gases of its air) when its photosynthesis is older than the delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is the oxygen pressure `mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA`, the
 fire limit (GEN.1320: a pressure, so a thin air can reach a larger share than a thick one; never more than `mixture_oxygen.ABIOTIC_O2_MAX` of the molecules).
 The whole air, oxygen and all, stays under the pressure the retention regime of the air solve lets the body keep (`surface_air.Air.retention_cap_pa`, the row `d6`; GEN.1340): a body that
 holds only 1 or 10 kPa against the escape of its air does not hold 40 kPa because its life made oxygen, and the shares of its gases are kept when the cap takes the excess.
@@ -44,8 +46,8 @@ from dataclasses import dataclass
 from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, stellar_spectrum, surface_air, surface_refuge
 from planetgen.util import log
 
-EARTH_O2_MOL = 3.7e19
-"""float: The oxygen of Earth's air, mol (21 percent of 1.77e20 mol of air; 22.8 kPa at its gravity and area)."""
+EARTH_O2_PA = 21.2e3
+"""float: The oxygen partial pressure of Earth's air, Pa (20.95 percent of 101.325 kPa), the point the oxidative weathering is scaled from (`p0`). [BO14, T1, L0.]"""
 
 EARTH_BURIAL_MOL_YR = 1.0e13
 """float: The organic carbon Earth buries a year, mol (the source `S`; [R1859], about 1e13). T2, L3."""
@@ -70,8 +72,15 @@ EARTH_HEAT_W = 4.4e13
 EARTH_MANTLE_DELTA_IW = 3.5
 """float: The redox of Earth's upper mantle now, log10 units above the iron-wustite buffer (the scale `oxygen_fugacity` gives `mantle_delta_iw`)."""
 
-WEATHERING_PER_YR = (EARTH_BURIAL_MOL_YR - EARTH_REDUCTANT_MOL_YR) / EARTH_O2_MOL
-"""float: The share of the air's oxygen that weathering takes a year, 1/yr, which balances Earth's budget at `EARTH_O2_MOL` (1.9e-7)."""
+EARTH_SURPLUS_MOL_YR = EARTH_BURIAL_MOL_YR - EARTH_REDUCTANT_MOL_YR
+"""float: The surplus of Earth's oxygen budget, mol a year, which Earth's oxidative weathering takes at `EARTH_O2_PA` (`W0`)."""
+
+OXIDATIVE_WEATHERING_EXPONENT = 0.5
+"""float: The power of the oxygen partial pressure that oxidative weathering goes with: the square root of the baseline of the COPSE model [R5280] (taken from [R5282]), which the weathering model of
+[R5281] fits to within its own scatter ("consistent with coal oxidation kinetics"). The sources differ: a linear dependency has been used, and the evidence for any dependency has been disputed [R5280]. [BO13, T3, L0.]"""
+
+OXIDATIVE_WEATHERING_EXPONENT_RANGE = (0.5, 1.0)
+"""tuple: The range of `OXIDATIVE_WEATHERING_EXPONENT` of the sources that give a dependence (square root to linear). [BO13, T3, L0.]"""
 
 REDOX_DECADE_PER_UNIT = 0.25
 REDOX_FACTOR_RANGE = (0.2, 5.0)
@@ -338,6 +347,17 @@ def partials_pa(body, moles):
     return {formula: amount / column * total for formula, amount in moles.items() if amount > 0.0}
 
 
+def balance_pa(surplus_mol_yr, area):
+    """
+    The oxygen partial pressure, Pa, at which oxidative weathering takes the `surplus_mol_yr` (`S - R`) that a body of `area` m2 makes: Earth's `EARTH_O2_PA` times the surplus
+    per area over Earth's, to the power `1 / OXIDATIVE_WEATHERING_EXPONENT` (GEN.1733). 0 when there is no surplus.
+    """
+    if surplus_mol_yr <= 0.0 or area <= 0.0:
+        return 0.0
+    per_area = (surplus_mol_yr / area) / (EARTH_SURPLUS_MOL_YR / EARTH_AREA_M2)
+    return EARTH_O2_PA * per_area ** (1.0 / OXIDATIVE_WEATHERING_EXPONENT)
+
+
 def profile_of(body, share=1.0, extra_store_mol=0.0):
     """
     The `Profile` of a rocky body (`NONE` for a giant, or a body missing the radius, gravity or air to read). `share` is the part of the body's food
@@ -355,7 +375,7 @@ def profile_of(body, share=1.0, extra_store_mol=0.0):
     surplus = source - reductant
     if surplus <= 0.0 or not burnt:
         return Profile(source, reductant, store, 0.0, 0.0, None)
-    steady = min(surplus / WEATHERING_PER_YR, _fire_limit_mol(body, burnt))
+    steady = min(_oxygen_mol_at(body, burnt, balance_pa(surplus, area)), _fire_limit_mol(body, burnt))
     pascal = partials_pa(body, {**burnt, "O2": steady}).get("O2", 0.0)
     if pascal < MINIMUM_PA:
         return Profile(source, reductant, store, 0.0, 0.0, None)
