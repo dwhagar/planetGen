@@ -28,6 +28,7 @@ from contextlib import contextmanager
 from planetgen.db import statementmark
 from planetgen.queue import beatjudge, runrecord, usage as usageModule
 from planetgen.util import log, ticker
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 COUNTER_WRITE_SECONDS = 2.0
 """float: A counter that moved is written at most this often, between two beats."""
@@ -46,6 +47,11 @@ DUMP_SIGNAL = getattr(signal, "SIGUSR1", None)
 """The signal that has a horse write the stack of every thread of its process (OPS.140); `None` where the system has none."""
 
 _dump_file = None       # the file `faulthandler` writes to; kept open for the life of the process, because a signal after the unit must still land somewhere harmless
+
+
+def _figure(value, formatter):
+    """`value` through the units code's `formatter`, or `?` when the figure is not known yet."""
+    return "?" if value is None else formatter(value)
 
 
 def stack_path(run_id, stage, unit):
@@ -236,7 +242,7 @@ class UnitBeat:
                 waited = max(self.clock() - began, 0.0)
                 self._waited += waited
                 self._waited_total += waited
-            log.trace(f"unit {self.unit} waited {waited:.2f} s for {tag}", area="queue")
+            log.trace(f"unit {self.unit} waited {format_duration_seconds(waited)} for {tag}", area="queue")
 
     # --- the record and its thread ---------------------------------------------------------------------------
 
@@ -282,7 +288,7 @@ class UnitBeat:
         self._last_write = self.clock()
         if log.debug_log_active():        # OPS.223: a restarted unit's debug log (and any debug run) follows the counter, the waits and the memory
             log.trace(f"unit {self.unit} beat: phase {made['phase']!r}, {made['done']:g} of {made['estimate']:g} done, waiting on {made['waiting_on'] or 'nothing'}, "
-                      f"{made.get('resident_mb', '?')} MB resident, {made.get('cpu_s', '?')} processor s", area="queue")
+                      f"{_figure(made.get('resident_mb'), format_megabytes)} resident, {_figure(made.get('cpu_s'), format_duration_seconds)} of processor", area="queue")
 
     def _due(self):
         if self._last_write is None:

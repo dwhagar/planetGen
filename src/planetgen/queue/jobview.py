@@ -20,6 +20,7 @@ import json
 from datetime import timezone
 
 from planetgen.queue import ledger, planrows, runrecord
+from planetgen.util.format import format_duration_seconds
 
 DEFAULT_LIMIT, MAX_LIMIT = 50, 200
 """int: The jobs or runs a page of the lists holds by default, and at most."""
@@ -122,7 +123,7 @@ def why_waits(control, row, now):
     if held is not None and held > now:
         last = control.execute("SELECT outcome FROM engine_attempts WHERE job_id = ? AND attempt = ?", (row["id"], row["attempt"])).fetchone()
         after = f" after its attempt {row['attempt']} {ATTEMPT_WORDS.get(last['outcome'], last['outcome'])}" if last else ""
-        return f"held back for a retry for another {held - now:,.0f} s{after}"
+        return f"held back for a retry for another {format_duration_seconds(held - now)}{after}"
     if row["waited"]:
         return row["waited"]
     needed = _needs_text(control, row["run_id"], row["stage"], _json(row["needs"]))
