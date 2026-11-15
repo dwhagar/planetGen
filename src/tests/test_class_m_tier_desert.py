@@ -48,11 +48,12 @@ def test_the_small_sea_of_a_tiers_desert_world_is_an_ordinary_sea_and_every_othe
     assert hydrosphere.ocean_class(SimpleNamespace(_water_dialed="dry", mantle_redox=None), 0.0, little, 0.15) == "neutral"
 
 
-def test_a_small_sea_makes_its_areas_share_of_an_oceans_oxygen_and_a_seep_makes_none():
+def test_a_small_sea_makes_its_areas_share_of_an_oceans_oxygen_and_a_seep_makes_a_refuges_small_share():
     sea = bo.productivity(_world(hydrosphere="surface ocean"), AREA_M2)
     assert sea == pytest.approx(bo.EARTH_BURIAL_MOL_YR * 0.15 / bo.EARTH_OCEAN_FRACTION, rel=0.02)
-    assert bo.productivity(_world(), AREA_M2) == 0.0                                    # a brine seep, dialed or not, is no living sea
-    assert bo.productivity(_world(_water_dialed="dry"), AREA_M2) == 0.0
+    seep = bo.productivity(_world(), AREA_M2)
+    assert seep == bo.refuge_productivity(_world(), AREA_M2) < 0.1 * sea                # a brine seep is no living sea: only the refuge of GEN.1723, a few percent of the sea's
+    assert bo.productivity(_world(_water_dialed="dry"), AREA_M2) == seep                # and the oxygen law does not look at the dial: the hydrosphere law makes the desert sea
 
 
 def test_with_a_quiet_interior_a_warm_desert_sea_out_produces_its_volcanoes_and_without_one_it_does_not():
