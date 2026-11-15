@@ -124,3 +124,34 @@ def _conclusion(params, plan, results, seconds):
 def _metrics(params, plan, results, seconds):
     CALLS.append("finish")
     return {}
+
+
+def test_the_whole_run_is_rows_before_its_first_stage_opens(monkeypatch, mysql_config):
+    """OPS.238: a run's steps are written as `open` rows that wait, each needing the stage before it and the stages that make what it needs, and the cut of a stage fills its row in."""
+    conn = redisqueue.connect()
+    database = wrapper.database_args(mysql_config)
+    steps = [commands.Step("mass-clear", "clear-bright-stars", "Clear", {"database": database}), commands.Step("mass", "scatter-mass", "Mass", {"database": database}),
+             commands.Step("luminosity", "scatter-luminosity", "Light", {"database": database})]
+    run_id = runrecord.start_run(conn, "Plan", [runrecord.Stage(step.key, step.label) for step in steps], steps=[step.as_dict() for step in steps])
+    planrows.record_plan(conn, run_id, steps)
+    planrows.record_plan(conn, run_id, steps)                 # written once: a second call leaves the rows as they are
+    ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)))
+    jobs = _jobs(mysql_config, ledger_run)
+    assert [(job["stage"], job["command"], job["state"]) for job in jobs] == [("mass-clear", "open", "waiting"), ("mass", "open", "waiting"), ("luminosity", "open", "waiting")]
+    import json
+    assert [json.loads(job["needs"]) for job in jobs] == [[], ["after:mass-clear"], ["after:mass"]]
+    assert [json.loads(job["makes"]) for job in jobs] == [["bright-stars-cleared"], ["bright-stars-mass"], ["bright-stars-luminosity"]]
+    assert planrows.read_plan(conn, run_id, 1) is None, "a planned stage is not a cut stage"
+
+
+def test_the_cut_of_a_planned_stage_fills_its_row_in_and_marks_it_done(monkeypatch, mysql_config):
+    _register(monkeypatch, first=_units(2))
+    conn = redisqueue.connect()
+    step = commands.Step("a", "first", "A", {"database": wrapper.database_args(mysql_config)})
+    run_id = runrecord.start_run(conn, "Rows", [runrecord.Stage("a", "A", units=2)], steps=[step.as_dict()])
+    planrows.record_plan(conn, run_id, [step])
+    assert len(planrows.record_cut(conn, run_id, 0, "first", [({}, 1.0), ({}, 1.0)], 2.0, {"count": 2})) == 2
+    ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)))
+    opened = [job for job in _jobs(mysql_config, ledger_run) if job["command"] == "open"]
+    assert len(opened) == 1 and opened[0]["state"] == "done"
+    assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}

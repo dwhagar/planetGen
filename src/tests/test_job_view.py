@@ -217,3 +217,19 @@ def test_a_canceled_job_is_counted_and_shown_in_words(conn, run, control):
     assert found["total"] == 1 and found["items"][0]["waits"] == "" and found["counts"]["canceled"] == 1
     assert "1 canceled" in queue_page._count_line(found["counts"]).lower()
     assert queue_page.JOB_STATE_LABELS.keys() == set(ledger.JOB_STATES) and queue_page.RUN_STATE_LABELS.keys() == set(ledger.RUN_STATES)
+
+
+def test_a_planned_stage_says_which_stage_it_waits_for(control_config):
+    """OPS.238: the `after:<stage key>` need of a stage's planned `open` row is told in words until that stage's `release` row is done."""
+    from planetgen.db import store
+    control = store.get_control_connection(control_config)
+    try:
+        run = ledger.add_run(control, "generate", control_config.database)
+        ledger.add_jobs(control, run, [{"stage": "a", "command": "release"}])
+        control.commit()
+        assert jobview._needs_text(control, run, "b", [planrows.AFTER + "a"]) == "waits for stage `a` to end"
+        control.execute("UPDATE engine_jobs SET state = 'done' WHERE run_id = ? AND stage = 'a'", (run,))
+        control.commit()
+        assert jobview._needs_text(control, run, "b", [planrows.AFTER + "a"]) is None
+    finally:
+        control.close()
