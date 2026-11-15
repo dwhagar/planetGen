@@ -2,6 +2,95 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4287] - 2026-11-15
+
+**Headline:** A world's air history has its first part: the step schedule and the clocks (the star's light, the interior's heat, the oxygen law's reductant sink and the water lost) at every age, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 1: `physics/air_history.py` gives the ages of a history (`schedule`: logarithmic from 10 kyr to 1 Gyr, then every 0.25 Gyr, cut at the ages asked and ending at the star's age) and `run(body)`, the steps with the star's luminosity over its present one, the interior's heat (`interior_heat.heat_at`), the reductant ratio and label of the oxygen law (`biogenic_oxygen.reductant_history_factor`, `profile_of`) and the water lost by that age. Reuse: every law is the existing one read at the age of the step. Nothing in the generator reads it yet, and nothing is stored.
+- `runaway_history.light_at(star, age_gyr)` (the star's light on the history `loss_kg` follows, at one age) and a `trace` for `runaway_history.loss_kg` (the water lost at the end of each step; the answer is unchanged).
+
+## [8.0.4286] - 2026-11-15
+
+**Headline:** Two registry tests that were red on main are green: the deep database check's step kind and the two job pages of a run.
+
+### Fixed
+- `test_step_registry` knows `db-check` is used (the deep check names it by the constant `DEEP_STATS_KIND`), TEST.766.
+- `admin_queue_jobs` and `admin_queue_job` are named in the admin registry as pages reached from a run, TEST.767.
+
+generation-output: unchanged
+
+## [8.0.4285] - 2026-11-15
+
+**Headline:** A queue-commands test now expects the held run that a unit failing for good leaves since OPS.221.
+
+### Fixed
+- `test_queue_commands.py` expected the run of a failed unit to be `failed`; OPS.221 holds it for a person (`held`, with the unit in its error), so the test says that.
+
+generation-output: unchanged
+
+## [8.0.4284] - 2026-11-15
+
+**Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
+
+### Changed
+
+- OPS.196: `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes`, `clear-scatter`, `clean-nebula-field` and `reset-galaxy` give the engine `pieces` and `do` instead of a `unit` function. A clear's statements are a plan (`store.clear_bright_stars_plan`, `clear_bright_star_pass_plan`, `clear_phenomenon_scatter_plan`, `clear_nebula_field_plan`), one piece to a statement; the reset is one piece to a table and one to tidy after; the same plans are what `clear_*` and `wipe` run directly, so there is one list of the statements. Their results are unchanged.
+- `tests/test_commands_have_pieces.py` no longer has a list of commands still to convert: a command with a loop of its own fails. `tests/test_longest_silence.py` runs the commands of the last family under the unit beat and holds the longest stretch with no count, phase or statement moving to a budget.
+- `tests/test_long_sql_steps.py`: the clear tests were red on main (a new galaxy has nothing to clear since OPS.254 and OPS.257); they now say the galaxy holds something, and the reset test seeds a sector.
+
+## [8.0.4283] - 2026-11-15
+
+**Headline:** A unit run again after a passing failure goes on after the pieces it finished, and a test now proves it.
+
+### Changed
+- `commands.py` says that `pieces(args, cursor)` takes the ledger cursor, not 0.
+- `test_failure_kinds.py` fails a piece at the start, middle and end, and checks each finished piece is done once and the result is whole.
+
+generation-output: unchanged
+
+## [8.0.4282] - 2026-11-15
+
+**Headline:** a planet that kept no envelope now carries the same private attributes as one that did, so a rogue and a bound planet of one mass have the same attributes again.
+
+### Fixed
+
+- TEST.761: `apply_envelope` set `_envelope_helium_y` and `_tidal_radius_km` only on a planet that kept an envelope, so a rogue planet (no star's X-rays to strip it) that kept a small one had two attributes a bound planet of the same mass, which lost it, never got (`test_a_rogue_and_a_bound_planet_carry_the_same_attributes_and_their_moons_do_too`, 4 cases, red on main). Both are now set to `None` with the other start-of-draw resets in `generate_planet_properties`, so every planet has them and a planet drawn again in place carries nothing of its last draw's helium share or tide radius. Every reader already treated a missing attribute as `None`, and the pinned golden galaxy is unchanged.
+generation-output: unchanged
+
+## [8.0.4281] - 2026-11-15
+
+**Headline:** the mass conversions that had been written by hand again go through the unit registry, and the mass-conversion test and the profile-claim test pass again.
+
+### Fixed
+
+- TEST.762: 18 hand-written divides and multiplies by the mass of the Sun or Earth (`x / SOLAR_MASS_TO_KG`, `x / EARTH_MASS_TO_KG`, `x * SOLAR_MASS_TO_KG`) in describe, galaxy, generation and physics modules now call `unit_registry.converter`, which gives the same bits (`test_the_converters_are_bit_for_bit_the_hand_multiply_and_divide`). Two sites sit inside a longer product or are a ratio of constants (`disk_drift`, `late_supply`) and stay on the allowance list, which now names them.
+- TEST.764: `test_every_change_is_logged_and_kept_for_the_queue_page` expected "1,000 MB" where the log says "1 GB"; the test builds the text with `format_megabytes`, as the log does.
+generation-output: unchanged
+
+## [8.0.4280] - 2026-11-15
+
+**Headline:** The reason a hycean ocean has no thin-sea tide is written down and a test pins it.
+
+### Changed
+
+- GEN.1609: `physics/ocean_tides.compute` gives a hycean ocean no tide because the formula and its loading factor are for a thin layer on the surface, and a hycean ocean lies hundreds of kilometres deep under a hydrogen envelope (the fluid Love numbers of GEN.1035 are what it needs). The module text says so and `test_a_hycean_ocean_has_no_thin_sea_tide_by_design` pins it. No stored value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4279] - 2026-11-15
+
+**Headline:** Moon generation stops a full disk at the call's own rejection limit, the same limit the too-large moons use.
+
+### Changed
+
+- GEN.1599: `physics/planets.generate_moons` counted the disk-full rejections against the module's `MOON_REJECTION_LIMIT` and the too-large ones against the call's `rejection_limit`. Both now stop at the call's `rejection_limit`. Nothing stored changes: a disk exists only round a giant, whose limit is the same number. A test pins the one limit.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4278] - 2026-11-15
 
 **Headline:** A job-engine unit that is stopped part way and run again starts after the pieces it finished, and gives the result an undisturbed unit gives.

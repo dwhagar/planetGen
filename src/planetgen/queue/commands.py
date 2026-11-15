@@ -59,7 +59,7 @@ class CommandSpec:
     command that is `whole` declares itself (one item, one unit). One that declares nothing keeps its typed split and runs in plan order (`declaration` is `None`).
 
     **The engine owns the loop of a command with `pieces` and `do` (OPS.191, `queue/engine.py`).** Instead of a `unit` function that loops, counts and checks for itself, the command gives
-    `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: 0 until the ledger stores it, OPS.219), and `do(args, piece, ctx)`, which
+    `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: the ledger cursor, OPS.219; a run again after a passing failure goes on from it), and `do(args, piece, ctx)`, which
     does one piece and returns a JSON-able result or `None`. The engine counts pieces done of pieces in all into the unit's beat and honours a cancel and a pause between two pieces; `ctx` is the one
     object a piece is handed (`engine.Context`: the database, `ctx.commit()`, `ctx.sql`). The unit's result is the list of the pieces' results in order, or, when the command gives
     `gather(args, results, ctx)`, what that makes of them (`ctx.state` is what the pieces left for it). `pieces` and `do` replace `unit`: a command has one or the other. A command with `unit` runs as before until its family converts it.
@@ -203,25 +203,31 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_refill_effect_ledger"),
                 unit_seconds=25),
     CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
-                unit=("planetgen.generation.run_plan", "clean_nebula_field_unit"),
+                pieces=("planetgen.generation.run_plan", "clean_nebula_field_pieces"), do=("planetgen.generation.run_plan", "clean_nebula_field_do"),
+                gather=("planetgen.generation.run_plan", "clean_nebula_field_gather"),
                 expand=("planetgen.generation.run_plan", "expand_clean_nebula_field"), whole=True),
     CommandSpec("clear-scatter", "Clear one scatter's stored rows: one unit",
-                unit=("planetgen.generation.run_plan", "clear_scatter_unit"),
+                pieces=("planetgen.generation.run_plan", "clear_scatter_pieces"), do=("planetgen.generation.run_plan", "clear_scatter_do"),
+                gather=("planetgen.generation.run_plan", "clear_scatter_gather"),
                 expand=("planetgen.generation.run_plan", "expand_clear_scatter"), whole=True),
     CommandSpec("empty-phenomenon-scatter", "Empty the earlier phenomenon scatter before it is drawn again: one unit",
-                unit=("planetgen.generation.run_plan", "empty_phenomenon_scatter_unit"),
+                pieces=("planetgen.generation.run_plan", "empty_phenomenon_scatter_pieces"), do=("planetgen.generation.run_plan", "empty_phenomenon_scatter_do"),
+                gather=("planetgen.generation.run_plan", "empty_phenomenon_scatter_gather"),
                 expand=("planetgen.generation.run_plan", "expand_empty_phenomenon_scatter"), whole=True),
     CommandSpec("drop-phenomenon-indexes", "Take the phenomenon table's indexes off before the shells go in: one unit",
-                unit=("planetgen.generation.run_plan", "drop_phenomenon_indexes_unit"),
+                pieces=("planetgen.generation.run_plan", "drop_phenomenon_indexes_pieces"), do=("planetgen.generation.run_plan", "drop_phenomenon_indexes_do"),
+                gather=("planetgen.generation.run_plan", "drop_phenomenon_indexes_gather"),
                 expand=("planetgen.generation.run_plan", "expand_drop_phenomenon_indexes"), whole=True),
     CommandSpec("clear-bright-stars", "Empty the earlier bright stars before a scatter draws them again: one unit",
-                unit=("planetgen.generation.run_plan", "clear_bright_stars_unit"),
+                pieces=("planetgen.generation.run_plan", "clear_bright_stars_pieces"), do=("planetgen.generation.run_plan", "clear_bright_stars_do"),
+                gather=("planetgen.generation.run_plan", "clear_bright_stars_gather"),
                 expand=("planetgen.generation.run_plan", "expand_clear_bright_stars"), whole=True),
     CommandSpec("store-scatter-limits", "Store the limits the star scatter will run at, before the backfill that draws what its passes leave out: one unit",
                 pieces=("planetgen.generation.run_plan", "store_scatter_limits_pieces"), do=("planetgen.generation.run_plan", "store_scatter_limits_do"),
                 expand=("planetgen.generation.run_plan", "expand_store_scatter_limits"), whole=True),
     CommandSpec("empty-nebula-field", "Empty the nebula field table before it is drawn again: one unit",
-                unit=("planetgen.generation.run_plan", "empty_nebula_field_unit"),
+                pieces=("planetgen.generation.run_plan", "empty_nebula_field_pieces"), do=("planetgen.generation.run_plan", "empty_nebula_field_do"),
+                gather=("planetgen.generation.run_plan", "empty_nebula_field_gather"),
                 expand=("planetgen.generation.run_plan", "expand_empty_nebula_field"), whole=True),
     CommandSpec("draw-nebula-field", "Draw the nebula field: one unit per slab of cells",
                 pieces=("planetgen.generation.run_plan", "draw_nebula_field_pieces"), do=("planetgen.generation.run_plan", "draw_nebula_field_do"),
@@ -270,7 +276,8 @@ REGISTRY = _commands(
                 gather=("planetgen.generation.run_population", "territories_gather"),
                 expand=("planetgen.generation.run_population", "expand_territories"), whole=True),
     CommandSpec("reset-galaxy", "Reset the galaxy: wipe every content table of the database, one unit",
-                unit=("planetgen.cli.reset", "reset_galaxy_unit"),
+                pieces=("planetgen.cli.reset", "reset_galaxy_pieces"), do=("planetgen.cli.reset", "reset_galaxy_do"),
+                gather=("planetgen.cli.reset", "reset_galaxy_gather"),
                 expand=("planetgen.cli.reset", "expand_reset_galaxy"), whole=True),
     CommandSpec("check-math", "Check the math against known answers, one unit",
                 pieces=("planetgen.physics.mathcheck", "check_math_pieces"),

@@ -19,6 +19,9 @@ solve of the air for each rocky planet.
 """
 
 from planetgen.physics import constants, impact_history, influx, late_supply, planets as planet_physics, planet_type
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 FLOOR_SHARE = 0.05
 """float: The least a planet takes, as a share of the mean the present law gives its mass: the planetesimals that never formed a belt. The lowest published veneers (a few hundredths of a percent for the Moon against
@@ -57,7 +60,7 @@ def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):
         if planet.body_type == "a" or not applies_to(planet):
             continue
         siblings = [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
-        star_mass_solar = planet.star.mass / constants.SOLAR_MASS_TO_KG
+        star_mass_solar = _kg_to_msun(planet.star.mass)
         made += planet_physics.remake_air(planet, percent_for(planet, siblings, star_mass_solar), gate)
     return made
 

@@ -65,6 +65,10 @@ def register(effect):
 from planetgen.physics import elements, planet_classes
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "oddities.json")
 """str: The data file."""
@@ -317,13 +321,13 @@ def quantities_of(body):
     body_type = getattr(body, "body_type", None)
     put("body_type", body_type)
     mass, radius = getattr(body, "mass", None), getattr(body, "radius", None)
-    put("mass_earth", None if mass is None else mass / constants.EARTH_MASS_TO_KG)
+    put("mass_earth", None if mass is None else _kg_to_mearth(mass))
     put("radius_earth", None if radius is None else radius / constants.EARTH_RADIUS_KM)
     put("semi_major_axis_au", getattr(body, "distance", None))
     if mass and radius:       # GEN.1523: the bulk density (`hycean_candidate.density_g_cm3`, the one the box reads) and the equilibrium temperature a gate reads
         from planetgen.physics import hycean_candidate
 
-        put("density_g_cm3", hycean_candidate.density_g_cm3(mass / constants.EARTH_MASS_TO_KG, radius / constants.EARTH_RADIUS_KM))
+        put("density_g_cm3", hycean_candidate.density_g_cm3(_kg_to_mearth(mass), radius / constants.EARTH_RADIUS_KM))
     put("equilibrium_temperature_k", _equilibrium_temperature_k(body))
     put("envelope_helium_y", getattr(body, "_envelope_helium_y", None))      # GEN.1527: set by `envelope_capture.helium_share` when the loss changed it
     host_radius_km = getattr(getattr(body, "star", None), "radius", None)
@@ -336,7 +340,7 @@ def quantities_of(body):
     put("age_gyr", getattr(star, "age", None))
     put("host_teff_k", getattr(star, "temperature", None))
     star_mass = getattr(star, "mass", None)
-    put("host_mass_sun", None if star_mass is None else star_mass / constants.SOLAR_MASS_TO_KG)
+    put("host_mass_sun", None if star_mass is None else _kg_to_msun(star_mass))
     star_teff, star_radius_km, distance = getattr(star, "temperature", None), getattr(star, "radius", None), getattr(body, "distance", None)
     if star_teff and star_radius_km and distance and not getattr(body, "is_moon", False):
         put("dayside_temperature_k", star_teff * (star_radius_km * 1000.0 / (distance * constants.AU_M)) ** 0.5)     # `disintegrating_planet.dayside_temperature_k`

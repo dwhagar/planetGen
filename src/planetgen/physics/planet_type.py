@@ -21,6 +21,9 @@ every body (`envelope_share`, GEN.1226), so a hydrogen-air dwarf is typed correc
 """
 
 from planetgen.physics import constants, super_puff
+from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 TERRESTRIAL = "terrestrial"
 TRANSITIONAL = "transitional"
@@ -54,7 +57,7 @@ def planet_type(body):
     if kind == TRANSITIONAL and stored and get("planet_type") == SUPER_PUFF:
         return SUPER_PUFF       # a stored row has no star or radius law to judge by, but it keeps the type its build gave it (GEN.1601)
     if kind == TRANSITIONAL and not stored and not getattr(body, "is_moon", False) and getattr(body, "star", None) is not None:
-        if super_puff.is_super_puff(body.mass / constants.EARTH_MASS_TO_KG, body.radius / constants.EARTH_RADIUS_KM):
+        if super_puff.is_super_puff(_kg_to_mearth(body.mass), body.radius / constants.EARTH_RADIUS_KM):
             return SUPER_PUFF
     return kind
 
