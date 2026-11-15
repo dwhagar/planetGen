@@ -12707,11 +12707,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 12 (moved from Lane 15). Prerequisites: OPS.191, OPS.192, PERF.264, PERF.261. Related: OPS.186, OPS.188, OPS.181, OPS.185.
   Filed by the TODO thread.
 
-- [ ] **OPS.203 Job engine stage 1 family: population (run-population, run-territories)**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P13); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P13 says (reuse and delete columns named there; name reuse in the PR). Size S. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 12. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-
 - [ ] **OPS.207 Job engine stage 2: supervisor process, one per host by flock, started on demand and idle-exiting; lives, logs its turns and publishes alive since**
   From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle S1); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row S1 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
   Version 8.1. Owner (TODO, 2026-11-13): Lane 06 (stage 2 chain, after OPS.186 and OPS.187). Prerequisites: stage 0 simulator skeleton (research thread). Related: OPS.186, OPS.188, OPS.181, OPS.185.
@@ -13027,11 +13022,6 @@ clears each one.
 - [ ] **GEN.1718 (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes**
   Lane 15, 4:19 PM EST on 2026-11-14, from GEN.1716 part C (reports/gen1716-start-dependence-measure-2026-11-14.md): a bracketed temperature root find fixed 1 to 2 of 7 and made slow bodies worse; the pressure drifts 0.32 to 0.46 bar over 40 steps, and at the carbon switch the answer moves 100 K over 0.5 K of iterate, finer than the greenhouse solver's 0.1 K noise. Do: a two-variable root find (Broyden or Newton in ln P and T) for the solve loop, with the greenhouse solve made smooth enough to support it; every stored air settles or is a named branch. Measure the census shift. Lock item.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: GEN.1716 part B. Related: GEN.1716, GEN.1715.
-  Filed by the TODO thread.
-
-- [ ] **TEST.749 (bug) test_galaxy_gen has two red tests on main**
-  Train Manager, 6:54 PM EST on 2026-11-14 (Train 28 known issues). Do: find which merge turned them red and fix at the cause.
-  Version 8.1. Owner (TODO, 2026-11-14): Train Manager. Prerequisites: none. Related: TEST.725.
   Filed by the TODO thread.
 
 - [ ] **TEST.751 (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback**
