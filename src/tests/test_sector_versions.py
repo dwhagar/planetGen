@@ -156,9 +156,9 @@ def test_a_battery_that_differs_names_the_first_case():
     cases = generator_battery.cases_of(running)
     assert version_check.battery_difference(_maker_with(), running) is None
     assert version_check.battery_difference(_maker_with(battery_digest=None, battery_cases=None), running) is None
-    changed = dict(cases, **{"nebula-shape": "0" * 64, "unit-seed": "1" * 64})
+    changed = dict(cases, **{"nebula-contour": "0" * 64, "unit-seed": "1" * 64})
     text = version_check.battery_difference(_maker_with(battery_digest="f" * 64, battery_cases=changed), running)
-    assert "first case that differs is nebula-shape" in text
+    assert "first case that differs is nebula-contour" in text
     assert "first case" not in version_check.battery_difference(_maker_with(battery_digest="f" * 64, battery_cases=None),
                                                                 running)
 

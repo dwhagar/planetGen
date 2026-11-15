@@ -32,7 +32,7 @@ def test_the_request_gives_a_list_of_the_one_registered_command(argv, kind):
     args = _args(argv)
     steps = wrapper.steps_for(args.command, args)
     assert [step.kind for step in steps] == [kind]
-    assert kind in commands.REGISTRY and commands.REGISTRY[kind].unit and commands.REGISTRY[kind].expand
+    assert kind in commands.REGISTRY and not commands.REGISTRY[kind].inline and commands.REGISTRY[kind].expand
     assert steps == wrapper.steps_for(args.command, _args(argv))
     assert [commands.Step.from_dict(json.loads(json.dumps(step.as_dict()))) for step in steps] == steps
 

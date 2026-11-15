@@ -50,6 +50,7 @@ from planetgen.generation import steps
 from planetgen.physics import mathcheck
 from planetgen.web import assets
 from planetgen.web.lib import apiclient
+from planetgen.util.format import format_bytes
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
 from planetgen.web.lib import tilecache
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, in_memory, time_text
@@ -144,13 +145,9 @@ def _require_admin(fresh=True):
     return admin, None
 
 
-_API_ERROR_PREFIX = re.compile(r"^planetGen API error \(\d+\): ")
-
-
 def _api_message(exc):
-    """The API's own message from an `ApiError`, without the
-    `planetGen API error (400): ` prefix."""
-    return _API_ERROR_PREFIX.sub("", str(exc))
+    """The API's own message from an `ApiError` (`apiclient.message_of`)."""
+    return apiclient.message_of(exc)
 
 
 # ---------------------------------------------------------------------
@@ -284,7 +281,7 @@ def login_code():
         if exc.status_code == 401:
             message = _api_message(exc)
             if "password" in message:
-                return _login_page(next_url, error=message[0].upper() + message[1:] + ".", username=username,
+                return _login_page(next_url, error=_sentence(message), username=username,
                                    status=401)
             return _login_page(next_url, error="That code isn't right. Try the newest one.", username=username,
                                pending=pending, status=401)
@@ -308,13 +305,18 @@ def logout():
     return _relay(_see_other(url_for("web.index")), set_cookie_headers)
 
 
+def _sentence(message):
+    """The API's message as a sentence of the page: a capital first letter and a full stop."""
+    return message[0].upper() + message[1:] + "."
+
+
 def _too_many_message(exc):
     """The message for a 429 from a password check: a lockout (per address
     or per username, `api/loginguard.py`) names its wait; the per-address
     rate limit doesn't."""
     message = _api_message(exc)
     if "try again in" in message:
-        return message[0].upper() + message[1:].replace("; try", ". Try") + "."
+        return _sentence(message.replace("; try", ". Try"))
     return "Too many login attempts. Wait a minute, then try again."
 
 
@@ -336,7 +338,7 @@ def _account_page(admin, next_url, error=None, new_username=None, status=200, to
         admin=admin, error=error, next_url=next_url,
         new_username=admin["username"] if new_username is None else new_username,
         forced=bool(admin.get("must_change_credentials")), status=status, totp=totp, avatar=avatar or {},
-        max_avatar_kb=assets.MAX_BYTES // 1024,
+        max_avatar_text=format_bytes(assets.MAX_BYTES),
     )
 
 
@@ -368,7 +370,7 @@ def account_two_factor():
             return _account_page(admin, next_url, totp={"error": _too_many_message(exc)}, status=429)
         if exc.status_code in (400, 401):
             message = _api_message(exc)
-            totp = {"error": message[0].upper() + message[1:] + "."}
+            totp = {"error": _sentence(message)}
             if action == "confirm":
                 # Show the same QR code again (the pending secret is
                 # unchanged); the form carried it back.
@@ -401,7 +403,7 @@ def account_avatar():
                 return _account_page(admin, next_url, avatar={"error": "Choose a file to upload."}, status=400)
             if len(data) > assets.MAX_BYTES:
                 return _account_page(admin, next_url, status=400, avatar={
-                    "error": f"The file is larger than {assets.MAX_BYTES // 1024} KB."})
+                    "error": f"The file is larger than {format_bytes(assets.MAX_BYTES)}."})
             apiclient.auth_avatar_set(cookies, base64.b64encode(data).decode("ascii"))
             message = "Your picture is saved."
         admin = apiclient.auth_me(cookies) or admin
@@ -572,16 +574,6 @@ def admin():
 # /admin/stats
 # ---------------------------------------------------------------------
 
-def format_bytes(value):
-    if value is None:
-        return "unknown"
-    size = float(value)
-    for unit in ("B", "KB", "MB", "GB", "TB"):
-        if size < 1024 or unit == "TB":
-            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
-        size /= 1024
-
-
 def format_duration(seconds):
     """An uptime or wait on the shared period ladder
     (`format_duration_seconds`, UX.14): "45 s", "12 minutes", "3.5 days";
@@ -697,7 +689,7 @@ def _health(stats, api_ms, cache):
     return {
         "status": status,
         "rows": [
-            ("API response", f"{api_ms:.0f} ms (queries took {stats.get('query_ms', 0):.0f} ms)"),
+            ("API response", f"{format_duration_seconds(api_ms / 1000.0)} (queries took {format_duration_seconds(stats.get('query_ms', 0) / 1000.0)})"),
             ("API version", api["api_version"]),
             ("Release", api["version"]),
             ("API uptime", format_duration(api["uptime_seconds"])),
@@ -913,8 +905,8 @@ def _generation_panel(cookie_header, db):
             "workers": format_count(row["workers"]),
             "density": f"{row['density_low']:.3g} to {row['density_high']:.3g}",
             "samples": format_count(row["samples"]),
-            "per_task": f"{row['seconds_per_task']:.2f} s",
-            "per_system": f"{row['seconds_per_system'] * 1000:.1f} ms",
+            "per_task": format_duration_seconds(row['seconds_per_task']),
+            "per_system": format_duration_seconds(row['seconds_per_system']),
             "systems": f"{row['systems_per_task']:,.1f}",
         } for row in body["buckets"]],
         "objects": _object_rows(objects),
@@ -936,20 +928,11 @@ def _object_rows(summaries):
     return [{
         "kind": row["kind"].replace("-", " "),
         "objects": format_count(row["objects"]),
-        "mean": _object_seconds(row["mean_seconds"]),
-        "fastest": _object_seconds(row["fastest_seconds"]),
-        "slowest": _object_seconds(row["slowest_seconds"]),
+        "mean": format_duration_seconds(row["mean_seconds"]),
+        "fastest": format_duration_seconds(row["fastest_seconds"]),
+        "slowest": format_duration_seconds(row["slowest_seconds"]),
         "share": f"{100.0 * row['total_seconds'] / total:.1f}%",
     } for row in summaries]
-
-
-def _object_seconds(seconds):
-    """One object's time as microseconds, milliseconds or seconds, whichever reads best."""
-    if seconds < 1e-3:
-        return f"{seconds * 1e6:,.0f} \u00b5s"
-    if seconds < 1.0:
-        return f"{seconds * 1e3:,.1f} ms"
-    return f"{seconds:,.2f} s"
 
 
 def _settings_text(values):

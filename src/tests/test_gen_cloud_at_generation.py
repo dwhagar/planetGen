@@ -28,21 +28,24 @@ CENTER_PC = (0.0, 8000.0, 0.0)
 """tuple: A sector center on the +y axis, so the sector's local +X is the galaxy's +y (`frame.sector_orientation`)."""
 
 
-class _WholeSphere:
-    """A cloud shape that fills its bounding sphere, so these tests ask only whether the placement finds the cloud."""
+@pytest.fixture(autouse=True)
+def _clouds_fill_their_sphere(monkeypatch):
+    """Every cloud here fills its bounding sphere, so these tests ask only whether the placement finds the cloud. The contour (GEN.1267) leaves part of
+    the sphere empty and moves with the galaxy's density; it is tested in `test_nebula_density`."""
+    import numpy as np
 
-    @staticmethod
-    def contains(offset):
-        return sum(c * c for c in offset) <= 1.0
+    from planetgen.galaxy import nebula_density
+
+    monkeypatch.setattr(nebula_density, "inside", lambda seed, shape, points, center, radius, field: np.einsum(
+        "...i,...i->...", np.asarray(points, dtype=float) - np.asarray(center, dtype=float),
+        np.asarray(points, dtype=float) - np.asarray(center, dtype=float)) <= radius * radius)
 
 
 def _nebula(nebula_class, radius_ly=2.0):
-    """A drawn nebula whose shape is its whole bounding sphere. The drawn shape (GEN.75) is lumpy and may leave the cloud's center empty,
-    which depends on the nebula's drawn properties and moves whenever they do; its containment is tested in `test_nebula_shape`."""
+    """A drawn nebula of the class and radius."""
     with draw.bound("gen357:nebula"):
         nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
     nebula.radius_ly = radius_ly
-    nebula._shape = _WholeSphere()
     return nebula
 
 

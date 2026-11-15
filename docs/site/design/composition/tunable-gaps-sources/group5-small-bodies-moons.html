@@ -46,7 +46,7 @@ main{padding:16px 16px 60px}}
 <h1 id="group-5-comets-small-bodies-moons-and-surfaces-source-check-for-tunable-gaps">Group 5: comets, small bodies, moons and surfaces (source check for tunable gaps)</h1><p class="meta">docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary-and-verdict-table">1. Summary and verdict table</a></li><li style="margin-left:0px"><a href="#2-detail">2. Detail</a></li><li style="margin-left:14px"><a href="#21-comets-k1-to-k5-k7-t15-t16">2.1 Comets: k1 to k5, k7, T15, T16</a></li><li style="margin-left:14px"><a href="#22-asteroids-and-meteorites-t13-t14-e2-e3">2.2 Asteroids and meteorites: T13, T14, E2, E3</a></li><li style="margin-left:14px"><a href="#23-moons-t17-t18">2.3 Moons: T17, T18</a></li><li style="margin-left:14px"><a href="#24-kbos-and-dwarf-planets-t19">2.4 KBOs and dwarf planets: T19</a></li><li style="margin-left:14px"><a href="#25-grain-state-t21-question-6">2.5 Grain state: T21 (question 6)</a></li><li style="margin-left:14px"><a href="#26-group-for-a-builder-point-7">2.6 Group for a builder (point 7)</a></li><li style="margin-left:14px"><a href="#27-where-a-verified-source-overrides-a-partly-verified-one">2.7 Where a verified source overrides a partly verified one</a></li><li style="margin-left:0px"><a href="#3-sources-verified-id-n-access-licence">3. Sources verified (id, N, access, licence)</a></li><li style="margin-left:0px"><a href="#4-boss-must-supply">4. Boss must supply</a></li><li style="margin-left:0px"><a href="#5-recalled--to-verify">5. Recalled / to verify</a></li></ul></details>
 <p>Read-only research lane, 2026-10-17 (EDT clock times only). Labels as in _worker-rules.md: READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED. Nothing in the repo was touched.</p>
 <h2 id="1-summary-and-verdict-table">1. Summary and verdict table</h2>
-<p>The public record is rich for one thing only: Solar System coma abundances of about 20 to 30 comets (k4, k5, k7 partly, T16). For those, a seeded log-normal with published center, width and standard errors can be tuned and tested. Everything else is a handful of Solar System objects (17 KBO densities, the Solar System moons), one zone mix of one asteroid belt (T13), a modelling switch that is not a probability (T15, E2, E3), or has no ensemble (T14 portable weights, T17, T18, T21). Extrasolar data break the Solar System comet prior: two interstellar comets lie 2 to 4 sigma outside the Solar System CO/H2O and CO<sub>2</sub>/H2O distributions, so a per-system offset knob is needed, and two objects are all that constrain it. No exomoon is confirmed (Nature, 22 July 2026: &quot;no exomoon has ever been confidently detected&quot;). Every row has the Solar System as its only or main constraint and is flagged under the no-fixed-content rule.</p>
+<p>The public record is rich for one thing only: Solar System coma abundances of about 20 to 30 comets (k4, k5, k7 partly, T16). For those, a seeded log-normal with published centre, width and standard errors can be tuned and tested. Everything else is a handful of Solar System objects (17 KBO densities, the Solar System moons), one zone mix of one asteroid belt (T13), a modelling switch that is not a probability (T15, E2, E3), or has no ensemble (T14 portable weights, T17, T18, T21). Extrasolar data break the Solar System comet prior: two interstellar comets lie 2 to 4 sigma outside the Solar System CO/H2O and CO<sub>2</sub>/H2O distributions, so a per-system offset knob is needed, and two objects are all that constrain it. No exomoon is confirmed (Nature, 22 July 2026: &quot;no exomoon has ever been confidently detected&quot;). Every row has the Solar System as its only or main constraint and is flagged under the no-fixed-content rule.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -146,7 +146,7 @@ main{padding:16px 16px 60px}}
 <td>E2</td>
 <td>Belt density</td>
 <td>not a probability; derive from belt mass</td>
-<td>debris-disk distribution exists for cold belts only</td>
+<td>debris-disc distribution exists for cold belts only</td>
 <td>READ</td>
 </tr>
 <tr>
@@ -431,7 +431,7 @@ main{padding:16px 16px 60px}}
 <td>READ</td>
 </tr>
 <tr>
-<td>CO-bearing debris disks</td>
+<td>CO-bearing debris discs</td>
 <td>6 confirmed exocometary, 14 more gas detections of unconfirmed origin; 15 CO systems in 2018</td>
 <td>[R2944], 1801.03945</td>
 <td>READ</td>
@@ -504,7 +504,7 @@ main{padding:16px 16px 60px}}
 </table></div>
 <p><strong>Consistency test (point 5).</strong> Simulate comets at the observed r_h distribution, apply the HP22 admission rule, and compare class counts with 13/9/3 within binomial intervals and each species' geo-mean and sigma within 2 SE (CO<sub>2</sub> +-0.22 dex on the mean, CO +-0.32). A selection model is needed (admission rule, r_h distribution, CO versus CO<sub>2</sub> detection limits). For the ISOs, simulate systems with the offset knob and require that 2 of 2 draws above CO/H2O 0.3 are not improbable.</p>
 <p><strong>Flags (point 6).</strong> For k1 to k5, k7, T16 the only constraint on within-system scatter is the Solar System (N = 9 to 32); extrasolar objects constrain the offset only.</p>
-<p><strong>k7.</strong> Replace 67P-centered values by populations where they exist: CH<sub>4</sub> 0.68 % (N=12), C<sub>2</sub>H<sub>6</sub> 0.41 % (N=18), H<sub>2</sub>CO 0.25 % (N=15), H<sub>2</sub>S 0.71 % (N=9). [R4704: Table 4] (READ): OCS 0.034 to 0.4 % in 6 comets; SO<sub>2</sub> detected in 2 comets only (0.127, 0.23). N<sub>2</sub> (0.089 %), O<sub>2</sub> (3.1 %), Ar, Kr, Xe, Ne are 67P only [R3835]; O<sub>2</sub> detection probability cannot be set from one comet.</p>
+<p><strong>k7.</strong> Replace 67P-centred values by populations where they exist: CH<sub>4</sub> 0.68 % (N=12), C<sub>2</sub>H<sub>6</sub> 0.41 % (N=18), H<sub>2</sub>CO 0.25 % (N=15), H<sub>2</sub>S 0.71 % (N=9). [R4704: Table 4] (READ): OCS 0.034 to 0.4 % in 6 comets; SO<sub>2</sub> detected in 2 comets only (0.127, 0.23). N<sub>2</sub> (0.089 %), O<sub>2</sub> (3.1 %), Ar, Kr, Xe, Ne are 67P only [R3835]; O<sub>2</sub> detection probability cannot be set from one comet.</p>
 <p><strong>T15.</strong> [R2865] ([R2865], READ) &quot;study two extremes cases&quot;: interstellar refractory organics survive (organic carbon 60 +- 15 % of total carbon in molecular clouds, C:O:N = 1:0.5:0.12, cited from [R3564], 2ND-HAND) or are destroyed. There is no probability. Observed dust is never organic-free (67P dust about half organics; [R2893], SNIPPET). Replace the Bernoulli by a continuous f_org ~ N(0.60, 0.15) clipped to [0,1].</p>
 <h3 id="22-asteroids-and-meteorites-t13-t14-e2-e3">2.2 Asteroids and meteorites: T13, T14, E2, E3</h3>
 <div class="table"><table>
@@ -567,7 +567,7 @@ main{padding:16px 16px 60px}}
 <p><strong>Bracket.</strong> Taxon follows formation temperature (dry inside, hydrated C in the middle, anhydrous ice-rich P and D beyond; [R1065]); x = a/a_snow is a PARAMETRISATION, untested for other stars; [R1068] show position alone does not set taxon.</p>
 <p><strong>Verdict.</strong> T13 (b): one system, no uncertainties, which is exactly the realisation R1 wants to replace. T14 (b): within-taxon weights exist only as fall shares, which disagree with NEO spectral shares (&quot;an unsolved problem&quot;, MITHNEOS), so they depend on a delivery model.</p>
 <p><strong>Knobs and test.</strong> sigma_snow = 0.2 dex (Mulders, model); zone mix of Table 6 as target; H:L:LL 0.43:0.47:0.10 (falls, ordinary chondrites). Test: pooled simulated mix evaluated at the Solar System x equals Table 6 within simulated scatter; this is self-consistency, not an independent test. Flags: the only constraint is one belt.</p>
-<p><strong>E2 (belt density).</strong> Not a probability; derive from belt mass per area. Extrasolar ensembles bear on cold belts: [R4081] ([R4081], READ): 275 F to K stars, 47 disks, 17.1 +2.6/-2.3 %, fractional luminosity near 1e-5 at blackbody radii 7 to 40 AU. Warm dust: [R2319] ([R2319], READ): dustiest old systems 1 in 10,000, about 1 % for ages below 120 Myr. They give a distribution of belt dust amount, but no mapping to &quot;dense, sparse, typical&quot;. Verdict (c) as a probability; derive as thresholds on drawn belt mass.</p>
+<p><strong>E2 (belt density).</strong> Not a probability; derive from belt mass per area. Extrasolar ensembles bear on cold belts: [R4081] ([R4081], READ): 275 F to K stars, 47 discs, 17.1 +2.6/-2.3 %, fractional luminosity near 1e-5 at blackbody radii 7 to 40 AU. Warm dust: [R2319] ([R2319], READ): dustiest old systems 1 in 10,000, about 1 % for ages below 120 Myr. They give a distribution of belt dust amount, but no mapping to &quot;dense, sparse, typical&quot;. Verdict (c) as a probability; derive as thresholds on drawn belt mass.</p>
 <p><strong>E3 (families 30/20/20/10/8/5/4/3 %).</strong> No public ensemble; the families are a design vocabulary and no survey defines standalone asteroid fields. The only physical correspondence is taxon mass shares in the Solar System belt (C 52.5, P 11, S 8.4, V 9.6, M 3.3 %; Table 5, READ). Verdict (c): keep as a flagged stand-in or derive the family from the parent belt's T13 shares.</p>
 <h3 id="23-moons-t17-t18">2.3 Moons: T17, T18</h3>
 <div class="table"><table>
@@ -634,14 +634,14 @@ main{padding:16px 16px 60px}}
 <td>[R2826]</td>
 <td>[R2826]</td>
 <td>28 SPH collisions</td>
-<td>10 of 28 made disks above 0.1 Earth masses, 2 above 0.2; 10 to 55 % of disk becomes moon</td>
+<td>10 of 28 made discs above 0.1 Earth masses, 2 above 0.2; 10 to 55 % of disc becomes moon</td>
 <td>2ND-HAND</td>
 </tr>
 <tr>
 <td>[R2799]</td>
 <td>[R2799]</td>
-<td>N-body disks</td>
-<td>disk above 0.03 planet masses gives one dominant satellite; large scatter</td>
+<td>N-body discs</td>
+<td>disc above 0.03 planet masses gives one dominant satellite; large scatter</td>
 <td>READ (abstract)</td>
 </tr>
 <tr>
@@ -667,9 +667,9 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Question 4: no published ensemble defines origin-type weights. Giant planets have a mass scaling (3 systems) and Jupiter-only population syntheses. Terrestrial planets have giant-impact frequencies from N-body formation (Quintana), but whether an impact leaves a moon-forming disk depends on impactor mass, speed and angle (10 of 28 SPH cases), not on a frequency. Capture (Triton, [R0037]) and ring origin [R0920] are single Solar System cases (Crossref titles READ). Candidates Jacobson and Morbidelli, Citron and Chambers were not located. [R0286] is SNIPPET only.</p>
-<p>Verdict. T17 (c): the gate rules are physics but no weight is published. Derive instead: P(impact moon) from the impact-energy frequency (Quintana-type) times a disk-yield function (SPH), and disk moons from the 1e-4 scaling. T18 (c): Sasaki (ice line r_ice = 20 R_J (M_p/MJ)^(2/3) (tau/5 Myr)^(-1/3), COMPUTED, fitted around Jupiter) and Cilibrasi (85 % icy) are both READ and disagree; neither overrides, so the spread 0.5 to 0.85 icy is the honest bracket. Neither paper gives a ramp width.</p>
-<p>Knobs and test: M_T/M_p = 2.5e-4 (alpha/f / 3e-5)^(1/3), 0.8e-4 to 6.4e-4 over alpha/f 1e-6 to 5e-4 (COMPUTED from Eq. 4.15); simulated giant-planet systems must reproduce about 1e-4 within a factor 2, which uses only the Solar System (calibration point). P(disk &gt; 0.1 Earth masses | giant impact) = 10/28 = 0.36 (CP68 0.24 to 0.50, COMPUTED), from a parameter-space suite rather than a population. Flags: the only constraint is the Solar System and simulations.</p>
+<p>Question 4: no published ensemble defines origin-type weights. Giant planets have a mass scaling (3 systems) and Jupiter-only population syntheses. Terrestrial planets have giant-impact frequencies from N-body formation (Quintana), but whether an impact leaves a moon-forming disc depends on impactor mass, speed and angle (10 of 28 SPH cases), not on a frequency. Capture (Triton, [R0037]) and ring origin [R0920] are single Solar System cases (Crossref titles READ). Candidates Jacobson and Morbidelli, Citron and Chambers were not located. [R0286] is SNIPPET only.</p>
+<p>Verdict. T17 (c): the gate rules are physics but no weight is published. Derive instead: P(impact moon) from the impact-energy frequency (Quintana-type) times a disc-yield function (SPH), and disk moons from the 1e-4 scaling. T18 (c): Sasaki (ice line r_ice = 20 R_J (M_p/MJ)^(2/3) (tau/5 Myr)^(-1/3), COMPUTED, fitted around Jupiter) and Cilibrasi (85 % icy) are both READ and disagree; neither overrides, so the spread 0.5 to 0.85 icy is the honest bracket. Neither paper gives a ramp width.</p>
+<p>Knobs and test: M_T/M_p = 2.5e-4 (alpha/f / 3e-5)^(1/3), 0.8e-4 to 6.4e-4 over alpha/f 1e-6 to 5e-4 (COMPUTED from Eq. 4.15); simulated giant-planet systems must reproduce about 1e-4 within a factor 2, which uses only the Solar System (calibration point). P(disc &gt; 0.1 Earth masses | giant impact) = 10/28 = 0.36 (CP68 0.24 to 0.50, COMPUTED), from a parameter-space suite rather than a population. Flags: the only constraint is the Solar System and simulations.</p>
 <h3 id="24-kbos-and-dwarf-planets-t19">2.4 KBOs and dwarf planets: T19</h3>
 <div class="table"><table>
 <thead>
@@ -825,7 +825,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>k7</td>
-<td>67P-centered</td>
+<td>67P-centred</td>
 <td>population geo-means (CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO, H<sub>2</sub>S, OCS)</td>
 <td>DATA, READ</td>
 </tr>

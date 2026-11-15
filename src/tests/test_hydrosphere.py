@@ -233,7 +233,11 @@ def test_gen833_a_small_icy_moon_that_holds_a_thick_ice_shell_is_covered_by_it()
                      primary_mass_kg=constants.JUPITER_MASS_TO_KG, distance=0.01)
         _generate_hydrosphere(moon, 0.002)
         assert moon.hydrosphere in hy.FROZEN_COVER_STATES
-        assert moon.ocean_fraction == 1.0 and moon.land_fraction == 0.0
+        assert moon.ice_cover_fraction == 1.0                     # GEN.1567: the ice is kept apart from the liquid sea
+        if moon.hydrosphere == "ice":                             # ice through and through: no liquid sea, and the ice lies on land that stays land
+            assert moon.ocean_fraction == 0.0 and moon.land_fraction == 1.0
+        else:                                                     # an ice lid over its sea
+            assert moon.ocean_fraction + moon.land_fraction == pytest.approx(1.0) and moon.ocean_fraction <= moon.ice_cover_fraction
 
 
 def test_gen833_the_cover_follows_the_water_the_body_holds():
@@ -250,7 +254,7 @@ def test_gen833_the_cover_follows_the_water_the_body_holds():
 def test_gen833_below_earths_gravity_ice_relief_does_not_grow_but_a_rock_basins_does():
     layer_km = 5.0
     small = 0.05 * constants.EARTH_GRAVITY
-    assert hy.ocean_fraction(layer_km, small, icy=True) == hy.ocean_fraction(layer_km, constants.EARTH_GRAVITY)
+    assert hy.ocean_fraction(layer_km, small, icy=True) == hy.ocean_fraction(layer_km, constants.EARTH_GRAVITY, icy=True)
     assert hy.ocean_fraction(layer_km, small, icy=True) > hy.ocean_fraction(layer_km, small)
     heavy = 3.0 * constants.EARTH_GRAVITY
     assert hy.ocean_fraction(layer_km, heavy, icy=True) == hy.ocean_fraction(layer_km, heavy)
@@ -287,3 +291,53 @@ def test_gen1147_the_cover_rises_with_the_water_through_the_two_level_surface():
     assert hy.ocean_fraction(0.64, g) == pytest.approx(0.5, abs=0.02) and hy.ocean_fraction(0.2, g) == pytest.approx(0.27, abs=0.02)
     assert 0.55 < hy.ocean_fraction(1.3, g) < 0.65     # the shelf between the continents and the basins: a real range of partial land
     assert hy.ocean_fraction(2.0, 3.0 * g) > hy.ocean_fraction(2.0, g) > hy.ocean_fraction(2.0, g / 3.0)
+
+
+def test_gen1567_the_ice_of_a_frozen_body_is_not_counted_in_its_sea():
+    """GEN.1567: `ocean_fraction` is the liquid sea alone and `ice_cover_fraction` the ice; a body that is ice through has no sea and all its land, a liquid world no ice, a dry one neither."""
+    seen = set()
+    for seed in range(12):
+        draw.set_run_seed(seed)
+        for water, temperature in ((0.2, 70.0), (0.05, 150.0), (2e-3, 288.0), (1e-9, 288.0)):
+            body = _body("D", temperature, 0.0 if temperature < 100.0 else 101325.0, mass_earth=3.0e-6 if temperature < 100.0 else 1.0,
+                         radius_km=200.0 if temperature < 100.0 else 6371.0, water_mass_fraction=water)
+            _generate_hydrosphere(body, 0.002)
+            seen.add(body.hydrosphere)
+            assert body.ocean_fraction + body.land_fraction == pytest.approx(1.0)
+            if body.hydrosphere == "ice":
+                assert body.ocean_fraction == 0.0 and body.land_fraction == 1.0 and body.ice_cover_fraction > 0.0
+            elif body.hydrosphere in ("surface ocean", "brine seep", "hycean"):
+                assert body.ice_cover_fraction == 0.0 and body.ocean_fraction > 0.0
+            elif body.hydrosphere == "ice-covered ocean":
+                assert body.ice_cover_fraction >= body.ocean_fraction > 0.0
+            elif body.hydrosphere in ("dry", "vapor"):
+                assert body.ocean_fraction == 0.0 and body.ice_cover_fraction == 0.0
+    assert "ice" in seen or "ice-covered ocean" in seen
+
+
+def test_gen1567_water_cover_is_the_larger_of_the_sea_and_the_ice():
+    assert hy.water_cover(types.SimpleNamespace(ocean_fraction=0.7, ice_cover_fraction=0.0)) == 0.7
+    assert hy.water_cover(types.SimpleNamespace(ocean_fraction=0.0, ice_cover_fraction=0.4)) == 0.4
+    assert hy.water_cover(types.SimpleNamespace(ocean_fraction=None, ice_cover_fraction=None)) == 0.0
+
+
+def test_gen1573_a_heavy_ocean_sinks_its_basins_and_keeps_the_continents_dry_until_the_basin_is_too_deep():
+    """GEN.1573 ([R0914: Eq. 10]): Earth's 2.7 km layer still covers 0.71; more water deepens the basins instead of flooding the land
+    (cover never falls, and stays under a waterworld's until the mean basin passes 11.4 km / g~); past it the continents go under."""
+    g = constants.EARTH_GRAVITY
+    assert hy.ocean_fraction(2.7, g) == pytest.approx(0.71, abs=0.02)
+    layers = [0.5, 1.0, 2.0, 2.7, 3.5, 4.5, 5.5, 6.5, 6.84, 7.5, 8.0, 9.0, 10.0, 14.0, 40.0]
+    covers = [hy.ocean_fraction(layer, g) for layer in layers]
+    assert covers == sorted(covers)                                    # monotone in the load
+    assert max(covers[3:8]) < 0.75                                      # 2.7 to 6.5 km: land left (the code flooded at 4 to 5 km)
+    assert hy.ocean_fraction(6.0, g) < 0.75 and hy.ocean_fraction(10.0, g) == 1.0
+    basin = hy.ISOSTATIC_BASIN_KM * hy.HYPSOMETRY[0][0]                  # the layer whose basin is as deep as they get at 1 g
+    assert hy.ocean_fraction(basin * 1.5, g) == 1.0 and hy.ocean_fraction(basin * 0.95, g) < 0.8
+    for gravity in (0.5 * g, 2.0 * g):                                    # the limit scales as 1 / g
+        limit = basin * g / gravity
+        assert hy.ocean_fraction(limit * 0.9, gravity) < 0.8 < hy.ocean_fraction(limit * 1.4, gravity)
+
+
+def test_gen1573_the_ice_of_a_frozen_body_does_not_sink_its_basins():
+    assert hy.ocean_fraction(6.0, constants.EARTH_GRAVITY, icy=True) > 0.95
+    assert hy.ocean_fraction(6.0, constants.EARTH_GRAVITY) < 0.75

@@ -821,6 +821,16 @@
       "name": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
       "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
       "year": "2012"
+    },
+    {
+      "checked": "2026-11-12",
+      "id": "R5247",
+      "identifier": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+      "kind": "web page",
+      "link": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+      "name": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+      "provider": "NIST",
+      "year": "2024"
     }
   ]
 }

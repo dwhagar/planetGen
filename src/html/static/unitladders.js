@@ -175,7 +175,7 @@ export const LADDERS = {
   "magnetic field": {
     "base": "T", "nonfinite": "G", "zero": "T",
     "asides": [],
-    "companions": [],
+    "companions": [{"symbol": "G", "name": "gauss", "factor": 0.0001, "offset": 0.0, "whole": false, "min_size": null, "max_size": 10000.0, "systems": ["auto", "customary"]}],
     "rungs": [
       {"symbol": "nT", "factor": 1e-09, "name": "nanoteslas", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
       {"symbol": "µT", "factor": 1e-06, "name": "microteslas", "start": 1e-06, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
@@ -197,7 +197,30 @@ export const LADDERS = {
       {"symbol": "MSv/yr", "factor": 0.03168808781402895, "name": "megasieverts per year", "start": 0.03168808781402895, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
     ],
   },
+  "rate": {
+    "base": "1/s", "nonfinite": "1/yr", "zero": "1/yr",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "1/Gy", "factor": 3.168808781402895e-17, "name": "per billion years", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "1/Myr", "factor": 3.168808781402895e-14, "name": "per million years", "start": 3.168808781402895e-14, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "1/yr", "factor": 3.168808781402895e-08, "name": "per year", "start": 3.1688087814028953e-09, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "1/d", "factor": 1.1574074074074073e-05, "name": "per day", "start": 1.1574074074074073e-05, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+    ],
+  },
+  "information": {
+    "base": "B", "nonfinite": "TB", "zero": "B",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "B", "factor": 1.0, "name": "bytes", "start": 0.0, "singular": "byte", "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "kB", "factor": 1000.0, "name": "kilobytes", "start": 1000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "MB", "factor": 1000000.0, "name": "megabytes", "start": 1000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "GB", "factor": 1000000000.0, "name": "gigabytes", "start": 1000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "TB", "factor": 1000000000000.0, "name": "terabytes", "start": 1000000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+    ],
+  },
 };
 
 // The ladder a registry kind (unitregistry.js) is shown on.
-export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field", "dose_rate": "dose rate"};
+export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field", "dose_rate": "dose rate", "frequency": "rate", "information": "information"};

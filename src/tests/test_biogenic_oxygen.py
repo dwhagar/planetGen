@@ -175,6 +175,19 @@ def test_the_fire_limit_of_an_air_with_nothing_else_is_zero():
     assert bo._fire_limit_mol(_Body(), {"O2": 5.0}) == 0.0
 
 
+def test_the_oxygen_stands_at_the_plateau_until_the_reductant_sink_is_a_third_of_the_source(monkeypatch):
+    """GEN.1707: the first rise holds `PLATEAU_PA`, never more than the balance; the second, once R is under S over `SECOND_RISE_RATIO`, holds the balance."""
+    body = _Body()
+    column = 1.0e5 / (9.80665 * 0.028) * bo.area_m2(body)       # about 1 bar of nitrogen, mol
+    monkeypatch.setattr(bo, "air_moles", lambda b: {"N2": column})
+    balance = bo._fire_limit_mol(body, {"N2": column})
+    plateau = bo.stage_target_mol(body, bo.Profile(10.0, 4.0, 1.0, balance, 2.0e4, 1.0))        # R / S = 0.4: over a third
+    assert bo.partials_pa(body, {"N2": column, "O2": plateau})["O2"] == pytest.approx(bo.PLATEAU_PA, rel=1e-6)
+    assert bo.stage_target_mol(body, bo.Profile(10.0, 3.0, 1.0, balance, 2.0e4, 1.0)) == pytest.approx(balance)        # R / S = 0.3: under a third
+    assert bo.stage_target_mol(body, bo.Profile(10.0, 4.0, 1.0, 0.5 * plateau, 5.0e2, 1.0)) == pytest.approx(0.5 * plateau)       # a balance under the plateau stays under it
+    assert bo.stage_target_mol(body, bo.NONE) == 0.0
+
+
 def test_the_oxygen_rises_after_the_delay_and_not_before(monkeypatch):
     monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0: bo.Profile(2.0 * share, 1.0, 4.0e9 + extra_store_mol, 3.0, 2.0e4, 4.0))
     assert bo.rise_age_gyr(None, [(0.5, 1.0)]) == pytest.approx(4.5)
@@ -200,7 +213,9 @@ def test_only_oxygenic_life_holds_oxygen_it_made_and_only_in_a_sunlit_sea(worlds
             # an abiotic oxygen air is allowed, but an oxygenic world is the only one that grows its own
             assert world.life_age_complex_cells_gyr is not None
         if evolution.releases_oxygen(world.life_class_id):
-            assert world.hydrosphere in bo.LIVING_HYDROSPHERES, (world.name, world.hydrosphere)
+            # TEST.740: the oxygen rise burns away the methane and the other reduced gases of the air and can cool the world until its sea freezes over (Earth's own went into the Huronian
+            # glaciation after its rise); the life was in a sunlit sea when it made the oxygen, so a world that ends under ice may still hold oxygenic life
+            assert world.hydrosphere in bo.LIVING_HYDROSPHERES + ("ice-covered ocean",), (world.name, world.hydrosphere)
             seen += 1
     assert seen >= 1
 
@@ -314,3 +329,30 @@ def test_the_carbon_dioxide_takes_only_the_room_the_retention_cap_leaves(monkeyp
     assert body.air["O2"] == 6500.0 and body.air["N2"] == 1000.0
     assert sum(body.air.values()) <= 10000.0 + 1e-9
     assert body.air["CO2"] > 100.0
+
+
+# --- GEN.1564: the air the life makes is frozen out again at the temperature it leaves ------------------------------------------------------------------------------
+
+
+def _cold_body():
+    import types
+    return types.SimpleNamespace(radius=6371.0, gravity=1.0)
+
+
+def test_a_gas_standing_over_its_saturation_pressure_at_the_new_temperature_condenses():
+    from planetgen.physics import saturation
+    body = _cold_body()
+    air = {"N2": 8.0e4, "NH3": 9.0e4, "CH4": 1.0e4}
+    frozen = bo.freeze_out_at(body, air, 170.0)
+    assert frozen["NH3"] < air["NH3"] and frozen["NH3"] <= saturation.pressure_pa("NH3", 170.0) * 1.001
+    assert frozen["N2"] == pytest.approx(air["N2"], rel=0.5) and set(frozen) <= set(air)
+    warm = bo.freeze_out_at(body, air, 300.0)
+    assert warm["NH3"] == pytest.approx(air["NH3"], rel=1e-6)       # at 300 K ammonia holds 1 MPa: nothing condenses
+
+
+def test_air_with_no_gas_over_its_saturation_pressure_is_left_as_it_is():
+    body = _cold_body()
+    air = {"N2": 7.8e4, "O2": 2.1e4, "CO2": 40.0}
+    frozen = bo.freeze_out_at(body, air, 288.0)
+    for formula, pascal in air.items():
+        assert frozen[formula] == pytest.approx(pascal, rel=1e-6)

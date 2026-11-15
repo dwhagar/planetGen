@@ -135,6 +135,34 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 
 Boss deferred the fictional materials and crystals (Kyber, Solar, Aurora, Tritanium, Dilithium, Pergium, Topaline, Kelbonite and Neutronium; Duranium, Trellium and Protomatter are out of scope) until 8.2 is ready to start, to be revisited after 8.1 is done. Nothing is numbered or scheduled. The plan is /mnt/project-files/research/materials-8-2-plan-2026-11-07.md (provisional parts MAT-1 to MAT-12, with 7 and 10 removed, and five open questions for Boss in its section 9). When 8.2 opens, the TODO thread assigns item numbers and places the parts as their own generator-side phase. They read the real rows the 8.1 real-material set builds (GEN.1355 to GEN.1383), and the Solar Crystal's carbon-13 and carbon-14 choices read the isotope record GEN.1377.
 
+### Unified chain rebuild (moved from 8.1 by Boss, 9:19 PM EST on 2026-11-11)
+
+The full recursion and the code and storage rebuild of the unified orbited-body chain (GEN.550), after the 8.1 fixes are in. Cross-check: reports/unified-chain-crossref-2026-11-12/.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
+| DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | GEN.565 |  |
+| GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | GEN.565 |  |
+| GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | GEN.565, GEN.570 |  |
+| GEN.584 | The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped | GEN.578, GEN.565 |  |
+| GEN.581 | primary_first(members): before a system is validated the heaviest branch becomes the primary and the others are recalculated, one function for the tree, the fill, moons and free pairs | GEN.315 |  |
+| GEN.578 | The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star | GEN.576 |  |
+| GEN.577 | Stored planet and moon states become the state of the barycentre of the body and its own members | GEN.576 |  |
+| GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | GEN.565, GEN.315 |  |
+| GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set |  |  |
+| GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set |  |  |
+| GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332, GEN.581 |  |
+| GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system |  |  |
+| GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity |  |  |
+| GEN.556 | `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed | GEN.315, GEN.555, GEN.565, GEN.581 |  |
+| GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed |  | Split from GEN.300. Moved from 8.3. |
+| TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | GEN.565, DB.74 |  |
+| TEST.239 | Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares | GEN.554, GEN.558, GEN.559 |  |
+| DOC.71 | Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py | GEN.576, DB.78, GEN.578 |  |
+| MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | GEN.576, DB.78, GEN.577 |  |
+| DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | GEN.576 |  |
+
 ## Phase 3: Settlements foundation
 
 The design, storage and draw streams for nation-states, cities and ports on a planet with a technological civilization (Boss, 9:27 PM EDT 2026-10-24: earliest foundation in 8.2, nothing in 8.1). The generation is in 8.4, the editors in 8.6, the dynamic version in 9.2.
@@ -171,6 +199,7 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
 | ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
 | API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | Boss, 10:28 AM EST on 2026-11-08. |
+| API.49 | Default system settings as a JSON file format: the inputs a user can set when a system is created (for example the kind of star to look for) | ADM.155 | Boss, 2026-11-14 (placeholder). |
 | GEN.1411 | Fictional materials part 7: the biomass index (the gate for the three life-gated crystals) |  | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1412 | Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1413 | Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch) | GEN.1411, GEN.1412 | Boss, 10:28 AM EST on 2026-11-08. |
@@ -182,6 +211,7 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | Boss, 10:41 AM EST on 2026-11-08. |
 | ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | Boss, 10:41 AM EST on 2026-11-08. |
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | Boss, 10:41 AM EST on 2026-11-08. |
+| ADM.155 | Default recipe as a JSON file with a "Set as default" button, a reset-or-hot-update prompt when the shipped default changes, and every recipe stored as a named JSON file with its creator |  | Boss, 2026-11-14. |
 | TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | Boss, 10:28 AM EST on 2026-11-08. |
 

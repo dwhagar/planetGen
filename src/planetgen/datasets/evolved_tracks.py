@@ -27,6 +27,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from planetgen.datasets import axes
+
 FIRST_EEP = 454
 """int: The end of the main sequence (terminal-age main sequence), the first EEP kept."""
 RGB_TIP_EEP = 605
@@ -260,13 +262,18 @@ class Grid:
         return self._helium
 
     def _bracket(self, fe_h):
-        values = self.fe_h
-        fe_h = min(max(fe_h, values[0]), values[-1])
-        upper = min(bisect.bisect_left(values, fe_h), len(values) - 1)
-        lower = upper if values[upper] == fe_h else upper - 1
-        if lower == upper:
-            return lower, upper, 0.0
-        return lower, upper, (fe_h - values[lower]) / (values[upper] - values[lower])
+        return axes.bracket(self.fe_h, fe_h)
+
+    @staticmethod
+    def _blend(corners, part):
+        """The mix over `corners` of `part(index, node)` (an array per node): linear between the two nodes of each corner, each
+        corner weighted by its share (the arithmetic of `track`)."""
+        total = sum(weight for *_, weight in corners)
+        found = None
+        for index, low, high, along, weight in corners:
+            term = (part(index, low) * (1.0 - along) + part(index, high) * along) * (weight / total)
+            found = term.astype(np.float64) if found is None else found + term
+        return found
 
     def _corners(self, mass_sol, fe_h):
         """The tracks that make this one, `(index, low node, high node, share of the high one, weight)`, and how many
@@ -318,11 +325,7 @@ class Grid:
         corners, length = self._corners(mass_sol, fe_h)
         if corners is None:
             return None
-        total = sum(weight for *_, weight in corners)
-        blended = np.zeros((length, 2))
-        for index, low, high, along, weight in corners:
-            data = self.tracks[index]
-            blended += (data[low, :length, :2] * (1.0 - along) + data[high, :length, :2] * along) * (weight / total)
+        blended = self._blend(corners, lambda index, node: self.tracks[index][node, :length, :2])
         return blended[:, 0], blended[:, 1]
 
     def landmark_fracs(self, mass_sol, fe_h):
@@ -332,9 +335,4 @@ class Grid:
         corners, _ = self._corners(mass_sol, fe_h)
         if corners is None:
             return None
-        total = sum(weight for *_, weight in corners)
-        found = np.zeros(len(LANDMARK_EEPS))
-        for index, low, high, along, weight in corners:
-            table = self._landmarks[index]
-            found += (table[low] * (1.0 - along) + table[high] * along) * (weight / total)
-        return tuple(float(v) for v in found)
+        return tuple(float(v) for v in self._blend(corners, lambda index, node: self._landmarks[index][node]))

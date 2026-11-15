@@ -29,7 +29,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air, venus_spin
+from planetgen.physics import atmosphere, constants, ionization, mantle_stripping, oddities, planet_classes, relations, rings, venus_spin
 from planetgen.physics import orbit_oddities, super_puff
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
@@ -46,6 +46,8 @@ GIVE_UP_AFTER_MISSES = 3
 """int: `run_row` stops when this many samples in a row found no gated body and none has been found (the slow part of a run is the draws of a gate that is never met)."""
 TEMPERATURE_SLACK = 1.01
 """float: The slack on the radiative balance of an airless body (floating point and the choice of the sub-stellar flux, which is the most it gets)."""
+ENVELOPE_LAW_FLOOR_G_CM3 = 0.02
+"""float: The lightest bulk density of a rocky planet under a hydrogen envelope, g/cm3: the envelope law [R2741] held at its youngest age (GEN.1672) gives 0.025 for a 3 Earth mass planet with the 20 percent envelope the generator draws at most, so the super-puff edge (0.03) is not a floor for it."""
 TIDAL_ENERGY_FRACTION = 1.0
 """float: The share of the orbital energy of the planet that tidal heating over the age of the system may spend (design 5, general invariant 1)."""
 VOLATILE_ALLOWANCE = 0.09
@@ -208,7 +210,7 @@ def _resonance_forced(body, star, stream):
 
 
 def _noop(body, star, stream):
-    """W14 and W9 (GEN.1050): the body is already what the row names (the wind's gate, the ring's origin); the effect changes nothing. W19 and W20 (GEN.1051) replace the air
+    """W14 and W9 (GEN.1050) and W26 (GEN.1523, the Hycean box): the body is already what the row names (the wind's gate, the ring's origin, the box); the effect changes nothing. W19 and W20 (GEN.1051) replace the air
     the solver has just made, which a body drawn whole cannot be given again here: they are checked through the generator (`tests/test_oddities_wiring.py`)."""
 
 
@@ -218,6 +220,9 @@ EFFECTS = {
     "collapse_air": _noop,
     "other_branch": _noop,
     "ring_from_moon": _noop,
+    "hycean_box": _noop,
+    "helium_enriched": _noop,
+    "chaotic_tilt": _noop,
     "high_eccentricity": _high_eccentricity,
     "polar_orbit": _polar_orbit,
     "resonance_forced": _resonance_forced,
@@ -351,8 +356,9 @@ def general_failures(body, star):
         return failures      # the rest read these numbers
 
     temperature = body.surface_temperature
-    if not (constants.COSMIC_BACKGROUND_TEMPERATURE_K * 0.999 <= temperature <= surface_air.MAX_SURFACE_TEMPERATURE_K):
-        failures.append(("energy", f"surface temperature {temperature:.1f} K outside {constants.COSMIC_BACKGROUND_TEMPERATURE_K} to {surface_air.MAX_SURFACE_TEMPERATURE_K} K"))
+    ceiling = ionization.ceiling_of(atmosphere.gas_partials_pa(body))
+    if not (constants.COSMIC_BACKGROUND_TEMPERATURE_K * 0.999 <= temperature <= ceiling):
+        failures.append(("energy", f"surface temperature {temperature:.1f} K outside {constants.COSMIC_BACKGROUND_TEMPERATURE_K} to {ceiling} K"))
     distance_m = body.distance * constants.AU_M
     if body.atmospheric_pressure == 0.0 and body.body_type == "t":
         starlight = star.luminosity / (4.0 * math.pi * distance_m ** 2)
@@ -372,7 +378,7 @@ def general_failures(body, star):
     if body.body_type == "t":
         low, high = bulk_draw.DENSITY_BOUNDS_G_CM3
         if (getattr(body, "envelope_mass_fraction", 0.0) or 0.0) > 0.0:
-            low = min(low, super_puff.DENSITY_RANGE_G_CM3[0])      # a rocky planet that kept a hydrogen envelope (GEN.1323) is a sub-Neptune or a super-puff (GEN.1343), as light as 0.04 g/cm3
+            low = min(low, super_puff.DENSITY_RANGE_G_CM3[0], ENVELOPE_LAW_FLOOR_G_CM3)      # a rocky planet that kept a hydrogen envelope (GEN.1323) is a sub-Neptune or a super-puff (GEN.1343), as light as 0.04 g/cm3, or at the youngest age of the envelope law (GEN.1672) 0.025
         if not low * 0.99 <= body.density <= high * 1.01:
             failures.append(("structure", f"density {body.density:.2f} g/cm3 outside {low} to {high}"))
 

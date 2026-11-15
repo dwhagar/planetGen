@@ -47,16 +47,16 @@ main{padding:16px 16px 60px}}
 <p>The Galaxy Map's node path is held to a budget by <code>tests/test_web_browser_map_perf.py</code>. This page says what it
 measures, the numbers it found, and where the time goes.</p>
 <h2 id="the-benchmark">The benchmark</h2>
-<p><code>large_site</code> (<code>tests/map_site_support.py</code>) serves a synthetic galaxy of 46,000 stars: an exponential disk (scale length
+<p><code>large_site</code> (<code>tests/map_site_support.py</code>) serves a synthetic galaxy of 46,000 stars: an exponential disc (scale length
 2,800 pc, 350 pc thick), 40 clusters of 300 stars and a core cluster of 4,000 stars (scale 25 pc) at the dive's target,
 beside the fixture's own few hundred. Every node lists its brightest stars up to the real budget (<code>NODE_STARS</code> 96, a
 sector <code>NODE_SECTOR_STARS</code> 300) and carries the glow of all the stars in its block, so each level of the dive loads what a
 real galaxy's would, with the table scan replaced by a block index so the fixture server is no part of the figures.</p>
-<p>The test opens the Galaxy Map, centers on the core cluster and then, step by step:</p>
+<p>The test opens the Galaxy Map, centres on the core cluster and then, step by step:</p>
 <ol>
 <li>zooms in with the mouse wheel (400 delta a step) from 18,600 pc down to the closest view, 2 pc, through the 81, 27, 9,
 3 and 1 levels;</li>
-<li>at the 3-block level, 60 pc from the target, jumps the center six times round a circle of 150 pc and back;</li>
+<li>at the 3-block level, 60 pc from the target, jumps the centre six times round a circle of 150 pc and back;</li>
 <li>climbs out with Escape, one level a press, to the whole galaxy.</li>
 </ol>
 <p>After each step it waits for the view to settle (no flight, no node request in the air, no change to the star buffer for
@@ -124,7 +124,7 @@ its own bug, not folded in here.</p>
 </thead>
 <tbody>
 <tr>
-<td>Open and center</td>
+<td>Open and centre</td>
 <td>1</td>
 <td>3.0 s</td>
 <td>8</td>

@@ -26,11 +26,8 @@ The mass of each sector (`sector_stats.total_mass_kg`, DB.108, `db/sector_mass.p
 bodies stored, so the sums above it read current figures.
 """
 
-from planetgen.db import query, region_stats, sector_mass
-from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
-
-LEVELS = DRILL_LEVELS[:-1]
-"""tuple: The levels stored: every block size above a sector."""
+from planetgen.db import batched, query, region_stats, sector_mass
+from planetgen.galaxy import drill
 
 FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
@@ -42,12 +39,6 @@ COLUMNS = ("m", "shell_index", "band_index", "wedge_index", "sector_count", "sys
 INSERT = (f"INSERT INTO galaxy_block_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})")
 
 
-def chain_blocks(address):
-    """The blocks above the sector `(shell, band, wedge)`, one per stored level, coarsest first."""
-    shell, band, wedge = address
-    return drill_chain_of(shell, band, wedge)[:len(LEVELS)]
-
-
 def _row(block, sums):
     sectors, systems, expected, stars, age_sum, luminosity, habitable, mass = sums
     return (block.m, block.shell, block.band, block.wedge, int(sectors), int(systems), float(expected), int(stars),
@@ -55,8 +46,8 @@ def _row(block, sums):
 
 
 def clear(conn):
-    """Empties the table."""
-    conn.execute("DELETE FROM galaxy_block_stats")
+    """Empties the table, a batch of rows at a time (`db.batched`, OPS.185), as `block_lights.clear` does."""
+    batched.repeat(conn, "DELETE FROM galaxy_block_stats", label="Emptying the block statistics")
 
 
 def refresh_blocks(conn, blocks):
@@ -79,7 +70,7 @@ def refresh_chain(conn, address):
     if address is None or any(value is None for value in address):
         return 0
     sector_mass.refresh_sectors(conn, [address])    # DB.108: the sector's mass first, the blocks add it up
-    written = refresh_blocks(conn, chain_blocks(tuple(int(value) for value in address)))
+    written = refresh_blocks(conn, drill.chain_blocks(tuple(int(value) for value in address)))
     region_stats.refresh_chain(conn, tuple(int(value) for value in address))    # DB.107: the region follows its sectors
     return written
 
@@ -87,7 +78,7 @@ def refresh_chain(conn, address):
 def refresh_sectors(conn, addresses, on_progress=None):
     """Recomputes the blocks above each sector in `addresses`, every block once. A set touching more than
     `FULL_REBUILD_ABOVE` blocks, or a table with no rows, is a `rebuild`. Returns the rows written."""
-    blocks = {block for address in addresses for block in chain_blocks(tuple(address))}
+    blocks = {block for address in addresses for block in drill.chain_blocks(tuple(address))}
     if len(blocks) <= FULL_REBUILD_ABOVE:
         sector_mass.refresh_sectors(conn, addresses)    # DB.108: a rebuild makes every sector's mass itself
     has_rows = conn.execute("SELECT 1 FROM galaxy_block_stats LIMIT 1").fetchone() is not None
@@ -106,7 +97,7 @@ def accumulate(cells, address, systems, expected, stars, mean_age, luminosity, h
     """Adds one generated sector's figures to the sums of each block above it in `cells`
     (`{DrillBlock: [sectors, systems, expected, stars, age sum, luminosity, habitable worlds, mass in kg]}`), the way
     `query._add_stage_sums` does."""
-    for block in chain_blocks(address):
+    for block in drill.chain_blocks(address):
         sums = cells.setdefault(block, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0])
         sums[0] += 1
         sums[1] += systems or 0

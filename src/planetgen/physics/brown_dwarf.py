@@ -59,9 +59,15 @@ def _track(mass_sol, age_gy):
     return baraffe_isochrones.cooling_track(mass_sol, age_gy)
 
 
+def _capped_track(mass_sol, age_gy):
+    """`(temperature, radius)` of the track with the temperature no hotter than `substellar_ceiling.cap_k` of the mass and age."""
+    temperature, radius = _track(mass_sol, age_gy)
+    return min(temperature, substellar_ceiling.cap_k(mass_sol, age_gy)), radius
+
+
 def effective_temperature_k(mass_sol, age_gy):
     """Effective temperature, kelvin: the cooling track's, no hotter than `substellar_ceiling.cap_k` of the mass and age."""
-    return min(_track(mass_sol, age_gy)[0], substellar_ceiling.cap_k(mass_sol, age_gy))
+    return _capped_track(mass_sol, age_gy)[0]
 
 
 def radius_sol(mass_sol, age_gy):
@@ -72,9 +78,13 @@ def radius_sol(mass_sol, age_gy):
 
 def luminosity_sol(mass_sol, age_gy):
     """Luminosity in solar luminosities: `R^2 (Teff / Teff_sun)^4` of the track's radius and the capped temperature."""
-    temperature, radius = _track(mass_sol, age_gy)
-    temperature = min(temperature, substellar_ceiling.cap_k(mass_sol, age_gy))
-    return radius ** 2 * (temperature / tuning.SUN_EFFECTIVE_TEMPERATURE_K) ** 4
+    temperature, radius = _capped_track(mass_sol, age_gy)
+    return _luminosity_sol(temperature, radius)
+
+
+def _luminosity_sol(temperature_k, radius_sol):
+    """`R^2 (Teff / Teff_sun)^4`, in suns."""
+    return radius_sol ** 2 * (temperature_k / tuning.SUN_EFFECTIVE_TEMPERATURE_K) ** 4
 
 
 def spectral_type(temperature_k):
@@ -97,7 +107,6 @@ def spectral_type(temperature_k):
 def state(mass_sol, age_gy):
     """A brown dwarf of this mass and age: `luminosity_sol`, `temperature_k` (capped), `radius_sol` and its
     `spectral_type`."""
-    temperature, radius = _track(mass_sol, age_gy)
-    temperature = min(temperature, substellar_ceiling.cap_k(mass_sol, age_gy))
-    return {"luminosity_sol": radius ** 2 * (temperature / tuning.SUN_EFFECTIVE_TEMPERATURE_K) ** 4,
+    temperature, radius = _capped_track(mass_sol, age_gy)
+    return {"luminosity_sol": _luminosity_sol(temperature, radius),
             "temperature_k": temperature, "radius_sol": radius, "spectral_type": spectral_type(temperature)}

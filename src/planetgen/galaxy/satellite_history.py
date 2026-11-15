@@ -106,13 +106,18 @@ def rate_for_mean_age(mean_age, span_gy):
         return low
     if mean_age >= mean_age_gy(high, span_gy):
         return high
-    for _ in range(80):
+    low, high = _bisect(low, high, 80, lambda middle: mean_age_gy(middle, span_gy) < mean_age)
+    return 0.5 * (low + high)
+def _bisect(low, high, steps, too_low):
+    """`(low, high)` after `steps` halvings of the bracket: the middle replaces `low` where `too_low(middle)`, else
+    `high`, so the bracket closes on the point where `too_low` turns false."""
+    for _ in range(steps):
         middle = 0.5 * (low + high)
-        if mean_age_gy(middle, span_gy) < mean_age:
+        if too_low(middle):
             low = middle
         else:
             high = middle
-    return 0.5 * (low + high)
+    return low, high
 
 
 def _law_rate_per_kpc2(surface):
@@ -136,13 +141,8 @@ def _disk_rate_msun_yr(central, gas_scale_length_pc):
 def _central_gas_for_rate(rate_msun_yr, gas_scale_length_pc):
     """The central gas density (solar masses per pc2) whose disk forms stars at `rate_msun_yr`, by bisection on the
     logarithm (the rate rises steadily with the density)."""
-    low, high = math.log(_GAS_SEARCH_MSUN_PC2[0]), math.log(_GAS_SEARCH_MSUN_PC2[1])
-    for _ in range(70):
-        middle = 0.5 * (low + high)
-        if _disk_rate_msun_yr(math.exp(middle), gas_scale_length_pc) < rate_msun_yr:
-            low = middle
-        else:
-            high = middle
+    low, high = _bisect(math.log(_GAS_SEARCH_MSUN_PC2[0]), math.log(_GAS_SEARCH_MSUN_PC2[1]), 70,
+                        lambda middle: _disk_rate_msun_yr(math.exp(middle), gas_scale_length_pc) < rate_msun_yr)
     return math.exp(0.5 * (low + high))
 
 
@@ -188,11 +188,6 @@ def oldest_forming_age_gy(mass_solar, half_mass_radius_pc, youngest_gy, oldest_g
         return None
     if history(mass_solar, half_mass_radius_pc, oldest_gy).forming:
         return oldest_gy
-    low, high = youngest_gy, oldest_gy
-    for _ in range(40):
-        middle = 0.5 * (low + high)
-        if history(mass_solar, half_mass_radius_pc, middle).forming:
-            low = middle
-        else:
-            high = middle
+    low, _high = _bisect(youngest_gy, oldest_gy, 40,
+                         lambda middle: history(mass_solar, half_mass_radius_pc, middle).forming)
     return low

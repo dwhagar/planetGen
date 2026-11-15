@@ -10,6 +10,8 @@ what used to be stored), for every kind of system.
 """
 
 
+import zlib
+
 import pytest
 
 from planetgen.util import draw
@@ -43,7 +45,7 @@ def _config(**overrides):
 
 @pytest.mark.parametrize("overrides", _VARIANTS)
 def test_rendering_from_the_database_matches_the_generated_system(mysql_config, overrides):
-    draw.set_run_seed(hash(tuple(sorted(overrides.items()))) & 0xFFFF)
+    draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
     conn = store.get_connection(mysql_config)
     try:
         for _ in range(4):

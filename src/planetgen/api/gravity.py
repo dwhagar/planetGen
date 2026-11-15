@@ -43,8 +43,13 @@ def read_grid(conn, sector_id, pot, folder):
     return gravity_cache.read(folder, sector_id, gravity_stamp.ZONES, stamp), stamp
 
 
+def _sig(value):
+    """`value` kept to `SIGNIFICANT_DIGITS`, as a float."""
+    return float(f"{value:.{SIGNIFICANT_DIGITS}g}")
+
+
 def _round(values):
-    return [float(f"{v:.{SIGNIFICANT_DIGITS}g}") for v in values]
+    return [_sig(v) for v in values]
 
 
 def payload(conn, sector_id, pot, local, stamp, mode, field="total"):
@@ -69,10 +74,10 @@ def payload(conn, sector_id, pot, local, stamp, mode, field="total"):
         "mode": mode, "field": field, "unit": gravity_field.UNITS[mode], "zones": zones,
         "zone_edge_pc": edge_pc / zones, "edge_pc": edge_pc, "center_pc": list(center),
         "origin_pc": [c - edge_pc / 2.0 for c in center], "order": "x-major",
-        "values": _round(values), "minimum": float(f"{np.min(values):.{SIGNIFICANT_DIGITS}g}"), "maximum": float(f"{np.max(values):.{SIGNIFICANT_DIGITS}g}"),
+        "values": _round(values), "minimum": _sig(np.min(values)), "maximum": _sig(np.max(values)),
         # the smooth galaxy's own part: its value at the sector center (0 for the depth, which is measured from the shallowest zone) and how far it varies across the sector
-        "smooth": {"level": float(f"{gravity_field.scalar(at_center, mode)[0] if mode != 'depth' else 0.0:.{SIGNIFICANT_DIGITS}g}"),
-                   "span": float(f"{np.ptp(smooth_values):.{SIGNIFICANT_DIGITS}g}")},
+        "smooth": {"level": _sig(gravity_field.scalar(at_center, mode)[0] if mode != "depth" else 0.0),
+                   "span": _sig(np.ptp(smooth_values))},
         "saddles": [{"zone": list(zone), "position_pc": [float(v) for v in points[(zone[0] * zones + zone[1]) * zones + zone[2]]]} for zone in spots],
         "stamp": stamp,
     }

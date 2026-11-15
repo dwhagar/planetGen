@@ -41,9 +41,7 @@ import math
 
 from planetgen import tuning
 from planetgen.galaxy import scales, seed as galaxySeed
-from planetgen.physics import nebula_composition as nc
-from planetgen.physics import planetary_nebula_ejecta as pne
-from planetgen.physics import remnant_composition as rc
+from planetgen.physics import nebula_composition as nc, planetary_nebula_ejecta as pne, remnant_composition as rc
 
 ABUNDANCE_ELEMENTS = nc.ABUNDANCE_ELEMENTS
 GRAIN_COLUMNS = {

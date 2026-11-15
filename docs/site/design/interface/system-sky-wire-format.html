@@ -142,7 +142,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td><code>direction</code></td>
 <td><code>[x, y, z]</code></td>
-<td>the unit vector to its center in the galaxy frame (z up), light-time retarded; the page turns it into its own axes as it does for the stars</td>
+<td>the unit vector to its centre in the galaxy frame (z up), light-time retarded; the page turns it into its own axes as it does for the stars</td>
 </tr>
 <tr>
 <td><code>distanceLy</code></td>
@@ -152,7 +152,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td><code>angularRadiusRad</code></td>
 <td>number</td>
-<td>the radius of its disk, <code>asin(R / d)</code>; <code>pi</code> when the observer is inside</td>
+<td>the radius of its disc, <code>asin(R / d)</code>; <code>pi</code> when the observer is inside</td>
 </tr>
 <tr>
 <td><code>inside</code></td>
@@ -204,7 +204,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>The image is 256 by 128 texels (<code>sky_band.EQUIRECT_WIDTH</code>, <code>EQUIRECT_HEIGHT</code>), equirectangular in the sky's galactic axes, as <code>skyband.js</code> <code>equirectUV</code> reads it: row 0 at the north pole, column 0 at longitude -180 (longitude is <code>atan2(y, x)</code>, latitude <code>asin(z)</code>), a texel's value taken at its center. Each texel is red, green and blue as little-endian half floats (<code>rgb16f</code>, 196,608 bytes), linear light in the page's unit: <code>10^(-0.4 (SB - 22))</code> for a surface brightness <code>SB</code> in V magnitudes per square arcsecond (a texel of 1.0 is 22 mag/arcsec^2, 0 is no light), times the tint of a 4500 K blackbody scaled to a luminance of 1 (red 1.30, green 0.95, blue 0.65; stand-in GLW1). The surface brightness is <code>sky_band.band_for</code>'s: the integrated light of the stars fainter than the limit, marched through the galaxy's density and dust from the center of the observer's 50 parsec cell, so every system in a cell, at one limit, shares one image. It is worked out in the API process the first time (tens of seconds on a galaxy with many clusters) and then kept in memory; the web layer keeps <code>b&lt;key&gt;.bin</code> beside the skies and <code>skycache.clear()</code> removes it.</p>
+<p>The image is 256 by 128 texels (<code>sky_band.EQUIRECT_WIDTH</code>, <code>EQUIRECT_HEIGHT</code>), equirectangular in the sky's galactic axes, as <code>skyband.js</code> <code>equirectUV</code> reads it: row 0 at the north pole, column 0 at longitude -180 (longitude is <code>atan2(y, x)</code>, latitude <code>asin(z)</code>), a texel's value taken at its centre. Each texel is red, green and blue as little-endian half floats (<code>rgb16f</code>, 196,608 bytes), linear light in the page's unit: <code>10^(-0.4 (SB - 22))</code> for a surface brightness <code>SB</code> in V magnitudes per square arcsecond (a texel of 1.0 is 22 mag/arcsec^2, 0 is no light), times the tint of a 4500 K blackbody scaled to a luminance of 1 (red 1.30, green 0.95, blue 0.65; stand-in GLW1). The surface brightness is <code>sky_band.band_for</code>'s: the integrated light of the stars fainter than the limit, marched through the galaxy's density and dust from the centre of the observer's 50 parsec cell, so every system in a cell, at one limit, shares one image. It is worked out in the API process the first time (tens of seconds on a galaxy with many clusters) and then kept in memory; the web layer keeps <code>b&lt;key&gt;.bin</code> beside the skies and <code>skycache.clear()</code> removes it.</p>
 <p><code>key</code> is 32 hex characters: a hash of the cell, the galaxy (its seed and the numbers of its shape), the limit, the dust (the digest of the galaxy's two dust tables, <code>DustProfile.key()</code>, VIEW.44), the band's own constants and the image's (size, reference, tint, <code>SKY_VERSION</code>). It does not follow the cluster field, which the band reads but the key leaves out; after clusters are regenerated, clear the cache.</p>
 <h2 id="4-the-report">4. The report</h2>
 <p><code>meta.report</code> (and <code>report</code> in the API answer) says how much of the sky is built, for the page's &quot;filling in&quot; note:</p>

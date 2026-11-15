@@ -69,6 +69,14 @@ def test_small_libration_is_a_tadpole_and_large_is_a_horseshoe():
     assert trojans.motion(200.0, mu) is None
 
 
+def test_the_tadpole_limit_is_an_amplitude_past_the_nearest_approach():
+    mu = 1e-6
+    assert trojans.TADPOLE_LIMIT_DEG == pytest.approx((180.0 - trojans.TADPOLE_NEAREST_APPROACH_DEG) / 2.0)
+    assert trojans.motion(30.0, mu) == "tadpole"       # a Jupiter Trojan can librate 30 degrees about the point and stays a tadpole (GEN.1647)
+    assert trojans.motion(trojans.TADPOLE_LIMIT_DEG - 0.1, mu) == "tadpole"
+    assert trojans.motion(trojans.TADPOLE_LIMIT_DEG + 0.1, mu) == "horseshoe"
+
+
 def test_only_l4_and_l5_hold_bodies():
     assert trojans.longitude_offset_deg("L4") == 60.0 and trojans.longitude_offset_deg("L5") == -60.0
     for point in ("L1", "L2", "L3"):

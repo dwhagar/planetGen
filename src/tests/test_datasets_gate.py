@@ -58,7 +58,7 @@ def test_nothing_is_missing_once_the_fixtures_are_downloaded(downloaded):
 
 def test_the_catalogue_names_each_missing_dataset_with_its_reason():
     missing = catalogue.missing()
-    assert [located.dataset.fill for located in missing] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12", "GS1"]
+    assert [located.dataset.fill for located in missing] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12", "GS1", "AD12"]
     assert all(located.missing and located.reason for located in missing)
 
 
@@ -158,18 +158,18 @@ def test_the_neighborhood_route_reports_the_missing_data(monkeypatch):
     assert "isochrones" in str(error.value)
 
 
-def test_the_status_command_the_generate_page_runs_exits_1_while_data_is_missing(cache):
-    env = dict(os.environ, PLANETGEN_DATA_DIR=str(cache))
+def test_the_status_command_the_generate_page_runs_exits_1_while_data_is_missing(cache, queue_command_env):
+    env = dict(queue_command_env, PLANETGEN_DATA_DIR=str(cache))
     result = subprocess.run([sys.executable, "-m", "planetgen.cli.datasets", "status"], capture_output=True, text=True,
                             cwd=REPO, env=env, timeout=120)
     assert result.returncode == 1, result.stdout + result.stderr
     assert "isochrones: missing (SC1)" in result.stdout and "generation will not start" in result.stdout
 
 
-def test_a_plan_in_a_new_process_is_refused_by_the_gate_and_not_by_a_missing_isochrone_trace(cache):
+def test_a_plan_in_a_new_process_is_refused_by_the_gate_and_not_by_a_missing_isochrone_trace(cache, queue_command_env):
     """TEST.632: drawing the shape the plan is checked against reads the isochrones, so the gate has to come first. A fresh process has
     no cached mean masses, which an earlier test in the same process leaves behind (the failure showed with `-n 3` only)."""
-    env = dict(os.environ, PLANETGEN_DATA_DIR=str(cache), PYTHONPATH=os.path.join(REPO, "src"))
+    env = dict(queue_command_env, PLANETGEN_DATA_DIR=str(cache), PYTHONPATH=os.path.join(REPO, "src"))
     result = subprocess.run([sys.executable, "-m", "planetgen.cli.generate", "plan"], capture_output=True, text=True, cwd=REPO,
                             env=env, timeout=300)
     text = result.stdout + result.stderr

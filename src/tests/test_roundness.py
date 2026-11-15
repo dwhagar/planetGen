@@ -276,12 +276,17 @@ def test_metal_with_its_own_strength_and_density_rounds_where_it_should(monkeypa
     assert iron == pytest.approx(math.sqrt(1.0e8 / (rn.stress_coefficient(rn.TABLE.sphericity_factor) * G * 7800.0 ** 2)))
 
 
-def test_the_exponential_porosity_rule_weakens_a_porous_body(monkeypatch):
+def test_the_power_porosity_rule_is_the_carbonate_law_of_the_source(monkeypatch):
+    # GEN.1175: [R0083] UCS ~ (1 - phi / 0.5)^1.67: relative strength 0.69, 0.43, 0.22, 0.07 at porosity 0.1, 0.2, 0.3, 0.4
     document = copy.deepcopy(_document())
-    document["porosity"] = {"rule": "exponential", "coefficient": 5.0}
+    document["porosity"] = {"rule": "power", "solid_limit": 0.5, "exponent": 1.67}
     monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
-    assert rn.yield_strength_pa(0.0, porosity=0.0) == pytest.approx(rn.ROCK_STRENGTH_PA)
-    assert rn.yield_strength_pa(0.0, porosity=0.5) == pytest.approx(rn.ROCK_STRENGTH_PA * math.exp(-2.5))
+    solid = rn.yield_strength_pa(0.0, porosity=0.0)
+    assert solid == pytest.approx(rn.ROCK_STRENGTH_PA)
+    for porosity, kept in ((0.1, 0.69), (0.2, 0.43), (0.3, 0.22), (0.4, 0.07)):
+        assert rn.yield_strength_pa(0.0, porosity=porosity) / solid == pytest.approx(kept, abs=0.01)
+    assert rn.yield_strength_pa(0.0, porosity=0.5) / solid == pytest.approx(rn.POROSITY_FLOOR ** 1.67)       # at the law's limit the floor holds
+    assert rn.yield_strength_pa(0.0, porosity=0.7) == rn.yield_strength_pa(0.0, porosity=0.5)
 
 
 def test_the_stand_in_porosity_rule_leaves_the_strength_alone():
@@ -576,3 +581,20 @@ def test_a_creep_law_at_a_few_kelvin_does_not_overflow():
     rule = rn.TABLE.temperature["rock"]
     assert all(rn._creep_stress_mpa(column, rule["rate_per_s"], 18.0) == float("inf") for column in rule["columns"])
     assert rn.yield_strength_pa(0.0, temperature_k=18.0) == rn.yield_strength_pa(0.0)       # cold rock keeps its whole-body strength
+
+
+def test_a_stronger_ice_makes_a_bigger_round_radius_and_a_lower_ratio():
+    """GEN.1684: `ice_factor` is the factor of a kind of ice (`ice_types`) on the strength of ice Ih; 1 is the engine as it was, and the round radius goes as its square root for an ice-only body."""
+    base = rn.round_radius_m(950.0, 1.0)
+    assert rn.round_radius_m(950.0, 1.0, ice_factor=1.0) == base
+    assert rn.round_radius_m(950.0, 1.0, ice_factor=25.0) == pytest.approx(base * 5.0, rel=1e-9)
+    assert rn.roundness_ratio(1.0e5, 950.0, 1.0, ice_factor=25.0) < rn.roundness_ratio(1.0e5, 950.0, 1.0)
+    assert rn.yield_strength_pa(1.0, ice_factor=2.0) == pytest.approx(2.0 * rn.yield_strength_pa(1.0), rel=1e-9)
+    assert rn.yield_strength_pa(0.0, ice_factor=40.0) == rn.yield_strength_pa(0.0)       # a body with no ice has none to strengthen
+    with pytest.raises(ValueError):
+        rn.yield_strength_pa(0.5, ice_factor=0.0)
+
+
+def test_the_ice_strength_helper_is_the_strength_the_engine_uses():
+    assert rn.ice_strength_pa() == rn.ICE_STRENGTH_PA
+    assert rn.ice_strength_pa(140.0) < rn.ice_strength_pa(100.0)       # colder ice creeps harder

@@ -30,8 +30,8 @@ The draws (`draw_content`), in a fixed order so none moves another:
    history, GEN.469, and the host's age; a body with no host takes the typical star of the galaxy), and the ratio today is that
    decayed to the Solar System's age. The old uranium scatter of 0.05 dex is gone.
 2. **Potassium** is not fitted to the star (it is volatile; Th and U are refractory lithophiles, condensation temperatures in part E
-   2.8b): `d_K`, log-uniform 0.03 to 1 of the CI K/U of 67407, times the body's uranium (R15; a placeholder tied to the large K
-   differences of Solar System bodies, [R3293], until the K depletion survey of the research list is read).
+   2.8b): `d_K`, drawn by `potassium_depletion` from the K/U of six differentiated bodies by the body's class (GEN.492, [R1003]), times
+   the CI K/U and the body's uranium (R15).
 3. **Aluminium-26** is the star's birth ratio (GEN.476, `birth_radioisotopes`): the steady-state mean of its galaxy's gas (the yield of
    massive stars from the gamma-ray mass, over the disk's gas depletion time and the star's aluminium) as a sum of discrete decayed
    additions, so most stars are born with far less than the mean and a few with a great deal. The Solar System's 5.23e-5 (Lugaro et al.
@@ -55,7 +55,8 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import birth_radioisotopes, bulk_composition, core_composition, elements, rprocess_enrichment
+from planetgen.physics import birth_radioisotopes, bulk_composition, core_composition, elements, potassium_depletion, rprocess_enrichment
+from planetgen.physics import unit_registry as units
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.util import draw
@@ -73,6 +74,8 @@ equilibrium) is left out: its share of the mass is below a part in ten thousand.
 HEAT_PARENTS = ("K-40", "Th-232", "U-238", "U-235")
 """tuple: The radioactive parents whose heat is summed; the 26Al term is added separately."""
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+
 REFERENCE_AGE_GY = tuning.STELLAR_SOLAR_SYSTEM_AGE_GY
 """float: How long ago the Solar System formed (the age of the oldest solids): the reference tables below are today's values, and
 the isotope split at formation is today's decayed back this far."""
@@ -85,10 +88,6 @@ ELEMENTS = ("K", "Th", "U")
 BULK_SILICATE_EARTH = (260.0, 0.0834, 0.0218)
 """tuple: `(K, Th, U)` ppm of the bulk silicate [R3416] edition Table 4 (260 ppm, 83.4 ppb, 21.8 ppb; read twice,
 radiation-model.md section 6). The Th and U of the 2014 edition in our files (84.9 and 22.9 ppb) cannot be confirmed from a paper."""
-
-CI_CHONDRITE_K_OVER_U = 546.0 / 0.0081
-"""float: The mass ratio of potassium to uranium in CI chondrites, 67407 (part E 2.8b, Palme and O'Neill via pyrolite, 2ND-HAND); the
-bulk silicate Earth has 11927 with the values above, a depletion of 0.177."""
 
 BULK_SILICATE_EARTH_AL_MASS_FRACTION = 0.0238
 """float: Aluminium in the bulk silicate Earth, 2.38 weight percent (part E 2.8f). The stand-in for a body with no drawn Al2O3
@@ -370,12 +369,13 @@ def star_al26_mean(body):
     return al26_mean(shape, getattr(star, "metallicity_fe_h", None))
 
 
-def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_factor=None, al26_mean_ratio=None, al26_ratio=None):
+def draw_content(mass_earth, offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_factor=None, al26_mean_ratio=None, al26_ratio=None):
     """
     A body's `Content`. Every draw is made whatever the branch, in this order: the host-less offset, the r-process production ratio, the
     potassium depletion and the seed of the aluminium-26 additions, so the stream after it is the same for every body.
 
     Args:
+        mass_earth (float): The body's mass in Earth masses; it picks the class the potassium depletion is drawn for (`potassium_depletion`).
         offset_dex (float or None): The host star's Th/U offset (`star_offset_dex`); `None` takes the host-less draw.
         rng: The draw source (`planetgen.util.draw` by default).
         th_u_factor (float or None): The enrichment `F` of the host's birth gas (`rprocess_enrichment`, at least 1); `None` takes that of
@@ -391,7 +391,7 @@ def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_fact
     host_less = truncated_offset_dex(rng.random())
     low, high = rprocess_enrichment.PRODUCTION_RATIO_RANGE
     production_ratio = rng.uniform(low, high)
-    k_depletion = math.exp(rng.uniform(math.log(tuning.RADIOGENIC_K_DEPLETION_RANGE[0]), math.log(tuning.RADIOGENIC_K_DEPLETION_RANGE[1])))
+    k_depletion = potassium_depletion.draw_depletion(mass_earth, rng)
     al26_seed = rng.random()                  # one draw whatever the star: the additions are made on a stream of their own
     offset = host_less if offset_dex is None else offset_dex
     _bulk_k, bulk_th, _bulk_u = BULK_SILICATE_EARTH
@@ -401,7 +401,7 @@ def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_fact
     u_now = th_now / th_u_ratio_now(production_ratio, th_u_factor)
     if al26_ratio is None:
         al26_ratio = birth_radioisotopes.sample_ratio("Al26", al26_mean() if al26_mean_ratio is None else al26_mean_ratio, draw.Stream(f"al26-birth:{al26_seed!r}"))
-    k_now = k_depletion * CI_CHONDRITE_K_OVER_U * u_now
+    k_now = k_depletion * potassium_depletion.ci_k_over_u() * u_now
     return Content(
         k0_ppm=k_now * formation_mix("K")[1], th0_ppm=th_now * formation_mix("Th")[1], u0_ppm=u_now * formation_mix("U")[1],
         al26_ratio=al26_ratio)
@@ -414,7 +414,7 @@ def generate_content(body, refractory_enrichment=1.0):
         for name in BODY_FIELDS:
             setattr(body, name, None)
         return
-    content = draw_content(star_offset_dex(body.star), refractory_enrichment=refractory_enrichment, th_u_factor=star_th_u_factor(body),
+    content = draw_content(_kg_to_mearth(body.mass), star_offset_dex(body.star), refractory_enrichment=refractory_enrichment, th_u_factor=star_th_u_factor(body),
                            al26_mean_ratio=star_al26_mean(body), al26_ratio=star_al26_ratio(body.star, getattr(getattr(body, "system_config", None), "GALAXY_SHAPE", None)))
     body.c_k0_ppm, body.c_th0_ppm, body.c_u0_ppm = content.k0_ppm, content.th0_ppm, content.u0_ppm
     body.al26_ratio = content.al26_ratio

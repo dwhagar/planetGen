@@ -34,6 +34,8 @@ import redis
 from redis.backoff import ExponentialBackoff
 from redis.retry import Retry
 
+from planetgen.util import log
+
 SOCKET_CONNECT_SECONDS = 2.0
 """float: How long a connect may take."""
 
@@ -112,5 +114,5 @@ def forget_all():
     for found in clients:
         try:
             found.close()
-        except Exception:  # noqa: BLE001 -- a pool that will not close is dropped anyway
-            pass
+        except Exception as exc:  # noqa: BLE001 -- a pool that will not close is dropped anyway
+            log.swallowed("queue/redisclient", "forget_all", exc)

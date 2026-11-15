@@ -29,10 +29,10 @@ def test_parse_range(knobs, value, expected):
 
 def test_override_sets_and_restores_a_module_constant():
     from planetgen.physics import class_fit
-    original = class_fit.HOLE_FLOOR
-    with harness.override("planetgen.physics.class_fit", "HOLE_FLOOR", 0.5):
-        assert class_fit.HOLE_FLOOR == 0.5
-    assert class_fit.HOLE_FLOOR == original
+    original = class_fit.GATE_PRESSURE_PA
+    with harness.override("planetgen.physics.class_fit", "GATE_PRESSURE_PA", 0.5):
+        assert class_fit.GATE_PRESSURE_PA == 0.5
+    assert class_fit.GATE_PRESSURE_PA == original
 
 
 def test_override_keeps_an_integer_constant_an_integer():

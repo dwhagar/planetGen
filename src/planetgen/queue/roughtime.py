@@ -49,7 +49,7 @@ def host_workers(cores=None, memory_bytes=None):
     return count
 
 
-def stage_seconds(units=None, workers=None):
+def stage_seconds(units=None, workers=None, unit_seconds=None):
     """
     The rough seconds a stage takes: `units` units of `UNIT_SECONDS` each over the workers that can work at once
     (`min(workers, units)`), or `UNKNOWN_STAGE_WORKER_SECONDS` over the workers when `units` is not known yet.
@@ -57,11 +57,12 @@ def stage_seconds(units=None, workers=None):
     Args:
         units (int, optional): The stage's units, `None` before it is expanded.
         workers (int, optional): The workers the stage runs on; default `host_workers()`.
+        unit_seconds (float, optional): What the job profile says a unit of the stage takes on this machine (OPS.159, `profiletime.unit_seconds`); `UNIT_SECONDS` where it says nothing.
     """
     workers = max(1, int(workers or host_workers()))
     if not units:
         return UNKNOWN_STAGE_WORKER_SECONDS / workers
-    return math.ceil(units / min(workers, units)) * UNIT_SECONDS
+    return math.ceil(units / min(workers, units)) * (unit_seconds or UNIT_SECONDS)
 
 
 def rough_range(seconds):

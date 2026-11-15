@@ -251,8 +251,8 @@ def test_a_locked_or_resonant_planet_keeps_a_small_tilt_not_exactly_zero():
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for planet in system.planets + system.secondary_planets:
-            if not hasattr(planet, "moons") or planet.body_type == "a":
-                continue
+            if not hasattr(planet, "moons") or planet.body_type == "a" or planet.belt_order is not None:
+                continue        # a round member of a belt (GEN.1510) is made after the settle pass and crowded with its belt-mates: its tilt is not the one this row is about
             if spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant"):
                 tilts.append(planet.axial_tilt_deg)
     assert len(tilts) >= 20

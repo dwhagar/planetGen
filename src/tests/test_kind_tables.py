@@ -5,7 +5,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.api import ids
-from planetgen.db import edits, fingerprint, kind_tables, models, point_columns, query, sector_paths, store
+from planetgen.db import edits, fingerprint, gravity_sources, kind_tables, models, point_columns, query, sector_paths, store
 from planetgen.galaxy import objectref
 from planetgen.web.lib import slowpages
 
@@ -26,6 +26,8 @@ def test_every_row_is_a_table_and_listed_once():
     ("uid", {"uid"}), ("timestamped", {"created_at", "modified_at"}), ("sector_filed", {"sector_id"}),
     ("system_filed", {"star_system_id"}), ("star_filed", {"star_id"}), ("containable", {"inside_nebula_id"}),
     ("phenomenon", {"center_x_pc", "center_y_pc", "center_z_pc", "quadrant", "sector_id"}),
+    ("unique_name", {"name"}), ("named_phenomenon", {"name", "center_x_pc"}), ("body", {"star_system_id", "uid"}),
+    ("parent_link", {"parent_type", "parent_id"}),
 ])
 def test_a_group_names_tables_that_have_its_columns(group, columns):
     for table in kind_tables.tables(group):
@@ -52,6 +54,12 @@ def test_the_sites_that_used_to_list_the_tables_read_the_registry():
     assert store.PLACED_PHENOMENON_TABLES == kind_tables.tables("phenomenon", order="placed")
     assert store.PHENOMENON_UID_TABLES == kind_tables.tables("phenomenon")
     assert store.TIMESTAMPED_TABLES == kind_tables.tables("timestamped", order="timestamped")
+    assert store.UNIQUE_NAME_TABLES == kind_tables.tables("unique_name", order="unique_name")
+    assert store.NAMED_PHENOMENON_TABLES == kind_tables.tables("named_phenomenon", order="unique_name")
+    assert store.PARENT_LINK_TABLES == kind_tables.tables("parent_link")
+    assert store.BODY_UID_TABLES == store._SYSTEM_CONTENT_TABLES == kind_tables.tables("body")
+    assert store.SCATTER_MOTION_TABLES == kind_tables.SCATTER_UID_TABLES
+    assert store.STAR_FILED_TABLES == gravity_sources.STAND_ALONE_TABLES == kind_tables.tables("star_filed")
     assert fingerprint.SECTOR_TABLES == kind_tables.tables("sector_filed")
     assert fingerprint.SYSTEM_TABLES == kind_tables.tables("system_filed")
     assert fingerprint.STAR_TABLES == kind_tables.tables("star_filed")
@@ -69,12 +77,18 @@ def test_the_lists_kept_for_their_order_name_the_same_kinds():
     assert all(ROWS[table].kind == kind for kind, table in objectref.TABLES.items() if kind != "sector")
 
 
+def test_the_named_phenomena_are_the_uniquely_named_ones():
+    unique = set(kind_tables.tables("unique_name"))
+    assert set(kind_tables.tables("named_phenomenon")) == unique & set(kind_tables.tables("phenomenon"))
+    assert set(kind_tables.tables("body")) == set(kind_tables.tables("system_filed")) - {"facilities"}
+
+
 def test_an_unknown_group_is_refused():
     with pytest.raises(ValueError):
         kind_tables.tables("nonsense")
 
 
-ORDER_GROUPS = {"placed": "phenomenon", "timestamped": "timestamped", "containable": "containable",
+ORDER_GROUPS = {"placed": "phenomenon", "timestamped": "timestamped", "containable": "containable", "unique_name": "unique_name",
                 "slow": "phenomenon", "ids": "uid", "phenomenon_kinds": "phenomenon"}
 
 

@@ -59,8 +59,8 @@ about 1 Gyr (row SH4)."""
 EARTH_TEQ_K = 278.6
 """float: The equilibrium temperature of a body at 1 Earth insolation with no albedo."""
 
-_AVOGADRO = 6.02214076e23
-_GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
+_AVOGADRO = constants.AVOGADRO
+_GY_S = constants.SECONDS_PER_GY
 
 
 @dataclass(frozen=True)

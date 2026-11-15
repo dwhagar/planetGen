@@ -161,3 +161,22 @@ def prove_rules_can_fail(rules, sweep=None):
             result[rule.name] = bool(rule.check(clone))
             break
     return result
+
+
+def assert_rules_obeyed(rules, sweep):
+    """The sweep's central check (TEST.735: one copy for the sweep files): every entry obeys every rule."""
+    found = run_rules(rules, sweep)
+    failures = {name: violations[:5] for name, violations in found.items() if violations}
+    assert not failures, "\n".join(f"{name}: {len(found[name])} bodies, first {violations}" for name, violations in failures.items())
+
+
+def assert_every_rule_can_fail(rules, sweep):
+    """Every rule reports an entry with exactly that rule broken (TEST.735: one copy for the sweep files)."""
+    result = prove_rules_can_fail(rules, sweep)
+    assert result == {rule.name: True for rule in rules}, result
+
+
+def assert_rules_are_complete(rules, at_least):
+    """Every rule has a name, a check and a breaker, the names are unique, and there are at least `at_least` of them."""
+    assert len({rule.name for rule in rules}) == len(rules) >= at_least
+    assert all(callable(rule.check) and callable(rule.breaker) for rule in rules)

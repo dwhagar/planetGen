@@ -102,7 +102,8 @@ def chart(history, class_id, grade=0):
         stages.append({"number": number, "name": name, "age": f"{stage['age_gyr']:.2f}"})
         parts.append(f'<line class="life-air-stage" x1="{column:.1f}" x2="{column:.1f}" y1="{TOP}" y2="{HEIGHT - BOTTOM}"/>')
         parts.append(f'<text class="life-air-stage-number" x="{column:.1f}" y="{TOP - 7}" text-anchor="middle">{number}</text>')
-    for gas in history["gases"]:
+    styled = [(gas, SERIES.get(gas["formula"], "life-air-other")) for gas in history["gases"]]
+    for gas, css in styled:
         points, previous = [], None
         for age, value in gas["steps"]:
             if previous is not None:
@@ -111,10 +112,9 @@ def chart(history, class_id, grade=0):
             previous = value
         points.append((x(top), y(previous)))
         path = " ".join(f"{px:.1f},{py:.1f}" for px, py in points)
-        parts.append(f'<polyline class="life-air-line {SERIES.get(gas["formula"], "life-air-other")}" points="{path}"/>')
+        parts.append(f'<polyline class="life-air-line {css}" points="{path}"/>')
     parts.append("</svg>")
-    legend = "".join(f'<li><span class="life-air-key {SERIES.get(gas["formula"], "life-air-other")}"></span> {escape(gas["name"])}</li>'
-                     for gas in history["gases"])
+    legend = "".join(f'<li><span class="life-air-key {css}"></span> {escape(gas["name"])}</li>' for gas, css in styled)
     spans = sorted({age for gas in history["gases"] for age, _ in gas["steps"]} | {top})
     rows = []
     for start, end in zip(spans, spans[1:]):

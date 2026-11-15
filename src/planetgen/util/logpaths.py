@@ -237,7 +237,6 @@ def warmup_log_path(config=None):
 
 def main(argv=None):
     """`python -m planetgen.util.logpaths update.log` prints the path of a job log, for the shell scripts (`update.sh` appends to `update.log`)."""
-    import sys
     argv = sys.argv[1:] if argv is None else argv
     if len(argv) != 1 or argv[0] not in JOB_LOG_NAMES:
         raise SystemExit(f"usage: python -m planetgen.util.logpaths {{{'|'.join(JOB_LOG_NAMES)}}}")

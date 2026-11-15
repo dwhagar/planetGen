@@ -24,6 +24,7 @@ from dataclasses import dataclass
 
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
+from planetgen.util import log
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "design_flags.json")
 """str: The data file."""
@@ -122,5 +123,6 @@ def check(recipes=None, targets=None):
             if recipes.raw_weight(entry, off, gated=False) != 0:
                 problems.append(f"{item.row}: not zero when no flag is set")
         except Exception as error:  # a weight that cannot be read without its flags is also a problem
+            log.swallowed("physics/design_flags", "check", error)
             problems.append(f"{item.row}: cannot be read with no flag set ({error})")
     return tuple(problems)

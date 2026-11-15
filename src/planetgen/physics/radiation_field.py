@@ -20,7 +20,7 @@ average of `1 / (R^2 + d^2 - 2 R d cos(phi))` over `phi` is exactly `1 / (R^2 - 
 `ORBIT_SAMPLES` points in mean anomaly. A body round a close pair has the pair as its host (a combined source) and the stars further out as these.
 
 **What it leaves out (stated).** The two orbits are taken coplanar (a mutual inclination only lengthens the mean separation, so this is the upper bound on the
-companion's part); a subtree of stars is one point at its center of mass, as `planet_zones.flux_at` takes it; no star shadows another; a source with no stored
+companion's part); a subtree of stars is one point at its center of mass, as `planet_zones.companion_orbits` takes it; no star shadows another; a source with no stored
 value of a band gives none of that band (`None` is skipped, not guessed).
 
 **What it feeds.** `starlight_w_m2` is the mean starlight a body's temperature, air, albedo, ice and runaway greenhouse test go by; `field_at` gives the whole field
@@ -53,6 +53,12 @@ class Companion:
     offset_au: tuple | None = None
     """tuple or None: Where the source stood from the host at the system's epoch, `(x, y, z)` AU in the system's frame (GEN.1458: the direction its light comes
     from, which `sky_suns` turns into a declination). `None` when the tree has no positions to give."""
+    normal: tuple | None = None
+    """tuple or None: The unit normal `(x, y, z)` of the plane the source moves in about the host, in the system's frame (GEN.1535: from two places of it a fraction of its period apart, so
+    the nodal pull it puts on a planet's orbit can be worked from the angle between the two planes). `None` when the tree has no positions to give or the two places are in line."""
+    dark: bool = False
+    """bool: Whether the source is a dark member of the tree that glows (a brown dwarf, a neutron star, a black hole with a disk; `dark_light.DarkSource`, GEN.1501) and not a star: it gives
+    light, and a reader that counts the mass or the stars of the system (the truncation of a disk) leaves it out."""
 
 
 def attach(host, companions):
@@ -144,12 +150,12 @@ def field_at(host, distance_au):
     The `Field` on a body at `distance_au` (the circle of its mean flux round the host, `orbit_elements.flux_distance_au`; a moon's is its planet's) from the
     star `host` and the companions attached to it.
     """
-    sources = _geometry(host, distance_au)
+    sources = [(member_no, _per_au(star), factor) for member_no, star, factor in _geometry(host, distance_au)]
     bands = {}
     for name in Field.__dataclass_fields__:
         parts = {}
-        for member_no, star, factor in sources:
-            value = _per_au(star)[name]
+        for member_no, per_au, factor in sources:
+            value = per_au[name]
             if value is not None:
                 parts[member_no] = value * factor
         bands[name] = Band(sum(parts.values()), parts)

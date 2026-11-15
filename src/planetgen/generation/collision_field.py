@@ -60,7 +60,7 @@ def rogue_density_pc3():
 
 def non_grazing_share():
     """The share of the hits that are not grazing, `b_crit^2` (`rogue_collision.impact_angle_cdf` at the critical impact parameter): the rest are hit-and-runs that leave no field."""
-    m1, m2, r1, r2 = _pair()
+    _m1, _m2, r1, r2 = _pair()
     return rogue_collision.impact_angle_cdf(rogue_collision.critical_impact_parameter(r1, r2))
 
 

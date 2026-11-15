@@ -89,24 +89,24 @@ def _step_process_options():
     return {"start_new_session": True}
 
 
-def _stop_tree(proc):
-    """Stops a step and every process it started."""
+def _signal_tree(proc, sig):
+    """Sends `sig` to a running step's process group (the step and every process it started); nothing for a step that is gone."""
     if proc is None or proc.poll() is not None:
         return
     try:
-        os.killpg(proc.pid, signal.SIGTERM)
+        os.killpg(proc.pid, sig)
     except OSError:
         pass
+
+
+def _stop_tree(proc):
+    """Stops a step and every process it started."""
+    _signal_tree(proc, signal.SIGTERM)
 
 
 def _kill_tree(proc):
     """Kills a step and every process in its group, for a step that ignored the request to stop."""
-    if proc is None or proc.poll() is not None:
-        return
-    try:
-        os.killpg(proc.pid, signal.SIGKILL)
-    except OSError:
-        pass
+    _signal_tree(proc, signal.SIGKILL)
 
 
 def _reap(proc):
@@ -117,6 +117,26 @@ def _reap(proc):
         proc.wait(timeout=STOP_WAIT_SECONDS)
     except subprocess.TimeoutExpired:
         proc.kill()
+
+
+def _say_ended(job_dir, job, state):
+    """
+    Writes into the job's log, and its records, that the job was ended and why (OPS.255): a job that RQ's time limit (or any failure of the runner) ended stopped its step with nothing in the log,
+    and a run that lost its starter that way went silent for hours. The stage the job was at is the one that failed.
+    """
+    try:
+        from planetgen.util import logrecord
+        counts = _step_stage_counts(job["steps"])
+        index = max(int(state.get("step") or 1), 1)
+        first = sum(counts[:index - 1]) + 1
+        record = logrecord.stage_record(logrecord.STAGE_FAILED, "job", first, sum(counts), seconds=time.time() - float(state.get("step_started_at") or state["started_at"]),
+                                        reason=state["error"], count=counts[index - 1])
+        with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
+            log.write(("\n" + logrecord.display_line(record) + "\n").encode("utf-8"))
+        with open(os.path.join(job_dir, RECORDS_FILE), "ab", buffering=0) as records:
+            records.write((logrecord.file_line(record) + "\n").encode("utf-8"))
+    except Exception as exc:  # noqa: BLE001 -- the state file already says it; the line is a courtesy to the log
+        planetgen_log.swallowed("web/job_runner", "_say_ended", exc)
 
 
 def _record_memory(job_dir, log, watch, index, label, first, count):
@@ -132,8 +152,8 @@ def _record_memory(job_dir, log, watch, index, label, first, count):
         entries.append({"step": index, "label": label, "first_stage": first, "stages": count,
                         "seconds": round(watch.peaks["seconds"], 1), "peaks": watch.peaks})
         _write_json(path, entries)
-    except Exception:  # noqa: BLE001 -- a job is never lost to its memory note
-        pass
+    except Exception as exc:  # noqa: BLE001 -- a job is never lost to its memory note
+        planetgen_log.swallowed("web/job_runner", "_record_memory", exc)
 
 
 def _worker_pid(job_dir):
@@ -154,8 +174,8 @@ def _drop_queue(job_id):
 
         connection = redisqueue.connect()
         redisqueue.queue(jobs.QUEUE_PREFIX + job_id, connection).delete(delete_jobs=False)
-    except Exception:  # noqa: BLE001 -- a leftover empty queue is harmless
-        pass
+    except Exception as exc:  # noqa: BLE001 -- a leftover empty queue is harmless
+        planetgen_log.swallowed("web/job_runner", "_drop_queue", exc)
 
 
 def _release_lock(job_id):
@@ -164,8 +184,8 @@ def _release_lock(job_id):
         from planetgen.web import jobs
 
         jobs.release_lock(job_id)
-    except Exception:  # noqa: BLE001 -- a lock left behind is cleared by the next job
-        pass
+    except Exception as exc:  # noqa: BLE001 -- a lock left behind is cleared by the next job
+        planetgen_log.swallowed("web/job_runner", "_release_lock", exc)
 
 
 def _start_waiting_job(jobs_dir, job_dir):
@@ -175,7 +195,8 @@ def _start_waiting_job(jobs_dir, job_dir):
         from planetgen.web import jobs
 
         jobs.promote_queued(jobs_dir)
-    except Exception:  # noqa: BLE001 -- the job stays queued
+    except Exception as exc:  # noqa: BLE001 -- the job stays queued
+        planetgen_log.swallowed("web/job_runner", "_start_waiting_job", exc)
         _log_traceback(job_dir)
 
 
@@ -193,6 +214,12 @@ def _mysql_config(job):
     )
 
 
+def _control_connection(job):
+    """A connection to the control database of the job's server (imports planetGen)."""
+    from planetgen.db import store
+    return store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
+
+
 def _run_line(job):
     """
     The job log's first line (OPS.10): the galaxy seed when the job
@@ -205,7 +232,8 @@ def _run_line(job):
     try:
         from planetgen.db import store
         from planetgen.galaxy import version_key
-    except Exception:  # noqa: BLE001 -- the job runs without the line's details
+    except Exception as exc:  # noqa: BLE001 -- the job runs without the line's details
+        planetgen_log.swallowed("web/job_runner", "_run_line", exc)
         return f"Galaxy seed unknown, PlanetGen unknown, run: {run}"
     seed = None
     try:
@@ -214,8 +242,8 @@ def _run_line(job):
             seed = store.get_galaxy_seed(conn)
         finally:
             conn.close()
-    except Exception:  # noqa: BLE001 -- no database or no galaxy yet
-        pass
+    except Exception as exc:  # noqa: BLE001 -- no database or no galaxy yet
+        planetgen_log.swallowed("web/job_runner", "_run_line", exc)
     return version_key.run_line(seed, run)
 
 
@@ -249,8 +277,20 @@ def _staged_command(argv):
     try:
         _parser, parsers = generate_cli.build_parser()
         return argv[start], parsers[argv[start]].parse_args(argv[start + 1:])
-    except (SystemExit, Exception):  # noqa: BLE001 -- the step then uses its recorded time
+    except (SystemExit, Exception) as exc:  # noqa: BLE001 -- the step then uses its recorded time
+        planetgen_log.swallowed("web/job_runner", "_staged_command", exc)
         return None
+
+
+def runs_queue_run(job):
+    """
+    Whether a step of `job` is a command of the generator (`planetgen.cli.generate`: `galaxy`, `plan`, `sector`, `finish-run`, `run-job`, `warm`, `check-db` and the rest all make their work a run on the queue) whose work is units that the run's watch judges by their progress, not by a clock (OPS.255). Read from the command line alone, so a
+    command the runner does not know by name, or a spec that does not parse, still counts. Any other step (a reset, a download) is one process the clock is all there is to judge it by.
+    """
+    from planetgen.web import jobs
+
+    start = len(jobs.GENERATE_COMMAND) + 1
+    return any(len(step["argv"]) > start and step["argv"][1:start] == list(jobs.GENERATE_COMMAND) for step in job.get("steps", ()))
 
 
 def _job_entries(argv):
@@ -266,7 +306,8 @@ def _job_entries(argv):
         _parser, parsers = generate_cli.build_parser()
         shared = parsers["run-job"].parse_args(argv[start + 1:])
         return job.parse_entries(shared.spec, shared, parsers, generate_cli.validate_command)
-    except (SystemExit, Exception):  # noqa: BLE001 -- the step then uses its recorded time
+    except (SystemExit, Exception) as exc:  # noqa: BLE001 -- the step then uses its recorded time
+        planetgen_log.swallowed("web/job_runner", "_job_entries", exc)
         return None
 
 
@@ -363,16 +404,15 @@ def expected_seconds(job):
     has one, or without a control database. The web server calls this to give the job's RQ entry a time limit.
     """
     try:
-        from planetgen.db import store
-
         from planetgen.web import jobs
 
-        conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
+        conn = _control_connection(job)
         try:
             per_step, _per_stage = step_estimates(conn, job["steps"], recorded_step_seconds(jobs.configured_jobs_dir()))
         finally:
             conn.close()
-    except Exception:  # noqa: BLE001 -- no estimate: the job gets the fixed limit
+    except Exception as exc:  # noqa: BLE001 -- no estimate: the job gets the fixed limit
+        planetgen_log.swallowed("web/job_runner", "expected_seconds", exc)
         return None
     return None if not per_step or any(seconds is None for seconds in per_step) else sum(per_step)
 
@@ -385,14 +425,13 @@ def _run_estimates(job, jobs_dir):
     steps = job["steps"]
     nothing = ([None] * len(steps), [None] * sum(_step_stage_counts(steps)))
     try:
-        from planetgen.db import store
-
-        conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
+        conn = _control_connection(job)
         try:
             return step_estimates(conn, steps, recorded_step_seconds(jobs_dir))
         finally:
             conn.close()
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        planetgen_log.swallowed("web/job_runner", "_run_estimates", exc)
         return nothing
 
 
@@ -416,8 +455,8 @@ def _log_traceback(job_dir):
 
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
             log.write(("\n" + traceback.format_exc()).encode("utf-8"))
-    except Exception:  # noqa: BLE001 -- the error is in state.json regardless
-        pass
+    except Exception as exc:  # noqa: BLE001 -- the error is in state.json regardless
+        planetgen_log.swallowed("web/job_runner", "_log_traceback", exc)
 
 
 def run(job_dir):
@@ -548,12 +587,14 @@ def _run(job_dir, job, beat):
         elif state["status"] == "running":
             state["status"] = "succeeded"
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost
+        planetgen_log.swallowed("web/job_runner", "_run", exc)
         # RQ's time limit (`jobs.job_time_limit`) raises in this thread: the step it was waiting on goes with it.
         _stop_tree(current["proc"])
         _reap(current["proc"])
         state["status"] = "failed"
         state["error"] = (f"The job ran past its time limit and RQ ended it: {exc}"
                           if type(exc).__name__ == "JobTimeoutException" else f"The job runner failed: {exc}")
+        _say_ended(job_dir, job, state)
         _log_traceback(job_dir)
         planetgen_log.error("The job runner failed (job %s): %s", job["id"], exc, exc_info=True)
     finally:

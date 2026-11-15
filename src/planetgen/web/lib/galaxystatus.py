@@ -23,6 +23,7 @@ import time
 import redis
 
 from planetgen.queue import hourdisplay, redisclient, runeta, runrecord
+from planetgen.util import log
 
 CACHE_SECONDS = 5.0
 """float: How long a process keeps the answer."""
@@ -106,7 +107,8 @@ def status(database):
             return dict(kept[1])
     try:
         answer = compute(_client(), database)
-    except (redis.RedisError, OSError, ValueError, KeyError):
+    except (redis.RedisError, OSError, ValueError, KeyError) as exc:
+        log.degraded("galaxystatus", "reading the galaxy status from Redis failed, so it shows as inactive", exc)
         answer = dict(INACTIVE)
     with _lock:
         _cache[database] = (now + CACHE_SECONDS, answer)

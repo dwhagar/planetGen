@@ -26,9 +26,8 @@ from the ionizing photon rate" and "Lifetimes by class":
 
 import math
 
-from planetgen.physics import imf, stellar_evolution
+from planetgen.physics import imf, stellar_evolution, unit_registry as units
 from planetgen.util import draw
-from planetgen.physics import unit_registry as units
 
 _pc_to_ly = units.converter("pc", "ly")
 
@@ -207,7 +206,8 @@ def cluster_hosts(cluster_mass_sol, age_myr):
 def total_log_q(masses, extra_log_q=()):
     """log10 of the summed photon rate of stars (`masses`, solar masses) and of any
     `extra_log_q` values; `None` when nothing ionizes."""
-    rates = [10.0 ** log_q_of_mass(m) for m in masses if log_q_of_mass(m) is not None]
+    logs = (log_q_of_mass(m) for m in masses)
+    rates = [10.0 ** log_q for log_q in logs if log_q is not None]
     rates.extend(10.0 ** value for value in extra_log_q)
     return math.log10(sum(rates)) if rates else None
 

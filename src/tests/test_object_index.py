@@ -11,6 +11,7 @@ from planetgen.db import objectindex, store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
+from planetgen.queue import commands
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 from tests.publicids import pid
@@ -252,7 +253,7 @@ def _unit(config, mode=None):
     args = {"database": config.database, "cap": None}
     if mode:
         args["index_mode"] = mode
-    return warmup.warm_object_index_unit(args, None)
+    return commands.run_alone("warm-object-index", args)
 
 
 def test_the_warm_command_builds_the_first_time_and_then_writes_only_what_changed(indexed_database):

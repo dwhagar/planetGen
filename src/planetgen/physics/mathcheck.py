@@ -45,20 +45,13 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from planetgen.galaxy import core_gas as coreGas, galactic_orbit, mass_chain, seed as galaxySeed
-from planetgen.physics import formation, imf
-from planetgen.physics import orbits
-from planetgen.physics import relations
-from planetgen.physics import surface_composition
-from planetgen.physics import units
-from planetgen.util import draw
-from planetgen.util import random as sampling
-from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, spherical
-from planetgen.physics import constants as pc, kepler, main_sequence, stellar_evolution
 from planetgen import tuning
-from planetgen.util import log
-from planetgen.physics import interior_heat, planet_kind, planets, radiogenic, unit_registry
-from planetgen.util import detmath
+from planetgen.galaxy import (core_gas as coreGas, density as galaxyDensity, galactic_orbit, mass_chain, sector as spaceSector,
+                              seed as galaxySeed, spherical)
+from planetgen.physics import (constants as pc, formation, imf, interior_heat, kepler, main_sequence, orbits, planet_kind, planets,
+                               radiogenic, relations, stellar_evolution, surface_composition, unit_registry, units)
+from planetgen.util import detmath, draw, log, random as sampling
+from planetgen.util.format import format_duration_seconds
 
 _msun_to_kg = unit_registry.converter("Msun", "kg")
 
@@ -368,12 +361,13 @@ def _reference_checks():
               "21.0 TW for the bulk silicate Earth of [R3416] edition (K 260 ppm, Th 83.4 ppb, U 21.8 ppb); "
               "docs/design/radiation-model.md section 6 ([R1203] equation 6 for the heat of each isotope)", unit="TW"),
         Check("earth_stagnant_lid_urey_ratio", "reference", "interior_heat.heat_flow(bulk silicate Earth, 1 Earth mass, 4.568 Gyr).urey_ratio",
-              lambda: interior_heat.heat_flow(_bulk_silicate_earth(), interior_heat.Interior(1.0e12, 250.0), pc.EARTH_MASS_TO_KG, 6371.0,
+              lambda: interior_heat.heat_flow(_bulk_silicate_earth(), interior_heat.Interior(1.0e12, 250.0), pc.EARTH_MASS_TO_KG, pc.EARTH_RADIUS_KM,
                                               radiogenic.REFERENCE_AGE_GY, radiogenic.Rock(0.675, 0.325, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)).urey_ratio,
               0.65, 0.12, "about 0.65 for stagnant-lid planets of 0.1 to 5 Earth masses at 4.5 Gyr ([R1716], "
               "[R1716] section 3.2.1; the Earth's own 0.47 to 0.52 is a mobile lid, [R3293])"),
         Check("earth_assembly_energy", "invariant", "interior_heat.binding_energy_j(Earth, no core)",
-              lambda: interior_heat.binding_energy_j(pc.EARTH_MASS_TO_KG, 6.371e6, 0.0, 0.0) / (pc.G * pc.EARTH_MASS_TO_KG ** 2 / 6.371e6),
+              lambda: (interior_heat.binding_energy_j(pc.EARTH_MASS_TO_KG, pc.EARTH_RADIUS_M, 0.0, 0.0)
+                       / (pc.G * pc.EARTH_MASS_TO_KG ** 2 / pc.EARTH_RADIUS_M)),
               0.6, 1e-12, "the binding energy of a uniform sphere is 3/5 G M^2 / R"),
         Check("chondrite_radiogenic_heat", "reference", "radiogenic.heat_w_per_kg(CI chondrite, 4.568 Gyr)",
               lambda: radiogenic.heat_w_per_kg(_ci_chondrite(), radiogenic.REFERENCE_AGE_GY) * 1e12, 3.5, 0.05,
@@ -500,7 +494,7 @@ def _unit_chain_consistency():
 
 def _speed_of_light_consistency():
     """LIGHTYEAR_M, SPEED_OF_LIGHT_M_S and SPEED_OF_LIGHT_KMS describe one c."""
-    c_from_ly = pc.LIGHTYEAR_M / (365.25 * 86400)
+    c_from_ly = pc.LIGHTYEAR_M / pc.SECONDS_PER_YEAR
     return max(_rel_err(pc.SPEED_OF_LIGHT_M_S, c_from_ly),
                _rel_err(pc.SPEED_OF_LIGHT_KMS * 1000, c_from_ly))
 
@@ -1062,6 +1056,7 @@ def run_check(check):
     try:
         actual = check.compute()
     except Exception as exc:  # noqa: BLE001 -- any error is a failed check
+        log.swallowed("physics/mathcheck", "run_check", exc)
         return Result(check, False, error=f"{type(exc).__name__}: {exc}",
                       seconds=time.perf_counter() - start)
     actual = float(actual)
@@ -1083,14 +1078,24 @@ def format_report(results, verbose=False):
     A plain-text report: one line per failure (or per check, `verbose`),
     then a summary line.
     """
-    failed = failures(results)
-    lines = [r.describe() for r in results if verbose or not r.passed]
-    seconds = sum(r.seconds for r in results)
+    return report_text([_row_of(result) for result in results], verbose)
+
+
+def _row_of(result):
+    """A `Result` as plain JSON, as a piece of the `check-math` unit hands it to the engine: its `name`, whether it `passed`, the `line` that describes it and the `seconds` it took."""
+    return {"name": result.name, "passed": result.passed, "line": result.describe(), "seconds": result.seconds}
+
+
+def report_text(rows, verbose=False):
+    """`format_report` from the rows of `_row_of` (the report of a unit whose pieces are the checks)."""
+    failed = [row for row in rows if not row["passed"]]
+    lines = [row["line"] for row in rows if verbose or not row["passed"]]
+    seconds = sum(row["seconds"] for row in rows)
     if failed:
-        lines.append(f"Math check FAILED: {len(failed)} of {len(results)} checks failed "
-                     f"({', '.join(r.name for r in failed)}) in {seconds:.2f} s.")
+        lines.append(f"Math check FAILED: {len(failed)} of {len(rows)} checks failed "
+                     f"({', '.join(row['name'] for row in failed)}) in {format_duration_seconds(seconds)}.")
     else:
-        lines.append(f"Math check passed: all {len(results)} checks in {seconds:.2f} s.")
+        lines.append(f"Math check passed: all {len(rows)} checks in {format_duration_seconds(seconds)}.")
     return "\n".join(lines)
 
 
@@ -1100,19 +1105,23 @@ def expand_check_math(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def check_math_unit(params, report):
-    """
-    The `check-math` command (PERF.119): runs every check and reports (TEST.68).
+def check_math_pieces(params, cursor):
+    """The pieces of the `check-math` unit (OPS.204): one check each, as its place in `all_checks()`, after the first `cursor` of them."""
+    return list(range(len(all_checks())))[cursor:]
 
-    Args:
-        params (dict): `verbose` (a line for every check, not only the failures).
-        report (callable): Unused: the unit is one step.
 
-    Returns:
-        dict: `failed` (how many checks failed) and `report`, the text `format_report` gives.
+def check_math_piece(params, index, ctx):
     """
-    results = run_all()
-    return {"failed": len(failures(results)), "report": format_report(results, verbose=bool(params.get("verbose")))}
+    One piece of the `check-math` command (PERF.119): runs check number `index` of `all_checks()` and gives its row (`_row_of`); a check that raises is a failure, never a crash.
+    """
+    return _row_of(run_check(all_checks()[index]))
+
+
+def check_math_gather(params, rows, ctx):
+    """
+    The result of the `check-math` command (TEST.68): `failed` (how many checks failed) and `report`, the text `format_report` gives (a line for every check with `verbose`, not only the failures).
+    """
+    return {"failed": sum(1 for row in rows if not row["passed"]), "report": report_text(rows, verbose=bool(params.get("verbose")))}
 
 
 _STARTUP_RESULTS = None

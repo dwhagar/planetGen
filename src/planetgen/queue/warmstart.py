@@ -107,8 +107,8 @@ def keep(database, client=None):
     """Keeps the lock alive for another `LOCK_SECONDS` (a warm-up that waits for a long generation run); best effort."""
     try:
         (client or _client()).expire(lock_key(database), LOCK_SECONDS)
-    except redis.RedisError:
-        pass
+    except redis.RedisError as exc:
+        log.degraded("warmstart", "keeping the warm-up lock alive in Redis failed", exc)
 
 
 def release(database, pid=None, client=None):
@@ -175,7 +175,7 @@ def request(database, kind):
         client.set(lock_key(database), pid, xx=True, keepttl=True)
         return "started"
     except (redis.RedisError, OSError) as exc:
-        log.warning(f"the cache warm-up did not start after a {kind!r} change ({exc}); run `planetgen warm`.", stderr=True)
+        log.warning(f"The cache warm-up did not start after a {kind!r} change ({exc}); run `planetgen warm`.", stderr=True)
         return "failed"
 
 

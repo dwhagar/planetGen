@@ -16,7 +16,7 @@
     <thead><tr><th scope="col">Stand-in</th><th scope="col">Section</th><th scope="col">What it is</th><th scope="col">Tier</th></tr></thead>
     <tbody>
       {%- for row in level.rows %}
-      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.section|chem }}</td><td>{{ row.what|chem }}</td><td>{{ row.tier }}</td></tr>
+      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id|chem }}</a></th><td>{{ row.section|chem }}</td><td>{{ row.what|chem }}</td><td>{{ row.tier|chem }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>

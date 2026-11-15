@@ -24,6 +24,7 @@ import json
 import time
 
 from planetgen.queue import redisqueue, runrecord
+from planetgen.util import log
 
 def key():
     """The pause flag, `planetgen:queue:paused` (the tests' prefix, `runrecord.PREFIX`, in a test): a string whose value is
@@ -59,7 +60,8 @@ def state(connection=None):
     try:
         connection = connection or redisqueue.connect()
         raw = connection.get(key())
-    except Exception:  # noqa: BLE001 -- no Redis: nothing runs, nothing is paused
+    except Exception as exc:  # noqa: BLE001 -- no Redis: nothing runs, nothing is paused
+        log.swallowed("queue/pause", "state", exc)
         return free
     if raw is None:
         return free
@@ -88,7 +90,8 @@ def _solo_is_over(connection, solo):
             return True
         status = job.get_status(refresh=True)
         return str(getattr(status, "value", status)) in ENDED_STATUSES
-    except Exception:  # noqa: BLE001 -- the job cannot be read: the hold stays, an admin can lift it
+    except Exception as exc:  # noqa: BLE001 -- the job cannot be read: the hold stays, an admin can lift it
+        log.swallowed("queue/pause", "_solo_is_over", exc)
         return False
 
 
@@ -97,8 +100,8 @@ def _drop(connection, raw):
     try:
         if connection.get(key()) == raw:
             connection.delete(key())
-    except Exception:  # noqa: BLE001 -- it expires by being read again
-        pass
+    except Exception as exc:  # noqa: BLE001 -- it expires by being read again
+        log.swallowed("queue/pause", "_drop", exc)
 
 
 def solo_of(connection=None):

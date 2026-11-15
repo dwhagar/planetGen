@@ -1560,7 +1560,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Impact-formed moon (synestia condensate)</td>
-<td>no metal phase in the condensate; iron enters as FeO; a few wt % metal exsolves; moderately volatile elements depleted by silicate-vapor equilibration; vapor holds about 10 wt % Si; pressures of tens of bar; H in the Moon 1-1000 ppm H<sub>2</sub>O-equivalent</td>
+<td>no metal phase in the condensate; iron enters as FeO; a few wt % metal exsolves; moderately volatile elements depleted by silicate-vapour equilibration; vapour holds about 10 wt % Si; pressures of tens of bar; H in the Moon 1-1000 ppm H<sub>2</sub>O-equivalent</td>
 <td>[R2724]</td>
 <td>READ</td>
 </tr>
@@ -1983,7 +1983,7 @@ main{padding:16px 16px 60px}}
 <li>Per system: draw snow-line scatter s ~ N(0, 0.2) in log10 and set a_snow,sys = a_snow 10^s.</li>
 <li>For each belt or field (distance a, width), compute x = a / a_snow,sys.</li>
 <li>Taxon weights: smooth functions of x calibrated to the DeMeo-Carry Table 6 kernel (2.4) (PARAMETRISATION): for x well below the Solar-System-calibrated inner boundary, mostly igneous and ordinary classes (S, V, E, K, L, A); for x around the middle, C and B; beyond, P and D. The kernel gives the sequence, not the edges.</li>
-<li>Draw the taxonomic mass fractions as a Dirichlet sample centered on the kernel weights (PARAMETRISATION, concentration parameter as an adjustable input).</li>
+<li>Draw the taxonomic mass fractions as a Dirichlet sample centred on the kernel weights (PARAMETRISATION, concentration parameter as an adjustable input).</li>
 <li>For each taxon, draw rho_bulk from the [R0666: Table 3] mean and scatter (normal, truncated), the analogue group, and Britt grain density.</li>
 <li>Albedo per taxon: DeMeo-Carry mean (Table 4) times a log-normal scatter (sigma in log10 to be fitted; none published in what I read).</li>
 <li>Aggregate: mean albedo, mean bulk density, mean porosity, ice fraction, metal fraction (mass-weighted).</li>
@@ -2007,7 +2007,7 @@ main{padding:16px 16px 60px}}
 <li>Ice line: r_ice = 20 R_J (M_p/M_J)^(2/3) (tau_G/5 Myr)^(-1/3) in absolute kilometres (1.43e6 km at M_p = M_J, 5 Myr). Compare with the formation distance, not the present distance.</li>
 <li>Ice fraction as a log-linear ramp: f_ice = f_inf * clamp(ln(r/(0.4 r_ice)) / ln(2.5), 0, 1) with f_inf ~ truncated normal(0.35, 0.10) on [0.1, 0.6]. Parameters 0.4 and f_inf are a PARAMETRISATION. COMPUTED check against the Galilean distances at r_ice = 20 R_J: Io 0, Europa 0.062, Ganymede 0.24, Callisto 0.35 (ordering correct, Ganymede and Callisto under the interior-model values, consistent with the simple-mixing failure mode in 2.11).</li>
 <li>Rocky block of each moon: anhydrous inside the ice line; between 0.4 and 1.0 of r_ice partly hydrated (serpentine, antigorite density 2.585); outside, C-like or CI-like rock. PARAMETRISATION; Europa's 8 % water/ice (2ND-HAND) supports a partial transition.</li>
-<li>Metal fraction by family (H about 17 wt %, L about 8, LL about 3: RECALLED) or from Lodders Fe minus oxidized Fe.</li>
+<li>Metal fraction by family (H about 17 wt %, L about 8, LL about 3: RECALLED) or from Lodders Fe minus oxidised Fe.</li>
 <li>Density from the mixing rule + compression (EOS above the regime limit).</li>
 <li>Inner moons of a ring-origin system: ice fraction near the ring composition (ice-rich); selected when the parent has a massive ring and the moon forms near the Roche radius. Rules not sourced (section 5).</li>
 </ol>
@@ -2048,7 +2048,7 @@ main{padding:16px 16px 60px}}
 <td>rock mass fraction, icy bodies</td>
 <td>truncated normal(0.70, 0.08), [0.45, 0.95]</td>
 <td>[R0390] abstract</td>
-<td>READ (center only)</td>
+<td>READ (centre only)</td>
 </tr>
 <tr>
 <td>delta_RI, comets</td>

@@ -104,8 +104,8 @@ def _stat(text_html):
 def _star_stats(summary, context):
     return [_stat(star_type_html(summary.get("star_type") or "", context.class_url)),
             _stat(esc(summary["role"].capitalize()) if summary.get("role") not in (None, "single", "member") else ""),
-            _stat(f"{measured_html('kg', summary['mass_kg'])}" if summary.get("mass_kg") is not None else ""),
-            _stat(f"{measured_html('W', summary['luminosity_w'])}" if summary.get("luminosity_w") is not None else "")]
+            _stat(measured_html("kg", summary["mass_kg"]) if summary.get("mass_kg") is not None else ""),
+            _stat(measured_html("W", summary["luminosity_w"]) if summary.get("luminosity_w") is not None else "")]
 
 
 def poi_mark_html(kind, summary, context):
