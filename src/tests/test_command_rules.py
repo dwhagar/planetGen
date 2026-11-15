@@ -37,7 +37,7 @@ def test_a_command_is_a_registered_kind_with_json_arguments_and_a_result(kind):
 @pytest.mark.parametrize("kind", sorted(commands.REGISTRY))
 def test_a_command_declares_how_long_its_longest_unit_runs_or_that_it_is_one_unit(kind):
     spec = commands.spec(kind)
-    assert spec.whole or spec.unit_seconds, f"{kind}: set whole=True, or unit_seconds (PERF.155)"
+    assert spec.one_unit or spec.unit_seconds, f"{kind}: set breaks=ONE_UNIT, or unit_seconds (PERF.155)"
 
 
 @pytest.mark.parametrize("kind", sorted(commands.REGISTRY))

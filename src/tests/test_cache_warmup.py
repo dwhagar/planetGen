@@ -256,7 +256,7 @@ def test_an_object_family_is_cut_into_slices_that_warm_every_object_once_and_non
     assert sum(result["warmed"] for result in results) == sum(args["count"] for args in slices)
     assert sum(result["left_out"] for result in results) == 0
     spec = commands.spec(kind)
-    assert not spec.whole and 0 < spec.unit_seconds <= 300
+    assert not spec.one_unit and 0 < spec.unit_seconds <= 300
     assert spec.unit_seconds >= warmup.OBJECT_SECONDS * 250      # the declared longest is for the real slice size
 
 
