@@ -1734,12 +1734,44 @@ def planned_items(params):
     return [index for address in pending.addresses() for index in address], []
 
 
+def sector_weights(batch_density, args, items, edge_pc):
+    """
+    How much work each sector of `items` (flat `shell, band, wedge` triples) is expected to be (PERF.268): the systems its density expects, at least 1, as whole numbers, because a sector's time
+    follows its systems and a dense one costs several sparse ones (Boss's run: 5.9 times the local density, 23 s a system). The unit's pieces carry them as their `weight` (`queue/engine.py`), and
+    a unit's cost is their sum, so the bar, the stuck judge's expected rate and the job profile all count expected systems and not sectors.
+
+    Args:
+        batch_density (_BatchDensity): Resolves each sector's own density.
+        args (argparse.Namespace): The run's arguments.
+        items (list): The sectors, three numbers each.
+        edge_pc (float): The sector edge, parsecs.
+
+    Returns:
+        list[int]: One weight a sector, in order; 1 for a sector beyond the grid's reach.
+    """
+    weights = []
+    for place in range(0, len(items), 3):
+        address = tuple(items[place:place + 3])
+        resolved = batch_density.resolve(args, address, sector_position_pc(*address, edge_pc))
+        weights.append(1 if resolved is None else max(1, round(run_common._expected_systems(resolved))))
+    return weights
+
+
+def _chunk_weights(batch_density, args, chunk, edge_pc):
+    """`sector_weights`, or `None` when the density cannot be read (no skeleton yet): the unit then weighs a sector as 1, as it did before PERF.268, and the log says why."""
+    try:
+        return sector_weights(batch_density, args, chunk, edge_pc)
+    except Exception as exc:        # noqa: BLE001 -- an estimate of the work is not worth the stage
+        log.swallowed("queue", "weighing the sectors of a unit by their expected systems", exc)
+        return None
+
+
 def expand_generate_sectors(params):
     """
     The sector stages' cut (PERF.107; `generate-start-sector`, `generate-neighborhood` and `generate-sectors`): the
     addresses of `params["items"]` (the run's sectors to generate, flat `shell, band, wedge` triples, in the order to
     generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
-    A unit's cost is its sectors.
+    A unit's cost is its sectors' expected systems (PERF.268, `sector_weights`), one a sector where the density is not known.
     """
     if getattr(_sector_args_of(params), "around", None) is not None:
         return _expand_region(params)
@@ -1751,13 +1783,17 @@ def expand_generate_sectors(params):
     items, suffixes = planned_items(params) if params.get("planned") else (params["items"], [])
     count = len(items) // 3
     size = max(1, -(-count // SECTOR_UNITS_MAX))
+    weights_of = _chunk_weights(_BatchDensity(store.mysql_config_from_args(_sector_args_of(params))), _sector_args_of(params), items, params["edge_pc"])
     units = []
     for start in range(0, count, size):
         chunk = items[3 * start:3 * (start + size)]
         unit = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"], "items": chunk}
         if suffixes:
             unit["suffixes"] = suffixes[start:start + size]
-        units.append((unit, float(len(chunk) // 3)))
+        weights = None if weights_of is None else weights_of[start:start + size]
+        if weights is not None:
+            unit["weights"] = weights
+        units.append((unit, float(sum(weights)) if weights is not None else float(len(chunk) // 3)))
     detail = {"sectors": count}
     if warning:
         detail["warning"] = warning
@@ -1778,17 +1814,19 @@ def _saved_addresses(args):
 
 def generate_sectors_pieces(unit_args, cursor):
     """
-    The pieces of one unit of the sector stages (PERF.107, OPS.202), after `cursor`: one for each sector of the chunk, in order, as `{"address", "suffix"}` (what the log says after the address). A unit of a
+    The pieces of one unit of the sector stages (PERF.107, OPS.202), after `cursor`: one for each sector of the chunk, in order, as `{"address", "suffix", "weight"}` (what the log says after the address, and the expected systems the cut worked out, `sector_weights`, which the bar and the profile count). A unit of a
     stage run again after it stopped (`again`, PERF.182) has no piece for the sectors already saved.
     """
     items = unit_args["items"]
     suffixes = unit_args.get("suffixes", [])
     saved = _saved_addresses(_sector_args_of(unit_args)) if unit_args.get("again") else ()
+    weights = unit_args.get("weights")
     pieces = []
     for place in range(0, len(items), 3):
         address = tuple(items[place:place + 3])
         if address not in saved:
-            pieces.append({"address": list(address), "suffix": suffixes[place // 3] if suffixes else ""})       # by place: a run again skips some
+            pieces.append({"address": list(address), "suffix": suffixes[place // 3] if suffixes else "",
+                           "weight": weights[place // 3] if weights else 1})       # by place: a run again skips some
     return pieces[cursor:]
 
 
@@ -2893,15 +2931,22 @@ def _region_plan(args, edge_pc, bounds, say):
 
 def _expand_region(params):
     """The cut of a region run (GEN.1128): one unit of work per `region_run` unit, nearest first, less the sectors saved now (a rerun after a stop
-    builds only what is missing). A unit's cost is its sectors."""
+    builds only what is missing). A unit's cost is its sectors' expected systems (`sector_weights`)."""
     args = _sector_args_of(params)
     edge_pc = params["edge_pc"]
     bounds = _BatchDensity(store.mysql_config_from_args(args)).bounds
     plan = _region_run_plan(args, edge_pc, bounds, skip=_saved_addresses(args))
+    unit_items = [region_run.unit_items(unit, spherical.wedge_count) for unit in plan.units]
+    weights_of = _chunk_weights(_BatchDensity(store.mysql_config_from_args(args)), args, [number for items in unit_items for number in items], edge_pc)
     units = []
-    for unit in plan.units:
-        units.append(({"database": params["database"], "args": params["args"], "edge_pc": edge_pc,
-                       "items": region_run.unit_items(unit, spherical.wedge_count), "again": True}, float(unit.count)))
+    taken = 0
+    for unit, items in zip(plan.units, unit_items):
+        found = {"database": params["database"], "args": params["args"], "edge_pc": edge_pc, "items": items, "again": True}
+        weights = None if weights_of is None else weights_of[taken:taken + len(items) // 3]
+        taken += len(items) // 3
+        if weights is not None:
+            found["weights"] = weights
+        units.append((found, float(sum(weights)) if weights is not None else float(unit.count)))
     return commands.Expansion(units, {"sectors": plan.sectors, "units": len(units), "skipped": plan.skipped})
 
 

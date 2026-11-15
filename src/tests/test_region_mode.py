@@ -67,7 +67,8 @@ def test_the_units_of_the_cut_are_the_region_units_nearest_first(mysql_config):
     assert len(expansion.units) == len(expected.units) > 1
     for (unit, cost), planned in zip(expansion.units, expected.units):
         assert unit["items"] == region_run.unit_items(planned, spherical.wedge_count)
-        assert cost == planned.count <= 5 and unit["again"] is True
+        assert planned.count <= 5 and unit["again"] is True
+        assert len(unit["weights"]) == planned.count and all(weight >= 1 for weight in unit["weights"]) and cost == sum(unit["weights"])       # PERF.268: a unit costs its expected systems
     assert expansion.plan["sectors"] == expected.sectors and expansion.plan["skipped"] == 0
 
 

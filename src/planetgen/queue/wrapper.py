@@ -630,6 +630,8 @@ def advance(conn, run_id, index):
     while index < count:
         if _expand(conn, run_id, index):
             return
+        for role in planrows.END_ROLES:         # OPS.238: a stage with no unit to wait for ends where it opened: its rows say so, as a stage a unit completed does
+            planrows.mark_ended(conn, run_id, index, role)
         index += 1
     runrecord.finish_run(conn, run_id, "done")
 
@@ -881,7 +883,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                   + (f", debug areas {debug}" if debug else ""), area="queue")
         events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
         log.attach(events)
-        planrows.record_plan(conn, run_id, steps)       # OPS.238: the whole run as rows before its first stage opens
+        for key, lacking in planrows.record_plan(conn, run_id, steps).items():       # OPS.238: the whole run as rows before its first stage opens
+            log.warning(f"Stage {key} needs {', '.join(lacking)}, which no earlier stage of this run makes and no finished stage of this galaxy's rows says exists; it may find it stored.")
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             stage_at = index
