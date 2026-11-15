@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4274] - 2026-11-15
+
+**Headline:** The asteroid vocabulary says "oxidizing" and "oxidized", like the rest of the program.
+
+### Fixed
+- `physics/asteroid_vocabulary.py`: the text of the supergene and hematite names used the British "oxidising" and "OXIDISED"; the spelling sweep writes them "oxidizing" and "OXIDIZED". The name of the constant changed with it.
+
 ## [8.0.4273] - 2026-11-15
 
 **Headline:** A belt body made a planet no longer lies past the orbit the place's passing stars let a planet keep.
