@@ -1,6 +1,7 @@
 """OPS.220: failure by kind (`planetgen/queue/failures.py`). The classifier names a failure passing, killed, idle or lasting; a passing one is run again by the engine after a doubling, spread wait inside the
 run's budget (every attempt in the ledger); anything else is not run again."""
 
+import json
 import random
 
 import pymysql
@@ -142,3 +143,60 @@ def test_a_unit_that_does_not_fail_takes_nothing_from_the_budget(monkeypatch, my
     monkeypatch.setattr(units, "SLEEP", lambda seconds: pytest.fail("no wait"))
     assert "seconds" in units._do_unit(conn, run_id, 0, 0, "test", args, 1.0, row)
     assert failures.spent(conn, run_id) == (0, 0.0)
+
+
+# --- a unit run again continues from its cursor (OPS.261, OPS.219) -------------------------------------------------------------------------------------
+
+RESUME_PIECES = 6
+DONE_PIECES = []
+FAIL_AT = {}
+
+
+def _pieces(args, cursor):
+    return list(range(args["count"]))[cursor:]
+
+
+def _piece(args, piece, ctx):
+    DONE_PIECES.append(piece)
+    if FAIL_AT.get("piece") == piece:
+        FAIL_AT.clear()
+        raise _mysql(1213)
+    ctx.db.execute("INSERT INTO retry_probe (piece) VALUES (?)", (piece,))
+    return {"piece": piece}
+
+
+def _together(args, results, ctx):
+    return {"results": results}
+
+
+@pytest.mark.parametrize("failed", [0, 3, RESUME_PIECES - 1])
+def test_a_unit_run_again_after_a_passing_failure_goes_on_after_the_pieces_it_finished(monkeypatch, mysql_config, failed):
+    """The end of the piece-0 restart: the second attempt of the unit reads its cursor and does the pieces from the one that failed, writes no row twice, and gives the result an undisturbed unit gives."""
+    DONE_PIECES.clear()
+    FAIL_AT.clear()
+    monkeypatch.setitem(commands.REGISTRY, "test", commands.CommandSpec("test", "A test", expand=(__name__, "_pieces"), pieces=(__name__, "_pieces"), do=(__name__, "_piece"),
+                                                                       gather=(__name__, "_together"), resumes=True))
+    conn = redisqueue.connect()
+    database = wrapper.database_args(mysql_config)
+    run_id = runrecord.start_run(conn, "Failures", [runrecord.Stage("test", "T", units=1)], steps=[commands.Step("test", "test", "T", {"database": database}).as_dict()])
+    args = {"count": RESUME_PIECES, "database": database}
+    row = planrows.record_cut(conn, run_id, 0, "test", [(args, 1.0)], 1.0, {})[0]
+    galaxy = store.get_connection(mysql_config)
+    try:
+        galaxy.execute("CREATE TABLE IF NOT EXISTS retry_probe (piece INT NOT NULL)")
+        galaxy.execute("DELETE FROM retry_probe")
+        galaxy.commit()
+        FAIL_AT["piece"] = failed
+        monkeypatch.setattr(units, "SLEEP", lambda seconds: None)
+        result = units._do_unit(conn, run_id, 0, 0, "test", args, 1.0, row)
+        assert "seconds" in result
+        assert DONE_PIECES == [*range(failed + 1), *range(failed, RESUME_PIECES)], "the pieces before the failed one ran once, the failed one twice, the rest once"
+        galaxy.commit()
+        assert [r["piece"] for r in galaxy.execute("SELECT piece FROM retry_probe ORDER BY piece").fetchall()] == list(range(RESUME_PIECES)), "no piece wrote its data twice and none was lost"
+        assert [outcome for outcome, _text in _outcomes(mysql_config, row)] == ["failed", "done"]
+        stored = json.loads(conn.hget(runrecord.results_key(run_id, 0), 0))
+        assert stored["results"] == [{"piece": n} for n in range(RESUME_PIECES)], "the pieces done before the failure are in the result, as in an undisturbed unit's"
+    finally:
+        galaxy.execute("DROP TABLE IF EXISTS retry_probe")
+        galaxy.commit()
+        galaxy.close()
