@@ -18,7 +18,7 @@ from planetgen.physics import life_class_text, life_classes, life_readings
 from planetgen.physics.life_readings import ABUNDANCE_BANDS
 from planetgen.web.lib import help_registry
 from planetgen.web.lib.help_registry import Child, Term
-from planetgen.util.format import whole_or_general
+from planetgen.util.format import format_duration_seconds, whole_or_general
 from planetgen.util.wordlist import join_words
 
 TOPICS = (
@@ -253,7 +253,7 @@ def _gate_words(gate):
     if quantity == "hydrosphere":
         return "The surface has " + join_words((HYDROSPHERE_WORDS.get(v, v) for v in gate["in"]), "or")
     if quantity == "lit_liquid_hours":
-        return f"Light and liquid water at the surface (a sea, a seep, a seasonal melt or a spring) for at least {gate['min']:.0f} hours a year"
+        return f"Light and liquid water at the surface (a sea, a seep, a seasonal melt or a spring) for at least {format_duration_seconds(gate['min'] * 3600.0)} a year"
     if quantity == "pressure_pa" and gate.get("min", 0.0) > 0.0:
         return f"Air pressure of at least {_pressure(gate['min'])}"
     if quantity == "co2_partial_pa":

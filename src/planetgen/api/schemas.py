@@ -623,8 +623,8 @@ class RunAction(Lenient):
 
     @model_validator(mode="after")
     def _known(self):
-        if self.action not in ("cancel", "clear"):
-            raise ValueError("'action' must be cancel or clear")
+        if self.action not in ("cancel", "clear", "retry-held"):
+            raise ValueError("'action' must be cancel, clear or retry-held")
         return self
 
 

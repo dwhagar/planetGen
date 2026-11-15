@@ -38,6 +38,8 @@ planetgen versions              # the version keys the updates recorded
 planetgen benchmark [options]   # time where generation spends its time, in scratch databases
 planetgen warm [FAMILY|PHASE ...]     # build the site's caches ahead of the first visit
 planetgen queue stop-all|resume|status  # stop everything and hold, lift the hold, or show it
+planetgen queue held                    # list the runs held for a person, with why
+planetgen queue retry-held RUN_ID       # queue a held run's failed units again and carry it on (OPS.221)
 planetgen commands              # every command the work queue can run
 planetgen command-run KIND ARGS # one unit of one of them, alone
 ```
@@ -753,7 +755,7 @@ The warm-up runs in five phases (PERF.141): `opening` (`object-index`, `galaxy-m
 
 ## Stop everything
 
-`planetgen queue stop-all` (PERF.186) is the emergency stop, the same routine as the Stop everything button on the admin Queue page. It writes a hold in the state folder (`stopped.json`, which survives a restart of Redis, the web server and the host), cancels the Generate page's job and every live run, empties every queue, and ends every planetgen worker, job runner and command process on the host together with the processes they started (SIGTERM, then SIGKILL after five seconds, looking again for what the dying ones started). While the hold is on nothing starts: no worker, run, Generate job, orbital update or cache warm-up, and the site's map prefetch queues nothing; a worker that is still alive ends before it takes a job. `planetgen queue resume` lifts the hold (and the queue pause); `planetgen queue status` says whether it is on and how many planetgen processes run. Run it as root so every process can be ended; the pids it could not end are listed and the command exits 1. `--no-hold` ends everything but leaves no hold, which is what `sudo ./update.sh --kill-all` runs before the update guard. It works with no Redis answering, and `python3 -m planetgen.cli.queue stop-all` runs it with little else imported.
+`planetgen queue stop-all` (PERF.186) is the emergency stop, the same routine as the Stop everything button on the admin Queue page. It writes a hold in the state folder (`stopped.json`, which survives a restart of Redis, the web server and the host), cancels the Generate page's job and every live run, empties every queue, and ends every planetgen worker, job runner and command process on the host together with the processes they started (SIGTERM, then SIGKILL after five seconds, looking again for what the dying ones started). While the hold is on nothing starts: no worker, run, Generate job, orbital update or cache warm-up, and the site's map prefetch queues nothing; a worker that is still alive ends before it takes a job. `planetgen queue resume` lifts the hold (and the queue pause); `planetgen queue status` says whether it is on and how many planetgen processes run. `planetgen queue held` lists the runs held for a person (OPS.221: units failed for good, everything else is done) and `planetgen queue retry-held RUN_ID` queues their held units again and takes the machine back for the run. Run it as root so every process can be ended; the pids it could not end are listed and the command exits 1. `--no-hold` ends everything but leaves no hold, which is what `sudo ./update.sh --kill-all` runs before the update guard. It works with no Redis answering, and `python3 -m planetgen.cli.queue stop-all` runs it with little else imported.
 
 ## Helper tools
 

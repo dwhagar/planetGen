@@ -77,6 +77,9 @@ generation run."""
 
 LIVE_STATES = ("running", "canceling")
 FINAL_STATES = ("done", "failed", "canceled")
+HELD = "held"
+"""str: A run that cannot go on until a person looks (OPS.221): some unit failed for good, everything that did not depend on it has finished, and the run has given up the machine. It is neither live (it does not own
+the line, no worker takes its units) nor over (it is kept, shown with what is held, and carried on by `held.retry_held` or ended by cancel or delete)."""
 
 ALIVE_SECONDS = 120
 """int: How long a run's `alive` key lives after the last `touch`: the run's process is taken as gone when it has
@@ -126,6 +129,8 @@ class Stage:
 
 
 RUN_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}$")
+LEDGER_JOB_ID_RE = re.compile(r"^[0-9]{1,15}$")
+"""re.Pattern: A job of the ledger as a path names it (`engine_jobs.id`, OPS.224): plain ASCII digits; the routes take it as text because the site's id converters accept other scripts' digits."""
 """re.Pattern: A run's id (`new_run_id`), checked before an id from a URL is used."""
 
 
@@ -196,6 +201,11 @@ def failures_key(run_id):
     return _k("run", run_id, "failures")
 
 
+def held_key(run_id, index):
+    """The hash of the units of stage `index` that failed for good and wait for a person (OPS.221: `held`): unit to its ledger row."""
+    return _k("run", run_id, f"s{index}", "held")
+
+
 def stuck_key(run_id, index):
     """The hash of what the heartbeat action did to each unit of stage `index` (OPS.140: `unitstuck`), one JSON field to a unit."""
     return _k("run", run_id, f"s{index}", "stuck")
@@ -253,7 +263,7 @@ def declared_stages(conn, run_id):
 
 
 def run_state(conn, run_id):
-    """The run's state (`running`, `canceling`, `done`, `failed`, `canceled`), or `None` for an unknown run."""
+    """The run's state (`running`, `canceling`, `held`, `done`, `failed`, `canceled`), or `None` for an unknown run."""
     return _s(conn.hget(run_key(run_id), "state"))
 
 
@@ -540,7 +550,7 @@ def set_stage_size(conn, run_id, index, units, cost, now=None):
 
 
 def set_conclusion(conn, run_id, index, conclusion, now=None):
-    """Stores what the end of stage `index` found (`CommandSpec.conclude`) and marks the stage concluded, for the
+    """Stores what the end of stage `index` found (its `conclude` end command) and marks the stage concluded, for the
     process following the run (`conclusion`)."""
     conn.hset(stage_key(run_id, index), mapping={"conclusion": json.dumps(conclusion), "concluded": _now(now)})
 
@@ -705,10 +715,11 @@ def mark_killed(conn, run_id, reason):
         conn.hset(run_key(run_id), "killed_reason", reason or "")
 
 
-def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
+def finish_run(conn, run_id, state="done", error=None, now=None, killed=False, from_held=False):
     """
     Ends the run in `state` (`done`, `failed` or `canceled`): records it, frees the machine if this run owns
-    it, and gives the run's keys `KEEP_SECONDS` to live. A run already over is left as it is. A run that was `killed`
+    it, and gives the run's keys `KEEP_SECONDS` to live. A run already over is left as it is, and so is a run held for a person (OPS.221) unless `from_held` (the cancel of a held run:
+    its starter, which sees it stop, does not end it). A run that was `killed`
     (ended from outside its work, `mark_killed`) says so on its record; a canceled run always was.
 
     Returns:
@@ -717,7 +728,7 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
     if state not in FINAL_STATES:
         raise ValueError(f"a run ends as one of {FINAL_STATES}")
     now = _now(now)
-    if run_state(conn, run_id) not in LIVE_STATES:
+    if run_state(conn, run_id) not in LIVE_STATES + ((HELD,) if from_held else ()):
         return False
     conn.hset(run_key(run_id), mapping={"state": state, "finished": now, "updated": now, "error": error or ""})
     if killed or state == "canceled":
@@ -740,6 +751,54 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
     pipe.execute()
+    return True
+
+
+def hold_run(conn, run_id, error, now=None):
+    """
+    Holds the live run (OPS.221): it cannot go on until a person looks, and everything that did not depend on the held unit has finished. The record keeps `error` (what is held and why), the machine is
+    freed as for any end (`_RELEASE`), the keys live `KEEP_SECONDS`, and the log says so. Not a final state: `held.retry_held` makes the run live again.
+
+    Returns:
+        bool: Whether this call held it (`False` for a run that is not live).
+    """
+    now = _now(now)
+    if run_state(conn, run_id) not in LIVE_STATES:
+        return False
+    conn.hset(run_key(run_id), mapping={"state": HELD, "updated": now, "error": error or ""})
+    kind = _s(conn.hget(run_key(run_id), "kind")) or GENERATION
+    conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[run_id])
+    log(conn, run_id, error or "run held", kind="run.held", level="warning", now=now)
+    pipe = conn.pipeline()
+    for key in _keys_of(conn, run_id):
+        pipe.expire(key, KEEP_SECONDS)
+    pipe.execute()
+    return True
+
+
+def take_held_back(conn, run_id, now=None):
+    """
+    Makes the held run live again (OPS.221, the start of `held.retry_held`): takes the machine for it and sets it `running` with its error cleared and `finished` empty.
+
+    Raises:
+        Busy: Another run of that kind owns the machine; the run stays held.
+
+    Returns:
+        bool: `False` when the run is not held.
+    """
+    now = _now(now)
+    if run_state(conn, run_id) != HELD:
+        return False
+    kind = _s(conn.hget(run_key(run_id), "kind")) or GENERATION
+    if not conn.set(active_key(kind), run_id, nx=True):
+        if not (_free_dead_holder(conn, kind) and conn.set(active_key(kind), run_id, nx=True)):
+            raise Busy(busy_message(conn, active_run(conn, kind)))
+    pipe = conn.pipeline()
+    for key in _keys_of(conn, run_id):
+        pipe.persist(key)                    # the keys of a live run do not expire
+    pipe.execute()
+    touch(conn, run_id)
+    conn.hset(run_key(run_id), mapping={"state": "running", "updated": now, "error": "", "finished": ""})
     return True
 
 
@@ -774,7 +833,7 @@ def _keys_of(conn, run_id, every=False):
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
         keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index), ending_key(run_id, index), opened_key(run_id, index),
-                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index)]
+                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index), held_key(run_id, index)]
     return keys
 
 
@@ -786,7 +845,7 @@ def delete_run(conn, run_id):
         bool: Whether it was deleted.
     """
     state = run_state(conn, run_id)
-    if state is None or state in LIVE_STATES:
+    if state is None or state in LIVE_STATES or state == HELD:           # a held run is cancelled first: the ledger's row and its jobs say how it ended
         return False
     conn.delete(*_keys_of(conn, run_id, every=True))
     return True
