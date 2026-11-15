@@ -58,7 +58,7 @@ K_SNOW_RANGE_PER_M = (10.0, 100.0)
 """tuple: The range of the snow's attenuation, per metre: the expected 10 to 100 of [R5264] (grain size, density and impurity), whose low end [R5265, R5268] reach (2.1 for wind-packed snow, 3 to 30 temperate). [IL3, T1, L0.]"""
 
 ALBEDO_BARE = {SEA: 0.6, FRESH: 0.84}
-"""dict: By kind, the albedo of the bare ice surface to photosynthetic light: sea ice 0.5 to 0.7, centre 0.6 [R5264, R5266]; clear lake ice with its scattering top layer 0.84 [R5265]. [IL4, T1, L0.]"""
+"""dict: By kind, the albedo of the bare ice surface to photosynthetic light: sea ice 0.5 to 0.7, center 0.6 [R5264, R5266]; clear lake ice with its scattering top layer 0.84 [R5265]. [IL4, T1, L0.]"""
 ALBEDO_BARE_RANGE = {SEA: (0.5, 0.7), FRESH: (0.7, 0.9)}
 """dict: By kind, the range of the bare ice albedo. The fresh range is the stand-in's own (the one measurement, 0.84, with the width of the sea ice's). [IL4, T6, L1.]"""
 ALBEDO_SNOW = 0.9

@@ -26,11 +26,12 @@ import importlib
 import json
 import os
 import time
+from dataclasses import asdict
 
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commandgaps, commands, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
+from planetgen.queue import commandgaps, commands, planrows, profiletime, progress_file, redisqueue, runline, runrecord, splitter, stagetimes, supervisor, unitrates, unitwatch, units, workers
 from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 from planetgen.util.format import format_duration_seconds, format_megabytes
@@ -179,23 +180,21 @@ def _open(conn, run_id, index):
     if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
         _ensure_cluster_field(params)
         held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
-    prepare = commands.prepare_function(step.kind)
-    if prepare is not None:
-        prepare(params)
-        held = _say_opening(conn, run_id, index, "its preparation is done", held)
     expansion = commands.expand_function(step.kind)(params)
     held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {format_duration_seconds(time.time() - started)}", held)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
-    runrecord.set_stage_plan(conn, run_id, index, len(expansion.units), cost,
-                             {"kind": step.kind, "units": len(expansion.units), "cost": cost,
-                              "detail": expansion.plan})
+    if expansion.split is not None:             # OPS.161: the cut the queue engine chose, fixed with the plan so a restarted unit has the same one
+        splitter.announce(conn, run_id, index, expansion.split)
+    rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan,       # OPS.216: the plan is rows, cut and marked done in one transaction
+                               split=None if expansion.split is None else expansion.split.as_dict())
+    runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
     runrecord.begin_stage(conn, run_id, index, now=started)
     _log_released(conn, run_id, index, step)
     if not expansion.units and commands.conclude_function(step.kind) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
     units.enqueue_units(conn, run_id, index, step.kind, expansion.units, queue_name=queue_of(run_kind(conn, run_id)),
-                        expected_seconds=stages[index].get("expected_seconds"))
+                        expected_seconds=stages[index].get("expected_seconds"), rows=rows)
     return len(expansion.units)
 
 
@@ -270,8 +269,8 @@ def plan_detail(key, field):
 
 
 def _plan_field(conn, run_id, marker):
-    """The `marker["field"]` of the plan summary stage `marker["stage"]` recorded (`runrecord.set_stage_plan`)."""
-    plan = runrecord.read_plan(conn, run_id, _stage_index(conn, run_id, marker, "read the plan of"))
+    """The `marker["field"]` of the plan summary stage `marker["stage"]` recorded (`planrows.record_cut`)."""
+    plan = planrows.read_plan(conn, run_id, _stage_index(conn, run_id, marker, "read the plan of"))
     detail = (plan or {}).get("detail") or {}
     if marker["field"] not in detail:
         raise Unresolved(f"stage {marker['stage']!r} has not planned {marker['field']!r}")
@@ -301,7 +300,7 @@ def cached(conn, run_id, name, compute):
     The value `compute()` gave the first time a stage of the run asked for `name`, kept in the run record (PERF.212). A value read from
     the database when a stage opens would not be the same later: the stage may empty what it read (the scatter's own record), and a
     resolver runs again at the stage's end and when a stopped run is carried on. The first stage to open computes it, before its
-    own `prepare`, and the later ones, the conclude hooks and `finish_run` take what was kept.
+    own cut, and the later ones, the conclude hooks and `finish_run` take what was kept.
     """
     field = f"deferred:{name}"
     kept = conn.hget(runrecord.run_key(run_id), field)
@@ -370,9 +369,8 @@ def _carry_finished_stage(conn, run_id, index, step, now):
     """Opens and ends stage `index` at once as one the run before it finished (`FINISHED_BY`): a plan with no unit that says
     so, and the earlier run's conclusion (`runrecord.stored_conclusion`), if the command has a `conclude`."""
     earlier = step.params[FINISHED_BY]
-    runrecord.set_stage_plan(conn, run_id, index, 0, 0.0,
-                             {"kind": step.kind, "units": 0, "cost": 0.0,
-                              "detail": {"skip": f"finished by run {earlier}", FINISHED_BY: earlier}})
+    planrows.record_cut(conn, run_id, index, step.kind, [], 0.0, {"skip": f"finished by run {earlier}", FINISHED_BY: earlier})
+    runrecord.set_stage_size(conn, run_id, index, 0, 0.0)
     runrecord.begin_stage(conn, run_id, index, now=now)
     runrecord.end_stage(conn, run_id, index, now=now)
     if commands.conclude_function(step.kind) is not None:
@@ -380,16 +378,40 @@ def _carry_finished_stage(conn, run_id, index, step, now):
         runrecord.set_conclusion(conn, run_id, index, stored if stored is not None else {})
 
 
+def conclude_stage_job(conn, run_id, index, label=None):
+    """
+    The `conclude` job of stage `index` (OPS.218): the command's conclusion, then its row marked done in the ledger. A failure in the conclusion is the run's failure, said at once with the stage
+    named (`label`, read from the run when not given) and raised: left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage nobody queues.
+
+    Returns:
+        float: The seconds the conclusion took, which the stage's row counts.
+    """
+    try:
+        took = conclude_stage(conn, run_id, index)
+    except Exception as exc:
+        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {label if label is not None else stage_label(conn, run_id, index)} "
+                                                           f"failed: {type(exc).__name__}: {exc}")
+        raise
+    planrows.mark_ended(conn, run_id, index, planrows.CONCLUDE)
+    return took
+
+
+def finish_stage_job(conn, run_id, index, concluded_seconds=0.0):
+    """The `finish` job of stage `index` (OPS.218): the stage's statistics and row (`finish_stage`), then its ledger row marked done."""
+    finish_stage(conn, run_id, index, concluded_seconds)
+    planrows.mark_ended(conn, run_id, index, planrows.FINISH)
+
+
+def conclude_and_finish_stage(conn, run_id, index, label=None):
+    """Both end jobs of stage `index` in turn: the end of a stage that has no unit to carry it (`_conclude_empty_stage`)."""
+    finish_stage_job(conn, run_id, index, conclude_stage_job(conn, run_id, index, label))
+
+
 def _conclude_empty_stage(conn, run_id, index, label):
     """A stage whose cut gave no unit (a plan with no shells, say) has no last unit to conclude it, so whichever process cut it
     does: it ended as it began, its `conclude` runs, and its row is stored, as the unit that completes a stage would."""
     runrecord.end_stage(conn, run_id, index)
-    try:
-        took = conclude_stage(conn, run_id, index)
-    except Exception as exc:
-        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {label} failed: {type(exc).__name__}: {exc}")
-        raise
-    finish_stage(conn, run_id, index, took)
+    conclude_and_finish_stage(conn, run_id, index, label)
 
 
 def stage_label(conn, run_id, index):
@@ -455,7 +477,7 @@ def conclude_stage(conn, run_id, index):
     if hook is None:
         return 0.0
     record = runrecord.text_hash(conn.hgetall(runrecord.stage_key(run_id, index)))
-    plan = runrecord.read_plan(conn, run_id, index)
+    plan = planrows.read_plan(conn, run_id, index)
     began = time.time()
     conclusion = hook(step.params, plan["detail"], _stage_results(conn, run_id, index),
                       max(float(record["ended"]) - float(record["started"]), 0.0)) or {}
@@ -481,7 +503,7 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         _log_peak_memory(conn, run_id, index, step, declared, float(record.get("peak_mb") or 0.0))
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
-        plan = runrecord.read_plan(conn, run_id, index)
+        plan = planrows.read_plan(conn, run_id, index)
         results = _stage_results(conn, run_id, index)
         # OPS.123: the speeds and the row's counts are what the units report, written here, not a hook of each command
         stages.record_unit_samples(_mysql_config(step.params["database"]), step.params.get("workers", 1), results)
@@ -581,7 +603,7 @@ def advance(conn, run_id, index):
 
 def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
-    return _await(conn, run_id, index, runrecord.read_plan, "queued", ensure, clock, sleep, on_debug, touch,
+    return _await(conn, run_id, index, planrows.read_plan, "queued", ensure, clock, sleep, on_debug, touch,
                   unless_opening=True)
 
 
@@ -738,6 +760,11 @@ def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     return ensure
 
 
+def ask_supervisor(conn, url):
+    """Makes sure a supervisor is there to start the run that was asked for (OPS.211); the test suite replaces it with one turn of `supervisor.RunStarts`."""
+    supervisor.ensure_started(conn, url)
+
+
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
         build=None, finishes=None, on_step=None):
@@ -795,17 +822,15 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                               unit_seconds=profiletime.unit_seconds(conn, step.kind),        # OPS.159
                               row=(rows or {}).get(step.key)) for step in steps]
     debug = (log.areas_spec() or "all") if log.console_debug() else ""     # a debug run: the workers relay their lines
-    start = lambda: runrecord.start_run(       # noqa: E731
-        conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
-        kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
-        job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
-    if kind == runrecord.GENERATION:
-        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60,
-                                         on_wait=lambda holder, position: report_wait_for(conn, holder, position),
-                                         title=title, who=who, database=database,
-                                         admitted=bool(os.environ.get(JOB_ENV)), nested_guard=True)
-    else:
-        run_id = start()
+    start = dict(           # OPS.211: what the supervisor starts the run with; this process follows the run it starts
+        title=title, stages=[asdict(stage) for stage in stages], who=who, database=database, argv=argv, seed=seed,
+        steps=[step.as_dict() for step in recorded], kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
+        job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes, owner=runrecord.this_process())
+    wait_seconds = get_settings().queue.wait_minutes * 60 if kind == runrecord.GENERATION else 0
+    run_id = runline.start_when_free(conn, start, wait_seconds, lambda: ask_supervisor(conn, url), kind=kind,
+                                     on_wait=lambda holder, position: report_wait_for(conn, holder, position),
+                                     title=title, who=who, database=database,
+                                     admitted=bool(os.environ.get(JOB_ENV)), nested_guard=kind == runrecord.GENERATION)
     beat = runrecord.Heartbeat(conn, run_id)        # the run is followed from here to the end, whatever this process is busy with
     relay = events = None
     stage_at = None
@@ -835,7 +860,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                    ensure, on_debug=on_debug, watch=unitwatch.UnitWatch(conn, run_id, index, steps[index].kind, history_of=commandgaps.history_of(conn, run_id), rate_of=unitrates.rate_of(conn, run_id)),
+                    ensure, on_debug=on_debug,
                     on_step=None if on_step is None else (lambda step, index=index: on_step(index, step)))
             if commands.spec(steps[index].kind).conclude is not None:
                 conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)

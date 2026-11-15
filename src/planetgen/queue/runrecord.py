@@ -14,12 +14,12 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
                                   the units took, first and last finish) and the decayed sums the ETA reads.
 * `<PREFIX>:run:<id>:s<k>:done`  set: the indexes of the units that finished; also the barrier.
 * `<PREFIX>:run:<id>:s<k>:advanced`  string: set once, by the unit that completes the stage.
+* `<PREFIX>:run:<id>:s<k>:ended`     string: how far the end of the stage got, `concluded` then `queued` (OPS.186); `:ending` is the lease of the
+                                  process doing it, and `:opened` (OPS.187) says the stage's opening finished.
 * `<PREFIX>:run:<id>:s<k>:results`   hash: unit -> the JSON result it returned (PERF.97), written before the unit
                                   joins the done set, so a unit found done has its result.
 * `<PREFIX>:run:<id>:s<k>:progress`  hash: unit -> `"done,estimate"`, a unit's work so far while it runs (PERF.97).
-* `<PREFIX>:run:<id>:s<k>:plan`      string: the JSON summary the stage's command gave when it was expanded into
-                                  units (PERF.118): what any process following the run needs to read the units'
-                                  results. Written before the stage's units are queued.
+  (The summary the stage's command gave when it was expanded into units is rows of the job ledger, `planrows`, OPS.216; the run's hash names its `engine_run`.)
 * `<PREFIX>:run:<id>:banner`     string: the whole hours the site banner shows for the run (UX.3), so every visitor
                                   sees one figure; expires a day after it is written.
 * `<PREFIX>:run:<id>:alive`      string: set with a time to live of `ALIVE_SECONDS` by the process that follows the run
@@ -149,6 +149,26 @@ def advanced_key(run_id, index):
     return _k("run", run_id, f"s{index}", "advanced")
 
 
+def ending_key(run_id, index):
+    """OPS.186: the lease of the process that is ending stage `index` now, so a second attempt does not end it beside the first."""
+    return _k("run", run_id, f"s{index}", "ending")
+
+
+def opened_key(run_id, index):
+    """OPS.187: set when the opening of stage `index` has cut it and queued what it queues, so a failure RQ reports after that does not fail the run."""
+    return _k("run", run_id, f"s{index}", "opened")
+
+
+def starter_gone_key(run_id):
+    """OPS.253: set the first time the supervisor finds a live run whose starter's sign of life (`alive_key`) is gone, so it says so once."""
+    return _k("run", run_id, "starter_gone")
+
+
+def supervised_key(run_id):
+    """OPS.210: set by the supervisor at each turn for each live run it watches, expiring a few turns later: while it is up, the run has a follower that is not the process that started it."""
+    return _k("run", run_id, "supervised")
+
+
 def events_key(run_id):
     return _k("run", run_id, "events")
 
@@ -179,10 +199,6 @@ def stuck_key(run_id, index):
 def unitstate_key(run_id, index):
     """The hash of the verdict on each running unit of stage `index` (OPS.138: `unitwatch`), one JSON field to a unit."""
     return _k("run", run_id, f"s{index}", "unitstate")
-
-
-def plan_key(run_id, index):
-    return _k("run", run_id, f"s{index}", "plan")
 
 
 def debug_key(run_id):
@@ -227,7 +243,7 @@ def text_hash(fields):
 
 
 def declared_stages(conn, run_id):
-    """The run's stage list as `start_run` stored it (and `set_stage_plan` keeps it): `[]` for an unknown run."""
+    """The run's stage list as `start_run` stored it (and `set_stage_size` keeps it): `[]` for an unknown run."""
     return json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
 
 
@@ -305,7 +321,7 @@ def active_run(conn, kind=GENERATION):
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
               steps=None, kind=GENERATION, disregard_missing_data=False, debug="", job=None, galaxy_seed=None,
-              build=None, finishes=None):
+              build=None, finishes=None, owner=None):
     """
     Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
     generation run and one of those may be live together).
@@ -325,6 +341,8 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         galaxy_seed (str, optional): The galaxy's seed as hex and `build` the version key of the code that started the
             run (PERF.182): what a later `Finish run` checks are still the same before it carries on.
         finishes (str, optional): The id of the run this one carries on from (`generation/finish_run.py`).
+        owner (str, optional): Who follows the run (`host:process id`); the process that starts it where left out. The supervisor starts a run for the process that asked (OPS.211) and
+            names that process here.
 
     Returns:
         str: The run id.
@@ -352,7 +370,7 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
         "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "",
         "debug": debug or "", "current": 0, "created": now, "started": now, "updated": now,
-        "finished": "", "error": "", "owner": _owner(), "job": job or "", "galaxy_seed": galaxy_seed or "",
+        "finished": "", "error": "", "owner": owner or this_process(), "job": job or "", "galaxy_seed": galaxy_seed or "",
         "build": build or "", "finishes": finishes or ""})
     if job:
         pipe.rpush(job_runs_key(job), run_id)
@@ -387,12 +405,13 @@ def busy_message(conn, run_id):
 def followed_here(conn, run_id):
     """Whether this very process follows the run `run_id` (a run started inside another run of the same process can
     only wait for itself)."""
-    return (_s(conn.hget(run_key(run_id), "owner")) or "") == _owner() and not holder_is_dead(conn, run_id)
+    return (_s(conn.hget(run_key(run_id), "owner")) or "") == this_process() and not holder_is_dead(conn, run_id)
 
 
-def _owner():
+def this_process():
     """Who follows a run started here: `host:process id`."""
     return f"{socket.gethostname()}:{os.getpid()}"
+
 
 
 def touch(conn, run_id):
@@ -417,7 +436,7 @@ def unit_json_hash(conn, key):
 
 def holder_is_dead(conn, run_id):
     """
-    Whether nothing follows the run `run_id` any more, so the run can never end by itself: its record is gone or already over; or
+    Whether nothing follows the run `run_id` any more, so the run can never end by itself (a run the supervisor watches is never one, OPS.210): its record is gone or already over; or
     its `alive` key has run out (the process that follows a run says so every few seconds while it does, `Heartbeat`), which also
     catches a process that is still running but no longer follows the run (a long-lived worker or a reused process id that left its
     run behind, ADM.136); or it started on this host and its process id is not running (found at once, without waiting for the
@@ -427,6 +446,8 @@ def holder_is_dead(conn, run_id):
     state = run_state(conn, run_id) or ""
     if state and state not in LIVE_STATES:
         return True
+    if conn.exists(supervised_key(run_id)):
+        return False        # OPS.210: the supervisor watches the run and carries it on whatever became of the process that started it, so a new run does not take it over
     host, _, pid = owner.rpartition(":")
     if state and host == socket.gethostname() and pid.isdigit() and not _pid_alive(int(pid)):
         return True
@@ -498,11 +519,10 @@ def read_steps(conn, run_id):
     return json.loads(_s(conn.hget(run_key(run_id), "steps")) or "[]")
 
 
-def set_stage_plan(conn, run_id, index, units, cost, plan, now=None):
+def set_stage_size(conn, run_id, index, units, cost, now=None):
     """
-    Records what stage `index` turned out to be when its command was expanded (PERF.118): `units` units of total
-    predicted `cost`, and `plan`, the JSON summary a process following the run reads its results by. Called once,
-    before the units are queued, so no unit can finish against the old count.
+    Records how many units stage `index` was cut into and their total predicted `cost` (PERF.118), for the stage's bar and the count that completes it. The plan itself, what
+    the cut said of the stage, is rows (`planrows`, OPS.216). Called once, before the units are queued, so no unit can finish against the old count.
     """
     now = _now(now)
     declared = declared_stages(conn, run_id)
@@ -511,14 +531,7 @@ def set_stage_plan(conn, run_id, index, units, cost, plan, now=None):
     pipe = conn.pipeline()
     pipe.hset(run_key(run_id), mapping={"stages": json.dumps(declared), "updated": now})
     pipe.hset(stage_key(run_id, index), mapping={"units": int(units), "cost_total": float(cost)})
-    pipe.set(plan_key(run_id, index), json.dumps(plan))
     pipe.execute()
-
-
-def read_plan(conn, run_id, index):
-    """Stage `index`'s plan (`set_stage_plan`), or `None` while the stage has not been expanded."""
-    raw = conn.get(plan_key(run_id, index))
-    return None if raw is None else json.loads(_s(raw))
 
 
 def set_conclusion(conn, run_id, index, conclusion, now=None):
@@ -755,8 +768,8 @@ def _keys_of(conn, run_id, every=False):
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
-        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
-                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index), plan_key(run_id, index)]
+        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index), ending_key(run_id, index), opened_key(run_id, index),
+                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index)]
     return keys
 
 
@@ -950,5 +963,5 @@ def recent_runs(conn, limit=20):
 
 
 __all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_canceling", "is_stale",
-           "event_handler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
-           "set_stage_plan", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]
+           "event_handler", "job_runs", "log", "new_run_id", "read_events", "read_run", "read_steps", "recent_runs", "request_cancel",
+           "set_stage_size", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

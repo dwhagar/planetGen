@@ -643,8 +643,12 @@ def test_a_sub_neptune_inside_the_hycean_box_is_named_and_one_that_is_too_light_
     found = oddities.quantities_of(inside)
     assert "W26" in inside.oddities and set(inside.oddities) <= {"W26", "W1"}      # the draw may also tip the planet into the tilt row W1
     assert hycean_candidate.hycean_candidate(found["mass_earth"], found["radius_earth"], found["equilibrium_temperature_k"])
-    puffy = _planet_at("K2V", 1.0, "hy-2-1.0-0", mass_earth=2.0, force=("W26",))
-    found = oddities.quantities_of(puffy)       # 2.0 Earth radii at 1.4 g/cc: under the box's density
+    from tests.fuzz_support import first_seed_with
+    # TEST.714: a draw key whose 2 Earth-mass planet at 1 AU is puffy (under the box's density), found by search (the draws behind a key move with every change to the star's reading, GEN.1623)
+    _seed, puffy = first_seed_with(lambda number: _planet_at("K2V", 1.0, f"hy-2-1.0-{number}", mass_earth=2.0, force=("W26",)),
+                                   lambda planet: oddities.quantities_of(planet)["density_g_cm3"] < 1.5 and "W26" not in planet.oddities,
+                                   seeds=range(40), what="a 2 Earth-mass K2V planet at 1 AU puffy enough to be under the Hycean box's density")
+    found = oddities.quantities_of(puffy)       # under the box's density
     assert found["density_g_cm3"] < 1.5 and "W26" not in puffy.oddities
     assert not hycean_candidate.hycean_candidate(found["mass_earth"], found["radius_earth"], found["equilibrium_temperature_k"])
 

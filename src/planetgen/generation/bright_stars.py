@@ -1399,7 +1399,19 @@ def _row_chunks(count, first, length):
     return sorted(set(range(first // BLOCK_WEDGES, last_chunk + 1)) | set(range((end - count - 1) // BLOCK_WEDGES + 1)))
 
 
-def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded):
+def in_part(shell_index, band_index, part):
+    """
+    Whether the row `(shell_index, band_index)` of a sphere's walk belongs to `part`, `(index, count)` (OPS.253): the rows are dealt out by `(shell * PART_SHELL_STEP + band) mod count`, so the
+    parts of a sphere are disjoint, together they are the whole walk, and each is about the same share of its rows. `None` is the whole sphere.
+    """
+    return part is None or (shell_index * PART_SHELL_STEP + band_index) % part[1] == part[0]
+
+
+PART_SHELL_STEP = 7
+"""int: How far apart `in_part` puts the neighbouring shells in the dealing, so a part is not one diagonal of the (shell, band) rows."""
+
+
+def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded, part=None):
     """
     The cells of a sphere that a draw has anything to do in, a few hundred at a time with the memo that holds their blocks: the
     walk of `sphere_rows`, and for each row and band of the draw either its block's candidates (a band on the candidate path,
@@ -1409,6 +1421,7 @@ def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     Args:
         paths (list): `(key, shares, tag)` of each band of the draw, as `candidate_path` takes them.
         seeded (dict): The entries a batch's memo starts with (the bands' shares).
+        part (tuple, optional): `(index, count)`: only the rows `in_part` deals to that part (the core cell goes with part 0), so `count` draws can each walk their own share of one sphere (OPS.253).
 
     Yields:
         tuple: `(addresses, memo)`.
@@ -1416,9 +1429,11 @@ def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     work = dict(seeded)
     addresses = []
     rows = 0
-    if math.sqrt(sum(float(c) * float(c) for c in center_pc)) <= radius_pc + 1e-9:
+    if math.sqrt(sum(float(c) * float(c) for c in center_pc)) <= radius_pc + 1e-9 and (part is None or part[0] == 0):
         addresses.append((0, 0, 0))                 # the core cell is no row
     for shell_index, band_index, count, first, length in sphere_rows(center_pc, radius_pc, edge_pc):
+        if not in_part(shell_index, band_index, part):
+            continue
         rows += 1
         terms = None
         dense = False
@@ -1451,17 +1466,17 @@ def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
 
 
 def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
-                              mass_range=None, memo=None):
+                              mass_range=None, memo=None, part=None):
     """
     The cells of a sphere that the luminosity band `[min_luminosity_sol, max_luminosity_sol)` has anything to draw in (the walk of a sphere draw), a few hundred at a time with
     the memo that holds their blocks, for a caller that draws them itself (VIEW.25 gives each cell its own ceiling and mass cap). `mass_range` is the widest the caller will
-    draw with: a cell drawn with a narrower one holds no more candidates than the walk found.
+    draw with: a cell drawn with a narrower one holds no more candidates than the walk found. `part` is `(index, count)`: the walk of that share of the sphere's rows (`in_part`).
 
     Yields:
         tuple: `(addresses, memo)`; pass the memo to `backfill_cells`.
     """
     paths, seeded = _paths(_luminosity_bands(shape, min_luminosity_sol, max_luminosity_sol, mass_range), {} if memo is None else memo)
-    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded, part)
 
 
 def _paths(bands, shared):
@@ -1477,10 +1492,10 @@ def _mass_paths(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges
     return _paths(_mass_bands(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges), shared)
 
 
-def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):
+def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None, part=None):
     """`luminosity_sphere_batches` for a mass ring: the cells of the sphere that `backfill_mass_cells` has anything to draw in, with their memo."""
     paths, seeded = _mass_paths(shape, target_mass_sol, held_mass_sol, max_luminosity_sol, edges, {} if memo is None else memo)
-    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded, part)
 
 
 def sphere_walk_visits(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, stride=1):

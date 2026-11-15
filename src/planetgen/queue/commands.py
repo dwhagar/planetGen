@@ -25,6 +25,13 @@ import importlib
 from dataclasses import dataclass, field
 
 
+SPLIT_BYTE_IDENTICAL = "byte-identical"
+"""str: The split flag (`CommandSpec.split`) of a command whose output is the same at any legal cut of its stage: the queue engine may choose the cut (OPS.161, PERF.260)."""
+
+SPLIT_SUGGESTED = "suggested"
+"""str: The split flag of a command whose output depends on the cut, and the default: the engine uses the command's suggested split exactly."""
+
+
 @dataclass(frozen=True)
 class CommandSpec:
     """
@@ -38,8 +45,7 @@ class CommandSpec:
     would otherwise work out for itself. A command with no `unit` is inline.
 
     The work a stage does that is not a unit (PERF.172) is a hook of its command, run by whichever process starts or
-    ends the stage, and a failure in one fails the run: `prepare(params)` is called once when the stage opens, before
-    it is cut (empties the rows the stage is about to rewrite, say), and `conclude(params, plan, results, seconds)`
+    ends the stage, and a failure in one fails the run: `conclude(params, plan, results, seconds)`
     once when its last unit is done, before the next stage is cut (stores what the stage drew as a whole); it returns a
     JSON-able dict the process following the run reads (`wrapper.run`'s `on_stage_done`). The unit that completes
     the stage calls `conclude`; a cut that gives no unit at all is concluded by the process that cut it
@@ -49,6 +55,10 @@ class CommandSpec:
     unit by nature, which the ceiling does not hold; any other queued command is cut into units and declares in
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
     unit that runs longer than the ceiling anyway is written to the run's log.
+
+    The break points (OPS.161): `breaks`, when given, is a `(module, function)` pair; `breaks(params)` returns the command's `breakpoints.Declaration` for a stage with those
+    parameters (the suggested split, where a cut may fall, the split flag, what the command depends on), which the queue engine reads to choose the stage's cut (`splitter`). A
+    command that is `whole` declares itself (one item, one unit). One that declares nothing keeps its typed split and runs in plan order (`declaration` is `None`).
 
     **The engine owns the loop of a command with `pieces` and `do` (OPS.191, `queue/engine.py`).** Instead of a `unit` function that loops, counts and checks for itself, the command gives
     `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: 0 until the ledger stores it, OPS.219), and `do(args, piece, ctx)`, which
@@ -63,10 +73,11 @@ class CommandSpec:
     expand: tuple = None
     finish: tuple = None
     warm: tuple = None
-    prepare: tuple = None
     conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
+    breaks: tuple = None
+    split: str = SPLIT_SUGGESTED
     pieces: tuple = None
     do: tuple = None
     gather: tuple = None
@@ -89,11 +100,13 @@ class Expansion:
     """
     What a command's `expand` gives: the `units` as `(args, cost)` pairs, in unit order (JSON-able arguments and the
     predicted cost the stage's bar and ETA use), and `plan`, a JSON-able summary of the stage that any process
-    following the run reads the units' results by.
+    following the run reads the units' results by. `split` is the `splitter.Decision` the cut was made from, when the command's `expand` asked the queue
+    engine for it (OPS.161); it is written to the stage's plan and the run's log when the stage opens.
     """
 
     units: list = field(default_factory=list)
     plan: dict = field(default_factory=dict)
+    split: object = None
 
 
 @dataclass(frozen=True)
@@ -154,6 +167,7 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_galaxy", "backfill_pieces"), do=("planetgen.generation.run_galaxy", "backfill_do"),
                 gather=("planetgen.generation.run_galaxy", "backfill_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars"),
+                conclude=("planetgen.generation.run_galaxy", "conclude_backfill"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=12),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",
@@ -481,6 +495,26 @@ def spec(kind):
     return REGISTRY[kind]
 
 
+def declaration(kind, params=None):
+    """
+    The break points command `kind` declares for a stage with `params` (OPS.161, `breakpoints.Declaration`), or `None` when it declares none, which keeps its typed split. A
+    command that is `whole` declares itself: one item, one unit, no cut. A command that names no `after` takes its `REQUIRES` as its dependencies.
+
+    Raises:
+        KeyError: No such command.
+    """
+    import dataclasses
+    from planetgen.queue import breakpoints
+    command = REGISTRY[kind]
+    if command.breaks is not None:
+        found = _function(command.breaks)(params or {})
+    elif command.whole:
+        found = breakpoints.whole_job()
+    else:
+        return None
+    return dataclasses.replace(found, split=command.split, after=found.after or requires_of(kind))
+
+
 def _function(pair):
     module, name = pair
     return getattr(importlib.import_module(module), name)
@@ -531,7 +565,7 @@ def gather_function(kind):
 
 
 def _hook(kind, name):
-    """The optional function `name` (`warm`, `finish`, `prepare`, `conclude`) of command `kind`, or `None`."""
+    """The optional function `name` (`warm`, `finish`, `conclude`) of command `kind`, or `None`."""
     pair = getattr(REGISTRY[kind], name)
     return None if pair is None else _function(pair)
 
@@ -554,15 +588,6 @@ def finish_function(kind):
         KeyError: No such command.
     """
     return _hook(kind, "finish")
-
-
-def prepare_function(kind):
-    """The function called once when a stage of `kind` opens, before it is cut, or `None` (`CommandSpec.prepare`).
-
-    Raises:
-        KeyError: No such command.
-    """
-    return _hook(kind, "prepare")
 
 
 def conclude_function(kind):

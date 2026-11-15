@@ -20,13 +20,13 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 | 03 Atmosphere classes | Train 29 gate share; GEN.1722 research (life levers) | GEN.1698, GEN.1617 (after GEN.1716 and GEN.1717) |
 | 04 Planet composition | OPS.202 part 2 | GEN.1723 (life will find a way, lock) |
 | 05 Oddities and census | 6565 GEN.1623 (Train 30) | TEST.752, TEST.739, then GEN.1717 A and B |
-| 06 Belts and small bodies | 6516 OPS.215; 6336 OPS.161 | PERF.261, PERF.267, OPS.221, 222, 226, 228-231, 235, 243, 249, 250 |
+| 06 Belts and small bodies | PERF.267 (log analysis) | Train 30 gate share; then OPS.226, 228-231, 235, 243, 249, 250 |
 | 07 Tides, spin, moons | Kill tests on the stage 2 stack (6539 head) | OPS.241, OPS.242, OPS.247 |
 | 08 Materials (reserved) | none | GEN.1382, GEN.1383, TEST.686 |
 | 12 Gate | TEST.751 (fingerprint row-id test over the 900 s limit) | Gate runs on request |
 | 13 Job engine | Stage 2 stack 6443 to 6501, then 6537, 6539, 6552 (OPS.216-218); OPS.218 slice 2 | OPS.225, 234, 236, 245, 246 |
 | 14 Bugs 2 | OPS.253 B (6591) for Train 30 | OPS.220, then OPS.227, 232, 248, 251 |
-| 15 Storage and volatility | OPS.223 (from Lane 14) | OPS.224, OPS.233, OPS.244, OPS.252 |
+| 15 Storage and volatility | OPS.223 (6621), OPS.224 (6622) | OPS.221, OPS.222 (from Lane 06), OPS.233, OPS.244, OPS.252 |
 | 16 Galaxy and admin | Train 29 gate share | OPS.196 (with the last family), OPS.219, OPS.238-240 |
 
 LANE NUMBERS (Boss, 8:46 and 8:48 PM EST on 2026-11-14): Train Manager is 01, TODO is 00; generator lanes (lock items, generator trains) take the low numbers 01 to 08, non-lock lanes 12 and up. Old to new: 01 to 00, 02 to 01, 15 to 02, 14 to 03, 21 to 04, 11 to 05, 22 to 06, 23 to 07, 24 to 08, 03 to 12, 06 to 13, 05 to 14, 12 to 15, 13 to 16; old 04 and 07 are closed (their items went to 14). Owner lines in TODO.md and the release table were rewritten at 9:00 PM EST; item text written before then uses the old numbers (read it through docs/plan/lane-designations.md).

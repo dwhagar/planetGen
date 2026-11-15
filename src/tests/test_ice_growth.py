@@ -48,7 +48,7 @@ def test_the_snow_conductivity_is_the_measured_one():
 
 
 def test_the_standard_arctic_case_gives_the_multiyear_thickness_of_the_model_that_made_it():
-    # [R5271]: 2.88 m with 2 W per m2 from the water, 40 cm of ablation and 34 cm of snow ([R5270]) under a mean surface of about 256 K
+    # [R5279]: 2.88 m with 2 W per m2 from the water, 40 cm of ablation and 34 cm of snow [R5278] under a mean surface of about 256 K
     assert ig.perennial_thickness_m(256.0, 2.0, 0.34, 0.4) == pytest.approx(2.88, abs=0.5)
 
 
@@ -81,7 +81,7 @@ def test_the_snow_follows_the_starlight_and_the_length_of_the_freezing_season():
 
 
 def test_the_arctic_snow_is_within_a_factor_of_two_of_the_measured_depth():
-    # [R5270]: 34 cm on multiyear Arctic ice; about 75 W per m2 of starlight absorbed at 255 K. The law has no dry cold air, so it errs high (IG6 says so)
+    # [R5278]: 34 cm on multiyear Arctic ice; about 75 W per m2 of starlight absorbed at 255 K. The law has no dry cold air, so it errs high (IG6 says so)
     depth = ig.snow_depth_m(75.0, 255.0, 17.0)
     assert 0.34 / 2.0 < depth < 0.34 * 2.0
 

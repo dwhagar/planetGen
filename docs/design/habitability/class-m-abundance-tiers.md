@@ -1,6 +1,6 @@
 # Class M abundance tiers
 
-**Status:** being built (GEN.1704 the setting, GEN.1705 the meter, GEN.1706 the calibration, GEN.1721 the habitable family: the dry part is built, section 8; Boss approved the design by question cards, 11:17 to 11:19 PM EST 2026-11-13). Dial values are first-pass stand-ins until the census calibration that follows GEN.1694 to GEN.1698.
+**Status:** being built (GEN.1704 the setting, GEN.1705 the meter, GEN.1706 the calibration, GEN.1721 the habitable family: the dry part, the desert seas and the quiet interiors are built, section 8; Boss approved the design by question cards, 11:17 to 11:19 PM EST 2026-11-13). Dial values are first-pass stand-ins until the census calibration that follows GEN.1694 to GEN.1698.
 
 **Code:** `planetgen/generation/abundance_tier.py` (the tier and its dials), `tuning.ABUNDANCE_TIER_DIALS` (the values), the `class_m` row of `planetgen/galaxy/dials.py` (the control and its storage), `scripts/class_m_meter.py` (the meter, on the draw of `scripts/class_census.py`).
 
@@ -28,14 +28,16 @@ A Sun-like system is one whose primary is a main-sequence star of type F7 to K2 
 
 The target is what the dial values are calibrated to. The generator never checks a galaxy against it and never adds or removes a world to meet it.
 
-## 3. The four dials
+## 3. The six dials
 
-A tier turns four dials and nothing else. Each is a share from 0 to 1.
+A tier turns six dials and nothing else. Each is a share from 0 to 1.
 
 | Dial | What it moves | Where |
 |---|---|---|
 | `water_share` | The share of candidates whose water class is given by the tier and not drawn from the Bern law at the distance they formed at: Earth's (`low`, 0.025 to 0.16 percent of the planet's mass) or, for the part `dry_part` names, the dry one. The amount inside the class is still drawn. | `physics/bulk_draw.py`, `physics/delivered_water.py` |
 | `dry_part` (GEN.1721) | The part of the planets the water dial reaches that take the dry class (`dry`, under 0.025 percent of the planet's mass: the water of a desert world) and not Earth's. It makes no draw of its own: it splits the water dial's one draw, so the same planets are reached whatever its value. | `physics/delivered_water.py` (`dialed_class`) |
+| `quiet_share` (GEN.1721) | The share of candidates drawn with a quiet interior: their volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (`tuning.ABUNDANCE_QUIET_SINK_FACTOR`), which is the low end of what is published for Earth itself. Nothing else about the interior changes. | `generation/planet.py` (`Planet._draw_body`), `physics/biogenic_oxygen.py` (`reductant_flux`) |
+| `cycle_share` (GEN.1720) | The share of candidates whose two carbon-cycle constants, the exponent of the heat flow in the volcanic outgassing (published 1 to 2) and the factor of the weathering law's thermodynamic limit (published a tenth to ten), are drawn from the part of those ranges that holds the carbon balance nearest the Earth's: the exponent from 1 to 1.25 and the factor from 0.1 to 1. The balance goes as the outgassing to about the fifth power, so over the whole ranges a planet with a heat flow of 0.6 or 1.5 times the Earth's holds under 2 Pa or over 100 kPa of CO2 and few hold the 2 Pa to 1 kPa the life classes ask for (`reports/gen1720-co2-attribution-2026-11-14.md`). It moves the draw of two constants and conditions nothing on the CO2 that follows. | `physics/continental_weathering.py` (`draw_cycle`), `physics/surface_air.py` (`Setting.cycle_share`) |
 | `bare_share` | The share of candidates that are late cores: they finished growing after the gas disk went and captured no hydrogen envelope (the existing `Planet(late_core=True)`, GEN.1323). | `generation/planet.py`, `physics/envelope_capture.py` |
 | `request_share` | The share of systems that are given the request for a habitable world, which multiplies the odds of the wanted draw by `tuning.REQUEST_ODDS` and never forces it (`util/request_odds.py`, GEN.1130). | `generation/system.py` (`StarSystem._draw_tier_request`) |
 
@@ -45,6 +47,9 @@ How each dial acts, as built:
 
 - **Water.** One extra draw per candidate. A dialed planet takes the `low` class, or the `dry` class when the draw falls in the dry part, and its air takes the same class's recipe row (b2, or b1 for the dry class). A candidate that formed beyond its star's snow line is icy by origin and is not reached: it keeps its icy water range. A candidate the law gave `low` by itself keeps the air the law draws. The air takes the row only where the pick could take it for that body (its weight in the pick table is above zero); otherwise the pick is drawn as usual.
 - **Zone edges.** The water and envelope dials read the zone a planet holds when its body is drawn. A planet that the system check later moves outward across a zone edge takes the new zone's name and nothing is drawn again, so some dialed planets end outside the ecosphere and some planets that end inside it were never candidates. This is not small: measured on 300 Sun-like systems at `abundant` (water share 1), of 276 candidates by final zone 96 were icy by origin (not reached), and of the 180 rocky ones 126 were dialed and 54 were not, because they were drawn in another zone and moved in afterwards. So a water share of 1 reaches about 70 percent of the rocky candidates and 46 percent of all candidates. The meter counts candidates by the final zone; the calibration (GEN.1706) sets the dials by the measured rate, which takes this in, and decides whether the dials should also act when a planet is moved into the ecosphere.
+- **Desert worlds.** A planet whose draw falls in the dry part takes its water inside `tuning.ABUNDANCE_DESERT_WATER_RANGE`, the part of the dry class that leaves a few small seas (about 5 to 20 percent of the surface on the planets measured). On any other world so little water is a concentrated brine (the hydrosphere `brine seep`, water activity 0.30 to 0.65), too salty for almost all life and no living sea for the oxygen law. On a desert world a tier made, the sea is taken as an ordinary salt sea (`abundance_tier.desert_sea`, `hydrosphere.salts_concentrated`): the hydrosphere is `surface ocean`, life can start in it, and the oxygen law counts it as a sunlit sea of its own area. This is the tier's assumption, not a finding: the same salt in less water would in truth be saltier, up to a sea saturated with rock salt (water activity about 0.75), where salt-loving oxygen-making algae still live. A sea is what gives Class H its groundwater condition as well.
+- **Carbon cycle.** One extra draw per candidate, made where the air's design constants are drawn (`surface_air.solve`); a candidate it reaches draws the two constants from the narrower ranges (`tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE`, `ABUNDANCE_CYCLE_LAMBDA_RANGE`) and records `cycle_nudged` in its design constants; one it does not reach draws over the published ranges. Science makes no draw.
+- **Quiet interior.** One extra draw per candidate, made once when the planet is first drawn, beside the envelope draw. The body holds the decision as a field only when the draw says yes.
 - **Envelope.** One extra draw per candidate, made once when the planet is first drawn; the decision stays if the orbit later settles into another zone.
 - **Request.** One extra draw per system, made by the system itself after its stars are built and before any planet. It acts on the planets only. It is never written into the system's config, so the host star is drawn exactly as without a request (a request in the config thins out white dwarfs from 7.2 to 1.0 percent of systems), nothing is stored, and the system reports no request, met or unmet. A system whose user said yes or no to a habitable world keeps the user's answer.
 
@@ -72,12 +77,12 @@ Two makers of systems inside a galaxy build their config without the galaxy's sh
 
 ## 6. Dial values and calibration
 
-| Tier | `water_share` | `bare_share` | `request_share` | `dry_part` |
-|---|---|---|---|---|
-| Sparse | 0.5 | 0 | 0 | 0.2 |
-| Scattered | 1 | 1 | 0 | 0.2 |
-| Plentiful | 1 | 1 | 0.5 | 0.2 |
-| Abundant | 1 | 1 | 1 | 0.2 |
+| Tier | `water_share` | `bare_share` | `request_share` | `dry_part` | `quiet_share` | `cycle_share` |
+|---|---|---|---|---|---|---|
+| Sparse | 0.5 | 0 | 0 | 0.2 | 0 | 0.5 |
+| Scattered | 1 | 1 | 0 | 0.2 | 0.5 | 1 |
+| Plentiful | 1 | 1 | 0.5 | 0.2 | 0.5 | 1 |
+| Abundant | 1 | 1 | 1 | 0.2 | 0.5 | 1 |
 
 These are first-pass values from the estimates of the report (every candidate given Earth's water gives about 1 Class M world per 500 Sun-like systems; 1 per 100 needs the envelopes gone as well; the two top tiers need the request). They are registered as stand-ins of tier T9, tweak level L4 (`docs/design/research/gap-filling-plan.md` section 6.289).
 
@@ -106,8 +111,11 @@ The dials of the family, each on the tiers only and each off on Science:
 | Dial | State | What it moves |
 |---|---|---|
 | `dry_part` | built (section 3) | Part of the dialed planets take the dry water class, so desert-shaped planets are made beside the temperate ones. |
-| groundwater | to build | The share of dry candidates that keep a reachable aquifer. Without it a dry planet is rarely Class H: 12 of 14 dry dialed planets measured had no groundwater. |
-| early warm phase | to build, after the research of GEN.1722 | A warm, wet early age in which oxygen-making life starts and fills the air, before the planet settles to its present state. |
-| hardier oxygen life | to build, after the research of GEN.1722 | How far past the sourced limits of real oxygen-making life the tiers let it live. The sourced limits themselves are a change for every tier, Science included (Boss, 8:39 PM EST 2026-11-14: the minimal reasonable, educated guess), and are their own item. |
+| desert seas | built (section 3) | A desert world's water leaves a few small seas, and each is an ordinary salt sea that life can start in, not a brine. This also answers the groundwater lever Boss named: a world with a sea passes Class H's groundwater condition, and the dry planets that failed it had no surface water at all. |
+| `quiet_share` | built (section 3) | Quiet volcanoes: a third of the oxygen sink on half of the candidates (Boss, 9:43 PM EST 2026-11-14). It helps every class with a living sea and does nothing for a world without one. |
+| early warm phase | to build | A warm, wet early age of at least 0.8 Gyr in which oxygen-making life starts (the research of GEN.1722), before the planet settles to its present state. |
+| hardier oxygen life | to build | How far past the sourced limits of real oxygen-making life the tiers let it live. The sourced limits themselves are GEN.1723, for every tier, Science included (Boss, 8:39 PM EST 2026-11-14: the minimal reasonable, educated guess). |
 
-Until the other three are built and GEN.1720 is fixed, the dry part makes desert-shaped planets but few Class H worlds. The meter's family table (`scripts/class_m_meter.py report`) shows, for each of the five classes, the worlds per 1,000 systems and how many planets with the class's shape pass each of its air limits, so each dial is measured as it lands.
+**Why desert worlds stay rare.** Boss chose "both, small seas first" (card, 9:49 PM EST 2026-11-14). The oxygen law counts the open sea alone and leaves out the land plants that make about half of Earth's production, so a world with under 20 percent sea holds 16 kPa of oxygen only when it is warm, bright and quiet inside. The land plants are GEN.1729, researched and then built for every galaxy. Measured on a prototype (Abundant, 400 Sun-like systems): when the small sea was left a brine, 31 of 44 desert worlds held no life at all, because a brine that strong (water activity under 0.6) is past what life is known to bear; that is why the tier makes the sea an ordinary one. With the sea an ordinary one (same sample, 2026-11-14) 41 of 53 desert worlds hold life, and still none is Class H: the four warm small-sea worlds hold 0.001 to 12 Pa of carbon dioxide, and oxygen-making life needs 2 Pa. The carbon dioxide a world holds goes as its outgassing to about the fifth power (GEN.1720), so only 5 of 30 Earth-shaped planets and 1 of 5 desert-sea planets land in the band of 2 Pa to 1 kPa that all five classes need. That is the next thing to decide, for every class at once.
+
+The meter's family table (`scripts/class_m_meter.py report`) shows, for each of the five classes, the worlds per 1,000 systems and how many planets with the class's shape pass each of its air limits, so each dial is measured as it lands.

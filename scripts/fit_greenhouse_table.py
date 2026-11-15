@@ -11,6 +11,8 @@ seconds to minutes an air. Four steps, each resumable, each writing into the wor
     python3 scripts/fit_greenhouse_table.py sample WORK --seeds 1000 1800            airs of the generator and perturbed copies (train.pkl)
     python3 scripts/fit_greenhouse_table.py sample WORK --seeds 5000 5100 --name validation --no-perturb      fresh seeds to validate on
     python3 scripts/fit_greenhouse_table.py designed WORK --count 6000               add airs drawn from families of worlds (train.pkl grows)
+    python3 scripts/fit_greenhouse_table.py envelope WORK --name envelope --count 800   the airs of hydrogen envelopes and giants, as the generator makes them (GEN.1717)
+    python3 scripts/fit_greenhouse_table.py hot WORK --name hot --count 800             the airs of hot rocky planets, to hold at the starting file's answer (GEN.1717)
     python3 scripts/fit_greenhouse_table.py solve WORK --name train --workers 4      the model's surface temperature of each air (train.jsonl)
     python3 scripts/fit_greenhouse_table.py solve WORK --name validation --workers 4
     python3 scripts/fit_greenhouse_table.py wet WORK --count 6000                     add temperate wet airs (GEN.1304; train.pkl grows)
@@ -274,6 +276,103 @@ def wet(args):
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} temperate wet airs added, {len(samples)} samples in {path}")
+
+ENVELOPE_PERTURB_SEED = PERTURB_SEED + 5
+
+
+def envelope_bodies(count, rng):
+    """GEN.1717: the bodies whose airs the table must be right for and the other steps seldom reach: planets under a hydrogen envelope (2 to 15 Earth masses, 1 to 25 percent envelope,
+    0.03 to 3 AU: the fixed point's air is hydrogen and helium with several percent of water, carbon monoxide, methane and ammonia, at the 1 bar reference level) and giants (30 to
+    3000 Earth masses, 0.05 to 40 AU), each as (mass in Earth masses, envelope share, radius in Earth radii, distance in AU, seed). Log-uniform, not tuned to any one world."""
+    bodies = []
+    for number in range(count):
+        if number % 4 != 3:
+            mass = math.exp(rng.uniform(math.log(2.0), math.log(15.0)))
+            envelope = math.exp(rng.uniform(math.log(0.01), math.log(0.25)))
+            radius = 1.5 * mass ** 0.27 * math.exp(rng.uniform(-0.05, 0.3)) * (1.0 + 2.0 * envelope)
+            distance = math.exp(rng.uniform(math.log(0.03), math.log(3.0)))
+        else:
+            mass = math.exp(rng.uniform(math.log(30.0), math.log(3000.0)))
+            envelope = rng.uniform(0.7, 0.99)
+            radius = 11.0 * (mass / 300.0) ** 0.03 * math.exp(rng.uniform(-0.15, 0.15))
+            distance = math.exp(rng.uniform(math.log(0.05), math.log(40.0)))
+        bodies.append((mass, envelope, radius, distance, rng.randrange(1, 10 ** 6), 0.0))
+    return bodies
+
+
+def hot_bodies(count, rng):
+    """GEN.1717: rocky planets from the runaway greenhouse's edge inwards (0.3 to 5 Earth masses, 0.3 to 1.2 AU round a Sun, no water or up to a third of the mass), the hot dense steam and
+    carbon dioxide airs a refit on envelopes must not move (`tests/test_surface_air_runaway_start.py` holds Venus's twins to be steam). Held at the starting file's answers, not solved."""
+    bodies = []
+    for _ in range(count):
+        mass = math.exp(rng.uniform(math.log(0.3), math.log(5.0)))
+        water = math.exp(rng.uniform(math.log(1.0e-4), math.log(0.35))) if rng.random() < 0.7 else 0.0
+        bodies.append((mass, 0.0, mass ** 0.27, math.exp(rng.uniform(math.log(0.3), math.log(1.2))), rng.randrange(1, 10 ** 6), water))
+    return bodies
+
+
+def collect_envelope(bodies):
+    """The greenhouse calls of the fixed point of each body of `envelope_bodies` (the generator's own air, as `collect` records it)."""
+    import copy
+
+    import earth_analog
+    from planetgen.physics import atmosphere_state, planets
+    from planetgen.util import draw
+
+    planet0, _ = earth_analog._setup(4.6)
+    calls = []
+    original = atmosphere_state.greenhouse_warming
+
+    def record(partials, gravity, flux, aloft_share=0.0, aloft_pressure_pa=None):
+        calls.append((dict(partials), gravity, flux, aloft_share, aloft_pressure_pa))
+        return original(partials, gravity, flux, aloft_share, aloft_pressure_pa)
+
+    atmosphere_state.greenhouse_warming = record
+    try:
+        for mass, envelope, radius, distance, seed, water in bodies:
+            planet = copy.deepcopy(planet0)
+            planet.mass, planet.radius = mass * 5.972e24, radius * 6371.0
+            planet.envelope_mass_fraction, planet.ice_mass_fraction, planet.water_mass_fraction = envelope, 0.0, water
+            planet.metal_mass_fraction = 0.3 * (1.0 - envelope - water)
+            planet.rock_mass_fraction = 1.0 - envelope - water - planet.metal_mass_fraction
+            planet.distance = planet._star_distance_au = planet.formation_distance_au = distance
+            planet.gravity = mass / radius ** 2
+            planet.__dict__.pop("_formation_fractions", None)
+            try:
+                with draw.bound(seed):
+                    planets.calculate_atmospheric_conditions(planet)
+            except Exception:       # a body the generator itself would not make is no loss to the set
+                continue
+    finally:
+        atmosphere_state.greenhouse_warming = original
+    return calls
+
+
+def envelope(args):
+    """GEN.1717: add the airs of hydrogen envelopes and giants (the generator's own, `collect_envelope`, and a perturbed copy of each, `perturbed`) to the samples of `--name`."""
+    from planetgen.physics import greenhouse_table
+
+    rng = random.Random(ENVELOPE_PERTURB_SEED + (1 if args.step == "hot" else 0))
+    bodies = (hot_bodies if args.step == "hot" else envelope_bodies)(args.count, rng)
+    chunks = [bodies[index::args.workers * 4] for index in range(args.workers * 4)]
+    calls = []
+    with multiprocessing.Pool(args.workers) as pool:
+        for chunk in pool.imap(collect_envelope, chunks):
+            calls.extend(chunk)
+            print(f"{len(calls)} greenhouse calls", flush=True)
+    airs = [air for air in distinct(calls) if sum(air[0].values()) <= greenhouse_table.PRESSURE_MAX_PA]
+    out = list(airs) + [perturbed(air, rng) for air in airs]
+    # the table is read at runtime on the air without its traces (`greenhouse_table.strip_traces`, GEN.1588): the network is fitted on those airs, as the model answers them
+    out = [(greenhouse_table.strip_traces(partials), gravity, flux, share, aloft) for partials, gravity, flux, share, aloft in out]
+    path = os.path.join(args.work, args.name + ".pkl")
+    samples = []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    samples.extend(out)
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    print(f"{len(calls)} calls, {len(airs)} distinct airs, {len(out)} samples added, {len(samples)} in {path}")
 
 
 def designed(args):
@@ -560,7 +659,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -579,7 +678,7 @@ def main():
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":

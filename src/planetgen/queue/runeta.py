@@ -158,6 +158,14 @@ def estimate(run, now):
                rough=bool(rough_total))
 
 
+def cost_percent(stages, empty=None):
+    """How far a run is, percent to a tenth: the cost done over the cost of every stage; `empty` for a run whose stages have no cost to count (the public banner and the run list
+    each had this sum out)."""
+    cost_total = sum(stage["cost_total"] or 0.0 for stage in stages)
+    cost_done = sum(stage["cost_done"] or 0.0 for stage in stages)
+    return round(100.0 * cost_done / cost_total, 1) if cost_total else empty
+
+
 def public_view(run, now):
     """
     What a public read needs and nothing private (UX.3's banner, built on this): whether a run is going,
@@ -168,13 +176,11 @@ def public_view(run, now):
     eta = estimate(run, now)
     stages = run["stages"]
     current = min(max(run["current"], 0), len(stages) - 1)
-    cost_total = sum(stage["cost_total"] or 0.0 for stage in stages)
-    cost_done = sum(stage["cost_done"] for stage in stages)
     return {
         "active": True, "state": run["state"], "title": run["title"],
         "stage": {"index": current, "count": len(stages), "label": stages[current]["label"],
                   "done": stages[current]["done"], "units": stages[current]["units"]},
-        "percent": round(100.0 * cost_done / cost_total, 1) if cost_total else None,
+        "percent": cost_percent(stages),
         "eta_seconds": eta.seconds, "eta_low": eta.low, "eta_high": eta.high, "eta_source": eta.source,
         "from_earlier_runs": eta.from_earlier_runs, "partial": eta.partial, "stalled": eta.stalled,
         "eta_rough": eta.rough, "updated": run["updated"],

@@ -252,6 +252,8 @@ def _gate_words(gate):
     quantity = gate["quantity"]
     if quantity == "hydrosphere":
         return "The surface has " + join_words((HYDROSPHERE_WORDS.get(v, v) for v in gate["in"]), "or")
+    if quantity == "lit_liquid_hours":
+        return f"Light and liquid water at the surface (a sea, a seep, a seasonal melt or a spring) for at least {gate['min']:.0f} hours a year"
     if quantity == "pressure_pa" and gate.get("min", 0.0) > 0.0:
         return f"Air pressure of at least {_pressure(gate['min'])}"
     if quantity == "co2_partial_pa":

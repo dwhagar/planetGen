@@ -10,7 +10,7 @@ from planetgen import tuning
 from planetgen.generation import evolution, life
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases, life_air, life_classes
+from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases, habitability_world, life_air, life_classes, surface_refuge
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -194,11 +194,13 @@ def test_the_oxygen_rises_after_the_delay_and_not_before(monkeypatch):
     assert bo.rise_age_gyr(None, []) is None
 
 
-def test_a_world_without_a_sunlit_sea_makes_no_oxygen(worlds):
+def test_a_world_without_a_sunlit_sea_makes_oxygen_only_from_a_refuge_and_a_small_one(worlds):
     seen = 0
     for world in worlds:
         if getattr(world, "hydrosphere", None) not in bo.LIVING_HYDROSPHERES:
-            assert bo.productivity(world, 5.1e14) == 0.0
+            source = bo.productivity(world, 5.1e14)
+            assert source == bo.refuge_productivity(world, 5.1e14)          # GEN.1723: a seep, a melt or a spring is a refuge, and the only source such a world has
+            assert source <= 0.15 * bo.EARTH_BURIAL_MOL_YR * 5.1e14 / bo.EARTH_AREA_M2            # a tenth of an ocean's at the most (the cover cap, 0.1 over 0.71 of the surface): under Earth's reductant flux of 0.3, so a refuge never carries a world alone
             seen += 1
     assert seen > 3
 
@@ -215,7 +217,9 @@ def test_only_oxygenic_life_holds_oxygen_it_made_and_only_in_a_sunlit_sea(worlds
         if evolution.releases_oxygen(world.life_class_id):
             # TEST.740: the oxygen rise burns away the methane and the other reduced gases of the air and can cool the world until its sea freezes over (Earth's own went into the Huronian
             # glaciation after its rise); the life was in a sunlit sea when it made the oxygen, so a world that ends under ice may still hold oxygenic life
-            assert world.hydrosphere in bo.LIVING_HYDROSPHERES + ("ice-covered ocean",), (world.name, world.hydrosphere)
+            # GEN.1723: or in a refuge, where light and a seep, a melt or a spring give the life a place
+            assert (world.hydrosphere in bo.LIVING_HYDROSPHERES + ("ice-covered ocean",)
+                    or surface_refuge.refuge_of(habitability_world.values_from_body(world)).hours > 0.0), (world.name, world.hydrosphere)
             seen += 1
     assert seen >= 1
 
