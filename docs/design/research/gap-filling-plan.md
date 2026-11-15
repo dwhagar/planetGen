@@ -4252,7 +4252,7 @@ The vapor pressure of disulfur over condensed sulfur, a row of `physics/data/sat
 | IL5 | B | T1 | L0 | `ice_light.ALBEDO_MELTING` 0.4 (0.2 to 0.6): the albedo of melting bare ice | 0.2 to 0.6 | ice at the melting point | a melting ice surface of albedo outside 0.2 to 0.6 | none | [R5266] 0.78, 0.60, 0.44 and 0.20 as the ice warms and melts |
 | IL6 | P | T7 | L1 | `ice_light.SNOW_COVER_DEPTH_M` 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm) | 0.01 to 0.1 m | a snow layer of 1 to 30 cm over ice | a measurement of the albedo of a few cm of snow over ice that differs by more than 0.1 from this blend | a measured albedo by snow depth | no source for the form; 10 cm of temperate snow let 5 percent of the visible light through [R5268], which the same 10 cm makes snow-bright |
 
-### 6.293 Stand-ins of the surface [Fe/H] of a star against its birth value (GEN.1623)
+### 6.295 Stand-ins of the surface [Fe/H] of a star against its birth value (GEN.1623)
 
 `datasets/isochrones.surface_change_dex` reads, from the surface hydrogen and helium of each main-sequence row of the MIST isochrones [R0773, R1150], how far atomic diffusion has settled the metals out of the star's surface; `isochrones.initial_fe_h` uses it to read a star that carries its surface [Fe/H] at the birth [Fe/H] the grid is labelled with (`alpha_tracks.track_fe_h` with the star's mass). The basic isochrones hold no surface iron, so the change of the metals together stands for the change of the iron.
 
