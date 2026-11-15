@@ -13074,14 +13074,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 03 (released by Boss 9:17 PM EST; gate widening after GEN.1723 merges). Prerequisites: GEN.1724, GEN.1723. Related: GEN.876, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1726 A sourced law for light through ice and snow (transmission by thickness, grain and impurity) for the refuge gate and lit water under thin ice**
-  From GEN.1724 (/mnt/project-files/reports/life-adaptations-climate-2026-11-14.md), released by Boss 9:17 PM EST on 2026-11-14 ("Implment it, make it happen"). Do: research and register the law (sources per the source rules), then build it as a function GEN.1723 and GEN.1725 read.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1723, GEN.1725, GEN.1724.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1727 Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit**
   From GEN.1724 (/mnt/project-files/reports/life-adaptations-climate-2026-11-14.md): the figure is quoted second-hand. Do: read it from the paper or a verified second-hand citation (reports/secondhand-citations-2026-10-24.md if the paper is out of reach) and correct the report and the registry row.
   Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1724, GEN.1723.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1728 A world's ice and snow thickness from a growth law (temperature and snowfall), so the GEN.1726 light law can run on real worlds**
+  Lane 03, 9:47 PM EST on 2026-11-14, from GEN.1726 (PR 6583): physics/ice_light.py takes a thickness from its caller; GEN.1723 and GEN.1725 need a stored or derived ice and snow thickness per world before they use it. Do: a sourced growth law (sea ice from the freezing balance, snowpack from snowfall and melt), registered in GEN.725, stored or computed where the life gate reads it.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1726, GEN.1723, GEN.1725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
