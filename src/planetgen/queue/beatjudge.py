@@ -40,6 +40,8 @@ import math
 from dataclasses import dataclass
 from typing import Optional
 
+from planetgen.util.format import format_duration_seconds, format_rate
+
 BEAT_SECONDS = 10.0
 """float: How often a horse writes its beat (OPS.136)."""
 
@@ -248,8 +250,8 @@ def _busy(beat, history, now, still, limit, rate):
     doing = f"in SQL: {beat.sql}" if beat.sql else "using processor time or reading and writing"
     ran = max(now - beat.started, 0.0)
     over = _finite(history.expected_seconds) and history.expected_seconds > 0 and ran > history.expected_seconds
-    tail = f"; it has run {ran:.0f} s against about {history.expected_seconds:.0f} s learned" if over else ""
-    return Verdict(BUSY, FLAG if over else "", f"the count has stood at {beat.done:g} for {still:.0f} s (past {limit:.0f} s) but the unit is {doing}{tail}", rate=rate, still_seconds=still)
+    tail = f"; it has run {format_duration_seconds(ran)} against about {format_duration_seconds(history.expected_seconds)} learned" if over else ""
+    return Verdict(BUSY, FLAG if over else "", f"the count has stood at {beat.done:g} for {format_duration_seconds(still)} (past {format_duration_seconds(limit)}) but the unit is {doing}{tail}", rate=rate, still_seconds=still)
 
 
 def judge(beat, history, now, before=None, starved=False):
@@ -268,7 +270,7 @@ def judge(beat, history, now, before=None, starved=False):
     """
     silent = now - beat.beat
     if not _finite(silent) or silent > dead_after_seconds():
-        return Verdict(DEAD, reason=f"no beat for {silent:.0f} s (limit {dead_after_seconds():.0f} s)" if _finite(silent) else "no usable beat",
+        return Verdict(DEAD, reason=f"no beat for {format_duration_seconds(silent)} (limit {format_duration_seconds(dead_after_seconds())})" if _finite(silent) else "no usable beat",
                        counter=_has_counter(beat))
     has_counter = _has_counter(beat)
     last_change = beat.moved if beat.moved is not None else beat.started
@@ -278,7 +280,7 @@ def judge(beat, history, now, before=None, starved=False):
     if beat.waiting_on:
         waited = max(now - last_change, 0.0)
         over = waited > WAITING_LIMIT_SECONDS
-        return Verdict(WAITING, FLAG if over else "", f"waiting on {beat.waiting_on} for {waited:.0f} s" + (f" (over {WAITING_LIMIT_SECONDS:.0f} s)" if over else ""),
+        return Verdict(WAITING, FLAG if over else "", f"waiting on {beat.waiting_on} for {format_duration_seconds(waited)}" + (f" (over {format_duration_seconds(WAITING_LIMIT_SECONDS)})" if over else ""),
                        counter=has_counter, rate=rate, still_seconds=waited, over_limit=over)
     if not has_counter:
         return Verdict(WORKING, reason="no counter reported, so only a missing beat can be judged", counter=False)
@@ -286,7 +288,7 @@ def judge(beat, history, now, before=None, starved=False):
     if still > limit and _shows_work(beat, now):
         return _busy(beat, history, now, still, limit, rate)
     if still > limit:
-        return Verdict(QUIET, reason=f"beat fresh but the count has stood at {beat.done:g} for {still:.0f} s (limit {limit:.0f} s)", rate=rate, still_seconds=still)
+        return Verdict(QUIET, reason=f"beat fresh but the count has stood at {beat.done:g} for {format_duration_seconds(still)} (limit {format_duration_seconds(limit)})", rate=rate, still_seconds=still)
     looping = _looping(beat, before, rate)
     if looping is not None:
         return Verdict(looping.state, looping.severity, looping.reason, rate=rate, still_seconds=still,
@@ -294,8 +296,8 @@ def judge(beat, history, now, before=None, starved=False):
     expected = _expected_rate(beat, history)
     if expected is not None and rate is not None and now - beat.started >= SLOW_MIN_SECONDS and rate < SLOW_FRACTION * expected:
         projected = _projected(beat, rate)
-        tail = f", about {projected:.0f} s left at that rate" if projected is not None else ""
-        return Verdict(SLOW, FLAG, f"{rate:.3g} a second against about {expected:.3g} expected{tail}", rate=rate, projected_finish_seconds=projected,
+        tail = f", about {format_duration_seconds(projected)} left at that rate" if projected is not None else ""
+        return Verdict(SLOW, FLAG, f"{format_rate(rate, 1.0)} against about {format_rate(expected, 1.0)} expected{tail}", rate=rate, projected_finish_seconds=projected,
                        still_seconds=still)
     return Verdict(WORKING, rate=rate, still_seconds=still)
 

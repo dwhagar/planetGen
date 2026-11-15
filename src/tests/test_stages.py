@@ -51,10 +51,10 @@ def _labels(found):
     return [(stage.key, stage.skip is not None) for stage in found]
 
 
-def test_a_random_start_galaxy_run_has_eighteen_stages_and_skips_none_of_them():
+def test_a_random_start_galaxy_run_has_nineteen_stages_and_skips_none_of_them():
     found = stages.galaxy_stages(_galaxy())
     assert _labels(found) == [
-        ("start", False), ("neighborhood", False), ("link", False), ("mass-clear", False), ("backfill", False), ("mass", False), ("luminosity", False),
+        ("start", False), ("neighborhood", False), ("link", False), ("mass-clear", False), ("scatter-limits", False), ("backfill", False), ("mass", False), ("luminosity", False),
         ("phenomena-clear", False), ("phenomena-unindex", False), ("phenomena", False), ("phenomena-index", False), ("nebula-clear", False), ("nebula-draw", False),
         ("population", False), ("territories", False), ("settle", False),
         ("run-blocks", False), ("block-lights", False)]
@@ -69,7 +69,7 @@ def test_the_block_light_totals_are_the_last_stage_of_a_galaxy_run():
 
 def test_a_galaxy_run_of_one_sector_and_its_neighborhood_has_both_stages():
     found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0", "--wedge", "1", "--radius-pc", "20"))
-    assert [stage.key for stage in found][:3] == ["sectors", "neighborhood", "link"] and len(found) == 18
+    assert [stage.key for stage in found][:3] == ["sectors", "neighborhood", "link"] and len(found) == 19
     assert [stage.key for stage in stages.galaxy_stages(_galaxy("--center-sector", "1", "--radius-pc", "20"))][:2] \
         == ["sectors", "link"]
 
@@ -80,7 +80,7 @@ def test_a_sectors_run_has_the_sector_stages_alone():
 
 def test_a_galaxy_run_with_an_address_has_one_sector_stage():
     found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0"))
-    assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 17
+    assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 18
 
 
 def test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own():
@@ -112,16 +112,16 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     stages.enter("settle")         # the ones between are skipped
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 1 of 18: Generate the starting sector")
+    assert text.startswith("Stage 1 of 19: Generate the starting sector")
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
-    assert "Stage 2 of 18: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 6 of 18: Scatter the massive stars -- skipped: no layers" in text
-    assert "Stage 14 of 18: Run the population pass -- skipped: not needed" in text
-    assert "Stage 15 of 18: Recompute the territories -- skipped: not needed" in text
-    assert "Stage 16 of 18: Save the sector paths" in text
-    assert "Stage 17 of 18: Update the map's block totals -- skipped: not needed" in text
-    assert "Stage 18 of 18: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
-    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 18
+    assert "Stage 2 of 19: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 7 of 19: Scatter the massive stars -- skipped: no layers" in text
+    assert "Stage 15 of 19: Run the population pass -- skipped: not needed" in text
+    assert "Stage 16 of 19: Recompute the territories -- skipped: not needed" in text
+    assert "Stage 17 of 19: Save the sector paths" in text
+    assert "Stage 18 of 19: Update the map's block totals -- skipped: not needed" in text
+    assert "Stage 19 of 19: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
+    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 19
 
 
 def test_a_stage_key_the_run_does_not_have_is_ignored():
@@ -212,7 +212,7 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
     assert history["population"]["skipped"] and history["territories"]["skipped"] and history["settle"]["skipped"] and history["link"]["skipped"] is True
-    assert history["mass"]["stage_n"] == 6 and history["mass"]["stage_total"] == 18
+    assert history["mass"]["stage_n"] == 7 and history["mass"]["stage_total"] == 19
 
 
 def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_config, monkeypatch):
@@ -442,10 +442,10 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     stages.enter("settle")
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 4 of 22: Generate the starting sector")      # a step of 18 stages: the banner names the step
+    assert text.startswith("Stage 4 of 22: Generate the starting sector")      # a step of 19 stages: the banner names the step
     assert "stages (stages" not in text
     assert "Stage 5 of 22: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 19 of 22: Save the sector paths" in text
+    assert "Stage 20 of 22: Save the sector paths" in text
 
 
 def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
@@ -506,7 +506,7 @@ def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "9")
     stages.begin(stages.galaxy_stages(_galaxy()))
     try:
-        assert stages._numbering() == (0, 18)
+        assert stages._numbering() == (0, 19)
     finally:
         stages.finish()
 

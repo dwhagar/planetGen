@@ -58,6 +58,8 @@ PROSE_TEXT_COLUMNS = {
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
     # OPS.58: the generator battery's digest per case and the environment record, as JSON documents read whole
     ("galaxy_shape", "battery_cases"), ("version_key_history", "battery_cases"), ("version_key_history", "environment"),
+    # OPS.181: a job's arguments and what it needs and makes as JSON lists, and the text of an attempt's error
+    ("engine_jobs", "arguments"), ("engine_jobs", "needs"), ("engine_jobs", "makes"), ("engine_attempts", "error_text"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 

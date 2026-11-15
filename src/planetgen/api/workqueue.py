@@ -87,7 +87,7 @@ def work():
     for run_id in ids[offset:offset + limit]:
         run = runrecord.read_run(connection, run_id)
         if run is not None:
-            items.append(runview.summary(run, now))
+            items.append(runview.summary(run, now, runview.cause_of_stalled(connection, run, now)))
     return jsonify({"available": True, "status": status, "stopped": stopall.state(), "items": items,
                     "total": len(ids), "limit": limit, "offset": offset})
 
@@ -128,7 +128,8 @@ def run_detail(run_id):
     if run is None:
         raise ApiError("No such run.", 404)
     events = runrecord.read_events(connection, run_id, count=100_000)[-EVENTS_SHOWN:]
-    return jsonify({"run": runview.detail(run, time.time()), "log": True,
+    now = time.time()
+    return jsonify({"run": runview.detail(run, now, runview.cause_of_stalled(connection, run, now)), "log": True,
                     "events": [{"id": entry_id, "t": float(fields.get("t", 0)), "level": fields.get("level", "info"),
                                 "kind": fields.get("kind", "log"), "message": fields.get("message", ""),
                                 **{name: fields[name] for name in runrecord.EVENT_FIELD_NAMES if name in fields}}

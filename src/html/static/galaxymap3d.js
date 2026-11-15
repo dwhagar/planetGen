@@ -105,7 +105,7 @@ const {
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
-const { sourceOf: nebulaVolumeSource, singleIdOf, sphereOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, lanesSource, singleIdOf, sphereOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
@@ -3158,6 +3158,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     nebulaEntries = drawnNodes;
     nebulaSources = drawnNodes.map(nebulaVolumeSource).filter(Boolean);
+    if (nodeVolumes) nebulaSources.push(lanesSource());      // MAP.430: the galaxy's gas, a volume of its own whatever the nodes drawn
     setNebulaRegions();
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {

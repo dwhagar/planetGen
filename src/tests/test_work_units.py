@@ -400,12 +400,14 @@ def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
 
 
 def test_only_the_table_names_what_a_unit_runs(monkeypatch):
-    assert callable(commands.unit_function("scatter-mass")) and callable(commands.expand_function("scatter-mass"))
+    assert callable(commands.pieces_function("scatter-mass")) and callable(commands.do_function("scatter-mass")) and callable(commands.expand_function("scatter-mass"))      # OPS.198: converted
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
     for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena"):
-        assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
+        assert callable(commands.pieces_function(kind)) and callable(commands.do_function(kind)) and callable(commands.expand_function(kind))
+        with pytest.raises(ValueError, match="engine"):
+            commands.unit_function(kind)
     assert callable(commands.pieces_function("plan-skeleton")) and callable(commands.do_function("plan-skeleton")) and callable(commands.expand_function("plan-skeleton"))
     with pytest.raises(ValueError, match="engine"):
         commands.unit_function("plan-skeleton")
@@ -1024,7 +1026,7 @@ def test_the_backfill_gives_the_same_stars_in_one_unit_or_many(mysql_config, mon
 def _backfilled_by(config, monkeypatch, how):
     """The bright stars the backfill around one new sector places in a toy galaxy, drawn `how`: "serial" is
     `backfill_bright_stars_around` (the form the older tests cover), "unit" cuts the same sectors with
-    `expand_backfill_bright_stars` and runs each unit through `backfill_bright_stars_unit` itself (the form a run takes).
+    `expand_backfill_bright_stars` and runs each unit through the engine (`commands.run_alone("scatter-backfill", ...)`, the form a run takes).
     Returns the rows, what was drawn and what the units reported."""
     from planetgen.db import store
     from planetgen.generation import run_galaxy
@@ -1045,7 +1047,7 @@ def _backfilled_by(config, monkeypatch, how):
         drawn = run_galaxy.backfill_bright_stars_around(config, [center])
     else:
         cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(config), "center_pc": list(center)})
-        results = [run_galaxy.backfill_bright_stars_unit(unit, lambda done, total: reports.append((done, total)))
+        results = [commands.run_alone("scatter-backfill", unit, lambda done, total: reports.append((done, total)))
                    for unit, _cost in cut.units]
         drawn = {"sectors": sum(r["sectors"] for r in results), "stars": sum(r["stars"] for r in results)}
         assert sum(r["visited"] for r in results) == cut.plan["sectors"]
@@ -1062,9 +1064,9 @@ def _backfilled_by(config, monkeypatch, how):
 
 @pytest.mark.fresh_database
 def test_the_backfill_unit_draws_the_stars_the_serial_backfill_draws_for_the_same_sector(mysql_config, monkeypatch):
-    """TEST.532: a run backfills through `backfill_bright_stars_unit`, so this runs that function itself on a second
+    """TEST.532: a run backfills through the `scatter-backfill` command, so this runs that command itself on a second
     database and compares it with `backfill_bright_stars_around` (the serial form) on the first: the same sectors, the
-    same stars (mass, luminosity, type, position and seed), and a unit reports each sector it visits."""
+    same stars (mass, luminosity, type, position and seed), and a unit reports each chunk of sectors it draws (OPS.202)."""
     from planetgen.db import store
     import tests.conftest as conftest
     import pymysql
@@ -1087,7 +1089,7 @@ def test_the_backfill_unit_draws_the_stars_the_serial_backfill_draws_for_the_sam
         server.close()
     assert serial_drawn["sectors"] >= 4 and serial_drawn["stars"] == len(serial)
     assert unit_drawn == serial_drawn and unit == serial
-    assert reports and reports[-1] == (unit_drawn["sectors"], unit_drawn["sectors"])
+    assert reports and reports[-1][0] == reports[-1][1] > 0
 
 
 @pytest.mark.fresh_database

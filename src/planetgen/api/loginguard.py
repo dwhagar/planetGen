@@ -31,6 +31,7 @@ from planetgen.admin import activity_log, auth, throttle
 from planetgen.util import log
 
 from .common import get_control_db
+from planetgen.util.format import format_duration_seconds
 
 memory_store = throttle.MemoryStore()
 """MemoryStore: The counters for a `memory://` storage and the fallback
@@ -87,16 +88,9 @@ def with_store(operation):
 
 
 def wait_text(seconds):
-    """`seconds` as words for a message: `1 second`, `40 seconds`,
-    `5 minutes`, `3 hours`."""
-    seconds = max(1, int(seconds))
-    if seconds < 120:
-        return f"{seconds} second{'' if seconds == 1 else 's'}"
-    if seconds < 2 * 3600:
-        minutes = -(-seconds // 60)
-        return f"{minutes} minutes"
-    hours = -(-seconds // 3600)
-    return f"{hours} hours"
+    """`seconds` as words for a message, on the duration ladder (`format_duration_seconds`, UX.318), never under one second:
+    `1 s`, `40 s`, `5 minutes`, `3 hours`."""
+    return format_duration_seconds(max(1, int(seconds)))
 
 
 def record_failure_row(action, username, admin_user_id=None):

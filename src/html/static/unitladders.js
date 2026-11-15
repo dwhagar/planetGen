@@ -208,7 +208,19 @@ export const LADDERS = {
       {"symbol": "1/d", "factor": 1.1574074074074073e-05, "name": "per day", "start": 1.1574074074074073e-05, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
     ],
   },
+  "information": {
+    "base": "B", "nonfinite": "TB", "zero": "B",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "B", "factor": 1.0, "name": "bytes", "start": 0.0, "singular": "byte", "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "kB", "factor": 1000.0, "name": "kilobytes", "start": 1000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "MB", "factor": 1000000.0, "name": "megabytes", "start": 1000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "GB", "factor": 1000000000.0, "name": "gigabytes", "start": 1000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "TB", "factor": 1000000000000.0, "name": "terabytes", "start": 1000000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+    ],
+  },
 };
 
 // The ladder a registry kind (unitregistry.js) is shown on.
-export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field", "dose_rate": "dose rate", "frequency": "rate"};
+export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field", "dose_rate": "dose rate", "frequency": "rate", "information": "information"};

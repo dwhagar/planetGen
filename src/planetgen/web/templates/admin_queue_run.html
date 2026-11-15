@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% from "partials/log_lines.html" import colored_log %}
-{% from "partials/task_bar.html" import task_bar %}
+{% from "partials/task_bar.html" import task_bar with context %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <section class="panel" aria-labelledby="run-heading">

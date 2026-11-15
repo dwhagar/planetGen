@@ -24,6 +24,7 @@ import redis
 from planetgen.admin import maintenance
 from planetgen.queue import planrows, redisqueue, runline, runrecord
 from planetgen.util import log, logrecord
+from planetgen.util.format import format_duration_seconds
 
 LOCK_NAME = "supervisor.lock"
 """str: The file in the state folder the supervisor holds a lock on while it lives."""
@@ -552,7 +553,7 @@ class Supervisor:
             for duty in self.duties:
                 duty.clear()
             self.store.retract()
-            self.act("ended", {"stopped": "it was asked to stop", "idle": f"nothing to watch for {self.idle_seconds:.0f} s",
+            self.act("ended", {"stopped": "it was asked to stop", "idle": f"nothing to watch for {format_duration_seconds(self.idle_seconds)}",
                                "turns": "the turn limit"}[reason] + f", after {self.turns} turn(s)")
             return reason
 

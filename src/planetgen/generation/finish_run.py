@@ -38,7 +38,7 @@ from planetgen.queue import commands, planrows, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
-    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "clear-bright-stars", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
+    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "clear-bright-stars", "store-scatter-limits", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
 galaxy an uninterrupted run would have: each either empties what it rewrites when it opens (`prepare`) or does work that
@@ -53,7 +53,7 @@ of a run that draws both passes are split from the massive ones at a limit the r
 alone."""
 
 AGAIN = "again"
-"""str: The step parameter that marks the stage that stopped: it is run again from its start (`generate_sectors_unit`
+"""str: The step parameter that marks the stage that stopped: it is run again from its start (`generate_sectors_pieces`
 leaves the sectors already saved alone)."""
 
 

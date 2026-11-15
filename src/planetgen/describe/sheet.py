@@ -482,7 +482,8 @@ _ROGUE_OWN = (
 _ROGUE_ORIGIN = (
     *_rows("identity", ("rogue_note", "Where it came from", TEXT)),
     *_rows("orbit", ("since_ejection_gy", "Time since the system threw it out"),
-           ("ejection_delay_gy", "Time from its birth to the throw"), ("ejection_speed_kms", "Speed it left at")),
+           ("ejection_delay_gy", "Time from its birth to the throw"), ("ejection_speed_kms", "Speed it left at"),
+           ("pair_separation_au", "Distance to its companion"), ("pair_period_yr", "Period round its companion")),
 )
 
 
@@ -692,6 +693,7 @@ NOT_SHOWN = {
         **_phenomenon_not_shown("rogue_planet"),
         "donor_uid": "the system that threw it out, a link in the Location chain and the Where it came from row",
         "event_index": "which of the donor's ejections it is; bookkeeping",
+        "pair_event_index": "which ejection of the same donor is its companion (GEN.332 slice D); bookkeeping, the companion is a link in its contents",
     },
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),

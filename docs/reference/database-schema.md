@@ -940,9 +940,9 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 - **`engine_runs`**, **`engine_jobs`**, **`engine_attempts`** (v23, OPS.215) — the job engine's ledger (`planetgen/queue/ledger.py`,
   `docs/design/operations/job-engine.md`); nothing reads or writes them until the supervisor (OPS.207) and the plan-as-rows item (OPS.221) are merged.
   `engine_runs`: one row per run, with `kind`, `galaxy` (the database it writes to, NULL for none), `state` (`waiting`, `running`, `held`, `done`,
-  `cancelled`), `held_reason`, `created_at`, `started_at` and `finished_at`. `engine_jobs`: one row per job (`run_id`, `stage`, `command`, `item_key` ('' for
+  `canceled`), `held_reason`, `created_at`, `started_at` and `finished_at`. `engine_jobs`: one row per job (`run_id`, `stage`, `command`, `item_key` ('' for
   a whole stage; the three are unique within a run, so a plan added twice is the same plan), `arguments`, `needs` and `makes` as JSON text, `job_class`,
-  `claim_mb`, `tokens`, `state` (`waiting`, `ready`, `running`, `done`, `failed`, `cancelled`), `attempt` (the newest attempt's number), `not_before`, `waited`
+  `claim_mb`, `tokens`, `state` (`waiting`, `ready`, `running`, `done`, `failed`, `canceled`), `attempt` (the newest attempt's number), `not_before`, `waited`
   (the last reason it was not started), `created_at` and `updated_at`). `engine_attempts`: one row per attempt (`job_id`, `attempt`, `pid`, `started_at`,
   `ended_at`, `outcome` (`running`, `done`, `failed`, `killed_memory`, `timed_out`, `stuck`, `replaced`, `lost`), `peak_mb`, `cpu_seconds`, `error_kind`,
   `error_text`, `stack_file`). Jobs go with their run and attempts with their job (`ON DELETE CASCADE`). The galaxy's half is `engine_items`.
@@ -2069,7 +2069,7 @@ Primary key `(star_system_id, body_type, body_id, effect, source_type, source_id
 
 ### `engine_items`
 
-Added in v260 (OPS.215). The galaxy's half of the job engine's ledger (the control database holds `engine_runs`, `engine_jobs` and `engine_attempts`): one row per job that writes to this galaxy. A job's own commits update its row `WHERE attempt = mine` (`ledger.commit_item`), so a job another attempt replaced touches no row and stops, and the last commit sets `done_at` in the same transaction as the data. Holds no galaxy data and is left out of the fingerprint. Nothing writes it until the supervisor (OPS.207) is merged; a galaxy made before v260 has no rows.
+Added in v261 (OPS.215). The galaxy's half of the job engine's ledger (the control database holds `engine_runs`, `engine_jobs` and `engine_attempts`): one row per job that writes to this galaxy. A job's own commits update its row `WHERE attempt = mine` (`ledger.commit_item`), so a job another attempt replaced touches no row and stops, and the last commit sets `done_at` in the same transaction as the data. Holds no galaxy data and is left out of the fingerprint. Nothing writes it until the supervisor (OPS.207) is merged; a galaxy made before v261 has no rows.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2709,9 +2709,13 @@ Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading F
 Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatter. The single-space map draws a block it has not opened as one node: its brightest objects and a glow made from the light of the rest, so a node needs the summed light of what is in a block without reading the objects. A row is one block `(m, shell_index, band_index, wedge_index)` of the eleven levels above a sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`). `star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz` (luminosity times position, solar luminosities times parsecs, so a center of light is each over `star_luminosity_sol`) and `star_lt` (luminosity times temperature, so the mean temperature of the light is `star_lt / star_luminosity_sol`) sum the stars; `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy` and `point_lpz` sum the phenomena the same way (`map_luminosity_sol`, no temperature). Built objects are counted in `galaxy_block_stats` (the generated sector's total luminosity), so a block's two tables never count one light twice. `db/block_lights.py` keeps it, as `block_stats.py` keeps its table: a level-3 block is summed from the objects of its sectors, a bigger block from its children's rows; `refresh_chain` puts right the blocks above one sector (a deletion), `refresh_sectors` those above the sectors a `galaxy` run saved (once at its end), and `rebuild` makes every row, a unit of sector shells at a time (the shells of one level-729 block), committing each unit, then the levels above the unit from the stored rows. A scatter, a clear and the map-luminosity fill rebuild the table at their end, and `planetgen fill-block-totals` makes it (and `galaxy_block_stats`) again. No foreign keys: a block is not a row of its own. The version is detected from the table.
 
 
-### v260 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
+### v260 (GEN.332, slice D): `rogue_planets` keeps the companion a rogue left with
 
-Migration 0260 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
+Migration 0260 adds three nullable columns to `rogue_planets`, at the end of the table: `pair_event_index` (INT, the `event_index` of the companion, a rogue of the same `donor_uid`; each of the two rows names the other), `pair_separation_au` (DOUBLE, AU, the circular orbit of the pair) and `pair_period_yr` (DOUBLE, years). All three are NULL for a rogue that left alone and for every row made before v260; nothing is backfilled, a regenerated donor writes its pairs (`physics/rogue_pairs.py`, `generation/rogue_yield.py`).
+
+### v261 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
+
+Migration 0261 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
 
 ### v257 (DB.75): `body_numbers`, the body number each slot of a system has had
 

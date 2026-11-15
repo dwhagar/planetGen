@@ -36,6 +36,16 @@ def parse_star_count(text):
     raise ValueError(f"stars must be a count such as 3, 3+ for three or more, or one of {', '.join(name for name, _ in STAR_COUNT_NAMES)}; got {text!r}")
 
 
+def valid_text(text):
+    """`text` stripped when it is a stars filter `parse_star_count` reads (a count, a count and a plus, or a name), else empty: a hand-edited URL is ignored, not an error (UX.239)."""
+    text = (text or "").strip()
+    try:
+        parse_star_count(text)
+    except ValueError:
+        return ""
+    return text
+
+
 def star_count_label(stars):
     """The words for a stars filter `(least, most)`: `Binary`, `Quintenary and beyond`, `7 stars or more`, `6 stars`."""
     if stars is None:

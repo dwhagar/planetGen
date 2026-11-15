@@ -96,10 +96,8 @@ NULL_IN_THIS_GALAXY = {
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
-                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
-                           "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt",
-                           "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
-                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
+                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity",
+                           "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
     # GEN.1380, GEN.1378, GEN.1381: a body holds a deposit row for each type it was assessed for, and a type is present only where its setting held and its count drew
     # at least one deposit, so a small galaxy may hold no row at all for its few rogue planets, or no present row on its moons.
     **{("rogue_planet_deposit_types", column): CHANCE for column in ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")},
@@ -256,18 +254,19 @@ NULL_IN_THIS_GALAXY = {
     **{("field_members", column): CHANCE for column in (
         "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
     ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
-    **{(table, "class_fudge_values"): CHANCE for table in ("moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move
+    **{(table, "class_fudge_values"): CHANCE for table in ("planets", "moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move (class Q left fewer planets to move, GEN.1618)
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
-    ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
-    ("asteroid_belts", "host_node_id"): "a belt round an inner pair node (GEN.332, slice C), told by a system with such a node",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
     # A moon of a free planet names its rogue planet; whether this galaxy's rogue planets (the ones its donors threw out, which depend on the
     # draws of the build) hold a moon is chance, so the column is either written or NULL here (TEST.645; test_parent_link and test_rogue_body_storage
     # write and read it back).
     ("moons", "rogue_planet_id"): CHANCE,
+    # GEN.332, slice D: a rogue stays a bound pair only when it is young (`physics/rogue_pairs.bound_share`: 9 percent of a fresh ejection, a fiftieth of that every 10 Myr), and the
+    # donors of this galaxy threw their planets out long ago, so no pair is made here; test_rogue_pair_storage writes and reads the three columns back.
+    **{("rogue_planets", column): CHANCE for column in ("pair_event_index", "pair_separation_au", "pair_period_yr")},
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
@@ -306,7 +305,7 @@ NEVER_READ = {
         "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
+        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
@@ -314,7 +313,7 @@ NEVER_READ = {
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
     **{("irregular_moons", column): CHANCE for column in (
-        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
     # GEN.1209: the life rows of a moon are read back by `store.body_living` for every moon that bears life, and whether any moon of the seeded galaxy does is chance
     # (a generation change moves it), so a galaxy without one leaves every column unread.

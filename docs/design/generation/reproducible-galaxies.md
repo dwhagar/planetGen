@@ -309,10 +309,13 @@ full key text living on the `generation_runs` row. Detail:
   --shells 1 --num-systems 4`, so the run's own scatter, backfill and settle are in it, at one worker and at four:
   the two must agree, and the fingerprint of the plan, of every sector and, for a sector with systems, of each named
   section must equal the file). Tier C is the hash-seed and locale probe of `test_reproducible_draws.py`. The files hold no epoch
-  number (it is numbered at merge); `bump_version.py --check-pr` ties a change to them to the epoch bump and the note's
-  `generation-output: changed` line. `python -m tests.golden_update --reason "..."` rewrites them (about ten minutes,
-  it needs the test database) and bumps the epoch; after a conflict in them, take main's files and run it again. The
-  test is not on CI (there is none, Boss's rule).
+  number (it is numbered at merge). **Testing mode (OPS.258, Boss 2026-11-14, until the 8.1 release gate):** an ordinary run of
+  the test is a smoke test (the battery, the Rosetta text and the pinned galaxy must be built whole; nothing is compared with the
+  files), and `bump_version.py --check-pr` no longer ties a change of output to the golden files and the epoch bump: a PR says
+  `generation-output: changed` and `generation-affects:` in its note and touches neither. At the end-of-version gate
+  (`PLANETGEN_VERSION_GATE`, `scripts/test.py full`) the files are compared exactly, and are renewed ONCE before it, with
+  `python -m tests.golden_update --reason "..."` (about fifteen minutes, it needs the test database), which also bumps the epoch;
+  after a conflict in them, take main's files and run it again. The test is not on CI (there is none, Boss's rule).
   Original design: a fixed seed builds a small galaxy (plan, a
   few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
   Python leg, and its fingerprint must match the one pinned in
