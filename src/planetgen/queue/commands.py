@@ -158,7 +158,7 @@ REGISTRY = _commands(
     CommandSpec("finish-phenomena", "End the phenomena scatter: the special phenomena, the indexes and the record, one unit",
                 pieces=("planetgen.generation.run_plan", "finish_phenomena_pieces"), do=("planetgen.generation.run_plan", "finish_phenomena_do"),
                 gather=("planetgen.generation.run_plan", "finish_phenomena_result"),
-                expand=("planetgen.generation.run_plan", "expand_finish_phenomena"), whole=True),
+                expand=("planetgen.generation.run_plan", "expand_finish_phenomena"), whole=True, resumes=True),
     CommandSpec("scatter-luminosity", "Scatter the bright stars: one unit per run of shells",
                 pieces=("planetgen.generation.run_plan", "scatter_shells_pieces"), do=("planetgen.generation.run_plan", "scatter_shells_do"),
                 gather=("planetgen.generation.run_plan", "scatter_shells_gather"),
