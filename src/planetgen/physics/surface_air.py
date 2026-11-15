@@ -113,6 +113,10 @@ ROOT_WIDENING_K = (0.5, 2.0, 8.0, 32.0)
 ROOT_XTOL_K = 1.0e-4
 """float: How close the root find brackets the temperature, K. The step map is as steep as 400 K per K at a carbon switch (GEN.1718), so a residual of `TOLERANCE_K` wants the iterate to 3e-4 K."""
 
+ROOT_RESIDUAL_K = 1.0
+"""float: The residual, K, the root find accepts at a bracket it has closed to `ROOT_XTOL_K`. The step has steps in it where a threshold of the draw is crossed (a mixture switches, a hydrate holds), sub-K at the largest measured (0.6 K at key 20, GEN.1718);
+no temperature is its own answer closer than the step itself, so the root is that temperature. A jump of tens of K, or a pressure that is not its own answer, is not a root."""
+
 ROOT_MAX_ITER = 60
 """int: The most iterations of the root find (each is two steps: the pressure follows the temperature)."""
 
@@ -944,7 +948,7 @@ def solve(setting, start_temperature_k):
                 else:
                     return None
             root = brentq(run, cold, hot, xtol=ROOT_XTOL_K, rtol=1.0e-12, maxiter=ROOT_MAX_ITER)
-            if abs(run(root)) <= TOLERANCE_K:
+            if abs(run(root)) <= ROOT_RESIDUAL_K:
                 record, ln_in, state = cache[root]
                 if abs(math.log(record[2]) - ln_in) < TOLERANCE_LN_P:
                     return record, ln_in, state, False, root
@@ -959,10 +963,12 @@ def solve(setting, start_temperature_k):
     jump_found = None        # (record, ln pressure, state, True, temperature) of a bracket that closes with no steady state (`seek_root`), kept for an air that does not settle
     rooted = False
     rooted_air = False       # a root find settled the air at some step
+    root_here = False        # the root find settled the air at this step: its residual is the step's own sub-K steps (`ROOT_RESIDUAL_K`), not `TOLERANCE_K`
     root_tries = 0
     step, step_limit = 0, MAX_STEPS
     while step < step_limit:
         step += 1
+        root_here = False
         outcome, record = evaluate(temperature, ln_pressure, step, st, last)
         if outcome == "air":
             return record
@@ -992,6 +998,7 @@ def solve(setting, start_temperature_k):
                 mixture, partials, new_pressure, new_temperature = record[:4]
                 rooted_air = True
                 rooted = True
+                root_here = True
         family = mixture.family
         subject = record[10]
         ocean = record[6]
@@ -1000,7 +1007,7 @@ def solve(setting, start_temperature_k):
         window.append((temperature, new_temperature))
         del window[:-SLIDING_WINDOW]
         last = record
-        if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
+        if setting.giant or (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)):
             if setting.giant or st['escape_bar'] is not None or family not in mixture_escape.FAMILIES:
                 break
             # The air has settled without the escape. The loss acts on the air that stands, so it is compared to this pressure (the pressure of a step
@@ -1020,6 +1027,7 @@ def solve(setting, start_temperature_k):
                     mixture, partials, new_pressure, new_temperature = record[:4]
                     subject, ocean, last = record[10], record[6], record
                     change_p, change_t = abs(math.log(new_pressure) - ln_pressure), abs(new_temperature - temperature)
+                    root_here = True
                     break
             else:
                 visited.clear()        # the escape changes the air, so what was seen of the map before it is of another map
@@ -1039,7 +1047,7 @@ def solve(setting, start_temperature_k):
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
     jumped = False
-    if jump_found is not None and not gave_up and not setting.giant and not (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
+    if jump_found is not None and not gave_up and not setting.giant and not (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)):
         # GEN.1718: the air does not settle and the answers cross its iterate with no steady state between them. It is stored by a stated rule: the air just above the jump, the side the
         # formation branch (cooled from the warm or steam start) approaches from, and `Air.jump` says so
         last, st, jumped, jump_k = jump_found[0], jump_found[2], True, jump_found[4]
@@ -1048,7 +1056,7 @@ def solve(setting, start_temperature_k):
         # A settled air under the vacuum floor is an exosphere (a trace of sulfur vapor over a cold body, 1.3 mPa on a 120 K one): the
         # floor the equilibrium stall applies above applies to the air that settles too, so a body never stores an air it calls thin.
         return _airless(setting, mixture, step, design, ocean)
-    converged = not gave_up and not jumped and (setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K))
+    converged = not gave_up and not jumped and (setting.giant or (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)))
     knee = False
     if jumped:
         temperature_k, knee = jump_k, True

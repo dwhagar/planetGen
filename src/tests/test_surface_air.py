@@ -413,7 +413,7 @@ def test_the_swing_of_a_fixed_point_is_told_from_a_creep_and_from_a_settling():
 def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the_start(monkeypatch):
     """GEN.1718: key 20 (a K2V planet, 0.62 Earth masses) sat on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate: the damped step went round it for
     60 steps from every start and stored a temperature that moved by 35 K with the start. The root find of the temperature, with the pressure following it, settles it, to the same
-    temperature from a cold, a warm and a hot start."""
+    temperature from a cold, a warm and a hot start (the step has a 0.6 K step in it at the root, `ROOT_RESIDUAL_K`)."""
     setting, first = _first_air_of(20, monkeypatch)
     assert first.converged and not first.jump
     for start in (150.0, 250.0, 500.0):
@@ -423,11 +423,11 @@ def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the
 
 
 def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monkeypatch):
-    """GEN.1718: key 159 (an F7V planet, 0.48 Earth masses) has a pressure that is either 76 bar or 0.06 bar at the same temperature, so no pressure is its own answer. It does not settle;
-    the air kept is the one just above the jump (the side the formation branch approaches from), flagged `jump`, and its temperature is that of the jump."""
-    setting, air = _first_air_of(159, monkeypatch)
+    """GEN.1718: key 49 (a planet whose step answers cross its iterate with no temperature that is its own answer: the pressure is on two branches there, or the temperature found jumps by tens of K)
+    does not settle; the air kept is the one just above the jump (the side the formation branch approaches from), flagged `jump`, and its temperature is that of the jump."""
+    setting, air = _first_air_of(49, monkeypatch)
     assert air.jump and air.knee and not air.converged
-    assert air.temperature_k == pytest.approx(311.4, abs=1.0)
+    assert air.temperature_k == pytest.approx(290.1, abs=1.0)
 
 
 def test_a_system_replays_to_the_same_air():
