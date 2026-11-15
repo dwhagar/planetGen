@@ -72081,6 +72081,128 @@
       "title": "Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)"
     },
     {
+      "key": "6.302",
+      "number": "6.302",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evection.RHO_SURE 0.5, RHO_PASS 5.0 and CAUGHT_BELOW their geometric midpoint 1.58: a moon is caught when the sweep ratio rho = abs(d nu / dt) / eps^2, with eps = (15/4) n_p^2 / n_m, is at or under it (no draw)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 5"
+            ],
+            [
+              "Where it holds",
+              "a first-order sweep of a moon on a nearly circular orbit (entry eccentricity under about 0.03)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured or integrated crossing at a rho of 1 to 2 that goes the other way"
+            ],
+            [
+              "What replaces it",
+              "the capture probability of the resonance's Hamiltonian against rho and the entry eccentricity ([R5290])"
+            ],
+            [
+              "Evidence",
+              "derived: the 1 km a year (likely) and 10 km a year (unlikely) at 4.6 Earth radii of [R5289], second-hand through [R5291], come out as rho 0.54 and 5.4"
+            ]
+          ],
+          "id": "EV1",
+          "key": "6.302:EV1",
+          "kind": "P",
+          "slug": "6-302-ev1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evection.RHO_SURE 0.5, RHO_PASS 5.0 and CAUGHT_BELOW their geometric midpoint 1.58: a moon is caught when the sweep ratio rho = abs(d nu / dt) / eps^2, with eps = (15/4) n_p^2 / n_m, is at or under it (no draw)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evection.SPIN_EXPONENT 4/7: a caught moon is held at the resonance for the rest of the age, its distance following the planet's spin as omega^(4/7), its tide still braking the planet, the planet's angular momentum leaving to the star's orbit; there is no exit from the resonance"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1"
+            ],
+            [
+              "Where it holds",
+              "a caught moon of a planet that is slowing"
+            ],
+            [
+              "What would show it wrong",
+              "an integration with the moon's own tide that frees the moon from the resonance within a gigayear"
+            ],
+            [
+              "What replaces it",
+              "the exit (dissipation faster than libration) and the resonant despinning of [R0958]"
+            ],
+            [
+              "Evidence",
+              "design: the resonance condition nu = n_p with nu going as omega^2 a^(-7/2)"
+            ]
+          ],
+          "id": "EV2",
+          "key": "6.302:EV2",
+          "kind": "P",
+          "slug": "6-302-ev2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "evection.SPIN_EXPONENT 4/7: a caught moon is held at the resonance for the rest of the age, its distance following the planet's spin as omega^(4/7), its tide still braking the planet, the planet's angular momentum leaving to the star's orbit; there is no exit from the resonance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evection.ECCENTRICITY_CEILING 0.5 and PERIAPSIS_MARGIN 2.0: a held moon's eccentricity is min(0.5, 1 - 2 R / a), a floor the tide does not wear away (_resonance_e)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "a held moon of a rocky or giant planet"
+            ],
+            [
+              "What would show it wrong",
+              "a held moon whose measured or integrated eccentricity stops well under 0.5"
+            ],
+            [
+              "What replaces it",
+              "the equilibrium eccentricity of the tide's damping against the resonance's growth"
+            ],
+            [
+              "Evidence",
+              "derived: [R5289] reached 0.5 (second-hand through [R5291]); the margin is a stand-in"
+            ]
+          ],
+          "id": "EV3",
+          "key": "6.302:EV3",
+          "kind": "P",
+          "slug": "6-302-ev3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "evection.ECCENTRICITY_CEILING 0.5 and PERIAPSIS_MARGIN 2.0: a held moon's eccentricity is min(0.5, 1 - 2 R / a), a floor the tide does not wear away (_resonance_e)"
+        }
+      ],
+      "slug": "6-302-stand-ins-of-a-moon-swept-by-the-evection-resonance-gen-1750",
+      "title": "Stand-ins of a moon swept by the evection resonance (GEN.1750)"
+    },
+    {
       "key": "6.300",
       "number": "6.300",
       "rows": [
