@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1718 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1719 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1691 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1692 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 200 | 21 | 12 | 1 | 0 | 234 |
 | T2 | 161 | 66 | 2 | 1 | 0 | 230 |
-| T3 | 115 | 56 | 13 | 9 | 0 | 193 |
+| T3 | 116 | 56 | 13 | 9 | 0 | 194 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
 | T6 | 222 | 118 | 33 | 76 | 4 | 453 |
 | T7 | 58 | 27 | 10 | 32 | 0 | 127 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 41 | 210 |
-| All | 985 | 344 | 87 | 242 | 60 | 1718 |
+| All | 986 | 344 | 87 | 242 | 60 | 1719 |
 
 ## How the labels were given
 
@@ -3011,3 +3011,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AD5 | P | T7 | L1 | `life_adaptations.json` grade 2 of C1 (0.2 umol m-2 s-1: the geometric mean of the ordinary 1.0 and the extreme 0.04) and the grade 2 of C14, C15, C16 (antifreeze and cryoprotectants, 1 to 6 K below freezing) | one decade for the light floor; 1 to 6 K | the rows named | a measured light floor for a shade-adapted alga between 0.04 and 1.0 that differs from 0.2 by a factor of 3 | the measured values | no source for the interpolation; the recalled 1 to 2 C of antifreeze and -3 to -6 C of the wood frog (GEN.1724 C14, C15) | predicted only | - | - |
 | AD6 | P | T7 | L1 | `life_adaptations.json` `stages` delays after the first life (cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8): when a life can have an adaptation that needs the stage | one example (Earth) | any life | a second world whose life reaches a stage in a very different time | a life timeline per stage (`life_timeline.py`) | GEN.1724 LA8, one world, ages recalled | predicted only | - | - |
 | AD7 | P | T7 | L3 | `adaptation_draw.ONSET` 0 K and `adaptation_draw.FULL` (the width of the table from the ordinary limit to the extreme grade for class 1a: 20 K for cold, 33 K for heat) for the traits cold and heat, scored on a straight line (`adaptation_draw.SHORTFALL_STRESSES`): the world's mean surface temperature past the ordinary limit | 10 to 40 K | any world with life | a census where the cold and heat traits fall on worlds a mean temperature does not press | a draw on the local temperature of the life's habitat | the shape follows the three earlier traits (LF68, LF69, `P_CAP` and `GRADE3_SHARE` shared); the mean temperature stands for the habitat's until GEN.1723 stores the local one | predicted only | - | - |
+
+## 6.297 Stand-in of the hosts of the asteroid vocabulary names
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ACV1 | T | T3 | L0 | asteroid_vocabulary.HOSTED: the platinum-group elements and gold in kamacite and taenite (0.01 to 10 ppm), the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides | the host list of each element group | the primitive taxa of the mixes | a meteorite analysis that puts the element group in a host the list lacks, or finds it in none of them | a speciation of the bulk into the minerals (GEN.1362 and its successors) | the research file's table of hosts in a primitive body, recalled from the ore and meteorite literature; not opened | predicted only | - | - |
