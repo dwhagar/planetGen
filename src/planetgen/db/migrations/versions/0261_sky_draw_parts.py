@@ -1,6 +1,6 @@
 """A sphere of sky can be drawn in parts (OPS.253).
 
-Schema v262. `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once (`generation/sky_charting.py`, the
+Schema v261. `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once (`generation/sky_charting.py`, the
 sliced draw of the backfill stage) keeps one row for each part, which says how many batches of its share of the sphere's rows are written, so a stopped part goes on from its last batch. The
 parts' rows never count in the ledger (`sky_tier_ledger.read` reads whole spheres only); the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
 A column or key already there is skipped, so a stopped run can be started again.
@@ -11,7 +11,7 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0262"
+revision = "0261"
 down_revision = "0260"
 branch_labels = None
 depends_on = None

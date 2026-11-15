@@ -1,7 +1,7 @@
 # tests/test_migration_sky_draw_parts.py
 
 """
-OPS.253: migration 0262 gives `sky_tier_draws` the `part_index` and `part_count` columns and puts them in the unique key. A draw from before v262 keeps its row as a whole sphere (0 and 0).
+OPS.253: migration 0261 gives `sky_tier_draws` the `part_index` and `part_count` columns and puts them in the unique key. A draw from before v261 keeps its row as a whole sphere (0 and 0).
 """
 
 import pytest
