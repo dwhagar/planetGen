@@ -41,12 +41,10 @@ import math
 import struct
 
 from planetgen.db import batched, query, store
-from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
+from planetgen.galaxy import drill
+from planetgen.galaxy.drill import DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_parent
 from planetgen.physics import constants
 from planetgen.util.ticker import Ticker
-
-LEVELS = DRILL_LEVELS[:-1]
-"""tuple: The levels stored: every block size above a sector."""
 
 FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
@@ -68,12 +66,6 @@ _WRITE_ROWS = 1000
 
 _PC_PER_MPC = 1.0e-3
 _SOL_W = constants.SOLAR_LUMINOSITY
-
-
-def chain_blocks(address):
-    """The blocks above the sector `(shell, band, wedge)`, one per stored level, coarsest first."""
-    shell, band, wedge = address
-    return drill_chain_of(shell, band, wedge)[:len(LEVELS)]
 
 
 def _order(block):
@@ -285,13 +277,13 @@ def refresh_chain(conn, address):
     if address is None or any(value is None for value in address):
         return 0
     sync_cells(conn, [tuple(int(value) for value in address)])
-    return refresh_blocks(conn, chain_blocks(tuple(int(value) for value in address)))
+    return refresh_blocks(conn, drill.chain_blocks(tuple(int(value) for value in address)))
 
 
 def refresh_sectors(conn, addresses, on_progress=None):
     """Recomputes the blocks above each sector in `addresses`, every block once. A set touching more than
     `FULL_REBUILD_ABOVE` blocks, or a table with no rows, is a `rebuild`. Returns the rows written."""
-    blocks = {block for address in addresses for block in chain_blocks(tuple(address))}
+    blocks = {block for address in addresses for block in drill.chain_blocks(tuple(address))}
     has_rows = conn.execute("SELECT 1 FROM galaxy_block_lights LIMIT 1").fetchone() is not None
     if len(blocks) > FULL_REBUILD_ABOVE or (blocks and not has_rows):
         return rebuild(conn, on_progress, parts=True)
@@ -417,7 +409,7 @@ def _unit_batches(conn, shells, on_shell=None, from_parts=False, on_found=None):
     what is kept is the blocks of the current block shell of each level, not every block of the unit's millions of
     sectors (PERF.187). `on_shell(shell)` is called before each shell is read. With `from_parts` the cells' sums are the parts' (GEN.1476), not
     a grouped read of the two object tables; `on_found(shell, found)` gets each shell's `{address: sums}` (the rebuild writes the parts with it)."""
-    cells = {m: {} for m in sorted(LEVELS) if m <= UNIT_LEVEL}
+    cells = {m: {} for m in sorted(drill.STORED_LEVELS) if m <= UNIT_LEVEL}
     previous = None
     for shell in shells:
         if previous is not None:
@@ -594,7 +586,7 @@ def totals_current(conn, exact=False):
         "SELECT m, COALESCE(SUM(star_count), 0) AS stars, COALESCE(SUM(point_count), 0) AS points FROM galaxy_block_lights GROUP BY m").fetchall()}
     if stars + points == 0:
         return not held
-    return len(held) == len(LEVELS) and all(found == (stars, points) for found in held.values())
+    return len(held) == len(drill.STORED_LEVELS) and all(found == (stars, points) for found in held.values())
 
 
 def roll(conn, on_progress=None, on_phase=None, on_above=None, exact=False):

@@ -12,7 +12,7 @@ import pytest
 from planetgen.db import block_stats, edits, query, store
 from tests.chart_support import chart_all
 from planetgen.galaxy import spherical
-from planetgen.galaxy.drill import DRILL_TOP, STAGE_TOP, drill_chain_of, format_drill_key
+from planetgen.galaxy.drill import DRILL_TOP, STAGE_TOP, STORED_LEVELS, drill_chain_of, format_drill_key
 
 pytestmark = pytest.mark.db
 
@@ -78,7 +78,7 @@ def test_a_rebuild_stores_one_row_for_every_block_that_holds_a_sector(galaxy):
     conn = store.get_connection(galaxy)
     try:
         stored = _stored(conn)
-        assert {key[0] for key in stored} == set(block_stats.LEVELS)
+        assert {key[0] for key in stored} == set(STORED_LEVELS)
         assert {key: row[0] for key, row in stored.items()} == _expected()
     finally:
         conn.close()

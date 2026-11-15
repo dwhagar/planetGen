@@ -124,16 +124,6 @@ def _kinds(args):
     return list(dict.fromkeys(wanted))
 
 
-def _stars(args):
-    """The stars filter as typed when it is one (a count, a count and a plus, or a name), else empty: a hand-edited URL is ignored, not an error (UX.239)."""
-    text = (args.get("stars") or "").strip()
-    try:
-        star_count.parse_star_count(text)
-    except ValueError:
-        return ""
-    return text
-
-
 def _value_pairs(ranges, sort):
     """The `/api/near` parameters of the ranges and the order by a value (UX.228): `<entity>_min_<key>`, `<entity>_max_<key>`, `<entity>_<key>_unit`
     and `<entity>_sort`."""
@@ -211,7 +201,7 @@ def nearby():
     state = SearchState.from_args(args)
     ranges, value_sort = _value_state(state)
     kinds = _kinds(args)
-    stars = _stars(args)
+    stars = star_count.valid_text(args.get("stars"))
     distance_raw = (args.get("distance") or "").strip()
     context = {"place_param": place_param, "distance_text": distance_raw or str(DEFAULT_DISTANCE_PC),
                "stars_text": stars, "star_choices": star_count.STAR_COUNT_CHOICES,
