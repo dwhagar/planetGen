@@ -26325,6 +26325,21 @@
       "kind": "paper",
       "label": "Perovich 2007",
       "title": "Light reflection and transmission by a temperate snow cover"
+    },
+    "R5269": {
+      "kind": "paper",
+      "label": "Zhaka et al. 2021",
+      "title": "A review of level ice and brash ice growth models"
+    },
+    "R5270": {
+      "kind": "paper",
+      "label": "Warren et al. 1999",
+      "title": "Snow Depth on Arctic Sea Ice"
+    },
+    "R5271": {
+      "kind": "paper",
+      "label": "Maykut and Untersteiner 1971",
+      "title": "Some results from a time-dependent thermodynamic model of sea ice"
     }
   }
 }

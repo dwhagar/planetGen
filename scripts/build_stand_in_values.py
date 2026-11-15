@@ -543,6 +543,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.293", "6.293 Stand-ins of the light through ice and snow (GEN.1726)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.295", "6.295 Stand-ins of the growth of ice and snow on a world's water (GEN.1728)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
 

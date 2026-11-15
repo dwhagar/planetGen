@@ -15,7 +15,7 @@ and one for the snow:
 ice-covered lake. Snow is the main absorber: about 30 times stronger per metre than sea ice and about 100 times stronger than clear lake ice, so a world's snow depth on
 its ice decides most of what gets through.
 
-The module is pure numbers: it reads no body and draws nothing. It does not say how thick the ice or the snow is (that is the climate's, and no law for it is built yet),
+The module is pure numbers: it reads no body and draws nothing. It does not say how thick the ice or the snow is (`physics/ice_growth.py`, GEN.1728, does),
 and the surface light is the caller's, taken from the world's own star and orbit, so a dim star moves every depth this law gives. The one use built is the light-limited
 production of ocean under ice (GEN.1723): `light_below(surface, ...)` and the inverse `thickest_ice_m`.
 

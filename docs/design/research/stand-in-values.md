@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1700 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1708 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1673 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1681 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 195 | 20 | 12 | 1 | 0 | 228 |
+| T1 | 200 | 20 | 12 | 1 | 0 | 233 |
 | T2 | 160 | 66 | 2 | 1 | 0 | 229 |
 | T3 | 115 | 56 | 13 | 9 | 0 | 193 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
 | T6 | 221 | 116 | 31 | 76 | 4 | 448 |
-| T7 | 58 | 24 | 10 | 31 | 0 | 123 |
+| T7 | 58 | 27 | 10 | 31 | 0 | 126 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 39 | 208 |
-| All | 978 | 338 | 85 | 241 | 58 | 1700 |
+| All | 983 | 341 | 85 | 241 | 58 | 1708 |
 
 ## How the labels were given
 
@@ -2988,3 +2988,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IL4 | B | T1 | L0 | `ice_light.ALBEDO_BARE` (sea 0.6, lake 0.84), `ALBEDO_SNOW` 0.9 and their ranges: the albedo of the top surface to photosynthetic light | sea 0.5 to 0.7; lake 0.7 to 0.9; snow 0.8 to 0.97 | the surface of cold bare ice or snow | a surface albedo of cold ice or snow outside these ranges | the generator's own ice albedo to photosynthetic light, if one is made | [R5266] bare ice 0.5 to 0.7 and snow-covered 0.6 to 0.8; [R5265] 0.84 candled lake ice, 0.97 snow; [R5264] 0.8 to 0.97; the lake range is the stand-in's own (one measurement) | predicted only | GEN.1723 | - |
 | IL5 | B | T1 | L0 | `ice_light.ALBEDO_MELTING` 0.4 (0.2 to 0.6): the albedo of melting bare ice | 0.2 to 0.6 | ice at the melting point | a melting ice surface of albedo outside 0.2 to 0.6 | none | [R5266] 0.78, 0.60, 0.44 and 0.20 as the ice warms and melts | predicted only | GEN.1723 | - |
 | IL6 | P | T7 | L1 | `ice_light.SNOW_COVER_DEPTH_M` 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm) | 0.01 to 0.1 m | a snow layer of 1 to 30 cm over ice | a measurement of the albedo of a few cm of snow over ice that differs by more than 0.1 from this blend | a measured albedo by snow depth | no source for the form; 10 cm of temperate snow let 5 percent of the visible light through [R5268], which the same 10 cm makes snow-bright | predicted only | GEN.1723 | - |
+
+## 6.295 Stand-ins of the growth of ice and snow on a world's water (GEN.1728)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| IG1 | B | T1 | L0 | `ice_growth.LATENT_HEAT_J_KG` 3.352e5 J per kg: the latent heat of fusion of the ice | none | water ice at its melting point | a measured latent heat of fusion of ice outside 3.3e5 to 3.4e5 | none | [R5269] gives 3.88 W d per kg | predicted only | - | - |
+| IG2 | B | T1 | L0 | `ice_growth.AIR_COUPLING_W_M2_K` 17.5 W per m2 and K and `AIR_COUPLING_RANGE_W_M2_K` 10 to 25: the heat the ice or snow surface gives to the air per kelvin | 10 to 25 | a lid under an air of Earth's pressure and wind | a measured coefficient outside 10 to 25 on sea ice or lake ice | a surface energy balance with the world's own wind and air | [R5269] gives 10 to 25 W per m2 and K | predicted only | GEN.1723 | - |
+| IG3 | B | T1 | L0 | `ice_growth.SNOW_DENSITY_KG_M3` 300 kg per m3 and `SNOW_DENSITY_RANGE_KG_M3` 250 to 320: the density of snow on sea ice | 250 to 320 | snow on Arctic sea ice over a season | a snow cover of a measured density outside 200 to 400 over a season | a snow density law of age and wind | [R5270] gives 300 averaged, 250 in September to 320 in May | predicted only | GEN.1723 | - |
+| IG4 | B | T1 | L0 | `ice_growth.SNOW_CONDUCTIVITY_COEFFICIENT` 2.22362 and `SNOW_CONDUCTIVITY_EXPONENT` 1.885: the conductivity of snow from its density, W per m and K | none | snow of 200 to 450 kg per m3 | a measured conductivity more than a third off the fit at those densities | none | [R5269] gives the fit and 0.23 W per m and K at 300 kg per m3 | predicted only | GEN.1723 | - |
+| IG5 | B | T1 | L0 | `ice_growth.OCEAN_FLUX_W_M2` 2.0 W per m2: the heat the water gives up to the bottom of the ice | 1.3 to 2.7 | the Arctic Ocean under multiyear ice | a heat flux under the ice outside 1 to 3 W per m2 on a world with an ocean under its ice | the world's own ocean heat flux | [R5271]: 1 to 2 kcal per cm2 and year, 2.0 W per m2 in the standard case | predicted only | GEN.1723 | - |
+| IG6 | P | T7 | L1 | `ice_growth.PRECIPITATION_ENERGY_SHARE` about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature | 0.15 to 0.35 | worlds with a water cycle like the Earth's, cold or warm | a snowfall on ice that differs from the law by more than a factor of 2 for the same starlight; the Arctic's, with no dry cold air in the law, comes out about 1.9 times high | a precipitation law that carries the dryness of cold air | the weathering law of [R1660] uses the same limit; the Arctic check of [R5270] (34 cm of snow) sets the 1.9 | predicted only | GEN.1723 | - |
+| IG7 | P | T7 | L1 | `ice_growth.SNOW_RETENTION` 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season | 0.4 to 0.9 | multiyear Arctic ice | a snow cover that keeps a share outside 0.4 to 0.9 | a wind and lead model | [R5270]: 11 cm of water standing in May of the 17 cm that fell (5 cm a month in September and October, 1 cm a month November to March, 2 cm in April, the rates it quotes) | predicted only | GEN.1723 | - |
+| IG8 | P | T7 | L1 | `ice_growth.ABLATION_M_YR` 0.4 m of ice a year: what the surface wears off a lid that does not thaw | 0.2 to 0.6 | multiyear Arctic ice under an Earth-like air | a perennial lid whose surface loses less than 0.2 or more than 0.6 m a year | a surface energy balance with the world's own air | [R5271]: surface ablation 40 cm in the standard case; the one measured case, taken for every perennial lid | predicted only | GEN.1723 | - |
