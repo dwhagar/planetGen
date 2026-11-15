@@ -760,5 +760,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | Lane 04, 2026-11-15 |
 | TEST.757 | (bug) test_stage_worker_cap compares two peak_resident memory readings with no slack and fails under gate load | none | Lane 16, 2026-11-15 |
 | TEST.758 | (bug) test_hand_formatted_units red on main: generation/run_galaxy.py line 1790 formats MB by hand (PERF.270's sector line) | none | Lane 06, 2026-11-15 |
+| OPS.260 | Job engine stage 2, OPS.218 slice 3: conclude and finish hooks become commands of their own, and the engine stops reading CommandSpec.conclude and finish | none | Lane 13, 2026-11-15 |
 | MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | Lane 15, 2026-11-14
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14

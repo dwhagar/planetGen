@@ -31,7 +31,7 @@ def test_the_line_says_the_sector_its_systems_planets_time_and_memory():
     line = run_galaxy.timing_line(_saved(), ADDRESS)
     assert "37 systems, 452 planets" in line
     assert "in 14.2 minutes," in line      # the time in the project's duration form
-    assert "2,181 MB" in line
+    assert "2.18 GB" in line
 
 
 def test_a_stage_of_few_sectors_says_each_sector_and_names_it_in_the_plan_line(monkeypatch):
@@ -50,7 +50,7 @@ def test_a_stage_of_very_many_sectors_keeps_the_line_in_the_debug_log(monkeypatc
 
 def test_a_result_without_planets_or_memory_still_says_its_line():
     line = run_galaxy.timing_line({"systems": 3, "seconds": 5.0}, ADDRESS)
-    assert "3 systems, 0 planets" in line and "0 MB" in line
+    assert "3 systems, 0 planets" in line and "0 B" in line
 
 
 def test_the_planets_of_a_sector_do_not_count_its_belts():

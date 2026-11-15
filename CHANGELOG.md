@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4239] - 2026-11-15
+
+**Headline:** The line that tells how long a sector took now spells the worker's memory with the units code, so the same size reads the same in the log as everywhere else.
+
+### Changed
+- The per-sector line in the job log writes the worker's memory with `format_megabytes` (for example "2.18 GB" instead of "2,181 MB").
+
+## [8.0.4238] - 2026-11-15
+
+**Headline:** Every attempt at a queue unit now leaves a full row in the job ledger (what it cost, how it ended, its stack), and a unit that runs again writes a debug log of its own.
+
+### Added
+
+- OPS.223 (job engine stage 3, L9; absorbs OPS.146): an attempt's row in `engine_attempts` keeps its processor seconds and peak memory, and for a failure its error kind, its traceback and a stack file in the log folder's `unit-debug` folder. An attempt nobody could close (its horse killed for memory or `kill -9`, a unit stopped as stuck, a process gone) is closed by whoever saw it go as `killed_memory`, `lost` or `stuck`, with the stack the follower had the horse write; the next attempt closes any left open as `lost`; the time limit is `timed_out`.
+- A unit that runs again (the second and later attempt: a retry after a kill, a stuck stop or a failure, a resume) runs in debug mode: every debug area, plus the beat's counter, memory and processor lines and each wait, goes to `job<job>-unit<unit>-attempt<n>.log` in the `unit-debug` folder, which opens with how the attempt before it ended and its stack; the run's log names the file. The new setting `queue.debug_restarts` (on by default) turns it off; each file is capped at 20 MB and the folder keeps the newest 400 files. `log.captured` is the one place a block of code is written to a file of its own at debug level.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4237] - 2026-11-15
+
+**Headline:** The job engine's fence and the end of a stage are proved by seeded scenarios.
+
+### Changed
+- `tests/test_engine_proof.py` draws interleavings of attempts and kills of the end of a stage, ten seeds each, and checks that two attempts never both commit, that a job is done only by its newest attempt, and that a finished stage concludes, finishes and opens the next once however often its end is killed (OPS.225, the first slice).
+
 ## [8.0.4236] - 2026-11-15
 
 **Headline:** the end of a stage is three jobs in the ledger, and the Redis marks of how far it got are gone.
