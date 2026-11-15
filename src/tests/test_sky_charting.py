@@ -283,7 +283,7 @@ def test_the_progress_of_a_tier_rises_with_every_cell_even_past_what_was_predict
 
 
 def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_config, monkeypatch):
-    """`_sky_units` makes one unit for each observer cell the ledger does not hold all of; the unit draws its tiers, and a second look finds nothing owed."""
+    """`_sky_units` cuts the draw of the observer cells the ledger does not hold all of into parts (OPS.253); the parts draw the tiers, the stage's conclusion records the spheres, and a second look finds nothing owed."""
     from planetgen.generation import run_galaxy
     conn = galaxy
     real_plan = sky_charting.plan
@@ -293,28 +293,34 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
         return center, tiers._replace(luminosity=(a_tier(low=500.0, high=1000.0),), rings=(a_tier("mass", low=5.0, high=8.0),), dropped=())
 
     monkeypatch.setattr(sky_charting, "plan", small_plan)
+    monkeypatch.setattr(run_galaxy, "SKY_PARTS", 2)
     named = {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}
     params = {"database": named, "sky_limit": 7.5}
-    units = run_galaxy._sky_units(params, [SPHERE_CENTER, SPHERE_CENTER])       # two sectors of one cell: one unit
-    assert len(units) == 1 and units[0][1] >= 1.0 and units[0][0]["sky"]["limit"] == 7.5
-    assert units[0][0]["expected_seconds"] >= 0.0          # OPS.134: the unit's own time, for its own limit (the toy tiers predict no visits)
+    units, detail = run_galaxy._sky_units(params, [SPHERE_CENTER, SPHERE_CENTER])       # two sectors of one cell: one observer, drawn in two parts
+    assert len(units) == 2 and detail["sky_cells"] == 1 and len(detail["sky_spheres"]) == 2
+    assert all(cost >= 1.0 and args["sky"]["limit"] == 7.5 and args["expected_seconds"] >= 0.0 for args, cost in units)          # OPS.134: the unit's own time, for its own limit (the toy tiers predict no visits)
     before = _stored_stars(conn)
-    counted = []
+    results, counted = [], []
     monkeypatch.setattr(engine.unitbeat, "step", lambda name, total=None: counted.append(("step", name, total)))
     monkeypatch.setattr(engine.unitbeat, "advance", lambda amount=1: counted.append(("advance", amount)))
-    result = commands.run_alone("scatter-backfill", units[0][0])
+    for args, _cost in units:
+        counted.clear()
+        results.append(commands.run_alone("scatter-backfill", args))
+        conn.commit()
+        # OPS.134: the second level (OPS.192) moved with the batches and the tiers, up to every owed tier's visits
+        steps = [item for item in counted if item[0] == "step"]
+        advances = [item[1] for item in counted if item[0] == "advance"]
+        assert len(steps) == 1 and steps[0][1] == "Sky tiers" and all(amount >= 0.0 for amount in advances)
+        assert sum(advances) == pytest.approx(steps[0][2]) and sum(advances) > 0.0
+    assert not ledger_module.read(conn).draws, "nothing counts until the stage ends"
+    run_galaxy.conclude_backfill(params, detail, [], 0.0)
     conn.commit()
-    # OPS.134: the second level (OPS.192) moved with the batches and the tiers (it read 0 of 1 for the whole unit), up to every owed tier's visits
-    steps = [item for item in counted if item[0] == "step"]
-    advances = [item[1] for item in counted if item[0] == "advance"]
-    assert len(steps) == 1 and steps[0][1] == "Sky tiers" and len(advances) >= 2 and all(amount >= 0.0 for amount in advances)
-    assert sum(advances) == pytest.approx(steps[0][2]) and sum(advances) > 0.0                                                       # a new snapshot: the unit wrote through its own connection
-    assert result["sky"]["spheres"] == 2 and result["stars"] == result["sky"]["stars"] == len(new_stars(conn, before))
+    assert sum(result["sky"]["stars"] for result in results) == len(new_stars(conn, before))
     assert len(ledger_module.read(conn).draws) == 2
-    floors = result["sky"]["floors"]                                  # VIEW.47: the unit reports the floor against distance, whole enough to cross the queue as JSON
+    floors = detail["sky_floors"]                                      # VIEW.47: the plan carries the floor against distance, whole enough to cross the queue as JSON
     assert [row["distance_pc"] for row in floors] == list(sky_tiers.FLOOR_DISTANCES_PC)
     assert floors == json.loads(json.dumps(floors)) and floors[0]["floor_sol"] < floors[-1]["floor_sol"]
-    assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == []
+    assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == ([], {})
 
 
 @pytest.fixture
@@ -357,7 +363,7 @@ def test_a_sky_unit_of_a_scatter_that_was_cleared_since_it_was_cut_ends_clean(pl
     """OPS.256: a queued sky unit (its params hold only the cell center and the limit) that runs after the scatter was cleared is the retry/resume path; it draws nothing and says so."""
     from planetgen.generation import run_galaxy
     named = {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}
-    result = commands.run_alone("scatter-backfill", {"database": named, "items": [], "sky": {"center": list(SPHERE_CENTER), "limit": 7.5}})
+    result = commands.run_alone("scatter-backfill", {"database": named, "items": [], "sky": {"observers": [[list(SPHERE_CENTER), [["luminosity", 500.0]]]], "limit": 7.5, "part": [0, 1]}})
     assert result["sky"]["spheres"] == 0 and result["sky"]["stars"] == 0
 
 

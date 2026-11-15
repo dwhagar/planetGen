@@ -138,6 +138,11 @@ def sector_star_count(sector):
     return sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
 
 
+def sector_planet_count(sector):
+    """How many planets `sector`'s systems hold (a belt is not a planet)."""
+    return sum(1 for entry in sector.entries for body in getattr(entry.star_system, "planets", ()) if getattr(body, "body_type", None) != "a")
+
+
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False,
                               kind_factors=None, type_ia_share=None, ambient_density_cm3=None, neighbour_hosts=(),
                               fill=None):

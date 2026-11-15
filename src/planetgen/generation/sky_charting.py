@@ -19,6 +19,9 @@ this module draws them, when a system is charted, with the star backfill, and re
 * **Stopped draws go on.** A sphere is drawn in batches, each committed with the count of batches done (`sky_tier_draws.batches_done`); the walk of a sphere is the same each time, so a
   stopped draw is found by its kind, band, center and radius and goes on from there. A sphere counts only when its last batch is in.
 
+* **Parts, side by side (OPS.253).** A backfill stage draws the sky of all its observer cells at once: `chart_part` draws one share of the rows of every owed sphere (`bright_stars.in_part`), the
+  parts run as units next to each other and wait for nothing, and the stage's conclusion records the spheres (`sky_tier_ledger.conclude_parts`). `chart` is the same draw of one cell whole, under `DrawLock`.
+
     center, tiers = plan(observer_pc, 7.5, edge_pc)
     chart(conn, observer_pc, 7.5)             # draws and records every tier the ledger does not hold; returns the summary
 """
@@ -291,10 +294,14 @@ class DrawLock:
         self.conn.execute("SELECT RELEASE_LOCK(?)", (self.NAME,))
 
 
-def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, ledger=None):
+def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, ledger=None, part=None):
     """
     Draws one tier over the sphere of its padded reach around `center`, in batches, each committed with the ledger's count, and records the sphere when the last is in. A tier the ledger
     already holds a sphere for is not drawn (`Drawn.skipped`).
+
+    With `part` the draw is one share of the sphere (OPS.253): the rows `bright_stars.in_part` deals to it, its own batch count in its own row of the ledger table (`sky_tier_ledger.begin`'s `part`),
+    and no sphere is recorded (the stage that cut the sphere into parts records it once they are all in, `sky_tier_ledger.conclude_parts`). The caller says which tiers are owed, so the ledger is not
+    asked whether the sphere is held, and `ledger` is what the cells of this share are cut by (the spheres drawn before this tier, whole, as far as these cells go).
 
     Args:
         context (_Context): `_Context(conn)`.
@@ -303,6 +310,7 @@ def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, led
         generator_epoch (int, optional): Recorded with the sphere.
         on_batch (callable, optional): Called as `on_batch(batches, cells, stars)` after each batch commits (a progress tick).
         ledger (Ledger, optional): The ledger as it stands; read when left out.
+        part (tuple, optional): `(index, count)`, the share of the sphere to draw.
 
     Returns:
         Drawn: What it cost.
@@ -310,20 +318,22 @@ def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, led
     conn = context.conn
     radius = padded_radius(tier)
     ledger = sky_tier_ledger.read(conn) if ledger is None else ledger
-    if ledger.drawn(tier.ledger, float(tier.low), tier.high, center, radius):
+    if part is None and ledger.drawn(tier.ledger, float(tier.low), tier.high, center, radius):
         return Drawn(tier, radius, 0, 0, 0, 0.0, skipped=True)
     started = time.perf_counter()
     draw = sky_tier_ledger.Draw(tier.ledger, float(tier.low), None if tier.high is None else float(tier.high), tuple(center), radius, 0.0)
-    draw_id, done = sky_tier_ledger.begin(conn, draw, generator_epoch)
+    if part is not None and sky_tier_ledger.part_done(conn, draw, part):
+        return Drawn(tier, radius, 0, 0, 0, 0.0, skipped=True)          # a stopped stage that gets here again: this share is in
+    draw_id, done = sky_tier_ledger.begin(conn, draw, generator_epoch, part)
     conn.commit()
     if tier.ledger == sky_tier_ledger.LUMINOSITY:
         batches = bright_stars.luminosity_sphere_batches(context.skeleton.shape, center, radius, context.edge_pc, context.expected, float(tier.low),
                                                          None if tier.high is None else float(tier.high), context.seed, mass_range=context.walk_mass_range,
-                                                         memo=context.blocks)
+                                                         memo=context.blocks, part=part)
         make_rows = _luminosity_rows
     else:
         batches = bright_stars.mass_sphere_batches(context.skeleton.shape, center, radius, context.edge_pc, context.expected, float(tier.low),
-                                                   float(tier.high), context.walk_ceiling, context.seed, context.edges, memo=context.blocks)
+                                                   float(tier.high), context.walk_ceiling, context.seed, context.edges, memo=context.blocks, part=part)
         make_rows = _mass_rows
     row = conn.execute("SELECT stars, seconds FROM sky_tier_draws WHERE id = ?", (draw_id,)).fetchone()
     stars, spent, cells, walked = int(row["stars"]), float(row["seconds"]), 0, 0
@@ -428,33 +438,109 @@ def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, 
     if tiers is None:
         center, tiers = plan(observer_pc, limit_mag, context.edge_pc, limits=context.limits)
     started = time.perf_counter()
-    drawn = []
     with DrawLock(conn):
         ledger = sky_tier_ledger.read(conn)
-        total = max(sum(max(float(tier.visits), 1.0) for tier in owed_tiers(tiers, ledger, center)), 1.0)
-        finished = 0.0
-        # From the top down: a cell is inside every sphere of the bands above the one being drawn, so each band touches the level the one before it left.
-        for tier in (*sorted(tiers.luminosity, key=lambda tier: -tier.low), *sorted(tiers.rings, key=lambda tier: -tier.low)):
-            seen = [0]
-
-            def tick(batches, cells, stars, tier=tier, seen=seen, finished=finished):
-                """A batch is in: the caller's tick, and the counter."""
-                seen[0] += cells
-                if on_batch is not None:
-                    on_batch(batches, cells, stars)
-                if progress is not None:
-                    progress(finished + tier_progress(tier.visits, seen[0]), total)
-
-            result = draw_tier(context, tier, center, generator_epoch=generator_epoch, on_batch=tick, ledger=ledger)
-            drawn.append(result)
-            if not result.skipped:
-                ledger = sky_tier_ledger.read(conn)        # the next tier's cells see what this one drew
-                finished += max(float(tier.visits), 1.0)
-                if progress is not None:
-                    progress(finished, total)
+        owed = owed_tiers(tiers, ledger, center)
+        total = max(sum(max(float(tier.visits), 1.0) for tier in owed), 1.0)
+        drawn, _ledger = _draw_owed(context, tiers, center, ledger, owed, generator_epoch=generator_epoch, on_batch=on_batch, progress=progress, total=total)
         if progress is not None:
             progress(total, total)        # a tier another draw finished meanwhile is skipped: the unit still ends full
     return {"center": tuple(center), "cell": sky_band.cell_of(observer_pc), "limit_mag": float(limit_mag), "tiers": drawn,
             "stars": sum(d.stars for d in drawn), "cells": sum(d.cells for d in drawn), "seconds": time.perf_counter() - started,
             "dropped": [tier.key for tier in tiers.dropped],
             "floors": [] if tiers.curve is None else sky_tiers.floor_table(tiers, tiers.curve, sky_tiers.FLOOR_DISTANCES_PC)}
+
+
+def tiers_in_order(tiers):
+    """The tiers of a `plan` in the order they are drawn: the luminosity bands from the top down, then the mass rings from the top down."""
+    return [*sorted(tiers.luminosity, key=lambda tier: -tier.low), *sorted(tiers.rings, key=lambda tier: -tier.low)]
+
+
+def tier_draw(tier, center):
+    """The `sky_tier_ledger.Draw` of the sphere `tier` is drawn over around `center` (what the ledger holds once it is drawn)."""
+    return sky_tier_ledger.Draw(tier.ledger, float(tier.low), None if tier.high is None else float(tier.high), tuple(center), padded_radius(tier))
+
+
+def _draw_owed(context, tiers, center, ledger, owed, *, generator_epoch=None, on_batch=None, progress=None, total=1.0, part=None, scale=1.0, finished=0.0):
+    """
+    The tiers of `owed` drawn one after the other, from the top down (a cell is inside every sphere of the bands above the one being drawn, so each band touches the level the one before it
+    left), each as `draw_tier`. The cells of the next tier are cut by the spheres drawn so far: whole, a draw of the cell in the galaxy, read again from the ledger after each tier;
+    in a `part`, the part of a sphere that other parts draw as well, taken as drawn once this share is (`tier_draw`), because the cells of this share see nothing of the other shares.
+
+    Args:
+        scale (float): The share of each tier's predicted visits this draw has (1/parts for a part), for the counter `progress` gets.
+        finished (float): What the counter already holds when this cell starts (a part draws several cells).
+
+    Returns:
+        tuple: `(drawn, ledger)`: the `Drawn` of each tier of `owed` in order, and the ledger after them.
+    """
+    wanted = {id(tier) for tier in owed}
+    drawn = []
+    for tier in tiers_in_order(tiers):
+        if id(tier) not in wanted and part is not None:
+            continue
+        seen = [0]
+        cost = max(float(tier.visits), 1.0) * scale
+
+        def tick(batches, cells, stars, tier=tier, seen=seen, finished=finished, cost=cost):
+            """A batch is in: the caller's tick, and the counter."""
+            seen[0] += cells
+            if on_batch is not None:
+                on_batch(batches, cells, stars)
+            if progress is not None:
+                progress(finished + min(tier_progress(cost, seen[0]), cost), total)
+
+        result = draw_tier(context, tier, center, generator_epoch=generator_epoch, on_batch=tick, ledger=ledger, part=part)
+        drawn.append(result)
+        if part is not None:
+            ledger = sky_tier_ledger.Ledger((*ledger.draws, tier_draw(tier, center)))
+            finished += cost
+            if progress is not None:
+                progress(finished, total)
+        elif not result.skipped:
+            ledger = sky_tier_ledger.read(context.conn)        # the next tier's cells see what this one drew
+            finished += cost
+            if progress is not None:
+                progress(finished, total)
+    return drawn, ledger
+
+
+def chart_part(conn, observers, limit_mag, part, *, generator_epoch=None, on_batch=None, progress=None):
+    """
+    One share of the sky draw of several observer cells (OPS.253): for each of `observers` in order, the tiers it owes (`tiers_owed`) from the top down, each over the rows of its sphere that `part`,
+    `(index, count)`, is dealt (`bright_stars.in_part`). The `count` parts of a draw run at once, none waiting for another: every cell of a sphere is in one part, so the parts write different
+    cells, and each part walks the cells it has in the same order the draw of the whole walks them (the observers in order, each from the top tier down), so each cell is cut by the same spheres
+    and gets the same stars. The spheres are recorded by whoever ends the stage, once every part is in (`sky_tier_ledger.conclude_parts`); nothing here holds a lock for others to wait on.
+
+    Args:
+        observers (list): `[(center, owed)]` in the order the draw of the whole would take them: the cell's center, galactocentric parsecs, and the keys of the tiers it owes (`tiers_owed`).
+        progress (callable, optional): As `chart`'s, over the visits of this share.
+
+    Returns:
+        dict: `tiers` (a `Drawn` each, in the order drawn), `stars`, `cells`, `seconds`.
+    """
+    context = _Context(conn)
+    started = time.perf_counter()
+    ledger = sky_tier_ledger.read(conn)
+    work = []
+    for center, owed_keys in observers:
+        center, tiers = plan(center, limit_mag, context.edge_pc, limits=context.limits)
+        keys = {tuple(key) for key in owed_keys}
+        work.append((center, tiers, [tier for tier in tiers_in_order(tiers) if (tier.ledger, float(tier.low)) in keys]))
+    scale = 1.0 / part[1]
+    total = max(sum(max(float(tier.visits), 1.0) for _center, _tiers, owed in work for tier in owed) * scale, 1.0)
+    drawn, finished = [], 0.0
+    for center, tiers, owed in work:
+        found, ledger = _draw_owed(context, tiers, center, ledger, owed, generator_epoch=generator_epoch, on_batch=on_batch, progress=progress, total=total,
+                                   part=part, scale=scale, finished=finished)
+        drawn.extend(found)
+        finished += sum(max(float(tier.visits), 1.0) for tier in owed) * scale
+    if progress is not None:
+        progress(total, total)
+    return {"tiers": drawn, "stars": sum(d.stars for d in drawn), "cells": sum(d.cells for d in drawn), "seconds": time.perf_counter() - started}
+
+
+def tiers_owed(tiers, ledger, center):
+    """The keys `(kind, low)` of the tiers of a `plan` that the ledger holds no sphere for around `center`, in the order they are drawn (`chart_part`'s `observers` carry them)."""
+    owed = {id(tier) for tier in owed_tiers(tiers, ledger, center)}
+    return [(tier.ledger, float(tier.low)) for tier in tiers_in_order(tiers) if id(tier) in owed]

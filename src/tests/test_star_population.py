@@ -94,7 +94,7 @@ def test_main_sequence_luminosity_follows_mass(population):
     _, states = population
     for mass, age, state in states:
         if state["yerkes_class"] == "V":
-            row = main_sequence.state(mass, age, alpha_tracks.track_fe_h(state["metallicity_fe_h"], age))
+            row = main_sequence.state(mass, age, alpha_tracks.track_fe_h(state["metallicity_fe_h"], age, mass))
             assert state["luminosity_sol"] == pytest.approx(row.luminosity_sol)
 
 
@@ -154,7 +154,7 @@ def test_random_stars_are_self_consistent():
         if star.yerkes_class == "V":
             mass_sol = star.mass / phys_c.SOLAR_MASS_TO_KG
             luminosity_sol = star.luminosity / phys_c.SOLAR_LUMINOSITY
-            row = main_sequence.state(star.initial_mass_sol, star.age, alpha_tracks.track_fe_h(star.metallicity_fe_h, star.age))
+            row = main_sequence.state(star.initial_mass_sol, star.age, alpha_tracks.track_fe_h(star.metallicity_fe_h, star.age, star.initial_mass_sol))
             assert luminosity_sol == pytest.approx(row.luminosity_sol, rel=1e-6)
 
 

@@ -665,6 +665,17 @@ def _no_test_starts_a_supervisor(monkeypatch):
     yield
 
 
+@pytest.fixture(autouse=True, scope="session")
+def _no_module_fixture_starts_a_supervisor():
+    """The same, for the fixtures a module or the session makes (they set up before a test's own `monkeypatch`): a database a module generates with the CLI starts its run
+    through the same turn of `supervisor.RunStarts`, and starts no supervisor process."""
+    from planetgen.queue import supervisor, wrapper
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(supervisor, "_spawn", lambda argv: None)
+        patch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
+        yield
+
+
 @pytest.fixture(autouse=True)
 def _no_test_process_is_replaced(monkeypatch):
     """

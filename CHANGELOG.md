@@ -2,6 +2,284 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4236] - 2026-11-15
+
+**Headline:** the end of a stage is three jobs in the ledger, and the Redis marks of how far it got are gone.
+
+### Changed
+
+- OPS.218 (slice 1): the cut of a stage also writes its `conclude`, `finish` and `release` jobs, each with an edge to the one before. The end of a stage marks each done as it goes, and a retry or the reconciler reads the rows instead of `runrecord.ended_key`, which is removed. Opening the next stage stays an RQ job until OPS.225, which removes it.
+
+## [8.0.4235] - 2026-11-15
+
+**Headline:** The job engine stack's tests start no supervisor of their own and the route snapshot knows the supervisor route.
+
+### Fixed
+- The fixtures a module makes (a sample galaxy for the page tests) start their run through one turn of the supervisor's duty, as a test's own fixtures do, so they no longer wait for a supervisor that is not there.
+- The API route snapshot lists `/api/admin/work/supervisor`.
+- The debug-run test puts debug logging back after itself, so the tests that follow it in a process do not run slowly.
+
+## [8.0.4234] - 2026-11-15
+
+**Headline:** the unused `prepare` hook of the queue's commands is gone.
+
+### Changed
+
+- OPS.218 (slice 2): `CommandSpec.prepare`, `commands.prepare_function` and the call in the stage opening are removed; no command used the hook since OPS.123 made the clears stages of their own. The `conclude` and `finish` hooks stay until their commands give the engine pieces.
+
+## [8.0.4233] - 2026-11-15
+
+**Headline:** The galaxy reset no longer wipes the job engine's own fence rows.
+
+### Fixed
+- Resetting a galaxy truncated `engine_items`, the row each job's done mark is fenced by, so the reset's own unit found itself "replaced" and the run never finished. The table is now left out of the wipe.
+
+## [8.0.4232] - 2026-11-15
+
+**Headline:** A unit that was replaced by a later attempt can no longer mark itself done or count, so a retried unit cannot be counted twice.
+
+### Changed
+- **OPS.217 (job engine stage 3), output unchanged.** A worker that takes a unit raises the unit's attempt number in the job ledger and writes it to the unit's row in the galaxy (`queue/attempts.py`). The engine's `ctx.commit()` updates that row `WHERE attempt = mine` in the same transaction as the piece's data; a unit that another attempt took over rolls back and ends `replaced`. Every unit's done mark is set in the galaxy first, and only then does the unit store its result and join the Redis done set. The ledger records how each attempt ended (done, failed, replaced, lost). The Redis done set stays the barrier of a stage until OPS.218, and no command gives `pieces` yet, so every command today is fenced once, at its done mark; a family that converts fences each commit it makes.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4231] - 2026-11-15
+
+**Headline:** What a stage is made of is now written down as rows in the job ledger, in one step with the cut itself, instead of one Redis string.
+
+### Changed
+- **OPS.216 (job engine stage 3), output unchanged.** The opening of a stage (`wrapper._open`) now writes its cut to the control database through `queue/planrows.py`: one `engine_jobs` row per unit, and one row for the cut itself marked done, committed together. A cut that stopped half way leaves nothing; a cut that finished is found again by its row, so the retry of a killed opening reuses the same rows and never makes a second set of units. Each queued unit now carries its row's id (`units.run_unit`'s `row`), for the fenced done mark that follows (OPS.217). Everything that read the Redis `plan` string (the supervisor's idea of the stage in flight, the conclusion and finish of a stage, the deferred parameters that read a plan field, a run carried on from an earlier one) reads the rows. The run record names its `engine_run`. The Redis key `<prefix>:run:<id>:s<k>:plan` is no longer written; `runrecord.set_stage_plan` is `set_stage_size` (the unit count and cost of the stage, which the bar and the completing unit read).
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4230] - 2026-11-15
+
+**Headline:** The Queue page now shows whether the supervisor is alive, since when, and what it did lately with the reason.
+
+### Changed
+- **OPS.214, output unchanged.** A panel "The supervisor" on the admin Queue page (`GET /api/admin/work/supervisor`): alive or not, since when, how long it has been up, how long since its last turn, its turns and process, and its latest twenty acts newest first, each with its time and its reason in words (`started: something asked for one`, `ended: nothing to watch for 300 s, after 150 turns`). `Supervisor.act(what, reason)` is the one call every later item uses to say what it did, which also goes to the log.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4229] - 2026-11-15
+
+**Headline:** The supervisor is tested with real processes and real kills.
+ 
+### Changed
+- **OPS.213, output unchanged.** `tests/test_supervisor_kill.py` starts a real supervisor process on the suite's Redis and kills things with SIGKILL: the supervisor while a run waits in the line (the next ask starts a new supervisor, which starts the run), a second supervisor (it refuses the host's lock and leaves the first), and the process that started a run (the supervisor says once that it carries the run on, and the run stays live and is not taken over). `tests/test_supervisor_galaxy_kills.py` kills the unit that is ending a stage (the holder of the stage's end lease) in a real galaxy run and compares the galaxy with an undisturbed run's; it is skipped unless `PLANETGEN_ENGINE_KILL_TESTS=1`, as a small box cannot finish a galaxy.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4228] - 2026-11-15
+
+**Headline:** The supervisor is tested under a fake clock with killed supervisors, stopped starters, killed stage ends and refused Redis commands.
+ 
+### Changed
+- **OPS.212, output unchanged.** `tests/supervisor_sim.py` draws, from a seed, asks for runs, units that finish, stage ends that are killed, starters that stop, supervisors that are killed and replaced, and Redis commands that are refused, and checks that every ask is answered once with one run, the line is served in order, a finished stage is ended exactly once, a starter's stop is said once, and nothing waits for ever once the faults stop. It follows the stage 0 skeleton (`enginesim.py`: a seed replays exactly, nothing sleeps). It found three faults in OPS.211, fixed there: an ask lost when Redis failed in its start, a second run possible when a start was carried out again, and a run whose starter stopped in its first turn freed as dead.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4227] - 2026-11-15
+
+**Headline:** A run is started by the supervisor, not by the process that asks for it.
+
+### Changed
+- **OPS.211, output unchanged.** `planetgen generate`, the Generate page and the API no longer take the machine themselves. A run leaves its ask on Redis (a place in the waiting line for a run that waits, a request of its own for a check or maintenance run, which is refused at once with the holder named when the machine is taken) and the supervisor's `RunStarts` duty starts it: the first of the line when the machine is free. The process that asked follows the run it was given (`runrecord.start_run(owner=...)` names it), so a run is never started by a process that is gone a moment later. `runline.start_when_free` carries the ask and waits for the supervisor's answer (`runline.verdict`); when no supervisor answers within a minute it fails naming the supervisor (`runline.NotStarted`) instead of waiting for ever.
+- **OPS.253, output unchanged.** The first time the supervisor finds a live run whose starter's sign of life is gone, it says so once, in the run's own log and in its acts on the Queue page: "The run's starter stopped by <time>; the supervisor carries the run on."
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4226] - 2026-11-15
+
+**Headline:** A run goes on when the process that started it is gone, and a stage that finished but never advanced is ended by the supervisor.
+
+### Changed
+- **OPS.210, output unchanged.** The supervisor's reconciler (`supervisor.Reconciler`) runs at every turn, including its first: it marks each live run as watched, and a new run no longer takes over a run whose starting process died while the supervisor watches it (`runrecord.holder_is_dead`; the run's stages advance from its units and it ends by itself). A stage whose last unit counted it and whose end never queued the next stage (that unit's process was killed in the conclusion, or Redis failed it), found 30 seconds after, is ended with `units.repair_unended_stages` (OPS.186): the conclusion not yet done and the opening not yet queued, each once. Each correction shows in the supervisor's acts on the Queue page.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4225] - 2026-11-15
+
+**Headline:** Only the supervisor starts workers now; a submit, a status poll or a web thread leaves it a request.
+
+### Changed
+- **OPS.209, output unchanged.** `workers.ensure_workers` no longer counts or starts anything: it leaves a request for the queue (`supervisor.nudge`: the latest ask for each queue, with its worker count) and starts the supervisor if none is alive, so it is cheap to call from any web thread or enqueuer. The supervisor takes the requests at each turn (`supervisor.WorkerStarts`) and acts on each with `workers.start_workers`, which is the old function with the same rules (caps, lanes, memory limit, shedding the bulk lane for the maintenance one, lending). With one process deciding, the host-wide lock between callers (PERF.181) is gone. The count of workers started and not yet registered stays, because a worker clears it as it registers. A supervisor with a request waiting does not end for being idle.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4224] - 2026-11-15
+
+**Headline:** The supervisor now judges the units of every live run, so a run whose starting process is gone is still watched.
+
+### Changed
+- **OPS.208, output unchanged.** The beat judge of the running units (`unitwatch.UnitWatch`) and the stuck action (`unitstuck.Stuck`: dump, stop, queue again once, then fail the run) run in the supervisor (`supervisor.RunWatches`), one turn a second while a run is live, for the stage in flight of each live run. `wrapper.run` and `units.follow_stage` only follow now: they lose their `watch` argument. A run whose starter was killed no longer goes unjudged. Judgments, log lines and the Queue page's unit states are the same.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4223] - 2026-11-15
+
+**Headline:** A supervisor process, one per host, now starts when work arrives and shows on Redis that it is alive; it does nothing else yet.
+
+### Changed
+- **OPS.207, output unchanged.** `planetgen.queue.supervisor` and `python -m planetgen.cli.supervisor` are the first step of the job engine's stage 2: one process per host by a kernel file lock (`supervisor.lock` in the state folder), a sign of life in Redis (`pid`, `since`, last turn, turns), a turn every 2 seconds, and an exit after 5 minutes with nothing to watch. A submit (`workers.ensure_workers`), a status poll (`GET /api/admin/work/workers`) and the cache warm-up's start each start it when none is alive. Its loop takes the clock, the store and the process table as arguments, so the engine simulator (OPS.212) can drive it. Watching, worker starts and the reconciler move into it in OPS.208 to OPS.211.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4222] - 2026-11-15
+
+**Headline:** A run no longer waits for ever when the unit that finished a stage is killed before it queues the next one.
+
+### Changed
+- **OPS.186, output unchanged.** The end of a stage (its conclusion, its row and the queuing of the next opening) now records how far it got and can be finished by the retry of the unit that began it: `units.repair_unended_stages` finds a finished stage that did not advance and ends it, concluding and queuing each only once, under a lease so two attempts do not end it together. Queuing the opening is tried four times before it fails the run, and a unit whose end is unfinished with no retry left fails the run, with the stage named, instead of "the run goes on". The supervisor's reconciler (OPS.210) calls the same function.
+- **OPS.187, output unchanged.** An opening that has cut its stage marks it done (`runrecord.opened_key`); a failure RQ reports for that job after that no longer fails the run, and its retry does not cut the stage again.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4221] - 2026-11-15
+
+**Headline:** a worker killed while ending a stage no longer fails the run when a retry is left to finish the end.
+
+### Fixed
+
+- OPS.186: a unit that completed its stage and was killed (`kill -9`, not only the memory killer) in the end of it is retried by RQ, which finishes the end; the run is failed only when no retry is left. Found by Lane 07's galaxy kill test on a second box.
+
+## [8.0.4220] - 2026-11-15
+
+**Headline:** The queue, the benchmark and the database walks each keep one copy of code they had written twice.
+
+### Changed
+- **OPS.181 parts 13 and 15, output unchanged.** `runeta.cost_percent` is the percent of cost done that the public banner (`runeta.public_view`) and the run list (`runview.summary`) each summed out. `wrapper.conclude_and_finish_stage` is the conclusion-and-row step with its named failure that `wrapper._conclude_empty_stage` and `units._end_stage` each wrote. `cli/benchmark_suite._each_process` is the `/proc` walk `_processes` and `_server_pids` each did. `store.galaxy_connections` is the open-each-galaxy-database loop of `cli/version_history._galaxy_databases` and `cli/warm_shape.cluster_ages`. Part 14 (`settings_writer._restore_plan`) waits for the helper the rounds 2 to 4 PR adds.
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4219] - 2026-11-15
+
+**Headline:** The habitability browser tests have a new seeded system again, after the star redraw of Train 30.
+
+### Fixed
+- `tests/habitability_site.py`: `HABITABLE_SEED` is 65 (it was 64). After GEN.1623 and the star table fix redrew every star, seed 64's system held eleven gas dwarfs and two rated bodies, so all eight tests of `test_habitability_end_to_end_browser.py` stopped at setup; seed 65 holds fourteen rated planets and moons and the browser tests of that fixture (habitability, galaxy outlines, score filters, map icons) pass.
+
+## [8.0.4218] - 2026-11-15
+
+**Headline:** The stage memory log test reads the figures the way the log now writes them.
+
+### Fixed
+- `tests/test_stage_worker_cap.py`: since UX.318 the stage memory line shows gigabytes ("2.37 GB of the 3.05 GB"); the test still looked for "2,370 MB of the 3,050 MB". It reads the new wording. Test only.
+
+## [8.0.4217] - 2026-11-15
+
+**Headline:** The life-air history API tests find a planet that can take the forced oxygen in the redrawn systems of Train 30.
+
+### Fixed
+- `tests/test_api_life_air.py`: the fixture asserted that `biogenic_oxygen.apply` took 2e19 mol of oxygen on the first airy rocky planet of each drawn system. After the star redraw of Train 30 the first such planet's air held the oxygen already (or could not take it), so two tests failed; a planet that cannot take it is now passed over for the next, and the fixture still skips the test only when none of 40 systems has one.
+
+## [8.0.4216] - 2026-11-15
+
+**Headline:** The sky draw of a New galaxy run no longer waits in line: it runs as 16 units side by side, so one stage takes minutes of waiting instead of hours.
+
+### Fixed
+
+- OPS.253: the sky tiers of a bright-star backfill were drawn one observer cell at a time behind one lock, so a stage with several cells made no progress for hours while the rest of the workers waited. The draw is now cut into 16 units, each drawing its own share of the rows of every sphere (every cell of a sphere is in exactly one share), so nothing waits for anything; the spheres are recorded in the ledger when the stage ends. The stars, the cells' levels and the ledger come out the same as the one-at-a-time draw (census test), and a unit that stops goes on from its last batch. `sky_tier_draws` gains `part_index` and `part_count` (migration 0262).
+
+## [8.0.4215] - 2026-11-15
+
+**Headline:** Oxygen-making life now lives on every world that has light and any liquid water at its surface, an open sea, a brine seep, a seasonal melt or a spring, so worlds without a wide sunlit ocean can keep photosynthetic life.
+
+### Added
+
+- GEN.1723 (Boss, 8:38 PM EST 11-14, every galaxy including Science): `physics/surface_refuge.py` reads the temperature of every place of a world (`temperature_coverage.series_of_values`) and counts the hours a year each place has liquid water and light (252 to 346 K, 75 h or more): a brine seep's liquid, the meltwater of an ice-covered ocean or an ice world where it rises above 273.15 K, and the springs and seeps of a dry, vapor or ice world whose aquifer's water table is at the surface (0.15 of the land, falling as `exp(-depth / 1 m)`; [R5271, R5272]). An open sea (surface ocean, hycean) has the whole year, as before. Sources and limits: `reports/life-refuges-research-gen1722-2026-11-14.md`; registry rows RW1 to RW4.
+- The gate of the oxygenic classes 1a, 1b, 1c and class 2 reads `lit_liquid_hours` (75 h or more) in place of "the hydrosphere is a surface ocean or a hycean sea". A refuge world is scored on the temperature of its wet places, on the light of its star (the stored flux of an ice-covered ocean or an aquifer world is the chemical one) and on the share of an ocean's production its refuge makes, so its net primary production is small.
+- The oxygen source `S` gains the refuge term in the same change (`biogenic_oxygen.refuge_productivity`): Earth's own burial per area of ocean (no new burial constant) on the lit wet area, each place weighed by its production against an ocean's, `(hours / 8760) ** k * cover` (cover 0.001 at the 75-hour limit to 0.1 at 2000 h; the low end of the 0.1 to 28 percent of [R5269]: the minimum reasonable one).
+
+### Changed
+
+- `S` of a refuge world is about a hundredth of Earth's for a seep world, a thousandth or less for a melt hole, and 0.14 at the very most (the cover cap of 0.1 over a whole sea that melts all year), so it never beats the reductant flux `R` of a world with Earth's interior and such a world holds no free oxygen. The lever for oxygen on a dry world is `R` (a more oxidized mantle), not the refuge number; nobody should tune the refuge number up to make the census pass. A world whose `R` is below the refuge source (an old world with a cooled interior) can hold oxygen.
+- A world under ice with no place above 273.15 K keeps no light class (the chemical classes still live there); one whose ice melts somewhere has them.
+- The sea under a lid of ice that lets light through counts (GEN.1724 research, LA4, LA5): the ocean's own production times the share of the light that gets through, `(1 - 0.6) * exp(-1.26 per m * thickness)` of the stored `ice_shell_km` ([R5264, R5265], read; Lane 03's GEN.1726 replaces it with the full law of ice and snow), at 273.15 K, when it is over the light floor of 0.01 umol photons m-2 s-1. A lid of a few metres counts, a lid of a kilometre does not.
+- Once a world's life has reached mosses and the first land plants (`native_life` macroscopic or biosphere), the roots draw on 0.27 of the land and a water table falls by 1/e in 9.5 m [R5271, R5274], in place of 0.15 of the land and 1 m. The oxygen of the rise is worked before that stage, so the widening reaches the scores and the source of a world that is already there.
+- Registry rows RW1 to RW4 and LA1, LA1b, LA2, LA4, LA7 (LA5 is GEN.1726's IL rows) (the GEN.1724 and GEN.1727 research; LA3, LA6 and LA8 wait for the adaptation table GEN.1725). The oxygen makers slow from 263 K to none at 253 K (the field limit of Antarctic lichens, read): the production of a wet place is cut in that range, the gate keeps its 252 K edge.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4214] - 2026-11-15
+
+**Headline:** A Sun-like star now reads as the Sun: the star table is read at the birth [Fe/H] that gives a star its surface [Fe/H], where it was read at the surface value as if it were the birth one, which made F, G and K dwarfs 11 percent too bright and 76 K too hot at the Sun's age.
+
+### Changed
+
+- GEN.1623 (D3 of the data audit): the MIST isochrones are labelled by the birth [Fe/H] and include atomic diffusion, which settles metals out of a low-mass star's surface (the grid's own 1 solar mass star at [Fe/H] 0 has a surface [Fe/H] 0.05 to 0.07 dex lower at 4.6 Gy). A generated star's [Fe/H] is a surface value (it is what the composition note reports, and the galaxy's [Fe/H] is on the scale of measured stars), but it was read straight off the grid, so the Sun twin (1.0 solar mass, 4.57 Gy, [Fe/H] 0) came out at 1.107 solar luminosities, 5848 K and 1.025 solar radii. `isochrones.initial_fe_h` now finds the birth value from the surface one for the star's mass and age, from the surface hydrogen and helium of the grid's own rows (the setup keeps one more column of them, `derive_version` 4, which downloads and derives the isochrones again), and `alpha_tracks.track_fe_h` takes the star's mass and applies it, so a main-sequence star's record (`evolve_star`), its composition note (`star_composition`) and the life readings' brightening of its star read its luminosity, temperature and radius at that birth composition (the life readings hold the one birth value as the star brightens). The Sun twin reads 1.021, 5766 K and 1.012. Dwarfs of 0.7 to 1.0 solar masses come within 1 to 3 percent of the dwarf sequence in luminosity and radius where they were 4 to 9 percent off. Stand-in SD1 (tier T6, tweak L0) in section 6.295 of the gap-filling plan: the iron's change is read from the metals together (0.006 dex short at 1 solar mass).
+- Not changed, and still read at the surface value as if it were the birth one: the main-sequence lifetime, the post-main-sequence timeline and the bright-star sampler's windows, which move by a percent or two for a star of 1 solar mass and which a giant, whose surface the dredge-up has reset, reads correctly as it is.
+- Every F, G and K star's luminosity, temperature and radius moves, so its habitable zone, its planets' climate and the census move with it.
+
+generation-output: changed
+- A forced star type (STAR_TYPE, GEN.941) is drawn from a table on a mass grid; the grid is now 420 masses, not 140 (`tuning.FORCED_STAR_MASS_STEPS`), because a spectral subclass such as G2 is narrower in mass than 5 percent and the cooler tracks left one grid mass holding all of it (G2V stars came out young and dim: median age 1.6 Gyr, Sun-like systems lost their wet worlds). Table build takes about 6 s per process and [Fe/H] bucket.
+
+## [8.0.4213] - 2026-11-15
+
+**Headline:** The job engine has its ledger tables: a run, its jobs and every attempt are rows in the control database, and each galaxy holds the table a job's done mark commits into.
+
+### Changed
+- **Ledger tables and the module that reads and writes them (OPS.215).** The control database gains `engine_runs`, `engine_jobs` and `engine_attempts` (control schema v23); each galaxy gains `engine_items` (schema v260, migration 0260), the row a job's own commits update `WHERE attempt = mine` so its data and its done mark are one transaction. `planetgen/queue/ledger.py` adds a run and its jobs (repeating a plan adds nothing), raises an attempt at dispatch and writes it to the galaxy before the job starts, closes an attempt with how it ended and what it cost, and holds the fence (`commit_item` raises `Replaced` for a job another attempt took). A `Writer` runs ledger calls on a thread of its own so the supervisor's loop never waits on MySQL. Nothing reads or writes the rows yet: the supervisor (OPS.207) and the plan-as-rows item (OPS.221) build on it, so no run changes. A galaxy made before v260 gets the empty table at its next migrate.
+
+generation-output: unchanged
+
+## [8.0.4212] - 2026-11-15
+
+**Headline:** A stage that waits says what it waits on, in the run line and the log.
+
+### Fixed
+
+- OPS.253: a stage that finishes no unit says what it waits on. The run line of a stalled stage names what its units are doing ("waiting on progress (4 waiting on sky lock, 1 working)"), the job log says so every 30 minutes while no unit finishes, and the bright-star backfill's bar counts a sky cell by its own counter instead of standing still for the hours one cell takes.
+
+## [8.0.4211] - 2026-11-15
+
+**Headline:** A star system with hundreds of bodies no longer runs out of recursion when its planets are given life.
+
+### Fixed
+
+- GEN.1734: the trial copy of a planet that the life pass makes (`life._trial_copy`) deep-copied the moons the planet was born with (`_born_moons`), and each body holds the siblings of its host, so one copy walked every body of the system in a single chain: a planetary nebula's system of a few hundred bodies raised `RecursionError` (`test_census_component_wholesphere` on main). A list, set or dict that holds bodies is now shared with the copy, like `moons` and the star already were; one with no body in it is still copied. No generated value changes.
+
+## [8.0.4210] - 2026-11-15
+
+**Headline:** The light-through-ice module spells "center" the American way again, which clears the spelling test on main.
+
+### Fixed
+- `physics/ice_light.py` (GEN.1726): "centre" in the comment of `ALBEDO_BARE` is "center"; `test_american_spelling::test_no_british_word_is_left_in_the_tree` passes.
+
+## [8.0.4209] - 2026-11-15
+
+**Headline:** A belt that is copied or sent to another process before its members were read now carries them.
+
+### Changed
+- GEN.1610 (bug): a belt draws its members on first use around the star it was built for, and that star is held apart from the belt in a weak map (`belt._STARS`) that a copy or a pickle does not carry, so a copied belt whose members had never been read returned none. `AsteroidBelt.__getstate__` draws the members first. No stored value changes: a belt that is stored has had its members drawn. `tests/test_belt_copy.py` pins `copy.copy`, `copy.deepcopy` and a pickle round trip (red before, green after).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4208] - 2026-11-15
+
+**Headline:** A galaxy stage of sectors now says what each sector cost on a line of its own: its address, systems, planets, time and the memory the worker held.
+
+### Changed
+- **One timing line for each sector of a stage of 2,000 sectors or fewer (PERF.270).** The starting sector and the neighborhood stage of a New galaxy run had no per-sector line in the run log (each sector's own line was in the debug log), so when Stage 5 took 21,919 s for 109 sectors there was nothing to say which sectors took the time. The line reads `Sector [designation] shell S band B wedge W: 37 systems, 452 planets in 14.2 minutes, the worker at 2,181 MB.`, and the stage's opening line says so. A stage of more than 2,000 sectors keeps the line in the debug log, with the ticker carrying its progress. No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.4207] - 2026-11-15
+
+**Headline:** The queue's quiet-stage line and the splitter's reason write their times and memory through the shared formatter.
+
+### Fixed
+- The "no unit has finished for ..." line and the splitter's reason line spell durations and memory with `format_duration_seconds` and `format_megabytes` (UX.318), so the hand-formatted-units test passes again. The run-record test and the stall-words test expect the same words (1.49 GB, 35 minutes, 1.17 hours).
+
+## [8.0.4206] - 2026-11-15
+
+**Headline:** The habitability browser tests have a seeded system that holds rated planets and moons again.
+
+### Fixed
+- TEST.754: `HABITABLE_SEED` in `tests/habitability_site.py` is 59 (it was 64). After the recent trains seed 64's system held three rated moons and no rated planet, so `test_the_lists_draw_each_bodys_stored_rating_as_the_symbol_of_its_tier[planet-planets]` failed ("the seeded system has no habitable planet"). Seed 59 holds five rated planets and nine rated moons; the 48 tests of the habitability, galaxy outlines, score filter and map icon browser files pass.
+
 ## [8.0.4205] - 2026-11-15
 
 **Headline:** The engine tables are named in the column unit and prose-column lists.

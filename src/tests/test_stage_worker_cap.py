@@ -100,7 +100,7 @@ def test_the_stage_that_ends_logs_the_largest_worker_beside_its_figure():
     finally:
         wrapper.runrecord.log = original
     assert [fields["level"] for _text, fields in logged] == ["info", "warning", "info"]                            # over its figure; a one-worker stage is told, not warned
-    assert "2,370 MB of the 3,050 MB" in logged[0][0] and "over the 3,050 MB" in logged[1][0] and "one worker by nature" in logged[2][0]
+    assert "2.37 GB of the 3.05 GB" in logged[0][0] and "over the 3.05 GB" in logged[1][0] and "one worker by nature" in logged[2][0]
 
 
 def test_peak_counts_the_worker_beside_its_horse():

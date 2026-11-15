@@ -105,6 +105,24 @@ def test_a_trial_air_leaves_the_body_as_it_was(mixed):
     assert atmosphere.gas_partials_pa(body) == before
 
 
+def test_a_trial_copy_shares_the_bodies_a_planet_holds_and_does_not_walk_a_long_chain_of_them():
+    """GEN.1734: each body holds the siblings of its host, so a deep copy of the moons a planet was born with walked every body of the system in one chain
+    and ran out of recursion in a system of a few hundred bodies. The bodies are shared, like `moons`; a container with no body in it is still copied."""
+    import types
+
+    class Body(types.SimpleNamespace):
+        body_type = "t"
+
+    chain = None
+    for _ in range(3000):
+        chain = Body(follow=(chain,) if chain is not None else ())
+    planet = Body(_born_moons=[chain], moons=[chain], notes={"a": [1, 2]}, star=object())
+    clone = life._trial_copy(planet)
+    assert clone._born_moons == planet._born_moons and clone._born_moons is not planet._born_moons and clone._born_moons[0] is chain
+    clone.notes["a"].append(3)
+    assert planet.notes == {"a": [1, 2]}
+
+
 def test_the_classes_are_saved_and_loaded_with_the_body(mixed, mysql_config):
     config = _config()   # saving needs the whole system: make one again that has such a body
     for seed in SEEDS:

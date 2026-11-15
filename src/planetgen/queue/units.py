@@ -721,9 +721,7 @@ def _quiet_line(conn, run_id, stage, units, seen, quiet_for):
     """The line the log gets when a stage has finished no unit for `quiet_for` seconds (OPS.253): how long, how many units are done, and what the running ones are doing."""
     from planetgen.queue import runview, unitwatch
     cause = runview.stall_cause(unitwatch.read(conn, run_id, stage))
-    hours, rest = divmod(int(quiet_for), 3600)
-    since = f"{hours} h {rest // 60:02d} m" if hours else f"{rest // 60} m"
-    return f"Stage {stage + 1}: no unit has finished for {since}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".")
+    return f"Stage {stage + 1}: no unit has finished for {format_duration_seconds(quiet_for)}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".")
 
 
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, on_step=None):

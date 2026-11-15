@@ -167,6 +167,7 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_galaxy", "backfill_pieces"), do=("planetgen.generation.run_galaxy", "backfill_do"),
                 gather=("planetgen.generation.run_galaxy", "backfill_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars"),
+                conclude=("planetgen.generation.run_galaxy", "conclude_backfill"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=12),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",
