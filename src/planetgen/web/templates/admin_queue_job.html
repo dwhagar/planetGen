@@ -6,7 +6,7 @@
   <dl class="queue-facts">
     <div><dt>State</dt><dd>{{ state_label }}</dd></div>
     <div><dt>Attempts</dt><dd>{{ job.attempts }}</dd></div>
-    <div><dt>Class</dt><dd>{{ job.class }}{% if job.claim_mb %}, claims {{ '{:,}'.format(job.claim_mb) }} MB{% endif %}</dd></div>
+    <div><dt>Class</dt><dd>{{ job.class }}{% if job.claim_mb %}, claims {{ bytes_text(job.claim_mb * 1000000) }}{% endif %}</dd></div>
     {%- if job.waits %}<div><dt>Why it waits</dt><dd>{{ job.waits }}</dd></div>{% endif %}
   </dl>
   {%- if arguments %}

@@ -2,6 +2,76 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4248] - 2026-11-15
+
+**Headline:** Three places that wrote a unit by hand (the job page's memory claim, a retry hold's seconds, the unit beat's debug line) now use the shared units formatters.
+
+### Fixed
+
+- OPS.224 follow-up: `queue/jobview.py` (the retry hold's time left), `web/templates/admin_queue_job.html` (a job's memory claim) and `queue/unitbeat.py` (a restarted unit's wait and its debug beat line, OPS.223) wrote a number followed by its unit; they use `format_duration_seconds`, `format_megabytes` and the page's `bytes_text` (UX.318), which `test_hand_formatted_units` guards.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4247] - 2026-11-15
+
+**Headline:** One warm template per lane, a path for hosts with no kernel handle on a job, and a memory proof on the real star tables; built and tested, not yet used.
+
+### Added
+- `jobhost.TemplateSet` starts one template per warm set when the first job that wants it is asked for: the lane whose units draw stars (`units.TABLE_KINDS`) gets the sampling tables built once, every other lane gets none (`WARM_SETS`, `template_key`). A host with no star-drawing work never builds the tables.
+- A slow test (`tests/test_template_memory.py`) forks three star-drawing jobs from one template that built the real tables and checks that the template and its jobs hold well under what as many workers would each hold.
+
+### Changed
+- Where the kernel gives no handle on a job (macOS; `PLANETGEN_TEMPLATE_PIDFD=0` tries it on Linux), the template's report of each exit is the way, and a template that has died leaves the supervisor to look for each job's pid (OPS.226, the third slice).
+
+## [8.0.4246] - 2026-11-15
+
+**Headline:** A unit can run as a job process the template forked, built and tested, not yet used.
+
+### Added
+- `queue/forkedjob.py` runs a unit in a forked job: its own Redis connection, the same `units.run_unit_on` the RQ job runs, and a say on the job's pipe when it ends. A stop request or a supervisor that went ends it between two pieces; a failure fails the run as RQ's failure callback does (`units.fail_unit`).
+- The engine asks an optional `halt` before every piece (`engine.run(..., halt=)`), a local read.
+
+### Changed
+- `units.run_unit` and `units.unit_failed` are split so the RQ job and the forked job share the code that runs a unit and that fails a run (`run_unit_on`, `fail_unit`); nothing changes for the RQ path (OPS.226, the second slice).
+
+## [8.0.4245] - 2026-11-15
+
+**Headline:** A warm template process and the jobs forked from it exist, built and tested, not yet used.
+
+### Added
+- `queue/template.py` is the template process: it builds a warm set, holds no connection and one thread, forks one job per request, and reports each job's exit code or killing signal at once. A job has a pipe to the supervisor and finishes its piece and exits (`EXIT_SUPERVISOR_GONE`) when the pipe closes.
+- `queue/jobhost.py` is the supervisor's side: it starts the template, forks jobs, holds each job's pipe and a kernel handle (`pidfd`, opened by the template while the job is still its child) and reports every job's end once, even when the template died first.
+- Nothing runs on it yet; the bulk lane moves to it in OPS.228 (OPS.226, the first slice).
+
+## [8.0.4244] - 2026-11-15
+
+**Headline:** The Queue page now shows every job of a run with its attempts and why it waits, and a history of runs, read from the job ledger.
+
+### Added
+
+- OPS.224 (job engine stage 3, L10): `GET /api/admin/work/<id>/jobs` and `/jobs/<job id>` serve a run's jobs and one job's attempts from the ledger (`queue/jobview.py`), and `GET /api/admin/work/history` the runs the ledger holds, filtered by state, kind or galaxy. The run page gets a Jobs panel; `/admin/queue/<id>/jobs` lists the jobs under a state menu, each with its attempts, how its newest attempt ended and, when it is not running, why it waits; `/admin/queue/<id>/job/<job>` shows every attempt with its cost, error text and stack file; the queue page ends with a Run history table.
+- A job that a worker holds at the memory gate now says why in the ledger (`engine_jobs.waited`, the gate's own words from `memorygate.decide`, written when the reason changes and at most every 15 s), a retry hold shows how long is left, and the end of a stage names what it still needs. Reused: `runview`, `planrows.control_connection`, `datatable`, the run page's panel and table markup.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4243] - 2026-11-15
+
+**Headline:** The stage-wording tests no longer expect "0 s" from a stage that really took a few milliseconds.
+
+### Changed
+
+- TEST.759: a stage line says how long the stage took on the units code's one duration ladder (UX.318), so a stage of 2.86 ms says "2.86 ms". The code is right; five tests in `test_stages.py` read the real clock and expected "0 s" or a whole-second "31 s". They now hold the clock the stages read still (`stage_clock`), and one new test pins that a stage of a few milliseconds says so.
+
+## [8.0.4242] - 2026-11-15
+
+**Headline:** The memory-reading test of the worker cap no longer fails under gate load.
+
+### Changed
+
+- `test_peak_counts_the_worker_beside_its_horse` (TEST.757) held `peak_resident_mb` to a reading of the worker and its horse taken afterwards; the system divides a shared page by the processes sharing it, so the later reading can be higher when another test worker ends in between. The test now takes the reading before and after the call and holds the figure to the lower of the two.
+
 ## [8.0.4241] - 2026-11-15
 
 **Headline:** The hooks that end a stage are commands of their own, named by the rows that end it.
