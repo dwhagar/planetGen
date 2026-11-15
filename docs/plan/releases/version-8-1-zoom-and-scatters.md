@@ -715,7 +715,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | Lane 14, 2026-11-12. |
 | GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | Lane 04, 2026-11-12. |
 | GEN.1664 | StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once | GEN.1656 | Lane 14, 2026-11-12. |
-| GEN.1667 | (bug) test_secular_exchange_generation has 2 failures on Train 25: seed 1 no longer makes a belt | none | Lane 07, 2026-11-12. |
 | GEN.1671 | Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4) | none | Fable thread, 2026-11-12. |
 | GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | Lane 06, 2026-11-12. |
 | GEN.1677 | Design: remove the rest of the equipment-based habitability scoring: UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT | none | Kiamtochen thread, 2026-11-12. |
@@ -743,8 +742,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1738 | (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip | none | Lane 04, 2026-11-15 |
 | GEN.1739 | Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database | none | research thread, 2026-11-15 |
 | TEST.761 | (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only | none | Lane 14, 2026-11-15 |
-| TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | Lane 14, 2026-11-15 |
-| TEST.764 | (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB" | none | Lane 14, 2026-11-15 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | Lane 15, 2026-11-14
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14

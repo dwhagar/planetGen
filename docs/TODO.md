@@ -12510,11 +12510,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as nothing: moot with OPS.235 (RQ removed, stage 4); not started. Prerequisites: none. Related: OPS.178.
   Filed by the TODO thread.
 
-- [ ] **GEN.1667 (bug) test_secular_exchange_generation has 2 failures on Train 25: seed 1 no longer makes a belt**
-  Lane 21 (as the lane reported 4:52 PM EST on 2026-11-12), seen while fixing GEN.1661: on claude/train-25 (70c55b8b6), even without the GEN.1661 patch, two tests in test_secular_exchange_generation.py fail because seed 1 no longer generates a belt, so the belt secular case is not exercised. Do: pick a seed (or a forced belt request) that makes a belt on the Train 25 generator and check the belt's secular pull is still tested; if the belt loss itself is wrong, say so. A test fix inside Train 25.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07 (GEN.1464 part A), in Train 25. Prerequisites: none. Related: GEN.1464, GEN.1661.
-  Filed by the TODO thread.
-
 - [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
   Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 07, after OPS.176. Prerequisites: none. Related: MAP.426.
@@ -12857,19 +12852,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1152, TEST.760.
   Filed by the TODO thread.
 
-- [ ] **TEST.762 (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance**
-  Lane 14, 7:52 AM EST 2026-11-15 (found during GEN.1152): the guard reports 18 files over their hand-written mass conversion allowance. Do: convert the new sites to the converters in constants.py (or lower allowances where GEN.1152 already removed them), keeping the 16 registered by-hand sites.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1152, TEST.760.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
   Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
-  Filed by the TODO thread.
-
-- [ ] **TEST.764 (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB"**
-  Lane 06, 9:22 AM EST 2026-11-15 (PERF.269, PR #6671): tests/test_profile_claim.py::test_every_change_is_logged_and_kept_for_the_queue_page fails on plain main, "1 GB" against "1,000 MB" in the log text. Same drift kind as TEST.760. Do: build the expected text from the one size formatter so the code is the one source.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.760, PERF.269.
   Filed by the TODO thread.
 
 - [ ] **GEN.1738 (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip**
