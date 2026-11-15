@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1698 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1699 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1671 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1672 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 221 | 116 | 31 | 76 | 4 | 448 |
 | T7 | 58 | 24 | 10 | 31 | 0 | 123 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 49 | 18 | 6 | 95 | 38 | 206 |
-| All | 977 | 338 | 85 | 241 | 57 | 1698 |
+| T9 | 49 | 18 | 6 | 95 | 39 | 207 |
+| All | 977 | 338 | 85 | 241 | 58 | 1699 |
 
 ## How the labels were given
 
@@ -2945,10 +2945,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| AT1 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (`low` of `delivered_water`) and not from the Bern law at their formation distance | each share 0 to 1 | galaxies made under a tier other than Science; rocky planets in the ecosphere, never moons | the meter (`scripts/class_census.py`) reading a Class M rate outside a factor of 2 of the tier's target | a formation law that gives habitable-zone planets Earth's water at a known rate (the research on water-rich births) | needed output: no source says how often a habitable-zone planet is as dry as Earth; forcing the class on 35 measured systems raised land-and-sea planets from 2 to 14 (report section 3) | predicted only | - | no data |
+| AT1 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, `low` of `delivered_water`, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance | each share 0 to 1 | galaxies made under a tier other than Science; rocky planets in the ecosphere, never moons | the meter (`scripts/class_census.py`) reading a Class M rate outside a factor of 2 of the tier's target | a formation law that gives habitable-zone planets Earth's water at a known rate (the research on water-rich births) | needed output: no source says how often a habitable-zone planet is as dry as Earth; forcing the class on 35 measured systems raised land-and-sea planets from 2 to 14 (report section 3) | predicted only | - | no data |
 | AT2 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (`Planet(late_core=True)`, GEN.1323) | each share 0 to 1 | as AT1 | as AT1 | an envelope law checked against the observed radius distribution at habitable-zone fluxes (the research on hydrogen envelopes) | needed output: 34 of 75 right-mass candidates keep an envelope (report section 3); the share that should is not known | predicted only | - | no data |
-| AT3 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by `tuning.REQUEST_ODDS` (row CC10) and forces nothing | each share 0 to 1 | galaxies made under Plentiful or Abundant | as AT1 | none: the strength of a request is the maker's choice | needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate | predicted only | - | no data |
-| AT4 | P | T9 | L3 | `abundance_tier.TARGET_SYSTEMS_PER_CLASS_M` (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy | each target by a factor of 3 (the choice Boss was given) | the calibration only | none: a setting of the galaxy's maker | none | Boss, card "Set the target Class M rate of each tier", 11:19 PM EST 2026-11-13 | predicted only | GEN.1706 | no data |
+| AT3 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by `tuning.REQUEST_ODDS` (row CC10) and forces nothing | each share 0 to 1 | galaxies made under Plentiful or Abundant | as AT1 | none: the strength of a request is the maker's choice | needed output: the two top targets (1 in 37, 1 in 10) are past what the water and envelope dials reach by the report's estimate | predicted only | - | no data |
+| AT4 | P | T9 | L3 | `abundance_tier.TARGET_SYSTEMS_PER_CLASS_M` (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy | each target by a factor of 3 (the choice Boss was given) | the calibration only | none: a setting of the galaxy's maker | none | Boss, card "Set the target Class M rate of each tier", 11:19 PM EST 2026-11-13 (1,000, 100, 30, 10); replaced by Boss, 9:28 and 9:30 PM EST 2026-11-14: Sparse 1 in 500, Abundant 1 in 10, the rest split logarithmically | predicted only | GEN.1706 | no data |
+| AT5 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (`dry` of `delivered_water`, under 0.025 percent of the mass: a desert world) and not Earth's | 0 to 0.5 (Earth's class stays the larger part, so the temperate world stays in front) | as AT1 | the meter's family table (`scripts/class_m_meter.py`) reading more Class H worlds than Class M, or none, under a tier whose other family dials are set | a formation law that gives the share of habitable-zone planets drier than Earth | needed output: Boss, 8:24 PM EST 2026-11-14 (classes H, O, P and R beside M, M in front); on 800 Sun-like systems the laws gave 19 desert-shaped planets beside 3 temperate-shaped ones and no Class H (reports/train28-census-2026-11-14/five-classes-800.md); a dry planet is Class H only with groundwater and oxygen, which this dial does not give | predicted only | - | no data |
 
 ## 6.290 Stand-ins of the Bond albedo of a dry body's ground
 

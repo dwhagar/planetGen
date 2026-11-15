@@ -2,7 +2,8 @@
 
 """
 Class M tiers, thread 2: the water dial. Under a tier the share `abundance_tier.water_share(body)` of the candidates (rocky planets in the ecosphere)
-take Earth's water class (`low`) in place of the Bern law's class, and the air of such a body takes the row b2. `science` changes nothing.
+take a water class from the tier in place of the Bern law's class: the part `abundance_tier.dry_part(body)` of them the dry class (GEN.1721, the water of
+a desert world) and the rest Earth's (`low`); the air of such a body takes the row of its class (b1 or b2). `science` changes nothing.
 """
 
 import random
@@ -21,6 +22,7 @@ from tests.class_support import draw_planet
 from tests.test_atmosphere_mixture_rocky import EARTH
 
 LOW = delivered_water.bracket("low")
+DRY = delivered_water.bracket("dry")
 
 
 class _Star:
@@ -51,7 +53,7 @@ def test_science_draws_exactly_as_before_the_dial():
     plain = random.Random(5)
     science = random.Random(5)
     before = [delivered_water.sample_fraction(1.0, 0.5, rng=plain) for _ in range(50)]
-    after = [delivered_water.sample_fraction(1.0, 0.5, rng=science, earth=False) for _ in range(50)]
+    after = [delivered_water.sample_fraction(1.0, 0.5, rng=science, dialed=None) for _ in range(50)]
     assert before == after and plain.random() == science.random()
     assert _waters(_Body(None), 60) == _waters(_Body("science"), 60) == _waters(_Body(None, zone="h"), 60)
 
@@ -64,27 +66,61 @@ def test_the_dial_makes_one_extra_draw_only_under_a_tier_and_a_body_not_dialed_r
             type(self).calls += 1
             return super().random()
 
-    assert not delivered_water.drawn_for_earth(0.0, rng=Counter(1)) and Counter.calls == 0
-    assert delivered_water.drawn_for_earth(1.0, rng=Counter(1)) and Counter.calls == 1
+    assert delivered_water.dialed_class(0.0, 0.5, rng=Counter(1)) is None and Counter.calls == 0
+    assert delivered_water.dialed_class(1.0, rng=Counter(1)) == "low" and Counter.calls == 1
     Counter.calls = 0
-    delivered_water.sample_fraction(1.0, 0.4, rng=Counter(3), earth=True)
-    assert Counter.calls == 1           # no class draw: the share inside Earth's class
+    assert delivered_water.dialed_class(1.0, 1.0, rng=Counter(1)) == "dry" and Counter.calls == 1     # the dry part splits the same draw
+    for dialed in ("low", "dry"):
+        Counter.calls = 0
+        water = delivered_water.sample_fraction(1.0, 0.4, rng=Counter(3), dialed=dialed)
+        assert Counter.calls == 1           # no class draw: the share inside the dialed class
+        low, high = delivered_water.bracket(dialed)
+        assert low <= water <= high
     Counter.calls = 0
-    delivered_water.sample_fraction(1.0, 0.4, rng=Counter(3), earth=False)
+    delivered_water.sample_fraction(1.0, 0.4, rng=Counter(3), dialed=None)
     assert Counter.calls == 2           # the law's own two
-    assert delivered_water.sample_fraction(1.0, 0.4, rng=random.Random(8), earth=False) == delivered_water.sample_fraction(1.0, 0.4, rng=random.Random(8))
+    assert delivered_water.sample_fraction(1.0, 0.4, rng=random.Random(8), dialed=None) == delivered_water.sample_fraction(1.0, 0.4, rng=random.Random(8))
+
+
+def test_the_dry_part_splits_the_dials_one_draw_and_a_part_of_zero_draws_as_the_dial_did_alone():
+    picks = [random.Random(seed).random() for seed in range(400)]
+    for seed, pick in enumerate(picks):
+        alone = delivered_water.dialed_class(0.5, rng=random.Random(seed))
+        split = delivered_water.dialed_class(0.5, 0.2, rng=random.Random(seed))
+        assert (alone is None) == (split is None) == (pick >= 0.5)       # the same bodies are reached, whatever the part
+        assert alone in (None, "low") and split == (None if pick >= 0.5 else "dry" if pick < 0.1 else "low")
+    dry = sum(1 for seed in range(400) if delivered_water.dialed_class(1.0, 0.2, rng=random.Random(seed)) == "dry")
+    assert 50 <= dry <= 110 and dry < 200          # about a fifth, and Earth's class stays the larger part
 
 
 def test_at_share_one_every_candidate_holds_earths_class_and_nothing_else_moves(monkeypatch):
-    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0))
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0))
     waters = _waters(_Body("abundant"), 200)
     assert all(LOW[0] <= water <= LOW[1] for water in waters)
     for other in (_Body("abundant", zone="h"), _Body("abundant", zone="c"), _Body("abundant", is_moon=True), _Body("abundant", zone=None)):
         assert _waters(other, 60) == _waters(_Body(None), 60)
 
 
+def test_with_a_dry_part_every_candidate_holds_a_dialed_class_the_dry_one_the_smaller_part_and_remembers_which(monkeypatch):
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.25))
+    body = _Body("abundant")
+    dry = 0
+    for index in range(300):
+        with draw.bound(f"tier-dry:{index}"):
+            water = bulk_draw._rocky_water(body)
+        assert body._water_dialed in ("dry", "low")
+        low, high = delivered_water.bracket(body._water_dialed)
+        assert low <= water <= high
+        dry += body._water_dialed == "dry"
+    assert abs(dry / 300 - 0.25) < 0.08
+    for tier in (None, "science"):
+        plain = _Body(tier)
+        _waters(plain, 5)
+        assert not hasattr(plain, "_water_dialed")           # science leaves the body untouched (the golden digests list every field)
+
+
 def test_at_half_share_about_half_of_the_candidates_are_dialed(monkeypatch):
-    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.5, 0.0, 0.0))
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.5, 0.0, 0.0, 0.0))
     natural = delivered_water.class_shares(bulk_draw._kg_to_mearth(5.97e24), 0.5)[delivered_water.EARTH_CLASS]
     count = 600
     low = sum(1 for water in _waters(_Body("sparse"), count) if LOW[0] <= water <= LOW[1])
@@ -98,6 +134,11 @@ def test_the_air_of_a_dialed_body_takes_the_row_of_its_class(monkeypatch):
         with draw.bound(seed):
             recipe = RECIPES.draw_all(Subject("terrestrial", base), categories=md.ROCKY_CATEGORIES)
         assert recipe.groups["b"].name == "b2" and "b5" in recipe.values
+    assert delivered_water.ROWS["b1"] == "dry" and delivered_water.ROWS["b2"] == "low"       # the rows `mixture_subject` pins for the two dialed classes
+    for seed in range(40):
+        with draw.bound(seed):
+            recipe = RECIPES.draw_all(Subject("terrestrial", {**EARTH, "pinned_row_b": "b1"}), categories=md.ROCKY_CATEGORIES)
+        assert recipe.groups["b"].name == "b1"
     rows = set()
     for seed in range(60):
         with draw.bound(seed):
@@ -120,7 +161,7 @@ def test_a_seeded_system_is_the_same_under_science_and_unset():
         assert fingerprint(build(None, seed)) == fingerprint(build("science", seed))
 
 
-def test_whole_planets_in_the_ecosphere_of_a_sun_like_star_are_low_under_the_top_tier_and_their_air_agrees():
+def test_whole_planets_in_the_ecosphere_of_a_sun_like_star_hold_a_dialed_class_under_the_top_tier_and_their_air_agrees():
     config = SystemConfig()
     config.STAR_TYPE = "G2V"
     config.ABUNDANCE_TIER = "abundant"
@@ -130,6 +171,7 @@ def test_whole_planets_in_the_ecosphere_of_a_sun_like_star_are_low_under_the_top
     for seed in range(40):
         planet = draw_planet(star, star.habitable_zone[0] * 1.1, seed, config, moon_count=0)
         if abundance_tier.candidate(planet) and bulk_draw.origin_of(planet) == bulk_draw.ROCKY:
-            assert planet._water_dialed and planet.water_mass_fraction <= LOW[1] * 1.0001    # later water loss can only lower the stored share
+            assert planet._water_dialed in ("dry", "low")
+            assert planet.water_mass_fraction <= delivered_water.bracket(planet._water_dialed)[1] * 1.0001    # later water loss can only lower the stored share
             found += 1
     assert found >= 10

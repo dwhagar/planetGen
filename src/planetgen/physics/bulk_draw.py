@@ -423,18 +423,19 @@ def _snow_ratio(body):
 def _rocky_water(body):
     """
     A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses.
-    Under a Class M abundance tier the share `abundance_tier.water_share(body)` of the candidates (rocky planets in the ecosphere) take Earth's class instead
-    (`body._water_dialed`, set on each draw under a tier and never on `science`). The zone read is the one the body holds when its bulk is drawn: a planet that
+    Under a Class M abundance tier the share `abundance_tier.water_share(body)` of the candidates (rocky planets in the ecosphere) take the class the tier gives
+    instead: Earth's, or the dry class of a desert world for the part `abundance_tier.dry_part(body)` of them (GEN.1721). The class is kept as
+    `body._water_dialed` (its name, or `None` where the law decided), set on each draw under a tier and never on `science`. The zone read is the one the body holds when its bulk is drawn: a planet that
     `validate_system` later moves outward across a zone edge (`reconcile_zone` gives it the new zone's name, nothing is drawn again) keeps what was decided here.
     """
     mass = getattr(body, "mass", None)
     mass_earth = _kg_to_mearth(mass) if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
     ratio = _snow_ratio(body)
     share = abundance_tier.water_share(body)
-    dialed = delivered_water.drawn_for_earth(share)     # a tier: ONE extra draw; `science` (share 0) draws nothing and leaves the body untouched
+    dialed = delivered_water.dialed_class(share, abundance_tier.dry_part(body))     # a tier: ONE extra draw; `science` (share 0) draws nothing and leaves the body untouched
     if share > 0.0 or hasattr(body, "_water_dialed"):
         body._water_dialed = dialed         # remembered so the body's air takes the same class (`mixture_subject`); a redraw decides again
-    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, earth=dialed)
+    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, dialed=dialed)
 
 
 def _icy_water_range(body):
