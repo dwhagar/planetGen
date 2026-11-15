@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4201] - 2026-11-15
+
+**Headline:** The Galaxy Map at galaxy scale no longer shows an even lattice of round brown blobs: a group of nebulae shows only where its block really holds gas, as strongly as the block is full of it.
+
+### Fixed
+
+- MAP.429: the nebula group sprites (`galaxynebulae.js`, MAP.176) were drawn for every block with any nebula, sized to its bounding sphere and as strong as the logarithm of the number of clouds, so the many tiny class N clouds made a sprite of every disk block. A node's `nebula_regions` now carry each block's stored `cover` (the share of it inside a nebula, `nebula_block_stats.cover`, the same share the Nebula cover colour reads), a group under the floor of 3 percent is not drawn, and the strength rises with the cover to its most at 10 percent. The count no longer sets the strength. The stored nodes are rebuilt once (`TILE_FORMAT` 13).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4200] - 2026-11-15
 
 **Headline:** An air that the solver used to swing round without settling is found by a root find of its temperature, so half of the airs that never settled now settle, and the ones with no steady state are stored by a stated rule and flagged.
