@@ -537,14 +537,14 @@ class StarSystem:
                 planetLife.decide_flavor_text_alone(star, "star")      # GEN.1433: a star and a comet show a line of their own scopes, like a belt
             for comet in (*self.comets, *getattr(self, "secondary_comets", ())):
                 planetLife.decide_flavor_text_alone(comet, "comet")
+            if self._drop_barred_bodies():    # GEN.1275; GEN.1604: before the tides, so no tide or ledger row of a survivor counts a body that is not in the system
+                self._refresh_wobble()
             self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so what the config asked for is judged once, on the finished bodies.
             self.unmet_requirements = self._unmet_requirements()
             if self.unmet_requirements:
                 log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                           f"without {' or '.join(self.unmet_requirements)}")
-        if self._drop_barred_bodies():    # GEN.1275
-            self._refresh_wobble()
         self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
