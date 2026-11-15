@@ -52,7 +52,7 @@ DEFAULT_LIMIT = 7.5
 """float: The limiting magnitude the sky route takes when `?limit=` is left out (`galaxy.sky.DEFAULT_LIMIT`; tests/test_system_sky_route.py holds the two equal)."""
 
 MIN_LIMIT, MAX_LIMIT = 2.0, 9.0
-"""float: The faintest and the brightest limiting magnitude the route takes (stand-in SKV1: the star count grows 2.5 to 3 times a magnitude, and the stored
+"""float: The faintest and the brightest limiting magnitude the route takes (stand-in 6.179 6.179a SKV1: the star count grows 2.5 to 3 times a magnitude, and the stored
 stars and the sky tiers stop at 9; under 2 the sky holds a few dozen stars)."""
 
 

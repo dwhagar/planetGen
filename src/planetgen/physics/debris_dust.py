@@ -25,7 +25,7 @@ The law above is for a ring. A belt that spans the outer disk (11 to 400 AU arou
 minimum-mass nebula does (`planet_mass.solids_surface_density_gcm2`), so the inner rings hold the mass and, with the dust going as the mass over the radius squared (`f ~ M r^-2 L^-1/2 Dc^-1/2` when the ring has
 not ground down), give most of the light. `belt_fractional_luminosity` therefore cuts the belt into `ANNULI` rings of equal width in log radius, shares the belt's present mass among them by the solids they held, and adds their
 dust, each ring keeping the belt's eccentricity (the stirring is the belt's: a thin ring has no eccentricity of its own, and `Xc` would pass 1 and the cascade never start). The old rule put all the mass at the middle radius of the belt
-(200 AU for an A star) and gave far too little dust. [Stand-in DU4, tier Confident educated guess from physics, tweak L1: 32 rings.]
+(200 AU for an A star) and gave far too little dust. [Stand-in 6.53 DU4, tier T6, tweak L1: 32 rings.]
 
 Detection
 ---------
@@ -33,7 +33,7 @@ A survey finds the dust as an excess over the star at a long wavelength, and wha
 `R^2 T`, its luminosity as `R^2 T^4`, so the dust (a share `f` of the luminosity) stands out of the photosphere as `f T^3`: the fractional luminosity a survey can find falls as the cube of the star's temperature
 (`detectable_fractional_luminosity`). A hot A star shows a disk of a fraction the Sun's would hide. `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit at the Sun's temperature, a stand-in: [R4081] find most of their disks
 near a fractional luminosity of 1e-5 but the belts the generator builds are all heavy and old, so the limit is tuned to the surveys' shares by mass, 14 percent of G and 13 percent of K dwarfs, 24 percent of F and A stars
-[R4081] (L3, hand-tuned against a sweep of 100 stars each of A1V, F5V, G2V and K3V: 17, 20, 17 and 18 percent). [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]
+[R4081] (L3, hand-tuned against a sweep of 100 stars each of A1V, F5V, G2V and K3V: 17, 20, 17 and 18 percent). [Stand-in 6.53 DU1, tier T9, tweak L3.]
 """
 
 import math
@@ -48,24 +48,24 @@ DEBRIS_CLASSES = ("V", "IV")
 """tuple: The Yerkes classes whose stars can hold a debris disk (dwarfs and subgiants; a giant has lost its belt to its wind and its heat, and a white dwarf's dust is a different disk)."""
 
 F_MAX_COEFFICIENT = 0.004
-"""float: The coefficient of the largest fractional luminosity of a belt ([R4785: Eq. 18], `r` in AU, `Dc` in km, `t` in Myr). [Stand-in DU2, tier T1, tweak L0.]"""
+"""float: The coefficient of the largest fractional luminosity of a belt ([R4785: Eq. 18], `r` in AU, `Dc` in km, `t` in Myr). [Stand-in 6.53 DU2, tier T1, tweak L0.]"""
 
 CASCADE_MAX_KM = 2000.0
-"""float: The largest body the dust cascade is reckoned for, km: the nominal `Dc` of [R4785] (their Fig. 2 and Eq. 21). [Stand-in DU3, tier T1, tweak L1.]"""
+"""float: The largest body the dust cascade is reckoned for, km: the nominal `Dc` of [R4785] (their Fig. 2 and Eq. 21). [Stand-in 6.53 DU3, tier T1, tweak L1.]"""
 
 DETECTABLE_FRACTIONAL_LUMINOSITY = 5.0e-5
 """float: The fractional luminosity, dust over star, a survey finds around a star of `REFERENCE_TEMPERATURE_K`, at which the generator's disks are as common as the surveys' (the real survey limit is near 1e-5).
-[Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]"""
+[Stand-in 6.53 DU1, tier T9, tweak L3.]"""
 
 REFERENCE_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
-"""float: The Sun's effective temperature, K: the star `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit for. [Stand-in DU5, tier T1, tweak L0.]"""
+"""float: The Sun's effective temperature, K: the star `DETECTABLE_FRACTIONAL_LUMINOSITY` is the limit for. [Stand-in 6.53 DU5, tier T1, tweak L1.]"""
 
 DETECTION_TEMPERATURE_EXPONENT = 3.0
 """float: How the detectable fractional luminosity falls with the star's temperature: the dust against the photosphere at a long wavelength goes as `f T^3` (Rayleigh-Jeans flux `R^2 T`, luminosity `R^2 T^4`).
-[Stand-in DU5, tier Confident educated guess from physics, tweak L1.]"""
+[Stand-in 6.53 DU5, tier T1, tweak L1.]"""
 
 ANNULI = 32
-"""int: The rings of equal log width a belt is cut into for its dust (`belt_fractional_luminosity`). [Stand-in DU4, tier Confident educated guess from physics, tweak L1.]"""
+"""int: The rings of equal log width a belt is cut into for its dust (`belt_fractional_luminosity`). [Stand-in 6.53 DU4, tier T6, tweak L1.]"""
 
 
 @finite_domain()

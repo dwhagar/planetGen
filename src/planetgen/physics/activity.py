@@ -106,7 +106,7 @@ slowly [R4781]. From 0.45 up the exponent is the one that holds each
 mass's `L_X/L_bol` at `REFERENCE_AGE_GY` where the earlier table put it, now
 that `t_sat` is the median of [R2183] and not the table's own:
 1.45 at 1 solar mass is the Skumanich band (1.35 to 1.5) and gives the Sun
-1.3e27 erg/s today. [Stand-in AB1, tier T9, tweak L3.]"""
+1.3e27 erg/s today. [Stand-in 6.130 AB1, tier T9, tweak L3.]"""
 
 PERCENTILE_RANGE = (2.0, 98.0)
 """tuple: The initial-rotation percentiles a star draws uniformly between: the range

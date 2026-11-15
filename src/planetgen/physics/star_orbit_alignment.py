@@ -15,13 +15,13 @@ The module holds the law and the geometry (`compose_plane`), and `generation/mul
 import math
 
 ALIGNED_FULL_AU = 30.0
-"""float: Separation (AU) at and inside which every companion orbit is drawn aligned (stand-in AL1)."""
+"""float: Separation (AU) at and inside which every companion orbit is drawn aligned (stand-in 6.258 AL1)."""
 
 ALIGNED_NONE_AU = 1000.0
-"""float: Separation (AU) at and beyond which no companion orbit is drawn aligned (stand-in AL1)."""
+"""float: Separation (AU) at and beyond which no companion orbit is drawn aligned (stand-in 6.258 AL1)."""
 
 ALIGNED_SCALE_DEG = 5.0
-"""float: The scale (degrees) of the Rayleigh law of the tilt of an aligned orbit (stand-in AL2)."""
+"""float: The scale (degrees) of the Rayleigh law of the tilt of an aligned orbit (stand-in 6.258 AL2)."""
 
 
 def aligned_share(separation_au):

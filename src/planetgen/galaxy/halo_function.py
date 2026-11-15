@@ -38,11 +38,11 @@ HUBBLE_H = 0.671
 OMEGA_MATTER = 0.3175
 """float: The matter density parameter."""
 OMEGA_BARYON_H2 = 0.022068
-"""float: The baryon density parameter times h squared ([R3542] XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
+"""float: The baryon density parameter times h squared ([R3542] XVI Table 2). [Stand-in 6.131 HF1, tier T1, tweak L0.]"""
 SPECTRAL_INDEX = 0.9624
-"""float: The primordial spectral index n_s ([R3542] XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
+"""float: The primordial spectral index n_s ([R3542] XVI Table 2). [Stand-in 6.131 HF1, tier T1, tweak L0.]"""
 SIGMA_8 = 0.8344
-"""float: The rms linear fluctuation in 8 Mpc/h spheres ([R3542] XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
+"""float: The rms linear fluctuation in 8 Mpc/h spheres ([R3542] XVI Table 2). [Stand-in 6.131 HF1, tier T1, tweak L0.]"""
 CMB_TEMPERATURE_K = 2.728
 """float: The CMB temperature the transfer function's Theta is built on (Eisenstein and Hu 1998 use 2.728 K)."""
 
@@ -60,8 +60,7 @@ LOG_MASS_HIGH = 17.0
 GRID_STEP = 0.01
 """float: The step of the halo mass grid the conditional is summed on, dex."""
 _COARSE_STEP = 0.05
-"""float: The step the function itself is computed on; between its points `ln n` is interpolated linearly. [Stand-in
-HF4, tier T9, tweak L0, with `GRID_STEP` and the wave number grid.]"""
+"""float: The step the function itself is computed on; between its points `ln n` is interpolated linearly. [Stand-in 6.131 HF4, tier T9, tweak L0, with `GRID_STEP` and the wave number grid.]"""
 _LN_K_LOW = math.log(1.0e-4)
 _LN_K_HIGH = math.log(2.0e3)
 _LN_K_STEP = 0.02
@@ -95,8 +94,7 @@ def tinker_parameters(delta):
 
 
 def _transfer_function(k_per_mpc):
-    """Eisenstein and Hu 1998's no-wiggle fit to the CDM plus baryon transfer function (Eqs. 26, 28 to 31). [Stand-in
-    HF2, tier T1, tweak L1.]"""
+    """Eisenstein and Hu 1998's no-wiggle fit to the CDM plus baryon transfer function (Eqs. 26, 28 to 31). [Stand-in 6.131 HF2, tier T1, tweak L1.]"""
     om_h2 = OMEGA_MATTER * HUBBLE_H ** 2
     baryon_share = OMEGA_BARYON_H2 / om_h2
     sound_horizon = 44.5 * math.log(9.83 / om_h2) / math.sqrt(1.0 + 10.0 * OMEGA_BARYON_H2 ** 0.75)

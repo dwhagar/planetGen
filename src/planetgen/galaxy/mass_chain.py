@@ -24,7 +24,7 @@ to 0.34 dex too heavy at 2e11 (GEN.399).
 **One cosmology.** [R3542] = 0.671 and Omega_m = 0.3175 (`halo_function` holds them with sigma_8, n_s and
 Omega_b h^2) for the critical density, the concentration's `h` and the halo mass function. Moster's relation is quoted
 for WMAP7 (h = 0.704) in solar masses; its halo masses are used as printed against the Planck halo function, a small
-offset (stand-in HF3).
+offset (stand-in 6.131 HF3).
 
 Every scatter is a log-normal about the median law, drawn through the one random wrapper
 (`planetgen.util.draw.Stream`) from `unit_seed(galaxy_seed, "mass-chain", <link>)`, so one seed gives one galaxy and
@@ -153,7 +153,7 @@ def stellar_to_halo_ratio(halo_mass_solar):
 
 
 def median_stellar_mass(halo_mass_solar):
-    """The median stellar mass, solar masses, of a halo of `halo_mass_solar`. [Stand-in HF3, tier T1, tweak L1: the
+    """The median stellar mass, solar masses, of a halo of `halo_mass_solar`. [Stand-in 6.131 HF3, tier T1, tweak L1: the
     relation is [R3181]'s, fitted in a WMAP7 cosmology and read against the Planck halo mass function.]"""
     return halo_mass_solar * stellar_to_halo_ratio(halo_mass_solar)
 

@@ -7,7 +7,7 @@ The thick disk's ages in the old population (GEN.1025, after GEN.944 part 1)
 The old population's window ended at 10 Gy, the thin disk's age, but the thick disk (which `galaxy.density.population_units` holds in `old`) formed
 its stars from 13 to 8 Gy ago ([R1863], `tuning.THICK_DISK_AGE_RANGE_GY`), so no star of 10 to 13 Gy existed. This module builds the
 `AgeLaw` of the old population as a mixture: the thin disk's own law (`disk_history`, 3 to 10 Gy) with the weight the thin disk has among the
-old systems, and the thick disk's, flat over its window (stand-in TD2), with the thick disk's share of them (`thick_disk_units` over the old
+old systems, and the thick disk's, flat over its window (stand-in 6.146 TD2), with the thick disk's share of them (`thick_disk_units` over the old
 population's units).
 
 `mixed_old_law` is the pure mixture and `old_age_law(shape, thin)` the galaxy's (`disk_history.population_age_laws` calls it). Only the shape of the law matters (`AgeLaw`), so the counts of the

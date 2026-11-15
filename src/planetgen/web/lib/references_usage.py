@@ -162,7 +162,7 @@ def scan(root=None):
     if os.path.isfile(registry):
         with open(registry, encoding="utf-8") as handle:
             for row, section, cited in registry_rows(handle.read()):
-                number = re.match(r"\d+\.\d+a?\b", section)
+                number = re.match(r"\d+\.\d+[a-z]?\b", section)
                 key = f"{number.group(0)}:{row}" if number else row
                 for sid in cited:
                     place(sid, "stand_ins", key, area_of(section))

@@ -34,19 +34,19 @@ from planetgen.physics.belt_page import Placement
 from planetgen.util.checks import finite_domain
 
 CDF_POINTS = 48
-"""int: The log-spaced points across a belt at which the cumulative mass of the disk's solids is tabulated (numerical). [Stand-in MR1, tier T9, tweak L0.]"""
+"""int: The log-spaced points across a belt at which the cumulative mass of the disk's solids is tabulated (numerical). [Stand-in 6.182 MR1, tier T9, tweak L0.]"""
 
 CDF_STEPS = 8
-"""int: The log-spaced steps `belt_mass.primordial_mass_earth` takes between the belt's inner edge and each tabulated point (numerical). [Stand-in MR1, tier T9, tweak L0.]"""
+"""int: The log-spaced steps `belt_mass.primordial_mass_earth` takes between the belt's inner edge and each tabulated point (numerical). [Stand-in 6.182 MR1, tier T9, tweak L0.]"""
 
 E_MAX = 0.5
-"""float: The largest eccentricity a stored member is given (a body above it would cross the belt's whole width and the next body's orbit). [Stand-in MR3, tier T9, tweak L0.]"""
+"""float: The largest eccentricity a stored member is given (a body above it would cross the belt's whole width and the next body's orbit). [Stand-in 6.182 MR3, tier T9, tweak L0.]"""
 
 I_MAX_DEG = 60.0
-"""float: The largest inclination a stored member is given, degrees (the Rayleigh tail above it is cut). [Stand-in MR3, tier T9, tweak L0.]"""
+"""float: The largest inclination a stored member is given, degrees (the Rayleigh tail above it is cut). [Stand-in 6.182 MR3, tier T9, tweak L0.]"""
 
 E_OVER_I = 1.0
-"""float: The ratio of the particles' rms eccentricity to their rms inclination in radians, 1 as `belt_mass` takes it (Wyatt et al.'s `e/I = 1`). [Stand-in MR2, tier T1, tweak L0.]"""
+"""float: The ratio of the particles' rms eccentricity to their rms inclination in radians, 1 as `belt_mass` takes it (Wyatt et al.'s `e/I = 1`). [Stand-in 6.182 MR2, tier T1, tweak L0.]"""
 
 DRAWS_PER_BODY = 11
 """int: The uniform numbers the stream gives each body: taxon, porosity, semi-major axis, eccentricity, inclination, node, periapsis, anomaly, then the population and its two choices."""

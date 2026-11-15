@@ -46,13 +46,13 @@ CHONDRITE_GROUPS = {
     "K": (2.2, 7.0, 0.0, 73.0),
 }
 """dict: Group -> (fayalite mol percent, metal, refractory, matrix volume percent), the averages of the table (ranges given in it are taken at their midpoint; the carbonaceous
-groups' matrix and CAI rows as printed, `<<1` as 0; CO and CV have no olivine average). [Stand-in MG1, tier T1, tweak L0.]"""
+groups' matrix and CAI rows as printed, `<<1` as 0; CO and CV have no olivine average). [Stand-in 6.44 MG1, tier T1, tweak L0.]"""
 
 AXIS_SCALES = (10.0, 15.0, 5.0, 30.0)
-"""tuple: The width of each axis (Fa, metal, refractory, matrix) that distances are scaled by: about a quarter of the span the groups cover on it. [Stand-in MG2, tier T9, tweak L4.]"""
+"""tuple: The width of each axis (Fa, metal, refractory, matrix) that distances are scaled by: about a quarter of the span the groups cover on it. [Stand-in 6.44 MG2, tier T9, tweak L4.]"""
 
 NEAREST_LIMIT = 1.5
-"""float: A body whose scaled distance from the nearest group is over this is labelled `none`. [Stand-in MG2, tier T9, tweak L4.]"""
+"""float: A body whose scaled distance from the nearest group is over this is labelled `none`. [Stand-in 6.44 MG2, tier T9, tweak L4.]"""
 
 NONE = "none"
 

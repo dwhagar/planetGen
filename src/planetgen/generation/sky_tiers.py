@@ -43,17 +43,17 @@ from planetgen.physics import sky_photometry as photo
 from planetgen.util import draw
 
 BLOCK_VISIT_BUDGET = 1.5e8
-"""float: The visits the luminosity bands may take for one sky (stand-in SKT1): a visit is a block or a row of the sphere draw (`block_visits`), about
+"""float: The visits the luminosity bands may take for one sky (stand-in 6.176 SKT1): a visit is a block or a row of the sphere draw (`block_visits`), about
 `BLOCK_VISIT_SECONDS` of one worker, so this is under two hours of one worker for the bands, more than a dust-free 7.5 sky takes (1.35e8 with the scatter's floor
 at 18,000 Lsun, `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`, GEN.1680; 4.5e7 when the floor was 7,500, so the budget moves with the floor and stays above the dust-free 7.5 sky)."""
 
 BLOCK_VISIT_SECONDS = 4.0e-5
-"""float: What the sphere draw spends on a block or a row, one worker, warm, in the far bands that hold most of the visits (stand-in SKT3;
+"""float: What the sphere draw spends on a block or a row, one worker, warm, in the far bands that hold most of the visits (stand-in 6.176 SKT3;
 reports/system-sky-sphere-draw-2026-11-05.md): the near bands, whose cells hold more candidates, spend two to six times as much a visit (21 microseconds a visit at 3,500 pc, 246 at 250 pc)."""
 
 RING_TOP_SOL = float(tuning.WD_LUMINOSITY_RANGE_SOL[1])
 """float: The luminosity the rings stop at and the luminosity bands start at (the brightest white dwarf, the lowest floor the luminosity backfill takes;
-stand-in SKT2). A ring reaches as far as a star of this luminosity does."""
+stand-in 6.176 SKT2). A ring reaches as far as a star of this luminosity does."""
 
 DISTANCE_GRID_PC = np.geomspace(0.5, 60000.0, 360)
 """numpy.ndarray: The distances the dust is worked out at; a reach between them is interpolated."""
@@ -167,11 +167,11 @@ def luminosity_bands(floor_sol=RING_TOP_SOL, ceiling_sol=None):
 
 
 NEAR_RING_MASSES_SOL = (0.1, 0.3, 0.5, 0.7, 0.85)
-"""tuple: The mass edges under 1 solar mass the sky's rings add (stand-in SKT4), so the stars born lighter than the Sun that show near the observer are
+"""tuple: The mass edges under 1 solar mass the sky's rings add (stand-in 6.176 SKT4), so the stars born lighter than the Sun that show near the observer are
 drawn. The sampler takes 0.1 as the lightest mass (VIEW.19 section 5)."""
 
 RING_MIN_YIELD = 0.005
-"""float: A ring reaches as far as this share of its stars (the largest of any population) is still bright enough to show (stand-in SKT5; Boss chose 0.005 of the
+"""float: A ring reaches as far as this share of its stars (the largest of any population) is still bright enough to show (stand-in 6.176 SKT5; Boss chose 0.005 of the
 measured 0.001 to 0.01, GEN.1486): beyond, the ring draws 200 stars or more for every one that shows. It was 0.01 for the rings under 1 solar mass, and the rings of 1 solar mass and
 up had no yield rule at all (VIEW.19: 140 drawn for each shown), so they all reached the sphere of a 50 Lsun star; 0.005 for every ring draws about 1.4 times fewer stars and leaves
 about 1 percent of the stars that would show undrawn (reports/gen1486-ring-drawn-vs-shown-2026-11-12.md)."""
@@ -180,7 +180,7 @@ RING_SAMPLES = 400
 """int: The stars sampled per population to find a ring's share of visible stars."""
 
 LOCAL_MIX = {"young": 1.0, "intermediate": 1.0, "old": 1.0}
-"""dict: The weight each population has in a ring's share of visible stars when the caller gives none (stand-in SKT6): the three disk populations alike,
+"""dict: The weight each population has in a ring's share of visible stars when the caller gives none (stand-in 6.176 SKT6): the three disk populations alike,
 the mix near the Sun, where the halo and the bulge hold a thousandth of the stars. A caller that knows the observer's place passes the densities there."""
 
 

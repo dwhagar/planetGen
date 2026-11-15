@@ -33,11 +33,11 @@ from planetgen.physics import constants, scatter
 
 BELT_DUST_SHARE = 0.1
 """float: The share of a belt's collisional mass loss that reaches the inner system as dust and small bodies. A stand-in, in the range of the share of a cascade's mass that is in grains small enough for
-radiation forces (the rest is ground to dust that leaves or stays). [Stand-in IF1, tier Marginal educated guess from physics, tweak L4.]"""
+radiation forces (the rest is ground to dust that leaves or stays). [Stand-in 6.247 IF1, tier T6, tweak L4.]"""
 
 COMET_LIFETIME_YR = 1.0e7
 """float: The time over which a comet nucleus of a reservoir delivers its mass to the planets (its dynamical lifetime before ejection or sublimation, in the tens of millions of years for the
-short-period and Halley kinds). [Stand-in IF2, tier Marginal educated guess from physics, tweak L4.]"""
+short-period and Halley kinds). [Stand-in 6.247 IF2, tier T6, tweak L4.]"""
 
 
 @dataclass(frozen=True)

@@ -50,7 +50,7 @@ CHUNK = 500
 """int: How many system IDs one statement reads the stars of."""
 
 MAX_LEVEL_CELLS = 200000
-"""int: The most sectors `cell_levels` lists for a sphere (stand-in SKV3): a sphere that touches more is `truncated`, because a sky out to 40 kpc touches
+"""int: The most sectors `cell_levels` lists for a sphere (stand-in 6.179 6.179a SKV3): a sphere that touches more is `truncated`, because a sky out to 40 kpc touches
 10^13 sectors of a 3 parsec edge and listing them is neither possible nor of use (almost all are untouched)."""
 
 _to_watts = units.converter("Lsun", "W")

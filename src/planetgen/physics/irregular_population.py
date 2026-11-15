@@ -52,52 +52,52 @@ from planetgen.physics import belt_ledger, constants, irregular_orbits, irregula
 from planetgen.util.checks import finite_domain
 
 REFERENCE_DISK_MASS_EARTH = 30.0
-"""float: The mass of the disk whose size law the counts are, Earth masses (NDD14 and NVM07 use 20 to 35; [R0483] 20.4 and 40.8). [Stand-in IP1, tier T1, tweak L0; row CM3.]"""
+"""float: The mass of the disk whose size law the counts are, Earth masses (NDD14 and NVM07 use 20 to 35; [R0483] 20.4 and 40.8). [Stand-in 6.118 IP1, tier T1, tweak L0; row CM3.]"""
 DISK_REFERENCE_RADIUS_KM = 40.0
-"""float: The radius at which the disk's count is given. [Stand-in IP1, tier T1, tweak L0.]"""
+"""float: The radius at which the disk's count is given. [Stand-in 6.118 IP1, tier T1, tweak L0.]"""
 DISK_COUNT_AT_REFERENCE = 3.5e7
-"""float: The bodies above `DISK_REFERENCE_RADIUS_KM` in the reference disk ((3 to 4)e7, calibrated to the Jupiter Trojans by NDD14). [Stand-in IP1, tier T1, tweak L0.]"""
+"""float: The bodies above `DISK_REFERENCE_RADIUS_KM` in the reference disk ((3 to 4)e7, calibrated to the Jupiter Trojans by NDD14). [Stand-in 6.118 IP1, tier T1, tweak L0.]"""
 DISK_BREAK_RADIUS_KM = 70.0
-"""float: The radius where the disk's size law steepens (NDD14; NVM07 and [R0483] break at 100 km across). [Stand-in IP1, tier T1, tweak L0.]"""
+"""float: The radius where the disk's size law steepens (NDD14; NVM07 and [R0483] break at 100 km across). [Stand-in 6.118 IP1, tier T1, tweak L0.]"""
 DISK_INDEX_BELOW = 1.8
-"""float: The cumulative index below the break (1.75 to 2.75 over the three papers). [Stand-in IP1, tier T1, tweak L0.]"""
+"""float: The cumulative index below the break (1.75 to 2.75 over the three papers). [Stand-in 6.118 IP1, tier T1, tweak L0.]"""
 DISK_INDEX_ABOVE = 5.0
-"""float: The cumulative index above the break (4.25 to 5.5 over the three papers). [Stand-in IP1, tier T1, tweak L0.]"""
+"""float: The cumulative index above the break (4.25 to 5.5 over the three papers). [Stand-in 6.118 IP1, tier T1, tweak L0.]"""
 CAPTURED_DENSITY_KG_M3 = 2000.0
-"""float: The bulk density that turns a captured body's radius into a mass (the density of row CM15's 10.6 km at 1e16 kg; the composition of GEN.1080 replaces it body by body). [Stand-in IP2, tier T9, tweak L0.]"""
+"""float: The bulk density that turns a captured body's radius into a mass (the density of row CM15's 10.6 km at 1e16 kg; the composition of GEN.1080 replaces it body by body). [Stand-in 6.118 IP2, tier T9, tweak L0.]"""
 
 ENCOUNTER_YIELD = 2.0e-10
-"""float: Captures per disk particle per planetary encounter at a planet with Jupiter's Hill sphere or more (1.3e-10 to 2.6e-10 in NDD14's three histories). [Stand-in IP3, tier T2, tweak L1; row CM1.]"""
+"""float: Captures per disk particle per planetary encounter at a planet with Jupiter's Hill sphere or more (1.3e-10 to 2.6e-10 in NDD14's three histories). [Stand-in 6.118 IP3, tier T2, tweak L1; row CM1.]"""
 REFERENCE_HILL_AU = 0.35
-"""float: The Hill radius at which the encounter yield applies in full, AU (Jupiter's, [R2158: Table 1]); a smaller one scales as its cube, a larger one gets the same. [Stand-in IP4, tier T9, tweak L1.]"""
+"""float: The Hill radius at which the encounter yield applies in full, AU (Jupiter's, [R2158: Table 1]); a smaller one scales as its cube, a larger one gets the same. [Stand-in 6.118 IP4, tier T9, tweak L1.]"""
 REFERENCE_ENCOUNTERS = 130.0
-"""float: The encounters of the reference instability the gas channel is scaled by, the mean of NDD14's 59, 280 and 49. [Stand-in IP5, tier T2, tweak L0.]"""
+"""float: The encounters of the reference instability the gas channel is scaled by, the mean of NDD14's 59, 280 and 49. [Stand-in 6.118 IP5, tier T6, tweak L3.]"""
 GAS_WINDOW_STRENGTH = 0.2
-"""float: The gas window's captures as a share of the reference instability's (0.1 to 0.3); zero for a planet with no gas envelope. [Stand-in IP5, tier T6, tweak L3; row CM14.]"""
+"""float: The gas window's captures as a share of the reference instability's (0.1 to 0.3); zero for a planet with no gas envelope. [Stand-in 6.118 IP5, tier T6, tweak L3; row CM14.]"""
 GAS_SIZE_WINDOW_KM = (1.0, 500.0)
-"""tuple: The radii, km, that gas drag can capture. [Stand-in IP6, tier T1, tweak L0; row CM18.]"""
+"""tuple: The radii, km, that gas drag can capture. [Stand-in 6.118 IP6, tier T1, tweak L0; row CM18.]"""
 GAS_MIN_DISK_LIFETIME_MYR = 1.0
-"""float: The shortest gas disk that gives a gas window. [Stand-in IP6, tier T6, tweak L0; row CM14.]"""
+"""float: The shortest gas disk that gives a gas window. [Stand-in 6.118 IP6, tier T1, tweak L0; row CM14.]"""
 EXCHANGE_CHANCE = 0.008
-"""float: The chance of a massive capture by binary exchange at an ice giant when every planetesimal is a binary (0.002 to 0.035, geometric mean 0.008). [Stand-in IP7, tier T1, tweak L1; row CM11.]"""
+"""float: The chance of a massive capture by binary exchange at an ice giant when every planetesimal is a binary (0.002 to 0.035, geometric mean 0.008). [Stand-in 6.118 IP7, tier T1, tweak L1; row CM11.]"""
 EXCHANGE_MIN_RADIUS_KM = 300.0
-"""float: The smallest body the exchange route captures (a few hundred km; the design's reading of the binaries that give Triton). [Stand-in IP8, tier T6, tweak L3.]"""
+"""float: The smallest body the exchange route captures (a few hundred km; the design's reading of the binaries that give Triton). [Stand-in 6.118 IP8, tier T6, tweak L3.]"""
 TEMPORARY_MIN_PLANET_RADII = 3.0
-"""float: A planet whose prograde stable limit is under this many of its own radii holds no temporary captures. [Stand-in IP9, tier T9, tweak L0.]"""
+"""float: A planet whose prograde stable limit is under this many of its own radii holds no temporary captures. [Stand-in 6.118 IP9, tier T9, tweak L0.]"""
 
 DISRUPTION_SIZE_RATIO = 0.1
-"""float: A projectile of this fraction of a target's radius (a thousandth of its mass) destroys it at the 1 to 7 km/s of irregulars colliding (specific energy of a few 1e3 J/kg, of the order of a weak body's strength; recalled, not read). [Stand-in IP10, tier T6, tweak L3.]"""
+"""float: A projectile of this fraction of a target's radius (a thousandth of its mass) destroys it at the 1 to 7 km/s of irregulars colliding (specific energy of a few 1e3 J/kg, of the order of a weak body's strength; recalled, not read). [Stand-in 6.118 IP10, tier T6, tweak L3.]"""
 MODEL_MIN_RADIUS_KM = 0.4
-"""float: The smallest body counted when a population's mass is added up ([R4053]'s survey goes to 0.4 km; the mass below is about a hundredth of the total for a cumulative index under 2). [Stand-in IP11, tier T1, tweak L0.]"""
+"""float: The smallest body counted when a population's mass is added up ([R4053]'s survey goes to 0.4 km; the mass below is about a hundredth of the total for a cumulative index under 2). [Stand-in 6.118 IP11, tier T1, tweak L0.]"""
 MODEL_MAX_RADIUS_KM = 3000.0
-"""float: The upper end of the search for a body's radius. [Stand-in IP11, tier T9, tweak L0.]"""
+"""float: The upper end of the search for a body's radius. [Stand-in 6.118 IP11, tier T1, tweak L0.]"""
 INTEGRAL_STEPS = 120
 """int: The steps of the log-spaced sum that gives a population's mass (numerical)."""
 
 STORE_FLOOR_KG = 1.0e16
-"""float: Every irregular above this mass is an object (Boss 4:34 PM EDT 2026-10-30; R = 10.6 km at 2000 kg/m^3). [Stand-in IP12, tier T9, tweak L1; row CM15.]"""
+"""float: Every irregular above this mass is an object (Boss 4:34 PM EDT 2026-10-30; R = 10.6 km at 2000 kg/m^3). [Stand-in 6.118 IP12, tier T9, tweak L1; row CM15.]"""
 STORE_MAX_BODIES = 100
-"""int: The most irregulars stored for one planet. [Stand-in IP12, tier T9, tweak L1; row CM15.]"""
+"""int: The most irregulars stored for one planet. [Stand-in 6.118 IP12, tier T9, tweak L1; row CM15.]"""
 
 _KM = 1.0e3
 

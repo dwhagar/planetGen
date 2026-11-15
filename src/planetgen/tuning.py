@@ -67,7 +67,7 @@ GIANT_MAX_STAR_MASS_RATIO = 0.01
 # tuned against the observed occurrence (`physics/data/planet_occurrence.json`).
 # A core that reaches this many Earth masses before the gas disk is gone can run away into a gas giant (core accretion:
 # [R3565, R3645] give 5 to 20 Earth masses, recalled). Nudged from 10 to 9 inside that range with the lower jump of the solids at the
-# snow line (GEN.1396, 1.967 for 2.17), which a higher `GIANT_GAS_SURVIVAL_SHARE` alone could not make up (stand-in PM5).
+# snow line (GEN.1396, 1.967 for 2.17), which a higher `GIANT_GAS_SURVIVAL_SHARE` alone could not make up (stand-in 6.20 PM5).
 GIANT_CORE_CRITICAL_MASS_EARTH = 9.0
 # The share of runaway-capable cores that still find gas left in the disk around a star of the disk's metallicity (scaled for [Fe/H] by
 # `metallicity.giant_occurrence_factor` and `GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT`); the rest stay ice giants. Tuned (tier T6, tweak L3)
@@ -619,7 +619,7 @@ DEFAULT_HOME_JITTER_LY = 1.0
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
 SECTOR_HILL_SEPARATION_SHARE = 0.05
-"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192, fitted to Gaia in GEN.1534). A galactic Hill
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in 6.192 SEP1 in 6.192, fitted to Gaia in GEN.1534). A galactic Hill
 sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood overlaps them freely:
 in the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, 958 systems within 15 pc, 0.074 systems per cubic parsec) 30 percent of the systems have a neighbour nearer than 1 pc and the
 median nearest neighbour is 1.33 pc, which is what no exclusion at all gives (1.31 pc, 27 percent), while the old half of the sum (1.3 pc between two median systems) forbade every
@@ -949,10 +949,10 @@ the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
 WR_BINARY_MIN_RATIO = 0.72
 """float: The least initial mass at which a close companion can strip a star into a Wolf-Rayet star, as a share of `WR_MIN_INITIAL_MASS_SOL` (the single-star threshold): 18 against 25 solar masses
 at the Sun's metallicity, the least initial mass whose stripped helium star is as massive as a Wolf-Rayet spectrum needs (7.5 solar masses; [R4051: Table 1], section 3.2). The same metallicity law as
-the single-star threshold carries it up (18, 24 and 37 solar masses at the Galaxy, the LMC and the SMC are close to it). Stand-in WB1, tier T1, tweak level L0."""
+the single-star threshold carries it up (18, 24 and 37 solar masses at the Galaxy, the LMC and the SMC are close to it). Stand-in 6.184 WB1, tier T1, tweak level L0."""
 WR_STRIPPING_FRACTION = 0.33
 """float: The share of stars in the band between the binary and single-star thresholds that a companion strips into a Wolf-Rayet star: the share of massive stars that exchange mass in a way that
-removes the envelope, 0.33 ([R4051] section 5, below its Eq. 4, quoting the observed interacting fraction). Stand-in WB2, tier T2, tweak level L0."""
+removes the envelope, 0.33 ([R4051] section 5, below its Eq. 4, quoting the observed interacting fraction). Stand-in 6.184 WB2, tier T2, tweak level L0."""
 WR_PHASE_MYR = 0.3
 """float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
 WR_MAX_SUPERGIANT_SHARE = 0.5
@@ -1371,7 +1371,7 @@ METALLICITY_BY_POPULATION = {
     "intermediate": {"offset": 0.0, "sigma": 0.15, "gradient": True},
     # GEN.1025: the old population's ages run 3 to 13 Gyr now (the thick disk's 8 to 13 Gy added), and the relation's mix over that window averages 0.125 dex
     # lower than over 3 to 10 Gy (-0.255 against -0.130, `age_metallicity`); the offset was -0.2 and is -0.325 so the population's [Fe/H] is still the
-    # relation's mix over its window and the age tilt does not crowd it toward the young. [Stand-in, tier T6, tweak L2: tuned to the relation.]
+    # relation's mix over its window and the age tilt does not crowd it toward the young. (tier T6, tweak L2: tuned to the relation.)
     "old": {"offset": -0.325, "sigma": 0.25, "gradient": True},
     "bulge": {"offset": -0.05, "sigma": 0.40, "gradient": False},
     # The nuclear cluster and disk are metal rich, +0.1 to +0.3 [recalled, GEN.280], and the cluster's spread is broad.
@@ -1437,7 +1437,7 @@ thick disk formed from about 13 to about 8 Gy ago, the age scale uncertain by 1 
 
 THICK_DISK_AGE_RANGE_GY = (STELLAR_THICK_START_GY, 13.0)
 """tuple: The ages, Gy, over which the thick disk formed its stars: from where its branch starts (`STELLAR_THICK_START_GY`) to the oldest the old
-population holds (GEN.1025, `galaxy.thick_ages`). [Stand-in TD1, tier T3, tweak L0: [R1863] (the thick disk formed from about 13 to
+population holds (GEN.1025, `galaxy.thick_ages`). [Stand-in 6.146 TD1, tier T3, tweak L0: [R1863] (the thick disk formed from about 13 to
 about 8 Gy ago).]"""
 
 STELLAR_HIGH_ALPHA_LOGISTIC = (-0.350, 0.132)
@@ -1551,21 +1551,21 @@ WD_CENTRAL_OXYGEN_BY_MASS_SOL = ((0.5249, 0.788), (0.5701, 0.686), (0.5932, 0.70
                                  (0.7051, 0.661), (0.7670, 0.655), (0.8373, 0.641), (0.8779, 0.620))
 """tuple: `(white dwarf mass in solar masses, central oxygen mass fraction)` of the ten carbon-oxygen models of [R5238: Table 1], after the
 Rayleigh-Taylor mixing (the column `X_O(RT)`), progenitors of 1 to 5 solar masses at Z = 0.01. Linear in the mass between the points and
-held outside them. The values rise to a peak near 0.63 solar masses (a 2.25 solar mass progenitor) and fall to 0.62 at 0.88. [Stand-in WDC1.]"""
+held outside them. The values rise to a peak near 0.63 solar masses (a 2.25 solar mass progenitor) and fall to 0.62 at 0.88. [Stand-in 6.286 WDC1, tier T2, tweak L1.]"""
 WD_CENTRAL_OXYGEN_RANGE = (0.61, 0.84)
 """tuple: The lowest and highest central oxygen mass fraction of the two helium-atmosphere white dwarf pulsators fitted by asteroseismology,
-CBS 114 and GD 358 [R5239]; the central fraction is held to it. [Stand-in WDC2.]"""
+CBS 114 and GD 358 [R5239]; the central fraction is held to it. [Stand-in 6.286 WDC2, tier T3, tweak L0.]"""
 WD_NEON22_PER_CNO = 1.0
 """float: The 22Ne atoms made per carbon, nitrogen and oxygen atom of the progenitor: every one of the three ends as 22Ne (14N, then 18O, then 22Ne in
-the helium burning that follows the CNO cycle). The progenitor's CNO is its birth composition's. [Stand-in WDC3.]"""
+the helium burning that follows the CNO cycle). The progenitor's CNO is its birth composition's. [Stand-in 6.286 WDC3, tier T6, tweak L0.]"""
 POLLUTANT_CORE_RICH_METAL_FRACTION = 0.5
 """float: A body accreted by a white dwarf is a fragment of a core when at least this share of its grains is metal: the 8 of 202 polluted systems of
-[R1832] that need an iron, nickel and chromium rich fragment are the extreme end of a distribution of mostly chondritic bodies. [Stand-in WDC4.]"""
+[R1832] that need an iron, nickel and chromium rich fragment are the extreme end of a distribution of mostly chondritic bodies. [Stand-in 6.286 WDC4, tier T6, tweak L1.]"""
 POLLUTANT_CRUST_RICH_FACTOR = 2.0
 """float: A rock with no such metal is a fragment of a crust when its (Ca + Al) over Mg is at least this many times the proto-solar one: the single
-crust-rich system of [R1832] has calcium and aluminium well above chondritic. [Stand-in WDC5.]"""
+crust-rich system of [R1832] has calcium and aluminium well above chondritic. [Stand-in 6.286 WDC5, tier T6, tweak L1.]"""
 POLLUTANT_VOLATILE_RICH_FRACTION = 0.2
-"""float: A body is volatile-rich (a comet-like or water-rich fragment) when its water and ice make at least this share of its grains. [Stand-in WDC6.]"""
+"""float: A body is volatile-rich (a comet-like or water-rich fragment) when its water and ice make at least this share of its grains. [Stand-in 6.286 WDC6, tier T6, tweak L1.]"""
 POLLUTANT_ELEMENT_SHARES = {
     "kamacite": {"Fe": 0.94, "Ni": 0.06}, "taenite": {"Fe": 0.72, "Ni": 0.28},
     "complex_organics": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "insoluble_organic_matter": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03},
@@ -1573,31 +1573,31 @@ POLLUTANT_ELEMENT_SHARES = {
 }
 """dict: The element mass fractions of the materials-table rows that have no formula and are not minerals. The alloys take the middle of the
 nickel ranges the table states (kamacite 5 to 7 percent, taenite 25 to 31 percent by mass); the organic solids are mostly carbon with the
-oxygen, hydrogen and nitrogen of a kerogen-like solid, and tholin is nitrogen-rich. [Stand-in WDC7.]"""
+oxygen, hydrogen and nitrogen of a kerogen-like solid, and tholin is nitrogen-rich. [Stand-in 6.286 WDC7, tier T6, tweak L1.]"""
 POLLUTANT_FORMULAS = {
     "cronstedtite": "Fe4SiO9H4", "saponite": "CaMg24Si28Al4O80(OH)16", "tochilinite": "Fe27S30Mg25O50H50", "hibonite": "CaAl12O19",
     "melilite": "Ca2Al2SiO7", "schreibersite": "Fe2NiP",
 }
 """dict: An end-member formula for the belt materials whose table row names a solid solution (the table keeps the member lists, not one formula):
 cronstedtite with its iron(III), saponite without its hydration water (eight formula units, to whole subscripts), tochilinite from its 6 Fe0.9 S and 5 Mg(OH)2 (five units), hibonite as the calcium end
-member, melilite as gehlenite and schreibersite as two iron to one nickel (the table states (Fe,Ni)3P). [Stand-in WDC8.]"""
+member, melilite as gehlenite and schreibersite as two iron to one nickel (the table states (Fe,Ni)3P). [Stand-in 6.286 WDC8, tier T3, tweak L1.]"""
 # The layers of a white dwarf whose core the downloaded sequences do not hold (GEN.743, `physics.white_dwarf_layers`).
 WD_ONE_CORE_MASS_FRACTIONS = {"oxygen": 0.55, "neon": 0.30, "trace": 0.15}
 """dict: The mass fractions of an oxygen-neon core: 16O about 0.55 and 20Ne about 0.30 [R0627] (Sect. 2.2, read); the
 rest (22Ne, 23Na, 24Mg and traces) is the remainder, held as one `trace` share. [Stand-ins WL1 and WL2.]"""
 WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL = ((1.10, 3.24e-4), (1.16, 1.82e-4), (1.23, 0.78e-4), (1.29, 0.21e-4))
 """tuple: `(white dwarf mass, helium layer mass)` in solar masses of the four oxygen-neon models of [R0627] (Sect. 2.2: 3.24e-4, 1.82e-4 and
-the last two as the text lists them in order); the log of the layer is straight between the points and held outside them. [Stand-in WL3.]"""
+the last two as the text lists them in order); the log of the layer is straight between the points and held outside them. [Stand-in 6.197 WL3, tier T3, tweak L0.]"""
 WD_ONE_HYDROGEN_MASS_SOL = 1.0e-6
 """float: The hydrogen envelope, solar masses, of a hydrogen-atmosphere oxygen-neon white dwarf: the 'maximum expected' 1e-6 [R0627] adopted for
-ultra-massive models. [Stand-in WL4.]"""
+ultra-massive models. [Stand-in 6.197 WL4, tier T1, tweak L0.]"""
 WD_HELIUM_CORE_HYDROGEN_FRACTIONS = ((0.15, 2.0e-2), (0.45, 1.0e-3))
 """tuple: `(white dwarf mass, hydrogen envelope as a fraction of the star's mass)` of a hydrogen-atmosphere helium-core white dwarf: the
 envelope of a low-mass star is thick (about a hundredth of its mass for the lightest, 'extremely low mass', stars) and thins toward the
-flash-limit core; the log is straight between the points and held outside them. [Stand-in WL5.]"""
+flash-limit core; the log is straight between the points and held outside them. [Stand-in 6.197 WL5, tier T6, tweak L0.]"""
 WD_THIN_HYDROGEN_FRACTION = 1.0e-10
 """float: The hydrogen fraction of a helium-atmosphere white dwarf whose sequences are not held (the thin-envelope case of the downloaded
-sequences, `datasets.white_dwarf_models`). [Stand-in WL6.]"""
+sequences, `datasets.white_dwarf_models`). [Stand-in 6.197 WL6, tier T5, tweak L0.]"""
 STELLAR_WD_POLLUTED_SHARE = (0.25, 0.50)
 # Neutron stars [R3075, R3396, R3746, R3804].
 STELLAR_NS_MASS_GAUSSIANS = (("slow", 1.49, 0.19), ("recycled", 1.54, 0.23))

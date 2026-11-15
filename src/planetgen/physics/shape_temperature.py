@@ -40,10 +40,10 @@ from planetgen.physics import constants, interior_heat, radiogenic
 from planetgen.util.checks import finite_domain
 
 ICE_SPECIFIC_HEAT = 1700.0
-"""float: J/(kg K), the heat capacity of the ice of a body (ice Ih is 1,500 at 160 K and 2,100 at 273 K). [Stand-in SHT1, tier T7, tweak L0.]"""
+"""float: J/(kg K), the heat capacity of the ice of a body (ice Ih is 1,500 at 160 K and 2,100 at 273 K). [Stand-in 6.162 SHT1, tier T7, tweak L0.]"""
 
 WINDOW_SHAPE_FACTOR = math.pi ** 2
-"""float: The conduction time of a sphere is `R^2 / (WINDOW_SHAPE_FACTOR kappa)`: the first mode of a conducting sphere decays at `pi^2 kappa / R^2`. [Stand-in SHT2, tier T6, tweak L1.]"""
+"""float: The conduction time of a sphere is `R^2 / (WINDOW_SHAPE_FACTOR kappa)`: the first mode of a conducting sphere decays at `pi^2 kappa / R^2`. [Stand-in 6.162 SHT2, tier T6, tweak L1.]"""
 
 _GY_S = interior_heat.GY_S
 

@@ -89,11 +89,11 @@ RANGES = {
 """
 
 MELT_FRACTION_RANGE = (0.03, 0.30)
-"""tuple: The share of the mantle that melts to make the volcanic crust at the lowest and the highest heat flow (GEN.474). [Stand-in MF1, tier T9, tweak L3.]"""
+"""tuple: The share of the mantle that melts to make the volcanic crust at the lowest and the highest heat flow (GEN.474). [Stand-in 6.45 MF1, tier T9, tweak L3.]"""
 
 MELT_FLUX_DECADES = 5.0
 """float: The decades of heat flow over the middle of the volcanism floor's range over which the melt share runs from its lowest to its highest (log-linear). Earth's heat flow of
-0.09 W/m2 is 2.5 decades over it and melts 8 to 9 percent of its mantle, the share of the mid-ocean ridges; Io's 2 W/m2 is 3.8 decades and melts about 17. [Stand-in MF1, tier T9, tweak L3.]"""
+0.09 W/m2 is 2.5 decades over it and melts 8 to 9 percent of its mantle, the share of the mid-ocean ridges; Io's 2 W/m2 is 3.8 decades and melts about 17. [Stand-in 6.45 MF1, tier T9, tweak L3.]"""
 VOLCANISM_FLOOR_MIDDLE_W_M2 = math.sqrt(RANGES["volcanism_floor_w_m2"][0] * RANGES["volcanism_floor_w_m2"][1])
 """float: The middle (geometric) of the volcanism floor's range, the heat flow `melt_fraction` starts its ramp at."""
 

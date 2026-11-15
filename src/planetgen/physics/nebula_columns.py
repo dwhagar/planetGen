@@ -80,10 +80,10 @@ PLANETARY = tuple(pne.CLASSES)
 """tuple: The classes with a progenitor drawn from the planetary nebula model."""
 
 SPECIES_SHARE = 0.05
-"""float: The share of the hydrogen a phase must hold to be named in `species_summary`. [Stand-in NBC14, tier T9, tweak L0: a wording cut, no physics.]"""
+"""float: The share of the hydrogen a phase must hold to be named in `species_summary`. [Stand-in 6.179 NBC14, tier T9, tweak L0: a wording cut, no physics.]"""
 
 GRAIN_NAME_SHARE = 0.15
-"""float: The share of the dust a grain kind must hold to be named in `species_summary`. [Stand-in NBC15, tier T9, tweak L0: a wording cut, no physics.]"""
+"""float: The share of the dust a grain kind must hold to be named in `species_summary`. [Stand-in 6.179 NBC15, tier T9, tweak L0: a wording cut, no physics.]"""
 
 _GRAIN_WORDS = {"amorphous_olivine": "amorphous olivine dust", "amorphous_pyroxene": "amorphous pyroxene dust", "crystalline_silicate": "crystalline silicate dust", "iron": "iron dust",
                 "amorphous_carbon": "amorphous carbon dust", "graphite": "graphite dust", "PAH": "PAH molecules", "SiC": "silicon carbide dust", "ice": "ice mantles"}

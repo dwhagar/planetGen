@@ -71,23 +71,23 @@ MINERALS = {
 MELT_STAGES = (("quartz", "orthoclase", "albite", "nepheline", "leucite", "anorthite", "diopside", "wollastonite", "sodium_metasilicate", "potassium_metasilicate"), ("hypersthene",), ("olivine", "periclase"))
 """tuple: The minerals of the norm by the stage they melt in: the low-melting eutectic components together (in the proportions the rock holds them: the feldspars and
 pyroxene of a basalt, the quartz and feldspars of a granite), then the orthopyroxene, then the refractory olivine; the oxides (magnetite, ilmenite, apatite, corundum)
-stay in the residue. [Stand-in RT1, tier T5, tweak L1.]"""
+stay in the residue. [Stand-in 6.45 RT1, tier T5, tweak L1.]"""
 
 PLAGIOCLASE = ("albite", "anorthite")
 FELDSPATHOID_FREE = ("quartz",)
 
 ANORTHOSITE_PLAGIOCLASE = 0.90
-"""float: The share of plagioclase in the norm from which a rock is anorthositic (the IUGS modal limit of anorthosite, 90 percent). [Stand-in RT2, tier T2, tweak L0.]"""
+"""float: The share of plagioclase in the norm from which a rock is anorthositic (the IUGS modal limit of anorthosite, 90 percent). [Stand-in 6.45 RT2, tier T2, tweak L0.]"""
 
 ULTRABASIC_SILICA = 45.0
 KOMATIITE_MAGNESIA = 18.0
 BASIC_SILICA = 52.0
 ACID_SILICA = 63.0
 """float: The silica bands of the total alkali-silica diagram ([R0277]: ultrabasic under 45, basic to 52, intermediate to 63, acid above) and the
-18 percent magnesia of a komatiite. [Stand-in RT2, tier T2, tweak L0.]"""
+18 percent magnesia of a komatiite. [Stand-in 6.45 RT2, tier T2, tweak L0.]"""
 
 INCOMPATIBLE_D = 0.0
-"""float: The bulk partition coefficient of K, Th and U between a mantle's minerals and its melt, taken as zero (all are far under 0.01 in peridotite). [Stand-in RT3, tier T5, tweak L0.]"""
+"""float: The bulk partition coefficient of K, Th and U between a mantle's minerals and its melt, taken as zero (all are far under 0.01 in peridotite). [Stand-in 6.45 RT3, tier T5, tweak L0.]"""
 
 
 def _moles(oxides):
