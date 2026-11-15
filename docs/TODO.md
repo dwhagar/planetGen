@@ -13039,6 +13039,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1691.
   Filed by the TODO thread.
 
+- [ ] **MAP.429 (bug) The Galaxy Map at galaxy scale is covered by an even lattice of round brown fuzzy blobs behind the stars: one soft round sprite per grid block holding any nebula, sized to the block's bounding sphere, strength from log10(count) only**
+  Boss live report, relayed 7:39 PM EST on 2026-11-14: he wanted organic wisps, not circles. Diagnosis (code read and a toy run): the blobs are the nebula group sprites (web galaxynebulae.js regionBlobs, MAP.176); alpha 0.16 to 0.42 saturates at 100 clouds, and most clouds are tiny class N (0.3 to 15 pc), so every disk block gets a blob (bound radius median 735 pc at 1 kpc blocks) while the clouds fill under 1 percent of that sphere. The organic volume layer (MAP.365) only loads a node once its biggest cloud is MIN_RADIUS_PX across, so at galaxy scale only the circles show. Do: strength follows the stored cover (nebula_block_stats already holds it; add it to nebula_regions on the wire), and groups under a cover floor are not drawn, so only real gas concentrations show. Lock-free, display only.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: none. Related: MAP.176, MAP.365, MAP.430.
+  Filed by the TODO thread.
+
+- [ ] **MAP.430 At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in**
+  From the MAP.429 diagnosis, relayed 7:39 PM EST on 2026-11-14 (Boss wants the map organic, nebula clouds not circles). Do: draw the far-zoom gas from the same model density the nebula contour follows (GEN.1267), and hand over smoothly to the volume layer (MAP.365) as nodes load. Lock-free, display only.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: MAP.429. Related: MAP.429, MAP.365, GEN.1267.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
