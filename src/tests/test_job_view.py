@@ -97,7 +97,7 @@ def test_a_retry_hold_says_how_long_and_how_the_last_attempt_ended(conn, run, co
     ledger.set_job_state(control, row, "waiting", not_before=time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time() + 120)))
     control.commit()
     shown = next(item for item in jobview.jobs(control, engine, time.time())["items"] if item["id"] == row)
-    assert shown["waits"].startswith("held back for a retry for another 1") and shown["waits"].endswith("after its attempt 1 killed for memory")
+    assert shown["waits"].startswith("held back for a retry for another 2 minutes") and shown["waits"].endswith("after its attempt 1 killed for memory")
     assert shown["last"]["outcome"] == "killed_memory" and shown["last"]["peak_mb"] == 1800.0 and shown["attempts"] == 1
 
 
