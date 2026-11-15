@@ -187,7 +187,7 @@ def test_a_unit_that_fails_in_a_later_stage_fails_the_run(monkeypatch, conn):
     with pytest.raises(units.RunStopped, match="unit 1 of stage B failed: ValueError: no stars here"):
         wrapper.run("Fails", [commands.Step("a", "first", "A"), commands.Step("b", "second", "B")],
                     lambda index, plan: None, lambda index, unit, result: None)
-    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "failed"
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "held"        # OPS.221: a failed unit holds the run
 
 
 def test_a_full_redis_stops_the_run_with_one_plain_error(monkeypatch, conn):

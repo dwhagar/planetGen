@@ -26,6 +26,17 @@ def probe(args, piece, ctx):
     return None if piece % 2 else {"piece": piece, "pair": (piece, piece * 2)}
 
 
+def counted_probe(args, piece, ctx):
+    """Writes a row for the piece and commits it as the piece (`ctx.commit_piece`), then is killed there when asked: the death between the commit and the engine's own checkpoint."""
+    DONE.append(piece)
+    ctx.db.execute("INSERT INTO checkpoint_probe (piece) VALUES (?)", (piece,))
+    result = {"piece": piece}
+    ctx.commit_piece(result)
+    if STOP_AT.get("after") == piece:
+        raise RuntimeError("the unit is killed after the piece's commit")
+    return result
+
+
 def together(args, results, ctx):
     return {"results": results, "count": len(results)}
 
@@ -119,6 +130,32 @@ def test_the_cursor_and_the_results_are_stored_with_the_data_and_a_piece_that_re
     assert ledger.resume_point(galaxy, row, 1) == (4, [{"pair": [0, 0], "piece": 0}, None, {"pair": [2, 4], "piece": 2}, None])
 
 
+def test_a_piece_that_commits_itself_as_the_piece_is_not_done_again_by_a_unit_killed_just_after(command, job, monkeypatch):
+    """OPS.222: `ctx.commit_piece()` lands the piece's data, the cursor past it and its result in one transaction, so a unit killed before the engine's checkpoint starts at the next piece, not the same one."""
+    monkeypatch.setitem(commands.REGISTRY, "resume-test", commands.CommandSpec("resume-test", "A test", expand=(__name__, "listed"), pieces=(__name__, "listed"), do=(__name__, "counted_probe"),
+                                                                            gather=(__name__, "together"), resumes=True))
+    control, galaxy, row, args, take = job
+    STOP_AT["after"] = 2
+    with pytest.raises(RuntimeError):
+        engine.run("resume-test", args, lambda done, total: None, attempt=take())
+    galaxy.commit()
+    assert ledger.item_state(galaxy, row)["cursor_key"] == "3", "the cursor is past the piece that committed itself"
+    STOP_AT.clear()
+    DONE.clear()
+    result = engine.run("resume-test", args, lambda done, total: None, attempt=take())
+    assert DONE == [3, 4, 5], "the piece that committed itself is not done again"
+    assert _rows(galaxy) == list(range(PIECES)), "its row is there once"
+    assert result["results"] == [{"piece": number} for number in range(PIECES)], "its result is the one it stored"
+
+
+def test_a_piece_that_commits_itself_commits_plainly_with_no_attempt(command, job, monkeypatch):
+    monkeypatch.setitem(commands.REGISTRY, "resume-test", commands.CommandSpec("resume-test", "A test", expand=(__name__, "listed"), pieces=(__name__, "listed"), do=(__name__, "counted_probe"),
+                                                                            gather=(__name__, "together"), resumes=True))
+    control, galaxy, row, args, take = job
+    result = engine.run("resume-test", args, lambda done, total: None)
+    assert result["count"] == PIECES and _rows(galaxy) == list(range(PIECES))
+
+
 def test_a_piece_result_goes_through_json_so_a_resumed_unit_and_an_undisturbed_one_hand_gather_the_same_values(command, job):
     command()
     control, galaxy, row, args, take = job
@@ -197,12 +234,12 @@ RESUMES = {
     "draw-nebula-field": "one slab of the field for each index from the unit's first, each written to `nebula_field`",
     "link-neighbors": "the unit's chunk of sectors in `store.link_order`, in batches, each batch one transaction under the neighbour lock",
     "settle-sector-paths": "the unit's sectors that still exist, in batches that sit together",
+    "finish-phenomena": "four fixed pieces; the drawn special rows are the first piece's stored result, the write and the record commit through `ctx.commit_piece()` so their data and the cursor land together, the indexes are built only where missing",
 }
 """dict: The commands that `resumes`, each with why its pieces may be started after a cursor (the three conditions of `commands.CommandSpec`)."""
 
 RESTARTS = {
     "plan-skeleton": "the pieces hand each other the skeleton through ctx.state",
-    "finish-phenomena": "the pieces hand each other the special rows through ctx.state",
     "refresh-block-lights": "one piece",
     "store-scatter-limits": "one piece",
     "rescore-habitability": "the list is the systems whose stamp is not current: a piece done changes the list, so a cursor into it skips the wrong ones",
