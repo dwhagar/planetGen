@@ -12959,11 +12959,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: OPS.184, OPS.208, PERF.260.
   Filed by the TODO thread.
 
-- [ ] **PERF.267 Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s**
-  Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Stage 5 log: 109 of 109 sectors done after 6:05:18. Do: measure whether this is the expected cost per sector on that machine after Train 26 or a slowdown; report before any change.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: none. Related: OPS.253.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1717 (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300)**
   Lane 15, 12:54 PM EST on 2026-11-14, from GEN.1716 (reports/gen1716-start-dependence-measure-2026-11-14.md): on main already; looks like opacity feeding back on temperature with nothing to stop it. Do: trace the feedback, compare with published sub-Neptune 1 bar temperatures for the same irradiation (radiative-convective models), and fix at the cause so the envelope's temperature comes from its physics; measure first, report before building. Lock item.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: GEN.1716.
@@ -13045,6 +13040,31 @@ clears each one.
 - [ ] **GEN.1730 Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first)**
   Class M tiers thread finding, 11:00 PM EST 2026-11-14 (report /mnt/project-files/reports/class-m-tiers-build/meter-gen1721-slice2-prototype-2026-11-14.md). `hydrosphere.BRINE_MAX_WATER_FRACTION` (2e-5 of the planet mass) turns every surface sea under that share into a chloride "brine seep" with water activity 0.30 to 0.65. On 400 Sun-like systems under Abundant that covers real seas: 5 to 20 percent water cover from about 1e-5 of the mass is a sea hundreds of metres deep, and 31 of 44 such desert worlds hold no life because the life law's solvent term is near zero under about 0.6. The same salt in more water stops at rock-salt saturation, water activity about 0.75, where salt-loving oxygen-making algae (Dunaliella) live; 0.30 to 0.65 is calcium or magnesium chloride or perchlorate strength. Work: measure first, then decide on physics whether a sea of real depth should be halite-saturated rather than a seep brine, on every galaxy including Science (minimal sourced change; register any stand-in in GEN.725). GEN.1721 slice 2 already does this for the tier presets only (`hydrosphere.salts_concentrated`, registry row 6.289:AT7); fold that preset switch into the general law if this item lands. Bears on class H and GEN.1729.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (after GEN.1723; same life and water laws as GEN.1729). Prerequisites: GEN.1721 slice 2. Related: GEN.1729, GEN.1723, GEN.1721, GEN.1706.
+  Filed by the TODO thread.
+
+- [ ] **PERF.268 Stage 5 progress and ETA weighed by expected systems per sector, not one per sector**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock-free. PERF.267 finding (1): a sector's cost follows its system count (the starting sector had 37 systems at 5.9x local density), so the bar and ETA counting sectors as equal ran 7.6 times over. Weigh the neighborhood stage's profile by expected systems.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.269 Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock-free. PERF.267 finding (4): the heartbeat opens a new control DB connection every 0.3 s, about 14 s of every 130 s, 10 of them loading SSL certificates. Cache the connection, reopen on loss.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: OPS.207 (the job engine stage 2 stack, PR 6571). Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.270 A per-sector timing line in the job log for the neighborhood stage**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock-free. PERF.267 finding (2): the 7.6x overrun cannot be split between density and generator slowdown without a per-sector line (systems, seconds, worker).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.271 Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system)**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing, may move results). PERF.267 finding (3): in a system 52 percent of the time is surface_air.solve, and each planet's air is built twice; 20 percent is gas_equilibrium. The generator is about 60 percent slower than 8.0.3700 (3.4 to 5.4 s a system, about 30 percent of it at the Train 25 merge, release 3992). Reuse rule applies; physics must not change, only the repeat.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.272 Promote belt members only when they are read (15 percent of a system's time)**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing). PERF.267 finding (3): belt-member promotion takes 15 percent of each system's generation time. Make it on demand where nothing in generation reads the members.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
