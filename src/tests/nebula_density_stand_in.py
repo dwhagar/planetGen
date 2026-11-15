@@ -14,3 +14,14 @@ def density(points, field, detail, anchors=None):
     lumps = np.sin(0.055 * x + 0.7 + shift) * np.cos(0.071 * y - 0.4) * np.sin(0.047 * z + 1.3) + 0.5 * np.sin(0.031 * (x + y) + shift)
     fine = 0.12 * np.sin(0.37 * x + 0.21 * y) * np.sin(0.29 * z) * min(detail, 3) / 3.0
     return np.clip(0.42 + 0.45 * lumps + fine, 0.0, 1.0).astype(np.float32)
+
+
+LANES_CENTER_PC = (3000.0, 0.0)
+LANES_RADIUS_PC = 1500.0
+
+
+def lane_density(points):
+    """A stand-in for `nebula_density.lane_density` (MAP.430): a lumpy patch of gas about `LANES_CENTER_PC` on the plane, 0 beyond `LANES_RADIUS_PC`."""
+    x, y = points[:, 0] - LANES_CENTER_PC[0], points[:, 1] - LANES_CENTER_PC[1]
+    patch = np.clip(1.0 - np.hypot(x, y) / LANES_RADIUS_PC, 0.0, 1.0)
+    return np.clip(patch * (1.1 + 0.4 * np.sin(0.004 * x + 0.003 * y)), 0.0, 1.0)
