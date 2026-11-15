@@ -53,20 +53,32 @@ def test_the_file_states_an_accuracy_the_fit_reached():
     """The validation is on airs the generator made from seeds the fit never saw; the numbers are the file's own. The cool clear-sky airs, which the habitability and
     the life read, are held to a few percent; the hot dense airs (over 500 K) are the model's weakest and the file says how weak. GEN.1304: the generator now makes
     airs the first fits never saw in numbers, hazy ones (up to 95 percent of the sunlight taken aloft) and ones with hydrogen chloride and fluoride, and the table is
-    weaker there (the file states it by class, `cool_by_class`); they are held to what the fit reached and the gap is an open item, not to the clear-sky figures."""
+    weaker there (the file states it by class, `cool_by_class`); they are held to what the fit reached and the gap is an open item, not to the clear-sky figures. GEN.1717:
+    the set is measured again on the airs of today's generator (which now deposits a giant's own absorbed starlight aloft), where the old file reads the same as the new
+    one (median error 1.5 against 1.6 percent, 99th percentile 36 percent against 36 on the cool airs, read through `warming`): the figures below are what both reach on that set."""
     check = gt.table().summary["validation"]
     cool = check["by_surface_temperature_k"]["0 to 300"]
     assert cool["samples"] >= 500
-    assert cool["relative_percentiles"]["50"] < 0.01
+    assert cool["relative_percentiles"]["50"] < 0.02
     clear = check["cool_by_class"]["clear"]
     assert clear["samples"] >= 200
     assert clear["relative_percentiles"]["50"] < 0.01
-    assert clear["relative_percentiles"]["90"] < 0.05
-    assert clear["kelvin_percentiles"]["99"] < 25.0
+    assert clear["relative_percentiles"]["90"] < 0.10
+    assert clear["kelvin_percentiles"]["99"] < 50.0
     for name in ("haze", "other_infrared_gases"):
-        assert check["cool_by_class"][name]["relative_percentiles"]["50"] < 0.02, name
-        assert check["cool_by_class"][name]["relative_percentiles"]["90"] < 0.12, name
+        assert check["cool_by_class"][name]["relative_percentiles"]["50"] < 0.06, name
+        assert check["cool_by_class"][name]["relative_percentiles"]["90"] < 0.30, name
     assert check["relative_percentiles"]["50"] < 0.02
+
+
+def test_the_file_states_the_accuracy_it_reached_on_hydrogen_envelopes_and_giants():
+    """GEN.1717: the first table read 2.4 times the model on the air of a 5 Earth-mass core under a hydrogen envelope (a median error of 20 percent, a 90th percentile of 62
+    and a 99th of 183 on the generator's own envelope and giant airs, read through `warming`); the refit holds those airs, which the fit never saw, to what it states."""
+    check = gt.table().summary["envelope_validation"]
+    assert check["samples"] >= 300
+    assert check["relative_percentiles"]["50"] < 0.05
+    assert check["relative_percentiles"]["90"] < 0.20
+    assert check["relative_percentiles"]["99"] < 0.40
 
 
 # --- the features -----------------------------------------------------------------------------------------------------------------
@@ -250,3 +262,18 @@ def test_a_trace_changes_nothing_without_one_and_the_answer_is_deterministic():
     again = [gt.warming(_earth_with("PH3", 0.2), 9.81, EARTH_FLUX).surface_temperature_k for _ in range(2)]
     assert again[0] == again[1]
     assert gt.warming(EARTH, 9.81, EARTH_FLUX).surface_temperature_k == gt.warming(dict(EARTH), 9.81, EARTH_FLUX).surface_temperature_k
+
+
+@pytest.mark.skipif(not DATA_PRESENT, reason="the infrared k-tables and collision-induced files are not in the cache folder")
+@pytest.mark.parametrize("flux", [150.0, 400.0, 997.0, 2769.0])
+def test_a_metal_rich_hydrogen_envelope_reads_what_the_model_gives(flux):
+    """GEN.1717: the air of a 5 Earth-mass core under a few percent hydrogen (water, carbon monoxide, methane and ammonia at tens of times the solar share, at the 1 bar
+    reference level) with the starlight its bands take aloft; the table was 2.4 times the model here before the refit."""
+    from planetgen.physics import radiative_convective, starlight_aloft
+
+    air = {"H2": 75290.0, "He": 13808.0, "H2O": 3622.0, "CO": 2522.0, "CH4": 2044.0, "Ne": 1820.0, "NH3": 624.0, "H2S": 215.0, "N2": 37.0}
+    gravity = 9.80665 * 5.0 / 4.0
+    deposit = starlight_aloft.of_air(air, gravity, 5772.0, 600.0)
+    model = radiative_convective.warming(air, gravity, flux, deposit.share, deposit.pressure_pa).surface_temperature_k
+    table = gt.warming(air, gravity, flux, deposit.share, deposit.pressure_pa).surface_temperature_k
+    assert table == pytest.approx(model, rel=0.35)      # one air of the 99th percentile of the airs the fit never saw (their median error is 3 percent)
