@@ -326,6 +326,10 @@ TABLES = {
         "id": ("id", "op_id", "plan_id", "sector_id"),
         "index": ("generator_epoch",),
     },
+    "engine_items": {
+        "id": ("job_id",),
+        "index": ("attempt",),
+    },
     "facilities": {
         "id": (
             "id", "star_system_id", "star_id", "planet_id", "moon_id", "asteroid_belt_id", "asteroid_field_id",

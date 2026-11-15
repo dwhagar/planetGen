@@ -20,7 +20,7 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 | 03 Atmosphere classes | Train 29 gate share; GEN.1722 research (life levers) | GEN.1698, GEN.1617 (after GEN.1716 and GEN.1717) |
 | 04 Planet composition | OPS.202 part 2 | GEN.1723 (life will find a way, lock) |
 | 05 Oddities and census | 6565 GEN.1623 (Train 30) | TEST.752, TEST.739, then GEN.1717 A and B |
-| 06 Belts and small bodies | 6516 OPS.215; 6336 OPS.161 | PERF.261, PERF.267, OPS.221, 222, 226, 228-231, 235, 243, 249, 250 |
+| 06 Belts and small bodies | PERF.267 (log analysis) | Train 30 gate share; then OPS.221, 222, 226, 228-231, 235, 243, 249, 250 |
 | 07 Tides, spin, moons | Kill tests on the stage 2 stack (6539 head) | OPS.241, OPS.242, OPS.247 |
 | 08 Materials (reserved) | none | GEN.1382, GEN.1383, TEST.686 |
 | 12 Gate | TEST.751 (fingerprint row-id test over the 900 s limit) | Gate runs on request |

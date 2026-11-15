@@ -31,7 +31,7 @@ from dataclasses import asdict
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commands, planrows, profiletime, progress_file, redisqueue, runline, runrecord, stagetimes, supervisor, units, workers
+from planetgen.queue import commandgaps, commands, planrows, profiletime, progress_file, redisqueue, runline, runrecord, splitter, stagetimes, supervisor, unitrates, unitwatch, units, workers
 from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 from planetgen.util.format import format_duration_seconds, format_megabytes
@@ -183,7 +183,10 @@ def _open(conn, run_id, index):
     expansion = commands.expand_function(step.kind)(params)
     held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {format_duration_seconds(time.time() - started)}", held)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
-    rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan)       # OPS.216: the plan is rows, cut and marked done in one transaction
+    if expansion.split is not None:             # OPS.161: the cut the queue engine chose, fixed with the plan so a restarted unit has the same one
+        splitter.announce(conn, run_id, index, expansion.split)
+    rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan,       # OPS.216: the plan is rows, cut and marked done in one transaction
+                               split=None if expansion.split is None else expansion.split.as_dict())
     runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
     runrecord.begin_stage(conn, run_id, index, now=started)
     _log_released(conn, run_id, index, step)

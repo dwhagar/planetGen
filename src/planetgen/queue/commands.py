@@ -25,6 +25,13 @@ import importlib
 from dataclasses import dataclass, field
 
 
+SPLIT_BYTE_IDENTICAL = "byte-identical"
+"""str: The split flag (`CommandSpec.split`) of a command whose output is the same at any legal cut of its stage: the queue engine may choose the cut (OPS.161, PERF.260)."""
+
+SPLIT_SUGGESTED = "suggested"
+"""str: The split flag of a command whose output depends on the cut, and the default: the engine uses the command's suggested split exactly."""
+
+
 @dataclass(frozen=True)
 class CommandSpec:
     """
@@ -49,6 +56,10 @@ class CommandSpec:
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
     unit that runs longer than the ceiling anyway is written to the run's log.
 
+    The break points (OPS.161): `breaks`, when given, is a `(module, function)` pair; `breaks(params)` returns the command's `breakpoints.Declaration` for a stage with those
+    parameters (the suggested split, where a cut may fall, the split flag, what the command depends on), which the queue engine reads to choose the stage's cut (`splitter`). A
+    command that is `whole` declares itself (one item, one unit). One that declares nothing keeps its typed split and runs in plan order (`declaration` is `None`).
+
     **The engine owns the loop of a command with `pieces` and `do` (OPS.191, `queue/engine.py`).** Instead of a `unit` function that loops, counts and checks for itself, the command gives
     `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: 0 until the ledger stores it, OPS.219), and `do(args, piece, ctx)`, which
     does one piece and returns a JSON-able result or `None`. The engine counts pieces done of pieces in all into the unit's beat and honours a cancel and a pause between two pieces; `ctx` is the one
@@ -65,6 +76,8 @@ class CommandSpec:
     conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
+    breaks: tuple = None
+    split: str = SPLIT_SUGGESTED
     pieces: tuple = None
     do: tuple = None
     gather: tuple = None
@@ -87,11 +100,13 @@ class Expansion:
     """
     What a command's `expand` gives: the `units` as `(args, cost)` pairs, in unit order (JSON-able arguments and the
     predicted cost the stage's bar and ETA use), and `plan`, a JSON-able summary of the stage that any process
-    following the run reads the units' results by.
+    following the run reads the units' results by. `split` is the `splitter.Decision` the cut was made from, when the command's `expand` asked the queue
+    engine for it (OPS.161); it is written to the stage's plan and the run's log when the stage opens.
     """
 
     units: list = field(default_factory=list)
     plan: dict = field(default_factory=dict)
+    split: object = None
 
 
 @dataclass(frozen=True)
@@ -477,6 +492,26 @@ def spec(kind):
         KeyError: No such command.
     """
     return REGISTRY[kind]
+
+
+def declaration(kind, params=None):
+    """
+    The break points command `kind` declares for a stage with `params` (OPS.161, `breakpoints.Declaration`), or `None` when it declares none, which keeps its typed split. A
+    command that is `whole` declares itself: one item, one unit, no cut. A command that names no `after` takes its `REQUIRES` as its dependencies.
+
+    Raises:
+        KeyError: No such command.
+    """
+    import dataclasses
+    from planetgen.queue import breakpoints
+    command = REGISTRY[kind]
+    if command.breaks is not None:
+        found = _function(command.breaks)(params or {})
+    elif command.whole:
+        found = breakpoints.whole_job()
+    else:
+        return None
+    return dataclasses.replace(found, split=command.split, after=found.after or requires_of(kind))
 
 
 def _function(pair):
