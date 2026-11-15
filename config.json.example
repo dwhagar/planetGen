@@ -80,6 +80,7 @@
     "sky_limit": 7.5,
     "unit_ceiling_seconds": 300.0,
     "wait_minutes": 60.0,
+    "debug_restarts": true,
     "max_waiting": 8
   },
   "ratelimit": {

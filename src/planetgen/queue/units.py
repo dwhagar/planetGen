@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attempts, commands, commandgaps, engine, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -174,6 +174,12 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
 
 
+def row_of(job):
+    """The ledger row id (OPS.216) a unit's RQ job was queued with, or `None` for a job that has none (an opening, a run cut before the plan was rows)."""
+    args = getattr(job, "args", None) or ()
+    return args[6] if getattr(job, "func_name", None) == UNIT_FUNCTION and len(args) > 6 else None
+
+
 def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
     """
     The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
@@ -268,19 +274,21 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None):
     An attempt that finds another has taken the unit over (`attempts.Replaced`) has rolled back, counts nothing and ends `replaced`; the other attempt's result stands.
     """
     attempt = attempts.begin(conn, run_id, row, args, pid=os.getpid())
-    try:
-        result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt)
-    except attempts.Replaced as replaced:
-        log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) was replaced by a later attempt and stops: {replaced}.", area="queue")
-        conn.hdel(runrecord.progress_key(run_id, stage), unit)
-        attempt.end("replaced")
-        return {"replaced": True}
-    except BaseException as exc:
+    with attemptlog.capture(conn, attempt, run_id, stage, unit, kind):        # OPS.223: a restarted attempt writes a debug log of its own
+        try:
+            result = _work_of_unit(conn, run_id, stage, unit, kind, args, cost, attempt)
+        except attempts.Replaced as replaced:
+            log.debug(f"Unit {unit} of stage {stage} of run {run_id} ({kind}) was replaced by a later attempt and stops: {replaced}.", area="queue")
+            conn.hdel(runrecord.progress_key(run_id, stage), unit)
+            attempt.end("replaced", peak_mb=peak_resident_mb())
+            return {"replaced": True}
+        except BaseException as exc:
+            if attempt is not None:
+                kind_of_error, text, outcome = attempts.failure(exc)
+                attempt.end(outcome, error_kind=kind_of_error, error_text=text, stack_text=text, peak_mb=peak_resident_mb())
+            raise
         if attempt is not None:
-            attempt.end("failed", error_kind=type(exc).__name__, error_text=_short(str(exc)))
-        raise
-    if attempt is not None:
-        attempt.end("done" if "seconds" in result else "lost")
+            attempt.end("done" if "seconds" in result else "lost", peak_mb=peak_resident_mb())
     return result
 
 
@@ -561,6 +569,9 @@ def horse_killed(job, retpid, ret_val, _rusage):
     name = getattr(job, "id", None) or "?"
     note = memorygate.kill_note(conn, getattr(job, "worker_name", None) or "")
     memory_kill = _killed_by_sigkill(ret_val)
+    if row_of(job) is not None:         # OPS.223: the attempt could not write its own end; its row says how the horse went
+        attempts.close_lost(conn, job.args[0], row_of(job), "killed_memory" if memory_kill else "lost", error_kind="killed",
+                            error_text=f"the work horse ({retpid}) ended with {_ended_with(ret_val)}")
     detail = ""
     if note is not None and memory_kill:
         detail = f"; it claimed {note['claimed_mb']:,.0f} MB on the memory gate and the most seen was {note['peak_mb']:,.0f} MB"
