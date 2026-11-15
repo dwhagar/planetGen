@@ -241,7 +241,7 @@ def _leading_clear(part):
 def hoist_clears(parts):
     """
     The `parts` with the clearing stage of a massive-star scatter that follows a backfill made a part of its own just before that
-    backfill: the clear empties the bright stars and stores the scatter's limits (`run_plan.clear_bright_stars_unit`), so it has to come first
+    backfill: the clear empties the bright stars and stores the scatter's limits (`run_plan.clear_bright_stars_do`), so it has to come first
     and the backfill reads the limits. The scatter's own part keeps its passes. Parts of any other shape come back as they were.
     """
     first_backfill = next((place for place, part in enumerate(parts) if part.command == "backfill"), None)
