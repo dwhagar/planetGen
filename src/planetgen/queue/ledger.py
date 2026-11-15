@@ -92,11 +92,25 @@ def set_job_state(conn, job_id, state, waited=None, not_before=None):
     conn.execute("UPDATE engine_jobs SET state = ?, waited = ?, not_before = ?, updated_at = NOW(6) WHERE id = ?", (state, waited, not_before, job_id))
 
 
+WAITED_CHARS = 255
+"""int: How much of a reason a job's `waited` column keeps (`VARCHAR(255)`)."""
+
+
+def set_wait(conn, job_id, reason):
+    """
+    Notes why a job that has not started is not starting (`reason`, the words the memory gate gave a worker that held it, OPS.224), on the row of a job that is still `waiting`; a job that has begun
+    (or is over) keeps its state. Returns whether the row took it. The caller commits.
+    """
+    reason = None if reason is None else (reason if len(reason) <= WAITED_CHARS else reason[:WAITED_CHARS - 3] + "...")
+    return conn.execute("UPDATE engine_jobs SET waited = ?, updated_at = NOW(6) WHERE id = ? AND state = 'waiting'", (reason, job_id)).rowcount > 0
+
+
 def begin_attempt(conn, job_id, galaxy_conn=None, pid=None):
     """
     The dispatch write: raises the job's attempt number, opens its attempt row (`running`) and sets the job running, and returns the new number. Given the galaxy's
     connection, it also writes the number to the job's `engine_items` row, before the job starts, so the fence has a number to hold. Commits both.
     """
+    end_running(conn, job_id, "lost", error_kind="lost", error_text="the attempt wrote no end: its process was gone when the next attempt began")       # OPS.223: an attempt nobody closed
     conn.execute("UPDATE engine_jobs SET attempt = attempt + 1, state = 'running', waited = NULL, updated_at = NOW(6) WHERE id = ?", (job_id,))
     attempt = conn.execute("SELECT attempt FROM engine_jobs WHERE id = ?", (job_id,)).fetchone()["attempt"]
     conn.execute("INSERT INTO engine_attempts (job_id, attempt, pid, started_at, outcome) VALUES (?, ?, ?, NOW(6), 'running')", (job_id, attempt, pid))
@@ -113,7 +127,35 @@ def end_attempt(conn, job_id, attempt, outcome, peak_mb=None, cpu_seconds=None, 
     if outcome not in ATTEMPT_OUTCOMES or outcome == "running":
         raise ValueError(f"An attempt ends as one of {ATTEMPT_OUTCOMES[1:]}, not {outcome!r}.")
     conn.execute("UPDATE engine_attempts SET ended_at = NOW(6), outcome = ?, peak_mb = ?, cpu_seconds = ?, error_kind = ?, error_text = ?, stack_file = ?"
-                 " WHERE job_id = ? AND attempt = ?", (outcome, peak_mb, cpu_seconds, error_kind, error_text, stack_file, job_id, attempt))
+                 " WHERE job_id = ? AND attempt = ?", (outcome, peak_mb, cpu_seconds, error_kind, _clip(error_text), stack_file, job_id, attempt))
+
+
+def end_running(conn, job_id, outcome, peak_mb=None, cpu_seconds=None, error_kind=None, error_text=None, stack_file=None):
+    """
+    Closes the attempts of the job that are still `running` with `outcome` (OPS.223): the end of an attempt whose process could not write it itself (killed for memory, stopped as stuck,
+    gone), written by whoever saw it go, or by the next `begin_attempt` as `lost`. Returns the numbers of the attempts closed, oldest first. The caller commits.
+    """
+    if outcome not in ATTEMPT_OUTCOMES or outcome == "running":
+        raise ValueError(f"An attempt ends as one of {ATTEMPT_OUTCOMES[1:]}, not {outcome!r}.")
+    numbers = [row["attempt"] for row in conn.execute("SELECT attempt FROM engine_attempts WHERE job_id = ? AND outcome = 'running' ORDER BY attempt", (job_id,)).fetchall()]
+    if numbers:
+        conn.execute("UPDATE engine_attempts SET ended_at = NOW(6), outcome = ?, peak_mb = ?, cpu_seconds = ?, error_kind = ?, error_text = ?, stack_file = ?"
+                     " WHERE job_id = ? AND outcome = 'running'", (outcome, peak_mb, cpu_seconds, error_kind, _clip(error_text), stack_file, job_id))
+    return numbers
+
+
+def attempt_row(conn, job_id, number):
+    """The attempt row (`outcome`, `ended_at`, `error_kind`, `error_text`, `stack_file`, `peak_mb`, `cpu_seconds`, `started_at`, `pid`) of the job's attempt `number`, or `None`."""
+    return conn.execute("SELECT outcome, started_at, ended_at, pid, peak_mb, cpu_seconds, error_kind, error_text, stack_file FROM engine_attempts WHERE job_id = ? AND attempt = ?",
+                        (job_id, number)).fetchone()
+
+
+ERROR_TEXT_CHARS = 8000
+"""int: How much of an error's text an attempt row keeps (the column is TEXT, 64 KB; the whole stack is in the file the row names)."""
+
+
+def _clip(text):
+    return text if text is None or len(text) <= ERROR_TEXT_CHARS else text[:ERROR_TEXT_CHARS] + f"... ({len(text)} characters)"
 
 
 def commit_item(galaxy_conn, job_id, attempt, cursor_key=None, done=False):

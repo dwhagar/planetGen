@@ -103942,6 +103942,37 @@
    "volume": "981",
    "year": 2024
   },
+  "10.1017/jog.2021.126": {
+   "authors": [
+    [
+     "Zhaka",
+     "V."
+    ],
+    [
+     "Bridges",
+     "R."
+    ],
+    [
+     "Riska",
+     "K."
+    ],
+    [
+     "Cwirzen",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/jog.2021.126",
+   "editors": [],
+   "journal": "J. Glaciol.",
+   "page": "685",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "A review of level ice and brash ice growth models",
+   "type": "journal-article",
+   "volume": "68",
+   "year": 2021
+  },
   "10.1017/pasa.2014.21": {
    "arxiv": "1405.0062",
    "authors": [
@@ -117573,6 +117604,29 @@
    "via": "chosen by hand from the citing sentences; author and year checked against the record",
    "volume": "93",
    "year": 1988
+  },
+  "10.1029/jc076i006p01550": {
+   "authors": [
+    [
+     "Maykut",
+     "G. A."
+    ],
+    [
+     "Untersteiner",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/jc076i006p01550",
+   "editors": [],
+   "journal": "JGR",
+   "page": "1550",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Some results from a time-dependent thermodynamic model of sea ice",
+   "type": "journal-article",
+   "volume": "76",
+   "year": 1971
   },
   "10.1029/jc081i033p05733": {
    "authors": [
@@ -240163,6 +240217,49 @@
    "volume": "24",
    "year": 2024
   },
+  "10.1175/1520-0442(1999)012<1814:sdoasi>2.0.co;2": {
+   "authors": [
+    [
+     "Warren",
+     "S. G."
+    ],
+    [
+     "Rigor",
+     "I. G."
+    ],
+    [
+     "Untersteiner",
+     "N."
+    ],
+    [
+     "Radionov",
+     "V. F."
+    ],
+    [
+     "Bryazgin",
+     "N. N."
+    ],
+    [
+     "Aleksandrov",
+     "Y. I."
+    ],
+    [
+     "Colony",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1175/1520-0442(1999)012<1814:sdoasi>2.0.co;2",
+   "editors": [],
+   "journal": "J. Climate",
+   "page": "1814",
+   "publisher": "American Meteorological Society",
+   "src": "crossref",
+   "title": "Snow Depth on Arctic Sea Ice",
+   "type": "journal-article",
+   "volume": "12",
+   "year": 1999
+  },
   "10.1175/1520-0450(1969)008<0392:agcmbo>2.0.co;2": {
    "authors": [
     [
@@ -286577,6 +286674,7 @@
   "10.1017/cbo9781139235778": "R3622",
   "10.1017/jfm.2024.132": "R5086",
   "10.1017/jfm.2024.78": "R5084",
+  "10.1017/jog.2021.126": "R5277",
   "10.1017/pasa.2014.21": "R5098",
   "10.1017/pasa.2016.31": "R4747",
   "10.1017/pasa.2021.48": "R1110",
@@ -287025,6 +287123,7 @@
   "10.1029/jb092ib13p14177": "R1017",
   "10.1029/jb093ib07p07625": "R0312",
   "10.1029/jb093ib09p10191": "R1187",
+  "10.1029/jc076i006p01550": "R5279",
   "10.1029/jc081i033p05733": "R4403",
   "10.1029/jc084ic01p00303": "R1667",
   "10.1029/jc085ic06p03255": "R2279",
@@ -289843,6 +289942,7 @@
   "10.1161/01.res.0000107195.13573.e4": "R2421",
   "10.1163/9789047416050_011": "R4756",
   "10.1167/jov.24.2.13": "R5064",
+  "10.1175/1520-0442(1999)012<1814:sdoasi>2.0.co;2": "R5278",
   "10.1175/1520-0450(1969)008<0392:agcmbo>2.0.co;2": "R4008",
   "10.1175/1520-0469(1967)024<0241:teotaw>2.0.co;2": "R2848",
   "10.1175/1520-0469(1969)026<1191:trgaho>2.0.co;2": "R2085",

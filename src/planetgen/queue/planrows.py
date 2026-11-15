@@ -24,9 +24,22 @@ OPEN = "open"
 """str: The command of the row that is the cut of a stage."""
 
 CONCLUDE, FINISH, RELEASE = "conclude", "finish", "release"
-END_COMMANDS = (CONCLUDE, FINISH, RELEASE)
+END_ROLES = (CONCLUDE, FINISH, RELEASE)
 """tuple[str]: The jobs that end a stage (OPS.218), each with an edge to the one before: `conclude` needs every unit, `finish` needs `conclude`, and `release` (the next opening queued) needs `finish`.
-They are rows of the stage with no item key, as the opening is."""
+They are rows of the stage with no item key, as the opening is. The command of the `conclude` and the `finish` row is the stage's own end command where its kind has one (`commands.end_name`,
+OPS.260), else the role's name; `release` is always `release`."""
+
+
+def end_rows(kind):
+    """`{role: the command of its row}` for the end jobs of a stage of `kind` (`None`: a run whose kind is not known has the roles' own names)."""
+    from planetgen.queue import commands
+    return {role: (role if kind is None or role == RELEASE else commands.end_name(kind, role)) for role in END_ROLES}
+
+
+def _kind_of(conn, run_id, index):
+    """The command of stage `index` of the run, from the steps its record holds (`None` for a run begun by hand, which holds none)."""
+    key = _stage_key(conn, run_id, index)
+    return next((item["kind"] for item in runrecord.read_steps(conn, run_id) if item["key"] == key), None)
 
 ENGINE_RUN_FIELD = "engine_run"
 """str: The field of the run record that holds the run's `engine_runs` id."""
@@ -101,8 +114,7 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
             ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": {"index": index, "plan": summary}}]
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                for number, (args, unit_cost) in enumerate(units)]
-                            + [{"stage": stage, "command": command, "needs": [before]}
-                               for command, before in zip(END_COMMANDS, ("units", *END_COMMANDS))])
+                            + _end_jobs(stage, kind))
             control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPEN))
             control.commit()
         except Exception:
@@ -111,6 +123,12 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         return unit_rows(control, run, stage)
     finally:
         control.close()
+
+
+def _end_jobs(stage, kind):
+    """The rows of the end of a stage of `kind`, each needing the one before (the first needs the units)."""
+    names = [end_rows(kind)[role] for role in END_ROLES]
+    return [{"stage": stage, "command": command, "needs": [before]} for command, before in zip(names, ("units", *names))]
 
 
 def _cut_row(control, run, stage):
@@ -143,29 +161,32 @@ def read_plan(conn, run_id, index):
 
 
 def ended(conn, run_id, index):
-    """The end jobs of stage `index` that are done (`END_COMMANDS`, a set): what the end of a stage has got through. Empty for a stage with no rows."""
+    """The end jobs of stage `index` that are done (roles of `END_ROLES`, a set): what the end of a stage has got through. Empty for a stage with no rows."""
     found = conn.hget(runrecord.run_key(run_id), ENGINE_RUN_FIELD)
     if not found or index >= len(runrecord.declared_stages(conn, run_id)):
         return set()
+    names = end_rows(_kind_of(conn, run_id, index))
     control = control_connection(conn, run_id)
     try:
         rows = control.execute("SELECT command FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key = '' AND state = 'done' AND command IN (?, ?, ?)",
-                               (int(runrecord._s(found)), _stage_key(conn, run_id, index), *END_COMMANDS)).fetchall()
+                               (int(runrecord._s(found)), _stage_key(conn, run_id, index), *names.values())).fetchall()
     finally:
         control.close()
-    return {row["command"] for row in rows}
+    done = {row["command"] for row in rows}
+    return {role for role, command in names.items() if command in done}
 
 
-def mark_ended(conn, run_id, index, command):
+def mark_ended(conn, run_id, index, role):
     """
-    Marks end job `command` of stage `index` done (idempotent; it commits). The stage's end rows are made first when its cut did not (a run begun by hand, whose stages nobody cut: the rows the
+    Marks end job `role` (`CONCLUDE`, `FINISH` or `RELEASE`) of stage `index` done (idempotent; it commits). The stage's end rows are made first when its cut did not (a run begun by hand, whose stages nobody cut: the rows the
     cut writes, added the same way, so a cut that comes later finds them).
     """
     control = control_connection(conn, run_id)
     try:
         run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
-        ledger.add_jobs(control, run, [{"stage": stage, "command": name, "needs": [before]} for name, before in zip(END_COMMANDS, ("units", *END_COMMANDS))])
-        control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, command))
+        kind = _kind_of(conn, run_id, index)
+        ledger.add_jobs(control, run, _end_jobs(stage, kind))
+        control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, end_rows(kind)[role]))
         control.commit()
     finally:
         control.close()

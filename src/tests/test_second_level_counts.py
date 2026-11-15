@@ -7,6 +7,7 @@ import pytest
 from planetgen.generation import followed, run_common
 from planetgen.queue import beatjudge, commands, engine, redisqueue, runrecord, unitbeat, units, unitwatch
 from planetgen.util import ticker
+from planetgen.util.format import format_duration_seconds
 
 
 class _Clock:
@@ -202,7 +203,7 @@ def test_the_queue_page_row_says_the_count_the_rate_and_the_time_left():
     from planetgen.web import queue_page
     step = {"name": "Rows", "done": 30.0, "total": 60.0, "progress": {"show": True, "percent": 50.0, "rate": 0.5, "eta_seconds": 60.0, "source": "live"}}
     shown = queue_page._step_text(step)
-    assert shown["name"] == "Rows" and shown["text"].startswith("Rows: 30 of 60, 2.0 s each, ") and shown["text"].endswith("left")
+    assert shown["name"] == "Rows" and shown["text"].startswith(f"Rows: 30 of 60, {format_duration_seconds(2.0)} each, ") and shown["text"].endswith("left")
     assert shown["bar"]["percent"] == 50.0
     assert queue_page._step_text(None) is None
     assert queue_page._step_text({"name": "Rows", "done": 7.0, "total": 0.0, "progress": {}})["text"] == "Rows: 7"

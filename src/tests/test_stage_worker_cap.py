@@ -110,10 +110,16 @@ def test_peak_counts_the_worker_beside_its_horse():
     import resource
     from planetgen.queue import units
     own = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
+    pair = lambda: units._proportional_mb(os.getpid()) + units._proportional_mb(os.getppid())
+    before = pair()
     peak = units.peak_resident_mb()
+    after = pair()
     assert peak >= own > 0
-    if units._proportional_mb(os.getpid()) > 0:
-        assert peak >= units._proportional_mb(os.getpid()) + units._proportional_mb(os.getppid())
+    if before > 0:
+        # TEST.757: `Pss` divides each shared page by the processes sharing it, so a reading moves when a sharer (a sibling test worker, a
+        # horse) starts or ends: two reads of the same pair a moment apart can differ under load, and the old test held the figure to the later
+        # one. The readings that bracket the call give the range the figure can honestly fall in, so it has to be no lower than the lower one.
+        assert peak >= min(before, after)
     assert units._proportional_mb(2 ** 31) == 0.0                           # no such process: nothing to count
 
 
