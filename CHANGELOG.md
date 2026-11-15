@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4267] - 2026-11-15
+
+**Headline:** The desert-interior test builds its tier row with all six dials.
+
+### Changed
+
+- GEN.1721, GEN.1720: `test_class_m_tier_desert.py` set a tier row of five dials (the sixth, `cycle_share`, came with GEN.1720); it now sets six, with the carbon cycle dial at 0. Test only.
+
 ## [8.0.4266] - 2026-11-15
 
 **Headline:** A Class M abundance tier now gives its desert worlds small living seas and gives half of its candidates quiet volcanoes.
