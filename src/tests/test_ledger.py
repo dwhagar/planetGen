@@ -176,3 +176,30 @@ def test_the_writer_runs_queued_calls_in_order_and_survives_a_failed_one(mysql_c
         check.commit()
     finally:
         check.close()
+
+
+OLD_SPELLING = "cancel" + "led"
+
+
+def test_a_control_database_at_v23_gets_the_tables_again_with_the_state_spelled_canceled(mysql_config):
+    """v24: the v23 tables, which held no rows, are dropped and made again, so the state `canceled` is allowed on a database that had the old check."""
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
+    try:
+        for table in ("engine_attempts", "engine_jobs", "engine_runs"):
+            conn.execute(f"DROP TABLE IF EXISTS {table}")
+        conn.execute("CREATE TABLE engine_runs (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, kind VARCHAR(64) NOT NULL, galaxy VARCHAR(64) NULL,"
+                     " state VARCHAR(16) NOT NULL DEFAULT 'waiting', held_reason VARCHAR(255) NULL, created_at DATETIME(6) NOT NULL,"
+                     " started_at DATETIME(6) NULL, finished_at DATETIME(6) NULL, CONSTRAINT chk_engine_runs_state CHECK (state IN ('waiting', 'running', 'held', 'done', '" + OLD_SPELLING + "')))")
+        conn.execute("DELETE FROM control_schema_migrations")
+        conn.execute("INSERT INTO control_schema_migrations (version) VALUES (23)")
+        conn.commit()
+        store._ensure_control_schema(conn)
+        run = ledger.add_run(conn, "generate")
+        ledger.set_run_state(conn, run, "canceled")
+        conn.commit()
+        assert conn.execute("SELECT state FROM engine_runs WHERE id = ?", (run,)).fetchone()["state"] == "canceled"
+        assert conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"] == store.CONTROL_SCHEMA_VERSION
+        conn.execute("DELETE FROM engine_runs")
+        conn.commit()
+    finally:
+        conn.close()

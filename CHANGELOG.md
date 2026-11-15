@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4192] - 2026-11-15
+
+**Headline:** The job engine's ledger spells the state of a run or job that was stopped on purpose `canceled`, as the rest of the project does.
+
+### Changed
+- **The ledger's canceled state is spelled the American way (OPS.215).** The spelling check flagged the British spelling in `queue/ledger.py` and `control_schema.sql`, and the run state on Redis is already `canceled`, so the state stored in `engine_runs.state` and `engine_jobs.state` is now `canceled` too. The control schema is v24: a control database at v23 has the three ledger tables dropped and made again by `store._drop_engine_ledger_v23`, since the v23 check allowed only the old spelling and nothing has written a row. No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.4191] - 2026-11-15
+
+**Headline:** The reference list no longer redirects the ids R5253 and R5254 to other papers, so citations to them point at the right sources.
+
+### Fixed
+- Two old aliases (R5253 to R5248, R5254 to R5250) were left from the days the papers shared ids; they are removed and the citation list is rebuilt, which clears the citations-links test.
+
+generation-output: unchanged
+
+## [8.0.4190] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits has its memory figure like every other command.
+
+### Fixed
+
+- OPS.257: `store-scatter-limits` is a lean worker in the memory table (one row write), which the every-command-has-a-memory-figure guard asked for.
+
+## [8.0.4189] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits gives the engine its pieces like the other converted commands.
+
+### Fixed
+
+- OPS.257: the `store-scatter-limits` command is a piece of the engine's loop (one piece, committed through the context), which the every-command-gives-pieces guard on main asked for.
+
+## [8.0.4188] - 2026-11-15
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
 ## [8.0.4187] - 2026-11-15
 
 **Headline:** Every rate, duration, size and memory figure the generator logs or shows comes from the units code, so a slow count reads "2.4 s a sector" instead of "0.0 sectors/s" and memory is never bytes in one line and MB in the next (UX.318).
