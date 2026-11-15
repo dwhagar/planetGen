@@ -12597,11 +12597,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.226-234. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.238 Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G1); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G1 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size L. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: stage 3. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.239 Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G2); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G2 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size L. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.238. Related: OPS.191, OPS.207, OPS.212.
