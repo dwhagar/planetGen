@@ -1,7 +1,7 @@
 # tests/test_migration_sky_draw_parts.py
 
 """
-OPS.253: migration 0260 gives `sky_tier_draws` the `part_index` and `part_count` columns and puts them in the unique key. A draw from before v260 keeps its row as a whole sphere (0 and 0).
+OPS.253: migration 0262 gives `sky_tier_draws` the `part_index` and `part_count` columns and puts them in the unique key. A draw from before v262 keeps its row as a whole sphere (0 and 0).
 """
 
 import pytest
@@ -16,7 +16,7 @@ INSERT = ("INSERT INTO sky_tier_draws (kind, band_low, band_high, center_x_pc, c
 
 
 def test_a_v259_ledger_keeps_its_spheres_as_whole_ones_and_may_hold_parts_beside_them(mysql_config):
-    load_old_schema(mysql_config, 258)
+    load_old_schema(mysql_config, 260)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute(INSERT)

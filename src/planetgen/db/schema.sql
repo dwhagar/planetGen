@@ -6644,3 +6644,5 @@ CREATE OR REPLACE VIEW sector_objects AS
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- v259 (GEN.1433): `stars`, `comets`, `black_holes`, `neutron_stars`, `nebulae`, `supernova_remnants`, `quasars`, `interstellar_comets` and `asteroid_fields` gain `flavor_key` (VARCHAR(32), NULL) as `asteroid_belts` do: the id of the flavor line the object shows, a line of its own scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244.
+
+-- v262 (OPS.253): `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once keeps one row for each part (how many batches of its share are written), which never counts in the ledger; the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
