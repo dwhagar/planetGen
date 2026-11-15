@@ -54,6 +54,8 @@ KINDS = {
     "planet.cross_star_trim": Kind("planet", False, "an outer planet cut so the two stars of a wide pair do not encroach on each other's planets"),
     "moon.too_large": Kind("moon", False, "a moon drawn again because it would be larger than its parent could hold"),
     "moon.disk_full": Kind("moon", False, "a moon of the disk drawn again because the disk has no room left in its zone past the last moon"),
+    "moon.exchange_no_room": Kind("moon", False, "a moon captured by a binary encounter dropped because no room was left past the last moon (GEN.1157)"),
+    "moon.exchange_too_large": Kind("moon", False, "a moon captured by a binary encounter dropped because it would be larger than its parent could hold (GEN.1157)"),
     "comet.ceiling": Kind("comet", False, "a comet drawn again because its orbit lies past the star's ceiling"),
     "comet.tisserand": Kind("comet", False, "a Jupiter-family comet drawn again because its Tisserand parameter about the star's controlling giant is outside the family's range"),
     "comet.composition": Kind("comet", False, "a comet's CO and CO2 shares drawn again because one lies outside the observed bounds"),

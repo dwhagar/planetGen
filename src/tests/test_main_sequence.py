@@ -8,19 +8,31 @@ gives moves outward as the star ages.
 
 import math
 
-from planetgen.physics import constants, main_sequence, orbits
+from planetgen.physics import alpha_tracks, constants, main_sequence, orbits
 from planetgen.physics import stellar_evolution as evolution
 
 SUN_AGE_GY = 4.57
 
 
 def test_the_sun_is_near_one_solar_luminosity_now_and_about_thirty_percent_fainter_at_birth():
-    now = main_sequence.state(1.0, SUN_AGE_GY, 0.0)
-    birth = main_sequence.state(1.0, 0.0, 0.0)
-    assert 0.95 <= now.luminosity_sol <= 1.15
+    grid = alpha_tracks.track_fe_h(0.0, SUN_AGE_GY, 1.0)    # GEN.1623: the grid's label of a star whose surface is the Sun's
+    now = main_sequence.state(1.0, SUN_AGE_GY, grid)
+    birth = main_sequence.state(1.0, 0.0, grid)
+    assert 0.97 <= now.luminosity_sol <= 1.05      # GEN.1623: the grid's birth [Fe/H] of a star with the Sun's surface is not 0 (diffusion), so the Sun reads as the Sun
+    assert abs(now.temperature_k - 5772.0) <= 30.0 and abs(now.radius_sol - 1.0) <= 0.03
     assert 0.65 <= birth.luminosity_sol <= 0.8
     assert 0.65 <= birth.luminosity_sol / now.luminosity_sol <= 0.75
     assert 5500.0 <= now.temperature_k <= 6000.0 and 0.95 <= now.radius_sol <= 1.1
+
+
+def test_diffusion_lowers_the_surface_metals_more_the_older_and_heavier_the_star_up_to_the_turn_off():
+    """GEN.1623: the birth [Fe/H] that gives a surface [Fe/H] of 0 is higher the longer the star has diffused, and a solar-mass star's is about the 0.05 to 0.07 dex MIST's track loses."""
+    from planetgen.datasets import isochrones
+
+    ages = [isochrones.initial_fe_h(1.0, age, 0.0) for age in (0.1, 1.0, 4.57, 9.0)]
+    assert ages == sorted(ages) and ages[0] < 0.01
+    assert 0.04 <= isochrones.initial_fe_h(1.0, 4.57, 0.0) <= 0.08
+    assert isochrones.initial_fe_h(0.7, 4.57, 0.0) < isochrones.initial_fe_h(0.9, 4.57, 0.0) < isochrones.initial_fe_h(1.0, 4.57, 0.0)
 
 
 def test_a_main_sequence_star_brightens_and_swells_as_it_ages():
@@ -39,7 +51,7 @@ def test_a_metal_poor_star_is_hotter_and_brighter_than_a_metal_rich_one_of_the_s
 def test_the_stars_own_record_reads_the_same_table():
     for age in (0.05, 4.57, 8.0):
         record = evolution.evolve_star(1.0, age, fe_h=0.0)
-        row = main_sequence.state(1.0, age, 0.0)
+        row = main_sequence.state(1.0, age, alpha_tracks.track_fe_h(0.0, age, 1.0))    # GEN.1623: read at the birth [Fe/H]
         assert math.isclose(record["luminosity_sol"], row.luminosity_sol, rel_tol=1e-6)
         assert math.isclose(record["temperature_k"], row.temperature_k, rel_tol=1e-6)
 

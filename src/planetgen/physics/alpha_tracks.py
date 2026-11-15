@@ -21,6 +21,7 @@ import functools
 import math
 
 from planetgen import tuning
+from planetgen.datasets import fetch, isochrones
 from planetgen.physics import stellar_abundances
 
 ALPHA_SYMBOLS = ("O", "Mg", "Si", "Ca")
@@ -52,10 +53,20 @@ def equivalent_fe_h(fe_h, branch):
     return fe_h + metallicity_shift(alpha_fe(fe_h, branch) - ZERO_POINT_DEX)
 
 
-def track_fe_h(fe_h, age_gy):
-    """The [Fe/H] of the solar-scaled track a star of this birth [Fe/H] and age reads (GEN.1024): its [Fe/H] raised by its branch's
-    alpha excess (`stellar_abundances.branch_of` finds the branch, the same one its composition has)."""
-    return equivalent_fe_h(fe_h, stellar_abundances.branch_of(fe_h, age_gy))
+def track_fe_h(fe_h, age_gy, mass_sol=None):
+    """The [Fe/H] of the solar-scaled track a star of this [Fe/H] and age reads (GEN.1024): its [Fe/H] raised by its branch's
+    alpha excess (`stellar_abundances.branch_of` finds the branch, the same one its composition has). With the star's initial mass
+    `mass_sol` the track is the grid's label, the birth composition (GEN.1623): the star's [Fe/H] is a surface value, as every measured one is, and
+    MIST's atomic diffusion has settled metals out of a low-mass star's surface for its age (`isochrones.initial_fe_h`, read from the grid's own
+    surface hydrogen and helium), so the star that now has the Sun's surface was born about 0.06 dex richer. Without the mass (the readers that
+    bound a whole [Fe/H] bin or search for a mass) the track is the star's [Fe/H] as it stands. The isochrones missing, the diffusion is left out."""
+    track = equivalent_fe_h(fe_h, stellar_abundances.branch_of(fe_h, age_gy))
+    if mass_sol is None:
+        return track
+    try:
+        return isochrones.initial_fe_h(mass_sol, age_gy, track)
+    except fetch.DataMissing:
+        return track
 
 
 @functools.lru_cache(maxsize=1 << 16)

@@ -97,19 +97,19 @@ ROOT_AFTER = 12
 """int: From this step on, an air whose temperature swings across its iterate (`_swings`) is solved by a root find of the temperature (`seek_root`, GEN.1718) and not by the damped step."""
 
 SWING_STEPS = 8
-"""int: The last steps of the temperature residual read for a swing (`_swings`)."""
+"""int: The last steps of the temperature residual read for a swing (`_swings`; a solver setting, GEN.1718)."""
 
 SWING_MIN_K = 1.0
-"""float: The median size of the residual of a swing, K, above which the temperature is swinging and not settling (ten times `TOLERANCE_K`)."""
+"""float: The median size of the residual of a swing, K, above which the temperature is swinging and not settling (ten times `TOLERANCE_K`; a solver setting, GEN.1718)."""
 
 ROOT_EVERY = 3
-"""int: A swinging air looks for its bracket every this many steps (a bracket needs two starts the step answered on opposite sides, close together)."""
+"""int: A swinging air looks for its bracket every this many steps (a bracket needs two starts the step answered on opposite sides, close together; a solver setting, GEN.1718)."""
 
 ROOT_TRIES = 8
-"""int: The most times a solve looks for the root of the temperature."""
+"""int: The most times a solve looks for the root of the temperature (a solver setting, GEN.1718)."""
 
 ROOT_WIDENING_K = (0.5, 2.0, 8.0, 32.0)
-"""tuple: The half widths, K, of the brackets tried around the last iterate when the starts the fixed point has seen do not bracket the root (the air has changed since: the escape of the light gases is in it)."""
+"""tuple: The half widths, K, of the brackets tried around the last iterate when the starts the fixed point has seen do not bracket the root (the air has changed since: the escape of the light gases is in it; a solver setting, GEN.1718)."""
 
 ROOT_XTOL_K = 1.0e-4
 """float: How close the root find brackets the temperature, K. The step map is as steep as 400 K per K at a carbon switch (GEN.1718), so a residual of `TOLERANCE_K` wants the iterate to 3e-4 K."""
@@ -119,7 +119,7 @@ ROOT_RESIDUAL_K = 1.0
 no temperature is its own answer closer than the step itself, so the root is that temperature. A jump of tens of K, or a pressure that is not its own answer, is not a root."""
 
 ROOT_MAX_ITER = 60
-"""int: The most iterations of the root find (each is two steps: the pressure follows the temperature)."""
+"""int: The most iterations of the root find (each is two steps: the pressure follows the temperature; a solver setting, GEN.1718)."""
 
 MAX_GAIN = 20.0
 """float: The most an extrapolated step may exceed the damped one (`_step`)."""

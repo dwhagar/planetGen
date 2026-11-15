@@ -89,7 +89,7 @@ def test_the_oxygen_a_world_has_makes_the_anoxygenic_class_unsupported_and_none_
 
 
 def test_a_world_under_ice_has_no_light_class_but_has_the_chemical_ones():
-    scores = life_classes.score_classes(world(hydrosphere="ice-covered ocean"))
+    scores = life_classes.score_classes(world(hydrosphere="ice-covered ocean", surface_temperature_k=230.0))        # GEN.1723: one that melts is a refuge (test_surface_refuge)
     assert all(scores[c].score == 0 for c in ("1a", "1b", "1c", "2"))
     assert scores["3a"].score > 0 and scores["4b"].score > 0
 

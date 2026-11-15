@@ -122,7 +122,7 @@ def test_the_derived_file_of_a_real_archive_layout_holds_the_tracks(tmp_path, mo
     """`isochrones.derive` writes the tracks of every [Fe/H] beside the main sequence, and its reader serves them."""
     lines = _iso_text(0.0)
     y_init, z_init, fe_h, rows, post, pre_edge = isochrones.parse_isochrone_file(io.BytesIO(lines).readlines())
-    assert fe_h == 0.0 and rows.shape[1] == 6 and post.shape[1] == 10 and post[:, 0].min() >= 454
+    assert fe_h == 0.0 and rows.shape[1] == 7 and post.shape[1] == 10 and post[:, 0].min() >= 454
     assert pre_edge.shape == (0, 2)
     assert set(np.unique(post[:, 9])) == {2.0, 3.0}
 

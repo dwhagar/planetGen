@@ -731,8 +731,14 @@ SUBDWARF_HOT_MIN_TEMPERATURE_K = 20000.0
 # before the star is evolved, tried FORCED_STAR_JITTER_TRIES times before the
 # cell's own star is taken. A type the model never makes takes the nearest
 # model star of its Yerkes class by temperature, among those within
-# FORCED_STAR_NEAREST_SLACK (in ln T) of the nearest.
-FORCED_STAR_MASS_STEPS = 140
+# FORCED_STAR_NEAREST_SLACK (in ln T) of the nearest. The mass steps must be
+# finer than a spectral subclass is wide in mass: a G2 dwarf is 50 K wide, 2
+# percent in mass, and at 140 steps (5 percent) one grid mass or the other
+# held all of the type, by where its track crossed the bin (GEN.1623: the
+# cooler birth-label tracks moved the whole of G2 to the young cells, a median
+# age of 1.6 Gyr and a Sun 12 percent too faint, instead of 7 Gyr); at 420 the
+# median age and the mean luminosity of G2 agree before and after that change.
+FORCED_STAR_MASS_STEPS = 420
 FORCED_STAR_AGE_STEPS = (60, 300, 80)
 FORCED_STAR_JITTER_TRIES = 40
 FORCED_STAR_NEAREST_SLACK = 0.03

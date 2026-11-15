@@ -326,6 +326,10 @@ TABLES = {
         "id": ("id", "op_id", "plan_id", "sector_id"),
         "index": ("generator_epoch",),
     },
+    "engine_items": {
+        "id": ("job_id",),
+        "index": ("attempt",),
+    },
     "facilities": {
         "id": (
             "id", "star_system_id", "star_id", "planet_id", "moon_id", "asteroid_belt_id", "asteroid_field_id",
@@ -780,9 +784,9 @@ TABLES = {
         "row-defined": ("band_low", "band_high"),
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "radius_pc"),
         "mag": ("limit_mag",),
-        "count": ("stars", "batches_done"),
+        "count": ("stars", "batches_done", "part_count"),
         "s": ("seconds",),
-        "index": ("generator_epoch",),
+        "index": ("generator_epoch", "part_index"),
         "flag": ("complete",),
     },
     "body_numbers": {

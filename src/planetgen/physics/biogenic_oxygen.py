@@ -31,6 +31,8 @@ The numbers are those of the one world we know (`EARTH_*`, round figures from th
 with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
 `docs/design/research/gap-filling-plan.md` with its tier and tweak level.
 
+A world with no wide sunlit sea but with light and liquid water at its surface (a brine seep, a seasonal melt, a spring) has the small source of `refuge_productivity` (GEN.1723, `physics/surface_refuge.py`).
+
 What it leaves out: the loss of oxygen to space (a few parts in 1e4 of the inventory a Gyr for a habitable-zone world, far under the
 weathering), the hydrogen escape that adds oxygen, the phosphorus feedback and the land plants that raised Earth's burial (they would
 change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak already stands for).
@@ -41,7 +43,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import abundance_tier
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum, surface_air
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, stellar_spectrum, surface_air, surface_refuge
 from planetgen.util import log
 
 EARTH_O2_MOL = 3.7e19
@@ -94,7 +96,7 @@ OCEAN_SPAN_K = (258.0, 275.0, 315.0, 343.0)
 """tuple[float]: The temperatures, K, at which the factor for the sea's liquid range rises from 0 to 1 and falls to 0 again (T6, L3)."""
 
 LIVING_HYDROSPHERES = ("surface ocean", "hycean")
-"""tuple: The states with a sunlit sea for the photosynthesis to stand in (a `brine seep` is not one; GEN.908)."""
+"""tuple: The states with a sunlit sea for the photosynthesis to stand in (a `brine seep` is not one, GEN.908; its life, and a melt's or a spring's, is a refuge of `surface_refuge`, GEN.1723)."""
 
 MINIMUM_PA = 1.0
 """float: Under this partial pressure, Pa, a world is counted as making no oxygen."""
@@ -232,10 +234,28 @@ def reductant_history_factor(body, age_gyr):
     return 1.0 if flux_now <= 0.0 else (then.own_flux_w_m2 + tide) / flux_now
 
 
-def productivity(body, area_m2):
-    """`S`, mol/yr, of a body with a sunlit sea (0 for one without)."""
-    if getattr(body, "hydrosphere", None) not in LIVING_HYDROSPHERES:
+def refuge_productivity(body, area_m2):
+    """
+    `S`, mol/yr, of the oxygenic life of a body that has no wide sunlit sea but has light and liquid water at its surface, in a brine seep, a seasonal melt or a spring
+    (`surface_refuge`, GEN.1723): Earth's burial per area of ocean (no new constant) on the area where those are wet and lit, each place weighed by its production against an ocean's
+    (`surface_refuge.Refuge.area`), under the same light and temperature factors as a sea. 0 for a body with none. About 1e-2 of Earth's source for a seep world and 0.14 at the very most (the cover cap over a whole sea that melts all year), so it never
+    beats the reductant flux of a world whose interior is Earth's: if a dry world is to hold oxygen the lever is `R`, not this term.
+    """
+    if not getattr(body, "surface_temperature", None) or not area_m2:
         return 0.0
+    if getattr(body, "hydrosphere", None) not in ("brine seep", "ice-covered ocean", "ice") and not getattr(body, "aquifer_thickness_km", None):
+        return 0.0          # the common case, none of the places a refuge can be in (`surface_refuge.refuge_of`), without reading the body's columns
+    refuge = surface_refuge.refuge_of(habitability_world.values_from_body(body))
+    if refuge.area <= 0.0 or not refuge.temperature_k:
+        return 0.0
+    light = _clamp(active_light_ratio(body), *LIGHT_RANGE) ** LIGHT_EXPONENT
+    return (EARTH_BURIAL_MOL_YR * (area_m2 / EARTH_AREA_M2) * (refuge.area / EARTH_OCEAN_FRACTION) * light * temperature_factor(refuge.temperature_k))
+
+
+def productivity(body, area_m2):
+    """`S`, mol/yr, of a body with a sunlit sea (a body with a refuge only: `refuge_productivity`; 0 for one with neither)."""
+    if getattr(body, "hydrosphere", None) not in LIVING_HYDROSPHERES:
+        return refuge_productivity(body, area_m2)
     ocean = getattr(body, "ocean_fraction", None) or 0.0
     light = _clamp(active_light_ratio(body), *LIGHT_RANGE) ** LIGHT_EXPONENT
     return (EARTH_BURIAL_MOL_YR * (area_m2 / EARTH_AREA_M2) * min(ocean / EARTH_OCEAN_FRACTION, 1.3) * light
