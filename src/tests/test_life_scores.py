@@ -83,7 +83,9 @@ def test_every_stage_key_is_known():
 
 def test_generated_bodies_carry_scores_that_agree_with_their_life():
     seen = {"scored": 0, "alive": 0, "giant": 0}
-    for seed in range(12):
+    for seed in range(60):
+        if seen["scored"] > 10 and seen["giant"] > 0:      # TEST.714: seeds are searched until the case is found (a change to the star draws, GEN.1623, left 12 seeds with no giant), not pinned to a count
+            break
         with draw.bound(seed):
             system = StarSystem(system_config=SystemConfig())
         for planet in system.planets + system.secondary_planets:
