@@ -31,17 +31,42 @@ def stage_view(stage, run_over, now):
             "peak_mb": stage.get("peak_mb")}
 
 
-def eta_view(run, now):
-    """The time left in a live run, as the ETA reports it, or `None` for a run that is over."""
+UNIT_STATE_WORDS = {"working": "working", "slow": "slow", "waiting": "waiting", "busy": "busy", "quiet": "quiet", "looping": "looping", "dead": "dead"}
+"""dict: What a unit's state is called in the words of a stall's cause."""
+
+
+def stall_cause(views):
+    """
+    What the running units of a stage are doing, in words, for a stage that has finished no unit for a while (OPS.253): `"4 waiting on sky lock, 1 working"`, from the views the unit watch
+    publishes (`unitwatch.view`: `state` and `waiting_on`), the largest group first. `""` for no view.
+    """
+    groups = {}
+    for view in views.values():
+        label = f"waiting on {view['waiting_on']}" if view.get("waiting_on") else UNIT_STATE_WORDS.get(view.get("state"), str(view.get("state") or "working"))
+        groups[label] = groups.get(label, 0) + 1
+    return ", ".join(f"{count} {label}" for label, count in sorted(groups.items(), key=lambda item: (-item[1], item[0])))
+
+
+def current_cause(conn, run):
+    """`stall_cause` of the units of the run's current stage, read from Redis; `""` where the run has no stage or no unit shows."""
+    stages = run["stages"]
+    if not stages:
+        return ""
+    index = min(max(run["current"], 0), len(stages) - 1)
+    return stall_cause(runrecord.unit_json_hash(conn, runrecord.unitstate_key(run["id"], index)))
+
+
+def eta_view(run, now, cause=""):
+    """The time left in a live run, as the ETA reports it, or `None` for a run that is over. `cause` is what the stage's units are doing (`current_cause`), shown with a stalled estimate."""
     if run["state"] not in runrecord.LIVE_STATES:
         return None
     eta = runeta.estimate(run, now)
     return {"seconds": eta.seconds, "low": eta.low, "high": eta.high, "source": eta.source,
             "from_earlier_runs": eta.from_earlier_runs, "partial": eta.partial, "stalled": eta.stalled,
-            "rough": eta.rough}
+            "rough": eta.rough, **({"cause": cause} if eta.stalled and cause else {})}
 
 
-def summary(run, now):
+def summary(run, now, cause=""):
     """
     The run for a list and for the head of its page: identity, state, times, how far it is, the time left, whether it
     has stopped answering (`stale`), and the stage it is in. No stage detail (see `detail`).
@@ -64,20 +89,27 @@ def summary(run, now):
                                                "label": current["label"], "state": stage_state(current)},
         "units": sum(stage["units"] for stage in stages), "units_done": sum(stage["done"] for stage in stages),
         "percent": round(100.0 * cost_done / cost_total, 1) if cost_total else (100.0 if run["state"] == "done" else None),
-        "eta": eta_view(run, now),
+        "eta": eta_view(run, now, cause),
     }
 
 
-def detail(run, now):
+def detail(run, now, cause=""):
     """`summary` and every stage."""
     over = run["state"] not in runrecord.LIVE_STATES
-    return {**summary(run, now), "stages": [stage_view(stage, over, now) for stage in run["stages"]]}
+    return {**summary(run, now, cause), "stages": [stage_view(stage, over, now) for stage in run["stages"]]}
 
 
 def read(conn, run_id, now):
     """`summary` of the run `run_id`, or `None` when it is unknown."""
     run = runrecord.read_run(conn, run_id)
-    return None if run is None else summary(run, now)
+    return None if run is None else summary(run, now, cause_of_stalled(conn, run, now))
 
 
-__all__ = ["DONE", "RUNNING", "WAITING", "detail", "eta_view", "read", "stage_state", "stage_view", "summary"]
+def cause_of_stalled(conn, run, now):
+    """`current_cause` for a live run whose estimate is stalled, else `""` (the units are read only when the line shows them)."""
+    if run["state"] not in runrecord.LIVE_STATES or not runeta.estimate(run, now).stalled:
+        return ""
+    return current_cause(conn, run)
+
+
+__all__ = ["DONE", "RUNNING", "WAITING", "cause_of_stalled", "current_cause", "detail", "eta_view", "read", "stage_state", "stage_view", "stall_cause", "summary"]
