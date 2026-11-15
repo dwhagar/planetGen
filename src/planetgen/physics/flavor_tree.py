@@ -30,6 +30,8 @@ from planetgen.physics import unit_registry as units
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+
 _yr_to_h = units.converter("yr", "h")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
@@ -136,7 +138,7 @@ def _belt_quantities(belt):
     found = {}
     mass, inner, outer = getattr(belt, "mass_kg", None), getattr(belt, "lower_limit", None), getattr(belt, "upper_limit", None)
     if mass:
-        found["belt_mass_earth"] = mass / constants.EARTH_MASS_TO_KG
+        found["belt_mass_earth"] = _kg_to_mearth(mass)
     if inner and outer:
         found["belt_inner_au"], found["belt_outer_au"], found["belt_width_ratio"] = inner, outer, outer / inner
     if getattr(belt, "largest_body_km", None):

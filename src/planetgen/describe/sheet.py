@@ -1059,7 +1059,7 @@ _MOON_RULES = [
 
 _STAR_RULES = [
     (("surface_dipole_field_gauss",), lambda klass, row: row is None or row.get("surface_dipole_field_gauss") is not None or (
-        magnetic_geometry.covered_cool_dwarf(row.get("yerkes_class"), None if row.get("mass_kg") is None else row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+        magnetic_geometry.covered_cool_dwarf(row.get("yerkes_class"), None if row.get("mass_kg") is None else _kg_to_msun(row["mass_kg"]),
                                               row.get("temperature_k"), row.get("rotation_period_hours"))),
      "only a cool dwarf with a convective envelope, whose field follows its Rossby number, and an Ap or Bp dwarf have a dipole field stored; a hot star, a giant and a remnant have none"),
     (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",

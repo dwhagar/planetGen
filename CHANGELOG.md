@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4283] - 2026-11-15
+
+**Headline:** A unit run again after a passing failure goes on after the pieces it finished, and a test now proves it.
+
+### Changed
+- `commands.py` says that `pieces(args, cursor)` takes the ledger cursor, not 0.
+- `test_failure_kinds.py` fails a piece at the start, middle and end, and checks each finished piece is done once and the result is whole.
+
+generation-output: unchanged
+
+## [8.0.4282] - 2026-11-15
+
+**Headline:** a planet that kept no envelope now carries the same private attributes as one that did, so a rogue and a bound planet of one mass have the same attributes again.
+
+### Fixed
+
+- TEST.761: `apply_envelope` set `_envelope_helium_y` and `_tidal_radius_km` only on a planet that kept an envelope, so a rogue planet (no star's X-rays to strip it) that kept a small one had two attributes a bound planet of the same mass, which lost it, never got (`test_a_rogue_and_a_bound_planet_carry_the_same_attributes_and_their_moons_do_too`, 4 cases, red on main). Both are now set to `None` with the other start-of-draw resets in `generate_planet_properties`, so every planet has them and a planet drawn again in place carries nothing of its last draw's helium share or tide radius. Every reader already treated a missing attribute as `None`, and the pinned golden galaxy is unchanged.
+generation-output: unchanged
+
+## [8.0.4281] - 2026-11-15
+
+**Headline:** the mass conversions that had been written by hand again go through the unit registry, and the mass-conversion test and the profile-claim test pass again.
+
+### Fixed
+
+- TEST.762: 18 hand-written divides and multiplies by the mass of the Sun or Earth (`x / SOLAR_MASS_TO_KG`, `x / EARTH_MASS_TO_KG`, `x * SOLAR_MASS_TO_KG`) in describe, galaxy, generation and physics modules now call `unit_registry.converter`, which gives the same bits (`test_the_converters_are_bit_for_bit_the_hand_multiply_and_divide`). Two sites sit inside a longer product or are a ratio of constants (`disk_drift`, `late_supply`) and stay on the allowance list, which now names them.
+- TEST.764: `test_every_change_is_logged_and_kept_for_the_queue_page` expected "1,000 MB" where the log says "1 GB"; the test builds the text with `format_megabytes`, as the log does.
+generation-output: unchanged
+
 ## [8.0.4280] - 2026-11-15
 
 **Headline:** The reason a hycean ocean has no thin-sea tide is written down and a test pins it.

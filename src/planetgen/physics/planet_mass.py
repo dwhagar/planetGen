@@ -160,7 +160,7 @@ def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stre
         found = (tuning.GIANT_GAS_SURVIVAL_SHARE * 10.0 ** (tuning.GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT * fe_h)
                  * metallicity.giant_occurrence_factor(fe_h))
         found *= min(1.0, (tuning.GIANT_GAS_SURVIVAL_CUT_AU / distance_au) ** 2)
-        found *= min(1.0, star_mass_kg / constants.SOLAR_MASS_TO_KG) ** tuning.GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT
+        found *= min(1.0, _kg_to_msun(star_mass_kg)) ** tuning.GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT
         found *= gas_factor
         if source.random() < found:
             core = min(core, _BROWN_DWARF_LIMIT_KG)      # two giants' cores that merged past the deuterium limit leave a planet of at most the limit
