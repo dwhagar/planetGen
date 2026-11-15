@@ -59,7 +59,7 @@ class CommandSpec:
     command that is `whole` declares itself (one item, one unit). One that declares nothing keeps its typed split and runs in plan order (`declaration` is `None`).
 
     **The engine owns the loop of a command with `pieces` and `do` (OPS.191, `queue/engine.py`).** Instead of a `unit` function that loops, counts and checks for itself, the command gives
-    `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: 0 until the ledger stores it, OPS.219), and `do(args, piece, ctx)`, which
+    `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: the ledger cursor, OPS.219; a run again after a passing failure goes on from it), and `do(args, piece, ctx)`, which
     does one piece and returns a JSON-able result or `None`. The engine counts pieces done of pieces in all into the unit's beat and honours a cancel and a pause between two pieces; `ctx` is the one
     object a piece is handed (`engine.Context`: the database, `ctx.commit()`, `ctx.sql`). The unit's result is the list of the pieces' results in order, or, when the command gives
     `gather(args, results, ctx)`, what that makes of them (`ctx.state` is what the pieces left for it). `pieces` and `do` replace `unit`: a command has one or the other. A command with `unit` runs as before until its family converts it.
