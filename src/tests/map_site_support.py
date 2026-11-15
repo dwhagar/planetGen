@@ -266,10 +266,14 @@ def nebula_volume_payload(key):
 
     from planetgen.db.nebula_volumes import inside_block
     from planetgen.galaxy import nebula_blocks, nebula_volume
-    from planetgen.galaxy.drill import parse_node_key
+    from planetgen.galaxy.drill import LANES_KEY, parse_node_key
     from planetgen.galaxy.nodecut import block_box
     from tests import nebula_density_stand_in as stand_in
 
+    if key == LANES_KEY:      # MAP.430: the far-zoom gas lanes, sampled by the real lane sampler from a stand-in gas patch about the fixture's stars
+        packed = nebula_volume.pack(nebula_volume.sample_lanes(stand_in.lane_density, 6000.0, nebula_blocks.FAMILIES.index("dark")))
+        return {"key": key, "format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+                "data": base64.b64encode(packed).decode("ascii")}
     block = parse_node_key(key)
     lo, hi = block_box(block, EDGE_PC)
     found = []
