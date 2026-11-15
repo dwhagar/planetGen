@@ -39,6 +39,8 @@ change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak
 import math
 from dataclasses import dataclass
 
+from planetgen import tuning
+from planetgen.generation import abundance_tier
 from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum, surface_air
 from planetgen.util import log
 
@@ -93,6 +95,9 @@ OCEAN_SPAN_K = (258.0, 275.0, 315.0, 343.0)
 
 LIVING_HYDROSPHERES = ("surface ocean", "hycean")
 """tuple: The states with a sunlit sea for the photosynthesis to stand in (a `brine seep` is not one; GEN.908)."""
+
+DESERT_SEA_STATE = "brine seep"
+"""str: The state of the small salt sea of a desert world, which counts as a sunlit sea only on a desert world a Class M abundance tier made (`productivity`; GEN.1721)."""
 
 MINIMUM_PA = 1.0
 """float: Under this partial pressure, Pa, a world is counted as making no oxygen."""
@@ -201,9 +206,13 @@ def active_light_ratio(body):
 
 
 def reductant_flux(body, area_m2):
-    """`R`, mol/yr: Earth's, times the heat the body's interior and tide give off over Earth's, times `redox_factor`."""
+    """
+    `R`, mol/yr: Earth's, times the heat the body's interior and tide give off over Earth's, times `redox_factor`. A body a Class M abundance tier drew with a quiet interior
+    (`abundance_tier.quiet_interior`, GEN.1721; never on `science`) gives `tuning.ABUNDANCE_QUIET_SINK_FACTOR` of that.
+    """
     flux = (getattr(body, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(body, "tidal_flux_w_m2", None) or 0.0)
-    return EARTH_REDUCTANT_MOL_YR * (flux * area_m2 / EARTH_HEAT_W) * redox_factor(getattr(body, "mantle_delta_iw", None))
+    quiet = tuning.ABUNDANCE_QUIET_SINK_FACTOR if abundance_tier.quiet_interior(body) else 1.0
+    return EARTH_REDUCTANT_MOL_YR * (flux * area_m2 / EARTH_HEAT_W) * redox_factor(getattr(body, "mantle_delta_iw", None)) * quiet
 
 
 def reductant_history_factor(body, age_gyr):
@@ -227,8 +236,12 @@ def reductant_history_factor(body, age_gyr):
 
 
 def productivity(body, area_m2):
-    """`S`, mol/yr, of a body with a sunlit sea (0 for one without)."""
-    if getattr(body, "hydrosphere", None) not in LIVING_HYDROSPHERES:
+    """
+    `S`, mol/yr, of a body with a sunlit sea (0 for one without). The small salt sea of a desert world that a Class M abundance tier made (`abundance_tier.desert_sea`, GEN.1721;
+    never on `science`) counts as a sunlit sea of its own area.
+    """
+    state = getattr(body, "hydrosphere", None)
+    if state not in LIVING_HYDROSPHERES and not (state == DESERT_SEA_STATE and abundance_tier.desert_sea(body)):
         return 0.0
     ocean = getattr(body, "ocean_fraction", None) or 0.0
     light = _clamp(active_light_ratio(body), *LIGHT_RANGE) ** LIGHT_EXPONENT

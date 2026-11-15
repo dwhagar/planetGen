@@ -16,7 +16,7 @@ the science its makers want its rocky planets in the ecosphere pushed toward Ear
 | `plentiful` | 1 in 37 |
 | `abundant` | 1 in 10 |
 
-A tier turns four dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
+A tier turns five dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
 
 1. `water_share`: the share of candidates (`candidate`) whose water class is given by the tier and not drawn from the Bern law at the
    distance the planet formed at.
@@ -26,7 +26,11 @@ A tier turns four dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`
 4. `dry_part` (GEN.1721; Boss, 8:24 PM EST 2026-11-14: desert, ocean, glaciated and hothouse worlds beside the temperate one, the temperate
    one in front): the part of the planets the water dial reaches that take the dry class (`dry` of `physics.delivered_water`, the water of
    a desert world) and not Earth's (`low`). It splits the water dial's one draw and makes none of its own; the rest, the larger part, take
-   Earth's class.
+   Earth's class. A desert world's water is drawn inside `tuning.ABUNDANCE_DESERT_WATER_RANGE`, the part of the dry class that leaves a few small
+   seas, and its small salt sea counts as a living sea for the oxygen its life makes (`desert_sea`; `biogenic_oxygen.productivity`).
+5. `quiet_share` (GEN.1721; Boss, 9:43 PM EST 2026-11-14: "tweak the volcanic activity a bit"): the share of candidates whose interior is quiet, so
+   that its volcanic gases take `tuning.ABUNDANCE_QUIET_SINK_FACTOR` of the oxygen a body of the same heat loses (`quiet_interior`;
+   `biogenic_oxygen.reductant_flux`). One draw per candidate, made once when the planet is first drawn.
 
 No dial touches a class limit, names a class letter or sets a count: each one moves a draw, and the class of every body is still derived
 from its finished conditions. The targets are what the dial values are calibrated to by census; the tier never checks or enforces them.
@@ -53,10 +57,10 @@ TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "sparse": 500, "scattered": 135, 
 measured 1 in 2,800: `sparse` 1 in 500, `abundant` 1 in 10 and the two between split evenly on a log scale, each step about 3.7 times; they replace his
 first set of 1,000, 100, 30 and 10 of 11:19 PM EST 2026-11-13); `None` for `science`, which has no target."""
 
-Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part"])
-"""The four dials of a tier, each a share from 0 (off) to 1."""
+Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part", "quiet_share"])
+"""The five dials of a tier, each a share from 0 (off) to 1."""
 
-OFF = Dials(0.0, 0.0, 0.0, 0.0)
+OFF = Dials(0.0, 0.0, 0.0, 0.0, 0.0)
 """Dials: Every dial off: `science`."""
 
 
@@ -102,6 +106,21 @@ def water_share(body):
 def dry_part(body):
     """The part of the planets the water dial reaches that take the dry class under the tier of `body` (GEN.1721): 0 for a body that is not a `candidate`, and on `science`."""
     return dials_of(body).dry_part if candidate(body) else 0.0
+
+
+def desert_sea(body):
+    """Whether `body` is a desert world a tier made (its water class was dialed to the dry one: `body._water_dialed`, set by `bulk_draw` under a tier only), whose small salt sea counts as a living sea (GEN.1721)."""
+    return getattr(body, "_water_dialed", None) == "dry"
+
+
+def quiet_share(body):
+    """The share of candidates whose interior is quiet under the tier of `body` (GEN.1721): 0 for a body that is not a `candidate`, and on `science`."""
+    return dials_of(body).quiet_share if candidate(body) else 0.0
+
+
+def quiet_interior(body):
+    """Whether a tier drew `body` with a quiet interior (`body._quiet_interior`, set by `Planet._draw_body` under a tier only; never on `science`)."""
+    return bool(getattr(body, "_quiet_interior", False))
 
 
 def bare_share(body):

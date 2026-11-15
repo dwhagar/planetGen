@@ -96,10 +96,11 @@ def sample_fraction(mass_earth, snow_ratio, rng=draw, dialed=None):
     The water mass fraction of a rocky body of `mass_earth` Earth masses that formed at `snow_ratio` snow lines: the class from
     `class_shares`, then a log-uniform share inside it. Two draws (a uniform for the class, one for the share).
 
-    `dialed` (the answer of `dialed_class`) takes that class in place of the law's: no class draw, the share inside it log-uniform as before (one draw).
+    `dialed` (the answer of `dialed_class`) takes that class in place of the law's: no class draw, the share inside it log-uniform as before (one draw); a dialed desert world
+    draws inside `tuning.ABUNDANCE_DESERT_WATER_RANGE`, the part of the dry class that leaves a few small seas (GEN.1721).
     """
     if dialed:
-        return log_uniform(*bracket(dialed), rng=rng)
+        return log_uniform(*(tuning.ABUNDANCE_DESERT_WATER_RANGE if dialed == DESERT_CLASS else bracket(dialed)), rng=rng)
     shares = class_shares(mass_earth, snow_ratio)
     pick = rng.random()
     running = 0.0
