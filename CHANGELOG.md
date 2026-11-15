@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4244] - 2026-11-15
+
+**Headline:** The Queue page now shows every job of a run with its attempts and why it waits, and a history of runs, read from the job ledger.
+
+### Added
+
+- OPS.224 (job engine stage 3, L10): `GET /api/admin/work/<id>/jobs` and `/jobs/<job id>` serve a run's jobs and one job's attempts from the ledger (`queue/jobview.py`), and `GET /api/admin/work/history` the runs the ledger holds, filtered by state, kind or galaxy. The run page gets a Jobs panel; `/admin/queue/<id>/jobs` lists the jobs under a state menu, each with its attempts, how its newest attempt ended and, when it is not running, why it waits; `/admin/queue/<id>/job/<job>` shows every attempt with its cost, error text and stack file; the queue page ends with a Run history table.
+- A job that a worker holds at the memory gate now says why in the ledger (`engine_jobs.waited`, the gate's own words from `memorygate.decide`, written when the reason changes and at most every 15 s), a retry hold shows how long is left, and the end of a stage names what it still needs. Reused: `runview`, `planrows.control_connection`, `datatable`, the run page's panel and table markup.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4243] - 2026-11-15
 
 **Headline:** The stage-wording tests no longer expect "0 s" from a stage that really took a few milliseconds.
