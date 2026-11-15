@@ -4332,7 +4332,7 @@ The vapor pressure of disulfur over condensed sulfur, a row of `physics/data/sat
 |---|---|---|---|---|---|---|---|---|---|
 | ACV1 | T | T3 | L0 | asteroid_vocabulary.HOSTED: the platinum-group elements and gold in kamacite and taenite (0.01 to 10 ppm), the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides | the host list of each element group | the primitive taxa of the mixes | a meteorite analysis that puts the element group in a host the list lacks, or finds it in none of them | a speciation of the bulk into the minerals (GEN.1362 and its successors) | the research file's table of hosts in a primitive body, recalled from the ore and meteorite literature; not opened |
 
-### 6.299 Stand-ins of the planet's Hill sphere against the bodies besides its host (GEN.1449, slice 1)
+### 6.300 Stand-ins of the planet's Hill sphere against the bodies besides its host (GEN.1449, slice 1)
 
 How the Hill sphere that limits a planet's moons (`planets.moon_orbit_bounds_km`, `planets.moon_stable_limit_km`, `irregular_zone.zone`, the Hill escape of `moon_history.apply`) takes the tide of the host's companion stars and the sibling planets (`physics/hill_perturbers.py`). A planet with none gives the host-only sphere exactly.
 

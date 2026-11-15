@@ -22,19 +22,19 @@ its moons and everything after them are what they were.
 
 **What it leaves out (stated).** Coplanar orbits: a mutual inclination only lengthens the mean separation, so this is the upper bound on each pull (the inclination is GEN.1449's third
 slice). A sibling is the point of its planet and moons together. The mean `1 / d^3` stands for the encounters (a closer approach is stronger and shorter); the Domingos fit's planet-eccentricity
-term stands for the host's.
+term stands for the host's. The two stand-ins are rows HP1 and HP2 of section 6.300 of the gap-filling plan (GEN.725); HP2 is the coplanar mean, tagged on `tidal_ratio`.
 """
 
 from planetgen.physics import constants, tide_sources
 
 NON_HOST_TIDE_WEIGHT = 2.0
 """float: The weight of a non-host body's tide against the host's `3` in the field that sets the Hill radius: the stretch (`2 G m / d^3`) without the centrifugal term of the rotating frame, which
-only the host's orbit makes. Source tier: educated guess from physics (the Hill criterion's own derivation), tweak level L1 (the weight is inside `[1, 3]`)."""
+only the host's orbit makes. [Stand-in 6.300 HP1, tier T6, tweak L1.] Source tier: educated guess from physics (the Hill criterion's own derivation); the weight is inside `[1, 3]`."""
 
 
 def tidal_ratio(planet):
     """
-    `P / H`, the tidal field of the companion stars and the sibling planets of `planet` over the host's, at the planet's place. `0.0` for a planet with none of them, a moon, a body with no
+    `P / H` [Stand-in 6.300 HP2, tier T6, tweak L0: the coplanar mean of `1 / d^3`], the tidal field of the companion stars and the sibling planets of `planet` over the host's, at the planet's place. `0.0` for a planet with none of them, a moon, a body with no
     host or orbit, or one whose neighbours are not stored (`planet._tide_siblings` is set by `tide_sources.register`; without it only the companion stars count).
     """
     host = getattr(planet, "star", None)

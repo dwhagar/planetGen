@@ -67683,8 +67683,8 @@
       "title": "Stand-ins of the growth of ice and snow on a world's water (GEN.1728)"
     },
     {
-      "key": "6.299",
-      "number": "6.299",
+      "key": "6.300",
+      "number": "6.300",
       "rows": [
         {
           "burn_down": null,
@@ -67715,9 +67715,9 @@
             ]
           ],
           "id": "HP1",
-          "key": "6.299:HP1",
+          "key": "6.300:HP1",
           "kind": "P",
-          "slug": "6-299-hp1",
+          "slug": "6-300-hp1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -67753,9 +67753,9 @@
             ]
           ],
           "id": "HP2",
-          "key": "6.299:HP2",
+          "key": "6.300:HP2",
           "kind": "P",
-          "slug": "6-299-hp2",
+          "slug": "6-300-hp2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -67763,7 +67763,7 @@
           "what": "<1/d^3> of each source is tide_sources.orbit_mean_inverse_cube (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters"
         }
       ],
-      "slug": "6-299-stand-ins-of-the-planet-s-hill-sphere-against-the-bodies-besides-its-host-gen-1449",
+      "slug": "6-300-stand-ins-of-the-planet-s-hill-sphere-against-the-bodies-besides-its-host-gen-1449",
       "title": "Stand-ins of the planet's Hill sphere against the bodies besides its host (GEN.1449)"
     }
   ]
