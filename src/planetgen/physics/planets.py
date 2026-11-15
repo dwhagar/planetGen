@@ -274,6 +274,8 @@ def generate_planet_properties(planet, zone_override=None):
     # in place -- and the class, which is derived once the body is finished (`apply_class`).
     planet._bare_core = None             # a new draw has no envelope yet (`apply_envelope`, GEN.1323)
     planet._captured_envelope = 0.0
+    planet._envelope_helium_y = None     # TEST.761: the helium share a hydrogen-first loss left and the radius an obliquity tide gave (`apply_envelope`): a body is made with both, so a planet that kept no
+    planet._tidal_radius_km = None       # envelope has the attributes of one that did, and a body drawn again in place carries nothing of its last draw
     planet.atmosphere = None
     planet.atm_density = None
     planet.atm_molar_density = None
