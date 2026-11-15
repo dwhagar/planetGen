@@ -53275,6 +53275,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "hydrosphere.ISOSTATIC_BASIN_KM 11.4 (the deepest mean ocean basin before the continents are covered, km at Earth's gravity, scaling as 1 / g; the ocean crust of HYPSOMETRY sinks to the layer over its share of the area, no shallower than Earth's)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.BRINE_MAX_WATER_FRACTION 2e-5 (surface water under this fraction of the planet's mass holds Earth's salt, 8.2e-6 of the planet's mass, at or over the saturation of rock salt, 26.4 percent by mass: 8.2e-6 x 0.736 / 0.264 = 2.3e-5; the sea is then a halite-saturated sea, GEN.1730)"
+            ],
+            [
+              "The range it moves in",
+              "1e-5 to 3e-5 (Earth's salt per mass from 0.4 to 1.3 times)"
+            ],
+            [
+              "Where it holds",
+              "a liquid surface ocean of little water"
+            ],
+            [
+              "What would show it wrong",
+              "a sea of 5e-6 whose salt (Earth's per planet mass, 8.2e-6) is not over its saturation"
+            ],
+            [
+              "What replaces it",
+              "a salt balance of weathering supply against the water that holds it (GEN.1721 follow-up)"
+            ],
+            [
+              "Evidence",
+              "Earth's ocean salt 4.9e19 kg on 6e24 kg (the ocean of 1.4e21 kg holds 3.5 percent), rock salt saturated at 26.4 percent by mass (the standard solubility of halite in water)"
+            ]
+          ],
+          "id": "HY4",
+          "key": "6.134:HY4",
+          "kind": "P",
+          "slug": "6-134-hy4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrosphere.BRINE_MAX_WATER_FRACTION 2e-5 (surface water under this fraction of the planet's mass holds Earth's salt, 8.2e-6 of the planet's mass, at or over the saturation of rock salt, 26.4 percent by mass: 8.2e-6 x 0.736 / 0.264 = 2.3e-5; the sea is then a halite-saturated sea, GEN.1730)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.NACL_SATURATION_ACTIVITY 0.753 and NACL_EUTECTIC_K 251.85 (the water activity of a sodium chloride solution saturated at 25 C, and the sodium chloride eutectic, minus 21.3 C)"
+            ],
+            [
+              "The range it moves in",
+              "none (standard values)"
+            ],
+            [
+              "Where it holds",
+              "a halite-saturated sea (GEN.1730)"
+            ],
+            [
+              "What would show it wrong",
+              "none: a measured fixed point"
+            ],
+            [
+              "What replaces it",
+              "the temperature curve of the saturated solution's activity (small, 0.75 to 0.76 between 0 and 100 C)"
+            ],
+            [
+              "Evidence",
+              "the saturated NaCl solution of the Toner, Catling and Light eutectic table ([R4397]: NaCl, minus 21.3 C); the standard humidity fixed point 75.3 percent; [R5164] gives about 0.75 for the brine saturated with halite"
+            ]
+          ],
+          "id": "HY5",
+          "key": "6.134:HY5",
+          "kind": "D",
+          "slug": "6-134-hy5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrosphere.NACL_SATURATION_ACTIVITY 0.753 and NACL_EUTECTIC_K 251.85 (the water activity of a sodium chloride solution saturated at 25 C, and the sodium chloride eutectic, minus 21.3 C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.SEA_MIN_DEPTH_KM 0.01 (the least liquid depth of a halite-saturated sea that is a surface ocean, km, ten metres; a shallower one is a brine seep, a puddle the sea laws leave out)"
+            ],
+            [
+              "The range it moves in",
+              "1 m to 100 m"
+            ],
+            [
+              "Where it holds",
+              "a halite-saturated sea"
+            ],
+            [
+              "What would show it wrong",
+              "a measured lake of 5 m whose life and weathering the sea laws should count, or a 50 m one they should not"
+            ],
+            [
+              "What replaces it",
+              "a depth from the sea laws' own need (the lit and mixed layer of the oxygen law, the surface-area law of a lake)"
+            ],
+            [
+              "Evidence",
+              "needed output: a shallow lake is not a puddle; no source gives the line"
+            ]
+          ],
+          "id": "HY6",
+          "key": "6.134:HY6",
+          "kind": "P",
+          "slug": "6-134-hy6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrosphere.SEA_MIN_DEPTH_KM 0.01 (the least liquid depth of a halite-saturated sea that is a surface ocean, km, ten metres; a shallower one is a brine seep, a puddle the sea laws leave out)"
         }
       ],
       "slug": "6-134-stand-ins-of-the-ocean-cover-law-and-the-mantle-s-water-store",
@@ -66289,7 +66403,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
+              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) (a desert world a tier made draws its water in the part of the dry class that leaves a few small seas; its small sea is a halite-saturated sea, a lake and not a seep where it is deep enough, the same law as every other sea of so little water since GEN.1730, rows HY4 to HY6)"
             ],
             [
               "The range it moves in",
@@ -66320,7 +66434,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
+          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) (a desert world a tier made draws its water in the part of the dry class that leaves a few small seas; its small sea is a halite-saturated sea, a lake and not a seep where it is deep enough, the same law as every other sea of so little water since GEN.1730, rows HY4 to HY6)"
         }
       ],
       "slug": "6-289-stand-ins-of-the-class-m-abundance-tiers-gen-1704",

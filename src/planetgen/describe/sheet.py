@@ -27,7 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -1000,7 +1000,7 @@ _BODY_RULES = [
     (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,
      "only a methane, ethane or nitrogen sea has a makeup of the three: any other liquid, or none, stores none"),
     ((surface_liquid_world.SALT_FIELD,), lambda klass, row: row is None or (row.get("surface_liquid") == surface_liquid_world.WATER_ID
-                                         and (row.get("water_activity") or 0.0) >= surface_liquid_world.NACL_SATURATION_ACTIVITY),
+                                         and (row.get("water_activity") or 0.0) >= hydrosphere.NACL_SATURATION_ACTIVITY),
      "only a water sea at or above the activity of saturated sodium chloride (0.753) has a salt expressed as sodium chloride: a brine of other salts, a sea of another liquid, a lava surface, a frozen or dry body has none"),
     (surface_liquid_world.SECOND_FIELDS, lambda klass, row: row is None or row.get("surface_liquid_2") is not None,
      "a body holds a second surface liquid only when two are stable and supplied, and the main one leaves room for it"),
