@@ -493,6 +493,12 @@ class Queue(_Section):
         label="Longest wait for a run",
         summary="How long a run waits in line for the one in front of it before it gives up (0 means it "
                 "does not wait).")
+    debug_restarts: bool = opt(
+        True, "A unit that runs again (a retry after a kill, a stuck stop or a failure, a resume after an update) runs in debug mode: every debug area is logged to a file of its own in "
+        "the log folder's unit-debug folder, named by the unit's job, unit and attempt, that opens with how the attempt before it ended and its stack. The run's log names the file. "
+        "Each file is capped at 20 MB and the folder keeps the newest 400 files. Off, nothing extra is written.", group="speed",
+        label="Debug log of a restarted unit",
+        summary="A unit that runs again writes a debug log of its own.")
     max_waiting: int = opt(
         8, "How many entries the one waiting list holds: generation runs and API jobs that wait for the "
         "machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list.",

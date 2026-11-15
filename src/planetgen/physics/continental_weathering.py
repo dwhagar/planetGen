@@ -41,8 +41,10 @@ Every number that is not read from a source is a design constant with its source
 
 import math
 
+from planetgen import tuning
 from planetgen.physics import surface_pressure, waterworld_carbon
 from planetgen.physics.mixture_base import bracket
+from planetgen.util import draw
 
 # --- [R1660: Table 1] (read) -----------------------------------------------------------------------------------
 
@@ -107,12 +109,31 @@ LAMBDA_SCALE = (0.1, 10.0, "log")
 (stand-in AM109, tier T1, tweak level L0)."""
 
 
-def draw_cycle(constants):
-    """`(lambda_scale, m)`: the factor of the thermodynamic limit and the exponent of the heat flow in the outgassing, drawn and recorded in `constants`."""
-    return (bracket(constants, "weathering_lambda_scale", LAMBDA_SCALE), bracket(constants, "outgassing_exponent", surface_pressure.OUTGASSING_EXPONENT))
+def draw_cycle(constants, nudge_share=0.0):
+    """
+    `(lambda_scale, m)`: the factor of the thermodynamic limit and the exponent of the heat flow in the outgassing, drawn and recorded in `constants`.
+
+    `nudge_share` is the `cycle_share` of a Class M abundance tier (GEN.1720): that share of the bodies draw both from the part of their published range that holds the balance nearest the Earth's
+    (`tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE`, `ABUNDANCE_CYCLE_OUTGASSING_RANGE`; recorded as `cycle_nudged`). The roll is made on a stream of its own and the constants are drawn from the ambient stream as before (two draws), so the stream
+    moves the same with a tier as without and a body outside a tier draws as it always did.
+    """
+    nudged = False
+    if nudge_share > 0.0:
+        # The nudge is rolled on a stream of its own, seeded from the run stream's state without moving it: the ambient stream advances by the two draws of the constants whatever the share, so a tier moves nothing else of the body
+        # (the air recipe, the sulfur lifetimes and the seafloor law drawn after it), and no draw is shared between the roll and the constants.
+        nudged = draw.Stream(f"cycle-nudge:{draw.getstate()!r}").random() < nudge_share
+    if nudge_share > 0.0:
+        constants["cycle_nudged"] = nudged
+    return (bracket(constants, "weathering_lambda_scale", tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE if nudged else LAMBDA_SCALE),
+            bracket(constants, "outgassing_exponent", tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE if nudged else surface_pressure.OUTGASSING_EXPONENT))
 
 
 # --- the land law -----------------------------------------------------------------------------------------------------------------
+
+def latent_j_m3(temperature_k):
+    """The latent heat of the water cycle at `temperature_k`, joules per cubic metre of liquid water: `L(T) = 1.918e9 (T / (T - 33.91))^2` ([R1660: Eq. 44]); `temperature_k` must be over `LATENT_OFFSET_K`."""
+    return LATENT_COEFFICIENT_J_M3 * (temperature_k / (temperature_k - LATENT_OFFSET_K)) ** 2
+
 
 def runoff_m_yr(temperature_k, absorbed_flux_w_m2):
     """
@@ -122,7 +143,7 @@ def runoff_m_yr(temperature_k, absorbed_flux_w_m2):
     if temperature_k <= LATENT_OFFSET_K:
         return 0.0
     precipitation = PRECIPITATION_REF_M_YR * (1.0 + PRECIPITATION_PER_K * (temperature_k - REFERENCE_K))
-    latent = LATENT_COEFFICIENT_J_M3 * (temperature_k / (temperature_k - LATENT_OFFSET_K)) ** 2
+    latent = latent_j_m3(temperature_k)
     energy_limit = max(absorbed_flux_w_m2, 0.0) / latent * SECONDS_PER_YEAR
     return RUNOFF_SHARE * max(min(precipitation, energy_limit), 0.0)
 

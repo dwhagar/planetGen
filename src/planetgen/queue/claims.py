@@ -16,7 +16,7 @@ largest peak, `memorygate.learn`, and claims that with a margin). A stand-in is 
 them because they are replaced by a measurement in the first run, and `memorygate.snapshot` shows what was learned.
 """
 
-from planetgen.queue import commands, memorygate, pause, redisqueue, workers
+from planetgen.queue import commands, memorygate, pause, redisqueue, tokens, workers
 from planetgen.queue.memorygate import Claim
 from planetgen.util import log
 
@@ -62,8 +62,10 @@ CALLBACKS = frozenset({
     "planetgen.queue.units.open_failed",
     "planetgen.queue.requires.job_failed",
     "planetgen.queue.requires.job_succeeded",
+    "planetgen.queue.forkedjob.run",
+    "planetgen.queue.units.warm_star_tables",
 })
-"""frozenset: The functions that run as a job's callbacks, in the horse of the job they follow: they are inside its claim and take no claim of their own."""
+"""frozenset: The functions that run inside another claim: a job's callbacks, in the horse of the job they follow, and the runner of a unit forked from a template (OPS.226), which runs inside the unit's claim, and the warm set of a template, which is the template's own to hold and no job's; none takes a claim of its own."""
 
 API_CLAIMS = {
     "planetgen.api.edits:change_star_job": (workers.BULK_WORKER_MEMORY_MB, 1.0),
@@ -105,6 +107,11 @@ def lane_of(queue_name):
     if queue_name == redisqueue.LONG_QUEUE:
         return memorygate.LANE_LONG
     return memorygate.LANE_OTHER
+
+
+def unit_tokens(kind):
+    """The named resources a unit of command `kind` must hold (`CommandSpec.tokens`; none for a command that is not registered)."""
+    return tuple(commands.spec(kind).tokens) if kind in commands.REGISTRY else ()
 
 
 def unit_table_mb(kind):
@@ -214,5 +221,8 @@ def claim_for(job, conn):
         (mb, cpu), exclusive = function_table(function), False
         kind = f"fn:{function}"
     solo = pause.solo_of(conn)
+    held = unit_tokens(job.args[3]) if function == UNIT_FUNCTION else ()        # OPS.232: the named resources a unit of this command holds
+    if solo and solo["job"] == job.id:
+        held += (tokens.ALONE,)         # OPS.145: the restarted unit that runs alone holds the host
     token = job.args[0] if function in (UNIT_FUNCTION, OPEN_FUNCTION) else None        # OPS.156: a run holds one figure per kind
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, held)

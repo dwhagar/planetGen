@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -353,7 +353,9 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
             # the air it has is warmed under the starlight and its own heat together
             radiated = absorbed + giant_draw.own_flux_w_m2(body)
-            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, haze.absorbed_share * absorbed / radiated, haze.pressure_pa)
+            # GEN.1717: and the starlight the air's own gases take aloft goes where they take it, with the haze's
+            taken = starlight_aloft.combine(haze.absorbed_share, haze.pressure_pa, starlight_aloft.of_air(air, gravity, body.star.temperature, body.surface_temperature))
+            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, taken.share * absorbed / radiated, taken.pressure_pa or haze.pressure_pa)
             assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
             continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
@@ -431,6 +433,22 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
     for key, air in jumped:
         assert air.knee and not air.converged, key
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
+
+
+CREEP_KEYS = (274, 387)
+"""tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
+these are (key 175 before GEN.1623's star table); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
+
+
+def test_an_air_still_creeping_when_its_steps_run_out_is_given_more_and_settles(monkeypatch):
+    """GEN.1718 part 2: an ice-albedo creep after an early swing had taken the damping to its floor fell 5 percent of its residual a step and was stored unsettled when the 60 steps ran out; it is given `CREEP_EXTENSION`
+    more with the damping restored and settles in them; an air that settles inside `MAX_STEPS` (key 5) is not given them."""
+    for key in CREEP_KEYS:
+        _, creeping = _first_air_of(key, monkeypatch)
+        assert creeping.converged and sa.MAX_STEPS < creeping.steps <= sa.MAX_STEPS + sa.CREEP_EXTENSION, (key, creeping.steps, creeping.converged)
+    _, plain = _first_air_of(5, monkeypatch)
+    assert plain.steps <= sa.MAX_STEPS
+    assert sa._creeps([-3.0] * 8) and sa._creeps([2.0] * 9) and not sa._creeps([-3.0] * 7 + [3.0]) and not sa._creeps([-0.05] * 8) and not sa._creeps([-3.0] * 5)
 
 
 def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began(monkeypatch):

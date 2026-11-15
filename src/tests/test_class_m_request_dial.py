@@ -43,7 +43,7 @@ def _star(system):
 
 def test_the_request_is_a_system_attribute_and_never_enters_the_config(monkeypatch):
     _stars_only(monkeypatch)
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0))
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0, 0.0, 0.0))
     system, config = _build(5, "abundant")
     assert system._tier_request is True and config.HABITABLE_WORLD is None
     assert system.habitable_request_status() is None and StarSystem._tier_request is False
@@ -73,7 +73,7 @@ def test_a_tier_with_no_request_share_makes_the_same_system_as_science(monkeypat
 
 def test_the_primary_star_is_identical_on_science_and_abundant_for_200_seeds(monkeypatch):
     _stars_only(monkeypatch)
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0))
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0, 0.0, 0.0))
     for seed in range(5000, 5200):
         science, _ = _build(seed, "science")
         abundant, _ = _build(seed, "abundant")
@@ -83,7 +83,7 @@ def test_the_primary_star_is_identical_on_science_and_abundant_for_200_seeds(mon
 
 def test_share_half_requests_about_half_of_the_systems(monkeypatch):
     _stars_only(monkeypatch)
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 0.5, 0.0))
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 0.5, 0.0, 0.0, 0.0))
     hits = sum(_build(seed, "abundant")[0]._tier_request for seed in range(6000, 6200))
     assert hits / 200 == pytest.approx(0.5, abs=0.14)
 
@@ -91,7 +91,7 @@ def test_share_half_requests_about_half_of_the_systems(monkeypatch):
 @pytest.mark.parametrize("flags", [{"HABITABLE_WORLD": False}, {"HABITABLE_WORLD": True}, {"PLANETS": False}, {"ASTEROID_BELT": True}])
 def test_a_config_the_user_set_is_left_alone(flags, monkeypatch):
     _stars_only(monkeypatch)
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0))
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (1.0, 1.0, 1.0, 0.0, 0.0, 0.0))
     system, config = _build(9, "abundant", **flags)
     assert system._tier_request is False
     assert config.HABITABLE_WORLD is flags.get("HABITABLE_WORLD")

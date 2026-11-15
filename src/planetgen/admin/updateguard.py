@@ -389,12 +389,16 @@ class RunRecordSource(_RedisSource):
             found.append({"source": self.name, "kind": run["kind"], "id": run_id, "title": run["title"],
                           "started": _iso(datetime.fromtimestamp(started, timezone.utc)) if started else None,
                           "holds": "the generation slot" if run["kind"] == runrecord.GENERATION else "a run slot",
-                          "queued": False, "protect": run["kind"] == runrecord.GENERATION})
+                          "queued": False, "protect": run["kind"] == runrecord.GENERATION, "drain": run["kind"] == runrecord.GENERATION})
         return found
 
     def cancel(self, item):
-        from planetgen.queue import runcontrol
-        return runcontrol.cancel_run(self._connection(), item["id"], who="update") is not None
+        """A generation run is drained, not canceled (OPS.222): held "stopped for update", its units stop at their next piece, and the end of the update carries it on (`held.resume_after_update`)."""
+        from planetgen.queue import held, runcontrol
+        connection = self._connection()
+        if item.get("drain"):
+            return held.drain_run(connection, item["id"])
+        return runcontrol.cancel_run(connection, item["id"], who="update") is not None
 
 
 def default_sources(url=None):
@@ -475,7 +479,8 @@ def describe(items):
     for item in items:
         state = "queued" if item.get("queued") else "running"
         started = f", started {item['started']}" if item.get("started") else ""
-        lines.append(f"  - {item['title']} ({item['kind']} {item['id']}, {state}{started}; holds {item['holds']})")
+        lines.append(f"  - {item['title']} ({item['kind']} {item['id']}, {state}{started}; holds {item['holds']})"
+                     + (" -- held for the update, not canceled: it goes on after it" if item.get("drain") else ""))
     return lines
 
 
@@ -492,7 +497,7 @@ def cancel_all(sources, items, write=print, why=None):
     """Asks each source to stop `items` through its own cancel path (`why` is the stop reason left for a
     command-line run)."""
     by_name = {source.name: source for source in sources}
-    for item in items:
+    for item in sorted(items, key=lambda item: item["source"] != "run-record"):     # OPS.222: a run is drained before the process that follows it is stopped, so that process cannot end the run
         if why:
             item = {**item, "why": why}
         try:
@@ -642,6 +647,18 @@ def _not_updating(already_closed, write, why, items, tail=None):
     return False
 
 
+def _resume_drained(write):
+    """OPS.222, part A: the runs the update drained are carried on, and the output says what was queued (and which run stays held, and why)."""
+    try:
+        from planetgen.queue import held, redisqueue
+        connection = redisqueue.connect()
+        connection.ping()
+        for line in held.resume_after_update(connection):
+            write(line)
+    except Exception as exc:  # noqa: BLE001 -- no Redis server, or nothing to resume: the update itself succeeded
+        log.swallowed("admin/updateguard", "_resume_drained", exc)
+
+
 def end(pid, ok, step=None, write=print):
     """
     Ends the update `pid` holds the lock for. A good run opens the site again (unless an admin had closed it
@@ -661,6 +678,7 @@ def end(pid, ok, step=None, write=print):
     if ok:
         if lock is not None and not lock.get("kept"):
             maintenance.turn_off_for(UPDATE_CAUSE, by="update")
+        _resume_drained(write)
         return not maintenance.is_on()
     failed = f"error: the update failed{f' at {step}' if step else ''}."
     if state["enabled"] and state["cause"] == UPDATE_CAUSE:

@@ -95,3 +95,32 @@ def test_the_cut_writes_the_jobs_that_end_the_stage_with_an_edge_each_and_the_ru
     assert ends == [("conclude", '["units"]', "done"), ("finish", '["conclude"]', "done"), ("release", '["finish"]', "done")]
     assert planrows.ended(conn, run_id, 0) == {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
     assert len(planrows.record_cut(conn, run_id, 0, "first", [], 0.0, {})) == 2, "the end rows are not unit rows"
+
+
+def test_a_kind_with_end_commands_has_them_as_the_commands_of_its_end_rows(monkeypatch, mysql_config):
+    """OPS.260: the `conclude` and `finish` rows of a stage are named for the stage's own end commands, and `ended` still reports the roles."""
+    _register(monkeypatch, first=_units(2))
+    CALLS.clear()
+    monkeypatch.setitem(commands.END_COMMANDS, ("conclude", "first"), commands.EndCommand("conclude", "first", (__name__, "_conclusion")))
+    monkeypatch.setitem(commands.END_COMMANDS, ("finish", "first"), commands.EndCommand("finish", "first", (__name__, "_metrics")))
+    run_id = wrapper.run("Ends", [commands.Step("a", "first", "A", {"x": 1, "database": wrapper.database_args(mysql_config)})], lambda index, plan: None, lambda index, unit, result: None)
+    conn = redisqueue.connect()
+    ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)))
+    ends = [(job["command"], job["needs"], job["state"]) for job in _jobs(mysql_config, ledger_run) if job["item_key"] == "" and job["command"] != "open"]
+    assert ends == [("conclude-first", '["units"]', "done"), ("finish-first", '["conclude-first"]', "done"), ("release", '["finish-first"]', "done")]
+    assert planrows.ended(conn, run_id, 0) == {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
+    assert CALLS == ["conclude", "finish"], "each end command ran once, in order"
+    assert commands.end_name("first", "conclude") == "conclude-first" and commands.end_name("nothing-like-it", "finish") == "finish"
+
+
+CALLS = []
+
+
+def _conclusion(params, plan, results, seconds):
+    CALLS.append("conclude")
+    return {"units": len(results)}
+
+
+def _metrics(params, plan, results, seconds):
+    CALLS.append("finish")
+    return {}

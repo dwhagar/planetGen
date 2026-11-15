@@ -98,14 +98,14 @@ def planet_of(system, star, belt, order, member):
 def promote(system, star, bodies):
     """
     Promotes the round members of every belt in `bodies` (one star's planets and belts, in orbital order): makes their planets, takes them out of their belts' members and masses and puts them in `bodies` by distance.
-    A member whose planet the planet generator does not call round (it has no class: its own roundness ratio under 1, as for a member only just over the round mass, or its orbit reaches beyond the farthest stable orbit of the star, `validation.orbit_ceiling_au`, as a member on a long ellipse at the belt's edge can) stays a member, and the next heaviest is tried,
+    A member whose planet the planet generator does not call round (it has no class: its own roundness ratio under 1, as for a member only just over the round mass, or its orbit reaches beyond the farthest orbit the star keeps, `StarSystem._orbit_ceiling_au` (the star's stable limit and the place's survival limit, GEN.325), as a member on a long ellipse at the belt's edge can) stays a member, and the next heaviest is tried,
     to at most twice the limit of tries a belt, so every promoted body is a planet with a class.
 
     Returns:
         list: The new planets, in the order they were made (belt by belt, heaviest first).
     """
     made = []
-    ceiling = validation.orbit_ceiling_au(star)
+    ceiling = system._orbit_ceiling_au(star)        # the star's own ceiling and the place's survival limit (GEN.325), the one the slots keep
     for order, belt in irregular_moons.belts_of(bodies).items():
         taken = 0
         cap = oligarch_cap_kg(star, belt)

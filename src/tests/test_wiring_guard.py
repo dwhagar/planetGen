@@ -33,7 +33,8 @@ def test_the_register_parses_every_line_it_has():
 
 def test_the_guard_reaches_the_modules_the_app_reaches(code):
     assert "planetgen.physics.main_sequence" in code.reachable
-    assert "planetgen.physics.line_opacity" not in code.reachable
+    assert "planetgen.physics.radiative_convective" not in code.reachable      # the model the generator never runs (it reads the table that stands for it, GEN.850); line_opacity was this check until GEN.1717 wired it
+    assert "planetgen.physics.line_opacity" in code.reachable
 
 
 def test_a_module_named_by_a_string_is_reached(code):

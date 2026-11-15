@@ -37,24 +37,22 @@ class CommandSpec:
     """
     A registered command. `unit` and `expand` are `(module, function)` pairs (what Redis holds can pick a command
     but never names a function): `unit(args, report)` does one unit and returns a JSON-able result; `expand(params)`
-    returns the `Expansion` of the command's stage; `finish(params, plan, results, seconds)`, when given, is called
-    once by the unit that completes the stage (PERF.106) with the step's parameters, the stage's plan, every unit's
-    result in unit order and the seconds the stage took, records what the command's speed statistics need and returns
-    the metrics the stage's row is stored with. `warm(unit_args)`, when given, is called by the worker before it forks
+    returns the `Expansion` of the command's stage;     `warm(unit_args)`, when given, is called by the worker before it forks
     a horse for a unit of this command (`units.warm_unit`, PERF.146): it works out in the worker what every unit
     would otherwise work out for itself. A command with no `unit` is inline.
 
-    The work a stage does that is not a unit (PERF.172) is a hook of its command, run by whichever process starts or
-    ends the stage, and a failure in one fails the run: `conclude(params, plan, results, seconds)`
-    once when its last unit is done, before the next stage is cut (stores what the stage drew as a whole); it returns a
-    JSON-able dict the process following the run reads (`wrapper.run`'s `on_stage_done`). The unit that completes
-    the stage calls `conclude`; a cut that gives no unit at all is concluded by the process that cut it
-    (`wrapper._conclude_empty_stage`).
+    The work a stage does that is not a unit (PERF.172) is a command of its own (OPS.260), an `EndCommand` in `END_COMMANDS` named `conclude-<kind>` or `finish-<kind>`: the `conclude` row of the
+    stage's end runs `conclude(params, plan, results, seconds)` once when its last unit is done, before the next stage is cut (stores what the stage drew as a whole) and returns a JSON-able dict the
+    process following the run reads (`wrapper.run`'s `on_stage_done`); the `finish` row runs `finish(params, plan, results, seconds)` and returns the metrics the stage's row is stored with. A
+    failure in a conclusion fails the run. The unit that completes the stage runs both; a cut that gives no unit at all is ended by the process that cut it (`wrapper._conclude_empty_stage`).
 
     The unit-length ceiling (PERF.155, `queue.unit_ceiling_seconds`): `whole` is set for a command whose stage is one
     unit by nature, which the ceiling does not hold; any other queued command is cut into units and declares in
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
     unit that runs longer than the ceiling anyway is written to the run's log.
+
+    The named resources (OPS.232, `queue/tokens.py`): `tokens` are the names a unit of the command must hold while it runs besides memory and cores (`tokens.MYSQL_WRITE` for a command that writes so much
+    that two at once only slow each other down); the gate lets one claim hold a name at a time.
 
     The break points (OPS.161): `breaks`, when given, is a `(module, function)` pair; `breaks(params)` returns the command's `breakpoints.Declaration` for a stage with those
     parameters (the suggested split, where a cut may fall, the split flag, what the command depends on), which the queue engine reads to choose the stage's cut (`splitter`). A
@@ -76,9 +74,7 @@ class CommandSpec:
     summary: str
     unit: tuple = None
     expand: tuple = None
-    finish: tuple = None
     warm: tuple = None
-    conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
     breaks: tuple = None
@@ -87,6 +83,7 @@ class CommandSpec:
     do: tuple = None
     gather: tuple = None
     resumes: bool = False
+    tokens: tuple = ()
 
     def __post_init__(self):
         if self.resumes and self.pieces is None:
@@ -146,7 +143,6 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_plan", "scatter_shells_pieces"), do=("planetgen.generation.run_plan", "scatter_shells_do"),
                 gather=("planetgen.generation.run_plan", "scatter_shells_gather"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_mass"),
-                conclude=("planetgen.generation.run_plan", "conclude_scatter_pass"),
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=10, resumes=True),
     CommandSpec("plan-skeleton", "Plan the galaxy's density skeleton: one unit",
@@ -157,7 +153,6 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_plan", "scatter_phenomena_pieces"), do=("planetgen.generation.run_plan", "scatter_phenomena_do"),
                 gather=("planetgen.generation.run_plan", "scatter_phenomena_gather"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_phenomena"),
-                conclude=("planetgen.generation.run_plan", "conclude_scatter_phenomena"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6, resumes=True),
     CommandSpec("finish-phenomena", "End the phenomena scatter: the special phenomena, the indexes and the record, one unit",
@@ -168,14 +163,12 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_plan", "scatter_shells_pieces"), do=("planetgen.generation.run_plan", "scatter_shells_do"),
                 gather=("planetgen.generation.run_plan", "scatter_shells_gather"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_luminosity"),
-                conclude=("planetgen.generation.run_plan", "conclude_scatter_pass"),
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=5, resumes=True),
     CommandSpec("scatter-backfill", "Scatter the massive stars from the neighborhood: one unit per run of sectors",
                 pieces=("planetgen.generation.run_galaxy", "backfill_pieces"), do=("planetgen.generation.run_galaxy", "backfill_do"),
                 gather=("planetgen.generation.run_galaxy", "backfill_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars"),
-                conclude=("planetgen.generation.run_galaxy", "conclude_backfill"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=12, resumes=True),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",
@@ -202,7 +195,6 @@ REGISTRY = _commands(
                 do=("planetgen.generation.run_plan", "rescore_habitability_piece"),
                 gather=("planetgen.generation.run_plan", "stale_systems_result"),
                 expand=("planetgen.generation.run_plan", "expand_rescore_habitability"),
-                conclude=("planetgen.generation.run_plan", "conclude_rescore_habitability"),
                 unit_seconds=25),
     CommandSpec("refill-effect-ledger", "Refill the effect ledger: one unit per run of ids",
                 pieces=("planetgen.generation.run_plan", "refill_effect_ledger_pieces"),
@@ -235,7 +227,6 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_plan", "draw_nebula_field_pieces"), do=("planetgen.generation.run_plan", "draw_nebula_field_do"),
                 gather=("planetgen.generation.run_plan", "draw_nebula_field_gather"),
                 expand=("planetgen.generation.run_plan", "expand_draw_nebula_field"),
-                conclude=("planetgen.generation.run_plan", "conclude_draw_nebula_field"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6, resumes=True),
     CommandSpec("generate-start-sector", "Generate the starting sector: one unit per run of sectors",
@@ -300,8 +291,7 @@ REGISTRY = _commands(
                 "then the field as a file",
                 pieces=("planetgen.galaxy.field_job", "pieces_field"),
                 do=("planetgen.galaxy.field_job", "do_field"), gather=("planetgen.galaxy.field_job", "gather_field"),
-                expand=("planetgen.galaxy.field_job", "expand_field"),
-                conclude=("planetgen.galaxy.field_job", "conclude_field"), unit_seconds=5),
+                expand=("planetgen.galaxy.field_job", "expand_field"), unit_seconds=5),
     CommandSpec("warm-object-index", "Build or refresh the object index: one row per object of every kind the site lists",
                 pieces=("planetgen.web.warmup", "pieces_warm_object_index"),
                 do=("planetgen.web.warmup", "do_warm_object_index"), gather=("planetgen.web.warmup", "gather_warm_object_index"),
@@ -314,14 +304,12 @@ REGISTRY = _commands(
                 pieces=("planetgen.web.warmup", "pieces_warm_galaxy_nodes"),
                 do=("planetgen.web.warmup", "do_warm_galaxy_nodes"), gather=("planetgen.web.warmup", "gather_warm_galaxy_nodes"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_nodes"),
-                finish=("planetgen.web.warmup", "finish_warm_galaxy_nodes"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=64),
     CommandSpec("warm-galaxy-deep-nodes", "Warm the Galaxy Map's deep nodes: the zoom run in to the center",
                 pieces=("planetgen.web.warmup", "pieces_warm_galaxy_deep_nodes"),
                 do=("planetgen.web.warmup", "do_warm_galaxy_deep_nodes"), gather=("planetgen.web.warmup", "gather_warm_galaxy_deep_nodes"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_deep_nodes"),
-                finish=("planetgen.web.warmup", "finish_warm_galaxy_deep_nodes"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=64),
     CommandSpec("warm-lists", "Warm the first page of every list, and its counts",
@@ -333,21 +321,18 @@ REGISTRY = _commands(
                 pieces=("planetgen.web.warmup", "pieces_warm_sectors"),
                 do=("planetgen.web.warmup", "do_warm_sectors"), gather=("planetgen.web.warmup", "gather_warm_sectors"),
                 expand=("planetgen.web.warmup", "expand_warm_sectors"),
-                finish=("planetgen.web.warmup", "finish_warm_sectors"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=75),
     CommandSpec("warm-systems", "Warm every system page: one unit per slice of the listing",
                 pieces=("planetgen.web.warmup", "pieces_warm_systems"),
                 do=("planetgen.web.warmup", "do_warm_systems"), gather=("planetgen.web.warmup", "gather_warm_systems"),
                 expand=("planetgen.web.warmup", "expand_warm_systems"),
-                finish=("planetgen.web.warmup", "finish_warm_systems"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=75),
     CommandSpec("warm-phenomena", "Warm every phenomenon page: one unit per slice of the listing",
                 pieces=("planetgen.web.warmup", "pieces_warm_phenomena"),
                 do=("planetgen.web.warmup", "do_warm_phenomena"), gather=("planetgen.web.warmup", "gather_warm_phenomena"),
                 expand=("planetgen.web.warmup", "expand_warm_phenomena"),
-                finish=("planetgen.web.warmup", "finish_warm_phenomena"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=75),
     CommandSpec("warm-search", "Warm the search page",
@@ -415,6 +400,44 @@ REGISTRY = _commands(
                 do=("planetgen.web.warmup", "do_end_map_rebuild"), gather=("planetgen.web.warmup", "gather_end_map_rebuild"),
                 expand=("planetgen.web.warmup", "expand_end_map_rebuild"), whole=True),
 )
+
+
+@dataclass(frozen=True)
+class EndCommand:
+    """
+    A command of the end of a stage (OPS.260): the work a stage does when its last unit is done that is not a unit. `role` is `conclude` or `finish` (the end rows of `planrows`), `kind` the
+    command whose stage it ends, `function` the `(module, function)` pair called as `function(params, plan, results, seconds)`. Its name, the command of its row in the ledger, is
+    `<role>-<kind>`.
+    """
+
+    role: str
+    kind: str
+    function: tuple
+
+    @property
+    def name(self):
+        return f"{self.role}-{self.kind}"
+
+
+def _end_commands(*commands_):
+    return {(end.role, end.kind): end for end in commands_}
+
+
+END_COMMANDS = _end_commands(
+    EndCommand("conclude", "scatter-mass", ("planetgen.generation.run_plan", "conclude_scatter_pass")),
+    EndCommand("conclude", "scatter-phenomena", ("planetgen.generation.run_plan", "conclude_scatter_phenomena")),
+    EndCommand("conclude", "scatter-luminosity", ("planetgen.generation.run_plan", "conclude_scatter_pass")),
+    EndCommand("conclude", "scatter-backfill", ("planetgen.generation.run_galaxy", "conclude_backfill")),
+    EndCommand("conclude", "rescore-habitability", ("planetgen.generation.run_plan", "conclude_rescore_habitability")),
+    EndCommand("conclude", "draw-nebula-field", ("planetgen.generation.run_plan", "conclude_draw_nebula_field")),
+    EndCommand("conclude", "warm-cluster-field", ("planetgen.galaxy.field_job", "conclude_field")),
+    EndCommand("finish", "warm-galaxy-nodes", ("planetgen.web.warmup", "finish_warm_galaxy_nodes")),
+    EndCommand("finish", "warm-galaxy-deep-nodes", ("planetgen.web.warmup", "finish_warm_galaxy_deep_nodes")),
+    EndCommand("finish", "warm-sectors", ("planetgen.web.warmup", "finish_warm_sectors")),
+    EndCommand("finish", "warm-systems", ("planetgen.web.warmup", "finish_warm_systems")),
+    EndCommand("finish", "warm-phenomena", ("planetgen.web.warmup", "finish_warm_phenomena")),
+)
+"""dict: `(role, kind)` to the `EndCommand` that ends the stage of `kind` in that role. A stage whose kind has none ends that way with nothing of its own (`finish` still stores the stage's statistics)."""
 """dict: Every command the wrapper can name, by kind."""
 
 REQUIRES = {
@@ -573,7 +596,7 @@ def gather_function(kind):
 
 
 def _hook(kind, name):
-    """The optional function `name` (`warm`, `finish`, `conclude`) of command `kind`, or `None`."""
+    """The optional function `name` (`warm`) of command `kind`, or `None`."""
     pair = getattr(REGISTRY[kind], name)
     return None if pair is None else _function(pair)
 
@@ -588,23 +611,21 @@ def warm_function(kind):
     return _hook(kind, "warm")
 
 
-def finish_function(kind):
-    """The function the unit that completes a stage of `kind` calls with its results, or `None` for a command that
-    has none (`CommandSpec.finish`).
-
-    Raises:
-        KeyError: No such command.
-    """
-    return _hook(kind, "finish")
+def end_command(kind, role):
+    """The `EndCommand` that ends the stage of `kind` in `role` (`conclude` or `finish`), or `None` for a command that has none."""
+    return END_COMMANDS.get((role, kind))
 
 
-def conclude_function(kind):
-    """The function called once when the last unit of a stage of `kind` is done, or `None` (`CommandSpec.conclude`).
+def end_function(kind, role):
+    """The function of the end command of `kind` in `role`, or `None` for a command that has none (`END_COMMANDS`)."""
+    end = end_command(kind, role)
+    return None if end is None else _function(end.function)
 
-    Raises:
-        KeyError: No such command.
-    """
-    return _hook(kind, "conclude")
+
+def end_name(kind, role):
+    """The command of the ledger row that ends the stage of `kind` in `role`: its end command's name, else `role` itself."""
+    end = end_command(kind, role)
+    return role if end is None else end.name
 
 
 def expand_function(kind):
