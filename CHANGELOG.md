@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4254] - 2026-11-15
+
+**Headline:** The supervisor's hand-out turn is built and tested, used by nothing yet.
+
+### Added
+- `queue/launcher.py` (OPS.228, slice A): each turn closes the attempt of every job process that ended (done, failed, or lost with the signal named), reads the `ready` rows of the ledger as tickets, asks `dispatch.dispatch` which go, writes each reason a job waits onto its row, writes the attempt (and its number to the galaxy's `engine_items`) and forks the job from its lane's template. The bulk lane moves to it in the cutover slice, a run at a time.
+
 ## [8.0.4253] - 2026-11-15
 
 **Headline:** a job can now hold a named resource besides memory, so two heavy writers or two builds of one warm set never run at once, and the unit that runs alone is a claim like any other.
