@@ -221,10 +221,9 @@ def test_a_plan_makes_the_totals_with_the_field_and_fill_nebula_blocks_makes_the
 
 def _refresh(config):
     """The unit of the `run-blocks` stage, for a run that saved no sector."""
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, wrapper
 
-    return run_galaxy.refresh_run_blocks_unit({"database": wrapper.database_args(config), "since": "2100-01-01 00:00:00"},
-                                              lambda done, total: None)
+    return commands.run_alone("refresh-run-blocks", {"database": wrapper.database_args(config), "since": "2100-01-01 00:00:00"})
 
 
 def test_a_galaxy_run_adds_the_nebulae_it_stored_once_at_its_end(mysql_config):

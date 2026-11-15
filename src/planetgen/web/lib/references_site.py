@@ -581,8 +581,16 @@ def summary(text, words=SUMMARY_WORDS):
 
 
 def _lookup(table, code):
-    """The `(name, meaning)` of a tier or tweak code in the legend rows `[[code, name, meaning]]`."""
-    return next(((name, meaning) for found, name, meaning in table if found == code), ("", ""))
+    """
+    The `(name, meaning)` of a tier or tweak code in the legend rows `[[code, name, meaning]]`.
+
+    Raises:
+        KeyError: No legend row has the code: the registry data is wrong, and a blank name on the page would hide that.
+    """
+    for found, name, meaning in table:
+        if found == code:
+            return name, meaning
+    raise KeyError(f"no legend row has the code {code!r}")
 
 
 def rows_of(data):

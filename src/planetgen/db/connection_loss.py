@@ -5,7 +5,7 @@ Why MySQL dropped a connection (DB.115)
 =======================================
 
 A long job stage once ended with `InterfaceError: (0, '')`, what pymysql raises on a connection that is already closed. The rollback that hid the real error and the sky unit's retry
-on a new connection are in (`store.Connection.rollback`, `run_galaxy._sky_unit`); this module names the *cause* in the log when it happens, so the next loss answers the question instead of
+on a new connection are in (`store.Connection.rollback`, `run_galaxy._sky_cell`); this module names the *cause* in the log when it happens, so the next loss answers the question instead of
 leaving it to guesses. Nothing here changes a result.
 
 A unit takes `facts(conn)` when it opens its connection. When the connection is lost it takes them again on the new one and `verdict` compares the two with how long no batch had finished:
