@@ -12452,25 +12452,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 16, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
   Filed by the TODO thread.
 
-- [ ] **PERF.261 Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index**
-  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Then block lights, link, settle and warm-up chunks; the typed constants stay as default and clamp.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: PERF.260, OPS.161. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
-  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
-  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
-  Filed by the TODO thread.
-
 - [ ] **OPS.160 Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). After OPS.157, PERF.261 and OPS.159 have run on a full galaxy.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.250 (stage 6). Prerequisites: OPS.157. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
   Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
-
-- [ ] **OPS.161 Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources**
-  Boss, 3:00 PM EST on 2026-11-12: "Have todo build it and ship it, I want a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue". Do: a break-point declaration in the job spec (the planner, DOC.113) that every command fills (item counts, legal cut boundaries, spans that must stay whole, a cut_neutral flag from PERF.260); the queue engine reads it with the OPS.155 profile and the free memory and cores to choose unit sizes at plan time, frozen in the run record. Commands that declare nothing keep their typed split. Build with PERF.261, which moves each stage onto it.
-  Boss, 3:01 PM EST on 2026-11-12: "Jobs will flag if their split is required or not along with the flag that says what depends on what". Clarified 3:02 PM EST ("No if the dynamic split is byte identical or if the queue has to use the suggested split in the job information"): so the declaration also carries (a) a split flag per job: either "dynamic split is byte identical" (the engine may choose any cut from the profile) or "use the suggested split" (output depends on the cut, so the engine uses the job's own break points exactly); a job that declares nothing uses its suggested split, and PERF.260's test checks that every job flagged byte identical really gives identical output at two cut sizes; and (b) its dependencies on other jobs or stages, which the engine uses to decide what may overlap and never cuts across. Reuse the DOC.113 job graph and the OPS.131/132 overlap-by-proof work for (b).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155, PERF.260. Related: OPS.122, OPS.123, OPS.156, OPS.157, PERF.261.
-  Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
-  Filed by the TODO thread. Top priority (Boss: build it and ship it).
 
 - [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
@@ -12763,7 +12749,7 @@ clears each one.
 
 - [ ] **OPS.223 Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L9); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L9 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: OPS.215. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15 (moved from Lane 14 at 11:05 PM EST, not started there; Lane 15 builds it before OPS.224). Prerequisites: OPS.215. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.224 Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits)**
@@ -12973,11 +12959,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: OPS.184, OPS.208, PERF.260.
   Filed by the TODO thread.
 
-- [ ] **PERF.267 Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s**
-  Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". Stage 5 log: 109 of 109 sectors done after 6:05:18. Do: measure whether this is the expected cost per sector on that machine after Train 26 or a slowdown; report before any change.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: none. Related: OPS.253.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1717 (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300)**
   Lane 15, 12:54 PM EST on 2026-11-14, from GEN.1716 (reports/gen1716-start-dependence-measure-2026-11-14.md): on main already; looks like opacity feeding back on temperature with nothing to stop it. Do: trace the feedback, compare with published sub-Neptune 1 bar temperatures for the same irradiation (radiative-convective models), and fix at the cause so the envelope's temperature comes from its physics; measure first, report before building. Lock item.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: GEN.1716.
@@ -13004,6 +12985,8 @@ clears each one.
   Class M tiers thread, 8:29 PM EST: GEN.1720 is also the gate for class O (all 13 O-shaped worlds fail on CO2 over 1 kPa), not only a G count (GEN.1721).
   Census thread, 8:28 PM EST (/mnt/project-files/reports/train28-census-2026-11-14/five-classes-800.md): of 31 class O shapes, CO2 fails 28, pressure 25, oxygen 16; they were stored as G 27 and O 1.
   PRIORITY (Class M tiers thread, 8:34 PM EST): on main 33bed421 the Abundant tier makes no Class M (0 in the first 234 Sun-like systems, against 5 per 400 on the tier branch before Train 27, same seeds). Of 26 Earth-shaped worlds with land and a liquid sea, CO2 split: 11 under 2 Pa (no photosynthesis), 13 over 70 kPa (70 to 940 kPa at Earth's land share and near Earth's heat flow), 2 between; before Train 27 it was 6, 2 and 13 between. These worlds have land, the branch GEN.1713 rewrote, so GEN.1713 is the first suspect, unproven; before and after with script /mnt/project-files/reports/class-m-tiers-build/co2_bands.py. Every one of classes M, H, O, P, R needs CO2 under 1 kPa and oxygenic life needs over 2 Pa, so GEN.1721 and GEN.1722 yield nothing until this is fixed. Do: merge-by-merge attribution first.
+  Attribution done (Lane 02, 11:57 PM EST 11-14; report /mnt/project-files/reports/gen1720-co2-attribution-2026-11-14.md): no single defect. The snow line fix (GEN.1678) moved Earth-shaped worlds to the outer zone, where CO2 splits near zero or 50 to 900 kPa under the sourced law (CO2 goes as outgassing to about the fifth power); GEN.1713 is a minor part, GEN.1696's warm start and PR 6509 change nothing, GEN.1646 moved the warm end. Boss, 11:58 PM EST 11-14: "recommendation approved" (option 1): the Abundant tier picks the outgassing exponent and weathering constant inside their published ranges (Tweak L1, presets only, Science byte-identical, registered in GEN.725). Lane 02 builds it after or beside GEN.1718 part 2.
+  Built, PR #6601 (Lane 02, stacked on #6599, lock item, registry row 6.289:AT8, Tweak L1, Science unchanged), in review for a train. The warm side is split out as GEN.1731.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 02. Prerequisites: none. Related: GEN.1713, GEN.1706, GEN.1715.
   Filed by the TODO thread.
 
@@ -13016,6 +12999,7 @@ clears each one.
   GEN.1722 research (Lane 03, /mnt/project-files/reports/life-refuges-research-gen1722-2026-11-14.md): groundwater is plentiful but reaches the surface only where the table is within about 1 m (about 15 percent of Earth's land); the early warm phase needs 0.2 to 0.8 Gyr wet and warm, 0.8 Gyr minimum recommended. Use these for the groundwater and early warm phase dials.
   Boss, 9:49 PM EST (card "Choose how desert worlds get breathable air": "Both, small seas first"): slice 2 (presets only, Science byte-identical, after PR 6575): groundwater share for dry dialed planets, small open seas on dialed desert worlds, and a "quiet volcanoes" share (reductant sink about a third, inside the published 1e12 to 5e12 mol/yr of registry row BO2). The every-galaxy half is GEN.1729.
   Slice 1 merged, PR #6575 (10:09 PM EST 11-14): dry share of the water dial, five-class meter, Boss's new tier targets. Open for slice 2.
+  GEN.1720 decision (Boss 11:58 PM EST 11-14): the Abundant tier also picks outgassing and weathering constants inside published ranges; Lane 02 builds that piece under GEN.1720, so slice 2 leaves the carbon law alone.
   Version 8.1. Owner (TODO, 2026-11-14): the Class M tiers thread (Fable). Prerequisites: GEN.1706. Related: GEN.1704, GEN.1705, GEN.1722, GEN.1720.
   Filed by the TODO thread.
 
@@ -13052,6 +13036,41 @@ clears each one.
 - [ ] **GEN.1729 Land plants in the oxygen law, on every galaxy including Science: wet land adds to the oxygen source, so desert worlds (class H) can reach 16 kPa**
   Boss, 9:49 PM EST on 2026-11-14, card "Choose how desert worlds get breathable air" (Class M tiers thread): option 1, "Both, small seas first". Why: physics/biogenic_oxygen.py counts only open sea as the source (S goes as min(ocean/0.71, 1.3)); its docstring says it leaves out the land plants that raised Earth's burial, so a world under 20 percent sea cannot reach 16 kPa: 0 of 74 desert-shaped planets in 2,800 Science systems. Research first: the land-derived share of Earth's organic burial and since when; production per wet land area against rain- or groundwater-fed share (GEN.1722 report: groundwater-fed land about 15 percent of Earth's); the life stage it needs (land flora, after multicellularity). Sized by Boss's Science rule (minimal sourced educated guess, registered in GEN.725). Then build. Evidence: /mnt/project-files/reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md. Lock item, new epoch, on a train.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (after GEN.1723 lands; same law). Prerequisites: GEN.1723. Related: GEN.1721, GEN.1722, GEN.1707.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1730 Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first)**
+  Class M tiers thread finding, 11:00 PM EST 2026-11-14 (report /mnt/project-files/reports/class-m-tiers-build/meter-gen1721-slice2-prototype-2026-11-14.md). `hydrosphere.BRINE_MAX_WATER_FRACTION` (2e-5 of the planet mass) turns every surface sea under that share into a chloride "brine seep" with water activity 0.30 to 0.65. On 400 Sun-like systems under Abundant that covers real seas: 5 to 20 percent water cover from about 1e-5 of the mass is a sea hundreds of metres deep, and 31 of 44 such desert worlds hold no life because the life law's solvent term is near zero under about 0.6. The same salt in more water stops at rock-salt saturation, water activity about 0.75, where salt-loving oxygen-making algae (Dunaliella) live; 0.30 to 0.65 is calcium or magnesium chloride or perchlorate strength. Work: measure first, then decide on physics whether a sea of real depth should be halite-saturated rather than a seep brine, on every galaxy including Science (minimal sourced change; register any stand-in in GEN.725). GEN.1721 slice 2 already does this for the tier presets only (`hydrosphere.salts_concentrated`, registry row 6.289:AT7); fold that preset switch into the general law if this item lands. Bears on class H and GEN.1729.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (after GEN.1723; same life and water laws as GEN.1729). Prerequisites: GEN.1721 slice 2. Related: GEN.1729, GEN.1723, GEN.1721, GEN.1706.
+  Filed by the TODO thread.
+
+- [ ] **PERF.268 Stage 5 progress and ETA weighed by expected systems per sector, not one per sector**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock-free. PERF.267 finding (1): a sector's cost follows its system count (the starting sector had 37 systems at 5.9x local density), so the bar and ETA counting sectors as equal ran 7.6 times over. Weigh the neighborhood stage's profile by expected systems.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.269 Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock-free. PERF.267 finding (4): the heartbeat opens a new control DB connection every 0.3 s, about 14 s of every 130 s, 10 of them loading SSL certificates. Cache the connection, reopen on loss.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: OPS.207 (the job engine stage 2 stack, PR 6571). Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.270 A per-sector timing line in the job log for the neighborhood stage**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock-free. PERF.267 finding (2): the 7.6x overrun cannot be split between density and generator slowdown without a per-sector line (systems, seconds, worker).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.271 Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system)**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing, may move results). PERF.267 finding (3): in a system 52 percent of the time is surface_air.solve, and each planet's air is built twice; 20 percent is gas_equilibrium. The generator is about 60 percent slower than 8.0.3700 (3.4 to 5.4 s a system, about 30 percent of it at the Train 25 merge, release 3992). Reuse rule applies; physics must not change, only the repeat.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **PERF.272 Promote belt members only when they are read (15 percent of a system's time)**
+  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing). PERF.267 finding (3): belt-member promotion takes 15 percent of each system's generation time. Make it on demand where nothing in generation reads the members.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1731 Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side**
+  Lane 02's GEN.1720 build (PR 6601, 12:56 AM EST 2026-11-15): the tier carbon-cycle dial fixes the cold, CO2-rich side (over 70 kPa 12 of 20 to 0 of 14 on 167 Abundant Sun-like seeds), but 10 of 14 Earth-shaped worlds still hold under 2 Pa. The traced worlds sit at 289 to 306 K with about 19,000 kPa of CO2 supplied, and the sink removes it even at the lowest published constants (Lambda 0.1, m 1.2): they are warm without CO2 (thick N2 and H2O air, more sunlight), so the weathering law as sourced takes it all. No published range moves them. Work: Lane 02 sets out options with physics (for example a supply- or kinetics-limited weathering floor if sourced, a lower Class M CO2 floor, or accept) and a recommendation; Boss decides; then build. Report /mnt/project-files/reports/gen1720-co2-attribution-2026-11-14.md.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (options for Boss, then build). Prerequisites: GEN.1720. Related: GEN.1706, GEN.1713, GEN.1721, GEN.1723.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
