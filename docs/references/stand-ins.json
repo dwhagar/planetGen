@@ -66563,7 +66563,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.K_ICE_PER_M sea ice 1.26 per metre and K_ICE_RANGE_PER_M 0.8 to 1.5: the attenuation of photosynthetic light by sea ice"
         },
         {
@@ -66601,7 +66601,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.K_ICE_PER_M fresh lake ice 0.32 per metre and K_ICE_RANGE_PER_M 0.2 to 0.32"
         },
         {
@@ -66639,7 +66639,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.K_SNOW_PER_M 30 per metre and K_SNOW_RANGE_PER_M 10 to 100: the attenuation of photosynthetic light by snow"
         },
         {
@@ -66677,7 +66677,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.ALBEDO_BARE (sea 0.6, lake 0.84), ALBEDO_SNOW 0.9 and their ranges: the albedo of the top surface to photosynthetic light"
         },
         {
@@ -66715,7 +66715,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.ALBEDO_MELTING 0.4 (0.2 to 0.6): the albedo of melting bare ice"
         },
         {
@@ -66753,7 +66753,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1723",
+          "unread": null,
           "what": "ice_light.SNOW_COVER_DEPTH_M 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm)"
         }
       ],

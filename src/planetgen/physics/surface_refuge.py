@@ -29,7 +29,7 @@ ocean's: `(hours / 8760) ** k * cover`, with `cover` rising from `COVER_MIN` at 
 covers of [R5269] run 0.1 to 28 percent, and the minimum reasonable one is taken) and `k` 1 above `K_ONE_HOURS` rising to `K_MAX` at the limit (the five orders of
 magnitude of the Warren-Rhodes gradient over a tenfold fall of the water, taken only as its direction). `biogenic_oxygen.productivity` turns that into the source `S` with
 Earth's own burial per area of ocean: **no new burial constant**. The result is small on purpose: about 1e-2 of Earth's `S` for a seep world with a year of warm light, 1e-3 or less for a melt hole or a cold edge, and 0.14 at the very most (the cover cap of 0.1 over a whole sea that melts all year), so it never beats the reductant flux `R` (0.3 of Earth's `S`) on a world whose interior is Earth's. If dry worlds are to hold oxygen, the lever is `R` (a
-more oxidised mantle), not this number.
+more oxidized mantle), not this number.
 
 Limits. The series is a circular orbit with an evenly spread sea, and "lit" is the mean share of the day the star is up (`day_share_mean`, 0.5 when not stored) applied to every
 step, not each step's own light; the aquifer's supply of water is not scaled by its thickness (the research's `G / G_Earth` needs a head the generator does not keep), so every
