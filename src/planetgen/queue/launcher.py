@@ -6,12 +6,13 @@ nothing yet: the bulk lane moves to it in the cutover slice, a run at a time.
 
 Each turn (`Launcher.turn`):
 
-1. **Ends.** Every job process that ended (`TemplateSet.poll`) gets its attempt row closed with how it ended and its job row moved on: `done` for exit 0, else `failed` with the error the job said last
-   (a signal or an exit with nothing said is `lost`). What a job says on its pipe is read before its end is judged.
+1. **Ends.** Every job process that ended (`TemplateSet.poll`) is looked at: a unit writes its own attempt and its row's end (`units.run_unit_on`, as in an RQ worker), so a row that is `done` or `failed`
+   is left as the unit wrote it. A row still `running` was left by a process that died without ending it: its attempt is closed `lost` with the signal named and the unit is handed out once more
+   (`RETRIES`), else it is `failed`. What a job says on its pipe is read before its end is judged.
 2. **Tickets.** Every `ready` job row whose `not_before` has passed is a `scheduler.Ticket` (its claim from the row: `claim_mb`, the lane of its `job_class`), oldest first.
 3. **Dispatch.** `dispatch.dispatch` over the tickets, the host and the claims of the jobs this launcher has running says which go now. A job that does not go has its reason written to the row's `waited`.
-4. **Starts.** Each admitted job is handed out: `ledger.begin_attempt` (the one write the turn waits for, which also writes the attempt number to the galaxy's `engine_items` so the fence has a number), then
-   one fork from the template of its lane (`TemplateSet.fork`) running `forkedjob.run`.
+4. **Starts.** Each admitted job is marked `running` (so no turn hands it out twice), then forked from the template of its lane (`TemplateSet.fork`) running `forkedjob.run`, which takes the attempt in the
+   ledger and runs the unit as an RQ worker does. (Taking the attempt moves to this turn when the units' own bookkeeping is deleted, OPS.228's last slice.)
 
 The launcher holds no decision of its own: the order and the reasons are `dispatch`'s, the fork is `jobhost`'s, the rows are `ledger`'s. Its state is the jobs it has started and not yet seen end; the ledger
 holds the rest, so a launcher that starts over reads `running` rows it does not hold (recovery is the supervisor's, a later slice).
@@ -23,6 +24,9 @@ import time
 
 from planetgen.queue import dispatch, ledger, memorygate, scheduler
 from planetgen.queue.memorygate import Claim, Holder
+
+RETRIES = 1
+"""int: How many times a unit whose process died without ending its attempt is handed out again (what RQ's `Retry(max=1)` did)."""
 
 RUNNER = "planetgen.queue.forkedjob.run"
 """str: What a handed-out job runs in its process."""
@@ -53,8 +57,8 @@ def _arguments(row):
 class Started:
     """A job this launcher handed out and has not seen end."""
 
-    def __init__(self, row, attempt, key, job, claim):
-        self.row, self.attempt, self.key, self.job, self.claim = row, attempt, key, job, claim
+    def __init__(self, row, job, key, claim):
+        self.row, self.job, self.key, self.claim = row, job, key, claim
         self.said = []
 
     def drain(self):
@@ -81,8 +85,7 @@ class Launcher:
     # -- ends ------------------------------------------------------------------------------------------------------------------
 
     def _outcome(self, started, exit_):
-        if exit_.code == 0:
-            return "done", None, None
+        """`(outcome, error kind, error text)` of an end the unit did not write itself."""
         error = started.error()
         if exit_.signal is not None:
             return "lost", "killed", error or f"the job process ended on {signal.Signals(exit_.signal).name}"
@@ -91,7 +94,7 @@ class Launcher:
         return "failed", "failed", error or f"the job process exited with code {exit_.code}"
 
     def ended(self):
-        """Closes the attempt and moves the job of every process that ended. Returns the ids of the jobs that ended."""
+        """Settles every process that ended (see the module). Returns the ids of the jobs that ended."""
         done = []
         for _key, exit_ in self.forker.poll():
             found = next((job_id for job_id, started in self.running.items() if started.job.id == exit_.id and started.key == _key), None)
@@ -99,10 +102,12 @@ class Launcher:
                 continue
             started = self.running.pop(found)
             started.drain()
-            outcome, kind, text = self._outcome(started, exit_)
-            ledger.end_attempt(self.control, found, started.attempt, outcome, error_kind=kind, error_text=text)
-            ledger.set_job_state(self.control, found, "done" if outcome == "done" else "failed")
-            self.control.commit()
+            row = self.control.execute("SELECT state, attempt FROM engine_jobs WHERE id = ?", (found,)).fetchone()
+            if row is not None and row["state"] == "running":
+                outcome, kind, text = self._outcome(started, exit_)
+                ledger.end_running(self.control, found, outcome, error_kind=kind, error_text=text)
+                ledger.set_job_state(self.control, found, "ready" if row["attempt"] <= RETRIES else "failed", waited=None if row["attempt"] <= RETRIES else text[:ledger.WAITED_CHARS])
+                self.control.commit()
             started.job.close()
             done.append(found)
         return done
@@ -112,7 +117,7 @@ class Launcher:
     def tickets(self):
         """`(tickets, rows)` of the ready jobs: the tickets for `dispatch`, the rows by ticket name."""
         rows = self.control.execute(
-            "SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, waited, UNIX_TIMESTAMP(updated_at) AS since FROM engine_jobs"
+            "SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, waited, attempt, UNIX_TIMESTAMP(updated_at) AS since FROM engine_jobs"
             " WHERE state = 'ready' AND (not_before IS NULL OR not_before <= NOW(6)) ORDER BY id LIMIT ?", (READY_WINDOW,)).fetchall()
         named = {HOLDER_NAME.format(row["id"]): row for row in rows}
         return [scheduler.Ticket(name, claim_of_row(row), float(row["since"]), 0, "launcher") for name, row in named.items()], named
@@ -128,21 +133,30 @@ class Launcher:
             self.control.execute("UPDATE engine_jobs SET waited = ? WHERE id = ? AND state = 'ready'", (reason[:ledger.WAITED_CHARS], row["id"]))
         self.control.commit()
 
+    def _job_of(self, row):
+        """What `forkedjob.run` takes for the unit `row`: the Redis run id and the stage's index (from the stage's `open` row, `planrows.record_cut`), the unit's number, command, arguments and cost, and its
+        row. A unit is given a retry when it has not had one."""
+        opened = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = ''", (row["run_id"], row["stage"])).fetchone()
+        plan = json.loads(opened["arguments"]) if opened and opened["arguments"] else {}
+        if "run_id" not in plan or "index" not in plan:
+            raise LookupError(f"the stage {row['stage']!r} of ledger run {row['run_id']} has no open row that names its run and index")
+        unit = _arguments(row)
+        return {"run_id": plan["run_id"], "stage": plan["index"], "unit": int(row["item_key"]), "kind": row["command"], "args": unit.get("args", {}), "cost": unit.get("cost"), "row": row["id"],
+                "retries_left": max(0, RETRIES - row["attempt"])}
+
     def start(self, row):
-        """Hands the job out: the attempt is written (and its number written to the galaxy), then one fork. Returns the `Started`."""
-        galaxy = self.galaxy(row["run_id"]) if self.galaxy is not None else None
-        attempt = ledger.begin_attempt(self.control, row["id"], galaxy_conn=galaxy)
-        job = dict(_arguments(row), row=row["id"], attempt=attempt, run=row["run_id"], stage=row["stage"], command=row["command"], item_key=row["item_key"])
+        """Hands the job out: marked `running`, then one fork. Returns the `Started`, or `None` for a row another turn took."""
+        if self.control.execute("UPDATE engine_jobs SET state = 'running', waited = NULL WHERE id = ? AND state = 'ready'", (row["id"],)).rowcount == 0:
+            self.control.rollback()
+            return None
+        self.control.commit()
         try:
-            key, forked = self.forker.fork(row["command"], self.runner, job)
+            key, forked = self.forker.fork(row["command"], self.runner, self._job_of(row))
         except Exception as exc:
-            ledger.end_attempt(self.control, row["id"], attempt, "failed", error_kind="fork", error_text=f"{type(exc).__name__}: {exc}")
-            ledger.set_job_state(self.control, row["id"], "failed")
+            ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
             self.control.commit()
             raise
-        self.control.execute("UPDATE engine_attempts SET pid = ? WHERE job_id = ? AND attempt = ?", (forked.pid, row["id"], attempt))
-        self.control.commit()
-        started = Started(row, attempt, key, forked, claim_of_row(row))
+        started = Started(row, forked, key, claim_of_row(row))
         self.running[row["id"]] = started
         return started
 
@@ -155,10 +169,14 @@ class Launcher:
         now = self.clock()
         decided = dispatch.dispatch(waiting, self.read_host(), self.holders(), now, self.used())
         self._note(rows, decided)
-        return [self.start(rows[name]).row["id"] for name in decided.admitted]
+        started = [self.start(rows[name]) for name in decided.admitted]
+        return [item.row["id"] for item in started if item is not None]
 
     def stop(self):
-        """Lets go of every job (their pipes close, so each finishes and exits at its next safe point)."""
+        """Lets go of every job (their pipes close, so each finishes and exits at its next safe point), stops the templates and closes the control connection."""
         for started in self.running.values():
             started.job.close()
         self.running = {}
+        for held in (getattr(self.forker, "stop", None), getattr(self.control, "close", None)):
+            if held is not None:
+                held()
