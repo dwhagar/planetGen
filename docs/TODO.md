@@ -13084,6 +13084,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1723; same law as GEN.1729). Prerequisites: GEN.1723. Related: GEN.1729, GEN.1720, GEN.1706.
   Filed by the TODO thread.
 
+- [ ] **GEN.1734 (bug) RecursionError in copy.deepcopy of a Planet in life._trial_copy from run_sector._add_planetary_nebula**
+  Train Manager, 2:28 AM EST 2026-11-15: tests/test_census_component_wholesphere fails on main (dc5567f470) with a RecursionError in copy.deepcopy of a Planet inside life._trial_copy (life.py:303), reached from run_sector._add_planetary_nebula. Train 30 passes only because its star draws differ, so the cause likely remains (a Planet chain copied too deep, or a planet reached through a back-reference again and again). Find the cycle and copy only what the trial needs; no recursion-limit raise.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 05 (planetary nebula hosts; coordinate with Lane 04 on life.py). Prerequisites: none. Related: GEN.1723.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
