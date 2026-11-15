@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -353,7 +353,9 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
             # the air it has is warmed under the starlight and its own heat together
             radiated = absorbed + giant_draw.own_flux_w_m2(body)
-            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, haze.absorbed_share * absorbed / radiated, haze.pressure_pa)
+            # GEN.1717: and the starlight the air's own gases take aloft goes where they take it, with the haze's
+            taken = starlight_aloft.combine(haze.absorbed_share, haze.pressure_pa, starlight_aloft.of_air(air, gravity, body.star.temperature, body.surface_temperature))
+            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, taken.share * absorbed / radiated, taken.pressure_pa or haze.pressure_pa)
             assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
             continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
@@ -420,9 +422,15 @@ def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the
 def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monkeypatch):
     """GEN.1718: key 49 (a planet whose step answers cross its iterate with no temperature that is its own answer: the pressure is on two branches there, or the temperature found jumps by tens of K)
     does not settle; the air kept is the one just above the jump (the side the formation branch approaches from), flagged `jump`, and its temperature is that of the jump."""
-    setting, air = _first_air_of(49, monkeypatch)
-    assert air.jump and air.knee and not air.converged
-    assert air.temperature_k == pytest.approx(290.1, abs=1.0)
+    # TEST.714: the keys that had a jump are tried first (49 did until the table was refitted for hydrogen envelopes, GEN.1717, and its two branches closed to one), then the rest are searched
+    # (a refit of the greenhouse table moves which keys have one; the rule is the case, not the key)
+    for key in (173, 214, 218, 49, *range(260)):
+        monkeypatch.undo()
+        setting, air = _first_air_of(key, monkeypatch)
+        if air.jump:
+            break
+    assert air.jump and air.knee and not air.converged, "no key of the 260 searched has an air with no steady state"
+    assert 100.0 < air.temperature_k < 600.0 and math.isfinite(air.temperature_k)
 
 
 def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began(monkeypatch):

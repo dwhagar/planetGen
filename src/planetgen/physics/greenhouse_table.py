@@ -191,8 +191,8 @@ def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, abs
     """
     traces = {formula: pascal for formula, pascal in partial_pressures_pa.items()
               if formula not in TRACE_EXEMPT and 0.0 < pascal / total_pa < TRACE_FULL_SHARE}
-    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula not in traces}
-    if not traces or not base:
+    base = strip_traces(partial_pressures_pa)
+    if not traces or len(base) == len(partial_pressures_pa):
         return log_ratio(vector)
     base_ratio = log_ratio(features(base, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
     ratio = base_ratio

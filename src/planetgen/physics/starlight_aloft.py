@@ -14,9 +14,9 @@ at the 1 bar level 1,200 K).
 
 This module finds how much of the starlight the gases take above the reference level and where, from the same correlated-k tables and collision-induced
 pairs the model reads for the infrared (`line_opacity`), on the bands below 12,000 cm-1 (0.83 micron and longer), weighted by the star's own
-blackbody. What it returns is `(share, pressure_pa)` in the form `radiative_convective.solve` takes (`aloft_share`, `aloft_pressure_pa`).
+blackbody. What it returns is `(share, pressure_pa)` in the form `the infrared model's `solve`` takes (`aloft_share`, `aloft_pressure_pa`).
 
-Limits (stand-ins, registry rows SA1 to SA3, docs/design/research/gap-filling-plan.md section 6.293):
+Limits (stand-ins, registry rows SA1 to SA3, docs/design/research/gap-filling-plan.md section 6.294):
 
 * Starlight shortward of 12,000 cm-1 (the visible and the ultraviolet, about 60 percent of a Sun's) is taken to reach the reference level (the tables
   stop there; Rayleigh scattering and the visible bands of methane and ammonia are left to the albedo and to the haze).
@@ -36,7 +36,9 @@ from collections import namedtuple
 
 import numpy as np
 
-from planetgen.physics import constants, line_opacity, radiative_convective
+from planetgen.datasets import fetch
+from planetgen.physics import gases, line_opacity, mixture, saturation
+from planetgen.physics.air_column import AVOGADRO
 
 SLANT = 2.0
 """float: STAND-IN (SA1, tier T7, L0): the secant of the angle the beam crosses the air at, 2 (a cosine of one half, the one a global mean over day and
@@ -48,6 +50,12 @@ MAX_SHARE = 0.9
 table that stands for it was fitted up to 0.9 (`greenhouse_table`)."""
 MIN_SHARE = 1.0e-3
 """float: A share under this is no sunlight aloft at all (the bands the air has no gas for, or too little of)."""
+LAYERS = 40
+"""int: The layers of the column the sunlight is followed through, equally spaced in ln P (the model's own, `radiative_convective.LAYERS`)."""
+TOP_FRACTION = 1.0e-4
+"""float: The column's top as a share of the reference pressure (the model's, `radiative_convective.TOP_FRACTION`)."""
+MAX_WATER_FRACTION = 0.5
+"""float: The most vapor a layer holds, as a mole fraction (the model's, `radiative_convective.MAX_WATER_FRACTION`)."""
 SUB_STEPS = 12
 """int: Points of the Planck function across one band, for the star's share in it."""
 
@@ -85,10 +93,26 @@ def of_air(partial_pressures_pa, gravity_m_s2, star_temperature_k, temperature_k
     """
     if not star_temperature_k or star_temperature_k <= 0.0 or not temperature_k or temperature_k <= 0.0:
         return NONE
-    column = radiative_convective.Column(partial_pressures_pa, gravity_m_s2)
-    if not column.prepared.absorbers:
-        return NONE
-    depth, _ = column.optical_depth(np.full(column.layers + 1, float(temperature_k)))        # (layer, band, g)
+    try:
+        prepared = line_opacity.prepare(partial_pressures_pa)
+        if not prepared.absorbers:
+            return NONE
+        total = mixture.total_pressure_pa(partial_pressures_pa)
+        levels = np.exp(np.linspace(math.log(total * TOP_FRACTION), math.log(total), LAYERS + 1))
+        pressure = np.sqrt(levels[1:] * levels[:-1])
+        mass = np.diff(levels) / gravity_m_s2
+        fractions = mixture.mole_fractions(partial_pressures_pa)
+        # the vapor of the surface mixing ratio, no more than the layer's own saturation leaves at the temperature (the cold trap of a cool air), and no more than the model holds
+        water = np.minimum(fractions.get("H2O", 0.0), np.minimum(saturation.pressure_pa("H2O", float(temperature_k)) / pressure, MAX_WATER_FRACTION))
+        water = np.full(LAYERS, float(water)) if np.ndim(water) == 0 else water
+        dry = {formula: fraction for formula, fraction in fractions.items() if formula != "H2O"}
+        dry_total = math.fsum(dry.values())
+        dry_molar_mass = math.fsum(fraction * gases.gas(formula).molar_mass for formula, fraction in dry.items()) / dry_total if dry_total > 0.0 else 0.0
+        mean_molar_mass = (1.0 - water) * dry_molar_mass + water * gases.gas("H2O").molar_mass
+        molecules_cm2 = mass / mean_molar_mass * AVOGADRO * 1.0e-4
+        depth = line_opacity.layer_depth(prepared, np.full(LAYERS, float(temperature_k)), pressure, water, molecules_cm2)        # (layer, band, g)
+    except fetch.DataMissing:
+        return NONE        # the k-tables are not downloaded and the run disregards that: no sunlight is taken aloft
     weights = line_opacity.G_WEIGHTS
     # transmission at the top of each layer and at the bottom of the last, band-mean over the g points
     above = np.concatenate([np.zeros((1,) + depth.shape[1:]), np.cumsum(depth, axis=0)])
@@ -98,7 +122,7 @@ def of_air(partial_pressures_pa, gravity_m_s2, star_temperature_k, temperature_k
     share = float(heating.sum())
     if share < MIN_SHARE:
         return NONE
-    pressure = math.exp(float(np.sum(heating * np.log(column.layer_pressure)) / share))
+    pressure = math.exp(float(np.sum(heating * np.log(pressure)) / share))
     return Deposit(min(share, MAX_SHARE), pressure)
 
 

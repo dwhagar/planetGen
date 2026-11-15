@@ -12,6 +12,7 @@ seconds to minutes an air. Four steps, each resumable, each writing into the wor
     python3 scripts/fit_greenhouse_table.py sample WORK --seeds 5000 5100 --name validation --no-perturb      fresh seeds to validate on
     python3 scripts/fit_greenhouse_table.py designed WORK --count 6000               add airs drawn from families of worlds (train.pkl grows)
     python3 scripts/fit_greenhouse_table.py envelope WORK --name envelope --count 800   the airs of hydrogen envelopes and giants, as the generator makes them (GEN.1717)
+    python3 scripts/fit_greenhouse_table.py hot WORK --name hot --count 800             the airs of hot rocky planets, to hold at the starting file's answer (GEN.1717)
     python3 scripts/fit_greenhouse_table.py solve WORK --name train --workers 4      the model's surface temperature of each air (train.jsonl)
     python3 scripts/fit_greenhouse_table.py solve WORK --name validation --workers 4
     python3 scripts/fit_greenhouse_table.py wet WORK --count 6000                     add temperate wet airs (GEN.1304; train.pkl grows)
@@ -295,7 +296,18 @@ def envelope_bodies(count, rng):
             envelope = rng.uniform(0.7, 0.99)
             radius = 11.0 * (mass / 300.0) ** 0.03 * math.exp(rng.uniform(-0.15, 0.15))
             distance = math.exp(rng.uniform(math.log(0.05), math.log(40.0)))
-        bodies.append((mass, envelope, radius, distance, rng.randrange(1, 10 ** 6)))
+        bodies.append((mass, envelope, radius, distance, rng.randrange(1, 10 ** 6), 0.0))
+    return bodies
+
+
+def hot_bodies(count, rng):
+    """GEN.1717: rocky planets from the runaway greenhouse's edge inwards (0.3 to 5 Earth masses, 0.3 to 1.2 AU round a Sun, no water or up to a third of the mass), the hot dense steam and
+    carbon dioxide airs a refit on envelopes must not move (`tests/test_surface_air_runaway_start.py` holds Venus's twins to be steam). Held at the starting file's answers, not solved."""
+    bodies = []
+    for _ in range(count):
+        mass = math.exp(rng.uniform(math.log(0.3), math.log(5.0)))
+        water = math.exp(rng.uniform(math.log(1.0e-4), math.log(0.35))) if rng.random() < 0.7 else 0.0
+        bodies.append((mass, 0.0, mass ** 0.27, math.exp(rng.uniform(math.log(0.3), math.log(1.2))), rng.randrange(1, 10 ** 6), water))
     return bodies
 
 
@@ -317,12 +329,12 @@ def collect_envelope(bodies):
 
     atmosphere_state.greenhouse_warming = record
     try:
-        for mass, envelope, radius, distance, seed in bodies:
+        for mass, envelope, radius, distance, seed, water in bodies:
             planet = copy.deepcopy(planet0)
             planet.mass, planet.radius = mass * 5.972e24, radius * 6371.0
-            planet.envelope_mass_fraction, planet.ice_mass_fraction, planet.water_mass_fraction = envelope, 0.0, 0.0
-            planet.metal_mass_fraction = 0.3 * (1.0 - envelope)
-            planet.rock_mass_fraction = 1.0 - envelope - planet.metal_mass_fraction
+            planet.envelope_mass_fraction, planet.ice_mass_fraction, planet.water_mass_fraction = envelope, 0.0, water
+            planet.metal_mass_fraction = 0.3 * (1.0 - envelope - water)
+            planet.rock_mass_fraction = 1.0 - envelope - water - planet.metal_mass_fraction
             planet.distance = planet._star_distance_au = planet.formation_distance_au = distance
             planet.gravity = mass / radius ** 2
             planet.__dict__.pop("_formation_fractions", None)
@@ -340,8 +352,8 @@ def envelope(args):
     """GEN.1717: add the airs of hydrogen envelopes and giants (the generator's own, `collect_envelope`, and a perturbed copy of each, `perturbed`) to the samples of `--name`."""
     from planetgen.physics import greenhouse_table
 
-    rng = random.Random(ENVELOPE_PERTURB_SEED)
-    bodies = envelope_bodies(args.count, rng)
+    rng = random.Random(ENVELOPE_PERTURB_SEED + (1 if args.step == "hot" else 0))
+    bodies = (hot_bodies if args.step == "hot" else envelope_bodies)(args.count, rng)
     chunks = [bodies[index::args.workers * 4] for index in range(args.workers * 4)]
     calls = []
     with multiprocessing.Pool(args.workers) as pool:
@@ -647,7 +659,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -666,7 +678,7 @@ def main():
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":
