@@ -2528,6 +2528,7 @@ class StarSystem:
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
             # GEN.1548: the orbits are final, so the air, class and spin of the bodies built bare are made now, once, and their moons (bare, with their orbits) with them
+            late_accretion.give_first_air(self.all_planets)       # PERF.271: the belts and orbits are final, so the first air reads the late accretion the system gives, and the pass at the end finds most planets done
             for obj in self.all_planets:
                 if obj.body_type != 'a':
                     obj.finish_climate()
