@@ -179,10 +179,6 @@ def _open(conn, run_id, index):
     if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
         _ensure_cluster_field(params)
         held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
-    prepare = commands.prepare_function(step.kind)
-    if prepare is not None:
-        prepare(params)
-        held = _say_opening(conn, run_id, index, "its preparation is done", held)
     expansion = commands.expand_function(step.kind)(params)
     held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {time.time() - started:,.0f} s", held)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
@@ -300,7 +296,7 @@ def cached(conn, run_id, name, compute):
     The value `compute()` gave the first time a stage of the run asked for `name`, kept in the run record (PERF.212). A value read from
     the database when a stage opens would not be the same later: the stage may empty what it read (the scatter's own record), and a
     resolver runs again at the stage's end and when a stopped run is carried on. The first stage to open computes it, before its
-    own `prepare`, and the later ones, the conclude hooks and `finish_run` take what was kept.
+    own cut, and the later ones, the conclude hooks and `finish_run` take what was kept.
     """
     field = f"deferred:{name}"
     kept = conn.hget(runrecord.run_key(run_id), field)
