@@ -26300,6 +26300,31 @@
       "kind": "paper",
       "label": "Parker et al. 2025",
       "title": "Can planet-planet binaries survive in star-forming regions?"
+    },
+    "R5264": {
+      "kind": "paper",
+      "label": "Arndt et al. 2017",
+      "title": "Influence of snow depth and surface flooding on light transmission through Antarctic pack ice"
+    },
+    "R5265": {
+      "kind": "paper",
+      "label": "Belzile et al. 2001",
+      "title": "Bio-optical characteristics of the snow, ice, and water column of a perennially ice-covered lake in the High Arctic"
+    },
+    "R5266": {
+      "kind": "paper",
+      "label": "Perovich et al. 1998",
+      "title": "Variability in Arctic sea ice optical properties"
+    },
+    "R5267": {
+      "kind": "paper",
+      "label": "Light et al. 2008",
+      "title": "Transmission and absorption of solar radiation by Arctic sea ice during the melt season"
+    },
+    "R5268": {
+      "kind": "paper",
+      "label": "Perovich 2007",
+      "title": "Light reflection and transmission by a temperate snow cover"
     }
   }
 }
