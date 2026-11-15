@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4301] - 2026-11-15
+
+**Headline:** The references pages show the right paper count again.
+
+### Changed
+
+- `docs/REFERENCES.md` and `docs/REFERENCES.html` are rebuilt, so the paper count includes the three papers GEN.1729 added (R5283 to R5285); `tests/test_references.py` was red on the train without this.
+
 ## [8.0.4300] - 2026-11-15
 
 **Headline:** A life class whose own air leaves it too little carbon dioxide to fix carbon is no longer kept on its world with oxygen it could not have raised.
