@@ -12,7 +12,8 @@ universe (`test_life_timeline.py`), every life constant has a registry row (`tes
 1. The star never picks the pigment from a table: the class rules hold no star letter, a light class takes the star's light by its band
    (`life_classes.band_ratio`), every light class gets light from some star of the main sequence and every star letter feeds some light class.
 2. A body that has a life class has a life stage, and a body with a stage has a class.
-3. A body with Flora is not under an ice-covered ocean (no sunlight reaches it).
+3. A body with Flora is not under an ice-covered ocean that lets no lit liquid through (GEN.1723: a lid that melts in the warm season or is thin
+   enough to pass light keeps its sunlit sea, `surface_refuge`).
 4. A class lives only where its solvent is: a water class on a body whose liquid is water, a hydrocarbon class on a hydrocarbon sea, and
    the CO2, sulfuric acid and ammonia classes in their own media.
 
@@ -28,7 +29,7 @@ import json
 import pytest
 
 from planetgen.generation import life
-from planetgen.physics import habitability_world, life_classes
+from planetgen.physics import habitability_world, life_classes, surface_refuge
 from planetgen.util import draw
 from tests.audit import sweep
 
@@ -167,9 +168,14 @@ def test_the_sweep_gives_life_to_some_bodies_and_not_to_others():
 
 # --- 3. No Flora under ice --------------------------------------------------------------------------------------------------------------
 
+def _lit_liquid(body):
+    """bool: The body has lit liquid water at its surface for the hours the light classes need (GEN.1723), under its ice lid or not."""
+    return surface_refuge.lit_liquid_hours(habitability_world.values_from_body(body)) >= surface_refuge.MIN_HOURS_YR
+
+
 def flora_problems(body):
-    """Flora on a body whose ocean is under ice: no light reaches the producers, so only the chemical classes' microbial mats can be there."""
-    if getattr(body, "life_flora", 0) and getattr(body, "hydrosphere", None) == "ice-covered ocean":
+    """Flora on a body whose ocean is under ice that lets no lit liquid through: no light reaches the producers, so only the chemical classes' microbial mats can be there."""
+    if getattr(body, "life_flora", 0) and getattr(body, "hydrosphere", None) == "ice-covered ocean" and not _lit_liquid(body):
         return [f"Flora {body.life_flora} under an ice-covered ocean (class {_class_id(body)})"]
     return []
 
@@ -181,13 +187,17 @@ def test_no_body_has_flora_under_an_ice_covered_ocean():
 
 def test_no_light_class_is_supported_under_an_ice_covered_ocean():
     """The sweep has few bodies with Flora, so the other half of the rule is read off the model: put every terrestrial body of the sweep under
-    an ice-covered ocean and no class that eats light may be supported there (a chemical class's mats can)."""
+    an ice-covered ocean and no class that eats light may be supported there unless the lid lets lit liquid through (GEN.1723: a melting or
+    thin lid does; a chemical class's mats can live under any lid)."""
     light = {row.id for row in life_classes.CLASSES if row.light}
     problems = []
     for entry in sweep.entries():
         if getattr(entry.body, "body_type", None) != "t":
             continue
-        scores = life_classes.score_classes(sweep.broken_copy(entry.body, hydrosphere="ice-covered ocean")) or {}
+        under_ice = sweep.broken_copy(entry.body, hydrosphere="ice-covered ocean")
+        if _lit_liquid(under_ice):
+            continue
+        scores = life_classes.score_classes(under_ice) or {}
         problems += [f"{entry.label}: light class {class_id} scores {result.score} under ice" for class_id, result in scores.items()
                      if class_id in light and result.score > 0]
     assert not problems, "\n".join(problems[:20])
