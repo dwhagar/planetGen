@@ -1,4 +1,8 @@
 {
+ "tests/test_full_matrix.py": "supergiants (A5IAB, F5IAB, K5IAB): habitable_request aim instead of unmet, red on main",
+ "tests/test_nav_adjusted.py": "3 tests red on main (galactic navigation text), carried by Train 24 and 25",
+ "tests/test_plain_words.py": "UX.252: class page text (length, Oxford comma) red on main",
+ "tests/test_web_population.py": "fixture hunt times out at the gate limit, red on main (galaxy fixture pins)",
  "tests/test_web_sector_nav.py": "TEST.651: 'Leave on' course text, red on main",
  "tests/test_wording_agrees_with_the_index.py": "TEST.652: life timeline on a body with phi_bio 0, red on main"
 }

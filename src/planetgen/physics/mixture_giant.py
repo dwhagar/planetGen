@@ -36,7 +36,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, disk_condensation, disk_drift, gas_equilibrium, saturation, species_thermo, stellar_abundances, unit_registry as units
+from planetgen.physics import constants, disk_condensation, disk_drift, gas_equilibrium, helium_fractionation, saturation, species_thermo, stellar_abundances, unit_registry as units
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
 
@@ -95,7 +95,6 @@ MIN_CONDENSED = 1e-10
 """float: Ices that took fewer moles than this per hydrogen atom are not listed as condensed."""
 
 
-
 def _log_eps(symbol):
     return PHOTOSPHERE_LOG_EPS.get(symbol, tuning.STELLAR_SOLAR_LOG_EPS.get(symbol))
 
@@ -114,7 +113,8 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
     if temperature is None:
         return None
     return disk_condensation.envelope_c_over_o(temperature, disk_condensation.ENVELOPE_METAL_SHARE * 10.0 ** log_enrichment_over_host,
-                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature))
+                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature),
+                                               disk_drift.edge_temperature_k())
 
 
 def _disk_ice_weights(subject, temperature):
@@ -140,7 +140,8 @@ def _disk_enrichments(subject, log_enrichment_over_host):
         return {}
     return disk_condensation.envelope_enrichments(
         temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), subject.get("disk_nitrogen", 1.0),
-        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0))
+        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0), _disk_ice_weights(subject, temperature),
+        disk_drift.edge_temperature_k())
 
 
 def element_budget(log_enrichment, c_over_o=None, lithium_burned=False, star_log_scale=0.0, disk_factors=None):
@@ -537,7 +538,12 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     disk_factors = _disk_enrichments(subject, log_enrichment - fe_h)
     for symbol, factor in disk_factors.items():
         constants_drawn[f"enrichment_{symbol.lower()}"] = factor
-    budget = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
+    inventory = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
+    budget = dict(inventory)        # the delivered budget before the clouds and the helium of a stripped envelope; `inventory` stays as delivered
+    helium_y = subject.get("envelope_helium_y") if family == "envelope" else None
+    if helium_y is not None:         # GEN.1527: an envelope that lost hydrogen first (`helium_fractionation`): the helium per hydrogen of its helium mass share, in place of the solar one
+        budget["He"] = helium_y / (1.0 - helium_y) / helium_fractionation.HELIUM_ATOM_MASS_RATIO
+        constants_drawn["envelope_helium_y"] = helium_y
 
     budget, condensed = remove_clouds(
         budget, temperature, pressure, log_enrichment,
@@ -589,4 +595,4 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
         temperature_k=temperature, pressure_bar=pressure, moles=result.moles, mole_fractions=result.mole_fractions,
         total_moles=result.total_moles, iterations=result.iterations, skipped=result.skipped)
     return finish(result, family=family, drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=None,
-                  inventory=element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors), constants=constants_drawn, condensed=condensed)
+                  inventory=inventory, constants=constants_drawn, condensed=condensed)

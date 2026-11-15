@@ -91,13 +91,24 @@ def smoothstep(x):
     return t * t * (3.0 - 2.0 * t)
 
 
+def _box_distance_sq(camera_pc, lo, hi):
+    """The squared distance from `camera_pc` to the nearest point of the box `lo`..`hi` (0 inside it)."""
+    distance_sq = 0.0
+    for a in range(3):
+        nearest = min(max(camera_pc[a], lo[a]), hi[a])
+        distance_sq += (camera_pc[a] - nearest) ** 2
+    return distance_sq
+
+
+def _size_px(size, distance_sq, focal_px):
+    """A box of longest edge `size` seen from `distance_sq` away, pixels; infinite from inside it."""
+    return math.inf if distance_sq <= 0.0 else size * focal_px / math.sqrt(distance_sq)
+
+
 def projected_size(block, camera_pc, edge_pc, focal_px):
     """The block's size on screen, pixels, from `camera_pc`; infinite when the camera is inside its box."""
     lo, hi, size = geometry(block, edge_pc)
-    distance_sq = sum((camera_pc[a] - min(max(camera_pc[a], lo[a]), hi[a])) ** 2 for a in range(3))
-    if distance_sq <= 0.0:
-        return math.inf
-    return size * focal_px / math.sqrt(distance_sq)
+    return _size_px(size, _box_distance_sq(camera_pc, lo, hi), focal_px)
 
 
 def handover(size_px, block):
@@ -191,10 +202,7 @@ def node_cut(camera_pc, look_pc, edge_pc, focal_px=DEFAULT_FOCAL_PX, bounds_pc=N
         lo, hi, size = geometry(block, edge_pc)
         if bounds_pc is not None and any(hi[a] <= bounds_pc[0][a] or lo[a] > bounds_pc[1][a] for a in range(3)):
             return None
-        distance_sq = 0.0
-        for a in range(3):
-            nearest = min(max(camera_pc[a], lo[a]), hi[a])
-            distance_sq += (camera_pc[a] - nearest) ** 2
+        distance_sq = _box_distance_sq(camera_pc, lo, hi)
         if cone and distance_sq > 0.0:
             offset = [(lo[a] + hi[a]) / 2.0 - camera_pc[a] for a in range(3)]
             reach = math.sqrt(sum(v * v for v in offset))
@@ -203,7 +211,7 @@ def node_cut(camera_pc, look_pc, edge_pc, focal_px=DEFAULT_FOCAL_PX, bounds_pc=N
                 along = sum(offset[a] * axis[a] for a in range(3)) / reach
                 if math.acos(max(-1.0, min(1.0, along))) > half_angle + math.asin(radius / reach):
                     return None
-        size_px = math.inf if distance_sq <= 0.0 else size * focal_px / math.sqrt(distance_sq)
+        size_px = _size_px(size, distance_sq, focal_px)
         return _quantized(distance_sq), format_drill_key(block), _quantized(size_px), block
 
     found = []

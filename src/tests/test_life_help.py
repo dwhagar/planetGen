@@ -124,7 +124,7 @@ def test_the_speculative_chemistry_is_on_the_references_page_and_the_life_pages_
 
 def test_the_needs_of_a_class_come_from_its_rule_row():
     needs = " ".join(life_help.needs(life_classes.BY_ID["1a"]))
-    assert "255 to 395 K" in needs and "10 Pa" in needs and "5 Pa" in needs and "1% of Earth's light" in needs
+    assert "255 to 395 K" in needs and "10 Pa" in needs and "2 Pa" in needs and "1% of Earth's light" in needs
     assert "518 kPa" in " ".join(life_help.needs(life_classes.BY_ID["6"]))
     assert "sulfuric acid" in " ".join(life_help.needs(life_classes.BY_ID["5b"]))
     assert any("hydrogen" in need for need in life_help.needs(life_classes.BY_ID["3a"]))

@@ -47,13 +47,18 @@ def galaxy_systems(shape, expected_at_density_1, edge_pc):
     return expected_at_density_1 * shape.k_norm * (visible + galaxyDensity.halo_mass(shape)) / edge_pc ** 3
 
 
+def _structure_of(shape):
+    """The structure the neutron-star kick law is read from: the galaxy's, or the Milky Way's without a shape."""
+    from planetgen.galaxy import structure
+    return structure.REFERENCE_STRUCTURE if shape is None else shape.structure
+
+
 def unbound_fraction(kind, shape=None):
     """The share of the galaxy's `kind` that is ejected: a black hole's constant, a neutron star's the galaxy's own
     (`Structure.neutron_star_unbound_share`, `galaxy.natal_kick`; the Milky Way structure's without a shape)."""
     if kind == "black-hole":
         return tuning.BLACK_HOLE_UNBOUND_FRACTION
-    from planetgen.galaxy import structure
-    return (structure.REFERENCE_STRUCTURE if shape is None else shape.structure).neutron_star_unbound_share
+    return _structure_of(shape).neutron_star_unbound_share
 
 
 def unbound_count(kind, shape, expected_at_density_1, edge_pc):
@@ -71,8 +76,7 @@ def speeds_kms(kind, shape=None):
     `EJECTA_SPEED_RANGE_KMS` (no kick model gives theirs). `()` when the galaxy ejects none."""
     if kind == "black-hole":
         return tuning.EJECTA_SPEED_RANGE_KMS
-    from planetgen.galaxy import structure
-    return (structure.REFERENCE_STRUCTURE if shape is None else shape.structure).neutron_star_ejecta_speeds_kms
+    return _structure_of(shape).neutron_star_ejecta_speeds_kms
 
 
 def mean_speed_kms(kind, shape=None):

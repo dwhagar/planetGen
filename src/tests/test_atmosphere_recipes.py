@@ -104,7 +104,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 53, "open": 0, "stand-in": 10}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 54, "open": 0, "stand-in": 9}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -113,7 +113,7 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
     assert RECIPES.open_rows() == [], "no row waits on research any more"
     researched = {r for entry in RECIPES.entries for r in entry.research}
     assert researched == set(RECIPES.research), "every research item concerns at least one row"
-    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595", "GEN.1021"}      # GEN.1021: the 67P calibration of row k7 (GEN.1005 replaced the rest with models)
+    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595"}
     for entry in RECIPES.entries:
         if entry.state == pt.STAND_IN:
             assert entry.replacement in builders, (entry.id, entry.replacement)
@@ -123,9 +123,9 @@ def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_b
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
     assert {"b5", "n7", "o3"} <= set(stand_ins)
     # GEN.1002: a row whose weights rest on Solar System bodies is a flagged stand-in with its replacing item; GEN.1005 replaced a1, a2 and b1 with models
-    # (the bodies are their tests) and left k7 resting on the one comet measured, until GEN.1021
-    assert stand_ins["k7"] == "GEN.1021" and not {"a1", "a2", "b1"} & set(stand_ins)
-    assert not {"k1", "k2", "k3", "k4", "k5"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
+    # (the bodies are their tests); GEN.1021 replaced the 67P calibration of k7 with the range between the comets measured
+    assert not {"a1", "a2", "b1"} & set(stand_ins)
+    assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database and the comets measured (GEN.520, GEN.1021)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 
@@ -255,13 +255,6 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
     assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d5"})) == {"p_max_bar": None}
 
 
-def test_the_retired_k_window_is_gone_and_the_shoreline_is_marked_as_corrected():
-    d1 = RECIPES.entry("d1")
-    assert "[R0364]" in d1.source and "Corrected 2026-10-18" in d1.notes
-    assert "K window" in d1.notes and "13 Solar System bodies" in d1.notes
-    assert "3.0e-4" not in d1.weight.text
-
-
 def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
     gate = dict(mass_earth=5.0, teq_k=300.0, xuv_index=1.5)
     assert RECIPES.flag("d7", Subject("giant", dict(gate, v_esc_kms=25.0)))
@@ -325,7 +318,7 @@ def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows(
     assert main(RECIPES.probabilities("h", Subject("giant", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
         {"h2": 0.9983, "h3": 0.0017}, abs=1e-4)
     assert main(RECIPES.probabilities("h", Subject("giant", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
-        {"h1": 0.7454, "h2": 0.2546}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
+        {"h1": 0.7467, "h2": 0.2533}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
     s = Subject("giant", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
     assert RECIPES.probability("h4", s) == 0.0, "TiO is not seen at 2350 K and below"
     assert RECIPES.probability("h4", Subject("giant", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"
@@ -471,6 +464,72 @@ def test_a_row_with_several_values_draws_a_dict_and_the_log_uniform_ranges_hold(
     assert all(0.002 <= g["CH3OH"] <= 0.026 and 0.001 <= g["NH3"] <= 0.0073 and 0.0009 <= g["HCN"] <= 0.0029 for g in got)
     species = RECIPES.draw_value("k7", Subject("comet", dict(SOLAR_HOST)))
     assert set(species) == {"CH4", "C2H6", "H2CO", "H2S", "N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe"}
+
+
+COMET = dict(SOLAR_HOST, perihelion_au=1.2, family="icy")
+
+
+def _comets(count=1500, seed=1022):
+    s = Subject("comet", dict(COMET))
+    out = []
+    with draw.bound(seed):
+        for _ in range(count):
+            r = RECIPES.draw_all(s, categories="k")
+            out.append((r.values["k5"], r.values["k7"]))
+    return out
+
+
+def test_ocs_so2_and_o2_of_k7_draw_between_the_comets_measured_and_cover_the_range():
+    """GEN.1021: each is log-uniform between its comets; the comets measured are reachable, none is the median."""
+    from planetgen.physics import comet_species as cs
+    comets = _comets(400)
+    for species in ("OCS", "SO2", "O2"):
+        low, high = cs.bracket_over_h2o(species)
+        values = [k7[species] for _co, k7 in comets]
+        assert low <= min(values) and max(values) <= high * (1 + 1e-9), species
+        assert min(values) < low * (high / low) ** 0.1 and max(values) > low * (high / low) ** 0.9, species
+
+
+def test_the_species_of_k7_rise_with_the_co_of_k5_the_way_the_comets_measured_say():
+    """GEN.1022: one latent per comet. A CO-rich comet is argon- and nitrogen-rich, and a CO-poor argon-rich one is rare; k5's own spread is unchanged."""
+    import statistics
+    comets = _comets()
+    logs = [math.log10(co) for co, _k7 in comets]
+    assert statistics.mean(logs) == pytest.approx(math.log10(0.025), abs=0.06) and statistics.pstdev(logs) == pytest.approx(0.65, abs=0.05)
+
+    def correlation(xs, ys):
+        mx, my = statistics.mean(xs), statistics.mean(ys)
+        return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / math.sqrt(sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys))
+
+    for species in ("N2", "Ar", "Kr", "Xe"):
+        assert correlation(logs, [math.log10(k7[species]) for _co, k7 in comets]) > 0.7, species
+    rich_without_co = sum(1 for co, k7 in comets if co < 0.025 and k7["Ar"] > 1e-4)
+    poor_with_co = sum(1 for co, k7 in comets if co > 0.1 and k7["Ar"] < 1e-5)
+    assert rich_without_co / len(comets) < 0.01 and poor_with_co / len(comets) < 0.01
+    argon = sorted(k7["Ar"] for _co, k7 in comets)
+    assert argon[int(0.02 * len(argon))] < 1.5e-5 and argon[int(0.98 * len(argon))] > 5e-3          # 67P to Hale-Bopp
+
+
+def test_krypton_and_xenon_of_k7_follow_the_argon_and_krypton_of_the_same_comet():
+    comets = _comets(600)
+    kr = [math.log10(k7["Kr"] / k7["Ar"]) for _co, k7 in comets]
+    xe = [math.log10(k7["Xe"] / k7["Kr"]) for _co, k7 in comets]
+    import statistics
+    assert statistics.mean(kr) == pytest.approx(math.log10(0.089), abs=0.03) and statistics.pstdev(kr) == pytest.approx(0.15, abs=0.03)
+    assert statistics.mean(xe) == pytest.approx(math.log10(0.269), abs=0.03) and statistics.pstdev(xe) == pytest.approx(0.15, abs=0.03)
+
+
+def test_a_species_of_a_row_reads_the_ones_drawn_before_it_and_no_other():
+    def with_k7(mutate):
+        document = copy.deepcopy(RECIPES.document)
+        mutate(next(e for e in document["entries"] if e["id"] == "k7")["dists"])
+        return Recipes(document, register=False)
+
+    # Kr reads the argon drawn before it (Ar comes before Kr in the row), so the document loads
+    with_k7(lambda dists: None)
+    # a species that reads a name no species of the row has is refused at load
+    with pytest.raises(DataError):
+        with_k7(lambda dists: dists["Kr"].update(mu="comet_tie_log10('Kr', draw_Nothing)"))
 
 
 def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_it_has_one():

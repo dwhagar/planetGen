@@ -7,7 +7,7 @@ The Sector Profile as the sector pages show it (UX.113): `profile_view(profile)`
 
 from planetgen import tuning
 from planetgen.generation.run_galaxy import LARGE_RUN_WARNING_THRESHOLD
-from planetgen.generation.stats import format_bytes, format_duration
+from planetgen.util.format import format_bytes, format_duration_seconds as format_duration
 from planetgen.physics.quantity import Quantity
 from planetgen.web.lib.fmt import format_number, format_speed_kms
 

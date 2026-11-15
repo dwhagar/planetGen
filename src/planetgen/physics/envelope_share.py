@@ -27,7 +27,7 @@ Use:
 
 import math
 
-from planetgen.physics import atmosphere, constants, elements, gases
+from planetgen.physics import atmosphere, composition_text, constants, elements, gases
 from planetgen.physics import unit_registry as units
 
 HYDROGEN_RICH_SHARE = 0.3
@@ -85,7 +85,8 @@ def set_gas_detail(body):
     if star is None:
         return              # a bare stand-in body of a test: no star, no ratios
     ratios = bulk_draw.host_ratios(star)
-    body.envelope_helium_fraction = ratios.y_envelope * (1.0 - ratios.z)
+    fractionated = getattr(body, "_envelope_helium_y", None)       # GEN.1527: the helium share a hydrogen-first loss left (`envelope_capture.helium_share`), else the star's
+    body.envelope_helium_fraction = (ratios.y_envelope if fractionated is None else fractionated) * (1.0 - ratios.z)
     body.envelope_z_fraction = ratios.z
 
 
@@ -118,3 +119,5 @@ def fill(body):
     for name in SOLIDS:
         if formed[name] is not None:
             setattr(body, name, formed[name] * keep)
+    if isinstance(getattr(body, "composition", None), str):
+        body.composition = composition_text.text(body)      # GEN.430: the phrase states the stored shares, and the air just moved them (a body whose water share sat on a level's edge, as a belt member's 0.2 does, fell under it)

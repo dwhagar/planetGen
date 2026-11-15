@@ -69,11 +69,37 @@ def bracket(water_class):
     return low, high
 
 
-def sample_fraction(mass_earth, snow_ratio, rng=draw):
+EARTH_CLASS = "low"
+"""str: Earth's water class (its oceans and the water in its mantle are 0.025 to 0.16 percent of its mass); the class the Class M abundance tier gives most of the planets its water dial reaches (`generation.abundance_tier`)."""
+
+
+DESERT_CLASS = "dry"
+"""str: The water class of a desert world (under 0.025 percent of its mass); the class the Class M abundance tier gives the part of its planets that `dry_part` names (GEN.1721)."""
+
+
+def dialed_class(water_share, dry_part=0.0, rng=draw):
+    """
+    The water class the Class M abundance tier's water dial gives a body, or `None` when the dial leaves it to the law: ONE uniform draw against
+    `water_share`, none at 0 (`science`). Of the bodies the dial reaches, the part `dry_part` takes `DESERT_CLASS` and the rest `EARTH_CLASS` (GEN.1721); the
+    one draw decides both, so a tier whose `dry_part` is 0 draws exactly as it did when the dial gave Earth's class alone.
+    """
+    if water_share <= 0.0:
+        return None
+    pick = rng.random()
+    if pick >= water_share:
+        return None
+    return DESERT_CLASS if pick < water_share * dry_part else EARTH_CLASS
+
+
+def sample_fraction(mass_earth, snow_ratio, rng=draw, dialed=None):
     """
     The water mass fraction of a rocky body of `mass_earth` Earth masses that formed at `snow_ratio` snow lines: the class from
     `class_shares`, then a log-uniform share inside it. Two draws (a uniform for the class, one for the share).
+
+    `dialed` (the answer of `dialed_class`) takes that class in place of the law's: no class draw, the share inside it log-uniform as before (one draw).
     """
+    if dialed:
+        return log_uniform(*bracket(dialed), rng=rng)
     shares = class_shares(mass_earth, snow_ratio)
     pick = rng.random()
     running = 0.0

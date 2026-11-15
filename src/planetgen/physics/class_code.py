@@ -21,7 +21,7 @@ keeps its meaning with digit 0. Searching or filtering by a letter matches all i
 Digits 5 to 9 are reserved: one is switched on only when a registered stand-in (GEN.725) gives its ranges and a shadow report shows enough bodies.
 Every place that prints or sorts a class goes through `format_code`, `parse_code` and `sort_key`, so a digit appears everywhere at once.
 
-The letters Boss confirmed (11:59 AM EDT 2026-10-31) for the families the best-fit classifier (GEN.1207) will fill: `LETTERS` below. Q stays retired and W spare.
+The letters Boss confirmed (11:59 AM EDT 2026-10-31) for the families the best-fit classifier (GEN.1207) will fill: `LETTERS` below. Q names the hot moderate-air world (GEN.1618).
 
 Use:
 
@@ -68,8 +68,9 @@ LETTERS = {
 FAMILIES = {"F": "anoxic water", "G": "dense CO2", "Y": "sulfuric acid", "U": "methane-ethane", "X": "ammonia-water"}
 """dict: The families whose digits 1 to 4 are in use; the oxygen-water family keeps its five positions in five letters (M, R, P, O, H) and so digit 0."""
 
-FIELDS = ("class_variant", "class_match", "runner_up_class", "runner_up_match")
-"""tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1220, GEN.1207): the digit, the match of the class, the runner-up and its match."""
+FIELDS = ("class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount")
+"""tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1220, GEN.1207, GEN.1314): the digit, the match of the class, the runner-up and its match, the
+values that were fudged to fit the class (comma separated quantity names, NULL for a full fit) and the total move in widths of the fudge table (0 for a full fit)."""
 
 _PATTERN = re.compile(r"^([A-Z])([0-9])?$")
 

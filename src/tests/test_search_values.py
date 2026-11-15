@@ -139,9 +139,13 @@ def test_a_range_returns_exactly_the_bodies_whose_stored_value_is_in_it(scored_g
     unit = sv.KEYS[key].default_unit(entity)
     shown = lambda number: sv.convert(number, stored, unit)
     want = {b["name"] for b in bodies if least <= b[column] <= most}
+    # A body exactly on a bound can fall one unit in the last place outside it when the bound goes to the shown unit and back to the
+    # stored one, so a body within 1e-9 of a bound may be either side; every body clear of both bounds must be there.
+    sure = {b["name"] for b in bodies if least * (1 + 1e-9) < b[column] < most * (1 - 1e-9)}
+    near = {b["name"] for b in bodies if least * (1 - 1e-9) <= b[column] <= most * (1 + 1e-9)}
     answer = _search(scored_galaxy.config, ranges={entity: {key: (shown(least), shown(most), unit)}})
     got = answer["results"][panel]["rows"]
-    assert {r["name"] for r in got} == want and want
+    assert sure <= {r["name"] for r in got} <= near and want
     for row in got:
         assert row["values"][key]["unit"] == unit
         assert shown(least) * (1 - 1e-9) <= row["values"][key]["value"] <= shown(most) * (1 + 1e-9)

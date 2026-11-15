@@ -91,6 +91,10 @@ BRIGHT_CLEAR_STAGE = {"mass": Stage("mass-clear", "Clear the earlier bright star
 """dict: The emptying of the bright stars before a scatter draws them again, by the scatter's first pass (OPS.123: the `clear-bright-stars`
 command, once the `prepare` of the shell scatter commands): the whole scatter before a mass pass, the luminosity pass alone before that."""
 
+LIMITS_STAGE = Stage("scatter-limits", "Store the star scatter's limits")
+"""Stage: The recording of the limits the star scatter will run at (its luminosity floor, mass limit and seed), before the backfill that draws what the passes leave out (OPS.257: once part of the
+clear of the earlier bright stars, which a new galaxy has no use for)."""
+
 BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
 """Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172) and of a galaxy run (PERF.251: after the backfill, the population and the
 run's own block totals, so it adds up what the run left and nothing after it changes a light)."""
@@ -106,17 +110,18 @@ def galaxy_stages(args):
     listed = sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
         BRIGHT_CLEAR_STAGE["mass"],
+        LIMITS_STAGE,
+        Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
-        Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
         Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
         Stage("run-blocks", "Update the map's block totals"),
         BLOCK_LIGHTS_STAGE,
     ]
-    return [Stage(stage.key, stage.label, skips[stage.key]) if stage.key in skips else stage for stage in listed]
+    return with_skips(args, listed)
 
 
 def plan_stages(args):
@@ -136,10 +141,15 @@ SCATTER_STAGE = {"mass": Stage("mass", "Scatter the massive stars"),
 """dict: The stage of each kind of scatter."""
 
 
+def _one_kind(kinds, args):
+    """The one of `kinds` whose option (`args.mass`, `args.nebula_field`, ...) is set, `None` when none or several are."""
+    chosen = [kind for kind in kinds if getattr(args, kind.replace("-", "_"), False)]
+    return chosen[0] if len(chosen) == 1 else None
+
+
 def scatter_kind(args):
     """The one kind a `planetgen scatter` run draws (`args.mass`, `args.luminosity`, ...), `None` when none is set."""
-    chosen = [kind for kind in SCATTER_KINDS if getattr(args, kind.replace("-", "_"), False)]
-    return chosen[0] if len(chosen) == 1 else None
+    return _one_kind(SCATTER_KINDS, args)
 
 
 def scatter_stages(args):
@@ -150,12 +160,20 @@ def scatter_stages(args):
     if kind is None:
         return []
     if kind == "phenomena":
-        return [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
-    if kind in ("mass", "luminosity"):
-        return [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
-    if kind == "nebula-field":
-        return [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
-    return [SCATTER_STAGE[kind]]
+        listed = [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
+    elif kind in ("mass", "luminosity"):
+        listed = [BRIGHT_CLEAR_STAGE[kind], *([LIMITS_STAGE] if kind == "mass" and getattr(args, "prepare_limits", False) else []), SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+    elif kind == "nebula-field":
+        listed = [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
+    else:
+        listed = [SCATTER_STAGE[kind]]
+    return with_skips(args, listed)
+
+
+def with_skips(args, listed):
+    """`listed` with each stage that `args.stage_skips` (`{stage key: reason}`: a stage that need not run, PERF.256, OPS.257) names marked as skipped with its reason."""
+    skips = getattr(args, "stage_skips", None) or {}
+    return [Stage(stage.key, stage.label, skips[stage.key]) if stage.key in skips else stage for stage in listed]
 
 
 CLEAR_KINDS = ("mass", "luminosity", "phenomena", "nebula-field")
@@ -175,8 +193,7 @@ CLEAR_KEYS = tuple(stage.key for stage in CLEAR_STAGE.values())
 
 def clear_kind(args):
     """The one kind a `planetgen clear-scatter` run clears, `None` when none is set."""
-    chosen = [kind for kind in CLEAR_KINDS if getattr(args, kind.replace("-", "_"), False)]
-    return chosen[0] if len(chosen) == 1 else None
+    return _one_kind(CLEAR_KINDS, args)
 
 
 def clear_stages(args):
@@ -187,6 +204,7 @@ def clear_stages(args):
 
 SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill the map luminosity"),
                          "rescore-habitability": Stage("habitability", "Re-score the habitability"),
+                         "refill-effect-ledger": Stage("ledger", "Refill the effect ledger"),
                          "fill-nebula-blocks": Stage("nebula-blocks", "Make the nebula block totals"),
                          "fill-block-totals": Stage("block-totals", "Make the block totals"),
                          "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field"),
@@ -267,7 +285,7 @@ def note(**metrics):
 def recording_enabled():
     """Whether stage rows and speed stats are stored at all (`PLANETGEN_GENERATION_STATS`, off in the test suite)."""
     from planetgen.generation import stats as generation_stats
-    return os.environ.get(generation_stats.STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false")
+    return generation_stats.recording_enabled()
 
 
 def speed_stats(mysql_config):
@@ -417,13 +435,9 @@ def _say_end(record, seconds, reason=None):
     if _under_banner():
         return
     offset, job_total = _numbering()
-    if reason is None:
-        mark = logrecord.stage_record(logrecord.STAGE_FINISH, "generate", offset + record["n"], job_total, seconds=seconds)
-        log.normal(mark.message, extra={"fields": mark.fields})
-    else:
-        mark = logrecord.stage_record(logrecord.STAGE_FAILED, "generate", offset + record["n"], job_total, seconds=seconds,
-                                      reason=reason)
-        log.error(mark.message, extra={"fields": mark.fields})
+    event, say = (logrecord.STAGE_FINISH, log.normal) if reason is None else (logrecord.STAGE_FAILED, log.error)
+    mark = logrecord.stage_record(event, "generate", offset + record["n"], job_total, seconds=seconds, reason=reason)
+    say(mark.message, extra={"fields": mark.fields})
 
 
 def _close_open():
@@ -577,14 +591,19 @@ def _numbering():
     return (offset, total) if offset >= 0 and total >= offset + len(_state["stages"]) else (0, len(_state["stages"]))
 
 
+def _run_state(stages, args, command, overall, key_args):
+    """The whole of `_state` for a run that has these stages, arguments, command, overall bar and per-stage arguments and has
+    entered, finished and recorded nothing yet (`begin`); with nothing, the dropped list (`_reset`)."""
+    return dict(stages=stages, next=0, args=args, command=command, open=None, job_shells=0, job_seconds=0.0,
+                overall=overall, ran=0, scatters=[], key_args=key_args)
+
+
 def begin(stages, args=None, command=None, key_args=None):
     """Starts a run's stage list. With `args`, each stage's time is stored with the settings it ran with (PERF.56).
     `key_args` gives the arguments of the stages that have their own, by key (a run of several commands, PERF.203: the
     settings of a stage are the ones its own command was given). It logs nothing: each stage is logged once, when it is
     entered (`_announce`)."""
-    _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_shells=0,
-                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[],
-                  key_args=dict(key_args or {}))
+    _state.update(_run_state(list(stages), args, command, _start_overall(stages, args, command), dict(key_args or {})))
 
 
 def args_of(key):
@@ -633,25 +652,24 @@ def enter(key, queued=False):
     does not have (another caller of the same function), does nothing. `queued` is for a stage whose row the
     queue stores (`row_for`): the stage still counts in the run's totals, but this process writes no row for it.
     """
-    keys = [stage.key for stage in _state["stages"]]
-    if key not in keys or keys.index(key) < _state["next"]:
-        return
-    index = keys.index(key)
-    for earlier in range(_state["next"], index):
-        _announce(earlier, _state["stages"][earlier].skip or "not needed")
-    _announce(index, queued=queued)
-    _state["next"] = index + 1
+    _reach(key, queued=queued)
 
 
 def skip(key, reason):
     """Enters the stage `key` as skipped for `reason` found while running (nothing to do)."""
+    _reach(key, skipped=reason)
+
+
+def _reach(key, skipped=None, queued=False):
+    """`enter` and `skip`: announces as skipped every stage before `key` that was not entered, then `key` itself (`_announce`,
+    with `skipped` and `queued`); nothing for a key the list does not have or a stage already entered."""
     keys = [stage.key for stage in _state["stages"]]
     if key not in keys or keys.index(key) < _state["next"]:
         return
     index = keys.index(key)
     for earlier in range(_state["next"], index):
         _announce(earlier, _state["stages"][earlier].skip or "not needed")
-    _announce(index, reason)
+    _announce(index, skipped, queued=queued)
     _state["next"] = index + 1
 
 
@@ -661,8 +679,12 @@ def finish(reason=None):
         _announce(index, _state["stages"][index].skip or reason or "not needed")
     _close_open()
     _write_job()
-    _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
-                  overall=None, ran=0, scatters=[], key_args={})
+    _reset()
+
+
+def _reset():
+    """Drops the run's list: no stage, no arguments, no totals."""
+    _state.update(_run_state([], None, None, None, {}))
 
 
 def fail(reason):
@@ -674,8 +696,7 @@ def fail(reason):
     record = _state["open"]
     if record is not None:
         _say_end(record, time.perf_counter() - record["t0"], reason=str(reason) or "failed")
-    _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
-                  overall=None, ran=0, scatters=[], key_args={})
+    _reset()
 
 
 def stage_estimates(conn, command, args):

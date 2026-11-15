@@ -15,24 +15,34 @@ from tests.population_support import populate
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.population import model as population
 from planetgen.population import tech
 
 POPULATION = pathlib.Path(__file__).resolve().parents[1] / "planetgen" / "population"
 
 
-def _civilized():
-    for _ in range(200):
-        cfg = SystemConfig()
-        cfg.STAR_TYPE = "G2V"
-        cfg.INTELLIGENT_LIFE = True
-        cfg.HABITABLE_WORLD = True
-        cfg.BINARY_SYSTEM = False
-        system = StarSystem(system_config=cfg)
-        if any(population.timeline_of(getattr(p, "life_stage", None), getattr(p, "life_system_age_gyr", None),
-                                  getattr(p, "life_milestone_age_gyr", None)) for p in system.planets):
+def _civilized(config):
+    """A system whose population pass will make a species, from the candidate numbers `tests/data/civilized_pins.json` pins (TEST.700): each makes the same system every
+    time, so there is no hunt. A pin is taken when its system holds the technological_civilization stage (the only one that can hold a species) and its homeworld passes
+    the placement limits (`test_population._gets_a_species`, saved to `config` and deleted again); when none does, the pins are old and the test fails saying how to write
+    them again (it is not skipped)."""
+    from tests.test_population import _candidate, _gets_a_species, _has_civilization, pinned_seeds
+    seeds = pinned_seeds()
+    assert seeds, "tests/data/civilized_pins.json names no candidate: python -m tests.civilized_pins refresh --hunt 4"
+    for number in seeds:
+        system, cfg = _candidate(number)
+        if not _has_civilization(system):
+            continue
+        system_id = store.save_system(system, cfg, config=config)
+        conn = store.get_connection(config)
+        try:
+            gets = _gets_a_species(conn, system_id)
+            with conn:
+                conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
+        finally:
+            conn.close()
+        if gets:
             return system, cfg
-    pytest.fail("could not generate a system with a civilization")
+    pytest.fail(f"none of the pinned candidates {seeds} gets a species any more: python -m tests.civilized_pins refresh --hunt 4")
 
 
 def _plain(config):
@@ -75,7 +85,7 @@ def _populate(config, system, cfg, plain_first):
 
 
 def test_the_same_world_gets_the_same_species_whatever_its_row_ids(mysql_config, fresh_mysql_config):
-    system, cfg = _civilized()
+    system, cfg = _civilized(mysql_config)
     first, first_ids = _populate(mysql_config, system, cfg, plain_first=0)
     second, second_ids = _populate(fresh_mysql_config, system, cfg, plain_first=3)
     assert first and first == second

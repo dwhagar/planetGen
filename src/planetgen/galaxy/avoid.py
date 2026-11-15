@@ -467,6 +467,11 @@ def _describe(items, start, end, centers, radii, refs, frame, unit, small, passe
     }
 
 
+def _holding(centers, radii, point):
+    """Which spheres hold `point` (the closed test of section 2.1), as a boolean array."""
+    return np.linalg.norm(centers - point, axis=1) <= radii * (1.0 + CONTAIN_MARGIN)
+
+
 def plan_course(start, end, spheres, frame="galactic", unit="pc", passed_through=None):
     """
     The `adjusted` course (course-avoidance.md section 7) from `start` to `end`, a short detour around `spheres`.
@@ -485,8 +490,7 @@ def plan_course(start, end, spheres, frame="galactic", unit="pc", passed_through
     refs = [s["ref"] for s in spheres]
     straight = float(np.linalg.norm(end - start))
 
-    near_start = np.linalg.norm(centers - start, axis=1) <= radii * (1.0 + CONTAIN_MARGIN)
-    near_end = np.linalg.norm(centers - end, axis=1) <= radii * (1.0 + CONTAIN_MARGIN)
+    near_start, near_end = _holding(centers, radii, start), _holding(centers, radii, end)
     if (near_start & near_end).any():
         return _straight(start, end, frame, unit, [], passed_through=passed_through)
     keep = ~(near_start | near_end)
@@ -507,8 +511,7 @@ def plan_course(start, end, spheres, frame="galactic", unit="pc", passed_through
         if not any(_clusters(centers, radii)):
             break
         centers, radii, refs = merge_overlaps(centers, radii, refs, wanted)
-        near_start = np.linalg.norm(centers - start, axis=1) <= radii * (1.0 + CONTAIN_MARGIN)
-        near_end = np.linalg.norm(centers - end, axis=1) <= radii * (1.0 + CONTAIN_MARGIN)
+        near_start, near_end = _holding(centers, radii, start), _holding(centers, radii, end)
         if (near_start | near_end).any():
             return _straight(start, end, frame, unit, ["overlap_fallback"], passed_through=passed_through)
         items = plan_chain(start, end, centers, radii)

@@ -14,9 +14,9 @@ deck's reflectance as the ground.
 * **The cloud deck** is an `Aerosol` (the depth, single-scattering albedo and asymmetry of GEN.414); its diffuse reflectance over a black
   base, per wavelength, is the Lambertian ground of the colour function (`deck_albedo`). A clear giant has the dark `DEEP_ALBEDO`
   below the level (a stand-in: the deep gas absorbs; the alkali wings, TiO and VO of the hot giants are not in the gas table).
-* **Band strengths** come from the gas table's coarse bins. The methane, ammonia and water band strengths of Karkoschka and of the
-  Oxford k-tables (GEN.422) are not built, so a giant with any of them above `PARTIAL_ABOVE` in mole fraction carries
-  `colour_quality = "partial"`.
+* **Band strengths.** Methane is read from the table of Karkoschka (GEN.949, `datasets/methane_visible.py`: 1 nm resolution, 400 to 1050 nm), so its strong bands
+  and windows are resolved. The ammonia and water band strengths (and the methane of a run that disregards the missing download) are the gas table's coarse bins,
+  so a giant with any of them above `PARTIAL_ABOVE` in mole fraction carries `colour_quality = "partial"`.
 
 The air above the level is the stored mixture rescaled to `P_ref` (well mixed; the depletion of a condensable above its own cloud is the
 caller's, through the fractions it passes).
@@ -26,9 +26,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from planetgen.datasets import fetch, methane_visible
 from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, photometry, two_stream
 
-REFERENCE_BAR_PA = 1.0e5
+REFERENCE_BAR_PA = constants.BAR_PA
 """float: The radius level of a giant (decision 9), Pa; the reference level is never deeper."""
 
 DEEP_ALBEDO = 0.03
@@ -37,8 +38,8 @@ DEEP_ALBEDO = 0.03
 PARTIAL_ABOVE = 1e-4
 """float: A band-bearing gas above this mole fraction makes the colour `partial` until the band strengths are read."""
 
-BAND_GASES = ("CH4", "NH3", "H2O")
-"""tuple: The gases whose visible bands are only the gas table's coarse bins."""
+BAND_GASES = ("NH3", "H2O")
+"""tuple: The gases whose visible bands are only the gas table's coarse bins (methane too while the table of Karkoschka is not downloaded: `partial_gases`)."""
 
 SUDARSKY_EDGES_K = ((150.0, "I"), (350.0, "II"), (900.0, "III"), (1500.0, "IV"))
 """tuple: Upper equilibrium temperatures of the Sudarsky classes (approximate); hotter is V."""
@@ -106,8 +107,13 @@ def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_p
     albedo = deck_albedo(cloud_deck, mu0) if cloud_deck is not None and cloud_deck.tau_550 > 0.0 else DEEP_ALBEDO
     result = colour_model.atmosphere_colour(column, temperature_k=temperature_k, ground_albedo=albedo, mu0=mu0, haze=haze,
                                             spread_x=spread_x, spread_y=spread_y, light=light)
-    bands = any(column.fraction(gas) > PARTIAL_ABOVE for gas in BAND_GASES)
+    bands = any(column.fraction(gas) > PARTIAL_ABOVE for gas in partial_gases())
     return GiantColour(result, float(p_ref_pa), "partial" if bands else "full", isinstance(albedo, np.ndarray))
+
+
+def partial_gases():
+    """The gases whose bands are the gas table's coarse bins in this run: `BAND_GASES`, and methane when the table of Karkoschka is not downloaded (GEN.949)."""
+    return BAND_GASES if not fetch.locate(methane_visible.DATASET).missing else ("CH4",) + BAND_GASES
 
 
 def body_giant_colour(body):

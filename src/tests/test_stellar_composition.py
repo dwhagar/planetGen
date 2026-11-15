@@ -17,7 +17,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import alpha_tracks, elements, wolf_rayet
+from planetgen.physics import alpha_tracks, elements, white_dwarf_core, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.physics.stellar_evolution import evolve_star, main_sequence_lifetime_gy
@@ -236,9 +236,33 @@ def test_a_white_dwarf_has_a_core_an_atmosphere_a_radius_and_layers_from_the_seq
     envelope = makeup.detail["envelope"]
     assert envelope == ("thick" if makeup.detail["atmosphere"] == "DA" else "thin")
     assert makeup.detail["radius_solar"] == white_dwarf_models.radius_solar(0.61, 60000.0, envelope)
-    assert makeup.detail["layers"] == white_dwarf_models.layer_mass_fractions(0.61, envelope)
-    assert makeup.detail["layers"]["carbon"] == makeup.detail["layers"]["oxygen"], "the sequences' own even split"
-    assert any("even one" in item for item in makeup.open_items)
+    sequence = white_dwarf_models.layer_mass_fractions(0.61, envelope)
+    layers = makeup.detail["layers"]
+    assert layers["hydrogen"] == sequence["hydrogen"] and layers["helium"] == sequence["helium"]
+    assert not any("even one" in item for item in makeup.open_items)
+
+
+def test_a_carbon_oxygen_white_dwarf_core_is_oxygen_rich_with_the_neon_of_its_progenitor():
+    """GEN.1370: the sequences split the core evenly between carbon and oxygen and hold no neon; the star's own core takes the central oxygen of its mass and the 22Ne of its birth CNO,
+    and the layers still add to one."""
+    makeup = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.61, "wd", teff_k=60000.0)
+    core, layers = makeup.detail["core_fractions"], makeup.detail["layers"]
+    sequence = white_dwarf_models.layer_mass_fractions(0.61, makeup.detail["envelope"])
+    assert core == white_dwarf_core.core_fractions(0.61, makeup.birth) and core.oxygen > core.carbon > core.neon22 > 0.0
+    assert layers["oxygen"] + layers["carbon"] + layers["neon22"] == pytest.approx(sequence["oxygen"] + sequence["carbon"])
+    assert layers["oxygen"] / layers["carbon"] == pytest.approx(core.oxygen / core.carbon)
+    assert sum(layers.values()) == pytest.approx(sum(sequence.values()))
+    poor = sc.star_makeup(sc.WHITE_DWARF, -1.0, 8.0, 0.61, "wd", teff_k=60000.0).detail["core_fractions"]
+    rich = sc.star_makeup(sc.WHITE_DWARF, 0.3, 8.0, 0.61, "wd", teff_k=60000.0).detail["core_fractions"]
+    assert poor.neon22 < rich.neon22
+    assert "core_fractions" not in sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.3, "x", teff_k=9000.0).detail
+
+
+def test_the_pollutant_draw_is_the_last_field_and_the_same_for_a_key():
+    """It is drawn after every other (GEN.1370), so none of the earlier draws moved."""
+    assert list(sc.StarDraws.__dataclass_fields__)[-1] == "u_pollutant"
+    first, again = sc.key_draws("some-star"), sc.key_draws("some-star")
+    assert 0.0 <= first.u_pollutant < 1.0 and first == again and first.u_pollutant != sc.key_draws("another-star").u_pollutant
 
 
 def test_a_hydrogen_atmosphere_takes_the_thick_layer_and_a_helium_one_the_thin_layer():

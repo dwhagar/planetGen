@@ -26,7 +26,7 @@ from tests.test_web_browser_maps import (  # noqa: E402,F401 -- fixtures
     site_db,
 )
 from tests.test_web_browser_sector_open import _ready, _scene  # noqa: E402
-from tests.test_web_browser_sector_reach import CANVAS, _Scene, _camera, _wheel  # noqa: E402
+from tests.test_web_browser_sector_reach import CANVAS, _Scene, _at_rest, _camera, _wheel  # noqa: E402
 
 CANVAS_JS = "document.querySelector('#galaxymap3d-canvas')"
 
@@ -114,6 +114,7 @@ def test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system(page, bas
             trail.append(("offscreen", n))
             break
         _wheel(page, (spot["x"], spot["y"]), -60)
+        _at_rest(page)      # MAP.426: one tick is one zoom step; ticks sent faster than the camera moves pile up in a zoom goal and the stop depends on the machine's speed
         state = _state(page)
         cam = _camera(page)
         trail.append((n, round(math.dist(cam["eye"], point), 6), state["system"] is not None, state["url"][:60]))
@@ -124,6 +125,7 @@ def test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system(page, bas
     # The wheel back out carries the map out of the system, the sector and on up the stages with no page load.
     for _ in range(400):
         _wheel(page, (page.viewport_size["width"] / 2, page.viewport_size["height"] / 2), 120)
+        _at_rest(page)
         if "sector=" not in page.url:
             break
     assert "sector=" not in page.url, page.url

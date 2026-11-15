@@ -10,7 +10,7 @@ Rules (names as `RULES` lists them):
   or giant) is the body's.
 - `conditions-total`: `classify` returns a letter for the body (no `ClassError`), the same twice, the same from the body and from its
   stored columns (`values_from_body`), and it does not change the body.
-- `class-from-conditions`: the stored class letter, digit, match and runner-up are what the best-fit classifier gives for the stored values
+- `class-from-conditions`: the stored class letter, digit, match, runner-up and fudge (the values moved and by how much) are what the best-fit classifier gives for the stored values
   (`class_fit.classify`, GEN.1207), and a stored match above 0 means no condition of the class is missed outright.
 
 `habitable_request_statuses` generates seeded systems that ask for a habitable world and returns how each answered
@@ -27,9 +27,10 @@ REQUEST_SYSTEMS = 12
 
 
 def _conditions_letter(body):
-    """The best-fit class of the body's stored values: `(letter, digit, match, runner_up, runner_up_match)`."""
+    """The best-fit class of the body's stored values: `(letter, digit, match, runner_up, runner_up_match, fudge_values, fudge_amount)`; the fudge values are the comma separated
+    names the planet stores (None for a full fit), GEN.1314."""
     detail = class_fit.classify(planet_classes.values_from_body(body))
-    return detail.letter, detail.digit, detail.match, detail.runner_up, detail.runner_up_match
+    return detail.letter, detail.digit, detail.match, detail.runner_up, detail.runner_up_match, ",".join(detail.fudge_values) or None, detail.fudge_amount
 
 
 def _asteroid(body):
@@ -94,11 +95,11 @@ def _check_from_conditions(entry):
     except planet_classes.ClassError as error:
         return [f"cannot be classified: {error}"]
     stored = (getattr(body, "planet_class", None), getattr(body, "class_variant", None), getattr(body, "class_match", None),
-              getattr(body, "runner_up_class", None), getattr(body, "runner_up_match", None))
+              getattr(body, "runner_up_class", None), getattr(body, "runner_up_match", None), getattr(body, "class_fudge_values", None), getattr(body, "class_fudge_amount", None))
     problems = []
     if derived[0] != stored[0]:
         problems.append(f"stored class {stored[0]!r}, conditions give {derived[0]!r}")
-    elif derived[1] != stored[1] or derived[3] != stored[3] or any(abs((a or 0.0) - (b or 0.0)) > 1e-9 for a, b in ((derived[2], stored[2]), (derived[4], stored[4]))):
+    elif derived[1] != stored[1] or derived[3] != stored[3] or derived[5] != stored[5] or any(abs((a or 0.0) - (b or 0.0)) > 1e-9 for a, b in ((derived[2], stored[2]), (derived[4], stored[4]), (derived[6], stored[6]))):
         problems.append(f"stored digit, match and runner-up {stored[1:]!r}, conditions give {derived[1:]!r}")
     return problems
 

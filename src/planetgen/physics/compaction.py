@@ -61,10 +61,6 @@ class OutOfRange(ValueError):
     """A body outside the table: heavier than `TAPER_END_KG`, where the structure solver (GEN.429) decides."""
 
 
-
-
-
-
 def taper_weight(mass_kg):
     """1 at or below `TAPER_START_KG`, 0 at or above `TAPER_END_KG`, linear in log10 of the mass between."""
     if mass_kg <= 0.0:
@@ -109,8 +105,6 @@ def grain_density_kg_m3(fractions, densities=None):
     return 1.0 / volume
 
 
-
-
 def _load():
     with open(DATA_FILE, encoding="utf-8") as handle:
         data = json.load(handle)
@@ -136,6 +130,7 @@ def _load():
 
 
 _DATA, _LOG_MASS, _COLUMNS = _load()
+_ROCKS = tuple(column[0] for column in _COLUMNS)
 SOURCES = _DATA["sources"]
 """dict: Source key -> citation, as the data file states them."""
 ROCK_FRACTION_RANGE = (_COLUMNS[0][0], _COLUMNS[-1][0])
@@ -152,8 +147,7 @@ def _check_rock(rock_fraction):
 
 def _blend(rock_fraction):
     """The two columns around `rock_fraction` and the weight of the upper one."""
-    rocks = [c[0] for c in _COLUMNS]
-    i = min(max(bisect.bisect_right(rocks, rock_fraction) - 1, 0), len(_COLUMNS) - 2)
+    i = min(max(bisect.bisect_right(_ROCKS, rock_fraction) - 1, 0), len(_COLUMNS) - 2)
     low, high = _COLUMNS[i], _COLUMNS[i + 1]
     return low, high, (rock_fraction - low[0]) / (high[0] - low[0])
 

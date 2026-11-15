@@ -123,6 +123,9 @@ def _astropy_factor(symbol):
              "mW/m²": 1e-3 * u.W / u.m ** 2, "W/m²": u.W / u.m ** 2, "kW/m²": 1e3 * u.W / u.m ** 2,
              "MW/m²": 1e6 * u.W / u.m ** 2,
              "particles/cm³": 1e6 / u.m ** 3, "nT": u.nT, "µT": u.uT, "mT": u.mT, "T": u.T,
+             "nSv/yr": 1e-9 * (u.J / u.kg) / u.year, "µSv/yr": 1e-6 * (u.J / u.kg) / u.year, "mSv/yr": 1e-3 * (u.J / u.kg) / u.year, "Sv/yr": (u.J / u.kg) / u.year,
+             "kSv/yr": 1e3 * (u.J / u.kg) / u.year, "MSv/yr": 1e6 * (u.J / u.kg) / u.year,
+             "1/Gy": 1 / u.Gyr, "1/Myr": 1 / u.Myr, "1/yr": 1 / u.year, "1/d": 1 / u.day,
              "G": 1e-4 * u.T,  # astropy's gauss is a CGS unit, not convertible without an equivalency
              "ft": u.imperial.ft, "mi": u.imperial.mi, "lb": u.imperial.lb, "mph": u.imperial.mi / u.h,
              "mi/s": u.imperial.mi / u.s, "ft/s²": u.imperial.ft / u.s ** 2,
@@ -130,6 +133,9 @@ def _astropy_factor(symbol):
              "ZW": 1e21 * u.W, "YW": 1e24 * u.W, "RW": 1e27 * u.W, "QW": 1e30 * u.W,
              "°F": 5 / 9 * u.K,  # the size of a degree; the zero is checked against astropy's temperature scales below
              "psi": 4.4482216152605 / 0.0254 ** 2 * u.Pa,  # lbf (exact, in N) per square inch; astropy's imperial.psi is rounded
+             # astropy's byte has no SI decomposition: the information ladder is checked as powers of ten of one byte
+             "B": 1.0 * u.dimensionless_unscaled, "kB": 1e3 * u.dimensionless_unscaled, "MB": 1e6 * u.dimensionless_unscaled,
+             "GB": 1e9 * u.dimensionless_unscaled, "TB": 1e12 * u.dimensionless_unscaled,
              "kg": u.kg, "lunar masses": 7.342e22 * u.kg, "Earth masses": const.M_earth,
              "Jupiter masses": const.M_jup, "solar masses": const.M_sun}
     quantity = named.get(symbol)
@@ -192,9 +198,13 @@ def test_mass_switches_units_at_the_decided_points(kilograms, text):
     (ladders.FLUX, 1361.0, "1.36 kW/m²"),
     (ladders.NUMBER_DENSITY, 3.5e6, "3.5 particles/cm³"),
     (ladders.NUMBER_DENSITY, 2.5e15, "2.50 × 10⁹ particles/cm³"),
-    (ladders.MAGNETIC_FIELD, 5e-5, "50 µT"),
-    (ladders.MAGNETIC_FIELD, 0.3, "300 mT"),
+    (ladders.MAGNETIC_FIELD, 5e-5, "50 µT (0.5 G)"),
+    (ladders.MAGNETIC_FIELD, 0.3, "300 mT (3,000 G)"),
+    (ladders.RATE, 0.2 / 31557600.0, "0.2 1/yr"),
+    (ladders.RATE, 25000 / (31557600.0 * 1e9), "25 1/Myr"),
     (ladders.MAGNETIC_FIELD, 1e8, "1.00 × 10¹² G"),
+    (ladders.INFORMATION, 512, "512 B"), (ladders.INFORMATION, 1500, "1.5 kB"), (ladders.INFORMATION, 1.5e9, "1.5 GB"),
+    (ladders.INFORMATION, 4e12, "4 TB"),
 ])
 def test_other_ladders_switch_units_at_the_decided_points(ladder, value, text):
     assert format_quantity(ladder, value) == text

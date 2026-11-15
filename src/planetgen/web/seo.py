@@ -21,11 +21,13 @@ The absolute address of the site is `base_url` (never the request's Host header)
 This module imports Flask only for the request.
 """
 
-import json
+from xml.sax.saxutils import escape
 import re
 import threading
 import time
 from urllib.parse import urlencode, urlsplit
+
+from planetgen.web.lib import fmt
 
 from flask import current_app, request, url_for
 
@@ -42,6 +44,7 @@ LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "
 DETAIL = frozenset({
     "web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon", "web.uncharted_star",
     "web.object_page", "web.belt_info_page", "web.belt_member_page", "web.field_member_page",
+    "web.irregular_moons_page", "web.irregular_moon_page",
 })
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data",
@@ -175,7 +178,7 @@ def head(title, description=None):
     json_ld = None
     if settings.seo.json_ld and endpoint == "web.index" and base:
         document = {"@context": "https://schema.org", "@type": "WebSite", "name": settings.site_name, "url": base}
-        json_ld = json.dumps(document).replace("<", "\\u003c")
+        json_ld = fmt.json_script(document)
     return {
         "title": _title(settings, title), "lang": settings.site.language, "description": text,
         "keywords": ", ".join(settings.seo.keywords) or None, "robots": robots, "canonical": canonical,
@@ -295,14 +298,12 @@ def clear_cache():
 
 def sitemap_urls_xml(urls):
     """A `<urlset>` of absolute addresses (`loc` only: Google ignores changefreq and priority)."""
-    from xml.sax.saxutils import escape
     body = "".join(f"<url><loc>{escape(url)}</loc></url>" for url in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>\n')
 
 
 def sitemap_index_xml(urls):
-    from xml.sax.saxutils import escape
     body = "".join(f"<sitemap><loc>{escape(url)}</loc></sitemap>" for url in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</sitemapindex>\n')

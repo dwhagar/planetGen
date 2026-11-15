@@ -5,6 +5,7 @@ ages and eras, polities and territories, the `population` CLI and the API.
 See docs/design/habitability/population-and-politics.md."""
 
 import random
+from pathlib import Path
 import sys
 
 import pytest
@@ -257,12 +258,14 @@ def _has_civilization(system):
 
 
 def test_the_pinned_civilized_seeds_still_qualify():
-    """TEST.700: the first pinned candidate still holds a technological civilization with this generator (one system, about 23 s). When it does not, the
-    pins are old and every test that needs a civilized system hunts again: `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
+    """TEST.700, TEST.753: every pinned candidate still holds a technological civilization with this generator (a system each, about 25 s). A test that needs
+    two civilized systems takes the first two pins and the rest cover a number that stops qualifying, so a stale pin past the first is a hunt of tens of
+    minutes in the middle of a run (Train 28's epoch left only the first valid and the guard checked only it). When one does not, the pins are old:
+    `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
     seeds = pinned_seeds()
     assert seeds, "tests/data/civilized_pins.json names no candidate: python -m tests.civilized_pins refresh --hunt 4"
-    system, _cfg = _candidate(seeds[0])
-    assert _has_civilization(system), f"candidate {seeds[0]} no longer holds a civilization: python -m tests.civilized_pins refresh --hunt 4"
+    stale = [number for number in seeds if not _has_civilization(_candidate(number)[0])]
+    assert not stale, f"candidates {stale} no longer hold a civilization: python -m tests.civilized_pins refresh --hunt 4"
 
 
 def _next_candidate_number():
@@ -493,7 +496,7 @@ def test_the_two_passes_are_registered_commands_that_run_alone(mysql_config, gal
     params = {"database": wrapper.database_args(mysql_config)}
     _with_a_spacefaring_species(mysql_config, galaxy)
     for kind in ("run-population", "run-territories"):
-        assert not commands.spec(kind).inline and commands.spec(kind).whole
+        assert commands.spec(kind).pieces is not None and commands.spec(kind).whole
     done = commands.run_alone("run-population", {**params, "rescan": False})
     assert done["species"] >= 2 and done["polities"] >= 1 and done["lines"] and "owned_systems" not in done
     assert _owners(mysql_config) == 0
@@ -741,18 +744,66 @@ def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
         conn.close()
 
 
-def test_the_pass_announces_each_step_for_its_bar(mysql_config, galaxy):
-    """UX.83, PERF.125: the population pass names its three steps and the territories pass its one."""
+def test_the_passes_are_listed_as_pieces_for_the_engine(mysql_config, galaxy):
+    """OPS.203: the population pass is the scan a batch of planet ids a piece, then the drop, the dating, the technology rows and the counts; the territories
+    pass the recompute. A rescan forgets the species first and scans from the first planet."""
     conn = store.get_connection(mysql_config)
     try:
-        stages = []
-        population.run_population(conn, on_stage=stages.append)
-        assert len(stages) == population.POPULATION_STAGES == 3
-        only = []
-        population.run_territories(conn, on_stage=only.append)
-        assert len(only) == 1
+        pieces = population.population_pieces(conn)
+        assert pieces[-4:] == [["drop"], ["civilizations"], ["technology"], ["counts"]]
+        scans = [piece for piece in pieces if piece[0] == "scan"]
+        assert scans and all(0 < high - low <= population.SCAN_BATCH for _kind, low, high in scans)
+        assert [scan[2] for scan in scans[:-1]] == [scan[1] for scan in scans[1:]]
+        again = population.population_pieces(conn, rescan=True)
+        assert again[0] == ["reset"] and again[1][1] == 0
+        assert population.territories_pieces() == [["territories"]]
+        with pytest.raises(ValueError):
+            population.do_population_piece(conn, ["nothing"])
     finally:
         conn.close()
+
+
+def test_a_scan_piece_the_watermark_has_passed_does_nothing(mysql_config, galaxy):
+    """OPS.203: another pass that took the lock first may have scanned a piece's planets; the piece then leaves them and the watermark alone."""
+    conn = store.get_connection(mysql_config)
+    try:
+        top = conn.execute("SELECT MAX(id) AS id FROM planets").fetchone()["id"]
+        with conn:
+            population._set_watermark(conn, top)
+        assert population.do_population_piece(conn, ["scan", 0, top]) == {"added": 0}
+        assert population._watermark(conn) == top
+    finally:
+        conn.close()
+
+
+def test_the_territories_pass_reports_how_far_it_is(mysql_config, galaxy):
+    """The standing design order (Boss 11-13): a long step reports real counts: the polities claiming, then the owner rows written."""
+    class Seen:
+        def __init__(self):
+            self.steps, self.advanced = [], 0
+
+        def step(self, name, total=None):
+            self.steps.append((name, total))
+
+        def advance(self, amount=1):
+            self.advanced += amount
+
+    conn = store.get_connection(mysql_config)
+    try:
+        _with_a_spacefaring_species(mysql_config, galaxy)
+        seen = Seen()
+        with conn:
+            owned = population.do_territories_piece(conn, ["territories"], seen)["owned_systems"]
+        assert [name for name, _total in seen.steps] == ["Polities claiming systems", "Owner rows written"]
+        assert seen.advanced == seen.steps[0][1] + seen.steps[1][1] and seen.steps[1][1] == owned
+    finally:
+        conn.close()
+
+
+def test_the_pass_functions_leave_the_commit_to_the_engine():
+    """OPS.203: a converted command commits only through `ctx.commit()`: the model's pass code has no commit of its own."""
+    source = Path(population.__file__).read_text()
+    assert "with conn:" not in source and ".commit()" not in source
 
 
 def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_config, galaxy):

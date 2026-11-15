@@ -72,8 +72,8 @@ def test_an_opening_logs_each_step_with_the_memory_the_process_holds(monkeypatch
     for text in ("is being cut into its units", "its preparation is done", "cut into 3 unit(s) after 4 s"):
         held = wrapper._say_opening(None, "r1", 9, text, held)
     assert held == 1900.0
-    assert logged[0][0] == "Opening stage 10: is being cut into its units (this process holds 1,200 MB, at most 1,200 MB so far)"
-    assert logged[2][0].endswith("(this process holds 1,500 MB, at most 1,900 MB so far)") and logged[2][1]["peak_mb"] == 1900
+    assert logged[0][0] == "Opening stage 10: is being cut into its units (this process holds 1.2 GB, at most 1.2 GB so far)"
+    assert logged[2][0].endswith("(this process holds 1.5 GB, at most 1.9 GB so far)") and logged[2][1]["peak_mb"] == 1900
     assert all(fields["kind"] == "stage.opening" and fields["stage"] == 9 for _text, fields in logged)
 
 
@@ -100,3 +100,32 @@ def test_the_opening_asks_the_other_bulk_workers_to_go_and_the_run_waits_to_star
     monkeypatch.setattr(runrecord, "read_plan", lambda conn, run_id, index: {"units": 1} if ensured else None)
     result = wrapper._await_plan(run, "r1", 2, lambda: ensured.append(len(ticks)), clock=lambda: next(clock), sleep=sleep, touch=False)
     assert result == {"units": 1} and ensured and ensured[0] >= 2          # not while the opening lasted
+
+
+def test_a_run_that_failed_says_why_and_at_which_stage_and_a_cancel_is_only_a_notice():
+    """OPS.163: the run-failure line carries the cause and the stage; a stop on purpose is no error."""
+    severity, line, fields = wrapper.stop_line("r1", 2, 5, ValueError("no stars here"), "no stars here", False)
+    assert severity == "error"
+    assert line.startswith("Run r1 stopped at Stage 3 of 5: ValueError: no stars here. 'planetgen finish-run'")
+    assert fields == {"run_id": "r1", "cause": "ValueError", "stage": 3}
+    severity, line, fields = wrapper.stop_line("r1", None, 5, KeyboardInterrupt(), "KeyboardInterrupt", True)
+    assert severity == "notice" and "stopped: KeyboardInterrupt." in line
+    assert fields == {"run_id": "r1", "cause": "canceled"}
+
+
+def test_a_failed_unit_reaches_error_log_with_its_run_stage_unit_kind_and_traceback(run, monkeypatch):
+    """OPS.162: RQ's own copy of the traceback has no run, stage, unit or kind; the unit's failure line carries them as fields."""
+    from planetgen.util import log
+    seen = []
+    monkeypatch.setattr(log, "record_error", lambda component, message, exc_info=None, **fields: seen.append((component, message, exc_info, fields)))
+    job = _job(run, 2)
+    job.args = ("r1", 2, 101, "sectors", {}, None)
+    try:
+        raise ValueError("no stars here")
+    except ValueError as exc:
+        units.unit_failed(job, run, ValueError, exc, exc.__traceback__)
+    (component, message, exc_info, fields), = seen
+    assert component == "queue"
+    assert message == "Unit 101 of stage Scatter the bright stars failed: ValueError: no stars here"
+    assert exc_info[0] is ValueError and exc_info[2] is not None
+    assert fields == {"run_id": "r1", "stage": 2, "stage_name": "Scatter the bright stars", "unit": 101, "kind": "sectors"}

@@ -1,7 +1,7 @@
 """The formation kind without a class (GEN.681, physics/planet_kind.py)."""
 
 from planetgen import tuning
-from planetgen.physics import atmosphere_recipes, constants, planet_kind, planet_mass
+from planetgen.physics import atmosphere_recipes, constants, planet_kind, planet_mass, planet_moons
 from planetgen.util import draw
 
 SUN_KG = constants.SOLAR_MASS_TO_KG
@@ -72,7 +72,7 @@ def test_a_given_radius_names_the_kind_and_the_mass_wins():
 
 
 def test_a_moon_ceiling_is_a_share_of_its_parent():
-    assert planet_kind.moon_mass_ceiling_kg(1e27, True) == tuning.MOON_GIANT_PARENT_MAX_MASS_RATIO * 1e27
+    assert planet_kind.moon_mass_ceiling_kg(1e27, True) == planet_moons.DISK_TOTAL_RATIO_MAX * 1e27
     assert planet_kind.moon_mass_ceiling_kg(6e24, False) == tuning.MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO * 6e24
 
 

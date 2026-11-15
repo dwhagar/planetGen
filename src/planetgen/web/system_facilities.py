@@ -32,8 +32,6 @@ when saved (`store.add_facility`).
   needs no script.
 """
 
-import re
-
 from flask import abort, redirect, request
 
 from planetgen.web.lib import apiclient, facility_display
@@ -86,10 +84,9 @@ _WORST = ("green", "yellow", "red")
 def _api_message(exc):
     """An `ApiError`'s message without `apiclient`'s "planetGen API error
     (NNN): " prefix."""
-    message = re.sub(r"^planetGen API error \(\d+\): ", "", str(exc))
     if getattr(exc, "status_code", None) in (401, 403):
         return "Not allowed. Change the admin username and password the installer set first."
-    return message
+    return apiclient.message_of(exc)
 
 
 def _star_host(system, star):

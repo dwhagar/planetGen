@@ -54,6 +54,7 @@ from planetgen.admin import stop_reason, updateguard
 from planetgen.cli import warm_log, warm_progress
 from planetgen.queue import redisqueue, runrecord, units, warmphases, warmstart, wrapper
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 RUN_TITLE = "Cache warm-up"
 """str: The title of the warm-up's run in the run record: what `--follow` looks for among the maintenance runs."""
@@ -122,7 +123,7 @@ def _wait_for_update():
     deadline = time.monotonic() + UPDATE_WAIT_SECONDS
     while updateguard.is_updating():
         if time.monotonic() > deadline:
-            raise Failed(f"the update was still running after {UPDATE_WAIT_SECONDS} s")
+            raise Failed(f"the update was still running after {format_duration_seconds(UPDATE_WAIT_SECONDS)}")
         time.sleep(2.0)
 
 
@@ -164,7 +165,7 @@ def _cancel_other_warm_up(conn, holder, sleep, clock):
     while run is not None and runcontrol.started_units(conn, run):
         if clock() > deadline:
             log.warning(f"{len(runcontrol.started_units(conn, run))} unit(s) of the canceled warm-up {holder} were still running "
-                        f"after {CANCEL_WAIT_SECONDS:g} s; going on.")
+                        f"after {format_duration_seconds(CANCEL_WAIT_SECONDS)}; going on.")
             return
         sleep(1.0)
 
@@ -208,7 +209,8 @@ def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic, data
     try:
         conn = redisqueue.connect()
         conn.ping()
-    except Exception:       # noqa: BLE001 -- the run itself says that no Redis answers
+    except Exception as exc:       # noqa: BLE001 -- the run itself says that no Redis answers
+        log.swallowed("cli/warm", "_settle_with_other_runs", exc)
         return
     if origin == warm_log.AUTOMATIC:
         _wait_for_generation(conn, database, sleep)
@@ -229,7 +231,7 @@ def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic, data
             log.normal("The other run has ended: starting this warm-up.")
             return
         if clock() > deadline:
-            raise Failed(f"{runrecord.busy_message(conn, holder)} still after {OTHER_WARM_WAIT_SECONDS} s")
+            raise Failed(f"{runrecord.busy_message(conn, holder)} still after {format_duration_seconds(OTHER_WARM_WAIT_SECONDS)}")
         sleep(OTHER_WARM_POLL_SECONDS)
 
 
@@ -244,7 +246,8 @@ def _make_room_after_busy(origin, sleep=time.sleep, clock=time.monotonic):
         if holder is None or not _holder_is_warm_up(conn, holder):
             return False
         _cancel_other_warm_up(conn, holder, sleep, clock)
-    except Exception:       # noqa: BLE001 -- no Redis: the start says so
+    except Exception as exc:       # noqa: BLE001 -- no Redis: the start says so
+        log.swallowed("cli/warm", "_make_room_after_busy", exc)
         return False
     return True
 
@@ -284,7 +287,7 @@ def _who_sent_sigterm():
     except ValueError:
         limit = 0.0
     if limit > 0 and time.monotonic() - _started >= limit - 5:
-        return f"update.sh's time limit for this stage ({limit:g} s, WARM_STAGE_SECONDS)"
+        return f"update.sh's time limit for this stage ({format_duration_seconds(limit)}, WARM_STAGE_SECONDS)"
     return "a SIGTERM that left no reason (a kill, or a stop-all or cancel that could not write one)"
 
 
@@ -500,7 +503,7 @@ def _warm_on_change(args):
         log.normal(f"This warm-up was canceled by {SUPERSEDED_BY}; the update's run warms everything this one would have.")
         return
     except Failed as exc:
-        log.error(f"error: the cache warm-up after a change stopped: {exc}")
+        log.error(f"The cache warm-up after a change stopped: {exc}")
         raise SystemExit(1)
     log.normal(f"The warm-up after a change ran {rounds} time{'' if rounds == 1 else 's'}.")
 
@@ -517,7 +520,7 @@ def run_warm(args):
         try:
             _follow(args)
         except Failed as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
+            log.error(f"The cache warm-up stopped: {exc}")
             raise SystemExit(1)
         except KeyboardInterrupt:
             log.normal("Stopped watching. The warm-up goes on; `planetgen warm --follow` watches it again.")
@@ -534,7 +537,7 @@ def run_warm(args):
             log.warning(f"The cache warm-up was canceled by {SUPERSEDED_BY}. What it stored is kept.")
             raise SystemExit(1)
         except Failed as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
+            log.error(f"The cache warm-up stopped: {exc}")
             raise SystemExit(1)
     except Stopped as stop:
         _say_stopped(stop.reason, stop.status)

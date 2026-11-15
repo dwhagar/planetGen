@@ -29,6 +29,10 @@ first.
 
 import re
 
+from planetgen.physics.quantity import Quantity
+from planetgen.util.format import (
+    format_body_radius_km, format_distance_km, format_mass_kg, format_period_years, format_power_w, to_scientific_notation,
+)
 from planetgen.web.lib.fmt import dash_unless_finite
 
 _SUP_HTML_RE = re.compile(r'<sup>(-?\d+)</sup>')
@@ -54,20 +58,6 @@ def to_plain_text(formatted):
     """
     return _SUP_HTML_RE.sub(lambda m: m.group(1).translate(_SUPERSCRIPT_DIGITS), formatted)
 
-try:
-    from planetgen.physics.quantity import Quantity
-    from planetgen.util.format import (
-        format_body_radius_km, format_distance_km, format_mass_kg, format_period_years, format_power_w, to_scientific_notation,
-    )
-
-    _FORMATTERS = True
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # fall back to showing the raw number rather than failing outright (see
-    # `html/sector.py`'s identical fallback for `milliparsecs_to_ly`).
-    _FORMATTERS = False
-    format_period_years = None
-
 
 def _dash_unless_positive(formatter):
     """`dash_unless_finite(formatter)`, and a dash for a negative value too:
@@ -86,51 +76,39 @@ def format_mass(mass_kg):
     """A star's, compact remnant's, planet's or moon's mass on the mass
     ladder (UX.22): kg, lunar, Earth, Jupiter or solar masses, whichever is
     meaningful."""
-    if not _FORMATTERS:
-        return f"{mass_kg} kg"
     return format_mass_kg(mass_kg)
 
 
 def format_luminosity(luminosity_w):
     """A star's or remnant's luminosity on the power ladder (UX.22): W to EW,
     then solar luminosities."""
-    if not _FORMATTERS:
-        return f"{luminosity_w} W"
     return format_power_w(luminosity_w)
 
 
 def format_star_radius(radius_km):
     """A planet, moon or star radius: always km in scientific notation
     (Boss, 2026-09-30), unlike every other distance on the site."""
-    if not _FORMATTERS:
-        return f"{radius_km} km"
     return format_body_radius_km(radius_km)
 
 
 def format_period(period_years):
     """An orbital period, in years, on the shared period ladder
     (`planetgen.util.format.format_period_years`, UX.14)."""
-    if format_period_years is None:
-        return f"{period_years} years"
     return format_period_years(period_years)
 
 
-def format_body_distance(distance_km, is_moon=False):
+def format_body_distance(distance_km):
     """
     A planet's distance from its star or a moon's from its planet, through
     the distance ladder (`format.format_distance_m`): km under 1 AU, then AU,
-    and so on up. `is_moon` is kept for callers; moons and planets now
-    follow the same ladder.
+    and so on up. Moons and planets follow the same ladder.
 
     Args:
         distance_km (float): `planets`/`moons`.`distance_km`.
-        is_moon (bool): Whether this row came from the `moons` table.
 
     Returns:
         str: The formatted distance.
     """
-    if not _FORMATTERS:
-        return f"{distance_km} km"
     return format_distance_km(distance_km)
 
 
@@ -151,8 +129,6 @@ def _times_reference(ratio):
 def format_body_radius(radius_km):
     """A planet's or moon's radius (MAP.92): km in scientific notation like
     every body radius, then in Earth radii."""
-    if not _FORMATTERS:
-        return f"{radius_km} km"
     ratio = Quantity("length", radius_km, "km").Rearth
     return f"{format_body_radius_km(radius_km)} ({_times_reference(ratio)} Earth radii)"
 

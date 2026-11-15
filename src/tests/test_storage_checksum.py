@@ -292,7 +292,6 @@ WRITERS = {
     ("db/store.py", "insert_asteroid_belt"): INSERT,
     ("db/store.py", "insert_comet"): INSERT,
     ("db/store.py", "insert_nebula"): INSERT,
-    ("db/store.py", "_store_nebula_shape"): MARKS,
     ("db/store.py", "insert_supernova_remnant"): INSERT,
     ("db/store.py", "insert_interstellar_comet"): INSERT,
     ("db/store.py", "insert_asteroid_field"): INSERT,
@@ -328,7 +327,8 @@ def _writers():
     root = pathlib.Path(sc.__file__).resolve().parents[1]
     tables = sorted(set(sc.CONTENT_TABLES))
     pattern = re.compile(r"\b(UPDATE|INSERT\s+(?:IGNORE\s+)?INTO|DELETE\s+FROM)\s+`?(%s)\b(?!_)" % "|".join(tables)
-                         + r"|\bdesignation_rows\.(?:set_name|renumber)\(")  # GEN.1138: the one writer of a name and an ID takes the table as an argument
+                         + r"|\bdesignation_rows\.(?:set_name|renumber)\("  # GEN.1138: the one writer of a name and an ID takes the table as an argument
+                         + r"|\b_insert_composition\(conn, \"(?:%s)\"" % "|".join(tables))  # the one writer of composition shares takes the table as an argument
     found = {}
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root).as_posix()
@@ -361,9 +361,11 @@ def test_the_writers_that_mark_say_so():
 
 def _storage_result(conn, config, scope=None):
     from planetgen.db import check
+    from planetgen.queue import commands, wrapper
 
-    ctx = check._Context(conn, config, scope or check.Scope())
-    return check.run_check(check.BY_NAME["storage"], ctx)
+    scope = scope or check.Scope()
+    args = {"database": wrapper.database_args(config), "shells": list(scope.shells), "addresses": [list(a) for a in scope.addresses], "wide_binaries": scope.wide_binaries}
+    return check.CheckResult.from_dict(commands.run_alone("check-storage", args))      # OPS.204: the engine's loop, one sector a piece
 
 
 def test_check_storage_passes_warns_and_fails(mysql_config):

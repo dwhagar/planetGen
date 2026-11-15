@@ -36,6 +36,7 @@ import time
 from planetgen.galaxy import component_field
 from planetgen.util import logrecord
 from planetgen.util import settings as settings_module
+from planetgen.util.format import format_duration_seconds
 
 FORMAT = 1
 """int: The file format; a change makes every earlier file unreadable (a different signature)."""
@@ -188,21 +189,9 @@ def _read_part(sig, index, ages):
     return data["means"]
 
 
-def compute_part(sig, index, ages):
-    """
-    Works out part `index`: the mean system mass at each of `ages`, written as the part's file. A part already there for
-    these ages is left as it is.
-
-    Returns:
-        dict: `index`, `ages`, `built` (1 when it was worked out, 0 when it was there) and `seconds`.
-    """
-    started = time.monotonic()
-    if _read_part(sig, index, ages) is not None:
-        return {"index": index, "ages": len(ages), "built": 0, "seconds": 0.0}
-    from planetgen.generation import system_mass
-    means = [system_mass.mean_system_mass_at_age_solar(age) for age in ages]
-    _write_atomic(part_path(sig, index), json.dumps({"ages": list(ages), "means": means}).encode())
-    return {"index": index, "ages": len(ages), "built": 1, "seconds": time.monotonic() - started}
+def write_part(sig, index, ages, means):
+    """Writes part `index`'s file: the `means` of the system mass at each of `ages` (a part is written whole, so a part that is there is for exactly its ages)."""
+    _write_atomic(part_path(sig, index), json.dumps({"ages": list(ages), "means": list(means)}).encode())
 
 
 def assemble(sig, found, edge_pc, expected_at_density_1):
@@ -278,6 +267,15 @@ def _ages_in(conn):
     return distinct_ages(row["age_gy"] for row in rows)
 
 
+def _check_unchanged(conn, sig):
+    """Raises `Changed` unless the stored components still make the field `sig` (`signature` of `store.component_field_key`)."""
+    from planetgen.db import store
+    key = store.component_field_key(conn)
+    if key is None or signature(key) != sig:
+        raise Changed("the stored clusters and satellites changed while the cluster field was made; "
+                      "the next warm-up starts it again")
+
+
 def expand_field(params):
     """
     The units of the `warm-cluster-field` stage: one per part of `PART_AGES` ages, or one that says the field is already a
@@ -304,8 +302,39 @@ def expand_field(params):
                                       "parts": len(units)})
 
 
-def field_unit(args, report):
-    """The unit of the `warm-cluster-field` command: one part, or the line that says there is nothing to make."""
+def _wanted_ages(args):
+    """The ages the part of unit `args` works out, and whether its file is already there for them: `(ages, is_there)`. Reads the stored components once, and
+    refuses (`Changed`) when they are no longer the ones the field was planned from."""
+    conn = _connect(args["database"])
+    try:
+        _check_unchanged(conn, args["signature"])
+        ages = _ages_in(conn)
+    finally:
+        conn.close()
+    wanted = part_ages(ages, args["index"])
+    return wanted, _read_part(args["signature"], args["index"], wanted) is not None
+
+
+def pieces_field(args, cursor):
+    """
+    The pieces of a unit of `warm-cluster-field` (OPS.205): the ages its part still has to work out, one piece each, so the engine counts the ages done of the ages of the
+    part. A unit that says the field is already a file or that the galaxy has none, and a part that is already there for these ages, has no piece to do.
+    """
+    if args["state"] != "part":
+        return []
+    wanted, there = _wanted_ages(args)
+    return [] if there else list(wanted)[cursor:]
+
+
+def do_field(args, age, ctx):
+    """One piece of a part: the mean system mass at one age, and the seconds it took."""
+    from planetgen.generation import system_mass
+    started = time.monotonic()
+    return {"mean": system_mass.mean_system_mass_at_age_solar(age), "seconds": time.monotonic() - started}
+
+
+def gather_field(args, results, ctx):
+    """The unit's result from its pieces: writes the part from the means the pieces worked out, or says there was nothing to make."""
     state = args["state"]
     if state == "empty":
         return {"built": 0, "cached": 0, "warmed": 0, "left_out": 0, "seconds": 0.0,
@@ -313,20 +342,19 @@ def field_unit(args, report):
     if state == "ready":
         return {"built": 0, "cached": 1, "warmed": 1, "left_out": 0, "seconds": 0.0,
                 "line": "cluster-field: already a file, nothing to make."}
-    conn = _connect(args["database"])
-    try:
-        from planetgen.db import store
-        key = store.component_field_key(conn)
-        if key is None or signature(key) != args["signature"]:
-            raise Changed("the stored clusters and satellites changed while the cluster field was made; "
-                          "the next warm-up starts it again")
-        ages = _ages_in(conn)
-    finally:
-        conn.close()
-    done = compute_part(args["signature"], args["index"], part_ages(ages, args["index"]))
-    return {"built": done["built"], "cached": 1 - done["built"], "warmed": 1, "left_out": 0, "seconds": done["seconds"],
-            "line": f"cluster-field: part {args['index'] + 1} {'worked out' if done['built'] else 'was already there'} "
-                    f"({done['ages']} ages, {done['seconds']:.1f} s)"}
+    wanted, _there = _wanted_ages(args)
+    built = 1 if results else 0
+    if built:
+        write_part(args["signature"], args["index"], wanted, [result["mean"] for result in results])
+    seconds = sum(result["seconds"] for result in results)
+    return {"built": built, "cached": 1 - built, "warmed": 1, "left_out": 0, "seconds": seconds,
+            "line": f"cluster-field: part {args['index'] + 1} {'worked out' if built else 'was already there'} "
+                    f"({len(wanted)} ages, {format_duration_seconds(seconds)})"}
+
+
+def run_unit(args):
+    """A unit of `warm-cluster-field` run in this process, without the queue: its pieces in order, then what the unit makes of them (`engine.run`'s loop)."""
+    return gather_field(args, [do_field(args, age, None) for age in pieces_field(args, 0)], None)
 
 
 def conclude_field(params, plan, results, seconds):
@@ -338,10 +366,7 @@ def conclude_field(params, plan, results, seconds):
     from planetgen.db import store
     conn = _connect(params["database"])
     try:
-        key = store.component_field_key(conn)
-        if key is None or signature(key) != plan["signature"]:
-            raise Changed("the stored clusters and satellites changed while the cluster field was made; "
-                          "the next warm-up starts it again")
+        _check_unchanged(conn, plan["signature"])
         found = tuple(c for c in store.get_galaxy_components(conn) if c.kind in component_field.KINDS_IN_THE_GATE)
         shape = conn.execute("SELECT edge_pc, expected_system_count_at_density_1 FROM galaxy_shape WHERE id = 1").fetchone()
     finally:
@@ -361,7 +386,7 @@ def warm_inline(database):
     plan = expand_field({"database": database})
     built = cached = 0
     for args, _cost in plan.units:
-        result = field_unit(args, None)
+        result = run_unit(args)
         built, cached = built + result["built"], cached + result["cached"]
     conclude_field({"database": database}, plan.plan, [], 0.0)
     return built, cached

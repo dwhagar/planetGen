@@ -11,6 +11,7 @@ import pytest
 
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import mixture_rocky as md
+from planetgen.physics import surface_pressure as sp
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 
@@ -83,11 +84,15 @@ def test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it()
     assert 0.6 / 44.01 * C_G_MOL * 1e4 > 10.0 * BSE_C_PPM, "the delivered 0.6 weight percent of Ortenzi's table is what the bracket replaces"
 
 
-def test_the_nitrogen_per_carbon_bracket_holds_every_measured_ratio_with_the_earths_in_the_log_middle():
+def test_the_nitrogen_per_carbon_bracket_holds_every_measured_ratio_with_the_delivered_one_in_the_log_middle():
+    """GEN.1584: the bracket is the DELIVERED ratio (the CI chondrites' 1/17 and Venus' 1/13.5 are inside, the bulk silicate Earth's 1/49 is its low end); the melt's
+    degassing share for nitrogen (`DEGAS_EFFICIENCY_N`) brings the product to the old Earth value, and the log-middle is the CI chondrites'."""
     low, high, _ = md.INVENTORY["nitrogen_per_carbon"]
     for name, ratio in N_PER_C.items():
-        assert low < ratio < high, name
-    assert math.sqrt(low * high) == pytest.approx(N_PER_C["bulk silicate Earth"], rel=0.2)
+        assert low <= ratio < high, name
+    assert math.sqrt(low * high) == pytest.approx(N_PER_C["CI chondrites"], rel=0.2)
+    efficiency_low, efficiency_high, _ = sp.DEGAS_EFFICIENCY_N
+    assert math.sqrt(low * high * efficiency_low * efficiency_high) == pytest.approx(N_PER_C["bulk silicate Earth"], rel=0.2)
 
 
 @pytest.mark.parametrize("body", ["Venus", "Earth", "Mars"])
@@ -116,4 +121,5 @@ def test_the_earth_class_draw_no_longer_puts_a_thick_nitrogen_air_in_a_tenth_of_
     """Finding 2 of reports/air-fixed-point-findings-2026-10-24.md: with 0.6 weight percent of carbon, 37 percent of the draws held ten
     times the bulk silicate Earth's nitrogen (one seed: 87 bar of N2 on a 1.8 Earth-mass planet); now none do."""
     _, nitrogen = _ppm(SNOW_RATIO["Earth"], count=600)
-    assert numpy.mean(nitrogen > 10.0 * BSE_N_PPM) < 0.01
+    kept = math.sqrt(sp.DEGAS_EFFICIENCY_N[0] * sp.DEGAS_EFFICIENCY_N[1])
+    assert numpy.mean(nitrogen * kept > 10.0 * BSE_N_PPM) < 0.01        # GEN.1584: the inventory is the delivered one; the melt keeps part of it (the middle of the drawn share)

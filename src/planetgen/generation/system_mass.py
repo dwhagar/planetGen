@@ -96,12 +96,17 @@ def present_day_moments(age_gy, remnants=True):
     return mass, square
 
 
+def _cohort_ages(age_low_gy, age_high_gy):
+    """The `COHORT_AGES` midpoint ages of a population whose stars formed at a steady rate between two ages (either order, no
+    younger than 1e-4 Gy)."""
+    low, high = sorted((max(age_low_gy, 1.0e-4), max(age_high_gy, 1.0e-4)))
+    return low + (high - low) * (np.arange(COHORT_AGES) + 0.5) / COHORT_AGES
+
+
 @functools.lru_cache(maxsize=256)
 def cohort_moments(age_low_gy, age_high_gy, remnants=True):
     """`present_day_moments` averaged over a population whose stars formed at a steady rate between two ages."""
-    low, high = sorted((max(age_low_gy, 1.0e-4), max(age_high_gy, 1.0e-4)))
-    ages = low + (high - low) * (np.arange(COHORT_AGES) + 0.5) / COHORT_AGES
-    moments = [present_day_moments(float(age), remnants) for age in ages]
+    moments = [present_day_moments(float(age), remnants) for age in _cohort_ages(age_low_gy, age_high_gy)]
     return (sum(m for m, _s in moments) / COHORT_AGES, sum(s for _m, s in moments) / COHORT_AGES)
 
 
@@ -123,10 +128,10 @@ def _remnant_states(initial):
     return initial, remnant
 
 
-def _turn_off_sol(age_gy):
+def _turn_off_sol(age_gy, settled=None):
     """The heaviest birth mass a star can have and still be alive at `age_gy`: the lightest progenitor whose giant phases
-    have ended, capped at the IMF's top."""
-    return min(imf.highest_mass_sol(), stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9))
+    have ended, capped at the IMF's top. `settled` is `stellar_evolution.youngest_progenitor_sol`'s early stop."""
+    return min(imf.highest_mass_sol(), stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9, settled=settled))
 
 
 def _present_mass(states, turn_off):
@@ -275,7 +280,7 @@ def mean_system_mass_at_age_solar(age_gy):
     def settled(low, high):
         return np.searchsorted(birth, low, side="right") == np.searchsorted(birth, high, side="right")
 
-    turn_off = min(imf.highest_mass_sol(), stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9, settled=settled))
+    turn_off = _turn_off_sol(age_gy, settled)
     alive = int(np.searchsorted(birth, turn_off, side="right"))      # the stars at or below the turn-off, still at their birth mass
     return float(alive_sum[alive] + (remnant_sum[-1] - remnant_sum[alive]))
 
@@ -300,5 +305,4 @@ def cohort_mean_system_mass_solar(ages_gy, weights=None):
 @functools.lru_cache(maxsize=256)
 def window_mean_system_mass_solar(age_low_gy, age_high_gy):
     """`mean_system_mass_at_age_solar` averaged over a window of ages in which the stars formed at a steady rate."""
-    low, high = sorted((max(age_low_gy, 1.0e-4), max(age_high_gy, 1.0e-4)))
-    return cohort_mean_system_mass_solar(low + (high - low) * (np.arange(COHORT_AGES) + 0.5) / COHORT_AGES)
+    return cohort_mean_system_mass_solar(_cohort_ages(age_low_gy, age_high_gy))

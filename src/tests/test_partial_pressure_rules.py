@@ -22,7 +22,7 @@ REGISTRY = json.load(open(os.path.join(elements.DATA_DIRECTORY, "partial_pressur
 PRESSURE = tuple(REGISTRY["pressure_quantities"])
 SHARE = tuple(REGISTRY["share_quantities"])
 GAS_OF = {"o2_partial_pa": "o2", "co2_partial_pa": "co2", "share_o2": "o2", "share_co2": "co2"}
-TABLE_KEY = {"planet_class_fit.json": "classes", "life_classes.json": "classes", "age_needs.json": "rows"}
+TABLE_KEY = {"planet_class_fit.json": "classes", "life_classes.json": "classes"}
 
 
 def _document(filename):
@@ -96,13 +96,14 @@ def test_the_pressure_constants_are_pressures():
         assert entry["unit"] == "Pa" and value >= entry["floor"], f"{entry['module']}.{entry['name']} = {value}"
 
 
-def test_the_fit_shoulders_of_the_pressures_are_pressures():
-    shoulders = _document("planet_class_fit.json")["shoulders"]
+def test_the_fit_widths_of_the_pressures_are_in_logs_of_a_ratio_and_those_of_the_shares_are_shares():
+    """GEN.1314: the fudge table (GEN.1313) gives a pressure a width as the natural log of a ratio and a share a width in share points."""
+    widths = _document("fudge_table.json")["quantities"]
     for quantity in PRESSURE:
-        assert shoulders[quantity].get("floor", 0.0) >= 100.0, quantity
+        assert widths[quantity]["unit"] == "ln", quantity
     for quantity in SHARE:
-        if quantity in shoulders:
-            assert shoulders[quantity].get("floor", 1.0) <= 0.01, quantity
+        if quantity in widths:
+            assert widths[quantity]["unit"] == "plain" and all(edge["width"] <= 1.0 for edge in widths[quantity]["edges"]), quantity
 
 
 def test_the_class_pages_give_the_converted_gases_as_pressures_and_the_sentences_hold_no_number():

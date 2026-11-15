@@ -100,17 +100,15 @@ def moon_tides_of(body):
     """The `(mass_kg, distance_m, retrograde, orbital_rate_rad_s)` of each body whose tide flexes `body` against its spin, and the spin rate (rad/s, negative when retrograde), from the stored
     fields: a planet's moons and, for any planet or moon, every other body of the system that pulls on it (`tide_sources.spin_raisers`, GEN.1503; the rate is the one the line to it turns at).
     `((), 0.0)` for a body whose day is not stored or that has nothing to flex it."""
-    day_hours = getattr(body, "rotation_period_hours", None)
-    if not day_hours:
+    spin = tide_sources.spin_rate_rad_s(body)
+    if spin is None:
         return (), 0.0
-    tilt = getattr(body, "axial_tilt_deg", None) or 0.0
-    spin = 2.0 * math.pi / (day_hours * 3600.0) * (-1.0 if tilt > 90.0 else 1.0)
     tides = []
     if not getattr(body, "is_moon", False):
         for moon in getattr(body, "moons", None) or ():
             distance_m = moon.distance * constants.AU_TO_M
             retrograde = (getattr(moon, "orbital_inclination_deg", 0.0) or 0.0) > 90.0
-            rate = math.sqrt(constants.G * (body.mass + moon.mass) / distance_m ** 3) * (-1.0 if retrograde else 1.0)
+            rate = tide_sources.orbital_rate_rad_s(body.mass, moon.mass, distance_m) * (-1.0 if retrograde else 1.0)
             tides.append((moon.mass, distance_m, retrograde, rate))
     tides.extend((raiser.mass_kg, raiser.distance_m, False, raiser.orbital_rate) for raiser in tide_sources.spin_raisers(body))
     if not tides:
@@ -151,5 +149,5 @@ def peale_power_w(k2_over_q, forcing, radius_m):
 def rigid_k2(mass_kg, radius_m):
     """`k2` of a homogeneous, incompressible sphere of rock with rigidity `ROCK_RIGIDITY_PA`: `(3/2) / (1 + 19 mu / (2 rho g R))`, `rho g R`
     being `3 G M^2 / (4 pi R^4)`."""
-    pressure = 3.0 * constants.G * mass_kg ** 2 / (4.0 * math.pi * radius_m ** 4)
+    pressure = tidal_rheology.self_gravity_pressure_pa(mass_kg, radius_m)
     return 1.5 / (1.0 + 9.5 * ROCK_RIGIDITY_PA / pressure)

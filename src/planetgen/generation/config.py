@@ -47,6 +47,14 @@ class SystemConfig:
     combined with `SLOTS` (slots already name classes). Defaults to None.
     """
 
+    FORCE_LIFE_CLASS = None
+    """
+    str or None: A life class (`"6"`, a number, or `"4c"`, a number and variant; `physics/life_classes.py`) the system must hold a planet or moon
+    living under (GEN.1620). Like `FORCE_CLASS` a class attribute: not saved with the system, off by default (a default run never sets it, so a
+    seeded system is unchanged). The class is judged on the finished bodies, so a system without it is drawn again by the caller's tries and
+    one that never gets it says "a world with life class X" in `StarSystem.unmet_requirements`. Defaults to None.
+    """
+
     FORCE_ODDITIES = None
     """
     tuple[str] or None: Oddity ids (`physics/oddities.py`, e.g. `("W10",)`) every body whose conditions allow them is given, without the roll
@@ -58,6 +66,15 @@ class SystemConfig:
     """
     float or None: This run's weirdness dial (GEN.1047), which multiplies every oddity rate (0 turns them all off, 1 is the table's own rates);
     `None` takes `tuning.WEIRDNESS_DIAL`. A class attribute like `FORCE_CLASS`: not saved with the system. Defaults to None.
+    """
+
+    ABUNDANCE_TIER = None
+    """
+    str or None: The Class M abundance tier the system is made under (GEN.1704, `generation.abundance_tier.TIERS`: "sparse", "scattered",
+    "plentiful" or "abundant"), which moves the water and envelope draws of rocky planets in the ecosphere and the share of systems given the
+    habitable request. None is "science": nothing is moved. A class attribute like `FORCE_CLASS`, so a config holds it only when it is set: a
+    galaxy sector sets it from the galaxy's stored choice when that is not science (`FillContext.apply_population`), a config made on science
+    carries no field of it, and a seeded system and its golden digest are what they were before the tier existed. Not saved with the system.
     """
 
     def __init__(self):

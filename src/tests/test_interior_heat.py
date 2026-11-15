@@ -244,10 +244,10 @@ def _watery(mass_earth, hydrosphere):
     return SimpleNamespace(mass=mass_earth * EARTH, hydrosphere=hydrosphere, c_k0_ppm=1.0, c_th0_ppm=1.0, c_u0_ppm=1.0, al26_ratio=1.0)
 
 
-def test_the_regime_is_one_draw_at_the_chance_of_the_old_coin_and_a_giant_has_none():
+def test_the_regime_is_the_bodys_own_throw_at_the_chance_of_the_old_coin_and_a_giant_has_none():
     from planetgen.physics import magnetism
     draw.set_run_seed(5)
-    bodies = [_watery(1.0, "surface ocean") for _ in range(600)]
+    bodies = [_watery(1.0 + 1e-4 * index, "surface ocean") for index in range(600)]
     for body in bodies:
         ih.generate_lid(body)
     mobile = sum(body.lid_regime == ih.MOBILE for body in bodies)
@@ -263,13 +263,29 @@ def test_the_regime_is_one_draw_at_the_chance_of_the_old_coin_and_a_giant_has_no
     first = draw.random()
     draw.set_run_seed(5)
     ih.generate_lid(_watery(1.0, "surface ocean"))
-    assert draw.random() != first  # exactly one draw was taken
-    draw.set_run_seed(5)
-    draw.random()
-    after_one = draw.random()
-    draw.set_run_seed(5)
-    ih.generate_lid(_watery(1.0, "surface ocean"))
-    assert draw.random() == after_one
+    assert draw.random() == first  # GEN.1591: no draw of the run's stream is taken
+    for index in range(40):    # and a body made again takes the regime it had, whatever the run's stream is at
+        body = _watery(1.0 + 1e-4 * index, "surface ocean")
+        ih.generate_lid(body)
+        draw.set_run_seed(100 + index)
+        again = _watery(1.0 + 1e-4 * index, "surface ocean")
+        ih.generate_lid(again)
+        assert again.lid_regime == body.lid_regime
+
+
+def test_gen1591_a_remade_air_is_solved_under_the_stagnant_lid_and_default_surface_of_a_first_build(monkeypatch):
+    """GEN.1591: `calculate_atmospheric_conditions` clears the regime and the temperature the pass before left, so the heat it solves the air under is the first build's."""
+    cfg = SystemConfig()
+    cfg.PLANETS = True
+    with draw.bound(3):
+        system = StarSystem(system_config=cfg)
+    planet = next(p for p in system.all_planets if p.body_type != 'a' and not p.is_moon and p.body_type != 'g')
+    seen = []
+    real = ih.update_heat
+    monkeypatch.setattr(planets.interior_heat, "update_heat", lambda body: seen.append((ih.lid_of(body), ih.surface_of(body))) or real(body))
+    planet.lid_regime, planet.surface_temperature = ih.MOBILE, 999.0
+    planets.calculate_atmospheric_conditions(planet)
+    assert seen[0] == (ih.STAGNANT, ih.SURFACE_TEMPERATURE_K)
 
 
 def test_the_liquidus_is_manskes_fit_and_the_ceiling_follows_the_pressure_in_the_mantle():

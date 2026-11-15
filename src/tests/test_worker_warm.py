@@ -225,15 +225,16 @@ def test_a_warmed_scatter_unit_builds_no_sampling_table_of_its_own(mysql_config,
     run after it finds them all."""
     from planetgen.db import store
     from planetgen.generation import run_plan
+    from planetgen.queue import commands
     from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     seen = []
-    real = run_plan.scatter_shells_unit
+    real = run_plan.scatter_shells_pieces
 
-    def recording(unit_args, report):
+    def recording(unit_args, cursor):
         seen.append(unit_args)
-        return real(unit_args, report)
+        return real(unit_args, cursor)
 
-    monkeypatch.setattr(run_plan, "scatter_shells_unit", recording)
+    monkeypatch.setattr(run_plan, "scatter_shells_pieces", recording)
     _seed_galaxy(mysql_config)
     run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "8",
                                                 "--bright-star-min-luminosity", "2500", "--workers", "1"), ("mass",))
@@ -248,5 +249,5 @@ def test_a_warmed_scatter_unit_builds_no_sampling_table_of_its_own(mysql_config,
     run_plan.scatter_shells_warm(seen[0])
     warmed = star_population._bright_table.cache_info().misses
     assert warmed > 0
-    real(seen[0], lambda done, estimate: None)
+    commands.run_alone("scatter-mass", seen[0])
     assert star_population._bright_table.cache_info().misses == warmed

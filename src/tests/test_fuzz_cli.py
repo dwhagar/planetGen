@@ -49,7 +49,8 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db import store
 from planetgen.generation import limits
 from planetgen import tuning
-from planetgen.galaxy import scales
+from planetgen.galaxy import enclosed_mass, scales
+from planetgen.physics import constants
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import log
 from planetgen.galaxy.density import _raw_density, build_galaxy_shape
@@ -464,8 +465,11 @@ def test_sector_runs_clean(mysql_config, argv, seed):
 def _sector_at_the_old_default_distance(monkeypatch):
     """A sector with no galaxy is taken at the galaxy's half-mass radius (GEN.404), nearer the center than the 8,200 pc
     it was, where the stars' Hill spheres are smaller and a full cube holds three times the systems: minutes of work
-    for a test that is about stopping, so it keeps the old distance."""
+    for a test that is about stopping, so it keeps the old distance. Since GEN.1534 the placement keeps a twentieth of the Hill spheres' sum
+    apart (a half before), and a full cube holds some hundred times the systems, so the old distance alone is no longer enough: the galaxy is
+    a lighter test one (1.15e7 solar masses inside the star's radius), where the Hill spheres are wide and a full cube holds about 5 to 19 systems."""
     monkeypatch.setattr(scales, "default_galactocentric_ly", lambda: pc_to_ly(8200.0))
+    monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e7 * constants.SOLAR_MASS_TO_KG)
 
 
 @settings(DB_SETTINGS, max_examples=scaled(3))
@@ -695,17 +699,13 @@ def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
 _ASKED_ENV = "PLANETGEN_TEST_ASKED_ADDRESSES"
 
 
-def _recording_sectors_unit(unit_args, report):
-    """A `generate_sectors_unit` that only records the addresses it was asked for, in the file
+def _recording_sectors_do(unit_args, piece, ctx):
+    """A `generate_sectors_do` that only records the address it was asked for, in the file
     `$PLANETGEN_TEST_ASKED_ADDRESSES` names."""
-    items = unit_args["items"]
-    done = []
-    for place in range(0, len(items), 3):
-        address = list(items[place:place + 3])
-        worker_patches.append_json(os.environ[_ASKED_ENV], address)
-        done.append({"address": address, "sector_id": 0, "name": "stub", "systems": 0, "stars": 0, "density": 1.0,
-                     "phenomena": 0, "summary": "", "seconds": 0.0})
-    return {"sectors": done, "pid": os.getpid()}
+    address = list(piece["address"])
+    worker_patches.append_json(os.environ[_ASKED_ENV], address)
+    return {"address": address, "sector_id": 0, "name": "stub", "systems": 0, "stars": 0, "density": 1.0,
+            "phenomena": 0, "summary": "", "seconds": 0.0, "suffix": piece["suffix"]}
 
 
 @pytest.mark.parametrize("radius,consequence", [
@@ -725,9 +725,9 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
     for are checked."""
     _plan_flat_galaxy(mysql_config)
     center = _placed_sector_id(mysql_config)
-    # The stub is the unit itself, so it reaches the workers (PERF.21).
+    # The stub is the piece itself, so it reaches the workers (PERF.21).
     monkeypatch.setenv(_ASKED_ENV, str(tmp_path / "asked.jsonl"))
-    monkeypatch.setattr(run_galaxy, "generate_sectors_unit", _recording_sectors_unit)
+    monkeypatch.setattr(run_galaxy, "generate_sectors_do", _recording_sectors_do)
     monkeypatch.setattr(run_galaxy, "_log_saved", lambda *a, **k: None)
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
                   "--num-systems", "1"] + mysql_argv(mysql_config), limit=60)

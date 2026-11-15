@@ -36,7 +36,10 @@ VELOCITY_FACTOR = math.sqrt(6.0)
 
 
 def _terms(systems_per_pc3, dispersion_kms, age_gy, host_mass_solar):
-    """`(c, b)` of `N(a) = c a^2 + b a` with `a` in metres, from the place's numbers in SI; `(0, 0)` where nothing passes."""
+    """`(c, b)` of `N(a) = c a^2 + b a` with `a` in metres, from the place's numbers in SI; `(0, 0)` where nothing passes. `None` for the age or the host
+    takes `tuning.PLANET_SURVIVAL_AGE_GY` and `tuning.PLANET_SURVIVAL_HOST_MASS_SOLAR`."""
+    age_gy = tuning.PLANET_SURVIVAL_AGE_GY if age_gy is None else age_gy
+    host_mass_solar = tuning.PLANET_SURVIVAL_HOST_MASS_SOLAR if host_mass_solar is None else host_mass_solar
     if systems_per_pc3 <= 0.0 or age_gy <= 0.0 or dispersion_kms <= 0.0:
         return 0.0, 0.0
     density = systems_per_pc3 / constants.PARSEC_M ** 3
@@ -61,9 +64,7 @@ def expected_passes(systems_per_pc3, dispersion_kms, semi_major_axis_au, age_gy=
     Returns:
         float: Passes; the survival probability of the orbit is `exp(-passes)`.
     """
-    age_gy = tuning.PLANET_SURVIVAL_AGE_GY if age_gy is None else age_gy
-    host = tuning.PLANET_SURVIVAL_HOST_MASS_SOLAR if host_mass_solar is None else host_mass_solar
-    cross, focus = _terms(systems_per_pc3, dispersion_kms, age_gy, host)
+    cross, focus = _terms(systems_per_pc3, dispersion_kms, age_gy, host_mass_solar)
     metres = _au_to_m(semi_major_axis_au)
     return cross * metres ** 2 + focus * metres
 
@@ -82,9 +83,7 @@ def planet_survival_limit_au(systems_per_pc3, dispersion_kms, age_gy=None, host_
     Returns:
         float: AU; infinite where nothing passes (no density, no dispersion, or no age).
     """
-    age_gy = tuning.PLANET_SURVIVAL_AGE_GY if age_gy is None else age_gy
-    host = tuning.PLANET_SURVIVAL_HOST_MASS_SOLAR if host_mass_solar is None else host_mass_solar
-    cross, focus = _terms(systems_per_pc3, dispersion_kms, age_gy, host)
+    cross, focus = _terms(systems_per_pc3, dispersion_kms, age_gy, host_mass_solar)
     if cross <= 0.0:
         return math.inf
     metres = 2.0 / (focus + math.sqrt(focus * focus + 4.0 * cross))

@@ -103,7 +103,7 @@ Block      one of
   Ratings   {&quot;type&quot;: &quot;ratings&quot;, &quot;overall&quot;: {...}, &quot;rows&quot;: [{&quot;domain&quot;: &quot;pressure&quot;, &quot;tier&quot;: &quot;Red&quot;, &quot;score&quot;: 0.0,
                                                             &quot;text&quot;: [Inline, ...]}], &quot;gear&quot;: [Inline, ...]}
   Composition {&quot;type&quot;: &quot;composition&quot;, &quot;label&quot;: &quot;Atmosphere&quot;, &quot;parts&quot;: [{&quot;name&quot;: &quot;nitrogen&quot;, &quot;share&quot;: 0.78}, ...]}
-  Prose     {&quot;type&quot;: &quot;prose&quot;, &quot;role&quot;: &quot;overview|summary|life|timeline|flavor&quot;, &quot;text&quot;: [Inline, ...]}
+  Prose     {&quot;type&quot;: &quot;prose&quot;, &quot;role&quot;: &quot;overview|summary|life|timeline|flavour&quot;, &quot;text&quot;: [Inline, ...]}
 Inline     a string, or one of
   {&quot;qty&quot;: {&quot;kind&quot;: &quot;pressure&quot;, &quot;value&quot;: 0.0, &quot;unit&quot;: &quot;Pa&quot;}}   a quantity: kind (the ladder family), the value in the unit it was stored in
   {&quot;ref&quot;: &quot;planet:31&quot;, &quot;name&quot;: &quot;40 Eridani II&quot;}     a link to another object
@@ -146,7 +146,7 @@ the database, so rewording changes every page with no regeneration.</li>
 <tr>
 <td>system</td>
 <td>the overview prose only (stays prose: counts, habitable worlds, heliosphere, edge of the system; the cloud sentence)</td>
-<td><code>Prose(role=overview)</code>, <code>Prose(role=flavor)</code> when present</td>
+<td><code>Prose(role=overview)</code>, <code>Prose(role=flavour)</code> when present</td>
 </tr>
 <tr>
 <td>star</td>
@@ -166,7 +166,7 @@ the database, so rewording changes every page with no regeneration.</li>
 <tr>
 <td>planet, moon</td>
 <td>class, distance, period, speed, radius, gravity, moon wobble; surface temperature, pressure (so the 0 kPa of an airless world is a fact, not a gap)</td>
-<td><code>Composition</code> (atmosphere, surface), <code>Ratings</code> (rocky bodies), <code>Prose(life)</code>, <code>Prose(timeline)</code>, <code>Prose(flavor)</code></td>
+<td><code>Composition</code> (atmosphere, surface), <code>Ratings</code> (rocky bodies), <code>Prose(life)</code>, <code>Prose(timeline)</code>, <code>Prose(flavour)</code></td>
 </tr>
 <tr>
 <td>gas giant</td>
@@ -305,7 +305,7 @@ is the one definition the API, lists, search, map and counts use). The class fla
 <li>The index is PHI-6 everywhere a person reads it. Stored column names (<code>phi4</code>, <code>phi4_&lt;domain&gt;</code>) are internal and stay
 (default; renaming is an optional migration).</li>
 </ul>
-<p>GEN.221 rewrites the fixed text (class descriptions, star notes, flavor) to these rules; this note does not.</p>
+<p>GEN.221 rewrites the fixed text (class descriptions, star notes, flavour) to these rules; this note does not.</p>
 <h2 id="7-stored-prose-becomes-structure-needs-a-migration">7. Stored prose becomes structure (needs a migration)</h2>
 <div class="table"><table>
 <thead>
@@ -323,7 +323,7 @@ is the one definition the API, lists, search, map and counts use). The class fla
 </tr>
 <tr>
 <td><code>flavor_text</code></td>
-<td>a flavor key into <code>tuning.*_FLAVOR</code></td>
+<td>a flavour key into <code>tuning.*_FLAVOR</code></td>
 <td>Rewording needs no regeneration; &quot;Sensors show ...&quot; stays in <code>describe/</code></td>
 </tr>
 <tr>

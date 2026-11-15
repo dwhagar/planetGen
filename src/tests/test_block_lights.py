@@ -13,7 +13,7 @@ import pytest
 
 from planetgen.db import block_lights, store
 from planetgen.galaxy import spherical
-from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
+from planetgen.galaxy.drill import DRILL_LEVELS, chain_blocks, drill_chain_of
 from planetgen.physics import constants
 
 from tests.test_block_stats import _addresses
@@ -72,7 +72,7 @@ def _expected(stars, points):
     """`{(m, shell, band, wedge): [the eleven sums]}` worked out from the objects and the chains."""
     found = {}
     for address, x, y, z, luminosity, temperature in stars:
-        for block in block_lights.chain_blocks(address):
+        for block in chain_blocks(address):
             sums = found.setdefault(tuple(block), [0.0] * len(block_lights.SUMS))
             sums[0] += 1
             sums[1] += luminosity
@@ -83,7 +83,7 @@ def _expected(stars, points):
     for address, x, y, z, luminosity, built in points:
         if built:
             continue
-        for block in block_lights.chain_blocks(address):
+        for block in chain_blocks(address):
             sums = found.setdefault(tuple(block), [0.0] * len(block_lights.SUMS))
             sums[6] += 1
             sums[7] += luminosity
@@ -192,8 +192,8 @@ def test_no_row_for_a_block_without_a_pre_placed_object(lit):
     config, stars, points = lit
     conn = store.get_connection(config)
     try:
-        everything = {tuple(b): True for s in stars for b in block_lights.chain_blocks(s[0])}
-        everything.update({tuple(b): True for p in points if not p[5] for b in block_lights.chain_blocks(p[0])})
+        everything = {tuple(b): True for s in stars for b in chain_blocks(s[0])}
+        everything.update({tuple(b): True for p in points if not p[5] for b in chain_blocks(p[0])})
         assert set(_stored(conn)) == set(everything)
         assert not conn.execute("SELECT 1 FROM galaxy_block_lights WHERE star_count = 0 AND point_count = 0").fetchall()
     finally:
@@ -243,14 +243,13 @@ def _args(config):
 def _refresh(config, since):
     """The unit of the `run-blocks` stage, for the sectors saved since `since`."""
     from planetgen.generation import run_galaxy
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, wrapper
 
-    return run_galaxy.refresh_run_blocks_unit(
-        {"database": wrapper.database_args(config), "since": since.isoformat(sep=" ")}, lambda done, total: None)
+    return commands.run_alone("refresh-run-blocks", {"database": wrapper.database_args(config), "since": since.isoformat(sep=" ")})
 
 
 def test_a_galaxy_run_brings_its_sectors_into_both_block_tables(mysql_config):
-    """A sector save refreshes neither table; the run does it once at its end (`refresh_run_blocks_unit`)."""
+    """A sector save refreshes neither table; the run does it once at its end (`refresh-run-blocks`)."""
     import datetime
 
     from planetgen.generation import run_galaxy
@@ -365,25 +364,23 @@ def test_refreshing_the_block_lights_logs_its_phases(lit, caplog):
     assert f"Made {written:,} block light totals." in text
 
 
-def test_the_block_lights_stage_has_one_bar_that_moves_in_all_three_parts_and_ends_only_at_the_end(lit):
-    """PERF.251: the units of shells, the levels above them and the uncharted index share one bar; it never stands at its end before the index is done."""
+def test_the_block_lights_stage_has_one_bar_that_moves_in_both_parts_and_ends_only_at_the_end(lit):
+    """PERF.251: the units of shells and the levels above them share one bar; it never stands at its end before the levels are done."""
     from planetgen.generation import run_plan
 
     config, stars, points = lit
     conn = store.get_connection(config)
     try:
         reports, phases = [], []
-        written, made = run_plan.make_block_lights(conn, lambda done, total: reports.append((done, total)), phases.append)
+        written = run_plan.make_block_lights(conn, lambda done, total: reports.append((done, total)), phases.append)
         assert written > 0
         done = [value for value, _total in reports]
         assert {total for _value, total in reports} == {run_plan.BLOCK_LIGHTS_BAR_TOTAL}
         assert done == sorted(done) and done[-1] == run_plan.BLOCK_LIGHTS_BAR_TOTAL
-        assert done.index(run_plan.BLOCK_LIGHTS_BAR_TOTAL) >= len(done) - 2      # only the index's last shell and the stage's own end
+        assert done.index(run_plan.BLOCK_LIGHTS_BAR_TOTAL) >= len(done) - 2      # only the stage's own end
         units_end = run_plan.BLOCK_LIGHTS_UNITS_SHARE
-        roll_end = units_end + run_plan.BLOCK_LIGHTS_ROLL_SHARE
-        assert any(0 < value <= units_end for value in done) and any(units_end < value <= roll_end for value in done)
-        assert any(roll_end < value < run_plan.BLOCK_LIGHTS_BAR_TOTAL for value in done) or made == 0
-        assert any("levels above" in text for text in phases) and any("uncharted" in text.lower() or "waiting objects" in text for text in phases)
+        assert any(0 < value <= units_end for value in done) and any(units_end < value <= run_plan.BLOCK_LIGHTS_BAR_TOTAL for value in done)
+        assert any("levels above" in text for text in phases)
     finally:
         conn.close()
 
@@ -405,17 +402,15 @@ def test_adding_up_the_levels_above_reports_its_progress(lit):
 
 
 def test_the_sectors_a_run_made_leave_out_the_uncharted_placeholder_rows(lit):
-    """PERF.252: the backfill takes `sector_centers_since` for the run's sectors; a placeholder row the block lights stage wrote (no chart ledger cell) is not one."""
-    from planetgen.db import uncharted_index
-
+    """PERF.252: the backfill takes `sector_centers_since` for the run's sectors; a placeholder row (no chart ledger cell; a rogue planet's) is not one."""
     config, _stars, _points = lit
     conn = store.get_connection(config)
     try:
         since = conn.execute("SELECT NOW() - INTERVAL 5 SECOND AS now").fetchone()["now"]
-        made = uncharted_index.index(conn)
+        store.uncharted_sector_id(conn, (31, 2, 2), 4.0)
         conn.commit()
         placeholders = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE shell_index IS NOT NULL").fetchone()["n"]
-        assert placeholders > 0 and made, "the fixture's objects should give placeholder rows"
+        assert placeholders > 0
         assert store.sector_centers_since(conn, since) == []
         conn.execute("INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index)"
                      " VALUES ('Charted', 4000, 1.0, 2.0, 3.0, 3.7, 31, 3, 5)")

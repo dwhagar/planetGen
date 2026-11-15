@@ -117,6 +117,16 @@ def test_no_planet_goes_round_a_dark_member_and_a_lone_star_with_one_is_the_plan
     assert host[0] == "star" and host[1]["id"] == 1
 
 
+def test_a_body_about_an_inner_pair_node_of_a_nested_tree_is_held_to_the_node_it_names():
+    """GEN.332: a planet or belt with a `host_node_id` goes round that node, and the verifier holds it to that node's limits; without one it goes round the tree's one pair of stars."""
+    rows = _triple(inner_au=1.0, outer_au=30.0)
+    tree = clearance._Tree(rows["stars"], rows["nodes"])
+    assert clearance._host_of({"star_id": None}, tree)[1]["node_no"] == 0
+    assert clearance._host_of({"star_id": None, "host_node_id": 1}, tree)[1]["node_no"] == 1
+    assert clearance._host_of({"star_id": None, "host_node_id": 7}, tree)[1]["node_no"] == 0, "a node the tree does not have is as no node"
+    assert clearance._host_of({"star_id": 1, "host_node_id": 1}, tree)[0] == "star", "a star the body names wins"
+
+
 def test_a_node_that_does_not_clear_its_children_holds_them_inside_each_other():
     assert "overlap" in _kinds(_triple(inner_au=1.0, outer_au=0.4, e_out=0.0))
     assert "overlap" not in _kinds(_triple(inner_au=1.0, outer_au=3.0, e_out=0.0))
@@ -186,6 +196,48 @@ def test_a_belt_holding_a_planets_orbit_or_past_the_stability_limit_is_found():
     assert "belt-planet" in _kinds(dict(rows, belts=[belt]))
     wide = dict(_with_planets(_pair(axis_au=10.0)), belts=[{"id": 1, "star_id": 1, "lower_limit_km": 2.5 * AU_KM, "upper_limit_km": 4.0 * AU_KM}])
     assert "belt-s-type" in _kinds(wide)
+
+
+def test_the_planets_of_one_belt_are_part_of_its_ring_and_do_not_clear_each_other_or_it():
+    """GEN.1510: planets promoted from a belt (`belt_order`) share the belt's ring: they cross each other and sit in it. A planet from another belt, or none, does not get that."""
+    base = _pair(axis_au=300.0)
+    ring = {"id": 1, "star_id": 1, "distance_km": 3.0 * AU_KM, "lower_limit_km": 2.5 * AU_KM, "upper_limit_km": 3.5 * AU_KM}
+    members = _with_planets(base, {"distance_km": 2.8 * AU_KM, "eccentricity": 0.1, "belt_order": 0}, {"distance_km": 3.0 * AU_KM, "eccentricity": 0.1, "belt_order": 0}, belts=[ring])
+    assert clearance.audit(members) == []
+    other_belt = _with_planets(base, {"distance_km": 2.8 * AU_KM, "belt_order": 1}, belts=[ring])
+    assert "belt-planet" in _kinds(other_belt)
+    plain = _with_planets(base, {"distance_km": 2.8 * AU_KM, "belt_order": None}, belts=[ring])
+    assert "belt-planet" in _kinds(plain)
+    crossing = _with_planets(base, {"distance_km": 1.0 * AU_KM, "eccentricity": 0.5}, {"distance_km": 1.4 * AU_KM, "belt_order": 0})
+    assert "planet-crossing" in _kinds(crossing)
+    cross_belts = _with_planets(base, {"distance_km": 1.0 * AU_KM, "eccentricity": 0.5, "belt_order": 0}, {"distance_km": 1.4 * AU_KM, "belt_order": 1})
+    assert "planet-crossing" in _kinds(cross_belts)
+
+
+def test_the_irregular_limits_are_the_generators():
+    """GEN.1086: the verifier's own copies of the stable shares of the Hill radius and of the Kozai band equal the generator's."""
+    from planetgen.physics import irregular_zone, moon_composition
+
+    assert clearance.IRREGULAR_PROGRADE_HILL_FRACTION == irregular_zone.PROGRADE_STABLE_FRACTION
+    assert clearance.IRREGULAR_RETROGRADE_HILL_FRACTION == irregular_zone.RETROGRADE_STABLE_FRACTION
+    assert clearance.IRREGULAR_KOZAI_BAND_DEG == moon_composition.KOZAI_FORBIDDEN_DEG
+
+
+def test_an_irregular_moon_past_its_stable_share_in_the_kozai_band_or_inside_the_regular_moons_is_found():
+    rows = _with_planets(_pair(axis_au=300.0), {"distance_km": 5.0 * AU_KM, "mass_kg": 1.9e27, "radius_km": 70000.0})
+    hill_km = 5.0 * AU_KM * (1.9e27 / (3.0 * SOLAR)) ** (1.0 / 3.0)    # the host is star 1 alone
+    moon = {"id": 1, "planet_id": 1, "distance_km": 0.1 * hill_km, "eccentricity": 0.0, "radius_km": 2600.0, "mass_kg": 1.5e23}
+
+    def held(distance_hill, inclination=30.0, e=0.2):
+        return dict(rows, moons=[moon], irregular_moons=[{"planet_id": 1, "moon_rank": 0, "distance_km": distance_hill * hill_km, "eccentricity": e, "inclination_deg": inclination}])
+
+    assert not {"irregular-hill", "irregular-kozai", "irregular-inner"} & set(_kinds(held(0.3)))
+    assert "irregular-hill" in _kinds(held(0.45))                                # prograde: past 0.4 of the Hill radius
+    assert "irregular-hill" not in _kinds(held(0.45, inclination=150.0))        # retrograde: 0.55 holds it
+    assert "irregular-hill" in _kinds(held(0.6, inclination=150.0))
+    assert "irregular-kozai" in _kinds(held(0.3, inclination=90.0))
+    assert "irregular-inner" in _kinds(held(0.11, e=0.5))                       # the closest approach, 0.055, is inside the moon at 0.1
+    assert all(item.hard for item in clearance.audit(held(0.45)) if item.kind == "irregular-hill")
 
 
 def test_a_limit_outside_the_fit_is_applied_at_its_edge_and_says_so():

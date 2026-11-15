@@ -10,7 +10,7 @@ Run with: pytest tests/test_body_names.py
 
 import pytest
 
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman
+from planetgen.names.bodies import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman, wide_pair_star_words
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests import render_support
@@ -102,6 +102,16 @@ def test_wide_binary_planets_are_numbered_after_their_own_star():
     _assert_numbered(secondary_word, system.secondary_planets)
     # The page is titled with the system, not the primary star.
     assert render_support.text(system).startswith(system.name)
+
+
+def test_a_wide_pairs_star_words_are_read_back_from_its_star_names():
+    """DB.125: the two words follow the system name's first word in the two star names; names of another shape give `None`."""
+    assert wide_pair_star_words("Voranthis Prime", "Voranthis Green", "Voranthis Little") == ("Green", "Little")
+    assert wide_pair_star_words("Voranthis Prime", "Voranthis A", "Voranthis B") == ("A", "B")
+    assert wide_pair_star_words("Voranthis", "Voranthis", "Voranthis Red") is None
+    assert wide_pair_star_words("Voranthis", "Other Green", "Voranthis Red") is None
+    assert wide_pair_star_words("Voranthis", "Voranthis Green Giant", "Voranthis Red") is None
+    assert wide_pair_star_words("Voranthis", None, "Voranthis Red") is None
 
 
 @pytest.mark.parametrize("binary,wide", [(False, None), (True, False), (True, True)])

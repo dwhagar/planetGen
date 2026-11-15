@@ -28,6 +28,8 @@ BOOKKEEPING_TABLES = {
     "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
     "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
     "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "engine_items",        # OPS.215: the job engine's ledger row of a job, written and read by queue/ledger.py, not by an object loader
+    "body_numbers",        # DB.75a: the slot numbers a redraw keeps (written on a first redraw only), read by the redraw, not by a page's loader
     "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }
@@ -74,6 +76,13 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "light_factor"): CHANCE,
     ("moons", "light_factor"): "a moon keeps all its planet's light (GEN.1484)",
     ("rogue_planets", "light_factor"): "a rogue planet has no star (GEN.1484)",
+    # GEN.1535: the range a free-spinning planet's tilt wanders over, kept only for a planet that has modes (a sibling or a companion) and spins free
+    ("planets", "obliquity_min_deg"): CHANCE,
+    ("planets", "obliquity_max_deg"): CHANCE,
+    ("moons", "obliquity_min_deg"): "a moon's tilt is not worked for a range (GEN.1535)",
+    ("moons", "obliquity_max_deg"): "a moon's tilt is not worked for a range (GEN.1535)",
+    ("rogue_planets", "obliquity_min_deg"): "a rogue planet has no star (GEN.1535)",
+    ("rogue_planets", "obliquity_max_deg"): "a rogue planet has no star (GEN.1535)",
     # The latitude bands are stored only for a rogue planet whose air was solved (about 1 Earth mass or less); the rest hold the placeholder 100 kPa, no star and no bands. The
     # moved sample of the Train 21 galaxy holds 13 rocky rogues, all heavier than 2 Earth masses, so it is chance whether one is light enough (main's holds 2 of 29).
     **{("rogue_planets", name): CHANCE for name in (*regional_temperature.FIELDS, *SOLVED_AIR_ONLY)},
@@ -83,14 +92,12 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
-        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
+        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flux_variation", "ice_shell_thickness_km",
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
-                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
-                           "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt",
-                           "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
-                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
+                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity",
+                           "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
     # GEN.1380, GEN.1378, GEN.1381: a body holds a deposit row for each type it was assessed for, and a type is present only where its setting held and its count drew
     # at least one deposit, so a small galaxy may hold no row at all for its few rogue planets, or no present row on its moons.
     **{("rogue_planet_deposit_types", column): CHANCE for column in ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")},
@@ -137,6 +144,7 @@ NULL_IN_THIS_GALAXY = {
     # Only a heap of grains lighter than SMALL_BODY_MASS_KG has a porosity, and a planet that small is a rare draw (a moon's is set by its origin).
     ("planets", "porosity"): CHANCE,
     **{(table, "life_traits"): CHANCE for table in ("planets", "moons")},      # GEN.876: only a world whose life drew a trait has one
+    **{(table, "cloud_chemistry"): CHANCE for table in ("planets", "moons", "rogue_planets")},  # GEN.1425: only a body with an air that holds sulfur, an oxidiser or reductant gets a species of the Venus set
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "ocean_phosphate_umol_l", "water_activity", "tidal_flux_w_m2")},
@@ -182,6 +190,18 @@ NULL_IN_THIS_GALAXY = {
         "id", "moon_id", "layer_index", "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth",
         "top_radius_fraction", "bottom_radius_fraction", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x",
         "nh3_ice", "ch4_ice")},
+    # GEN.1433: a rogue planet shows a flavor line with the planet chance, so a small galaxy may hold none.
+    ("rogue_planets", "flavor_key"): CHANCE,
+    ("asteroid_belts", "flavor_key"): CHANCE,
+    ("asteroid_fields", "flavor_key"): CHANCE,
+    ("black_holes", "flavor_key"): CHANCE,
+    ("interstellar_comets", "flavor_key"): CHANCE,
+    ("nebulae", "flavor_key"): CHANCE,
+    ("quasars", "flavor_key"): CHANCE,
+    ("supernova_remnants", "flavor_key"): CHANCE,
+    ("stars", "flavor_key"): CHANCE,
+    ("comets", "flavor_key"): CHANCE,
+    ("neutron_stars", "flavor_key"): CHANCE,
     # The same for a planet: whether any planet of this small galaxy bears life is chance.
     **{("planets", column): CHANCE for column in
        ("evolutionary_pace", "flavor_key", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",
@@ -234,16 +254,19 @@ NULL_IN_THIS_GALAXY = {
     **{("field_members", column): CHANCE for column in (
         "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
     ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
+    **{(table, "class_fudge_values"): CHANCE for table in ("planets", "moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move (class Q left fewer planets to move, GEN.1618)
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
-    ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
     # A moon of a free planet names its rogue planet; whether this galaxy's rogue planets (the ones its donors threw out, which depend on the
     # draws of the build) hold a moon is chance, so the column is either written or NULL here (TEST.645; test_parent_link and test_rogue_body_storage
     # write and read it back).
     ("moons", "rogue_planet_id"): CHANCE,
+    # GEN.332, slice D: a rogue stays a bound pair only when it is young (`physics/rogue_pairs.bound_share`: 9 percent of a fresh ejection, a fiftieth of that every 10 Myr), and the
+    # donors of this galaxy threw their planets out long ago, so no pair is made here; test_rogue_pair_storage writes and reads the three columns back.
+    **{("rogue_planets", column): CHANCE for column in ("pair_event_index", "pair_separation_au", "pair_period_yr")},
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
@@ -282,16 +305,22 @@ NEVER_READ = {
         "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
+        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
-        ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
+        ("system_owners", "star_system_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
     **{("irregular_moons", column): CHANCE for column in (
-        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
+    # GEN.1209: the life rows of a moon are read back by `store.body_living` for every moon that bears life, and whether any moon of the seeded galaxy does is chance
+    # (a generation change moves it), so a galaxy without one leaves every column unread.
+    **{("moon_life", column): CHANCE for column in (
+        "moon_id", "life_class", "share", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr", "life_animal_grade", "life_complexity",
+        "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
+        "life_age_technological_civilization_gyr", "life_microbial", "life_flora", "life_fauna", "life_sentient")},
     ("irregular_sets", "id"): "child row id",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
@@ -406,7 +435,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
                       for part in ("", "/owner", "/facilities")]
             pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
-            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]
+            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/volume" for i in ids("nebulae")]
             pages += [f"/api/facilities/{pid('facility', i, conn)}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
             pages += [f"/api/polities/{i}" for i in ids("polities")]

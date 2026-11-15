@@ -34,6 +34,8 @@ fake MySQL 8 server with both versions of the step.
 
 import pymysql
 
+from planetgen.util import log
+
 LOGIN_ERROR_CODES = (1045, 1251, 1698, 2059, 2061)
 """tuple: The MySQL and client error codes of a refused or unfinished login (access denied; the client doesn't support
 the authentication protocol; access denied by plugin; authentication plugin can't be loaded; SSL required)."""
@@ -72,6 +74,7 @@ def connect(**kwargs):
     except (OSError, pymysql.err.Error):
         raise
     except Exception as exc:  # noqa: BLE001 -- pymysql broke inside the login handshake itself
+        log.swallowed("db/login", "connect", exc)
         code, problem = 2059, f"{type(exc).__name__}: {exc}"
     raise DatabaseLoginError(
         code,

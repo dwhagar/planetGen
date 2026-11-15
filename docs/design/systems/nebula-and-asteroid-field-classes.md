@@ -325,17 +325,14 @@ components come from the cometary ices list.
   the field's ID (a plan first). The plan is "Asteroid fields and belts as
   rendered object systems (GEN.112)".
 
-## A nebula's shape (GEN.75)
+## A nebula's shape (GEN.1267)
 
-`planetgen.galaxy.nebula_shape` draws each nebula a shape of its own: 4 to
-8 metaball centres in an anisotropic, turned ellipsoid, a domain warp from
-three channels of gradient noise, and an isovalue; a point is inside where
-the warped field reaches it. `NebulaShape.contains` is the containment test,
-`mesh("low" | "full")` a marching-cubes triangle mesh. Lengths are in units
-of the nebula's radius, scaled so the surface's farthest point is at 1.0, so
-`radius_ly` stays a bounding sphere. A shape is plain JSON (`to_dict`), drawn
-from a seeded `random.Random`, so equal seeds agree on every worker. Storage,
-the mesh API and the containment switch are the next two parts of GEN.75.
+A nebula has no shape of its own. It is the part of its sphere where the galaxy's density, read for it, is at least the form level
+(`galaxy.nebula_density`, `FORM_LEVEL` 0.35): the gas density for a dark cloud (anchored on the cloud field), the young-star density for every other
+family, anchored on the nebula's own sphere so a hot-star nebula has a body in the outer disk, where the model's young density alone is under the form
+level (MAP.423). `nebula_density.inside` is the containment test (`CONTAIN_DETAIL` 3 octaves, rounded to 1e-4), and `nebula_volume.sample_group`
+draws the same contour on the map, so a system placed inside a nebula lies inside the outline a reader sees. `radius_ly` is the bounding sphere.
+Nothing about the shape is stored. (GEN.75 drew 4 to 8 warped metaballs per nebula and stored them in `nebula_shape_balls`; GEN.1267 removed them.)
 
 ## Decisions already taken
 
@@ -616,7 +613,7 @@ Reuse `sample_bright_stars` (it takes `population`, `min_luminosity_sol`, `max_l
 
 ## Appearance by class (GEN.47, GEN.75, MAP.113, MAP.142)
 
-GEN.47 and GEN.75 are done and nothing in the research argues against them. Optional class-aware parameters for `nebula_shape` and the edge look:
+GEN.47 and GEN.75 are done and nothing in the research argues against them. (GEN.1267 removed the metaball shape, so the `nebula_shape` column below is the look a class's density contour is tuned toward, not parameters that exist.) Optional class-aware parameters for the shape and the edge look:
 
 | Family | Real shape | `nebula_shape` parameters | Edge look (MAP.142) |
 |---|---|---|---|

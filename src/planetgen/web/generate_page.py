@@ -75,13 +75,13 @@ from planetgen.galaxy import bring_to_epoch, dials, drill, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.util.format import counted, format_number
+from planetgen.util.format import counted, format_bytes, format_duration_seconds, format_number
 from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
 
 from . import bp, jobs
-from .admin_pages import came_from, safe_next
+from .admin_pages import _no_store, _require_admin, _sentence, came_from, safe_next
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
@@ -436,6 +436,20 @@ def _neighborhood_radius_pc(form):
     return _number(form, "address_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
 
 
+def _address_argv(shell, band, wedge):
+    """`planetgen sectors`' `--shell --band --wedge` for one sector address."""
+    return ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
+
+
+def _limit_argv(form, limit_field, whole_field):
+    """`--limit N` from the form's `limit_field` (1 to `MAX_GENERATE_LIMIT`), else `--yes` when the admin confirmed the
+    whole run (`whole_field` ticked), else nothing."""
+    limit = _number(form, limit_field, "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
+    if limit is not None:
+        return ["--limit", str(limit)]
+    return ["--yes"] if form.get(whole_field) else []
+
+
 def center_argv(form, edge_pc=None):
     """
     "Around a sector": `--center-sector` for a filled sector, or the
@@ -460,7 +474,7 @@ def center_argv(form, edge_pc=None):
         band = _number(form, "center_band", "Band", int) or 0
         wedge = _number(form, "center_wedge", "Wedge", int, required=True, minimum=0)
         description = f"around shell {shell} band {band} wedge {wedge}"
-        argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
+        argv = _address_argv(shell, band, wedge)
     elif by == "position":
         point = (_number(form, "center_x_pc", "x (pc)", float, required=True),
                  _number(form, "center_y_pc", "y (pc)", float, required=True),
@@ -475,7 +489,7 @@ def center_argv(form, edge_pc=None):
             raise FormError("That position is outside the galaxy grid.")
         description = (f"around {', '.join(f'{v:g}' for v in point)} pc "
                        f"(shell {shell} band {band} wedge {wedge})")
-        argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
+        argv = _address_argv(shell, band, wedge)
     else:
         raise FormError("Choose how to name the center sector.")
     if form.get("center_region"):
@@ -503,7 +517,7 @@ def galaxy_argv(form, edge_pc=None):
         shell = _number(form, "address_shell", "Shell", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
         band = _number(form, "address_band", "Band", int) or 0
         wedge = _number(form, "address_wedge", "Wedge", int, required=True, minimum=0)
-        argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
+        argv = _address_argv(shell, band, wedge)
         description = f"at shell {shell} band {band} wedge {wedge}"
         radius = _neighborhood_radius_pc(form)
         if radius is not None:
@@ -522,12 +536,7 @@ def galaxy_argv(form, edge_pc=None):
         if band is not None:
             argv += ["--band", str(band)]
             description += f" band {band}"
-        limit = _number(form, "shell_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
-        if limit is not None:
-            argv += ["--limit", str(limit)]
-        elif form.get("whole_shell"):
-            argv.append("--yes")
-        return argv, description
+        return argv + _limit_argv(form, "shell_limit", "whole_shell"), description
     if mode == "block":
         return block_argv(form)
     raise FormError("Choose what to generate.")
@@ -552,13 +561,7 @@ def block_argv(form):
         key = drill.format_drill_key(drill.parse_stage_key(text))
     except ValueError as exc:
         raise FormError(f"Block: {exc}") from None
-    argv = ["--block", key]
-    limit = _number(form, "block_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
-    if limit is not None:
-        argv += ["--limit", str(limit)]
-    elif form.get("whole_block"):
-        argv.append("--yes")
-    return argv, f"in block {key}"
+    return ["--block", key, *_limit_argv(form, "block_limit", "whole_block")], f"in block {key}"
 
 
 def course_argv(form):
@@ -621,12 +624,7 @@ def span_argv(form):
         span = Span(**ranges)
     except SpanError as exc:
         raise FormError(str(exc)) from None
-    limit = _number(form, "span_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
-    if limit is not None:
-        argv += ["--limit", str(limit)]
-    elif form.get("whole_span"):
-        argv.append("--yes")
-    return argv, f"in {span.describe()}"
+    return argv + _limit_argv(form, "span_limit", "whole_span"), f"in {span.describe()}"
 
 
 def luminosity_floor_argv(form):
@@ -757,7 +755,7 @@ def star_mix_argv(form):
     try:
         prevalence.star_mix_prevalences(*shares)
     except ValueError as exc:
-        raise FormError(str(exc)[0].upper() + str(exc)[1:] + ".")
+        raise FormError(_sentence(str(exc)))
     return ["--star-mix", *(f"{share:.6g}" for share in shares)]
 
 
@@ -860,6 +858,11 @@ def redo_scatters_steps(generate, form):
     return clears + scatter_steps(generate, {key: value for key, value in form.items() if key not in unwanted}, ticked)
 
 
+def _plan_step(generate, form):
+    """The `planetgen plan` step of a job, at the form's levers and limits (`plan_argv`)."""
+    return {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
+
+
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "Skip all scatters" box is ticked, the scatters as the steps after
@@ -868,7 +871,7 @@ def plan_steps(generate, form):
     Returns:
         list[dict]: Job steps.
     """
-    steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}]
+    steps = [_plan_step(generate, form)]
     if not form.get("skip_scatters"):
         steps += scatter_steps(generate, form)
     return steps
@@ -876,11 +879,12 @@ def plan_steps(generate, form):
 
 def after_sectors_steps(generate, scatters=()):
     """
-    The steps after a `planetgen sectors` step (PERF.123): `link`, the `scatters` (`scatter_steps`), the bright-star
-    `backfill` and `settle`, each for the sectors saved since the start of the newest `sectors` run (their default).
+    The steps after a `planetgen sectors` step (PERF.123): `link`, the bright-star `backfill`, the `scatters` (`scatter_steps`) and `settle`,
+    each for the sectors saved since the start of the newest `sectors` run (their default). The backfill goes out from the filled sectors
+    before the scatters, which draw everything past it.
     """
-    return [{"label": "Link the neighbors", "argv": generate + ["link"]}, *scatters,
-            {"label": "Scatter the massive stars from the neighborhood", "argv": generate + ["backfill"]},
+    return [{"label": "Link the neighbors", "argv": generate + ["link"]},
+            {"label": "Scatter the massive stars from the neighborhood", "argv": generate + ["backfill"]}, *scatters,
             {"label": "Save the sector paths", "argv": generate + ["settle"]}]
 
 
@@ -934,7 +938,8 @@ def step_stages(step):
             _parser, parsers = generate_cli.build_parser()
             args = parsers[command].parse_args(argv[start + 1:])
             found = stages.for_command(command, args)
-        except (SystemExit, Exception):  # noqa: BLE001 -- the step is then one stage
+        except (SystemExit, Exception) as exc:  # noqa: BLE001 -- the step is then one stage
+            log.swallowed("web/generate_page", "step_stages", exc)
             found = []
         if found:
             return [{"label": stage.label, "skipped": stage.skip} for stage in found]
@@ -980,7 +985,7 @@ def _build_job_steps(action, form, edge_pc=None, database=None):
     reset_step = {"label": "Reset the galaxy", "argv": [python, *jobs.RESET_COMMAND, "--yes"]}
     if action == "new_galaxy":
         # GEN.30: the scatters run after the sectors, so they leave out every sector just filled.
-        plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
+        plan = _plan_step(generate, form)
         sectors = {"label": "Generate sectors around a random start",
                    "argv": generate + ["sectors"] + random_start_argv(form) + prevalence_argv(form)}
         # The plan step doesn't store the mass limit, so the scatters take it from here.
@@ -988,7 +993,7 @@ def _build_job_steps(action, form, edge_pc=None, database=None):
         return "new_galaxy", "New galaxy", [reset_step, plan, sectors, *after_sectors_steps(generate, scatters)]
     if action == "new_plan":
         # UX.147: the plan alone, with no sectors and no scatter, to add sectors by hand on the Galaxy Map.
-        plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
+        plan = _plan_step(generate, form)
         return "new_plan", "Plan a new galaxy", [reset_step, plan]
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
@@ -1042,22 +1047,9 @@ def _allow_inline_styles_for_the_terminal(response):
     return response
 
 
-def _no_store(response):
-    response = make_response(response)
-    response.headers["Cache-Control"] = "no-store"
-    return response
-
-
-def _admin_or_redirect():
-    """`(admin, None)`, or `(None, redirect)` to log in (or to change the
-    seeded default credentials first)."""
-    admin = current_admin()
-    here = request.full_path.rstrip("?")
-    if admin is None:
-        return None, _no_store(redirect(page_url("login", next=here), code=302))
-    if admin.get("must_change_credentials"):
-        return None, _no_store(redirect(page_url("account", next=here), code=302))
-    return admin, None
+def _json_error(message, status):
+    """A JSON `{"error": message}` answer with `status`, never cached."""
+    return _no_store(make_response(jsonify({"error": message}), status))
 
 
 def _admin_or_403():
@@ -1123,7 +1115,7 @@ def _job_view(job):
     view["created_text"] = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(job["created_at"])) \
         if job.get("created_at") else ""
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
-    view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
+    view["elapsed_text"] = format_duration_seconds(job.get("elapsed_s"))
     view["rerun_url"] = generate_flow.rerun_url(job)
     # ADM.151: the Generated so far page, from this run's start.
     view["systems_url"] = None
@@ -1136,7 +1128,7 @@ def _job_view(job):
     if eta_s is not None and not job.get("finished"):
         updated_at = progress.get("updated_at") or time.time()
         remaining = max(0.0, float(eta_s) - max(0.0, time.time() - float(updated_at)))
-    view["remaining_text"] = format_elapsed(remaining)
+    view["remaining_text"] = format_duration_seconds(remaining) if remaining is not None else ""
     view["remaining_label"] = remaining_label(
         remaining, running=not job.get("finished") and bool(progress.get("description")))
     view["progress_text"] = _progress_text(progress)
@@ -1149,7 +1141,7 @@ def _job_view(job):
     if detail:
         text = _progress_text(detail)
         if detail.get("eta_s") is not None:
-            text += f", about {format_elapsed(detail['eta_s'])} left"
+            text += f", about {format_duration_seconds(detail['eta_s'])} left"
         view["progress_detail_text"] = text
     return view
 
@@ -1327,9 +1319,9 @@ def remaining_label(remaining, running=True, rough=False):
         return "estimating the time left" if running else ""
     if rough:
         low, high = roughtime.rough_range(remaining)
-        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (not timed yet)"
+        return f"roughly {format_duration_seconds(low)} to {format_duration_seconds(high)} left (not timed yet)"
     low, high = progress_rate.eta_range(remaining)
-    low_text, high_text = format_elapsed(low), format_elapsed(high)
+    low_text, high_text = format_duration_seconds(low), format_duration_seconds(high)
     if low_text == high_text:
         return f"about {high_text} left"
     return f"about {low_text} to {high_text} left"
@@ -1351,20 +1343,6 @@ def _progress_text(progress):
     if unit and not description.lower().endswith(counted(unit, 2)):
         text += f" {counted(unit, total or completed)}"
     return text
-
-
-def format_elapsed(seconds):
-    """`"1 h 02 m"`, `"3 m 05 s"`, `"12 s"`, or `""` for `None`."""
-    if seconds is None:
-        return ""
-    seconds = int(seconds)
-    hours, rest = divmod(seconds, 3600)
-    minutes, secs = divmod(rest, 60)
-    if hours:
-        return f"{hours} h {minutes:02d} m"
-    if minutes:
-        return f"{minutes} m {secs:02d} s"
-    return f"{secs} s"
 
 
 def page_context(admin, form=None, error=None, status=200):
@@ -1466,7 +1444,7 @@ def generate():
     back to the page, or the page again with an error when nothing
     started)."""
     if request.method in ("GET", "HEAD"):
-        admin, response = _admin_or_redirect()
+        admin, response = _require_admin(fresh=True)
         return response or generate_flow.start_page(admin)
 
     admin = _admin_or_403()
@@ -1499,7 +1477,7 @@ def generate():
     def refuse(message, status):
         """The refusal as JSON for a script, else the task's page with the draft and the message."""
         if wants_json:
-            return _no_store(make_response(jsonify({"error": message}), status))
+            return _json_error(message, status)
         return generate_flow.task_page_for_action(admin, action, form=request.form, error=message, status=status)
 
     try:
@@ -1591,10 +1569,10 @@ def _estimate_view(estimate):
     view["time_text"] = stats.time_text(estimate.get("seconds"), estimate.get("measured", True))
     if estimate.get("deep_check"):      # DB.21: a time and a count of systems, no size or disk
         return view
-    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
+    view["size_text"] = format_bytes(estimate.get("bytes"))
     disk = estimate.get("disk")
-    view["disk_text"] = (f"{stats.format_bytes(disk['free_bytes'])} free of "
-                         f"{stats.format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None
+    view["disk_text"] = (f"{format_bytes(disk['free_bytes'])} free of "
+                         f"{format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None
     note = estimate.get("disk_note")
     view["disk_note_text"] = f"Not measured: {note}. Nothing is refused for space." if note else None
     return view
@@ -1626,16 +1604,20 @@ def generate_status():
 generate_status.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+def _galaxy_config(database):
+    """The site's MySQL settings pointed at the galaxy database `database`."""
+    config = current_app.config["MYSQL_CONFIG"]
+    return store.MySQLConfig(host=config.host, port=config.port, user=config.user, password=config.password,
+                             database=database)
+
+
 def epoch_status(database):
     """
     What `planetgen bring-to-epoch` would do to the stored galaxy (GEN.764, step 4): `bring_to_epoch.status`'s dict, or
     `{"error": ...}` when the database does not answer. It changes nothing.
     """
-    config = current_app.config["MYSQL_CONFIG"]
-    galaxy = store.MySQLConfig(host=config.host, port=config.port, user=config.user, password=config.password,
-                               database=database)
     try:
-        return bring_to_epoch.status(galaxy, current_app.config.get("CONTROL_MYSQL_CONFIG"))
+        return bring_to_epoch.status(_galaxy_config(database), current_app.config.get("CONTROL_MYSQL_CONFIG"))
     except Exception as exc:  # noqa: BLE001 -- the page then says why instead of failing
         log.error(f"Generate page: the epoch of the galaxy could not be read: {exc}")
         return {"error": f"The galaxy could not be read: {exc}"}
@@ -1676,11 +1658,8 @@ def _require_bringable(database):
 
 def _stored_seed(database):
     """The seed of the planned galaxy (bytes), or `None` before a plan or when the database doesn't answer."""
-    config = current_app.config["MYSQL_CONFIG"]
     try:
-        conn = store.get_connection(store.MySQLConfig(host=config.host, port=config.port, user=config.user,
-                                                      password=config.password, database=database),
-                                    ensure_schema=False)
+        conn = store.get_connection(_galaxy_config(database), ensure_schema=False)
         try:
             return store.get_galaxy_seed(conn)
         finally:
@@ -1726,12 +1705,12 @@ def generate_shape_report():
         with collecting_problems():
             argv = lever_argv(request.args)
     except FormError as exc:
-        return _no_store(make_response(jsonify({"error": str(exc)}), 400))
+        return _json_error(str(exc), 400)
     seed = _stored_seed(db_name())
     try:
         made, refusal = _shape_preview(argv, seed)
     except ValueError as exc:
-        return _no_store(make_response(jsonify({"error": str(exc)}), 400))
+        return _json_error(str(exc), 400)
     return _no_store(jsonify({"line": made.line(), "warnings": made.warnings, "refusal": refusal,
                               "sample": seed is None}))
 
@@ -1879,7 +1858,7 @@ def generate_sectors():
         found = apiclient.get_sectors(db_name(), limit=FINDER_PAGE_SIZE, offset=(page - 1) * FINDER_PAGE_SIZE)
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
         log.error(f"Generate page: sector list failed: {exc}")
-        return _no_store(make_response(jsonify({"error": "The sector list could not be loaded."}), 502))
+        return _json_error("The sector list could not be loaded.", 502)
     items = [{
         "id": row["id"], "name": row["name"], "systems": row.get("system_count"),
         "shell": row.get("shell_index"), "band": row.get("band_index"), "wedge": row.get("wedge_index"),
@@ -1894,7 +1873,7 @@ generate_sectors.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @bp.route("/admin/generate/jobs/<job_id>")
 def generate_job(job_id):
     """One job and the last 256 KB of its output."""
-    admin, response = _admin_or_redirect()
+    admin, response = _require_admin(fresh=True)
     if response:
         return response
     root = jobs.jobs_dir()
