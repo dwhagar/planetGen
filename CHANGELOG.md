@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4286] - 2026-11-15
+
+**Headline:** Two registry tests that were red on main are green: the deep database check's step kind and the two job pages of a run.
+
+### Fixed
+- `test_step_registry` knows `db-check` is used (the deep check names it by the constant `DEEP_STATS_KIND`), TEST.766.
+- `admin_queue_jobs` and `admin_queue_job` are named in the admin registry as pages reached from a run, TEST.767.
+
+generation-output: unchanged
+
 ## [8.0.4285] - 2026-11-15
 
 **Headline:** A queue-commands test now expects the held run that a unit failing for good leaves since OPS.221.
