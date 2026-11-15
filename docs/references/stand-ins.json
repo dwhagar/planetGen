@@ -71379,8 +71379,8 @@
           "what": "tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes)"
         }
       ],
-      "slug": "6-124a-stand-ins-of-the-disc-infall-of-the-thin-disc-gen-1230-gen-1242",
-      "title": "Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)"
+      "slug": "6-124a-stand-ins-of-the-disk-infall-of-the-thin-disk-gen-1230-gen-1242",
+      "title": "Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)"
     },
     {
       "key": "6.179a",

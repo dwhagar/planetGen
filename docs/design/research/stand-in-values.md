@@ -3238,7 +3238,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SA2 | P | T7 | L0 | `starlight_aloft.COVERED_BELOW_CM1` 12,000: the starlight shortward of 0.83 micron (the visible and the ultraviolet, about 60 percent of a Sun's) reaches the reference level; the tables stop there | the share taken aloft is then at most the star's share in the bands (about 0.39 for a Sun, 0.8 for an M dwarf) | air with the visible bands of methane and ammonia and the Rayleigh scattering of hydrogen not taking the light (a thin hydrogen air) | a measured sub-Neptune or giant spectrum showing the visible light taken above 1 bar | k-tables of the visible and Rayleigh scattering | the 1 bar level of the giants of the Solar System (Jupiter 165 K observed, the table 150 K) is not moved by it (Lane 02's check, GEN.1716) | predicted only | by design | - |
 | SA3 | P | T7 | L0 | `starlight_aloft.MAX_SHARE` 0.9: the most the gases take aloft; the model needs a share under 1 and the table was fitted up to 0.9 | none inside the range the air reaches (0.39 for a Sun's near infrared) | stars cooler than about 3,000 K whose near infrared is over 0.9 of their light | a body whose share would pass it | a table fitted to a higher share | none | predicted only | - | - |
 
-## 6.124a Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)
+## 6.124a Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

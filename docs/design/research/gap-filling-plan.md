@@ -2041,7 +2041,7 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | AL1 | P | T5 | L1 | radiogenic._depletion_time_yr: the thin disc's gas over its star formation now (the rings weighted by area), standing for the host's depletion time at its birth | the star formation law's index and a low-density threshold (the GEN.450 steepening is in the history since GEN.999 and the exponential infall of GEN.1230: 3.4 Gy for a thin disc of 3e10); 1.0 to 4.2 Gy for a Milky Way mass disc | spiral discs of the generator | the Milky Way mass shape's depletion time outside 2.5 to 6 Gy, or a measured 26Al/27Al of the Galaxy's gas more than a factor of 3 from the mean | the host's local gas at its birth radius and time (the law with a threshold is in the history, GEN.999; [R0392, R2321], not read) | test_radiogenic::test_the_aluminium_26_of_a_star_is_a_spiky_sum_of_decayed_additions_about_its_regions_mean |
 <!-- al26-wiring-standins:end -->
 
-### 6.124a Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)
+### 6.124a Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)
 
 **Disc infall (GEN.1230, GEN.1242).** The thin disc's gas inflow is an exponential infall with the Milky Way's chemical evolution time scale ([R5095] section 3, limited by [R5094]) in place of the growth of the stars a halo holds; the core gas inflow time follows from the gas the inner rings keep.
 
