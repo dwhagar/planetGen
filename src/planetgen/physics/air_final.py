@@ -21,6 +21,8 @@ from planetgen.physics import air_branches, climate_draws, constants, ground_alb
 from planetgen.physics import unit_registry as units
 from planetgen.util import log
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+
 CAP_TOLERANCE = 1e-9
 """float: How far above the stored temperature the air's uncapped warming must reach to count as held at the ionization ceiling (`surface_air.Air.ceiling_k`, GEN.1236, GEN.1580)."""
 
@@ -148,7 +150,7 @@ def _warn_at_ceiling(planet, air, distance_au):
     planet._ceiling_warned = True
     name = getattr(planet, "name", None) or "a body not yet named"
     composition = ", ".join(f"{formula} {pressure:.4g} Pa" for formula, pressure in sorted(air.partials_pa.items(), key=lambda item: -item[1])[:6])
-    message = (f"Ionization ceiling: {name} ({planet.mass / constants.EARTH_MASS_TO_KG:.4g} Earth masses, {distance_au:.4g} au) asked for {air.warming.surface_temperature_k:.0f} K "
+    message = (f"Ionization ceiling: {name} ({_kg_to_mearth(planet.mass):.4g} Earth masses, {distance_au:.4g} au) asked for {air.warming.surface_temperature_k:.0f} K "
                f"and was held at {air.ceiling_k:.0f} K, the half-ionization temperature of its main gas ({composition}).")
     log.normal(message)
     if os.environ.get(CEILING_IS_ERROR_VARIABLE) == "1":

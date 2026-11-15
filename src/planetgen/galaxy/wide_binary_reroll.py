@@ -24,6 +24,9 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants
 from planetgen.util import log
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 SEED_KIND = "system-reroll"
 """str: The kind of the unit seed a re-rolled system is drawn from (`galaxy.seed.unit_seed`); it must never change, or a galaxy would re-roll to a different system."""
@@ -95,7 +98,7 @@ def _pair(system):
 
 def describe(system):
     """What a system made by the re-roll came out as, one phrase: the two stars' masses, the pair's closest approach and how many planets each star has."""
-    primary, secondary = system.primary_star.mass / constants.SOLAR_MASS_TO_KG, system.secondary_star.mass / constants.SOLAR_MASS_TO_KG
+    primary, secondary = _kg_to_msun(system.primary_star.mass), _kg_to_msun(system.secondary_star.mass)
     pair = system.wide_binary
     return (f"stars of {primary:.3g} and {secondary:.3g} solar masses, {pair.separation_au:.4g} AU apart (closest {pair.periapsis_au:.4g} AU), "
             f"{len(system.planets)} and {len(system.secondary_planets)} planets")
