@@ -3423,3 +3423,5 @@ Baseline: PR #1817.
 | OPS.220 | 8.1 | TODO sweep |
 | OPS.221 | 8.1 | TODO sweep |
 | OPS.224 | 8.1 | TODO sweep |
+| OPS.227 | 8.1 | TODO sweep |
+| OPS.232 | 8.1 | TODO sweep |
