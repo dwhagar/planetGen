@@ -7,7 +7,7 @@ waiting units in this process."""
 import pytest
 
 from planetgen.generation import finish_run
-from planetgen.queue import commands, redisqueue, resumed, runrecord, units, wrapper
+from planetgen.queue import commands, planrows, redisqueue, resumed, runrecord, units, wrapper
 
 CALLS = []
 """list: What the test commands did, in order."""
@@ -136,19 +136,31 @@ def test_a_finish_that_stops_is_finished_in_turn(conn):
 def test_a_stage_cut_to_no_unit_is_finished_when_the_next_one_began(conn):
     run_id = _stopped(conn, [_step("first", count=0), _step("second")], "second", 0)
     queued = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
-    assert finish_run.stage_finished(conn, run_id, 0, queued[0])
-    assert not finish_run.stage_finished(conn, run_id, 1, queued[1])
+    assert finish_run.stage_finished(conn, run_id, 0)
+    assert not finish_run.stage_finished(conn, run_id, 1)
     assert finish_run.first_unfinished(conn, run_id, queued) == 1
 
 
-def test_a_stage_whose_units_are_done_but_not_concluded_is_not_finished(conn):
+def test_a_stage_whose_end_did_not_get_as_far_as_queuing_the_next_opening_is_not_finished(conn):
     run_id = _three(conn)
     queued = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
-    assert finish_run.stage_finished(conn, run_id, 0, queued[0])
-    conn.hdel(runrecord.stage_key(run_id, 0), "concluded")
-    conn.hdel(runrecord.stage_key(run_id, 1), "started")         # the next stage never began
-    assert not finish_run.stage_finished(conn, run_id, 0, queued[0])
+    assert finish_run.stage_finished(conn, run_id, 0)
+    control = planrows.control_connection(conn, run_id)
+    try:
+        control.execute("UPDATE engine_jobs SET state = 'waiting' WHERE run_id = ? AND stage = ? AND command = ?",
+                        (planrows.engine_run(conn, run_id, control), queued[0].key, planrows.RELEASE))
+        control.commit()
+    finally:
+        control.close()
+    assert not finish_run.stage_finished(conn, run_id, 0), "the rows say the end of the stage stopped before the release: the stage is not finished, whatever Redis holds"
     assert finish_run.first_unfinished(conn, run_id, queued) == 0
+
+
+def test_a_run_whose_redis_record_of_the_stages_is_gone_is_still_carried_on_from_its_rows(conn):
+    run_id = _three(conn)
+    for index in range(3):
+        conn.delete(runrecord.stage_key(run_id, index))
+    assert _plan(conn, run_id).first == 1
 
 
 def test_the_special_phenomena_that_stopped_are_carried_on_in_their_own_stage_and_nothing_before_it_runs_again(conn):
