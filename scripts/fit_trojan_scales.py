@@ -19,7 +19,7 @@ between them says how far it is.
   `f(sigma) = C` of the paper's Eq. 4 for the two ends of the libration, with C cut at 2.5 (the paper's upper bound for a tadpole).
 * The Neptune Trojans [R5244] are given directly as Rayleigh widths (Table 4 and the abstract), so their Rayleigh equivalent is the width itself.
 
-It prints the table the report quotes and the proposed values; it changes no constant. Run it with no arguments.
+It prints the table the report quotes; the values it supports are the constants of `trojan_swarm` and `trojans` (`tests/test_fit_trojan_scales.py` holds the two together). Run it with no arguments.
 
     python3 scripts/fit_trojan_scales.py
 """
@@ -125,7 +125,7 @@ def separatrix_amplitude_deg():
 
 
 def closest_approach_deg():
-    """The smallest `sigma` a tadpole reaches (the near turning point at `C_MAX`): the 23.9 degrees that `trojans.TADPOLE_LIMIT_DEG` holds, which is a distance from the secondary, not an amplitude."""
+    """The smallest `sigma` a tadpole reaches (the near turning point at `C_MAX`): the 23.9 degrees of `trojans.TADPOLE_NEAREST_APPROACH_DEG`, a distance from the secondary, not an amplitude (the amplitude limit `trojans.TADPOLE_LIMIT_DEG` is half the range from there to 180 degrees)."""
     lo, hi = 1.0, 60.0
     for _ in range(80):
         mid = 0.5 * (lo + hi)

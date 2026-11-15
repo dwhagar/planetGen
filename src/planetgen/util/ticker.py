@@ -26,6 +26,11 @@ from planetgen import tuning
 from planetgen.util import log, logrecord
 
 
+sink = None
+"""callable or None: `sink(label, done, total)`, called on every `tick` and `finish` while it is set. A running unit sets it (`queue/unitbeat.py`, OPS.192), so a loop that counts with a
+`Ticker` is the unit's second-level count on the Queue and Generate pages without a line of its own for it; unset outside a unit (a terminal command, the web server)."""
+
+
 def _seconds(every):
     return tuning.PROGRESS_LOG_SECONDS if every is None else every
 
@@ -53,6 +58,10 @@ class Ticker:
         self._say = say if say is not None else log.normal
         self.began = self._last = self.clock()
 
+    def _note(self, done):
+        if sink is not None:
+            sink(self.label, done, self.total)
+
     def text(self, done, detail=None):
         """The line for `done`: the count and share, the rate, the time since the start and `detail` (what else the loop knows)."""
         elapsed = self.clock() - self.began
@@ -66,7 +75,8 @@ class Ticker:
         return f"{self.label}: {body}{tail}, {logrecord.duration_text(elapsed)} elapsed."
 
     def tick(self, done, detail=None):
-        """Says the line when `every` seconds have passed since the last one (or the start). Returns whether it did."""
+        """Says the line when `every` seconds have passed since the last one (or the start). Returns whether it did. Every call gives the count to the running unit (`sink`)."""
+        self._note(done)
         now = self.clock()
         if now - self._last < self.every:
             return False
@@ -76,6 +86,7 @@ class Ticker:
 
     def finish(self, done, detail=None):
         """Says the closing line, whatever the clock."""
+        self._note(done)
         self._last = self.clock()
         self._say(self.text(done, detail))
 

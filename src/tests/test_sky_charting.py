@@ -349,7 +349,7 @@ def test_charting_the_sky_of_a_galaxy_with_no_scatter_draws_nothing(plan_only_ga
 
 
 def test_a_sky_unit_of_a_scatter_that_was_cleared_since_it_was_cut_ends_clean(plan_only_galaxy, mysql_config):
-    """OPS.256: a queued sky unit (its params hold only the cell centre and the limit) that runs after the scatter was cleared is the retry/resume path; it draws nothing and says so."""
+    """OPS.256: a queued sky unit (its params hold only the cell center and the limit) that runs after the scatter was cleared is the retry/resume path; it draws nothing and says so."""
     from planetgen.generation import run_galaxy
     named = {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}
     result = run_galaxy.backfill_bright_stars_unit({"database": named, "items": [], "sky": {"center": list(SPHERE_CENTER), "limit": 7.5}}, lambda done, total: None)

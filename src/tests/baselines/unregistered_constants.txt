@@ -358,7 +358,6 @@ planetgen.generation.run_galaxy:SETTLE_UNITS_MAX
 planetgen.generation.run_galaxy:SETTLE_UNIT_SECTORS
 planetgen.generation.run_galaxy:SKY_UNIT_CONNECTION_TRIES
 planetgen.generation.run_plan:BLOCK_LIGHTS_BAR_TOTAL
-planetgen.generation.run_plan:CHANNEL_INTERVAL_SECONDS
 planetgen.generation.run_plan:COMPONENT_REPORT_ROWS
 planetgen.generation.run_plan:COMPONENT_TASK_SHELL
 planetgen.generation.run_plan:HABITABILITY_BATCH_SYSTEMS

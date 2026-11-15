@@ -14,20 +14,23 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 
 | Lane | Now | Next |
 |---|---|---|
-| 01 TODO | Sweep; merges lock-free PRs on lane greens | Retire items as PRs merge |
-| 02 Train Manager | Train 26 (PR 6402) in gate: epoch 148, migrations 0254-0257; civilization drop traced and test systems re-pinned; new time due 8:00 PM EST | Train 27: 6062 GEN.1403, 6366 GEN.1648, 6370 GEN.1561, 6387/6388/6430 GEN.332 A and C, 6389/6391 GEN.1678/1679, 6409 GEN.1684, 6416 GEN.1315, 6418 GEN.1692, 6423 GEN.1675 (waits on Lane 14's seed 8301 trace), 6428 GEN.1693 |
-| 03 Gate | test_count_cache red on main (bisect) | 6336 OPS.161 if Lane 06 has not started it |
-| 04 Bugs | Idle since 11-13 early morning (thread done) | Holds OPS.247 (full-galaxy trial); old PRs 6038, 6243 need a decision |
-| 05 Bugs 2 | Job engine stage 1: OPS.194 next (OPS.193, OPS.197 merged 8:00 PM EST) | OPS.195 with OPS.200, OPS.206; later OPS.220, 223, 227, 232, 248, 251 |
-| 06 Gate 2 | 6336 OPS.161 regate at 795dc6e13; OPS.181, 186, 187 coded | Job engine stage 2 OPS.207-214 one by one; then OPS.216-218 chain, 225, 234, 236, 245, 246 |
-| 11 Oddities | Review ready | Ask TODO |
-| 12 Storage | 6409 GEN.1684 (Train 27); 6224, 6099, 6378, 6396 in Train 26 | OPS.203, OPS.205, OPS.224, OPS.233, OPS.244, OPS.252 |
-| 13 Galaxy and admin | OPS.185; 6430 GEN.332 C up (Train 27); GEN.332 D design next | OPS.191, 192, 196, 199, then OPS.219, OPS.238-240 |
-| 14 Atmosphere | Seed 8301 trace for 6423 GEN.1675 | OPS.237 (star tables as arrays) |
-| 15 Air, climate, performance | 6413 PERF.264: golden on its own box | OPS.198, OPS.202 |
-| 21 Composition | Sulfur shift to 1.4 dex in GEN.1670 | Ask TODO |
-| 22 Belts | 6428 GEN.1693 (Train 27), then PERF.261 | OPS.215 (migrations), 221, 222, 226, 228-231, 235, 243, 249, 250 |
-| 23 Tides, spin, moons | Review ready | OPS.201, 204, then OPS.241, 242 |
+| 01 Work (TODO) | Sweep; merges lock-free PRs on lane greens | Retire items as PRs merge |
+| 02 Work (Train Manager) | Train 29 gate (6522, 6540, 6541, 6547) | Train 30: 6565 GEN.1623, OPS.253 B |
+| 03 Work (Gate) | TEST.751 (fingerprint row-id test over the 900 s limit) | Gate runs on request |
+| 05 Work (Bugs 2) | OPS.253 A (6538) real-galaxy test; OPS.253 B for Train 29 | OPS.220, OPS.223, then OPS.227, 232, 248, 251 |
+| 06 Work (Gate 2) | Stage 2 stack 6443 to 6501, then 6537, 6539, 6552 (OPS.216-218); OPS.218 slice 2 | OPS.225, 234, 236, 245, 246 |
+| 11 Work (Oddities and census) | 6565 GEN.1623 (Train 30) | TEST.752, TEST.739, then GEN.1717 A and B |
+| 12 Work (Storage and volatility) | OPS.202 part 1; MAP.429 | MAP.430, OPS.224, OPS.233, OPS.244, OPS.252 |
+| 13 Work (Galaxy and admin) | Train 29 gate share | OPS.196 (with the last family), OPS.219, OPS.238-240 |
+| 14 Work (Atmosphere classes) | Train 29 gate share; GEN.1722 research (life levers) | GEN.1698, GEN.1617 (after GEN.1716 and GEN.1717) |
+| 15 Work (Air and climate) | GEN.1720 first (CO2 split, no Class M on Abundant); GEN.1716 and GEN.1718 part 1 in Train 29 | GEN.1718 rest |
+| 21 Work (Planet composition) | OPS.202 part 2 | GEN.1723 (life will find a way, lock) |
+| 22 Work (Belts and small bodies) | 6510 fingerprint run; 6516 OPS.215 v23 test; 6336 OPS.161 | PERF.261, PERF.267, OPS.221, 222, 226, 228-231, 235, 243, 249, 250 |
+| 23 Work (Tides, spin, moons) | Kill tests on the stage 2 stack (6539 head) | OPS.241, OPS.242, OPS.247 (moved from Lane 04) |
+
+PRIORITY (Boss, 8:42 PM EST on 2026-11-14): "I want the life levers from the thread about why no class m or blue worlds to be a high priority, but 2nd to the queue rework, I want that queue rework done as soon as possible". Lane 04 closed 2026-11-14 (its two old PRs were closed; OPS.247 moved to Lane 23).
+
+GOLDEN (Boss, 5:24 PM EST on 2026-11-14): no golden renewal per train; the golden files are renewed once, at the 8.1 release. The pinned galaxy test stays as the trains' smoke test. Train 28 keeps its renewed golden; from Train 29 on, no lane PR needs a golden or epoch step (OPS.258, Train Manager); the gate shards across lanes (OPS.259).
 
 JOB ENGINE (Boss 6:35 PM, 6:57 PM and 7:52 PM EST 2026-11-13): stages 1 to 6 are OPS.191-252, merged one at a time on the lane's changed-only green, in dependency order, by TODO; the engine trains are dropped ("de-train the queue fixing code"). Merge order and lanes: /mnt/project-files/reports/job-engine-trains-2026-11-13.md. A converted command commits only through ctx.commit(). Watch list (OPS.218, 228, 237, 239, 240, 242, 243): if the golden galaxy cannot stay identical, the lane stops and reports to TODO; it never rewrites the golden for these.
 

@@ -10,7 +10,7 @@ clusters"): `generation/open_clusters.py` draws the clusters with them.
   (`initial_masses`, [R2542]).
 * **Loss.** Stellar evolution (`mass_lost_by_evolution`, [R2542: Table 1]) and tidal disruption on a timescale
   `t_dis = t0 (M / Msun) ** gamma` (`disruption_t0_yr`, `present_masses`), the mass a cluster holds at an age.
-* **Size.** A half-mass radius from a half-mass density (`half_mass_radii_pc`, Portegies [R3580]), grown by a
+* **Size.** A half-mass radius from a half-mass density (`half_mass_radii_pc`, [R3580]), grown by a
   factor of 5 to 10 over the first 100 Myr and held inside the cluster's Jacobi radius (`jacobi_radii_pc`).
 """
 

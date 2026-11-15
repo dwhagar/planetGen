@@ -252,10 +252,10 @@ def _planet():
             "Each class asks about the mass, gravity, temperature, air, water, and starlight in its own conditions. A condition "
             "just outside its edge lowers the match instead of ruling the class out. A world that fits no class at all is "
             "shown with its nearest class at 0 percent.",
-            "Where a class edge falls is soft, and the softness is the model's doubt, not the variety of the worlds: it is how far the value could "
-            "move if the stand-ins that make it (the formulas and constants we could not take from a measurement) were wrong by what the stand-in list "
-            "says they could be. A world just past an edge, by less than that width, fits the class in part; a quantity made only of measured values has "
-            "almost none. As stand-ins are replaced by measured values, the widths shrink on their own.",
+            "Where a class edge falls is soft. The softness is the model's doubt, not the variety of the worlds. It is how far the value "
+            "could move if the formulas and constants we could not take from a measurement were wrong by what the sources allow.",
+            "A world just past an edge, by less than that width, fits the class in part. A quantity made only of measured values has almost "
+            "no width. As measured values replace the formulas and constants, the widths shrink on their own.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
@@ -266,11 +266,15 @@ def _planet():
 
 
 def _cloud_facts(data):
-    return [
+    """The facts a nebula and a supernova remnant share: the cloud's density, temperature and extinction, and what sits at its center when something does."""
+    facts = [
         ("Density", number_range(*data["density_range_cm3"], "particles/cm³")),
         ("Gas temperature", number_range(*data["temperature_range_k"], "K")),
         ("Extinction", number_range(*data["extinction_range_av"], "magnitudes (visual)")),
     ]
+    if data.get("center"):
+        facts.append(("At the center", _sentence(data["center"])))
+    return facts
 
 
 def _nebula():
@@ -284,8 +288,6 @@ def _nebula():
             ("Radius", number_range(*data["radius_range_ly"], "ly")),
             *_cloud_facts(data),
         ]
-        if data.get("center"):
-            facts.append(("At the center", _sentence(data["center"])))
         classes[code] = _entry(code, data["name"], escape(f"{_sentence(data['family'])} nebula: ") + _contents(data["species"]) + ".",
                                facts)
     return {
@@ -312,8 +314,6 @@ def _supernova_remnant():
             ("Compact remnant allowed", ", ".join(_COMPACT_LABELS.get(kind, str(kind)) for kind in data["compact"])),
             *_cloud_facts(data),
         ]
-        if data.get("center"):
-            facts.append(("At the center", _sentence(data["center"])))
         summary = escape(f"{_sentence(data['morphology'])} remnant: ") + _contents(data["species"]) + "."
         classes[code] = _entry(code, data["name"], summary, facts)
     return {

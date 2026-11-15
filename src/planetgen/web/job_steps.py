@@ -51,13 +51,15 @@ def hoisted_clear(listed):
     """
     from planetgen.generation import stages as generation_stages
     clear = generation_stages.BRIGHT_CLEAR_STAGE["mass"].label
+    limits = generation_stages.LIMITS_STAGE.label
     light_clear = generation_stages.BRIGHT_CLEAR_STAGE["luminosity"].label
     backfill = generation_stages.SINGLE_STAGE_COMMANDS["backfill"].label
     labels = [stage["label"] for stage in listed]
     if clear not in labels or backfill not in labels or labels.index(clear) < labels.index(backfill):
         return listed
-    moved = listed.pop(labels.index(clear))
-    listed.insert([stage["label"] for stage in listed].index(backfill), moved)
+    moved = listed.pop(labels.index(clear))        # the prepared scatter's clear runs before the backfill, and the stage that stores its limits goes with it (OPS.257)
+    at = [stage["label"] for stage in listed].index(backfill)
+    listed[at:at] = [moved, {"label": limits, "skipped": None}]
     return [stage for stage in listed if stage["label"] != light_clear]
 
 

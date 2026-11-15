@@ -274,7 +274,7 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
 
     assert shape_dict is not None
     for field in _SKELETON_SHAPE._fields:
-        if field in ("components", "masses", "structure", "system_mass_scale"):  # objects for the density model, not JSON for the map
+        if field in ("components", "masses", "structure", "system_mass_scale", "abundance_tier"):  # objects for the density model (the tier a setting for each system made here, which the pins carry), not JSON for the map
             assert field not in shape_dict
             continue
         if field == "spheroid_orientation_rad" or field in FAMILY_COLUMNS:  # DB.66 columns the map does not read (a name the terms share keeps theirs)
@@ -1779,13 +1779,13 @@ def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config)
         assert bounds.qualifies(row["shell_index"], row["band_index"]), _address(row)
 
 
-def test_wedge_mode_reports_the_sector_it_made_with_its_stats(mysql_config, capsys):
-    """ADM.47: the one sector named outright is reported like every sector of a batch."""
+def test_wedge_mode_reports_the_sector_it_made_like_every_sector_of_a_batch(mysql_config, capsys):
+    """ADM.47: the one sector named outright is reported like every sector of a batch; OPS.172 made each sector's own line and summary debug lines."""
     _seed_skeleton(mysql_config, shells=_shells(3, 3))
     _run_cli(["--shell", "2", "--band", "2", "--wedge", "1"] + _mysql_argv(mysql_config))
     out = capsys.readouterr().out
-    assert "Saved sector" in out
-    assert "Systems:" in out and "Totals:" in out and "Star density: actual" in out
+    assert "Saved sector" not in out and "Totals:" not in out
+    assert "The sectors are saved." in out
 
 
 def test_a_batch_says_how_many_sectors_it_runs_and_reports_each_with_its_stats(mysql_config, capsys):
