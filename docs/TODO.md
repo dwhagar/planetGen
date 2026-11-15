@@ -12850,6 +12850,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 07, after GEN.1459; lock item for the build. Prerequisites: GEN.1449. Related: GEN.1449, GEN.1447.
   Filed by the TODO thread.
 
+- [ ] **OPS.263 (bug) update.sh stops at Stage 4 (math check): "Table 'planetgen_control.engine_runs' doesn't exist" from planrows.record_plan**
+  Boss, 2:53 PM EST 2026-11-15 (live ./update.sh on main 8.0.4303, log relayed by the coordinator; top priority): Stage 4 runs `generate check-math`, whose wrapper.run now calls planrows.record_plan (OPS.238 part 3, PR #6713), which inserts into engine_runs on the control database before the update's later stage has created the engine tables. Do: the math check (and any run started before the schema stage) must not need ledger tables that the update has not made yet; fix the cause (stage order, or a run with no ledger keeps its plan elsewhere; see TEST.769, the same root), not a try/except.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (sent by the coordinator), top priority; coordinate with Lane 14 on TEST.769 and Lane 16 on OPS.238. Prerequisites: none. Related: OPS.238, TEST.769, OPS.216.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
