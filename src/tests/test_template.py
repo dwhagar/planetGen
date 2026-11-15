@@ -104,8 +104,7 @@ def test_the_star_tables_are_a_warm_set_a_template_may_build():
 def test_without_kernel_handles_the_template_reports_every_exit_and_a_dead_template_leaves_the_pids_to_look_for(monkeypatch):
     """The path macOS takes (OPS.226): no `pidfd`, so the template's report is the way, and when the template is the one that died each job's pid is looked for."""
     monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
-    monkeypatch.setenv("PLANETGEN_TEMPLATE_PIDFD", "0")
-    made = jobhost.JobHost()
+    made = jobhost.JobHost(pidfd=False)
     made.start(ready_seconds=60)
     try:
         quick, lingering = made.fork(f"{R}.quick", {"code": 4}), made.fork(f"{R}.lingers")

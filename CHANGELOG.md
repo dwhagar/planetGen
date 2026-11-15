@@ -2,6 +2,43 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4251] - 2026-11-15
+
+**Headline:** Three guard tests that went red with the template slices are green again.
+
+### Fixed
+- The runner of a unit forked from a template runs inside the unit's own memory claim, so it is named among the functions that take none of their own (`claims.CALLBACKS`).
+- The way to try the no-kernel-handle path is the template's `--no-pidfd` argument (`JobHost(pidfd=False)`), not an environment variable the settings model does not name.
+- The two handlers that turn a job's failure into an exit code now note it (`log.swallowed`).
+
+## [8.0.4250] - 2026-11-15
+
+**Headline:** a unit that fails because the database or Redis hiccuped is now run again by the engine after a growing wait, and the run says what kind of failure ended it.
+
+### Added
+
+- OPS.220: `queue/failures.py` names every failure one of four kinds (passing, killed, idle, lasting). A passing failure (MySQL deadlock 1213, lock wait 1205, connection lost 2006 or 2013, a closed connection, a Redis connection that failed) runs the unit again after a wait that doubles from 2 s to 5 min, spread at random, inside a per-run budget of 40 retries and 30 minutes of waiting. Every attempt is a row in the ledger, and the budget is one Redis hash per run.
+
+### Changed
+
+- OPS.220: the run's error text names the kind of failure. A killed or idle unit keeps the existing alone-with-a-bigger-claim and stack-dump paths. `rq.Retry(max=1)` and the in-transaction deadlock retries stay until OPS.219 (checkpoints), OPS.221 (held items) and the supervisor hand-out remove their last users.
+
+## [8.0.4249] - 2026-11-15
+
+**Headline:** A unit that fails for good no longer ends the run: it is held, the rest goes on, and a run held for a person can be carried on after the fix.
+
+### Added
+
+- OPS.221 (job engine stage 3, L7): a unit that fails for good (the error reached `units.unit_failed`, or a kill with no retry left) is written to its stage's held hash and its job row is `failed`; its queued retry finds it held and does nothing. Every other unit goes on. When every unit of the stage is done or held, the run takes the new state `held` (`runrecord.hold_run`): it frees the machine, shows as Held on the Queue page and in `GET /api/admin/work`, no worker takes a unit of it, and the ledger's run row says `held` with why. Retry held (`held.retry_held`; the Queue page, `planetgen queue retry-held RUN_ID`, `POST /api/admin/work/<id>/control` `{"action": "retry-held"}`) takes the machine back, sets each held job to `waiting` and queues it again with the arguments its row holds (`units.requeue_unit`, reused from `enqueue_units`). Cancel ends a held run. `planetgen queue held` lists them.
+- A unit that has no ledger row, and a piece of an opening, a conclusion or an end of a stage, still fail the run as before until OPS.218's jobs carry the same state. The failure kind seam for OPS.220 is the one call `units.unit_failed` makes: everything that reaches it is lasting.
+
+### Fixed
+
+- A held run's starter ends with the reason and does not end the run (`runrecord.finish_run` leaves a held run alone unless it is the cancel of it).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4248] - 2026-11-15
 
 **Headline:** Three places that wrote a unit by hand (the job page's memory claim, a retry hold's seconds, the unit beat's debug line) now use the shared units formatters.

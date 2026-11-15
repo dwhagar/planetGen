@@ -119,8 +119,8 @@ class Job:
 class JobHost:
     """One template process and the jobs forked from it."""
 
-    def __init__(self, python=None, warm=()):
-        self.python, self.warm = python or sys.executable, list(warm)
+    def __init__(self, python=None, warm=(), pidfd=True):
+        self.python, self.warm, self.pidfd = python or sys.executable, list(warm), pidfd
         self.control = self.process = None
         self.jobs = {}              # id -> Job, until its end is reported
         self.template_pid = None
@@ -132,7 +132,7 @@ class JobHost:
     def start(self, ready_seconds=READY_SECONDS):
         """Starts the template and waits until its warm set is built. Returns the seconds that took."""
         mine, theirs = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
-        self.process = subprocess.Popen([self.python, "-m", "planetgen.queue.template", str(theirs.fileno()), *self.warm], pass_fds=(theirs.fileno(),))
+        self.process = subprocess.Popen([self.python, "-m", "planetgen.queue.template", str(theirs.fileno()), *([] if self.pidfd else [template.NO_PIDFD_FLAG]), *self.warm], pass_fds=(theirs.fileno(),))
         theirs.close()
         self.control = mine
         message, _fds = self._expect("ready", ready_seconds)
@@ -254,14 +254,14 @@ def template_key(kind):
 class TemplateSet:
     """The supervisor's templates: one per warm set, each started when the first job that wants it is asked for (a host with no star-drawing work never builds the tables) and stopped together."""
 
-    def __init__(self, python=None, warm_sets=None, ready_seconds=READY_SECONDS):
-        self.python, self.warm_sets, self.ready_seconds = python, dict(WARM_SETS if warm_sets is None else warm_sets), ready_seconds
+    def __init__(self, python=None, warm_sets=None, ready_seconds=READY_SECONDS, pidfd=True):
+        self.python, self.warm_sets, self.ready_seconds, self.pidfd = python, dict(WARM_SETS if warm_sets is None else warm_sets), ready_seconds, pidfd
         self.hosts = {}
 
     def host(self, key):
         """The running `JobHost` of template `key`, started now if it is not (the warm set is built before this returns)."""
         if key not in self.hosts or self.hosts[key]._dead:
-            made = JobHost(python=self.python, warm=self.warm_sets[key])
+            made = JobHost(python=self.python, warm=self.warm_sets[key], pidfd=self.pidfd)
             made.start(self.ready_seconds)
             self.hosts[key] = made
         return self.hosts[key]

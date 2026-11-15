@@ -62,8 +62,10 @@ CALLBACKS = frozenset({
     "planetgen.queue.units.open_failed",
     "planetgen.queue.requires.job_failed",
     "planetgen.queue.requires.job_succeeded",
+    "planetgen.queue.forkedjob.run",
+    "planetgen.queue.units.warm_star_tables",
 })
-"""frozenset: The functions that run as a job's callbacks, in the horse of the job they follow: they are inside its claim and take no claim of their own."""
+"""frozenset: The functions that run inside another claim: a job's callbacks, in the horse of the job they follow, and the runner of a unit forked from a template (OPS.226), which runs inside the unit's claim, and the warm set of a template, which is the template's own to hold and no job's; none takes a claim of its own."""
 
 API_CLAIMS = {
     "planetgen.api.edits:change_star_job": (workers.BULK_WORKER_MEMORY_MB, 1.0),

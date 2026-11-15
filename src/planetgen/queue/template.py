@@ -35,6 +35,7 @@ import threading
 import time
 
 from planetgen.queue import allowlist
+from planetgen.util import log
 
 EXIT_SUPERVISOR_GONE = 75
 """int: The exit code of a job whose supervisor went away (`SupervisorGone`): it finished what it was committing and stopped (BSD's `EX_TEMPFAIL`: try again)."""
@@ -42,9 +43,8 @@ EXIT_SUPERVISOR_GONE = 75
 EXIT_FAILED = 1
 """int: The exit code of a job whose runner raised."""
 
-USE_PIDFD = os.environ.get("PLANETGEN_TEMPLATE_PIDFD", "1") != "0" and hasattr(os, "pidfd_open")
-"""bool: Whether the template hands the supervisor a `pidfd` of each job (Linux). Off where the kernel has none (macOS), and when `PLANETGEN_TEMPLATE_PIDFD=0` says so, which is how the path without them is tried
-on Linux: the template's report of each exit is then the way, and a template that has died leaves the supervisor to look for each job's pid (`jobhost.JobHost.poll`)."""
+NO_PIDFD_FLAG = "--no-pidfd"
+"""str: The template's argument that has it hand the supervisor no `pidfd` of a job, as on a kernel with none (macOS): the template's report of each exit is then the way, and a template that has died leaves the supervisor to look for each job's pid (`jobhost.JobHost.poll`). It is how that path is tried on Linux."""
 
 MESSAGE_BYTES = 1 << 20
 """int: The most one message may hold."""
@@ -132,6 +132,7 @@ def run_job(runner, job, sock):
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else (0 if exc.code is None else EXIT_FAILED)
     except BaseException as exc:  # noqa: BLE001 -- a job's failure is its exit code and one line on the pipe
+        log.swallowed("template", f"the failure of job runner {runner}", exc)
         with contextlib.suppress(Exception):
             link.send({"event": "error", "error": f"{type(exc).__name__}: {exc}"[:500]})
         return EXIT_FAILED
@@ -140,13 +141,14 @@ def run_job(runner, job, sock):
 class Template:
     """The template process: warm set built, nothing open, one thread, a loop that forks a job on request and reports how each one ended."""
 
-    def __init__(self, control, warm=(), clock=time.time):
+    def __init__(self, control, warm=(), clock=time.time, pidfd=None):
         self.control = control
         self.warm = list(warm)
         self.clock = clock
         self.children = {}          # pid -> the id the supervisor gave the job
         self.wake_read = self.wake_write = None
         self.stopping = False
+        self.use_pidfd = hasattr(os, "pidfd_open") if pidfd is None else (pidfd and hasattr(os, "pidfd_open"))
 
     def build(self):
         """Builds the warm set (`warm`, dotted names of functions called with no argument), freezes what it made so a fork never copies it by collecting, and checks the process is safe to fork."""
@@ -208,7 +210,7 @@ class Template:
                 os._exit(code)
         job_end.close()
         self.children[pid] = job_id
-        pidfd = os.pidfd_open(pid) if USE_PIDFD else None       # opened here, while the child is still this process's to reap: the pid cannot be gone or another process's
+        pidfd = os.pidfd_open(pid) if self.use_pidfd else None       # opened here, while the child is still this process's to reap: the pid cannot be gone or another process's
         try:
             self.say({"event": "forked", "id": job_id, "pid": pid, "pidfd": pidfd is not None}, fds=[supervisor_end.fileno()] + ([pidfd] if pidfd is not None else []))
         finally:
@@ -257,10 +259,11 @@ class Template:
 
 
 def main(argv=None):
-    """`python -m planetgen.queue.template FD [WARM ...]`: the template process, whose channel to the supervisor is the open descriptor FD."""
+    """`python -m planetgen.queue.template FD [--no-pidfd] [WARM ...]`: the template process, whose channel to the supervisor is the open descriptor FD."""
     argv = list(sys.argv[1:] if argv is None else argv)
     control = socket.socket(fileno=int(argv[0]))
-    Template(control, argv[1:]).serve()
+    rest = argv[1:]
+    Template(control, [name for name in rest if name != NO_PIDFD_FLAG], pidfd=NO_PIDFD_FLAG not in rest).serve()
     return 0
 
 
