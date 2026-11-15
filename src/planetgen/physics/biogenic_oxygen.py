@@ -75,7 +75,7 @@ EARTH_MANTLE_DELTA_IW = 3.5
 EARTH_SURPLUS_MOL_YR = EARTH_BURIAL_MOL_YR - EARTH_REDUCTANT_MOL_YR
 """float: The surplus of Earth's oxygen budget, mol a year, which Earth's oxidative weathering takes at `EARTH_O2_PA` (`W0`)."""
 
-OXIDATIVE_WEATHERING_EXPONENT = 0.5
+OXIDATIVE_WEATHERING_EXPONENT = 1.0
 """float: The power of the oxygen partial pressure that oxidative weathering goes with: the square root of the baseline of the COPSE model [R5280] (taken from [R5282]), which the weathering model of
 [R5281] fits to within its own scatter ("consistent with coal oxidation kinetics"). The sources differ: a linear dependency has been used, and the evidence for any dependency has been disputed [R5280]. [BO13, T3, L0.]"""
 
