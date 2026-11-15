@@ -364,7 +364,7 @@ def test_the_liquid_and_volcano_conditions_read_in_plain_words_gen1617():
 
 
 def test_class_x_has_no_surface_temperature_band_gen1737():
-    """GEN.1737: an ammonia-water ocean lies under its lid at the freezing point of its own solution (273 K for pure water, 176 K at 32 percent ammonia, linear between: [R5280], [R2639]),
+    """GEN.1737: an ammonia-water ocean lies under its lid at the freezing point of its own solution, 273 K for pure water and 176 K at 32 percent ammonia, linear between [R5280] [R2639],
     so the surface temperature is no test of it. The least ammonia of class X, 10 percent of the water's mass, is 9.09 percent of the liquid, which freezes at about 246 K: inside the
     family's window of 176 K to the boiling point whatever the surface is. The same ocean on a surface of 30 K and of 300 K is class X."""
     from planetgen.physics import surface_liquid_world as slw, surface_liquids
