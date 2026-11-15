@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4233] - 2026-11-15
+
+**Headline:** The galaxy reset no longer wipes the job engine's own fence rows.
+
+### Fixed
+- Resetting a galaxy truncated `engine_items`, the row each job's done mark is fenced by, so the reset's own unit found itself "replaced" and the run never finished. The table is now left out of the wipe.
+
 ## [8.0.4232] - 2026-11-15
 
 **Headline:** A unit that was replaced by a later attempt can no longer mark itself done or count, so a retried unit cannot be counted twice.
