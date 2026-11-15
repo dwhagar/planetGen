@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1698 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1705 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1671 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1678 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 195 | 20 | 12 | 1 | 0 | 228 |
-| T2 | 160 | 66 | 2 | 1 | 0 | 229 |
+| T1 | 197 | 20 | 12 | 1 | 0 | 230 |
+| T2 | 161 | 66 | 2 | 1 | 0 | 230 |
 | T3 | 115 | 56 | 13 | 9 | 0 | 193 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
 | T6 | 221 | 116 | 31 | 76 | 4 | 448 |
-| T7 | 58 | 24 | 10 | 31 | 0 | 123 |
+| T7 | 58 | 27 | 10 | 32 | 0 | 127 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 6 | 95 | 38 | 206 |
-| All | 977 | 338 | 85 | 241 | 57 | 1698 |
+| All | 980 | 341 | 85 | 242 | 57 | 1705 |
 
 ## How the labels were given
 
@@ -2986,3 +2986,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IL4 | B | T1 | L0 | `ice_light.ALBEDO_BARE` (sea 0.6, lake 0.84), `ALBEDO_SNOW` 0.9 and their ranges: the albedo of the top surface to photosynthetic light | sea 0.5 to 0.7; lake 0.7 to 0.9; snow 0.8 to 0.97 | the surface of cold bare ice or snow | a surface albedo of cold ice or snow outside these ranges | the generator's own ice albedo to photosynthetic light, if one is made | [R5266] bare ice 0.5 to 0.7 and snow-covered 0.6 to 0.8; [R5265] 0.84 candled lake ice, 0.97 snow; [R5264] 0.8 to 0.97; the lake range is the stand-in's own (one measurement) | predicted only | GEN.1723 | - |
 | IL5 | B | T1 | L0 | `ice_light.ALBEDO_MELTING` 0.4 (0.2 to 0.6): the albedo of melting bare ice | 0.2 to 0.6 | ice at the melting point | a melting ice surface of albedo outside 0.2 to 0.6 | none | [R5266] 0.78, 0.60, 0.44 and 0.20 as the ice warms and melts | predicted only | GEN.1723 | - |
 | IL6 | P | T7 | L1 | `ice_light.SNOW_COVER_DEPTH_M` 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm) | 0.01 to 0.1 m | a snow layer of 1 to 30 cm over ice | a measurement of the albedo of a few cm of snow over ice that differs by more than 0.1 from this blend | a measured albedo by snow depth | no source for the form; 10 cm of temperate snow let 5 percent of the visible light through [R5268], which the same 10 cm makes snow-bright | predicted only | GEN.1723 | - |
+
+## 6.294 Stand-ins of the adaptations of life (GEN.1725)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AD1 | B | T1 | L0 | `life_adaptations.json` axes `t_cold` 273.15 K, `water_hours` 8760, `ground_water_depth` 1 m and `insulation` 0 K: the limit of a life with no adaptation | none (physics, a definition, or a measurement) | any oxygen-making life | a table row that gives a narrower limit than the ordinary one | none | the freezing point of water; liquid water all year; the 1 m extinction depth of a water table (the sources of GEN.1722 section 3); no cover | predicted only | - | - |
+| AD2 | P | T7 | L1 | `life_adaptations.json` axes `t_hot` 313.15 K, `light_floor` 1.0 umol photons m-2 s-1 and `water_activity` 0.9: the ordinary limit of an oxygen-making life | 305 to 318 K; 0.3 to 5; 0.85 to 0.95 | oxygen-making microbes | a growth or light measurement that puts the ordinary limit of a freshwater cyanobacterium outside these ranges | the measured limits of the mesophilic oxygen makers | 40 C sits between the 30 to 37 C optimum of freshwater cyanobacteria and the thermophile mats; the middle of the older 0.3 to 5 umol m-2 s-1 estimates of the light floor (GEN.1722 RF1); most cells stop dividing under a water activity of about 0.9 | predicted only | - | - |
+| AD3 | B | T1 | L0 | `life_adaptations.json` grade 3 (extreme) limits: `t_cold` 253.15 K (lichen, field, -20 C), `t_hot` 346.15 K (cyanobacteria, 73 C), `light_floor` 0.04 umol m-2 s-1 (under the Arctic pack), `water_hours` 75 (hypoliths), `ground_water_depth` 68 m (deepest root) | the ranges of the sources (lichen -24 to -17 C; 73 to 75 C) | oxygen-making life | a measurement of oxygen-making activity beyond one of them | none | GEN.1722 RF1, RF2, RF3, RF10; GEN.1727 LC1 to LC6 (the field and laboratory lichen papers read there); GEN.1724 D7 (the rooting-depth survey read there) | predicted only | - | - |
+| AD4 | B | T2 | L0 | `life_adaptations.json` grade 2 (tolerant) limits taken from a measurement: `t_cold` 263.15 K (carbon-14 fixation to -10.9 C), `t_hot` 333.15 K (hot-spring mats at 60 C) and 323.15 K, 318.15 K (Cyanidium, Tidestromia), `water_activity` 0.75 (Dunaliella), `ground_water_depth` 9.5 m (desert mean rooting depth) | the spread of the examples | the life type of the row | a measurement outside the example | the example's own measured limit | GEN.1727 LC2; GEN.1722 RF10; GEN.1724 H2, H5, S1, D7 (some recalled, marked in the file) | predicted only | - | - |
+| AD5 | P | T7 | L1 | `life_adaptations.json` grade 2 of C1 (0.2 umol m-2 s-1: the geometric mean of the ordinary 1.0 and the extreme 0.04) and the grade 2 of C14, C15, C16 (antifreeze and cryoprotectants, 1 to 6 K below freezing) | one decade for the light floor; 1 to 6 K | the rows named | a measured light floor for a shade-adapted alga between 0.04 and 1.0 that differs from 0.2 by a factor of 3 | the measured values | no source for the interpolation; the recalled 1 to 2 C of antifreeze and -3 to -6 C of the wood frog (GEN.1724 C14, C15) | predicted only | - | - |
+| AD6 | P | T7 | L1 | `life_adaptations.json` `stages` delays after the first life (cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8): when a life can have an adaptation that needs the stage | one example (Earth) | any life | a second world whose life reaches a stage in a very different time | a life timeline per stage (`life_timeline.py`) | GEN.1724 LA8, one world, ages recalled | predicted only | - | - |
+| AD7 | P | T7 | L3 | `adaptation_draw.ONSET` 0 K and `adaptation_draw.FULL` (the width of the table from the ordinary limit to the extreme grade for class 1a: 20 K for cold, 33 K for heat) for the traits cold and heat, scored on a straight line (`adaptation_draw.SHORTFALL_STRESSES`): the world's mean surface temperature past the ordinary limit | 10 to 40 K | any world with life | a census where the cold and heat traits fall on worlds a mean temperature does not press | a draw on the local temperature of the life's habitat | the shape follows the three earlier traits (LF68, LF69, `P_CAP` and `GRADE3_SHARE` shared); the mean temperature stands for the habitat's until GEN.1723 stores the local one | predicted only | - | - |

@@ -66501,6 +66501,280 @@
       ],
       "slug": "6-293-stand-ins-of-the-light-through-ice-and-snow-gen-1726",
       "title": "Stand-ins of the light through ice and snow (GEN.1726)"
+    },
+    {
+      "key": "6.294",
+      "number": "6.294",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json axes t_cold 273.15 K, water_hours 8760, ground_water_depth 1 m and insulation 0 K: the limit of a life with no adaptation"
+            ],
+            [
+              "The range it moves in",
+              "none (physics, a definition, or a measurement)"
+            ],
+            [
+              "Where it holds",
+              "any oxygen-making life"
+            ],
+            [
+              "What would show it wrong",
+              "a table row that gives a narrower limit than the ordinary one"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the freezing point of water; liquid water all year; the 1 m extinction depth of a water table (the sources of GEN.1722 section 3); no cover"
+            ]
+          ],
+          "id": "AD1",
+          "key": "6.294:AD1",
+          "kind": "B",
+          "slug": "6-294-ad1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json axes t_cold 273.15 K, water_hours 8760, ground_water_depth 1 m and insulation 0 K: the limit of a life with no adaptation"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json axes t_hot 313.15 K, light_floor 1.0 umol photons m-2 s-1 and water_activity 0.9: the ordinary limit of an oxygen-making life"
+            ],
+            [
+              "The range it moves in",
+              "305 to 318 K; 0.3 to 5; 0.85 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "oxygen-making microbes"
+            ],
+            [
+              "What would show it wrong",
+              "a growth or light measurement that puts the ordinary limit of a freshwater cyanobacterium outside these ranges"
+            ],
+            [
+              "What replaces it",
+              "the measured limits of the mesophilic oxygen makers"
+            ],
+            [
+              "Evidence",
+              "40 C sits between the 30 to 37 C optimum of freshwater cyanobacteria and the thermophile mats; the middle of the older 0.3 to 5 umol m-2 s-1 estimates of the light floor (GEN.1722 RF1); most cells stop dividing under a water activity of about 0.9"
+            ]
+          ],
+          "id": "AD2",
+          "key": "6.294:AD2",
+          "kind": "P",
+          "slug": "6-294-ad2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json axes t_hot 313.15 K, light_floor 1.0 umol photons m-2 s-1 and water_activity 0.9: the ordinary limit of an oxygen-making life"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json grade 3 (extreme) limits: t_cold 253.15 K (lichen, field, -20 C), t_hot 346.15 K (cyanobacteria, 73 C), light_floor 0.04 umol m-2 s-1 (under the Arctic pack), water_hours 75 (hypoliths), ground_water_depth 68 m (deepest root)"
+            ],
+            [
+              "The range it moves in",
+              "the ranges of the sources (lichen -24 to -17 C; 73 to 75 C)"
+            ],
+            [
+              "Where it holds",
+              "oxygen-making life"
+            ],
+            [
+              "What would show it wrong",
+              "a measurement of oxygen-making activity beyond one of them"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "GEN.1722 RF1, RF2, RF3, RF10; GEN.1727 LC1 to LC6 (the field and laboratory lichen papers read there); GEN.1724 D7 (the rooting-depth survey read there)"
+            ]
+          ],
+          "id": "AD3",
+          "key": "6.294:AD3",
+          "kind": "B",
+          "slug": "6-294-ad3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json grade 3 (extreme) limits: t_cold 253.15 K (lichen, field, -20 C), t_hot 346.15 K (cyanobacteria, 73 C), light_floor 0.04 umol m-2 s-1 (under the Arctic pack), water_hours 75 (hypoliths), ground_water_depth 68 m (deepest root)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json grade 2 (tolerant) limits taken from a measurement: t_cold 263.15 K (carbon-14 fixation to -10.9 C), t_hot 333.15 K (hot-spring mats at 60 C) and 323.15 K, 318.15 K (Cyanidium, Tidestromia), water_activity 0.75 (Dunaliella), ground_water_depth 9.5 m (desert mean rooting depth)"
+            ],
+            [
+              "The range it moves in",
+              "the spread of the examples"
+            ],
+            [
+              "Where it holds",
+              "the life type of the row"
+            ],
+            [
+              "What would show it wrong",
+              "a measurement outside the example"
+            ],
+            [
+              "What replaces it",
+              "the example's own measured limit"
+            ],
+            [
+              "Evidence",
+              "GEN.1727 LC2; GEN.1722 RF10; GEN.1724 H2, H5, S1, D7 (some recalled, marked in the file)"
+            ]
+          ],
+          "id": "AD4",
+          "key": "6.294:AD4",
+          "kind": "B",
+          "slug": "6-294-ad4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json grade 2 (tolerant) limits taken from a measurement: t_cold 263.15 K (carbon-14 fixation to -10.9 C), t_hot 333.15 K (hot-spring mats at 60 C) and 323.15 K, 318.15 K (Cyanidium, Tidestromia), water_activity 0.75 (Dunaliella), ground_water_depth 9.5 m (desert mean rooting depth)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json grade 2 of C1 (0.2 umol m-2 s-1: the geometric mean of the ordinary 1.0 and the extreme 0.04) and the grade 2 of C14, C15, C16 (antifreeze and cryoprotectants, 1 to 6 K below freezing)"
+            ],
+            [
+              "The range it moves in",
+              "one decade for the light floor; 1 to 6 K"
+            ],
+            [
+              "Where it holds",
+              "the rows named"
+            ],
+            [
+              "What would show it wrong",
+              "a measured light floor for a shade-adapted alga between 0.04 and 1.0 that differs from 0.2 by a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the measured values"
+            ],
+            [
+              "Evidence",
+              "no source for the interpolation; the recalled 1 to 2 C of antifreeze and -3 to -6 C of the wood frog (GEN.1724 C14, C15)"
+            ]
+          ],
+          "id": "AD5",
+          "key": "6.294:AD5",
+          "kind": "P",
+          "slug": "6-294-ad5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json grade 2 of C1 (0.2 umol m-2 s-1: the geometric mean of the ordinary 1.0 and the extreme 0.04) and the grade 2 of C14, C15, C16 (antifreeze and cryoprotectants, 1 to 6 K below freezing)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json stages delays after the first life (cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8): when a life can have an adaptation that needs the stage"
+            ],
+            [
+              "The range it moves in",
+              "one example (Earth)"
+            ],
+            [
+              "Where it holds",
+              "any life"
+            ],
+            [
+              "What would show it wrong",
+              "a second world whose life reaches a stage in a very different time"
+            ],
+            [
+              "What replaces it",
+              "a life timeline per stage (life_timeline.py)"
+            ],
+            [
+              "Evidence",
+              "GEN.1724 LA8, one world, ages recalled"
+            ]
+          ],
+          "id": "AD6",
+          "key": "6.294:AD6",
+          "kind": "P",
+          "slug": "6-294-ad6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json stages delays after the first life (cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8): when a life can have an adaptation that needs the stage"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_draw.ONSET 0 K and adaptation_draw.FULL (the width of the table from the ordinary limit to the extreme grade for class 1a: 20 K for cold, 33 K for heat) for the traits cold and heat, scored on a straight line (adaptation_draw.SHORTFALL_STRESSES): the world's mean surface temperature past the ordinary limit"
+            ],
+            [
+              "The range it moves in",
+              "10 to 40 K"
+            ],
+            [
+              "Where it holds",
+              "any world with life"
+            ],
+            [
+              "What would show it wrong",
+              "a census where the cold and heat traits fall on worlds a mean temperature does not press"
+            ],
+            [
+              "What replaces it",
+              "a draw on the local temperature of the life's habitat"
+            ],
+            [
+              "Evidence",
+              "the shape follows the three earlier traits (LF68, LF69, P_CAP and GRADE3_SHARE shared); the mean temperature stands for the habitat's until GEN.1723 stores the local one"
+            ]
+          ],
+          "id": "AD7",
+          "key": "6.294:AD7",
+          "kind": "P",
+          "slug": "6-294-ad7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_draw.ONSET 0 K and adaptation_draw.FULL (the width of the table from the ordinary limit to the extreme grade for class 1a: 20 K for cold, 33 K for heat) for the traits cold and heat, scored on a straight line (adaptation_draw.SHORTFALL_STRESSES): the world's mean surface temperature past the ordinary limit"
+        }
+      ],
+      "slug": "6-294-stand-ins-of-the-adaptations-of-life-gen-1725",
+      "title": "Stand-ins of the adaptations of life (GEN.1725)"
     }
   ]
 }

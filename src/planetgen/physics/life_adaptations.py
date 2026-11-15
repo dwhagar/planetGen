@@ -12,7 +12,7 @@ answers the questions the generator asks of it:
 * `ordinary(axis)`: the limit of a life with no adaptation (one number for each axis, so no two rows disagree about it);
 * `limit(axis, grade, ...)`: how far the limit goes at a grade, for the kinds of life and the class a body has and the age its life has reached (the widest value of every
   row that applies; the ordinary limit when none does);
-* `habitat(id)` and `habitats_opened_by(row_id)`: the refuge kinds the gate of GEN.1723 counts.
+* `habitat(id)`: a refuge kind the gate of GEN.1723 counts, with the rows that open it.
 
 The axes are `t_cold` and `t_hot` (the local temperature of the water the life works in, K), `light_floor` (the least light for net growth, umol photons m-2 s-1),
 `water_hours` (the hours of liquid water a year it needs), `water_activity`, `ground_water_depth` (how deep a water table its roots reach, m) and `insulation` (how much
@@ -202,7 +202,3 @@ def habitat(habitat_id):
     """The habitat row `habitat_id` of the file (the refuge kinds the gate of GEN.1723 counts)."""
     return HABITATS[habitat_id]
 
-
-def habitats_opened_by(adaptation_id):
-    """The id of the habitat the row opens, or `None`."""
-    return BY_ID[adaptation_id].opens_habitat
