@@ -151,6 +151,35 @@ def test_a_class_whose_own_air_takes_its_solvent_does_not_live_on_the_world(monk
     assert body.life_class_id is None or _in_order(_ages(body))
 
 
+def test_a_class_whose_own_air_leaves_it_too_little_carbon_dioxide_does_not_live_on_the_world(monkeypatch):
+    """GEN.1736: the oxygen the dominant class raises, and the carbon sink asked again at the temperature the oxygen leaves (`biogenic_oxygen.rebalance_co2`), can leave the air under the
+    carbon dioxide its carbon fixers need (seed 30143 of the class M meter: 1.2 Pa against the 2 Pa gate, with 35 kPa of oxygen). The class passed the gate before its air; it is not kept (it is
+    for a donor it used up, TEST.486) once the final air fails the carbon gate: the world is made again from the body as it was, without that class."""
+    body = _a_world_with_life()
+    old = body.life_class_id
+    real = life_classes.score_classes
+    scored = [0]
+    real_apply = planet_life._apply
+
+    def a_pass(*args, **kwargs):
+        scored[0] = 0
+        return real_apply(*args, **kwargs)
+
+    def short_of_carbon_after_the_air(*args, **kwargs):
+        scored[0] += 1
+        found = real(*args, **kwargs)
+        if scored[0] > 1 and old in found:      # the first scoring of a pass is the body as it stands; the next ones are of the air the life made
+            found[old] = life_classes.ClassScore(old, 0.0, {planet_life.CARBON_GATE: 0.0}, [planet_life.CARBON_GATE], [], [])
+        return found
+
+    monkeypatch.setattr(planet_life, "_apply", a_pass)
+    monkeypatch.setattr(planet_life.life_classes, "score_classes", short_of_carbon_after_the_air)
+    planet_life.apply_life_data(body)
+    assert body.life_class_id != old, "the class kept a world whose own air left it too little carbon dioxide"
+    assert body.life_class_id is None or body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES
+    assert body.life_class_id is None or _in_order(_ages(body))
+
+
 def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_an_air_without_it():
     for body in _bodies(60, HABITABLE_WORLD=True):
         if body.life_class and _short_of_oxygen(body):
