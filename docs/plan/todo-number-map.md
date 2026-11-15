@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.319 |
+| UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
 | GEN | GEN.1754 |
@@ -5100,6 +5100,7 @@ Each citation below resolves to one item by its date.
 | UX.316 | Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button | UX.315 | done, PR #6441 (9:09 PM EST 11-13) |
 | UX.317 | (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too) | UX.316 | done, PR #6459 (2:14 AM EST 11-14) |
 | UX.318 | (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand | none | done, PR #6574 (9:10 PM EST 11-14) |
+| UX.319 | (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3") | none | open |
 
 ### Code tags `TODO(<area> #N)`
 
