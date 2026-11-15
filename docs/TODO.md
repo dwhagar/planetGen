@@ -12992,6 +12992,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: UX.318, PERF.270.
   Filed by the TODO thread.
 
+- [ ] **OPS.260 Job engine stage 2, OPS.218 slice 3: conclude and finish hooks become commands of their own, and the engine stops reading CommandSpec.conclude and finish**
+  Split from OPS.218 (Lane 13, 4:27 AM EST 2026-11-15): slices 1 and 2 merged in the stage 2 stack (PR #6571), but slice 3 is not built: the 8 conclude and 5 warm finish hooks are still hooks of CommandSpec that the end rows only run, and the engine still reads `CommandSpec.conclude` and `finish`. Make each a command of its own run by the end rows, delete the hooks and their reads (no shim). Spec: /mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md and the job engine design.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 13. Prerequisites: none. Related: OPS.218, OPS.225, OPS.219.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

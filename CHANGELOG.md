@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4237] - 2026-11-15
+
+**Headline:** The job engine's fence and the end of a stage are proved by seeded scenarios.
+
+### Changed
+- `tests/test_engine_proof.py` draws interleavings of attempts and kills of the end of a stage, ten seeds each, and checks that two attempts never both commit, that a job is done only by its newest attempt, and that a finished stage concludes, finishes and opens the next once however often its end is killed (OPS.225, the first slice).
+
 ## [8.0.4236] - 2026-11-15
 
 **Headline:** the end of a stage is three jobs in the ledger, and the Redis marks of how far it got are gone.
