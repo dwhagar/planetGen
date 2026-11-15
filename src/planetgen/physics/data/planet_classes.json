@@ -114,6 +114,22 @@
     "phase_<family>": {
       "label": "liquid phase of the <family> family",
       "note": "1 where the family's liquid (water, methane-ethane, sulfuric acid, ammonia-water, dense CO2) is a liquid at the body's temperature and pressure (phase_gate)"
+    },
+    "sea_methane_ethane": {
+      "label": "seas of methane or ethane (1 when the body holds them)",
+      "note": "1 when seas of liquid methane or ethane cover at least half a percent of the body's surface (GEN.1617; the stored surface liquids)"
+    },
+    "acid_pool": {
+      "label": "liquid sulfuric acid at the ground (1 when there is some)",
+      "note": "1 when the body stores liquid sulfuric acid lying at its ground (GEN.1617; the acid medium's pool)"
+    },
+    "ammonia_ocean": {
+      "label": "an ocean that holds ammonia (1 when the body has one)",
+      "note": "1 when the body stores ammonia in its liquid ocean (GEN.1617; `surface_liquid_ammonia_wt`)"
+    },
+    "volcanic_heat": {
+      "label": "interior heat enough to melt rock (1 when it is)",
+      "note": "1 when the interior's heat flow, with the tide's, is at least the middle of the volcanism floor of the ground (GEN.1617)"
     }
   },
   "rows": [
@@ -168,10 +184,10 @@
     {
       "letter": "A",
       "name": "Volcanic world",
-      "phrase": "a world whose air carries a high share of sulfur dioxide",
+      "phrase": "a volcanic world whose air carries a high share of sulfur dioxide",
       "kind": "t",
-      "sentence": "A volcanic world: air with a high share of sulfur dioxide, the mark of outgassing from volcanoes.",
-      "basis": "design: 3 percent sulfur dioxide, which no non-volcanic mixture reaches"
+      "sentence": "A volcanic world: air with a high share of sulfur dioxide, the mark of outgassing from volcanoes, over an interior hot enough to melt rock and resurface the ground.",
+      "basis": "design: 3 percent sulfur dioxide, which no non-volcanic mixture reaches, and an interior heat that melts rock (GEN.1617)"
     },
     {
       "letter": "T",
@@ -312,17 +328,17 @@
     {
       "letter": "U",
       "name": "Methane-ethane world",
-      "phrase": "a cold world under a thick air with methane that is cold enough for liquid methane and ethane",
+      "phrase": "a cold world under a thick air with methane, with seas of liquid methane and ethane",
       "kind": "t",
-      "sentence": "A cold world under a thick air that holds methane. It is cold and pressed enough for liquid methane and ethane to stand at the surface.",
+      "sentence": "A cold world under a thick air that holds methane. It is cold and pressed enough for liquid methane and ethane to stand at the surface, and it holds seas of them.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     },
     {
       "letter": "Y",
       "name": "Sulfuric acid world",
-      "phrase": "a warm world under a sulfur-rich air where sulfuric acid could stand as a liquid",
+      "phrase": "a warm world under a sulfur-rich air, with liquid sulfuric acid at its ground",
       "kind": "t",
-      "sentence": "A sulfuric acid world: a warm surface under a sulfur-rich air, where sulfuric acid could stand as a liquid.",
+      "sentence": "A sulfuric acid world: a warm surface under a sulfur-rich air, with liquid sulfuric acid lying at its ground.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     },
     {

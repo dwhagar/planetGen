@@ -140,7 +140,7 @@ web interface lists them for each letter.
 | `D` | Small airless world | terrestrial | No air (under 10 Pa), round, under 0.1 Earth masses. A body under a roundness ratio of 1 is an Asteroid and has no class. |
 | `S` | Airless super-Earth | terrestrial | No air and 1.5 Earth masses or more. |
 | `C` | Dead world | terrestrial | No air and 0.1 to 1.5 Earth masses. |
-| `A` | Volcanic world | terrestrial | Sulfur dioxide 3 percent or more of the air. |
+| `A` | Volcanic world | terrestrial | Sulfur dioxide 3 percent or more of the air, from an interior hot enough to melt rock. |
 | `T` | Gas dwarf | terrestrial | Hydrogen 30 percent or more of the air and under 10 Earth masses. |
 | `N` | Hot dense world | terrestrial | Air of 10 bar or more, a mean surface of 400 K or more, hydrogen under 30 percent. |
 | `Q` | Hot world | terrestrial | Air of 10 kPa to 10 bar, a mean surface of 400 K or more, 0.5 to 2 g, hydrogen under 30 percent. |
@@ -158,9 +158,9 @@ web interface lists them for each letter.
 | `M` | Temperate world | terrestrial | Mean 275 to 305 K, liquid water over 20 to 80 percent of the surface, oxygen 16 to 35.5 kPa, carbon dioxide under 1 kPa, air 50 to 250 kPa, 0.75 to 2 g. |
 | `R` | Hothouse world | terrestrial | M's too hot: mean 312 to 345 K, wet bulb 31 C or more. |
 | `Z` | Hot thin-air world | terrestrial | 340 to 1500 K, air of 1 to 10 kPa, no ocean, 0.5 to 2 g. |
-| `U` | Methane-ethane world | terrestrial | 91 to 130 K, air of 50 to 500 kPa with methane, methane-ethane liquid stable. |
-| `Y` | Sulfuric acid world | terrestrial | 300 to 350 K, sulfur dioxide 3 percent or more of the air, sulfuric acid liquid stable. |
-| `X` | Ammonia-water world | terrestrial | No air, a liquid cover over 20 percent, ammonia 10 percent or more of the water, 190 to 240 K. |
+| `U` | Methane-ethane world | terrestrial | 91 to 130 K, air of 50 to 500 kPa with methane, methane-ethane liquid stable, seas of methane or ethane stored over half a percent of the surface. |
+| `Y` | Sulfuric acid world | terrestrial | 300 to 350 K, sulfuric acid liquid stable, liquid acid stored at the ground. |
+| `X` | Ammonia-water world | terrestrial | No air, a liquid cover over 20 percent, ammonia 10 percent or more of the water, stored in the ocean, 190 to 240 K. |
 
 Moons are given a class by the same rules, so no letter is barred from a moon, and a slot's own `planet_class` always
 describes the planet itself, never its moons.
