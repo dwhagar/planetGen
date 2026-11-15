@@ -15,7 +15,7 @@ marks itself done, in one transaction, and everything that wants to know what a 
 
 The ledger lives in the control database, found from the database the run's steps name (`wrapper.expected_seconds` reads the same one).
 
-* **A run that says it names no database** (every step has `database: None`: `generate system --output`, which touches none, TEST.769) has no ledger to write to. Its plan is kept in the run's own Redis record, which every process of the run
+* **A run with no usable ledger** (no control database, or one with no ledger tables yet: `generate system --output` touches none, TEST.769, and the update's math check runs before the migration, OPS.263) has none to write to. Its plan is kept in the run's own Redis record, which every process of the run
   shares, behind the same functions: `record_plan`, `record_cut`, `read_plan`, `ended` and `mark_ended` choose the store once, by `ledgered`, and give the same answers; its units have no row
   (`record_cut` returns `None` for each), so no attempt of theirs is written (`attempts.begin` takes `None`).
 """
@@ -23,6 +23,7 @@ The ledger lives in the control database, found from the database the run's step
 import json
 
 from planetgen.queue import ledger, runrecord
+from planetgen.util import log
 
 OPEN = "open"
 """str: The command of the row that is the cut of a stage."""
@@ -34,13 +35,44 @@ They are rows of the stage with no item key, as the opening is. The command of t
 OPS.260), else the role's name; `release` is always `release`."""
 
 
+LEDGER_FIELD = "ledger"
+"""str: The field of the run record that holds which store the run's plan is in (`1` the job ledger, `0` the run's own record), chosen once, by the first call."""
+
+
+def _ledger_usable(conn, run_id):
+    """Whether the control database answers and has the ledger's tables: not so on a machine with no database, or during `update.sh` before its migration step (the math check runs first)."""
+    try:
+        control = control_connection(conn, run_id)
+    except Exception as exc:  # noqa: BLE001 -- no way to reach the control database is "no ledger"
+        log.swallowed("queue/planrows", "open the control database", exc)
+        return False
+    try:
+        control.execute("SELECT 1 FROM engine_runs LIMIT 1").fetchall()
+        return True
+    except Exception as exc:  # noqa: BLE001 -- a missing table (1146) or any other error is "no ledger"
+        log.swallowed("queue/planrows", "probe the ledger", exc)
+        return False
+    finally:
+        control.close()
+
+
+def _names_no_database(conn, run_id):
+    """Whether the run says it touches no database: every step has `database` in its parameters, as `None` (`generate system --output`); a step with no `database` at all is a run begun by hand or a test."""
+    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
+    return bool(params) and all("database" in each and not each["database"] for each in params)
+
+
 def ledgered(conn, run_id):
     """
-    Whether the run's plan is rows of the job ledger. It is, unless the run says it touches no database: every step has `database` in its parameters, as `None` (`system --output`). A step with
-    no `database` at all is a run begun by hand or a test, which keeps the ledger on the configured server as it always has. A run that says it names none keeps its plan in its Redis record.
+    Whether the run's plan is rows of the job ledger. It is when the control database is there and has the ledger's tables; otherwise (OPS.263, TEST.769: the update's math check runs before the migration that
+    makes the tables, and `generate system --output` has no database) the plan is kept in the run's own Redis record. Chosen by the first call and kept in the record, so a run never changes store.
     """
-    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
-    return not (params and all("database" in each and not each["database"] for each in params))
+    key = runrecord.run_key(run_id)
+    found = conn.hget(key, LEDGER_FIELD)
+    if found is None:
+        conn.hsetnx(key, LEDGER_FIELD, "1" if not _names_no_database(conn, run_id) and _ledger_usable(conn, run_id) else "0")
+        found = conn.hget(key, LEDGER_FIELD)
+    return runrecord._s(found) == "1"
 
 
 def _kept(conn, run_id, field, value=None):
@@ -115,6 +147,26 @@ def _stage_key(conn, run_id, index):
     return runrecord._s(runrecord.declared_stages(conn, run_id)[index]["key"])
 
 
+def made_artifacts(control, galaxy, run=None):
+    """
+    The artifacts the ledger's rows say the galaxy `galaxy` has (`needs.exists_after`): what the stages that ended (their `release` row is done) made, in the order they ran, forgetting what came before a reset or a new skeleton.
+    The rows of run `run` (the run being planned) are left out. A galaxy with no rows has none, as does one whose runs began before the ledger kept plans.
+    """
+    from planetgen.queue import needs
+    if galaxy is None:
+        return set()
+    rows = control.execute(
+        "SELECT o.makes, o.arguments FROM engine_jobs o JOIN engine_runs r ON r.id = o.run_id"
+        " WHERE r.galaxy = ? AND o.run_id <> ? AND o.command = ? AND o.item_key = '' AND o.state = 'done'"
+        " AND EXISTS (SELECT 1 FROM engine_jobs e WHERE e.run_id = o.run_id AND e.stage = o.stage AND e.command = ? AND e.item_key = '' AND e.state = 'done')"
+        " ORDER BY o.run_id, o.id", (galaxy, run if run is not None else 0, OPEN, RELEASE)).fetchall()
+    stages = []
+    for row in rows:
+        kind = (json.loads(row["arguments"] or "{}").get("plan") or {}).get("kind")
+        stages.append((kind, json.loads(row["makes"] or "[]")))
+    return needs.exists_after(stages)
+
+
 def record_plan(conn, run_id, steps):
     """
     Writes the whole run as rows when it starts (OPS.238, the stored plan): one `open` row for each step, waiting, which `needs` the stages it comes after (`after:<stage key>`: the step before it, and
@@ -123,17 +175,24 @@ def record_plan(conn, run_id, steps):
 
     Args:
         steps (list[commands.Step]): The run's steps, in order, as `wrapper.run` has them.
+
+    Returns:
+        dict: `{step key: [artifacts]}` for the steps that need what no earlier step makes and the galaxy's rows do not say exists (`needs.unmet` against `made_artifacts`); each such row also says so in its `unmet`.
     """
     from planetgen.queue import needs
     if not ledgered(conn, run_id):
-        return          # a run with no database keeps no rows; its plan is read from its steps
+        return {}       # a run with no ledger keeps no rows (and so no unmet needs to say); its plan is read from its steps
     control = control_connection(conn, run_id)
     try:
         run = engine_run(conn, run_id, control)
+        lacking = {}
+        for step, artifact in needs.unmet(steps, made_artifacts(control, _galaxy_name(conn, run_id), run)):
+            lacking.setdefault(step.key, []).append(artifact)
         jobs = []
         for index, step in enumerate(steps):
             earlier = ([steps[index - 1].key] if index else []) + needs.required_stage_keys(steps, index)
-            jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True},
+            extra = {"unmet": lacking[step.key]} if step.key in lacking else {}
+            jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True, **extra},
                          "needs": [AFTER + key for key in dict.fromkeys(earlier)], "makes": list(needs.makes_of(step.kind))})
         ledger.add_jobs(control, run, jobs)
         control.commit()
@@ -142,6 +201,7 @@ def record_plan(conn, run_id, steps):
         raise
     finally:
         control.close()
+    return lacking
 
 
 def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):

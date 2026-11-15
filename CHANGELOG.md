@@ -2,6 +2,39 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4309] - 2026-11-15
+
+**Headline:** The bar, the estimate and the stuck judge of a sector stage now follow the systems a sector expects, not the number of sectors, so a dense sector counts as the several sparse ones it costs.
+
+### Changed
+- PERF.268: a piece of a unit may carry a `weight` (default 1) and the engine reports weight done of weight in all to the unit's beat (`engine.weight_of`); the cursor, the fence and the done mark still count pieces. The unit's finished figure, which the job profile and the unit rates take as its items, is then in weight too, so the profile's seconds per item and the judge's expected rate are per weight.
+- The sector stages (`generate-start-sector`, `generate-neighborhood`, `generate-sectors`, region runs) weigh each sector by the systems its density expects, at least 1 (`run_galaxy.sector_weights`), put the weights in the unit's arguments when the stage is cut, and cost each unit as their sum. Where the density cannot be read at the cut, a sector weighs 1 as before.
+- Job profile rows and stage rates recorded before this change count sectors, not systems, for these commands; they correct themselves over the next run (the stage's stored rate halves its weight each run).
+
+## [8.0.4308] - 2026-11-15
+
+**Headline:** a run's stored plan now says which of its stages need something that neither an earlier stage of the run nor the galaxy's earlier runs made, and the run logs it when it starts.
+
+### Added
+
+- OPS.238, planner: `planrows.made_artifacts` reads what the ledger's rows say a galaxy has (the artifacts the stages that ended made, in order, forgetting what came before a reset or a new skeleton: `needs.exists_after`). `needs.unmet` lists the needs of a run's steps that no earlier step makes and the rows do not hold; `planrows.record_plan` stores them in the planned rows' `unmet` and `wrapper.run` logs a warning for each when the run starts, instead of the stage finding the gap in the middle of its work. Nothing is refused: a galaxy made before the ledger kept plans has no rows, and the stage still finds its own stored result. A run with no ledger (OPS.263) keeps no rows and says nothing.
+- The checks, the warm families and the map-rebuild step declare no needs or makes (a test says so): a check reads the database as it is and a warm family builds its own input.
+
+## [8.0.4307] - 2026-11-15
+
+**Headline:** `update.sh` no longer stops at the math check on a database that has no job-ledger tables yet.
+
+### Fixed
+- A run whose control database is missing or has no ledger tables yet (the update's math check runs at stage 4, before stage 5 migrates) keeps its plan in its own Redis run record and writes no ledger row; so does a run with no database at all (`generate system --output`). The store is chosen once per run and kept in its record. A run on a database that has the tables is unchanged (OPS.263, TEST.769).
+
+## [8.0.4306] - 2026-11-15
+
+**Headline:** finish-run now decides which stages of a stopped run are finished from the run's ledger rows, so it no longer depends on Redis keeping the run's stage records.
+
+### Changed
+
+- OPS.238, start paths: `finish_run.stage_finished` reads the stage's end rows (`planrows.ended`): a stage is finished when its `release` row is done (its units, conclusion and statistics are done and the next opening was queued). A stage that opens with no unit to wait for (a stage a run carries over from the run before, or one cut to no unit) now marks its three end rows done where `wrapper.advance` passes it, so the rows say it ended as they do for any other stage.
+
 ## [8.0.4305] - 2026-11-15
 
 **Headline:** The on-demand belt body tests look for a body that is round enough to have a class letter, as the generator does.
