@@ -808,7 +808,8 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
         return [], book
     if prepare and passes == ["luminosity"]:      # the clear before the backfill emptied the table already; this pass's own would take the backfill's stars
         return list(book.followers), book
-    return [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *book.followers], book
+    limits = [StoreScatterLimitsFollower(args, settings("mass"))] if prepare and passes[0] == "mass" else []
+    return _standing_followers(args, [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *limits, *book.followers]), book
 
 
 def _bright_star_settings(marker):
@@ -891,10 +892,6 @@ def clear_bright_stars_unit(params, report):
     try:
         if clear == "all":
             store.clear_bright_stars(conn, phases)
-            if params.get("prepare"):       # the limits stand from here, so the backfill before the passes draws only what they leave out
-                prepared = params["prepare"]
-                store.record_bright_star_scatter(conn, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
-                conn.commit()
         else:
             store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
                 store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]), phases)
@@ -902,6 +899,41 @@ def clear_bright_stars_unit(params, report):
         conn.close()
     phases.finish()
     return {"cleared": clear}
+
+
+def expand_store_scatter_limits(params):
+    """The `store-scatter-limits` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def store_scatter_limits_pieces(params, cursor):
+    """The pieces of the `store-scatter-limits` unit (OPS.257): the one write."""
+    return ["store"]
+
+
+def store_scatter_limits_do(params, piece, ctx):
+    """
+    The one piece of the `store-scatter-limits` command's unit (OPS.257; the limits the clear of the earlier bright stars stored before, OPS.123): records the floor, mass limit and seed
+    the star scatter will run at (`params["prepare"]`), so the backfill that runs between this stage and the passes reads them and draws only the stars the passes leave out. It runs
+    whether or not there was anything to clear.
+    """
+    prepared = params["prepare"]
+    ctx.step("Storing the star scatter's floor, mass limit and seed", 1)
+    store.record_bright_star_scatter(ctx.db, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
+    ctx.commit()
+
+
+class StoreScatterLimitsFollower(UnitBarFollower):
+    """The recording of the star scatter's limits as a stage of a run (OPS.257): the `store-scatter-limits` command, one unit, between the clear and the backfill."""
+
+    key, label = stages.LIMITS_STAGE.key, stages.LIMITS_STAGE.label
+
+    def __init__(self, args, settings):
+        super().__init__(args)
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
 
 
 class ClearBrightStarsFollower(UnitBarFollower):
@@ -1105,9 +1137,6 @@ class _ShellTracker:
             self.progress.detail_task = None
             self.detail = None
 
-
-CHANNEL_INTERVAL_SECONDS = 0.25
-"""float: How often a worker drawing a task reports its stars (PERF.4)."""
 
 MAX_SHELLS_PER_CHUNK = 64
 """int: The most consecutive shells one task draws, so the progress moves steadily at the thin edge of the galaxy,
@@ -1413,7 +1442,7 @@ class _ScatterPass:
         }
 
     def unit_args(self, shape, key, mysql_config):
-        """The arguments of the unit that runs task `key` (`scatter_shells_unit`): `payload` as plain JSON, and the
+        """The arguments of the unit that runs task `key` (`scatter_shells_pieces`): `payload` as plain JSON, and the
         database's name, host, port and user -- never its password. The components are read by the unit from the
         database."""
         payload = self.payload(shape, key)
@@ -1827,18 +1856,6 @@ def add_bright_star_band(args):
             "from_luminosity_sol": current, "to_luminosity_sol": target}
 
 
-class _ReportChannel:
-    """What `_scatter_shells_task` puts its progress on, for a unit on the new queue: `(key, done, estimate)`
-    becomes the unit's `report(done, estimate)`."""
-
-    def __init__(self, report):
-        self.report = report
-
-    def put(self, item):
-        _key, done, estimate = item
-        self.report(done, estimate)
-
-
 def _unit_skeleton(unit_args):
     """`(mysql_config, skeleton)` of a scatter unit: the database it names, with the credentials of this worker's
     settings, and the galaxy's shape read from it."""
@@ -1877,130 +1894,111 @@ def scatter_shells_warm(unit_args):
         store.close_pool(mysql_config)
 
 
-def scatter_shells_unit(unit_args, report):
+def scatter_shells_pieces(unit_args, cursor):
     """
-    A `scatter-mass` unit of the new queue (PERF.97, `queue/units.py`; PERF.118, `queue/commands.py`): the shells `_scatter_shells_task` draws and
-    writes for a run of shells, from plain JSON arguments. The galaxy's shape comes from the database, which this
-    unit opens with the credentials of this worker's settings and the database, host, port and user the run named.
+    The `pieces` of the shell scatters (`scatter-mass`, `scatter-luminosity`, `scatter-band`; OPS.198): one piece for each shell of the unit's run, then the faint shells far out drawn
+    together (GEN.322, `far`) and the clusters' and satellites' stars (GEN.324, `component_parts`), in the order the unit has always drawn and written them, so the rows land in the
+    same order. A piece is `{"run": "shell", "shell": index, "high": high band}`, `{"run": "far", "first": ..., "last": ...}` or `{"run": "components"}`.
+    """
+    pieces = [{"run": "shell", "shell": shell, "high": high} for shell, high in unit_args["shells"]]
+    if unit_args.get("far"):
+        pieces.append({"run": "far", "first": unit_args["far"][0], "last": unit_args["far"][1]})
+    if unit_args.get("component_parts"):
+        pieces.append({"run": "components"})
+    return pieces[cursor:]
+
+
+def scatter_shells_do(unit_args, piece, ctx):
+    """
+    One piece of a shell scatter (OPS.198): draws the shell, the far shells or the components' stars (`brightStars.scatter_shell`, `scatter_far`, `componentPass.scatter_stars`; each has its
+    own random stream, so the pieces are independent) and writes its rows in batches of 10,000 (`scatterCompanions.write_committed`, which takes its own deadlock retries), then
+    `ctx.commit()`. The galaxy's shape, its components and the pass's tiers are read once for the unit (`ctx.kept`). The second level counts the stars drawn against the shell's expected number.
 
     Returns:
-        dict: `_scatter_shells_task`'s, plus `seconds` the unit took.
+        dict: `counts` (stars written per population), `types` (`[label, plural, count]` triples), `shells` (`[shell_index, stars]` pairs, one for a shell and the far shells' and
+            components' one for each shell they landed in), `systems` (the stars written with members) and `seconds` the piece took.
     """
     started = time.monotonic()
-    mysql_config, skeleton = _unit_skeleton(unit_args)
+    skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(ctx.db))
     mass_range = unit_args.get("mass_range")
-    far = unit_args.get("far")
-    result = _scatter_shells_task({
-        "mysql_config": mysql_config, "shape": skeleton.shape, "key": unit_args["key"],
-        "shells": [tuple(pair) for pair in unit_args["shells"]],
-        "far": None if far is None else tuple(far), "reach": unit_args.get("reach", False),
-        "components": _galaxy_components(mysql_config) if unit_args.get("component_parts") else None,
-        "component_parts": unit_args.get("component_parts"),
-        "expected_by_shell": {shell: expected for shell, expected in unit_args["expected_by_shell"]},
-        "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1,
-        "min_luminosity_sol": unit_args["min_luminosity_sol"], "max_luminosity_sol": unit_args.get("max_luminosity_sol"),
-        "seed": unit_args["seed"], "skip": {tuple(address) for address in unit_args["skip"]},
-        "mass_range": None if mass_range is None else tuple(mass_range),
-        "tiered": scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton), "channel": _ReportChannel(report),
-    })
-    result["seconds"] = time.monotonic() - started
-    stars = sum(result["counts"].values())
-    speed = unit_args.get("speed")
-    result["samples"] = ([{"kind": speed["kind"], "density": speed["density"], "seconds": result["seconds"], "systems": stars, "stars": stars}]
-                         if speed is not None and stars else [])        # PERF.53: no star, no time per star
-    result["row"] = {"objects": stars, "touched": sorted({shell for shell, shell_stars in result["shells"] if shell_stars})}
-    return result
+    mass_range = None if mass_range is None else tuple(mass_range)
+    tiered = ctx.kept("tiered", lambda: scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton))
+    skip = ctx.kept("skip", lambda: {tuple(address) for address in unit_args["skip"]})
+    expected_by_shell = {shell: expected for shell, expected in unit_args["expected_by_shell"]}
+    shape, edge_pc, expected = skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1
+    min_luminosity, max_luminosity, seed = unit_args["min_luminosity_sol"], unit_args.get("max_luminosity_sol"), unit_args["seed"]
+    drawn_so_far = [0]
+
+    def progress(done, estimate):
+        ctx.advance(done - drawn_so_far[0])
+        drawn_so_far[0] = done
+
+    if piece["run"] == "shell":
+        key = piece["shell"]
+        rows = brightStars.scatter_shell(shape, key, piece["high"], edge_pc, expected, min_luminosity, seed, skip_addresses=skip, max_luminosity_sol=max_luminosity,
+                                         on_progress=progress, mass_range=mass_range, tiered=tiered, reach=unit_args.get("reach", False))
+    elif piece["run"] == "far":
+        key = piece["first"]       # GEN.322: the faint shells far out, drawn together
+        rows = brightStars.scatter_far(shape, piece["first"], piece["last"], edge_pc, expected, min_luminosity, seed, skip_addresses=skip, max_luminosity_sol=max_luminosity,
+                                       on_progress=progress, mass_range=mass_range, tiered=tiered)
+    else:
+        key = COMPONENT_TASK_SHELL       # GEN.324: the clusters' and satellites' stars (`component_pass`)
+        components = ctx.kept("components", lambda: _galaxy_components(ctx.config))
+        fractions, pass_bands = brightStars.pass_of(tiered, min_luminosity, max_luminosity, mass_range)
+        these, slices = componentPass.chosen(components, unit_args["component_parts"])
+        rows = componentPass.scatter_stars(these, edge_pc, seed, fractions, pass_bands, tiered=tiered, skip_addresses=skip, slices=slices)
+    ctx.step(f"Stars of {'the components' if key == COMPONENT_TASK_SHELL else 'shell ' + format(key, ',')}", expected_by_shell.get(key))
+    counts = {population: 0 for population in brightStars.POPULATIONS}
+    types = collections.Counter()
+    landed = collections.Counter()
+    systems = 0
+    batch = []
+    epoch = scatterCompanions.default_epoch_unix(ctx.db)
+    drawn = 0
+    for row in rows:
+        counts[row[6]] += 1
+        types[star_label(row[7], row[8])] += 1
+        drawn += 1
+        if key == COMPONENT_TASK_SHELL and drawn % COMPONENT_REPORT_ROWS == 0:
+            ctx.advance(COMPONENT_REPORT_ROWS)      # a component's stars come one at a time, no shell's progress call
+        landed[row[0]] += 1
+        batch.append(row)
+        if len(batch) >= 10000:
+            systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_bright_stars, batch, epoch, label=f"{unit_args['key']} scatter").systems
+            batch = []
+    if batch:
+        systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_bright_stars, batch, epoch, label=f"{unit_args['key']} scatter").systems
+    ctx.commit()
+    if piece["run"] == "far" or key == COMPONENT_TASK_SHELL:
+        per_shell = [[shell, stars] for shell, stars in sorted(landed.items())]
+    else:
+        per_shell = [[key, drawn]]
+    return {"counts": counts, "types": [[label, plural, count] for (label, plural), count in types.items()], "shells": per_shell, "systems": systems,
+            "seconds": time.monotonic() - started}
 
 
-def _scatter_shells_task(payload):
+def scatter_shells_gather(unit_args, results, ctx):
     """
-    A run of consecutive shells of the bright-star scatter -- a work queue
-    task (PERF.7): draws each shell (`brightStars.scatter_shell`, its own
-    random stream) and writes its stars, committing every 10,000.
-
-    Returns:
-        dict: `counts` (stars written per population), `types` (stars
-            per kind, `[label, plural, count]` triples, GEN.131),
-            `shells` (`[shell_index, stars]` per shell) and `systems` (the
-            stars written with members, GEN.262).
+    The result of a shell scatter unit (OPS.198), the result the stage's follower reads: the pieces' counts, types, shells and systems added up in the order
+    the pieces ran, `seconds` the unit took, the speed `samples` (PERF.53) and the `row` of the stage's statistics.
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
     types = collections.Counter()
-    per_shell = []
-    channel = payload.get("channel")
-    key = payload["key"]
-    expected_by_shell = payload["expected_by_shell"]
-    last = [0.0]
-    before = [0.0, 0.0]        # the stars and the expectation of the shells already drawn
-    remaining = [sum(expected_by_shell.values())]
-
-    def report(done, estimate):
-        # PERF.4: the stars drawn so far, a few times a second.
-        now = time.monotonic()
-        if channel is not None and now - last[0] >= CHANNEL_INTERVAL_SECONDS:
-            last[0] = now
-            try:
-                channel.put((key, before[0] + done, before[0] + max(estimate, done) + remaining[0]))
-            except (EOFError, OSError):
-                pass
-
-    conn = store.get_connection(payload["mysql_config"])
-    try:
-        epoch = scatterCompanions.default_epoch_unix(conn)
-        systems = 0
-        batch = []
-        runs = [(shell_index, brightStars.scatter_shell(
-            payload["shape"], shell_index, high_band, payload["edge_pc"],
-            payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
-            max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
-            mass_range=payload.get("mass_range"), tiered=payload.get("tiered"), reach=payload.get("reach", False)))
-                for shell_index, high_band in payload["shells"]]
-        if payload.get("far"):
-            # GEN.322: the faint shells far out, drawn together (`brightStars.scatter_far`).
-            first_far, last_far = payload["far"]
-            runs.append((first_far, brightStars.scatter_far(
-                payload["shape"], first_far, last_far, payload["edge_pc"], payload["expected"],
-                payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
-                max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
-                mass_range=payload.get("mass_range"), tiered=payload.get("tiered"))))
-        if payload.get("components"):
-            # GEN.324: the clusters' and satellites' stars (`component_pass`).
-            fractions, pass_bands = brightStars.pass_of(
-                payload.get("tiered"), payload["min_luminosity_sol"], payload.get("max_luminosity_sol"),
-                payload.get("mass_range"))
-            these, slices = componentPass.chosen(payload["components"], payload["component_parts"])
-            runs.append((COMPONENT_TASK_SHELL, componentPass.scatter_stars(
-                these, payload["edge_pc"], payload["seed"], fractions, pass_bands,
-                tiered=payload.get("tiered"), skip_addresses=payload["skip"], slices=slices)))
-        for shell_index, rows in runs:
-            remaining[0] -= expected_by_shell[shell_index]
-            drawn = 0
-            landed = collections.Counter()
-            for row in rows:
-                counts[row[6]] += 1
-                types[star_label(row[7], row[8])] += 1
-                drawn += 1
-                if shell_index == COMPONENT_TASK_SHELL and drawn % COMPONENT_REPORT_ROWS == 0:
-                    report(drawn, expected_by_shell[shell_index])     # a component's stars come one at a time
-                landed[row[0]] += 1
-                batch.append(row)
-                if len(batch) >= 10000:
-                    systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_bright_stars, batch, epoch,
-                                                                          label=f"{payload['key']} scatter").systems
-                    batch = []
-            if (payload.get("far") and shell_index == payload["far"][0]) or shell_index == COMPONENT_TASK_SHELL:
-                per_shell.extend([shell, stars] for shell, stars in sorted(landed.items()))
-            else:
-                per_shell.append([shell_index, drawn])
-            before[0] += drawn
-        if batch:
-            systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_bright_stars, batch, epoch,
-                                                                          label=f"{payload['key']} scatter").systems
-        conn.commit()
-    finally:
-        conn.close()
-    return {"counts": counts, "types": [[label, plural, count] for (label, plural), count in types.items()],
-            "shells": per_shell, "systems": systems}
+    shells, systems, seconds = [], 0, 0.0
+    for result in results:
+        for population, count in result["counts"].items():
+            counts[population] += count
+        for label, plural, count in result["types"]:
+            types[(label, plural)] += count
+        shells.extend(result["shells"])
+        systems += result["systems"]
+        seconds += result["seconds"]
+    stars = sum(counts.values())
+    speed = unit_args.get("speed")
+    return {"counts": counts, "types": [[label, plural, count] for (label, plural), count in types.items()], "shells": shells, "systems": systems, "seconds": seconds,
+            "samples": ([{"kind": speed["kind"], "density": speed["density"], "seconds": seconds, "systems": stars, "stars": stars}]
+                        if speed is not None and stars else []),        # PERF.53: no star, no time per star
+            "row": {"objects": stars, "touched": sorted({shell for shell, shell_stars in shells if shell_stars})}}
 
 
 def _phenomenon_scatter_seed(skeleton):
@@ -2205,84 +2203,102 @@ def expand_scatter_phenomena(params):
                                        "min_mass_solar": params["min_mass_solar"], "row_totals": {"shells": shape.shell_total}})
 
 
-def scatter_phenomena_unit(unit_args, report):
+def scatter_phenomena_pieces(unit_args, cursor):
     """
-    A `scatter-phenomena` unit (PERF.106): the shells `_phenomenon_shells_task` draws and writes for a run of shells,
-    from plain JSON arguments; the galaxy's shape and components come from the database as `scatter_shells_unit`'s do.
+    The `pieces` of the phenomenon scatter (`scatter-phenomena`; OPS.198): one piece for each shell of the unit's run (the shell's rows, and its part beyond the outline when the scatter
+    covers the reach, GEN.323), then the faint shells far out together and the clusters' and satellites' phenomena, in the order the unit has always written them. A piece is
+    `{"run": "shell", "shell": index, "high": high band}`, `{"run": "far", "first": ..., "last": ...}` or `{"run": "components"}`.
+    """
+    pieces = [{"run": "shell", "shell": shell, "high": high} for shell, high in unit_args["shells"]]
+    if unit_args.get("far"):
+        pieces.append({"run": "far", "first": unit_args["far"][0], "last": unit_args["far"][1]})
+    if unit_args.get("component_parts"):
+        pieces.append({"run": "components"})
+    return pieces[cursor:]
 
-    The unit reports the runs of shells it has drawn and written (`report(done, runs)`) and says its progress through the ticker (OPS.170).
+
+def scatter_phenomena_do(unit_args, piece, ctx):
+    """
+    One piece of the phenomenon scatter (OPS.198): draws the shell (`phenomenon_scatter.scatter_shell`, then its part beyond the outline with `phenomenon_reach.scatter_shell` when the
+    scatter covers the reach, GEN.323), or the faint shells far out together (`phenomenon_reach.scatter_far`), or the components' phenomena (`componentPass.scatter_phenomena`), and writes
+    the rows with their members (`scatterCompanions`) in batches of 10,000, then `ctx.commit()`. The second level counts the phenomena placed.
 
     Returns:
-        dict: `_phenomenon_shells_task`'s, plus `seconds` the unit took.
+        dict: `counts` (rows written per kind), `write_seconds` (the time spent writing them, the rest being the drawing, PERF.54), `systems` and `seconds` the piece took.
     """
     started = time.monotonic()
-    mysql_config = store.MySQLConfig(**unit_args["database"])
-    conn = store.get_connection(mysql_config)
-    try:
-        skeleton = store.get_galaxy_shape(conn)
-    finally:
-        conn.close()
-    far = unit_args.get("far")
-    result = _phenomenon_shells_task({
-        "mysql_config": mysql_config, "shape": skeleton.shape,
-        "shells": [tuple(pair) for pair in unit_args["shells"]], "far": None if far is None else tuple(far),
-        "reach": unit_args["reach"], "components": _galaxy_components(mysql_config) if unit_args["component_parts"] else None,
-        "component_parts": unit_args["component_parts"],
-        "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1, "seed": unit_args["seed"],
-        "min_mass_solar": unit_args["min_mass_solar"], "skip": {tuple(address) for address in unit_args["skip"]},
-        "report": report})
-    result["seconds"] = time.monotonic() - started
-    placed = sum(result["counts"].values())
-    weight = unit_args["weight"]
-    result["samples"] = ([{"kind": "phenomena", "density": 0.0, "seconds": result["seconds"], "systems": weight, "stars": weight},
-                          {"kind": "phenomena-write", "density": 0.0, "seconds": result["write_seconds"], "systems": weight, "stars": weight}]
-                         if placed else [])
-    result["row"] = {"objects": placed, "touched": [unit_args["key"]] if placed else []}
-    return result
-
-
-def _nebula_field_task(payload):
-    """
-    One first-index slab of field cells of the nebula field table -- a work queue task: draws its kept classes M
-    and N clouds from the seed and writes them (DB.24).
-
-    Returns:
-        dict: `written` (the rows written), `counts` (rows per class letter) and `shells` (`(lowest, highest)`
-            shell any of the clouds reaches, or `None` for a slab without clouds, GEN.222).
-    """
-    edge_pc = payload["edge_pc"]
+    skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(ctx.db))
+    skip = ctx.kept("skip", lambda: {tuple(address) for address in unit_args["skip"]})
+    shape, edge_pc, expected = skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1
+    seed, min_mass = unit_args["seed"], unit_args["min_mass_solar"]
+    runs = []
+    if piece["run"] == "shell":
+        shell_index, high_band = piece["shell"], piece["high"]
+        runs.append(phenomenon_scatter.scatter_shell(shape, shell_index, high_band, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass)
+                    if high_band >= 0 else iter(()))
+        if unit_args.get("reach"):
+            runs.append(phenomenon_reach.scatter_shell(shape, shell_index, high_band, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
+        what = f"shell {shell_index:,}"
+    elif piece["run"] == "far":
+        runs.append(phenomenon_reach.scatter_far(shape, piece["first"], piece["last"], edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
+        what = f"the far shells {piece['first']:,} to {piece['last']:,}"
+    else:
+        components = ctx.kept("components", lambda: _galaxy_components(ctx.config))
+        these, slices = componentPass.chosen(components, unit_args["component_parts"])
+        runs.append(componentPass.scatter_phenomena(these, edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass, shape=shape, slices=slices))
+        what = "the components"
+    ctx.step(f"Phenomena of {what}")
     counts = {}
-    reach = [None, None]
-
-    def watched(rows):
+    write_seconds = 0.0
+    systems = 0
+    batch = []
+    epoch = scatterCompanions.default_epoch_unix(ctx.db)
+    placed = 0
+    for rows in runs:
         for row in rows:
-            letter = row[4]
-            counts[letter] = counts.get(letter, 0) + 1
-            radius_pc = ly_to_pc(row[5])
-            distance = math.sqrt(row[6] ** 2 + row[7] ** 2 + row[8] ** 2)
-            low = spherical.shell_index_at(max(distance - radius_pc, 0.0), edge_pc)
-            high = spherical.shell_index_at(distance + radius_pc, edge_pc)
-            reach[0] = low if reach[0] is None else min(reach[0], low)
-            reach[1] = high if reach[1] is None else max(reach[1], high)
-            yield row
+            label = phenomenon_scatter.class_label(row[3], row[4])
+            counts[label] = counts.get(label, 0) + 1
+            batch.append(row)
+            placed += 1
+            if placed % PHENOMENA_REPORT_ROWS == 0:
+                ctx.advance(PHENOMENA_REPORT_ROWS)
+            if len(batch) >= 10000:
+                wrote = time.perf_counter()
+                systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_phenomenon_scatter, batch, epoch, label="Phenomenon scatter").systems
+                write_seconds += time.perf_counter() - wrote
+                batch = []
+    wrote = time.perf_counter()
+    if batch:
+        systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_phenomenon_scatter, batch, epoch, label="Phenomenon scatter").systems
+    ctx.commit()
+    write_seconds += time.perf_counter() - wrote
+    return {"counts": counts, "write_seconds": write_seconds, "systems": systems, "seconds": time.monotonic() - started}
 
-    pace = Ticker(f"Nebula field, slab {payload['i']:,}, columns of cells", say=log.debug)      # debug: a slab is one of many, the stage's bar carries the count
 
-    def column_done(done, total):          # OPS.185: a slab is thousands of cells and few of them hold a cloud, so a column of cells is what the unit counts
-        unitbeat.moving()
-        pace.total = total
-        pace.tick(done)
+def scatter_phenomena_gather(unit_args, results, ctx):
+    """
+    The result of a phenomenon scatter unit (OPS.198), the result the stage's follower reads: the pieces' counts, write time and systems added up, `seconds` the
+    unit took, the speed `samples` (PERF.54) and the `row` of the stage's statistics.
+    """
+    counts = {}
+    write_seconds, systems, seconds = 0.0, 0, 0.0
+    for result in results:
+        for label, count in result["counts"].items():
+            counts[label] = counts.get(label, 0) + count
+        write_seconds += result["write_seconds"]
+        systems += result["systems"]
+        seconds += result["seconds"]
+    placed = sum(counts.values())
+    weight = unit_args["weight"]
+    return {"counts": counts, "write_seconds": write_seconds, "systems": systems, "seconds": seconds,
+            "samples": ([{"kind": "phenomena", "density": 0.0, "seconds": seconds, "systems": weight, "stars": weight},
+                         {"kind": "phenomena-write", "density": 0.0, "seconds": write_seconds, "systems": weight, "stars": weight}]
+                        if placed else []),
+            "row": {"objects": placed, "touched": [unit_args["key"]] if placed else []}}
 
-    conn = store.get_connection(payload["mysql_config"])
-    try:
-        written = store.insert_nebula_field(conn, watched(nebulaField.table_rows(
-            payload["galaxy_seed"], payload["shape"], payload["i"], payload["radius_pc"], payload["half_height_pc"], on_column=column_done)))
-        conn.commit()
-    finally:
-        conn.close()
-    outer = payload["outer_shell"]
-    shells = None if reach[0] is None else (min(reach[0], outer), min(reach[1], outer))
-    return {"written": written, "counts": counts, "shells": shells}
+
+PHENOMENA_REPORT_ROWS = 1000
+"""int: How many phenomena a phenomenon scatter piece draws between two moves of its second-level count. Defined by the program, not a physical value."""
 
 
 SKELETON_NEVER_BUILT = "The galaxy's skeleton has never been built -- run 'planetgen plan' first."
@@ -2331,34 +2347,57 @@ def expand_draw_nebula_field(params):
         {"cell_pc": edge, "slabs": last - first + 1})
 
 
-def draw_nebula_field_unit(params, report):
+def draw_nebula_field_pieces(params, cursor):
+    """The `pieces` of the nebula field draw (`draw-nebula-field`; OPS.198): one piece for each first-index slab of the unit (`count` consecutive ones from `i`)."""
+    return list(range(params["i"], params["i"] + params["count"]))[cursor:]
+
+
+def draw_nebula_field_do(params, slab, ctx):
     """
-    The `draw-nebula-field` command's unit: the kept classes M and N clouds of its slabs (`count` consecutive ones from
-    `i`, one in a galaxy that needs no coarser cut), from the galaxy's seed and shape, written to `nebula_field`
-    (`_nebula_field_task`). The table is cleared before the run.
+    One piece of the nebula field draw (OPS.198): the kept classes M and N clouds of one first-index slab of field cells, drawn from the galaxy's seed and shape and written to
+    `nebula_field` (DB.24), then `ctx.commit()`. The second level counts the columns of cells drawn (OPS.185's `Ticker`, which a running unit reads as `ctx.advance`).
 
     Returns:
-        dict: `written` (rows written), `slab` (the first slab's index), `count` (slabs drawn) and `drawn`, one
-            `_nebula_field_task` result with its `slab` for each slab.
+        dict: `written` (the rows written), `counts` (rows per class letter), `shells` (`(lowest, highest)` shell any of the clouds reaches, or `None` for a slab without clouds,
+            GEN.222) and `slab` (the slab's index).
     """
-    mysql_config = _mysql_config_of(params)
-    conn = store.get_connection(mysql_config)
-    try:
-        skeleton = store.get_galaxy_shape(conn)
-        galaxy_seed = store.get_galaxy_seed(conn)
-    finally:
-        conn.close()
-    drawn = []
-    phases = _UnitPhases(report, params["count"], loud=params["count"] > 1)      # a unit of one slab is one of many: the stage's bar carries it
-    for i in range(params["i"], params["i"] + params["count"]):
-        phases.next(f"Drawing slab {i:,} of the nebula field")
-        drawn.append({**_nebula_field_task({
-            "mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape, "i": i,
-            "radius_pc": params["radius_pc"], "half_height_pc": params["half_height_pc"], "edge_pc": params["edge_pc"],
-            "outer_shell": params["outer_shell"]}), "slab": i})
-    phases.finish()
-    return {"written": sum(result["written"] for result in drawn), "slab": params["i"], "count": params["count"],
-            "drawn": drawn}
+    skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(ctx.db))
+    galaxy_seed = ctx.kept("galaxy_seed", lambda: store.get_galaxy_seed(ctx.db))
+    (log.normal if params["count"] > 1 else log.debug)(f"Drawing slab {slab:,} of the nebula field")      # a unit of one slab is one of many: the stage's bar carries the count
+    edge_pc = params["edge_pc"]
+    counts = {}
+    reach = [None, None]
+
+    def watched(rows):
+        for row in rows:
+            letter = row[4]
+            counts[letter] = counts.get(letter, 0) + 1
+            radius_pc = ly_to_pc(row[5])
+            distance = math.sqrt(row[6] ** 2 + row[7] ** 2 + row[8] ** 2)
+            low = spherical.shell_index_at(max(distance - radius_pc, 0.0), edge_pc)
+            high = spherical.shell_index_at(distance + radius_pc, edge_pc)
+            reach[0] = low if reach[0] is None else min(reach[0], low)
+            reach[1] = high if reach[1] is None else max(reach[1], high)
+            yield row
+
+    pace = Ticker(f"Nebula field, slab {slab:,}, columns of cells", say=log.debug)      # debug: a slab is one of many, the stage's bar carries the count
+
+    def column_done(done, total):          # OPS.185: a slab is thousands of cells and few of them hold a cloud, so a column of cells is what the unit counts
+        ctx.moving()
+        pace.total = total
+        pace.tick(done)
+
+    written = store.insert_nebula_field(ctx.db, watched(nebulaField.table_rows(
+        galaxy_seed, skeleton.shape, slab, params["radius_pc"], params["half_height_pc"], on_column=column_done)))
+    ctx.commit()
+    outer = params["outer_shell"]
+    shells = None if reach[0] is None else (min(reach[0], outer), min(reach[1], outer))
+    return {"written": written, "counts": counts, "shells": shells, "slab": slab}
+
+
+def draw_nebula_field_gather(params, results, ctx):
+    """The result of a nebula field unit (OPS.198), the result the stage's follower reads: `written`, the first `slab`, the `count` of slabs and `drawn`, a result for each slab."""
+    return {"written": sum(result["written"] for result in results), "slab": params["i"], "count": params["count"], "drawn": results}
 
 
 def _shell_range_text(shells):
@@ -2382,7 +2421,7 @@ def _log_nebula_slab(i, edge_pc, result):
 class NebulaFieldFollower(followed.Follower):
     """
     The nebula field as a stage of a run (DB.24): the `draw-nebula-field` command draws every kept cloud of classes M and N
-    of the galaxy's molecular cloud field from the seed, a unit per slab of field cells (`draw_nebula_field_unit`), after
+    of the galaxy's molecular cloud field from the seed, a unit per slab of field cells (`draw_nebula_field_pieces`), after
     the earlier table was emptied (`empty_nebula_field_unit`, a stage of its own). A nebula already stored from the field is linked back to
     its row afterwards, and the Galaxy Map's nebula block totals are made again from the new field
     (`conclude_draw_nebula_field`).
@@ -2523,39 +2562,45 @@ def expand_fill_map_luminosity(params):
         {"top": top})
 
 
-def fill_map_luminosity_unit(params, report):
+MAP_LUMINOSITY_PIECE_IDS = 20_000
+"""int: Ids per piece of a map luminosity fill unit: one statement and one commit each, so the unit's count moves a piece at a time and a stopped unit loses at most one. Defined by the program, not a physical value."""
+
+
+def fill_map_luminosity_pieces(params, cursor):
+    """The `pieces` of the map luminosity fill (`fill-map-luminosity`; OPS.198): the unit's ids `low` to `high` cut into `(low, high)` ranges of `MAP_LUMINOSITY_PIECE_IDS`."""
+    return [[start, min(start + MAP_LUMINOSITY_PIECE_IDS - 1, params["high"])]
+            for start in range(params["low"], params["high"] + 1, MAP_LUMINOSITY_PIECE_IDS)][cursor:]
+
+
+def fill_map_luminosity_do(params, piece, ctx):
     """
-    The `fill-map-luminosity` command's unit: `phenomenon_scatter.map_luminosity_sol` (DB.23, GEN.201) for the rows
-    of ids `low` to `high` that have a mass and no value yet, one short statement and one commit, so readers never
-    wait. It only touches rows still empty, so a stopped run carries on where it was. The values are
-    `stellar_evolution.map_luminosity_sol` of the stored mass, worked out by the same pieces in SQL and stored as
-    FLOAT, so a row agrees with the one a new scatter writes to float precision.
+    One piece of the map luminosity fill (OPS.198): `phenomenon_scatter.map_luminosity_sol` (DB.23, GEN.201) for the rows of ids `low` to `high` of the piece that have a mass and no value yet,
+    one short statement and one commit, so readers never wait. It only touches rows still empty, so a stopped run carries on where it was. The values are
+    `stellar_evolution.map_luminosity_sol` of the stored mass, worked out by the same pieces in SQL and stored as FLOAT, so a row agrees with the one a new scatter writes to float precision.
 
     Returns:
-        dict: `filled`, the rows filled, and `ids`, how many ids the unit covered (for the bar).
+        dict: `filled`, the rows the piece filled.
     """
-    phases = _UnitPhases(report, 3, loud=False)      # one of many units: the stage's bar carries the progress
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        phases.next(f"Finding the cells of ids {params['low']:,} to {params['high']:,} that get a value")
-        # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
-        # block light stage rolls the parts up instead of making them again from every object.
-        cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
-            "SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL"
-            " AND map_luminosity_sol IS NULL AND built_at IS NULL", (params["low"], params["high"])).fetchall()]
-        phases.next("Filling the map luminosity")
-        cursor = conn.execute(
-            f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
-            " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
-            (params["low"], params["high"]))
-        if cells:
-            phases.next(f"Putting the parts of {len(cells):,} cells right")
-            block_lights.sync_cells(conn, cells)
-        conn.commit()
-        phases.finish()
-        return {"filled": cursor.rowcount, "ids": params["high"] - params["low"] + 1}
-    finally:
-        conn.close()
+    low, high = piece
+    log.debug(f"Map luminosity: ids {low:,} to {high:,}")
+    # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
+    # block light stage rolls the parts up instead of making them again from every object.
+    cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in ctx.db.execute(
+        "SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL"
+        " AND map_luminosity_sol IS NULL AND built_at IS NULL", (low, high)).fetchall()]
+    cursor = ctx.sql(
+        f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
+        " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
+        f"Filling the map luminosity of ids {low:,} to {high:,}", (low, high))
+    if cells:
+        block_lights.sync_cells(ctx.db, cells)
+    ctx.commit()
+    return {"filled": cursor.rowcount}
+
+
+def fill_map_luminosity_gather(params, results, ctx):
+    """The result of a map luminosity fill unit (OPS.198), the result the stage's follower reads: `filled`, the rows filled, and `ids`, how many ids the unit covered (for the bar)."""
+    return {"filled": sum(result["filled"] for result in results), "ids": params["high"] - params["low"] + 1}
 
 
 class BatchFollower(followed.Follower):
@@ -2594,7 +2639,7 @@ class BatchFollower(followed.Follower):
 
 
 class MapLuminosityFollower(BatchFollower):
-    """The map luminosity fill (`fill_map_luminosity_unit`) as a stage of a run."""
+    """The map luminosity fill (`fill_map_luminosity_pieces`) as a stage of a run."""
 
     key = "map-luminosity"
     label = "Map luminosity"
@@ -2611,7 +2656,7 @@ class MapLuminosityFollower(BatchFollower):
 def fill_map_luminosity(args):
     """
     Fills `phenomenon_scatter.map_luminosity_sol` for the rows that have a mass and no value yet, on the new queue:
-    the `fill-map-luminosity` command, a unit per id range (`fill_map_luminosity_unit`), then the Galaxy Map's block light
+    the `fill-map-luminosity` command, a unit per id range (`fill_map_luminosity_pieces`), then the Galaxy Map's block light
     totals made again (`BlockLightsFollower`).
 
     Returns:
@@ -2662,97 +2707,109 @@ def _expand_stale_systems(params, family):
         {"top": top, "total": stale, "current": total - stale})
 
 
-def rescore_habitability_unit(params, report):
+def rescore_habitability_pieces(params, cursor):
     """
-    The `rescore-habitability` command's unit: re-derives the stored habitability numbers of the systems of ids `low`
-    to `high` (GEN.217) from each body's stored conditions (`store.refresh_habitability`): the flux swing of a body in
-    a double-star system and the whole score (index, six domains, tiers, equipment, note). For a galaxy generated
-    before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts
-    agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but
-    those columns is touched. The unit is one transaction at READ COMMITTED, and the recomputation is the same whenever it
-    is run, so a stopped run is started again and ends in the same place; so is a unit that hit a deadlock or a lock wait
-    timeout against another worker's range (PERF.228, `store.RETRYABLE_ERRORS`), up to `store.SECTOR_SAVE_ATTEMPTS` times.
+    The pieces of a `rescore-habitability` unit (OPS.191, OPS.201): the ids of the systems of ids `low` to `high` that the unit re-scores (every system with `all`, otherwise the ones whose
+    `habitability` stamp is not current, GEN.1479), after the first `cursor` of them. One piece is one system, so the unit's bar counts systems.
+    """
+    return _stale_system_pieces(params, "habitability", "habitability re-score", cursor)
+
+
+def rescore_habitability_piece(params, system_id, ctx):
+    """
+    One piece of the `rescore-habitability` command: re-derives the stored habitability numbers of one system (GEN.217) from each body's stored conditions (`store.refresh_habitability`):
+    the flux swing of a body in a double-star system and the whole score (index, six domains, tiers, equipment, note), and puts the habitable-world count of its sector right again (MAP.143;
+    the block totals follow once, in `conclude_rescore_habitability`). For a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and
+    the facet counts agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but those columns is touched. The piece is one
+    transaction at READ COMMITTED, and the recomputation is the same whenever it is run, so a stopped run is started again and ends in the same place; so is a piece that hit a deadlock or
+    a lock wait timeout against another worker's range (PERF.228, `store.RETRYABLE_ERRORS`), up to `store.SECTOR_SAVE_ATTEMPTS` times.
 
     Returns:
-        dict: `updated`, the bodies updated, and `ids`, how many ids the unit covered (for the bar).
+        int: The bodies updated.
     """
-    return _run_stale_unit(params, "habitability", _rescore_habitability_systems, "habitability re-score", report)
+    return _stale_system_piece(ctx, system_id, "habitability re-score", _rescore_habitability_system)
 
 
-def _rescore_habitability_systems(conn, system_ids, step=lambda done: None):
-    """The work of a `rescore-habitability` unit: the habitability numbers of `system_ids`, the bodies updated; `step(done)` after each system."""
-    updated = 0
-    for done, system_id in enumerate(system_ids, start=1):
-        updated += store.refresh_habitability(conn, system_id)
-        step(done)
-    if system_ids:
-        store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
+def _rescore_habitability_system(conn, system_id):
+    """The work of a `rescore-habitability` piece: the habitability numbers of one system, the bodies updated."""
+    updated = store.refresh_habitability(conn, system_id)
+    store.recount_habitable_worlds(conn, [system_id])    # MAP.143; the block totals follow once, in `conclude_rescore_habitability`
     return updated
 
 
-def _run_stale_unit(params, family, work, what, report):
+def stale_systems_result(params, results, ctx):
+    """The result of a unit that walked stamped systems (`rescore-habitability`, `refill-effect-ledger`): `updated`, the sum of its pieces' results, `ids`, how many ids the unit covered, and `systems`, the systems walked."""
+    return {"updated": sum(results), "ids": params["high"] - params["low"] + 1, "systems": len(results)}
+
+
+def _stale_system_pieces(params, family, what, cursor):
     """
-    One unit of a command that walks stamped systems (`rescore_habitability_unit`, `refill_effect_ledger_unit`): the systems of ids `low` to `high` whose `family` stamp is not current
-    (every system with `all`), in one transaction at READ COMMITTED, retried when it hit a deadlock or a lock wait timeout against another worker's range (PERF.228,
-    `store.RETRYABLE_ERRORS`, up to `store.SECTOR_SAVE_ATTEMPTS` times). `work(conn, system_ids, step)` does the writing and returns the count for the bar, calling `step(done)` after each system; `what` names the work in the log.
-    The unit says what it found, reports the systems it has done (`report(done, total)`) and logs its progress through the ticker (OPS.170).
+    The ids of the systems a unit of a command that walks stamped systems (`rescore_habitability_pieces`, `refill_effect_ledger_pieces`) does, after the first `cursor` of them: the systems of ids
+    `low` to `high` whose `family` stamp is not current (every system with `all`). The unit says what it found.
     """
-    config = _mysql_config_of(params)
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        conn.commit()           # a connection that just checked the schema has a transaction open
+        if params.get("all"):
+            system_ids = [row["id"] for row in conn.execute(
+                "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+        else:               # GEN.1479: the systems a formula change or an unfinished run left, not the ones the running code scored
+            condition, values = derived_stamp.stale_condition(family, "sm")
+            system_ids = [row["id"] for row in conn.execute(
+                "SELECT ss.id FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
+                f" WHERE ss.id BETWEEN ? AND ? AND {condition} ORDER BY ss.id", (params["low"], params["high"], *values)).fetchall()]
+    finally:
+        conn.close()
+    phases_text = f"The {what} of {len(system_ids):,} systems (ids {params['low']:,} to {params['high']:,})"
+    log.debug(f"{phases_text} begins.")
+    unitbeat.phase(phases_text[:120])
+    return system_ids[cursor:]
+
+
+def _stale_system_piece(ctx, system_id, what, work):
+    """
+    One piece of a command that walks stamped systems: `work(conn, system_id)` in one transaction at READ COMMITTED (PERF.228: no gap locks between the ranges of other workers), committed through
+    `ctx.commit()`, and done again when it hit a deadlock or a lock wait timeout against another worker's range (`store.RETRYABLE_ERRORS`, up to `store.SECTOR_SAVE_ATTEMPTS` times). Returns what `work` returns.
+    """
     for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
-        conn = store.get_connection(config)
+        conn = ctx.db
         try:
-            conn.commit()           # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
-            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")   # PERF.228: no gap locks between the ranges of other workers
-            if params.get("all"):
-                system_ids = [row["id"] for row in conn.execute(
-                    "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
-            else:               # GEN.1479: the systems a formula change or an unfinished run left, not the ones the running code scored
-                condition, values = derived_stamp.stale_condition(family, "sm")
-                system_ids = [row["id"] for row in conn.execute(
-                    "SELECT ss.id FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
-                    f" WHERE ss.id BETWEEN ? AND ? AND {condition} ORDER BY ss.id", (params["low"], params["high"], *values)).fetchall()]
-            phases_text = f"The {what} of {len(system_ids):,} systems (ids {params['low']:,} to {params['high']:,})"
-            log.debug(f"{phases_text} begins.")
-            unitbeat.phase(phases_text[:120])
-            report(0, max(len(system_ids), 1))
-            updated = work(conn, system_ids, _counting(report, f"{what[:1].upper()}{what[1:]}, systems", len(system_ids)))
-            conn.commit()
-            return {"updated": updated, "ids": params["high"] - params["low"] + 1, "systems": len(system_ids)}
+            conn.commit()           # the next statement starts a transaction, and the level below is the one it runs at
+            conn.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            result = work(conn, system_id)
+            ctx.commit()
+            return result
         except pymysql.err.OperationalError as exc:
             if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
                 raise
-            conn.rollback()         # the whole unit starts over: it recomputes the same numbers whenever it is run
-            log.debug(f"The {what} of systems {params['low']} to {params['high']} hit MySQL error {exc.args[0]}; "
-                      f"trying again ({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
+            conn.rollback()         # the piece starts over: it recomputes the same numbers whenever it is run
+            log.debug(f"The {what} of system {system_id} hit MySQL error {exc.args[0]}; trying again ({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
             time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)     # not a draw: the process id spreads the workers
-        finally:
-            conn.close()
 
 
-def refill_effect_ledger_unit(params, report):
+def refill_effect_ledger_pieces(params, cursor):
     """
-    The `refill-effect-ledger` command's unit (GEN.1498): writes again the light and ultraviolet rows of the effect ledger of the systems of ids `low` to `high` whose
-    `system_summary.ledger_stamp` is not the running code's (`store.refresh_effect_ledger`), so a galaxy drawn before the ledger existed, or before its floor
-    (`tuning.EFFECT_LEDGER_FLOOR`) or its formulas changed, gains the rows a new one would have. Nothing but the ledger and its stamp is written, the rows of the other effects are left
-    as they are, and a system already current is not read at all; the unit is one transaction and the same whenever it is run, so a stopped run is started again.
+    The pieces of a `refill-effect-ledger` unit (OPS.191, OPS.201): the ids of the systems of ids `low` to `high` that the unit refills (every system with `all`, otherwise the ones whose
+    `system_summary.ledger_stamp` is not the running code's), after the first `cursor` of them. One piece is one system.
+    """
+    return _stale_system_pieces(params, "ledger", "ledger refill", cursor)
+
+
+def refill_effect_ledger_piece(params, system_id, ctx):
+    """
+    One piece of the `refill-effect-ledger` command (GEN.1498): writes again the light and ultraviolet rows of the effect ledger of one system (`store.refresh_effect_ledger`), so a galaxy drawn
+    before the ledger existed, or before its floor (`tuning.EFFECT_LEDGER_FLOOR`) or its formulas changed, gains the rows a new one would have. Nothing but the ledger and its stamp is written,
+    the rows of the other effects are left as they are, and a system already current is not listed at all; the piece is one transaction and the same whenever it is run, so a stopped run is
+    started again.
 
     Returns:
-        dict: `updated`, the ledger rows written, `ids`, how many ids the unit covered (for the bar), and `systems`, the systems refilled.
+        int: The ledger rows written.
     """
-    return _run_stale_unit(params, "ledger", _refill_ledger_systems, "ledger refill", report)
-
-
-def _refill_ledger_systems(conn, system_ids, step=lambda done: None):
-    """The work of a `refill-effect-ledger` unit: the light and ultraviolet rows of `system_ids`, the rows written; `step(done)` after each system."""
-    written = 0
-    for done, system_id in enumerate(system_ids, start=1):
-        written += store.refresh_effect_ledger(conn, system_id)
-        step(done)
-    return written
+    return _stale_system_piece(ctx, system_id, "ledger refill", store.refresh_effect_ledger)
 
 
 class HabitabilityFollower(BatchFollower):
-    """The habitability re-score (`rescore_habitability_unit`) as a stage of a run."""
+    """The habitability re-score (`rescore_habitability_piece`) as a stage of a run."""
 
     key = "habitability"
     label = "Habitability"
@@ -2773,7 +2830,7 @@ class HabitabilityFollower(BatchFollower):
 
 
 class EffectLedgerFollower(BatchFollower):
-    """The ledger refill (`refill_effect_ledger_unit`, GEN.1498) as a stage of a run."""
+    """The ledger refill (`refill_effect_ledger_piece`, GEN.1498) as a stage of a run."""
 
     key = "ledger"
     label = "Effect ledger"
@@ -2802,7 +2859,7 @@ def expand_refill_effect_ledger(params):
 def fill_effect_ledger(args):
     """
     Writes again the light and ultraviolet rows of the effect ledger of an existing galaxy (GEN.1498) on the queue: the `refill-effect-ledger` command, a unit per id range of systems
-    (`refill_effect_ledger_unit`).
+    (`refill_effect_ledger_piece`).
 
     Returns:
         int: The rows written.
@@ -2833,7 +2890,7 @@ def conclude_rescore_habitability(params, plan, results, seconds):
 def fill_habitability(args):
     """
     Re-derives the stored habitability numbers of an existing galaxy (GEN.217) on the new queue: the
-    `rescore-habitability` command, a unit per id range of systems (`rescore_habitability_unit`).
+    `rescore-habitability` command, a unit per id range of systems (`rescore_habitability_piece`).
 
     Returns:
         int: The bodies updated.
@@ -3594,73 +3651,6 @@ def finish_phenomena_result(params, results, ctx):
     return {"special": dict(ctx.state["special_counts"]), "lines": ctx.state.get("lines", [])}
 
 
-def _phenomenon_shells_task(payload):
-    """
-    A run of consecutive shells of the phenomenon scatter -- a work queue
-    task: draws each shell (`phenomenon_scatter.scatter_shell`, then its part beyond the outline with
-    `phenomenon_reach.scatter_shell` when the scatter covers the reach, GEN.323; or the faint shells far out
-    together, `phenomenon_reach.scatter_far`) and writes its rows with their members (`scatter_companions`),
-    committing every 10,000.
-
-    Returns:
-        dict: `counts` (rows written per kind) and `write_seconds` (the time spent writing them, the rest of the
-            task being the drawing, PERF.54).
-    """
-    counts = {}
-    write_seconds = 0.0
-    systems = 0
-    conn = store.get_connection(payload["mysql_config"])
-    try:
-        epoch = scatterCompanions.default_epoch_unix(conn)
-        batch = []
-        shape, edge_pc, expected = payload["shape"], payload["edge_pc"], payload["expected"]
-        seed, skip, min_mass = payload["seed"], payload["skip"], payload["min_mass_solar"]
-        runs = []
-        for shell_index, high_band in payload["shells"]:
-            runs.append(phenomenon_scatter.scatter_shell(
-                shape, shell_index, high_band, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass)
-                if high_band >= 0 else iter(()))
-            if payload.get("reach"):
-                runs.append(phenomenon_reach.scatter_shell(
-                    shape, shell_index, high_band, edge_pc, expected, seed, skip_addresses=skip,
-                    min_mass_solar=min_mass))
-        if payload.get("far"):
-            first_far, last_far = payload["far"]
-            runs.append(phenomenon_reach.scatter_far(
-                shape, first_far, last_far, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
-        if payload.get("components"):
-            these, slices = componentPass.chosen(payload["components"], payload["component_parts"])
-            runs.append(componentPass.scatter_phenomena(
-                these, edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass, shape=shape, slices=slices))
-        report = payload.get("report")      # the unit's `report(done, total)`: a run of shells at a time (OPS.170)
-        pace = Ticker("Phenomena drawn, runs", total=len(runs))
-        unitbeat.phase(f"Drawing {len(runs):,} runs of shells"[:120])
-        for number, rows in enumerate(runs, start=1):
-            for row in rows:
-                label = phenomenon_scatter.class_label(row[3], row[4])
-                counts[label] = counts.get(label, 0) + 1
-                batch.append(row)
-                if len(batch) >= 10000:
-                    started = time.perf_counter()
-                    systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
-                                                                          label="Phenomenon scatter").systems
-                    write_seconds += time.perf_counter() - started
-                    batch = []
-                    pace.tick(number - 1, f"{sum(counts.values()):,} phenomena so far")
-            if report is not None:
-                report(number, len(runs))
-            pace.tick(number, f"{sum(counts.values()):,} phenomena so far")
-        started = time.perf_counter()
-        if batch:
-            systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
-                                                                          label="Phenomenon scatter").systems
-        conn.commit()
-        write_seconds += time.perf_counter() - started
-    finally:
-        conn.close()
-    return {"counts": counts, "write_seconds": write_seconds, "systems": systems}
-
-
 def run_plan(args):
     """
     Builds and persists the galaxy's density skeleton and nothing else (PERF.121): the scatters, the fills and the
@@ -3721,7 +3711,7 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "scatter-limits", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
 """dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
 
 
@@ -3768,9 +3758,9 @@ def stored_scatter_skips(args):
         conn.close()
 
 
-EMPTY_CLEAR_STAGES = {"mass": (), "luminosity": (), "phenomena": ("phenomena-clear", NEBULA_CLEAR_KEY), "nebula-field": (NEBULA_CLEAR_KEY,)}
+EMPTY_CLEAR_STAGES = {"mass": ("mass-clear",), "luminosity": (), "phenomena": ("phenomena-clear", NEBULA_CLEAR_KEY), "nebula-field": (NEBULA_CLEAR_KEY,)}
 """dict: The clearing stages of each kind of scatter that are left out of a run when what they clear holds nothing (OPS.257). The clear of the bright stars is not one of them: a run that prepares the
-scatter's limits stores them in that stage (`clear_bright_stars_unit`), so it always runs, and its own clear finds nothing in a few reads (OPS.254)."""
+scatter's limits stores them in a stage of its own (`store_scatter_limits_unit`), which is not a clear and always runs."""
 
 
 def empty_clear_skips(args, kinds, fresh=True):
@@ -3783,11 +3773,14 @@ def empty_clear_skips(args, kinds, fresh=True):
     wanted = [key for kind in kinds for key in EMPTY_CLEAR_STAGES.get(kind, ())]
     if not fresh or not wanted:
         return {}
-    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+    except pymysql.err.OperationalError:       # no such database yet: nothing is known about it, and every stage is planned
+        return {}
     try:
         if store.get_galaxy_shape(conn) is None:
             return {}
-        holds = {"phenomena-clear": store.phenomenon_scatter_holds_nothing, NEBULA_CLEAR_KEY: store.nebula_field_holds_nothing}
+        holds = {"mass-clear": store.bright_stars_hold_nothing, "phenomena-clear": store.phenomenon_scatter_holds_nothing, NEBULA_CLEAR_KEY: store.nebula_field_holds_nothing}
         return {key: "nothing is stored to clear" for key in dict.fromkeys(wanted) if holds[key](conn)}
     finally:
         conn.close()

@@ -73,6 +73,15 @@ class Context:
             self._db = store.get_connection(self.config)
         return self._db
 
+    def kept(self, name, make):
+        """
+        What the unit works out once and every piece reads (the galaxy's shape, a table of components): `make()` the first time `name` is asked for, the same value after, until the unit ends
+        (`state` is the unit's own, so a value never outlives it and a later unit reads the database afresh).
+        """
+        if name not in self.state:
+            self.state[name] = make()
+        return self.state[name]
+
     def commit(self):
         """
         Commits what the piece wrote. In stage 1 of the engine this is a plain commit on `ctx.db`; with the ledger (OPS.219) it commits the cursor with the data. A command that has opened no

@@ -5851,11 +5851,11 @@
    ]
   },
   "Chambers||one|2020": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.3847/1538-4357/ab94a4"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Chamel|Haensel|pair|2008": {
    "matched": [
@@ -8611,11 +8611,11 @@
    "n": 2
   },
   "Deloye||etal|2007": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1111/j.1365-2966.2007.12262.x"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Demarque|Zinn|pair|1994": {
    "evidence": "first author and year agree, and the volume and first page appear beside the mention",
@@ -14875,11 +14875,11 @@
    "searched": true
   },
   "Hoffman||etal|2017": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1126/sciadv.1600983"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Hoffman||one|1998": {
    "evidence": "the only record in the project's journals with this author and year, and a person read the citing sentence and agreed",
@@ -18475,11 +18475,11 @@
    "n": 7
   },
   "Krivov|Wyatt|pair|2020": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1093/mnras/staa2385"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Kronawitter||etal|2000": {
    "matched": [
@@ -20152,6 +20152,13 @@
    ],
    "n": 69
   },
+  "Luhman||one|2024": {
+   "matched": [
+    "10.3847/1538-3881/ad812a"
+   ],
+   "n": 1,
+   "evidence": "registered at Train 28 (DOC.99): the paper the text names"
+  },
   "Luna||etal|2006": {
    "matched": [
     "10.1086/500163"
@@ -20483,11 +20490,11 @@
    "n": 1
   },
   "Maher|Chamberlain|pair|2014": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1126/science.1250770"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Maiz-Apellaniz||one|2001": {
    "matched": [
@@ -31925,11 +31932,11 @@
    "n": 1
   },
   "Tosi|Spohn|pair|2019": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1051/0004-6361/201935091"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Tosi||etal|2017": {
    "matched": [
@@ -32697,18 +32704,18 @@
    "n": 17
   },
   "Verbunt|Joss|pair|1983": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1086/161569"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Verbunt|Rappaport|pair|1988": {
+   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names",
    "matched": [
     "10.1086/166645"
    ],
-   "n": 1,
-   "evidence": "registered by the Train 27 clean-up (DOC.99): the paper the text names"
+   "n": 1
   },
   "Verified||one|2026": {
    "matched": [],
@@ -35507,6 +35514,13 @@
     "10.1088/0004-637x/770/1/23"
    ],
    "n": 1
+  },
+  "Zwart|Hochart|pair|2024": {
+   "matched": [
+    "10.21468/scipostastro.3.1.001"
+   ],
+   "n": 1,
+   "evidence": "registered at Train 28 (DOC.99): the paper the text names"
   },
   "Zwart||etal|2001": {
    "evidence": "a record already in the list has this author, year and (for a pair) second author",
@@ -242333,6 +242347,29 @@
    "volume": "",
    "year": 2022
   },
+  "10.21468/scipostastro.3.1.001": {
+   "authors": [
+    [
+     "Portegies Zwart",
+     "S."
+    ],
+    [
+     "Hochart",
+     "E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.21468/scipostastro.3.1.001",
+   "editors": [],
+   "journal": "SciPost Astro.",
+   "page": "001",
+   "publisher": "Stichting SciPost",
+   "src": "crossref",
+   "title": "The origin and evolution of wide Jupiter mass binary objects in young stellar clusters",
+   "type": "journal-article",
+   "volume": "3",
+   "year": 2024
+  },
   "10.2147/nss.s408318": {
    "authors": [
     [
@@ -250650,6 +250687,25 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "The DECam Ecliptic Exploration Project (DEEP). VII. The Strengths of Three Superfast Rotating Main-belt Asteroids from a Preliminary Search of DEEP Data",
+   "type": "journal-article",
+   "volume": "168",
+   "year": 2024
+  },
+  "10.3847/1538-3881/ad812a": {
+   "authors": [
+    [
+     "Luhman",
+     "K. L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-3881/ad812a",
+   "editors": [],
+   "journal": "AJ",
+   "page": "230",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Candidates for Substellar Members of the Orion Nebula Cluster from JWST/NIRCam ∗",
    "type": "journal-article",
    "volume": "168",
    "year": 2024
@@ -281672,6 +281728,32 @@
    "volume": "",
    "year": 2025
   },
+  "arXiv:2505.00762": {
+   "arxiv": "2505.00762",
+   "authors": [
+    [
+     "Parker",
+     "R. J."
+    ],
+    [
+     "Goodwin",
+     "S. P."
+    ],
+    [
+     "Diamond",
+     "J. L."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Can planet-planet binaries survive in star-forming regions?",
+   "type": "preprint",
+   "volume": "",
+   "year": 2025
+  },
   "arXiv:2505.02641": {
    "arxiv": "2505.02641",
    "authors": [
@@ -284980,7 +285062,7 @@
   "R5253": "R5248",
   "R5254": "R5250"
  },
- "id_next": 5261,
+ "id_next": 5264,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287988,7 +288070,7 @@
   "10.1093/mnras/staa220": "R1116",
   "10.1093/mnras/staa2289": "R3522",
   "10.1093/mnras/staa236": "R4434",
-  "10.1093/mnras/staa2385": "R5248",
+  "10.1093/mnras/staa2385": "R5253",
   "10.1093/mnras/staa2391": "R2021",
   "10.1093/mnras/staa2487": "R3282",
   "10.1093/mnras/staa2615": "R3545",
@@ -289333,6 +289415,7 @@
   "10.2138/am.2011.3728": "R3230",
   "10.2139/ssrn.2459325": "R0031",
   "10.2139/ssrn.4225755": "R4890",
+  "10.21468/scipostastro.3.1.001": "R5262",
   "10.2147/nss.s408318": "R3918",
   "10.21500/20112084.865": "R0629",
   "10.2166/wst.2005.0081": "R2506",
@@ -289543,6 +289626,7 @@
   "10.3847/1538-3881/ace688": "R4255",
   "10.3847/1538-3881/ad393a": "R0511",
   "10.3847/1538-3881/ad7366": "R4237",
+  "10.3847/1538-3881/ad812a": "R5261",
   "10.3847/1538-3881/ad8dfc": "R0218",
   "10.3847/1538-3881/ad9266": "R2521",
   "10.3847/1538-3881/adbe30": "R2195",
@@ -289661,7 +289745,7 @@
   "10.3847/1538-4357/ab8937": "R0286",
   "10.3847/1538-4357/ab9362": "R1660",
   "10.3847/1538-4357/ab9363": "R3662",
-  "10.3847/1538-4357/ab94a4": "R5250",
+  "10.3847/1538-4357/ab94a4": "R5254",
   "10.3847/1538-4357/ab9806": "R3195",
   "10.3847/1538-4357/abac0b": "R1231",
   "10.3847/1538-4357/abad9a": "R1152",
@@ -290888,7 +290972,7 @@
   "arxiv:2005.03055": "R3453",
   "arxiv:2005.03573": "R4822",
   "arxiv:2005.05283": "R2869",
-  "arxiv:2005.09092": "R5250",
+  "arxiv:2005.09092": "R5254",
   "arxiv:2005.11939": "R1513",
   "arxiv:2005.14671": "R0353",
   "arxiv:2006.00645": "R0957",
@@ -290911,7 +290995,7 @@
   "arxiv:2008.01968": "R0766",
   "arxiv:2008.05513": "R4528",
   "arxiv:2008.05992": "R1152",
-  "arxiv:2008.07406": "R5248",
+  "arxiv:2008.07406": "R5253",
   "arxiv:2008.07469": "R0308",
   "arxiv:2008.08430": "R0373",
   "arxiv:2008.09700": "R1866",
@@ -291255,6 +291339,7 @@
   "arxiv:2504.02090": "R4993",
   "arxiv:2504.19872": "R2162",
   "arxiv:2504.20428": "R0051",
+  "arxiv:2505.00762": "R5263",
   "arxiv:2505.02641": "R2986",
   "arxiv:2505.06013": "R2752",
   "arxiv:2505.09490": "R3038",
