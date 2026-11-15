@@ -64,3 +64,19 @@ def test_over_300_sampled_systems_none_breaks_the_bar(chunk):
         if found:
             broken[seed] = found
     assert not broken, f"{len(broken)} of {size} systems (seeds {first} to {first + size - 1}) hold a world that meets the request: {broken}"
+
+
+def test_the_bar_drops_its_bodies_before_the_tide_pass_counts_the_ones_that_stay(monkeypatch):
+    """GEN.1604: `_drop_barred_bodies` runs before `_tide_pass`, so no tide, heating or ledger row of a survivor names a body the bar dropped (seed 433 once left 40 such rows; a drop is rare now, so the order is what is pinned)."""
+    calls = []
+    drop, tide = StarSystem._drop_barred_bodies, StarSystem._tide_pass
+    monkeypatch.setattr(StarSystem, "_drop_barred_bodies", lambda self: calls.append("drop") or drop(self))
+    monkeypatch.setattr(StarSystem, "_tide_pass", lambda self: calls.append("tide") or tide(self))
+    system = barred_system(433)
+    assert calls.count("drop") == 1 and "tide" in calls and calls.index("drop") < calls.index("tide")
+    alive = {id(body) for planet in system.all_planets if planet.body_type != "a" for body in (planet, *planet.moons)}
+    for effect in ("tide", "heating"):
+        for _receiver, sources in system.effect_ledger.contributions(effect):
+            for source, _value in sources:
+                if hasattr(source, "is_moon"):
+                    assert id(source) in alive, f"{effect}: a dropped body is still a source"

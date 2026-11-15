@@ -1,7 +1,7 @@
 # tests/test_class_m_tier_desert.py
 
 """
-GEN.1721, second slice: under a Class M abundance tier a desert world's small sea is an ordinary salt sea (a living sea for the oxygen its life makes) and not a brine seep, and a share of the candidates has a
+GEN.1721, second slice: a desert world's small sea (a halite-saturated sea, GEN.1730) is a living sea for the oxygen its life makes and not a brine seep, and under a Class M abundance tier a share of the candidates has a
 quiet interior whose volcanic gases take a third of the oxygen. `science` changes nothing: no draw, no field on the body, the same source and sink.
 """
 
@@ -36,16 +36,6 @@ def test_a_quiet_interior_takes_a_third_of_the_oxygen_and_any_other_body_takes_w
     assert plain == pytest.approx(bo.EARTH_REDUCTANT_MOL_YR, rel=1e-6)
     assert bo.reductant_flux(_world(_quiet_interior=True), AREA_M2) == pytest.approx(plain * tuning.ABUNDANCE_QUIET_SINK_FACTOR)
     assert bo.reductant_flux(_world(_quiet_interior=False), AREA_M2) == plain
-
-
-def test_the_small_sea_of_a_tiers_desert_world_is_an_ordinary_sea_and_every_other_small_sea_is_a_brine():
-    little = hydrosphere.BRINE_MAX_WATER_FRACTION / 2.0
-    assert hydrosphere.salts_concentrated(SimpleNamespace(), little)                            # so little water, nobody dialed: a brine, as before
-    assert hydrosphere.salts_concentrated(SimpleNamespace(_water_dialed="low"), little)         # Earth's class dialed, and so little all the same: as before
-    assert not hydrosphere.salts_concentrated(SimpleNamespace(_water_dialed="dry"), little)     # the desert world of a tier
-    assert not hydrosphere.salts_concentrated(SimpleNamespace(), hydrosphere.BRINE_MAX_WATER_FRACTION * 2.0)
-    assert hydrosphere.ocean_class(SimpleNamespace(), 0.0, little, 0.15) == "chloride brine"
-    assert hydrosphere.ocean_class(SimpleNamespace(_water_dialed="dry", mantle_redox=None), 0.0, little, 0.15) == "neutral"
 
 
 def test_a_small_sea_makes_its_areas_share_of_an_oceans_oxygen_and_a_seep_makes_a_refuges_small_share():

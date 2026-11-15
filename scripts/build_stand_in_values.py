@@ -593,13 +593,15 @@ SECTIONS = (
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
     ('6.296', '6.296 Stand-ins of the starlight an air takes before its reference level (GEN.1717)',
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
-    ('6.124a', '6.124a Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)',
+    ('6.124a', '6.124a Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)',
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
     ('6.179a', '6.179a Stand-ins of the sky route of a system (VIEW.31)',
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
     ("6.299", "6.299 Stand-ins of the liquid and volcano conditions of classes U, Y, A and X (GEN.1617)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.301", "6.301 Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.300", "6.300 Stand-ins of the planet's Hill sphere against the bodies besides its host and of the moons' resonances (GEN.1449)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

@@ -682,7 +682,6 @@ planetgen.physics.hosting_gate:PHOTOMETRIC_BINARY_MAX_DIAMETER_M
 planetgen.physics.hosting_gate:SUBMOON_AGE_YR
 planetgen.physics.hosting_gate:SUBMOON_DEFAULT_RADIUS_M
 planetgen.physics.hydrosphere:ACID_SO2_SHARE
-planetgen.physics.hydrosphere:BRINE_MAX_WATER_FRACTION
 planetgen.physics.hydrosphere:HYCEAN_MIN_H2_SHARE
 planetgen.physics.hydrosphere:ICE_CONDUCTIVITY_A_W_M
 planetgen.physics.hydrosphere:MANTLE_BUFFER_RANGE
@@ -1054,7 +1053,6 @@ planetgen.physics.surface_cycle:SAMPLES_PER_SOLAR_DAY
 planetgen.physics.surface_cycle:STEPS_PER_TIME_CONSTANT
 planetgen.physics.surface_dose:AIR_INTERACTION_LENGTH_G_CM2
 planetgen.physics.surface_liquid_world:NACL_G_PER_MOL
-planetgen.physics.surface_liquid_world:NACL_SATURATION_ACTIVITY
 planetgen.physics.surface_liquid_world:WATER_MOLAR_MASS_KG
 planetgen.physics.surface_liquids:GAS_CONSTANT_J_MOL_K
 planetgen.physics.surface_pressure:EARTH_DEGASSED_SHARE

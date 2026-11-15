@@ -52,9 +52,10 @@ def hill_radius_au(planet_distance_au, planet_mass_kg, star_mass_kg):
     return orbits.calculate_hill_sphere(planet_distance_au * constants.AU_TO_M, planet_mass_kg, star_mass_kg) / constants.AU_TO_M
 
 
-def zone(planet_distance_au, planet_mass_kg, star_mass_kg, outermost_regular_moon_au=0.0):
-    """The `Zone` of a planet at `planet_distance_au` of mass `planet_mass_kg` round a star of `star_mass_kg`, with its outermost regular moon at `outermost_regular_moon_au` (0 for none)."""
-    r_hill = hill_radius_au(planet_distance_au, planet_mass_kg, star_mass_kg)
+def zone(planet_distance_au, planet_mass_kg, star_mass_kg, outermost_regular_moon_au=0.0, hill_scale=1.0):
+    """The `Zone` of a planet at `planet_distance_au` of mass `planet_mass_kg` round a star of `star_mass_kg`, with its outermost regular moon at `outermost_regular_moon_au` (0 for none).
+    `hill_scale` is the share of the Hill radius the planet keeps against the bodies besides its host that pull on it (GEN.1449, `hill_perturbers.hill_scale`); 1 for none."""
+    r_hill = hill_scale * hill_radius_au(planet_distance_au, planet_mass_kg, star_mass_kg)
     return Zone(r_hill, PROGRADE_STABLE_FRACTION * r_hill, RETROGRADE_STABLE_FRACTION * r_hill, INNER_EDGE_FACTOR * outermost_regular_moon_au)
 
 

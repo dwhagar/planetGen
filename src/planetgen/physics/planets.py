@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
-from planetgen.physics import planet_moons
+from planetgen.physics import hill_perturbers, planet_moons
 from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
@@ -328,6 +328,9 @@ def settle_orbit(planet):
         cold = orbit_elements.circularised(birth, age_yr, orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance))
         settled = planet.eccentricity * (min(settled / cold, 1.0) if cold > 0.0 else 1.0)
     eccentricity = min(planet.eccentricity, settled)
+    resonance_e = getattr(planet, "_resonance_e", None)
+    if resonance_e:        # GEN.1449 slice 2: the resonance renews the eccentricity the tide wears down
+        eccentricity = max(eccentricity, min(resonance_e, planet.eccentricity))
     if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
@@ -1673,7 +1676,8 @@ def moon_orbit_bounds_km(planet):
     densities), plus 15 atmospheric scale heights (or 100 km with no
     atmosphere) of drag-free margin. Outermost: the prograde stability
     limit of [R1138], a fraction of the Hill radius that the planet's eccentricity lowers
-    (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`); past it the star strips the moon.
+    (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`) of the Hill sphere against every body that pulls on the planet (GEN.1449, `hill_perturbers`); past it the star
+    (or a companion or a sibling planet) strips the moon.
 
     Returns:
         tuple: `(low_km, high_km)`; `low_km >= high_km` means no room.
@@ -1681,14 +1685,14 @@ def moon_orbit_bounds_km(planet):
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     atmosphere_margin_km = planet.scale_height * 15 if planet.scale_height else 100
     low_km = planet.radius + max_moon_radius + atmosphere_margin_km
-    high_km = clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0)[1]
+    high_km = clearance_ledger.moon_bounds_km(planet.radius, hill_perturbers.tidal_hill_radius_km(planet), getattr(planet, "eccentricity", None) or 0.0)[1]
     return low_km, high_km
 
 
 def moon_stable_limit_km(planet, moon_eccentricity=0.0):
     """The farthest semi-major axis, km from `planet`'s center, a moon of this eccentricity keeps ([R1138]: the
     fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
-    return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
+    return clearance_ledger.moon_bounds_km(planet.radius, hill_perturbers.tidal_hill_radius_km(planet), getattr(planet, "eccentricity", None) or 0.0,
                                            moon_eccentricity or 0.0)[1]
 
 
