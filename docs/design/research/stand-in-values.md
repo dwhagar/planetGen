@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1728 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1732 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1701 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1705 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 161 | 66 | 2 | 1 | 0 | 230 |
 | T3 | 116 | 56 | 13 | 9 | 0 | 194 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
-| T5 | 93 | 24 | 7 | 1 | 1 | 126 |
+| T5 | 95 | 24 | 7 | 1 | 1 | 128 |
 | T6 | 223 | 118 | 33 | 76 | 4 | 454 |
-| T7 | 58 | 30 | 10 | 32 | 0 | 130 |
+| T7 | 58 | 32 | 10 | 32 | 0 | 132 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 41 | 210 |
-| All | 992 | 347 | 87 | 242 | 60 | 1728 |
+| All | 994 | 349 | 87 | 242 | 60 | 1732 |
 
 ## How the labels were given
 
@@ -3031,3 +3031,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IG6 | P | T7 | L1 | `ice_growth.PRECIPITATION_ENERGY_SHARE` about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature | 0.15 to 0.35 | worlds with a water cycle like the Earth's, cold or warm | a snowfall on ice that differs from the law by more than a factor of 2 for the same starlight; the Arctic's, with no dry cold air in the law, comes out about 1.9 times high | a precipitation law that carries the dryness of cold air | the weathering law of [R1660] uses the same limit; the Arctic check of [R5278] (34 cm of snow) sets the 1.9 | predicted only | GEN.1735 | - |
 | IG7 | P | T7 | L1 | `ice_growth.SNOW_RETENTION` 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season | 0.4 to 0.9 | multiyear Arctic ice | a snow cover that keeps a share outside 0.4 to 0.9 | a wind and lead model | [R5278]: 11 cm of water standing in May of the 17 cm that fell (5 cm a month in September and October, 1 cm a month November to March, 2 cm in April, the rates it quotes) | predicted only | GEN.1735 | - |
 | IG8 | P | T7 | L1 | `ice_growth.ABLATION_M_YR` 0.4 m of ice a year: what the surface wears off a lid that does not thaw | 0.2 to 0.6 | multiyear Arctic ice under an Earth-like air | a perennial lid whose surface loses less than 0.2 or more than 0.6 m a year | a surface energy balance with the world's own air | [R5279]: surface ablation 40 cm in the standard case; the one measured case, taken for every perennial lid | predicted only | GEN.1735 | - |
+
+## 6.301 Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PC1 | D | T5 | L0 | `photochemical_loss.advance` and `standing_from_inventory`: a source S against a loss `k N` leaves `N(t) = N e^(-k t) + (S / k)(1 - e^(-k t))`, `S / k` when the age is over a few lives, and never more than the inventory | none | any gas whose loss is first order in its amount | an air whose ammonia or methane stands over the source over the rate at a measured loss | none | the solution of the linear balance; the rates are GEN.496's own | predicted only | - | - |
+| PC2 | P | T7 | L1 | `photochemical_loss.standing_from_inventory`: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time | the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (`interior_heat.heat_at`), which moves the standing amount by the same ratio at the age of the loss | a body whose air gas stands for the life of the star | a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3 | the history's own supply at each step (GEN.1745) | educated guess from physics: the mean of the supply is what a constant source gives | predicted only | - | - |
+| PC3 | B | T5 | L0 | `photochemical_loss.light_limit`: the light breaks no more than the column of one optical depth times the rate (`photolysis.photon_limited_flux_mol_m2_s`, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes | the column within a factor of 2 (row SL6) | NH3 and CH4 in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's | a photochemical column model with the cross sections by wavelength | row SL6; [R2026] table 6 | predicted only | - | - |
+| PC4 | P | T7 | L1 | `photochemical_loss.LOST_TO`: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes) | the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state | an air with water and the escape of hydrogen of `thermosphere` | a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2 | the hydrogen escape and the photochemical network of the history's step | educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2) | predicted only | GEN.1745 | - |
