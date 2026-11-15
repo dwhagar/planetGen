@@ -17,6 +17,10 @@ keeps `_birth_spin`, `planets.generate_orbit_shape` keeps `_orbit_birth`) for th
 | `capture_draw_1`, `capture_draw_2` | fraction | one uniform for each resonance the spin can pass without being caught (`spin_torques.CAPTURE_RATIOS`, in that order; `_birth_spin[2]`): they decide the tide history of the spin |
 | `formula_version` | count | `FORMULA_VERSION`: which set of formulas wrote the row, so a later change to them can tell the rows it must not refill from the rows it can |
 
+**Read back (GEN.1533):** `attach`, called by `store.load_star_system`, gives a restored planet or moon its `_orbit_birth` and `_birth_spin` from its row, so the stored galaxy carries what a run would
+(the air history of GEN.1739 starts from them, and a moved body's history can start from its own birth). No pass that runs on a restored body reads them yet: `planets.draw_birth_spin` still draws, so a
+change to what the stored galaxy produces is a later slice and a lock item. The capture draws are a `FLOAT` column, so a restored draw is the stored one to six digits.
+
 The Kozai cycle count and start age (GEN.1447) and the age a tidal lock was reached (GEN.1454) are the numbers still to come: each lane that builds one adds its
 column here (a migration, a unit in `db/column_units.py`, a reader below) and a test checks the columns. Nothing writes them yet.
 
@@ -70,6 +74,33 @@ def numbers_of(body):
     if out:
         out["formula_version"] = FORMULA_VERSION
     return out
+
+
+def attach(body, row):
+    """
+    Gives a planet or moon restored from the database the numbers of its history that `body_history` holds (GEN.1533, the reader of the table): the birth eccentricity as `_orbit_birth` and the
+    birth spin, tilt and capture draws as `_birth_spin`, the two names a generated body keeps them under, so a pass that runs a body's history again reads the body it was made as and not a fresh draw.
+    The spin is given whole or not at all (a body that has any of it has all of it). A row written under another `FORMULA_VERSION` is not read: its numbers belong to formulas this code no longer runs.
+    Nothing changes for a body with no row (a galaxy made before v243, or a body with no history).
+
+    Args:
+        body: A restored planet or moon.
+        row (dict): The body's `body_history` row (`ROW_FIELDS`).
+
+    Returns:
+        bool: Whether any number was attached.
+    """
+    if row["formula_version"] != FORMULA_VERSION:
+        return False
+    attached = False
+    if row["birth_eccentricity"] is not None:
+        body._orbit_birth = float(row["birth_eccentricity"])
+        attached = True
+    draws = (row["capture_draw_1"], row["capture_draw_2"])
+    if row["birth_spin_rate"] is not None and row["birth_obliquity_deg"] is not None and all(draw is not None for draw in draws):
+        body._birth_spin = (float(row["birth_spin_rate"]), float(row["birth_obliquity_deg"]), tuple(float(draw) for draw in draws))
+        attached = True
+    return attached
 
 
 def rows(star_system_id, bodies, ids):
