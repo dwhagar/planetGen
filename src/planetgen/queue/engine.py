@@ -50,6 +50,7 @@ class Context:
         self.kind, self.args, self.report, self.cursor = kind, args, report, cursor
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
+        self._closers = []
         self.state = {}                 # what the pieces of this unit hand to each other: they run in one process, in order, so a piece may leave what the next reads
         self.began = time.monotonic()
         self._db = None
@@ -109,13 +110,19 @@ class Context:
 
     def close_db(self):
         """Closes the unit's connection now, where the rest of the unit needs none held (`ctx.db` opens another on the next use)."""
-        self.close()
-
-    def close(self):
-        """Closes the unit's connection if it opened one; called by the engine, once, when the unit ends."""
         db, self._db = self._db, None
         if db is not None:
             db.close()
+
+    def on_close(self, closer):
+        """Registers `closer()` to be called, last in first out, when the unit ends, however it ends: a resource the pieces share (a pool of processes) that no single piece can close."""
+        self._closers.append(closer)
+
+    def close(self):
+        """Closes what the unit opened, called by the engine, once, when the unit ends: what `on_close` registered, then the unit's connection if it opened one."""
+        while self._closers:
+            self._closers.pop()()
+        self.close_db()
 
     # --- between two pieces ----------------------------------------------------------------------------------
 

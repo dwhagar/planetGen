@@ -184,3 +184,22 @@ def test_the_link_stage_is_cut_into_static_chunks_that_store_the_same_links(mysq
         conn.close()
     _run(monkeypatch, mysql_config, "link", "--since", LONG_AGO)
     assert _link_rows(mysql_config) == saved, "the links are those of the one-unit stage"
+
+
+def test_the_settle_unit_opens_its_pool_once_for_all_its_batches_and_the_engine_shuts_it_down(mysql_config, monkeypatch):
+    """OPS.202: the pool a crowded sector's bodies are integrated in lives across the unit's batches (`ctx.state`) and is closed by `ctx.on_close`."""
+    ids = []
+    for wedge in (710, 711):
+        monkeypatch.setattr(helper, "ADDRESS", (1500, 2, wedge))
+        ids.append(helper._save(mysql_config, systems=1)[0])
+    events = []
+
+    class Pool:
+        def shutdown(self):
+            events.append("shutdown")
+
+    monkeypatch.setattr(sector_paths, "settle_pool", lambda workers: events.append(("pool", workers)) or Pool())
+    monkeypatch.setattr(sector_paths, "SETTLE_BATCH", 1)
+    done = commands.run_alone("settle-sector-paths", {"database": wrapper.database_args(mysql_config), "sector_ids": ids, "workers": 3})
+    assert done["visited"] == 2 and done["saved"] > 0
+    assert events == [("pool", 3), "shutdown"], "one pool for the two batches, shut down once at the end"
