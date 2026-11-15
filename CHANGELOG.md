@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4276] - 2026-11-15
+
+**Headline:** The supervisor's watch no longer opens a database connection on every beat to ask the job profile for a kind it has too few samples of.
+
+### Changed
+- PERF.269: `profiletime.unit_seconds` kept a figure for the run but not the answer 'too few samples', so the heartbeat's judge read the profile table through a new control connection on each beat (457 connections in a 130 s run; 10 of the 14 s they cost was building the SSL context). The answer 'nothing yet' is now kept for `NO_FIGURE_RECHECK_SECONDS` (30 s) and then asked again, so a kind still picks its figure up once the run's own units add the samples. Nothing a run computes changes.
+
 ## [8.0.4275] - 2026-11-15
 
 **Headline:** The queue's comment and the API reference say "canceled", like the rest of the program.
