@@ -978,14 +978,6 @@
           "min": 0.1
         },
         {
-          "quantity": "temperature_k",
-          "min": 190.0
-        },
-        {
-          "quantity": "temperature_k",
-          "lt": 240.0
-        },
-        {
           "quantity": "gravity_g",
           "min": 0.05
         },
@@ -998,7 +990,7 @@
           "equals": 1.0
         }
       ],
-      "note": "the ammonia-water family (GEN.1258, Boss confirmed X): a liquid cover of 20 percent or more (an icy moon's ocean lies under its lid, so the surface phase gate is not applied), ammonia at least 10 percent of the water's mass (life class 8), the ideal band 190 to 240 K of the families report; a body with no air (an icy moon under its ice lid); the ammonia is the stored one of a liquid ocean (GEN.1617: `surface_liquid_ammonia_wt`, not the body's bulk ice)"
+      "note": "the ammonia-water family (GEN.1258, Boss confirmed X): a liquid cover of 20 percent or more (an icy moon's ocean lies under its lid, so the surface phase gate is not applied), ammonia at least 10 percent of the water's mass (life class 8), a body with no air (an icy moon under its ice lid); the ammonia is the stored one of a liquid ocean (GEN.1617: `surface_liquid_ammonia_wt`, not the body's bulk ice). GEN.1737: no band on the surface temperature (it was 190 to 240 K): the ocean lies under its lid at the freezing point of its own solution, 273 K for pure water falling to 176 K at 32 percent ammonia [R5280] [R2639], so an ocean of 10 percent of the water's mass in ammonia (9 percent of the liquid) is liquid at about 246 K whatever the surface is; the stored surfaces of such bodies run from 3 to 430 K"
     }
   ],
   "domains_note": "GEN.1221: the table is read as a class-by-domain matrix (`physics/class_domains.py`): each quantity belongs to one domain (structure, gravity, thermal, air_amount, air_chemistry, water, and the regional, day, night, wet_bulb and phase cells of a family), a class with no condition in a domain has the full range there, and `weights` tilt the six main domains in the overall score. The oxygen-water family (M, R, P, O, H) has the ranges of reports/class-families-and-positions-design-2026-10-31.md section 3; the families with their own liquid (U methane-ethane, Y sulfuric acid) are gated by `phase_<family>` (`physics/phase_gate.py`); Z is the hot thin-air world (GEN.1211). The ammonia-water family (X) waits for a stored ammonia-water fraction.",

@@ -160,7 +160,7 @@ web interface lists them for each letter.
 | `Z` | Hot thin-air world | terrestrial | 340 to 1500 K, air of 1 to 10 kPa, no ocean, 0.5 to 2 g. |
 | `U` | Methane-ethane world | terrestrial | 91 to 130 K, air of 50 to 500 kPa with methane, methane-ethane liquid stable, seas of methane or ethane stored over half a percent of the surface. |
 | `Y` | Sulfuric acid world | terrestrial | 300 to 350 K, sulfuric acid liquid stable, liquid acid stored at the ground. |
-| `X` | Ammonia-water world | terrestrial | No air, a liquid cover over 20 percent, ammonia 10 percent or more of the water, stored in the ocean, 190 to 240 K. |
+| `X` | Ammonia-water world | terrestrial | No air, a liquid cover over 20 percent, ammonia 10 percent or more of the water, stored in the ocean; the surface temperature does not matter (the ocean lies under its lid at its own freezing point). |
 
 Moons are given a class by the same rules, so no letter is barred from a moon, and a slot's own `planet_class` always
 describes the planet itself, never its moons.
