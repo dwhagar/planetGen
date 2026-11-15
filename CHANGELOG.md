@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4307] - 2026-11-15
+
+**Headline:** `update.sh` no longer stops at the math check on a database that has no job-ledger tables yet.
+
+### Fixed
+- A run whose control database is missing or has no ledger tables yet (the update's math check runs at stage 4, before stage 5 migrates) keeps its plan in its own Redis run record and writes no ledger row; so does a run with no database at all (`generate system --output`). The store is chosen once per run and kept in its record. A run on a database that has the tables is unchanged (OPS.263, TEST.769).
+
 ## [8.0.4306] - 2026-11-15
 
 **Headline:** finish-run now decides which stages of a stopped run are finished from the run's ledger rows, so it no longer depends on Redis keeping the run's stage records.
