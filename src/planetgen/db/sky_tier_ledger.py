@@ -175,32 +175,72 @@ def settle(ledger, addresses, edge_pc, limits, levels, masses):
 
 
 def read(conn):
-    """Every complete draw, as a `Ledger` (a sphere still being drawn does not count)."""
+    """Every complete draw, as a `Ledger` (a sphere still being drawn does not count, and neither does the row of one part of a sphere: `begin`'s `part`)."""
     rows = conn.execute(
         "SELECT kind, band_low, band_high, center_x_pc, center_y_pc, center_z_pc, radius_pc, limit_mag, stars, seconds FROM sky_tier_draws"
-        " WHERE complete = 1 ORDER BY kind, band_low, id").fetchall()
+        " WHERE complete = 1 AND part_count = 0 ORDER BY kind, band_low, id").fetchall()
     return Ledger(Draw(row["kind"], float(row["band_low"]), None if row["band_high"] is None else float(row["band_high"]),
                        (float(row["center_x_pc"]), float(row["center_y_pc"]), float(row["center_z_pc"])), float(row["radius_pc"]),
                        float(row["limit_mag"]), int(row["stars"]), float(row["seconds"])) for row in rows)
 
 
-def begin(conn, draw, generator_epoch=None):
+def begin(conn, draw, generator_epoch=None, part=None):
     """
     Starts (or finds the start of) a sphere's draw: a row that does not count yet (`complete` 0). A draw stopped part way is found again by its kind, band, center and radius, and goes
     on from the batch it had reached.
 
+    Args:
+        part (tuple, optional): `(index, count)`: the draw is one part of a sphere drawn by `count` units at once (OPS.253). Its row is its own (`part_index`, `part_count`), never counts in
+            `read`, and `conclude_parts` replaces the parts with the sphere's row.
+
     Returns:
         tuple: `(id, batches_done)`.
     """
-    key = (draw.kind, draw.low, *draw.center, draw.radius_pc)
+    index, count = (0, 0) if part is None else (int(part[0]), int(part[1]))
+    key = (draw.kind, draw.low, *draw.center, draw.radius_pc, count, index)
     conn.execute(
-        "INSERT INTO sky_tier_draws (kind, band_low, band_high, center_x_pc, center_y_pc, center_z_pc, radius_pc, limit_mag, generator_epoch, complete)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)",
-        (draw.kind, draw.low, draw.high, *draw.center, draw.radius_pc, draw.limit_mag, generator_epoch))
+        "INSERT INTO sky_tier_draws (kind, band_low, band_high, center_x_pc, center_y_pc, center_z_pc, radius_pc, limit_mag, generator_epoch, complete, part_index, part_count)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)",
+        (draw.kind, draw.low, draw.high, *draw.center, draw.radius_pc, draw.limit_mag, generator_epoch, index, count))
     row = conn.execute(
-        "SELECT id, batches_done, complete FROM sky_tier_draws WHERE kind = ? AND band_low = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ? AND radius_pc = ?",
-        key).fetchone()
+        "SELECT id, batches_done, complete FROM sky_tier_draws WHERE kind = ? AND band_low = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ? AND radius_pc = ?"
+        " AND part_count = ? AND part_index = ?", key).fetchone()
     return int(row["id"]), int(row["batches_done"])
+
+
+def part_done(conn, draw, part):
+    """Whether part `(index, count)` of the sphere `draw` has written every batch of its share (`finish` was called on its row)."""
+    row = conn.execute(
+        "SELECT complete FROM sky_tier_draws WHERE kind = ? AND band_low = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ? AND radius_pc = ?"
+        " AND part_count = ? AND part_index = ?", (draw.kind, draw.low, *draw.center, draw.radius_pc, int(part[1]), int(part[0]))).fetchone()
+    return row is not None and int(row["complete"]) == 1
+
+
+def conclude_parts(conn, draws, generator_epoch=None):
+    """
+    Makes the spheres of `draws` count (OPS.253): each sphere that no whole row holds yet gets one, with the stars and the seconds of its parts' rows added up (the seconds of the slowest
+    part: they ran side by side), and its parts' rows are dropped. A sphere that was drawn whole in the meantime keeps that row. The caller commits.
+
+    Args:
+        draws (iterable): The `Draw`s of the spheres the parts drew, in the order they would have been drawn one at a time.
+
+    Returns:
+        int: How many spheres were recorded.
+    """
+    recorded = 0
+    for draw in draws:
+        where = "kind = ? AND band_low = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ? AND radius_pc = ?"
+        key = (draw.kind, draw.low, *draw.center, draw.radius_pc)
+        parts = conn.execute(f"SELECT COUNT(*) AS n, SUM(stars) AS stars, MAX(seconds) AS seconds FROM sky_tier_draws WHERE {where} AND part_count > 0", key).fetchone()
+        if int(parts["n"]) == 0:
+            continue
+        whole = conn.execute(f"SELECT id, complete FROM sky_tier_draws WHERE {where} AND part_count = 0", key).fetchone()
+        if whole is None or int(whole["complete"]) != 1:
+            draw_id, _done = begin(conn, draw, generator_epoch)
+            finish(conn, draw_id, int(parts["stars"] or 0), float(parts["seconds"] or 0.0))
+            recorded += 1
+        conn.execute(f"DELETE FROM sky_tier_draws WHERE {where} AND part_count > 0", key)
+    return recorded
 
 
 def advance(conn, draw_id, batches_done, stars, seconds):

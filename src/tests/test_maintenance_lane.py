@@ -7,7 +7,7 @@ import uuid
 import pytest
 import rq
 
-from planetgen.queue import redisqueue, runrecord, workers, wrapper
+from planetgen.queue import redisqueue, runrecord, supervisor, workers, wrapper
 from planetgen.util import settings
 
 pytestmark = pytest.mark.real_queue
@@ -45,7 +45,7 @@ def lane(redis_server, key_prefix, monkeypatch):
     for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
         redisqueue.queue(name, connection).empty()
         connection.delete(workers.STARTING_PREFIX + name)
-    connection.delete(workers.DECIDING_KEY, workers.REFUSED_KEY, workers.REFUSED_NOTE_KEY)
+    connection.delete(workers.REFUSED_KEY, workers.REFUSED_NOTE_KEY)
     for worker in made:
         connection.delete(workers.LENT_PREFIX + worker.name)
 
@@ -76,16 +76,16 @@ def test_maintenance_work_behind_200_bulk_units_gets_a_worker_by_asking_a_bulk_w
     _queue(connection, redisqueue.BULK_QUEUE, 200)
     _queue(connection, redisqueue.MAINTENANCE_QUEUE, 1)
     _generation_run(connection)
-    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
+    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
     assert len(started) == 1 and redisqueue.MAINTENANCE_QUEUE in started[0]       # the unit does not wait for 200 others
     assert len(told) == 1 and told[0] in {worker.name for worker in bulk}          # a bulk worker finishes and leaves
-    workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection)
+    workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection)
     assert len(started) == 1 and len(told) == 1                                    # not again for the same need
     # the bulk lane does not take the place back while the maintenance lane needs it
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 0
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0
     leaving = next(worker for worker in bulk if worker.name == told[0])
     leaving.register_death()
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 0         # 2 bulk workers, cap 3 - 1
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0         # 2 bulk workers, cap 3 - 1
 
 
 def test_after_the_maintenance_lane_drains_the_bulk_pool_is_back_to_wanted(lane):
@@ -95,10 +95,10 @@ def test_after_the_maintenance_lane_drains_the_bulk_pool_is_back_to_wanted(lane)
     upkeep = register(redisqueue.MAINTENANCE_QUEUE, "busy")
     _generation_run(connection)
     assert workers.maintenance_share(connection) == 1
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 0         # 2 live, cap 2
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0         # 2 live, cap 2
     upkeep.set_state("idle")                                                       # drained: waiting out its idle time
     assert workers.maintenance_share(connection) == 0
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 1         # back to wanted (3)
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 1         # back to wanted (3)
     assert len(started) == 1 and redisqueue.BULK_QUEUE in started[0] and len(bulk) == 2
 
 
@@ -106,7 +106,7 @@ def test_maintenance_gets_the_whole_count_when_no_generation_run_is_live(lane):
     connection, started, told, register = lane
     _queue(connection, redisqueue.MAINTENANCE_QUEUE, 10)
     assert workers.maintenance_cap(connection) == 3
-    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 3 and len(started) == 3 and told == []
+    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 3 and len(started) == 3 and told == []
 
 
 def test_maintenance_is_held_to_its_setting_while_a_generation_run_is_live(lane, monkeypatch):
@@ -116,7 +116,7 @@ def test_maintenance_is_held_to_its_setting_while_a_generation_run_is_live(lane,
     assert workers.maintenance_cap(connection) == 1
     monkeypatch.setattr(settings.get_settings().queue, "maintenance_workers", 2)
     assert workers.maintenance_cap(connection) == 2
-    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 2
+    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 2
 
 
 def test_the_bulk_lane_keeps_at_least_one_worker(lane, monkeypatch):
@@ -125,7 +125,7 @@ def test_the_bulk_lane_keeps_at_least_one_worker(lane, monkeypatch):
     _queue(connection, redisqueue.BULK_QUEUE, 5)
     _queue(connection, redisqueue.MAINTENANCE_QUEUE, 5)
     _generation_run(connection)
-    assert workers.ensure_workers(redisqueue.BULK_QUEUE, connection) == 1
+    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 1
 
 
 def test_shed_bulk_asks_idle_workers_first_and_never_twice(lane):
@@ -151,13 +151,15 @@ def test_perf181_many_callers_at_once_start_no_more_workers_than_the_cap(lane):
     def ask():
         own = redisqueue.connect()
         gate.wait()
-        workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, own)
+        workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, own)          # OPS.209: a caller only leaves an ask
 
     threads = [threading.Thread(target=ask) for _ in range(24)]
     for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
+    assert started == [], "no caller started anything"
+    supervisor.WorkerStarts(connection).turn()          # the one decider acts on the asks
     assert len(started) == 1
 
 
@@ -167,9 +169,9 @@ def test_perf181_a_worker_that_is_slow_to_register_is_counted_for_longer_than_a_
     connection, started, told, register = lane
     _queue(connection, redisqueue.MAINTENANCE_QUEUE, 10)
     _generation_run(connection)
-    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
+    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
     assert connection.ttl(workers.STARTING_PREFIX + redisqueue.MAINTENANCE_QUEUE) > 60
-    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 0
+    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 0
     assert len(started) == 1
 
 
@@ -226,14 +228,17 @@ def test_perf185_many_callers_together_never_pass_the_host_cap(lane, monkeypatch
         thread.start()
     for thread in threads:
         thread.join()
-    assert len(started) <= 4                                  # never past the cap, however the threads interleaved
-    for _ in range(10):                                       # callers that lost the race to the lock ask again later
+    assert started == []                                      # OPS.209: the callers only left asks
+    supervisor.WorkerStarts(connection).turn()
+    assert len(started) <= 4                                  # never past the cap
+    for _ in range(10):                                       # the asks come again at the callers' next poll
         for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
             workers.ensure_workers(name, connection)
+        supervisor.WorkerStarts(connection).turn()
     assert len(started) == 2        # PERF.245: the cap less the two places kept for the short and long lanes (an interactive start takes one)
     assert int(connection.get(workers.REFUSED_KEY)) >= 1
     _queue(connection, redisqueue.INTERACTIVE_QUEUE, 1)
-    assert workers.ensure_workers(redisqueue.INTERACTIVE_QUEUE, connection, count=1) == 1 and len(started) == 3
+    assert workers.start_workers(redisqueue.INTERACTIVE_QUEUE, connection, count=1) == 1 and len(started) == 3
     connection.delete(workers.STARTING_PREFIX + redisqueue.INTERACTIVE_QUEUE)
     redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection).empty()
     assert len(lines) == 1 and "cap is 4" in lines[0]                                 # said once, not at every poll

@@ -6,7 +6,7 @@ import types
 
 import pytest
 
-from planetgen.queue import redisqueue, runrecord, units, wrapper
+from planetgen.queue import planrows, redisqueue, runrecord, units, wrapper
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ def test_the_opening_asks_the_other_bulk_workers_to_go_and_the_run_waits_to_star
             runrecord.end_opening(run, "r1")
         if len(ticks) > 5:
             raise RuntimeError("never ensured")
-    monkeypatch.setattr(runrecord, "read_plan", lambda conn, run_id, index: {"units": 1} if ensured else None)
+    monkeypatch.setattr(planrows, "read_plan", lambda conn, run_id, index: {"units": 1} if ensured else None)
     result = wrapper._await_plan(run, "r1", 2, lambda: ensured.append(len(ticks)), clock=lambda: next(clock), sleep=sleep, touch=False)
     assert result == {"units": 1} and ensured and ensured[0] >= 2          # not while the opening lasted
 

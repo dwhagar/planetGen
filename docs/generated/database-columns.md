@@ -2677,6 +2677,8 @@ sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting d
 | `batches_done` | INT UNSIGNED | NOT NULL |  |
 | `complete` | TINYINT(1) | NOT NULL |  |
 | `drawn_at` | TIMESTAMP(3) | NOT NULL |  |
+| `part_index` | SMALLINT UNSIGNED | NOT NULL |  |
+| `part_count` | SMALLINT UNSIGNED | NOT NULL |  |
 
 ## `sector_paths`
 

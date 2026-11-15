@@ -74,6 +74,25 @@
   </div>
 </section>
 {%- endif %}
+{%- if supervisor %}
+<section class="panel" id="queue-supervisor" aria-labelledby="queue-supervisor-heading">
+  <h2 id="queue-supervisor-heading">The supervisor</h2>
+  <p>{% if supervisor.alive %}It is alive since {{ utc_time(supervisor.since) }} UTC: up {{ supervisor.up }}, its last turn {{ supervisor.turn }} ago, {{ supervisor.turns }} turns, process {{ supervisor.pid }}.{% else %}{{ supervisor.state }}{% endif %} It ends by itself after five minutes with nothing to watch, and starts again when work arrives.</p>
+  {%- if supervisor.acts %}
+  <div class="table-scroll">
+  <table class="data-table">
+    <caption>What the supervisor did lately, newest first</caption>
+    <thead><tr><th scope="col">When (UTC)</th><th scope="col">It did</th><th scope="col">Why</th></tr></thead>
+    <tbody>
+    {%- for act in supervisor.acts %}
+      <tr><td>{{ utc_time(act.at) }}</td><td>{{ act.what }}</td><td>{{ act.reason }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
+</section>
+{%- endif %}
 {%- if tuning %}
 <section class="panel" id="queue-tuning" aria-labelledby="queue-tuning-heading">
   <h2 id="queue-tuning-heading">What the queue has learned</h2>

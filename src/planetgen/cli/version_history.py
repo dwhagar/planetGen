@@ -29,19 +29,13 @@ from planetgen.util import log
 def _galaxy_databases(config):
     """Every galaxy database on the server, with its seed when it has one."""
     found = []
-    for entry in store.list_databases(config):
-        conn = store.get_connection(store.MySQLConfig(
-            host=config.host, port=config.port, user=config.user, password=config.password,
-            database=entry["name"]), ensure_schema=False)
+    for name, conn in store.galaxy_connections(config):
         try:
-            try:
-                seed = store.get_galaxy_seed(conn)
-            except Exception as exc:  # noqa: BLE001 -- not a planetGen database, or older than v51
-                log.swallowed("cli/version_history", "_galaxy_databases", exc)
-                seed = None
-        finally:
-            conn.close()
-        found.append((entry["name"], seed))
+            seed = store.get_galaxy_seed(conn)
+        except Exception as exc:  # noqa: BLE001 -- not a planetGen database, or older than v51
+            log.swallowed("cli/version_history", "_galaxy_databases", exc)
+            seed = None
+        found.append((name, seed))
     return found
 
 

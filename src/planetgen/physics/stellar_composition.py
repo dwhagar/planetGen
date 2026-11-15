@@ -362,7 +362,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             point, detail["main_sequence_lifetime_gy"] = None, None
             open_items = (f"the isochrones are missing: {isochrones.DATASET.fallback}",)
         else:
-            track = alpha_tracks.track_fe_h(fe_h, age_gy)    # the track the star's own record reads (GEN.1024)
+            track = alpha_tracks.track_fe_h(fe_h, age_gy, mass_sol)    # the track the star's own record reads (GEN.1024, GEN.1623)
             point = isochrones.main_sequence_point(mass_sol, age_gy, track)
             detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, track)
             if point is None and tuning.IMF_BREAKS_SOL[0] <= mass_sol < tuning.MAIN_SEQUENCE_GRID_MASS_RANGE_SOL[0]:

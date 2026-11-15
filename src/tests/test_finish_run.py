@@ -41,10 +41,6 @@ def _cut(params):
                               {"name": params["name"]})
 
 
-def _prepare(params):
-    CALLS.append(("prepare", params["name"]))
-
-
 def _conclude(params, plan, results, seconds):
     CALLS.append(("conclude", params["name"]))
     return {"stage": params["name"], "units": len(results)}
@@ -55,7 +51,7 @@ def _commands(monkeypatch):
     for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
                  "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
-            kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), prepare=(__name__, "_prepare"),
+            kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"),
             conclude=(__name__, "_conclude")))
     monkeypatch.setitem(commands.REGISTRY, "plain", commands.CommandSpec(
         "plain", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut")))
@@ -102,8 +98,8 @@ def test_a_run_stopped_in_its_second_stage_is_carried_on_from_there(conn):
     assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None]
     assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, True, None]
     new_id = _run(found.steps, finishes=run_id)
-    assert CALLS == [("prepare", "second"), ("unit", "second", 0), ("unit", "second", 1), ("conclude", "second"),
-                     ("prepare", "third"), ("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")], CALLS
+    assert CALLS == [("unit", "second", 0), ("unit", "second", 1), ("conclude", "second"),
+                     ("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")], CALLS
     new = runrecord.read_run(conn, new_id)
     assert new["state"] == "done" and new["finishes"] == run_id and new["galaxy_seed"] == SEED and new["build"] == BUILD
     assert [stage["units"] for stage in new["stages"]] == [0, 2, 2]
@@ -130,7 +126,7 @@ def test_a_finish_that_stops_is_finished_in_turn(conn):
     assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [third, third, None]
     assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True]
     done = _run(found.steps, finishes=third)
-    assert CALLS == [("prepare", "third"), ("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")]
+    assert CALLS == [("unit", "third", 0), ("unit", "third", 1), ("conclude", "third")]
     assert runrecord.read_run(conn, done)["state"] == "done"
 
 

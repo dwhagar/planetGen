@@ -150,9 +150,9 @@ def test_the_ratings_block_of_a_generated_body_equals_the_stored_scores():
 
 
 def test_no_quantity_in_the_describer_is_written_with_a_raw_format():
-    """A score or a share may be written to a fixed number of places; a physical quantity goes through the ladders."""
+    """A score, a share or a ratio of two amounts (a pure number) may be written to a fixed number of places; a physical quantity goes through the ladders."""
     root = Path(planetgen.__file__).parent
-    allowed = ("score", "overall", "share")
+    allowed = ("score", "overall", "share", "ratio")
     raw = re.compile(r":[,]?\.\d+[fgeE]|toFixed")
     offenders = []
     for path in [*sorted((root / "describe").glob("*.py")), root / "physics" / "protection.py"]:

@@ -45,8 +45,7 @@ class CommandSpec:
     would otherwise work out for itself. A command with no `unit` is inline.
 
     The work a stage does that is not a unit (PERF.172) is a hook of its command, run by whichever process starts or
-    ends the stage, and a failure in one fails the run: `prepare(params)` is called once when the stage opens, before
-    it is cut (empties the rows the stage is about to rewrite, say), and `conclude(params, plan, results, seconds)`
+    ends the stage, and a failure in one fails the run: `conclude(params, plan, results, seconds)`
     once when its last unit is done, before the next stage is cut (stores what the stage drew as a whole); it returns a
     JSON-able dict the process following the run reads (`wrapper.run`'s `on_stage_done`). The unit that completes
     the stage calls `conclude`; a cut that gives no unit at all is concluded by the process that cut it
@@ -74,7 +73,6 @@ class CommandSpec:
     expand: tuple = None
     finish: tuple = None
     warm: tuple = None
-    prepare: tuple = None
     conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
@@ -169,6 +167,7 @@ REGISTRY = _commands(
                 pieces=("planetgen.generation.run_galaxy", "backfill_pieces"), do=("planetgen.generation.run_galaxy", "backfill_do"),
                 gather=("planetgen.generation.run_galaxy", "backfill_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars"),
+                conclude=("planetgen.generation.run_galaxy", "conclude_backfill"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=12),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",
@@ -566,7 +565,7 @@ def gather_function(kind):
 
 
 def _hook(kind, name):
-    """The optional function `name` (`warm`, `finish`, `prepare`, `conclude`) of command `kind`, or `None`."""
+    """The optional function `name` (`warm`, `finish`, `conclude`) of command `kind`, or `None`."""
     pair = getattr(REGISTRY[kind], name)
     return None if pair is None else _function(pair)
 
@@ -589,15 +588,6 @@ def finish_function(kind):
         KeyError: No such command.
     """
     return _hook(kind, "finish")
-
-
-def prepare_function(kind):
-    """The function called once when a stage of `kind` opens, before it is cut, or `None` (`CommandSpec.prepare`).
-
-    Raises:
-        KeyError: No such command.
-    """
-    return _hook(kind, "prepare")
 
 
 def conclude_function(kind):

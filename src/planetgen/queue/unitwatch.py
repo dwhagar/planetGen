@@ -1,7 +1,7 @@
 # planetgen/queue/unitwatch.py
 
 """
-The follower's side of the unit heartbeat (OPS.138): at every poll the process that started a run reads the beat of each unit running in the stage it follows
+The watcher's side of the unit heartbeat (OPS.138): at every turn the supervisor (OPS.208: it was the process that started the run) reads the beat of each unit running in the stage it follows
 (`unitbeat.read`, written by the horse, OPS.136), has `beatjudge.judge` say what each is doing, logs **each change of state once**, and keeps the verdicts where a page
 can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/units`).
 
@@ -10,7 +10,7 @@ can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/un
 * **Acting needs two checks in a row** (`beatjudge.agreed`): `UnitWatch.agreed()` lists the units whose last two checks both say dead or quiet, which is what the stuck action
   (OPS.140) takes. A unit whose counter moves is never in it.
 * **Stuck units are acted on** by `unitstuck.Stuck` (OPS.140): dumped, stopped, queued again once, then the run fails.
-* **Only this process judges.** The process that only watches a run (`wrapper.follow`) does not make a watch, so two processes never log the same change twice.
+* **Only the supervisor judges** (OPS.208: `supervisor.RunWatches`), one process per host, so two processes never log the same change twice, and a run whose starter is gone is judged all the same.
 
     watch = unitwatch.UnitWatch(conn, run_id, stage, kind)
     watch.check()                  # at every poll: {unit: Verdict}
