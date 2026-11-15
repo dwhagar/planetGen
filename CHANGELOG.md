@@ -2,6 +2,268 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4281] - 2026-11-15
+
+**Headline:** the mass conversions that had been written by hand again go through the unit registry, and the mass-conversion test and the profile-claim test pass again.
+
+### Fixed
+
+- TEST.762: 18 hand-written divides and multiplies by the mass of the Sun or Earth (`x / SOLAR_MASS_TO_KG`, `x / EARTH_MASS_TO_KG`, `x * SOLAR_MASS_TO_KG`) in describe, galaxy, generation and physics modules now call `unit_registry.converter`, which gives the same bits (`test_the_converters_are_bit_for_bit_the_hand_multiply_and_divide`). Two sites sit inside a longer product or are a ratio of constants (`disk_drift`, `late_supply`) and stay on the allowance list, which now names them.
+- TEST.764: `test_every_change_is_logged_and_kept_for_the_queue_page` expected "1,000 MB" where the log says "1 GB"; the test builds the text with `format_megabytes`, as the log does.
+generation-output: unchanged
+
+## [8.0.4280] - 2026-11-15
+
+**Headline:** The reason a hycean ocean has no thin-sea tide is written down and a test pins it.
+
+### Changed
+
+- GEN.1609: `physics/ocean_tides.compute` gives a hycean ocean no tide because the formula and its loading factor are for a thin layer on the surface, and a hycean ocean lies hundreds of kilometres deep under a hydrogen envelope (the fluid Love numbers of GEN.1035 are what it needs). The module text says so and `test_a_hycean_ocean_has_no_thin_sea_tide_by_design` pins it. No stored value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4279] - 2026-11-15
+
+**Headline:** Moon generation stops a full disk at the call's own rejection limit, the same limit the too-large moons use.
+
+### Changed
+
+- GEN.1599: `physics/planets.generate_moons` counted the disk-full rejections against the module's `MOON_REJECTION_LIMIT` and the too-large ones against the call's `rejection_limit`. Both now stop at the call's `rejection_limit`. Nothing stored changes: a disk exists only round a giant, whose limit is the same number. A test pins the one limit.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4278] - 2026-11-15
+
+**Headline:** A job-engine unit that is stopped part way and run again starts after the pieces it finished, and gives the result an undisturbed unit gives.
+
+### Added
+- `ctx.commit()` stores the number of pieces the unit has finished and what each returned, in the transaction that holds the data and fences the attempt (`ledger.commit_item`; the table `engine_piece_results`, schema v263). The engine checkpoints after every piece.
+- A command that says `resumes` (`CommandSpec`) starts a later attempt at `pieces(args, cursor)` and hands `gather` the stored results beside the new ones. Ten commands say so: the three star scatters, the phenomenon scatter, the backfill, the run's block refresh, the map luminosity fill, the nebula field draw, link-neighbors and settle-sector-paths. The others start from their first piece, as before, and a test lists each with why.
+- `tests/test_checkpoints.py`: a unit killed at each of its pieces, run again, does the pieces left and gives the undisturbed result with no row written twice (a synthetic command, and the map luminosity fill on a real galaxy); every command with pieces is audited.
+
+### Changed
+- A new attempt of a job keeps the cursor of the one before it (`ledger.begin_attempt` no longer clears it).
+- A piece's result goes through JSON before the unit keeps it, so a resumed unit and an undisturbed one hand `gather` the same kinds of value.
+
+## [8.0.4277] - 2026-11-15
+
+**Headline:** The work-units galaxy test has the hour it needs, so the suite's 900 seconds no longer ends it.
+
+### Changed
+
+- TEST.763: `test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units` runs a whole 36-sector galaxy through the real queue (21 min 12 s on a 4-core lane box), and the suite's default 900 seconds with the hang guard (TEST.621) ended it with no assertion. It now carries its own `pytest.mark.timeout(3600)`, as `test_sky_hyg_calibration` and `test_prevalence_life_census` do. Test only.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4276] - 2026-11-15
+
+**Headline:** The supervisor's watch no longer opens a database connection on every beat to ask the job profile for a kind it has too few samples of.
+
+### Changed
+- PERF.269: `profiletime.unit_seconds` kept a figure for the run but not the answer 'too few samples', so the heartbeat's judge read the profile table through a new control connection on each beat (457 connections in a 130 s run; 10 of the 14 s they cost was building the SSL context). The answer 'nothing yet' is now kept for `NO_FIGURE_RECHECK_SECONDS` (30 s) and then asked again, so a kind still picks its figure up once the run's own units add the samples. Nothing a run computes changes.
+
+## [8.0.4275] - 2026-11-15
+
+**Headline:** The queue's comment and the API reference say "canceled", like the rest of the program.
+
+### Fixed
+- `queue/runrecord.py` (a comment) and `docs/reference/api.md` (the list of attempt states) said "cancelled"; the spelling sweep writes "canceled". Wording only.
+
+## [8.0.4274] - 2026-11-15
+
+**Headline:** The asteroid vocabulary says "oxidizing" and "oxidized", like the rest of the program.
+
+### Fixed
+- `physics/asteroid_vocabulary.py`: the text of the supergene and hematite names used the British "oxidising" and "OXIDISED"; the spelling sweep writes them "oxidizing" and "OXIDIZED". The name of the constant changed with it.
+
+## [8.0.4273] - 2026-11-15
+
+**Headline:** A belt body made a planet no longer lies past the orbit the place's passing stars let a planet keep.
+
+### Fixed
+- `belt_planets.promote` checked a promoted member's reach against the star's stable limit only, so in a dense place (a core or a cluster, where the survival limit of GEN.325 is a few AU) a promoted belt planet could lie past the limit the ordinary planets keep. It now uses the same ceiling as the planet slots (`StarSystem._orbit_ceiling_au`). In the Sun's neighbourhood the limit is hundreds of AU and nothing changes.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4272] - 2026-11-15
+
+**Headline:** The comet range test follows GEN.1608: a comet whose class moved with its period keeps the eccentricity range of the class it was drawn as.
+
+### Changed
+- `test_comet_data` allows a comet's eccentricity to lie in the range of the class it was drawn as (a long-period comet under 200 years is Halley-type, one over it from the other two is long-period).
+
+## [8.0.4271] - 2026-11-15
+
+**Headline:** Two belt tests now read what the generator reads: a promoted belt body's strength from its water and other ices together, and a belt's inner edge in the spacing rule.
+
+### Changed
+- `test_belt_planets` asks the roundness of a promoted body with its water and other ices together (as the belt's own status does), not with the other ices alone.
+- `test_secular_exchange_generation` builds its stand-in belts with the `lower_limit` the spacing rule reads since GEN.1592.
+
+## [8.0.4270] - 2026-11-15
+
+**Headline:** A cool giant with a carbon-rich envelope no longer stops a galaxy run with "an abundance must not be negative".
+
+### Fixed
+
+- The clouds of a giant's layer (`mixture_giant.remove_clouds`) took the oxygen the oxides bind off a budget whose carbon and oxygen had been re-split to a high carbon to oxygen ratio (`element_budget`), so a metal-rich envelope at a cool layer was left a negative oxygen and the equilibrium refused it (`test_db_column_round_trip`, Train 31). The oxides now bind at most the oxygen the gas has. It showed only once GEN.1717 gave such a giant its true, cooler 1 bar temperature (the table had given it thousands of kelvin, above every condensation). No value changes where the oxygen was enough.
+
+## [8.0.4269] - 2026-11-15
+
+**Headline:** The generator can now say how thick the ice and the snow on a world's water are, so the light that gets through a frozen ocean or lake can be worked out for a real world.
+
+### Added
+- GEN.1728: `physics/ice_growth.py` gives the ice and the snow on a world's water from its mean surface temperature, the swing of its year, the starlight it absorbs and the heat the water gives up: the ice a freezing season grows (Stefan's law with the snow and the air in the way, the freezing degree days of the year in closed form), the thickness of a lid that never thaws (a heat balance against the water's flux and the wear of the surface, 2.9 m in the Arctic standard case against the 2.88 m of the model it comes from), and the snow of the year (the Earth's share of the starlight that goes into the water cycle, about two thirds of it kept as on the Arctic ice). Stand-ins IG1 to IG8 in section 6.298 of the gap plan; design note `docs/design/habitability/ice-and-snow-growth.md`.
+
+### Changed
+- `continental_weathering.latent_j_m3` is the latent heat of its energy limit, factored out of `runoff_m_yr` with the same value. Nothing reads the new law yet (the refuge term of GEN.1723 will): no body, no stored value and no page changes.
+
+## [8.0.4268] - 2026-11-15
+
+**Headline:** Life on a cold or hot world can now carry a cold or heat adaptation: a table of how life widens where it can live (ice, rock, crust, salt, hot springs) is in the data, and the two new traits are drawn and shown.
+
+### Added
+- GEN.1725: `physics/data/life_adaptations.json` and `physics/life_adaptations.py` hold 36 adaptations of life to cold, heat, dryness, salt and dim light from the GEN.1724 research (the climate, the life that carries it, the axis and the limit at the tolerant and extreme grades, the stage the life must have reached, the habitat it opens, source, tier and tweak). At the extreme grade for an oxygen-making class the table reaches the measured edges: 253 K (lichen, -20 C), 346 K (cyanobacteria), 0.04 umol photons m-2 s-1 under the Arctic pack, 75 hours of liquid water a year, a root 68 m deep. Stand-ins AD1 to AD7 in section 6.294 of the gap plan; design note `docs/design/habitability/life-adaptations.md`.
+- Two adaptation traits, cold and heat, join GEN.876's three: a body whose mean surface temperature is past the ordinary limit of an oxygen-making life (under 273 K or over 313 K) draws the trait with the same law as the others (chance 0.8 times the score, extreme with chance 0.5 times the score squared), stores it in `life_traits` (`cold:3`) and the object page shows "cold (extreme)". They come last in the draw order, so every body's radiation, sulfide and carbon dioxide traits are what they were.
+
+### Changed
+- Nothing reads the new traits yet: the scores of the habitability index and the life classes are unchanged. The refuge gate of GEN.1723 will read `adaptation_traits.limit`; widening the class 1 gate waits for it.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4267] - 2026-11-15
+
+**Headline:** The desert-interior test builds its tier row with all six dials.
+
+### Changed
+
+- GEN.1721, GEN.1720: `test_class_m_tier_desert.py` set a tier row of five dials (the sixth, `cycle_share`, came with GEN.1720); it now sets six, with the carbon cycle dial at 0. Test only.
+
+## [8.0.4266] - 2026-11-15
+
+**Headline:** A Class M abundance tier now gives its desert worlds small living seas and gives half of its candidates quiet volcanoes.
+
+### Added
+- **Desert seas (GEN.1721, second slice; Boss, card of 9:49 PM EST 2026-11-14: "both, small seas first").** Under a tier other than Science, a desert world (the dry part of the water dial) draws its water inside the part of the dry class that leaves a few small seas (`tuning.ABUNDANCE_DESERT_WATER_RANGE`), and its small sea is an ordinary salt sea that life can start in, not the concentrated brine so little water makes on any other world (`abundance_tier.desert_sea`, `hydrosphere.salts_concentrated`). On every other world a brine seep is what it was. Registry row 6.289:AT7.
+- **Quiet interiors (Boss, 9:43 PM EST 2026-11-14: "tweak the volcanic activity a bit").** A fifth dial, `quiet_share` (0 on Sparse, 0.5 on the other tiers): the share of the rocky planets in the ecosphere drawn with a quiet interior, whose volcanic gases take a third of the oxygen a body of the same heat loses (`tuning.ABUNDANCE_QUIET_SINK_FACTOR`, the low end of Earth's own published range). One draw per candidate under a tier. Registry row 6.289:AT6.
+- **Design:** `docs/design/habitability/class-m-abundance-tiers.md` sections 3, 6 and 8.
+
+Science is untouched: every dial is 0 there, no draw is made, no planet holds a new field and the golden systems are byte for byte the same (no generator epoch, no migration). Desert worlds stay rare until the land plants of GEN.1729: the oxygen law counts the open sea alone, so a world with under 20 percent sea reaches breathable oxygen only when it is warm, bright and quiet inside.
+
+Reuse: the envelope dial's draw point in `Planet._draw_body`, the water dial's class and pin (`delivered_water.dialed_class`, `body._water_dialed`), `hydrosphere.ocean_class` and `biogenic_oxygen.reductant_flux` unchanged for every other body; the oxygen source law is not touched.
+
+generation-affects: none
+
+## [8.0.4265] - 2026-11-15
+
+**Headline:** A Class M abundance tier now draws the carbon cycle of its Earth-shaped planets from the part of the published ranges that keeps their CO2 where life can use it.
+
+### Added
+- **The carbon-cycle dial (GEN.1720; Boss, 11:58 PM EST 2026-11-14: "recommendation approved").** A sixth dial, `cycle_share` (0.5 on Sparse, 1 on the other tiers): the share of rocky planets in the ecosphere that draw the exponent of the heat flow in the volcanic outgassing (published 1 to 2) from 1 to 1.25 and the factor of the weathering law's thermodynamic limit (published a tenth to ten) from 0.1 to 1. The balance of the carbon cycle goes as the outgassing to about the fifth power, so over the whole ranges most Earth-shaped planets hold under 2 Pa or over 100 kPa of CO2 and few the 2 Pa to 1 kPa the life classes ask for; in the narrower ranges a planet with a heat flow of 0.6 to 2 times the Earth's holds CO2 inside that band at an Earth-like temperature. The dial moves the draw of two constants and conditions nothing on the CO2 that follows. One draw per candidate under a tier. Registry row 6.289:AT8; `tuning.ABUNDANCE_TIER_DIALS` rows are now six values.
+- **Attribution:** `reports/gen1720-co2-attribution-2026-11-14.md` (GEN.1713 is a minor part; the snow line fix and the reshuffled draws of GEN.1646 moved the population and the warm end).
+
+Science is untouched: its dial is 0, no draw is made, no body holds a new field. The nudge is rolled on a stream of its own (seeded from the run stream's state, which it does not move), so a tier's body draws the two constants from the ambient stream as Science does and nothing else of it (the air recipe, the sulfur lifetimes, the seafloor law) is reshuffled (the first form took one ambient draw and moved them; found by the Class M tiers meter, Edabihion VIII).
+
+Reuse: `continental_weathering.draw_cycle` and `mixture_base.bracket` (the constants are drawn and recorded as they were), `abundance_tier.candidate`, the dial table and its helpers of GEN.1704.
+
+generation-output: changed (a tier other than Science only)
+generation-affects: none
+
+## [8.0.4264] - 2026-11-15
+
+**Headline:** An air that is still creeping toward an ice-albedo snowball when its 60 steps run out is given the steps to get there, instead of being stored as unsettled.
+
+### Changed
+
+- GEN.1718 part 2: `surface_air.solve` gives a fixed point that reaches `MAX_STEPS` with its last eight temperature residuals all of one sign (`_creeps`) one more `CREEP_EXTENSION` of 60 steps, with its damping restored to `DAMPING`. A swing early in the solve halves the damping to its floor of 0.05; an ice-albedo creep after it (the answers fall and the ice grows) then moved 5 percent of the residual a step and had not arrived in 60 (key 175 on the first Train 30 head: 236 K to 202 K, unsettled). On the Train 30 head ba4a3515a1, of 500 seeded keys (0 to 499) 14 were stored unsettled (ten of them no steady state, kept by the rule of GEN.1718 part 1, and unchanged); keys 81 and 276 are creeps and now settle (at 187 and 231 K). A solve that settles inside 60 steps, a giant, and an air whose root find found no steady state are not touched: 498 of 500 keys are identical. Keys 128 (a runaway at 950 K) and 194 (273 K) stay unsettled: they are not creeps.
+- The new settings, `CREEP_STEPS` and `CREEP_EXTENSION`, are solver settings (GEN.1718), not physical values.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4263] - 2026-11-15
+
+**Headline:** The test of the extended solve steps names the airs that creep on the refitted greenhouse table.
+
+### Changed
+
+- GEN.1718 part 2: the refit of the greenhouse table (6612) moved the star-and-air draws so that keys 81 and 276 settle inside 60 steps; `CREEP_KEYS` of `test_surface_air.py` now lists keys 274 and 387 (66 to 79 steps, from a scan of keys 0 to 499 on the Train 31 head, where five keys settle after `MAX_STEPS`). Test only; the solver is unchanged.
+
+## [8.0.4262] - 2026-11-15
+
+**Headline:** The greenhouse of a planet under a hydrogen envelope, and of a giant, is read much closer to the model it stands for: the table was on average 20 percent off the model on those airs (a 90th percentile of 62 percent), and is now 3 percent (17 percent).
+
+### Fixed
+
+- **GEN.1717 B: the greenhouse table is refitted on the airs of hydrogen envelopes and giants.** The fitted table that stands for `radiative_convective` (`greenhouse_table.json`, GEN.850) had never seen the air a planet under a few percent hydrogen makes at its 1 bar reference level (hydrogen and helium with several percent of water, carbon monoxide, methane and ammonia), so it read 2,900 K where the model gives 1,200 K for a 5 Earth-mass core at 0.5 AU, and the same value for envelopes of 2 to 20 percent. `scripts/fit_greenhouse_table.py envelope` collects the generator's own envelope and giant airs (800 bodies, 4,528 airs with perturbed copies), `solve` asks the model about them (1,728 solved), and `fit --start --distill` refits from the file in the repository with the airs it had been right on held at its own answers (4,200 designed airs, 12,710 airs of 200 generated systems, 2,000 copies of the airs the tests hold it to, 5,000 temperate wet airs, 12,240 hot rocky airs so that a Venus twin stays a steam world). On 397 envelope and giant airs the fit never saw: median error 20 to 3.1 percent, 90th percentile 62 to 17, 99th percentile 183 to 37. On 1,446 cool airs of today's generator the table is as before (median 1.7 against 1.6 percent). The file states both (`summary.validation`, `summary.envelope_validation`), the tests hold it to them.
+- **GEN.1717 A: a body with no ground deposits the starlight its own gases take where they take it.** `starlight_aloft` reads the near-infrared bands of the air's water, methane, ammonia and collision-induced hydrogen from the same k-tables (stand-ins SA1 to SA3, section 6.296 of the gap-filling plan) and `surface_air.solve` passes the share and its pressure to the greenhouse with the haze's. A 5 Earth-mass core under a hydrogen envelope takes 39 percent aloft near 1 kPa; the 1 bar temperature of the model falls 3 to 5 percent for it (1,218 to 1,178 K at 0.5 AU), because the layers under the tropopause are convective and where the light lands matters little there; Jupiter's air takes 26 percent and its 1 bar temperature falls 5 percent.
+- `fit_greenhouse_table.py` can fit the table to airs stripped of their minor gases as `greenhouse_table.strip_traces` does at runtime (GEN.1588), so the network is asked at runtime about the airs it was fitted on.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4261] - 2026-11-15
+
+**Headline:** A comet's period class now agrees with its orbit across the 200-year line that makes it periodic.
+
+### Changed
+- GEN.1608 (bug): the period class of an elliptical comet is drawn before its orbit, and the orbit is drawn from eccentricity ranges (cut by the star's orbit ceiling), so a comet drawn `long_period` could have a period of tens of years and get the periodic `P/` designation, which reads the real period. `comet.period_class_of` now moves the class to follow the period across `PERIODIC_COMET_MAX_PERIOD_YEARS` (a `long_period` comet under 200 years is `halley_type`; a `jupiter_family` or `halley_type` comet at 200 years or over is `long_period`), before the nucleus makeup is drawn, so the ices follow the class it ends with. No draw is added or removed. In a run of 1,500 elliptical comets about 10 percent change class (148 for a Sun-like star with no ceiling, 322 for a 0.2 solar-mass host with a 20 AU ceiling); their stored class and nucleus makeup move.
+- `tests/test_comet_period_class.py`: the rule for each case, and a census that a drawn comet is `long_period` exactly when it is not periodic and that its designation agrees.
+
+generation-output: changed
+generation-affects: fill
+TODO items resolved: GEN.1608
+
+## [8.0.4260] - 2026-11-15
+
+**Headline:** A wide asteroid belt is now kept clear of the planet inside it by its inner edge, not only by its center.
+
+### Changed
+- GEN.1592 (bug): `validation.space_orbits` and `belt_needs_pushing` tested a belt's spacing from the planet or belt inside it by the belt's center (`distance`), while `check_orbit_spacing` holds it to its inner edge (`lower_limit`). A wide belt whose center cleared the keep-out zone but whose lower limit lay inside it was not pushed. The spacing pass and the secular exchange now measure a belt from its `lower_limit`, the same edge the check uses; a belt that moves keeps its width. Belts that were inside the keep-out zone now sit outside it, so the stored belt limits of those systems move. `tests/test_validation.py` pins a wide belt with a clear center and an inside edge (red before, green after) and a belt whose edge clears (not moved).
+
+generation-output: changed
+generation-affects: fill
+TODO items resolved: GEN.1592
+
+## [8.0.4259] - 2026-11-15
+
+**Headline:** The cosmogenic isotopes of a planet's surface (10Be, 26Al) are now made with the planet's magnetic field, which the first record was made without.
+
+### Changed
+- GEN.1544: the isotope record is first made with the air (`planets.calculate_atmospheric_conditions`), before `magnetism.generate_field` draws the dipole, but the surface cosmogenic rows (GEN.1489) are cut by the dipole moment. A planet or moon with a field stored rows made as if it had none until the final-age pass ran them again. `generate_spin` now makes the record again right after the field (own streams, no draw of the run's moves). Planets with a field store smaller 10Be and 26Al surface amounts, by up to the field factor (about 0.59 for an Earth-size dipole). `tests/test_isotope_record.py` pins a planet with a field: its stored record is the one the finished body gives.
+
+generation-output: changed
+generation-affects: fill
+TODO items resolved: GEN.1544
+
+## [8.0.4258] - 2026-11-15
+
+**Headline:** Each of the 84 old asteroid component names now has a host mineral in a primitive body's mix or is tagged vocabulary-only, and a belt records the names its minerals can carry.
+
+### Added
+- **Asteroid vocabulary hosts (GEN.1369, `physics/asteroid_vocabulary.py`).** Every name of the old `tuning.ASTEROID_COMPONENTS` list is either hosted (the platinum-group elements and gold in kamacite and taenite, the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides) or vocabulary-only with the setting that forms it and the item that builds it (magmatic sulfide ores, carbonatites and pegmatites, supergene zones, evaporites, igneous crusts). The host table is a recalled stand-in (section 6.214, ACV1). A test enforces both lists and that every key the mixes use is a row id and not an alias.
+
+### Changed
+- A belt's stored makeup detail gains `hosted`: the vocabulary names its mixes can carry, each with its largest host row. No mass is drawn for them, so the shares, porosities and densities are unchanged; the stored belt detail moves, so the next epoch is needed.
+
+generation-output: changed
+TODO items resolved: GEN.1369
+
+## [8.0.4257] - 2026-11-15
+
+**Headline:** A law for the light that reaches the water under ice and snow now exists (`physics/ice_light.py`), so the oxygen that life makes under a frozen lid can be counted by the light that gets through.
+
+### Added
+- GEN.1726: `ice_light.transmission` gives the share of the photosynthetic light that reaches the water under a lid, `(1 - albedo) exp(-k_ice h_ice) exp(-k_snow h_snow)`, with coefficients from measurements under Antarctic pack ice, Arctic first-year ice and a perennially ice-covered lake (sea ice k 1.26 per metre, clear lake ice 0.32, snow 30; bare sea ice albedo 0.6, snow 0.9). It reproduces Lake A (8.5 percent against 5.7 to 6.6 measured) and the under-0.1-percent of spring pack ice. `thickest_ice_m` and `deepest_snow_m` give the lid that still passes a given share of the light (about 6.6 m of sea ice for one part in ten thousand). Registered as stand-ins IL1 to IL6 in section 6.293 of the gap plan; design note `docs/design/habitability/light-through-ice.md`. Nothing reads it yet: the oxygen under ice is GEN.1723, and the thickness of a world's ice and snow is an open gap.
+
+### Changed
+- `scripts/build_references.py` no longer carries a person's address: the contact it sends to Crossref's lookups is read from `PLANETGEN_REFERENCES_CONTACT` and is empty by default. Five papers added to the reference list (R5264 to R5268).
+
 ## [8.0.4256] - 2026-11-15
 
 **Headline:** three tests that expected a duration written one way now read it from the formatter the pages use.

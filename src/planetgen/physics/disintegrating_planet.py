@@ -155,7 +155,7 @@ def disintegrating(body, row):
     not changed (its mass is what is left); the effect declines a planet that the wind would already have used up over the star's age (`mass_loss_earth_per_gy` times the age
     at least its mass), which could not have come this far.
     """
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(body.mass)
     temperature_k = oddities.quantities_of(body).get("dayside_temperature_k")
     age_gy = getattr(getattr(body, "star", None), "age", None)
     if temperature_k is None or age_gy is None or not can_disintegrate(mass_earth, temperature_k, body.period * 365.25):

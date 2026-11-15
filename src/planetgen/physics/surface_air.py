@@ -45,9 +45,10 @@ from scipy.optimize import brentq
 from planetgen.physics import (
     ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
-    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
+    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
+from planetgen.generation import abundance_tier
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import bracket
@@ -77,6 +78,14 @@ DAMPING = 0.6
 one's (the solution has been overshot) has its share halved, down to `MIN_DAMPING`."""
 
 MIN_DAMPING = 0.05
+
+CREEP_STEPS = 8
+"""int: The last steps of the temperature residual read for a creep at the end of the fixed point (`_creeps`; a solver setting, GEN.1718): one sign, each over `TOLERANCE_K`."""
+
+CREEP_EXTENSION = MAX_STEPS
+"""int: The steps a fixed point that reaches `MAX_STEPS` still creeping in one direction is given once, with its damping restored to `DAMPING` (a solver setting, GEN.1718). A swing early in the solve
+halves the damping to `MIN_DAMPING`; an ice-albedo creep after it (the answers fall and the ice grows, one sign for dozens of steps) then moves 5 percent of the residual a step and had not reached its
+snowball in `MAX_STEPS` (key 175 on the first Train 30 head: 236 K to 202 K in 60 steps, not settled). A solve that settles inside `MAX_STEPS` is not touched, nor is one whose root find found no steady state (`jump_found`: the stored air is the one just above the jump)."""
 
 SLIDING_WINDOW = 12
 """int: The last steps of an unsettled fixed point read for a chatter (GEN.1344): twelve steps hold whole cycles of two, three, four and six."""
@@ -247,6 +256,7 @@ class Setting:
             (`impact_history.impact_speed_ms`); `None` for a body with no star, which takes no late accretion (GEN.819).
         ice_kg (dict or None): The mass of each surface ice of `ICE_VAPOR_FORMULAS` the body holds (formula -> kg, from its `ice_<formula>_mass_fraction`), the reservoirs whose vapor the air carries (GEN.1675); `None` or empty for
             a body with none, a giant and a setting built by hand.
+        cycle_share (float): The share of bodies of its kind whose carbon-cycle constants a Class M abundance tier draws from the part of their ranges nearest the Earth's balance (`abundance_tier.cycle_share`, GEN.1720); 0 outside a tier.
         steam_possible (bool): Whether the body can hold its water as steam: its effective flux (the starlight and its own heat) is past the runaway
             greenhouse limit (`orbits.runaway_greenhouse_flux`, GEN.1329). Under the limit a hot steam air radiates the steam limit of about 280 W/m2, more
             than the body absorbs, and cools, so a body with water is held under `MOIST_LIMIT_K`. True for a setting built by hand, as it was before GEN.1329.
@@ -277,6 +287,7 @@ class Setting:
     steam_possible: bool = True
     late_accreted_percent: object = None
     ice_kg: object = None
+    cycle_share: float = 0.0
 
     def albedo_at(self, temperature_k, ocean=True):
         """The Bond albedo of the step at `temperature_k`: the ice law's (GEN.972) plus the cloud's (`cloud_albedo`, GEN.974, nil with no liquid ocean at the step), held under
@@ -567,6 +578,12 @@ def _step(damping, residual, history):
     return plain * min(MAX_GAIN, 1.0 / (1.0 - q))
 
 
+def _creeps(residuals):
+    """Whether the last `CREEP_STEPS` residuals of the temperature all have one sign and are over `TOLERANCE_K` (the iterate runs away from where it began in one direction, not round a fixed point: `_swings` is the other case)."""
+    last = residuals[-CREEP_STEPS:]
+    return len(last) == CREEP_STEPS and (all(r > TOLERANCE_K for r in last) or all(r < -TOLERANCE_K for r in last))
+
+
 def _swings(residuals):
     """Whether the last `SWING_STEPS` residuals of the temperature have both signs, each at least twice, and are not small (the iterate goes round the fixed point, whatever the period; a creep has one sign and a settling is small)."""
     last = residuals[-SWING_STEPS:]
@@ -792,7 +809,7 @@ def solve(setting, start_temperature_k):
     entry_state = draw.getstate()
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
-    cycle = continental_weathering.draw_cycle(design)
+    cycle = continental_weathering.draw_cycle(design, setting.cycle_share)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     water_world = water_world_of(setting, design)
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
@@ -899,8 +916,14 @@ def solve(setting, start_temperature_k):
         absorbed_w_m2 = setting.absorbed_flux_at(temperature, ocean)
         albedo_of_step = setting.albedo_at(temperature, ocean)
         radiated_w_m2 = absorbed_w_m2 + setting.internal_flux_w_m2
-        aloft_share = haze.absorbed_share * absorbed_w_m2 / radiated_w_m2
-        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, haze.pressure_pa)
+        aloft_share, aloft_pressure_pa = haze.absorbed_share, haze.pressure_pa
+        if setting.giant and absorbed_w_m2 > 0.0:
+            # GEN.1717: a body with no ground has no surface to take the starlight the air's own gases took on the way down (the near-infrared bands of its water, methane and
+            # ammonia), so that share is deposited where it was taken, with the haze's
+            taken = starlight_aloft.combine(aloft_share, aloft_pressure_pa, starlight_aloft.of_air(partials, setting.gravity_m_s2, setting.star_temperature_k, temperature))
+            aloft_share, aloft_pressure_pa = taken.share, taken.pressure_pa or aloft_pressure_pa
+        aloft_share = aloft_share * absorbed_w_m2 / radiated_w_m2
+        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, aloft_pressure_pa)
         # GEN.1580: the surface stops where the air's main gas is half ionized at its pressure (`ionization.ceiling_k`), a limit no generated body should reach
         ceiling_of_step = ionization.ceiling_k(partials, new_pressure)
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), ceiling_of_step)
@@ -967,6 +990,7 @@ def solve(setting, start_temperature_k):
     root_here = False        # the root find settled the air at this step: its residual is the step's own sub-K steps (`ROOT_RESIDUAL_K`), not `TOLERANCE_K`
     root_tries = 0
     step, step_limit = 0, MAX_STEPS
+    creep_extended = False
     while step < step_limit:
         step += 1
         root_here = False
@@ -1047,6 +1071,10 @@ def solve(setting, start_temperature_k):
         else:
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
+        if step >= step_limit and not creep_extended and not setting.giant and jump_found is None and _creeps(history[1]):
+            creep_extended = True        # GEN.1718: still creeping at the end: the damping a swing took away is given back, and the steps to reach the end of the creep
+            step_limit += CREEP_EXTENSION
+            damping = [DAMPING, DAMPING]
     jumped = False
     if jump_found is not None and not gave_up and not setting.giant and not (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)):
         # GEN.1718: the air does not settle and the answers cross its iterate with no steady state between them. It is stored by a stated rule: the air just above the jump, the side the
@@ -1206,4 +1234,4 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
         cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au),
         late_accreted_percent=getattr(body, "_late_accreted_percent", None),
-        ice_kg=None if giant else surface_ice_kg(body))
+        ice_kg=None if giant else surface_ice_kg(body), cycle_share=abundance_tier.cycle_share(body))

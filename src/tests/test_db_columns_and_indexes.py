@@ -60,6 +60,8 @@ PROSE_TEXT_COLUMNS = {
     ("galaxy_shape", "battery_cases"), ("version_key_history", "battery_cases"), ("version_key_history", "environment"),
     # OPS.181: a job's arguments and what it needs and makes as JSON lists, and the text of an attempt's error
     ("engine_jobs", "arguments"), ("engine_jobs", "needs"), ("engine_jobs", "makes"), ("engine_attempts", "error_text"),
+    # OPS.219: the JSON result of a finished piece of a job, kept so a unit that stopped starts after it
+    ("engine_piece_results", "result"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 

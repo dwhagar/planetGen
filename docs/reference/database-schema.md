@@ -2075,9 +2075,19 @@ Added in v261 (OPS.215). The galaxy's half of the job engine's ledger (the contr
 |---|---|---|---|
 | `job_id` | BIGINT UNSIGNED | NOT NULL | The id of the job's row in the control database's `engine_jobs` (no foreign key: the two are different databases). Primary key. |
 | `attempt` | INT UNSIGNED | NOT NULL | The number of the attempt the supervisor handed the job, written before the job starts. Default 0. |
-| `cursor_key` | VARCHAR(255) | NULL | The place the job has reached. |
+| `cursor_key` | VARCHAR(255) | NULL | The place the job has reached: the number of pieces it has finished, as text (OPS.219). A job run again starts after it (`ledger.resume_point`); a command that does not `resumes` stores none. |
 | `done_at` | DATETIME(6) | NULL | When the job's last commit ran; NULL until then. |
 | `updated_at` | DATETIME(6) | NOT NULL | The last commit of the job. |
+
+### `engine_piece_results`
+
+Added in v263 (OPS.219). What each finished piece of a job returned, in the galaxy the job writes to: one row for each piece that returned something (`ledger.commit_item`, in the transaction that stores the cursor in `engine_items` and the piece's data). A unit that stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`engine.run`), so its result is the one an undisturbed unit gives. Holds no galaxy data and is left out of the fingerprint and out of a galaxy reset.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `job_id` | BIGINT UNSIGNED | NOT NULL | The id of the job's row in the control database's `engine_jobs`. First in the primary key. |
+| `piece_index` | INT UNSIGNED | NOT NULL | The piece's place in the unit's own order, from 0. Second in the primary key. |
+| `result` | MEDIUMTEXT | NOT NULL | The piece's JSON-able result. |
 
 ### `body_numbers`
 
@@ -2716,6 +2726,10 @@ Migration 0260 adds three nullable columns to `rogue_planets`, at the end of the
 ### v261 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
 
 Migration 0261 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
+
+### v263 (OPS.219): `engine_piece_results`, what the finished pieces of a job returned
+
+Migration 0263 creates `engine_piece_results` (see the table section above). Nothing is backfilled: a unit of a command that `resumes` writes a row for each piece that returns something.
 
 ### v257 (DB.75): `body_numbers`, the body number each slot of a system has had
 

@@ -47,8 +47,7 @@ depth. A world's own star and orbit set the surface light, so these depths move 
 
 * The coefficients are for the Sun's spectrum. Ice absorbs least at 400 to 500 nm and more toward the red, so a red star's light falls faster under a lid.
 * The top 10 to 20 cm of sea ice attenuates more than the inside; it is folded into the albedo and the bulk k. Ice algae on the underside shade themselves (k 20 to 50); melt ponds let more through. Neither is counted.
-* **The thickness of the ice and the snow is not built.** No law gives the generator the ice a world's ocean wears or the snow on it (a growth law for the ice from the temperature and the snowfall). Until one
-  exists a caller must pass a thickness of its own. This is an open gap, filed with TODO.
+* The thickness of the ice and the snow is the growth law's: `physics/ice_growth.py` (GEN.1728, [ice-and-snow-growth.md](ice-and-snow-growth.md)) gives a world's lid from its mean surface temperature, the swing of its year and its starlight; this law only reads the thickness it is handed.
 
 ## 6. Reuse
 
