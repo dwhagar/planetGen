@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4272] - 2026-11-15
+
+**Headline:** The comet range test follows GEN.1608: a comet whose class moved with its period keeps the eccentricity range of the class it was drawn as.
+
+### Changed
+- `test_comet_data` allows a comet's eccentricity to lie in the range of the class it was drawn as (a long-period comet under 200 years is Halley-type, one over it from the other two is long-period).
+
 ## [8.0.4271] - 2026-11-15
 
 **Headline:** Two belt tests now read what the generator reads: a promoted belt body's strength from its water and other ices together, and a belt's inner edge in the spacing rule.
