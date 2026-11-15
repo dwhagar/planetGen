@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4216] - 2026-11-15
+
+**Headline:** The sky draw of a New galaxy run no longer waits in line: it runs as 16 units side by side, so one stage takes minutes of waiting instead of hours.
+
+### Fixed
+
+- OPS.253: the sky tiers of a bright-star backfill were drawn one observer cell at a time behind one lock, so a stage with several cells made no progress for hours while the rest of the workers waited. The draw is now cut into 16 units, each drawing its own share of the rows of every sphere (every cell of a sphere is in exactly one share), so nothing waits for anything; the spheres are recorded in the ledger when the stage ends. The stars, the cells' levels and the ledger come out the same as the one-at-a-time draw (census test), and a unit that stops goes on from its last batch. `sky_tier_draws` gains `part_index` and `part_count` (migration 0262).
+
 ## [8.0.4215] - 2026-11-15
 
 **Headline:** Oxygen-making life now lives on every world that has light and any liquid water at its surface, an open sea, a brine seep, a seasonal melt or a spring, so worlds without a wide sunlit ocean can keep photosynthetic life.
