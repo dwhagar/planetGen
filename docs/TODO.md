@@ -12459,7 +12459,7 @@ clears each one.
 
 - [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
   Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section H, with file:line, shape, risk and output impact). Same PR and epoch as GEN.1652.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1652. Related: GEN.1652.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02, folded into GEN.1745 slice 3 (Boss 11:25 AM EST: no class until the evolution is finished); moved from Lane 14, not started there. Prerequisites: none. Related: GEN.1652, GEN.1745.
   Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
   Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
   Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): apply_class is the last entry of PlanetaryObject's FINISH_STEPS (GEN.1652).
@@ -12847,24 +12847,55 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
   Filed by the TODO thread.
 
-- [ ] **TEST.761 (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only**
-  Lane 14, 7:52 AM EST 2026-11-15 (found during GEN.1152): four parity cases fail on main because the bound and rogue paths differ in two private attributes, _envelope_helium_y and _tidal_radius_km. Do: find whether the parity test should exclude private attributes or whether one path skips a step the other runs (rogue planets use the same generator, no star), and fix the real cause.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1152, TEST.760.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
   Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
   Filed by the TODO thread.
 
-- [ ] **GEN.1738 (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip**
-  Lane 16, 9:35 AM EST 2026-11-15 (OPS.219, PR #6632), and Lane 03 on the Train 31 gate: tests/test_db_column_round_trip.py fails while generating sectors when mixture_giant hands gas_equilibrium a negative abundance (src/planetgen/physics/gas_equilibrium.py raises). Do: find which giant step makes the negative share (a subtraction past zero, likely after Train 31's giant cloud oxygen bind, PR #6639), fix the cause there, not by clamping in gas_equilibrium, and add the failing seed as a test.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: none. Related: GEN.1717.
+- [ ] **GEN.1740 Research: a shock-to-kill law for mass extinctions, verifying the Raup 1991 kill curve**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: none. Related: GEN.1739, GEN.1746.
   Filed by the TODO thread.
 
-- [ ] **GEN.1739 Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database**
-  Boss, 10:42 AM EST 2026-11-15: research thread "Design planet air history simulation". Research and proposal only, nothing built until Boss picks an option; the build items get their own numbers from the TODO thread then. Coordinate with Lane 02 (GEN.1732) and Lane 03 so open air and life items are not stepped on.
-  Version 8.1 (research). Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: none. Related: GEN.1729, GEN.1732, GEN.1723, GEN.1465.
+- [ ] **GEN.1741 Research: the early envelope timeline, loss before envelope_escape's 1 Gyr onset and envelopes for 0.2 to 1 Earth mass bodies (Young 2023)**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: none. Related: GEN.1739, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1743 A balanced C, H, O, N, S reaction ledger for every life class with a balance test, replacing the life_ledger.json rows**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: GEN.1742. Related: GEN.1739, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1744 Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes)**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (biogenic_oxygen owner), lock item. Prerequisites: none. Related: GEN.1739, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1745 A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Boss, 11:25 AM EST 2026-11-15 (research thread): "NO class is assigned until the evolution is finished and we have a finished planet, this way we settle the planet after the physics not before." So nothing in the air history reads a class letter; the class is assigned once from the finished body after the last step; the in-between apply_class calls (generation/life.py 89 and 473, generation/system.py 2410 and 2419) go with this item, and forced requests judge only that final class (report section 5.8.1). Overlaps GEN.1653.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (owns surface_air and the carbon cycle), reviewed by the research thread "Design planet air history simulation"; after Train 32 (GEN.1729, GEN.1736); GEN.1732 becomes a step term if Boss approves it; lock item, migration number from TODO at merge. Prerequisites: GEN.1743, GEN.1741. Related: GEN.1739, GEN.1743.
+  Filed by the TODO thread.
+
+- [ ] **API.51 The life-air API and the page chart read the stored air history, every gas**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after its job engine items. Prerequisites: GEN.1745. Related: GEN.1739, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1746 Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page**
+  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1747 (bug) life_ledger.json and three source sites cite R3394 and R3395 (two 2018 aurora papers) for the photoferrotroph iron supply and Earth H2 outgassing; the paper meant is R3393 (Ozaki et al., primitive photosynthesis and Earth's early climate)**
+  Research thread "Design planet air history simulation", 11:32 AM EST 2026-11-15 (GEN.1742). Do: point the citations at R3393; fixed inside GEN.1743's ledger rewrite.
+  Version 8.1. Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation", with GEN.1743. Prerequisites: none. Related: GEN.1743, GEN.1742.
+  Filed by the TODO thread.
+
+- [ ] **OPS.262 Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget**
+  Lane 16, 11:43 AM EST 2026-11-15 (OPS.196 part 2): the silence budget test from OPS.196 covers the converted commands one at a time; a run of every command needs a built galaxy per command across many commands, so it is split out of OPS.196.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after OPS.196. Prerequisites: OPS.196. Related: OPS.196, OPS.191.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

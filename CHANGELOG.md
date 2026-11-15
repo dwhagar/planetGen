@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4285] - 2026-11-15
+
+**Headline:** A queue-commands test now expects the held run that a unit failing for good leaves since OPS.221.
+
+### Fixed
+- `test_queue_commands.py` expected the run of a failed unit to be `failed`; OPS.221 holds it for a person (`held`, with the unit in its error), so the test says that.
+
+generation-output: unchanged
+
+## [8.0.4284] - 2026-11-15
+
+**Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
+
+### Changed
+
+- OPS.196: `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes`, `clear-scatter`, `clean-nebula-field` and `reset-galaxy` give the engine `pieces` and `do` instead of a `unit` function. A clear's statements are a plan (`store.clear_bright_stars_plan`, `clear_bright_star_pass_plan`, `clear_phenomenon_scatter_plan`, `clear_nebula_field_plan`), one piece to a statement; the reset is one piece to a table and one to tidy after; the same plans are what `clear_*` and `wipe` run directly, so there is one list of the statements. Their results are unchanged.
+- `tests/test_commands_have_pieces.py` no longer has a list of commands still to convert: a command with a loop of its own fails. `tests/test_longest_silence.py` runs the commands of the last family under the unit beat and holds the longest stretch with no count, phase or statement moving to a budget.
+- `tests/test_long_sql_steps.py`: the clear tests were red on main (a new galaxy has nothing to clear since OPS.254 and OPS.257); they now say the galaxy holds something, and the reset test seeds a sector.
+
+## [8.0.4283] - 2026-11-15
+
+**Headline:** A unit run again after a passing failure goes on after the pieces it finished, and a test now proves it.
+
+### Changed
+- `commands.py` says that `pieces(args, cursor)` takes the ledger cursor, not 0.
+- `test_failure_kinds.py` fails a piece at the start, middle and end, and checks each finished piece is done once and the result is whole.
+
+generation-output: unchanged
+
 ## [8.0.4282] - 2026-11-15
 
 **Headline:** a planet that kept no envelope now carries the same private attributes as one that did, so a rogue and a bound planet of one mass have the same attributes again.

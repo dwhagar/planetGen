@@ -214,8 +214,13 @@ RESTARTS = {
     "run-population": "the first piece forgets every species for a rescan and the list is read from what the scan has done",
     "run-territories": "the pieces are read from the polities the earlier pieces changed",
     "generate-system": "two pieces that hand each other the system through ctx.state",
+    **dict.fromkeys(("clear-bright-stars", "empty-phenomenon-scatter", "empty-nebula-field"), "the look piece decides whether the pieces after it do anything, and a clear stopped before its last statement is done again in full (the TRUNCATE comes last)"),
+    "drop-phenomenon-indexes": "each piece drops an index only where the table still has it, and the whole is a few statements: run again from the first costs nothing",
+    "clear-scatter": "the first piece chooses the clear and hands it to the next through ctx.state",
+    "clean-nebula-field": "the pieces hand each other the clouds read and checked through ctx.state",
+    "reset-galaxy": "the facts of the tables and the foreign-key setting are read once for the unit, and a wipe stopped half way is run again whole",
 }
-"""dict: The commands with pieces that start from their first piece when run again, each with why (the family items OPS.203 to OPS.206 and the warm-ups and checks, which are short or read-only and restart cheaply, are listed by prefix below)."""
+"""dict: The commands with pieces that start from their first piece when run again, each with why (the warm-ups and checks, which are short or read-only and restart cheaply, are listed by prefix below)."""
 
 RESTART_PREFIXES = ("check-", "warm-", "end-map-rebuild")
 """tuple: Kinds that restart because a run again costs next to nothing (read-only checks) or only rebuilds a cache (warm-ups)."""
