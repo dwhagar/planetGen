@@ -39,6 +39,14 @@ def test_every_other_tier_has_a_row_of_four_shares_that_never_fall_from_one_tier
     assert targets == sorted(targets, reverse=True)
 
 
+def test_the_targets_run_from_one_in_500_to_one_in_10_in_even_log_steps():
+    targets = [abundance_tier.TARGET_SYSTEMS_PER_CLASS_M[tier] for tier in abundance_tier.TIERS[1:]]
+    assert targets[0] == 500 and targets[-1] == 10          # Boss, 9:28 and 9:30 PM EST 2026-11-14
+    step = (targets[0] / targets[-1]) ** (1.0 / (len(targets) - 1))
+    for lower, higher in zip(targets, targets[1:]):
+        assert abs(lower / higher / step - 1.0) < 0.02       # whole numbers, so even to within 2 percent
+
+
 def test_the_tier_is_not_saved_with_a_system_config():
     config = SystemConfig()
     config.ABUNDANCE_TIER = "abundant"

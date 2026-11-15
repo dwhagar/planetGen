@@ -303,8 +303,8 @@ ABUNDANCE_TIER_DIALS = {
 rocky planets in the ecosphere whose water class the tier gives, the share of them whose starting hydrogen envelope is taken as lost, and the share of
 systems given the request for a habitable world; GEN.1721: the part of the planets the water dial reaches that take the dry class, the water of a desert
 world, the rest taking Earth's, so the temperate world stays in front). `science`, the default, is not a row: it moves nothing. FIRST-PASS values from the estimates of
-reports/class-m-blue-levers-2026-11-14.md section 8, not yet calibrated by census (GEN.1706): the targets are 1 Class M world per 500, 100, 30 and 10
-Sun-like systems (Boss, 11:19 PM EST 2026-11-13). A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3 and AT5)."""
+reports/class-m-blue-levers-2026-11-14.md section 8, not yet calibrated by census (GEN.1706): the targets are 1 Class M world per 500, 135, 37 and 10
+Sun-like systems (Boss, 9:30 PM EST 2026-11-14). A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3 and AT5)."""
 
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies

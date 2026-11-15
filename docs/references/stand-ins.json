@@ -65761,7 +65761,7 @@
             ],
             [
               "Evidence",
-              "needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate"
+              "needed output: the two top targets (1 in 37, 1 in 10) are past what the water and envelope dials reach by the report's estimate"
             ]
           ],
           "id": "AT3",
@@ -65783,7 +65783,7 @@
           "fields": [
             [
               "What it is",
-              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
+              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
             ],
             [
               "The range it moves in",
@@ -65803,7 +65803,7 @@
             ],
             [
               "Evidence",
-              "Boss, card \"Set the target Class M rate of each tier\", 11:19 PM EST 2026-11-13; Sparse raised from 1,000 to 500 by Boss, 9:28 PM EST 2026-11-14"
+              "Boss, card \"Set the target Class M rate of each tier\", 11:19 PM EST 2026-11-13 (1,000, 100, 30, 10); replaced by Boss, 9:28 and 9:30 PM EST 2026-11-14: Sparse 1 in 500, Abundant 1 in 10, the rest split logarithmically"
             ]
           ],
           "id": "AT4",
@@ -65814,7 +65814,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": "GEN.1706",
-          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
+          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
         },
         {
           "burn_down": [

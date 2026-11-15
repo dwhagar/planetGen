@@ -12,8 +12,8 @@ the science its makers want its rocky planets in the ecosphere pushed toward Ear
 |---|---|
 | `science` (the default) | whatever the laws give: nothing is moved |
 | `sparse` | 1 in 500 |
-| `scattered` | 1 in 100 |
-| `plentiful` | 1 in 30 |
+| `scattered` | 1 in 135 |
+| `plentiful` | 1 in 37 |
 | `abundant` | 1 in 10 |
 
 A tier turns four dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
@@ -48,9 +48,10 @@ TIERS = ("science", "sparse", "scattered", "plentiful", "abundant")
 DEFAULT = TIERS[0]
 """str: The tier of a galaxy that was told none, and of work outside any galaxy."""
 
-TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "sparse": 500, "scattered": 100, "plentiful": 30, "abundant": 10}
-"""dict: Tier -> the Sun-like systems per Class M world its dial values are calibrated to (Boss, 11:19 PM EST 2026-11-13; `sparse` raised from 1 in 1,000
-to 1 in 500 by Boss, 9:28 PM EST 2026-11-14, after the laws alone measured 1 in 2,800); `None` for `science`, which has no target."""
+TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "sparse": 500, "scattered": 135, "plentiful": 37, "abundant": 10}
+"""dict: Tier -> the Sun-like systems per Class M world its dial values are calibrated to (Boss, 9:28 and 9:30 PM EST 2026-11-14, after the laws alone
+measured 1 in 2,800: `sparse` 1 in 500, `abundant` 1 in 10 and the two between split evenly on a log scale, each step about 3.7 times; they replace his
+first set of 1,000, 100, 30 and 10 of 11:19 PM EST 2026-11-13); `None` for `science`, which has no target."""
 
 Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part"])
 """The four dials of a tier, each a share from 0 (off) to 1."""

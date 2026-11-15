@@ -19,10 +19,10 @@ Nobody knows how common an Earth is. Earth may be one in a galaxy. So the rate i
 | Tier | Target, Class M worlds per Sun-like system | What it means |
 |---|---|---|
 | Science (the default) | none | Only the laws. Nothing is moved. |
-| Sparse | 1 in 500 | Raised from 1 in 1,000 by Boss, 9:28 PM EST 2026-11-14: the laws alone measured 1 in 2,800 on 2,800 Sun-like systems (`reports/train28-census-2026-11-14/meter2800.md`), and the tiers climb from there. |
-| Scattered | 1 in 100 | |
-| Plentiful | 1 in 30 | |
-| Abundant | 1 in 10 | |
+| Sparse | 1 in 500 | The bottom rung (Boss, 9:28 PM EST 2026-11-14): the laws alone measured 1 in 2,800 on 2,800 Sun-like systems (`reports/train28-census-2026-11-14/meter2800.md`). |
+| Scattered | 1 in 135 | |
+| Plentiful | 1 in 37 | |
+| Abundant | 1 in 10 | The top rung. The two between are split evenly on a log scale from Sparse to Abundant, each step about 3.7 times (Boss, 9:30 PM EST 2026-11-14). The first set was 1 in 1,000, 100, 30 and 10 (cards of 11:19 PM EST 2026-11-13). |
 
 A Sun-like system is one whose primary is a main-sequence star of type F7 to K2 (the sample of the report and of the meter).
 

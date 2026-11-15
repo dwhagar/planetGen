@@ -6,7 +6,7 @@
 - **Design:** `docs/design/habitability/class-m-abundance-tiers.md` section 8 (what stops each of the five classes and the dials still to build: groundwater, the early warm phase and hardier oxygen life).
 
 ### Changed
-- **Sparse now aims at 1 Class M world per 500 Sun-like systems** (was 1 per 1,000; Boss, 9:28 PM EST 2026-11-14). The laws alone measured 1 in 2,800 on 2,800 Sun-like systems, and the tiers climb from Sparse: 1 in 500, 100, 30 and 10. The target is what the dials are calibrated to (GEN.1706); no dial value moves with it.
+- **New tier targets (Boss, 9:28 and 9:30 PM EST 2026-11-14).** Sparse aims at 1 Class M world per 500 Sun-like systems, Scattered at 1 per 135, Plentiful at 1 per 37 and Abundant at 1 per 10 (were 1,000, 100, 30 and 10): Sparse and Abundant are the ends and the two between are split evenly on a log scale, each step about 3.7 times. The laws alone measured 1 in 2,800 on 2,800 Sun-like systems. A target is what the dials are calibrated to (GEN.1706); no dial value moves with it.
 - `delivered_water.drawn_for_earth` and the `earth` argument of `sample_fraction` are replaced by `dialed_class` and `dialed` (the class name); `body._water_dialed` holds the class name.
 
 Science is untouched: every dial is 0 there, no draw is made and the golden systems are byte for byte the same (no generator epoch, no migration). A dry planet is Class H only with groundwater and oxygen, which later slices of GEN.1721 address, so this slice alone makes desert-shaped planets, not yet many Class H worlds.
