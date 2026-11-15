@@ -12646,16 +12646,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-13): generation-order thread. Prerequisites: GEN.1680. Related: GEN.1683.
   Filed by the TODO thread.
 
-- [ ] **GEN.1691 Fold the generation and storage duplicates: two child-table lists, two block walkers, two tree readers, two _number helpers, a describe helper that hides bad data, and the belt and field member blocks built twice**
-  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (1) db/fingerprint.CHILD_TABLES vs admin/edits._BODY_CHILD_TABLES; (2) galaxy block_lights and block_stats vs chain_blocks and clear; (3) db read_member_tree vs read_stored_trees; (4) galaxy/sky_sphere and sky_sprites each define _number; (7) describe _tier_name returns an empty string on bad data instead of raising; (16) describe belt_member_info and field_member_info build the neighbour lambdas and the field block twice. Do: one of each, callers moved, names kept where a public name would break.
-  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
-  Filed by the TODO thread.
-
-- [ ] **UX.312 Fold the web duplicates: the neighbour ladder, two admin checks, shared nebula and remnant text, the life-air series lookup, the 3D map escape helpers and two star validators**
-  From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. (5) route_neighbours duplicates near.LADDER_PC; (6) _admin_or_redirect vs admin _require_admin; (8) classref _nebula and _supernova_remnant share the center fact text; (9) life_air_chart repeats SERIES.get per series; (10) galaxymap3d _escape and _json_script duplicate starmap's; (11) nearby._stars vs searchpage._valid_stars. Do: one of each, pages unchanged.
-  Version 8.1. Owner (TODO, 2026-11-13): Fable layered-scan thread, unless TODO routes it to a lane. Lock-free. Prerequisites: none. Related: GEN.1671.
-  Filed by the TODO thread.
-
 - [ ] **API.48 API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging**
   From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. api/routes.py has many return jsonify error, 404 lines where ApiError exists; uncharted_systems and phenomena repeat the past_end pattern; the after integer parsing is repeated; facility_list whole() vs _int_arg. Do: ApiError and one paging helper; the response bodies stay the same (check the API contract tests).
   Version 8.1. Owner (TODO, 2026-11-13): Lane 14 (Boss 3:03 PM EST: every lane working). Lock-free. Prerequisites: none. Related: GEN.1671.
@@ -12995,6 +12985,7 @@ clears each one.
 
 - [ ] **OPS.253 (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed**
   Boss, 10:06 AM EST on 2026-11-14 (log /mnt/project-files/reports/stuck-backfill-2026-11-14/job-20261114-041726-2602.log, New galaxy run on 8.0.4090 started 11:17 PM EST 11-13): "I think something is wrong, 10 hours, stuck on the star backfill, but it hasn't cancelled, also on a new galaxy after the db is cleared, we don't need to clear any runs, because the DB is empty at that point.  So there is clearly something wrong". The log ends at Stage 8's first lines ("Drawing the sky tiers of 5 observer cell(s) after the sectors' backfill.", then the backfill line) with nothing after. Do: find why the backfill hangs or crawls (stuck query, lock wait, a loop with no end); give it real counted progress (Boss's standing order of 11-13: every long step reports fine-grained progress); and make sure the watchdog stops or holds a step that makes no progress for its proven-idle time (job engine OPS.207 to 214 design: stopped only when dead or proven idle). Boss's queue page at 10:07 AM EST (relayed by the coordinator): the run reads "Stage 6 of 16: Bright-star backfill, 116 of 131 units", running 10 h 47 m, "waiting on progress"; the run that owns the machine was last heard from 4 h 17 m ago while the job's beat still shows 6 s ago (a dead-but-not-cancelled run: the job beat keeps it looking alive); 3 workers active, load about 2.9; unit:scatter-backfill has one sample, claim 2,100 MB typed; the cache warm-up failed at 5:02 AM EST with /galaxy answering 503. Check whether Train 27 or the engine stacks already change it. Not a lock item unless the fix changes output.
+  Part A merged, PR #6538 (8:52 PM EST 11-14): the stuck stage shows a stall line and real counts. Open for part B (sliced sky draw, Train 30, migration 0262).
   Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: none. Related: OPS.184, OPS.208, PERF.260.
   Filed by the TODO thread.
 
@@ -13039,11 +13030,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: MAP.429. Related: MAP.429, MAP.365, GEN.1267.
   Filed by the TODO thread.
 
-- [ ] **TEST.752 (bug) scripts/earth_analog.py moves only planet.distance per trial, but the air is keyed on formation_distance_au (GEN.1547), so every trial shares one air draw; its baseline is stale**
-  Census thread after Train 28 (epoch 150), 8:15 PM EST on 2026-11-14 (reports/train28-census-2026-11-14/, fixed copy earth_analog_vary.py there): scripts/data/earth_analog_baseline.json was written 11-13, before GEN.1547. Do: set planet.formation_distance_au beside planet.distance in each trial (formation distance follows the trial distance), then renew the baseline from main (13 Class M per 400 on main at epoch 150). Lock-free, script and baseline only.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05 (beside TEST.739, same script). Prerequisites: none. Related: GEN.1547, TEST.739.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1720 (bug) Class G (thick CO2 of 46 to 4,700 kPa over a global ocean) takes 19 of 27 right-gravity liquid-ocean planets around Sun-like stars, and G rose from 27 to 47 per 346 systems between the Train 26 and Train 28 censuses**
   Class M tiers thread, 8:21 PM EST on 2026-11-14, from the Train 28 census (/mnt/project-files/reports/train28-census-2026-11-14/). Nobody has measured the cause. GEN.1713 (full carbon balance) merged between the two censuses and must be checked, though it changed the land-and-sea branch and most of these worlds have no land; the census thread is splitting these worlds by ocean cover and CO2. Do: measure first: which merge moved them (bisect Trains 27 and 28 on the census keys), and whether a global ocean with no land has the seafloor weathering and carbonate sinks physics gives it; a level physics explains is kept, a defect is fixed at the cause. Report before building.
   Class M tiers thread, 8:29 PM EST: GEN.1720 is also the gate for class O (all 13 O-shaped worlds fail on CO2 over 1 kPa), not only a G count (GEN.1721).
@@ -13076,6 +13062,11 @@ clears each one.
   Boss, 8:39 PM EST on 2026-11-14 (Class M tiers thread): "With the addition that...  For science we're tweaking the minimal amount that is a reasonable, educated, guess for how life could really evolve and how a planet could really do it, the idea is that this is filling that knowledge gap that we don't know how Earth formed". So on Science the rule goes only as far as real oxygenic life is known to go (sourced limits of temperature, water activity and light), registered as an educated guess from physics, not from needed output; anything past those limits is preset-only (GEN.1721).
   Lane 21 (8:40 PM EST): the gate cannot change alone: in physics/biogenic_oxygen.py the source S is 0 unless the hydrosphere is in LIVING_HYDROSPHERES and otherwise scales with the ocean share, and the store B and GEN.1707's plateau read the same S. So the same change adds a refuge term in S (production per lit area of liquid water, sourced, from GEN.1722's research). One item, one epoch. The Class M tiers thread runs the before and after Science census on Lane 21's branch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (holds the oxygen law and GEN.1722; the Class M tiers thread measures). Prerequisites: none. Related: GEN.1721, GEN.1722, GEN.1707, GEN.1699, GEN.1720.
+  Filed by the TODO thread.
+
+- [ ] **TEST.753 (bug) tests/data/civilized_pins.json went stale at epoch 150 (pins 432 and 516 no longer hold a civilization), so tests needing two or more civilized systems hunt for new ones for tens of minutes; test_the_pinned_civilized_seeds_still_qualify checks only the first pin**
+  Lane 15 (was 12), 8:51 PM EST on 2026-11-14, from the 6548 rerun: one system takes 16 to 34 s, no generation slowdown; the hunt is the cost. Do: refresh the pins (python -m tests.civilized_pins refresh --hunt 4) and make the guard check every pin, so a stale pin fails at once instead of slowing the suite.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: none. Related: TEST.751.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
