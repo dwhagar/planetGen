@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.319 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1747 |
+| GEN | GEN.1748 |
 | PERF | PERF.273 |
 | DB | DB.131 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.765 |
+| TEST | TEST.766 |
 | USR | USR.33 |
 | OPS | OPS.262 |
 | DOC | DOC.121 |
@@ -4059,11 +4059,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1739 | Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database | none | done, research and design report reports/air-history-design-gen1739-2026-11-15.md; Boss picked option 1 "Full history, events, life ages" 11:23 AM EST 11-15; build filed as GEN.1740-1746 and API.51 |
 | GEN.1740 | Research: a shock-to-kill law for mass extinctions, verifying the Raup 1991 kill curve | none | open |
 | GEN.1741 | Research: the early envelope timeline, loss before envelope_escape's 1 Gyr onset and envelopes for 0.2 to 1 Earth mass bodies (Young 2023) | none | open |
-| GEN.1742 | Research: the missing life ledger rates (CO eating, aerobic methane eating, denitrification to N2 and N2O, sulfate reduction to H2S, the diffusion-limited hydrogen escape constant) | none | open |
+| GEN.1742 | Research: the missing life ledger rates (CO eating, aerobic methane eating, denitrification to N2 and N2O, sulfate reduction to H2S, the diffusion-limited hydrogen escape constant) | none | done, report reports/ledger-rates-gen1742-2026-11-15.md (11:32 AM EST 11-15) |
 | GEN.1743 | A balanced C, H, O, N, S reaction ledger for every life class with a balance test, replacing the life_ledger.json rows | GEN.1742 | open |
 | GEN.1744 | Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes) | none | open |
 | GEN.1745 | A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts | GEN.1743, GEN.1741 | open |
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | open |
+| GEN.1747 | (bug) life_ledger.json and three source sites cite R3394 and R3395 (two 2018 aurora papers) for the photoferrotroph iron supply and Earth H2 outgassing; the paper meant is R3393 (Ozaki et al., primitive photosynthesis and Earth's early climate) | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4908,6 +4909,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | done, PR #6681 (10:55 AM EST 11-15) |
 | TEST.763 | test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run | none | done, PR #6667 (9:29 AM EST 11-15) |
 | TEST.764 | (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB" | none | done, PR #6681 (10:55 AM EST 11-15) |
+| TEST.765 | (bug) test_queue_commands::test_a_unit_that_fails_in_a_later_stage_fails_the_run is red on main | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
