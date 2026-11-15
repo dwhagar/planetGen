@@ -12,7 +12,7 @@ import threading
 
 import pytest
 
-from planetgen.queue import commands, redisqueue, runline, runrecord, units, wrapper
+from planetgen.queue import commands, planrows, redisqueue, runline, runrecord, units, wrapper
 from planetgen.util.settings import get_settings
 
 
@@ -303,7 +303,8 @@ def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds(monkeypatc
     run_id = wrapper.run("T", [_step(1)], lambda index, plan: None, lambda index, unit, result: None, rows={"test": row})
     stage = runrecord.read_run(conn, run_id)["stages"][0]
     assert stage["expected_seconds"] == 3000.0 and stage["row"] == row
-    assert seen == [{"queue_name": redisqueue.BULK_QUEUE, "expected_seconds": 3000.0}]
+    assert [{key: value for key, value in kwargs.items() if key != "rows"} for kwargs in seen] == [{"queue_name": redisqueue.BULK_QUEUE, "expected_seconds": 3000.0}]
+    assert len(seen[0]["rows"]) == 1, "the unit is handed to the queue with its row in the ledger (OPS.216)"
 
 
 def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypatch, conn):
@@ -463,7 +464,7 @@ def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_co
     assert run["state"] == "done" and run["database"] == mysql_config.database
     assert [stage["key"] for stage in run["stages"]] == ["mass-clear", "mass", "block-lights"]
     assert run["stages"][1]["done"] == run["stages"][1]["units"] > 0
-    plan = runrecord.read_plan(conn, runs[0], 1)
+    plan = planrows.read_plan(conn, runs[0], 1)
     assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][1]["units"]
     assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["clear-bright-stars", "scatter-mass", "refresh-block-lights"]
 

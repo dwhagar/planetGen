@@ -65,7 +65,7 @@ def test_a_job_on_any_queue_of_the_lane_starts_workers_that_serve_all_of_them(la
     monkeypatch.setattr(workers, "host_worker_processes", lambda: 0)
     monkeypatch.setattr(workers, "live_workers", lambda queue: [])
     redisqueue.queue(redisqueue.CHECK_QUEUE, lane_queues).enqueue(math.pow, 2, 3, job_timeout=600)      # only the check queue has work
-    assert workers.ensure_workers(redisqueue.CHECK_QUEUE, lane_queues) == 1
+    assert workers.start_workers(redisqueue.CHECK_QUEUE, lane_queues) == 1
     argv = started[0]
     assert all(name in argv for name in redisqueue.maintenance_lane()) and redisqueue.INTERACTIVE_QUEUE not in argv
     assert int(lane_queues.get(workers.STARTING_PREFIX + redisqueue.MAINTENANCE_QUEUE)) == 1       # counted once, under the lane's name
@@ -80,9 +80,9 @@ def test_a_host_whose_places_the_warm_up_used_up_still_starts_the_short_lanes_wo
     monkeypatch.setattr(workers, "host_worker_processes", lambda: 4)       # four places taken: the cap less the two kept
     for _ in range(5):
         redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, lane_queues).enqueue(math.pow, 2, 3, job_timeout=600)
-    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, lane_queues) == 0 and started == []
+    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, lane_queues) == 0 and started == []
     redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, lane_queues).enqueue(math.pow, 2, 3, job_timeout=600)
-    assert workers.ensure_workers(redisqueue.INTERACTIVE_QUEUE, lane_queues, count=1) == 1
+    assert workers.start_workers(redisqueue.INTERACTIVE_QUEUE, lane_queues, count=1) == 1
     assert redisqueue.INTERACTIVE_QUEUE in started[0]
 
 

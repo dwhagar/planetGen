@@ -322,6 +322,28 @@ def _mysql_server_available():
         conn.close()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _ledger_control_database():
+    """
+    OPS.216: a run's plan is rows of the job ledger in the control database (`queue/planrows.py`), so a test that runs a stage needs the session's control database to
+    exist with its tables. Made here once for the process, when a MySQL server can be reached (a test that needs none does not).
+    """
+    try:
+        kwargs = _test_server_kwargs()
+        raw = pymysql.connect(**kwargs, connect_timeout=3)
+        try:
+            with raw.cursor() as cur:
+                cur.execute(f"CREATE DATABASE IF NOT EXISTS `{SESSION_CONTROL_DATABASE}`")
+            raw.commit()
+        finally:
+            raw.close()
+        from planetgen.db import store
+        store.get_control_connection(store.MySQLConfig(database=SESSION_CONTROL_DATABASE, **kwargs), ensure_schema=True).close()
+    except Exception:  # noqa: BLE001 -- no server: the tests that need one skip themselves
+        pass
+    yield
+
+
 @pytest.fixture(scope="session")
 def _worker_database(_mysql_server_available):
     """The database this test process reuses (tests/dbpool.py, TEST.139); dropped when the process ends."""
@@ -629,6 +651,28 @@ def _run_queue_inline(monkeypatch, request):
         yield
         return
     with inline_queue.inline_queue(monkeypatch):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def _no_test_starts_a_supervisor(monkeypatch):
+    """OPS.207: a submit, a status poll and the warm-up's start each call `supervisor.ensure_started`; in a test none of them starts the host's supervisor process.
+    A test of the supervisor passes its own `start`. OPS.211: a run that asks to be started is started by one turn of `supervisor.RunStarts`, run in the test's own process."""
+    from planetgen.queue import supervisor, wrapper
+    monkeypatch.setattr(supervisor, "_spawn", lambda argv: None)
+    # OPS.211: a run asks the supervisor to start it; with none running, the ask is answered by one turn of the supervisor's duty, here, at once
+    monkeypatch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
+    yield
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _no_module_fixture_starts_a_supervisor():
+    """The same, for the fixtures a module or the session makes (they set up before a test's own `monkeypatch`): a database a module generates with the CLI starts its run
+    through the same turn of `supervisor.RunStarts`, and starts no supervisor process."""
+    from planetgen.queue import supervisor, wrapper
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(supervisor, "_spawn", lambda argv: None)
+        patch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
         yield
 
 

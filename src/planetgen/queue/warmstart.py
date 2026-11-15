@@ -28,7 +28,7 @@ import time
 import redis
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisclient
+from planetgen.queue import redisclient, supervisor
 from planetgen.util import log
 
 MAX_ROUNDS = 5
@@ -161,6 +161,7 @@ def request(database, kind):
         if updateguard.is_updating():
             return "update"
         client = _client()
+        supervisor.ensure_started(client)           # OPS.207: a change that starts the warm-up wakes the supervisor too
         pipe = client.pipeline(transaction=True)
         pipe.hset(wanted_key(database), kind, int(time.time()))
         pipe.expire(wanted_key(database), WANTED_SECONDS)

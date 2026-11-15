@@ -88,10 +88,10 @@ def test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice(redis_
     connection.delete(workers.WANTED_KEY)
     for n in range(5):
         queue.enqueue(math.pow, 2, n, job_timeout=600)
-    assert workers.ensure_workers(name, connection) == 2 and len(started) == 2
-    assert workers.ensure_workers(name, connection) == 0 and len(started) == 2     # those two are still starting
+    assert workers.start_workers(name, connection) == 2 and len(started) == 2
+    assert workers.start_workers(name, connection) == 0 and len(started) == 2     # those two are still starting
     assert all(name in argv and "--burst" not in argv for argv in started)          # idle-timeout workers
-    assert workers.ensure_workers(_queue_name(), connection) == 0                   # an empty queue starts none
+    assert workers.start_workers(_queue_name(), connection) == 0                   # an empty queue starts none
 
 
 def test_a_worker_that_registers_stops_counting_as_starting(redis_server, monkeypatch):
@@ -106,12 +106,12 @@ def test_a_worker_that_registers_stops_counting_as_starting(redis_server, monkey
     connection.delete(workers.WANTED_KEY)
     for n in range(5):
         queue.enqueue(math.pow, 2, n, job_timeout=600)
-    assert workers.ensure_workers(name, connection) == 2
+    assert workers.start_workers(name, connection) == 2
     key = workers.STARTING_PREFIX + name
     assert int(connection.get(key)) == 2
     workers.registered(connection, [name])
     assert int(connection.get(key)) == 1
-    assert workers.ensure_workers(name, connection) == 1          # one of the two registered and is not live here: replaced
+    assert workers.start_workers(name, connection) == 1          # one of the two registered and is not live here: replaced
     workers.registered(connection, [name])
     workers.registered(connection, [name])
     assert connection.get(key) is None                            # never below nothing
@@ -142,9 +142,13 @@ def test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs(redis_serve
 
 
 def _finished(job_id, timeout=90):
+    """Waits for the job; the test's own `WorkerStarts` turn is the supervisor (OPS.209: a submit and a status poll only leave an ask, which the supervisor acts on)."""
+    from planetgen.queue import supervisor
+    starts = supervisor.WorkerStarts(redisqueue.connect())
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         job = api_jobs.status(job_id)
+        starts.turn()
         if job["state"] in ("succeeded", "failed"):
             return job
         time.sleep(0.2)

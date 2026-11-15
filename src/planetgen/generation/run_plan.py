@@ -3777,6 +3777,8 @@ def empty_clear_skips(args, kinds, fresh=True):
     wanted = [key for kind in kinds for key in EMPTY_CLEAR_STAGES.get(kind, ())]
     if not fresh or not wanted:
         return {}
+    if not hasattr(args, "mysql_host"):         # arguments with no database named have nothing to ask
+        return {}
     try:
         conn = store.get_connection(store.mysql_config_from_args(args))
     except pymysql.err.OperationalError:       # no such database yet: nothing is known about it, and every stage is planned
