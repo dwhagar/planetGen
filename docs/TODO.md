@@ -12601,11 +12601,6 @@ clears each one.
   Filed by the TODO thread.
   Part 1 merged, PR #6488 (TODO, 11-14). Open for the rest (the guard covers each family as it moves; whole flag deleted with the last family).
 
-- [ ] **OPS.219 Job engine stage 3: checkpoints (ctx.commit stores the last finished piece's cursor; a retry or resume starts after it)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L5); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L5 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.217. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.222 Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
@@ -12885,11 +12880,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1152, TEST.760.
   Filed by the TODO thread.
 
-- [ ] **TEST.763 test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run**
-  Lane 07, 8:58 AM EST 2026-11-15 (job engine check on main 36d6ee28a0, log /mnt/project-files/reports/train28/lane23/main-wu.log): test_work_units::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units passes alone in 21 min 12 s with -o timeout=7200 but ends with exit 70 under pytest.ini's 900 s. Do: give the case its own pytest.mark.timeout with a comment naming the measured time, as test_sky_hyg_calibration and test_prevalence_life_census do, or shrink its galaxy so it fits, whichever keeps what it proves.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: TEST.621, PERF.241.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
   Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
@@ -12898,6 +12888,11 @@ clears each one.
 - [ ] **TEST.764 (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB"**
   Lane 06, 9:22 AM EST 2026-11-15 (PERF.269, PR #6671): tests/test_profile_claim.py::test_every_change_is_logged_and_kept_for_the_queue_page fails on plain main, "1 GB" against "1,000 MB" in the log text. Same drift kind as TEST.760. Do: build the expected text from the one size formatter so the code is the one source.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.760, PERF.269.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1738 (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip**
+  Lane 16, 9:35 AM EST 2026-11-15 (OPS.219, PR #6632), and Lane 03 on the Train 31 gate: tests/test_db_column_round_trip.py fails while generating sectors when mixture_giant hands gas_equilibrium a negative abundance (src/planetgen/physics/gas_equilibrium.py raises). Do: find which giant step makes the negative share (a subtraction past zero, likely after Train 31's giant cloud oxygen bind, PR #6639), fix the cause there, not by clamping in gas_equilibrium, and add the failing seed as a test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: none. Related: GEN.1717.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

@@ -499,7 +499,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | held for job-engine stage 4, 2026-11-13. |
 | OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | held for job-engine stage 3, 2026-11-13. |
 | OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | Lane 16, 2026-11-13. |
-| OPS.219 | Job engine stage 3: checkpoints (ctx.commit stores the last finished piece's cursor; a retry or resume starts after it) | none | Lane 16, 2026-11-14. |
 | OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | Lane 15, 2026-11-15. |
 | OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | Lane 13, 2026-11-14. |
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | Lane 13, 2026-11-15. |
@@ -744,9 +743,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1735 | Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place) | GEN.1728 | Lane 04, 2026-11-15 |
 | GEN.1736 | (bug) Class M's 2 Pa CO2 floor is not rechecked after the CO2 rebalance (seed 30143: class M at 1.4 Pa) | none | Lane 02, 2026-11-15 |
 | GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | Lane 03, 2026-11-15 |
+| GEN.1738 | (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip | none | Lane 04, 2026-11-15 |
 | TEST.761 | (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only | none | Lane 14, 2026-11-15 |
 | TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | Lane 14, 2026-11-15 |
-| TEST.763 | test_work_units galaxy run case takes 21 minutes, so the suite's 900 s limit and hang guard cut it (exit 70) in any combined run | none | Lane 07, 2026-11-15 |
 | TEST.764 | (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB" | none | Lane 14, 2026-11-15 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | Lane 15, 2026-11-14
