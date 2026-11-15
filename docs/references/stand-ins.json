@@ -12109,7 +12109,7 @@
             ],
             [
               "Evidence",
-              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; Knittel and Boetius 2009; Tian et al. 2020; [R2336] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
+              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; [R2336, R5286, R5287] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
             ]
           ],
           "id": "LF73",
@@ -41822,7 +41822,7 @@
           "key": "6.192:SEP1",
           "kind": "P",
           "slug": "6-192-sep1",
-          "tier": "T1 (the Gaia DR3 nearest-neighbour distribution), T9 (the form: a share of the Hill spheres kept clear)",
+          "tier": "T1 (the Gaia DR3 nearest-neighbor distribution), T9 (the form: a share of the Hill spheres kept clear)",
           "tier_code": "T1",
           "tweak": "L2",
           "unread": null,
@@ -70298,7 +70298,7 @@
           "burn_down": [
             "no data",
             "-",
-            "Mercury's core shares follow ranges with no consensus ([R5147]) and are hand-set; a measured Mercury core replaces them"
+            "Mercury's core shares follow ranges with no consensus [R5147] and are hand-set; a measured Mercury core replaces them"
           ],
           "fields": [
             [
@@ -71569,8 +71569,8 @@
           "what": "tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes)"
         }
       ],
-      "slug": "6-124a-stand-ins-of-the-disc-infall-of-the-thin-disc-gen-1230-gen-1242",
-      "title": "Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)"
+      "slug": "6-124a-stand-ins-of-the-disk-infall-of-the-thin-disk-gen-1230-gen-1242",
+      "title": "Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)"
     },
     {
       "key": "6.179a",
@@ -72063,7 +72063,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
+              "educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
             ]
           ],
           "id": "PC4",

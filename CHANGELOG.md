@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4304] - 2026-11-15
+
+**Headline:** `generate system --output` runs with no database reachable: a run that names no database keeps its plan in its own Redis record.
+
+### Fixed
+- A run whose steps name no database (`system --output`, which touches none) keeps its plan, its end marks and its unit list in its run record in Redis, behind the same `planrows` functions the ledger answers through (`planrows.ledgered` chooses the store once), instead of opening the control database; its units have no rows.
+- `run_galaxy._sector_args_of` takes a unit that names no database.
+- Three web-generate tests keep up with the pages and classes of today: the estimate page's wording ("1.25 minutes", "1 TB"), and "Q", which is a planet class now, so the bad class in the refusal test is "AB".
+
+generation-output: unchanged
+
+## [8.0.4303] - 2026-11-15
+
+**Headline:** Two checks that were red on main are green: an unused year constant is gone, and one registry row is spelled the way the guide asks.
+
+### Fixed
+- `photochemical_loss.YEAR_S`, which nothing read and which had no registry row, is removed.
+- Row SEP1 of the registry says "nearest-neighbor", so the sentence of its stand-in page keeps the spelling guide.
+
+generation-output: unchanged
+
 ## [8.0.4302] - 2026-11-15
 
 **Headline:** Every stand-in tag in the code now names its registry section and matches its row, and the registry lists every stand-in table of the plan.

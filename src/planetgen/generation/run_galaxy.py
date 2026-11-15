@@ -1622,8 +1622,8 @@ def _sector_args_json(args):
 
 def _sector_args_of(unit_args):
     """The namespace a unit generates with: the run's arguments and the database the unit names, the password
-    from this process's settings (`store.MySQLConfig`)."""
-    named = unit_args["database"]
+    from this process's settings (`store.MySQLConfig`). A unit that names none (`system --output`, which touches no database) leaves the connection fields unset."""
+    named = unit_args["database"] or {"host": None, "port": None, "user": None, "database": None}
     return argparse.Namespace(**unit_args["args"], mysql_host=named["host"], mysql_port=named["port"],
                               mysql_user=named["user"], mysql_password=None, mysql_database=named["database"])
 

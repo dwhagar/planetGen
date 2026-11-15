@@ -593,7 +593,7 @@ SECTIONS = (
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
     ('6.296', '6.296 Stand-ins of the starlight an air takes before its reference level (GEN.1717)',
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
-    ('6.124a', '6.124a Stand-ins of the disc infall of the thin disc (GEN.1230, GEN.1242)',
+    ('6.124a', '6.124a Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)',
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),
     ('6.179a', '6.179a Stand-ins of the sky route of a system (VIEW.31)',
      ('fill_id', 'kind', 'tier', 'tweak', 'constant', 'knobs', 'validity', 'falsifier', 'replaced_by', 'evidence')),

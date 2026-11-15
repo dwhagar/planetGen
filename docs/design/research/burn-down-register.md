@@ -334,5 +334,5 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.173:NS7 | no data | - | the central star of a reflection nebula is set so a 10 light-year nebula is near 22 to 23 magnitudes (recalled); a catalog of reflection nebulae replaces it |
 | 6.169:LC1 | no data | - | the share is the generator's own count (0.857 of 727 life worlds), not an observation; no count of living classes on real worlds exists |
 | 6.218:CX2 | no data | - | the exponent is hand-tuned so a 20 GPa core keeps about half the oxygen of an Earth-pressure one; the law is qualitative, a measured partition of O and Si into iron replaces it |
-| 6.218:CX7 | no data | - | Mercury's core shares follow ranges with no consensus ([R5147]) and are hand-set; a measured Mercury core replaces them |
+| 6.218:CX7 | no data | - | Mercury's core shares follow ranges with no consensus [R5147] and are hand-set; a measured Mercury core replaces them |
 | 6.282:HO1 | no data | - | hand-set from a sweep of the solve at four temperatures and pressures; no measured limit of the oxygen a hot deep air holds exists |
