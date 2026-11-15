@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4240] - 2026-11-15
+
+**Headline:** The help text of the light-and-water gate writes its hours through the units code, so the gate reads "3.13 days a year" in place of a hand-formatted "75 hours a year".
+
+### Fixed
+
+- TEST.758: `web/lib/life_help.py` formatted the GEN.1723 gate's hours by hand (UX.318); it uses `format_duration_seconds` now.
+
 ## [8.0.4239] - 2026-11-15
 
 **Headline:** The line that tells how long a sector took now spells the worker's memory with the units code, so the same size reads the same in the log as everywhere else.

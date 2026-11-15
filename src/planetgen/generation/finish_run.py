@@ -99,7 +99,7 @@ def stage_finished(conn, run_id, index, step):
         return True
     if "ended" not in fields:
         return False
-    return commands.conclude_function(step.kind) is None or "concluded" in fields
+    return commands.end_command(step.kind, "conclude") is None or "concluded" in fields
 
 
 def first_unfinished(conn, run_id, steps):
