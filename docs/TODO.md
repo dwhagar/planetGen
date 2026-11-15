@@ -12739,12 +12739,12 @@ clears each one.
 
 - [ ] **OPS.221 Job engine stage 3: held items and held runs (a lasting failure holds the item, the rest goes on; Retry held and Cancel on the Queue page, CLI and API)**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L7 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.218, OPS.220. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.218, OPS.220. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.222 Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.223 Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146**
