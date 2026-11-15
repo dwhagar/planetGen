@@ -36,6 +36,17 @@ def test_science_makes_no_draw_and_the_constants_are_those_the_law_always_drew()
     assert got == want and "cycle_nudged" not in design
 
 
+def test_a_tier_moves_the_ambient_stream_exactly_as_far_as_science_does():
+    """The nudge is rolled on a stream of its own: after the two constants the ambient stream stands where Science's draw leaves it, so the rest of the planet (the air recipe and the other design constants) is the same planet."""
+    with draw.bound(draw.Stream(11)):
+        continental_weathering.draw_cycle({})
+        science = draw.getstate()
+    for share in (0.5, 1.0):
+        with draw.bound(draw.Stream(11)):
+            continental_weathering.draw_cycle({}, share)
+            assert draw.getstate() == science, share
+
+
 def test_a_tier_draws_both_constants_inside_the_nudged_ranges_and_the_published_ones():
     low_m, high_m = tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE[:2]
     low_l, high_l = tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE[:2]

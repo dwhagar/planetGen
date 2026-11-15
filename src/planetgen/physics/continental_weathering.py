@@ -114,9 +114,14 @@ def draw_cycle(constants, nudge_share=0.0):
     `(lambda_scale, m)`: the factor of the thermodynamic limit and the exponent of the heat flow in the outgassing, drawn and recorded in `constants`.
 
     `nudge_share` is the `cycle_share` of a Class M abundance tier (GEN.1720): that share of the bodies draw both from the part of their published range that holds the balance nearest the Earth's
-    (`tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE`, `ABUNDANCE_CYCLE_OUTGASSING_RANGE`; recorded as `cycle_nudged`). It makes one draw when it is above 0 and none at 0, so a body outside a tier draws as it always did.
+    (`tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE`, `ABUNDANCE_CYCLE_OUTGASSING_RANGE`; recorded as `cycle_nudged`). The roll is made on a stream of its own and the constants are drawn from the ambient stream as before (two draws), so the stream
+    moves the same with a tier as without and a body outside a tier draws as it always did.
     """
-    nudged = nudge_share > 0.0 and draw.random() < nudge_share
+    nudged = False
+    if nudge_share > 0.0:
+        # The nudge is rolled on a stream of its own, seeded from the run stream's state without moving it: the ambient stream advances by the two draws of the constants whatever the share, so a tier moves nothing else of the body
+        # (the air recipe, the sulfur lifetimes and the seafloor law drawn after it), and no draw is shared between the roll and the constants.
+        nudged = draw.Stream(f"cycle-nudge:{draw.getstate()!r}").random() < nudge_share
     if nudge_share > 0.0:
         constants["cycle_nudged"] = nudged
     return (bracket(constants, "weathering_lambda_scale", tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE if nudged else LAMBDA_SCALE),
