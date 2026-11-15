@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4198] - 2026-11-15
+
+**Headline:** The temperature of a giant, a brown dwarf or a planet under a deep envelope no longer depends on where the solve began; it is a fixed point like a rocky body's.
+
+### Fixed
+- **A giant's air is solved to a fixed point (GEN.1716).** `surface_air.solve` stopped a giant after its first step, so the haze its greenhouse was made under was the haze of the airless starting temperature and the stored temperature moved with that start: of 59 generated bodies solved at the 1 bar level, 50 changed by 5 K or more between a start of 150 K and one of 500 K (median 28.6 K, 18 by 50 K or more). A giant now iterates its temperature to `TOLERANCE_K` (its pressure stays the 1 bar reference) and says it settled, and the haze is read at the stored temperature as for every other body (`aerosols._haze_temperature_k` is gone). All 59 now give the same temperature from any start. Measured on the same 59 bodies at the production start, 44 change by 5 K or more (median 15 K, 28 by 20 K or more, 45 of 59 warmer): bodies under a deep envelope shift most (a 3.9 Earth mass body at 0.78 AU, 2,783 to 3,460 K; a 2.2 Earth mass one at 1.5 AU, 273 to 246 K). The giants of the Solar System's sizes move by 3 K or less at the production start (a Jupiter mass at 5.2 AU, 152 to 150 K; Saturn 139 to 139 K; Uranus 88 to 88 K; Neptune 71 to 72 K, against 165, 134, 76 and 72 K observed at 1 bar).
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4197] - 2026-11-15
 
 **Headline:** A hot world with a moderate air, 400 K and up, 10 kPa to 10 bar and 0.5 g or more, now has a class of its own, Q, so no stored body is left at match 0 and class N keeps its meaning.
