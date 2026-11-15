@@ -155,3 +155,46 @@ def test_the_cut_of_a_planned_stage_fills_its_row_in_and_marks_it_done(monkeypat
     opened = [job for job in _jobs(mysql_config, ledger_run) if job["command"] == "open"]
     assert len(opened) == 1 and opened[0]["state"] == "done"
     assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
+
+
+def _planned_run(conn, mysql_config, kinds):
+    database = wrapper.database_args(mysql_config)
+    steps = [commands.Step(kind, kind, kind, {"database": database}) for kind in kinds]
+    run_id = runrecord.start_run(conn, "Plan", [runrecord.Stage(step.key, step.label) for step in steps], steps=[step.as_dict() for step in steps])
+    return run_id, steps
+
+
+def _ended(conn, run_id, steps):
+    """Cuts and ends every stage of the planned run with no unit, as a stage that has nothing to wait for ends."""
+    for index, step in enumerate(steps):
+        planrows.record_cut(conn, run_id, index, step.kind, [], 0.0, {})
+        for role in planrows.END_ROLES:
+            planrows.mark_ended(conn, run_id, index, role)
+    runrecord.finish_run(conn, run_id, "done")
+
+
+def test_what_the_rows_say_exists_meets_the_need_of_a_later_run(monkeypatch, mysql_config):
+    """OPS.238: a need that no step of the run makes is met when the rows of the galaxy say a stage that ended made it; otherwise the plan says it is unmet."""
+    conn = redisqueue.connect()
+    first, steps = _planned_run(conn, mysql_config, ["plan-skeleton", "clear-bright-stars"])
+    assert planrows.record_plan(conn, first, steps) == {}
+    _ended(conn, first, steps)
+    control = store.get_control_connection(store.control_mysql_config(mysql_config))
+    try:
+        assert planrows.made_artifacts(control, mysql_config.database) == {"skeleton", "bright-stars-cleared"}
+    finally:
+        control.close()
+    second, steps = _planned_run(conn, mysql_config, ["scatter-mass", "scatter-luminosity"])
+    assert planrows.record_plan(conn, second, steps) == {}, "the skeleton and the cleared scatter were made by the run before"
+    runrecord.finish_run(conn, second, "done")
+    third, steps = _planned_run(conn, mysql_config, ["scatter-band"])
+    assert planrows.record_plan(conn, third, steps) == {"scatter-band": ["bright-stars-luminosity"]}, "no stage that ended made the luminosity pass"
+    ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(third), planrows.ENGINE_RUN_FIELD)))
+    import json
+    assert json.loads(_jobs(mysql_config, ledger_run)[0]["arguments"])["unmet"] == ["bright-stars-luminosity"]
+
+
+def test_a_new_skeleton_forgets_what_the_galaxy_had():
+    from planetgen.queue import needs
+    assert needs.exists_after([("plan-skeleton", ["skeleton"]), ("scatter-mass", ["bright-stars-mass"]), ("plan-skeleton", ["skeleton"])]) == {"skeleton"}
+    assert needs.exists_after([("scatter-mass", ["bright-stars-mass"]), ("reset-galaxy", [])]) == set()

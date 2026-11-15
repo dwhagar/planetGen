@@ -883,7 +883,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                   + (f", debug areas {debug}" if debug else ""), area="queue")
         events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
         log.attach(events)
-        planrows.record_plan(conn, run_id, steps)       # OPS.238: the whole run as rows before its first stage opens
+        for key, lacking in planrows.record_plan(conn, run_id, steps).items():       # OPS.238: the whole run as rows before its first stage opens
+            log.warning(f"Stage {key} needs {', '.join(lacking)}, which no earlier stage of this run makes and no finished stage of this galaxy's rows says exists; it may find it stored.")
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             stage_at = index
