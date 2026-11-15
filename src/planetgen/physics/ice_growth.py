@@ -39,8 +39,8 @@ from planetgen.physics import constants, continental_weathering, hydrosphere
 FREEZING_K = constants.WATER_MELTING_K
 """float: The freezing point of fresh water, K: the default `freezing_k` (a salty ocean passes its own, which is lower)."""
 
-SECONDS_PER_DAY = 86400.0
-DAYS_PER_YEAR = 365.25
+SECONDS_PER_DAY = 86400.0      # by definition
+DAYS_PER_YEAR = constants.DAYS_PER_YEAR
 
 ICE_DENSITY_KG_M3 = hydrosphere.ICE_DENSITY_KG_M3
 """float: The density of the ice, reused from the hydrosphere ([R5277] uses 917)."""
@@ -77,7 +77,7 @@ SNOW_RETENTION = 11.0 / 17.0
 """float: The share of the snow that falls on the ice that is still on it at the end of the season: 11 cm of water standing in May [R5278] of 17 cm that fell (5 cm of water a month in September and October,
 1 cm a month from November to March, 2 cm in April; the rates [R5278] quotes); the rest blows into leads and sublimes. About 0.65. [IG7, T7, L1.]"""
 
-WATER_DENSITY_KG_M3 = 1000.0
+WATER_DENSITY_KG_M3 = constants.LIQUID_WATER_DENSITY_KG_M3
 
 
 class IceGrowthError(ValueError):

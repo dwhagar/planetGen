@@ -589,7 +589,7 @@ one 7.5 observer cell 2,500 pc from the center, one worker: 1,826 s against 398 
 SKY_PARTS = 16
 """int: How many units the sky draw of a backfill stage is cut into (OPS.253), whatever the worker count (the plan of a stage is the same at any): each draws its share of the rows of every sphere
 (`sky_charting.chart_part`). More shares than workers, so the workers that finish early take another, and few enough that the walk each makes of a sphere's rows (every share looks at them all) stays small
-beside the draw."""
+beside the draw. (a setting of the run, defined by the work and the log it writes, not by physics)"""
 
 
 def _sky_units(params, centers):
@@ -1827,7 +1827,7 @@ def generate_sectors_gather(unit_args, results, ctx):
 
 
 SECTOR_TIMING_LINES_MAX = 2000
-"""int: A stage of this many sectors or fewer says each sector's time on its own line in the run log (PERF.270); a bigger one keeps the line in the debug log, as its ticker carries the progress."""
+"""int: A stage of this many sectors or fewer says each sector's time on its own line in the run log (PERF.270); a bigger one keeps the line in the debug log, as its ticker carries the progress. (a setting of the run, defined by the work and the log it writes, not by physics)"""
 
 
 def timing_line(saved, address):

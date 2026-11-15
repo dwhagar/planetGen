@@ -24,15 +24,15 @@ from dataclasses import dataclass
 from planetgen.physics import biogenic_oxygen, interior_heat, runaway_history
 
 FIRST_STEP_GYR = 1.0e-5
-"""float: The age, Gyr, of the first step of a history (10 kyr: the start of the air as the body left its disk; a numerical setting)."""
+"""float: The age, Gyr, of the first step of a history (10 kyr: the start of the air as the body left its disk; a numerical setting). (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
 LOG_STEPS_PER_DECADE = 4
-"""int: The steps to a decade of age before `LOG_UNTIL_GYR` (a numerical setting)."""
+"""int: The steps to a decade of age before `LOG_UNTIL_GYR` (a numerical setting). (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
 LOG_UNTIL_GYR = 1.0
-"""float: The age, Gyr, up to which the steps are logarithmic; after it they are `MAX_STEP_GYR` apart."""
+"""float: The age, Gyr, up to which the steps are logarithmic; after it they are `MAX_STEP_GYR` apart. (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
 MAX_STEP_GYR = biogenic_oxygen.RISE_STEP_GYR
 """float: The longest step, Gyr, after `LOG_UNTIL_GYR`: the step of the oxygen law's own integral (GEN.1463)."""
 SAME_AGE_GYR = 1.0e-9
-"""float: Two ages closer than this, Gyr, are one step."""
+"""float: Two ages closer than this, Gyr, are one step. (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
 
 NO_OXYGEN, RISE, BALANCE = "none", "rise", "balance"
 OXYGEN_LAWS = (NO_OXYGEN, RISE, BALANCE)

@@ -1408,7 +1408,7 @@ def in_part(shell_index, band_index, part):
 
 
 PART_SHELL_STEP = 7
-"""int: How far apart `in_part` puts the neighbouring shells in the dealing, so a part is not one diagonal of the (shell, band) rows."""
+"""int: How far apart `in_part` puts the neighbouring shells in the dealing, so a part is not one diagonal of the (shell, band) rows. (a setting of how the work is dealt, defined by the dealing, not by physics)"""
 
 
 def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded, part=None):
