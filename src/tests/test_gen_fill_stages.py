@@ -196,13 +196,12 @@ def test_an_object_key_names_the_kind_and_for_a_remnant_its_type(recycled):
 
 
 def test_the_odds_are_the_rows_of_the_host_tables():
-    for table_name in ("remnant-satellites", "planet-satellites"):
+    for table_name in ("remnant-satellites",):
         table = hosts.REGISTRY_TABLES[table_name]
         assert table.row(hosts.NO_SATELLITES)
         for row in table.rows:
             assert row.state in ("partly verified", "stand-in") and row.source
     assert hosts.chance("remnant-satellites", "neutron-star:millisecond") == pytest.approx(0.007)
-    assert hosts.chance("planet-satellites", "rogue-planet") == pytest.approx(0.2)
     assert registry.BY_KIND["neutron-star"].host == "remnant" and registry.BY_KIND["rogue-planet"].host == "planet"
     for host in hosts.HOSTS:
         assert all(name is None or name in hosts.REGISTRY_TABLES for name in (host.companions, host.satellites))
@@ -315,15 +314,6 @@ def test_replacing_a_phenomenon_keeps_the_neighbour_check_current():
         assert sector.phenomena == [second, third]
         with pytest.raises(ValueError):
             sector.replace_phenomenon_with_system(first, system)
-
-
-def test_a_rogue_planet_keeps_its_moon_at_the_chance_of_the_table(monkeypatch):
-    _reweigh(monkeypatch, "planet-satellites", "captured moon", 1.0)
-    with draw.bound(1):
-        assert all(RoguePlanet(SystemConfig()).has_moons for _ in range(5))
-    _reweigh(monkeypatch, "planet-satellites", "captured moon", 0.0)
-    with draw.bound(1):
-        assert not any(RoguePlanet(SystemConfig()).has_moons for _ in range(5))
 
 
 # --- A scattered fill ----------------------------------------------------------------------------------------------

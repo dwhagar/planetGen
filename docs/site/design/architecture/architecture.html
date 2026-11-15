@@ -752,7 +752,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/spherical.py"><code>spherical.py</code></a></td>
-<td>Every galaxy-placed sector is one cell of a grid of spherical shells centered on the galactic origin (<code>docs/design/galaxy/spherical-sector-coordinates.md</code>, the plan; Boss, 2026-10-15).</td>
+<td>Every galaxy-placed sector is one cell of a grid of spherical shells centred on the galactic origin (<code>docs/design/galaxy/spherical-sector-coordinates.md</code>, the plan; Boss, 2026-10-15).</td>
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/straight_line.py"><code>straight_line.py</code></a></td>
@@ -780,7 +780,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/window.py"><code>window.py</code></a></td>
-<td>The Galaxy Map's data windows (MAP.151): <code>g</code> cells across, a ball of the center block's size, found in closed form per shell.</td>
+<td>The Galaxy Map's data windows (MAP.151): <code>g</code> cells across, a ball of the centre block's size, found in closed form per shell.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1875,7 +1875,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><code>systemreach.js</code></td>
-<td>Which star's system the camera wants up in an opened sector, by the size of its disk, and how much of it shows (MAP.152).</td>
+<td>Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152).</td>
 </tr>
 <tr>
 <td><code>groupfade.js</code></td>
@@ -1895,7 +1895,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><code>generatelevers.js</code></td>
-<td>The Generate task pages' shape dials: the line under them (disk crest, planned-star share, outline) read from <code>/admin/generate/shape-report</code> (GEN.617, ADM.124).</td>
+<td>The Generate task pages' shape dials: the line under them (disc crest, planned-star share, outline) read from <code>/admin/generate/shape-report</code> (GEN.617, ADM.124).</td>
 </tr>
 <tr>
 <td><code>generatesize.js</code></td>
@@ -1939,7 +1939,7 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 </tr>
 <tr>
 <td><code>coursediagram.js</code></td>
-<td>NAV.69: links the Course Diagram in the Galaxy Map's course readout to the map's course: a click on a stop of the diagram selects it on the map and centers the map on it, a click on a ring on the map marks the stop in the diagram.</td>
+<td>NAV.69: links the Course Diagram in the Galaxy Map's course readout to the map's course: a click on a stop of the diagram selects it on the map and centres the map on it, a click on a ring on the map marks the stop in the diagram.</td>
 </tr>
 <tr>
 <td><code>coursehops.js</code></td>
@@ -2514,7 +2514,7 @@ database in <code>PLANETGEN_MYSQL_*</code> and <code>PLANETGEN_PROGRESS_FILE</co
 writes <code>state.json</code> and <code>output.log</code>, and <code>planetgen</code> writes
 <code>progress.json</code>. The page only reads those files: the status (<code>/admin/generate/status</code>, polled by <code>static/generatejobs.js</code>) and the job's log (<code>/admin/generate/jobs/&lt;id&gt;/stream</code>, a live stream that ends on purpose every few seconds, and <code>.../log</code>, shown by <code>static/joblog.js</code> in a terminal box). Cancel
 writes a <code>cancel</code> file the runner watches. A lock left by a dead runner is
-cleared by the next <code>start_job</code>. The job itself is only that list of steps; the work a step does is a run on the Redis work queue (below), and the Queue page, the job's page and cancel read and act on the runs in Redis (<code>queue/runview.py</code>, <code>queue/runcontrol.py</code>: a run started under a job is listed under it, and canceling the job cancels its runs). See <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a> for the design and how it was built (PERF.86).</p>
+cleared by the next <code>start_job</code>. The job itself is only that list of steps; the work a step does is a run on the Redis work queue (below), and the Queue page, the job's page and cancel read and act on the runs in Redis (<code>queue/runview.py</code>, <code>queue/runcontrol.py</code>: a run started under a job is listed under it, and cancelling the job cancels its runs). See <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a> for the design and how it was built (PERF.86).</p>
 <p>Planning runs the bright-star scatter as its own step (<code>planetgen plan --bright-stars-only</code> after <code>plan --no-bright-stars</code>), so the job shows its
 progress bar and count; &quot;Skip all scatters&quot; leaves it out, and
 &quot;Rebuild the bright stars&quot; runs it alone on the stored plan. Each step of a <code>planetgen galaxy</code>, <code>plan</code>, <code>scatter</code>, <code>sector</code> or <code>system</code> command is a stage of a run on the Redis work queue: the wrapper (<code>queue/wrapper.py</code>) turns the arguments into the list of commands to run (<code>queue/commands.py</code>), writes the run's record in Redis (<code>queue/runrecord.py</code>: its stages, counters, results, log events) and cuts the first stage into units; a unit is an RQ job on the bulk queue carrying JSON, run by the idle-timeout workers (<code>queue/workers.py</code>, <code>planetgen.cli.worker</code>) that <code>ensure_workers</code> starts, and the unit that finishes the last of a stage queues the next stage, so the command that started the run only follows it. A chunk of sectors, a chunk of a shell scatter and a backfill block are each one unit. Generate

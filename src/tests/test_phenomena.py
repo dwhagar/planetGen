@@ -382,7 +382,7 @@ def test_star_system_anchored_by_neutron_star_can_force_planets():
     assert system.star is ns
     assert system.planet_count + system.belt_count == 2
     # A dark remnant's zero/near-zero luminosity means no real habitable
-    # zone -- adjust_age_for_planets and rendering must not crash even
+    # zone -- generation and rendering must not crash even
     # though every placed body is far outside any thermal comfort zone.
     assert render_support.text(system)
 
@@ -402,6 +402,21 @@ def test_star_system_anchored_by_black_hole_defaults_to_no_planets():
         system = StarSystem(system_config=cfg, compact_remnant=bh)
     assert system.planet_count == 0
     assert system.belt_count == 0
+
+
+def test_no_diskless_black_hole_over_forty_seeds_carries_a_planet_or_a_belt():
+    """GEN.1648: the generic planet path used to give 16 of 40 disk-less stellar black holes planets (up to 7) from the mass alone; none has a disk that survived its progenitor."""
+    held = 0
+    for seed in range(40):
+        cfg = make_config()
+        with deterministic_entropy(seed):
+            bh = BlackHole(cfg)
+            if bh.has_accretion_disk:
+                continue
+            system = StarSystem(system_config=cfg, compact_remnant=bh)
+        held += 1
+        assert system.planet_count == 0 and system.belt_count == 0, seed
+    assert held >= 30
 
 
 # ---------------------------------------------------------------------------

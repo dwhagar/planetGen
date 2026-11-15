@@ -77,6 +77,8 @@ CASES = {
     "A": body(share_so2=0.2, p_o2_kpa=0.0),
     "N": body(atmospheric_pressure_pa=9e6, surface_temperature_k=700.0, hydrosphere="vapor", ocean_fraction=0.0,
               p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=8800.0),
+    "Q": body(atmospheric_pressure_pa=2e5, surface_temperature_k=500.0, hydrosphere="vapor", ocean_fraction=0.0,
+              p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=200.0),      # GEN.1618: a hot world under a 2 bar air
     "V": body(gravity_g=2.5, mass_earth=8.0),
     "L": body(p_co2_kpa=3.0, p_o2_kpa=10.0, gravity_g=0.9),
     "K": body(atmospheric_pressure_pa=500.0, surface_temperature_k=300.0, hydrosphere="dry", gravity_g=0.4,
@@ -103,9 +105,11 @@ CASES = {
 }
 
 
-def test_class_q_is_retired_and_its_letter_reserved():
-    """GEN.1135 (Boss, 6:07 PM EDT 2026-10-30): the swing of the starlight is the stored flux_variation and a flag, not a class."""
-    assert "Q" not in {c.letter for c in pc.CLASSES} and "Q" not in tuning.PLANET_CLASSES and "Q" in pc.RESERVE
+def test_class_q_is_the_hot_world_and_the_swing_of_the_starlight_is_no_class():
+    """GEN.1135 (Boss, 6:07 PM EDT 2026-10-30): the swing of the starlight is the stored flux_variation and a flag, not a class; the letter Q, free since, names the hot world with a
+    moderate air (GEN.1618)."""
+    assert "Q" in {c.letter for c in pc.CLASSES} and "Q" in tuning.PLANET_CLASSES and "Q" not in pc.RESERVE
+    assert pc.describe("Q").name == "Hot world"
     assert all(rule.get("quantity") != "flux_variation" for c in cf.CLASSES for rule in c.when)
     assert pc.classify(body(flux_variation=0.9)) == "M"      # a very eccentric orbit alone makes no class
 
@@ -148,9 +152,10 @@ def test_the_air_gate_is_an_edge_and_every_other_edge_is_a_shoulder_that_lowers_
     assert pc.classify(body(atmospheric_pressure_pa=9.99, p_o2_kpa=0, p_n2_kpa=0, p_ar_kpa=0, p_co2_kpa=0,
                             hydrosphere="dry", ocean_fraction=0.0, surface_temperature_k=300.0)) == "C"
     assert pc.classify_detail(body(ocean_fraction=0.8)).match == pytest.approx(1.0)
-    soft = pc.classify_detail(body(surface_temperature_k=305.0, ocean_fraction=0.5))
+    assert pc.classify(body(ocean_fraction=0.85)) == "M"                      # GEN.1570: M runs up to 95 percent liquid cover
+    soft = pc.classify_detail(body(surface_temperature_k=306.0, ocean_fraction=0.5))
     assert soft.letter == "M" and 0.0 < soft.match < 1.0                      # past the temperature edge the match falls, it does not drop to another class
-    assert pc.classify(body(ocean_fraction=0.85)) == "O"                      # GEN.1342: past the water edge the world is O, at any temperature from M's floor
+    assert pc.classify(body(ocean_fraction=0.97)) == "O"                      # GEN.1342, GEN.1570: past the water edge (95 percent) the world is O, at any temperature from M's floor
     assert pc.classify_detail(body(surface_temperature_k=274.0)).match > pc.classify_detail(body(surface_temperature_k=275.0)).match - 1e-9 or True
     assert 0.0 < pc.classify_detail(body(surface_temperature_k=274.0)).match < 1.0
 
@@ -187,7 +192,7 @@ def test_the_function_is_pure_total_and_the_same_from_an_object():
             put_kpa(values, gas, rng.choice([0.0, values["atmospheric_pressure_pa"] / 1000.0 * rng.random() / 6]))
         first = pc.classify(values)
         assert first in pc.LETTERS and first == pc.classify(dict(values))
-        assert (pc.describe(first).kind == values["body_type"])
+        assert pc.classify_detail(values).kind == values["body_type"]      # a letter may exist for both kinds (T), so ask the classification
 
     class Planet:
         def __init__(self):
@@ -212,7 +217,7 @@ def test_a_body_without_what_the_rules_read_is_refused():
     with pytest.raises(pc.ClassError):
         pc.classify(values)  # cold air worlds read the temperature
     with pytest.raises(pc.ClassError):
-        pc.describe("Q")
+        pc.describe("?")
 
 
 def test_a_class_follows_its_conditions():
@@ -307,3 +312,27 @@ def test_a_terrestrial_body_under_a_roundness_ratio_of_one_is_an_asteroid_with_n
     assert pc.ASTEROID.letter is None and pc.ASTEROID.name == "Asteroid"
     assert pc.classify(body(body_type="g", mass_earth=300.0, roundness_ratio=0.1)) == "J"           # a giant is never an asteroid
     assert pc.classify(airless(mass_earth=0.01)) == "D"                                              # a body that states no ratio is not one
+
+
+def test_a_world_with_a_small_sea_has_a_water_table_and_is_a_desert_world():
+    """GEN.1638: class H needs water under a dry surface; a world with liquid at its surface and under a fifth of it covered has a water table under its land (it was unreachable: only a dry world got an aquifer)."""
+    desert = body(surface_temperature_k=290.0, ocean_fraction=0.1, hydrosphere="surface ocean")
+    assert pc.classify(desert) == "H"
+    assert pc.classify(body(surface_temperature_k=290.0, ocean_fraction=0.1, hydrosphere="brine seep")) == "H"
+    assert pc.classify(body(ocean_fraction=0.8)) == "M"                                            # an ocean world is still M
+    dry = body(surface_temperature_k=290.0, ocean_fraction=0.0, hydrosphere="dry", groundwater="none")
+    assert pc.classify(dry) != "H"                                                                 # no water at all is no desert world with some
+
+
+def test_a_hot_world_under_a_moderate_air_is_class_q_between_z_and_n_and_v():
+    """GEN.1618 (Boss): 400 K and up, 10 kPa to 10 bar of air, 0.5 g to 2 g is class Q; thinner is Z, thicker is N, heavier is V, and a cooler body keeps F or G."""
+    def hot(**changes):
+        return no_oxygen(**{"surface_temperature_k": 700.0, "hydrosphere": "vapor", "ocean_fraction": 0.0, "p_n2_kpa": 0.0, "p_ar_kpa": 0.0, **changes})
+    for pressure_kpa, expected in ((5.0, "Z"), (20.0, "Q"), (300.0, "Q"), (990.0, "Q"), (1200.0, "N")):
+        values = hot(atmospheric_pressure_pa=pressure_kpa * 1000.0, p_co2_kpa=pressure_kpa)
+        assert pc.classify(values) == expected, pressure_kpa
+    assert pc.classify(hot(atmospheric_pressure_pa=3e5, p_co2_kpa=300.0, gravity_g=1.0, mass_earth=1.0)) == "Q"
+    assert pc.classify(hot(atmospheric_pressure_pa=3e5, p_co2_kpa=300.0, gravity_g=2.5, mass_earth=8.0)) == "V"
+    assert pc.classify(hot(atmospheric_pressure_pa=3e5, p_co2_kpa=300.0, surface_temperature_k=1900.0)) == "Q"      # no top edge, like N: bodies up to 2,000 K had no class
+    cool = hot(atmospheric_pressure_pa=3e5, p_co2_kpa=300.0, surface_temperature_k=330.0)
+    assert pc.classify(cool) != "Q" and pc.classify_detail(cool).match > 0.0

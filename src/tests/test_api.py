@@ -1106,7 +1106,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
         body = client.get("/api/galaxy/shape").get_json()
         assert body["shape"] is None and body["shells"] is None
         assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
-                                        "default_min_luminosity_sol": 9000.0, "limits": None}
+                                        "default_min_luminosity_sol": 18000.0, "limits": None}
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
@@ -1129,7 +1129,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     assert shells["rows"][0]["bands"] == 3
     limits = body["bright_stars"].pop("limits")
     assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
-                                    "default_min_luminosity_sol": 9000.0}
+                                    "default_min_luminosity_sol": 18000.0}
     # UX.116: the settings stored with the plan; the core follows the galaxy-wide floor until it is set.
     assert limits["core_follows"] is True and limits["core_min_luminosity_sol"] == pytest.approx(550.0)
     assert limits["halo_min_luminosity_sol"] == 500.0
@@ -2200,26 +2200,6 @@ def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_cl
     assert body["error"] == "rate limit exceeded"
 
 
-# ---------------------------------------------------------------------
-# The wiki upload is gone (OPS.69): no routes, no sector `wiki_url`.
-# ---------------------------------------------------------------------
-
-def test_the_wiki_routes_are_gone(admin_client, seeded_sector):
-    _config, sector_id, system_ids = seeded_sector
-    assert admin_client.get("/api/wiki-config").status_code == 404
-    system_path = f"/api/systems/{pid('system', system_ids[0])}/wiki"
-    sector_path = f"/api/sectors/{pid('sector', sector_id)}/wiki"
-    for path in (system_path, sector_path):
-        assert admin_client.post(path, json={"backend": "wikijs", "path": "x"}).status_code in (404, 405)
-
-
-def test_a_sector_has_no_wiki_url(admin_client, seeded_sector):
-    _config, sector_id, _system_ids = seeded_sector
-    assert "wiki_url" not in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()
-    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": "https://wiki.example.com/Sector"})
-    assert response.status_code == 400
-
-
 def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     """`GET /api/galaxy/cell` answers for any place in the galaxy, by
     address or by a point inside the cell, with its coordinates and 8
@@ -2282,32 +2262,6 @@ def test_facility_routes(admin_client, mysql_config):
 
     assert admin_client.delete(f"/api/facilities/{pid('facility', facility_id)}").status_code == 200
     assert admin_client.get(f"/api/facilities/{pid('facility', facility_id)}").status_code == 404
-
-
-def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
-    """GEN.75: `/api/nebulae/<id>/shape` answers a triangle mesh in units of
-    the nebula's radius, a coarse one by default and a finer one for
-    `lod=full`; unknown nebulae and levels are 404s."""
-    from planetgen.generation.phenomena.nebula import Nebula
-
-    conn = _db.get_connection(mysql_config)
-    try:
-        nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Meshy"), placement={
-            "center_x_pc": 5.0, "center_y_pc": 1.0, "center_z_pc": 2.0, "galactic_radius_pc": 5.5})
-        conn.commit()
-    finally:
-        conn.close()
-    low = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape").get_json()
-    full = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape?lod=full").get_json()
-    assert low["id"] == pid("nebula", nebula_id) and low["lod"] == "low" and full["lod"] == "full"
-    assert low["center_pc"] == [5.0, 1.0, 2.0] and low["radius_ly"] > 0
-    assert 0 < len(low["faces"]) < len(full["faces"])
-    count = len(full["vertices"])
-    assert all(0 <= i < count for face in full["faces"] for i in face)
-    # The nebula's radius bounds the mesh (TEST.253), give or take the five decimals the route rounds to.
-    assert max(sum(v * v for v in vertex) ** 0.5 for vertex in full["vertices"]) <= 1.0 + 1e-5
-    assert client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape?lod=ultra").status_code == 404
-    assert client.get("/api/nebulae/999999/shape").status_code == 404
 
 
 def test_nebula_volume_endpoint_serves_packed_points(client, mysql_config):

@@ -32,10 +32,22 @@ SEP_REDUCING = False
 """bool: The two design flags no model defines (see the module text); both false until a lightning rate and a stellar energetic particle flux are sourced."""
 
 
+TRACE_CEILING = {formula: spec[1] for row in mixture_trace.WIRED_ROWS for formula, spec in mixture_trace.ABUNDANCES[row].items()}
+"""dict: The most mole fraction a draw gives each trace gas (the top of its design bracket): what `_strip` takes off an air, no more."""
+
+
 def _strip(partials):
-    """`partials` (formula to Pa) without the trace gases, renormalised to the same total pressure."""
+    """
+    `partials` (formula to Pa) without the trace gases an earlier draw gave it, renormalised to the same total pressure. A draw gives a gas at most
+    `TRACE_CEILING` of the air, so that much comes off each trace gas and the rest stays: it is the equilibrium amount of the gas (NO2 and N2O are
+    stable gases of a hot air, GEN.1580), which a hot air keeps (GEN.1614).
+    """
     total = sum(partials.values())
-    kept = {formula: pascal for formula, pascal in partials.items() if formula not in TRACE_GASES}
+    kept = {}
+    for formula, pascal in partials.items():
+        left = pascal - min(pascal, TRACE_CEILING.get(formula, 0.0) * total)
+        if left > 0.0:
+            kept[formula] = left
     left = sum(kept.values())
     if not kept or left == total:
         return dict(kept)
@@ -46,7 +58,7 @@ def subject_of(body, partials):
     """The `Subject` of table m for `body` and its air `partials` (formula to Pa, without the trace gases)."""
     pressure_pa = sum(partials.values())
     quantities = mixture_subject.quantities_of_body(
-        body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / 1.0e5, star_distance_au=getattr(body, "_star_distance_au", None))
+        body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / constants.BAR_PA, star_distance_au=getattr(body, "_star_distance_au", None))
     quantities.update({
         "has_solid_ground": getattr(body, "body_type", "t") == "t",
         "gas_has_co_h2s": partials.get("CO", 0.0) > 0.0 and partials.get("H2S", 0.0) > 0.0,
@@ -79,12 +91,11 @@ def apply(body):
         partials = {formula: pascal * (1.0 - share) for formula, pascal in partials.items()}
         partials.update({formula: fraction * total for formula, fraction in amounts.items()})
     atmosphere.store_air(body, partials, body.mantle_delta_iw)
-    if amounts:
-        # the trace gases (a part in 1e7 or so) shift the mean molar mass at the eighth digit: the stored molar mass, density and scale height follow the
-        # air they describe (TEST.585: the atmosphere sweep's rules hold them to 1e-9)
-        state = atmosphere_state.air_state(partials, body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
-        body.atm_molar_density = state.mean_molar_mass_kg_mol
-        body.atm_density = state.density_kg_m3
-        body.scale_height = state.scale_height_m / 1000.0      # km, as `planets` stores it
+    # the trace gases (a part in 1e7 or so) shift the mean molar mass at the eighth digit, so the stored molar mass, density and scale height follow the air they describe
+    # (TEST.585: the atmosphere sweep's rules hold them to 1e-9)
+    state = atmosphere_state.air_state(partials, body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
+    body.atm_molar_density = state.mean_molar_mass_kg_mol
+    body.atm_density = state.density_kg_m3
+    body.scale_height = state.scale_height_m / 1000.0      # km, as `planets` stores it
     envelope_share.fill(body)       # GEN.1226: the trace gases take a share of the air
     return tuple(sorted(amounts))

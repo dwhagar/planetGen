@@ -253,6 +253,7 @@ def nebula_regions_of(block, field=None, limit=600):
         listed.append({
             "key": format_drill_key(child), "count": len(members), "volume_pc3": total, "center": center,
             "radius_pc": max(math.dist(center, [n[axis] for axis in "xyz"]) + n["radius_pc"] for n in members),
+            "cover": 0.03 + 0.001 * min(len(members), 70),    # MAP.429: a stored share of the block, at or over the map's floor (3 percent), rising with the members
             "shares": shares, "class": max(letters, key=letters.get)})
     listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))
     return listed[:limit]
@@ -265,10 +266,14 @@ def nebula_volume_payload(key):
 
     from planetgen.db.nebula_volumes import inside_block
     from planetgen.galaxy import nebula_blocks, nebula_volume
-    from planetgen.galaxy.drill import parse_node_key
+    from planetgen.galaxy.drill import LANES_KEY, parse_node_key
     from planetgen.galaxy.nodecut import block_box
     from tests import nebula_density_stand_in as stand_in
 
+    if key == LANES_KEY:      # MAP.430: the far-zoom gas lanes, sampled by the real lane sampler from a stand-in gas patch about the fixture's stars
+        packed = nebula_volume.pack(nebula_volume.sample_lanes(stand_in.lane_density, 6000.0, nebula_blocks.FAMILIES.index("dark")))
+        return {"key": key, "format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+                "data": base64.b64encode(packed).decode("ascii")}
     block = parse_node_key(key)
     lo, hi = block_box(block, EDGE_PC)
     found = []
@@ -597,7 +602,7 @@ def _dense_field():
         stars.append({
             "id": DENSE_PAIR_IDS[k], "name": None, "x": center[0] + side * DENSE_PAIR_GAP_PC / 2, "y": center[1] - 1.8, "z": center[2],
             "luminosity_sol": 30.0 - 10.0 * k, "temperature_k": 6000, "radius_sol": 2.0, "star_type": "fixture",
-            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": SYSTEMS[k][0],
+            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": DENSE_PAIR_SYSTEM,    # MAP.428: one system of its own, a wide pair
         })
     points = [
         _point("neutron_star", 1.4, id=141, name="Dense Pulsar", descriptor="millisecond",
@@ -615,6 +620,7 @@ def _dense_field():
 
 
 DENSE_PAIR_IDS = (23000, 23001)
+DENSE_PAIR_SYSTEM = 23500    # the pair's one system (the dense stars take their systems from SYSTEMS in turn, so no other star is in it)
 DENSE_PAIR_GAP_PC = 0.05
 DENSE_CLUSTER_STARS = 2200
 DENSE_HALO_STARS = 800

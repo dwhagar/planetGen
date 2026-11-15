@@ -51,8 +51,6 @@ def quantity_text(quantity):
         return f"{format_number(value, '.3f')} {quantity['note']}"
     if kind == "angle":
         return f"{format_number(value, '.1f')}°"
-    if kind == "dose":
-        return f"{format_number(value * 1000.0, '.3g')} mSv a year" if abs(value) < 1.0 else f"{format_number(value, '.3g')} Sv a year"
     if kind == "density":
         return f"{format_number(value, '.3g')} kg/m³"
     raise ValueError(f"no text for quantity kind {kind!r}")

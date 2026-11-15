@@ -52,7 +52,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import constants, secular_chain
+from planetgen.physics import constants, oddities, secular_chain
 
 ARCSEC_PER_RAD = 180.0 * 3600.0 / math.pi
 """float: Arcseconds in a radian, for reading the rates in the units the literature prints them in."""
@@ -86,7 +86,7 @@ class Resonance:
 
     mode: Mode
     obliquity_deg: float
-    cos_centre: float
+    cos_center: float
     cos_half_width: float
 
 
@@ -165,11 +165,6 @@ def all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
     return tuple(out)
 
 
-def sibling_modes(index, a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
-    """The nodal modes that drive planet `index` (`all_sibling_modes` for one planet)."""
-    return all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad)[index]
-
-
 def companion_mode(a_au, host_mass_kg, companion_mass_kg, companion_a_au, companion_eccentricity, mutual_inclination_rad):
     """
     The nodal mode a companion star drives in a planet at `a_au` round a host: the planet's orbit precesses about the companion's orbit at `-(3/4) n (M_c / M) (a / a_c)^3
@@ -192,20 +187,20 @@ def resonances_of(alpha_rad_yr, modes):
         return ()
     out = []
     for mode in modes:
-        centre = -mode.frequency_rad_yr / alpha_rad_yr
-        if abs(centre) >= 1.0:
+        center = -mode.frequency_rad_yr / alpha_rad_yr
+        if abs(center) >= 1.0:
             continue
-        sine = math.sqrt(1.0 - centre * centre)
+        sine = math.sqrt(1.0 - center * center)
         half_width = 2.0 * math.sqrt(2.0 * mode.amplitude_rad * abs(mode.frequency_rad_yr) * sine / alpha_rad_yr)
-        out.append(Resonance(mode, math.degrees(math.acos(centre)), centre, half_width))
-    return tuple(sorted(out, key=lambda r: r.cos_centre))
+        out.append(Resonance(mode, math.degrees(math.acos(center)), center, half_width))
+    return tuple(sorted(out, key=lambda r: r.cos_center))
 
 
 def _chains(resonances):
-    """The resonances grouped into chains whose zones overlap (Chirikov: the sum of two half-widths reaches the distance of the centres), each chain a list in order of `cos`."""
+    """The resonances grouped into chains whose zones overlap (Chirikov: the sum of two half-widths reaches the distance of the centers), each chain a list in order of `cos`."""
     chains = []
     for resonance in resonances:
-        if chains and resonance.cos_half_width + chains[-1][-1].cos_half_width >= resonance.cos_centre - chains[-1][-1].cos_centre:
+        if chains and resonance.cos_half_width + chains[-1][-1].cos_half_width >= resonance.cos_center - chains[-1][-1].cos_center:
             chains[-1].append(resonance)
         else:
             chains.append([resonance])
@@ -234,8 +229,8 @@ def analyse(alpha_rad_yr, obliquity_deg, modes):
     x = math.cos(math.radians(obliquity_deg))
     resonances = resonances_of(alpha_rad_yr, modes)
     for chain in _chains(resonances):
-        low = _clamped_cos(min(r.cos_centre - r.cos_half_width for r in chain))
-        high = _clamped_cos(max(r.cos_centre + r.cos_half_width for r in chain))
+        low = _clamped_cos(min(r.cos_center - r.cos_half_width for r in chain))
+        high = _clamped_cos(max(r.cos_center + r.cos_half_width for r in chain))
         if low <= x <= high:
             ceiling, floor = math.degrees(math.acos(low)), math.degrees(math.acos(high))      # a larger cos is a smaller tilt
             return Variation(floor, ceiling, len(chain) >= 2, True, 0.0, resonances, alpha_rad_yr)
@@ -252,3 +247,12 @@ def chaotic_tilt_deg(variation, u):
         raise ValueError("u must be between 0 and 1")
     nearest, farthest = math.cos(math.radians(variation.minimum_deg)), math.cos(math.radians(variation.maximum_deg))
     return math.degrees(math.acos(nearest + u * (farthest - nearest)))
+
+
+@oddities.register("chaotic_tilt")
+def chaotic_tilt(body, row):
+    """
+    The effect of oddities W6 and W61 (GEN.1535): a planet whose tilt `planets.settle_obliquity` found in a chaotic zone of the spin-orbit resonances. The tilt was drawn from the zone and
+    its range stored, so nothing on the body changes: the effect only lets the table name it, so that the page says why this world's seasons change over the ages.
+    """
+    return None

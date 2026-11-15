@@ -49,6 +49,21 @@ def _pattern(system_id, limit):
     return f"{NAME_PREFIX}{glob.escape(str(system_id))}_{int(round(limit * 100))}_*.bin"
 
 
+def _current_directory(db):
+    """`(cache root, generation directory, version key)` of the current generation of the tile cache for `db`; the directory and key are `None` when
+    there is no cache, or the galaxy's stamp cannot be read."""
+    root = tilecache.cache_dir()
+    if not root:
+        return root, None, None
+    try:
+        info = tilecache.current_stamp(db, root)
+    except apiclient.ApiError:
+        info = None
+    if not (info and info.get("generation")):
+        return root, None, None
+    return root, os.path.join(tilecache._db_dir(root, db), info["generation"]), skypack.version_key(info["stamp"])
+
+
 def fetch_sky(db, system_id, limit=None):
     """
     The packed sky of the system `system_id` (a printed ID) at `limit` (text or number; the default when `None`), from the disk cache when it is stored for
@@ -62,17 +77,7 @@ def fetch_sky(db, system_id, limit=None):
         apiclient.NotFoundError / ApiError: If the API is needed and fails.
     """
     limit = skypack.check_limit(limit)
-    root = tilecache.cache_dir()
-    key = None
-    directory = None
-    if root:
-        try:
-            info = tilecache.current_stamp(db, root)
-        except apiclient.ApiError:
-            info = None
-        if info and info.get("generation"):
-            key = skypack.version_key(info["stamp"])
-            directory = os.path.join(tilecache._db_dir(root, db), info["generation"])
+    root, directory, key = _current_directory(db)
     if directory:
         path = os.path.join(directory, sky_filename(system_id, limit, key))
         raw = tilecache._read_bytes(path)
@@ -145,15 +150,7 @@ def fetch_band(db, system_id, limit=None, key=None):
     limit = skypack.check_limit(limit)
     if key is not None and not _BAND_KEY.match(key):
         raise ValueError("key must be a hash")
-    root = tilecache.cache_dir()
-    directory = None
-    if root:
-        try:
-            info = tilecache.current_stamp(db, root)
-        except apiclient.ApiError:
-            info = None
-        if info and info.get("generation"):
-            directory = os.path.join(tilecache._db_dir(root, db), info["generation"])
+    root, directory, _version = _current_directory(db)
     if directory and key:
         path = os.path.join(directory, f"{BAND_PREFIX}{key}.bin")
         raw = tilecache._read_bytes(path)

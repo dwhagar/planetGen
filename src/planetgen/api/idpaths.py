@@ -104,7 +104,6 @@ ID_PATHS = {
         "results.sectors.rows[].id": "sector",
         "results.systems.rows[].id": "system",
     },
-    "api.nebula_shape_route": {"id": "nebula"},
     "api.nebula_volume_route": {"id": "nebula"},
     "population.polity_detail": {"systems[].id": "system"},
     "population.territories": {"points[].id": "system"},

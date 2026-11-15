@@ -195,7 +195,7 @@ def test_every_relation_names_kinds_that_exist():
 
 
 _LADDER_KINDS = {"gravity": "acceleration", "time": "duration", "number density": "number_density",
-                 "magnetic field": "magnetic_field", "temperature difference": "delta_temperature"}
+                 "magnetic field": "magnetic_field", "temperature difference": "delta_temperature", "dose rate": "dose_rate", "rate": "frequency"}
 
 
 @pytest.mark.parametrize("ladder", ladders.LADDERS, ids=lambda ladder: ladder.quantity)

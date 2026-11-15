@@ -412,11 +412,15 @@ def metal_ratio_to_solar(metal_mass_fraction):
     return metal_mass_fraction / _solar_metal_fraction
 
 
+def _offsets_of(composition_or_offsets):
+    """The [X/Fe] dict of a `StellarComposition`, or the dict itself."""
+    return composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
+
+
 def number_ratio(composition_or_offsets, a, b, fe_h=None):
     """The number ratio of element `a` to element `b` (`"Fe"`, `"Si"`): the A21 log eps difference plus the two [X/Fe]. Takes a
     `StellarComposition` or an offsets dict (the ratio is independent of [Fe/H], which cancels)."""
-    offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) \
-        else composition_or_offsets
+    offsets = _offsets_of(composition_or_offsets)
     return 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[a] - tuning.STELLAR_SOLAR_LOG_EPS[b] + offsets.get(a, 0.0) - offsets.get(b, 0.0))
 
 
@@ -427,7 +431,7 @@ ALPHA_ELEMENTS = ("O", "Mg", "Si", "Ca")
 def alpha_enhancement(composition_or_offsets):
     """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disk star at [Fe/H] 0 is near 0, a
     high-alpha one near +0.2 to +0.3 (the branches' fits, `tuning.STELLAR_XFE_FITS`)."""
-    offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
+    offsets = _offsets_of(composition_or_offsets)
     return sum(offsets[symbol] for symbol in ALPHA_ELEMENTS) / len(ALPHA_ELEMENTS)
 
 
@@ -515,7 +519,7 @@ def after_first_dredge_up(star, mass_sol):
 
 # --- Radioactive birth abundances --------------------------------------------------------------------------------------
 
-GY_S = 3.15576e16
+GY_S = constants.SECONDS_PER_GY
 """float: Seconds in a gigayear (Julian)."""
 
 

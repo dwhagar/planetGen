@@ -47,8 +47,8 @@ main{padding:16px 16px 60px}}
 <p>Status: built (GEN.554 slice 3). The placement of the kicked stars (the thicker layer, the black hole core excess) is still <code>remnant_distribution.py</code>'s empirical factors; deriving it is a later slice. Code: <code>galaxy/natal_kick.py</code>, <code>galaxy/structure_draw.py</code> (<code>draw_neutron_star_unbound_share</code>), <code>galaxy/structure.py</code> (the reference structure's share), <code>galaxy/ejecta_field.py</code>.</p>
 <h2 id="what-changed">What changed</h2>
 <p>Before: each galaxy drew its unbound share of the neutron stars uniformly from 20% to 40% (<code>NEUTRON_STAR_UNBOUND_FRACTION_RANGE</code>, &quot;[R1966]'s kick distribution against the escape speed&quot;, recalled), whatever its size.</p>
-<p>After: the share is what the kick law sends past the galaxy's escape speed. A neutron star is born with the speed of its progenitor, the galaxy's circular speed <code>Vc</code> along the disk, plus a kick in a random direction. The kick is a Maxwellian of one-dimensional dispersion 265 km/s (<code>tuning.NEUTRON_STAR_KICK_SIGMA_KMS</code>, [R1966] as <code>multistar-and-compact-systems.md</code> records it), so the velocity is a three-dimensional Gaussian about <code>Vc</code> and the chance that it exceeds <code>v_esc</code> is the noncentral chi tail of three degrees of freedom, in closed form (<code>survival</code>). The massive stars that leave neutron stars are born in the thin disk, <code>R exp(-R / L)</code> per unit radius, so the galaxy's share is the mean over 32 equal shares of that law.</p>
-<p>The escape speed is the galaxy's own: the halo's Navarro, Frenk and White potential from the mass chain (halo mass, virial radius, concentration) plus the stars' mass as a Plummer sphere of the disk's scale length.</p>
+<p>After: the share is what the kick law sends past the galaxy's escape speed. A neutron star is born with the speed of its progenitor, the galaxy's circular speed <code>Vc</code> along the disc, plus a kick in a random direction. The kick is a Maxwellian of one-dimensional dispersion 265 km/s (<code>tuning.NEUTRON_STAR_KICK_SIGMA_KMS</code>, [R1966] as <code>multistar-and-compact-systems.md</code> records it), so the velocity is a three-dimensional Gaussian about <code>Vc</code> and the chance that it exceeds <code>v_esc</code> is the noncentral chi tail of three degrees of freedom, in closed form (<code>survival</code>). The massive stars that leave neutron stars are born in the thin disc, <code>R exp(-R / L)</code> per unit radius, so the galaxy's share is the mean over 32 equal shares of that law.</p>
+<p>The escape speed is the galaxy's own: the halo's Navarro, Frenk and White potential from the mass chain (halo mass, virial radius, concentration) plus the stars' mass as a Plummer sphere of the disc's scale length.</p>
 <pre><code>v_esc^2 = 2 ( V200^2 c / m(c) * ln(1 + x) / x  +  G M_* / sqrt(R^2 + L^2) ),  x = R / r_s,  r_s = r200 / c
 </code></pre>
 <h2 id="numbers">Numbers</h2>
@@ -78,7 +78,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>The old 20% to 40% is a test target for the Milky Way's published masses (27%, inside it); the reference structure's 16% is 20% under the range's low end, and the gap is shown in <code>tests/test_natal_kick.py</code>. The nature of the draws changes: the share was one uniform draw per galaxy and is now a function of its stellar mass, halo, circular speed and disk length, so a seed still gives one value.</p>
+<p>The old 20% to 40% is a test target for the Milky Way's published masses (27%, inside it); the reference structure's 16% is 20% under the range's low end, and the gap is shown in <code>tests/test_natal_kick.py</code>. The nature of the draws changes: the share was one uniform draw per galaxy and is now a function of its stellar mass, halo, circular speed and disc length, so a seed still gives one value.</p>
 <h2 id="what-follows">What follows</h2>
 <ul>
 <li>The neutron star count of every place (<code>remnant_density</code>) and the ejected count (<code>ejecta_field</code>) read the share from the structure, as in slice 1; bound plus ejected is still what the galaxy formed.</li>
@@ -95,11 +95,11 @@ A galaxy that ejects none has none. A black hole's speed keeps the range (<code>
 <ul>
 <li><strong>[recalled]</strong> The dispersion 265 km/s [R1966] is recalled in the repository's notes and not re-read (Boss, 1:17 PM EDT 2026-10-21: use what is included); one Maxwellian stands for what is probably two components <strong>[stand-in]</strong>.</li>
 <li>The black holes' 2% (<code>BLACK_HOLE_UNBOUND_FRACTION</code>, one population synthesis) is not derived: a momentum-conserving kick of <code>sigma x 1.4 / M</code> (37 km/s for 10 solar masses) unbinds almost none. It stays a <strong>[placeholder]</strong>.</li>
-<li><strong>[stand-in]</strong> Birth in the thin disk only: the bulge's and the halo's neutron stars are born at their own radii, not averaged here. Disk scale lengths a shape fixes by hand keep the seed's drawn length for this share.</li>
+<li><strong>[stand-in]</strong> Birth in the thin disc only: the bulge's and the halo's neutron stars are born at their own radii, not averaged here. Disc scale lengths a shape fixes by hand keep the seed's drawn length for this share.</li>
 <li>The potential is spherical and static, and the progenitor's speed is the circular speed with no asymmetric drift.</li>
 </ul>
 <h2 id="tests">Tests</h2>
-<p><code>tests/test_natal_kick.py</code>: the survival formula matches a drawn kick, falls with the threshold and rises with the progenitor's speed; the birth radii divide the disk into equal shares; the escape speed falls outward and rises with the halo, and is 490 to 600 km/s for the Milky Way's masses; the Milky Way's share is inside 20% to 40%; a faster kick ejects more and a deeper well fewer; a seed draws the share its structure carries; small galaxies lose more than large ones.</p>
+<p><code>tests/test_natal_kick.py</code>: the survival formula matches a drawn kick, falls with the threshold and rises with the progenitor's speed; the birth radii divide the disc into equal shares; the escape speed falls outward and rises with the halo, and is 490 to 600 km/s for the Milky Way's masses; the Milky Way's share is inside 20% to 40%; a faster kick ejects more and a deeper well fewer; a seed draws the share its structure carries; small galaxies lose more than large ones.</p>
 
 </main>
 </div>

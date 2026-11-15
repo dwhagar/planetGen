@@ -11,9 +11,9 @@ would carry with the gas. `E = 1` is the static budget (`disk_condensation`, GEN
 line and after the pebbles are gone.
 
 1. **The clocks.** The dust-growth front moves outward, `r_g = FRONT_AU_AT_1_MYR x (t / 1 Myr)^(2/3) x (M / Msun)^(1/3)` ([R5211: Eq. 10]); a line at `r_L` sees its pebbles from the time
-   the front reaches it (`arrival_myr`) to the time the front leaves the disk's edge (`pebble_end_myr`: the drawn snow line times
+   the front reaches it (`arrival_myr`) until the disk is gone (`disk_end_myr`), the flux fading as the front passes the disk's edge (`pebble_taper`: the drawn snow line times
    `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER`). The gas needs time to carry the vapor from the line to a place inside it (`lag_myr`).
-2. **The ratio.** `E(t) = Mdot_F(t) / (Mdot_g(t) x Z)` between the two times (`instant_ratio`): the pebble mass flux of [R5211: Eq. 14] over the viscous gas flux, in units of the
+2. **The ratio.** `E(t) = Mdot_F(t) / (Mdot_g(t) x Z)` between the two times (`tapered_ratio`): the pebble mass flux of [R5211: Eq. 14] over the viscous gas flux, in units of the
    disk's solids over gas `Z`. Both fluxes are proportional to the disk's mass (`tuning.DISK_MASS_STELLAR_MASS_EXPONENT`), so the ratio does not depend on it; the star's mass
    enters through the front and through the times only.
 3. **The gas at a place.** The gas is the supply (the gas at the disk's edge) plus each ice whose line lies between the edge and the place, weighted by its `E` averaged over
@@ -22,7 +22,7 @@ line and after the pebbles are gone.
    metals, its stored snow line and the giant's formation temperature give everything (`giant_ice_weights`).
 
 Limits. The solids at a place stay the static ones; only the gas moves (DE8: the supply is the gas at the edge and each ice between the edge and the place is added with its weight; a
-species is carried only by pebbles that began beyond its line, DE7). The pebble flux ends as a step at the disk's edge (DE3). Not modelled (DE10): a formed giant that blocks the
+species is carried only by pebbles that began beyond its line, DE7). The pebble flux fades as `exp(-front / edge)` (DE3). Not modelled (DE10): a formed giant that blocks the
 pebbles (the isolation mass), planets that eat pebbles on the way, the soot line, photoevaporation of the gas, and the cold finger
 (the ice-to-rock ratio just outside a line; `COLD_FINGER_LEAK` and `cold_finger_enrichment` report it, nothing reads it yet). The nitrogen, sulfur and noble gases of
 `disk_condensation.envelope_enrichments` keep their static values. Stand-ins are rows DE1 to DE10 of the registry (section 6.242 of `docs/design/research/gap-filling-plan.md`).
@@ -72,13 +72,10 @@ VISCOUS_GAS_EXPONENT = -1.5
 """float: The power of `(1 + t / t_nu)` in the gas flux (a viscosity linear in the radius). [Stand-in DE4, tier T6, tweak L0.]"""
 
 ALPHA = 1.0e-3
-"""float: The turbulence parameter of the disk, which sets the time the gas takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
+"""float: The turbulence parameter of the disk, which sets the viscosity and so the speed of the gas (`drift_speed_au_per_myr`), hence the time it takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
 
-LAG_MYR_PER_AU = 0.05
-"""float: The time the gas takes to cross one AU inward at `REFERENCE_ALPHA`, Myr: `tau = (r_L - r) / (3 nu_1)` with `nu = nu_1 x (r / 1 AU)` (a steady disk). [Stand-in DE5, tier T6, tweak L0.]"""
-
-REFERENCE_ALPHA = 1.0e-3
-"""float: The `ALPHA` at which `LAG_MYR_PER_AU` holds; the lag scales as `REFERENCE_ALPHA / ALPHA`. [Stand-in DE5, tier T6, tweak L0.]"""
+MEAN_MOLECULAR_WEIGHT = 2.3
+"""float: The mean mass of a gas particle of the disk (molecular hydrogen with helium), in hydrogen masses; it sets the sound speed of the viscosity. [Stand-in DE5, tier Confident Unverified, tweak L0.]"""
 
 COLD_FINGER_LEAK = 0.9
 """float: The share of the vapor at a line that goes back out and freezes again just outside it; the ice there is enriched by `1 / (1 - leak)` and the net flux inward does not change
@@ -87,6 +84,17 @@ COLD_FINGER_LEAK = 0.9
 CRITICAL_CORE_EARTH = 15.0
 """float: The core mass at which a giant starts to gather gas, Earth masses (the critical core, 10 to 20), the mass the pebbles must build before the gas is gathered. My derivation to avoid a new
 draw. [Stand-in DE9, tier T6, tweak L0.]"""
+
+CORE_EFFICIENCY_AT_REFERENCE = 0.034
+"""float: The share of the pebbles that drift past a core that it accretes, for a core of 1 Earth mass at 10 AU in pebbles of Stokes number 0.1: `f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2)`
+([R5211: Eq. 33], the Hill-sphere accretion of Eq. 28; capped at 1). [Stand-in DE12, tier T1, tweak L0.]"""
+
+CORE_EFFICIENCY_AU = 10.0
+"""float: The distance the efficiency `CORE_EFFICIENCY_AT_REFERENCE` is given at, AU ([R5211: Eq. 33]). [Stand-in DE12, tier T1, tweak L0.]"""
+
+CORE_SEED_EARTH = 1.0e-3
+"""float: The mass of the seed core pebble accretion grows from, Earth masses ([R5211] section 3.3: a seed of 10^-3 Earth masses). Its third root is small against the critical core's, so the age hardly
+depends on it. [Stand-in DE12, tier T1, tweak L0.]"""
 
 INTEGRATION_INTERVALS = 32
 """int: The intervals of the Simpson rule that averages the ratio over a lag window (in the age to the 2/3, where the ratio is smooth)."""
@@ -146,12 +154,18 @@ def arrival_myr(distance_au, mass_solar=1.0):
     return (distance_au / (FRONT_AU_AT_1_MYR * mass_solar ** FRONT_MASS_EXPONENT)) ** (1.0 / FRONT_AGE_EXPONENT)
 
 
-def pebble_end_myr(snow_line_au, mass_solar=1.0):
+def pebble_taper(age_myr, snow_line_au, mass_solar=1.0):
     """
-    The age at which the front leaves the disk's edge and the pebbles are gone, Myr: 0.2 for the Sun (edge 41 AU). The flux ends as a step there; speculative, the simplest form that conserves
-    the dust (a real disk loses its pebbles over a few Myr). [Stand-in DE3, tier T6, tweak L0.]
+    The share of the pebble flux left once the dust-growth front is at `front_au(age_myr)`: `exp(-front / edge)` (GEN.1514). The front reaches dust that sits in the gas disk's
+    exponential outer cut-off, so the flux falls as the surface density of the gas does at the front's place; the cut-off radius is the disk's edge (`edge_au`). 1 for a young front,
+    `exp(-1)` = 0.37 when the front reaches the edge (0.2 Myr for the Sun, edge 41 AU), 0.002 by the end of the disk's life. [Stand-in DE3, tier T6, tweak L0.]
     """
-    return arrival_myr(edge_au(snow_line_au), mass_solar)
+    return math.exp(-front_au(age_myr, mass_solar) / edge_au(snow_line_au))
+
+
+def disk_end_myr():
+    """The age at which the disk is gone and nothing is carried any more, Myr (`scatter.DISK_LIFETIME_YR`)."""
+    return scatter.DISK_LIFETIME_YR / MYR_YR
 
 
 def pebble_flux_earth_per_yr(age_myr, mass_solar=1.0, metal_ratio=1.0):
@@ -181,14 +195,42 @@ def instant_ratio(age_myr, mass_solar=1.0, metal_ratio=1.0):
     return flux / (gas_flux_solar_per_yr(age_myr, mass_solar) * solids_over_gas(metal_ratio))
 
 
-def lag_myr(from_au, to_au):
-    """The time the gas takes to carry vapor from the line at `from_au` to a place at `to_au` inside it, Myr (DE5); zero for a place at or outside the line."""
+def viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar=1.0):
+    """
+    The viscosity of the disk's gas at 1 AU, AU^2 per Myr (GEN.1515): `nu = alpha c_s^2 / Omega` with the sound speed from the disk's temperature there (`LINES_K["H2O"]` at the snow line, falling as the
+    square root of the distance, the law `place_au` uses) and the orbital frequency of the star's mass. Hotter gas (a brighter star, a farther snow line) is more viscous; a heavier star makes `Omega` larger
+    and the gas slower. With the temperature falling as `r^-1/2`, `nu` rises in proportion to `r`. [Stand-in DE5, tier Confident Unverified, tweak L0.]
+    """
+    if not snow_line_au > 0.0 or not mass_solar > 0.0:
+        raise ValueError("the snow line and the mass must be positive")
+    temperature = disk_condensation.LINES_K["H2O"] * math.sqrt(snow_line_au)                       # at 1 AU
+    sound_squared = physical_constants.BOLTZMANN * temperature / (MEAN_MOLECULAR_WEIGHT * physical_constants.HYDROGEN_ATOM_MASS_KG)
+    omega = math.sqrt(physical_constants.G * mass_solar * physical_constants.SOLAR_MASS_TO_KG / physical_constants.AU_M ** 3)
+    nu = ALPHA * sound_squared / omega                                                              # m^2 per s
+    return nu * physical_constants.SECONDS_PER_YEAR * MYR_YR / physical_constants.AU_M ** 2
+
+
+def drift_speed_au_per_myr(snow_line_au, mass_solar=1.0):
+    """
+    The speed at which a steady disk carries its gas inward, AU per Myr (GEN.1515): `v = 3 nu / (2 r)` (steady accretion), the same at every distance because `nu` rises in proportion to `r`, so
+    `1.5 x` the viscosity at 1 AU over 1 AU. About 10.5 AU per Myr for the Sun (snow line 2.3 AU) at `ALPHA = 1e-3`, 8.8 for a 0.5 solar mass star (snow line 0.8 AU), 13 for 1.4 solar masses: a lag of 0.095, 0.113 and 0.077 Myr per AU (the fixed 0.05 it replaces was half the steady-disk speed's lag). [Stand-in DE5, tier Confident Unverified, tweak L0.]
+    """
+    return 1.5 * viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar)
+
+
+def lag_myr(from_au, to_au, snow_line_au, mass_solar=1.0):
+    """The time the gas takes to carry vapor from the line at `from_au` to a place at `to_au` inside it, Myr (DE5; the distance over `drift_speed_au_per_myr`); zero for a place at or outside the line."""
     if not from_au >= 0.0 or not to_au >= 0.0:
         raise ValueError("the distances must be zero or more")
-    return LAG_MYR_PER_AU * (REFERENCE_ALPHA / ALPHA) * max(from_au - to_au, 0.0)
+    return max(from_au - to_au, 0.0) / drift_speed_au_per_myr(snow_line_au, mass_solar)
 
 
-def _mean_ratio(start_myr, end_myr, window_myr, mass_solar, metal_ratio):
+def tapered_ratio(age_myr, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
+    """`instant_ratio` times `pebble_taper`: the ratio of the pebble flux that is left (GEN.1514) over the gas flux."""
+    return instant_ratio(age_myr, mass_solar, metal_ratio) * pebble_taper(age_myr, snow_line_au, mass_solar)
+
+
+def _mean_ratio(start_myr, end_myr, window_myr, snow_line_au, mass_solar, metal_ratio):
     """The integral of `instant_ratio` from `start_myr` to `end_myr` over `window_myr` (the boxcar mean of the gated ratio over the window), by the Simpson rule in `u = t^(2/3)`."""
     if end_myr <= start_myr:
         return 0.0
@@ -198,7 +240,7 @@ def _mean_ratio(start_myr, end_myr, window_myr, mass_solar, metal_ratio):
 
     def integrand(u):
         t = u ** exponent
-        return instant_ratio(t, mass_solar, metal_ratio) * exponent * u ** (exponent - 1.0)
+        return tapered_ratio(t, snow_line_au, mass_solar, metal_ratio) * exponent * u ** (exponent - 1.0)
 
     width = (u_end - u_start) / steps
     total = integrand(u_start) + integrand(u_end)
@@ -212,7 +254,9 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     """
     The enrichment ratio `E` of `species` at `age_myr`: the flux of its ice that the pebbles carry in over the flux the static budget carries with the gas.
 
-    Zero when the species' line is not inside the disk's edge, before the front reaches the line (`arrival_myr`) and from the time the pebbles end (`pebble_end_myr`); between,
+    One, the static budget, for gas that has not crossed the line yet: with `to_au`, when `age_myr` is under the time the gas needs to carry vapor from the line to the place
+    (`lag_myr`), the gas at the place began inside the line with its vapor (GEN.1517; the start state of the disk is the solar gas, not gas with the ices frozen out). Past that
+    the gas crossed the line at `age_myr - lag`: zero when the line is not inside the disk's edge, before the front reaches the line (`arrival_myr`) and from the end of the disk (`disk_end_myr`); between,
     `instant_ratio`. With `to_au` (a place inside the line) the value is the mean over the window `[age - lag_myr, age]` that the gas needs to carry the vapor from the line to the
     place, the window cut at the start of the disk (design note 2.1).
 
@@ -229,15 +273,17 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     line = line_au_of(species, snow_line_au)
     if line >= edge_au(snow_line_au):
         return 0.0
+    lag = 0.0 if to_au is None else lag_myr(line, to_au, snow_line_au, mass_solar)
+    if age_myr < lag:
+        return 1.0                                  # the gas at the place has not crossed the line yet: it is the disk's own gas of the start, vapor and all (GEN.1517)
     first = arrival_myr(line, mass_solar)
-    last = pebble_end_myr(snow_line_au, mass_solar)
+    last = disk_end_myr()
     if first >= last:
         return 0.0
-    lag = 0.0 if to_au is None else lag_myr(line, to_au)
     if lag <= 0.0 or age_myr <= 0.0:
-        return instant_ratio(age_myr, mass_solar, metal_ratio) if first <= age_myr < last else 0.0
+        return tapered_ratio(age_myr, snow_line_au, mass_solar, metal_ratio) if first <= age_myr < last else 0.0
     window_start = max(age_myr - lag, 0.0)
-    return _mean_ratio(max(window_start, first), min(age_myr, last), age_myr - window_start, mass_solar, metal_ratio)
+    return _mean_ratio(max(window_start, first), min(age_myr, last), age_myr - window_start, snow_line_au, mass_solar, metal_ratio)
 
 
 @finite_domain()
@@ -260,22 +306,41 @@ def ice_weights(temperature_k, age_myr, snow_line_au, mass_solar=1.0, metal_rati
 def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
     """
     The age at which a giant that formed where the disk was at `temperature_k` gathers its gas, Myr (DE9): when the pebbles that pass its place have built `CRITICAL_CORE_EARTH`
-    from the front's arrival there, capped at the disk's lifetime (`scatter.DISK_LIFETIME_YR`) and at the end of the pebbles (a core the pebbles cannot build in time gathers
-    its gas as the pebbles end and sees the pebble-depleted gas).
+    from the front's arrival there at the efficiency of `pebble_mass_for_core`, with the flux tapered by `pebble_taper` (GEN.1514), capped at the disk's lifetime (`disk_end_myr`; a core
+    the tapered pebbles cannot build in time gathers its gas as the disk goes).
     """
     place = place_au(temperature_k, snow_line_au)
     arrived = arrival_myr(place, mass_solar)
-    last = pebble_end_myr(snow_line_au, mass_solar)
-    cap = min(scatter.DISK_LIFETIME_YR / MYR_YR, last)
+    cap = disk_end_myr()
     if arrived >= cap:
         return cap
     z = solids_over_gas(metal_ratio)
-    # mass(t) = K x (t^(2/3) - t0^(2/3)) with the flux K' t^(-1/3): the integral of t^(-1/3) is 1.5 t^(2/3)
+    # the flux K' t^(-1/3) exp(-c u) with u = t^(2/3) and c = front(1 Myr) / edge: in u the mass is coefficient x the integral of exp(-c u) du
     coefficient = (PEBBLE_FLUX_EARTH_MASSES_PER_YR * (z / REFERENCE_SOLIDS_OVER_GAS) ** PEBBLE_FLUX_Z_EXPONENT * disk_mass_scale(mass_solar) * MYR_YR
                    / (PEBBLE_FLUX_AGE_EXPONENT + 1.0))
-    needed = CRITICAL_CORE_EARTH / coefficient + arrived ** (PEBBLE_FLUX_AGE_EXPONENT + 1.0)
-    age = needed ** (1.0 / (PEBBLE_FLUX_AGE_EXPONENT + 1.0))
-    return min(age, cap)
+    decay = FRONT_AU_AT_1_MYR * mass_solar ** FRONT_MASS_EXPONENT / edge_au(snow_line_au)
+    u_arrived = arrived ** (PEBBLE_FLUX_AGE_EXPONENT + 1.0)
+    remaining = math.exp(-decay * u_arrived) - decay * pebble_mass_for_core(place, CRITICAL_CORE_EARTH) / coefficient
+    if remaining <= 0.0:
+        return cap                               # the pebbles that are left cannot build the core: it gathers its gas as the disk goes
+    return min((-math.log(remaining) / decay) ** (1.0 / (PEBBLE_FLUX_AGE_EXPONENT + 1.0)), cap)
+
+
+def pebble_mass_for_core(place_au_value, core_earth):
+    """
+    The pebble mass that must drift past a core at `place_au_value` AU for it to grow from its seed (`CORE_SEED_EARTH`) to `core_earth` Earth masses, Earth masses (DE12): the core accretes
+    the share `f = CORE_EFFICIENCY_AT_REFERENCE (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2)` of the pebbles that pass ([R5211: Eq. 33]), so `d(Mc^(1/3)) = (f_0 / 3) (r / 10 AU)^(-1/2) dM_pebbles`
+    and `Mc^(1/3)` grows linearly with the pebble mass until `f` reaches 1 (close in, small core), after which every pebble that passes is accreted.
+    """
+    if not place_au_value > 0.0 or not core_earth > CORE_SEED_EARTH:
+        raise ValueError("the place must be positive and the core larger than its seed")
+    slope = CORE_EFFICIENCY_AT_REFERENCE / 3.0 * (place_au_value / CORE_EFFICIENCY_AU) ** -0.5
+    full = (1.0 / (CORE_EFFICIENCY_AT_REFERENCE * (place_au_value / CORE_EFFICIENCY_AU) ** -0.5)) ** 1.5          # the core mass at which f = 1
+    if core_earth <= full:
+        return (core_earth ** (1.0 / 3.0) - CORE_SEED_EARTH ** (1.0 / 3.0)) / slope
+    start = max(full, CORE_SEED_EARTH)
+    below = (start ** (1.0 / 3.0) - CORE_SEED_EARTH ** (1.0 / 3.0)) / slope if start > CORE_SEED_EARTH else 0.0
+    return below + core_earth - start
 
 
 def giant_ice_weights(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1.0):

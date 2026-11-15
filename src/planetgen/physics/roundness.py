@@ -27,8 +27,8 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    rock 16.5 MPa (confirmed three ways, range 4 to 30); ice 1 MPa by default (the creep strength of pure ice near 158 K, range 0.4 to 3), and when a shape-set `temperature_k` is given the
    [R1190] creep law of ice at 1e-15 per second (0.1 MPa at 200 K, 3.6 at 140 K, 34 at 100 K); metal 100 MPa (range 50 to 250, [R3552]); and a mix that follows
    the *volume* shares, ice strength times `exp(2 f)` for the solids' volume fraction `f` (measured to 0.56), continued to 0.65 and then geometric to the solids' strength at 1.
-   Porosity is `none`: meteorites show no clear strength trend with porosity [R3552]. An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
-   Proteus (a porous ice-rich moon, 210 km, not round) would come out round. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
+   Porosity is `none`: meteorites show no clear strength trend with porosity [R3552]. A `power` rule (the carbonate-rock law of [R0083], strength times `(1 - phi / 0.5)^1.67`, GEN.1175) is built and off; the recalled ceramics
+   exponential it replaces made Proteus (a porous ice-rich moon, 210 km, not round) come out round, and the power law has not yet been judged on it. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
    other ice phases, and the rubble-pile branch (friction plus a little cohesion, a shape-set temperature and no size threshold).
    **Hot rock.** A rock body that took its shape hot is weaker than cold rock: with a shape-set `temperature_k` the rock strength follows the creep of dry olivine (`TEMPERATURE_RULES`,
    `olivine-creep-law`), between the [R1956, R2451] columns, and never above the cold whole-body strength of 16.5 MPa, which stands for the brittle limit. So
@@ -44,7 +44,9 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    roundness ratio stays near 0.28. It rounds only if it took its shape weak from heat (`heated`, the table's hot strength of 1 to 4 MPa) or, for an icy pile, at the creep strength of its ice at
    the `temperature_k` its shape was set at. Friction angle 35 degrees (30 to 40) and cohesion 44 to 210 Pa are from the studies of fast-spinning asteroids (1950 DA, Rozitis and others 2014;
    Hirabayashi and Scheeres). The failure stress is a Mohr-Coulomb fit (`RUBBLE_RULES`); a body's intact crystals (olivine, about 10 GPa) are never used for any of this.
-3. **Binding energy** is in `binding_energy.py`.
+3. **The kind of ice** (GEN.1684): the strength of ice above is water ice Ih. `ice_types` gives the other ices as factors on it (ice II, III, V and VI, methane clathrate, solid CO2, ammonia dihydrate), and every strength function takes
+   `ice_factor` (`body_strength.ice_factor_of`): a body whose ice is mostly clathrate is 20 to 30 times as strong in its ice, one deep in a large icy moon is in ice II to VI.
+4. **Binding energy** is in `binding_energy.py`.
 
 The ice fraction is the share of the body's mass that is water or ice (`makeup.water + makeup.ice` of a small body). Only solid bodies have a roundness or a strength: a gas giant or a star
 is a fluid and always settles into a ball, so nothing here applies to it.
@@ -188,7 +190,7 @@ def load_table(document):
     return StrengthTable(strengths, factor, mixing, porosity, temperature, rubble, ranges)
 
 
-_GAS_KJ_MOL_K = 8.314462618e-3
+_GAS_KJ_MOL_K = constants.GAS_CONSTANT * 1e-3
 
 
 def _creep_stress_mpa(regime, rate, kelvin):
@@ -238,11 +240,11 @@ def _material_strength_pa(table, name, temperature_k):
     return base if block is None else TEMPERATURE_RULES[block["rule"]](table, block, base, temperature_k)
 
 
-def _exp_volume(table, ice_fraction, metal_fraction, temperature_k):
+def _exp_volume(table, ice_fraction, metal_fraction, temperature_k, ice_factor=1.0):
     """The strength of a mix by the volume shares of its materials (strength research section 7): ice strength times `exp(b f)` for the solids' volume fraction `f` up to `tested_to` (0.56, measured:
     Durham and others 1992), the same law continued to `close_packing` (0.65), then geometric to the solids' own strength (rock and metal, geometric mean weighted by the metal share of their
     volume) at `f` of 1. Grains of 1 to 150 microns in ice; the leg beyond 0.56 is an extrapolation."""
-    ice_strength = _material_strength_pa(table, "ice", temperature_k)
+    ice_strength = _material_strength_pa(table, "ice", temperature_k) * ice_factor       # GEN.1684: the kind of ice (`ice_types`) as a factor on water ice Ih
     rock_fraction = 1.0 - ice_fraction - metal_fraction
     volumes = {name: share / GRAIN_DENSITIES_KG_M3[name] for name, share in (("ice", ice_fraction), ("rock", max(rock_fraction, 0.0)), ("metal", metal_fraction))}
     solid_volume = volumes["rock"] + volumes["metal"]
@@ -259,13 +261,26 @@ def _exp_volume(table, ice_fraction, metal_fraction, temperature_k):
 
 
 MIXING_RULES = {"exp-volume": _exp_volume}
-"""dict: Rules for the strength of a mix of materials, each `(table, ice_fraction, metal_fraction, temperature_k)` -> Pa. The strength research adds a rule here and names it in the file. [Stand-in RN3, tier T6, tweak L3.]"""
+"""dict: Rules for the strength of a mix of materials, each `(table, ice_fraction, metal_fraction, temperature_k, ice_factor)` -> Pa. The strength research adds a rule here and names it in the file. [Stand-in RN3, tier T6, tweak L3.]"""
 
 POROSITY_RULES = {
     "none": lambda table, strength, porosity: strength,
-    "exponential": lambda table, strength, porosity: strength * math.exp(-_positive(table.porosity["coefficient"], "coefficient") * porosity),
+    "power": lambda table, strength, porosity: strength * _porosity_factor(table, porosity),
 }
-"""dict: Rules for what voids do to the strength, each `(table, strength_pa, porosity)` -> Pa. `none` leaves it to the density; `exponential` is `sigma exp(-b phi)` with `b` in the file (4 to 7 in the research). [Stand-in RN5, tier T3, tweak L3.]"""
+"""dict: Rules for what voids do to the strength, each `(table, strength_pa, porosity)` -> Pa. `none` leaves it to the density; `power` is `sigma (1 - phi / phi*)^m` with `phi*` (`solid_limit`) and `m`
+(`exponent`) in the file, the law fitted to 253 uniaxial tests of carbonate rocks and gypsum, 0.4 to 50 percent porosity ([R0083]: 1.67 with phi* 0.5 assumed, not fitted; it replaces the recalled
+ceramics exponential). [Stand-ins RN5 (which rule is in use) and RN12 (the power law), GEN.1175.]"""
+
+
+def _porosity_factor(table, porosity):
+    """The share of its strength a body keeps with voids of share `porosity`: `(1 - phi / phi*)^m` ([R0083], RN12), the argument held at `POROSITY_FLOOR` of the solid so that a body at the law's limit keeps a little
+    strength and does not divide a round radius by zero."""
+    limit, exponent = _positive(table.porosity["solid_limit"], "solid_limit"), _positive(table.porosity["exponent"], "exponent")
+    return max(1.0 - porosity / limit, POROSITY_FLOOR) ** exponent
+
+
+POROSITY_FLOOR = 0.1
+"""float: The least `1 - phi / phi*` the `power` porosity rule uses, so a body at or past the law's solid limit keeps `0.1^1.67` (2 percent) of its strength. [Stand-in RN12, tier T9, tweak L3: the data stop at 50 percent porosity.]"""
 
 
 def _mohr_coulomb(table):
@@ -292,6 +307,9 @@ TABLE = _read_table()
 
 SPHERICITY_FACTOR = TABLE.sphericity_factor
 """float: The longest axis of a body counted round is at most this times its mean radius ([R2703] 10 percent bump; their Eq. 9). [Stand-in RN1, tier T1, tweak L0.]"""
+
+_BUMP_COEFFICIENT = stress_coefficient(SPHERICITY_FACTOR)
+"""float: `K` of the table's sphericity: the stress of a bump is `K G rho^2 R^2`."""
 
 ICE_STRENGTH_PA = TABLE.strengths_pa["ice"]
 """float: The default yield strength of ice at the scale of a body, Pa (1 MPa, the creep strength of pure ice near 158 K; the Lineweaver and Norman fit is 0.4 to 3 MPa). [Stand-in RN2, tier T2, tweak L1.]"""
@@ -331,6 +349,11 @@ def drawn_strengths_pa(draw):
     return dict(_table_at(draw).strengths_pa)
 
 
+def ice_strength_pa(temperature_k=None, draw=None):
+    """The strength of water ice Ih that took its shape at `temperature_k` (the default ice when None), at quantile `draw` of its range: the strength the kind of ice (`ice_types`) is a factor of."""
+    return _material_strength_pa(_table_at(draw), "ice", temperature_k)
+
+
 ROCK_CREEP_COLUMNS = TABLE.temperature["rock"]["columns"]
 """list: The two flow-law columns for dry olivine dislocation creep ([R1956, R2451] re-fit), `log10_a`, `n` and `e_kj_mol` each, between which a body's quantile `draw` sits. [Stand-in RN11, tier T2, tweak L0.]"""
 
@@ -345,7 +368,7 @@ def _share(value, name):
 
 
 @finite_domain()
-def yield_strength_pa(ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, draw=None):
+def yield_strength_pa(ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, draw=None, ice_factor=1.0):
     """The yield strength of a body, Pa: the mixing rule of the table over its ice and metal mass fractions (ice at the creep strength of `temperature_k` when its shape was set; None for the default ice), then the porosity rule over its void share."""
     ice, metal, voids = _share(ice_fraction, "ice fraction"), _share(metal_fraction, "metal fraction"), _share(porosity, "porosity")
     if ice + metal > 1.0 + 1e-9:
@@ -353,23 +376,25 @@ def yield_strength_pa(ice_fraction, metal_fraction=0.0, porosity=0.0, temperatur
     if temperature_k is not None and not temperature_k > 0.0:
         raise ValueError("the temperature must be above absolute zero")
     table = _table_at(draw)
-    strength = MIXING_RULES[table.mixing["rule"]](table, ice, metal, temperature_k)
+    if not ice_factor > 0.0:
+        raise ValueError("the ice factor must be positive")
+    strength = MIXING_RULES[table.mixing["rule"]](table, ice, metal, temperature_k, ice_factor)
     return POROSITY_RULES[table.porosity["rule"]](table, strength, voids)
 
 
 @finite_domain()
-def round_radius_m(density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, draw=None):
+def round_radius_m(density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, draw=None, ice_factor=1.0):
     """The mean radius at which a solid body of this bulk density and composition turns round, m: `sqrt(sigma / (K G rho^2))`."""
     if not density_kg_m3 > 0.0:
         raise ValueError("the density must be positive")
-    sigma = yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, draw)
-    return math.sqrt(sigma / (stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2))
+    sigma = yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, draw, ice_factor)
+    return math.sqrt(sigma / (_BUMP_COEFFICIENT * constants.G * density_kg_m3 ** 2))
 
 
 @finite_domain()
-def round_mass_kg(density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, draw=None):
+def round_mass_kg(density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, draw=None, ice_factor=1.0):
     """The mass at which a solid body of this bulk density and composition turns round, kg: a sphere of `round_radius_m` at that density."""
-    return 4.0 / 3.0 * math.pi * round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, draw) ** 3 * density_kg_m3
+    return 4.0 / 3.0 * math.pi * round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, draw, ice_factor) ** 3 * density_kg_m3
 
 
 STRUCTURES = ("monolith", "rubble")
@@ -411,7 +436,7 @@ def rubble_round_radius_m(density_kg_m3, ice_fraction=0.0, metal_fraction=0.0, p
     if not density_kg_m3 > 0.0:
         raise ValueError("the density must be positive")
     ice, metal, voids = _share(ice_fraction, "ice fraction"), _share(metal_fraction, "metal fraction"), _share(porosity, "porosity")
-    bump = stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2
+    bump = _BUMP_COEFFICIENT * constants.G * density_kg_m3 ** 2
     table = _table_at(draw)
     cohesive, friction = RUBBLE_RULES[table.rubble["rule"]](table)
     reaches = []
@@ -434,7 +459,7 @@ def bulk_density_kg_m3(mass_kg, radius_m):
 
 
 @finite_domain()
-def roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, structure="monolith", heated=False, draw=None):
+def roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, structure="monolith", heated=False, draw=None, ice_factor=1.0):
     """The body's mean radius over its round radius: 1 or more is round (`is_round`), less is not, and the number says how far. For a `rubble` pile the ratio is the square root of the bump's
     stress over the pile's failure stress (`rubble_strength_pa`), which is the same number in the same sense; it stays under 1 for a cold pile at any size."""
     if not radius_m > 0.0:
@@ -442,18 +467,18 @@ def roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction=0.0, p
     if structure not in STRUCTURES:
         raise ValueError(f"unknown structure {structure!r}")
     if structure == "rubble":
-        bump = stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2 * radius_m ** 2
+        bump = _BUMP_COEFFICIENT * constants.G * density_kg_m3 ** 2 * radius_m ** 2
         return math.sqrt(bump / rubble_strength_pa(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, heated, draw))
-    return radius_m / round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, draw)
+    return radius_m / round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, draw, ice_factor)
 
 
 @finite_domain()
-def roundness_ratio_from_mass(mass_kg, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, structure="monolith", heated=False, draw=None):
+def roundness_ratio_from_mass(mass_kg, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, structure="monolith", heated=False, draw=None, ice_factor=1.0):
     """`roundness_ratio` of a body known by its mass and bulk density (the radius of the sphere they make)."""
     if not (mass_kg > 0.0 and density_kg_m3 > 0.0):
         raise ValueError("the mass and the density must be positive")
     radius_m = (3.0 * mass_kg / (4.0 * math.pi * density_kg_m3)) ** (1.0 / 3.0)
-    return roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, structure, heated, draw)
+    return roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, structure, heated, draw, ice_factor)
 
 
 def is_round(ratio):

@@ -17,6 +17,9 @@ The merge-train runner's steps as one command, the script rule 10 of the merge-t
                                                         --affects, the stages are the union of the notes' `generation-affects:` lines
     python scripts/train.py checks                      the guards a train must pass before its PR: wiring, numbers, release note
     python scripts/train.py gate [--of N]               print the gate's file list, split over N machines when asked
+    python scripts/train.py pr-body [--earth-analog N | --no-earth-analog]
+                                                        the train PR's body to fill in, with the "Known issues" section (TEST.725) and the Earth
+                                                        analog's numbers against its baseline (TEST.726; never blocks: N trials, default 400)
 
 A head that conflicts in a file the train rebuilds (references, stand-in values) takes this branch's side and the file is rebuilt by
 `rebuild`; a conflict anywhere else stops the merge with the files named, and the runner resolves it by hand (`git status`) and runs
@@ -292,6 +295,43 @@ def gate(args):
         print("\n".join(files))
 
 
+PR_BODY = """## What this train carries
+
+(One row per PR: PR number, item, what changes in plain words.)
+
+## Numbers
+
+(Migrations, generator epoch, stand-in sections, references.)
+
+## Fixes made in the train
+
+(What the runner changed to merge the PRs.)
+
+## Known issues
+
+(TEST.725. Leave this section out when there is none. A red the gate found that the train ships anyway, one line each, in plain words:
+the test, what it does wrong, the item that fixes it. Allowed only when ALL hold: the red is not a crash, data loss or a change to a
+page a visitor sees; the fix is gated and goes first in the next train; the red shows in under about 1 percent of draws (above that it
+blocks the train). The same line goes into the merge message and the report to Boss.)
+
+## Reuse
+
+(What the train reuses, and what each PR names.)
+
+Merge authorization: all merges without human review until further notice (Boss, 10-15).
+"""
+
+
+def pr_body(args):
+    print(PR_BODY)
+    if args.no_earth_analog:
+        return
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import earth_analog     # noqa: E402 -- TEST.726: a failure here is a sentence in the body, never an error
+    print("## Earth analog\n\n(TEST.726, for information: the numbers an exact Earth gets through the real generator, against the stored baseline. Never blocks a train.)\n")
+    print(earth_analog.report(args.earth_analog))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -319,6 +359,10 @@ def main(argv=None):
     p = sub.add_parser("gate")
     p.add_argument("--of", type=int, default=0)
     p.set_defaults(run=gate)
+    p = sub.add_parser("pr-body")
+    p.add_argument("--earth-analog", type=int, default=400, metavar="N", help="trials of the Earth analog to run (default 400)")
+    p.add_argument("--no-earth-analog", action="store_true", help="leave the Earth analog section out")
+    p.set_defaults(run=pr_body)
     args = parser.parse_args(argv)
     args.run(args)
     return 0

@@ -171,7 +171,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 <li><strong>Safe things are cheap, dangerous things are far.</strong> Check, add sectors and settings changes sit up front. Reset and New galaxy are last, red and need the typed database name.</li>
 <li><strong>The running job follows the admin.</strong> A thin strip on every admin page; the full log opens from it.</li>
 <li><strong>Everything works without script;</strong> script adds the palette, live counts and the strip's live updates.</li>
-<li><strong>Compact by default,</strong> one density toggle, remembered in this browser.</li>
+<li><strong>Compact always;</strong> no density switch (removed, 2026-11-08).</li>
 </ol>
 <h3 id="03-the-suite">0.3 The suite</h3>
 <pre><code> top bar:  [ Admin ]  [ Search or run...  Ctrl+K ]                 [job strip: Add sectors 3/6 · 42% · ETA · Cancel]  [account]
@@ -277,7 +277,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 </tr>
 <tr>
 <td>Generate sectors</td>
-<td>Adds sectors, five modes (random start, shell, around a sector, one address, span), the center named three ways</td>
+<td>Adds sectors, five modes (random start, shell, around a sector, one address, span), the centre named three ways</td>
 <td>about 25 fields, the same prevalence and override groups again</td>
 </tr>
 <tr>
@@ -488,7 +488,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 </thead>
 <tbody>
 <tr>
-<td><code>tile cache &gt; closest map block built ahead (shells)</code>, then &quot;Finest block level of the zoom run <code>planetgen warm</code> builds from the opening view in to the galaxy's center, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; 243 or more builds no run).&quot; then <code>tile_cache.warm_zoom_floor  Default: 9</code></td>
+<td><code>tile cache &gt; closest map block built ahead (shells)</code>, then &quot;Finest block level of the zoom run <code>planetgen warm</code> builds from the opening view in to the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; 243 or more builds no run).&quot; then <code>tile_cache.warm_zoom_floor  Default: 9</code></td>
 <td><strong>How close the map is prepared in advance</strong> &quot;Zoom in to this block size when pre-building the map&quot; [stepper 9] &quot;Blocks of 9 shells are about 36 pc wide. 243 or more skips the zoom run.&quot; Details: default 9, key <code>tile_cache.warm_zoom_floor</code> (MAP.261; before it, <code>warm_zoom_levels</code>, a cube-tile level)</td>
 </tr>
 <tr>
@@ -502,7 +502,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 <h3 id="frame-every-generate-screen">Frame (every Generate screen)</h3>
 <ol>
 <li><strong>Status strip</strong>: database name, &quot;Planned, edge at shell N&quot; or &quot;Not planned yet&quot;, sector count, scatter state. It replaces the badges and the Galaxy shells fold (the shell table moves behind a &quot;Galaxy at a glance&quot; link).</li>
-<li><strong>Current job panel</strong>, pinned under the strip on every Generate page while a job runs: title, &quot;step 3 of 6&quot;, one overall progress bar with the estimate to finish, Cancel, and the log as a collapsed terminal (Copy and Download stay). When idle, it shows the last job's result in one line with &quot;Show on Galaxy Map&quot;, &quot;Full output&quot; and &quot;Run again with the same settings&quot;.</li>
+<li><strong>Current job panel</strong>, pinned under the strip on every Generate page while a job runs: title, &quot;step 3 of 6&quot;, one overall progress bar with the estimate to finish, Cancel, and the log as a collapsed terminal (Copy and Download stay). When idle, it shows the last job's result in one line with &quot;Full output&quot; and &quot;Run again with the same settings&quot;.</li>
 <li>Forms stay usable while a job runs. Only the final Run button is disabled, with the reason beside it (&quot;Generate sectors is running; Cancel it or wait&quot;). This replaces &quot;the forms unlock when the job finishes&quot; (answer 10: queue one next job, item K9).</li>
 </ol>
 <h3 id="start-screen-six-task-cards">Start screen: six task cards</h3>
@@ -551,7 +551,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 <h3 id="every-task-is-the-same-five-steps">Every task is the same five steps</h3>
 <p><strong>What</strong> (only where there is a choice) → <strong>Where</strong> → <strong>How big</strong> → <strong>Review</strong> → <strong>Run</strong>. A progress rail on the left shows the steps; the draft is carried in the URL query and hidden fields, so Back works, a step can be bookmarked, and the page works without script.</p>
 <ul>
-<li><strong>Add sectors</strong>: What: &quot;Around a place&quot; or &quot;By shells, bands and wedges&quot;. Where for &quot;Around a place&quot;: a random populated spot, a named sector (the existing finder), a sector address, or a position in pc, one picker with four tabs (this is the five modes and the three center choices collapsed into two plus a picker). Where for the grid choice: shell, band and wedge or a range of each, which also covers &quot;one address&quot; and &quot;a whole shell&quot;. How big: radius with a slider and a live line &quot;about N sectors, M systems&quot;; or the limit. Customize (collapsed, &quot;Advanced&quot;): prevalence, star mix (with the 100% total checker) and overrides, each with &quot;Usual: X%&quot; kept.</li>
+<li><strong>Add sectors</strong>: What: &quot;Around a place&quot; or &quot;By shells, bands and wedges&quot;. Where for &quot;Around a place&quot;: a random populated spot, a named sector (the existing finder), a sector address, or a position in pc, one picker with four tabs (this is the five modes and the three centre choices collapsed into two plus a picker). Where for the grid choice: shell, band and wedge or a range of each, which also covers &quot;one address&quot; and &quot;a whole shell&quot;. How big: radius with a slider and a live line &quot;about N sectors, M systems&quot;; or the limit. Customize (collapsed, &quot;Advanced&quot;): prevalence, star mix (with the 100% total checker) and overrides, each with &quot;Usual: X%&quot; kept.</li>
 <li><strong>Start a new galaxy</strong>: Where: the shape. Every shape field shows &quot;The seed decides&quot; with a &quot;Choose it myself&quot; switch, so the pinned values are obvious and nothing is preset (nothing fixed from any real galaxy). How big: first neighbourhood radius and minimum start density. Advanced: scatter limits (below), prevalence, overrides. Review ends with the typed database name.</li>
 <li><strong>Change what is scattered</strong>: What: &quot;Rebuild the plan and scatter&quot; (today's Plan), &quot;Redo only some scatters&quot; (today's Redo, with the three kinds as three rows with switches), &quot;Add a dimmer step&quot; (one field). The scatter limits (the two galaxy-wide sliders, the neutron star and black hole limit, core, halo, dense cells) live here as an Advanced block with one &quot;Reset all to defaults&quot; and the &quot;Stored with this plan&quot; values shown in place, instead of repeated on three forms.</li>
 <li><strong>Make one system</strong>: the same page, on the same frame; the ten tri-state options become segmented &quot;Decide for me / Yes / No&quot; rows.</li>
@@ -719,7 +719,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 <tr>
 <td>ADM.109</td>
 <td>Add sectors task: two choices, the four-tab place picker, how-big with live count</td>
-<td>argv for every old mode and center choice is reproduced byte for byte by a test table; the finder still lists filled sectors</td>
+<td>argv for every old mode and centre choice is reproduced byte for byte by a test table; the finder still lists filled sectors</td>
 <td>ADM.108</td>
 <td>8.1 P1</td>
 </tr>
@@ -936,7 +936,7 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 <tr>
 <td>13</td>
 <td>Density</td>
-<td>Compact by default with a toggle, remembered in this browser</td>
+<td>Compact always; the toggle was removed (2026-11-08)</td>
 </tr>
 </tbody>
 </table></div>
@@ -955,10 +955,10 @@ Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass ove
 <li><strong>Settings words and groups (ADM.101)</strong> are in <code>util/settings.py</code> (<code>opt()</code> takes <code>label</code>, <code>summary</code>, <code>group</code>, and optionally <code>control</code>, <code>advanced</code>, <code>choice_labels</code> and <code>slider</code>); <code>util/settings_view.py</code> turns them into the groups and controls the page draws.</li>
 <li><strong>Settings page (ADM.102 to ADM.106)</strong>: <code>web/settings_page.py</code>, <code>templates/admin_settings.html</code>, <code>static/settingspage.js</code>.</li>
 <li><strong>Registry (ADM.118)</strong>: <code>web/adminregistry.py</code>. Pages and exempt routes are declared there (a test fails for an <code>/admin</code> page route in neither); settings entries are built from the settings model; tasks are added when the Generate cards exist.</li>
-<li><strong>Shell (ADM.92)</strong>: <code>templates/base.html</code> draws the rail, the search box and the Compact switch above every page whose <code>section</code> is in <code>adminregistry.SECTION_DESTINATION</code>. The rail is a bar across the top of the page (it wraps on a phone), not a side column. The Account page wears it too (ADM.93), except while the seeded credentials still have to be changed.</li>
+<li><strong>Shell (ADM.92)</strong>: <code>templates/base.html</code> draws the rail, and the search box above every page whose <code>section</code> is in <code>adminregistry.SECTION_DESTINATION</code>. The rail is a bar across the top of the page (it wraps on a phone), not a side column. The Account page wears it too (ADM.93), except while the seeded credentials still have to be changed.</li>
 <li><strong>Job strip (ADM.119)</strong>: <code>templates/partials/admin_jobstrip.html</code>, <code>static/adminjobstrip.js</code>, fed by the <code>strip</code> field of <code>/admin/generate/status</code>.</li>
 <li><strong>Search and palette (ADM.120), keys (ADM.122)</strong>: <code>web/admin_search_page.py</code> (<code>/admin/search</code>, <code>/admin/palette.json</code>) and <code>static/adminpalette.js</code>.</li>
-<li><strong>Queue the next jobs (ADM.123, PERF.154)</strong>: <code>web/jobs.py</code> (<code>submit</code>, <code>queue_next</code>, <code>queued_jobs</code>, <code>promote_queued</code>, <code>discard_queued</code>). The waiting jobs are entries of the one waiting list in Redis (<code>queue/runline.py</code>, up to <code>queue.max_waiting</code>, 8 by default, shared with the runs that wait for the machine); a job's recipe is the jobs directory's <code>queued-&lt;ticket&gt;.json</code>, mode 0600 like <code>job.json</code>, because it holds the database environment, which does not go into Redis. They start in the order they arrived, one at a time, started by <code>job_runner.run</code> when a job ends and by any strip poll. It starts after a succeeded or canceled job and is held after a failed or interrupted one (Start now or Discard); a failed start also holds it.</li>
+<li><strong>Queue the next jobs (ADM.123, PERF.154)</strong>: <code>web/jobs.py</code> (<code>submit</code>, <code>queue_next</code>, <code>queued_jobs</code>, <code>promote_queued</code>, <code>discard_queued</code>). The waiting jobs are entries of the one waiting list in Redis (<code>queue/runline.py</code>, up to <code>queue.max_waiting</code>, 8 by default, shared with the runs that wait for the machine); a job's recipe is the jobs directory's <code>queued-&lt;ticket&gt;.json</code>, mode 0600 like <code>job.json</code>, because it holds the database environment, which does not go into Redis. They start in the order they arrived, one at a time, started by <code>job_runner.run</code> when a job ends and by any strip poll. It starts after a succeeded or cancelled job and is held after a failed or interrupted one (Start now or Discard); a failed start also holds it.</li>
 </ul>
 
 </main>

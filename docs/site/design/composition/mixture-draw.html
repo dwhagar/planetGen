@@ -84,7 +84,7 @@ present); the ozone rows are lane F's.</p>
 <td><code>physics/mixture_subject.py</code>, <code>subject_of_body</code></td>
 </tr>
 <tr>
-<td>What an ocean takes out of the drawn air: the sulfur uptake (the water vapor cap is the air solve's saturation)</td>
+<td>What an ocean takes out of the drawn air: the sulfur uptake (the water vapour cap is the air solve's saturation)</td>
 <td>GEN.757</td>
 <td><code>physics/mixture_sinks.py</code>, <code>sulfur_remaining_fraction</code></td>
 </tr>
@@ -128,12 +128,12 @@ its parent from the star. A quantity that cannot be built is refused by name. Li
 bound (<code>DAYSIDE_OVER_EQUILIBRIUM</code>, <code>(8/3)^(1/4)</code>: the generator has no redistribution model), the layer pressure of a giant is 0.1 bar
 (<code>PHOTOSPHERE_BAR</code>), a hot A, B or O star takes the F rows and a brown dwarf the M rows, and the snow ratio uses the body's present
 distance because no formation distance is stored.</p>
-<p><code>mixture_sinks.sulfur_remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)</code> keeps <code>1 / (1 + kH m g M / P0)</code> of each sulfur gas (SO<sub>2</sub>, H<sub>2</sub>S: Henry's law over <code>m</code> kg of ocean per square metre). The water vapor cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's. A function that capped the whole drawn mixture in one call (<code>apply_ocean_sinks</code>) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside.</p>
+<p><code>mixture_sinks.sulfur_remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)</code> keeps <code>1 / (1 + kH m g M / P0)</code> of each sulfur gas (SO<sub>2</sub>, H<sub>2</sub>S: Henry's law over <code>m</code> kg of ocean per square metre). The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's. A function that capped the whole drawn mixture in one call (<code>apply_ocean_sinks</code>) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside.</p>
 <h2 id="where-the-degassed-sulfur-goes-gen815">Where the degassed sulfur goes (GEN.815)</h2>
 <p>The supply law brings sulfur to the surface; the sulfur sink decides how much of it the air keeps (<code>physics/sulfur_balance.py</code>). It
 replaced the stand-in <code>SULFUR_SURFACE_KEPT</code> (1e-5 to 1e-2 of the sulfur stayed in the air with an ocean; removed when <code>surface_air</code> called this
 module), under which a wet world could hold hundreds of bar of S<sub>2</sub>. Two solid sinks take sulfur out of the gas: sulfate (SO<sub>2</sub> and SO<sub>3</sub> with calcium as CaSO<sub>4</sub>) and sulfide (H<sub>2</sub>S, S<sub>2</sub>
-and COS with iron as FeS and FeS<sub>2</sub>). Which one a mole goes to is the redox of the gas it arrived in: <code>oxidized_share_of</code> reads the share of
+and COS with iron as FeS and FeS<sub>2</sub>). Which one a mole goes to is the redox of the gas it arrived in: <code>oxidised_share_of</code> reads the share of
 the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.</p>
 <ul>
 <li><strong>Capacity.</strong> The crust the volcanism built holds the calcium and the iron: <code>crust_column_kg_m2(released_j, radius_m)</code> is the Earth
@@ -176,7 +176,7 @@ bar, a 310 K one a few millibar.</li>
 <p>What the sweep of Kite and Ford's prior shows (tested): at 300 K, carbon 1e-6 to 1e-1 of the ocean's mass and a rock layer of 0.1 to 50 km, a
 sixth of the worlds sit at 0.2 to 20 bar (their &quot;frequent&quot; range), nearly three quarters hold their carbon whole in the ocean (under a
 micro-bar), and 7 percent are above 20 bar. The water-world temperatures of the findings report are not recomputed here: that needs Lane I's solve (4c), and
-the greenhouse module's water-vapor feedback is too strong (finding 1), so the cold end of the stand-alone solve (removed by TEST.524) sat at the freezing point
+the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of the stand-alone solve (removed by TEST.524) sat at the freezing point
 (274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO<sub>2</sub> a tenth of the water's mass) had no balance below water's
 critical point, as for Kite and Ford, who find the high-carbon end hot.</p>
 <p>Limits (stated): the ocean is an ideal solution with fresh-water constants (seawater's first dissociation constant is about three times the
@@ -312,7 +312,7 @@ class letter (<code>mixture_draw</code> module text has the table). Each family 
 <tr>
 <td><code>lava</code> (<code>i</code> at <code>tp_k &gt;= 1400 K</code>, <code>l1</code>)</td>
 <td><code>mixture_lava</code></td>
-<td>the vapor over an ideal-solution BSE melt: element potentials from the melt's oxides and the held oxygen fugacity, every gas of those elements at its own partial pressure, no iteration</td>
+<td>the vapour over an ideal-solution BSE melt: element potentials from the melt's oxides and the held oxygen fugacity, every gas of those elements at its own partial pressure, no iteration</td>
 </tr>
 <tr>
 <td><code>airless</code> (<code>l2</code>, <code>l1</code> below 1400 K)</td>
@@ -328,13 +328,13 @@ is airless. The exobase temperature is a stand-in (<code>EXOBASE_RATIO</code>: 4
 carbon dioxide, times the XUV flux to the 0.25, clamped to 0.5 to 3) fitted to Earth, Mars and Venus and replaced when a thermosphere
 model exists. Earth gives hydrogen 15 against 54 (gone) and helium at 0.2 percent kept (a few ppm, as measured); a 3.5 km/s world at
 310 K keeps none of its outgassed hydrogen, carbon monoxide or carbonyl sulfide and is airless. The giants, the envelopes, the lava
-vapor, the ice-supported air and the Titan-like air (whose hydrogen is a photochemical steady state) are not filtered. The total
+vapour, the ice-supported air and the Titan-like air (whose hydrogen is a photochemical steady state) are not filtered. The total
 pressure is not changed here.</p>
 <p>The oxygen cap (<code>mixture_oxygen</code>, Boss 10-24): no air is pure oxygen. A lifeless world that lost its water (the abiotic-oxygen family) is
 capped at 95 percent oxygen with at least 0.5 percent nitrogen plus argon; a living world is capped at an oxygen pressure of 35 percent of one Earth atmosphere, 35.5 kPa (<code>BIOTIC_O2_PRESSURE_MAX_PA</code>, from the
 Phanerozoic peak and the fire limit; a pressure and not a share since GEN.1320, with the share still held to 95 percent), by the life stage that sets the oxygen of a living world (<code>biogenic_oxygen._fire_limit_mol</code>). The analysis is
 in <code>/mnt/project-files/reports/pure-oxygen-atmosphere-2026-10-24.md</code>.</p>
-<p>The lava vapor reproduces [R2380]'s vapor pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4
+<p>The lava vapour reproduces [R2380]'s vapour pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4
 and 8e-3) and the sequence of [R3059]: Na and K first, then SiO, Mg and Fe from 2000 to 2500 K, SiO above O<sub>2</sub> beyond about 2900 K,
 mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with the alkali oxides' activity coefficient of 3e-9 to 3e-8
 (an ideal solution puts 1 to 6 bar of sodium and potassium over the melt at 2000 K), which is a stand-in (below).</p>
@@ -364,9 +364,9 @@ km/s) gives a Pluto-like body <code>d1</code> (airless), so the Pluto-like famil
 these families are an output of the escape and retention physics; the retention physics of cold volatile bodies (the sublimation
 supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. GEN.751
 added K2, KO, K<sub>2</sub>O and Na<sub>2</sub>O to the gas table and the species table (research part 01 section 5, computed from the NASA fits, no
-phase data; the file spells aluminium <code>AL</code>), so the lava vapor lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). GEN.818 then gave the melt an Al<sub>2</sub>O<sub>3</sub> activity (its mole fraction, <code>mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT</code> = 1, tier 3: [R1341] find the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis,
-abstract only), added AlO, Al<sub>2</sub>O, AlO<sub>2</sub> and Al<sub>2</sub>O<sub>2</sub> and the liquid Al<sub>2</sub>O<sub>3</sub> to the species table (99 species), and put Al in the vapor's
-elements: a BSE melt at 2500 K now has about 2e-7 of its vapor as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.</p>
+phase data; the file spells aluminium <code>AL</code>), so the lava vapour lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). GEN.818 then gave the melt an Al<sub>2</sub>O<sub>3</sub> activity (its mole fraction, <code>mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT</code> = 1, tier 3: [R1341] find the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis,
+abstract only), added AlO, Al<sub>2</sub>O, AlO<sub>2</sub> and Al<sub>2</sub>O<sub>2</sub> and the liquid Al<sub>2</sub>O<sub>3</sub> to the species table (99 species), and put Al in the vapour's
+elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.</p>
 </li>
 <li>
 <p>Design brackets this module added, each to be replaced by the research item named: <code>WATER_RESIDUAL</code>, <code>SULFUR_SINK</code>,

@@ -195,6 +195,17 @@ True` with no way out at all).
 """
 
 
+def _join(left, right):
+    """`left` and `right` as one word: a vowel meeting a vowel at the seam is written once, two consonants that make one of
+    `BAD_CONSONANTS` get an apostrophe between them, anything else is simply joined."""
+    last, first = left[-1], right[0].lower()
+    if last in VOWELS and first in VOWELS:
+        return left + right[1:]
+    if last not in VOWELS and first not in VOWELS and (last + first) in BAD_CONSONANTS:
+        return left + "'" + right
+    return left + right
+
+
 def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True, syllable_fraction=1.0, max_length=None):
     """
     Generates a unique, phonetically pleasing name from a list of base names.
@@ -281,27 +292,8 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
 
         name = "".join(syllables)
 
-        prefix = draw.choice(prefix_list)
-        if prefix[-1] in VOWELS and name[0].lower() in VOWELS:
-            name = prefix + name[1:]
-        elif prefix[-1] not in VOWELS and name[0].lower() not in VOWELS:
-            if (prefix[-1] + name[0].lower()) in BAD_CONSONANTS:
-                name = prefix + "'" + name
-            else:
-                name = prefix + name
-        else:
-            name = prefix + name
-
-        suffix = draw.choice(suffix_list)
-        if name[-1] in VOWELS and suffix[0].lower() in VOWELS:
-            name = name + suffix[1:]
-        elif name[-1] not in VOWELS and suffix[0].lower() not in VOWELS:
-            if (name[-1] + suffix[0].lower()) in BAD_CONSONANTS:
-                name = name + "'" + suffix
-            else:
-                name = name + suffix
-        else:
-            name = name + suffix
+        name = _join(draw.choice(prefix_list), name)
+        name = _join(name, draw.choice(suffix_list))
 
         if max_length is not None and len(name) > max_length:
             # Chopping at a raw character index can land right after an
@@ -375,9 +367,8 @@ def generate_sector_name():
     # occasional spliced-in universal phoneme are fixed-ish overhead that
     # doesn't shrink with syllable_fraction, so a long base name could
     # still slip through longer than intended without a hard cap too.
-    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
-    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
-    return f"{first_word} {second_word}"
+    return " ".join(generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
+                    for _word in range(2))
 
 
 class LazySaladName:

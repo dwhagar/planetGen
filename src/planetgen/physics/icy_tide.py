@@ -52,11 +52,13 @@ OWN_FLUX_FALLBACK_W_M2 = 1.0e-3
 MIN_FLUX_W_M2 = 1.0e-6
 """float: The least heat flux the shell is given, W/m2 (`hydrosphere` uses the same floor)."""
 
+_ICE_ETA0_PA_S = tidal_rheology.arrhenius_prefactor(tidal_rheology.ICE_MELTING_VISCOSITY_PA_S, tidal_rheology.ICE_MELTING_K, tidal_rheology.ICE_ACTIVATION_J_MOL)
+"""float: The prefactor of the ice's Arrhenius viscosity, pinned at its melting point (the same number for every call of `loss_modulus_pa`)."""
+
 
 def loss_modulus_pa(temperature_k, frequency_rad_s):
     """`Im(mu)` of ice at `temperature_k` flexed at `frequency_rad_s`, Pa: the part of the complex rigidity out of phase with the strain."""
-    eta0 = tidal_rheology.arrhenius_prefactor(tidal_rheology.ICE_MELTING_VISCOSITY_PA_S, tidal_rheology.ICE_MELTING_K, tidal_rheology.ICE_ACTIVATION_J_MOL)
-    viscosity = tidal_rheology.viscosity_pa_s(temperature_k, eta0, tidal_rheology.ICE_ACTIVATION_J_MOL)
+    viscosity = tidal_rheology.viscosity_pa_s(temperature_k, _ICE_ETA0_PA_S, tidal_rheology.ICE_ACTIVATION_J_MOL)
     compliance = tidal_rheology.compliance(frequency_rad_s, tidal_rheology.ICE.rigidity_pa, viscosity, tidal_rheology.ICE)
     return (1.0 / compliance).imag
 

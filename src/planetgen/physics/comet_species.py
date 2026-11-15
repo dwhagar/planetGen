@@ -1,33 +1,28 @@
 # planetgen/physics/comet_species.py
 
 """
-The species of a comet's ice that only one comet has measured, from the host star's own ratios and one trapping factor each (GEN.1005, k7;
-docs/design/composition/comet-species-model.md).
+The species of a comet's ice that few comets have measured, each between the values of the comets that did (GEN.1005, GEN.1021, row k7 of the
+atmosphere possibility table; docs/design/composition/comet-species-model.md).
 
-Row k7 of the atmosphere possibility table drew N2, O2, OCS, SO2, Ar, Kr and Xe of a comet as log-normals about the values of 67P [R3835], with a
-width of 0.6 dex that was a design choice. Those seven species have a population of one comet, so no median can be taken from a population. This module writes each
-that can be tied to the star's elements as a chain:
+Row k7 drew N2, O2, OCS, SO2, Ar, Kr and Xe of a comet as log-normals about the values of 67P alone, with a trapping share per species tuned to
+that one comet (GEN.1005, stand-ins CK1 to CK6). GEN.1021 replaced that calibration with the range between the comets measured, the widest
+range where two sources are in question (report `reports/gen1021-comet-species-second-comet-2026-10-30.md`):
 
-    X / H2O  =  (X per CO in the nebula, from the host's own ratio to carbon)  x  (the share of that kept in the ice)  x  (CO / H2O of the comet)
-
-1. **The nebula.** The number of the element per carbon of the host is the proto-solar one (`tuning.STELLAR_SOLAR_LOG_EPS`) times the host's own ratio over it
-   (`n_over_c`, `ar_over_c`, `s_over_c`, which are 1 for a host of solar composition: the generator's stars carry [X/Fe] offsets,
-   `stellar_abundances.number_ratio`). The carbon in CO is the 1.5 per 10^4 hydrogen of [R3322] (`comet_ice_budget.NEBULA_PER_1E4_H`) over the
-   proto-solar 2.9 per 10^4, a share of 0.52. Nitrogen is all N2 (half the atoms), argon is atomic, and the sulfur of the two sulfur species is shared as the table says.
-2. **The ice.** The share of the nebular amount that ends in the ice is one number per species (`TRAPPED_OVER_NEBULAR`), the factor that makes the chain give the value of the one
-   comet measured: the trapping of a gas in amorphous water ice depends on the temperature the ice formed at (Bar-Nun: the trapped gas drops six decades between 25 and 100 K,
-   and CO at 3.5 percent needs 48 +/- 5 K), a quantity the generator does not carry per comet. [Stand-ins CK1 to CK3, tier T7, tweak L3: tuned to one comet.]
+1. **The bracket.** `bracket_over_h2o` gives the `(low, high)` of each species per water, and the row draws log-uniform between them. N2 is the
+   N2 per CO of 67P and of C/2016 R2 times the median CO / H2O (nitrogen follows CO); argon is per water, 67P to Hale-Bopp (it does not follow
+   the CO: Hale-Bopp's argon per CO is 2.7 times what the nebula holds); krypton and xenon follow argon by the ratios of 67P; OCS and SO2 are
+   the range of the comets and never above the sulfur the nebula holds; O2 is Halley to 67P. [Stand-ins CB1 and CB2.]
+2. **The host.** The ends of N2 scale with the host's nitrogen per carbon over the proto-solar one (`n_over_c`), those of Ar, Kr and Xe with
+   `ar_over_c`, those of OCS and SO2 with `s_over_c`; all three are 1 for a host of solar composition. `nebular_per_co` gives the nebular amount
+   of a species per CO, from the proto-solar abundances (`tuning.STELLAR_SOLAR_LOG_EPS`) and the carbon in CO, a share of 0.52 (the 1.5 per 10^4
+   hydrogen of [R3322], `comet_ice_budget.NEBULA_PER_1E4_H`, over the proto-solar 2.9 per 10^4).
 3. **The water.** CO / H2O is the median of the population of comets (row k5: 10^-1.602, `CO_OVER_H2O_MEDIAN`). [Stand-in CK4, tier T3, tweak L2.]
 
-O2, Kr and Xe have no host ratio here (O2 is not tied to the oxygen budget by any source read; krypton and xenon are not in the abundance table) and keep the value of 67P (CK5).
+Tests against measurement (never inputs): 67P's own value lies inside every bracket, Hale-Bopp's argon per water and C/2016 R2's N2 per CO lie
+inside, a host with twice the nitrogen per carbon doubles the ends of N2, and the sulfur species never pass the sulfur there is.
 
-`sigma_dex` replaces the design width of 0.6 dex with 0.4: Bar-Nun's 5 K uncertainty in the formation temperature at a decade of trapped gas per 12 K near the middle of the range. [Stand-in CK6, tier T6, tweak L1.]
-
-Tests against measurement (never inputs): the chain gives the 67P value at a host of solar composition (it is the calibration, and the test says so); a host with twice the nitrogen per carbon gives twice the N2; the
-four species measured in populations (CH4, C2H6, H2CO, H2S, rows of k7 that are not stand-ins) have scatter of 0.33 to 0.39 dex, which brackets the width.
-
-Limits. One comet fixes all seven values: a second comet or a laboratory table of trapping by temperature replaces the factors. The sulfur of the two species plus the population's H2S is more
-than the nebular sulfur the chain allows for (the sulfur is not conserved across rows). The share of carbon in CO is the nebular share of one disk.
+Limits. Each bracket has two comets (krypton and xenon one); the two long-period comets are coma measurements, not nucleus bulk, and 67P's own argon per water varies
+1.4 decades with the season. The sulfur of OCS and SO2 plus the population's H2S is more than the nebular sulfur the chain allows for (the sulfur is not conserved across rows).
 """
 
 import math
@@ -38,20 +33,11 @@ from planetgen.physics import comet_ice_budget
 CO_OVER_H2O_MEDIAN = 10.0 ** -1.602
 """float: The median CO / H2O of the comets of the population (row k5, [R3782] database, per-comet medians). [Stand-in CK4, tier T3, tweak L2.]"""
 
-TRAPPED_OVER_NEBULAR = {"N2": 0.158, "Ar": 0.0145, "OCS": 0.187, "SO2": 0.592}
-"""dict: The share of the nebular amount (per CO, at the host's ratio, times CO / H2O) that is in the ice, by species: the factor that gives the value of the one comet measured (67P,
-[R3835]: N2 8.9e-4, Ar 5.8e-6, OCS 4.1e-4, SO2 1.3e-3 per water). [Stand-ins CK1 to CK3, tier T7, tweak L3.]"""
-
-UNSCALED_OVER_H2O = {"O2": 3.1e-2, "Kr": 4.9e-7, "Xe": 2.4e-7}
-"""dict: The species with no host ratio, per water: the values of 67P [R3835]. [Stand-in CK5, tier T7, tweak L3.]"""
-
-SIGMA_DEX = 0.4
-"""float: The width, in decades, of every species. [Stand-in CK6, tier T6, tweak L1.]"""
-
-SPECIES = tuple(TRAPPED_OVER_NEBULAR) + tuple(UNSCALED_OVER_H2O)
+SPECIES = ("N2", "Ar", "OCS", "SO2", "O2", "Kr", "Xe")
+"""tuple: The species of row k7 that sit between the comets measured."""
 
 # ---------------------------------------------------------------------
-# The brackets of two comets (GEN.1021; docs/design/composition/comet-species-model.md section 4)
+# The brackets between the comets measured (GEN.1021; docs/design/composition/comet-species-model.md section 4)
 # ---------------------------------------------------------------------
 
 N2_OVER_CO = (0.0287, 0.09)
@@ -94,18 +80,8 @@ def nebular_per_co(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
     elif species in ("OCS", "SO2"):
         per_carbon = 10.0 ** (logs["S"] - logs["C"]) * s_over_c
     else:
-        raise ValueError(f"{species} has no host ratio: {', '.join(TRAPPED_OVER_NEBULAR)} have")
+        raise ValueError(f"{species} has no host ratio: N2, Ar, OCS and SO2 have")
     return per_carbon / carbon_in_co_share()
-
-
-def median_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
-    """The median `species` per H2O of a comet round a host with the given ratios over the proto-solar ones."""
-    if species in UNSCALED_OVER_H2O:
-        return UNSCALED_OVER_H2O[species]
-    ratios = (n_over_c, ar_over_c, s_over_c)
-    if min(ratios) <= 0.0 or not all(math.isfinite(r) for r in ratios):
-        raise ValueError(f"a host ratio over the proto-solar one is above zero, not {ratios}")
-    return nebular_per_co(species, *ratios) * TRAPPED_OVER_NEBULAR[species] * CO_OVER_H2O_MEDIAN
 
 
 def _host_scale(species, n_over_c, ar_over_c, s_over_c):
@@ -152,8 +128,3 @@ def low_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
 def high_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
     """The high end of `bracket_over_h2o`."""
     return bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)[1]
-
-
-def sigma_dex():
-    """The width of each species, in decades."""
-    return SIGMA_DEX

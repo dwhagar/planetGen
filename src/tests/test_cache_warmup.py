@@ -587,17 +587,17 @@ def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_ma
     tally.add("galaxy-map", {"built": 0, "cached": 4, "warmed": 4, "seconds": 0.5})
     tally.add("lists", {"built": 0, "cached": 20, "warmed": 20, "seconds": 1.0})
     assert tally.start("lists") == []
-    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 12.0 s."]
+    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 12 s."]
     now[0] = 14.0
     tally.add("galaxy-nodes", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
     tally.add("galaxy-deep-nodes", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
     now[0] = 15.0
-    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 3.0 s."]
+    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 3 s."]
     tally.add("search", {"built": 0, "cached": 1, "warmed": 1, "seconds": 0.1})
     assert tally.start("search") == [
-        "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0.0 s; stopped at the cache budget."]
+        "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0 s; stopped at the cache budget."]
     now[0] = 15.1
-    assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 0.1 s."]
+    assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 100 ms."]
     assert tally.finish() == [], "each phase is reported once"
 
 
@@ -829,7 +829,7 @@ def script(monkeypatch, redis_server):
         ran = []
         owners = []
 
-    def warm_family(db, family, cap=None, app=None, config=None):
+    def warm_family(db, family, cap=None, app=None, config=None, window=None, report=None):
         conn = redisqueue.connect(redis_server)
         Plan.owners.append((runrecord.active_run(conn), runrecord.active_run(conn, runrecord.MAINTENANCE)))
         Plan.ran.append((family, cap, db))
@@ -845,22 +845,29 @@ def script(monkeypatch, redis_server):
     # The node commands are many units on a real galaxy; here, like the other families, each is one unit that is faked.
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_nodes_unit", lambda args, report: warmup._warm_unit("galaxy-nodes", args))
+    monkeypatch.setattr(warmup, "pieces_warm_galaxy_nodes", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(warmup, "do_warm_galaxy_nodes", lambda args, piece, ctx: warmup._warm_unit("galaxy-nodes", args))
+    monkeypatch.setattr(warmup, "gather_warm_galaxy_nodes", warmup.gather_first)
     monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
-                        lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
+    monkeypatch.setattr(warmup, "pieces_warm_galaxy_deep_nodes", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(warmup, "do_warm_galaxy_deep_nodes", lambda args, piece, ctx: warmup._warm_unit("galaxy-deep-nodes", args))
+    monkeypatch.setattr(warmup, "gather_warm_galaxy_deep_nodes", warmup.gather_first)
     # The object families are slices of a listing the site answers; here, like the node ones, each is one faked unit.
     for family in ("sectors", "systems", "phenomena"):
         monkeypatch.setattr(warmup, f"expand_warm_{family}", lambda params: commands.Expansion(
             [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     # The object index is built on the database itself, not through the site; here it is one more faked family.
-    monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
+    monkeypatch.setattr(warmup, "pieces_warm_object_index", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(warmup, "do_warm_object_index", lambda args, piece, ctx: warmup._warm_unit("object-index", args))
+    monkeypatch.setattr(warmup, "gather_warm_object_index", warmup.gather_first)
     # The cluster field is made from the database's own rows (PERF.225); here it is one more faked family.
     from planetgen.galaxy import field_job
     monkeypatch.setattr(field_job, "expand_field", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(field_job, "field_unit", lambda args, report: warmup._warm_unit("cluster-field", args))
+    monkeypatch.setattr(field_job, "pieces_field", lambda args, cursor: [{}][cursor:])
+    monkeypatch.setattr(field_job, "do_field", lambda args, piece, ctx: warmup._warm_unit("cluster-field", args))
+    monkeypatch.setattr(field_job, "gather_field", warmup.gather_first)
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
@@ -881,7 +888,7 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage Warm systems: every system page failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert "The cache warm-up stopped: unit 0 of stage Warm systems: every system page failed: WarmupFailed: 2 of 9 pages did not answer" in err
     assert [family for family, _cap, _db in script.ran] == ["cluster-field", "object-index", "galaxy-map", "lists",
                                                             "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
@@ -1145,7 +1152,7 @@ def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(s
     release = threading.Event()
     real = warmup.warm_family
 
-    def held(db, family, cap=None, app=None, config=None):
+    def held(db, family, cap=None, app=None, config=None, window=None, report=None):
         release.wait(30)
         return real(db, family, cap=cap, app=app, config=config)
 

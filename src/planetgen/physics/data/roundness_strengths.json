@@ -49,8 +49,9 @@
   },
   "porosity": {
     "rule": "none",
-    "coefficient": 5.0,
-    "source": "off: [R3552] find no clear strength trend with porosity in meteorites. 'exponential' (strength x exp(-b x porosity), b 4 to 7, a ceramics-based recalled placeholder, 'coefficient' here) is built and not used; it would make Proteus round; the b range is widened to 4 to 9 by meteorite-to-boulder comparisons (papers-vs-standins-2026-10-31.md section 5)",
+    "solid_limit": 0.5,
+    "exponent": 1.67,
+    "source": "off: [R3552] find no clear strength trend with porosity in meteorites. 'power' (strength x (1 - phi / solid_limit)^exponent) is built and not used: the sourced law of [R0083] (uniaxial strength of carbonate rock and gypsum, 253 tests, 0.4 to 50 percent porosity; exponent 1.67 with the limit 0.5 assumed, not fitted; relative strength 0.69, 0.43, 0.22, 0.07 at porosity 0.1, 0.2, 0.3, 0.4), right form and wrong material (no ice-rich law exists); it replaces the recalled ceramics exponential, and with it on Proteus would be judged again (Proteus came out round with the exponential)",
     "tier": "T6",
     "tweak": "L3"
   },

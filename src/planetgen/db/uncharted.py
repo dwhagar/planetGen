@@ -17,13 +17,14 @@ index) for rows nothing ever changes. So the lists, the search and Nearby read t
 row id, the field by its key, the counts from `phenomenon_scatter_classes` (exact, kept by the scatter) and one count of the field.
 
 A list shows the charted objects first, in the order asked for, and the uncharted ones after them, field clouds then scattered rows, each
-in its table's order (`page`). A scattered row is named "Uncharted <kind> <shell>.<band>.<wedge>" like the Phenomena table names it and
+in its table's order (`page`). A scattered row is named by its local name and birth sector (UX.259), or "Uncharted <kind> <shell>.<band>.<wedge>" with no Object ID or naming key, like the Phenomena table names it and
 links to the page of its scatter row (`/uncharted-phenomenon/<id>`); a field cloud has no page.
 """
 
 from planetgen import tuning
 from planetgen.db import query, region
 from planetgen.galaxy import object_uid
+from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen.util import detmath
 
@@ -136,17 +137,37 @@ def _printed(raw):
     return None if raw is None else object_uid.format_id(object_uid.from_bytes(raw))
 
 
+def _cloud_name(row):
+    """What a field cloud is called in a list: its printed ID without the prefix."""
+    return f"Field cloud {cloud_id(row)[len(CLOUD_PREFIX):]}"
+
+
+def _class_clauses(classes):
+    """`(sql, params)` matching a `phenomenon_scatter` row to any of `classes` (`query._scattered_classes` entries) by kind and subtype."""
+    clauses, params = [], []
+    for entry in classes:
+        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
+        params.extend([entry["kind"], entry["subtype"]])
+    return " OR ".join(clauses), params
+
+
 def _cloud_item(row):
     radius_ly = float(row["radius_ly"])
-    return {"kind": "nebula", "id": cloud_id(row), "source_id": None, "name": f"Field cloud {cloud_id(row)[len(CLOUD_PREFIX):]}",
+    return {"kind": "nebula", "id": cloud_id(row), "source_id": None, "name": _cloud_name(row),
             "sector_id": None, "system_id": None, "parent_id": None, "object_class": FIELD_FAMILIES[row["nebula_class"]],
             "mass_kg": None, "radius_km": radius_ly * KM_PER_LY, "placed": True, "uncharted": True, "scatter_id": None}
+
+
+def _scatter_name(row):
+    """What a scatter phenomenon is called where its name stands alone (UX.259): its local name and birth sector (`naming_key.local_name_with_sector`), or "Uncharted <kind> <cell>" for a row with no Object ID or no naming key."""
+    return (naming_key.scatter_identity(row["uid"]).get("name_with_sector")
+            or f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}")
 
 
 def _scatter_item(row, kind, descriptor):
     mass = row["mass_solar"]
     return {"kind": kind, "id": _printed(row["uid"]), "source_id": None,
-            "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}",
+            "name": _scatter_name(row),
             "sector_id": None, "system_id": None, "parent_id": None, "object_class": descriptor,
             "mass_kg": None if mass is None else float(mass) * SOLAR_MASS_KG, "radius_km": None, "placed": True,
             "uncharted": True, "scatter_id": row["id"]}
@@ -182,16 +203,13 @@ def _scatter_items(conn, kind, limit, after_id, object_class):
     if not classes:
         return []
     by_class = {(entry["kind"], entry["subtype"]): entry["descriptor"] for entry in classes}
-    clauses, params = [], []
-    for entry in classes:
-        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
-        params.extend([entry["kind"], entry["subtype"]])
+    classes_sql, params = _class_clauses(classes)
     later = ""
     if after_id is not None:
         later, params = "id > ? AND ", [after_id, *params]
     rows = conn.execute(
         "SELECT id, uid, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index, mass_solar"
-        f" FROM phenomenon_scatter WHERE built_at IS NULL AND uid IS NOT NULL AND {later}({' OR '.join(clauses)})"
+        f" FROM phenomenon_scatter WHERE built_at IS NULL AND uid IS NOT NULL AND {later}({classes_sql})"
         " ORDER BY id LIMIT ?", [*params, limit]).fetchall()
     return [_scatter_item(row, kind, by_class[(row["kind"], row["subtype"])]) for row in rows]
 
@@ -219,7 +237,7 @@ def within(conn, center, distance, kinds):
         point = (row["x"], row["y"], row["z"])
         away = detmath.dist(center, point)
         if away <= distance:
-            name = f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}"
+            name = _scatter_name(row)
             found.append((away, kind, _printed(row["uid"]), name, point, row["id"]))
     if "nebula" in wanted:
         position = ("p.center_x_pc", "p.center_y_pc", "p.center_z_pc")
@@ -230,7 +248,7 @@ def within(conn, center, distance, kinds):
             point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
             away = detmath.dist(center, point)
             if away <= distance:
-                found.append((away, "nebula", cloud_id(row), f"Field cloud {cloud_id(row)[len(CLOUD_PREFIX):]}", point, None))
+                found.append((away, "nebula", cloud_id(row), _cloud_name(row), point, None))
     return found
 
 
@@ -262,22 +280,19 @@ def search_rows(conn, types, limit, offset, field_codes=None, scatter_types=None
         if offset < field_total and limit > 0:
             for row in conn.execute(f"SELECT {_FIELD_COLUMNS} FROM nebula_field WHERE {field[0]} "
                                     "ORDER BY cell_i, cell_j, cell_k, n LIMIT ? OFFSET ?", [*field[1], limit, offset]).fetchall():
-                rows.append({"type": "nebula", "id": cloud_id(row), "name": f"Field cloud {cloud_id(row)[len(CLOUD_PREFIX):]}",
+                rows.append({"type": "nebula", "id": cloud_id(row), "name": _cloud_name(row),
                              "phenomenon_class": row["nebula_class"], "sector_id": None, "scatter_id": None, "uncharted": True})
     classes = [entry for entry in query._scattered_classes(conn) if entry["type"] in scatter_wanted]
     scatter_total = sum(entry["unbuilt"] for entry in classes)
     room = limit - len(rows)
     if classes and room > 0:
-        clauses, params = [], []
-        for entry in classes:
-            clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
-            params.extend([entry["kind"], entry["subtype"]])
+        classes_sql, params = _class_clauses(classes)
         by_class = {(entry["kind"], entry["subtype"]): entry["type"] for entry in classes}
         for row in conn.execute(
-                "SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index FROM phenomenon_scatter"
-                f" WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id LIMIT ? OFFSET ?",
+                "SELECT id, uid, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index FROM phenomenon_scatter"
+                f" WHERE built_at IS NULL AND ({classes_sql}) ORDER BY id LIMIT ? OFFSET ?",
                 [*params, room, max(0, offset - field_total)]).fetchall():
             rows.append({"type": by_class[(row["kind"], row["subtype"])], "id": row["id"],
-                         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}",
+                         "name": _scatter_name(row),
                          "phenomenon_class": row["subtype"] or None, "sector_id": None, "scatter_id": row["id"], "uncharted": True})
     return rows, int(field_total + scatter_total)

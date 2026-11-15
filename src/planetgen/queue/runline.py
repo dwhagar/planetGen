@@ -39,6 +39,7 @@ import traceback
 
 from planetgen.queue import runrecord
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 from planetgen.util.settings import get_settings
 
 RUN = "run"
@@ -175,7 +176,7 @@ def join(conn, type_, title, who=None, database=None, kind=None, fields=None, fo
         "queued_at": now, "seq": seq, **{key: "" if value is None else str(value) for key, value in (fields or {}).items()}})
     conn.expire(_entry_key(ticket), KEEP_SECONDS)
     if type_ == RUN:
-        conn.set(_alive_key(ticket), "1", ex=ALIVE_SECONDS)
+        sign_of_life(conn, ticket)
     return ticket
 
 
@@ -267,7 +268,7 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
                 raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; this run is started by the same process "
                                      f"that follows it, so it would wait for itself for ever (a run started inside a run)")
             if clock() >= deadline:
-                raise runrecord.Busy(f"{last}; waited {limit_seconds / 60:g} minutes for it")
+                raise runrecord.Busy(f"{last}; waited {format_duration_seconds(limit_seconds)} for it")
             if on_wait is not None and (holder, position) != shown:
                 shown = (holder, position)
                 on_wait(holder, position)

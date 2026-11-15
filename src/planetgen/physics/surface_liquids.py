@@ -38,13 +38,13 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from planetgen.physics import elements, saturation
+from planetgen.physics import constants, elements, saturation
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "surface_liquids.json")
 
 GAS_CONSTANT_J_MOL_K = 8.314
 """float: R, J/(mol K)."""
-ONE_BAR_PA = 1.0e5
+ONE_BAR_PA = constants.BAR_PA
 SOLUBILITY_FACTOR = {"N2": 0.3}
 """dict: STAND-IN OT3: the share of Raoult's ideal mole fraction a permanent gas keeps in a cold hydrocarbon sea (ideal mixing overstates the nitrogen Titan's lakes
 hold, the 0.1 to 0.2 of [R0888], recalled)."""
@@ -129,6 +129,11 @@ def _load():
 
 VERSION, LIQUIDS = _load()
 _BY_ID = {row.id: row for row in LIQUIDS}
+_BY_SATURATION = {}
+for _row_ in LIQUIDS:
+    if _row_.saturation is not None:
+        _BY_SATURATION.setdefault(_row_.saturation, _row_)      # the first row of a saturation species, as the table lists them
+del _row_
 
 
 def liquid(liquid_id):
@@ -228,6 +233,12 @@ class Candidate:
     score: float
 
 
+def _liquid_in_range(formula, temperature_k):
+    """Whether `formula` has a liquid row and `temperature_k` lies over its triple point and at or under its critical temperature."""
+    row = _BY_SATURATION.get(formula)
+    return row is not None and saturation.triple_point_k(formula) < temperature_k <= (row.critical_k or math.inf)
+
+
 def condensing(temperature_k, partial_pressures_pa):
     """
     The volatiles whose partial pressure in the air has reached the saturation pressure of their liquid at `temperature_k`, as `{formula: ratio}` (partial over
@@ -235,11 +246,7 @@ def condensing(temperature_k, partial_pressures_pa):
     """
     found = {}
     for formula, pressure in partial_pressures_pa.items():
-        row = next((r for r in LIQUIDS if r.saturation == formula), None)
-        if row is None or not pressure > 0.0:
-            continue
-        low = saturation.triple_point_k(formula)
-        if not low < temperature_k <= (row.critical_k or math.inf):
+        if not pressure > 0.0 or not _liquid_in_range(formula, temperature_k):
             continue
         saturated = saturation.pressure_pa(formula, temperature_k)
         if math.isfinite(saturated) and pressure >= saturated:
@@ -267,7 +274,7 @@ def candidates(temperature_k, pressure_pa, partial_pressures_pa=None, reservoir=
     """
     out = []
     for formula, ratio in condensing(temperature_k, partial_pressures_pa or {}).items():
-        row = next(r for r in LIQUIDS if r.saturation == formula)
+        row = _BY_SATURATION[formula]
         if is_stable(row.id, temperature_k, pressure_pa):
             out.append(Candidate(row.id, "condensing", ratio))
     out.sort(key=lambda c: -c.score)
@@ -291,11 +298,7 @@ def ideal_sea(temperature_k, partial_pressures_pa, solvent="C2H6"):
     """
     fractions = {}
     for formula, pressure in partial_pressures_pa.items():
-        if formula == solvent or not pressure > 0.0 or not saturation.has(formula):
-            continue
-        low = saturation.triple_point_k(formula)
-        row = next((r for r in LIQUIDS if r.saturation == formula), None)
-        if row is None or not low < temperature_k <= (row.critical_k or math.inf):
+        if formula == solvent or not pressure > 0.0 or not saturation.has(formula) or not _liquid_in_range(formula, temperature_k):
             continue
         saturated = saturation.pressure_pa(formula, temperature_k)
         if math.isfinite(saturated) and saturated > 0.0:

@@ -66,6 +66,12 @@ def _changes(body):
     return out
 
 
+def _outcome(plan):
+    """What a `Result` adds to its `Plan`: whether it saved, the backup it made and the audit rows that failed."""
+    return {"saved": getattr(plan, "saved", False), "backup": getattr(plan, "backup", None),
+            "audit_errors": getattr(plan, "audit_errors", [])}
+
+
 def _view(plan):
     """A `Plan` or `Result` as JSON: the changes (secrets masked), the errors, the options that need a restart
     and the options an environment variable overrides."""
@@ -77,9 +83,7 @@ def _view(plan):
         "shadowed": plan.shadowed,
         "restart": plan.restart,
         "file_hash": plan.file_hash,
-        "saved": getattr(plan, "saved", False),
-        "backup": getattr(plan, "backup", None),
-        "audit_errors": getattr(plan, "audit_errors", []),
+        **_outcome(plan),
     }
 
 
@@ -136,9 +140,7 @@ def _update_view(plan):
                         for r in plan.recommended],
         "errors": plan.errors,
         "file_hash": plan.file_hash,
-        "saved": getattr(plan, "saved", False),
-        "backup": getattr(plan, "backup", None),
-        "audit_errors": getattr(plan, "audit_errors", []),
+        **_outcome(plan),
     }
 
 

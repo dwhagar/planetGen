@@ -34,7 +34,8 @@ import math
 import re
 import time
 
-from planetgen.util import stagemark
+from planetgen.util import secrets_mask, stagemark
+from planetgen.util.format import format_duration_seconds, format_megabytes
 
 SEVERITIES = ("debug", "info", "notice", "warning", "error", "critical")
 """tuple: The severities, least severe first: the RFC 5424 levels, named as the syslog standard names them."""
@@ -148,8 +149,8 @@ class Record:
         self.ms = int(ms)
         self.severity = severity
         self.component = component
-        self.message = str(message)
-        self.fields = fields
+        self.message = secrets_mask.mask_text(str(message))                  # SEC.48: no record holds a key, token or password
+        self.fields = secrets_mask.mask_fields(fields)
 
     @classmethod
     def at(cls, epoch, severity, component, message, /, **fields):
@@ -182,9 +183,18 @@ class Record:
         return f"Record({self.ms}, {self.severity!r}, {self.component!r}, {self.message!r}, {self.fields!r})"
 
 
+def _moment(ms, tz=None):
+    """The `datetime` of `ms` milliseconds since the epoch in the zone `tz` (the computer's own when `None`)."""
+    return (_EPOCH + datetime.timedelta(milliseconds=ms)).astimezone(tz)
+
+
+def _local_text(moment):
+    return f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}"
+
+
 def _stamp(ms):
     """`"2026-10-24T14:40:00.123-0400"` for `ms` milliseconds since the epoch: the computer's local time with the offset of its zone (OPS.97)."""
-    moment = (_EPOCH + datetime.timedelta(milliseconds=ms)).astimezone()
+    moment = _moment(ms)
     return moment.strftime("%Y-%m-%dT%H:%M:%S") + f".{moment.microsecond // 1000:03d}" + moment.strftime("%z")
 
 
@@ -203,8 +213,7 @@ def _ms_of(stamp):
 
 def local_text(seconds):
     """`"2026-10-24 14:40:00 EDT"` for `seconds` since the epoch: the local time labelled with its zone, as the display line writes it."""
-    moment = (_EPOCH + datetime.timedelta(seconds=seconds)).astimezone()
-    return f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}"
+    return _local_text(_moment(seconds * 1000))
 
 
 _ESCAPES = {"\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r", "\t": "\\t"}
@@ -334,9 +343,9 @@ def stage_start(first, total, label, count=1):
 
 def stage_finish(first, total, seconds, count=1, peak_mb=0.0):
     """The message of a stage's finish record: `"Stage 4 of 12 finished after 31 s"`, and, when a unit reported its memory (PERF.226),
-    `"Stage 4 of 12 finished after 31 s (largest worker 640 MB)"`."""
-    memory = f" (largest worker {peak_mb:.0f} MB)" if peak_mb else ""
-    return f"{stagemark.marker(first, total, count)} finished after {seconds:.0f} s{memory}"
+    `"Stage 4 of 12 finished after 31 s (largest worker 640 MB)"` (the duration and the memory on the units code's ladders, UX.318)."""
+    memory = f" (largest worker {format_megabytes(peak_mb)})" if peak_mb else ""
+    return f"{stagemark.marker(first, total, count)} finished after {duration_text(seconds)}{memory}"
 
 
 def stage_skipped(first, total, label, reason, count=1):
@@ -346,7 +355,7 @@ def stage_skipped(first, total, label, reason, count=1):
 
 def stage_failed(first, total, seconds, reason, count=1):
     """The message of a stage's failure record: `"Stage 4 of 12 failed after 31 s: reason"`."""
-    return f"{stagemark.marker(first, total, count)} failed after {seconds:.0f} s: {reason}"
+    return f"{stagemark.marker(first, total, count)} failed after {duration_text(seconds)}: {reason}"
 
 
 def stage_record(event, component, first, total, label=None, seconds=0.0, reason=None, count=1, now=None):
@@ -417,6 +426,20 @@ def counting_text(word, number, total):
     return f"{word} {number} of {total}"
 
 
+def duration_text(seconds):
+    """
+    How long something took, in the one form a log line uses (OPS.173; logging standard, "Message text", rule 3): the duration ladder of the
+    units code (`format.format_duration_seconds`, UX.318), `340 ms`, `12.3 s`, `4.12 minutes`, `1.09 hours`, `3 days`. `?` when the time is not
+    known (`None`, not a number or negative). The field that carries the same figure for a tool is `seconds=`, always in seconds, never this text.
+
+    Args:
+        seconds (float): A length of time in seconds.
+    """
+    if seconds is None or seconds != seconds or seconds < 0:
+        return "?"
+    return format_duration_seconds(seconds)
+
+
 def _zone_name(moment):
     return moment.tzname() or moment.strftime("%z")
 
@@ -431,8 +454,7 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     """
     parts = []
     if times:
-        moment = (_EPOCH + datetime.timedelta(milliseconds=record.ms)).astimezone(tz)
-        parts.append(f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}")
+        parts.append(_local_text(_moment(record.ms, tz)))
     parts.append(f"{record.severity.upper():<8}")
     if component:
         parts.append(f"{record.component}:")

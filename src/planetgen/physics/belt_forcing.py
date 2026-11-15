@@ -54,11 +54,13 @@ def companion_rates(a_au, host_mass_kg, companion_mass_kg, axis_au, eccentricity
     return weight * b1 * (1.0 - eccentricity ** 2) ** -1.5, weight * b2 * eccentricity * (1.0 - eccentricity ** 2) ** -2.5
 
 
-def planet_rate(a_au, planet_axes_au, planet_masses_kg, host_mass_kg):
-    """The apsidal rate the star's planets and relativity give a member of no mass at `a_au`, radians per year (`secular_chain.matrices` with the member as a body of no mass)."""
-    if not planet_axes_au:
+def planet_rate(a_au, planet_axes_au, planet_masses_kg, host_mass_kg, ring_axes_au=(), ring_masses_kg=()):
+    """The apsidal rate the star's planets and relativity give a member of no mass at `a_au`, radians per year (`secular_chain.matrices` with the member as a body of no mass). The rings of the
+    star's belts (`secular_chain.belt_rings`, GEN.1464) pull the member too, those within `secular_chain.BELT_ALPHA_LIMIT` of it left out."""
+    ring_axes, ring_masses = secular_chain.clear_rings(list(ring_axes_au), list(ring_masses_kg), [a_au])
+    if not planet_axes_au and not ring_axes:
         return float(secular_chain.relativistic_rates_rad_yr([a_au], host_mass_kg, [0.0])[0])
-    A, _B = secular_chain.matrices([a_au, *planet_axes_au], [0.0, *planet_masses_kg], host_mass_kg)
+    A, _B = secular_chain.matrices([a_au, *planet_axes_au, *ring_axes], [0.0, *planet_masses_kg, *ring_masses], host_mass_kg, rows=1)
     return float(A[0, 0])
 
 

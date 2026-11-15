@@ -360,7 +360,7 @@ def test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it(con
     assert run["stages"][0]["peak_mb"] == 1487.0
     finish = [message for _id, fields in runrecord.read_events(conn, run_id) if fields.get("kind") == logrecord.STAGE_FINISH
               for message in [fields["message"]]]
-    assert finish and finish[0].endswith("(largest worker 1487 MB)")
+    assert finish and finish[0].endswith("(largest worker 1.49 GB)")
     runrecord.begin_stage(conn, run_id, 1, now=200)
     runrecord.unit_done(conn, run_id, 1, 0, now=201.0)
     runrecord.unit_done(conn, run_id, 1, 1, now=202.0)

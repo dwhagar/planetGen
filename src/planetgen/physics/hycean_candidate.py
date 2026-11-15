@@ -19,7 +19,7 @@ Use:
 
 import math
 
-from planetgen.physics import constants, unit_registry as units
+from planetgen.physics import constants, oddities, unit_registry as units
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 
@@ -50,3 +50,13 @@ def hycean_candidate(mass_earth, radius_earth, teq_k):
     """Whether mass, radius, equilibrium temperature and the density they give are all in the Hycean ranges."""
     return (_inside(mass_earth, HYCEAN_MASS_EARTH) and _inside(radius_earth, HYCEAN_RADIUS_EARTH) and _inside(teq_k, HYCEAN_TEMPERATURE_K)
             and _inside(density_g_cm3(mass_earth, radius_earth), HYCEAN_DENSITY_G_CM3))
+
+
+@oddities.register("hycean_box")
+def hycean_box(body, row):
+    """
+    The effect of oddity W26 (GEN.1523): a terrestrial body inside the Hycean box of `hycean_candidate` (mass, radius, equilibrium temperature and the density they give). The gate of the
+    row is the box, so the table already holds the four ranges; nothing on the body changes. The row names it, so that the planet page and the census say why this body may carry a liquid
+    ocean under a hydrogen envelope (`hydrosphere` calls the state itself `"hycean"` once the air is over half hydrogen).
+    """
+    return None

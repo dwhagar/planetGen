@@ -21,10 +21,10 @@ from planetgen.web.lib.datatable import Column, Result, Table, time_text
 from planetgen.queue import progress_rate, runline, runrecord, warmphases
 from planetgen.admin import activity_log
 from planetgen.util import log, logrecord
-from planetgen.util.format import counted
+from planetgen.util.format import counted, format_bytes, format_duration_seconds, format_megabytes, format_rate
 
 from . import bp, jobs, tables
-from .admin_pages import came_from, format_bytes, safe_next, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
+from .admin_pages import came_from, safe_next, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb, db_name
 
 KIND_LABELS = {"generation": "Generation", "maintenance": "Maintenance", "check": "Database check"}
@@ -83,24 +83,9 @@ def _is_site_wide(action):
     """Whether `action` acts on no particular run (so its confirmation page takes no `?run=`)."""
     return action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS or action in FILL_COMMANDS
 
-RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "clean-nebula-field",
+RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "refill-effect-ledger", "clean-nebula-field",
              "galaxy", "sectors", "link", "backfill", "settle", "sector", "population", "territories")
 """tuple[str]: The `planetgen` commands whose run Retry starts again (the command line the run recorded)."""
-
-
-def _duration(seconds):
-    """`"1 h 02 m"`, `"3 m 05 s"`, `"12.4 s"`, or `""`."""
-    if seconds is None:
-        return ""
-    seconds = float(seconds)
-    if seconds < 60:
-        return f"{seconds:.1f} s"
-    whole = int(seconds)
-    hours, rest = divmod(whole, 3600)
-    minutes, secs = divmod(rest, 60)
-    if hours:
-        return f"{hours} h {minutes:02d} m"
-    return f"{minutes} m {secs:02d} s"
 
 
 def _eta_text(eta, live):
@@ -111,11 +96,11 @@ def _eta_text(eta, live):
     if eta is None or eta.get("seconds") is None:
         return "estimating"
     if eta.get("stalled"):
-        return "waiting on progress"
+        return f"waiting on progress ({eta['cause']})" if eta.get("cause") else "waiting on progress"
     low, high = progress_rate.eta_range(eta["seconds"])
     if eta.get("rough") and eta.get("low") is not None:       # PERF.184: a guess from the host, not from timings
         low, high = eta["low"], eta["high"]
-    low_text, high_text = _duration(low), _duration(high)
+    low_text, high_text = format_duration_seconds(low), format_duration_seconds(high)
     text = high_text if low_text == high_text else f"{low_text} to {high_text}"
     return f"{text} (not timed yet)" if eta.get("rough") else text
 
@@ -166,7 +151,7 @@ def run_view(run):
         "killed_reason": run.get("killed_reason"),
         "started_at": _iso(run["started"]),
         "finished_at": _iso(run["finished"]),
-        "duration": _duration(run["seconds"]),
+        "duration": format_duration_seconds(run["seconds"]),
         "progress": _progress_text(run),
         "percent": run["percent"],
         "eta": _eta_text(run["eta"], run["live"]),
@@ -227,7 +212,7 @@ def _status_view(status):
         "solo_unit": status.get("solo_unit"),
         "holder": status.get("holder"),
         "holder_title": status.get("holder_title"),
-        "heartbeat": _duration(status.get("heartbeat_age_s")),
+        "heartbeat": format_duration_seconds(status.get("heartbeat_age_s")),
         "stale": status.get("stale", False),
         "holder_url": url_for("web.admin_queue_run", run_id=status["holder"]) if status.get("holder") else None,
     }
@@ -319,6 +304,19 @@ def _held_view(held):
     return {"total": held["total"], "shown": len(rows), "rows": rows}
 
 
+def _tuning_view(body):
+    """The panel of what the queue has learned per job kind (OPS.158), or `None` when there is nothing to show: for each kind the typed claim, the claim from the job profile, a pin, the samples and
+    the newest change; and the latest changes the engine and the admins made."""
+    if not body or not (body.get("kinds") or body.get("changes")):
+        return None
+    rows = [{"kind": row["kind"], "typed": format_megabytes(row.get("typed_mb")), "learned": format_megabytes(row.get("figure_mb")), "pinned": format_megabytes(row.get("pinned_mb")), "is_pinned": bool(row.get("pinned_mb")),
+             "samples": f"{row.get('samples') or 0:,}", "last_sample": row.get("last_sample") or "",
+             "changed": (row["changed"]["reason"] if row.get("changed") else "")} for row in body["kinds"]]
+    changes = [{"at": _iso(item["at"]), "what": item["what"], "kind": item["kind"], "old": f"{item['old']:,.0f}" if item.get("old") is not None else "none", "new": f"{item['new']:,.0f}",
+                "reason": item["reason"]} for item in body["changes"]]
+    return {"on": body.get("self_tuning", True), "rows": rows, "changes": changes}
+
+
 def _beating_view(body):
     """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
     jobs = (body or {}).get("jobs") or []
@@ -326,17 +324,7 @@ def _beating_view(body):
         return None
     names = {"api": "API job", "web": "Generate page job", "tile-prefetch": "Map tile prefetch"}
     return {"rows": [{"kind": names.get(job["kind"], job["kind"]), "label": job["label"], "id": job["job"], "state": job["state"], "dead": job["state"] == "dead",
-                      "phase": job["phase"], "running": _beat_gap(job["running_seconds"]), "heard": _beat_gap(job["beat_age_seconds"])} for job in jobs]}
-
-
-def _beat_gap(seconds):
-    """Seconds as `5 s`, `4 min` or `2 h 10 min` (the other-job rows; `_duration` is the long form of the stage and run pages)."""
-    seconds = int(max(seconds or 0, 0))
-    if seconds < 90:
-        return f"{seconds} s"
-    if seconds < 5400:
-        return f"{seconds // 60} min"
-    return f"{seconds // 3600} h {seconds % 3600 // 60} min"
+                      "phase": job["phase"], "running": format_duration_seconds(job["running_seconds"]), "heard": format_duration_seconds(job["beat_age_seconds"])} for job in jobs]}
 
 
 def _iso(seconds):
@@ -355,7 +343,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = held = beating = None
+    workers = warm = held = beating = tuning = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -370,6 +358,10 @@ def admin_queue():
         except apiclient.ApiError:
             beating = None
         try:
+            tuning = _tuning_view(apiclient.admin_work_tuning(cookie_header))
+        except apiclient.ApiError:
+            tuning = None
+        try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
             warm = None
@@ -383,7 +375,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating, tuning=tuning,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -404,13 +396,13 @@ def _stage_rows(run):
         "state_label": STAGE_STATE_LABELS[stage["state"]],
         "units": f"{stage['done']} of {stage['units']} {counted('unit', stage['units'])}" if stage["units"] else "",
         "started": _iso(stage["started"]),
-        "duration": _duration(stage["seconds"]),
-        "longest": _duration(stage["longest_unit"]) if stage.get("longest_unit") else "",
-        "peak": f"{stage['peak_mb']:.0f} MB" if stage.get("peak_mb") else "",
+        "duration": format_duration_seconds(stage["seconds"]),
+        "longest": format_duration_seconds(stage["longest_unit"]) if stage.get("longest_unit") else "",
+        "peak": format_megabytes(stage["peak_mb"]) if stage.get("peak_mb") else "",
     } for number, stage in enumerate(run["stages"], 1)]
 
 
-UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
+UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "busy": "Busy", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
 """dict: The words for the states `beatjudge` gives a running unit (OPS.138), in the order the summary lists them."""
 
 UNIT_ROWS_SHOWN = 200
@@ -444,6 +436,7 @@ def _unit_rows(run, units):
         if unit.get("waiting_on"):
             phase = f"{phase} (waiting on {unit['waiting_on']})" if phase else f"waiting on {unit['waiting_on']}"
         rows.append({
+            "step": _step_text(unit.get("step")),
             "stage": f"{unit['stage'] + 1}. {labels[unit['stage']]}" if 0 <= unit["stage"] < len(labels) else str(unit["stage"] + 1),
             "unit": unit["unit"],
             "state": unit["state"],
@@ -451,17 +444,33 @@ def _unit_rows(run, units):
             "severity": unit.get("severity") or "",
             "phase": phase,
             "counter": counter,
-            "rate": "" if not rate else (f"{rate:,.1f} a second" if rate >= 1 else f"{1 / rate:,.1f} s each"),
-            "left": _duration(left) if left is not None else "",
-            "beat": _duration(unit.get("beat_age_seconds")),
-            "running": _duration(unit.get("running_seconds")),
-            "memory": f"{unit['resident_mb']:.0f} MB" if unit.get("resident_mb") else "",
+            "progress": unit.get("progress"),
+            "rate": format_rate(rate, 1.0),
+            "left": format_duration_seconds(left) if left is not None else "",
+            "beat": format_duration_seconds(unit.get("beat_age_seconds")),
+            "running": format_duration_seconds(unit.get("running_seconds")),
+            "memory": format_megabytes(unit["resident_mb"]) if unit.get("resident_mb") else "",
             "reason": unit.get("reason") or "",
             "stop": bool(unit.get("agreed")),
         })
     counts = {state: sum(1 for unit in units if unit["state"] == state) for state in UNIT_STATE_LABELS}
     summary = f"{len(units)} {counted('unit', len(units))}: " + ", ".join(f"{count} {state}" for state, count in counts.items() if count)
     return rows[:UNIT_ROWS_SHOWN], summary, max(len(rows) - UNIT_ROWS_SHOWN, 0)
+
+
+def _step_text(step):
+    """A unit's second-level count (OPS.192: `unitwatch.step_view`) as its row shows it: `{"name", "text", "bar"}`, `None` for a unit that has none. The text is the name, the count and the rate in words; `bar` is the unit's own bar."""
+    if not step:
+        return None
+    done, total = step.get("done") or 0.0, step.get("total") or 0.0
+    progress = step.get("progress") or {}
+    text = f"{step['name']}: {done:,.0f} of {total:,.0f}" if total else f"{step['name']}: {done:,.0f}"
+    rate = progress.get("rate")
+    if rate:
+        text += f", {format_rate(rate, 1.0)}"
+    if progress.get("eta_seconds") is not None:
+        text += f", {format_duration_seconds(progress['eta_seconds'])} left"
+    return {"name": step["name"], "text": text, "bar": progress}
 
 
 def _live_units(cookie_header, run):
@@ -687,6 +696,19 @@ def admin_queue_action():
             else:
                 state = apiclient.admin_work_workers(cookie_header, count=count, ludicrous=action == "workers-ludicrous")
                 message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
+        elif action in ("tuning-pin", "tuning-unpin", "tuning-clear"):
+            kind = (request.form.get("kind") or "").strip()
+            try:
+                mb = float(request.form.get("mb") or "") if action == "tuning-pin" else None
+            except ValueError:
+                mb = None
+            if not kind or (action == "tuning-pin" and mb is None):
+                error = "Name the job kind and, to fix it, the claim in megabytes."
+            else:
+                apiclient.admin_work_tuning_set(cookie_header, action.removeprefix("tuning-"), kind, mb)
+                message = (f"{kind} now claims {format_megabytes(mb)} until the pin is released." if action == "tuning-pin"
+                           else f"{kind} is decided by the job profile again." if action == "tuning-unpin"
+                           else f"What was learned for {kind} is forgotten; its next run claims from the typed table.")
         elif action in FILL_COMMANDS:
             message, error = _start_fill(admin, cookie_header, action)
             if message:

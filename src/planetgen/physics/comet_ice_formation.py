@@ -13,7 +13,7 @@ read off the one quantity the comets measure for every comet, CO / H2O (row k5),
    decades in 75 K). A comet at the median CO / H2O of 2.5 percent has T = 49.8 K, and one at Hale-Bopp's 0.2 has 38.5 K.
 2. **The position** `xi` (`position`) of that temperature between the two ends of the comets measured: 0 at the median comet's temperature (the warm end, where 67P is) and 1 at
    Hale-Bopp's (the cold end), held at the ends. A comet warmer than the median has the warm-end values.
-3. **The species** (`latent_species_over_h2o`). N2 and Ar are interpolated in the logarithm between the two ends of their brackets (`comet_species.bracket_over_h2o`: N2 per CO of 67P to that of
+3. **The species** (`latent_log10`, `tie_log10`, `residual_dex`, read by row k7 of the atmosphere possibility table, which draws CO / H2O first in row k5). N2 and Ar are interpolated in the logarithm between the two ends of their brackets (`comet_species.bracket_over_h2o`: N2 per CO of 67P to that of
    C/2016 R2, Ar per water of 67P to that of Hale-Bopp) at position `xi`, plus a residual of their own: the part
    of a species that the temperature does not explain (a species varies within one comet: 67P's argon changes by 1.4 decades over its season). N2 is per CO, so it also follows the
    comet's own CO / H2O. Krypton is the comet's argon times the ratio of 67P and xenon its krypton times the ratio of 67P, each with the lab's fractionation (at most 40 percent) as its residual.
@@ -22,6 +22,9 @@ read off the one quantity the comets measure for every comet, CO / H2O (row k5),
 
 The residual widths are stand-ins (CY2). The mapping of the position onto the temperature ends is one number per end (CY1). The laboratory law is Bar-Nun's two published numbers (CY3);
 Ciesla and others 2018 show the trapping depends on the deposition rate and the partial pressure as well, which is why the temperature here is a latent, not a measured quantity.
+
+Wired in row k7 (GEN.1022): row k5 stores its draw as `co_over_h2o`, and k7 draws N2 and Ar log-normal about `latent_log10` with their residual, then krypton about the argon just drawn and xenon about the krypton
+(`tie_log10`; a row's species may read the ones before it as `draw_<name>`).
 
 Tests against measurement (never inputs): the median comet gives the warm end of every species; a comet at Hale-Bopp's CO / H2O gives the cold end; the CO / H2O of every comet drawn is the k5 draw
 (the latent does not change its spread); the species are correlated across comets the way the data say (a CO-poor, argon-rich comet is unlikely).
@@ -67,11 +70,6 @@ def formation_temperature_k(co_over_h2o):
     return HALLEY_TEMPERATURE_K + K_PER_DECADE * math.log10(HALLEY_CO_OVER_H2O / co_over_h2o)
 
 
-def co_over_h2o_at(temperature_k):
-    """The CO / H2O that ice formed at `temperature_k` holds: the inverse of `formation_temperature_k`."""
-    return HALLEY_CO_OVER_H2O * 10.0 ** ((HALLEY_TEMPERATURE_K - temperature_k) / K_PER_DECADE)
-
-
 def position(co_over_h2o):
     """0 at the median comet's formation temperature and 1 at Hale-Bopp's, held at the ends: where the comet lies between the warm and the cold end of the comets measured."""
     warm = formation_temperature_k(MEDIAN_CO_OVER_H2O)
@@ -79,31 +77,32 @@ def position(co_over_h2o):
     return min(1.0, max(0.0, (warm - formation_temperature_k(co_over_h2o)) / (warm - cold)))
 
 
-def latent_species_over_h2o(co_over_h2o, residuals=None, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
+def latent_log10(species, co_over_h2o, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
     """
-    N2, Ar, Kr and Xe per H2O of a comet whose CO / H2O is `co_over_h2o`, round a host whose N/C, Ar/C and S/C are the given multiples of the proto-solar ones.
+    The log10 of N2 or Ar per H2O that the formation temperature of a comet with this CO / H2O gives, before the residual of the species (the center of its draw in row k7).
 
-    Args:
-        co_over_h2o (float): The comet's CO / H2O (the k5 draw); its formation temperature and position follow from it.
-        residuals (Mapping): A standard normal for each of `LATENT_SPECIES` (0 for any missing): N2 and Ar about what the temperature gives, Kr about argon times the ratio of 67P and Xe about krypton times the ratio
-            of 67P (`NOBLE_TIE_DEX`).
-
-    Returns:
-        dict: `{"N2": .., "Ar": .., "Kr": .., "Xe": ..}`.
+    N2 is per CO at that position, so per water it also follows the comet's own CO / H2O.
     """
-    z = {name: 0.0 for name in LATENT_SPECIES}
-    z.update(residuals or {})
-    unknown = set(z) - set(LATENT_SPECIES)
-    if unknown:
-        raise ValueError(f"{', '.join(sorted(unknown))} has no residual here; the species are {', '.join(LATENT_SPECIES)}")
+    if species not in ("N2", "Ar"):
+        raise ValueError(f"{species} is not driven by the temperature; the species are N2 and Ar (Kr and Xe follow argon)")
     xi = position(co_over_h2o)
+    low, high = comet_species.bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)
+    along = math.log10(low) + xi * math.log10(high / low)
+    return along + math.log10(co_over_h2o / MEDIAN_CO_OVER_H2O) if species == "N2" else along
 
-    def along(species):
-        low, high = comet_species.bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)
-        return math.log10(low) + xi * math.log10(high / low)
 
-    n2 = along("N2") + math.log10(co_over_h2o / MEDIAN_CO_OVER_H2O) + RESIDUAL_DEX["N2"] * z["N2"]      # per CO at that position, so per water follows the comet's own CO
-    argon = along("Ar") + RESIDUAL_DEX["Ar"] * z["Ar"]
-    krypton = argon + math.log10(comet_species.KR_OVER_AR) + NOBLE_TIE_DEX * z["Kr"]
-    xenon = krypton + math.log10(comet_species.XE_OVER_KR) + NOBLE_TIE_DEX * z["Xe"]
-    return {"N2": 10.0 ** n2, "Ar": 10.0 ** argon, "Kr": 10.0 ** krypton, "Xe": 10.0 ** xenon}
+def tie_log10(species, parent_over_h2o):
+    """The log10 of Kr (from argon) or Xe (from krypton) per H2O about the value of the species it follows, before the tie's own residual."""
+    ratio = {"Kr": comet_species.KR_OVER_AR, "Xe": comet_species.XE_OVER_KR}.get(species)
+    if ratio is None:
+        raise ValueError(f"{species} follows no other species; Kr follows argon and Xe follows krypton")
+    return math.log10(parent_over_h2o) + math.log10(ratio)
+
+
+def residual_dex(species):
+    """The width, in decades, of what the temperature does not explain for `species` (N2, Ar), or of the tie of Kr and Xe."""
+    if species in RESIDUAL_DEX:
+        return RESIDUAL_DEX[species]
+    if species in ("Kr", "Xe"):
+        return NOBLE_TIE_DEX
+    raise ValueError(f"{species} is none of {', '.join(LATENT_SPECIES)}")

@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="design/galaxy/galactic-potential.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="the-galaxys-own-gravity-and-galactic-orbits">The galaxy's own gravity and galactic orbits</h1><p class="meta">docs/design/galaxy/galactic-potential.md</p><details class="toc"><summary>On this page (31 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#1-findings-in-brief">1. Findings in brief</a></li><li style="margin-left:0px"><a href="#2-the-model">2. The model</a></li><li style="margin-left:14px"><a href="#rotation-curve-check">Rotation-curve check</a></li><li style="margin-left:14px"><a href="#reading-the-parameters">Reading the parameters</a></li><li style="margin-left:14px"><a href="#against-real-milky-way-models">Against real Milky Way models</a></li><li style="margin-left:14px"><a href="#observed-solar-values">Observed solar values</a></li><li style="margin-left:0px"><a href="#3-the-log-halo-does-not-meet-the-targets">3. The log halo does not meet the targets</a></li><li style="margin-left:0px"><a href="#4-forces-pitfalls-softening-speed">4. Forces, pitfalls, softening, speed</a></li><li style="margin-left:14px"><a href="#formulas">Formulas</a></li><li style="margin-left:14px"><a href="#numerical-pitfalls-tested">Numerical pitfalls (tested)</a></li><li style="margin-left:14px"><a href="#softening-and-the-center-gen108">Softening and the center (GEN.108)</a></li><li style="margin-left:14px"><a href="#speed">Speed</a></li><li style="margin-left:14px"><a href="#tested-implementation">Tested implementation</a></li><li style="margin-left:0px"><a href="#5-libraries-against-25-lines-of-numpy">5. Libraries against 25 lines of numpy</a></li><li style="margin-left:0px"><a href="#6-scaling-the-potential-to-the-generated-galaxy">6. Scaling the potential to the generated galaxy</a></li><li style="margin-left:14px"><a href="#recommended-rule">Recommended rule</a></li><li style="margin-left:0px"><a href="#7-orbit-integration">7. Orbit integration</a></li><li style="margin-left:14px"><a href="#71-frequencies">7.1 Frequencies</a></li><li style="margin-left:14px"><a href="#72-what-a-real-time-update-looks-like">7.2 What a real-time update looks like</a></li><li style="margin-left:14px"><a href="#73-leapfrog-accuracy">7.3 Leapfrog accuracy</a></li><li style="margin-left:14px"><a href="#74-step-criterion">7.4 Step criterion</a></li><li style="margin-left:14px"><a href="#75-epicycles-are-not-the-update">7.5 Epicycles are not the update</a></li><li style="margin-left:0px"><a href="#8-seeding-velocities">8. Seeding velocities</a></li><li style="margin-left:14px"><a href="#81-asymmetric-drift">8.1 Asymmetric drift</a></li><li style="margin-left:14px"><a href="#82-dispersions-per-population">8.2 Dispersions per population</a></li><li style="margin-left:0px"><a href="#9-test-values">9. Test values</a></li><li style="margin-left:0px"><a href="#10-how-this-fits-planetgen">10. How this fits planetGen</a></li><li style="margin-left:0px"><a href="#11-corrections-to-the-source-documents">11. Corrections to the source documents</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<h1 id="the-galaxys-own-gravity-and-galactic-orbits">The galaxy's own gravity and galactic orbits</h1><p class="meta">docs/design/galaxy/galactic-potential.md</p><details class="toc"><summary>On this page (31 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#1-findings-in-brief">1. Findings in brief</a></li><li style="margin-left:0px"><a href="#2-the-model">2. The model</a></li><li style="margin-left:14px"><a href="#rotation-curve-check">Rotation-curve check</a></li><li style="margin-left:14px"><a href="#reading-the-parameters">Reading the parameters</a></li><li style="margin-left:14px"><a href="#against-real-milky-way-models">Against real Milky Way models</a></li><li style="margin-left:14px"><a href="#observed-solar-values">Observed solar values</a></li><li style="margin-left:0px"><a href="#3-the-log-halo-does-not-meet-the-targets">3. The log halo does not meet the targets</a></li><li style="margin-left:0px"><a href="#4-forces-pitfalls-softening-speed">4. Forces, pitfalls, softening, speed</a></li><li style="margin-left:14px"><a href="#formulas">Formulas</a></li><li style="margin-left:14px"><a href="#numerical-pitfalls-tested">Numerical pitfalls (tested)</a></li><li style="margin-left:14px"><a href="#softening-and-the-centre-gen108">Softening and the centre (GEN.108)</a></li><li style="margin-left:14px"><a href="#speed">Speed</a></li><li style="margin-left:14px"><a href="#tested-implementation">Tested implementation</a></li><li style="margin-left:0px"><a href="#5-libraries-against-25-lines-of-numpy">5. Libraries against 25 lines of numpy</a></li><li style="margin-left:0px"><a href="#6-scaling-the-potential-to-the-generated-galaxy">6. Scaling the potential to the generated galaxy</a></li><li style="margin-left:14px"><a href="#recommended-rule">Recommended rule</a></li><li style="margin-left:0px"><a href="#7-orbit-integration">7. Orbit integration</a></li><li style="margin-left:14px"><a href="#71-frequencies">7.1 Frequencies</a></li><li style="margin-left:14px"><a href="#72-what-a-real-time-update-looks-like">7.2 What a real-time update looks like</a></li><li style="margin-left:14px"><a href="#73-leapfrog-accuracy">7.3 Leapfrog accuracy</a></li><li style="margin-left:14px"><a href="#74-step-criterion">7.4 Step criterion</a></li><li style="margin-left:14px"><a href="#75-epicycles-are-not-the-update">7.5 Epicycles are not the update</a></li><li style="margin-left:0px"><a href="#8-seeding-velocities">8. Seeding velocities</a></li><li style="margin-left:14px"><a href="#81-asymmetric-drift">8.1 Asymmetric drift</a></li><li style="margin-left:14px"><a href="#82-dispersions-per-population">8.2 Dispersions per population</a></li><li style="margin-left:0px"><a href="#9-test-values">9. Test values</a></li><li style="margin-left:0px"><a href="#10-how-this-fits-planetgen">10. How this fits planetGen</a></li><li style="margin-left:0px"><a href="#11-corrections-to-the-source-documents">11. Corrections to the source documents</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
 <p>The smooth background pull of the galaxy (bulge, disk and halo) that every
 star, remnant and phenomenon feels on its galactic orbit: the model, how to
 code it, how to scale it to a generated galaxy, how to step orbits in it and
@@ -349,12 +349,12 @@ R_c = 5.1 kpc.</p>
 <h3 id="formulas">Formulas</h3>
 <p>With s = sqrt(z^2 + b_d^2) and D = R^2 + (a_d + s)^2:</p>
 <ul>
-<li>Hernquist: <code>a = -G M (r + c)^-2 r_hat</code>. Finite at the center (G M / c^2 =
+<li>Hernquist: <code>a = -G M (r + c)^-2 r_hat</code>. Finite at the centre (G M / c^2 =
 1.7e5 (km/s)^2/kpc) but the direction flips there: a cusp, not a singularity.</li>
 <li>Miyamoto-Nagai: <code>a_R = -G M R D^(-3/2)</code>, <code>a_z = -G M z (a_d + s) / (s D^(3/2))</code>.
 Smooth for b &gt; 0.</li>
 <li>NFW: <code>a = -(G M / r^3) [ln(1 + u) - u/(1 + u)] r_vec</code>, <code>u = r / r_h</code>. Tends
-to the finite G M / (2 r_h^2) = 4.5e3 (km/s)^2/kpc at the center, again with
+to the finite G M / (2 r_h^2) = 4.5e3 (km/s)^2/kpc at the centre, again with
 a direction flip.</li>
 <li>Flattened log: <code>a = -v0^2 (x, y, z/q^2) / (R_c^2 + R^2 + z^2/q^2)</code>; checked
 against gala's <code>LogarithmicPotential</code> to 4e-8.</li>
@@ -396,7 +396,7 @@ against gala's <code>LogarithmicPotential</code> to 4e-8.</li>
 </tr>
 </tbody>
 </table></div>
-<h3 id="softening-and-the-center-gen108">Softening and the center (GEN.108)</h3>
+<h3 id="softening-and-the-centre-gen108">Softening and the centre (GEN.108)</h3>
 <p>A Plummer-softened black hole with eps = 1 pc and M = 4.3e6 Msun (Sgr A*'s
 order; 4.1e6 to 4.3e6 [R]) has a circular speed that peaks near 81 km/s at 1
 pc, then 72 km/s at 3 pc and 43 km/s at 10 pc; unsoftened it would be 136 km/s
@@ -405,9 +405,9 @@ inside about 10 pc (bulge M(&lt;r) = M_b (r/(r + c))^2 = 4.3e6 Msun at 10.6 pc),
 so the softening touches only the innermost part. The dynamical time at the
 softening length is 2 pi sqrt(eps^3 / GM) = 45,000 years, so a star passing
 within a few parsecs needs steps of tens of years; the step criterion in 7.4
-handles that. A body that really reaches the center is rare: cap the
+handles that. A body that really reaches the centre is rare: cap the
 sub-steps per update and flag the star when the cap is hit.</p>
-<p>Conclusion for GEN.108: the galactic-center guard is the Plummer softening,
+<p>Conclusion for GEN.108: the galactic-centre guard is the Plummer softening,
 the r = 0 and b = 0 guards above and a sub-step cap. No infinity is left.</p>
 <h3 id="speed">Speed</h3>
 <p>For 1e6 stars per call, single-threaded numpy, float64 [C]: the straightforward
@@ -576,7 +576,7 @@ position and a catalogued velocity.</p>
 <p>A star at 230 km/s moves 0.64 millipc per day, so the 0.01 mpc threshold
 (GEN.106) is reached after about 15.6 days; <code>next_update_due</code> is that long
 after the last update and a daily run touches about 1/15 of the stars. A slow
-halo star near apocenter (50 km/s) is due every 72 days.
+halo star near apocentre (50 km/s) is due every 72 days.
 <code>next_update_due = now + 0.01 mpc / |v|</code> is adequate, since speeds change over
 Myr; recompute whenever the star moves.</p>
 <p>A single leapfrog step of 15.6 days has a relative frequency error
@@ -646,7 +646,7 @@ at 5 Myr and 89 pc at 10 Myr [C].</p>
 <h3 id="74-step-criterion">7.4 Step criterion</h3>
 <p>Per-star step, chosen once per update from the star's state:
 <code>dt_i = min(eta * min(t_peri, t_local), dt_max)</code>, with <code>t_peri = r_p / v_p</code> the
-pericenter crossing time (r_p from L = r_p v_p and the energy, by a few
+pericentre crossing time (r_p from L = r_p v_p and the energy, by a few
 fixed-point iterations of <code>v_p^2 = 2 (E - Phi(r_p))</code>) and
 <code>t_local = sqrt(r / |a|)</code>. Round each step down to dt_max / 2^k and integrate
 the stars of each k together (block steps). Max dE/E over 1 Gyr [C]:</p>
@@ -710,7 +710,7 @@ keeps the scheme symplectic per update; energy wanders by bounded errors of
 0.4 microseconds, about 400 s. Cap the sub-steps at about 50,000 per star per
 update; a star that would need more (orbiting the black hole at a few parsecs
 through a long update) keeps its current state, is flagged and logged. That
-is the GEN.108 &quot;limit&quot; for the center.</p>
+is the GEN.108 &quot;limit&quot; for the centre.</p>
 <h3 id="75-epicycles-are-not-the-update">7.5 Epicycles are not the update</h3>
 <p>Textbook epicycle formulas (guiding radius from Lz, radial oscillation at
 kappa, the azimuthal drift term, vertical oscillation at nu) against the exact
@@ -829,7 +829,7 @@ Sun (sigma_R / sigma_z / lag, km/s) [R for the observed ranges]: young 15 / 6 /
 2, intermediate 28 / 16 / 9, old 40 / 26 / 20, thick 60 / 45 / 45; bulge an
 isotropic rotator with sigma about 110 and mean rotation from the Jeans
 equation; halo without rotation, sigma about 120. Draw velocities as Gaussians;
-reject draws that put the apocenter beyond the galaxy edge or the pericenter
+reject draws that put the apocentre beyond the galaxy edge or the pericentre
 inside 100 pc.</p>
 <h2 id="9-test-values">9. Test values</h2>
 <p>For the GEN.115 tests at the default shape:</p>

@@ -41,8 +41,7 @@ def test_vapor_pressure_is_the_saturation_curve():
         assert atmosphere.vapor_pressure_kpa(gas, 100.0) == saturation.pressure_pa(gases.stored(gas).formula, 100.0) / 1000.0
 
 
-def test_the_two_point_condensation_table_is_gone_and_hydrogen_sulphide_has_its_own_curve():
-    assert not hasattr(atmosphere, "CONDENSATION_K")
+def test_hydrogen_sulphide_has_its_own_vapor_pressure_curve():
     # H2S boils near 213 K at 100 kPa, SO2 near 263 K (the old table gave H2S the SO2 row)
     assert atmosphere.vapor_pressure_kpa("h2s", 213.0) == pytest.approx(100.0, rel=0.03)
     assert atmosphere.vapor_pressure_kpa("so2", 263.0) == pytest.approx(100.0, rel=0.03)

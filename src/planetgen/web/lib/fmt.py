@@ -12,6 +12,7 @@ JSON, never a database row or connection.
 import datetime as _dt
 import hashlib
 import html
+import json
 import math
 import os
 import re
@@ -165,6 +166,10 @@ def speed_kms_html(kms):
     return measured_html("km_s", kms)
 
 
+_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+"""str: The `planetgen` package folder (this file is `planetgen/web/lib/fmt.py`)."""
+
+
 def _read_package_version():
     """
     The planetGen package version (`src/planetgen/_version.py`'s
@@ -174,8 +179,7 @@ def _read_package_version():
     Falls back to `"dev"` if the file can't be found or parsed, so a page
     still renders (just without a meaningful cache-busting value).
     """
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                        "_version.py")
+    path = os.path.join(_PACKAGE_DIR, "_version.py")
     try:
         with open(path, encoding="utf-8") as handle:
             match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', handle.read(), re.MULTILINE)
@@ -186,8 +190,7 @@ def _read_package_version():
 
 STATIC_VERSION = _read_package_version()
 
-_STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "html", "static")
-_STATIC_DIR = os.path.normpath(_STATIC_DIR)
+_STATIC_DIR = os.path.normpath(os.path.join(_PACKAGE_DIR, "..", "html", "static"))
 STATIC_FINGERPRINT_TTL_SECONDS = 5.0
 _fingerprint_cache = {"at": -1e9, "value": ""}
 
@@ -245,6 +248,14 @@ def static_url(name):
     fingerprint = _static_fingerprint()
     token = f"{STATIC_VERSION}-{fingerprint}" if fingerprint else STATIC_VERSION
     return f"static/{name}?v={quote(token, safe='')}"
+
+
+def json_script(data):
+    """
+    `data` as JSON for the body of a `<script type="application/json">`: `<`, `>` and `&` are written as `\\u` escapes, so a value that holds
+    `</script>` (a database name or label can) cannot end the element early. JSON-LD and the maps' scene data are written with it.
+    """
+    return json.dumps(data).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 def esc(value):

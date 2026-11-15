@@ -37,6 +37,7 @@ import uuid
 from planetgen.db import login, store
 from planetgen.queue import redisqueue, runrecord
 from planetgen.util import log
+from planetgen.util.format import format_bytes, format_duration_seconds, format_rate
 
 DEFAULT_SEED = "0000000000000000000000000000BEEF"
 DEFAULT_SECTORS = 2
@@ -204,6 +205,16 @@ def stages_of_runs(conn, database):
     return stages
 
 
+def connection_args(config, database):
+    """The `--mysql-*` options that point a `planetgen.cli.generate` child at `database` on `config`'s server."""
+    return ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
+            "--mysql-database", database]
+
+
+GENERATE = [sys.executable, "-m", "planetgen.cli.generate"]
+"""list: How a child `planetgen.cli.generate` is started."""
+
+
 def _profile(config, control, args, workdir):
     """One single-worker fill under cProfile, in a database of its own; returns `(seconds, [(cumulative, calls,
     function)])` for the project's own functions."""
@@ -213,11 +224,9 @@ def _profile(config, control, args, workdir):
         cur.execute(f"CREATE DATABASE `{database}`")
     try:
         env = _child_env(config, control, 1)
-        base = [sys.executable, "-m", "planetgen.cli.generate"]
-        conn_args = ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
-                     "--mysql-database", database]
+        conn_args = connection_args(config, database)
         for command in _plan_commands(args):
-            _run(base + command + conn_args, env, "the plan")
+            _run(GENERATE + command + conn_args, env, "the plan")
         out = os.path.join(workdir, "fill.prof")
         seconds = _run([sys.executable, "-m", "cProfile", "-o", out, "-m", "planetgen.cli.generate",
                         *_fill_args(args), *conn_args], env, "the profiled fill")
@@ -269,12 +278,10 @@ def run_benchmark(args):
                 cur.execute(f"CREATE DATABASE `{database}`")
             scratch.append(database)
             env = _child_env(config, control, workers)
-            conn_args = ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
-                         "--mysql-database", database]
-            base = [sys.executable, "-m", "planetgen.cli.generate"]
+            conn_args = connection_args(config, database)
             before = _status(admin)
-            plan_seconds = sum(_run(base + command + conn_args, env, "the plan") for command in _plan_commands(args))
-            fill_seconds = _run(base + _fill_args(args) + conn_args, env, "the fill")
+            plan_seconds = sum(_run(GENERATE + command + conn_args, env, "the plan") for command in _plan_commands(args))
+            fill_seconds = _run(GENERATE + _fill_args(args) + conn_args, env, "the fill")
             after = _status(admin)
             total = plan_seconds + fill_seconds
             results.append({
@@ -305,27 +312,21 @@ def run_benchmark(args):
                       f, indent=2)
 
 
-def _megabytes(count):
-    return f"{count / 1048576:,.1f} MB"
-
 
 def _setup_lines(run):
     """The report lines about the machine a run was made on: the buffer pool, the largest tables and the worker
-    start-up cost (nothing for a result saved before they were recorded)."""
-    lines = []
-    if run.get("buffer_pool_bytes") is not None:
-        lines.append(f"  innodb_buffer_pool_size: {_megabytes(run['buffer_pool_bytes'])}")
-    tables = run.get("tables") or []
+    start-up cost (every result records all three)."""
+    lines = [f"  innodb_buffer_pool_size: {format_bytes(run['buffer_pool_bytes'])}"]
+    tables = run["tables"]
     if tables:
         total = sum(table["data_bytes"] + table["index_bytes"] for table in tables)
-        lines.append(f"  tables: {len(tables)}, {_megabytes(total)} in all; the largest:")
+        lines.append(f"  tables: {len(tables)}, {format_bytes(total)} in all; the largest:")
         for table in tables[:TABLES_LISTED]:
-            lines.append(f"    {table['table'][:36]:36} {table['rows']:>10,} rows  data {_megabytes(table['data_bytes']):>11}"
-                         f"  indexes {_megabytes(table['index_bytes']):>11}")
-    startup = run.get("worker_startup")
-    if startup:
-        lines.append(f"  worker start-up: {startup['process_seconds']:.2f} s a process (imports {startup['import_seconds']:.2f} s, "
-                     f"first connection {startup['connect_seconds']:.2f} s), median of {STARTUP_RUNS}")
+            lines.append(f"    {table['table'][:36]:36} {table['rows']:>10,} rows  data {format_bytes(table['data_bytes']):>11}"
+                         f"  indexes {format_bytes(table['index_bytes']):>11}")
+    startup = run["worker_startup"]
+    lines.append(f"  worker start-up: {format_duration_seconds(startup['process_seconds'])} a process (imports {format_duration_seconds(startup['import_seconds'])}, "
+                 f"first connection {format_duration_seconds(startup['connect_seconds'])}), median of {STARTUP_RUNS}")
     return lines
 
 
@@ -335,8 +336,8 @@ def format_report(args, results, profile):
              f"seed {args.seed}."]
     for run in results:
         total = run["total_seconds"] or 1.0
-        lines += ["", f"{run['workers']} worker(s): plan {run['plan_seconds']:.1f} s, fill {run['fill_seconds']:.1f} s, "
-                      f"total {run['total_seconds']:.1f} s", "  stage                                         seconds   share"]
+        lines += ["", f"{run['workers']} worker(s): plan {format_duration_seconds(run['plan_seconds'])}, fill {format_duration_seconds(run['fill_seconds'])}, "
+                      f"total {format_duration_seconds(run['total_seconds'])}", "  stage                                         seconds   share"]
         for stage in run["stages"]:
             if stage["skipped"]:
                 continue
@@ -345,12 +346,12 @@ def format_report(args, results, profile):
                          f"{100 * stage['seconds'] / total:6.1f}%  {notes}")
         counters = run["database"]
         per = max(run["total_seconds"], 1e-9)
-        lines.append("  database: " + ", ".join(f"{name} {value:,} ({value / per:,.0f}/s)"
+        lines.append("  database: " + ", ".join(f"{name} {value:,} ({format_rate(value, per)})"
                                                 for name, value in counters.items() if value))
         lines += _setup_lines(run)
     if profile is not None:
         seconds, rows = profile
-        lines += ["", f"Profile of one single-worker fill ({seconds:.1f} s with the profiler on): "
+        lines += ["", f"Profile of one single-worker fill ({format_duration_seconds(seconds)} with the profiler on): "
                       f"cumulative seconds, calls, function"]
         lines += [f"  {cumulative:8.2f} {calls:10,d}  {name}" for cumulative, calls, name in rows]
     return "\n".join(lines)

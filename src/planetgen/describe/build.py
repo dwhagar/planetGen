@@ -52,6 +52,7 @@ from planetgen.physics import (
     sky_view,
     unit_registry,
 )
+from planetgen.physics import flavor_tree
 from planetgen.physics.quantity import Quantity
 from planetgen.util.format import three_figures_or_tiny
 from planetgen.util.wordlist import join_words
@@ -153,9 +154,7 @@ def _star_facts(star):
         fact("hab", "Habitable zone", "Between ", _au(star.habitable_zone[0]), " and ", _au(star.habitable_zone[1])),
         fact("orbit", "Galactic orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
     ]
-    if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
-        offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        rows.append(fact("wobble", "Planetary wobble", _au(offset), " from its nominal position, pulled by its own planets"))
+    rows += _wobble_row(star)
     if star.disk_kind:
         rows.append(fact("disk", "Disk", _star_disk_text(star)))
     rows.append(fact("loc", "Location", star.name))
@@ -218,6 +217,13 @@ def _wobble_row(star):
     return []
 
 
+def flavor_blocks(body):
+    """GEN.1433: the "Sensors show ..." sentence of the line a kind of object was given (a star, comet, black hole, neutron star, nebula, remnant, quasar, interstellar comet or asteroid field), as a list of
+    zero or one prose block. It reads the stored `flavor_key` and draws nothing."""
+    line = flavor_tree.text_of(getattr(body, "flavor_key", None))
+    return [prose("flavor", f"Sensors show {line}")] if line else []
+
+
 def _black_hole_blocks(hole):
     rows = [
         fact("type", "Type", hole.type),
@@ -245,7 +251,7 @@ def _black_hole_blocks(hole):
                 if hole.has_accretion_disk else
                 inline("No companion star or debris disk remains, so only its gravity shows it is there."))
         sentences = [origin, inline("Nothing, not even light, escapes from inside its event horizon."), disk]
-    return [facts("Black hole", rows), prose("summary", *sentences)]
+    return [facts("Black hole", rows), prose("summary", *sentences), *flavor_blocks(hole)]
 
 
 def _neutron_star_blocks(star):
@@ -272,7 +278,7 @@ def _neutron_star_blocks(star):
                                 "every ", spin, "."))
     else:
         sentences.append(inline("Its beam no longer sweeps across this vantage point."))
-    return [facts("Neutron star", rows), prose("summary", *sentences), _crust_block()]
+    return [facts("Neutron star", rows), prose("summary", *sentences), _crust_block(), *flavor_blocks(star)]
 
 
 def _density(g_cm3):
@@ -313,18 +319,20 @@ def _star_section(star, children=()):
         return section("black-hole", _ref("star", star), star.name, _black_hole_blocks(star), children)
     if star.yerkes_class == "NS":
         return section("neutron-star", _ref("star", star), star.name, _neutron_star_blocks(star), children)
-    return section("star", _ref("star", star), star.name, [_star_facts(star), prose("summary", _star_age_sentence(star))],
-                   children)
+    return section("star", _ref("star", star), star.name,
+                   [_star_facts(star), prose("summary", _star_age_sentence(star)), *flavor_blocks(star)], children)
+
+
+def _barycenter_offsets(*members):
+    """`"<name>: <distance>"` for each `(star, (x, y, z) in AU)`: how far each star of a pair sits from the barycenter."""
+    return [inline(f"{member.name}: ", _au(_offset(*parts))) for member, parts in members]
 
 
 def _close_pair_section(pair):
     primary, secondary = pair._primary, pair._secondary
-    offsets = []
-    for member, parts in ((primary, (pair.binary_primary_position_x, pair.binary_primary_position_y,
-                                     pair.binary_primary_position_z)),
-                          (secondary, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
-                                       pair.binary_secondary_position_z))):
-        offsets.append(inline(f"{member.name}: ", _au(_offset(*parts))))
+    offsets = _barycenter_offsets(
+        (primary, (pair.binary_primary_position_x, pair.binary_primary_position_y, pair.binary_primary_position_z)),
+        (secondary, (pair.binary_secondary_position_x, pair.binary_secondary_position_y, pair.binary_secondary_position_z)))
     rows = [
         fact("type", "Type", pair.type),
         fact("mass", "Mass", _mass(pair.mass)),
@@ -344,9 +352,9 @@ def _close_pair_section(pair):
 
 def _wide_pair_section(pair):
     primary, secondary = pair.primary, pair.secondary
-    offsets = [inline(f"{member.name}: ", _au(_offset(*parts))) for member, parts in (
+    offsets = _barycenter_offsets(
         (primary, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
-        (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))]
+        (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))
     rows = [
         fact("separation", "Stellar separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
              " at periapsis to ", _au(pair.apoapsis_au), " at apoapsis"),
@@ -499,7 +507,7 @@ def _radiation_block(planet):
     terms = habitability_explain.radiation_terms(planet)
 
     def dose(msv_yr):
-        return qty("dose", msv_yr / 1000.0, "Sv/yr")
+        return qty("dose rate", msv_yr, "mSv/yr")
 
     air = ", ".join(f"{name} {three_figures_or_tiny(share * 100.0)} percent" for name, share in terms.air)
     shield = (f" under {three_figures_or_tiny(terms.column_g_cm2)} g/cm2 of air ({air})" if terms.column_g_cm2 > 0.0 and air
@@ -555,10 +563,13 @@ def _equipment_block(planet):
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
         rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
     if getattr(planet, "temp_site_coldest_k", None) is not None:           # GEN.1266: the temperatures the gear is chosen for, and the worst of the world
-        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k)))
+        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k), ", over the whole orbit and not a single day"))      # UX.311
         rows.append(fact("worst-range", "Worst conditions anywhere", _kelvin(planet.temp_coldest_k), " to ", _kelvin(planet.temp_hottest_k)))
         if planet.temp_site_longest_out_days:
-            rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            if getattr(planet, "temp_site_livable_time", None):
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+            else:      # UX.310: a site that is never livable is indoors for the whole orbit, which is no "longest stay"
+                rows.append(fact("longest-indoors", "Longest stay indoors at the best site", "All the time: even the best site is never livable without gear"))
         if planet.temp_livable_belt_only:
             rows.append(fact("belt-only", "Where a person can live", "Only the terminator belt"))
     return facts("Survival equipment", rows) if rows else None
@@ -596,7 +607,7 @@ def _sky_sentences(sky):
     host, others = sky[0], sky[1:]
     sentences = []
     if getattr(host.star, "state", None) in sky_view.COMPACT_STATES:
-        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'} and {_degrees(host.angular_deg)} wide.")
+        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'}, and {_degrees(host.angular_deg)} wide.")
     for number, body in enumerate(others):
         colour = f"{body.colour} " if body.colour else ""
         if body.role == "sun":
@@ -674,6 +685,8 @@ def _belt_section(belt):
         blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
     if belt.history:
         blocks.append(prose("history", *belt.history))     # GEN.1232: what the giant branch and the mass loss did to it
+    if belt.flavor_text:      # GEN.1433
+        blocks.append(prose("flavor", f"Sensors show {belt.flavor_text}"))
     return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
 
 
@@ -702,7 +715,7 @@ def _comet_section(comet):
                 else "It is inactive, its surface ices dormant.")
     return section("comet", _ref("comet", comet), comet.name,
                    [facts("Comet", rows), prose("description", orbit, activity),
-                    model.composition("Composition", summary=comet.get_composition_summary())])
+                    model.composition("Composition", summary=comet.get_composition_summary()), *flavor_blocks(comet)])
 
 
 def _body_section(body):
@@ -750,14 +763,8 @@ def _overview_sentences(system):
     if system.moon_count > 0:
         segments.append(f"{system.moon_count} moon{'s' if system.moon_count > 1 else ''}")
     if segments:
-        if len(segments) == 1:
-            joined = segments[0]
-        elif len(segments) == 2:
-            joined = f"{segments[0]} and {segments[1]}"
-        else:
-            joined = ", ".join(segments[:-1]) + f", and {segments[-1]}"
-        sentences.append(f"This system contains {joined}.")
-    elif system.planet_count == 0 and system.belt_count == 0 and system.comet_count == 0 and system.moon_count == 0:
+        sentences.append(f"This system contains {join_words(segments)}.")
+    else:
         sentences.append("There are no stellar objects in this system.")
 
     habitable = _habitable_count(system)
@@ -795,6 +802,12 @@ def _member_sections(system):
     return [_star_section(star, [_body_section(body) for body in bodies]) for star, bodies in system.member_hosts()]
 
 
+def _node_sections(system):
+    """The pairs of the inner nodes of the tree that hold planets, each a `pair` section named for its stars with the planets round it (GEN.332, slice A)."""
+    return [section("pair", None, system.node_label(host), [], [_body_section(body) for body in bodies])
+            for host, bodies in system.node_planet_hosts()]
+
+
 def describe(system):
     """
     The Document of `system` (a `StarSystem`): one `system` section holding the overview, whose children are
@@ -817,6 +830,7 @@ def describe(system):
         children += _member_sections(system)    # GEN.631: the stars beyond the pair
     else:
         children = [_star_section(system.star)]
+    children += _node_sections(system)
     if system.binary_type != "wide":
         children += [_body_section(body) for body in system.planets]
         children += [_comet_section(comet) for comet in system.comets]

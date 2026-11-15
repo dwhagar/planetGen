@@ -75,6 +75,12 @@ SEARCH_KINDS = ("system",) + BODY_KINDS + (FACILITY_KIND,) + object_ref.PHENOMEN
 
 _CHUNK = 500
 """int: Ids per `IN (...)` list."""
+_BODY_TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets"}
+"""dict: The table of each body kind."""
+_SYSTEM_POSITION = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
+"""tuple: A system's galaxy-frame position, as the cell-key reads name it."""
+_SCATTER_POSITION = ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0")
+"""tuple: A scatter row's position (`bright_stars`, `phenomenon_scatter`), parsecs from its stored milliparsecs."""
 
 
 class NearError(ValueError):
@@ -161,9 +167,8 @@ def _systems_in_reach(conn, center, distance):
     sector of a system are not in it, and a sphere of 60,000 systems read them from the table row by row, three times the cost
     of the id list; `_system_labels` reads them for the systems of one page."""
     columns = "p.id, p.galaxy_x_pc, p.galaxy_y_pc, p.galaxy_z_pc"
-    position = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
     found = {}
-    for row in region.region_rows(conn, "star_systems", columns, position, center, distance):
+    for row in region.region_rows(conn, "star_systems", columns, _SYSTEM_POSITION, center, distance):
         point = (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"])
         away = detmath.dist(center, point)
         if away <= distance:
@@ -212,9 +217,8 @@ def _sector_names(conn, sector_ids):
 def _unbuilt(conn, center, distance):
     """`{kind: count}` of what lies in the sphere and is not generated yet and not listed: the pre-placed bright stars (`bright_star`). The
     scatter objects are listed (MAP.400, `db.uncharted.within`)."""
-    position = ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0")
-    columns = "'bright_star' AS kind, " + ", ".join(f"{axis} AS {name}" for axis, name in zip(position, ("x", "y", "z")))
-    sql, _runs = region.region_statement("bright_stars", columns, position, center, distance, "p.star_system_id IS NULL")
+    columns = "'bright_star' AS kind, " + ", ".join(f"{axis} AS {name}" for axis, name in zip(_SCATTER_POSITION, ("x", "y", "z")))
+    sql, _runs = region.region_statement("bright_stars", columns, _SCATTER_POSITION, center, distance, "p.star_system_id IS NULL")
     counts = {}
     for row in conn.execute(sql).fetchall():
         if detmath.dist(center, (row["x"], row["y"], row["z"])) <= distance:
@@ -228,12 +232,10 @@ def _rows_in_reach(conn, center, distance):
     count of `SPHERE_LIMIT + 1` means "more than the limit"). `unbuilt` is the bright stars and scatter objects not built.
     """
     cap = SPHERE_LIMIT + 1
-    systems = region.capped_count(conn, "star_systems", ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc"),
-                                  center, distance, cap)
-    position = ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0")
-    unbuilt = (region.capped_count(conn, "bright_stars", position, center, distance, cap,
+    systems = region.capped_count(conn, "star_systems", _SYSTEM_POSITION, center, distance, cap)
+    unbuilt = (region.capped_count(conn, "bright_stars", _SCATTER_POSITION, center, distance, cap,
                                    where="p.star_system_id IS NULL")
-               + region.capped_count(conn, "phenomenon_scatter", position, center, distance, cap,
+               + region.capped_count(conn, "phenomenon_scatter", _SCATTER_POSITION, center, distance, cap,
                                      where="p.built_at IS NULL"))
     return systems, unbuilt
 
@@ -248,7 +250,6 @@ def _range_sql(entity, ranges):
 
 def _body_counts(conn, system_ids, wanted, ranges=None):
     """`{system_id: {kind: count}}` for the wanted body kinds, a star, planet or moon only when its stored values lie in the `ranges` on its kind."""
-    tables = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets"}
     counts = {}
     for kind in BODY_KINDS:
         if kind not in wanted:
@@ -256,7 +257,7 @@ def _body_counts(conn, system_ids, wanted, ranges=None):
         condition, extra = _range_sql(kind, ranges)
         for chunk in _chunks(system_ids):
             rows = conn.execute(
-                f"SELECT t.star_system_id AS sid, COUNT(*) AS n FROM {tables[kind]} t "
+                f"SELECT t.star_system_id AS sid, COUNT(*) AS n FROM {_BODY_TABLES[kind]} t "
                 f"WHERE t.star_system_id IN ({_marks(len(chunk))}){condition} GROUP BY t.star_system_id", (*chunk, *extra)).fetchall()
             for row in rows:
                 counts.setdefault(row["sid"], {})[kind] = row["n"]
@@ -268,8 +269,7 @@ def _ids_in_range(conn, entity, system_id, ranges):
     condition, params = _range_sql(entity, ranges)
     if not condition:
         return None
-    table = {"star": "stars", "planet": "planets", "moon": "moons"}[entity]
-    return {row["id"] for row in conn.execute(f"SELECT t.id FROM {table} t WHERE t.star_system_id = ?{condition}", (system_id, *params)).fetchall()}
+    return {row["id"] for row in conn.execute(f"SELECT t.id FROM {_BODY_TABLES[entity]} t WHERE t.star_system_id = ?{condition}", (system_id, *params)).fetchall()}
 
 
 def _bodies_of(conn, system_id, system_name, wanted, ranges=None):
@@ -530,7 +530,6 @@ def _envelope(conn, place, distance, total, by_kind, limit, offset, rows, in_rea
 VALUE_ENTITIES = search_values.ENTITIES
 """tuple: The kinds a range or an order by a physical value can name (UX.228): `star`, `planet`, `moon`."""
 
-_TABLE = {"star": "stars", "planet": "planets", "moon": "moons"}
 
 
 def _check_values(ranges, value_sort):
@@ -568,7 +567,7 @@ def _attach_values(conn, rows, ranges, value_sort):
         ids = [row["id"] for row in mine]
         found = {}
         for chunk in _chunks(ids):
-            for found_row in conn.execute(f"SELECT t.id{search_values.select_columns(entity, 't', keys)} FROM {_TABLE[entity]} t "
+            for found_row in conn.execute(f"SELECT t.id{search_values.select_columns(entity, 't', keys)} FROM {_BODY_TABLES[entity]} t "
                                           f"WHERE t.id IN ({_marks(len(chunk))})", tuple(chunk)).fetchall():
                 found[found_row["id"]] = dict(found_row)
         for row in mine:
@@ -587,7 +586,7 @@ def _ordered_by_value(conn, place, distance, systems, value_sort, ranges, limit,
     def candidates():
         for chunk in _chunks(list(systems)):
             rows = conn.execute(
-                f"SELECT t.id, t.star_system_id AS sid, {expression} AS v FROM {_TABLE[entity]} t "
+                f"SELECT t.id, t.star_system_id AS sid, {expression} AS v FROM {_BODY_TABLES[entity]} t "
                 f"WHERE t.star_system_id IN ({_marks(len(chunk))}) AND {expression} IS NOT NULL{condition}", (*chunk, *params)).fetchall()
             for row in rows:
                 seen[0] += 1
@@ -599,7 +598,7 @@ def _ordered_by_value(conn, place, distance, systems, value_sort, ranges, limit,
     planet_of = {}
     for chunk in _chunks([item[2] for item in page]):
         extra = ", t.planet_id" if entity == "moon" else ""
-        for row in conn.execute(f"SELECT t.id, t.name{extra} FROM {_TABLE[entity]} t WHERE t.id IN ({_marks(len(chunk))})", tuple(chunk)).fetchall():
+        for row in conn.execute(f"SELECT t.id, t.name{extra} FROM {_BODY_TABLES[entity]} t WHERE t.id IN ({_marks(len(chunk))})", tuple(chunk)).fetchall():
             names[row["id"]] = row["name"]
             if entity == "moon":
                 planet_of[row["id"]] = row["planet_id"]

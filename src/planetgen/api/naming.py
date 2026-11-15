@@ -22,6 +22,7 @@ from flask.json.provider import DefaultJSONProvider
 from planetgen.api import ids
 from planetgen.api.common import get_control_db
 from planetgen.names import naming_key
+from planetgen.util import log
 
 CACHE_SECONDS = 5.0
 """float: How long one process keeps a database's key before asking again."""
@@ -58,7 +59,8 @@ def request_key():
     else:
         try:
             key = naming_key.key_of(get_control_db(), database)
-        except Exception:  # noqa: BLE001 -- no control database, or a schema older than v9: IDs stay as they are
+        except Exception as exc:  # noqa: BLE001 -- no control database, or a schema older than v9: IDs stay as they are
+            log.swallowed("api/naming", "request_key", exc)
             key = None
         _cache[database] = (time.monotonic() + CACHE_SECONDS, key)
     g.naming_key = key

@@ -89,3 +89,14 @@ def test_the_solution_does_not_depend_on_the_order_of_the_species():
     forward = gas_equilibrium.solve(SOLAR, 1500.0, 0.1, species=names)
     backward = gas_equilibrium.solve(SOLAR, 1500.0, 0.1, species=names[::-1])
     assert forward.mole_fractions["CO"] == pytest.approx(backward.mole_fractions["CO"], rel=1e-8)
+
+
+def test_the_recipe_functions_give_the_module_edges_at_any_pressure_and_the_rows_read_them():
+    # GEN.994: rows h1 to h3 read the edges from the module at the layer's pressure (no table of anchors), also between the pressures a table would have held
+    from planetgen.physics import atmosphere_recipes
+    for bar in (0.02, 0.1, 0.3, 3.0):
+        assert atmosphere_recipes._PLAIN["ch4_co_edge_k"](bar) == edges.ch4_co_temperature(bar, SOLAR)
+        assert atmosphere_recipes._PLAIN["water_loss_edge_k"](bar) == edges.h2o_survival_temperature(bar, SOLAR, 0.9)
+    for row_id in ("h1", "h2", "h3"):
+        assert "loglog" not in str(RECIPES.entry(row_id).lets)
+    assert atmosphere_recipes._PLAIN["ch4_co_edge_k"](0.1) < atmosphere_recipes._PLAIN["water_loss_edge_k"](0.1)

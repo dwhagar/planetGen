@@ -59,7 +59,7 @@ def run_take(args):
     try:
         archive = backup.take(args.part or None, who=config_cli._actor(), reason="manual")
     except backup.BackupError as exc:
-        log.error(f"error: {exc}")
+        log.error(f"The backup could not be taken: {exc}")
         return 1
     print(f"Backed up {', '.join(archive.part_names)}: {archive.name}")
     return 0
@@ -69,10 +69,10 @@ def run_verify(args):
     try:
         checked = backup.verify(args.archive)
     except backup.BackupError as exc:
-        log.error(f"error: {exc}")
+        log.error(f"The archive could not be checked: {exc}")
         return 1
     for problem in checked.problems:
-        log.warning(f"problem: {problem}")
+        log.warning(f"Problem found in the archive: {problem}")
     print(f"{args.archive}: " + ("sound." if checked.ok else "NOT sound."))
     return 0 if checked.ok else 1
 
@@ -83,7 +83,7 @@ def run_restore(args):
         report = backup.restore(args.archive, args.part or None,
                                 backup.RestoreContext(who=config_cli._actor(), role="host", audit=audit))
     except backup.BackupError as exc:
-        log.error(f"error: {exc}")
+        log.error(f"The restore could not run: {exc}")
         return 1
     finally:
         close()
@@ -92,7 +92,7 @@ def run_restore(args):
         if report.results.get("parity") is not None:
             print(report.results["parity"])
     for name in report.skipped:
-        log.warning(f"skipped: this build has no provider for the {name!r} part; the archive keeps it.")
+        log.warning(f"This build has no provider for the {name!r} part, so it was skipped and the archive keeps it.")
     if not report.restored and not report.skipped:
         print("Nothing to restore.")
     return 0 if report.restored or not report.skipped else 1

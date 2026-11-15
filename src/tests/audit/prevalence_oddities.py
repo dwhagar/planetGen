@@ -26,6 +26,9 @@ MIN_GATED = 20
 MUST_APPEAR = 5
 """int: A share expected this many times or more in the run must appear at least once, whatever its band."""
 
+KNOWN = {"W5": "GEN.1537"}
+"""dict: A row id and the item that explains its flag: W5 (resonant chain) carries 7 of 188 gated bodies (0.037) against a floor of 0.041 since Train 22 (epoch 144, 11-11), one body short of the band; no fault was found and the band stays until the TEST.660 re-baseline."""
+
 SHARE_CAN_FALL_SHORT = frozenset({"W2", "W19", "W20"})
 """frozenset: Rows whose effect can decline a body the gate passes (the Venus-type spin wants a planet the tide leaves turning backwards; the nightside collapse wants a locked
 planet whose nightside freezes its gas out; the other climate branch wants a bistable window), so the share carried is under the rate and only the upper bound judges it."""

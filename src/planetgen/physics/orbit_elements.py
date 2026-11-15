@@ -49,8 +49,7 @@ import math
 
 from scipy import special
 
-from planetgen import tuning
-from planetgen.physics import clearance_ledger, constants, interior_heat, tidal_rheology
+from planetgen.physics import clearance_ledger, constants, interior_heat, orbits, tidal_rheology
 from planetgen.util import draw
 
 MULTI_SIGMA = 0.083
@@ -65,8 +64,9 @@ GIANT_BETA_B = 3.03
 """float: The second shape of the same law, b = 3.03; its mean is a / (a + b) = 0.22 ([R2366], recalled; T2, L0)."""
 MAX_ECCENTRICITY = 0.9
 """float: No planet or moon is drawn above this (a stand-in: the laws put almost nothing there; the Roche cut comes first for a close orbit; T4, L0)."""
-ROCHE_COEFFICIENT = 2.44
-"""float: The fluid Roche limit is this times the primary's radius times the cube root of the density ratio (Chandrasekhar 1969; T5, L0)."""
+ROCHE_COEFFICIENT = orbits.ROCHE_FLUID_COEFFICIENT
+"""float: The fluid Roche limit is this times the primary's radius times the cube root of the density ratio (Chandrasekhar 1969; T5, L0): the one
+coefficient of `orbits.roche_limit_m`."""
 
 MUTUAL_INCLINATION_SIGMA_DEG = 1.6
 """float: Rayleigh dispersion of the mutual inclination of two planets, degrees: the middle of the 1.0 to 2.2 of [R1311] (T2, L0)."""
@@ -137,7 +137,7 @@ def draw_moon_eccentricity(origin, e_max):
     """
     e_max = min(max(e_max, 0.0), MAX_ECCENTRICITY)
     point = draw.random()
-    if origin == "captured":
+    if origin in ("captured", "exchange"):    # `moon_composition.CAPTURE_ORBIT_ORIGINS`
         return e_max * math.sqrt(point)
     low, high = REGULAR_MOON_ECCENTRICITY_RANGE
     return min(low * (high / low) ** point, e_max)

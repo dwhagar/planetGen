@@ -27,7 +27,7 @@ import math
 import numpy as np
 
 from planetgen.galaxy import sky
-from planetgen.physics import light_travel, nebula_sprites, sky_photometry
+from planetgen.physics import nebula_sprites
 from planetgen.physics import unit_registry as units
 
 MIN_ANGULAR_RADIUS_RAD = 0.002
@@ -40,11 +40,9 @@ SEARCH_RADIUS_PC = 10000.0
 """float: How far from the observer the sprites are looked for, parsecs (stand-in SPR3: the nebulae and remnants of the stored galaxy are few enough that the
 search is bounded by the sphere query, and a sprite narrower than `MIN_ANGULAR_RADIUS_RAD` is left out anyway)."""
 
-_ly_to_pc = units.converter("ly", "pc")
 _pc_to_ly = units.converter("pc", "ly")
 _pc_to_m = units.converter("pc", "m")
 _m_to_pc = units.converter("m", "pc")
-_km_to_m = units.converter("km", "m")
 _yr_to_s = units.converter("yr", "s")
 
 
@@ -81,27 +79,18 @@ def sprites_from(observer, objects, at_unix, galaxy_key="", circular_speed_kms=N
     velocity = np.asarray(objects.velocity_kms, dtype=float).copy()
     unknown = ~np.all(np.isfinite(velocity), axis=1)
     if unknown.any():
-        if circular_speed_kms is None:
-            from planetgen.galaxy import potential as galacticPotential
-            pot = galacticPotential.current()
-            circular_speed_kms = lambda radius: galacticPotential.circular_speed_kms(pot, radius)
         keys = np.array([f"{k}:{i}" for k, i in zip(objects.kind, objects.ident)], dtype=object)
-        velocity[unknown] = sky.unbuilt_velocity_kms(position[unknown], keys[unknown], galaxy_key, circular_speed_kms)
-
+        velocity[unknown] = sky.unbuilt_velocity_kms(position[unknown], keys[unknown], galaxy_key,
+                                                     sky.circular_speed_function(circular_speed_kms))
     obs_position = np.asarray(observer.position_pc, dtype=float).reshape(3)
-    obs_velocity = np.asarray(observer.velocity_kms, dtype=float).reshape(3)
-    obs_at_object = obs_position[None, :] + sky._km_to_pc_per_s(obs_velocity)[None, :] * (epoch - float(observer.epoch_unix))[:, None]
-    offsets, light_time_s = light_travel.retarded_offsets(
-        _pc_to_m(position - obs_at_object), _km_to_m(velocity), _km_to_m(obs_velocity), at_unix - epoch)
+    offsets, light_time_s = sky.apparent_offsets(observer, position, velocity, epoch, at_unix)
     distance_pc = _m_to_pc(np.sqrt(np.sum(offsets * offsets, axis=1)))
     distance_ly = _pc_to_ly(distance_pc)
     direction = offsets / np.where(distance_pc > 0.0, _pc_to_m(distance_pc), 1.0)[:, None]
     foreground = np.zeros(n)
     far = distance_pc > 0.0
     if far.any():
-        foreground[far] = np.concatenate([
-            sky_photometry.galactic_extinction_av(obs_position, direction[far][start:start + sky.DUST_CHUNK], distance_pc[far][start:start + sky.DUST_CHUNK], **dust)
-            for start in range(0, int(far.sum()), sky.DUST_CHUNK)])
+        foreground[far] = sky.extinction_av(obs_position, direction[far], distance_pc[far], dust)
     # A remnant's age is at its epoch; the sky's time is later (or earlier), and the explosion is seen when its age at the retarded time is positive.
     age = np.asarray(objects.age_years, dtype=float) + (at_unix - epoch) / _yr_to_s(1.0)
     data = nebula_sprites.sprite_data(objects.family, np.asarray(objects.radius_ly, dtype=float), distance_ly, np.asarray(objects.density_cm3, dtype=float),

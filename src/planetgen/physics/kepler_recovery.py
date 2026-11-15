@@ -39,9 +39,8 @@ import os
 from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
-from planetgen.physics import constants as physical_constants
-from planetgen.physics import elements
-from planetgen.physics.elements import DataError
+from planetgen.physics import constants as physical_constants, elements
+from planetgen.physics.elements import DataError, finite_number
 from planetgen.util import draw
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "kepler_recovery.json")
@@ -53,7 +52,7 @@ MODEL_ID = "kepler-recovery"
 G_SI = physical_constants.G
 M_SUN_KG = physical_constants.SOLAR_MASS_TO_KG
 R_SUN_M = physical_constants.SOLAR_RADIUS_M
-R_EARTH_M = physical_constants.EARTH_RADIUS_KM * 1000.0
+R_EARTH_M = physical_constants.EARTH_RADIUS_M
 DAY_S = 86400.0
 IMPACT_NODES = 10
 """int: The midpoints of `b` in [0, 1) the quadrature averages over."""
@@ -105,12 +104,6 @@ class Model:
     retrieved: str
 
 
-def _finite(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"{owner}: {value!r} is not a finite number")
-    return float(value)
-
-
 def load(path=DATA_FILE):
     """Reads and checks the fitted model at `path`."""
     try:
@@ -119,38 +112,38 @@ def load(path=DATA_FILE):
     except (OSError, ValueError) as error:
         raise DataError(f"cannot read the Kepler recovery model {path}: {error}") from error
     raw = document.get("recovery") or {}
-    recovery = Recovery(*(_finite(f"recovery {name}", raw.get(name)) for name in ("c0", "a", "b", "n0", "wn", "ln_t_max", "wd")))
+    recovery = Recovery(*(finite_number(f"recovery {name}", raw.get(name)) for name in ("c0", "a", "b", "n0", "wn", "ln_t_max", "wd")))
     if not 0 < recovery.c0 <= 1 or min(recovery.a, recovery.b, recovery.wn, recovery.wd) <= 0:
         raise DataError(f"the recovery curve {raw!r} is out of range")
-    limb = tuple(_finite(f"limb {name}", (document.get("limb") or {}).get(name)) for name in ("c0", "c2", "c4"))
+    limb = tuple(finite_number(f"limb {name}", (document.get("limb") or {}).get(name)) for name in ("c0", "c2", "c4"))
     if limb[0] <= 0:
         raise DataError(f"limb c0 {limb[0]} is not positive")
     lines = []
     for entry in (document.get("noise") or {}).get("durations") or []:
-        line = NoiseLine(*(_finite(f"noise {name}", entry.get(name)) for name in
+        line = NoiseLine(*(finite_number(f"noise {name}", entry.get(name)) for name in
                            ("duration_h", "intercept", "slope_kepmag", "slope_kepmag2", "slope_ln_radius", "scatter")))
         if line.scatter <= 0 or (lines and line.duration_h <= lines[-1].duration_h):
             raise DataError(f"noise line {entry!r} has no scatter or is not in order of duration")
         lines.append(line)
     if len(lines) < 2:
         raise DataError("the noise model needs at least two durations")
-    quantiles = tuple(_finite("kepmag quantile", q) for q in (document.get("noise") or {}).get("kepmag_quantiles") or [])
+    quantiles = tuple(finite_number("kepmag quantile", q) for q in (document.get("noise") or {}).get("kepmag_quantiles") or [])
     if len(quantiles) < 3 or any(b < a for a, b in zip(quantiles, quantiles[1:])):
         raise DataError("the Kepler magnitude quantiles are missing or not sorted")
-    span = _finite("span_days", document.get("span_days"))
-    factor = _finite("transit_count_factor", document.get("transit_count_factor"))
+    span = finite_number("span_days", document.get("span_days"))
+    factor = finite_number("transit_count_factor", document.get("transit_count_factor"))
     if span <= 0 or factor <= 0:
         raise DataError("the data span and the transit count factor must be positive")
     validity = document.get("validity") or {}
-    period_range = tuple(_finite("period range", v) for v in validity.get("period_d") or ())
-    ratio_range = tuple(_finite("radius ratio range", v) for v in validity.get("radius_ratio") or ())
+    period_range = tuple(finite_number("period range", v) for v in validity.get("period_d") or ())
+    ratio_range = tuple(finite_number("radius ratio range", v) for v in validity.get("radius_ratio") or ())
     if len(period_range) != 2 or len(ratio_range) != 2 or not 0 < period_range[0] < period_range[1] or not 0 < ratio_range[0] < ratio_range[1]:
         raise DataError("the validity ranges are missing")
     counts = document.get("injections") or {}
     return Model(span_days=span, transit_count_factor=factor, limb=limb, recovery=recovery, noise=tuple(lines),
                  kepmag_quantiles=quantiles, period_range_d=period_range, radius_ratio_range=ratio_range,
                  injections=int(counts.get("used", 0)), recovered=int(counts.get("recovered", 0)),
-                 predicted_recovered=_finite("predicted_recovered", document.get("predicted_recovered")),
+                 predicted_recovered=finite_number("predicted_recovered", document.get("predicted_recovered")),
                  generated_host=dict(document.get("generated_host") or {}), calibration=tuple(document.get("calibration") or ()),
                  source=document.get("source", ""), retrieved=document.get("retrieved", ""))
 

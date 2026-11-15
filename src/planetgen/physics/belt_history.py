@@ -28,6 +28,7 @@ Use:
 
 from dataclasses import dataclass, replace
 
+from planetgen.physics import constants
 from planetgen.util.checks import finite_domain
 
 SURFACE_DENSITY_SLOPE = 1.5
@@ -42,7 +43,7 @@ DELIVERY_MYR = 100.0
 MIN_POLLUTION_RATE_G_S = 1.0e5
 """float: The lowest accretion rate seen on a polluted white dwarf ([R2415], READ: a few 1e5 to a few 1e8 g/s). [Stand-in BHS5, tier T2, tweak L0.]"""
 
-_SECONDS_PER_MYR = 3.15576e13
+_SECONDS_PER_MYR = constants.SECONDS_PER_MYR
 
 
 def _slope_exponent():

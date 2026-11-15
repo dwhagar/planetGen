@@ -12,7 +12,7 @@ A secondary (a giant, a brown dwarf, a large moon) of mass `m2` orbits a host of
   Two stars never pass; a star and a companion under about 4 percent of it do; a Class J or a Class M world passes at a star-and-giant when the
   sum of the giant and the trojan stays under that share of the star (a Class M world always does beside a giant).
 * The motion: a tadpole librates about the point; its slow period is `2 pi / s` with `s^2 = (n^2 / 2) (1 - sqrt(1 - 27 mu (1 - mu)))` (`libration_period`;
-  Jupiter's 12.5 orbits, about 150 years). Past a libration amplitude of `TADPOLE_LIMIT_DEG` the orbit is a horseshoe (`motion`).
+  Jupiter's 12.5 orbits, about 150 years). Past a libration amplitude of `TADPOLE_LIMIT_DEG` (78 degrees, half the range of the angle from the secondary at the edge of the tadpole zone) the orbit is a horseshoe (`motion`).
 * The swarm: the scatter keeps a share of an outer disk's swept mass as `trojans` (`physics/scatter.py`); `swarm_split` puts it into the leading (L4) and
   trailing (L5) regions.
 * The label the map shows at the center of a point (`point_label`): the secondary's name and the point, such as `Jupiter-L4`, with the pair (host, secondary) in the text.
@@ -55,8 +55,11 @@ NUMBERS = DOCUMENT["numbers"]
 MU_CRIT = (1.0 - math.sqrt(23.0 / 27.0)) / 2.0
 """float: The largest m2 / (m1 + m2) for which L4 and L5 are linearly stable. [Stand-in TJ1, tier T1, tweak L0.]"""
 
-TADPOLE_LIMIT_DEG = NUMBERS["tadpole_limit_deg"]["value"]
-"""float: The libration amplitude (degrees) past which a tadpole is a horseshoe. [Stand-in TJ3, tier T2, tweak L0.]"""
+TADPOLE_NEAREST_APPROACH_DEG = NUMBERS["tadpole_nearest_approach_deg"]["value"]
+"""float: The smallest angle from the secondary (degrees) that a tadpole reaches: a distance from the secondary, not a libration amplitude. [Stand-in TJ3, tier T2, tweak L0.]"""
+
+TADPOLE_LIMIT_DEG = (180.0 - TADPOLE_NEAREST_APPROACH_DEG) / 2.0
+"""float: The libration amplitude (degrees, half the range of the angle from the secondary) past which a tadpole is a horseshoe: the orbit that reaches `TADPOLE_NEAREST_APPROACH_DEG` on one side and 180 degrees on the other, (180 - 23.9) / 2. [Stand-in TJ3, tier T2, tweak L0.]"""
 
 LEADING_SHARE_RANGE = tuple(NUMBERS["leading_share_range"]["value"])
 """tuple: The range the share of a swarm in L4 is drawn from. [Stand-in TJ4, tier T4, tweak L4.]"""
@@ -94,6 +97,11 @@ def stable(host_mass, secondary_mass, trojan_mass=0.0):
     return mass_parameter(host_mass, secondary_mass) < MU_CRIT and (secondary_mass + trojan_mass) / (host_mass + secondary_mass + trojan_mass) < MU_CRIT
 
 
+def _ramp_share(x):
+    """The surviving share at `x` times the limit: 0 at `x <= 1`, then `1 - exp(-STABLE_RAMP (x - 1))` (TJ7)."""
+    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+
+
 def neighbour_stable_share(host_mass, secondary_mass, secondary_au, neighbour_mass, neighbour_au):
     """
     The share of the swarm of a secondary at `secondary_au` that survives another giant or a companion of `neighbour_mass` at `neighbour_au` (GEN.1455; masses in one unit, distances in AU, a
@@ -103,8 +111,7 @@ def neighbour_stable_share(host_mass, secondary_mass, secondary_au, neighbour_ma
     if neighbour_mass <= 0.0 or host_mass <= 0.0 or neighbour_au <= 0.0 or secondary_au <= 0.0:
         return 1.0
     hill = ((secondary_mass + neighbour_mass) / (3.0 * host_mass)) ** (1.0 / 3.0) * 0.5 * (secondary_au + neighbour_au)
-    x = abs(neighbour_au - secondary_au) / (HILL_SEPARATION_K * hill)
-    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+    return _ramp_share(abs(neighbour_au - secondary_au) / (HILL_SEPARATION_K * hill))
 
 
 def star_limit_stable_share(secondary_au, stability_limit_au):
@@ -115,8 +122,7 @@ def star_limit_stable_share(secondary_au, stability_limit_au):
     """
     if not stability_limit_au or stability_limit_au <= 0.0 or secondary_au <= 0.0:
         return 1.0
-    x = stability_limit_au / (STAR_LIMIT_MARGIN * secondary_au)
-    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+    return _ramp_share(stability_limit_au / (STAR_LIMIT_MARGIN * secondary_au))
 
 
 def surviving_share(host_mass, secondary_mass, secondary_au, neighbours, stability_limit_au=None):

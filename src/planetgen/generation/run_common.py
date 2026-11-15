@@ -40,6 +40,14 @@ def active_progress():
     return _ACTIVE_PROGRESS[-1] if _ACTIVE_PROGRESS else None
 
 
+def _eta_s(task):
+    """The seconds a task's decaying rate says are left (`progress_rate.DecayingRate.eta`), or `None` without a rate."""
+    rate = task.fields.get("rate")
+    if rate is None:
+        return None
+    return rate.eta(None if task.total is None else task.total - task.completed)
+
+
 class _ReportingProgress(Progress):
     """
     `rich.progress.Progress` that keeps a `progress_rate.DecayingRate` per
@@ -92,14 +100,45 @@ class _ReportingProgress(Progress):
         if self.main_task is not None:
             self._report(self.main_task, force=True)
 
+    _step_task = None
+    """The task of the units' second-level count (`show_step`), when it is the one drawn as `detail_task`."""
+
+    def show_step(self, step):
+        """
+        The second bar of the run, from what the units of the stage count inside their own count (OPS.192): `step` is `{"name", "done", "total"}` (`queue/units._step_now`) or `None`
+        where no unit is in one, which takes the bar down. A second bar another step holds (the slow shells, PERF.4) is left alone and nothing is drawn meanwhile.
+        """
+        task = self._step_task
+        if task is not None and (step is None or task not in self._tasks or self._tasks[task].description != step["name"]):
+            # a count that ended, or a new one beginning: this one comes down with its own rate, the next starts from none
+            if self.detail_task == task:
+                self.detail_task = None
+            self._step_task = None
+            if task in self._tasks:
+                self.remove_task(task)
+            task = None
+        if step is None:
+            return
+        total = step["total"] or None
+        completed = min(step["done"], total) if total else step["done"]
+        if task is None:
+            if self.detail_task is not None:
+                return
+            task = self._step_task = self.add_task(step["name"], total=total, completed=completed)
+            self.detail_task = task
+            return
+        if self.detail_task == task:
+            changes = {"completed": completed}
+            if total != self._tasks[task].total:         # a new total is written at once; a count that only moved goes by the file's own throttle
+                changes["total"] = total
+            self.update(task, **changes)
+
     def _detail(self):
         task = self._tasks.get(self.detail_task) if self.detail_task is not None else None
         if task is None:
             return None
-        rate = task.fields.get("rate")
-        remaining = None if task.total is None else task.total - task.completed
         return {"description": task.description.strip(), "completed": task.completed, "total": task.total,
-                "eta_s": rate.eta(remaining) if rate is not None else None, "unit": task.fields.get("unit")}
+                "eta_s": _eta_s(task), "unit": task.fields.get("unit")}
 
     def _rate(self, task_id):
         task = self._tasks.get(task_id)
@@ -114,10 +153,9 @@ class _ReportingProgress(Progress):
         if task is None:
             return
         rate = task.fields.get("rate")
-        remaining = None if task.total is None else task.total - task.completed
         progress_file.report(task.completed, task.total, task.description, force=force,
                             rate=rate.rate if rate is not None else None,
-                            eta_s=rate.eta(remaining) if rate is not None else None, detail=self._detail(),
+                            eta_s=_eta_s(task), detail=self._detail(),
                             percent=bool(task.fields.get("percent")), unit=task.fields.get("unit"))
 
     def update(self, task_id, **kwargs):
@@ -154,9 +192,7 @@ class _DecayingRemainingColumn(ProgressColumn):
     max_refresh = 0.5
 
     def render(self, task):
-        rate = task.fields.get("rate")
-        remaining = None if task.total is None else task.total - task.completed
-        seconds = rate.eta(remaining) if rate is not None else None
+        seconds = _eta_s(task)
         if task.finished:
             seconds = 0
         if seconds is None:
@@ -280,7 +316,7 @@ def _refuse_or_warn(args, message, code=1):
         raise SystemExit(code)
     message = message.removeprefix("Refused: ")
     message = message[:1].upper() + message[1:]
-    log.normal(f"WARNING: {message} Going ahead (--strict stops here instead).")
+    log.warning(f"{message} Going ahead (--strict stops here instead).")
 
 
 RUN_COUNTS = Counter()
@@ -339,7 +375,7 @@ def _generation_stats(args):
 def _stats_for_config(mysql_config):
     """The stored speeds and sizes of the server `mysql_config` names, loaded once per run; none (defaults
     only, nothing recorded) when `PLANETGEN_GENERATION_STATS` is `0` (the test suite's setting)."""
-    if os.environ.get(generationStats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false"):
+    if not generationStats.recording_enabled():
         return _RUN_STATS.setdefault(None, generationStats.GenerationStats())
     control = store.control_mysql_config(mysql_config)
     key = (control.host, control.port, control.database)
@@ -375,6 +411,17 @@ def _record_sector(args, result, seconds):
     _generation_stats(args).record("sector", result.get("density"), seconds,
                                    systems=result.get("systems", 0), stars=result.get("stars", 0),
                                    workers=_worker_count(args))
+
+
+def _count_reported(args, saved, elsewhere):
+    """A sector a unit reported saved (`run_galaxy.generate_sectors_do`'s entry): counted for the run when the unit ran in
+    another process (`elsewhere`: a worker's own `RUN_COUNTS` die with it, the run's are here) and added to its density's speed
+    bucket (`_record_sector`)."""
+    if elsewhere:
+        RUN_COUNTS["sectors"] += 1
+        RUN_COUNTS["systems"] += saved["systems"]
+        RUN_COUNTS["phenomena"] += saved["phenomena"]
+    _record_sector(args, saved, saved["seconds"])
 
 
 def _finish_stats(args):
@@ -502,7 +549,8 @@ def sector_bar(progress, args, description, total):
 def _stats_or_none(args):
     try:
         return _generation_stats(args)
-    except Exception:  # noqa: BLE001 -- args without a database (a test's stand-in)
+    except Exception as exc:  # noqa: BLE001 -- args without a database (a test's stand-in)
+        log.swallowed("generation/run_common", "_stats_or_none", exc)
         return None
 
 

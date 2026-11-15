@@ -64,3 +64,11 @@ def test_no_citation_is_written_outside_the_registry():
         "%d places write a source by name; write its ID, [R0123] (python scripts/build_references.py add <doi> lists a new source):\n  " % len(found)
         + "\n  ".join(found[:SHOWN])
     )
+
+
+def test_a_role_word_or_a_time_zone_before_a_year_is_not_a_citation():
+    """The wording that keeps recurring in the plan ("Train Manager, 2026", "9:29 AM EST 2026") is not an author and a year."""
+    for text in ("Train Manager, 2026 and more", "at 9:29 AM EST 2026 now", "(EDT, 2026)", "10:00 UTC 2026"):
+        reg = rc.Registry(all_candidates=True)
+        rc.rewrite_file("docs/x.md", text, reg, rc.Counter(), strings=True)
+        assert not reg.unresolved, text

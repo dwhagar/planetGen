@@ -118,9 +118,9 @@ def test_the_classes_are_saved_and_loaded_with_the_body(mixed, mysql_config):
         loaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
-    stored = {(b.mass, b.distance): b.life_living for b in _bodies(made)}
+    stored = {(b.mass, round(b.distance, 9)): b.life_living for b in _bodies(made)}     # the distance is read back through a conversion that can differ in the last bit
     for body in _bodies(loaded):
-        want = stored[(body.mass, body.distance)]
+        want = stored[(body.mass, round(body.distance, 9))]
         got = body.life_living
         assert [e["life_class"] for e in (got or [])] == [e["life_class"] for e in (want or [])]
         for g, w in zip(got or [], want or []):

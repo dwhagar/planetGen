@@ -224,16 +224,6 @@ def test_every_asteroid_component_is_a_row():
     assert not missing, f"not in materials.json: {missing}"
 
 
-def test_every_class_composition_text_is_mapped_to_rows():
-    texts = {data["composition"] for data in tuning.PLANET_CLASSES.values()}
-    assert len(texts) == 14
-    for text in texts:
-        rows = materials.class_composition(text)
-        assert rows and all(isinstance(row, materials.Material) for row in rows), text
-    with pytest.raises(materials.UnknownMaterial, match="not mapped"):
-        materials.class_composition("a made-up composition")
-
-
 def test_an_unknown_material_is_refused_with_the_way_to_add_it():
     with pytest.raises(materials.UnknownMaterial, match="materials.json"):
         materials.material("unobtainium")

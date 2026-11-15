@@ -56,7 +56,7 @@ def _with(*rows):
 def test_the_shipped_table_loads_and_holds_the_rows_the_modules_have_added():
     rows, levers, quantities = oddities.load()
     assert rows == oddities.ROWS and {row.id for row in rows} == set(oddities.BY_ID)
-    assert set(levers) == {"L1", "L2", "L3", "L4", "L5", "L6", "L7"} and quantities
+    assert set(levers) == {"L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"} and quantities
 
 
 def test_every_lever_has_a_label_and_inputs_and_no_input_belongs_to_two_levers():

@@ -8,6 +8,7 @@ group gives the same points, and the object does not matter, only where it is.
 import math
 
 import numpy as np
+import pytest
 
 from planetgen.galaxy import nebula_volume as rules
 from tests import nebula_density_stand_in as stand_in
@@ -166,7 +167,7 @@ def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
     for x, y, z, r in clouds[:8]:
         volume = rules.sample_group(
             [_nebula(float(x), float(y), float(z), float(r))], None,
-            lambda p, f, d: nebula_density.density_at(seed, shape, p, f, d), nebula_density.FORM_LEVEL, nebula_density.MAX_DETAIL, FAMILIES)
+            lambda p, f, d, a: nebula_density.density_at(seed, shape, p, f, d, a), nebula_density.FORM_LEVEL, nebula_density.MAX_DETAIL, FAMILIES)
         assert len(volume.ix) > 100
         spots = _positions(volume)
         cells = {(int(math.floor(a / volume.spacing_pc)), int(math.floor(b / volume.spacing_pc))) for a, b in spots[:, :2]}
@@ -178,7 +179,7 @@ def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
 def test_each_family_has_its_own_edge_width_and_the_extent_is_the_half_strength_contour():
     """MAP.142: a ramp of density from 0 to 1 across 40 pc is faded by each family over its own width, all half strong where the density is
     the model's FORM_LEVEL; the fade is longest for a reflection nebula and shortest for a dark one (a shell's is narrower still)."""
-    ramp = lambda points, field, detail: np.clip((points[:, 0] + 20.0) / 40.0, 0.0, 1.0).astype(np.float32)
+    ramp = lambda points, field, detail, anchors=None: np.clip((points[:, 0] + 20.0) / 40.0, 0.0, 1.0).astype(np.float32)
     widths = {}
     for family in ("reflection", "diffuse", "emission", "dark"):
         volume = rules.sample_group([_nebula(0.0, 0.0, 0.0, 70.0, family)], None, ramp, FORM, MAX_DETAIL, FAMILIES, level=4)
@@ -191,3 +192,42 @@ def test_each_family_has_its_own_edge_width_and_the_extent_is_the_half_strength_
         widths[family] = (strength * (1.0 - strength)).sum() * (along[1] - along[0])    # proportional to the width of the fade
     assert widths["reflection"] > widths["diffuse"] > widths["emission"] > widths["dark"], widths
     assert rules.EDGE_WIDTH["planetary"] < rules.EDGE_WIDTH["dark"] and rules.EDGE_WIDTH["supernova-remnant"] < rules.EDGE_WIDTH["planetary"]
+
+
+# --- MAP.430: the far-zoom gas lanes ---------------------------------------------------------------------------------------------------------
+
+
+def _patch(points):
+    """A gas share that falls from 1 at the origin to 0 at 1,000 pc."""
+    return np.clip(1.0 - np.hypot(points[:, 0], points[:, 1]) / 1000.0, 0.0, 1.0)
+
+
+def test_the_lanes_are_one_plane_of_the_absolute_lattice_in_the_family_asked_for():
+    volume = rules.sample_lanes(_patch, 1500.0, 4)
+    assert volume.level == rules.LANES_LEVEL and volume.spacing_pc == 128.0
+    assert len(volume.ix) > 100
+    assert set(volume.iz.tolist()) == {0} and set(volume.family.tolist()) == {4}
+    assert np.hypot(volume.ix * 128.0, volume.iy * 128.0).max() <= 1000.0 + 128.0, "nothing is drawn where the gas share is under the floor"
+
+
+def test_a_lane_is_as_strong_as_the_gas_and_the_floor_is_left_out():
+    volume = rules.sample_lanes(_patch, 1500.0, 4)
+    distance = np.hypot(volume.ix * 128.0, volume.iy * 128.0)
+    nearer = distance < 300.0
+    assert volume.strength[nearer].mean() > volume.strength[~nearer].mean(), "denser gas is stronger"
+    assert volume.strength.min() >= rules.MIN_STRENGTH and volume.strength.max() == 255
+    assert not np.any(_patch(np.stack([volume.ix * 128.0, volume.iy * 128.0], axis=1)) < rules.LANES_FLOOR * 0.5)
+
+
+def test_no_gas_is_an_empty_volume_that_packs():
+    volume = rules.sample_lanes(lambda points: np.zeros(len(points)), 1500.0, 4)
+    assert len(volume.ix) == 0
+    assert rules.pack(volume)[:4] == b"NVOL"
+
+
+def test_the_lanes_key_is_the_one_the_drill_module_holds_and_no_node_key():
+    from planetgen.galaxy import drill
+
+    assert rules.LANES_KEY == drill.LANES_KEY == "gas"
+    with pytest.raises(ValueError):
+        drill.parse_node_key(drill.LANES_KEY)

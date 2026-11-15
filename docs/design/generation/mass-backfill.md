@@ -41,6 +41,12 @@ row stores `NULL` for its infinite lifespan and phase end, and `bright_stars.sta
 At a galaxy with no scatter at all there is no L and no M: the backfill places every star born at or
 above the ring's mass, at any luminosity.
 
+**Order (2026-11-13, Boss).** The backfill runs right after the link stage and before the mass and luminosity scatters
+(sectors, link, clear, backfill, mass scatter, luminosity scatter, phenomena, rest). Because the backfill needs L and M, the one
+clear that opens the scatters also records the floor, the mass limit and the seed first (`prepare` on the clear unit), so the
+backfill is bounded by the limits the scatters then fill to, and a prepared luminosity pass drops its own clear. The tiny-run
+comparison of the orders is in reports/generation-order-2026-11-13/report.md.
+
 ## Per sector state
 
 `sector_stats.bright_mass_sol` (new, `NULL` = never backfilled by mass) records how far down a

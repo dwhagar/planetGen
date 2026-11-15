@@ -19,6 +19,7 @@ Sun's metallicity come out at 35 and 56 solar masses.
 """
 
 import math
+import statistics
 
 from planetgen import tuning
 from planetgen.datasets import isochrones
@@ -109,15 +110,20 @@ def _luminosity_law(present_mass_sol):
     return intercept + slope * math.log10(present_mass_sol), sigma
 
 
+def _log_luminosity_range():
+    """`(low, high)` of log10 L/Lsun, the class's luminosity range (`tuning.WR_LUMINOSITY_RANGE_SOL`)."""
+    return tuple(math.log10(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
+
+
 def bright_chance(present_mass_sol, min_luminosity_sol):
     """The chance a Wolf-Rayet star of this present mass is at least `min_luminosity_sol` bright (the share of its normal law in
     log luminosity above it, the class's range cutting the law at both ends)."""
     mean, sigma = _luminosity_law(present_mass_sol)
-    low, high = (math.log10(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
+    low, high = _log_luminosity_range()
     floor = math.log10(min_luminosity_sol)
     if floor >= high:
         return 0.0
-    cdf = lambda x: 0.5 * (1.0 + math.erf((x - mean) / (sigma * math.sqrt(2.0))))
+    cdf = statistics.NormalDist(mean, sigma).cdf
     total = cdf(high) - cdf(low)
     return 0.0 if total <= 0.0 else (cdf(high) - cdf(max(floor, low))) / total
 
@@ -136,7 +142,7 @@ def state(mass_sol, present_mass_sol, age_gy, start, end, rng, min_luminosity_so
     progress = (age_gy - start) / (end - start)
     name = subtype(mass_sol, progress)
     mean, sigma = _luminosity_law(present_mass_sol)
-    low, high = (math.log10(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
+    low, high = _log_luminosity_range()
     if min_luminosity_sol is not None:
         low = min(max(low, math.log10(min_luminosity_sol)), high)
     for _ in range(1000):

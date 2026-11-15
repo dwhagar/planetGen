@@ -251,10 +251,15 @@ def insert_bright_stars(conn, rows, epoch_unix=None, batch_size=10000):
     Returns:
         Written: The rows written and the systems among them.
     """
+    return _insert(conn, "bright_stars", rows, star_trees, _STAR_COLUMN["seed"], store.insert_bright_stars, epoch_unix, batch_size)
+
+
+def _insert(conn, table, rows, trees_of, seed_index, plain, epoch_unix, batch_size):
+    """`insert_bright_stars` and `insert_phenomenon_scatter`: the epoch when none is given, then `_write` with `plain` (the
+    `db.store` writer) as the insert of each batch."""
     if epoch_unix is None:
         epoch_unix = default_epoch_unix(conn)
-    return _write(conn, "bright_stars", rows, star_trees, _STAR_COLUMN["seed"],
-                  lambda c, batch: store.insert_bright_stars(c, batch, batch_size), epoch_unix, batch_size)
+    return _write(conn, table, rows, trees_of, seed_index, lambda c, batch: plain(c, batch, batch_size), epoch_unix, batch_size)
 
 
 def write_committed(conn, write, rows, epoch_unix, label="Scatter write"):
@@ -293,7 +298,5 @@ def insert_phenomenon_scatter(conn, rows, epoch_unix=None, batch_size=5000):
     `store.insert_phenomenon_scatter` that also draws and stores the members of the rows that have them
     (`phenomenon_tree`). The caller commits. Arguments and result as `insert_bright_stars`.
     """
-    if epoch_unix is None:
-        epoch_unix = default_epoch_unix(conn)
-    return _write(conn, "phenomenon_scatter", rows, phenomenon_trees, _PHENOMENON_COLUMN["seed"],
-                  lambda c, batch: store.insert_phenomenon_scatter(c, batch, batch_size), epoch_unix, batch_size)
+    return _insert(conn, "phenomenon_scatter", rows, phenomenon_trees, _PHENOMENON_COLUMN["seed"], store.insert_phenomenon_scatter,
+                   epoch_unix, batch_size)
