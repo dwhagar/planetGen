@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4311] - 2026-11-15
+
+**Headline:** The reference list now includes the capture-probability paper [R5288], so the capture probability row of the moon resonances cites it by its reference ID.
+
+### Changed
+
+- GEN.1449 (slice 2): row HP3 of section 6.300 of the gap plan cites the capture-probability paper as [R5288]; the paper is added to the reference list and the reference and stand-in pages are regenerated. No change to what the generator produces.
+
 ## [8.0.4310] - 2026-11-15
 
 **Headline:** A planet's moons now stay inside the part of its Hill sphere that its companion stars and sibling planets leave it, not the host star's alone.
