@@ -130,6 +130,11 @@ def draw_cycle(constants, nudge_share=0.0):
 
 # --- the land law -----------------------------------------------------------------------------------------------------------------
 
+def latent_j_m3(temperature_k):
+    """The latent heat of the water cycle at `temperature_k`, joules per cubic metre of liquid water: `L(T) = 1.918e9 (T / (T - 33.91))^2` ([R1660: Eq. 44]); `temperature_k` must be over `LATENT_OFFSET_K`."""
+    return LATENT_COEFFICIENT_J_M3 * (temperature_k / (temperature_k - LATENT_OFFSET_K)) ** 2
+
+
 def runoff_m_yr(temperature_k, absorbed_flux_w_m2):
     """
     The runoff, metres per year: `Gamma` times the precipitation, which rises `PRECIPITATION_PER_K` per K from `PRECIPITATION_REF_M_YR` but is held under the
@@ -138,7 +143,7 @@ def runoff_m_yr(temperature_k, absorbed_flux_w_m2):
     if temperature_k <= LATENT_OFFSET_K:
         return 0.0
     precipitation = PRECIPITATION_REF_M_YR * (1.0 + PRECIPITATION_PER_K * (temperature_k - REFERENCE_K))
-    latent = LATENT_COEFFICIENT_J_M3 * (temperature_k / (temperature_k - LATENT_OFFSET_K)) ** 2
+    latent = latent_j_m3(temperature_k)
     energy_limit = max(absorbed_flux_w_m2, 0.0) / latent * SECONDS_PER_YEAR
     return RUNOFF_SHARE * max(min(precipitation, energy_limit), 0.0)
 
