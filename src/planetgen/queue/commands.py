@@ -202,7 +202,7 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_plan", "clear_bright_stars_unit"),
                 expand=("planetgen.generation.run_plan", "expand_clear_bright_stars"), whole=True),
     CommandSpec("store-scatter-limits", "Store the limits the star scatter will run at, before the backfill that draws what its passes leave out: one unit",
-                unit=("planetgen.generation.run_plan", "store_scatter_limits_unit"),
+                pieces=("planetgen.generation.run_plan", "store_scatter_limits_pieces"), do=("planetgen.generation.run_plan", "store_scatter_limits_do"),
                 expand=("planetgen.generation.run_plan", "expand_store_scatter_limits"), whole=True),
     CommandSpec("empty-nebula-field", "Empty the nebula field table before it is drawn again: one unit",
                 unit=("planetgen.generation.run_plan", "empty_nebula_field_unit"),

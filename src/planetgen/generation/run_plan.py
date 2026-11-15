@@ -906,22 +906,21 @@ def expand_store_scatter_limits(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def store_scatter_limits_unit(params, report):
+def store_scatter_limits_pieces(params, cursor):
+    """The pieces of the `store-scatter-limits` unit (OPS.257): the one write."""
+    return ["store"]
+
+
+def store_scatter_limits_do(params, piece, ctx):
     """
-    The `store-scatter-limits` command's unit (OPS.257; the limits the clear of the earlier bright stars stored before, OPS.123): records the floor, mass limit and seed the star scatter will run
-    at (`params["prepare"]`), so the backfill that runs between this stage and the passes reads them and draws only the stars the passes leave out. It runs whether or not there was anything to clear.
+    The one piece of the `store-scatter-limits` command's unit (OPS.257; the limits the clear of the earlier bright stars stored before, OPS.123): records the floor, mass limit and seed
+    the star scatter will run at (`params["prepare"]`), so the backfill that runs between this stage and the passes reads them and draws only the stars the passes leave out. It runs
+    whether or not there was anything to clear.
     """
     prepared = params["prepare"]
-    phases = _UnitPhases(report, 1)
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        phases.next("Storing the star scatter's floor, mass limit and seed")
-        store.record_bright_star_scatter(conn, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
-        conn.commit()
-    finally:
-        conn.close()
-    phases.finish()
-    return {"stored": True}
+    ctx.step("Storing the star scatter's floor, mass limit and seed", 1)
+    store.record_bright_star_scatter(ctx.db, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
+    ctx.commit()
 
 
 class StoreScatterLimitsFollower(UnitBarFollower):
