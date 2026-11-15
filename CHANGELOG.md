@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4294] - 2026-11-15
+
+**Headline:** a run's whole sequence of stages is now stored as waiting rows in the ledger the moment the run starts, so the job view can say which stage each one waits for.
+
+### Added
+
+- OPS.238, third part (stored plan): `planrows.record_plan` writes one waiting `open` row per planned stage when `wrapper.run` starts. Each row's `needs` names the stage before it (`after:<stage>`) plus the artifacts that stage requires (`needs.required_stage_keys`), and its `makes` lists the artifacts it produces (`needs.makes_of`). When a stage opens, `planrows.record_cut` fills that row in with its plan and marks it done instead of adding a new row. The job view words the wait as "stage <key> to end".
+
 ## [8.0.4293] - 2026-11-15
 
 **Headline:** the order of a run's stages is now checked and logged from what each command needs, not from a list of four requirements.
