@@ -775,9 +775,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1730 | Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first) | GEN.1721 slice 2 | Lane 04, 2026-11-14 |
 | GEN.1731 | Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side | GEN.1720 | Lane 02, 2026-11-15 |
 | GEN.1732 | Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change | none | Lane 02, 2026-11-15 |
-| TEST.754 | (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet | none | Lane 03, 2026-11-15 |
-| TEST.755 | (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand | none | Lane 16, 2026-11-15 |
-| TEST.756 | (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB" | none | Lane 16, 2026-11-15 |
+| GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | Lane 04, 2026-11-15 |
 | MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | Lane 15, 2026-11-14
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | Lane 14, 2026-11-14. |
