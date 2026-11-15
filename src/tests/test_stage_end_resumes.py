@@ -88,6 +88,19 @@ def test_a_memory_kill_with_a_retry_left_frees_the_lease_of_the_end(conn, ended,
     assert not conn.exists(runrecord.ending_key(ended.run_id, 0)) and runrecord.read_run(conn, ended.run_id)["state"] == "running"
 
 
+def test_a_plain_kill_of_the_horse_in_the_end_of_its_stage_does_not_fail_the_run_while_a_retry_is_left(conn, ended, monkeypatch):
+    """Lane 07's galaxy kill test: SIGKILL (not the memory killer, so no claim on the gate to learn from) of the unit that completes a stage, in its end."""
+    from planetgen.queue import memorygate
+    conn.set(runrecord.ending_key(ended.run_id, 0), 1)
+    monkeypatch.setattr(memorygate, "kill_note", lambda c, worker: None)
+    job = types.SimpleNamespace(connection=conn, id="j", func_name=units.UNIT_FUNCTION, args=(ended.run_id, 0, 0, "test", {}, 1.0), retries_left=1, worker_name="w")
+    units.horse_killed(job, 4242, -9, None)
+    assert not conn.exists(runrecord.ending_key(ended.run_id, 0)) and runrecord.read_run(conn, ended.run_id)["state"] == "running"
+    job.retries_left = 0
+    units.horse_killed(job, 4242, -9, None)
+    assert runrecord.read_run(conn, ended.run_id)["state"] == "failed", "with no retry left the kill fails the run"
+
+
 def _opening_job(run_id):
     return types.SimpleNamespace(func_name=units.OPEN_FUNCTION, args=(run_id, 1), retries_left=0)
 

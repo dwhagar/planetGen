@@ -573,6 +573,12 @@ def horse_killed(job, retpid, ret_val, _rusage):
             if job.func_name == UNIT_FUNCTION:
                 conn.delete(runrecord.ending_key(job.args[0], job.args[1]))     # OPS.186: the lease of the end this horse was in, so the retry can finish it
             return
+    if job.func_name == UNIT_FUNCTION and _was_ending_its_stage(conn, job):
+        # OPS.186: the horse that completed the stage was killed in the end of it, whatever killed it (`kill -9`, the memory killer): the unit is done, the retry RQ makes of it finishes the end
+        # (`run_unit` resumes it), and a run is not failed for what the next attempt carries on
+        log.warning(f"Job {name} ({job.func_name}) was killed in the end of its stage ({_ended_with(ret_val)}); it is queued again to finish it.")
+        conn.delete(runrecord.ending_key(job.args[0], job.args[1]))
+        return
     if job.func_name in (UNIT_FUNCTION, OPEN_FUNCTION):
         from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
         run_id, index = job.args[:2]
@@ -585,6 +591,13 @@ def horse_killed(job, retpid, ret_val, _rusage):
         runrecord.finish_run(conn, run_id, "failed", error=f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
     else:
         log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
+
+
+def _was_ending_its_stage(conn, job):
+    """Whether the unit of `job` is done and its stage's end is not (the state a kill in the end leaves), the run is live and the job has a retry left to finish it."""
+    run_id, stage, unit = job.args[:3]
+    return (bool(conn.sismember(runrecord.done_key(run_id, stage), unit)) and (getattr(job, "retries_left", None) or 0) > 0
+            and runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) == "running" and stage_unended(conn, run_id, stage))
 
 
 def _killed_by_sigkill(status):

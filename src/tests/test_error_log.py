@@ -215,6 +215,9 @@ class _NoClaims:
     def hget(self, key, field):
         return None
 
+    def sismember(self, key, member):
+        return False
+
 
 class _Job:
     id = "job-1"
