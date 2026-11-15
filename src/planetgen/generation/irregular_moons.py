@@ -25,7 +25,7 @@ import dataclasses
 import math
 from dataclasses import dataclass, field
 
-from planetgen.physics import body_status, captured_composition, compaction, irregular_orbits, irregular_population, irregular_zone, moon_composition
+from planetgen.physics import body_status, captured_composition, compaction, hill_perturbers, irregular_orbits, irregular_population, irregular_zone, moon_composition
 from planetgen.util import draw
 
 RESERVOIR_BINARY_FRACTION = 0.3
@@ -272,7 +272,7 @@ def for_planet(planet, source):
     if source.reservoir_mass_earth <= 0.0 and not source.belts:
         return NO_IRREGULARS
     outermost_moon_au = max((moon.distance for moon in planet.moons), default=0.0)
-    zone = irregular_zone.zone(planet.distance, planet.mass, source.star_mass_kg, outermost_moon_au)
+    zone = irregular_zone.zone(planet.distance, planet.mass, source.star_mass_kg, outermost_moon_au, hill_perturbers.hill_scale(planet))
     if zone.empty:
         return NO_IRREGULARS
     temporary = irregular_population.holds_temporary_captures(zone.prograde_limit_au, planet.radius)
@@ -360,7 +360,7 @@ def keep_stable(planet):
     held = getattr(planet, "irregulars", NO_IRREGULARS)
     if not held.moons:
         return 0
-    zone = irregular_zone.zone(planet.distance, planet.mass, planet.star.mass, max((moon.distance for moon in planet.moons), default=0.0))
+    zone = irregular_zone.zone(planet.distance, planet.mass, planet.star.mass, max((moon.distance for moon in planet.moons), default=0.0), hill_perturbers.hill_scale(planet))
     kept = tuple(moon for moon in held.moons if _stays(zone, moon.orbit))
     dropped = len(held.moons) - len(kept)
     if dropped:

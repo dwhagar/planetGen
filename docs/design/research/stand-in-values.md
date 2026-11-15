@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1727 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1729 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1700 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1702 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 116 | 56 | 13 | 9 | 0 | 194 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
 | T5 | 93 | 24 | 7 | 1 | 1 | 126 |
-| T6 | 222 | 118 | 33 | 76 | 4 | 453 |
+| T6 | 223 | 119 | 33 | 76 | 4 | 455 |
 | T7 | 58 | 30 | 10 | 32 | 0 | 130 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 41 | 210 |
-| All | 991 | 347 | 87 | 242 | 60 | 1727 |
+| All | 992 | 348 | 87 | 242 | 60 | 1729 |
 
 ## How the labels were given
 
@@ -3030,3 +3030,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IG6 | P | T7 | L1 | `ice_growth.PRECIPITATION_ENERGY_SHARE` about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature | 0.15 to 0.35 | worlds with a water cycle like the Earth's, cold or warm | a snowfall on ice that differs from the law by more than a factor of 2 for the same starlight; the Arctic's, with no dry cold air in the law, comes out about 1.9 times high | a precipitation law that carries the dryness of cold air | the weathering law of [R1660] uses the same limit; the Arctic check of [R5278] (34 cm of snow) sets the 1.9 | predicted only | GEN.1735 | - |
 | IG7 | P | T7 | L1 | `ice_growth.SNOW_RETENTION` 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season | 0.4 to 0.9 | multiyear Arctic ice | a snow cover that keeps a share outside 0.4 to 0.9 | a wind and lead model | [R5278]: 11 cm of water standing in May of the 17 cm that fell (5 cm a month in September and October, 1 cm a month November to March, 2 cm in April, the rates it quotes) | predicted only | GEN.1735 | - |
 | IG8 | P | T7 | L1 | `ice_growth.ABLATION_M_YR` 0.4 m of ice a year: what the surface wears off a lid that does not thaw | 0.2 to 0.6 | multiyear Arctic ice under an Earth-like air | a perennial lid whose surface loses less than 0.2 or more than 0.6 m a year | a surface energy balance with the world's own air | [R5279]: surface ablation 40 cm in the standard case; the one measured case, taken for every perennial lid | predicted only | GEN.1735 | - |
+
+## 6.299 Stand-ins of the planet's Hill sphere against the bodies besides its host (GEN.1449)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| HP1 | P | T6 | L1 | hill_perturbers.NON_HOST_TIDE_WEIGHT 2.0: a companion star's or sibling's tide enters the field that sets the Hill radius as `2 m <1/d^3>` against the host's `3 M / a^3` (the stretch without the centrifugal term of the rotating frame, which only the host's orbit makes) | 1 to 3 | planets whose companions and siblings are far enough that their field is a fraction of the host's | an N-body run of a planet with a Jupiter-mass sibling on a crossing orbit whose moons are stripped at a different fraction of the Hill radius than the rule gives | a stripping fraction fitted to N-body runs with the perturber's mass and distance (the Domingos fit's own form with a perturber term) | design: Hill's criterion; the fit of [R1138] has the host and the planet's eccentricity only | predicted only | - | - |
+| HP2 | P | T6 | L0 | `<1/d^3>` of each source is `tide_sources.orbit_mean_inverse_cube` (a circle against an orbit, in one plane, the source's planet and moons one point), and the mean stands for the encounters | the mean against the closest approach | systems of a few planets in near-coplanar orbits; the mutual inclination only lengthens the mean separation, so the coplanar mean is the upper bound of the pull | a sibling on a highly inclined orbit that strips moons the coplanar mean says are held, or one that spares moons the mean says are lost | the inclination of the sibling and the encounter time (GEN.1449 slice 3) | design: reuse of `tide_sources` (GEN.1446) | predicted only | - | - |
