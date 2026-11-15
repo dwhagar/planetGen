@@ -16,13 +16,17 @@ the science its makers want its rocky planets in the ecosphere pushed toward Ear
 | `plentiful` | 1 in 30 |
 | `abundant` | 1 in 10 |
 
-A tier turns three dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
+A tier turns four dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
 
-1. `water_share`: the share of candidates (`candidate`) whose water class is drawn as Earth's (`low` of `physics.delivered_water`) and not from
-   the Bern law at the distance the planet formed at.
+1. `water_share`: the share of candidates (`candidate`) whose water class is given by the tier and not drawn from the Bern law at the
+   distance the planet formed at.
 2. `bare_share`: the share of candidates whose starting hydrogen envelope is taken as already lost (a bare core).
 3. `request_share`: the share of systems that are given the request for a habitable world (`SystemConfig.HABITABLE_WORLD`), which raises the
    odds and never forces (`util.request_odds`).
+4. `dry_part` (GEN.1721; Boss, 8:24 PM EST 2026-11-14: desert, ocean, glaciated and hothouse worlds beside the temperate one, the temperate
+   one in front): the part of the planets the water dial reaches that take the dry class (`dry` of `physics.delivered_water`, the water of
+   a desert world) and not Earth's (`low`). It splits the water dial's one draw and makes none of its own; the rest, the larger part, take
+   Earth's class.
 
 No dial touches a class limit, names a class letter or sets a count: each one moves a draw, and the class of every body is still derived
 from its finished conditions. The targets are what the dial values are calibrated to by census; the tier never checks or enforces them.
@@ -48,10 +52,10 @@ TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "sparse": 1000, "scattered": 100,
 """dict: Tier -> the Sun-like systems per Class M world its dial values are calibrated to (Boss, 11:19 PM EST 2026-11-13); `None` for
 `science`, which has no target."""
 
-Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share"])
-"""The three dials of a tier, each a share from 0 (off) to 1."""
+Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part"])
+"""The four dials of a tier, each a share from 0 (off) to 1."""
 
-OFF = Dials(0.0, 0.0, 0.0)
+OFF = Dials(0.0, 0.0, 0.0, 0.0)
 """Dials: Every dial off: `science`."""
 
 
@@ -90,8 +94,13 @@ def candidate(body):
 
 
 def water_share(body):
-    """The share of candidates given Earth's water class under the tier of `body`: 0 for a body that is not a `candidate`, and on `science`."""
+    """The share of candidates whose water class the tier of `body` gives (Earth's or the dry one, `dry_part`): 0 for a body that is not a `candidate`, and on `science`."""
     return dials_of(body).water_share if candidate(body) else 0.0
+
+
+def dry_part(body):
+    """The part of the planets the water dial reaches that take the dry class under the tier of `body` (GEN.1721): 0 for a body that is not a `candidate`, and on `science`."""
+    return dials_of(body).dry_part if candidate(body) else 0.0
 
 
 def bare_share(body):

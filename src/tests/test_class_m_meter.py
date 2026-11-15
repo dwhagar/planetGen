@@ -59,12 +59,32 @@ def test_the_report_of_a_small_file_is_fixed(meter, tmp_path, capsys):
     assert "| science | 3 | 4 | 666.7 (" in out and " | none (what the laws give) |" in out
     assert "### science: 3 Sun-like systems" in out
     assert "| Class M" in out and "| Blue" in out
+    assert "The habitable family" in out and "| H | 0 | 0 | 0.0 (" in out
     assert out == _again(meter, tmp_path, capsys)
 
 
 def _again(meter, tmp_path, capsys):
     meter.report(type("Args", (), {"directory": str(tmp_path)})())
     return capsys.readouterr().out
+
+
+def test_the_family_table_counts_the_worlds_the_shapes_and_the_air_limits_of_each_class(meter):
+    earth = {"temperature_k": 288.0, "ocean_fraction": 0.7, "gravity_g": 1.0, "pressure_pa": 101325.0, "o2_partial_pa": 21000.0, "co2_partial_pa": 40.0}
+    records = [
+        {"bodies": [_body(planet_class="M", found=earth),
+                    _body(planet_class="G", found={**earth, "ocean_fraction": 0.99, "co2_partial_pa": 9.0e4, "pressure_pa": 3.0e5}),
+                    _body(planet_class="H", is_moon=True, found={**earth, "ocean_fraction": 0.05})]},
+        {"bodies": [_body(planet_class="C", found={**earth, "ocean_fraction": 0.1, "o2_partial_pa": 0.0}), _body(planet_class="T")]},
+    ]
+    numbers = meter.family(records)
+    assert list(numbers) == list(meter.FAMILY) == ["M", "H", "O", "P", "R"]
+    row = lambda letter: [numbers[letter][key] for key in ("worlds", "systems", "shape", "pressure", "oxygen", "carbon dioxide", "all")]  # noqa: E731
+    assert row("M") == [1, 1, 1, 1, 1, 1, 0] and numbers["M"]["got"] == {"M": 1}       # `all` is 0: the small record stores none of the class's other quantities
+    assert row("O") == [0, 0, 1, 0, 1, 0, 0] and numbers["O"]["got"] == {"G": 1}       # an ocean world under thick carbon dioxide has the shape and not the air
+    assert row("H") == [1, 1, 1, 1, 0, 1, 0] and numbers["H"]["got"] == {"C": 1}       # the Class H moon is a world of the class; the shapes count planets only
+    assert row("P") == row("R") == [0] * 7
+    table = meter.family_table(numbers, 2)
+    assert table.count("\n") == 6 and "| O | 0 | 0 | 0.0 (" in table and "| G 1 |" in table
 
 
 def test_the_wilson_interval_brackets_the_rate(meter):

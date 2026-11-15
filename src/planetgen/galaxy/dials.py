@@ -397,7 +397,7 @@ LEVERS = (
     Lever(
         name="class_m", flag="--class-m", dial="census", label="Class M abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
         choices=("science", "sparse", "scattered", "plentiful", "abundant"),
-        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water, "
+        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water (a part of them a desert world's), "
             "the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; the class of every body still "
             "comes from its finished conditions and no class or count is forced (generation/abundance_tier)",
         auto_text="science (nothing is moved; what the generator's own laws give)",
