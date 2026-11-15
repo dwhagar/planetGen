@@ -7,3 +7,4 @@
 - Every F, G and K star's luminosity, temperature and radius moves, so its habitable zone, its planets' climate and the census move with it.
 
 generation-output: changed
+- A forced star type (STAR_TYPE, GEN.941) is drawn from a table on a mass grid; the grid is now 420 masses, not 140 (`tuning.FORCED_STAR_MASS_STEPS`), because a spectral subclass such as G2 is narrower in mass than 5 percent and the cooler tracks left one grid mass holding all of it (G2V stars came out young and dim: median age 1.6 Gyr, Sun-like systems lost their wet worlds). Table build takes about 6 s per process and [Fe/H] bucket.
