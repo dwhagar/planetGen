@@ -12863,6 +12863,44 @@
           "fields": [
             [
               "What it is",
+              "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
+            ],
+            [
+              "The range it moves in",
+              "0.20 to 0.33 (plants add 25 percent at C/P 1000 to 50 percent at C/P 2000 to the burial without them)"
+            ],
+            [
+              "Where it holds",
+              "worlds with no wide sea whose life has reached mosses and the first land plants"
+            ],
+            [
+              "What would show it wrong",
+              "a measured land share of organic carbon burial outside 0.20 to 0.33, or an oxygen model in which plants add much more or less to the burial"
+            ],
+            [
+              "What replaces it",
+              "the land and marine burial from a sourced budget (the flux of [R5284] and the terrestrial share of burial of [R5285], not read)"
+            ],
+            [
+              "Evidence",
+              "READ ([R5283] full text: land plants raise total organic carbon burial by about 25 percent with C/P 1000 and about 50 percent with C/P 2000, oxygen reaching present levels by 420 to 400 Ma); one model, so it is tier 3"
+            ]
+          ],
+          "id": "BO15",
+          "key": "6.21:BO15",
+          "kind": "P",
+          "slug": "6-21-bo15",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "surface_refuge.MIN_HOURS_YR 75, LIQUID_MIN_K 252, LIQUID_MAX_K 346, MELT_K 273.15 and life_classes.json gate lit_liquid_hours min 75 (GEN.1723): oxygenic life lives wherever light and any liquid water reach the surface, an open sea, a brine seep, a seasonal melt, a spring or a hot pool, 75 h a year or more at 252 to 346 K"
             ],
             [
