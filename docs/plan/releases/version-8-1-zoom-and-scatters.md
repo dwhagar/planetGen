@@ -757,7 +757,11 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1709 | Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star) | none | Lane 05, 2026-11-14. |
 | GEN.1710 | (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently | none | Lane 06, 2026-11-14. |
 | GEN.1711 | Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3) | none | Lane 06, 2026-11-14. |
-| PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | Lane 14, 2026-11-14. |
+| PERF.268 | Stage 5 progress and ETA weighed by expected systems per sector, not one per sector | none | Lane 06, 2026-11-15. |
+| PERF.269 | Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s | OPS.207 | Lane 06, 2026-11-15. |
+| PERF.270 | A per-sector timing line in the job log for the neighborhood stage | none | Lane 06, 2026-11-15. |
+| PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | Lane 06, 2026-11-15. |
+| PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | Lane 06, 2026-11-15. |
 | GEN.1717 | (bug) Rocky planets under a deep hydrogen envelope (4 to 20 percent) store 1 bar temperatures of 1,100 to 3,500 K at a no-air temperature of about 400 K (greenhouse factor 85 to 5,300) | none | Lane 02, 2026-11-14
 | GEN.1718 | (bug) The air solve does not settle for about 6 to 10 percent of airs (7 of 72 water bodies; 8 of 129 airs on Train 24): temperature and surface pressure are iterated one at a time, so the pressure drifts while the temperature closes | none | Lane 02, 2026-11-14
 | GEN.1720 | (bug) Class G (thick CO2 of 46 to 4,700 kPa over a global ocean) takes 19 of 27 right-gravity liquid-ocean planets around Sun-like stars, and G rose from 27 to 47 per 346 systems between the Train 26 and Train 28 censuses | none | Lane 02, 2026-11-14

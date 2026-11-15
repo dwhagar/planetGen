@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.431 |
 | NAV | NAV.78 |
 | GEN | GEN.1731 |
-| PERF | PERF.268 |
+| PERF | PERF.273 |
 | DB | DB.131 |
 | API | API.51 |
 | ADM | ADM.156 |
@@ -2960,7 +2960,12 @@ Parents marked "new parent" had no old number of their own.
 | PERF.264 | The mass and luminosity scatter passes share the component sector addresses in their planning step | none | done, PR #6413 (11-13) |
 | PERF.265 | The workers' table warm-up starts while the parent plans each scatter pass | PERF.264 | closed as finding (Lane 15): measured 270 s vs 277 s on a 4-core box, within noise; the memory gate lets only one warm-up run beside the cut; patch kept at /mnt/project-files/reports/gen1683-perf265-prewarm-attempt.patch |
 | PERF.266 | (bug) planetgen system got about 55 s slower in a day: the no-database system page test took 88 s on main 75ef1017e and 142 s on 92855b9c7, past its 120 s limit | none | done, PR #6477 (Lane 15, 12:51 AM EST 11-14) |
-| PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | open |
+| PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | done as analysis (Lane 06, 12:55 AM EST 11-15, report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md); the fixes are PERF.268 to PERF.272 |
+| PERF.268 | Stage 5 progress and ETA weighed by expected systems per sector, not one per sector | none | open |
+| PERF.269 | Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s | OPS.207 | open |
+| PERF.270 | A per-sector timing line in the job log for the neighborhood stage | none | open |
+| PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | open |
+| PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
