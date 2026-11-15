@@ -4237,7 +4237,7 @@ The vapor pressure of disulfur over condensed sulfur, a row of `physics/data/sat
 | AT3 | P | T9 | L4 | `tuning.ABUNDANCE_TIER_DIALS` request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by `tuning.REQUEST_ODDS` (row CC10) and forces nothing | each share 0 to 1 | galaxies made under Plentiful or Abundant | as AT1 | none: the strength of a request is the maker's choice | needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate |
 | AT4 | P | T9 | L3 | `abundance_tier.TARGET_SYSTEMS_PER_CLASS_M` (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy | each target by a factor of 3 (the choice Boss was given) | the calibration only | none: a setting of the galaxy's maker | none | Boss, card "Set the target Class M rate of each tier", 11:19 PM EST 2026-11-13 |
 
-### 6.292 Stand-ins of the surface [Fe/H] of a star against its birth value (GEN.1623)
+### 6.293 Stand-ins of the surface [Fe/H] of a star against its birth value (GEN.1623)
 
 `datasets/isochrones.surface_change_dex` reads, from the surface hydrogen and helium of each main-sequence row of the MIST isochrones [R0773, R1150], how far atomic diffusion has settled the metals out of the star's surface; `isochrones.initial_fe_h` uses it to read a star that carries its surface [Fe/H] at the birth [Fe/H] the grid is labelled with (`alpha_tracks.track_fe_h` with the star's mass). The basic isochrones hold no surface iron, so the change of the metals together stands for the change of the iron.
 
