@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1733 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1737 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1706 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1710 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 161 | 66 | 2 | 1 | 0 | 230 |
 | T3 | 116 | 56 | 13 | 9 | 0 | 194 |
 | T4 | 85 | 14 | 4 | 22 | 13 | 138 |
-| T5 | 93 | 24 | 7 | 1 | 1 | 126 |
+| T5 | 95 | 24 | 7 | 1 | 1 | 128 |
 | T6 | 224 | 120 | 33 | 76 | 4 | 457 |
-| T7 | 59 | 31 | 10 | 32 | 0 | 132 |
+| T7 | 59 | 33 | 10 | 32 | 0 | 134 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 50 | 18 | 6 | 95 | 41 | 210 |
-| All | 994 | 350 | 87 | 242 | 60 | 1733 |
+| All | 996 | 352 | 87 | 242 | 60 | 1737 |
 
 ## How the labels were given
 
@@ -3041,3 +3041,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | HP3 | P | T7 | L1 | `moon_resonances.CAPTURE_OFFSET` 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at `p/q (1 + 0.002)`; no escape by eccentricity or inclination, no second-order resonance | 0.001 to 0.02 | the regular moons of a planet whose tide drives them out | a measured moon pair that converged through a first-order resonance and passed it (Uranus' Miranda and the inclination escape; the Mimas and Tethys 4:2 is second order) | the capture probability of the adiabatic theory against the migration rate and the eccentricity (Borderies and Goldreich 1984) | derived: the Galilean pairs sit within 0.001 of 2:1, Enceladus and Dione within 0.003; the census of 314 moon pairs gave 9 percent that swept a resonance | predicted only | - | - |
 | HP4 | P | T6 | L1 | `moon_resonances.capture` shares the pair's orbital angular momentum `sum m sqrt(a)` (the integrator's finals) by the resonance condition `sqrt(a_k) = K_k sqrt(a_0)`; a pair that would hold the inner moon inside its birth orbit is not captured | none | pairs whose outer moon is lighter than the inner one by a factor of 10 or more | an integration of the pair's migration (`moon_orbits` with the pull of the moons) that ends at a different place | the migration of a captured pair integrated with the planet's tide, the planet's spin following | derived: the planet's spin keeps the torque the integrator gave it because the moons' total angular momentum is kept | predicted only | - | - |
 | HP5 | P | T7 | L0 | `resonant_chains.pair_forced_eccentricities`: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: `settle_orbit` keeps it) | none | first-order pairs outside the resonance's width | a near-resonant moon pair whose measured forced eccentricity differs by more than a factor of 3 (Io 0.0041, Europa 0.0094) | the libration amplitude inside the resonance's width and the planet's flattening in the detuning | derived: Io 0.0051, Europa 0.0082, Ganymede 0.0007 from the Galilean masses and periods; the 33 percent of the census pairs that sit near a ratio mostly get under 0.003 | predicted only | - | - |
+
+## 6.301 Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PC1 | D | T5 | L0 | `photochemical_loss.advance` and `standing_from_inventory`: a source S against a loss `k N` leaves `N(t) = N e^(-k t) + (S / k)(1 - e^(-k t))`, `S / k` when the age is over a few lives, and never more than the inventory | none | any gas whose loss is first order in its amount | an air whose ammonia or methane stands over the source over the rate at a measured loss | none | the solution of the linear balance; the rates are GEN.496's own | predicted only | - | - |
+| PC2 | P | T7 | L1 | `photochemical_loss.standing_from_inventory`: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time | the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (`interior_heat.heat_at`), which moves the standing amount by the same ratio at the age of the loss | a body whose air gas stands for the life of the star | a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3 | the history's own supply at each step (GEN.1745) | educated guess from physics: the mean of the supply is what a constant source gives | predicted only | - | - |
+| PC3 | B | T5 | L0 | `photochemical_loss.light_limit`: the light breaks no more than the column of one optical depth times the rate (`photolysis.photon_limited_flux_mol_m2_s`, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes | the column within a factor of 2 (row SL6) | NH3 and CH4 in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's | a photochemical column model with the cross sections by wavelength | row SL6; [R2026] table 6 | predicted only | - | - |
+| PC4 | P | T7 | L1 | `photochemical_loss.LOST_TO`: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes) | the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state | an air with water and the escape of hydrogen of `thermosphere` | a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2 | the hydrogen escape and the photochemical network of the history's step | educated guess from physics (Catling and Kasting 2017, Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2) | predicted only | GEN.1745 | - |

@@ -21,7 +21,7 @@ from tests.test_api import _place_sector
 def test_the_three_commands_are_one_unit_registered_kinds():
     for kind in ("reset-galaxy", "check-math", "check-datasets"):
         spec = commands.spec(kind)
-        assert spec.whole and not spec.inline, kind
+        assert spec.one_unit and not spec.inline, kind
         expansion = commands.expand_function(kind)({"database": {"database": "x"}})
         assert len(expansion.units) == 1
 

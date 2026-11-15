@@ -18,8 +18,8 @@ def test_every_queued_command_is_one_unit_by_nature_or_declares_a_longest_unit_u
     ceiling = settings.Settings.model_fields["queue"].annotation.model_fields["unit_ceiling_seconds"].default
     for kind, command in commands.REGISTRY.items():
         if command.inline:
-            assert not command.whole and command.unit_seconds is None, f"{kind} is inline: it has no units to bound"
-        elif command.whole:
+            assert not command.one_unit and command.unit_seconds is None, f"{kind} is inline: it has no units to bound"
+        elif command.one_unit:
             assert command.unit_seconds is None, f"{kind} is one unit by nature: a longest unit has no meaning"
         else:
             assert command.unit_seconds is not None, f"{kind} is cut into units and must declare how long its longest runs"
@@ -47,7 +47,7 @@ def _long_lines(conn, run_id):
 
 def _run(monkeypatch, conn, whole, pause, ceiling):
     monkeypatch.setitem(commands.REGISTRY, "ceiling-test", commands.CommandSpec(
-        "ceiling-test", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), whole=whole,
+        "ceiling-test", "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), breaks=commands.ONE_UNIT if whole else None,
         unit_seconds=None if whole else 1))
     monkeypatch.setattr(commands, "unit_function", lambda kind: _unit)
     monkeypatch.setattr(commands, "expand_function", lambda kind: _cut)

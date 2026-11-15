@@ -385,7 +385,7 @@ No unit of a stage is expected to run longer than `queue.unit_ceiling_seconds` (
 unit by nature. The ceiling bounds how long a worker keeps its place when a lane that needs it asks for it (the lend rule of
 PERF.150) and how long a cancel waits for a running unit. It is held three ways:
 
-* Every queued command in `queue/commands.py` is either `whole=True` (the stage is one unit: the skeleton plan, the clear of a
+* Every queued command in `queue/commands.py` is either `breaks=ONE_UNIT` (the stage is one unit: the skeleton plan, the clear of a
   scatter, one system, the cache-warm families, the database checks) or declares `unit_seconds`, the seconds its longest unit
   runs at the default galaxy size. `test_unit_ceiling.py` fails for a command that is neither, and for one whose figure is over
   the setting's default.

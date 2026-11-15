@@ -69,9 +69,9 @@ def test_each_unit_is_handed_to_the_queue_with_its_row(monkeypatch, mysql_config
     seen = []
     real = units.enqueue_units
 
-    def spy(conn, run_id, stage, kind, unit_list, queue_name=None, expected_seconds=None, rows=None):
+    def spy(conn, run_id, stage, kind, unit_list, queue_name=None, expected_seconds=None, rows=None, skip=frozenset()):
         seen.append(rows)
-        return real(conn, run_id, stage, kind, unit_list, queue_name=queue_name, expected_seconds=expected_seconds, rows=rows)
+        return real(conn, run_id, stage, kind, unit_list, queue_name=queue_name, expected_seconds=expected_seconds, rows=rows, skip=skip)
 
     monkeypatch.setattr(units, "enqueue_units", spy)
     run_id = _run(monkeypatch, mysql_config, 3)

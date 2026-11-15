@@ -12578,17 +12578,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.217 (stage 3). Prerequisites: none. Related: OPS.181, OPS.130.
   Filed by the TODO thread.
 
-- [ ] **OPS.196 Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family**
-  From the job-engine stage 1-2 breakdown (/mnt/project-files/reports/job-engine-items-stage-1-2-2026-11-13.md, handle P6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, cards 6:35-6:36 PM EST 11-13: replace RQ with our own supervisor; MySQL for facts, Redis for live signals; hold the run on a lasting failure; stages 0 to 2 first, 3 to 6 wait for his word. Do: as the breakdown's row P6 says (reuse and delete columns named there; name reuse in the PR). Size M. Lock-free. Output unchanged, no epoch, no migration.
-  Version 8.1. Owner (TODO, 2026-11-13): Lane 16. Prerequisites: OPS.191, OPS.192. Related: OPS.186, OPS.188, OPS.181, OPS.185.
-  Filed by the TODO thread.
-  Part 1 merged, PR #6488 (TODO, 11-14). Open for the rest (the guard covers each family as it moves; whole flag deleted with the last family).
-
-- [ ] **OPS.222 Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (moved from Lane 06 at 3:32 AM EST, not started there; queue rework first). Prerequisites: OPS.219, OPS.221. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.225 Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L11); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L11 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.216-222. Related: OPS.191, OPS.207, OPS.212.
@@ -12780,11 +12769,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: none. Related: GEN.1691.
   Filed by the TODO thread.
 
-- [ ] **MAP.430 At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in**
-  From the MAP.429 diagnosis, relayed 7:39 PM EST on 2026-11-14 (Boss wants the map organic, nebula clouds not circles). Do: draw the far-zoom gas from the same model density the nebula contour follows (GEN.1267), and hand over smoothly to the volume layer (MAP.365) as nodes load. Lock-free, display only.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: MAP.429. Related: MAP.429, MAP.365, GEN.1267.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1724 Research: a sourced table of life adaptations to cold, heat, dryness, salt and low light, by climate type and life type, feeding GEN.1721 and GEN.1723**
   Boss, 9:11 PM EST on 2026-11-14 (as the coordinator relayed): research life adaptations to hot and cold. Research only, no code; report /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md. Sources per the source rules; proposed stand-ins carry tier and tweak level for GEN.725.
   Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1721, GEN.1723, GEN.876.
@@ -12825,6 +12809,7 @@ clears each one.
   Lane 02's GEN.1731 options, 1:18 AM EST 2026-11-15 (report /mnt/project-files/reports/gen1731-weathering-law-warm-side-2026-11-15.md): of 10 Abundant Earth-shaped worlds under 2 Pa CO2, 4 hold 2 Pa or more of carbon as methane in reduced airs (NH3, CH4, H2) although their mantles are oxidized. Measure why those airs are reduced; the recipe stream change of GEN.1646 is the suspect. No change before the measure; a fix that follows is filed from the findings.
   Prototype measured (Lane 02, 4:59 AM EST 11-15, report /mnt/project-files/reports/gen1732-photochem-prototype-measure-2026-11-15.md): a photochemical cap on stored NH3 and CH4 removes the warm zero-CO2 ammonia worlds (Earth-shaped with NH3 over 10 Pa 9 to 0) and raises M 1 to 2 and R 0 to 3, but halves the Earth-shaped pool (13 to 6) as ammonia-warmed worlds freeze. Build decision with Boss.
   Check also (Class M tiers thread, 12:55 PM EST 2026-11-15): 6 to 25 Pa of methane from life under the ice warms a world 21 to 33 K (Eerosa I 267 to 288 K, Ilrusxohoe I 265 to 298 K); confirm that warming against sources as part of this item.
+  Boss, 1:04 PM EST 2026-11-15: "all recommendations in the last 5 hours are approved": build the photochemical NH3/CH4 cap (Lane 02), as a step term of GEN.1745 per the GEN.1739 design.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
@@ -12850,6 +12835,7 @@ clears each one.
 
 - [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
   Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
+  Boss, 1:03 PM EST 2026-11-15: "Class X, recommendation of 1 approved": class X allows worlds with an air (the GEN.1258 airless gate goes).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
   Filed by the TODO thread.
 
@@ -12888,6 +12874,26 @@ clears each one.
 - [ ] **TEST.768 (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module**
   Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15; confirmed red on main by the TODO thread at 12:47 PM EST. Do: give each constant its registry row, tag or a place in constants.py; never loosen the test.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: GEN.1632.
+  Filed by the TODO thread.
+
+- [ ] **TEST.769 (bug) Six test_web_generate system-page tests are red on main**
+  Lane 15, 1:13 PM EST 2026-11-15 (OPS.222 part B, PR #6703): red on main, not from that PR. Do: find the merge that broke them and fix the cause, code or test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.222, OPS.216.
+  Filed by the TODO thread.
+
+- [ ] **TEST.770 (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216**
+  Lane 15, 1:13 PM EST 2026-11-15: red on main. Do: point the test at the stored plan reader that replaced runrecord.read_plan (OPS.216), keeping what it proves.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.222, OPS.216.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
+  Lane 04, 1:25 PM EST 2026-11-15 (Class M thread's meter of 6645 and 6674 on Train 32): older than 6674, which only made the halite sea that showed it. Do: find why a rocky planet stores no P2O5 at all and fix the composition step so every rocky body carries its rock phosphorus; no default patched in at the reader.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
+  Filed by the TODO thread.
+
+- [ ] **TEST.771 (bug) test_cache_warmup (20 tests) is red on main**
+  Lane 16, 1:38 PM EST 2026-11-15 (OPS.196 part 2b, PR #6707): fails the same on origin/main. Do: find the merge that broke it and fix the cause, code or test.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: TEST.770, OPS.196.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**

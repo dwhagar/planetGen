@@ -49,7 +49,7 @@ ACTION_TEXT = {
     "clear": ("Clear", "It has stopped answering: its process is gone or it has not been heard from for too long. It is "
                        "ended as failed and the machine is freed so the next run can start."),
     "resume": ("Resume run", "The run was ended from outside its work (killed, canceled or cleared). A new run carries it on: the stages it finished are kept, and the first stage it did not finish "
-                             "runs again from its start. It runs as a Generate page job you can follow there."),
+                             "and the ones after it carry on from what the run's records say is done: finished units are not done again and a unit that stopped starts after the pieces it finished. It runs as a Generate page job you can follow there."),
     "retry": ("Retry", None),
     "delete": ("Delete", "The run's record and log are deleted. Nothing it generated is touched."),
     "fill-habitability": ("Regenerate habitability",
@@ -723,7 +723,7 @@ def _resume_text(run):
         return ""
     reason = f" It was killed: {run['killed_reason']}." if run.get("killed_reason") else ""
     kept = len(found["carried"])
-    return (f"{reason} The new run keeps {kept} finished {'stage' if kept == 1 else 'stages'} and starts again from “{found['again'][0]}”"
+    return (f"{reason} The new run keeps {kept} finished {'stage' if kept == 1 else 'stages'} and carries on in “{found['again'][0]}”"
             f" ({len(found['again'])} {'stage' if len(found['again']) == 1 else 'stages'} to run).")
 
 

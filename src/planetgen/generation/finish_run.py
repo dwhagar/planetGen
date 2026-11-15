@@ -19,12 +19,12 @@ carry on (`FINISHABLE`), and gives the steps of a new run (`Plan.steps`):
 
 * a stage the run finished is *carried over*: it opens and ends at once with no unit, and the conclusion the earlier run
   stored (`wrapper.FINISHED_BY`);
-* the stage that stopped runs again from its start, its `prepare` included, which empties what the stage rewrites
-  (the scatters, the nebula field), and a sector stage skips the sectors already saved (`again`);
-* a stage that cannot carry on from the middle of the one before it runs that one again too (`REWIND_WITH`): the
-  phenomena indexes and the special phenomena are written into the table the scatter's shells fill, and only the scatter's
-  `prepare` empties it;
-* every stage after it runs as it would have.
+* every other stage, the one that stopped and each after it, is cut again as it would have been and carries the id of the run it
+  continues (`queue/resumed.py`, OPS.222): when the stage opens, the units the earlier run's rows say are done are not queued (their results are kept for the
+  stage's conclusion), and a unit that was not done starts after the pieces its attempts finished (the cursor and the stored piece results of
+  `engine_items`). A stage is never started from its beginning for what the rows say is done, so nothing is emptied again to make a stopped stage
+  safe to repeat: a command that gave a unit pieces it can resume (`commands.CommandSpec.resumes`) loses nothing, and the commands that empty a table
+  are stages of their own that the run before finished.
 
 The new run records the run it carries on from (`finishes`), so a finish that is itself stopped can be finished in turn.
 """
@@ -34,27 +34,15 @@ import dataclasses
 import sys
 
 from planetgen.db import store
-from planetgen.queue import commands, planrows, redisqueue, runrecord, wrapper
+from planetgen.queue import commands, planrows, redisqueue, resumed, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
     "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "clear-bright-stars", "store-scatter-limits", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
-"""frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
-galaxy an uninterrupted run would have: each either empties what it rewrites when it opens (`prepare`) or does work that
-saves nothing twice (a sector already saved is skipped, a total made again is the same total)."""
-
-REWIND_WITH = {"finish-phenomena": ("scatter-phenomena",), "scatter-phenomena": ("drop-phenomenon-indexes",),
-               "drop-phenomenon-indexes": ("empty-phenomenon-scatter",), "scatter-mass": ("clear-bright-stars",),
-               "scatter-luminosity": ("scatter-mass", "clear-bright-stars"), "draw-nebula-field": ("empty-nebula-field",)}
-"""dict: The command whose stage stopped -> the commands of the stage before it that runs again with it (the nearest one before it
-counts). The special phenomena are added to the rows the shells wrote, a pass is drawn over what its clearing left, and the bright stars
-of a run that draws both passes are split from the massive ones at a limit the run stores when it ends, so none of them can be emptied
-alone."""
-
-AGAIN = "again"
-"""str: The step parameter that marks the stage that stopped: it is run again from its start (`generate_sectors_pieces`
-leaves the sectors already saved alone)."""
+"""frozenset[str]: The commands whose stage can be carried on after it stopped partway, and give the galaxy an uninterrupted run
+would have: each either resumes after the pieces it finished (`commands.CommandSpec.resumes`) or does work that saves nothing twice (a table
+emptied again is empty, a total made again is the same total)."""
 
 
 class CannotFinish(RuntimeError):
@@ -69,9 +57,9 @@ class Plan:
     Attributes:
         run (dict): The stopped run (`runrecord.read_run`).
         steps (list[commands.Step]): The steps of the new run, every stage of the stopped one: those it finished carry
-            `wrapper.FINISHED_BY`, the one that stopped `AGAIN`.
+            `wrapper.FINISHED_BY`, the others `resumed.RESUMES_FROM`.
         first (int): The index of the first stage that runs again (stages before it are carried over).
-        stopped (int): The index of the first stage that did not finish.
+        stopped (int): The index of the first stage that did not finish (the same as `first`).
     """
 
     run: dict
@@ -191,14 +179,6 @@ def plan(conn, run_id, galaxy_seed, build, database):
     if stopped >= len(queued):
         raise CannotFinish(f"Every stage of run {run_id} ({run['title']}) finished; there is nothing to carry on.")
     first = stopped
-    while True:
-        earlier = REWIND_WITH.get(queued[first].kind)
-        if earlier is None:
-            break
-        found = next((index for index in range(first - 1, -1, -1) if queued[index].kind in earlier), None)
-        if found is None:
-            break
-        first = found
     unable = [step for step in queued[first:] if step.kind not in FINISHABLE]
     if unable:
         raise CannotFinish(f"The stage \"{unable[0].label}\" of run {run_id} cannot be carried on from the middle: run it "
@@ -207,13 +187,13 @@ def plan(conn, run_id, galaxy_seed, build, database):
     for index, step in enumerate(queued):
         # a stage that opened in the run being carried on keeps the clock it recorded (PERF.213); one that is run again opens anew
         params = {name: value for name, value in wrapper.resolve_params(conn, run_id, step.params, strict=False).items()
-                  if name not in (wrapper.FINISHED_BY, AGAIN)}
+                  if name not in (wrapper.FINISHED_BY, resumed.RESUMES_FROM)}
         if params.get("planned") == "random-start":
             params = _starts_as_planned(conn, run_id, index, params)
         if index < first:
             params[wrapper.FINISHED_BY] = run_id
-        elif index == stopped:
-            params[AGAIN] = True
+        else:
+            params[resumed.RESUMES_FROM] = run_id
         carried.append(commands.Step(step.key, step.kind, step.label, params))
     return Plan(run, carried, first, stopped)
 
@@ -359,5 +339,5 @@ class RecordedStage:
         self._held.__exit__(exc_type, exc, traceback)
 
 
-__all__ = ["AGAIN", "CannotFinish", "FINISHABLE", "Plan", "REWIND_WITH", "add_arguments", "find", "last_incomplete", "plan",
+__all__ = ["CannotFinish", "FINISHABLE", "Plan", "add_arguments", "find", "last_incomplete", "plan",
            "run_finish", "stage_finished"]

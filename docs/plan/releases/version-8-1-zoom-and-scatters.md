@@ -496,8 +496,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | stage 2 of the job engine, closed by OPS.211, 2026-11-13. |
 | OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | held for job-engine stage 4, 2026-11-13. |
 | OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | held for job-engine stage 3, 2026-11-13. |
-| OPS.196 | Job engine stage 1: guard test that no command goes silent (longest stretch with no movement under a budget; every command has pieces or a written single reason); whole flag deleted with the last family | none | Lane 16, 2026-11-13. |
-| OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | Lane 15, 2026-11-15. |
 | OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | Lane 13, 2026-11-14. |
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | Lane 13, 2026-11-15. |
 | OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | Lane 13, 2026-11-15. |
@@ -745,7 +743,10 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
 | OPS.262 | Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget | OPS.196 | Lane 16, 2026-11-15 |
 | GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (Young et al. 2023): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | Lane 04, 2026-11-15 |
+| GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | Lane 04, 2026-11-15 |
 | TEST.768 | (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module | none | Lane 14, 2026-11-15 |
+| TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | Lane 14, 2026-11-15 |
+| TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | Lane 14, 2026-11-15 |
+| TEST.771 | (bug) test_cache_warmup (20 tests) is red on main | none | Lane 14, 2026-11-15 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
-| MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | Lane 15, 2026-11-14
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14
