@@ -66,11 +66,11 @@ def test_the_setting_carries_the_draws_of_the_bodys_own_stream(hazy):
 
 @pytest.fixture(scope="module")
 def hazy_with_ground():
-    for seed in range(60):
+    for seed in range(200):      # GEN.1646 moved the recipe draws: the first hazy body with ground is seed 98 now (it was inside the first 60)
         planet, captured = _generate(seed)
         if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet):
             return planet, captured
-    pytest.fail("no body with ground of the first 60 seeds has a haze")
+    pytest.fail("no body with ground of the first 200 seeds has a haze")
 
 
 def test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it(hazy_with_ground):

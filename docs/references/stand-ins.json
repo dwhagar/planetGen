@@ -26993,7 +26993,7 @@
           "fields": [
             [
               "What it is",
-              "oddity W20 history draw 0.5, with air_branches.COLD_START_K 200, WARM_START_K 320, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the airless start does not find, and the tests that two answers are two branches"
+              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
             ],
             [
               "The range it moves in",
@@ -27024,7 +27024,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "oddity W20 history draw 0.5, with air_branches.COLD_START_K 200, WARM_START_K 320, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the airless start does not find, and the tests that two answers are two branches"
+          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
         }
       ],
       "slug": "6-75-stand-ins-of-the-nightside-collapse-of-a-locked-planet-s-air",
@@ -33771,11 +33771,11 @@
           "fields": [
             [
               "What it is",
-              "trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit"
+              "trojans.libration_period, trojans.TADPOLE_NEAREST_APPROACH_DEG 23.9 and trojans.TADPOLE_LIMIT_DEG 78.05: the slow libration period of the linearised problem, the nearest a tadpole comes to the secondary, and the libration amplitude past which a tadpole is a horseshoe (half the range of the angle from the secondary at the edge of the zone, (180 - 23.9) / 2)"
             ],
             [
               "The range it moves in",
-              "limit 23 to 25"
+              "amplitude limit 70 to 80"
             ],
             [
               "Where it holds",
@@ -33783,7 +33783,7 @@
             ],
             [
               "What would show it wrong",
-              "a librating body whose period differs from the law by over 10 percent"
+              "a librating body whose period differs from the law by over 10 percent; a body that librates past 78 degrees about the point and holds for 1 Gyr as a tadpole, or a horseshoe under it"
             ],
             [
               "What replaces it",
@@ -33791,7 +33791,7 @@
             ],
             [
               "Evidence",
-              "[R3220] ch. 3 (recalled, not opened). GEN.1643 finding (no constant changed): Eq. 3 and 4 of [R5245] at the edge of the tadpole zone (C 2.5) give 23.9 and 180 degrees for the turning points of the angle from the secondary, so 23.9 is the nearest a tadpole comes to the secondary and the amplitude about the point at 60 degrees is 78; the generator cuts the draw and splits tadpole from horseshoe at 23.9 as if it were an amplitude, and about a fifth of the real Jupiter Trojans librate wider ([R5245: Table 3]). Slice 1 of GEN.1643 raises the cut"
+              "[R3220] ch. 3 (recalled, not opened) for the period. GEN.1647: Eq. 3 and 4 of [R5245] (read) at the edge of the tadpole zone (C 2.5) give 23.9 and 180 degrees for the turning points of the angle from the secondary, so 23.9 is the nearest a tadpole comes to the secondary and the amplitude is 78.05; the cut of the swarm draw and the split of trojans.motion were at 23.9 as if it were an amplitude, and about a fifth of the real Jupiter Trojans librate wider ([R5245: Table 3]). Both now use the amplitude"
             ]
           ],
           "id": "TJ3",
@@ -33802,7 +33802,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit"
+          "what": "trojans.libration_period, trojans.TADPOLE_NEAREST_APPROACH_DEG 23.9 and trojans.TADPOLE_LIMIT_DEG 78.05: the slow libration period of the linearised problem, the nearest a tadpole comes to the secondary, and the libration amplitude past which a tadpole is a horseshoe (half the range of the angle from the secondary at the edge of the zone, (180 - 23.9) / 2)"
         },
         {
           "burn_down": [
@@ -34011,19 +34011,15 @@
           "what": "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
         },
         {
-          "burn_down": [
-            "replace",
-            "GEN.1643",
-            "L4, the libration amplitude scale is recalled from the Jupiter Trojans, not read; slice 0 fitted it to the Jupiter and Neptune Trojan papers (13 degrees proposed), slice 1 sets it and lowers the row to L2"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+              "trojan_swarm.LIBRATION_SIGMA_DEG 13: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150, GEN.1643)"
             ],
             [
               "The range it moves in",
-              "6 to 15"
+              "11 to 15"
             ],
             [
               "Where it holds",
@@ -34035,29 +34031,25 @@
             ],
             [
               "What replaces it",
-              "a fit to the Jupiter and Neptune Trojan catalogues"
+              "the Trojan catalogues' proper elements refitted as they grow"
             ],
             [
               "Evidence",
-              "PROPOSAL (GEN.1643 slice 0, scripts/fit_trojan_scales.py, report reports/gen1643-trojan-scales-2026-11-12.md; no constant changed): 13 degrees, T2, L2, knobs 11 to 15. The Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration integral C ([R5245: Table 3], Eq. 3 and 4, L4 and L5 weighted by their populations) is 13.0 (L4 13.3, L5 12.5; by the median 12.7); the Neptune Trojans give a Rayleigh width of 15 (best fit) and 12 (Table 4) [R5244]. Slice 1 sets it together with the cut of the draw, which the same fit shows is wrong (TJ3)"
+              "GEN.1643 (scripts/fit_trojan_scales.py, report reports/gen1643-trojan-scales-2026-11-12.md): the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration integral C ([R5245: Table 3], Eq. 3 and 4, L4 and L5 weighted by their populations) is 13.0 (L4 13.3, L5 12.5; by the median 12.7); the Neptune Trojans give a Rayleigh width of 15 (best fit) and 12 (Table 4) [R5244]. With the cut at the tadpole limit (TJ3) the draw's mean amplitude is 16.3 against the Jupiter 16.2"
             ]
           ],
           "id": "TJ9",
           "key": "6.121:TJ9",
           "kind": "P",
           "slug": "6-121-tj9",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L2",
           "unread": "GEN.1151",
-          "what": "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+          "what": "trojan_swarm.LIBRATION_SIGMA_DEG 13: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150, GEN.1643)"
         },
         {
-          "burn_down": [
-            "replace",
-            "GEN.1643",
-            "L4, the eccentricity scale is recalled from the Jupiter Trojans, not read; slice 0 fitted it to the Jupiter and Neptune Trojan papers (0.058, the value 0.06 stays), slice 1 lowers the row to L1"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -34065,7 +34057,7 @@
             ],
             [
               "The range it moves in",
-              "0.04 to 0.1"
+              "0.04 to 0.08"
             ],
             [
               "Where it holds",
@@ -34077,29 +34069,25 @@
             ],
             [
               "What replaces it",
-              "a fit to the proper elements of the Jupiter Trojans"
+              "the Trojan catalogues' proper elements refitted as they grow"
             ],
             [
               "Evidence",
-              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 0.06, T2, L1, knobs 0.04 to 0.08. The Rayleigh scale with the mean of the debiased Jupiter law of the proper eccentricity B ([R5245: Table 3]) is 0.058 (L4 0.047, L5 0.074; by the median 0.054); the Neptune Trojans give 0.045 for the whole population, 0.02 cold and 0.05 hot [R5244]. The value is that of bodies; a region's mean is tighter (the fit does not separate them)"
+              "GEN.1643 (same fit): the Rayleigh scale with the mean of the debiased Jupiter law of the proper eccentricity B ([R5245: Table 3]) is 0.058 (L4 0.047, L5 0.074; by the median 0.054); the Neptune Trojans give 0.045 for the whole population, 0.02 cold and 0.05 hot [R5244]. 0.06 is nudged inside both. The papers describe bodies; a region's mean is tighter (the fit does not separate them)"
             ]
           ],
           "id": "TJ10",
           "key": "6.121:TJ10",
           "kind": "P",
           "slug": "6-121-tj10",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
           "unread": "GEN.1151",
           "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
         },
         {
-          "burn_down": [
-            "replace",
-            "GEN.1643",
-            "L4, the inclination scale is recalled from the Jupiter Trojans, not read; slice 0 fitted it to the Jupiter and Neptune Trojan papers (11.7 degrees, the value 12 stays), slice 1 lowers the row to L1"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -34107,7 +34095,7 @@
             ],
             [
               "The range it moves in",
-              "8 to 18"
+              "9 to 16"
             ],
             [
               "Where it holds",
@@ -34119,20 +34107,20 @@
             ],
             [
               "What replaces it",
-              "a fit to the proper elements of the Jupiter Trojans"
+              "the Trojan catalogues' proper elements refitted as they grow"
             ],
             [
               "Evidence",
-              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 12 degrees, T2, L1, knobs 9 to 16. The Rayleigh scale with the mean of the debiased Jupiter law of the proper sine of inclination A (inclination is its arcsine, [R5245: Table 3]) is 11.7 degrees (L4 10.7, L5 13.2; by the median 11.3); the Neptune Trojans give 14 (12 to 16) for the whole population, 6 cold and 18 hot [R5244]. The value is that of bodies; a region's mean is tighter"
+              "GEN.1643 (same fit): the Rayleigh scale with the mean of the debiased Jupiter law of the proper sine of inclination A (inclination is its arcsine, [R5245: Table 3]) is 11.7 degrees (L4 10.7, L5 13.2; by the median 11.3); the Neptune Trojans give 14 (12 to 16) for the whole population, 6 cold and 18 hot [R5244]. 12 is nudged inside both. The papers describe bodies; a region's mean is tighter"
             ]
           ],
           "id": "TJ11",
           "key": "6.121:TJ11",
           "kind": "P",
           "slug": "6-121-tj11",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
           "unread": "GEN.1151",
           "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
@@ -65957,6 +65945,326 @@
       ],
       "slug": "6-290-stand-ins-of-the-bond-albedo-of-a-dry-body-s-ground",
       "title": "Stand-ins of the Bond albedo of a dry body's ground"
+    },
+    {
+      "key": "6.291",
+      "number": "6.291",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_pairs.OBSERVED_SHARE 0.09: the share of the systems of free planets that are bound pairs or triplets in a young cluster (42 of about 500 systems of the Trapezium sample, also quoted as 8 percent)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.10: [R5261] and 2025 find most of the pairs are reddened background sources and keep one good candidate"
+            ],
+            [
+              "Where it holds",
+              "systems of free planets of 0.7 to 13 Jupiter masses in a young cluster"
+            ],
+            [
+              "What would show it wrong",
+              "a deeper survey that confirms fewer than 1 percent of free planets in pairs"
+            ],
+            [
+              "What replaces it",
+              "a confirmed pair count of a spectroscopic follow-up"
+            ],
+            [
+              "Evidence",
+              "[R3467] (second hand), [R5261] and 2025 (MNRAS 542, L126), second hand"
+            ]
+          ],
+          "id": "RPP1",
+          "key": "6.291:RPP1",
+          "kind": "B",
+          "slug": "6-291-rpp1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "rogue_pairs.OBSERVED_SHARE 0.09: the share of the systems of free planets that are bound pairs or triplets in a young cluster (42 of about 500 systems of the Trapezium sample, also quoted as 8 percent)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_pairs.SURVIVAL_AT_REFERENCE 0.02 per REFERENCE_MYR 10: the share of a cluster's planet-planet pairs still bound after 10 Myr, applied as the same factor in every 10 Myr (survival), so a pair of a rogue older than about 100 Myr has a share under 1e-17"
+            ],
+            [
+              "The range it moves in",
+              "0.5 per 10 Myr (a sparse region) to 0.02"
+            ],
+            [
+              "Where it holds",
+              "pairs made in a cluster and left to drift in the galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a pair found with a rogue age far above 100 Myr"
+            ],
+            [
+              "What replaces it",
+              "the survival from a cluster's N-body run at the donor's own density"
+            ],
+            [
+              "Evidence",
+              "[R5262] (second hand); [R5263] (second hand) give a dense and a sparse bound"
+            ]
+          ],
+          "id": "RPP2",
+          "key": "6.291:RPP2",
+          "kind": "T",
+          "slug": "6-291-rpp2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "rogue_pairs.SURVIVAL_AT_REFERENCE 0.02 per REFERENCE_MYR 10: the share of a cluster's planet-planet pairs still bound after 10 Myr, applied as the same factor in every 10 Myr (survival), so a pair of a rogue older than about 100 Myr has a share under 1e-17"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_pairs.SEPARATION_RANGE_AU (28, 384): a pair's separation is log-uniform inside the observed projected separations"
+            ],
+            [
+              "The range it moves in",
+              "none (the observed range); a projection is smaller than the true separation by a factor near one, not undone"
+            ],
+            [
+              "Where it holds",
+              "pairs of 0.7 to 13 Jupiter masses"
+            ],
+            [
+              "What would show it wrong",
+              "a pair measured outside the range"
+            ],
+            [
+              "What replaces it",
+              "a measured separation distribution"
+            ],
+            [
+              "Evidence",
+              "[R3467] (second hand)"
+            ]
+          ],
+          "id": "RPP3",
+          "key": "6.291:RPP3",
+          "kind": "B",
+          "slug": "6-291-rpp3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "rogue_pairs.SEPARATION_RANGE_AU (28, 384): a pair's separation is log-uniform inside the observed projected separations"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_pairs.tidal_limit_au: a pair of mass m is held inside (G m / (4 Omega A)) ** (1/3) of the galaxy's tide (the epicyclic tidal term of rogue_drift, Oort's A and B); a pair with the limit under 28 AU is not made"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the solar neighbourhood's Oort constants for every donor (the stand-in of rogue_drift)"
+            ],
+            [
+              "What would show it wrong",
+              "the dense inner galaxy, where the real constants are larger"
+            ],
+            [
+              "What replaces it",
+              "rogue_drift.Galaxy.from_frequencies for the donor's radius"
+            ],
+            [
+              "Evidence",
+              "physics (Chandrasekhar tidal radius), no measurement"
+            ]
+          ],
+          "id": "RPP4",
+          "key": "6.291:RPP4",
+          "kind": "D",
+          "slug": "6-291-rpp4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "rogue_pairs.tidal_limit_au: a pair of mass m is held inside (G m / (4 Omega A)) ** (1/3) of the galaxy's tide (the epicyclic tidal term of rogue_drift, Oort's A and B); a pair with the limit under 28 AU is not made"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_pairs.period_yr and the circular orbit: the two go round each other on a circular orbit of the separation, by Kepler's third law (no source gives an eccentricity for wide young pairs, so none is drawn)"
+            ],
+            [
+              "The range it moves in",
+              "eccentricity 0 to 0.8 changes a period only by the pair's own pericentre"
+            ],
+            [
+              "Where it holds",
+              "every pair"
+            ],
+            [
+              "What would show it wrong",
+              "an eccentricity distribution measured for wide free-planet pairs"
+            ],
+            [
+              "What replaces it",
+              "that distribution"
+            ],
+            [
+              "Evidence",
+              "educated guess from inferred physics (wide binary stars of the field)"
+            ]
+          ],
+          "id": "RPP5",
+          "key": "6.291:RPP5",
+          "kind": "P",
+          "slug": "6-291-rpp5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "rogue_pairs.period_yr and the circular orbit: the two go round each other on a circular orbit of the separation, by Kepler's third law (no source gives an eccentricity for wide young pairs, so none is drawn)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_yield.bind_pairs: each body of a donor not yet taken is a system with the chance bound_share(age since the ejection), and its companion is the next body the donor ejected from the same star by the same cause, which leaves at the same moment (it takes its partner's delay, age and kick) and so lands with it; the draws are two per body not yet taken, in event order"
+            ],
+            [
+              "The range it moves in",
+              "the pairing of a body with the next in order rather than any other body of its star"
+            ],
+            [
+              "Where it holds",
+              "donors with two or more ejected bodies of one star and one cause"
+            ],
+            [
+              "What would show it wrong",
+              "a donor model in which a pair is ejected as a pair by a scatterer's single encounter"
+            ],
+            [
+              "What replaces it",
+              "the pair made inside the scattering event (planet_architecture)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (planets of one star scattered by one encounter leave together)"
+            ]
+          ],
+          "id": "RPP6",
+          "key": "6.291:RPP6",
+          "kind": "P",
+          "slug": "6-291-rpp6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "rogue_yield.bind_pairs: each body of a donor not yet taken is a system with the chance bound_share(age since the ejection), and its companion is the next body the donor ejected from the same star by the same cause, which leaves at the same moment (it takes its partner's delay, age and kick) and so lands with it; the draws are two per body not yet taken, in event order"
+        }
+      ],
+      "slug": "6-291-stand-ins-of-the-rogue-planets-that-stay-a-pair",
+      "title": "Stand-ins of the rogue planets that stay a pair"
+    },
+    {
+      "key": "6.292",
+      "number": "6.292",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2 for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31"
+            ],
+            [
+              "The range it moves in",
+              "each within 5 percent"
+            ],
+            [
+              "Where it holds",
+              "krypton and bromine as trace gases of an air (the table's only users of them)"
+            ],
+            [
+              "What would show it wrong",
+              "a printed length of krypton or bromine outside 140 to 158 g/cm2"
+            ],
+            [
+              "What replaces it",
+              "the Particle Data Group's own krypton and bromine pages"
+            ],
+            [
+              "Evidence",
+              "[R4926] gives iron and xenon (READ); argon 119.7, potassium 119.0, calcium 119.8, titanium 126.2, vanadium 128.5, chromium 129.3 and iron 132.1 lie on a smooth curve of the same kind"
+            ]
+          ],
+          "id": "SHL1",
+          "key": "6.292:SHL1",
+          "kind": "P",
+          "slug": "6-292-shl1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_dose.ELEMENT_INTERACTION_LENGTH_G_CM2 for krypton and bromine (149.8 and 147.6 g/cm2): the power law in atomic weight through iron (132.1) and xenon (172.1), slope 0.31"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_dose.stopping_mixture: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen"
+            ],
+            [
+              "The range it moves in",
+              "the mass stopping power of the neighboring rows differs by about 10 percent"
+            ],
+            [
+              "Where it holds",
+              "an air whose heavier elements are trace gases (sulfur dioxide, sodium and potassium chlorides); the carriers C, N, O, H, He, Ne, Ar, Kr and Xe have rows"
+            ],
+            [
+              "What would show it wrong",
+              "a stellar-proton cutoff of a sulfur-rich air that moves by more than 5 percent when sulfur gets its own row"
+            ],
+            [
+              "What replaces it",
+              "rows of the proton range table (scripts/build_proton_range.py) for the missing elements"
+            ],
+            [
+              "Evidence",
+              "the mass stopping power of fast protons varies slowly with Z/A (ICRU 49 rows of the table); 0.4 to 0.5 for all of them"
+            ]
+          ],
+          "id": "SHL2",
+          "key": "6.292:SHL2",
+          "kind": "B",
+          "slug": "6-292-shl2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_dose.stopping_mixture: an element with no row in the proton range table (Li, F, Na, Mg, Al, P, S, Cl, K, Ca, Ti, V, Cr, Br, Rn) takes the mass stopping power of the row of the nearest atomic number (the lighter on a tie), and deuterium that of hydrogen"
+        }
+      ],
+      "slug": "6-292-stand-ins-of-the-shielding-of-a-mixed-air-gen-444",
+      "title": "Stand-ins of the shielding of a mixed air (GEN.444)"
     }
   ]
 }

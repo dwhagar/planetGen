@@ -9,7 +9,7 @@ twice); each item's test is wired when its PR is up and tells its owner (GEN.147
 import pytest
 
 from planetgen.db import edits, sector_paths, store
-from planetgen.generation.run_plan import rescore_habitability_unit
+from planetgen.queue import commands
 from tests import rescan_proof_support as proof
 from tests.fuzz_support import deterministic_entropy
 from tests.test_sector_paths_db import _save
@@ -71,9 +71,9 @@ def test_a_rescore_run_again_with_nothing_changed_touches_no_row(mysql_config):
         low, high = conn.execute("SELECT MIN(id) AS low, MAX(id) AS high FROM star_systems").fetchone().values()
     params = {"low": low, "high": high, "database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}}
     with proof.TouchLog(mysql_config, ["planets", "moons", "star_systems"]) as log:
-        rescore_habitability_unit(params, lambda *a, **k: None)       # the first run may write what was never scored
+        commands.run_alone("rescore-habitability", params, lambda *a, **k: None)       # the first run may write what was never scored
         log.clear()
-        rescore_habitability_unit(params, lambda *a, **k: None)
+        commands.run_alone("rescore-habitability", params, lambda *a, **k: None)
         assert log.touched() == []
 
 

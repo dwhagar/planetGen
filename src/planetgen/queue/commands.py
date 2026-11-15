@@ -49,6 +49,12 @@ class CommandSpec:
     unit by nature, which the ceiling does not hold; any other queued command is cut into units and declares in
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
     unit that runs longer than the ceiling anyway is written to the run's log.
+
+    **The engine owns the loop of a command with `pieces` and `do` (OPS.191, `queue/engine.py`).** Instead of a `unit` function that loops, counts and checks for itself, the command gives
+    `pieces(args, cursor)`, the JSON-able list of the pieces of one unit that come after `cursor` (the pieces already done: 0 until the ledger stores it, OPS.219), and `do(args, piece, ctx)`, which
+    does one piece and returns a JSON-able result or `None`. The engine counts pieces done of pieces in all into the unit's beat and honours a cancel and a pause between two pieces; `ctx` is the one
+    object a piece is handed (`engine.Context`: the database, `ctx.commit()`, `ctx.sql`). The unit's result is the list of the pieces' results in order, or, when the command gives
+    `gather(args, results, ctx)`, what that makes of them (`ctx.state` is what the pieces left for it). `pieces` and `do` replace `unit`: a command has one or the other. A command with `unit` runs as before until its family converts it.
     """
 
     kind: str
@@ -61,10 +67,21 @@ class CommandSpec:
     conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
+    pieces: tuple = None
+    do: tuple = None
+    gather: tuple = None
+
+    def __post_init__(self):
+        if (self.pieces is None) != (self.do is None):
+            raise ValueError(f"command {self.kind!r}: `pieces` and `do` go together")
+        if self.pieces is not None and self.unit is not None:
+            raise ValueError(f"command {self.kind!r}: a unit is its own `unit` function or the engine's loop over `pieces` and `do`, not both")
+        if self.gather is not None and self.pieces is None:
+            raise ValueError(f"command {self.kind!r}: `gather` makes the result of the engine's loop, so it needs `pieces`")
 
     @property
     def inline(self):
-        return self.unit is None
+        return self.unit is None and self.pieces is None
 
 
 @dataclass
@@ -111,7 +128,8 @@ REGISTRY = _commands(
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=10),
     CommandSpec("plan-skeleton", "Plan the galaxy's density skeleton: one unit",
-                unit=("planetgen.generation.run_plan", "plan_skeleton_unit"),
+                pieces=("planetgen.generation.run_plan", "skeleton_pieces"), do=("planetgen.generation.run_plan", "plan_skeleton_do"),
+                gather=("planetgen.generation.run_plan", "plan_skeleton_result"),
                 expand=("planetgen.generation.run_plan", "expand_plan_skeleton"), whole=True),
     CommandSpec("scatter-phenomena", "Scatter the phenomena: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_phenomena_unit"),
@@ -120,7 +138,8 @@ REGISTRY = _commands(
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6),
     CommandSpec("finish-phenomena", "End the phenomena scatter: the special phenomena, the indexes and the record, one unit",
-                unit=("planetgen.generation.run_plan", "finish_phenomena_unit"),
+                pieces=("planetgen.generation.run_plan", "finish_phenomena_pieces"), do=("planetgen.generation.run_plan", "finish_phenomena_do"),
+                gather=("planetgen.generation.run_plan", "finish_phenomena_result"),
                 expand=("planetgen.generation.run_plan", "expand_finish_phenomena"), whole=True),
     CommandSpec("scatter-luminosity", "Scatter the bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
@@ -139,7 +158,8 @@ REGISTRY = _commands(
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=30),
     CommandSpec("refresh-block-lights", "Make the Galaxy Map's block light totals again: one unit",
-                unit=("planetgen.generation.run_plan", "refresh_block_lights_unit"),
+                pieces=("planetgen.generation.run_plan", "refresh_block_lights_pieces"), do=("planetgen.generation.run_plan", "refresh_block_lights_do"),
+                gather=("planetgen.generation.run_plan", "refresh_block_lights_result"),
                 expand=("planetgen.generation.run_plan", "expand_refresh_block_lights"), whole=True),
     CommandSpec("refresh-run-blocks", "Bring the Galaxy Map's block totals up to what a galaxy run stored: one unit",
                 unit=("planetgen.generation.run_galaxy", "refresh_run_blocks_unit"),
@@ -149,12 +169,16 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_fill_map_luminosity"),
                 unit_seconds=2),
     CommandSpec("rescore-habitability", "Re-score the habitability: one unit per run of ids",
-                unit=("planetgen.generation.run_plan", "rescore_habitability_unit"),
+                pieces=("planetgen.generation.run_plan", "rescore_habitability_pieces"),
+                do=("planetgen.generation.run_plan", "rescore_habitability_piece"),
+                gather=("planetgen.generation.run_plan", "stale_systems_result"),
                 expand=("planetgen.generation.run_plan", "expand_rescore_habitability"),
                 conclude=("planetgen.generation.run_plan", "conclude_rescore_habitability"),
                 unit_seconds=25),
     CommandSpec("refill-effect-ledger", "Refill the effect ledger: one unit per run of ids",
-                unit=("planetgen.generation.run_plan", "refill_effect_ledger_unit"),
+                pieces=("planetgen.generation.run_plan", "refill_effect_ledger_pieces"),
+                do=("planetgen.generation.run_plan", "refill_effect_ledger_piece"),
+                gather=("planetgen.generation.run_plan", "stale_systems_result"),
                 expand=("planetgen.generation.run_plan", "expand_refill_effect_ledger"),
                 unit_seconds=25),
     CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
@@ -172,6 +196,9 @@ REGISTRY = _commands(
     CommandSpec("clear-bright-stars", "Empty the earlier bright stars before a scatter draws them again: one unit",
                 unit=("planetgen.generation.run_plan", "clear_bright_stars_unit"),
                 expand=("planetgen.generation.run_plan", "expand_clear_bright_stars"), whole=True),
+    CommandSpec("store-scatter-limits", "Store the limits the star scatter will run at, before the backfill that draws what its passes leave out: one unit",
+                unit=("planetgen.generation.run_plan", "store_scatter_limits_unit"),
+                expand=("planetgen.generation.run_plan", "expand_store_scatter_limits"), whole=True),
     CommandSpec("empty-nebula-field", "Empty the nebula field table before it is drawn again: one unit",
                 unit=("planetgen.generation.run_plan", "empty_nebula_field_unit"),
                 expand=("planetgen.generation.run_plan", "expand_empty_nebula_field"), whole=True),
@@ -217,10 +244,14 @@ REGISTRY = _commands(
                 unit=("planetgen.cli.reset", "reset_galaxy_unit"),
                 expand=("planetgen.cli.reset", "expand_reset_galaxy"), whole=True),
     CommandSpec("check-math", "Check the math against known answers, one unit",
-                unit=("planetgen.physics.mathcheck", "check_math_unit"),
+                pieces=("planetgen.physics.mathcheck", "check_math_pieces"),
+                do=("planetgen.physics.mathcheck", "check_math_piece"),
+                gather=("planetgen.physics.mathcheck", "check_math_gather"),
                 expand=("planetgen.physics.mathcheck", "expand_check_math"), whole=True),
     CommandSpec("check-datasets", "Check where each dataset stands, fetching nothing: the data check, one unit",
-                unit=("planetgen.cli.datasets", "check_datasets_unit"),
+                pieces=("planetgen.cli.datasets", "check_datasets_pieces"),
+                do=("planetgen.cli.datasets", "check_datasets_piece"),
+                gather=("planetgen.cli.datasets", "check_datasets_gather"),
                 expand=("planetgen.cli.datasets", "expand_check_datasets"), whole=True),
     CommandSpec("settle-sector-paths", "Save the sector paths: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "save_sector_paths_unit"),
@@ -228,85 +259,121 @@ REGISTRY = _commands(
                 unit_seconds=20),
     CommandSpec("warm-cluster-field", "Make the galaxy's cluster field: the mean system mass of each age in small parts, "
                 "then the field as a file",
-                unit=("planetgen.galaxy.field_job", "field_unit"), expand=("planetgen.galaxy.field_job", "expand_field"),
+                pieces=("planetgen.galaxy.field_job", "pieces_field"),
+                do=("planetgen.galaxy.field_job", "do_field"), gather=("planetgen.galaxy.field_job", "gather_field"),
+                expand=("planetgen.galaxy.field_job", "expand_field"),
                 conclude=("planetgen.galaxy.field_job", "conclude_field"), unit_seconds=5),
     CommandSpec("warm-object-index", "Build or refresh the object index: one row per object of every kind the site lists",
-                unit=("planetgen.web.warmup", "warm_object_index_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_object_index"),
+                do=("planetgen.web.warmup", "do_warm_object_index"), gather=("planetgen.web.warmup", "gather_warm_object_index"),
                 expand=("planetgen.web.warmup", "expand_warm_object_index"), whole=True),
     CommandSpec("warm-galaxy-map", "Warm the Galaxy Map's opening view, its shape, sectors and phenomena",
-                unit=("planetgen.web.warmup", "warm_galaxy_map_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_galaxy_map"),
+                do=("planetgen.web.warmup", "do_warm_galaxy_map"), gather=("planetgen.web.warmup", "gather_warm_galaxy_map"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_map"), whole=True),
     CommandSpec("warm-galaxy-nodes", "Warm the Galaxy Map's sector-block nodes: every populated block down to level 243",
-                unit=("planetgen.web.warmup", "warm_galaxy_nodes_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_galaxy_nodes"),
+                do=("planetgen.web.warmup", "do_warm_galaxy_nodes"), gather=("planetgen.web.warmup", "gather_warm_galaxy_nodes"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_nodes"),
                 finish=("planetgen.web.warmup", "finish_warm_galaxy_nodes"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=64),
     CommandSpec("warm-galaxy-deep-nodes", "Warm the Galaxy Map's deep nodes: the zoom run in to the center",
-                unit=("planetgen.web.warmup", "warm_galaxy_deep_nodes_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_galaxy_deep_nodes"),
+                do=("planetgen.web.warmup", "do_warm_galaxy_deep_nodes"), gather=("planetgen.web.warmup", "gather_warm_galaxy_deep_nodes"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_deep_nodes"),
                 finish=("planetgen.web.warmup", "finish_warm_galaxy_deep_nodes"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=64),
     CommandSpec("warm-lists", "Warm the first page of every list, and its counts",
-                unit=("planetgen.web.warmup", "warm_lists_unit"), expand=("planetgen.web.warmup", "expand_warm_lists"),
+                pieces=("planetgen.web.warmup", "pieces_warm_lists"),
+                do=("planetgen.web.warmup", "do_warm_lists"), gather=("planetgen.web.warmup", "gather_warm_lists"),
+                expand=("planetgen.web.warmup", "expand_warm_lists"),
                 whole=True),
     CommandSpec("warm-sectors", "Warm every sector page: one unit per slice of the listing",
-                unit=("planetgen.web.warmup", "warm_sectors_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_sectors"),
+                do=("planetgen.web.warmup", "do_warm_sectors"), gather=("planetgen.web.warmup", "gather_warm_sectors"),
                 expand=("planetgen.web.warmup", "expand_warm_sectors"),
                 finish=("planetgen.web.warmup", "finish_warm_sectors"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=75),
     CommandSpec("warm-systems", "Warm every system page: one unit per slice of the listing",
-                unit=("planetgen.web.warmup", "warm_systems_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_systems"),
+                do=("planetgen.web.warmup", "do_warm_systems"), gather=("planetgen.web.warmup", "gather_warm_systems"),
                 expand=("planetgen.web.warmup", "expand_warm_systems"),
                 finish=("planetgen.web.warmup", "finish_warm_systems"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=75),
     CommandSpec("warm-phenomena", "Warm every phenomenon page: one unit per slice of the listing",
-                unit=("planetgen.web.warmup", "warm_phenomena_unit"),
+                pieces=("planetgen.web.warmup", "pieces_warm_phenomena"),
+                do=("planetgen.web.warmup", "do_warm_phenomena"), gather=("planetgen.web.warmup", "gather_warm_phenomena"),
                 expand=("planetgen.web.warmup", "expand_warm_phenomena"),
                 finish=("planetgen.web.warmup", "finish_warm_phenomena"),
                 warm=("planetgen.web.warmup", "keep_app"),
                 unit_seconds=75),
     CommandSpec("warm-search", "Warm the search page",
-                unit=("planetgen.web.warmup", "warm_search_unit"), expand=("planetgen.web.warmup", "expand_warm_search"),
+                pieces=("planetgen.web.warmup", "pieces_warm_search"),
+                do=("planetgen.web.warmup", "do_warm_search"), gather=("planetgen.web.warmup", "gather_warm_search"),
+                expand=("planetgen.web.warmup", "expand_warm_search"),
                 whole=True),
     CommandSpec("check-revision", "Check the schema revision records and that the tables match the models",
-                unit=("planetgen.db.check", "check_revision_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_revision_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_revision_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-tables", "Check every table (CHECK TABLE ... QUICK)",
-                unit=("planetgen.db.check", "check_tables_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_tables_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_tables_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-tables-extended", "Check every table thoroughly (CHECK TABLE ... EXTENDED, slow)",
-                unit=("planetgen.db.check", "check_tables_extended_unit"),
+                pieces=("planetgen.db.check", "check_tables_extended_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_tables_extended_gather"),
                 expand=("planetgen.db.check", "expand_check"), whole=True),
     CommandSpec("check-orphans", "Check that every row has its parent",
-                unit=("planetgen.db.check", "check_orphans_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_orphans_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_orphans_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-ids", "Check that the id blocks are ahead of every id",
-                unit=("planetgen.db.check", "check_ids_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_ids_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_ids_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-values", "Check that columns hold values a generator could write",
-                unit=("planetgen.db.check", "check_values_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_values_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_values_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-counts", "Check that each sector's stats count its systems",
-                unit=("planetgen.db.check", "check_counts_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_counts_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_counts_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-version-keys", "Check that every sector has a well formed version key",
-                unit=("planetgen.db.check", "check_version_keys_unit"),
+                pieces=("planetgen.db.check", "check_version_keys_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_version_keys_gather"),
                 expand=("planetgen.db.check", "expand_check"), whole=True),
     CommandSpec("check-storage", "Check that every sealed sector still hashes to its storage checksum",
-                unit=("planetgen.db.check", "check_storage_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_storage_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_storage_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("check-systems", "Check every star system against the validation rules (slow)",
-                unit=("planetgen.db.check", "check_systems_unit"),
+                pieces=("planetgen.db.check", "check_systems_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_systems_gather"),
                 expand=("planetgen.db.check", "expand_check_systems"), whole=True),
     CommandSpec("check-object-index", "Check that the object index holds every object as the tables do",
-                unit=("planetgen.db.check", "check_object_index_unit"), expand=("planetgen.db.check", "expand_check"),
+                pieces=("planetgen.db.check", "check_object_index_pieces"),
+                do=("planetgen.db.check", "check_piece"),
+                gather=("planetgen.db.check", "check_object_index_gather"), expand=("planetgen.db.check", "expand_check"),
                 whole=True),
     CommandSpec("end-map-rebuild-maintenance", "Open the site again after the sector-grid switch closed it",
-                unit=("planetgen.web.warmup", "end_map_rebuild_unit"),
+                pieces=("planetgen.web.warmup", "pieces_end_map_rebuild"),
+                do=("planetgen.web.warmup", "do_end_map_rebuild"), gather=("planetgen.web.warmup", "gather_end_map_rebuild"),
                 expand=("planetgen.web.warmup", "expand_end_map_rebuild"), whole=True),
 )
 """dict: Every command the wrapper can name, by kind."""
@@ -357,7 +424,7 @@ KIND_OF_STAGE = {
     "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability", "ledger": "refill-effect-ledger",
     "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "nebula-clear": "empty-nebula-field",
     "phenomena-clear": "empty-phenomenon-scatter", "phenomena-unindex": "drop-phenomenon-indexes",
-    "mass-clear": "clear-bright-stars", "luminosity-clear": "clear-bright-stars", "start": "generate-start-sector",
+    "scatter-limits": "store-scatter-limits", "mass-clear": "clear-bright-stars", "luminosity-clear": "clear-bright-stars", "start": "generate-start-sector",
     "neighborhood": "generate-neighborhood", "clear-mass": "clear-scatter", "clear-luminosity": "clear-scatter",
     "clear-phenomena": "clear-scatter", "clear-nebula-field": "clear-scatter",
     "sectors": "generate-sectors", "link": "link-neighbors", "population": "run-population",
@@ -411,8 +478,39 @@ def unit_function(kind):
     """
     command = REGISTRY[kind]
     if command.unit is None:
-        raise ValueError(f"command {kind!r} is inline: it has no units yet")
+        raise ValueError(f"command {kind!r} is inline: it has no units yet" if command.pieces is None
+                         else f"command {kind!r} runs through the engine's loop (`engine.run`), not a unit function")
     return _function(command.unit)
+
+
+def pieces_function(kind):
+    """The function that lists the pieces of a unit of `kind` after a cursor (`CommandSpec.pieces`), or `None` for a command that has its own `unit` function.
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.pieces is None else _function(command.pieces)
+
+
+def do_function(kind):
+    """The function that does one piece of a unit of `kind` (`CommandSpec.do`), or `None`.
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.do is None else _function(command.do)
+
+
+def gather_function(kind):
+    """The function that makes a unit's result of its pieces' results (`CommandSpec.gather`), or `None` (the list of them is the result).
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.gather is None else _function(command.gather)
 
 
 def _hook(kind, name):
@@ -581,4 +679,5 @@ def run_alone(kind, args, report=None):
     Returns:
         The unit's JSON-able result.
     """
-    return unit_function(kind)(args, report or (lambda done, estimate: None))
+    from planetgen.queue import engine         # the engine reads the registry, so it imports this file
+    return engine.run(kind, args, report or (lambda done, estimate: None))
