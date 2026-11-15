@@ -36,6 +36,7 @@ FUNCTIONS = frozenset({
     "planetgen.queue.units.unit_failed",                # its failure callback
     "planetgen.queue.units.open_stage",                 # the opening (cut) of a run's next stage (PERF.254)
     "planetgen.queue.units.open_failed",                # its failure callback
+    "planetgen.queue.forkedjob.run",                    # a unit as a job process the template forked (OPS.226)
     "planetgen.queue.units.warm_star_tables",           # the warm set of a template (OPS.226): the sampling tables every job forked from it shares
     "planetgen.queue.requires.job_failed",              # the callbacks every job gets (PERF.247)
     "planetgen.queue.requires.job_succeeded",
