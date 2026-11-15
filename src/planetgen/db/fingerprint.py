@@ -92,6 +92,11 @@ CHILD_TABLES = (
 """tuple: `(table, foreign key, parent table)` of the child rows of an
 object a sector holds."""
 
+BODY_CHILD_SUFFIXES = tuple(table[len("planet_"):] for table, _column, parent in CHILD_TABLES
+                            if parent == "planets" and (f"moon_{table[len('planet_'):]}", "moon_id", "moons") in CHILD_TABLES)
+"""tuple: The child tables every body kind has (`planet_<name>`, `moon_<name>`, `rogue_planet_<name>`), in `CHILD_TABLES` order: the rows
+`store.body_child_rows` writes for a body, and an edit of a body deletes first."""
+
 ADDRESS_TABLES = ("bright_stars", "phenomenon_scatter")
 """tuple: Tables keyed by a sector address (`shell_index`, `band_index`,
 `wedge_index`) rather than a sector row."""
@@ -123,6 +128,7 @@ _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tab
 
 LEFT_OUT_TABLES = frozenset({
     "galaxy_block_light_parts",    # the sums the scatter writers kept for the block light stage (GEN.1476): derived from the scatter, which the fingerprint reads
+    "engine_items",    # the job engine's ledger row of a job (OPS.215): which attempt ran and where it stopped, no galaxy data
     "body_numbers",    # the number each slot of a system has had (DB.75): the ID of a body, kept so it is stable, decides no result
     "body_history",    # the numbers a body's history left, kept for the stored galaxy (GEN.1497); the fingerprint reads the results they produced
     "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record

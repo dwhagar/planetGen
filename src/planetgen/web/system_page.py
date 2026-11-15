@@ -28,7 +28,8 @@ import tempfile
 from flask import Response, request
 
 from . import bp, jobs
-from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_store, _number
+from .admin_pages import _require_admin
+from .generate_page import FormError, _admin_or_403, _no_store, _number
 from .helpers import crumb, trusted_html
 
 from planetgen.queue import api_jobs
@@ -344,7 +345,7 @@ def generate_system():
     """The one-off system form (GET), and a generated system under it
     (POST, the same form filled in again so it can be re-rolled)."""
     if request.method in ("GET", "HEAD"):  # HEAD is a GET without the body, never the POST branch
-        admin, response = _admin_or_redirect()
+        admin, response = _require_admin(fresh=True)
         return response or _page(admin)
 
     admin = _admin_or_403()

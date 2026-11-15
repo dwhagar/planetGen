@@ -589,6 +589,18 @@ effect_ledger = sa.Table(
 )
 
 
+engine_items = sa.Table(
+    'engine_items',
+    metadata,
+    sa.Column('job_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('attempt', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('cursor_key', sa.String(255), nullable=True),
+    sa.Column('done_at', mysql.DATETIME(fsp=6), nullable=True),
+    sa.Column('updated_at', mysql.DATETIME(fsp=6), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 facilities = sa.Table(
     'facilities',
     metadata,

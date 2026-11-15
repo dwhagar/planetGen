@@ -15,8 +15,10 @@ from planetgen.db import region
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util import detmath
 
-LADDER_PC = (2.0, 4.0, 8.0, 16.0, 32.0, 50.0)
-"""tuple: The radii tried, smallest first (`near.LADDER_PC`, then `near.MAX_DISTANCE_PC`)."""
+def ladder_pc():
+    """The radii tried, smallest first: `near.LADDER_PC`, then `near.MAX_DISTANCE_PC` (read when asked: `near` imports `query`, which imports this module)."""
+    from planetgen.db import near
+    return (*near.LADDER_PC, near.MAX_DISTANCE_PC)
 
 SPHERE_LIMIT = 100_000
 """int: A sphere holding more systems than this is not read (`near.SPHERE_LIMIT`)."""
@@ -46,7 +48,7 @@ def nearby_systems(conn, point_ly, count, exclude_id=None):
     """
     center = tuple(ly_to_pc(c) for c in point_ly)
     found, radius = [], 0.0
-    for rung in LADDER_PC:
+    for rung in ladder_pc():
         if rung >= GUARDED_FROM_PC and region.capped_count(
                 conn, "star_systems", _POSITION, center, rung, SPHERE_LIMIT + 1) > SPHERE_LIMIT:
             break

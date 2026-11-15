@@ -81,7 +81,7 @@ from planetgen.generation.limits import (
 )
 
 from . import bp, jobs
-from .admin_pages import _no_store, _sentence, came_from, safe_next
+from .admin_pages import _no_store, _require_admin, _sentence, came_from, safe_next
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
@@ -1052,18 +1052,6 @@ def _json_error(message, status):
     return _no_store(make_response(jsonify({"error": message}), status))
 
 
-def _admin_or_redirect():
-    """`(admin, None)`, or `(None, redirect)` to log in (or to change the
-    seeded default credentials first)."""
-    admin = current_admin()
-    here = request.full_path.rstrip("?")
-    if admin is None:
-        return None, _no_store(redirect(page_url("login", next=here), code=302))
-    if admin.get("must_change_credentials"):
-        return None, _no_store(redirect(page_url("account", next=here), code=302))
-    return admin, None
-
-
 def _admin_or_403():
     admin = current_admin()
     if admin is None or admin.get("must_change_credentials"):
@@ -1470,7 +1458,7 @@ def generate():
     back to the page, or the page again with an error when nothing
     started)."""
     if request.method in ("GET", "HEAD"):
-        admin, response = _admin_or_redirect()
+        admin, response = _require_admin(fresh=True)
         return response or generate_flow.start_page(admin)
 
     admin = _admin_or_403()
@@ -1899,7 +1887,7 @@ generate_sectors.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @bp.route("/admin/generate/jobs/<job_id>")
 def generate_job(job_id):
     """One job and the last 256 KB of its output."""
-    admin, response = _admin_or_redirect()
+    admin, response = _require_admin(fresh=True)
     if response:
         return response
     root = jobs.jobs_dir()

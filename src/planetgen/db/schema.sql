@@ -6645,4 +6645,16 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- v259 (GEN.1433): `stars`, `comets`, `black_holes`, `neutron_stars`, `nebulae`, `supernova_remnants`, `quasars`, `interstellar_comets` and `asteroid_fields` gain `flavor_key` (VARCHAR(32), NULL) as `asteroid_belts` do: the id of the flavor line the object shows, a line of its own scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244.
 
--- v261 (OPS.253): `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once keeps one row for each part (how many batches of its share are written), which never counts in the ledger; the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
+-- engine_items (v261, OPS.215): the galaxy's half of the job engine's ledger (`planetgen/queue/ledger.py`; the control database holds `engine_runs`, `engine_jobs` and `engine_attempts`). One row per job
+-- that writes to this galaxy: `job_id` is the id of the job's row in the control database's `engine_jobs` (the two databases are not joined by a key), `attempt` the number of the attempt the supervisor
+-- handed the job, `cursor_key` the place the job has reached and `done_at` when it finished. A job's own commits update its row `WHERE attempt = mine`, so a job that was replaced touches no row and stops, and the
+-- last commit sets `done_at` in the same transaction as the data (the fence). The table holds no galaxy data and goes with the galaxy. A galaxy made before v261 has no rows.
+CREATE TABLE IF NOT EXISTS engine_items (
+    job_id        BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    attempt       INT UNSIGNED NOT NULL DEFAULT 0,
+    cursor_key    VARCHAR(255) NULL,
+    done_at       DATETIME(6) NULL,
+    updated_at    DATETIME(6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v262 (OPS.253): `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once keeps one row for each part (how many batches of its share are written), which never counts in the ledger; the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
