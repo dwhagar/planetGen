@@ -23,7 +23,7 @@ import os
 import time
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, wrapper
@@ -591,7 +591,6 @@ def _sky_units(params, centers):
     of, drawn tier by tier from the top down (the order a cell's depth is recorded in) and, since one sky draw runs at a time in the galaxy (`sky_charting.DrawLock`), in one piece. A unit's
     cost is the predicted seconds of its tiers (`sky_tiers.visits`) in the bar's unit of sectors.
     """
-    from planetgen.db import sky_tier_ledger
     from planetgen.generation import sky_charting, sky_tiers
     limit = float(params["sky_limit"])
     conn = store.get_connection(_mysql_config_of(params))
@@ -619,62 +618,98 @@ def _sky_units(params, centers):
     return units
 
 
-def backfill_bright_stars_unit(unit_args, report):
-    """
-    The `scatter-backfill` command's unit (PERF.108): draws the chunk's sectors down to their target masses
-    (`run_plan._draw_sector_masses`, a few hundred a transaction, each sector rechecked under its lock), every sector
-    from its own seed, so the stars are the same whichever sector reached it first and at any worker count.
+def _progress_into(ctx, name):
+    """An `on_progress(done, total)` that counts into the unit's second level (OPS.192): the first call names the count, each after it adds what was done since."""
+    last = [None]
 
-    Returns:
-        dict: `sectors` (drawn), `stars` (placed), `visited` (the chunk's sectors) and `shells`, the stars placed per
-            shell and kind (`shell index as text` -> `[[label, plural, count], ...]`, for the starter's lines).
+    def progress(done, total):
+        if last[0] is None:
+            ctx.step(name, total)
+            last[0] = 0
+        ctx.advance(done - last[0])
+        last[0] = done
+
+    return progress
+
+
+def backfill_pieces(unit_args, cursor):
+    """
+    The pieces of one `scatter-backfill` unit (OPS.202), after `cursor`: a sky unit is one piece (its observer cell's tiers, `_sky_cell`); a unit of sectors has one piece for each
+    `run_plan.BACKFILL_CHUNK_SECTORS` sectors, the chunk the draw already made one transaction of (DB.114), in the sorted order it drew them in.
     """
     if unit_args.get("sky") is not None:
-        return _sky_unit(unit_args, report)
-    items = unit_args["items"]
-    targets = {tuple(item[:3]): item[3] for item in items}
-    conn = store.get_connection(_mysql_config_of(unit_args))
+        return [{"sky": True}][cursor:]
+    items = sorted(unit_args["items"], key=lambda item: tuple(item[:3]))
+    size = run_plan.BACKFILL_CHUNK_SECTORS
+    return [{"items": items[start:start + size]} for start in range(0, len(items), size)][cursor:]
+
+
+def backfill_do(unit_args, piece, ctx):
+    """
+    One piece of a `scatter-backfill` unit (PERF.108, OPS.202): a sky piece draws its cell's tiers (`_sky_cell`); a chunk of sectors is drawn down to the target masses (`run_plan._draw_sector_masses`,
+    each sector rechecked under its lock), every sector from its own seed, so the stars are the same whichever sector reached it first and at any worker count. The galaxy's shape, the scatter limits, the
+    blocks' candidates and the sky ledger are read once for the unit (`ctx.kept`), as the draw read them once before the engine cut it into pieces.
+
+    Returns:
+        dict: `sectors` (drawn), `stars` (placed) and `shells`, the stars placed per shell and kind (`shell index as text` -> `[[label, plural, count], ...]`); a sky piece's is `_sky_cell`'s.
+    """
+    if piece.get("sky"):
+        return _sky_cell(unit_args, ctx)
+    conn = ctx.db
+    ctx.kept("sectors-counted", lambda: ctx.step("Sectors", len(unit_args["items"])) or True)
+    targets = {tuple(item[:3]): item[3] for item in piece["items"]}
+    skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(conn))
     shells = {}
-    visited = [0]
-
-    def on_sector():
-        visited[0] += 1
-        report(visited[0], len(items))
-
+    sectors = stars = 0
     try:
-        skeleton = store.get_galaxy_shape(conn)
-        sectors = stars = 0
         if skeleton is not None and targets:
-            limits, seed = run_plan._scatter_limits_and_seed(conn, skeleton)
-            sectors, stars = run_plan._draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=on_sector,
-                                                          shells=shells)
+            limits, seed = ctx.kept("scatter-limits", lambda: run_plan._scatter_limits_and_seed(conn, skeleton))
+            sectors, stars = run_plan._draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=ctx.advance, shells=shells, blocks=ctx.kept("blocks", dict),
+                                                          sky_ledger=ctx.kept("sky-ledger", lambda: sky_tier_ledger.read(conn)))
+        else:
+            ctx.advance(len(targets))
     except BaseException:
         conn.rollback()
         raise
-    finally:
-        conn.close()
-    return {"sectors": sectors, "stars": stars, "visited": len(items),
-            "shells": {str(shell): [[*label, count] for label, count in types.items()]
-                       for shell, types in shells.items()}}
+    return {"sectors": sectors, "stars": stars,
+            "shells": {str(shell): [[*label, count] for label, count in types.items()] for shell, types in shells.items()}}
+
+
+def backfill_gather(unit_args, results, ctx):
+    """
+    The unit's result from its pieces': `sectors`, `stars`, `visited` (the unit's sectors) and `shells` (the pieces' counts added in the order the kinds first appeared); a sky unit's is its one piece's.
+    """
+    if unit_args.get("sky") is not None:
+        return results[0]
+    shells = {}
+    for result in results:
+        for shell, types in result["shells"].items():
+            into = shells.setdefault(shell, {})
+            for *label, count in types:
+                into[tuple(label)] = into.get(tuple(label), 0) + count
+    return {"sectors": sum(result["sectors"] for result in results), "stars": sum(result["stars"] for result in results), "visited": len(unit_args["items"]),
+            "shells": {shell: [[*label, count] for label, count in types.items()] for shell, types in shells.items()}}
 
 
 SKY_UNIT_CONNECTION_TRIES = 3
 """int: How many connections a sky unit may use up, one after another, to lose to MySQL before it fails."""
 
 
-def _sky_unit(unit_args, report):
+def _sky_cell(unit_args, ctx):
     """
-    The unit of one observer cell's sky tiers (VIEW.25, `sky_charting.chart`): every tier the ledger does not hold, from the top down, each in committed batches; a tier stopped part way
-    goes on from its last batch. `report(done, total)` counts the predicted cell visits of the tiers (`sky_charting.chart`'s `progress`), so it moves with every batch (OPS.134).
+    The piece of one observer cell's sky tiers (VIEW.25, `sky_charting.chart`): every tier the ledger does not hold, from the top down, each in committed batches; a tier stopped part way
+    goes on from its last batch. The second-level count (OPS.192) is the predicted cell visits of the tiers (`sky_charting.chart`'s `progress`), so it moves with every batch (OPS.134).
 
     Returns:
-        dict: As `backfill_bright_stars_unit`, with `sectors` 0, `stars` the stars drawn, `visited` 0, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn), `cell` and `floors` (`sky_charting.chart`).
+        dict: As `backfill_do`, with `sectors` 0, `stars` the stars drawn, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn), `cell` and `floors` (`sky_charting.chart`).
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
     before, opened, ticked = None, 0.0, 0.0
+    progress = _progress_into(ctx, "Sky tiers")
+
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
-        conn = store.get_connection(_mysql_config_of(unit_args))
+        conn = ctx.db
         try:
             if before is not None:
                 connection_loss.explain(conn, before, time.monotonic() - ticked, time.monotonic() - opened)      # DB.115: what the new connection says about the lost one
@@ -685,7 +720,7 @@ def _sky_unit(unit_args, report):
                 nonlocal ticked
                 ticked = time.monotonic()
 
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=report)
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=progress)
             break
         except BaseException as exc:
             conn.rollback()
@@ -694,10 +729,9 @@ def _sky_unit(unit_args, report):
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
             log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
-        finally:
-            conn.close()
+            ctx.close_db()
     drawn = [item for item in result["tiers"] if not item.skipped]
-    return {"sectors": 0, "stars": result["stars"], "visited": 0, "shells": {},
+    return {"sectors": 0, "stars": result["stars"], "shells": {},
             "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn), "cell": list(result["cell"]), "floors": result["floors"]}}
 
 
@@ -943,50 +977,52 @@ def expand_refresh_run_blocks(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def refresh_run_blocks_unit(params, report):
+def refresh_run_blocks_pieces(params, cursor):
+    """The two pieces of the `refresh-run-blocks` unit (OPS.202): the nebulae the block totals lack, then the sectors saved since the run started."""
+    return [{"run": "nebulae"}, {"run": "sectors"}][cursor:]
+
+
+def refresh_run_blocks_do(params, piece, ctx):
     """
-    The `refresh-run-blocks` command's unit (MAP.172, PERF.172): brings the Galaxy Map's block totals up to what a `galaxy`
-    run stored, once at the end of the run so its workers never queue on the same top-level blocks: the nebulae the
-    `nebula_field` table does not hold (emission and reflection nebulae around a star, a class P or Q cloud;
-    `db.nebula_blocks.catch_up`), then the generated totals of the sectors saved since the run started
-    (`db.block_stats.refresh_sectors`, which a sector save does not do) and the light of the pre-placed objects, which a saved
-    sector builds into its own sums (`db.block_lights.refresh_sectors`). A failure only warns: `planetgen fill-nebula-blocks` and
-    `planetgen fill-block-totals` make the totals again.
+    One piece of the `refresh-run-blocks` command's unit (MAP.172, PERF.172, OPS.202): brings the Galaxy Map's block totals up to what a `galaxy` run stored, once at the end of the run so its
+    workers never queue on the same top-level blocks. The `nebulae` piece adds the nebulae the `nebula_field` table does not hold (emission and reflection nebulae around a star, a class P or Q cloud;
+    `db.nebula_blocks.catch_up`); the `sectors` piece brings in the generated totals of the sectors saved since the run started (`db.block_stats.refresh_sectors`, which a sector save does not do)
+    and the light of the pre-placed objects, which a saved sector builds into its own sums (`db.block_lights.refresh_sectors`). A failure only warns: `planetgen fill-nebula-blocks` and
+    `planetgen fill-block-totals` make the totals again. Each count is the work the function names (`on_progress`).
 
     Returns:
-        dict: `nebulae` (added), `sectors` (brought in) and `warnings` (the failures, as text).
+        dict: `nebulae` (added) or `sectors` (brought in), and `warnings` (the failure, as text).
     """
-    config = _mysql_config_of(params)
-    nebulae, sectors, warnings = 0, 0, []
-    try:
-        conn = store.get_connection(config)
+    conn = ctx.db
+    if piece["run"] == "nebulae":
         try:
-            nebulae = nebula_blocks.catch_up(conn, query.galaxy_edge_pc(conn)) or 0
-        finally:
-            conn.close()
-    except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
-        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
-        warnings.append(f"adding the new nebulae to the block totals failed: {exc}")
-    report(1, 2)
+            added = nebula_blocks.catch_up(conn, query.galaxy_edge_pc(conn), on_progress=_progress_into(ctx, "Nebulae")) or 0
+            return {"nebulae": added, "warnings": []}
+        except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+            conn.rollback()
+            log.swallowed("generation/run_galaxy", "refresh_run_blocks_do", exc)
+            return {"nebulae": 0, "warnings": [f"adding the new nebulae to the block totals failed: {exc}"]}
     try:
-        conn = store.get_connection(config)
-        try:
-            addresses = sector_paths.sector_addresses_since(conn, params["since"])
-            if addresses:
-                block_stats.refresh_sectors(conn, addresses)
-                block_lights.refresh_sectors(conn, addresses)
-                conn.commit()
-            sectors = len(addresses)
-        finally:
-            conn.close()
+        addresses = sector_paths.sector_addresses_since(conn, params["since"])
+        if addresses:
+            block_stats.refresh_sectors(conn, addresses, on_progress=_progress_into(ctx, "Block statistics"))
+            block_lights.refresh_sectors(conn, addresses, on_progress=_progress_into(ctx, "Block lights"))
+            conn.commit()
+        return {"sectors": len(addresses), "warnings": []}
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
-        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
-        warnings.append(f"adding the new sectors to the block totals failed: {exc}")
-    return {"nebulae": nebulae, "sectors": sectors, "warnings": warnings}
+        conn.rollback()
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_do", exc)
+        return {"sectors": 0, "warnings": [f"adding the new sectors to the block totals failed: {exc}"]}
+
+
+def refresh_run_blocks_gather(params, results, ctx):
+    """The unit's result: `nebulae` (added), `sectors` (brought in) and `warnings` (the failures, in the order of the pieces)."""
+    return {"nebulae": sum(result.get("nebulae", 0) for result in results), "sectors": sum(result.get("sectors", 0) for result in results),
+            "warnings": [warning for result in results for warning in result["warnings"]]}
 
 
 class RunBlocksFollower(followed.Follower):
-    """The Galaxy Map's block totals brought up to date at the end of a run (`refresh_run_blocks_unit`)."""
+    """The Galaxy Map's block totals brought up to date at the end of a run (`refresh_run_blocks_do`)."""
 
     key = "run-blocks"
     label = "Update the map's block totals"
@@ -1660,41 +1696,51 @@ def _saved_addresses(args):
         conn.close()
 
 
-def generate_sectors_unit(unit_args, report):
+def generate_sectors_pieces(unit_args, cursor):
     """
-    The unit of the sector stages (PERF.107): generates and saves each sector of the chunk (`generate_and_save_sector_at`,
-    one transaction each) in its own grid cell, its density resolved from its sector profile as `_BatchDensity` does for
-    the run (a density or count the run was given is used for every sector). Every draw for a sector comes from its
-    own seed (GEN.39), so the stars are the same at any worker count. A unit of a stage run again after it stopped (`again`,
-    PERF.182) skips the sectors already saved.
+    The pieces of one unit of the sector stages (PERF.107, OPS.202), after `cursor`: one for each sector of the chunk, in order, as `{"address", "suffix"}` (what the log says after the address). A unit of a
+    stage run again after it stopped (`again`, PERF.182) has no piece for the sectors already saved.
+    """
+    items = unit_args["items"]
+    suffixes = unit_args.get("suffixes", [])
+    saved = _saved_addresses(_sector_args_of(unit_args)) if unit_args.get("again") else ()
+    pieces = []
+    for place in range(0, len(items), 3):
+        address = tuple(items[place:place + 3])
+        if address not in saved:
+            pieces.append({"address": list(address), "suffix": suffixes[place // 3] if suffixes else ""})       # by place: a run again skips some
+    return pieces[cursor:]
+
+
+def generate_sectors_do(unit_args, piece, ctx):
+    """
+    One piece of the sector stages' unit (PERF.107, OPS.202): generates and saves one sector (`generate_and_save_sector_at`, one transaction) in its own grid cell, its density resolved from its sector
+    profile as `_BatchDensity` does for the run (a density or count the run was given is used for every sector). Every draw for a sector comes from its own seed (GEN.39), so the stars are the
+    same at any worker count.
 
     Returns:
-        dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there already),
-            `sectors`, one entry per sector in order: `address`, `sector_id`, `name`, `systems`, `stars`, `density`,
-            `phenomena`, `summary` (`sector_generation_summary_lines`), `seconds` and `suffix` (what the log says after the address).
+        dict: What the sector reported: `address`, `sector_id`, `name`, `systems`, `stars`, `density`, `phenomena`, `summary` (`sector_generation_summary_lines`), `seconds` and `suffix`.
     """
     args = _sector_args_of(unit_args)
     edge_pc = unit_args["edge_pc"]
-    batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    items = unit_args["items"]
-    suffixes = unit_args.get("suffixes", [])
-    saved = _saved_addresses(args) if unit_args.get("again") else ()
-    done = []
-    for place in range(0, len(items), 3):
-        address = tuple(items[place:place + 3])
-        if address in saved:
-            continue
-        position_pc = sector_position_pc(*address, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
-        started = time.monotonic()
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-        done.append({
-            "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
-            "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
-            "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
-            "seconds": time.monotonic() - started, "suffix": suffixes[place // 3] if suffixes else ""})    # by place: a run again skips some
-        report(len(done), len(items) // 3)
-    return {"sectors": done, "pid": os.getpid()}
+    batch_density = ctx.kept("batch-density", lambda: _BatchDensity(store.mysql_config_from_args(args)))
+    address = tuple(piece["address"])
+    position_pc = sector_position_pc(*address, edge_pc)
+    sector_args = batch_density.resolve(args, address, position_pc)
+    started = time.monotonic()
+    sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+    return {
+        "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
+        "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
+        "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
+        "seconds": time.monotonic() - started, "suffix": piece["suffix"]}
+
+
+def generate_sectors_gather(unit_args, results, ctx):
+    """
+    The unit's result: `pid` (this process: a unit run by the process that started the run has counted its sectors there already) and `sectors`, what each sector reported, in order.
+    """
+    return {"sectors": results, "pid": os.getpid()}
 
 
 def _log_saved(saved, address, suffix=""):
@@ -1735,7 +1781,7 @@ class SectorsFollower(followed.Follower):
         finish (callable, optional): `finish(follower)` when the stage is done, for the lines that sum it up.
 
     Attributes:
-        reported (list): What each sector reported, in the order it was saved (`generate_sectors_unit`), when `collect`.
+        reported (list): What each sector reported, in the order it was saved (`generate_sectors_do`), when `collect`.
     """
 
     def __init__(self, args, key, label, edge_pc, batch=(), count=None, bar_description=None, base_args=None,
@@ -1802,7 +1848,7 @@ def _submit_batch(args, batch, title, edge_pc, count=None, base_args=None, colle
     `batch` may be a generator (PERF.36), and `count` says how many it holds.
 
     Returns:
-        list: What each sector reported, in the order it was saved (`generate_sectors_unit`), when `collect`; else `[]`.
+        list: What each sector reported, in the order it was saved (`generate_sectors_do`), when `collect`; else `[]`.
     """
     follower = SectorsFollower(args, key, title, edge_pc, batch, count, bar_description, base_args, collect, planned,
                                extra)

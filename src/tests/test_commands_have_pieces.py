@@ -8,9 +8,8 @@ from planetgen.queue import commands
 NOT_YET = {
     # OPS.200: clears and drops, a step to each statement through ctx.sql
     **dict.fromkeys(("clean-nebula-field", "clear-scatter", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field"), "OPS.200"),
-    # OPS.202: galaxy and sectors
-    **dict.fromkeys(("scatter-backfill", "refresh-run-blocks", "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "settle-sector-paths",
-                     "generate-unplaced-sector", "generate-system"), "OPS.202"),
+    # OPS.202 (part 1, Lane 15): galaxy and sectors
+    **dict.fromkeys(("link-neighbors", "settle-sector-paths", "generate-unplaced-sector"), "OPS.202"),
     # OPS.206: reset
     "reset-galaxy": "OPS.206",
 }
