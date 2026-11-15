@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4217] - 2026-11-15
+
+**Headline:** The life-air history API tests find a planet that can take the forced oxygen in the redrawn systems of Train 30.
+
+### Fixed
+- `tests/test_api_life_air.py`: the fixture asserted that `biogenic_oxygen.apply` took 2e19 mol of oxygen on the first airy rocky planet of each drawn system. After the star redraw of Train 30 the first such planet's air held the oxygen already (or could not take it), so two tests failed; a planet that cannot take it is now passed over for the next, and the fixture still skips the test only when none of 40 systems has one.
+
 ## [8.0.4216] - 2026-11-15
 
 **Headline:** The sky draw of a New galaxy run no longer waits in line: it runs as 16 units side by side, so one stage takes minutes of waiting instead of hours.
