@@ -418,11 +418,11 @@ def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the
 
 
 def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monkeypatch):
-    """GEN.1718: key 49 (a planet whose step answers cross its iterate with no temperature that is its own answer: the pressure is on two branches there, or the temperature found jumps by tens of K)
+    """GEN.1718: key 156 (a planet whose step answers cross its iterate with no temperature that is its own answer: the pressure is on two branches there, or the temperature found jumps by tens of K)
     does not settle; the air kept is the one just above the jump (the side the formation branch approaches from), flagged `jump`, and its temperature is that of the jump."""
-    setting, air = _first_air_of(49, monkeypatch)
+    setting, air = _first_air_of(156, monkeypatch)
     assert air.jump and air.knee and not air.converged
-    assert air.temperature_k == pytest.approx(290.1, abs=1.0)
+    assert air.temperature_k == pytest.approx(273.2, abs=1.0)
 
 
 def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began(monkeypatch):
