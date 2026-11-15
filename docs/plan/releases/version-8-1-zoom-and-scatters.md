@@ -741,5 +741,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | Lane 04, 2026-11-15 |
 | GEN.1750 | Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it) | GEN.1449 | Lane 07, 2026-11-15 |
 | TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | Lane 14, 2026-11-15 |
+| TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | Lane 06, 2026-11-15 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14

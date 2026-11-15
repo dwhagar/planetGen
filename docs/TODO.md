@@ -12855,6 +12855,10 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (sent by the coordinator), top priority; coordinate with Lane 14 on TEST.769 and Lane 16 on OPS.238. Prerequisites: none. Related: OPS.238, TEST.769, OPS.216.
   Filed by the TODO thread.
 
+- [ ] **TEST.772 (bug) test_belt_ondemand: a stored belt member made a planet gets no class**
+  Train Manager, 3:38 PM EST 2026-11-15: two tests in src/tests/test_belt_ondemand.py are red on main (test_the_class_of_a_body_is_the_planet_the_generator_makes_of_it and test_a_stored_member_is_made_a_planet_by_the_same_path): planet.planet_class is None. Red at main e7fec32b1, at the Train 32 merge and back at the Train 31 merge, so older than Train 31; no gate selected the file. Likely tied to Boss's 11:25 AM EST rule that no class is assigned before a planet is finished (GEN.1745) or an earlier class-path change. Do: find the merge that broke it and fix the cause, code or test; the on-demand path must give the same class the generator gives.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: GEN.1674, GEN.1745.
+  Filed by the TODO thread.
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

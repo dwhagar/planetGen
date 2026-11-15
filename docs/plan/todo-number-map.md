@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.772 |
+| TEST | TEST.773 |
 | USR | USR.33 |
 | OPS | OPS.264 |
 | DOC | DOC.121 |
@@ -4921,6 +4921,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | open |
 | TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | done, PR #6716 (2:35 PM EST 11-15) |
 | TEST.771 | (bug) test_cache_warmup (20 tests) is red on main | none | done, PR #6716 (2:35 PM EST 11-15) |
+| TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
