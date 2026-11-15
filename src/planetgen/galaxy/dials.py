@@ -397,12 +397,12 @@ LEVERS = (
     Lever(
         name="class_m", flag="--class-m", dial="census", label="Class M abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
         choices=("science", "sparse", "scattered", "plentiful", "abundant"),
-        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water, "
+        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water (a part of them a desert world's), "
             "the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; the class of every body still "
             "comes from its finished conditions and no class or count is forced (generation/abundance_tier)",
         auto_text="science (nothing is moved; what the generator's own laws give)",
-        help="How common Earth-like (Class M) worlds are. Science is what the generator's laws give; Sparse aims at 1 per 1,000 Sun-like systems, "
-             "Scattered at 1 per 100, Plentiful at 1 per 30 and Abundant at 1 per 10 (aims, not yet calibrated). A tier moves the odds of an "
+        help="How common Earth-like (Class M) worlds are. Science is what the generator's laws give; Sparse aims at 1 per 500 Sun-like systems, "
+             "Scattered at 1 per 135, Plentiful at 1 per 37 and Abundant at 1 per 10 (aims, not yet calibrated). A tier moves the odds of an "
              "Earth's conditions and never forces a world or a count. Auto is the same as Science.",
         source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins "
                "(tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census", status="placeholder", tweak="L4"),

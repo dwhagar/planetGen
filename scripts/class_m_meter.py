@@ -10,6 +10,10 @@ census's worker pool, memory and load gate and resume (a system already in a fil
 Class M, Blue) as it goes. `report` reads every `<tier>.jsonl` of DIR and prints, for each tier, the funnel from the habitable-zone rocky candidates
 (`abundance_tier.candidate`: a rocky planet, not a moon, in the ecosphere zone) to Class M, then the Class M and Blue worlds per 1,000 systems with a 95 percent
 interval beside the tier's target (`abundance_tier.TARGET_SYSTEMS_PER_CLASS_M`). Funnel after `reports/class-m-blue-levers-2026-11-14/hzfunnel.py`.
+After the funnel each tier has the table of the habitable family (GEN.1721; Boss, 8:24 PM EST 2026-11-14: classes H, O, P and R present beside M, M in front): for
+each of M, H, O, P and R the worlds of the class per 1,000 systems, and of the rocky planets with the class's shape (its own limits of temperature, water cover
+and gravity) how many pass its limits of pressure, oxygen and carbon dioxide and every limit it has (`family`; after the census's
+`reports/train28-census-2026-11-14/five_classes.py`). The limits are read from the class rules (`class_fit.CLASSES`), never restated here.
 The same files give the same tables.
 """
 
@@ -46,6 +50,16 @@ rows are the candidates that pass the first six rows and carry that rating."""
 
 LIQUID_ROW = 5
 CLASS_M_ROW = 6
+
+
+FAMILY = ("M", "H", "O", "P", "R")
+"""tuple: The classes of the habitable family, the temperate one first (they share one air: oxygen, carbon dioxide, pressure; they differ by water and temperature)."""
+
+SHAPE_QUANTITIES = ("temperature_k", "ocean_fraction", "gravity_g")
+"""tuple: The quantities whose limits are the shape of a family class in the family table (mean temperature, water cover, gravity)."""
+
+AIR_COLUMNS = (("pressure", "pressure_pa"), ("oxygen", "o2_partial_pa"), ("carbon dioxide", "co2_partial_pa"))
+"""tuple: (column text, quantity) of the air limits the family table counts one by one."""
 
 
 def is_candidate(body):
@@ -110,7 +124,59 @@ def measure(records):
         class_m_systems += has_m
         blue_systems += has_blue
     return {"systems": len(records), "funnel": funnel, "class_m_worlds": class_m_worlds, "blue_worlds": blue_worlds,
-            "class_m_systems": class_m_systems, "blue_systems": blue_systems}
+            "class_m_systems": class_m_systems, "blue_systems": blue_systems, "family": family(records)}
+
+
+def family(records):
+    """
+    The habitable family of one tier's sample, `{letter: numbers}` in `FAMILY` order. `worlds` and `systems` count the worlds of the class (planets and moons) and
+    the systems holding one. The rest count rocky planets (never moons) by the class's own rules (`class_fit.CLASSES`, each limit tested with `class_fit.overshoot`
+    on the record's stored `found` quantities): `shape` passes every limit the class puts on `SHAPE_QUANTITIES`; of those, each column of `AIR_COLUMNS` passes the
+    class's limits on that quantity, `all` passes every limit of the class, and `got` is the classes they were given (letter -> count, most common first). The
+    shapes of two classes can overlap (a hot desert has the shape of H and of R), so the shape counts do not add up to a total.
+    """
+    from planetgen.physics import class_fit
+    rules = {row.letter: row.when for row in class_fit.CLASSES if row.letter in FAMILY}
+    out = {letter: {"worlds": 0, "systems": 0, "shape": 0, "all": 0, "got": {}, **{text: 0 for text, _ in AIR_COLUMNS}} for letter in FAMILY}
+
+    def passes(conditions, found):
+        return all(class_fit.overshoot(condition, found) == 0.0 for condition in conditions)
+
+    for record in records:
+        held = set()
+        for body in record.get("bodies", []):
+            letter = body.get("planet_class")
+            if letter in out:
+                out[letter]["worlds"] += 1
+                held.add(letter)
+            found = body.get("found")
+            if body.get("body_type") != "t" or body.get("is_moon") or not isinstance(found, dict):
+                continue
+            for name, conditions in rules.items():
+                if not passes([c for c in conditions if c["quantity"] in SHAPE_QUANTITIES], found):
+                    continue
+                numbers = out[name]
+                numbers["shape"] += 1
+                for text, quantity in AIR_COLUMNS:
+                    numbers[text] += passes([c for c in conditions if c["quantity"] == quantity], found)
+                numbers["all"] += passes(conditions, found)
+                numbers["got"][letter or "none"] = numbers["got"].get(letter or "none", 0) + 1
+        for letter in held:
+            out[letter]["systems"] += 1
+    for numbers in out.values():
+        numbers["got"] = dict(sorted(numbers["got"].items(), key=lambda item: (-item[1], item[0])))
+    return out
+
+
+def family_table(numbers, systems):
+    lines = ["| class | worlds | systems holding one | per 1,000 systems (95%) | planets with its shape | pass its pressure | pass its oxygen | pass its carbon dioxide "
+             "| pass every limit | classes the shaped planets got |", "|---|---|---|---|---|---|---|---|---|---|"]
+    for letter in FAMILY:
+        row = numbers[letter]
+        got = ", ".join(f"{name} {count}" for name, count in row["got"].items()) or "-"
+        lines.append(f"| {letter} | {row['worlds']} | {row['systems']} | {per_thousand(row['systems'], systems)} | {row['shape']} | "
+                     + " | ".join(str(row[text]) for text, _ in AIR_COLUMNS) + f" | {row['all']} | {got} |")
+    return "\n".join(lines)
 
 
 def per_thousand(hits, total):
@@ -134,6 +200,9 @@ def tier_table(tier, numbers):
     lines += ["", "| per 1,000 systems (95% interval) | systems holding one | worlds | target |", "|---|---|---|---|",
               f"| Class M {per_thousand(numbers['class_m_systems'], systems)} | {numbers['class_m_systems']} | {numbers['class_m_worlds']} | {target_text(tier)} |",
               f"| Blue {per_thousand(numbers['blue_systems'], systems)} | {numbers['blue_systems']} | {numbers['blue_worlds']} | |"]
+    lines += ["", "The habitable family (a planet has a class's shape when it passes the class's own limits of temperature, water cover and gravity; a class is also "
+              "given to a planet a little past a limit, inside the caps of the class rules, so a class can be got without passing every limit):", "",
+              family_table(numbers["family"], systems)]
     return "\n".join(lines)
 
 
