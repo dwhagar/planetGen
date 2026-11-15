@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4239] - 2026-11-15
+
+**Headline:** The line that tells how long a sector took now spells the worker's memory with the units code, so the same size reads the same in the log as everywhere else.
+
+### Changed
+- The per-sector line in the job log writes the worker's memory with `format_megabytes` (for example "2.18 GB" instead of "2,181 MB").
+
 ## [8.0.4238] - 2026-11-15
 
 **Headline:** Every attempt at a queue unit now leaves a full row in the job ledger (what it cost, how it ended, its stack), and a unit that runs again writes a debug log of its own.
