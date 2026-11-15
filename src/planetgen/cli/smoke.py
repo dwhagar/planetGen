@@ -30,6 +30,7 @@ from planetgen import tuning
 from planetgen.cli import benchmark
 from planetgen.db import login, store
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds, format_megabytes
 from planetgen.web import generate_page, job_runner, jobs
 
 GROUPS = ("mysql", "workers", "step", "host")
@@ -97,12 +98,12 @@ def format_report(entries, budgets, over):
         peaks = entry["peaks"]
         cells = ", ".join(f"{group} {peaks.get(group, 0.0):,.0f} ({budget_of(entry['label'], group, budgets):,.0f})"
                           for group in GROUPS)
-        lines.append(f"  {entry['label']} [{entry['seconds']:,.0f} s]: {cells}")
+        lines.append(f"  {entry['label']} [{format_duration_seconds(entry['seconds'])}]: {cells}")
     if over:
         lines.append("")
         lines.append("OVER BUDGET:")
         for label, group, peak, budget in over:
-            lines.append(f"  {label}: {group} peaked at {peak:,.0f} MB, the budget is {budget:,.0f} MB.")
+            lines.append(f"  {label}: {group} peaked at {format_megabytes(peak)}, the budget is {format_megabytes(budget)}.")
     else:
         lines.append("")
         lines.append("Every step stayed within its budget.")

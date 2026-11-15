@@ -55,6 +55,7 @@ from planetgen.galaxy.skeleton import (
 from planetgen.generation import plan_outline as planOutline
 from planetgen.generation import followed, run_common
 from planetgen.generation import stages, steps
+from planetgen.util.format import format_duration_seconds
 
 
 BACKFILL_CHUNK_SECTORS = 200
@@ -163,7 +164,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
                                shells=shells)
 
 
-def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, shells=None):
+def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, shells=None, blocks=None, sky_ledger=None):
     """
     The mass backfill's draw (GEN.187): takes each sector of `targets` (a
     dict, `(shell, band, wedge)` -> the lightest initial mass to place,
@@ -180,6 +181,9 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     are those born in [target, held) that are dimmer than the sector's
     luminosity level (`_effective_level`): the brighter ones were placed
     already. A sector at or below its target, or filled, is skipped.
+
+    `blocks` (the blocks' candidates) and `sky_ledger` are what a draw made of several calls (the engine's pieces of one unit, OPS.202) keeps between them, as `_draw_sector_chunks` keeps them
+    through one call.
 
     Returns:
         tuple: `(sectors drawn, stars written)`.
@@ -206,11 +210,11 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
         return rows, (target, own)
 
     return _draw_sector_chunks(conn, skeleton, sorted(targets), limits, draw_one, store.set_sector_bright_masses,
-                               "Sector mass backfill", settled_levels_now=True, on_sector=on_sector, shells=shells)
+                               "Sector mass backfill", settled_levels_now=True, on_sector=on_sector, shells=shells, blocks=blocks, sky_ledger=sky_ledger)
 
 
 def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_states, label, settled_levels_now,
-                        counts=None, on_sector=None, shells=None):
+                        counts=None, on_sector=None, shells=None, blocks=None, sky_ledger=None):
     """
     The one sector backfill loop (GEN.1662), shared by `_draw_sector_bands` and `_draw_sector_masses`: takes
     `addresses` `BACKFILL_CHUNK_SECTORS` at a time, each chunk one transaction (DB.114) run with retries: locks the
@@ -225,8 +229,8 @@ def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_state
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
-    blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
-    sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
+    blocks = {} if blocks is None else blocks        # the blocks' candidates, drawn once for the whole draw (GEN.309)
+    sky_ledger = skyTierLedger.read(conn) if sky_ledger is None else sky_ledger      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         ticked = [0]      # the progress ticks already given: a retried chunk does not tick its sectors twice
@@ -744,7 +748,7 @@ class _BrightStarBook:
         massive = sum((self.followers[0].counts or {}).values()) if self.followers[0].key == "mass" else 0
         log.normal(
             f"Placed {summary['total']:,} bright stars ({massive:,} born at {self.mass_limit:g} solar masses or more, the rest at least "
-            f"{self.min_luminosity_sol:g} L_sun bright) in {summary['elapsed_s']:.1f}s: "
+            f"{self.min_luminosity_sol:g} L_sun bright) in {format_duration_seconds(summary['elapsed_s'])}: "
             + ", ".join(f"{count:,} {population}" for population, count in summary["counts"].items()) + "."
         )
         log.debug("Bright-star scatter: %s stars, seed %s, threshold %g L_sun, mass limit %g solar masses.", summary["total"], self.seed,
@@ -1847,7 +1851,7 @@ def add_bright_star_band(args):
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     log.normal(
-        f"Added {total:,} bright stars ({target:g} to {current:g} L_sun) in {elapsed:.1f}s: "
+        f"Added {total:,} bright stars ({target:g} to {current:g} L_sun) in {format_duration_seconds(elapsed)}: "
         + ", ".join(f"{count:,} {population}" for population, count in counts.items())
         + f". The star-fill level is now {target:g} L_sun."
     )
@@ -2944,7 +2948,7 @@ def make_block_lights(conn, report, say, rebuild=False):
         written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
     else:
         written, _used = block_lights.roll(conn, on_progress=units, on_phase=say, on_above=above)
-    say(f"Block light totals: {written:,} rows written in {time.monotonic() - begun:,.0f} s.")
+    say(f"Block light totals: {written:,} rows written in {format_duration_seconds(time.monotonic() - begun)}.")
     report(total, total)
     return written
 
@@ -3319,7 +3323,7 @@ class _PhenomenaBook:
             set(self.counts) - set(phenomenon_scatter.EXPECTED_LABELS)) if self.counts.get(label)]
         listed = ": " + ", ".join(f"{self.counts[label]:,} {label}" for label in labels) if labels else ""
         summary = self.summary()
-        log.normal(f"Placed {summary['total']:,} phenomena in {summary['elapsed_s']:.1f}s{listed}; "
+        log.normal(f"Placed {summary['total']:,} phenomena in {format_duration_seconds(summary['elapsed_s'])}{listed}; "
                    f"{self.companions:,} of them have companions.")
 
 
@@ -3675,7 +3679,7 @@ def log_skeleton_summary(args, summary):
     else:
         shells = "no shells (nothing clears the one-star-per-sector threshold)"
     log.normal(
-        f"Skeleton built in {summary['elapsed_s']:.2f}s: {shells}, outer edge = shell "
+        f"Skeleton built in {format_duration_seconds(summary['elapsed_s'])}: {shells}, outer edge = shell "
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:

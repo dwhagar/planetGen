@@ -2,6 +2,56 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4190] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits has its memory figure like every other command.
+
+### Fixed
+
+- OPS.257: `store-scatter-limits` is a lean worker in the memory table (one row write), which the every-command-has-a-memory-figure guard asked for.
+
+## [8.0.4189] - 2026-11-15
+
+**Headline:** the stage that stores the star scatter's limits gives the engine its pieces like the other converted commands.
+
+### Fixed
+
+- OPS.257: the `store-scatter-limits` command is a piece of the engine's loop (one piece, committed through the context), which the every-command-gives-pieces guard on main asked for.
+
+## [8.0.4188] - 2026-11-15
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
+## [8.0.4187] - 2026-11-15
+
+**Headline:** Every rate, duration, size and memory figure the generator logs or shows comes from the units code, so a slow count reads "2.4 s a sector" instead of "0.0 sectors/s" and memory is never bytes in one line and MB in the next (UX.318).
+
+### Changed
+- **The units code formats the logs (UX.318, Boss 2026-11-14).** The unit registry and the ladders gain an information kind (`B`, `kB`, `MB`, `GB`, `TB`, decimal, with the browser mirrors regenerated), and `planetgen.util.format` gains one formatter per kind, reused everywhere: `format_bytes`, `format_megabytes`, `format_rate` (a rate of one a second or more as "41.3 sectors a second", slower as the time one item takes, "2.4 s a sector") and `format_byte_rate` ("12.5 MB/s"); durations are `format_duration_seconds` on the time ladder ("340 ms", "12.3 s", "4.12 minutes", "1.09 hours", "3 days"). `logrecord.duration_text` is that ladder with "?" for an unknown, so the `4:07` and `1:05:12` forms are gone from every log line.
+- **Routed through them, their own formatters removed:** the progress ticker and its stamp; the stage finish and failure records; the warm-up's progress, summary and cache-full lines; the memory watch summary; the step timer table; the generation size and disk estimates (`generation/stats`, whose `format_bytes` and `format_duration` are gone); the Queue page's durations, heartbeats, ETAs, memory figures and unit rates (`_duration`, `_beat_gap` and `_mb_text` are gone), the task bar's time left and the "What the queue has learned" panel; the Generate page's elapsed and remaining times (`format_elapsed` is gone); the admin Data, Images, Backups and Account pages' sizes and times (`admin_pages.format_bytes`, 1024-based, is gone); the login wait text; the Settings page's duration words and the Owner unlock message; the galaxy map tile build's size and time lines; the job wrapper, unit, memory gate, scheduler, adaptive worker, profile claim, profile time, beat judge, unit-stuck and API job lines; the run galaxy and run plan lines; the dataset download progress ("12.5 MB/s", time left) and wait messages; the benchmark and benchmark suite reports; the smoke, warm, warm-shape, worker, lockouts and reset-jobs command lines; the MySQL connection-loss explanations, contention retries and SQL trace timings; the backup repair-file summary; the Nav page's stay text; the API client's and the web app's byte and millisecond debug lines; the update guard, field job, system page, phenomenon render, math check and sync-period texts.
+- **A guard test (`src/tests/test_hand_formatted_units.py`)** fails on an f-string or template that spells a unit after a formatted value; the exact byte counts of a key or a packet budget and the prose refresh hints are the listed exceptions.
+- **The logging standard** (rule 3 and rule 6) now says the units code is the one source of these figures.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4186] - 2026-11-15
+
+**Headline:** The bright star backfill, the map's block totals refresh at the end of a run, the sector stages and the single system run now report what they have done a piece at a time, so a long run shows real counts and can be stopped or paused between pieces.
+
+### Changed
+
+- OPS.202 (second part): `scatter-backfill`, `refresh-run-blocks`, `generate-start-sector`, `generate-neighborhood`, `generate-sectors` and `generate-system` hand the engine `pieces`, `do` and `gather` (OPS.191) in place of a `unit` function with a loop of its own. The pieces are a chunk of `BACKFILL_CHUNK_SECTORS` sectors (the transaction the backfill already made of them) or one observer cell's sky tiers; the nebulae and then the sectors of the block totals; one sector of a sector stage (a stage run again leaves out the ones already saved); and the tries and then the saving of a system. The engine counts pieces done of pieces in all, honours a cancel and a pause between two pieces, and the second level counts the sectors drawn, the nebulae and blocks brought in, the cell visits of the sky tiers, and the tries of a system (`ctx.step`, `ctx.advance`, OPS.192). The unit's result has the same fields as before, so the stage's followers, statistics and speed samples are unchanged.
+- The unit's galaxy shape, scatter limits, blocks' candidates and sky ledger are read once for all its pieces (`ctx.kept`), and `run_plan._draw_sector_masses` takes the last two, so the backfill draws what it drew before the engine cut it into pieces.
+- Removed with the old loops: `backfill_bright_stars_unit`, `refresh_run_blocks_unit`, `generate_sectors_unit`, `system_unit` and `_sky_unit` (now the sky piece `_sky_cell`, which goes on after a lost MySQL connection as before).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4185] - 2026-11-15
 
 **Headline:** The job engine has its ledger tables: a run, its jobs and every attempt are rows in the control database, and each galaxy holds the table a job's done mark commits into.
