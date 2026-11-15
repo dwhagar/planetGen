@@ -300,8 +300,16 @@ def _trial_copy(planet):
     clone = copy.copy(planet)
     for name, value in vars(planet).items():
         if name not in ("star", "moons") and isinstance(value, (dict, list, set)):
-            setattr(clone, name, copy.deepcopy(value))
+            # GEN.1734: a list of bodies (the moons the planet was born with, `_born_moons`) is shared like `moons`: each body holds the siblings of its host, so a deep copy of
+            # one walks every body of the system in one chain (a recursion of 160 deep systems) and copies bodies the air pass never changes
+            setattr(clone, name, copy.copy(value) if _holds_bodies(value) else copy.deepcopy(value))
     return clone
+
+
+def _holds_bodies(container):
+    """Whether a list, set or dict has a planet, moon or other body in it (an object with a `body_type`)."""
+    items = container.values() if isinstance(container, dict) else container
+    return any(getattr(item, "body_type", None) is not None for item in items)
 
 
 def _living_entries(planet, cands, final, key):
