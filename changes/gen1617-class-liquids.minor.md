@@ -1,9 +1,0 @@
-**Headline:** Classes U, Y, A and X now keep their promise: a methane-ethane world must hold stored seas of methane or ethane, a sulfuric acid world stored liquid acid at its ground, a volcanic world an interior hot enough to melt rock, and an ammonia-water world an ocean that stores its ammonia.
-
-### Changed
-- GEN.1617 (Boss, 2:34 PM EST 2026-11-14, option a): the four classes test what the body stores of its liquids and its heat instead of only the phase window, 3 percent sulfur dioxide or a bulk ice share. Four yes-or-no quantities are read by the class fit (`class_domains.liquid_quantities`): `sea_methane_ethane` (stored seas of methane or ethane, main or second liquid, covering half a percent of the surface or more, a third of Titan's 1.6 percent; registry CL1), `acid_pool` (the stored `surface_liquid_acid_layer` is a pool; a cloud layer is not), `ammonia_ocean` (a stored `surface_liquid_ammonia_wt`) and `volcanic_heat` (the interior heat flow with the tide's at least the middle of the ground's volcanism floor, `surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2`, reused; registry CL2). Class Y no longer asks for 3 percent sulfur dioxide: its acid pool already needs a sulfur air.
-- In a draw of 480 natural systems (7,414 bodies) U falls from 4 bodies to 2 (the two that lose it store a water ice-covered ocean and no sea of methane), A stays 1; no body anywhere stores an acid pool, and the 309 bodies that store an ammonia ocean are not class X for their own reasons (216 hold an air, 92 are under 190 K, 77 hold under 10 percent ammonia): classes Y and X still do not appear in a natural galaxy.
-- The class sentences of U, Y and A say what the conditions now check, and the class page words the four new conditions. `scripts/class_census.py` records the surface liquid columns of every body.
-
-generation-output: changed
-generation-affects: fill

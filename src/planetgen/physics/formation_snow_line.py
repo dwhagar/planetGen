@@ -23,6 +23,9 @@ ratio of the viscous line to the luminosity line of its initial mass. Everything
 from planetgen import tuning
 from planetgen.physics import birth_luminosity, constants, formation, mass_loss
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 LUPUS_LOWEST_MASS_SOL = 0.03
 """float: The lowest stellar mass, in suns, the accretion-rate law was fitted to ([R3193: Eq. 3]: 0.03 to 1.0); a lighter star is read at this mass."""
@@ -48,7 +51,7 @@ def initial_mass_sol_of(star):
     stored = getattr(star, "initial_mass_sol", None)
     if stored:
         return stored
-    return mass_loss.member_formation_mass_kg(star) / constants.SOLAR_MASS_TO_KG
+    return _kg_to_msun(mass_loss.member_formation_mass_kg(star))
 
 
 def draw_for_star(star, stream=None):

@@ -141,3 +141,4 @@ Commit each file came from:
 - v259: after GEN.1433's migration 0259 (flavor_key columns), before GEN.332 slice D's rogue_planets pair columns (0260) (train 27's schema.sql with its comment and blank lines removed)
 - v260: after GEN.332 slice D's migration 0260 (rogue_planets pair columns), before OPS.215 engine_items (0261) (train 28's schema.sql with its comment and blank lines removed)
 - v261: after OPS.215's migration 0261 (engine_items), before OPS.253 B's migration 0262 (main's schema.sql with its comment and blank lines removed)
+- v262: after OPS.253 B migration 0262 (sky_draw_parts), before OPS.219 engine_piece_results (0263) (main's schema.sql with its comment and blank lines removed)

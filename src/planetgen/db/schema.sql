@@ -6658,3 +6658,12 @@ CREATE TABLE IF NOT EXISTS engine_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v262 (OPS.253): `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once keeps one row for each part (how many batches of its share are written), which never counts in the ledger; the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
+
+-- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
+-- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.
+CREATE TABLE IF NOT EXISTS engine_piece_results (
+    job_id        BIGINT UNSIGNED NOT NULL,
+    piece_index   INT UNSIGNED NOT NULL,
+    result        MEDIUMTEXT NOT NULL,
+    PRIMARY KEY (job_id, piece_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

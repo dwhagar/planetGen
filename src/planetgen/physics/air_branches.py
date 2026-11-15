@@ -24,6 +24,9 @@ import dataclasses
 from planetgen import tuning
 from planetgen.physics import climate_branches, constants, nightside_collapse, oddities, saturation, surface_air
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 CONTEXT_ATTRIBUTE = "_air_context"
 CHOICE_ATTRIBUTE = "_air_choice"
@@ -98,7 +101,7 @@ def collapse_air(body, row):
     if formula is None:
         return False
     gravity = constants.G * body.mass / (body.radius * 1000.0) ** 2
-    found = nightside_collapse.collapse(formula, context.air.pressure_pa, gravity, context.starlight_w_m2, body.mass / constants.EARTH_MASS_TO_KG, context.albedo)
+    found = nightside_collapse.collapse(formula, context.air.pressure_pa, gravity, context.starlight_w_m2, _kg_to_mearth(body.mass), context.albedo)
     if not found.collapsed:
         return False
     setattr(body, CHOICE_ATTRIBUTE, "lost")

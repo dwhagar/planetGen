@@ -31,7 +31,7 @@ from dataclasses import asdict
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commandgaps, commands, planrows, profiletime, progress_file, redisqueue, runline, runrecord, splitter, stagetimes, supervisor, unitrates, unitwatch, units, workers
+from planetgen.queue import commandgaps, commands, planrows, profiletime, progress_file, redisqueue, resumed, runline, runrecord, splitter, stagetimes, supervisor, unitrates, unitwatch, units, workers
 from planetgen.util import log, logrecord, secrets_mask
 from planetgen.util.settings import get_settings
 from planetgen.util.format import format_duration_seconds, format_megabytes
@@ -177,6 +177,7 @@ def _open(conn, run_id, index):
     if _is_referred_to(runrecord.read_steps(conn, run_id), key):
         runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
     params = resolve_params(conn, run_id, step.params)
+    prior = params.pop(resumed.RESUMES_FROM, None)
     if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
         _ensure_cluster_field(params)
         held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
@@ -190,16 +191,48 @@ def _open(conn, run_id, index):
     runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
     runrecord.begin_stage(conn, run_id, index, now=started)
     _log_released(conn, run_id, index, step)
+    carried = resumed.carry(conn, run_id, index, prior, step.kind, rows, expansion.units) if prior else resumed.Carried()
+    if carried.done:
+        _say_carried(conn, run_id, index, prior, carried, len(expansion.units))
+    left = len(expansion.units) - len(carried.done)
+    if carried.done and not left:
+        resumed.settle(conn, run_id, index, carried)            # every unit is done: the stage ends as the unit that completes a stage ends it, its conclusion reading the stored results
+        from planetgen.queue import wrapper as this
+        units._end_stage(conn, run_id, index, this)
+        return len(expansion.units)         # the next opening is queued by the end: the caller waits for it as it does for units
     if not expansion.units and commands.end_command(step.kind, planrows.CONCLUDE) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
-    units.enqueue_units(conn, run_id, index, step.kind, expansion.units, queue_name=queue_of(run_kind(conn, run_id)),
-                        expected_seconds=stages[index].get("expected_seconds"), rows=rows)
-    return len(expansion.units)
+    resumed.settle(conn, run_id, index, carried)
+    queued = expansion.units
+    if prior and not commands.spec(step.kind).resumes:          # a unit that cannot resume starts from its first piece, and a command that skips what it saved is told so
+        queued = [(dict(args, **{resumed.AGAIN: True}), cost) for args, cost in queued]
+    units.enqueue_units(conn, run_id, index, step.kind, queued, queue_name=queue_of(run_kind(conn, run_id)),
+                        expected_seconds=stages[index].get("expected_seconds"), rows=rows, **({"skip": frozenset(carried.done)} if carried.done else {}))
+    return left
+
+
+def _end_held(conn, earlier):
+    """
+    OPS.222: a run that carries on from a held one (OPS.221) ends the held run, canceled and said so: its unfinished units are this run's now, and a held run left to "Retry held" would do them a second time.
+    A run the earlier one failed or canceled is already over and is left as it is.
+    """
+    from planetgen.queue import runcontrol
+    found = runrecord.read_run(conn, earlier)
+    if found is not None and found["state"] == runrecord.HELD:
+        runcontrol.cancel_run(conn, earlier, who="the run that carries it on")
+
+
+def _say_carried(conn, run_id, index, prior, carried, total):
+    """OPS.222: the run's log says how many units of the stage the run it carries on from had done, and how many of the others start after pieces it finished."""
+    text = f"{len(carried.done):,} of {total:,} unit(s) were done by run {prior}; they are not run again"
+    if carried.resumed:
+        text += f", and {carried.resumed:,} that were not start after the pieces they finished"
+    runrecord.log(conn, run_id, f"Stage {index + 1}: {text}.", kind="stage.resumed", stage=index, units=len(carried.done))
 
 
 def _log_released(conn, run_id, index, step):
-    """PERF.247: a stage that requires an earlier one (`commands.REQUIRES`) is written to the run's log as released when it opens,
+    """PERF.247: a stage that requires an earlier one (`needs.requires_of`) is written to the run's log as released when it opens,
     naming the stages it waited for."""
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     if step.key not in [item.key for item in steps]:
@@ -527,10 +560,10 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
     """
     PERF.155: writes a warning to the run's log when the longest unit of the stage that just ended ran longer than
     `queue.unit_ceiling_seconds`, naming the stage, the unit's seconds and how many units the stage was cut into. A
-    command that is one unit by nature (`CommandSpec.whole`) is not held to the ceiling.
+    command that is one unit by nature (`CommandSpec.one_unit`) is not held to the ceiling.
     """
     ceiling = get_settings().queue.unit_ceiling_seconds
-    if commands.spec(step.kind).whole or longest <= ceiling:
+    if commands.spec(step.kind).one_unit or longest <= ceiling:
         return
     runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {format_duration_seconds(longest)}, over the "
                   f"{format_duration_seconds(ceiling)} unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
@@ -831,6 +864,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                                      on_wait=lambda holder, position: report_wait_for(conn, holder, position),
                                      title=title, who=who, database=database,
                                      admitted=bool(os.environ.get(JOB_ENV)), nested_guard=kind == runrecord.GENERATION)
+    if finishes:
+        _end_held(conn, finishes)
     beat = runrecord.Heartbeat(conn, run_id)        # the run is followed from here to the end, whatever this process is busy with
     relay = events = None
     stage_at = None
@@ -846,6 +881,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                   + (f", debug areas {debug}" if debug else ""), area="queue")
         events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
         log.attach(events)
+        planrows.record_plan(conn, run_id, steps)       # OPS.238: the whole run as rows before its first stage opens
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             stage_at = index

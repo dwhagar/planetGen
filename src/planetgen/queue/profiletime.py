@@ -33,6 +33,11 @@ COLUMNS = ("seconds", "seconds_per_item")
 """tuple: The figures kept per kind: the worked seconds of a unit, and the worked seconds an item of it takes (the judge's rate, which does not depend on the size of the unit)."""
 
 
+NO_FIGURE_RECHECK_SECONDS = 30.0
+"""float: How long the answer 'the profile has too few samples for this kind' is kept before the rows are read again (PERF.269). Defined by the program, not a physical value: the units of the run itself add samples, so a kind
+that had none picks its figure up within half a minute of the third unit finishing, and the watch (about three beats a second) reads the database about twice a minute instead of every beat."""
+
+
 def seconds_rows(kind, limit=profileclaim.WINDOW, conn=None, column="seconds"):
     """The newest `limit` finished rows of `kind` that hold `column`, as `seconds`, newest first, with the machine shape and epoch that measured them."""
     if column not in COLUMNS:
@@ -80,14 +85,16 @@ def unit_seconds(conn, command, token=None, typed_seconds=None, read_rows=None, 
         field = kind if column == "seconds" else f"{kind}|{column}"
         stored = conn.hget(_key(), field)
         row = json.loads(memorygate._decode(stored)) if stored is not None else None
-        if row is not None and row["token"] == token:
-            return row["figure"]
+        if row is not None and row["token"] == token and (row["figure"] is not None or now - row.get("asked", now) < NO_FIGURE_RECHECK_SECONDS):
+            return row["figure"]        # a figure is held for the token; 'nothing yet' is held for a while (PERF.269)
         host = memorygate.read_host()
         from planetgen.util import generator_epoch
         wanted, details = target((read_rows or (lambda k: seconds_rows(k, column=column)))(kind), typed_seconds, host.total_mb, host.cores, generator_epoch.generator_epoch())
         if wanted is None:
-            return None if row is None else row["figure"]
-        previous = row["figure"] if row else typed_seconds
+            figure = None if row is None else row["figure"]
+            conn.hset(_key(), field, json.dumps({"token": token, "figure": figure, "asked": now}))      # PERF.269: the supervisor's watch asks every beat, and a kind with too few samples opened a database connection each time
+            return figure
+        previous = row["figure"] if row and row["figure"] is not None else typed_seconds
         figure = wanted if previous is None else min(max(wanted, previous * (1.0 - profileclaim.MAX_MOVE)), previous * (1.0 + profileclaim.MAX_MOVE))
         conn.hset(_key(), field, json.dumps({"token": token, "figure": figure}))
         if previous is None or abs(figure - previous) >= (0.05 if column == "seconds" else 1e-6):

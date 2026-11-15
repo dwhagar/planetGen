@@ -2,6 +2,265 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4301] - 2026-11-15
+
+**Headline:** The references pages show the right paper count again.
+
+### Changed
+
+- `docs/REFERENCES.md` and `docs/REFERENCES.html` are rebuilt, so the paper count includes the three papers GEN.1729 added (R5283 to R5285); `tests/test_references.py` was red on the train without this.
+
+## [8.0.4300] - 2026-11-15
+
+**Headline:** A life class whose own air leaves it too little carbon dioxide to fix carbon is no longer kept on its world with oxygen it could not have raised.
+
+### Changed
+
+- GEN.1736: `life._apply` drops the dominant class when the final air fails its carbon dioxide gate (`CARBON_GATE`, 2 Pa for the oxygen-making classes, GEN.1581), as it already did for a class whose own air took its solvent (GEN.1298): the world is made again from the body as it was, without that class. The oxygen rise burns the methane to carbon dioxide and asks the carbon sink again at the colder temperature (`biogenic_oxygen.rebalance_co2`); on some worlds the sink then holds under 2 Pa (seed 30143 of the class M meter on the first GEN.1720 run: class M with 33 kPa of oxygen and 1.4 Pa of carbon dioxide), and the class stayed as one that "used up what it lived on" (TEST.486). A class whose donor or hydrogen the life used up is still kept; only the carbon gate and the solvent drop it.
+- Measure: on the Train 31 head (ca9678de94) the class M meter over the first 140 Abundant Sun-like systems (seeds 30000 on) gives the same classes and life in every system with and without the change, and no world there holds 1 kPa of oxygen with under 2 Pa of carbon dioxide. The case is rare: on the eb8af8f1d1 head one of 66 systems kept a class 1b with 35 kPa of oxygen and 1.2 Pa (the two heads differ by the greenhouse refit of 6612). The change closes the door, it does not move the counts today.
+
+generation-output: changed
+
+## [8.0.4299] - 2026-11-15
+
+**Headline:** A world with no wide sea but with wet land that rooted plants reach now has land plants in its oxygen source, at the minimal sourced size, so a quiet-interior desert world can hold some free oxygen.
+
+### Changed
+
+- GEN.1729 (every galaxy, Science too: Boss's 9:49 PM EST 11-14 card "Both, small seas first" and his 8:39 PM EST minimal-sourced-guess rule): once a world's life has reached mosses and the first land plants (`native_life` macroscopic or biosphere), the groundwater-fed places it has (the refuges of GEN.1723) carry plants, and `biogenic_oxygen.refuge_productivity` gives them Earth's burial per area of land under plants, `LAND_SHARE_OF_BURIAL` (0.27, the land plants' share of Earth's organic carbon burial, [R5283]) over Earth's 0.29 of land, on the wet land the roots reach (0.27 of the land), in place of the cover law (0.001 to 0.1) on those places.
+- Size: about a quarter of Earth's oxygen source on a mostly-land desert world at Earth's temperature (more when warmer, by the Boltzmann factor), against Earth's reductant sink of 0.3 of the source. So plants alone carry a desert world with a quiet interior (heat flow under about 0.07 W/m2) to a surplus, and under the oxygen balance of GEN.1733 that holds a few hundred pascals to a kilopascal of oxygen, not a breathable air; a world with Earth's interior stays near zero. Worlds with a wide sea are unchanged (Earth's burial already has the plants inside it).
+- Registry row BO15 (tier 3: one model; the flux of [R5284] and the terrestrial share of burial of [R5285] were not read); reference R5283.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4298] - 2026-11-15
+
+**Headline:** Classes U, Y, A and X now keep their promise: a methane-ethane world must hold stored seas of methane or ethane, a sulfuric acid world stored liquid acid at its ground, a volcanic world an interior hot enough to melt rock, and an ammonia-water world an ocean that stores its ammonia.
+
+### Changed
+- GEN.1617 (Boss, 2:34 PM EST 2026-11-14, option a): the four classes test what the body stores of its liquids and its heat instead of only the phase window, 3 percent sulfur dioxide or a bulk ice share. Four yes-or-no quantities are read by the class fit (`class_domains.liquid_quantities`): `sea_methane_ethane` (stored seas of methane or ethane, main or second liquid, covering half a percent of the surface or more, a third of Titan's 1.6 percent; registry CL1), `acid_pool` (the stored `surface_liquid_acid_layer` is a pool; a cloud layer is not), `ammonia_ocean` (a stored `surface_liquid_ammonia_wt`) and `volcanic_heat` (the interior heat flow with the tide's at least the middle of the ground's volcanism floor, `surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2`, reused; registry CL2). Class Y no longer asks for 3 percent sulfur dioxide: its acid pool already needs a sulfur air.
+- In a draw of 480 natural systems (7,414 bodies) U falls from 4 bodies to 2 (the two that lose it store a water ice-covered ocean and no sea of methane), A stays 1; no body anywhere stores an acid pool, and the 309 bodies that store an ammonia ocean are not class X for their own reasons (216 hold an air, 92 are under 190 K, 77 hold under 10 percent ammonia): classes Y and X still do not appear in a natural galaxy.
+- The class sentences of U, Y and A say what the conditions now check, and the class page words the four new conditions. `scripts/class_census.py` records the surface liquid columns of every body.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4297] - 2026-11-15
+
+**Headline:** the mass of Jupiter and of the Sun are written once, so the moons, rings, giants and rogue-planet classes no longer disagree by a part in a million.
+
+### Changed
+
+- GEN.1152: moon_composition's `JUPITER_MASS_KG` (1.89813e27), the star mass of ring_origin's Saturn reference (1.989e30), giant_interior's `EARTH_MASS_JUPITER` (317.83), stellar_abundances' `JUPITER_MASS_SOL` and the rogue-planet mass bins of `tuning` (317.8) now read `physics/constants.py` (`JUPITER_MASS_TO_KG`, `SOLAR_MASS_TO_KG`, and the new `JUPITER_MASS_EARTH`, their ratio of the two conversion factors). A test fails on any of the rounded copies written again. The values move by 2.5e-6 (Jupiter in kg), 2e-4 (the Sun in kg) and 1e-4 (the rogue bins' edge), so a number computed from them can move in its last digits and a draw that lands within that of a threshold can fall on the other side; the pinned golden galaxy is unchanged.
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4296] - 2026-11-15
+
+**Headline:** A warm-up's units open the galaxy the warm-up names, whether it is given as a name or as host, port, user and name.
+
+### Fixed
+- `MySQLConfig.from_args` takes a database named by its name alone (a warm-up's steps) as well as the dict a generation run writes (`wrapper.database_args`); the plan cut, the unit's attempt and the engine's `ctx.config` all read it through that one function, so no entry point breaks on the other form.
+- `test_cache_warmup.py` makes its database "x" a real, empty one, since a unit takes its attempt in the galaxy (OPS.219).
+
+generation-output: unchanged
+
+## [8.0.4295] - 2026-11-15
+
+**Headline:** The splitter's stage test reads the plan from the plan rows, where OPS.216 moved it.
+
+### Fixed
+- `test_splitter.py` called `runrecord.read_plan`, which OPS.216 removed; it calls `planrows.read_plan` (the split is kept in the same plan summary).
+
+generation-output: unchanged
+
+## [8.0.4294] - 2026-11-15
+
+**Headline:** a run's whole sequence of stages is now stored as waiting rows in the ledger the moment the run starts, so the job view can say which stage each one waits for.
+
+### Added
+
+- OPS.238, third part (stored plan): `planrows.record_plan` writes one waiting `open` row per planned stage when `wrapper.run` starts. Each row's `needs` names the stage before it (`after:<stage>`) plus the artifacts that stage requires (`needs.required_stage_keys`), and its `makes` lists the artifacts it produces (`needs.makes_of`). When a stage opens, `planrows.record_cut` fills that row in with its plan and marks it done instead of adding a new row. The job view words the wait as "stage <key> to end".
+
+## [8.0.4293] - 2026-11-15
+
+**Headline:** the order of a run's stages is now checked and logged from what each command needs, not from a list of four requirements.
+
+### Changed
+
+- OPS.238, second part: `commands.REQUIRES` is deleted. `needs.requires_of` (the kinds that make what a command needs), `needs.required_stage_keys` and `needs.validate_order` take its place: a run whose steps are listed so that a need is met only after the step that has it is refused where the list is made; a stage's "released" line, a failed run's "did not run" line and a command's break-point dependencies (`after`) read the same edges. The four requirements the old table held are still there (a test says so); the run's stages still run in their listed order.
+
+## [8.0.4292] - 2026-11-15
+
+**Headline:** every command now says what it needs and what it makes, and a test holds that to the order a galaxy run has today.
+
+### Added
+
+- OPS.238, first part (the declarations): `queue/needs.py` names the artifacts of a generation run (the skeleton, the sectors, the bright-star passes, the phenomena, the nebula field, the population and the map totals) and gives each command its `needs` and `makes`. `tests/test_needs_and_makes.py` checks that every artifact has a maker, that the graph has no cycle, that the fixed stage order of a galaxy run and of each scatter run meets every need a command of the run can meet, and that everything `commands.REQUIRES` holds is a need the declarations state. Nothing reads the declarations to start a run yet: `REQUIRES` goes when the planner (the second part) reads them.
+
+## [8.0.4291] - 2026-11-15
+
+**Headline:** the `whole` flag of a command is gone: a command that is one unit by nature says so with the break declaration the queue already reads.
+
+### Changed
+
+- OPS.196: `CommandSpec.whole` is deleted. A command whose stage is one unit by nature gives `breaks=ONE_UNIT` (`commands.ONE_UNIT`, which names `breakpoints.whole_job`: one item, no cut), and `CommandSpec.one_unit` is what the unit-length ceiling (PERF.155) reads to leave it alone. The 33 commands that set `whole=True` are the same 33; the cut they get and the ceiling's exemption are unchanged.
+
+## [8.0.4290] - 2026-11-15
+
+**Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
+
+### Changed
+
+- OPS.196: `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes`, `clear-scatter`, `clean-nebula-field` and `reset-galaxy` give the engine `pieces` and `do` instead of a `unit` function. A clear's statements are a plan (`store.clear_bright_stars_plan`, `clear_bright_star_pass_plan`, `clear_phenomenon_scatter_plan`, `clear_nebula_field_plan`), one piece to a statement; the reset is one piece to a table and one to tidy after; the same plans are what `clear_*` and `wipe` run directly, so there is one list of the statements. Their results are unchanged.
+- `tests/test_commands_have_pieces.py` no longer has a list of commands still to convert: a command with a loop of its own fails. `tests/test_longest_silence.py` runs the commands of the last family under the unit beat and holds the longest stretch with no count, phase or statement moving to a budget.
+- `tests/test_long_sql_steps.py`: the clear tests were red on main (a new galaxy has nothing to clear since OPS.254 and OPS.257); they now say the galaxy holds something, and the reset test seeds a sector.
+
+## [8.0.4289] - 2026-11-15
+
+**Headline:** The law that takes ammonia and methane out of an air under the star's far ultraviolet is built as a module of its own, with no change to any generated world yet.
+
+### Added
+
+- GEN.1732: `physics/photochemical_loss.py` is the loss of an air's ammonia and methane: a source against the photolysis rate of `photolysis.rate_per_s` (GEN.496), the amount the light can break in the absorbing column (`photolysis.photon_limited_flux_mol_m2_s`, GEN.982), the exact step `advance`, the standing amount of a constant source over the body's age (`standing_from_inventory`) and what the loss leaves (ammonia to nitrogen, methane to carbon dioxide). Reuse: the rates, the shielded column and the molar masses are the existing ones. Four stand-in rows (PC1 to PC4, section 6.301 of the gap-filling plan, tiers T5 to T7, tweak L0 to L1). The history of the air (GEN.1745) calls it as a step term, where the methane-warming check is made; nothing in the generator reads it yet.
+
+## [8.0.4288] - 2026-11-15
+
+**Headline:** Finish the last run carries a stopped run on from what its records say is done: finished units are not done again and a unit that stopped starts after the pieces it finished.
+
+### Changed
+- `finish-run` plans the stopped run again and, for the stage that stopped and each stage after it, the new run subtracts what the stopped run's rows say is done (`queue/resumed.py`): a unit the rows say is done is marked done and its stored result kept for the stage's conclusion, and a unit that was not done gets the cursor and the stored piece results of the unit it continues, so it starts after the pieces it finished. A stage whose units were all done is only concluded.
+- A unit of a command that cannot resume is queued with `again` when its stage carries on from a stopped run (the sector stages skip the sectors already saved); its row is cut as before.
+- `finish-phenomena` resumes after its last finished piece: the drawn special rows are the first piece's stored result, the write and the record commit through the new `ctx.commit_piece()` (data, cursor and result in one fenced transaction), and the indexes are built only where missing.
+- The Generate page and the Queue page say that a stopped stage carries on from what the run's records say is done, not from its start.
+
+### Removed
+- `finish_run.REWIND_WITH` and `finish_run.AGAIN`: no stage is rerun from its start, and no stage is rewound with the one before it, to make a stopped stage safe to repeat.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4287] - 2026-11-15
+
+**Headline:** A world's air history has its first part: the step schedule and the clocks (the star's light, the interior's heat, the oxygen law's reductant sink and the water lost) at every age, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 1: `physics/air_history.py` gives the ages of a history (`schedule`: logarithmic from 10 kyr to 1 Gyr, then every 0.25 Gyr, cut at the ages asked and ending at the star's age) and `run(body)`, the steps with the star's luminosity over its present one, the interior's heat (`interior_heat.heat_at`), the reductant ratio and label of the oxygen law (`biogenic_oxygen.reductant_history_factor`, `profile_of`) and the water lost by that age. Reuse: every law is the existing one read at the age of the step. Nothing in the generator reads it yet, and nothing is stored.
+- `runaway_history.light_at(star, age_gyr)` (the star's light on the history `loss_kg` follows, at one age) and a `trace` for `runaway_history.loss_kg` (the water lost at the end of each step; the answer is unchanged).
+
+## [8.0.4286] - 2026-11-15
+
+**Headline:** Two registry tests that were red on main are green: the deep database check's step kind and the two job pages of a run.
+
+### Fixed
+- `test_step_registry` knows `db-check` is used (the deep check names it by the constant `DEEP_STATS_KIND`), TEST.766.
+- `admin_queue_jobs` and `admin_queue_job` are named in the admin registry as pages reached from a run, TEST.767.
+
+generation-output: unchanged
+
+## [8.0.4285] - 2026-11-15
+
+**Headline:** A queue-commands test now expects the held run that a unit failing for good leaves since OPS.221.
+
+### Fixed
+- `test_queue_commands.py` expected the run of a failed unit to be `failed`; OPS.221 holds it for a person (`held`, with the unit in its error), so the test says that.
+
+generation-output: unchanged
+
+## [8.0.4284] - 2026-11-15
+
+**Headline:** the clears, the drops and the reset now run as pieces the engine counts and can stop, so no command is left that works in one loop of its own.
+
+### Changed
+
+- OPS.196: `clear-bright-stars`, `empty-phenomenon-scatter`, `empty-nebula-field`, `drop-phenomenon-indexes`, `clear-scatter`, `clean-nebula-field` and `reset-galaxy` give the engine `pieces` and `do` instead of a `unit` function. A clear's statements are a plan (`store.clear_bright_stars_plan`, `clear_bright_star_pass_plan`, `clear_phenomenon_scatter_plan`, `clear_nebula_field_plan`), one piece to a statement; the reset is one piece to a table and one to tidy after; the same plans are what `clear_*` and `wipe` run directly, so there is one list of the statements. Their results are unchanged.
+- `tests/test_commands_have_pieces.py` no longer has a list of commands still to convert: a command with a loop of its own fails. `tests/test_longest_silence.py` runs the commands of the last family under the unit beat and holds the longest stretch with no count, phase or statement moving to a budget.
+- `tests/test_long_sql_steps.py`: the clear tests were red on main (a new galaxy has nothing to clear since OPS.254 and OPS.257); they now say the galaxy holds something, and the reset test seeds a sector.
+
+## [8.0.4283] - 2026-11-15
+
+**Headline:** A unit run again after a passing failure goes on after the pieces it finished, and a test now proves it.
+
+### Changed
+- `commands.py` says that `pieces(args, cursor)` takes the ledger cursor, not 0.
+- `test_failure_kinds.py` fails a piece at the start, middle and end, and checks each finished piece is done once and the result is whole.
+
+generation-output: unchanged
+
+## [8.0.4282] - 2026-11-15
+
+**Headline:** a planet that kept no envelope now carries the same private attributes as one that did, so a rogue and a bound planet of one mass have the same attributes again.
+
+### Fixed
+
+- TEST.761: `apply_envelope` set `_envelope_helium_y` and `_tidal_radius_km` only on a planet that kept an envelope, so a rogue planet (no star's X-rays to strip it) that kept a small one had two attributes a bound planet of the same mass, which lost it, never got (`test_a_rogue_and_a_bound_planet_carry_the_same_attributes_and_their_moons_do_too`, 4 cases, red on main). Both are now set to `None` with the other start-of-draw resets in `generate_planet_properties`, so every planet has them and a planet drawn again in place carries nothing of its last draw's helium share or tide radius. Every reader already treated a missing attribute as `None`, and the pinned golden galaxy is unchanged.
+generation-output: unchanged
+
+## [8.0.4281] - 2026-11-15
+
+**Headline:** the mass conversions that had been written by hand again go through the unit registry, and the mass-conversion test and the profile-claim test pass again.
+
+### Fixed
+
+- TEST.762: 18 hand-written divides and multiplies by the mass of the Sun or Earth (`x / SOLAR_MASS_TO_KG`, `x / EARTH_MASS_TO_KG`, `x * SOLAR_MASS_TO_KG`) in describe, galaxy, generation and physics modules now call `unit_registry.converter`, which gives the same bits (`test_the_converters_are_bit_for_bit_the_hand_multiply_and_divide`). Two sites sit inside a longer product or are a ratio of constants (`disk_drift`, `late_supply`) and stay on the allowance list, which now names them.
+- TEST.764: `test_every_change_is_logged_and_kept_for_the_queue_page` expected "1,000 MB" where the log says "1 GB"; the test builds the text with `format_megabytes`, as the log does.
+generation-output: unchanged
+
+## [8.0.4280] - 2026-11-15
+
+**Headline:** The reason a hycean ocean has no thin-sea tide is written down and a test pins it.
+
+### Changed
+
+- GEN.1609: `physics/ocean_tides.compute` gives a hycean ocean no tide because the formula and its loading factor are for a thin layer on the surface, and a hycean ocean lies hundreds of kilometres deep under a hydrogen envelope (the fluid Love numbers of GEN.1035 are what it needs). The module text says so and `test_a_hycean_ocean_has_no_thin_sea_tide_by_design` pins it. No stored value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4279] - 2026-11-15
+
+**Headline:** Moon generation stops a full disk at the call's own rejection limit, the same limit the too-large moons use.
+
+### Changed
+
+- GEN.1599: `physics/planets.generate_moons` counted the disk-full rejections against the module's `MOON_REJECTION_LIMIT` and the too-large ones against the call's `rejection_limit`. Both now stop at the call's `rejection_limit`. Nothing stored changes: a disk exists only round a giant, whose limit is the same number. A test pins the one limit.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4278] - 2026-11-15
+
+**Headline:** A job-engine unit that is stopped part way and run again starts after the pieces it finished, and gives the result an undisturbed unit gives.
+
+### Added
+- `ctx.commit()` stores the number of pieces the unit has finished and what each returned, in the transaction that holds the data and fences the attempt (`ledger.commit_item`; the table `engine_piece_results`, schema v263). The engine checkpoints after every piece.
+- A command that says `resumes` (`CommandSpec`) starts a later attempt at `pieces(args, cursor)` and hands `gather` the stored results beside the new ones. Ten commands say so: the three star scatters, the phenomenon scatter, the backfill, the run's block refresh, the map luminosity fill, the nebula field draw, link-neighbors and settle-sector-paths. The others start from their first piece, as before, and a test lists each with why.
+- `tests/test_checkpoints.py`: a unit killed at each of its pieces, run again, does the pieces left and gives the undisturbed result with no row written twice (a synthetic command, and the map luminosity fill on a real galaxy); every command with pieces is audited.
+
+### Changed
+- A new attempt of a job keeps the cursor of the one before it (`ledger.begin_attempt` no longer clears it).
+- A piece's result goes through JSON before the unit keeps it, so a resumed unit and an undisturbed one hand `gather` the same kinds of value.
+
+## [8.0.4277] - 2026-11-15
+
+**Headline:** The work-units galaxy test has the hour it needs, so the suite's 900 seconds no longer ends it.
+
+### Changed
+
+- TEST.763: `test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units` runs a whole 36-sector galaxy through the real queue (21 min 12 s on a 4-core lane box), and the suite's default 900 seconds with the hang guard (TEST.621) ended it with no assertion. It now carries its own `pytest.mark.timeout(3600)`, as `test_sky_hyg_calibration` and `test_prevalence_life_census` do. Test only.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4276] - 2026-11-15
+
+**Headline:** The supervisor's watch no longer opens a database connection on every beat to ask the job profile for a kind it has too few samples of.
+
+### Changed
+- PERF.269: `profiletime.unit_seconds` kept a figure for the run but not the answer 'too few samples', so the heartbeat's judge read the profile table through a new control connection on each beat (457 connections in a 130 s run; 10 of the 14 s they cost was building the SSL context). The answer 'nothing yet' is now kept for `NO_FIGURE_RECHECK_SECONDS` (30 s) and then asked again, so a kind still picks its figure up once the run's own units add the samples. Nothing a run computes changes.
+
 ## [8.0.4275] - 2026-11-15
 
 **Headline:** The queue's comment and the API reference say "canceled", like the rest of the program.

@@ -770,7 +770,7 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
 
     Each pass is a stage with a unit per run of shells. Sectors already filled are always left out (GEN.30): the
     scatter never adds stars to a generated sector. `passes` names the passes to draw. Both (the default, what `galaxy`
-    draws) replace the whole scatter: the first stage empties `bright_stars` when it opens (`clear_bright_stars_unit`, a stage of its own).
+    draws) replace the whole scatter: the first stage empties `bright_stars` when it opens (`clear_bright_stars_do`, a stage of its own).
     One alone is what `planetgen scatter --mass` or `--luminosity` draws (PERF.121) after `run_scatter` has found none
     of it stored (Boss's F7: `planetgen clear-scatter` empties a kind first, so no draw replaces another): the
     luminosity pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).
@@ -873,36 +873,66 @@ def resolve_scatter_settings(conn, run_id, marker):
     return wrapper.cached(conn, run_id, wrapper.scatter_settings_name(marker), lambda: work(marker))[marker["stage"]]
 
 
+LOOK_PIECE = "Looking at what is stored"
+"""str: The piece that opens a clear which has a shortcut for a galaxy with nothing to clear (OPS.254, OPS.257): it asks, and the pieces after it do nothing when the answer is yes."""
+
+
+def _clear_piece(ctx, piece, make_plan, holds_nothing=None, nothing=None):
+    """
+    One piece of a unit that clears (OPS.196): the piece `LOOK_PIECE` asks `holds_nothing(conn)` (when the clear has such a shortcut) and says `nothing` when the answer is yes; any other piece is
+    the step of `make_plan()` (`store.clear_*_plan`, a list of `(label, function)`) that its name is, said as a phase and run labelled for the beat, unless there was nothing to clear. The plan is
+    made once for the unit (`ctx.kept`).
+    """
+    if piece == LOOK_PIECE:
+        ctx.phase(piece)
+        ctx.state["nothing"] = holds_nothing(ctx.db)
+        if ctx.state["nothing"]:
+            ctx.phase(nothing)
+        return
+    if ctx.state.get("nothing"):
+        return
+    ctx.phase(piece)
+    store.run_step(ctx.db, ctx.kept("plan", make_plan), piece)
+
+
 def expand_clear_bright_stars(params):
     """The `clear-bright-stars` command's stage: one unit."""
     return commands.Expansion([(params, 1.0)], {})
 
 
-def clear_bright_stars_unit(params, report):
+def clear_bright_stars_pieces(params, cursor):
     """
-    The `clear-bright-stars` command's unit (OPS.123; the `prepare` of the shell scatter commands before it, PERF.172):
-    empties what the scatter is about to draw again. `params["clear"]` "all" empties `bright_stars` and the scatter's
-    record (`store.clear_bright_stars`); "luminosity" empties the luminosity pass alone, split from the mass pass at the
-    limits `clear_floor_sol` and `clear_limit_sol` name (`store.clear_bright_star_pass`). No `clear`, nothing is emptied.
-
-    Returns:
-        dict: `cleared`, what was emptied (`"all"`, `"luminosity"` or `None`); the unit says the phase and reports the step (OPS.170).
+    The pieces of the `clear-bright-stars` unit (OPS.196): the steps of the clear its `clear` names, one to a statement, in the order they run: all (`store.clear_bright_stars_plan`, after a piece that
+    looks whether there is anything to clear), or the luminosity pass alone (`store.clear_bright_star_pass_plan`). No `clear`, no piece.
     """
     clear = params.get("clear")
     if clear is None:
-        return {"cleared": None}
-    phases = _UnitPhases(report, store.CLEAR_BRIGHT_STARS_STEPS if clear == "all" else store.CLEAR_BRIGHT_STAR_PASS_STEPS)
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        if clear == "all":
-            store.clear_bright_stars(conn, phases)
-        else:
-            store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
-                store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]), phases)
-    finally:
-        conn.close()
-    phases.finish()
-    return {"cleared": clear}
+        return []
+    if clear == "all":
+        return [LOOK_PIECE] + [label for label, _ in store.clear_bright_stars_plan()]
+    return [label for label, _ in store.clear_bright_star_pass_plan("luminosity", None, (0.0,))]
+
+
+def clear_bright_stars_do(params, piece, ctx):
+    """
+    One piece of the `clear-bright-stars` unit (OPS.123; the `prepare` of the shell scatter commands before it, PERF.172; one piece to a statement, OPS.196): empties what the scatter is about to
+    draw again. `params["clear"]` "all" empties `bright_stars` and the scatter's record (`store.clear_bright_stars_plan`); "luminosity" empties the luminosity pass alone, split from the mass pass at
+    the limits `clear_floor_sol` and `clear_limit_sol` name (`store.clear_bright_star_pass_plan`).
+    """
+    if params["clear"] == "all":
+        _clear_piece(ctx, piece, store.clear_bright_stars_plan, store.bright_stars_hold_nothing, "No bright stars are stored, nothing to clear")
+        return
+
+    def plan():
+        limits = scatter_limits.ScatterLimits.of(store.get_galaxy_shape(ctx.db), params["clear_floor_sol"], params["clear_limit_sol"])
+        return store.clear_bright_star_pass_plan("luminosity", limits, store.pass_masses(ctx.db, limits))
+
+    _clear_piece(ctx, piece, plan)
+
+
+def clear_bright_stars_gather(params, results, ctx):
+    """The `clear-bright-stars` unit's result: `cleared`, what was emptied (`"all"`, `"luminosity"` or `None`)."""
+    return {"cleared": params.get("clear")}
 
 
 def expand_store_scatter_limits(params):
@@ -2426,7 +2456,7 @@ class NebulaFieldFollower(followed.Follower):
     """
     The nebula field as a stage of a run (DB.24): the `draw-nebula-field` command draws every kept cloud of classes M and N
     of the galaxy's molecular cloud field from the seed, a unit per slab of field cells (`draw_nebula_field_pieces`), after
-    the earlier table was emptied (`empty_nebula_field_unit`, a stage of its own). A nebula already stored from the field is linked back to
+    the earlier table was emptied (`empty_nebula_field_do`, a stage of its own). A nebula already stored from the field is linked back to
     its row afterwards, and the Galaxy Map's nebula block totals are made again from the new field
     (`conclude_draw_nebula_field`).
 
@@ -2472,30 +2502,34 @@ def expand_empty_nebula_field(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def empty_nebula_field_unit(params, report):
-    """
-    The `empty-nebula-field` command's unit (OPS.123; the `prepare` of `draw-nebula-field` before it, PERF.172): empties the earlier
-    table before the nebula field is drawn again. A galaxy with no outline has nothing to draw and nothing is emptied (PERF.203, checked
-    here and not when the run starts, because an earlier stage of the same run may be what builds the plan).
+def empty_nebula_field_pieces(params, cursor):
+    """The pieces of the `empty-nebula-field` unit (OPS.196): a look at the galaxy and then the steps of `store.clear_nebula_field_plan`, one to a statement."""
+    return [LOOK_PIECE] + [label for label, _ in store.clear_nebula_field_plan()]
 
-    Returns:
-        dict: `emptied`, whether the table was emptied.
+
+def empty_nebula_field_do(params, piece, ctx):
+    """
+    One piece of the `empty-nebula-field` unit (OPS.123; the `prepare` of `draw-nebula-field` before it, PERF.172; one piece to a statement, OPS.196): empties the earlier table before the nebula field is
+    drawn again. A galaxy with no outline has nothing to draw and nothing is emptied (PERF.203, checked here and not when the run starts, because an earlier stage of the same run may be what builds the plan).
 
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
     """
-    phases = _UnitPhases(report, store.CLEAR_NEBULA_FIELD_STEPS)
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        if store.get_galaxy_shape(conn) is None:
+    if piece == LOOK_PIECE:
+        if store.get_galaxy_shape(ctx.db) is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
-        emptied = bool(_outline(conn))
-        if emptied:
-            store.clear_nebula_field(conn, phases)
-    finally:
-        conn.close()
-    phases.finish()
-    return {"emptied": emptied}
+        ctx.state["emptied"] = bool(_outline(ctx.db))
+        ctx.state["nothing"] = not ctx.state["emptied"] or store.nebula_field_holds_nothing(ctx.db)
+        ctx.phase(piece)
+        if ctx.state["nothing"]:
+            ctx.phase("No nebula field is stored, nothing to clear")
+        return
+    _clear_piece(ctx, piece, store.clear_nebula_field_plan)
+
+
+def empty_nebula_field_gather(params, results, ctx):
+    """The `empty-nebula-field` unit's result: `emptied`, whether the table was emptied (false for a galaxy with no outline)."""
+    return {"emptied": ctx.state["emptied"]}
 
 
 class EmptyNebulaFieldFollower(UnitBarFollower):
@@ -3042,9 +3076,15 @@ def expand_clean_nebula_field(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def clean_nebula_field_unit(params, report):
+def clean_nebula_field_pieces(params, cursor):
+    """The pieces of the `clean-nebula-field` unit (OPS.196): read the stored field clouds, check each against the keep rates (the dry run, always done first) and, with `apply`, delete the rejected and refresh containment."""
+    pieces = ["Reading the stored field clouds", "Checking each stored field cloud against the keep rates"]
+    return pieces + ["Deleting the rejected field clouds", "Refreshing containment in the sectors the clouds reached"] if params["apply"] else pieces
+
+
+def clean_nebula_field_do(params, piece, ctx):
     """
-    The `clean-nebula-field` command's unit (GEN.205): brings an existing galaxy's stored field clouds in line with
+    One piece of the `clean-nebula-field` unit (GEN.205; pieces, OPS.196): brings an existing galaxy's stored field clouds in line with
     the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its center) is
     checked against `cloud_kept`; the ones the rule now rejects are counted per class (the dry run, always done first).
     With `apply` they are deleted, which clears the `inside_nebula_id` of everything inside them (the foreign key sets
@@ -3052,30 +3092,28 @@ def clean_nebula_field_unit(params, report):
     cell draw at its center was not made by the field and stays. Drawing `nebula_field` again is the starter's next
     command (`draw-nebula-field`).
 
-    Returns:
-        dict: `stored` and `rejected` (per class, field clouds only), `deleted` (the count removed) and `lines`, what
-            the run says about it, for the process that started the run to log (this unit may run in a worker).
-
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
     """
-    phases = _UnitPhases(report, 4)
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        skeleton = store.get_galaxy_shape(conn)
-        if skeleton is None:
+    conn, state = ctx.db, ctx.state
+    ctx.phase(piece)
+    if piece == "Reading the stored field clouds":
+        state["skeleton"] = store.get_galaxy_shape(conn)
+        if state["skeleton"] is None:
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
-        galaxy_seed = store.get_galaxy_seed(conn)
-        draws = {}
-        stored, rejected, doomed = collections.Counter(), collections.Counter(), []
-        with phases.sql("Reading the stored field clouds"):
-            clouds = conn.execute(
+        state["galaxy_seed"] = store.get_galaxy_seed(conn)
+        with statementmark.labelled(piece):
+            state["clouds"] = conn.execute(
                 "SELECT id, nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc FROM nebulae"
                 " WHERE nebula_type = ? AND center_x_pc IS NOT NULL ORDER BY id", (nebulaField.FIELD_FAMILY,)).fetchall()
-        phases.next("Checking each stored field cloud against the keep rates")
-        counted = _counting(report, "Field clouds checked", len(clouds))
+    elif piece.startswith("Checking"):
+        skeleton, galaxy_seed, clouds = state["skeleton"], state["galaxy_seed"], state["clouds"]
+        draws = {}
+        stored, rejected, doomed = collections.Counter(), collections.Counter(), []
+        ctx.step("Field clouds checked", len(clouds))
         for number, row in enumerate(clouds, start=1):
-            counted(number)
+            if number % 100 == 0 or number == len(clouds):
+                ctx.advance(100 if number % 100 == 0 else number % 100)
             center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
             index = nebulaField.cell_index(center)
             if index not in draws:
@@ -3088,39 +3126,43 @@ def clean_nebula_field_unit(params, report):
             if not nebulaField.cloud_kept(galaxy_seed, index, match[0], match[1], center, skeleton.shape):
                 rejected[row["nebula_class"]] += 1
                 doomed.append((row["id"], center, row["radius_ly"]))
-        lines = ["Nebula field cleanup (dry run): " + (
-            ", ".join(f"class {letter}: {rejected[letter]:,} of {stored[letter]:,} stored field clouds rejected"
-                      for letter in sorted(stored)) or "no stored field clouds") + f"; {len(doomed):,} would be deleted."]
+        state.update(stored=stored, rejected=rejected, doomed=doomed, deleted=0, lines=[
+            "Nebula field cleanup (dry run): " + (
+                ", ".join(f"class {letter}: {rejected[letter]:,} of {stored[letter]:,} stored field clouds rejected" for letter in sorted(stored))
+                or "no stored field clouds") + f"; {len(doomed):,} would be deleted."])
         if not params["apply"]:
-            lines.append("Nothing was changed. Run again with --apply to delete them and draw "
-                         "the nebula_field table again.")
-            phases.finish()
-            return {"stored": dict(stored), "rejected": dict(rejected), "deleted": 0, "lines": lines}
-        phases.next("Deleting the rejected field clouds")
-        sector_ids = set()
+            state["lines"].append("Nothing was changed. Run again with --apply to delete them and draw the nebula_field table again.")
+    elif piece.startswith("Deleting"):
+        doomed = state["doomed"]
+        state["sector_ids"] = set()
         for _nebula_id, center, radius_ly in doomed:
-            sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
+            state["sector_ids"].update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
+        ctx.step("Field clouds deleted", len(doomed))
         for start in range(0, len(doomed), 500):
             ids = [nebula_id for nebula_id, _c, _r in doomed[start:start + 500]]
             storage_checksum.mark_rows(conn, "nebulae", ids)
             conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
             conn.commit()
-            report(min(start + 500, len(doomed)), len(doomed))
-        with phases.sql("Refreshing containment in the sectors the clouds reached"):
-            store.refresh_containment(conn, sorted(sector_ids))
+            ctx.advance(len(ids))
+        state["deleted"] = len(doomed)
+    else:
+        with statementmark.labelled(piece):
+            store.refresh_containment(conn, sorted(state["sector_ids"]))
         conn.commit()
-        phases.finish()
-        lines.append(f"Deleted {len(doomed):,} stored field clouds the current keep rates reject.")
-        return {"stored": dict(stored), "rejected": dict(rejected), "deleted": len(doomed), "lines": lines}
-    finally:
-        conn.close()
+        state["lines"].append(f"Deleted {state['deleted']:,} stored field clouds the current keep rates reject.")
+
+
+def clean_nebula_field_gather(params, results, ctx):
+    """The `clean-nebula-field` unit's result: `stored` and `rejected` (per class, field clouds only), `deleted` (the count removed) and `lines`, what the run says about it, for the process that started the run to log (this unit may run in a worker)."""
+    state = ctx.state
+    return {"stored": dict(state["stored"]), "rejected": dict(state["rejected"]), "deleted": state["deleted"], "lines": state["lines"]}
 
 
 class CleanNebulaFieldFollower(followed.Follower):
     """
     The clean-up of the stored nebula field as a stage of a run (GEN.205, PERF.122, PERF.202): the `clean-nebula-field`
     command checks the clouds (the dry run, always done and logged first) and, with `--apply`, deletes the rejected ones
-    (`clean_nebula_field_unit`); this side logs what the unit says.
+    (`clean_nebula_field_do`); this side logs what the unit says.
 
     Attributes:
         result (dict): The unit's result: `stored`, `rejected`, `deleted`, and the `lines` it said.
@@ -3150,7 +3192,7 @@ def clean_nebula_field(args):
     """
     Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205), on the new queue:
     the `clean-nebula-field` command checks them (the dry run, always done and logged first) and, with `--apply`,
-    deletes the rejected ones (`clean_nebula_field_unit`). It draws nothing: the table is drawn again by
+    deletes the rejected ones (`clean_nebula_field_do`). It draws nothing: the table is drawn again by
     `planetgen scatter --nebula-field` (PERF.121, PERF.122).
 
     Returns:
@@ -3503,21 +3545,21 @@ def expand_empty_phenomenon_scatter(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def empty_phenomenon_scatter_unit(params, report):
-    """
-    The `empty-phenomenon-scatter` command's unit (OPS.123; the first half of the `prepare` of `scatter-phenomena` before it, PERF.172):
-    empties the earlier phenomenon scatter before it is drawn again (`store.clear_phenomenon_scatter`).
+def empty_phenomenon_scatter_pieces(params, cursor):
+    """The pieces of the `empty-phenomenon-scatter` unit (OPS.196): a look at what is stored and then the steps of `store.clear_phenomenon_scatter_plan`, one to a statement."""
+    return [LOOK_PIECE] + [label for label, _ in store.clear_phenomenon_scatter_plan()]
 
-    Returns:
-        dict: `emptied`, always true.
+
+def empty_phenomenon_scatter_do(params, piece, ctx):
     """
-    phases = _UnitPhases(report, store.CLEAR_PHENOMENON_SCATTER_STEPS)
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        store.clear_phenomenon_scatter(conn, phases)
-    finally:
-        conn.close()
-    phases.finish()
+    One piece of the `empty-phenomenon-scatter` unit (OPS.123; the first half of the `prepare` of `scatter-phenomena` before it, PERF.172; one piece to a statement, OPS.196): empties the earlier
+    phenomenon scatter before it is drawn again (`store.clear_phenomenon_scatter_plan`).
+    """
+    _clear_piece(ctx, piece, store.clear_phenomenon_scatter_plan, store.phenomenon_scatter_holds_nothing, "No phenomenon scatter is stored, nothing to clear")
+
+
+def empty_phenomenon_scatter_gather(params, results, ctx):
+    """The `empty-phenomenon-scatter` unit's result: `emptied`, always true."""
     return {"emptied": True}
 
 
@@ -3526,22 +3568,24 @@ def expand_drop_phenomenon_indexes(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def drop_phenomenon_indexes_unit(params, report):
-    """
-    The `drop-phenomenon-indexes` command's unit (OPS.123; the second half of the `prepare` of `scatter-phenomena` before it, PERF.172):
-    takes off the table's indexes: none to keep up to date while tens of millions of rows go in, built once at the end
-    (the `finish-phenomena` unit, PERF.73).
+def drop_phenomenon_indexes_pieces(params, cursor):
+    """The pieces of the `drop-phenomenon-indexes` unit (OPS.196): one to an index the table can have (`store.PHENOMENON_SCATTER_INDEXES`), named for the statement that drops it."""
+    return [f"Dropping the index {name} of phenomenon_scatter" for name in store.PHENOMENON_SCATTER_INDEXES]
 
-    Returns:
-        dict: `dropped`, always true.
+
+def drop_phenomenon_indexes_do(params, piece, ctx):
     """
-    phases = _UnitPhases(report, 1 + len(store.PHENOMENON_SCATTER_INDEXES))
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        store.drop_phenomenon_scatter_indexes(conn, phases)
-    finally:
-        conn.close()
-    phases.finish()
+    One piece of the `drop-phenomenon-indexes` unit (OPS.123; the second half of the `prepare` of `scatter-phenomena` before it, PERF.172; one piece to an index, OPS.196): takes off the index the
+    piece names where the table has it: none to keep up to date while tens of millions of rows go in, built once at the end (the `finish-phenomena` unit, PERF.73).
+    """
+    ctx.phase(piece)
+    name = next(index for index in store.PHENOMENON_SCATTER_INDEXES if piece == f"Dropping the index {index} of phenomenon_scatter")
+    with statementmark.labelled(piece):
+        store.drop_phenomenon_scatter_index(ctx.db, name)
+
+
+def drop_phenomenon_indexes_gather(params, results, ctx):
+    """The `drop-phenomenon-indexes` unit's result: `dropped`, always true."""
     return {"dropped": True}
 
 
@@ -3596,8 +3640,8 @@ FINISH_PHENOMENA_PIECES = ("draw", "write", "indexes", "record")
 
 
 def finish_phenomena_pieces(params, cursor):
-    """The pieces of the `finish-phenomena` unit (OPS.199): `FINISH_PHENOMENA_PIECES`. They hand each other the special rows through `ctx.state`, so a unit starts from its first piece whatever the cursor says."""
-    return list(FINISH_PHENOMENA_PIECES)
+    """The pieces of the `finish-phenomena` unit (OPS.199, OPS.222), after `cursor`: `FINISH_PHENOMENA_PIECES`. They hand each other the special rows through the unit's stored results, so a unit stopped partway starts at the piece after the last one it finished."""
+    return list(FINISH_PHENOMENA_PIECES)[cursor:]
 
 
 def finish_phenomena_do(params, piece, ctx):
@@ -3606,6 +3650,10 @@ def finish_phenomena_do(params, piece, ctx):
     special phenomena (the nucleus and the hypervelocity stars, minus any in a cell already filled) and writes them, builds
     the table's indexes one at a time (PERF.101), stamps the hypervelocity stars' epoch and records the scatter's seed and
     mass cut, which tells a sector fill to build its objects from the table (`store.record_phenomenon_scatter`).
+
+    The unit can be stopped between two pieces and started again after the last one it finished (OPS.222, `resumes`): the drawn rows are the first piece's result, which a later piece reads from the
+    results the engine kept (`ctx.results`); the two pieces that would write twice if they ran twice, the write and the record, commit through `ctx.commit_piece()`, so their data and the cursor past them
+    land together; and the indexes are built only where they are missing.
     """
     conn = ctx.db
     lines = ctx.state.setdefault("lines", [])
@@ -3614,15 +3662,14 @@ def finish_phenomena_do(params, piece, ctx):
         extents = _outline(conn)
         filled = store.filled_sector_addresses(conn)
         reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
-        ctx.state["special"] = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach))
-    elif piece == "write":
-        special = ctx.state["special"]
-
+        return [list(row) for row in phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach)]
+    special = ctx.results[0]
+    if piece == "write":
         def write_special(c):
             """The special rows and their Object IDs as one transaction (DB.114): other phenomenon units write the same table."""
             contention.begin_read_committed(c)
             store.insert_phenomenon_scatter(c, special)
-            ctx.commit()
+            ctx.commit_piece()
 
         contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
     elif piece == "indexes":
@@ -3640,19 +3687,20 @@ def finish_phenomena_do(params, piece, ctx):
         store.add_phenomenon_scatter_indexes(conn, on_index=built)
         store.stamp_phenomenon_scatter_epoch(conn)
     else:
-        special = ctx.state["special"]
         store.record_phenomenon_scatter(conn, params["seed"], params["min_mass_solar"])
         store.record_scatter_epoch(conn, "phenomena", params.get("run_id"))
         special_counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in special)
         store.add_phenomenon_scatter_classes(
             conn, {phenomenon_scatter.split_label(label): count for label, count in special_counts.items()})
-        ctx.commit()
-        ctx.state["special_counts"] = special_counts
+        counts = dict(special_counts)
+        ctx.commit_piece(counts)
+        return counts
+    return None
 
 
 def finish_phenomena_result(params, results, ctx):
-    """The `finish-phenomena` unit's result: `special`, how many special phenomena of each class were written, and `lines`, what the run says about it."""
-    return {"special": dict(ctx.state["special_counts"]), "lines": ctx.state.get("lines", [])}
+    """The `finish-phenomena` unit's result: `special`, how many special phenomena of each class were written (the last piece's result), and `lines`, what the run says about it."""
+    return {"special": dict(results[-1]), "lines": ctx.state.get("lines", [])}
 
 
 def run_plan(args):
@@ -3838,56 +3886,82 @@ def expand_clear_scatter(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def clear_scatter_unit(params, report):
-    """
-    The `clear-scatter` command's unit (Boss's F7): empties the stored rows of one kind of scatter, `params["part"]`:
-    "mass" (the massive stars, refused while the bright stars are stored, since they are split from these at the mass
-    limit), "luminosity" (the bright stars, the band with them), "phenomena" or "nebula-field". Nothing else is touched.
+class _CtxSteps(statementmark.Steps):
+    """What a clear's `run_steps` is given when one piece runs the whole clear (OPS.196): each statement is said as a phase and counted in the piece's second-level count (`ctx.step`), and labelled for the beat."""
 
-    Returns:
-        dict: `part` and `lines`, what the run says about it, for the process that started the run to log (this unit
-            may run in a worker).
+    def __init__(self, ctx):
+        self.ctx = ctx
+
+    def sql(self, label):
+        self.ctx.phase(label)
+        self.ctx.advance()
+        return statementmark.labelled(label)
+
+
+def clear_scatter_pieces(params, cursor):
+    """
+    The pieces of the `clear-scatter` unit (OPS.196): a look at what the scatter holds, the clear of it (a second-level count of its statements) and, for every scatter but the nebula field, the
+    block light totals made again. A scatter that holds nothing ends the unit after the look: the pieces after it do nothing.
+    """
+    name = SCATTER_NAMES[params["part"]]
+    return [f"Checking what the {name} scatter holds", f"Clearing the {name} scatter"] + ([] if params["part"] == "nebula-field" else ["Making the block light totals again"])
+
+
+def clear_scatter_do(params, piece, ctx):
+    """
+    One piece of the `clear-scatter` unit (Boss's F7; pieces, OPS.196): empties the stored rows of one kind of scatter, `params["part"]`:
+    "mass" (the massive stars, refused while the bright stars are stored, since they are split from these at the mass limit), "luminosity" (the bright stars, the band with them), "phenomena" or
+    "nebula-field". Nothing else is touched.
 
     Raises:
         RuntimeError: The massive stars are asked for while the bright stars are stored.
     """
-    part = params["part"]
-    name = SCATTER_NAMES[part]
-    clearing = {"mass": store.CLEAR_BRIGHT_STARS_STEPS, "luminosity": store.CLEAR_BRIGHT_STARS_STEPS, "phenomena": store.CLEAR_PHENOMENON_SCATTER_STEPS,
-                "nebula-field": store.CLEAR_NEBULA_FIELD_STEPS}[part]      # the most a clear of the part takes: the steps of an emptying that spares the other pass are fewer
-    phases = _UnitPhases(report, 1 + clearing + (part != "nebula-field"))
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        phases.next(f"Checking what the {name} scatter holds")
+    part, name = params["part"], SCATTER_NAMES[params["part"]]
+    conn = ctx.db
+    if piece.startswith("Checking"):
+        ctx.phase(piece)
+        ctx.state["lines"] = [f"Cleared the {name} scatter."]
         if not store.scatter_stored(conn, part):
             store.forget_scatter_epoch(conn, ("luminosity", "band") if part == "luminosity" else part)   # drawn, and empty
             conn.commit()
-            return {"part": part, "lines": [f"The {name} scatter has nothing stored."]}
+            ctx.state["lines"] = [f"The {name} scatter has nothing stored."]
+            ctx.state["nothing"] = True
+            return
         if part == "mass" and store.scatter_stored(conn, "luminosity"):
             raise RuntimeError("The bright stars are split from the massive stars at the mass limit -- run "
                                "'planetgen clear-scatter --luminosity' first.")
         if part in ("mass", "luminosity"):
             if store.bright_star_mass_limit(conn) is None:      # no mass pass to split the stars at: they all go
-                store.clear_bright_stars(conn, phases)
+                plan = store.clear_bright_stars_plan()
             else:
-                store.clear_bright_star_pass(conn, part, store.scatter_limits_of(conn), phases)
+                limits = store.scatter_limits_of(conn)
+                plan = store.clear_bright_star_pass_plan(part, limits, store.pass_masses(conn, limits))
         elif part == "phenomena":
-            store.clear_phenomenon_scatter(conn, phases)
+            plan = store.clear_phenomenon_scatter_plan()
         else:
-            store.clear_nebula_field(conn, phases)
-    finally:
-        conn.close()
-    if part != "nebula-field":
-        phases.next("Making the block light totals again")
+            plan = store.clear_nebula_field_plan()
+        ctx.state["plan"] = plan
+    elif ctx.state.get("nothing"):
+        return
+    elif piece.startswith("Clearing"):
+        plan = ctx.state["plan"]
+        ctx.step("Statements of the clear", len(plan))
+        store.run_steps(conn, plan, _CtxSteps(ctx))
+    else:
+        ctx.phase(piece)
+        ctx.close_db()
         refresh_block_lights(_mysql_config_of(params))
-    phases.finish()
-    return {"part": part, "lines": [f"Cleared the {name} scatter."]}
+
+
+def clear_scatter_gather(params, results, ctx):
+    """The `clear-scatter` unit's result: `part` and `lines`, what the run says about it, for the process that started the run to log (this unit may run in a worker)."""
+    return {"part": params["part"], "lines": ctx.state["lines"]}
 
 
 class ClearScatterFollower(UnitBarFollower):
     """
     The clearing of one scatter's stored rows as a stage of a run (Boss's F7, PERF.121, PERF.202): the `clear-scatter`
-    command does it in one unit (`clear_scatter_unit`, which refuses when the bright stars are split from the massive
+    command does it in one unit (`clear_scatter_do`, which refuses when the bright stars are split from the massive
     ones) and this side logs what the unit says. The stage is the kind's (`stages.CLEAR_STAGE`).
     """
 

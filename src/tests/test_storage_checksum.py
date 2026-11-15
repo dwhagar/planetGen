@@ -315,7 +315,7 @@ WRITERS = {
     ("db/store.py", "touch_sector"): MARKS,
     ("db/store.py", "advance_orbital_phases"): VOLATILE,
     ("db/store.py", "advance_comet_orbits"): VOLATILE,
-    ("generation/run_plan.py", "clean_nebula_field_unit"): MARKS,
+    ("generation/run_plan.py", "clean_nebula_field_do"): MARKS,
     ("population/facility_attrs.py", "write"): MARKS,
     ("population/facility_suggest.py", "suggest_for_facility"): MARKS,
 }

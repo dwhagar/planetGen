@@ -55,17 +55,24 @@ class _Recorder:
         self.labels.append(label)
         return statementmark.labelled(label)
 
+    def nothing(self, text):
+        pytest.fail(f"the clear found nothing to clear ({text}): the test must give it something")
 
-@pytest.mark.parametrize("clear, count", [(store.clear_bright_stars, store.CLEAR_BRIGHT_STARS_STEPS), (store.clear_phenomenon_scatter, store.CLEAR_PHENOMENON_SCATTER_STEPS),
-                                          (store.clear_nebula_field, store.CLEAR_NEBULA_FIELD_STEPS)])
-def test_a_clear_takes_exactly_the_steps_it_says(mysql_config, clear, count):
+
+@pytest.mark.parametrize("clear, plan", [(store.clear_bright_stars, store.clear_bright_stars_plan), (store.clear_phenomenon_scatter, store.clear_phenomenon_scatter_plan),
+                                         (store.clear_nebula_field, store.clear_nebula_field_plan)])
+def test_a_clear_takes_exactly_the_steps_of_its_plan(mysql_config, monkeypatch, clear, plan):
+    """OPS.196: the plan is the one list of a clear's statements, and the pieces of the unit that runs it are its labels. A new galaxy has nothing to clear (OPS.254, OPS.257), so the test says it has."""
+    for name in ("bright_stars_hold_nothing", "phenomenon_scatter_holds_nothing", "nebula_field_holds_nothing"):
+        monkeypatch.setattr(store, name, lambda conn: False)
     steps = _Recorder()
     conn = store.get_connection(mysql_config)
     try:
         clear(conn, steps)
     finally:
         conn.close()
-    assert len(steps.labels) == count and len(set(steps.labels)) == count, steps.labels
+    labels = [label for label, _ in plan()]
+    assert len(set(labels)) == len(labels) and steps.labels == labels, steps.labels
 
 
 def test_a_pass_clear_and_the_index_drop_take_no_more_steps_than_they_say(mysql_config):
@@ -79,7 +86,7 @@ def test_a_pass_clear_and_the_index_drop_take_no_more_steps_than_they_say(mysql_
         if limits is not None:
             steps = _Recorder()
             store.clear_bright_star_pass(conn, "luminosity", limits, steps)
-            assert len(steps.labels) <= store.CLEAR_BRIGHT_STAR_PASS_STEPS
+            assert steps.labels == [label for label, _ in store.clear_bright_star_pass_plan('luminosity', limits, store.pass_masses(conn, limits))]
     finally:
         conn.close()
 
@@ -95,12 +102,26 @@ def test_the_unit_counts_one_step_to_a_statement():
 
 
 def test_the_reset_names_each_table_it_empties(mysql_config, monkeypatch):
-    """OPS.206: one `longsql.run` to a table, labelled with the table and its place in the list, and the unit's count moves a table at a time."""
+    """OPS.206: one `longsql.run` to a table that holds something (OPS.254 leaves the empty ones alone), labelled with the table and its place in the list, and the unit's count moves a table at a time."""
     from planetgen.cli import reset
+    from tests.test_api import _place_sector
+    _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
     labels, counts = [], []
     real = longsql.run
     monkeypatch.setattr(longsql, "run", lambda conn, statement, label, *a, **k: labels.append((statement, label)) or real(conn, statement, label, *a, **k))
     wiped = reset.wipe(mysql_config, lambda done, total: counts.append((done, total)))
-    assert len(labels) == len(wiped.tables) and all(s.startswith("TRUNCATE TABLE ") for s, _ in labels)
-    assert labels[0][1].startswith(f"Emptying {labels[0][0].split()[-1]} (") and f"table 1 of {len(wiped.tables)}" in labels[0][1]
+    assert 0 < len(labels) <= len(wiped.tables) and all(s.startswith("TRUNCATE TABLE ") for s, _ in labels)
+    assert labels[0][1].startswith(f"Emptying {labels[0][0].split()[-1]} (") and f" of {len(wiped.tables)}" in labels[0][1]
     assert counts[-1] == (len(wiped.tables), len(wiped.tables))
+
+
+def test_the_reset_unit_has_a_piece_to_a_table_and_one_to_tidy_after(mysql_config):
+    """OPS.196: the unit's count is the pieces, a table at a time and the tidying last, and what it returns is what `wipe` returns."""
+    from planetgen.cli import reset
+    from planetgen.queue import commands, wrapper
+    from tests.test_api import _place_sector
+    _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
+    reports = []
+    result = commands.run_alone("reset-galaxy", {"database": wrapper.database_args(mysql_config)}, lambda done, total: reports.append((done, total)))
+    assert reports[0][0] == 0 and reports[-1] == (result["tables"] + 1, result["tables"] + 1) and result["with_rows"] > 0
+    assert reset.reset_galaxy_pieces({"database": wrapper.database_args(mysql_config)}, 0)[-1] == reset.TIDY_PIECE

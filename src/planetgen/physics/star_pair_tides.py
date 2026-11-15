@@ -28,6 +28,9 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants, magnetic_geometry, spin, stability
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 GYRATION_SQUARED = 0.1
 """float: `I / (M R^2)`, the star's moment of inertia over `M R^2` ([R5232] take 0.1 for every star; a stand-in, row KT1, tier Confident Unverified, tweak L0)."""
@@ -66,7 +69,7 @@ NEVER = math.inf
 
 
 def _mass_sol(mass_kg):
-    return mass_kg / constants.SOLAR_MASS_TO_KG
+    return _kg_to_msun(mass_kg)
 
 
 def _interpolate_log(points, x):
