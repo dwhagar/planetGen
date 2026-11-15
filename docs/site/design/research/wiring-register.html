@@ -101,9 +101,39 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>function</td>
+<td>planetgen.physics.radiation_field.companion_share</td>
+<td>by design</td>
+<td>the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445)</td>
+</tr>
+<tr>
+<td>function</td>
 <td>planetgen.physics.photolysis.outside_templates</td>
 <td>by design</td>
 <td>says when a star's template ratio is the end template's (read by the tests and by the notes of the table)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.disk_drift.cold_finger_enrichment</td>
+<td>by design</td>
+<td>the rise of the ice-to-rock ratio just outside a line when part of the vapor goes back out (design note 2.4): reported and read by the tests, not by the generator (GEN.1473)</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.242:DE4</td>
+<td>by design</td>
+<td>the viscous gas flux constants of the water drift model; the disc mass cancels in the enrichment ratio the generator reads, so the constants are kept for the tests and the note (GEN.1473)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.eclipses.orbiting_the_star</td>
+<td>by design</td>
+<td>the mean share of a star's light a sibling planet inside the observer's orbit covers: read by the tests and the census, and by the effect ledger when it keeps the light eclipsed by planets (GEN.1465); only a close pair's eclipses are applied to the light (GEN.1484)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.eclipses.orbiting_the_observer</td>
+<td>by design</td>
+<td>the same for a moon in front of a star for its planet: read by the tests and the census, and by the effect ledger (GEN.1465); a moon of a circumbinary planet reads its planet's light without the pair's factor (GEN.1484)</td>
 </tr>
 <tr>
 <td>function</td>
@@ -142,6 +172,12 @@ main{padding:16px 16px 60px}}
 <td>the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again</td>
 </tr>
 <tr>
+<td>data</td>
+<td>fudge_matrix.json</td>
+<td>by design</td>
+<td>the measured movement of every class quantity under every stand-in row (GEN.1313, <code>scripts/stand_in_sensitivity.py screen --frozen</code>); <code>scripts/build_fudge_table.py</code> turns it into <code>fudge_table.json</code> and <code>test_fudge_table.py</code> holds the table to it; the generator reads the table, not the matrix</td>
+</tr>
+<tr>
 <td>function</td>
 <td>planetgen.galaxy.nebula_density.octave_bound</td>
 <td>by design</td>
@@ -172,10 +208,10 @@ main{padding:16px 16px 60px}}
 <td>read by <code>physics/design_flags.py</code> only</td>
 </tr>
 <tr>
-<td>module</td>
-<td>planetgen.physics.equilibrium_edges</td>
-<td>GEN.994</td>
-<td>the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry</td>
+<td>function</td>
+<td>planetgen.physics.equilibrium_edges.h2_dissociation_temperature</td>
+<td>by design</td>
+<td>the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation</td>
 </tr>
 <tr>
 <td>module</td>
@@ -323,18 +359,6 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>data</td>
-<td>sulfuric_cloud.json</td>
-<td>GEN.1019</td>
-<td>the sulfuric acid cloud rules (base temperature, published depth and radius brackets, cover); <code>aerosols.draw_cloud</code> will read them in the wiring step</td>
-</tr>
-<tr>
-<td>module</td>
-<td>planetgen.physics.sulfuric_cloud</td>
-<td>GEN.1019</td>
-<td>the acid cloud of an air with sulfur; <code>aerosols.draw_cloud</code> will add it to the condensate cloud once wired</td>
-</tr>
-<tr>
-<td>data</td>
 <td>acid_cloud_optics.json</td>
 <td>by design</td>
 <td>the acid droplets' infrared optics per band (made by <code>scripts/build_acid_cloud_optics.py</code>); <code>radiative_convective</code> will read it through <code>cloud_infrared</code> in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built)</td>
@@ -344,6 +368,24 @@ main{padding:16px 16px 60px}}
 <td>planetgen.physics.cloud_infrared</td>
 <td>by design</td>
 <td>the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.sulfuric_cloud.infrared_cloud</td>
+<td>by design</td>
+<td>the acid cloud's depth, droplet radius, base temperature and strength as <code>radiative_convective.solve(cloud=)</code> takes them; the column solver is run by the fit and the tests, not by generation (GEN.850 built)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.sulfuric_vapor.mole_fraction</td>
+<td>by design</td>
+<td>the acid mole fraction of a solution given in weight percent, the reading aid of the model's tests and of a caller that holds a strength</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.sulfuric_vapor.status_at</td>
+<td>by design</td>
+<td>whether a temperature is inside the 200 to 350 K of the model, for a caller that reports an extrapolation</td>
 </tr>
 <tr>
 <td>module</td>
@@ -396,32 +438,32 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>module</td>
 <td>planetgen.physics.atmosphere_retention</td>
-<td>GEN.1047</td>
-<td>the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it</td>
+<td>by design</td>
+<td>the shoreline ratio, verdict, pressure cap and Jeans gate of the design note, held against the generator by the tests and the census (GEN.1523 settled it): the pressure stage reads the Berta-Thompson logistic of the atmosphere recipes rows d, which is the fit to the observed planets, and not this module's K-window fit, so the module is a tested library and the stage never takes its cap from it</td>
 </tr>
 <tr>
 <td>row</td>
 <td>6.74:SH1</td>
-<td>GEN.1047</td>
-<td><code>atmosphere_retention.SHORELINE_K</code>, not read until the pressure stage takes its cap from the module</td>
+<td>by design</td>
+<td><code>atmosphere_retention.SHORELINE_K</code>, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d</td>
 </tr>
 <tr>
 <td>row</td>
 <td>6.74:SH2</td>
-<td>GEN.1047</td>
-<td><code>atmosphere_retention.VERDICT_EDGES</code>, not read until the pressure stage takes its cap from the module</td>
+<td>by design</td>
+<td><code>atmosphere_retention.VERDICT_EDGES</code>, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d</td>
 </tr>
 <tr>
 <td>row</td>
 <td>6.74:SH3</td>
-<td>GEN.1047</td>
-<td><code>atmosphere_retention.PRESSURE_CAPS_PA</code>, not read until the pressure stage takes its cap from the module</td>
+<td>by design</td>
+<td><code>atmosphere_retention.PRESSURE_CAPS_PA</code>, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d</td>
 </tr>
 <tr>
 <td>row</td>
 <td>6.74:SH4</td>
-<td>GEN.1047</td>
-<td><code>atmosphere_retention.JEANS_KEEP</code>, not read until the pressure stage takes its cap from the module</td>
+<td>by design</td>
+<td><code>atmosphere_retention.JEANS_KEEP</code>, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d</td>
 </tr>
 <tr>
 <td>module</td>
@@ -464,42 +506,6 @@ main{padding:16px 16px 60px}}
 <td>6.98:BW6</td>
 <td>GEN.1110</td>
 <td>a constant of the band winds module, read when its wiring step lands</td>
-</tr>
-<tr>
-<td>module</td>
-<td>planetgen.physics.helium_fractionation</td>
-<td>GEN.1047</td>
-<td>the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands</td>
-</tr>
-<tr>
-<td>row</td>
-<td>6.77:HF1</td>
-<td>GEN.1047</td>
-<td>a constant of the helium fractionation module, read when its wiring step lands</td>
-</tr>
-<tr>
-<td>row</td>
-<td>6.77:HF2</td>
-<td>GEN.1047</td>
-<td>a constant of the helium fractionation module, read when its wiring step lands</td>
-</tr>
-<tr>
-<td>row</td>
-<td>6.77:HF3</td>
-<td>GEN.1047</td>
-<td>a constant of the helium fractionation module, read when its wiring step lands</td>
-</tr>
-<tr>
-<td>module</td>
-<td>planetgen.physics.hycean_candidate</td>
-<td>GEN.1047</td>
-<td>the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands</td>
-</tr>
-<tr>
-<td>row</td>
-<td>6.79:HC1</td>
-<td>GEN.1047</td>
-<td>the four ranges of the Hycean box, read when its wiring step lands</td>
 </tr>
 <tr>
 <td>module</td>
@@ -640,34 +646,46 @@ main{padding:16px 16px 60px}}
 <td><code>resonance_gaps.ZONE_ECCENTRICITY_FLOOR</code>, read when the wiring step lands</td>
 </tr>
 <tr>
-<td>module</td>
-<td>planetgen.physics.trojans</td>
+<td>function</td>
+<td>planetgen.physics.trojans.allows</td>
 <td>GEN.1150</td>
-<td>what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it</td>
+<td>the mass rule for a body at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
 </tr>
 <tr>
-<td>row</td>
-<td>6.121:TJ1</td>
+<td>function</td>
+<td>planetgen.physics.trojans.max_trojan_mass</td>
 <td>GEN.1150</td>
-<td><code>trojans.MU_CRIT</code>, read when the swarm draw lands</td>
+<td>the largest body a pair can hold at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
 </tr>
 <tr>
-<td>row</td>
-<td>6.121:TJ3</td>
+<td>function</td>
+<td>planetgen.physics.trojans.libration_period</td>
 <td>GEN.1150</td>
-<td><code>trojans.libration_period, TADPOLE_LIMIT_DEG</code>, read when the orbit overlay lands</td>
+<td>the slow libration period of a tadpole; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
 </tr>
 <tr>
-<td>row</td>
-<td>6.121:TJ4</td>
+<td>function</td>
+<td>planetgen.physics.trojans.leading_share</td>
 <td>GEN.1150</td>
-<td><code>trojans.LEADING_SHARE_RANGE</code>, read when the swarm draw lands</td>
+<td>the share of a swarm in L4; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
 </tr>
 <tr>
-<td>row</td>
-<td>6.121:TJ5</td>
+<td>function</td>
+<td>planetgen.physics.trojans.swarm_split</td>
 <td>GEN.1150</td>
-<td><code>trojans.ECC_MAX, INCLINATION_MAX_DEG</code>, read when the swarm draw lands</td>
+<td>a swarm split into its L4 and L5 regions; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.trojans.point_label</td>
+<td>GEN.1150</td>
+<td>the map label of a point, <code>Jupiter-L4</code>; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.trojans.pair_text</td>
+<td>GEN.1150</td>
+<td>the page text of a point, <code>L4 of Sun and Jupiter</code>; the swarm draw and the map icon call it (the survival of a swarm, <code>surviving_share</code>, is read since GEN.1455)</td>
 </tr>
 <tr>
 <td>module</td>
@@ -847,7 +865,7 @@ main{padding:16px 16px 60px}}
 <td>function</td>
 <td>planetgen.galaxy.structure_draw.hot_component_bound</td>
 <td>by design</td>
-<td>the most the thick disk can weigh over the thin disk's ([R0860: Eq. 1]), the bound <code>test_structure_draw</code> holds the drawn thick-to-thin ratio under; the draw does not read it</td>
+<td>the most the thick disc can weigh over the thin disc's ([R0860: Eq. 1]), the bound <code>test_structure_draw</code> holds the drawn thick-to-thin ratio under; the draw does not read it</td>
 </tr>
 <tr>
 <td>function</td>
@@ -1123,7 +1141,7 @@ main{padding:16px 16px 60px}}
 <td>function</td>
 <td>planetgen.physics.planet_survival.expected_passes</td>
 <td>by design</td>
-<td>the ionizing passes N(a) whose root <code>planet_survival_limit_au</code> solves in closed form; <code>test_planet_survival</code> pins the root against it</td>
+<td>the ionising passes N(a) whose root <code>planet_survival_limit_au</code> solves in closed form; <code>test_planet_survival</code> pins the root against it</td>
 </tr>
 <tr>
 <td>function</td>
@@ -1178,12 +1196,6 @@ main{padding:16px 16px 60px}}
 <td>planetgen.physics.sector_path.relevant_masses</td>
 <td>by design</td>
 <td>the selection step of <code>integrate_path</code> run alone, so the tests and the timing in math-and-library-efficiency.md can check and time it; the integrator calls the kernel's selection itself</td>
-</tr>
-<tr>
-<td>function</td>
-<td>planetgen.physics.small_body_composition.draw_ring</td>
-<td>GEN.1055</td>
-<td>the composition of ring material from where it formed in its parent's disk (ice fraction by distance); the stored ring ice share and its darkening by pollution read it when GEN.1055 lands</td>
 </tr>
 <tr>
 <td>function</td>
@@ -1486,28 +1498,28 @@ main{padding:16px 16px 60px}}
 <td>the silicon share of SiC in the diffuse, dense and reflection mixes of <code>GRAIN_MIXES</code> (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what <code>test_nebula_composition</code> holds those three shares to, and the mixes stay written as the dust shares the model uses</td>
 </tr>
 <tr>
+<td>row</td>
+<td>6.270:AUD25</td>
+<td>by design</td>
+<td>the scope of the radius valley survey (<code>radius_valley</code>, a check run by the tuning tests; the generator never reads it, see the module's line)</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.270:AUD26</td>
+<td>by design</td>
+<td>the scope of the iron branch sample (<code>iron_branch_tuning</code>, run by the tuning tests; the generator never reads it, see the module's line)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.helium_fractionation.critical_mass_flux_kg_s</td>
+<td>by design</td>
+<td>the total mass loss at and under which only hydrogen leaves (Hu 2015 eq. 14), the threshold <code>partition</code> crosses; the tests read it to check the paper's numbers and <code>partition</code> works from the same flux</td>
+</tr>
+<tr>
 <td>module</td>
-<td>planetgen.physics.sulfuric_vapor</td>
-<td>GEN.1425</td>
-<td>the vapor pressure of sulfuric acid and water over aqueous sulfuric acid and the window the liquid condenses in (GEN.1424); the cloud step of the Venus chemistry set reads <code>condensation_temperature_k</code> and <code>window</code> for the cloud base and top</td>
-</tr>
-<tr>
-<td>data</td>
-<td>sulfuric_vapor.json</td>
-<td>GEN.1425</td>
-<td>read by <code>physics/sulfuric_vapor.py</code> only</td>
-</tr>
-<tr>
-<td>module</td>
-<td>planetgen.physics.sulfur_cloud_set</td>
-<td>GEN.1425</td>
-<td>the sulfur-cloud chemistry set and its six gates (part A of GEN.1425); the cloud step (the acid cloud base and strength from the window of <code>sulfuric_vapor</code>, the colour band V10 of <code>absorber_depth</code>) is part B and reads <code>chemistry</code></td>
-</tr>
-<tr>
-<td>data</td>
-<td>sulfur_cloud_set.json</td>
-<td>GEN.1425</td>
-<td>read by <code>physics/sulfur_cloud_set.py</code> only</td>
+<td>planetgen.physics.obliquity_variation</td>
+<td>GEN.1454</td>
+<td>the range and chaos of a planet's tilt under the star, its moons, its siblings and a companion; part 2 of GEN.1454 wires it into the settle pass, the seasonal swing and the oddity table</td>
 </tr>
 </tbody>
 </table></div>

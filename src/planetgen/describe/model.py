@@ -36,7 +36,7 @@ KINDS = LADDER_KINDS + OTHER_KINDS
 DISPLAY_UNITS = {
     "length": "m", "speed": "m_s", "time": "s", "temperature": "K", "temperature difference": "dK", "fraction": "frac", "pressure": "Pa", "gravity": "m_s2", "mass": "kg",
     "power": "W", "flux": "W_m2", "number density": "m-3", "magnetic field": "T", "radius": "m", "luminosity": "W",
-    "dose rate": "Sv_s", "angle": "deg", "density": "kg_m3", "ratio": "ratio", "count": "count",
+    "dose rate": "Sv_s", "rate": "1/s", "angle": "deg", "density": "kg_m3", "ratio": "ratio", "count": "count",
 }
 """dict: The unit a kind's text is written from, a key of the unit registry or one of `PLAIN_UNITS`. A quantity held in
 another unit of the kind is converted to it (`quantity.display_value`)."""

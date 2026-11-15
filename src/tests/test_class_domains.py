@@ -38,6 +38,9 @@ def test_groundwater_and_the_phase_gates_are_one_or_zero():
     found = domains.derived(_values(groundwater="reachable"))
     assert found["groundwater_present"] == 1.0 and domains.derived(_values())["groundwater_present"] == 0.0
     assert found["phase_water"] == 1.0 and found["phase_co2"] == 0.0 and found["phase_methane_ethane"] == 0.0
+    sea = domains.derived(_values(ocean_fraction=0.1))      # GEN.1638: liquid at the surface means a water table under the land
+    assert sea["groundwater_present"] == 1.0
+    assert domains.derived(_values(ocean_fraction=0.0, hydrosphere="dry"))["groundwater_present"] == 0.0
 
 
 def test_every_quantity_of_the_fit_table_has_a_domain_and_every_class_a_cell_in_each():

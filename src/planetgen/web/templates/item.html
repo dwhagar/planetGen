@@ -44,6 +44,9 @@
 {%- if belt_info_url %}
 <p class="sheet-help"><a class="help-link" href="{{ belt_info_url }}">The bodies of this belt, the sizes and contents of the rest of its mass, and how crowded it is</a></p>
 {%- endif %}
+{%- if irregular_moons_url %}
+<p class="sheet-help"><a class="help-link" href="{{ irregular_moons_url }}">The irregular moons this planet caught, their sizes, makeup and orbits</a></p>
+{%- endif %}
 {#- UX.215 to UX.222: a planet or moon is laid out About (the facts, Summary, Life, Civilization), Habitability (PHI-6),
     Atmosphere, Composition, then the rest of its properties; every section is a heading the contents menu lists. -#}
 {%- macro rows_table(rows) %}

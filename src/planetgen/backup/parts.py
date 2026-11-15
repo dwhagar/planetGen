@@ -10,6 +10,7 @@ import shutil
 from dataclasses import dataclass, field
 
 from planetgen.backup.core import BackupError, Part, fsync_folder, match_owner, register
+from planetgen.util.format import format_bytes
 
 CONFIG_FILE = "config.json"
 PARITY_COPY = "sector-parity.pgpr"
@@ -54,7 +55,7 @@ class ParityRestore:
 
     def lines(self):
         found = self.found
-        out = [f"Put back the repair file: {self.bytes:,} bytes, {self.sectors:,} sector(s) in {self.groups:,} group(s).",
+        out = [f"Put back the repair file: {format_bytes(self.bytes)}, {self.sectors:,} sector(s) in {self.groups:,} group(s).",
                f"Checked against the database: {found.checked:,} sector(s), {found.healthy:,} matching, {found.recomputed:,} records made again "
                f"from the rows (the database had changed since the backup; not damage), {found.released:,} let go (sector gone)."]
         if found.unprotected:
@@ -67,6 +68,16 @@ class ParityRestore:
 
     def __str__(self):
         return "\n".join(self.lines())
+
+
+_BUSY = "A save is writing the repair file right now, so it was not restored: try again when the save is done."
+
+
+def _coverage(index):
+    """`(sectors, groups)` a parity file's index covers: the sectors the latest record of each group lists, and the groups."""
+    from planetgen.db import parity_file
+    sectors = sum(1 for entry in index.entries.values() for member in entry.members if member.sector_id != parity_file.EMPTY)
+    return sectors, len(index.entries)
 
 
 class ParityPart(Part):
@@ -108,8 +119,7 @@ class ParityPart(Part):
                     copied += len(block)
                 out.flush()
                 os.fsync(out.fileno())
-            sectors = sum(1 for entry in source.entries.values() for member in entry.members if member.sector_id != parity_file.EMPTY)
-            groups = len(source.entries)
+            sectors, groups = _coverage(source)
         if copied != wanted:
             raise BackupError(f"The parity file {path} is shorter than its index says ({copied} of {wanted} bytes): it changed under the copy.")
         return {"present": True, "bytes": copied, "sectors": sectors, "groups": groups}
@@ -125,7 +135,7 @@ class ParityPart(Part):
             with parity_file.open_file(path).locked(wait=False):
                 pass
         except parity_file.ParityFileBusy as exc:
-            raise BackupError("A save is writing the repair file right now, so it was not restored: try again when the save is done.") from exc
+            raise BackupError(_BUSY) from exc
 
     def restore(self, directory, context):
         """
@@ -149,8 +159,7 @@ class ParityPart(Part):
         with looked.locked():
             if looked.damaged_at is not None or looked.valid_end != os.path.getsize(copy):
                 raise BackupError("The repair file in this archive is damaged (it is not a whole number of whole records); it was not restored.")
-            groups = len(looked.entries)
-            sectors = sum(1 for entry in looked.entries.values() for member in entry.members if member.sector_id != parity_file.EMPTY)
+            sectors, groups = _coverage(looked)
         try:
             conn = store.get_connection(context.database or store.MySQLConfig(), ensure_schema=False)
         except Exception as exc:  # noqa: BLE001 -- say what it was, change nothing
@@ -158,21 +167,22 @@ class ParityPart(Part):
                               "nothing was changed.") from exc
         try:
             path = parity.parity_path()
+            folder = os.path.dirname(os.path.abspath(path))
             live = parity_file.open_file(path)
             temp = path + ".restore"
             try:
                 with live.locked(wait=False):
-                    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+                    os.makedirs(folder, exist_ok=True)
                     shutil.copyfile(copy, temp)
                     with open(temp, "rb") as written:
                         os.fsync(written.fileno())
                     os.chmod(temp, os.stat(path).st_mode & 0o777 if os.path.exists(path) else 0o640)
-                    match_owner(temp, os.path.dirname(os.path.abspath(path)))
+                    match_owner(temp, folder)
                     os.replace(temp, path)
                     live._unlock_after_replace()
-                fsync_folder(os.path.dirname(os.path.abspath(path)))
+                fsync_folder(folder)
             except parity_file.ParityFileBusy as exc:
-                raise BackupError("A save is writing the repair file right now, so it was not restored: try again when the save is done.") from exc
+                raise BackupError(_BUSY) from exc
             finally:
                 if os.path.exists(temp):
                     os.unlink(temp)

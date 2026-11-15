@@ -50,14 +50,13 @@ import time
 from dataclasses import dataclass, field
 from typing import ClassVar
 
-from planetgen import tuning
 from planetgen.admin import edits
 from planetgen.galaxy import sector as galaxy_sector
 from planetgen.generation import system as system_module, validation
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.planet import Planet
 from planetgen.names.bodies import moon_letters
-from planetgen.physics import magnetism, planets as planetPhysics, radiation, unit_registry as units
+from planetgen.physics import planets as planetPhysics, unit_registry as units
 from planetgen.util import detmath, draw
 
 PLAN_VERSION = 1
@@ -203,18 +202,19 @@ def _locate(sim, ref):
     raise PlanError(f"{ref.kind} objects cannot be the target of an operation")
 
 
-def _settle(system, summary):
-    """Stabilises the changed system (`validation.stabilize_star_system`) and wraps up the result."""
-    report = validation.stabilize_star_system(system)
-    warnings = [f"{p.body}: {p.message}." for p in report.problems]
-    return edits.EditResult(summary, report.moved, report.reclassified, report.removed, warnings)
+_settle = edits.finish
+"""Stabilises the changed system (`validation.stabilize_star_system`) and wraps up the result."""
+
+_letter_moons = edits.name_moons
+"""Names a planet's moons `<planet name><letter>` in orbital order."""
 
 
-def _letter_moons(planet):
-    """Names a planet's moons `<planet name><letter>` in orbital order."""
-    planet.moons.sort(key=lambda m: m.distance)
-    for index, moon in enumerate(planet.moons):
-        moon.name = f"{planet.name}{moon_letters(index)}"
+def _check_moon_distance(planet, distance, forced):
+    """Refuses a moon orbit outside what `planet` can hold (`planetPhysics.moon_orbit_bounds_km`) unless `forced`."""
+    low_km, high_km = planetPhysics.moon_orbit_bounds_km(planet)
+    if not _km_to_au(low_km) <= distance <= _km_to_au(high_km) and not forced:
+        raise PlanError(f"a moon of {planet.name} can sit {_km_to_au(low_km):.3g} to {_km_to_au(high_km):.3g} AU "
+                        f"from it, not {distance:.3g}")
 
 
 def _number(value, label, positive=True):
@@ -405,10 +405,7 @@ def _move_orbit(sim, op):
     system, body, owner = _locate(sim, op.target)
     distance = _number(op.distance_au, "the distance")
     if op.target.kind == MOON:
-        low_km, high_km = planetPhysics.moon_orbit_bounds_km(owner)
-        if not _km_to_au(low_km) <= distance <= _km_to_au(high_km) and not op.forced:
-            raise PlanError(f"a moon of {owner.name} can sit {_km_to_au(low_km):.3g} to {_km_to_au(high_km):.3g} AU "
-                            f"from it, not {distance:.3g}")
+        _check_moon_distance(owner, distance, op.forced)
         body.distance = distance
         validation.refresh_moon_orbit(body, owner)
         owner.moons.sort(key=lambda moon: moon.distance)
@@ -512,7 +509,7 @@ def _apply_regenerate(sim, op):
     if unknown:
         raise PlanError(f"cannot keep {', '.join(unknown)}; the aspects to keep are {', '.join(KEEPABLE)}")
     if "name" not in keep or "orbit" not in keep:
-        raise PlanError("a regeneration keeps the name and the orbit for now; redrawing them comes later"
+        raise PlanError("a regeneration keeps the name and the orbit for now; redrawing them comes later with the "
                         "rearranger")
     system, body, owner = _locate(sim, op.target)
     return edits.regenerate_body(system, op.target.kind, body, owner)
@@ -543,15 +540,9 @@ def _add_planet(sim, op, system):
     planet.name, planet.db_id = name, op.new_id
     system.planets.append(planet)
     system.planets.sort(key=lambda item: item.distance)
-    _letter_moons(planet)
-    for moon in planet.moons:
-        radiation.apply_parent_belts(moon, planet)  # GEN.983
-    for body in [planet] + planet.moons:
-        validation.reapply_life(body)
-    magnetism.generate_stellar_induction(planet)  # GEN.981
+    edits.finish_new_planet(planet)
     for moon in planet.moons:
         moon.db_id = f"{op.new_id}-{moon.name}"
-        magnetism.generate_induced_field(moon, planet)
     return _settle(system, f"Added {name} at {distance:.4g} AU.")
 
 
@@ -560,10 +551,7 @@ def _add_moon(sim, op, system):
         raise PlanError("a moon is added to a planet")
     _system, planet, _owner = _locate(sim, op.target)
     distance = _number(op.distance_au, "the distance")
-    low_km, high_km = planetPhysics.moon_orbit_bounds_km(planet)
-    if not _km_to_au(low_km) <= distance <= _km_to_au(high_km) and not op.forced:
-        raise PlanError(f"a moon of {planet.name} can sit {_km_to_au(low_km):.3g} to {_km_to_au(high_km):.3g} AU "
-                        f"from it, not {distance:.3g}")
+    _check_moon_distance(planet, distance, op.forced)
     moon = edits.make_moon(planet, distance)
     if moon is None:
         raise PlanError(f"{planet.name} can hold no moon")

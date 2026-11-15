@@ -252,44 +252,133 @@ def resolve_claims(polities, systems):
 # Database pass
 # ---------------------------------------------------------------------------
 
-def run_population(conn, rescan=False, on_stage=None):
+def population_pieces(conn, rescan=False):
     """
-    The population pass, committed as it goes (PERF.125): scan new life worlds, drop the species without a
-    civilization, date the civilizations and found or dissolve the polities. It does not draw territories; that is
-    `run_territories`, its own command.
+    The pieces of the population pass (OPS.203), as the job engine runs them: forget every species when `rescan`, scan the planets past the
+    watermark `SCAN_BATCH` ids at a time (one piece a batch), drop the species without a civilization, date the civilizations and found or dissolve the polities,
+    refresh the map's technology rows, and count. A piece is a short JSON-able list, its kind first.
+
+    Args:
+        conn (Connection): A connection that reads the planets and the watermark.
+        rescan (bool): Forget every species (and with them every polity and territory) and scan every planet again.
+
+    Returns:
+        list: The pieces, in the order `do_population_piece` runs them.
+    """
+    top = conn.execute("SELECT MAX(id) AS id FROM planets").fetchone()["id"] or 0
+    low = 0 if rescan else _watermark(conn)
+    pieces = []
+    if rescan:
+        pieces.append(["reset"])
+    pieces.extend(["scan", start, min(top, start + SCAN_BATCH)] for start in range(low, top, SCAN_BATCH))
+    pieces.extend([["drop"], ["civilizations"], ["technology"], ["counts"]])
+    return pieces
+
+
+def do_population_piece(conn, piece):
+    """
+    One piece of the population pass (`population_pieces`). It writes what it writes and does not commit: the caller takes the pass lock around it and commits before
+    it lets the lock go (the job engine does through its context; `run_population` outside it).
+
+    Returns:
+        dict: What the piece counted: `added` of a scan, the counts of `counts`, nothing for the rest.
+    """
+    kind = piece[0]
+    if kind == "reset":
+        conn.execute("DELETE FROM species")
+        conn.execute("DELETE FROM population_state")
+        return {}
+    if kind == "scan":
+        return {"added": _scan_batch(conn, piece[1], piece[2])}
+    if kind == "drop":
+        drop_species_without_civilization(conn)
+        return {}
+    if kind == "civilizations":
+        refresh_civilizations(conn)
+        return {}
+    if kind == "technology":
+        from planetgen.db import interests  # here: the db package imports this one
+        interests.refresh_technology(conn)    # MAP.344: the map's civilization rows carry their most advanced species' level
+        return {}
+    if kind == "counts":
+        counts = conn.execute(
+            "SELECT COUNT(*) AS species, COALESCE(SUM(spacefaring), 0) AS spacefaring FROM species"
+        ).fetchone()
+        polities = conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
+        return {"species": int(counts["species"]), "spacefaring": int(counts["spacefaring"]), "polities": int(polities)}
+    raise ValueError(f"unknown population piece {piece!r}")
+
+
+def population_counts(results):
+    """The counts of a whole pass from the results of its pieces: `new_species`, `species`, `spacefaring`, `polities`."""
+    counts = next(result for result in reversed(results) if "species" in result)
+    return {"new_species": sum(result.get("added", 0) for result in results), "species": counts["species"],
+            "spacefaring": counts["spacefaring"], "polities": counts["polities"]}
+
+
+def run_population(conn, rescan=False, commit=None):
+    """
+    The population pass outside the job engine (a bring-to-epoch redo, a test): the pieces of `population_pieces`, `commit` after each, the pass lock let go at the
+    end. The queue's `run-population` command runs the same pieces through the engine (`generation.run_population`).
 
     Args:
         conn (Connection): A write connection.
-        rescan (bool): Forget every species (and with them every polity
-            and territory) and scan every planet again.
-        on_stage (callable, optional): `on_stage(description)` as each of
-            the pass's `POPULATION_STAGES` steps starts (UX.83's bar).
+        rescan (bool): Forget every species (and with them every polity and territory) and scan every planet again.
+        commit (callable, optional): Called after each piece; `conn.commit` when not given.
 
     Returns:
         dict: Counts -- `new_species`, `species`, `spacefaring`, `polities`.
     """
-    with _one_pass_at_a_time(conn):
-        return _run_population(conn, rescan, on_stage)
+    commit = conn.commit if commit is None else commit
+    commit()    # a fresh transaction, so the pieces are listed and run on what the last holder committed
+    results = []
+    for piece in population_pieces(conn, rescan):
+        with pass_lock(conn, commit):
+            results.append(do_population_piece(conn, piece))
+    return population_counts(results)
 
 
-def run_territories(conn, on_stage=None):
+def territories_pieces():
+    """The pieces of the territories pass (OPS.203): one, the recompute of the owners and the count of the polities."""
+    return [["territories"]]
+
+
+def do_territories_piece(conn, piece, progress=None):
     """
-    The territories pass, committed as it goes (PERF.125): recompute which polity owns which system from the polities
-    already stored.
+    One piece of the territories pass (`territories_pieces`); like `do_population_piece` it does not commit.
+
+    Args:
+        progress (object, optional): Anything with `step(name, total)`, `advance(amount)` and `moving()` (the engine's `ctx`), told how far the recompute is.
+
+    Returns:
+        dict: `polities` and `owned_systems` for `territories`; nothing for `lock`.
+    """
+    if piece[0] == "territories":
+        owned = refresh_territories(conn, progress)
+        polities = conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
+        return {"polities": int(polities), "owned_systems": owned}
+    raise ValueError(f"unknown territories piece {piece!r}")
+
+
+def run_territories(conn, commit=None):
+    """
+    The territories pass outside the job engine: recompute which polity owns which system from the polities already stored (`territories_pieces`), `commit` after
+    each piece.
 
     Args:
         conn (Connection): A write connection.
-        on_stage (callable, optional): `on_stage(description)` as the one step starts.
+        commit (callable, optional): Called after each piece; `conn.commit` when not given.
 
     Returns:
         dict: Counts -- `polities` and `owned_systems`.
     """
-    with _one_pass_at_a_time(conn):
-        if on_stage is not None:
-            on_stage("Population: recomputing territories")
-        owned = refresh_territories(conn)
-        polities = conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
-        return {"polities": int(polities), "owned_systems": owned}
+    commit = conn.commit if commit is None else commit
+    commit()    # a fresh transaction, so the pass reads what the last holder committed
+    counts = {}
+    for piece in territories_pieces():
+        with pass_lock(conn, commit):
+            counts = do_territories_piece(conn, piece)
+    return counts
 
 
 def _pass_lock_name(conn):
@@ -299,15 +388,12 @@ def _pass_lock_name(conn):
     return "planetgen-population:" + hashlib.sha256(database.encode("utf-8")).hexdigest()[:32]
 
 
-@contextlib.contextmanager
-def _one_pass_at_a_time(conn):
+def take_pass_lock(conn):
     """
-    Holds this database's population lock (`GET_LOCK`) for a whole pass,
-    so two passes at once -- a `galaxy` run's population stage finishing while
-    another, or `planetgen population`, is still going (TEST.37) --
-    take turns: the second waits, then sees the first's species and
-    watermark, rather than both naming the same worlds and one failing
-    on a duplicate homeworld or species name.
+    Takes this database's population lock (`GET_LOCK`), so two passes at once -- a `galaxy` run's population stage finishing while another, or
+    `planetgen population`, is still going (TEST.37) -- take turns, a piece at a time: the second waits, then sees the first's species and watermark, rather than
+    both naming the same worlds and one failing on a duplicate homeworld or species name. The lock belongs to the connection's session, and a pooled connection keeps
+    its session when it is closed, so every taker lets go (`release_pass_lock`) after the commit of what it wrote.
     """
     name = _pass_lock_name(conn)
     waited = False
@@ -320,46 +406,26 @@ def _one_pass_at_a_time(conn):
         if not waited:
             waited = True
             log.normal("Population: waiting for another population pass to finish.")
-    # A fresh transaction, so the pass reads what the last holder committed.
-    conn.commit()
+
+
+def release_pass_lock(conn):
+    """Lets go of the pass lock."""
     try:
+        conn.execute("SELECT RELEASE_LOCK(?)", (_pass_lock_name(conn),))
+    except pymysql.err.MySQLError:  # a lost session has already dropped it
+        pass
+
+
+@contextlib.contextmanager
+def pass_lock(conn, commit):
+    """The pass lock around one piece: taken, a fresh transaction begins, the piece runs, `commit()` makes what it wrote visible, then the lock is let go (also when the piece fails)."""
+    take_pass_lock(conn)
+    try:
+        commit()    # a fresh transaction, so the piece reads what the last holder committed
         yield
+        commit()
     finally:
-        try:
-            conn.execute("SELECT RELEASE_LOCK(?)", (name,))
-        except pymysql.err.MySQLError:  # a lost session has already dropped it
-            pass
-
-
-POPULATION_STAGES = 3
-"""int: How many steps `run_population` announces through `on_stage`."""
-
-
-def _run_population(conn, rescan, on_stage=None):
-    def stage(description):
-        if on_stage is not None:
-            on_stage(description)
-
-    stage("Population: scanning life worlds")
-    if rescan:
-        with conn:
-            conn.execute("DELETE FROM species")
-            conn.execute("DELETE FROM population_state")
-    new_species = scan_life_worlds(conn)
-    stage("Population: dropping species without a civilization")
-    drop_species_without_civilization(conn)
-    stage("Population: dating civilizations and founding polities")
-    refresh_civilizations(conn)
-    from planetgen.db import interests  # here: the db package imports this one
-
-    with conn:
-        interests.refresh_technology(conn)    # MAP.344: the map's civilization rows carry their most advanced species' level
-    counts = conn.execute(
-        "SELECT COUNT(*) AS species, COALESCE(SUM(spacefaring), 0) AS spacefaring FROM species"
-    ).fetchone()
-    polities = conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
-    return {"new_species": new_species, "species": int(counts["species"]),
-            "spacefaring": int(counts["spacefaring"]), "polities": int(polities)}
+        release_pass_lock(conn)
 
 
 def _watermark(conn):
@@ -390,83 +456,77 @@ def _unique_species_name(conn, taken):
     raise RuntimeError("could not find a free species name")
 
 
-def scan_life_worlds(conn):
+def _scan_batch(conn, low, high):
     """
-    Adds a `species` row for every world with a technological civilization
-    (GEN.80) among the planets not yet scanned
-    (`population_state.scanned_planet_id`), batch by batch, and moves the
-    watermark past them.
+    Adds a `species` row for every world with a technological civilization (GEN.80) among the planets with ids past `low` up to `high` that were not yet scanned,
+    and moves the watermark (`population_state.scanned_planet_id`) up to `high`. It does not commit. A batch the watermark already passed (another pass took it
+    between listing the pieces and taking the lock) is left alone.
 
     Returns:
         int: Species added.
     """
     from planetgen.db import species_fit  # here: the db package imports this one
 
-    added = 0
-    top = conn.execute("SELECT MAX(id) AS id FROM planets").fetchone()["id"] or 0
-    low = _watermark(conn)
-    while low < top:
-        high = min(top, low + SCAN_BATCH)
-        # the class that built the civilization (GEN.1209): any class that lives on the planet and reached the technological milestone, the first to
-        # reach it when there are several; a planet stored before `planet_life` existed has its one class in its own columns
-        rows = conn.execute(
-            "SELECT p.id, p.uid, p.star_system_id, COALESCE(pl.life_class, CONCAT(p.life_class, COALESCE(p.life_class_variant, ''))) AS class_id, "
-            "p.gravity_g, p.surface_temperature_k, "
-            "COALESCE(pl.life_stage, p.life_stage) AS life_stage, COALESCE(pl.life_system_age_gyr, p.life_system_age_gyr) AS life_system_age_gyr, "
-            "COALESCE(pl.life_milestone_age_gyr, p.life_milestone_age_gyr) AS life_milestone_age_gyr, "
-            "cfg.intelligent_life, cfg.prevalence_intelligent_life FROM planets p "
-            "JOIN star_systems ss ON ss.id = p.star_system_id "
-            "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
-            "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
-            "LEFT JOIN planet_life pl ON pl.planet_id = p.id AND pl.life_stage = 'technological_civilization' "
-            "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
-            "AND (pl.id IS NOT NULL OR (p.life_stage = 'technological_civilization' AND NOT EXISTS (SELECT 1 FROM planet_life x WHERE x.planet_id = p.id))) "
-            "ORDER BY p.uid, COALESCE(pl.life_milestone_age_gyr, p.life_milestone_age_gyr)",
-            (low, high),
-        ).fetchall()
-        taken = set()
-        inserts = []
-        done = set()
-        for row in rows:
-            planet_id = row["id"]
-            if planet_id in done:
-                continue                # a planet with several classes at the milestone: the first to reach it built the civilization
-            done.add(planet_id)
-            timeline = timeline_of(row["life_stage"], row["life_system_age_gyr"], row["life_milestone_age_gyr"])
-            if timeline is None:
-                continue
-            key = object_key(row["uid"])
-            rng = draw.Stream(f"life:{key}")
-            traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
-            if not has_civilization(timeline, row["intelligent_life"], rng, row["prevalence_intelligent_life"]):
-                # Only a technological civilization gets a species (GEN.80).
-                continue
-            try:
-                species_fit.check_homeworld(conn, planet_id)  # POP.14: only where its own limits let it live
-            except species_fit.PlacementError as error:
-                log.debug(f"Population: no species on planet {planet_id}: {error}")
-                continue
-            age = civilization_age(timeline.window_years, rng)
-            era, spacefaring = era_for_age(age)
-            with draw.bound(f"species-name:{key}"):
-                name = _unique_species_name(conn, taken)
-            taken.add(name)
-            inserts.append((name, planet_id, row["star_system_id"], row["class_id"], timeline.life_stage,
-                            traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring),
-                            generator_epoch.generator_epoch()))
-        with conn:
-            if inserts:
-                conn.executemany(
-                    "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, "
-                    "build, climate, size, civilization_age_years, era, spacefaring, generator_epoch) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", inserts,
-                )
-            _set_watermark(conn, high)
-        added += len(inserts)
-        low = high
-    if added:
-        log.debug(f"Population: {added} new species")
-    return added
+    low = max(low, _watermark(conn))
+    if low >= high:
+        return 0
+    # the class that built the civilization (GEN.1209): any class that lives on the planet and reached the technological milestone, the first to
+    # reach it when there are several; a planet stored before `planet_life` existed has its one class in its own columns
+    rows = conn.execute(
+        "SELECT p.id, p.uid, p.star_system_id, COALESCE(pl.life_class, CONCAT(p.life_class, COALESCE(p.life_class_variant, ''))) AS class_id, "
+        "p.gravity_g, p.surface_temperature_k, "
+        "COALESCE(pl.life_stage, p.life_stage) AS life_stage, COALESCE(pl.life_system_age_gyr, p.life_system_age_gyr) AS life_system_age_gyr, "
+        "COALESCE(pl.life_milestone_age_gyr, p.life_milestone_age_gyr) AS life_milestone_age_gyr, "
+        "cfg.intelligent_life, cfg.prevalence_intelligent_life FROM planets p "
+        "JOIN star_systems ss ON ss.id = p.star_system_id "
+        "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
+        "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
+        "LEFT JOIN planet_life pl ON pl.planet_id = p.id AND pl.life_stage = 'technological_civilization' "
+        "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
+        "AND (pl.id IS NOT NULL OR (p.life_stage = 'technological_civilization' AND NOT EXISTS (SELECT 1 FROM planet_life x WHERE x.planet_id = p.id))) "
+        "ORDER BY p.uid, COALESCE(pl.life_milestone_age_gyr, p.life_milestone_age_gyr)",
+        (low, high),
+    ).fetchall()
+    taken = set()
+    inserts = []
+    done = set()
+    for row in rows:
+        planet_id = row["id"]
+        if planet_id in done:
+            continue                # a planet with several classes at the milestone: the first to reach it built the civilization
+        done.add(planet_id)
+        timeline = timeline_of(row["life_stage"], row["life_system_age_gyr"], row["life_milestone_age_gyr"])
+        if timeline is None:
+            continue
+        key = object_key(row["uid"])
+        rng = draw.Stream(f"life:{key}")
+        traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
+        if not has_civilization(timeline, row["intelligent_life"], rng, row["prevalence_intelligent_life"]):
+            # Only a technological civilization gets a species (GEN.80).
+            continue
+        try:
+            species_fit.check_homeworld(conn, planet_id)  # POP.14: only where its own limits let it live
+        except species_fit.PlacementError as error:
+            log.debug(f"Population: no species on planet {planet_id}: {error}")
+            continue
+        age = civilization_age(timeline.window_years, rng)
+        era, spacefaring = era_for_age(age)
+        with draw.bound(f"species-name:{key}"):
+            name = _unique_species_name(conn, taken)
+        taken.add(name)
+        inserts.append((name, planet_id, row["star_system_id"], row["class_id"], timeline.life_stage,
+                        traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring),
+                        generator_epoch.generator_epoch()))
+    if inserts:
+        conn.executemany(
+            "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, "
+            "build, climate, size, civilization_age_years, era, spacefaring, generator_epoch) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", inserts,
+        )
+    _set_watermark(conn, high)
+    if inserts and log.debug_log_active():
+        log.debug(f"Population: {len(inserts)} new species.")
+    return len(inserts)
 
 
 def drop_species_without_civilization(conn):
@@ -479,10 +539,10 @@ def drop_species_without_civilization(conn):
     Returns:
         int: Species deleted.
     """
-    with conn:
-        dropped = conn.execute("DELETE FROM species WHERE civilization_age_years IS NULL").rowcount
+    dropped = conn.execute("DELETE FROM species WHERE civilization_age_years IS NULL").rowcount
     if dropped:
-        log.debug(f"Population: {dropped} species without a technological civilization removed")
+        if log.debug_log_active():
+            log.debug(f"Population: {dropped} species without a technological civilization removed.")
     return dropped
 
 
@@ -495,7 +555,7 @@ def refresh_tech_levels(conn):
     Draws the six tech indices and the tech level of every species that has none (POP.9): a new species, or
     one that existed before the columns. A species whose `tech_source` is `'admin'` (edited by hand) is never
     redrawn. The draw uses a stream of its own (`tech:<homeworld unique ID>`), apart from the one
-    `scan_life_worlds` draws a species' traits and age from, so no stored age changes.
+    `_scan_batch` draws a species' traits and age from, so no stored age changes.
 
     Returns:
         int: Species drawn.
@@ -513,11 +573,16 @@ def refresh_tech_levels(conn):
         updates.append((*(indices[domain] for domain in tech.DOMAINS), tech.tech_level(indices), row["id"]))
     if updates:
         sets = ", ".join(f"{column} = ?" for column in TECH_INDEX_COLUMNS)
-        with conn:
-            conn.executemany(
-                f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates)
-        log.debug(f"Population: {len(updates)} species given tech levels")
+        conn.executemany(f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates)
+        if log.debug_log_active():
+            log.debug(f"Population: {len(updates)} species given tech levels.")
     return len(updates)
+
+
+def _founding_row(species):
+    """The `polities` row of a newly spacefaring species (`id`, `name`, `star_system_id`, homeworld `uid`): name, species, capital, government, colour."""
+    government = government_for(species["uid"])
+    return (polity_name(species["name"], government), species["id"], species["star_system_id"], government, polity_color(species["uid"]))
 
 
 def refresh_civilizations(conn):
@@ -529,40 +594,47 @@ def refresh_civilizations(conn):
     (`refresh_tech_levels`).
     """
     refresh_tech_levels(conn)
-    with conn:
-        rows = conn.execute(
-            "SELECT id, civilization_age_years, era, spacefaring FROM species "
-            "WHERE civilization_age_years IS NOT NULL"
-        ).fetchall()
-        updates = []
-        for row in rows:
-            era, spacefaring = era_for_age(row["civilization_age_years"])
-            if era != row["era"] or int(spacefaring) != row["spacefaring"]:
-                updates.append((era, int(spacefaring), row["id"]))
-        if updates:
-            conn.executemany("UPDATE species SET era = ?, spacefaring = ? WHERE id = ?", updates)
-        conn.execute(
-            "DELETE p FROM polities p JOIN species s ON s.id = p.species_id WHERE s.spacefaring = 0"
+    rows = conn.execute(
+        "SELECT id, civilization_age_years, era, spacefaring FROM species "
+        "WHERE civilization_age_years IS NOT NULL"
+    ).fetchall()
+    updates = []
+    for row in rows:
+        era, spacefaring = era_for_age(row["civilization_age_years"])
+        if era != row["era"] or int(spacefaring) != row["spacefaring"]:
+            updates.append((era, int(spacefaring), row["id"]))
+    if updates:
+        conn.executemany("UPDATE species SET era = ?, spacefaring = ? WHERE id = ?", updates)
+    conn.execute(
+        "DELETE p FROM polities p JOIN species s ON s.id = p.species_id WHERE s.spacefaring = 0"
+    )
+    founding = conn.execute(
+        "SELECT s.id, s.name, s.star_system_id, pl.uid FROM species s "
+        "JOIN planets pl ON pl.id = s.homeworld_planet_id "
+        "LEFT JOIN polities p ON p.species_id = s.id WHERE s.spacefaring = 1 AND p.id IS NULL"
+    ).fetchall()
+    if founding:
+        conn.executemany(
+            "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "
+            "VALUES (?, ?, ?, ?, ?, 0)",
+            [_founding_row(row) for row in founding],
         )
-        founding = conn.execute(
-            "SELECT s.id, s.name, s.star_system_id, pl.uid FROM species s "
-            "JOIN planets pl ON pl.id = s.homeworld_planet_id "
-            "LEFT JOIN polities p ON p.species_id = s.id WHERE s.spacefaring = 1 AND p.id IS NULL"
-        ).fetchall()
-        if founding:
-            conn.executemany(
-                "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "
-                "VALUES (?, ?, ?, ?, ?, 0)",
-                [(polity_name(row["name"], government_for(row["uid"])), row["id"], row["star_system_id"],
-                  government_for(row["uid"]), polity_color(row["uid"])) for row in founding],
-            )
-        reaches = conn.execute(
-            "SELECT p.id, p.reach_ly, s.civilization_age_years FROM polities p JOIN species s ON s.id = p.species_id"
-        ).fetchall()
-        changed = [(reach_ly(row["civilization_age_years"]), row["id"]) for row in reaches
-                   if not math.isclose(reach_ly(row["civilization_age_years"]), row["reach_ly"])]
-        if changed:
-            conn.executemany("UPDATE polities SET reach_ly = ? WHERE id = ?", changed)
+    reaches = conn.execute(
+        "SELECT p.id, p.reach_ly, s.civilization_age_years FROM polities p JOIN species s ON s.id = p.species_id"
+    ).fetchall()
+    changed = [(reach_ly(row["civilization_age_years"]), row["id"]) for row in reaches
+               if not math.isclose(reach_ly(row["civilization_age_years"]), row["reach_ly"])]
+    if changed:
+        conn.executemany("UPDATE polities SET reach_ly = ? WHERE id = ?", changed)
+
+
+_POSITION_MPC = ", ".join(f"ss.position_{axis}_mpc + sec.center_{axis}_pc * 1000 AS {axis}" for axis in "xyz")
+"""str: The SELECT list of a system's galaxy-frame position in milliparsecs, `x`, `y`, `z`, from `star_systems ss` joined to `sectors sec`."""
+
+
+def _position_pc(row):
+    """`(x, y, z)` in parsecs of a row with the `_POSITION_MPC` columns."""
+    return _mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"])
 
 
 def _system_positions(conn, sector_ids):
@@ -574,36 +646,37 @@ def _system_positions(conn, sector_ids):
         chunk = ids[start:start + 500]
         marks = ", ".join("?" * len(chunk))
         rows = conn.execute(
-            "SELECT ss.id, ss.position_x_mpc + sec.center_x_pc * 1000 AS x, "
-            "ss.position_y_mpc + sec.center_y_pc * 1000 AS y, "
-            "ss.position_z_mpc + sec.center_z_pc * 1000 AS z "
+            f"SELECT ss.id, {_POSITION_MPC} "
             "FROM star_systems ss JOIN sectors sec ON sec.id = ss.sector_id "
             f"WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL "
             "AND sec.center_x_pc IS NOT NULL",
             tuple(chunk),
         ).fetchall()
         for row in rows:
-            positions[row["id"]] = (_mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"]))
+            positions[row["id"]] = _position_pc(row)
     return positions
 
 
 def capital_positions(conn):
     """`[(polity_id, (x, y, z) pc or None, reach_ly)]` for every polity."""
     rows = conn.execute(
-        "SELECT p.id, p.reach_ly, ss.position_x_mpc + sec.center_x_pc * 1000 AS x, "
-        "ss.position_y_mpc + sec.center_y_pc * 1000 AS y, ss.position_z_mpc + sec.center_z_pc * 1000 AS z "
+        f"SELECT p.id, p.reach_ly, {_POSITION_MPC} "
         "FROM polities p JOIN star_systems ss ON ss.id = p.capital_system_id "
         "LEFT JOIN sectors sec ON sec.id = ss.sector_id ORDER BY p.id"
     ).fetchall()
-    return [(row["id"], None if row["x"] is None else (_mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"])),
-             row["reach_ly"]) for row in rows]
+    return [(row["id"], None if row["x"] is None else _position_pc(row), row["reach_ly"]) for row in rows]
 
 
-def refresh_territories(conn):
+def refresh_territories(conn, progress=None):
     """
     Recomputes `system_owners` from scratch. A polity whose capital was
     never placed in the galaxy (a standalone system, or a sector made
-    with no galaxy) holds only its capital.
+    with no galaxy) holds only its capital. It does not commit.
+
+    Args:
+        conn (Connection): A write connection.
+        progress (object, optional): Anything with `step(name, total)` and `advance(amount)` (the job engine's `ctx`): told the polities claimed and the owner rows written
+            as the counts of two steps, so a long recompute shows how far it is.
 
     Returns:
         int: Systems owned.
@@ -613,11 +686,15 @@ def refresh_territories(conn):
     # Each polity only looks at the sectors its own reach touches, so the
     # cost is the sum of their territories, not polities x all systems.
     best = {}
-    for polity_id, capital, reach in capital_positions(conn):
-        if capital is None or reach <= 0:
-            continue
-        sectors = sectors_reached_by(conn, capital, ly_to_pc(reach))
-        add_claims(best, polity_id, capital, reach, _system_positions(conn, sectors))
+    capitals = capital_positions(conn)
+    if progress is not None:
+        progress.step("Polities claiming systems", len(capitals))
+    for polity_id, capital, reach in capitals:
+        if capital is not None and reach > 0:
+            sectors = sectors_reached_by(conn, capital, ly_to_pc(reach))
+            add_claims(best, polity_id, capital, reach, _system_positions(conn, sectors))
+        if progress is not None:
+            progress.advance()
     owners = {system_id: (polity_id, distance) for system_id, (_s, polity_id, distance) in best.items()}
     # Every capital holds its own system, placed or not.
     for row in conn.execute(
@@ -626,14 +703,15 @@ def refresh_territories(conn):
         held = owners.get(row["capital_system_id"])
         if held is None or held[1] > 0:
             owners[row["capital_system_id"]] = (row["id"], 0.0)
-    with conn:
-        conn.execute("DELETE FROM system_owners")
-        rows = [(system_id, polity_id, distance) for system_id, (polity_id, distance) in owners.items()]
-        for start in range(0, len(rows), 5000):
-            conn.executemany(
-                "INSERT INTO system_owners (star_system_id, polity_id, distance_ly) VALUES (?, ?, ?)",
-                rows[start:start + 5000],
-            )
+    conn.execute("DELETE FROM system_owners")
+    rows = [(system_id, polity_id, distance) for system_id, (polity_id, distance) in owners.items()]
+    if progress is not None:
+        progress.step("Owner rows written", len(rows))
+    for start in range(0, len(rows), 5000):
+        chunk = rows[start:start + 5000]
+        conn.executemany("INSERT INTO system_owners (star_system_id, polity_id, distance_ly) VALUES (?, ?, ?)", chunk)
+        if progress is not None:
+            progress.advance(len(chunk))
     return len(owners)
 
 
@@ -655,7 +733,8 @@ def population_status(conn):
             "EXISTS(SELECT 1 FROM species) AS species, EXISTS(SELECT 1 FROM polities) AS polities, "
             "EXISTS(SELECT 1 FROM system_owners) AS territories"
         ).fetchone()
-    except Exception:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+    except Exception as exc:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+        log.swallowed("population/model", "population_status", exc)
         return {"generated": False, "species": False, "polities": False, "territories": False}
     return {key: bool(row[key]) for key in ("generated", "species", "polities", "territories")}
 
@@ -717,7 +796,12 @@ def _species_where(spacefaring=None, eras=(), tech_ranges=None):
     if eras:
         clauses.append(f"s.era IN ({', '.join('?' for _ in eras)})")
         params.extend(eras)
-    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
+    return _where(clauses), params
+
+
+def _where(clauses):
+    """`WHERE ... ` (with its trailing space) for the conditions, or empty for none: the shape `_and` builds on."""
+    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else ""
 
 
 def _and(where, *clauses):
@@ -878,18 +962,20 @@ def species_facets(conn, spacefaring=None, eras=(), tech_ranges=None):
     }
 
 
+def _one_species(conn, column, value):
+    """The species whose `column` (of `_SPECIES_FROM`) is `value`, or `None`."""
+    row = conn.execute(f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} WHERE {column} = ?", (value,)).fetchone()
+    return None if row is None else _species_dict(row)
+
+
 def species_detail(conn, species_id):
     """One species, or `None`."""
-    row = conn.execute(f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} WHERE s.id = ?", (species_id,)).fetchone()
-    return None if row is None else _species_dict(row)
+    return _one_species(conn, "s.id", species_id)
 
 
 def species_on_planet(conn, planet_id):
     """The species whose homeworld is this planet, or `None`."""
-    row = conn.execute(
-        f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} WHERE s.homeworld_planet_id = ?", (planet_id,)
-    ).fetchone()
-    return None if row is None else _species_dict(row)
+    return _one_species(conn, "s.homeworld_planet_id", planet_id)
 
 
 _POLITY_COLUMNS = (
@@ -916,7 +1002,7 @@ def _polity_where(governments=(), eras=()):
         if values:
             clauses.append(f"{column} IN ({', '.join('?' for _ in values)})")
             params.extend(values)
-    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
+    return _where(clauses), params
 
 
 def list_polities(conn, limit=50, offset=0, sort="name", descending=False, governments=(), eras=()):

@@ -89,7 +89,7 @@ mass, radius, insolation, star age and surface temperature (code in 3.6).
 (Mars), 2.5 to 30 trace or outgassed only, above 30 none.</li>
 <li>Species: a gas is held thermally if <code>lambda = m v_esc^2 / (2 k T_exo)</code> is
 at least 30.</li>
-<li>Cold side: a gas below its vapor-pressure temperature is ice, not air.</li>
+<li>Cold side: a gas below its vapour-pressure temperature is ice, not air.</li>
 <li>H/He envelopes and oceans also need the energy-limited XUV check.</li>
 </ul>
 </li>
@@ -207,7 +207,7 @@ Titan (2.64, 0.011, 1.5 bar), Triton (1.45, 0.0011, 14 micro-bar), Pluto (1.21,
 0.00064, 10 micro-bar), Ceres (0.51, 0.13, none). For
 <code>S_cs = K v^4</code>, Titan forces <code>K &gt; 2.26e-4</code>, Pluto and Triton raise the lower
 bound to 3.0e-4, and Ganymede forces <code>K &lt; 6.56e-4</code>. The window is 3.0e-4 to
-6.6e-4; the geometric center of the wider window, 3.85e-4, is used. Ratios <code>r</code>
+6.6e-4; the geometric centre of the wider window, 3.85e-4, is used. Ratios <code>r</code>
 at K = 3.85e-4: Earth 0.17, Venus 0.43, Titan 0.59, Triton
 0.65, Pluto 0.78, Ganymede 1.7, Mars 1.8, Io 2.2, Callisto 2.7, Europa 5.7,
 Mercury 53, Moon 82, Ceres 4,990.</p>
@@ -267,8 +267,8 @@ f at 0.71 and g at 0.35 (could hold air); LHS 3844 b at 36 (none; bare rock
 [R]); 55 Cnc e at 22 (JWST finds a likely CO<sub>2</sub>/CO atmosphere over a magma ocean
 [S, Hu et al. 2024], so the 2.5 to 30 band is real).</p>
 <p>The shoreline caps pressure, it does not set it: Titan, Triton and Pluto are
-retention-allowed but their pressures come from supply and vapor pressure.
-The generator takes <code>P = min(P_supply, P_retention, P_vapor)</code>.</p>
+retention-allowed but their pressures come from supply and vapour pressure.
+The generator takes <code>P = min(P_supply, P_retention, P_vapour)</code>.</p>
 <h3 id="32-gate-2-which-gases-are-held">3.2 Gate 2: which gases are held</h3>
 <p>Jeans parameter <code>lambda = G M m / (k T_exo r_exo) = m v_esc^2 / (2 k T_exo)</code>
 (<code>r_exo</code> set to R). Kept if <code>lambda &gt;= 30</code>, lost within about 1 Gyr if under 15
@@ -356,7 +356,7 @@ condition (4.1) followed by the energy-limited H clock (3.4).</p>
 the Moon [R]. A global field is second-order for a thick atmosphere, so the
 shoreline has no field term.</p>
 <h3 id="33-gate-3-the-cold-side">3.3 Gate 3: the cold side</h3>
-<p>Minimum temperature (K) for a gas to be vapor at partial pressure P, from
+<p>Minimum temperature (K) for a gas to be vapour at partial pressure P, from
 Clausius-Clapeyron anchored at the 1-bar boiling or sublimation point [C].
 Checks: CO<sub>2</sub> at 0.6 kPa gives 148 K (Mars polar frost point); N<sub>2</sub> at 1 Pa gives
 33 K against about 37 K at Pluto.</p>
@@ -576,10 +576,10 @@ def envelope_loss_fraction(m_e, r_e, cum_xuv_j_m2, eps=0.1):
     # cum_xuv_j_m2: cumulative XUV energy per area at the planet to the planet's age
     return eps * math.pi * (r_e * RE) ** 3 * cum_xuv_j_m2 / (G * (m_e * ME) ** 2)
 </code></pre>
-<p><strong>Built (GEN.355, <code>physics/atmosphere_retention.py</code>, registry 6.74).</strong> The snippet above is now a library: <code>shoreline_ratio</code>, <code>verdict_of</code>, <code>pressure_cap_pa</code>, <code>held_species</code>, <code>minimum_molar_mass_kg_mol</code>, <code>cold_side_k</code> (the vapor curves of <code>physics/saturation.py</code>, so CO<sub>2</sub> at 0.6 kPa gives the Mars frost point and N<sub>2</sub> at 1 Pa the Pluto figure) and <code>energy_limited_loss_fraction</code>. The exobase temperature is the thermosphere model's, not the one-line fit of 3.2 (that fit was a calibration, and the model the generator already runs replaced it). The answer to &quot;when is an atmosphere possible&quot; is: a shoreline ratio under 30 (under 0.7 for a dense one), a gas of Jeans parameter 30 or more at the exobase, a surface warmer than the gas's condensation temperature at its partial pressure, and an envelope or ocean whose energy-limited loss over the star's life is under the share the body can spare. <code>tests/test_atmosphere_retention.py</code> carries the 13 bodies. The generator's pressure stage still takes its shoreline from the logistic of rows d (GEN.511); GEN.963 is the item that reads this module.</p>
+<p><strong>Built (GEN.355, <code>physics/atmosphere_retention.py</code>, registry 6.74).</strong> The snippet above is now a library: <code>shoreline_ratio</code>, <code>verdict_of</code>, <code>pressure_cap_pa</code>, <code>held_species</code>, <code>minimum_molar_mass_kg_mol</code>, <code>cold_side_k</code> (the vapour curves of <code>physics/saturation.py</code>, so CO<sub>2</sub> at 0.6 kPa gives the Mars frost point and N<sub>2</sub> at 1 Pa the Pluto figure) and <code>energy_limited_loss_fraction</code>. The exobase temperature is the thermosphere model's, not the one-line fit of 3.2 (that fit was a calibration, and the model the generator already runs replaced it). The answer to &quot;when is an atmosphere possible&quot; is: a shoreline ratio under 30 (under 0.7 for a dense one), a gas of Jeans parameter 30 or more at the exobase, a surface warmer than the gas's condensation temperature at its partial pressure, and an envelope or ocean whose energy-limited loss over the star's life is under the share the body can spare. <code>tests/test_atmosphere_retention.py</code> carries the 13 bodies. The generator's pressure stage still takes its shoreline from the logistic of rows d (GEN.511); GEN.963 is the item that reads this module.</p>
 <p>Draw <code>k</code> log-uniformly from 3.0e-4 to 6.6e-4 per planet (or per system) to
 reproduce the scatter between Titan and Ganymede. <code>P_retention</code> is the only
-new piece of the final pressure <code>min(P_supply, P_vapor(T_surf, gas), P_retention(r))</code>, and can be a smooth cap: <code>r &lt; 0.7</code> none, 0.7 to 1: 0.1 bar,
+new piece of the final pressure <code>min(P_supply, P_vapour(T_surf, gas), P_retention(r))</code>, and can be a smooth cap: <code>r &lt; 0.7</code> none, 0.7 to 1: 0.1 bar,
 1 to 2.5: 10 mbar, 2.5 to 30: 10 micro-bar, above: 0.</p>
 <h2 id="4-habitable-zone-limits-hot-zone-outcomes-and-hycean-worlds">4. Habitable-zone limits, hot-zone outcomes and Hycean worlds</h2>
 <h3 id="41-runaway-greenhouse-and-zone-edges">4.1 Runaway greenhouse and zone edges</h3>
@@ -672,7 +672,7 @@ carbonate-silicate thermostat. Beyond <code>S_cs</code> the planet is bare lava 
 dry-land planet, stable in a narrow band); keep it as a rare variant (about
 10 percent).</li>
 <li><strong>Lava / magma-ocean world.</strong> T_eq above about 1,500 K (55 Cnc e about
-2,000 K [S]): SiO, Na, K, O vapor if r is above 30, magma-ocean CO<sub>2</sub>/CO if
+2,000 K [S]): SiO, Na, K, O vapour if r is above 30, magma-ocean CO<sub>2</sub>/CO if
 2.5 to 30.</li>
 <li><strong>Steam worlds</strong> (water over 10 percent, very close in) are not stable for
 Gyr; leave them out. <strong>Stripped cores:</strong> hot sub-Neptunes after
@@ -837,7 +837,7 @@ needs GEN.92's &quot;existing galaxies unchanged until regenerated&quot; guard.<
 <li>U (icy world): data only.</li>
 <li>X (and W): needs the subsurface-ocean data (<code>rogue_surface.py</code> has the shell
 and ocean depth for rogues).</li>
-<li>Y: needs the vapor-pressure gate (3.3).</li>
+<li>Y: needs the vapour-pressure gate (3.3).</li>
 <li>N re-scope: needs the runaway thresholds and removal of N's life chemical.</li>
 <li>Z: last, because it needs GEN.85 partial pressures and the pre-main-
 sequence rule.</li>

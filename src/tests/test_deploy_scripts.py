@@ -668,8 +668,9 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
         path.chmod(0o755)
 
     fake("systemctl", 'if [[ "$1" == is-active ]]; then case " %s " in *" $3 "*) exit 0;; esac; exit 3; fi\n'
-         'case " %s " in *" $1 "*) exit 1;; esac\nexit 0\n' % (" ".join(active), " ".join(fail)))
-    fake("apache2ctl", "exit %d\n" % (0 if configtest else 1))
+         'case " %s " in *" $1 "*) echo "Job for apache2.service failed: the control process exited with error code" >&2; exit 1;; esac\nexit 0\n'
+         % (" ".join(active), " ".join(fail)))
+    fake("apache2ctl", "" if configtest else 'echo "AH00526: Syntax error on line 12 of /etc/apache2/sites-enabled/starmap.conf" >&2\nexit 1\n')
     fake("curl", curl or "printf '%%s\\n%%s' '%s' %d\n" % (reply, 200 if health else 503))
     fake_python = bin_dir / "fakepython"
     fake_python.write_text(f"#!/bin/bash\necho '{api}'\n")
@@ -718,6 +719,16 @@ def test_a_failed_config_test_leaves_the_running_apache_alone(tmp_path):
 def test_a_failed_reload_is_a_failure_for_the_caller(tmp_path):
     proc, _calls = _run_reload(tmp_path, fail=("reload",))
     assert proc.returncode == 1 and "failed" in proc.stderr
+
+
+def test_a_failed_config_test_or_reload_keeps_the_reason_under_the_warning(tmp_path):
+    """OPS.166: the output of the config test and of systemctl is shown, indented, under the warning that names the failure."""
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    proc, _calls = _run_reload(tmp_path / "a", configtest=False)
+    assert "  AH00526: Syntax error on line 12 of /etc/apache2/sites-enabled/starmap.conf" in proc.stderr
+    proc, _calls = _run_reload(tmp_path / "b", fail=("reload",))
+    assert "  Job for apache2.service failed: the control process exited with error code" in proc.stderr
 
 
 def test_a_gunicorn_host_with_no_apache_reloads_the_unit(tmp_path):

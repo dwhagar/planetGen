@@ -44,7 +44,7 @@ import re
 
 from planetgen import tuning
 from planetgen.galaxy import containment, frame
-from planetgen.physics import hii, main_sequence
+from planetgen.physics import constants, hii, main_sequence
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import detmath, draw
 from planetgen.generation import fill_stages
@@ -55,7 +55,7 @@ rest of the dict is for generation."""
 
 _HOST_COUNT = re.compile(r"(\w+) x(\d+)")
 
-SOLAR_LUMINOSITY_W = 3.828e26
+SOLAR_LUMINOSITY_W = constants.SOLAR_LUMINOSITY
 """float: Watts in one solar luminosity (IAU 2015 nominal)."""
 
 _PC_CM = 3.0857e18
@@ -174,11 +174,14 @@ def effects_of(cloud, point_pc, rng):
                         enrichment_k=draw_enrichment(cloud["class"], rng))
 
 
-def field_containers(field_nebulae):
+def field_containers(field_nebulae, galaxy_seed, galaxy_shape):
     """The containers (`galaxy.containment`) of the `(Nebula, center_pc)` pairs of a sector's field clouds, each with its
-    cloud dict under `cloud`. They are not stored, so their `id` is `None`."""
+    cloud dict under `cloud` and its `inside` test, the density contour the map draws (`containment.contour_test`, GEN.1267).
+    They are not stored, so their `id` is `None`."""
+    galaxy = lambda: (galaxy_seed, galaxy_shape)
     return [{"column": "inside_nebula_id", "id": None, "center": tuple(center), "radius_pc": ly_to_pc(nebula.radius_ly),
-             "shape": nebula.get_shape, "cloud": cloud_of_nebula(nebula, center)}
+             "inside": containment.contour_test(galaxy, nebula.nebula_class, center, ly_to_pc(nebula.radius_ly)),
+             "cloud": cloud_of_nebula(nebula, center)}
             for nebula, center in field_nebulae]
 
 
@@ -190,7 +193,7 @@ def begin(sector, cloud_field, field_nebulae):
     """
     sector.cloud_field = cloud_field
     sector.field_nebulae = field_nebulae
-    sector.cloud_containers = field_containers(field_nebulae)
+    sector.cloud_containers = field_containers(field_nebulae, cloud_field[0], cloud_field[1])
 
 
 def apply_in_sector(sector, star_system, position_ly):

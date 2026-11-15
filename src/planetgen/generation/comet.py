@@ -50,6 +50,7 @@ from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.physics import unit_registry as units
 
 _au_yr_to_kms = units.converter("au_yr", "km_s")
+_msun_to_kg = units.converter("Msun", "kg")
 
 PERIOD_CLASS_LABELS = {
     "jupiter_family": "Jupiter-family",
@@ -196,7 +197,7 @@ class Comet(SmallBody):
     """
 
     FIELD_UNITS = {
-        "name": "text", "orbit_type": "text", "period_class": "text", "nucleus_diameter_km": "km", "mass_kg": "kg",
+        "name": "text", "flavor_key": "text", "orbit_type": "text", "period_class": "text", "nucleus_diameter_km": "km", "mass_kg": "kg",
         "perihelion_distance_au": "au", "eccentricity": "ratio", "inclination_deg": "deg",
         "arg_periapsis_deg": "deg", "ascending_node_deg": "deg", "orbital_period_years": "yr",
         "mean_anomaly_deg": "deg", "parabolic_mean_anomaly": "ratio", "min_update_interval_years": "yr",
@@ -220,6 +221,9 @@ class Comet(SmallBody):
     velocity_z_kms = velocity_axis_property(2)
     """float: This comet's offset from its star, AU: the "system" frame of
     `spatial`, its `SpatialPosition3D` (GEN.74), which `set_position_au` moves."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None, star=None, giant_au=None):
         """
@@ -255,7 +259,8 @@ class Comet(SmallBody):
 
         if orbit_type:
             self.orbit_type = orbit_type
-            log.debug(f"Comet orbit type: {orbit_type!r} (forced)")
+            if log.debug_log_active():
+                log.debug(f"Comet orbit type: {orbit_type!r} (forced).")
         else:
             self.orbit_type = (
                 "parabolic" if draw.random() < tuning.COMET_PARABOLIC_CHANCE else "elliptical"
@@ -412,5 +417,4 @@ class Comet(SmallBody):
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
-_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Comet, "comet")

@@ -214,6 +214,9 @@ def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air
     for body in _bodies(system):
         if body.body_type == "g" or body.is_moon:
             continue    # a moon of a planet that was moved keeps its dose from the old distance (reported to TODO)
+        if not planet_type.has_ground(body):
+            assert body.uv_surface_index is None, body.planet_class      # GEN.1334: a planet under a deep envelope has no ground, so no ground dose and no UV index
+            continue
         expected = body_radiation.dna_dose_index(body)
         assert body.uv_surface_index == expected
         checked += expected is not None
@@ -224,43 +227,63 @@ def test_supernova_hazard_rises_toward_the_galactic_center():
     def ly(pc):
         return pc * constants.PARSEC_M / constants.LY_TO_M
 
-    sun = activity.supernova_rate_per_gyr(ly(8000))
+    reference = scales.reference_radius_pc()          # GEN.1694: the galaxy's own radius of the Sun, not the Milky Way's 8 kpc
+    sun = activity.supernova_rate_per_gyr(ly(reference))
     assert sun == pytest.approx(1.5, rel=0.01)
     assert activity.supernova_rate_per_gyr(0.0) == pytest.approx(1.5 * 250, rel=0.01)
     assert activity.lethal_event_rate_per_gyr(None) is None
-    assert activity.supernova_rate_per_gyr(ly(12000)) < sun
+    assert activity.supernova_rate_per_gyr(ly(reference * 1.5)) < sun
 
 
 def test_gamma_ray_bursts_and_the_nucleus_add_to_the_lethal_rate():
     def ly(pc):
         return pc * constants.PARSEC_M / constants.LY_TO_M
 
-    at_sun, outer, inner = ly(8000), ly(12000), ly(2000)
+    reference = scales.reference_radius_pc()
+    at_sun, outer, inner = ly(reference), ly(reference * 1.5), ly(reference / 4.0)
     assert activity.grb_rate_per_gyr(at_sun) == pytest.approx(activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR)
     assert activity.grb_rate_per_gyr(outer) < activity.grb_rate_per_gyr(at_sun)
     assert activity.grb_rate_per_gyr(inner) == pytest.approx(activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR)
-    assert activity.agn_rate_per_gyr(inner) == activity.AGN_EPISODES_PER_GYR
-    assert activity.agn_rate_per_gyr(ly(activity.AGN_LETHAL_RADIUS_PC + 1)) == 0.0
-    assert activity.agn_rate_per_gyr(at_sun) == 0.0
-    assert activity.lethal_event_rate_per_gyr(at_sun) == pytest.approx(
-        activity.supernova_rate_per_gyr(at_sun) + activity.grb_rate_per_gyr(at_sun))
-    assert activity.lethal_event_rate_per_gyr(inner) == pytest.approx(
-        activity.supernova_rate_per_gyr(inner) + activity.grb_rate_per_gyr(inner) + activity.agn_rate_per_gyr(inner))
+    # the nucleus's reach is a distance (the fluence of an episode), not a number of scale lengths: a small galaxy's reference radius can lie inside it
+    nucleus_close, nucleus_far = ly(activity.AGN_LETHAL_RADIUS_PC / 2.0), ly(activity.AGN_LETHAL_RADIUS_PC + 1)
+    assert activity.agn_rate_per_gyr(nucleus_close) == activity.AGN_EPISODES_PER_GYR
+    assert activity.agn_rate_per_gyr(nucleus_far) == 0.0
+    for place in (at_sun, inner, nucleus_close, nucleus_far):
+        assert activity.lethal_event_rate_per_gyr(place) == pytest.approx(
+            activity.supernova_rate_per_gyr(place) + activity.grb_rate_per_gyr(place) + activity.agn_rate_per_gyr(place))
 
 
-def test_bursts_and_the_nucleus_push_the_ozone_flag_out_to_larger_radii():
-    """The galactic rate alone decides the flag where no flares do: it now
-    exceeds `LETHAL_EVENT_LIMIT_PER_GYR` farther from the center."""
-    def flag_radius_pc(rate):
-        radius = 100
-        while radius < 20000 and rate(radius * constants.PARSEC_M / constants.LY_TO_M) > rad.LETHAL_EVENT_LIMIT_PER_GYR:
-            radius += 50
-        return radius
+def test_bursts_and_the_nucleus_raise_the_rate_inside_the_galaxy_and_the_galaxys_own_scales_set_it():
+    """GEN.1694: the supernova profile reads the galaxy's own thin disk (`galaxy.scales`), so the rate is the same multiple of its quoted value at the same number of scale lengths
+    from the center, and a nearer star has more events than the supernovas alone give."""
+    def ly(pc):
+        return pc * constants.PARSEC_M / constants.LY_TO_M
 
-    assert flag_radius_pc(activity.lethal_event_rate_per_gyr) > flag_radius_pc(activity.supernova_rate_per_gyr)
-    sun_ly = 8000 * constants.PARSEC_M / constants.LY_TO_M
-    assert activity.lethal_event_rate_per_gyr(sun_ly) < rad.LETHAL_EVENT_LIMIT_PER_GYR
-    assert activity.lethal_event_rate_per_gyr(sun_ly / 4) > rad.LETHAL_EVENT_LIMIT_PER_GYR
+    reference = scales.reference_radius_pc()
+    inner = ly(2000.0)
+    assert activity.lethal_event_rate_per_gyr(inner) > activity.supernova_rate_per_gyr(inner)
+    assert activity.supernova_rate_per_gyr(ly(reference)) == pytest.approx(activity.SN_RATE_AT_SUN_PER_GYR)
+    one_scale_length_in = ly(reference - activity.SN_SCALE_LENGTH_DISK_FRACTION * scales.disk_scale_length_pc())
+    assert activity.supernova_rate_per_gyr(one_scale_length_in) == pytest.approx(activity.SN_RATE_AT_SUN_PER_GYR * math.e)
+
+
+def test_a_galactic_rate_is_the_chance_of_an_event_inside_the_recovery_time_not_a_standing_flag():
+    """GEN.1694: ten events per Gyr (the old limit) hold no world's ozone down: the chance is `1 - exp(-rate * recovery time)`, so the share of stars with an event in the
+    recovery time follows it, and a rate as high as the nucleus's still leaves almost every world untouched."""
+    def star(rate, index):
+        return types.SimpleNamespace(lethal_event_rate_per_gyr=rate, mass=1.989e30 * (1.0 + index * 1e-3), age=4.6, galactic_center_dist_ly=26000.0)
+
+    assert not any(rad.galactic_event_in_recovery_time(star(0.0, i)) for i in range(50))
+    assert not any(rad.galactic_event_in_recovery_time(star(None, i)) for i in range(50))
+    assert sum(rad.galactic_event_in_recovery_time(star(375.0, i)) for i in range(2000)) <= 5          # about 4e-5 of the worlds
+    half_rate = math.log(2.0) / (rad.OZONE_RECOVERY_YR / 1.0e9)
+    flagged = sum(rad.galactic_event_in_recovery_time(star(half_rate, i)) for i in range(2000))
+    assert 900 < flagged < 1100                       # a chance of one half
+    assert rad.galactic_event_in_recovery_time(star(1.0e12, 0))
+    again = star(half_rate, 7)
+    assert rad.galactic_event_in_recovery_time(again) == rad.galactic_event_in_recovery_time(again)      # the star's own stream: the same answer each time
+
+
 def _bodies(system):
     for planet in system.planets:
         if planet.body_type == "a":
@@ -296,26 +319,23 @@ def test_every_generated_body_has_a_consistent_dose():
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 
-def test_a_star_with_no_galaxy_placement_is_rated_where_a_system_with_no_place_is_taken():
-    """GEN.785: the column is filled for every star; one placed nowhere takes the distance a system with no place is taken at."""
+def test_a_star_with_no_galaxy_placement_has_no_galactic_rate_and_so_no_flag():
+    """GEN.1694: a star placed nowhere in a galaxy has no rate (it was rated at the distance a system with no place is taken at, and that always flagged its ozone)."""
     class Unplaced:
         galactic_center_dist_ly = None
 
     star = Unplaced()
     activity.set_galactic_hazard(star)
-    assert star.lethal_event_rate_per_gyr == pytest.approx(activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly()))
-    assert star.lethal_event_rate_per_gyr > 0.0
+    assert star.lethal_event_rate_per_gyr is None
+    assert not rad.galactic_event_in_recovery_time(star)
 
 
-def test_a_star_nearer_the_center_flags_ozone_loss_on_a_world_with_air():
+def test_a_star_nearer_the_center_has_a_higher_rate_of_galactic_events():
     with deterministic_entropy(5):
         draw.set_run_seed(5)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=2000.0)
     star = system.stars[0] if hasattr(system, "stars") else system.primary_star
     assert star.lethal_event_rate_per_gyr > activity.SN_RATE_AT_SUN_PER_GYR * 50
-    for body in _bodies(system):
-        if body.body_type == "t" and (body.ozone_column_du or 0.0) > 0.0:
-            assert body.ozone_loss_flag
 
 
 def _rocky_world_with_air():
@@ -368,7 +388,7 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
         with conn:
             # An airless world is the case the multiplier is built for.
             conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500,"
-                         " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, surface_dose_msv_yr = 501.5,"
+                         " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, dose_belt_msv_yr = 0, surface_dose_msv_yr = 501.5,"
                          " dose_helio_mult = 1 WHERE body_type = 't'")
             cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
             conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 20 WHERE id = ?", (cloud,))
@@ -388,6 +408,50 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
         rows = conn.execute("SELECT dose_helio_mult, surface_dose_msv_yr FROM planets WHERE body_type = 't'").fetchall()
         assert all(row["dose_helio_mult"] == 1.0 and row["surface_dose_msv_yr"] == pytest.approx(501.5)
                    for row in rows)
+    finally:
+        conn.close()
+
+
+def test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier(mysql_config):
+    """GEN.1607: `generate_dose` sets `dose_helio_mult` back to 1 each call, so a body whose life is applied again by an edit (`validation.reapply_life`)
+    is saved with the open-space multiplier; `save_system_edits` then works the cloud's multiplier out again from the stored container
+    (`store.refresh_system_dose`), so the system in a cloud ends with the squeezed-heliosphere multiplier, not 1."""
+    from planetgen.db import edits as edit_store
+    from planetgen.generation import validation
+    cfg, system = _system_with_rocky_worlds()
+    sector = SpaceSector("Dosed", edge_ly=11.5)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
+    })
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500, dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5,"
+                         " dose_belt_msv_yr = 0, surface_dose_msv_yr = 501.5, dose_helio_mult = 1 WHERE body_type = 't'")
+            cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
+            conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 20 WHERE id = ?", (cloud,))
+            home = conn.execute("SELECT center_x_pc FROM nebulae WHERE id = ?", (cloud,)).fetchone()["center_x_pc"]
+            conn.execute("UPDATE nebulae SET center_x_pc = center_x_pc + 50 WHERE id = ?", (cloud,))
+            store.refresh_containment(conn, [sector_id])
+            conn.execute("UPDATE nebulae SET center_x_pc = ? WHERE id = ?", (home, cloud))
+            store.refresh_containment(conn, [sector_id])
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+        before = conn.execute("SELECT dose_helio_mult FROM planets WHERE body_type = 't'").fetchall()
+        assert before and all(row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01) for row in before)
+        loaded = store.load_star_system(conn, system_id)
+        grounded = []
+        for planet in loaded.planets:
+            if planet.body_type == "t" and planet_type.has_ground(planet):
+                grounded.append(planet.db_id)
+                validation.reapply_life(planet)
+                rad.generate_dose(planet)                      # what a changed air does in `life._rebuild`
+                assert planet.dose_helio_mult == 1.0         # the drawn dose is the open-space one until the container is read
+        with conn:
+            edit_store.save_system_edits(conn, system_id, loaded)
+        assert grounded
+        for planet_id in grounded:
+            assert conn.execute("SELECT dose_helio_mult FROM planets WHERE id = ?", (planet_id,)).fetchone()["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
     finally:
         conn.close()
 
@@ -425,7 +489,8 @@ def test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not():
     assert not rad.ozone_lost(_flared(0.003, None, "none"))
     assert rad.ozone_lost(_flared(300.0, None, "none")) and not rad.ozone_lost(_flared(299.0, None, "none"))
     assert not rad.ozone_lost(_flared(2100.0, None, "none", column=0.0))        # nothing to lose
-    assert rad.ozone_lost(_flared(0.0, None, "none", hazard=rad.LETHAL_EVENT_LIMIT_PER_GYR * 2))      # the galaxy's events
+    assert rad.ozone_lost(_flared(0.0, None, "none", hazard=1.0e12))      # an event inside the recovery time (a chance of 1)
+    assert not rad.ozone_lost(_flared(0.0, None, "none", hazard=20.0))     # GEN.1694: twenty events a Gyr hold no ozone down
     assert not rad.ozone_lost(_flared(None, None, None))
 
 
@@ -460,3 +525,29 @@ def test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultravio
     assert quiet[0] is False and flared[0] is True
     assert flared[1] == pytest.approx(quiet[1] * rad.OZONE_LOSS_REMAINING)
     assert flared[2] > quiet[2]
+
+
+# --- GEN.444: the shield of a mixed air ----------------------------------------------------------------------------------------------------------------------------
+
+
+def _air_body(partials):
+    return types.SimpleNamespace(**{atmosphere.GAS_FIELD: partials})
+
+
+def test_an_earth_air_shields_as_the_air_row_does():
+    column, stopping = rad.shielding_of_air(_air_body({"N2": 78084.0, "O2": 20946.0, "Ar": 934.0}), 1033.0)
+    assert column == pytest.approx(1033.0, rel=1e-6)
+    for depth in (22.5, 100.0, 1033.0):
+        assert rad.proton_cutoff_gv(depth, stopping) == pytest.approx(rad.proton_cutoff_gv(depth), rel=0.005)
+
+
+def test_a_carbon_dioxide_air_counts_a_little_thicker_and_a_hydrogen_air_much_thicker_per_gram():
+    co2, _ = rad.shielding_of_air(_air_body({"CO2": 95000.0, "N2": 3000.0}), 100.0)
+    h2, _ = rad.shielding_of_air(_air_body({"H2": 95000.0, "He": 5000.0}), 100.0)
+    assert 100.8 < co2 < 101.8
+    assert 150.0 < h2 < 175.0
+    assert rad.gcr_dose_msv_yr(h2) < rad.gcr_dose_msv_yr(100.0)       # more air-equivalent grams, less dose
+
+
+def test_an_airless_body_has_no_shield_and_keeps_the_air_row():
+    assert rad.shielding_of_air(_air_body({}), 0.0) == (0.0, "air")

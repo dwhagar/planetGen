@@ -83,7 +83,7 @@ def test_a_rogue_planet_keeps_every_surface_sentence():
         planet = _make(RoguePlanet, seed)
         text = _text(describe.describe_phenomenon(planet)["sections"][0])
         assert "free-floating" in text and "only heat is its own" in text
-        assert ("companion body" in text) == bool(planet.has_moons)
+        assert "companion body" not in text
         regime = planet.surface_regime
         if regime in ("gas-giant", "brown-dwarf"):
             assert "no solid surface" in text

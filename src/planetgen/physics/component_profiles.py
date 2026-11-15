@@ -33,7 +33,7 @@ _UNCUT_HALF_MASS_X = {"exponential": 2.674, "plummer": 1.305}
 
 
 @dataclasses.dataclass(frozen=True)
-class ProfileTable:
+class ProfileTable(king.TableMethods):
     """One non-King profile in scale radii (the fields `king.KingTable` has, less `w0`).
 
     Attributes:
@@ -55,20 +55,6 @@ class ProfileTable:
     mass_fraction: np.ndarray
     density: np.ndarray
     mass_over_central: float
-
-    def radius_x(self, fraction):
-        """The radius, over the scale radius, inside which `fraction` (0 to 1) of the mass lies."""
-        return float(np.interp(fraction, self.mass_fraction, self.x))
-
-    def mass_within_x(self, x):
-        """The share of the mass inside `x` (1 at and beyond the cut)."""
-        return float(np.interp(x, self.x, self.mass_fraction))
-
-    def density_at_x(self, x):
-        """The density at `x` over the central density (0 beyond the cut)."""
-        if x >= self.tidal_x:
-            return 0.0
-        return float(np.interp(x, self.x, self.density))
 
 
 def _density_and_mass(profile, x):

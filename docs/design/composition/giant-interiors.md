@@ -193,7 +193,7 @@ the own heat flux (the cooling law through Jupiter and Neptune of `rogue_surface
 is stored (DB.89, `giant_interior.body_values`); the old stand-in envelope and core shares (`bulk_draw.draw_giant`) are removed.
 
 **Settled once the age and the orbit are final (GEN.961, GEN.976).** The draw above reads the star's age and the starlight of the circle at the
-semi-major axis, and the star's age rises when the planets are in (`Star.adjust_age_for_planets`; the eccentricity is drawn after the
+semi-major axis, and the star's age was raised when the planets were in (before GEN.1546 removed that; the eccentricity is drawn after the
 radius, which it needs). Left alone, 28 percent of the table-sized giants of 138 measured had a stored radius over 1 percent too large and
 the worst 9.3 percent. After the age is final and the placed bodies are trimmed, the "giant settle pass" of `StarSystem`
 (`planets.settle_giant`, `giant_draw.settle`) takes the table radius again at the final age and the mean light of the orbit

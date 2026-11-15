@@ -339,10 +339,11 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
         mysql_config, monkeypatch):
     import json
 
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, unitbeat, wrapper
     monkeypatch.setattr(component_pass, "STAR_SLICE_STARS", 100.0)
     monkeypatch.setattr(run_plan, "COMPONENT_REPORT_ROWS", 4)
-    monkeypatch.setattr(run_plan, "CHANNEL_INTERVAL_SECONDS", 0.0)
+    advances, running = {}, [None]
+    monkeypatch.setattr(unitbeat, "advance", lambda amount=1: advances.setdefault(running[0], []).append(amount))      # OPS.198: the unit's second-level count, what the pages show
     _seed_components(mysql_config, [_satellite("Big Cloud", mass=1.0e7, half=40.0, center=(150.0, -90.0, 60.0)),
                                     _cluster("Small One", mass=1.0e6, half=30.0, w0=5, center=(160.0, -90.0, 60.0)),
                                     _cluster("Small Two", mass=1.0e6, half=30.0, w0=5, center=(170.0, -90.0, 60.0))])
@@ -369,19 +370,18 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
             conn.commit()
         finally:
             conn.close()
-        reports = []
+        advances.clear()
         for args, _cost in units:
-            run_plan.scatter_shells_unit(json.loads(json.dumps(args)), lambda done, estimate: reports.append(
-                (args["key"], done, estimate)))
+            running[0] = args["key"]
+            commands.run_alone("scatter-luminosity", json.loads(json.dumps(args)))
         _assert_every_row_has_its_own_id(mysql_config, "bright_stars")
-        return _stored(mysql_config, "bright_stars"), reports
+        return _stored(mysql_config, "bright_stars"), dict(advances)
 
-    stars, reports = run_all(mine)
+    stars, advanced = run_all(mine)
     assert len(stars) > 60
     heaviest = max(mine, key=lambda unit: unit[1])[0]["key"]
-    seen = [(done, estimate) for key, done, estimate in reports if key == heaviest]
-    assert len(seen) >= 3 and seen == sorted(seen), "a component's stars report their progress as they are drawn"
-    assert all(estimate >= done for done, estimate in seen)
+    seen = advanced[heaviest]
+    assert len(seen) >= 3 and all(amount > 0 for amount in seen), "a component's stars report their progress as they are drawn"
     assert run_all(list(reversed(mine)))[0] == stars, "the stars do not depend on the order the units run in"
 
 
@@ -389,7 +389,7 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
 def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_order(mysql_config, monkeypatch):
     import json
 
-    from planetgen.queue import wrapper
+    from planetgen.queue import commands, wrapper
     monkeypatch.setattr(component_pass, "PHENOMENON_SLICE_ROWS", 40000.0)
     _seed_components(mysql_config, [_cluster("Rich", mass=1.0e7, half=30.0, w0=5, center=(150.0, -90.0, 60.0)),
                                     _satellite("Cloud", mass=1.0e7, half=40.0, center=(150.0, -90.0, 60.0))])
@@ -412,7 +412,7 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
         finally:
             conn.close()
         for args, _cost in units:
-            run_plan.scatter_phenomena_unit(json.loads(json.dumps(args)), lambda done, estimate: None)
+            commands.run_alone("scatter-phenomena", json.loads(json.dumps(args)))
         _assert_every_row_has_its_own_id(mysql_config, "phenomenon_scatter")
         return _stored(mysql_config, "phenomenon_scatter")
 
@@ -440,3 +440,29 @@ def test_a_spreads_tiers_are_looked_up_together_and_are_each_bands_own():
     assert len({spot[-1] for spot in spots}) > 1                # the baseline's and the halo's
     for shell, band, _wedge, _point, _population, tier in spots:
         assert tier == limits.tier_at(shell, band)
+
+
+def test_perf264_the_second_pass_finds_the_sample_places_of_the_first_and_keeps_every_number(monkeypatch):
+    """PERF.264: the mass pass and the luminosity pass of a run plan the same components; the addresses of a component's
+    sample positions are looked up once, and the expected stars are the same numbers either way."""
+    tiered, fractions, _bands = _tiered_pass()
+    components = [_cluster(mass=6.0e6, center=(1000.0, 0.0, 6000.0)), _satellite(mass=5.0e8)]
+    component_pass._SAMPLE_PLACES.clear()
+    component_pass._TIERS_OF_PLACE.clear()
+    looked_up, tier_calls = [], []
+    real = component_pass._address
+    monkeypatch.setattr(component_pass, "_address", lambda point, edge: looked_up.append(point) or real(point, edge))
+    real_tiers = ScatterLimits.tiers_of_places
+    monkeypatch.setattr(ScatterLimits, "tiers_of_places", lambda self, places: tier_calls.append(len(places)) or real_tiers(self, places))
+    first = component_pass.kept_weights(components, fractions, tiered, EDGE)
+    asked = len(looked_up)
+    assert asked == len(components) * component_pass.KEPT_SAMPLE_POINTS
+    asked_tiers = len(tier_calls)
+    assert asked_tiers >= 1
+    again = component_pass.kept_weights(components, fractions, tiered, EDGE)
+    assert len(looked_up) == asked, "the second planning looked the addresses up again"
+    assert len(tier_calls) == asked_tiers, "the second planning worked the tiers out again"
+    assert again == first
+    component_pass._SAMPLE_PLACES.clear()
+    component_pass._TIERS_OF_PLACE.clear()
+    assert component_pass.kept_weights(components, fractions, tiered, EDGE) == first

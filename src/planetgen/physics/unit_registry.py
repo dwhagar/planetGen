@@ -212,6 +212,7 @@ _kind("acceleration", _ACCELERATION, "m_s2")
 _kind("temperature", dimension(temperature=1), "K", NON_NEGATIVE)
 _kind("delta_temperature", dimension(temperature=1), "dK")
 _kind("fraction", dimension(), "frac", NON_NEGATIVE)
+_kind("information", dimension(), "B", NON_NEGATIVE)
 _kind("angle", dimension(angle=1), "rad")
 _kind("angular_rate", dimension(time=-1, angle=1), "rad_s")
 _kind("angular_momentum", dimension(length=2, mass=1, time=-1), "kg_m2_s")
@@ -249,7 +250,7 @@ def _lengths():
             ("ft", "ft", "feet", constants.FOOT_M),
             ("mi", "mi", "miles", constants.MILE_M),
             ("Rsun", "R☉", "solar radii", constants.SOLAR_RADIUS_M),
-            ("Rearth", "R⊕", "Earth radii", constants.EARTH_RADIUS_KM * constants.KM_M),
+            ("Rearth", "R⊕", "Earth radii", constants.EARTH_RADIUS_M),
             ("Rjup", "R♃", "Jupiter radii", constants.JUPITER_RADIUS_KM * constants.KM_M)):
         _unit(key, "length", symbol, name, factor)
     _prefixed("length", "pc", "pc", "parsecs", constants.PARSEC_M, PARSEC_PREFIXES, singular="parsec")
@@ -287,6 +288,8 @@ def _times():
     _unit("1/s", "frequency", "1/s", "per second", 1.0, parts=(("s", -1),))
     _unit("1/yr", "frequency", "1/yr", "per year", 1.0 / _JULIAN_YEAR_S, parts=(("yr", -1),))
     _unit("1/Gy", "frequency", "1/Gy", "per billion years", 1.0 / (_JULIAN_YEAR_S * 1e9), parts=(("Gyr", -1),))
+    _unit("1/Myr", "frequency", "1/Myr", "per million years", 1.0 / (_JULIAN_YEAR_S * 1e6), parts=(("Myr", -1),))
+    _unit("1/d", "frequency", "1/d", "per day", 1.0 / _DAY_S, parts=(("d", -1),))
 
 
 def _kinematics():
@@ -352,7 +355,7 @@ def _energetic():
     _unit("Mearth_yr", "mass_flow", "M⊕/yr", "Earth masses per year", constants.EARTH_MASS_TO_KG / _JULIAN_YEAR_S,
           parts=(("Mearth", 1), ("yr", -1)))
     _prefixed("pressure", "Pa", "Pa", "pascals", 1.0, SI_PREFIXES[:12], singular="pascal")
-    _unit("bar", "pressure", "bar", "bars", 1e5)
+    _unit("bar", "pressure", "bar", "bars", constants.BAR_PA)
     _unit("mbar", "pressure", "mbar", "millibars", 1e2)
     _unit("atm", "pressure", "atm", "standard atmospheres", constants.STANDARD_ATMOSPHERE_PA)
     _unit("psi", "pressure", "psi", "pounds per square inch", constants.PSI_PA)
@@ -410,6 +413,15 @@ def _fractions():
 _lengths()
 _masses()
 _fractions()
+
+
+def _information():
+    """Bytes of storage or memory (UX.318): a disk estimate, a worker's memory, a cache size. SI prefixes (powers of 1000, as a disk is
+    sold and as `generation.stats` has always written them), kilobyte to terabyte."""
+    _prefixed("information", "B", "B", "bytes", 1.0, SI_PREFIXES[3:8], singular="byte")
+
+
+_information()
 _times()
 _kinematics()
 _thermal()
@@ -584,17 +596,31 @@ def scale(value, source_factor, target_factor):
     """
     ratio = source_factor / target_factor
     if ratio > 0.0 and math.isfinite(ratio):
-        exponent = round(math.log10(ratio))
-        if -22 <= exponent <= 22 and abs(ratio - float(f"1e{exponent}")) <= 1e-14 * ratio:
+        exponent = _ten_exponent(ratio)
+        if exponent is not None:
             return value * _TEN_POWERS[exponent] if exponent >= 0 else value / _TEN_POWERS[-exponent]
     return value * source_factor / target_factor
 
 
-def convert(value, from_key, to_key):
-    """`value` of the unit `from_key` in the unit `to_key`; a unit of another kind raises `ValueError`."""
+def _ten_exponent(ratio):
+    """The integer `n`, `|n|` at most 22, that `ratio` is within rounding of `10 ** n` of; `None` when it is not a power of ten."""
+    exponent = round(math.log10(ratio))
+    if -22 <= exponent <= 22 and abs(ratio - float(f"1e{exponent}")) <= 1e-14 * ratio:
+        return exponent
+    return None
+
+
+def _pair(from_key, to_key):
+    """`(source, target)`, the two `Unit`s of a conversion; a unit of another kind raises `ValueError`."""
     source, target = unit(from_key), unit(to_key)
     if source.kind != target.kind:
         raise ValueError(f"cannot convert {source.symbol} ({source.kind}) to {target.symbol} ({target.kind})")
+    return source, target
+
+
+def convert(value, from_key, to_key):
+    """`value` of the unit `from_key` in the unit `to_key`; a unit of another kind raises `ValueError`."""
+    source, target = _pair(from_key, to_key)
     if source.factor == target.factor and source.offset == target.offset:
         return value
     if source.offset == target.offset:
@@ -611,9 +637,7 @@ def converter(from_key, to_key):
     unit to the smaller (`AU_TO_KM`, 1000.0) or a divide by the ratio of the smaller to the larger (`/ AU_TO_KM`,
     `/ 1000.0`), a power of ten taken as the exact power. Two units of equal factor return the value unchanged.
     """
-    source, target = unit(from_key), unit(to_key)
-    if source.kind != target.kind:
-        raise ValueError(f"cannot convert {source.symbol} ({source.kind}) to {target.symbol} ({target.kind})")
+    source, target = _pair(from_key, to_key)
     if source.offset != target.offset:
         return lambda value: (value * source.factor + source.offset - target.offset) / target.factor
     if source.factor == target.factor:
@@ -627,10 +651,8 @@ def converter(from_key, to_key):
 
 def _step(ratio):
     """`ratio`, or the power of ten it is within rounding of."""
-    exponent = round(math.log10(ratio))
-    if -22 <= exponent <= 22 and abs(ratio - float(f"1e{exponent}")) <= 1e-14 * ratio:
-        return _TEN_POWERS[exponent]
-    return ratio
+    exponent = _ten_exponent(ratio)
+    return ratio if exponent is None else _TEN_POWERS[exponent]
 
 
 def check(value, key):

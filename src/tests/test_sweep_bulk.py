@@ -129,8 +129,7 @@ def test_the_phrase_must_name_the_materials_the_shares_hold_and_no_others():
 
 
 def test_every_rule_has_a_name_a_check_and_a_breaker_and_the_names_are_unique():
-    assert len({rule.name for rule in rules.RULES}) == len(rules.RULES) >= 8
-    assert all(callable(rule.check) and callable(rule.breaker) for rule in rules.RULES)
+    sweep.assert_rules_are_complete(rules.RULES, 8)
 
 
 # --- The sweep ---------------------------------------------------------------------------------------------------------------
@@ -143,9 +142,7 @@ def everything():
 
 @pytest.mark.slow
 def test_every_body_of_the_sweep_obeys_every_bulk_rule(everything):
-    found = sweep.run_rules(rules.RULES, everything)
-    failures = {name: violations[:5] for name, violations in found.items() if violations}
-    assert not failures, "\n".join(f"{name}: {len(found[name])} bodies, first {violations}" for name, violations in failures.items())
+    sweep.assert_rules_obeyed(rules.RULES, everything)
 
 
 @pytest.mark.slow
@@ -159,5 +156,4 @@ def test_the_sweep_holds_rocky_icy_porous_moon_and_enveloped_bodies_so_every_rul
 
 @pytest.mark.slow
 def test_each_bulk_rule_reports_a_body_with_exactly_that_rule_broken(everything):
-    result = sweep.prove_rules_can_fail(rules.RULES, everything)
-    assert result == {rule.name: True for rule in rules.RULES}, result
+    sweep.assert_every_rule_can_fail(rules.RULES, everything)

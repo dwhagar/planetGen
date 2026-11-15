@@ -29,6 +29,7 @@ Sequence Star" -> ("G", "V")).
 
 import functools
 import math
+import re
 
 from markupsafe import Markup, escape
 
@@ -42,7 +43,7 @@ from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 from planetgen.util import chem, log
-from planetgen.web.lib import help_registry
+from planetgen.web.lib import fmt, help_registry
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class
@@ -197,6 +198,31 @@ def _star_luminosity():
     }
 
 
+_RULE_UNITS = {"Pa": "Pa", "K": "K", "C": "degC", "g": "g0", "Earth masses": "Mearth"}
+"""dict: The registry unit of each unit a class condition is written in (`planet_classes.DOCUMENT`'s quantities)."""
+
+_SLOT = re.compile("\ue000(\\d+)\ue001")
+
+
+def _rule_html(words_of, prefix=""):
+    """
+    The words of a class's conditions with every number that has a unit written as a `fmt.measured_html` span, so the visitor's unit setting
+    shows it in the units chosen (UX.295; `static/units.js` reads `data-si`). `words_of(measure)` is `class_fit.rule_words` with the hook. The words are
+    escaped; only the spans, which the unit registry writes, are markup.
+    """
+    spans = []
+
+    def measure(value, unit):
+        key = _RULE_UNITS.get(unit)
+        if key is None:
+            return None
+        spans.append(fmt.measured_html(key, value, companions=False))
+        return f"\ue000{len(spans) - 1}\ue001"
+
+    text = prefix + "; ".join(words_of(measure))
+    return Markup(_SLOT.sub(lambda found: spans[int(found.group(1))], str(escape(text))))
+
+
 def _planet():
     """The planet and moon classes (`physics/planet_classes.py`, GEN.645, GEN.1207): a class is what the finished body's conditions say, so a page gives the conditions
     of the class, not a table of ranges it was drawn from. Every class has its own conditions and none relies on another having said no (GEN.1208)."""
@@ -204,14 +230,14 @@ def _planet():
     ordered = planet_classes.CLASSES
     for cls in sorted(ordered, key=lambda c: c.letter):
         fit = next(row for row in class_fit.CLASSES if row.letter == cls.letter and row.kind == cls.kind)
-        rule = class_fit.rule_words(fit)
         if cls.letter in classes:     # GEN.1142: T has a giant row and a terrestrial one; the page is the giant row's, with a line for the other
-            classes[cls.letter]["facts"].append(("Also", f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: " + "; ".join(rule)))
+            classes[cls.letter]["facts"].append(("Also", _rule_html(lambda measure: class_fit.rule_words(fit, measure), f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: ")))
             continue
         facts = [
             ("Name", cls.name),
             ("Type", PLANET_TYPE_LABELS[cls.kind]),
-            ("Conditions", "; ".join(rule)),
+            ("Conditions", _rule_html(lambda measure: class_fit.rule_words(fit, measure))),
+            ("Soft edges (how far the value could move)", "; ".join(class_fit.softness_words(fit)) or "none: every condition is a yes or no"),
             ("Core class", "Yes" if cls.core else "No"),
         ]
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
@@ -226,22 +252,29 @@ def _planet():
             "Each class asks about the mass, gravity, temperature, air, water, and starlight in its own conditions. A condition "
             "just outside its edge lowers the match instead of ruling the class out. A world that fits no class at all is "
             "shown with its nearest class at 0 percent.",
+            "Where a class edge falls is soft. The softness is the doubt in the numbers, not the variety of the worlds. It is how far the value "
+            "could move if the formulas and constants we could not take from a measurement were wrong by what the sources allow.",
+            "A world just past an edge, by less than that width, fits the class in part. A quantity made only of measured values has almost "
+            "no width. As measured values replace the formulas and constants, the widths shrink on their own.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
-            "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
-            "A rogue planet, adrift with no star, gets a class too, from the classes that list "
-            "interstellar space: with no starlight, no class with life qualifies.",
+            *(["Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes."] if planet_classes.RESERVE else []),
+            "A rogue planet, adrift with no star, gets a class too, by the same conditions as any other world.",
         ],
         "classes": classes,
     }
 
 
 def _cloud_facts(data):
-    return [
+    """The facts a nebula and a supernova remnant share: the cloud's density, temperature and extinction, and what sits at its center when something does."""
+    facts = [
         ("Density", number_range(*data["density_range_cm3"], "particles/cm³")),
         ("Gas temperature", number_range(*data["temperature_range_k"], "K")),
         ("Extinction", number_range(*data["extinction_range_av"], "magnitudes (visual)")),
     ]
+    if data.get("center"):
+        facts.append(("At the center", _sentence(data["center"])))
+    return facts
 
 
 def _nebula():
@@ -255,8 +288,6 @@ def _nebula():
             ("Radius", number_range(*data["radius_range_ly"], "ly")),
             *_cloud_facts(data),
         ]
-        if data.get("center"):
-            facts.append(("At the center", _sentence(data["center"])))
         classes[code] = _entry(code, data["name"], escape(f"{_sentence(data['family'])} nebula: ") + _contents(data["species"]) + ".",
                                facts)
     return {
@@ -283,8 +314,6 @@ def _supernova_remnant():
             ("Compact remnant allowed", ", ".join(_COMPACT_LABELS.get(kind, str(kind)) for kind in data["compact"])),
             *_cloud_facts(data),
         ]
-        if data.get("center"):
-            facts.append(("At the center", _sentence(data["center"])))
         summary = escape(f"{_sentence(data['morphology'])} remnant: ") + _contents(data["species"]) + "."
         classes[code] = _entry(code, data["name"], summary, facts)
     return {
@@ -467,7 +496,7 @@ def preload():
     try:
         catalog()
     except DataMissing as missing:
-        log.warning("the class reference catalog was not built at start: %s", missing)
+        log.warning("The class reference catalog was not built at start: %s", missing)
         return False
     return True
 

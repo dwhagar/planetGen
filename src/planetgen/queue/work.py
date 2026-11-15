@@ -16,6 +16,8 @@ import math
 import os
 import socket
 
+from planetgen.util import log
+
 CPU_SHARE = 0.8
 """float: The share of the machine's cores the pool may use."""
 
@@ -85,8 +87,8 @@ def lower_priority(niceness=WORKER_NICENESS):
     the machine comes first. Never raises."""
     try:
         os.nice(niceness)
-    except Exception:  # noqa: BLE001 -- a normal-priority worker is still a worker
-        pass
+    except Exception as exc:  # noqa: BLE001 -- a normal-priority worker is still a worker
+        log.swallowed("queue/work", "lower_priority", exc)
 
 
 def task_seed(run_seed, key):

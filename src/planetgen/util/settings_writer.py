@@ -60,6 +60,7 @@ except ImportError:  # pragma: no cover
 from planetgen import backup
 from planetgen.admin import activity_log
 from planetgen.util import logpaths, settings
+from planetgen.util import log
 
 RESET = object()
 """A change value that removes the option from the file, so the default applies again."""
@@ -89,6 +90,18 @@ class SettingsWriteError(backup.BackupError):
 
 class StaleSettingsError(SettingsWriteError):
     """The file changed after the caller read it (`expect_hash`)."""
+
+
+def _check_hash(expect_hash, planned, what, again):
+    """Raises `StaleSettingsError` when the caller's `expect_hash` (none to skip the check) is not the file's: `what` is the form or page
+    it came from and `again` what to do after reloading it."""
+    if expect_hash is not None and expect_hash != planned.file_hash:
+        raise StaleSettingsError(f"The settings were changed by someone else since this {what} was opened; reload it and {again}.")
+
+
+def _write_error(exc):
+    """A `BackupError` as the `SettingsWriteError` to raise: itself when it is one already."""
+    return exc if isinstance(exc, SettingsWriteError) else SettingsWriteError(str(exc))
 
 
 @dataclass
@@ -275,13 +288,38 @@ def _get(tree, path):
     return True, node
 
 
-def _put(tree, path, value):
-    parts = path.split(".")
-    for part in parts[:-1]:
-        if not isinstance(tree.get(part), dict):
-            tree[part] = {}
-        tree = tree[part]
-    tree[parts[-1]] = value
+_put = settings.set_path
+"""Sets a dotted `path` in a settings tree, making the dicts on the way (`settings.set_path`)."""
+
+
+def _load_document(result, path):
+    """The settings file at `path` parsed (its hash and document noted on `result`, a `Plan` or `UpdatePlan`), or `None` with
+    `result.errors[""]` saying the file is missing or what is wrong with it."""
+    data = read_bytes(path)
+    if data is None:
+        result.errors[""] = MISSING
+        return None
+    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
+    try:
+        before = _parse(data, path)
+    except SettingsWriteError as exc:
+        result.errors[""] = str(exc)
+        return None
+    result.document_before = before
+    return before
+
+
+def _note_field_errors(result, after, known):
+    """Checks the would-be document `after` against the model and notes each problem on `result.errors`: under its option when
+    `known` lists it, else under `""` for the file as a whole. Returns the checked `Settings`, `None` when there were problems."""
+    checked, problems = settings.field_errors(after)
+    if checked is None:
+        for option, message in problems:
+            if option in known:
+                result.errors.setdefault(option, message)
+            else:
+                result.errors.setdefault("", f"{option}: {message}" if option else message)
+    return checked
 
 
 def _drop(tree, path):
@@ -359,17 +397,9 @@ def plan(changes, role="admin", environ=None):
     path = config_path()
     environ = os.environ if environ is None else environ
     result = Plan()
-    data = read_bytes(path)
-    if data is None:
-        result.errors[""] = MISSING
+    before = _load_document(result, path)
+    if before is None:
         return result
-    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
-    try:
-        before = _parse(data, path)
-    except SettingsWriteError as exc:
-        result.errors[""] = str(exc)
-        return result
-    result.document_before = before
     known = _fields()
     after = copy.deepcopy(before)
     wanted = {}
@@ -387,13 +417,7 @@ def plan(changes, role="admin", environ=None):
         else:
             _put(after, option, value)
             wanted[option] = value
-    checked, problems = settings.field_errors(after)
-    if checked is None:
-        for option, message in problems:
-            if option in known:
-                result.errors.setdefault(option, message)
-            else:
-                result.errors.setdefault("", f"{option}: {message}" if option else message)
+    checked = _note_field_errors(result, after, known)
     if result.errors:
         return result
     bare = copy.deepcopy(after)  # the same file without the options being set: what applies if they are left out
@@ -426,6 +450,7 @@ def _audit(result, actor, audit, action):
             try:
                 audit(action, target, detail)
             except Exception as exc:  # noqa: BLE001 -- the file is already written; say so, don't undo it
+                log.swallowed("util/settings_writer", "_audit", exc)
                 result.audit_errors.append(f"{target}: {exc}")
                 activity_log.event("DB", "config.audit_failed", user=actor, target=target, error=str(exc)[:200])
 
@@ -439,9 +464,7 @@ def _write(path, document, actor, action, result, archive):
         _atomic_write(path, _dump(document))
         result.saved = True
     except backup.BackupError as exc:
-        if isinstance(exc, SettingsWriteError):
-            raise
-        raise SettingsWriteError(str(exc)) from exc
+        raise _write_error(exc) from exc
 
 
 def save(changes, actor, role="admin", audit=None, expect_hash=None, action="config.update", environ=None):
@@ -466,9 +489,7 @@ def save(changes, actor, role="admin", audit=None, expect_hash=None, action="con
     with _Lock(path):
         planned = plan(changes, role=role, environ=environ)
         result = Result(**planned.__dict__)
-        if expect_hash is not None and expect_hash != planned.file_hash:
-            raise StaleSettingsError("The settings were changed by someone else since this form was opened; "
-                                     "reload it and make the change again.")
+        _check_hash(expect_hash, planned, "form", "make the change again")
         if result.errors or not result.changes:
             return result
         _write(path, result.document_after, actor, action, result, archive=True)
@@ -557,17 +578,9 @@ def plan_update(remove=(), apply=(), fields=None):
     """
     path = config_path()
     result = UpdatePlan()
-    data = read_bytes(path)
-    if data is None:
-        result.errors[""] = MISSING
+    before = _load_document(result, path)
+    if before is None:
         return result
-    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
-    try:
-        before = _parse(data, path)
-    except SettingsWriteError as exc:
-        result.errors[""] = str(exc)
-        return result
-    result.document_before = before
     known = _fields() if fields is None else fields
     sections = _sections(known)
     after = copy.deepcopy(before)
@@ -601,13 +614,7 @@ def plan_update(remove=(), apply=(), fields=None):
         _put(after, option, value)
     for option in sorted(remove):
         _drop(after, option)
-    checked, problems = settings.field_errors(after)
-    if checked is None:
-        for option, message in problems:
-            if option in known:
-                result.errors.setdefault(option, message)
-            else:
-                result.errors.setdefault("", f"{option}: {message}" if option else message)
+    if _note_field_errors(result, after, known) is None:
         return result
     for option, value in wanted.items():
         _info, meta = known[option]
@@ -643,9 +650,7 @@ def update(actor, remove=(), apply=(), audit=None, expect_hash=None, fields=None
     with _Lock(path):
         planned = plan_update(remove=remove, apply=apply, fields=fields)
         result = UpdateResult(**planned.__dict__)
-        if expect_hash is not None and expect_hash != planned.file_hash:
-            raise StaleSettingsError("The settings were changed by someone else since this page was opened; "
-                                     "reload it and look again.")
+        _check_hash(expect_hash, planned, "page", "look again")
         if result.errors or not result.changes:
             return result
         _write(path, _stamp_version(result.document_after), actor, UPDATE_ACTION, result, archive=True)
@@ -743,11 +748,7 @@ def _restore_plan(data, label, role, environ):
                     _put(wanted, option, value)
                 else:
                     _drop(wanted, option)
-    checked, problems = settings.field_errors(wanted)
-    if checked is None:
-        for option, message in problems:
-            result.errors.setdefault(option if option in known else "", message if option in known
-                                     else f"{option}: {message}" if option else message)
+    if _note_field_errors(result, wanted, known) is None:
         return result, None
     _diff(current, wanted, list(known), known, environ, result)
     result.document_after = wanted
@@ -807,16 +808,12 @@ def restore(name, actor, role="admin", audit=None, expect_hash=None, environ=Non
     preview = plan_restore(name, role=role, environ=environ)
     if preview.errors:
         return Result(**preview.__dict__)
-    if expect_hash is not None and expect_hash != preview.file_hash:
-        raise StaleSettingsError("The settings were changed by someone else since this page was opened; "
-                                 "reload it and try again.")
+    _check_hash(expect_hash, preview, "page", "try again")
     try:
         report = backup.restore(name, [PART], backup.RestoreContext(who=actor, role=role, audit=audit,
                                                                     environ=environ))
     except backup.BackupError as exc:
-        if isinstance(exc, SettingsWriteError):
-            raise
-        raise SettingsWriteError(str(exc)) from exc
+        raise _write_error(exc) from exc
     result = report.results[PART]
     result.backup = report.safety
     return result

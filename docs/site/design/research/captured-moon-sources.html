@@ -223,7 +223,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>[R3265] (NVM07), AJ 133, 1962</td>
 <td><strong>read</strong> (Troja copy)</td>
-<td>per-planet capture probabilities: Uranus 2.6e-7, Neptune 5.4e-7 (means of 14 runs of the original Nice model), Jupiter 8.5e-9 and Saturn 2.4e-8 (job 9, the best of the runs; the mean at Saturn is 5.7 times lower); 35 earth masses of disk, size law q1 4.25, q2 2.75 differential, break D 100 km; largest captured D 135 km (Jupiter), 186 km (Saturn) against Himalia 170 and Phoebe 213 km; captured ice-giant populations 2 orders larger than the known ones</td>
+<td>per-planet capture probabilities: Uranus 2.6e-7, Neptune 5.4e-7 (means of 14 runs of the original Nice model), Jupiter 8.5e-9 and Saturn 2.4e-8 (job 9, the best of the runs; the mean at Saturn is 5.7 times lower); 35 earth masses of disc, size law q1 4.25, q2 2.75 differential, break D 100 km; largest captured D 135 km (Jupiter), 186 km (Saturn) against Himalia 170 and Phoebe 213 km; captured ice-giant populations 2 orders larger than the known ones</td>
 </tr>
 <tr>
 <td>[R3264] (NDD14), [R3264]</td>
@@ -278,7 +278,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>[R3814], Nature Geoscience (HAL copy)</td>
 <td><strong>read</strong> (abstract and introduction)</td>
-<td>Phobos and Deimos are not captured: tidal dissipation cannot turn a captured body's orbit into their near-circular equatorial one; a 1e18 kg debris disk after a giant impact, inner large moons fall back in about 5 Myr</td>
+<td>Phobos and Deimos are not captured: tidal dissipation cannot turn a captured body's orbit into their near-circular equatorial one; a 1e18 kg debris disc after a giant impact, inner large moons fall back in about 5 Myr</td>
 </tr>
 <tr>
 <td>[R4456] (Saturn)</td>
@@ -304,7 +304,7 @@ main{padding:16px 16px 60px}}
 </table></div>
 <h2 id="what-this-changes-in-the-design">What this changes in the design</h2>
 <ol>
-<li><strong>Section 2.3 and the stand-in table, capture probability.</strong> Replace &quot;scaled by Hill volume to other planets&quot; with the printed values (CM2). Ice giants capture more than gas giants in the original Nice model (3e-7 to 5e-7 against 1e-8 to 2e-8), and less in the newer histories ((1 to 3)e-8); the driver is the number of encounters the planet has with another giant, not its size. CM1 gives the per-encounter form (Pcap about 1.3e-10 to 2.6e-10 per encounter per disk particle at Jupiter, from 6e-7 stable captures per particle injected into the encounter sphere times the 3.5 to 4.2e-4 of the disk in it), so item 9's record of the encounter count of the architecture is enough to set a planet's capture probability.</li>
+<li><strong>Section 2.3 and the stand-in table, capture probability.</strong> Replace &quot;scaled by Hill volume to other planets&quot; with the printed values (CM2). Ice giants capture more than gas giants in the original Nice model (3e-7 to 5e-7 against 1e-8 to 2e-8), and less in the newer histories ((1 to 3)e-8); the driver is the number of encounters the planet has with another giant, not its size. CM1 gives the per-encounter form (Pcap about 1.3e-10 to 2.6e-10 per encounter per disc particle at Jupiter, from 6e-7 stable captures per particle injected into the encounter sphere times the 3.5 to 4.2e-4 of the disc in it), so item 9's record of the encounter count of the architecture is enough to set a planet's capture probability.</li>
 <li><strong>Section 2.3, head counts.</strong> Use 55, 35, 9, 8 (2007) and 107, 268, 10, 8 (10-30) for irregulars; 63, 56, 27, 13 count regular moons too.</li>
 <li><strong>Section 4.5, targets.</strong> Irregulars above 5 km: Jupiter 8 (design 10 to 20), Saturn 11 (5 to 15), Uranus 9 and Neptune 8 (5 to 12; Neptune is complete only above 16 km, 7 there). Above 40 km: 1 at each (design 0 to 2). Largest: Himalia, Phoebe, Sycorax and Nereid, so the ice giant's largest is 93 km, or 178 km if Nereid is counted; the design's 30 to 100 km misses Nereid, which has the orbit of a scattered regular moon (a / r_H 0.047, i 5 deg).</li>
 <li><strong>Section 2.3, size law.</strong> Above 7 km the differential index is 1.8 to 1.9 (cumulative 0.8 to 1.0), as the design had. Below 5 km the design's &quot;q about 3.5, cumulative 2.5&quot; is not supported: counting the table gives 1.3 at Jupiter and 2.0 at Saturn, and the deepest Jupiter survey gives a differential 2.5 (cumulative 1.5) to 0.4 km. Use 1.3 to 1.5 at Jupiter and 2.0 at Saturn below 5 km; the 3.5 was marked &quot;citation needed&quot; in the source I had.</li>
@@ -313,7 +313,7 @@ main{padding:16px 16px 60px}}
 <li><strong>Sections 2.2 and 4.1, windows.</strong> Gas-era collisional capture is negligible (CM12). Binary exchange gives under 0.001 small irregulars at Jupiter and Saturn, up to 0.07 at Uranus and up to 1.7 at Neptune if every planetesimal were a binary, and a chance of 0.2 to 3.5 percent of capturing a Triton-class body at Neptune, early (CM11). Temporary capture is a flag only (CM13).</li>
 <li><strong>Collisions (item 5).</strong> The present collisional lifetime of a 1 to 5 km irregular against all the others is 3e9 to 1.3e10 yr and of a 70 km one 9e7 to 1.3e9 yr (CM9), so the grinding is largely over today, and the 99 percent loss happened in the first hundreds of Myr [R0483]. The mass left now (4e18 to 1e19 kg at Jupiter, Saturn and Uranus) is 0.2 to 17 percent of the 0.0008 to 0.03 lunar masses (5.9e19 to 2.2e21 kg) the paper starts from, so it brackets the paper's 99 percent loss without fixing it. For the generator: draw the captured mass from the capture probability, then keep a fraction of 1 percent (0.5 to 5), with the largest body kept whole.</li>
 <li><strong>Terrestrial planets.</strong> [R3814] supports zero captures: the small circular equatorial moons of a rocky planet are impact debris, not captured bodies.</li>
-<li><strong>Mass check of CM1.</strong> (3 to 4)e7 disk particles above 40 km times 1.3e-8 to 3.6e-8 gives 0.4 to 1.4 captured bodies above 40 km at Jupiter (NDD14 says about one), against 1 or 2 seen.</li>
+<li><strong>Mass check of CM1.</strong> (3 to 4)e7 disc particles above 40 km times 1.3e-8 to 3.6e-8 gives 0.4 to 1.4 captured bodies above 40 km at Jupiter (NDD14 says about one), against 1 or 2 seen.</li>
 </ol>
 <h2 id="not-read-still-open">Not read, still open</h2>
 <ul>
@@ -361,7 +361,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>fit to the data</td>
-<td>[R0956] explain the prograde Himalia group (disk, not envelope); JH07 call such a model dependent on weakly constrained parameters of the gas; the equal populations at the four giants argue against drag as the main agent</td>
+<td>[R0956] explain the prograde Himalia group (disc, not envelope); JH07 call such a model dependent on weakly constrained parameters of the gas; the equal populations at the four giants argue against drag as the main agent</td>
 <td>JH07 6.2, 6.3</td>
 </tr>
 <tr>
@@ -377,7 +377,7 @@ main{padding:16px 16px 60px}}
 </tbody>
 </table></div>
 <p>For the generator: the drag channel is switched on only for a planet with a massive envelope in the gas era, for bodies of 1 to 500 km, and its yield stays the guess of CM14 (0.1 to 0.3 of the encounter channel) with the knob 0 to 0.3, since the observed equality of the four giants (JH07) and the lack of size-orbit trends [R4055] put the upper end at risk. A physical form is possible when the envelope is generated: capture if the column density of gas along the path times the cross-section is at least the body's mass, which gives R_max = (3/4) (rho_gas L / rho_body); it needs the gas density of the envelope (not in any paper reached).</p>
-<p>Still open: the full text of [R0956, R3560] (a person with library access could read the capture-efficiency figure of the first and the disk-capture rate of the second).</p>
+<p>Still open: the full text of [R0956, R3560] (a person with library access could read the capture-efficiency figure of the first and the disc-capture rate of the second).</p>
 
 </main>
 </div>

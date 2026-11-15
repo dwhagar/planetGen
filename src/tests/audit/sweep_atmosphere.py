@@ -26,7 +26,7 @@ Rules (names as `RULES` lists them):
 import math
 
 from planetgen.describe import build as describe_build
-from planetgen.physics import aerosols, air_column, atmosphere, constants, gases, ozone, orbit_elements, radiation, radiation_field, sulfuric_cloud, surface_air
+from planetgen.physics import aerosols, air_column, atmosphere, constants, gases, ionization, ozone, orbit_elements, radiation, radiation_field, sulfuric_cloud
 from tests.audit.sweep import Rule, broken_copy
 from tests.test_atmosphere_text_consistency import _text_names
 
@@ -128,7 +128,7 @@ def _check_temperature(entry):
     flux = _starlight_w_m2(entry)
     expected = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K,
                        ((1.0 - body.bond_albedo) * flux * (1.0 + body.greenhouse_factor) / (4.0 * sigma)) ** 0.25),
-                   surface_air.MAX_SURFACE_TEMPERATURE_K)      # the air solve stops a runaway greenhouse at the molten surface (stand-in CC7)
+                   ionization.ceiling_of(_partials(body)))      # the air solve stops a runaway greenhouse where its main gas is half ionized (GEN.1580)
     return [] if _close(body.surface_temperature, expected) else [f"temperature {body.surface_temperature!r}, the albedo and greenhouse give {expected!r} K"]
 
 

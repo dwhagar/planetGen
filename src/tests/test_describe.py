@@ -10,6 +10,7 @@ Markdown or HTML.
 """
 
 import json
+import zlib
 
 import pytest
 
@@ -49,7 +50,7 @@ def _config(**overrides):
 
 def _systems(count=3):
     for overrides in _VARIANTS:
-        draw.set_run_seed(hash(tuple(sorted(overrides.items()))) & 0xFFFF)
+        draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
         for _ in range(count):
             yield overrides, StarSystem(system_config=_config(**overrides))
 
@@ -81,7 +82,7 @@ def _all_sections(document):
 
 @pytest.mark.parametrize("overrides", _VARIANTS)
 def test_every_variant_gives_a_checked_json_document(overrides):
-    draw.set_run_seed(hash(tuple(sorted(overrides.items()))) & 0xFFFF)
+    draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
     for _ in range(4):
         document = describe(StarSystem(system_config=_config(**overrides)))
         model.check(document)
@@ -282,7 +283,7 @@ def test_a_stored_system_is_described_like_the_generated_one(mysql_config, overr
             return float(f"{node:.9g}")
         return node
 
-    draw.set_run_seed(hash(tuple(sorted(overrides.items()))) & 0xFFFF)
+    draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
     conn = store.get_connection(mysql_config)
     try:
         for _ in range(3):
@@ -356,3 +357,20 @@ def test_the_timeline_is_written_from_the_stored_state_with_the_ladders():
             assert "Billion Years" not in text and "Million Years" not in text and "speculative" not in text and "would" not in text
             seen += 1
     assert seen > 0
+
+
+def test_a_young_star_read_back_from_the_database_is_still_named_a_young_star():
+    """TEST.728: `stars.state` and `stars.decay_age_yr` are columns, not serialized fields; a star rebuilt from its row lost them, so a sky text named it by its spectral letter
+    ("an M-type star") where the generated star said "a young star". The variants' seeds came from `hash()`, which differs from one process to the next, so only some runs met it."""
+    from planetgen.generation.star import Star
+    from planetgen.physics import sky_view
+    star = Star(system_config=SystemConfig())
+    star.state, star.decay_age_yr = "pre-main-seq", None
+    rebuilt = Star.from_dict(star.to_dict(), SystemConfig())
+    assert rebuilt.state is None            # to_dict carries no state: the stored column does
+    data = star.to_dict()
+    data.update(state="pre-main-seq", decay_age_yr=None)
+    assert Star.from_dict(data, SystemConfig()).state == "pre-main-seq"
+    assert sky_view.kind_of(Star.from_dict(data, SystemConfig())) == "young star"
+    data.update(state="white-dwarf", decay_age_yr=3.0e9)
+    assert Star.from_dict(data, SystemConfig()).decay_age_yr == 3.0e9

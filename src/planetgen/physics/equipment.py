@@ -94,10 +94,8 @@ class Item(_Item):
 
 def _item(slot, name, severity, *domains):
     return Item(slot, name, severity, tuple(domains))
-"""An item of the equipment line: its `slot` (body, filter, supply, radiation), `name`, `severity` and the PHI-6
-`domain` it comes from."""
 
-R_J_MOL_K = 8.314462618
+R_J_MOL_K = constants.GAS_CONSTANT
 """float: The gas constant, J/(mol K)."""
 
 BEST_MIX_PO2_KPA = 40.0
@@ -110,7 +108,7 @@ assigned protection factor 10), 2 (full face, 50) and 3 (powered, 1,000); past 1
 SHELTER_SEARCH_MAX_G_CM2 = 2000.0
 """float: How deep the shielding needed for a limit is searched, g/cm2."""
 
-HOURS_PER_YEAR = 8766.0
+HOURS_PER_YEAR = constants.HOURS_PER_YEAR
 
 
 def best_mix_density_g_l(pressure_kpa, temperature_c):
@@ -623,12 +621,13 @@ def summary(levels):
     `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside (a year under the dose limit, and a day with what limits it, GEN.768)."""
     if not scored(levels):
         return None
+    required_line, recommended_line = lines(levels)
     return {
         "required": required_names(levels), "recommended": recommended_names(levels), "code": code(levels),
         "items": [{"slot": item.slot, "item": item.name, "severity": item.severity, "domain": item.domain,
                    "domains": list(item.domains)}
                   for item in items(levels)],
-        "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
+        "line": line(levels), "required_line": required_line, "recommended_line": recommended_line,
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
         "outside_hours": levels.get("outside_hours"), "outside_hours_day": levels.get("outside_hours_day"),
         "outside_hours_limit": levels.get("outside_hours_limit"), "regions": regional_temperature.summary(levels),

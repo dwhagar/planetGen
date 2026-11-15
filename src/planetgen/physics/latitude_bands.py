@@ -34,8 +34,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
-from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening, sky_suns, surface_cycle
-from planetgen.physics import unit_registry as units
+from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening, sky_suns, surface_cycle, unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
 
@@ -165,7 +164,6 @@ def _runs(flags):
     index = np.arange(size)
     last_false = np.maximum.accumulate(np.where(flags, -1, index), axis=-1)
     longest = np.where(flags, index - last_false, 0).max(axis=-1)
-    full = flags.all(axis=-1)
     lead = np.where(flags[..., 0], np.argmax(~flags, axis=-1), 0)
     trail = np.where(flags[..., -1], np.argmax(~flags[..., ::-1], axis=-1), 0)
     runs = flags[..., 0].astype(int) + (flags[..., 1:] & ~flags[..., :-1]).sum(axis=-1)

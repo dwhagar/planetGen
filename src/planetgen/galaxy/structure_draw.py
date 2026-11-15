@@ -195,8 +195,12 @@ def draw_nuclear_disk_mass_solar(galaxy_seed, stellar_mass_solar):
     """A nuclear stellar disk's mass, solar masses, in a galaxy of `stellar_mass_solar`: the center log-uniform between the
     two fits (`NUCLEAR_DISK_MASS_AT_1E9`), scattered by `NUCLEAR_DISK_SCATTER_DEX`."""
     low, high = sorted(nuclear_disk_mass_bounds_solar(stellar_mass_solar))
-    center = _stream(galaxy_seed, "nuclear-disk-center").uniform(math.log10(low), math.log10(high))
-    return 10.0 ** (center + _scatter(_stream(galaxy_seed, "nuclear-disk"), NUCLEAR_DISK_SCATTER_DEX))
+    return _log_uniform_scattered(galaxy_seed, "nuclear-disk-center", low, high, "nuclear-disk", NUCLEAR_DISK_SCATTER_DEX)
+def _log_uniform_scattered(galaxy_seed, center_link, low, high, scatter_link, sigma_dex):
+    """A value whose log10 is drawn uniformly between those of `low` and `high` (the stream of `center_link`) and then
+    scattered by `sigma_dex` (the stream of `scatter_link`, `_scatter`): the "widen and keep both" draw between two fits."""
+    center = _stream(galaxy_seed, center_link).uniform(math.log10(low), math.log10(high))
+    return 10.0 ** (center + _scatter(_stream(galaxy_seed, scatter_link), sigma_dex))
 
 
 def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
@@ -217,13 +221,12 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
     vc = draw_circular_speed_kms(galaxy_seed, mass)
 
     low, high = thick_mass_ratio_bounds(vc)
-    center = _stream(galaxy_seed, "thick-mass-center").uniform(math.log10(min(low, high)), math.log10(max(low, high)))
-    mass_ratio = 10.0 ** (center + _scatter(_stream(galaxy_seed, "thick-mass"), COMERON_MASS_RATIO_SCATTER_DEX))
+    mass_ratio = _log_uniform_scattered(galaxy_seed, "thick-mass-center", min(low, high), max(low, high), "thick-mass",
+                                        COMERON_MASS_RATIO_SCATTER_DEX)
     length_ratio = thick_length_ratio_median(vc) * 10.0 ** _scatter(
         _stream(galaxy_seed, "thick-length"), COMERON_LENGTH_RATIO_SCATTER_DEX)
-    height_center = _stream(galaxy_seed, "thick-height-center").uniform(
-        math.log10(THICK_HEIGHT_RATIO_RANGE[0]), math.log10(THICK_HEIGHT_RATIO_RANGE[1]))
-    height_ratio = 10.0 ** (height_center + _scatter(_stream(galaxy_seed, "thick-height"), THICK_HEIGHT_RATIO_SCATTER_DEX))
+    height_ratio = _log_uniform_scattered(galaxy_seed, "thick-height-center", *THICK_HEIGHT_RATIO_RANGE, "thick-height",
+                                          THICK_HEIGHT_RATIO_SCATTER_DEX)
 
     full = mass_chain.has_full_structure(mass)
     if not full:      # Boss, 7:58 PM EDT 10-21: one disk plus a bulge under the mass the thick disk and halo laws were fitted to

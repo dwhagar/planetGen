@@ -44,6 +44,7 @@ import dataclasses
 from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_escape, mixture_evolved, mixture_giant, mixture_lava, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, MixtureError, NotApplicable  # noqa: F401  (the public names of the result)
+from planetgen.util import draw
 
 
 CATEGORIES = "".join(letter for letter in atmosphere_recipes.DRAW_ORDER if letter <= "l")
@@ -157,14 +158,14 @@ def draw_mixture(subject, recipe_subject=None, supply=None, escape=True, escape_
         MixtureError: A quantity a row reads is missing (named), a family has no chemistry yet, or the gas holds more than
             `mixture_base.UNLISTED_LIMIT` of species the gas table lacks.
     """
-    recipe = draw_recipe(subject if recipe_subject is None else recipe_subject)
+    with draw.bound(draw.Stream(draw.getrandbits(64))):     # GEN.1646: the recipe's rows draw a different number of values from branch to branch; a stream of their own keeps the design constants after them the same draws
+        recipe = draw_recipe(subject if recipe_subject is None else recipe_subject)
     family = family_of(recipe, subject)
     drawn = {group: row.name for group, row in recipe.groups.items()}
     try:
-        result = _draw_family(subject, recipe, family, supply)
+        result = _draw_family(subject, recipe, family, supply, drawn)
     except NotApplicable:
-        result = MixtureDraw(mole_fractions={}, family="airless", drawn=drawn, redox_diw=None,
-                             temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
+        result = _airless(subject, drawn)
     if escape:
         result = mixture_escape.apply(subject, result, escape_column_bar)
     return dataclasses.replace(result, recipe=recipe)
@@ -178,16 +179,21 @@ def draw_recipe(subject):
         raise MixtureError(str(error)) from error
 
 
-def _draw_family(subject, recipe, family, supply):
+def _airless(subject, drawn):
+    """The empty mixture of a body with no gas (the `airless` family), at the subject's surface temperature."""
+    return MixtureDraw(mole_fractions={}, family="airless", drawn=drawn, redox_diw=None,
+                       temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
+
+
+def _draw_family(subject, recipe, family, supply, drawn):
     """The family's mixture; `NotApplicable` for a regime the body's temperature or supply does not allow, with the evolved families
-    falling back to the rocky outgassing."""
+    falling back to the rocky outgassing. `drawn` is `recipe`'s rows by group, for the airless result."""
     if family == "rocky":
         result = mixture_rocky.outgassed_mixture(subject, recipe, supply)
     elif family == "coma":
         result = mixture_coma.coma_mixture(subject, recipe)
     elif family == "airless":
-        result = MixtureDraw(mole_fractions={}, family="airless", drawn={g: d.name for g, d in recipe.groups.items()}, redox_diw=None,
-                             temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
+        result = _airless(subject, drawn)
     elif family == "lava":
         result = mixture_lava.vapor_mixture(subject, recipe, temperature_name="ts_k" if "l" in recipe.groups else "tp_k")
     elif family in mixture_evolved.FAMILIES:

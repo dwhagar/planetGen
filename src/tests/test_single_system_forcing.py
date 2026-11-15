@@ -37,7 +37,7 @@ def test_a_system_with_no_room_for_a_forced_option_warns_and_keeps_the_last_try(
     assert len(built) == tuning.SINGLE_SYSTEM_GENERATION_ATTEMPTS
     assert out.exists()
     captured = capsys.readouterr()
-    assert "WARNING:" in captured.out + captured.err
+    assert "warning:" in captured.out + captured.err
     assert "the last one is kept without it" in captured.out + captured.err
 
 

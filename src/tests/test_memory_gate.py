@@ -298,7 +298,7 @@ def test_a_unit_killed_again_stops_the_run_naming_the_unit_and_what_it_claimed(r
     assert runrecord._s(running.hget(runrecord.run_key("r1"), "state")) == "failed"
     error = runrecord._s(running.hget(runrecord.run_key("r1"), "error"))
     assert error.startswith("unit 101 of stage Scatter the massive stars was killed: its worker process 4242 ended with")
-    assert "it claimed 2,100 MB on the memory gate and the most seen was 2,600 MB" in error
+    assert "it claimed 2.1 GB on the memory gate and the most seen was 2.6 GB" in error
 
 
 def test_a_kill_that_is_not_sigkill_is_not_retried(running):

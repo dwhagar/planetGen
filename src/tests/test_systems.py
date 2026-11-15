@@ -9,7 +9,7 @@ its default (None), plus dedicated tests for AGE and BINARY_SYSTEM. Every
 generated system is checked against invariants systemData.py itself claims
 to guarantee (no orbital overlap, requested features actually present,
 counts matching reality, star age never exceeding lifespan even after
-adjust_age_for_planets runs against the system's actual planets).
+the system is generated).
 
 Run with: pytest tests/test_systems.py
 """
@@ -97,11 +97,12 @@ def assert_ages_never_exceed_lifespan(system):
             continue
         assert star.age <= star.lifespan * 1.001, (
             f"{star.name} ({star.type}): age {star.age} Gy exceeds lifespan {star.lifespan} Gy "
-            f"after adjust_age_for_planets"
+            f"at generation"
         )
 
 
 def _assert_no_overlap_within(objects):
+    objects = [obj for obj in objects if getattr(obj, "belt_rank", None) is None]       # GEN.1510: a body promoted from a belt orbits in it, not in a slot
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
         gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
@@ -202,7 +203,7 @@ def assert_no_belt_overlap_all_pairs(system):
                     f"and [{other.lower_limit}, {other.upper_limit}]"
                 )
             for planet in planet_list:
-                if planet.body_type == 'a':
+                if planet.body_type == 'a' or getattr(planet, "belt_rank", None) is not None:   # GEN.1510: a body promoted from the belt orbits in it
                     continue
                 inside = belt.lower_limit < planet.distance < belt.upper_limit
                 assert not inside, (

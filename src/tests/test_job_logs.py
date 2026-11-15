@@ -43,25 +43,28 @@ def test_a_run_is_bracketed_by_what_started_it_and_how_it_ended(folder):
     assert len(lines) == 3 and all(LINE.match(line) for line in lines)
     assert lines[0].endswith("tiles: Whole-map build started (systemd timer)")
     assert lines[1].endswith("tiles: level 3: 120 nodes")
-    assert re.search(r"tiles: Whole-map build finished after \d+:\d\d$", lines[2])
+    assert re.search(r"tiles: Whole-map build finished after \d+ ms$", lines[2])       # the one duration form (OPS.173)
 
 
 @pytest.mark.parametrize("raises, ending", [
     (SystemExit(3), "ended with exit status 3 after"),
     (KeyboardInterrupt(), "ended by Ctrl+C after"),
-    (RuntimeError("boom"), "failed after 0:00: boom"),
+    (RuntimeError("boom"), "failed after"),
 ])
 def test_a_run_that_does_not_finish_says_how_it_ended(folder, raises, ending):
     with pytest.raises(type(raises)):
         with joblog.JobLog("orbits.log", "orbits", "Orbital update"):
             raise raises
-    assert ending in _lines(folder / "orbits.log")[-1]
+    last = _lines(folder / "orbits.log")[-1]
+    assert ending in last
+    if isinstance(raises, RuntimeError):
+        assert re.search(r"failed after \d+ ms: boom", last)
 
 
 def test_a_returned_exit_status_is_said_in_the_closing_line(folder):
     with joblog.JobLog("tiles.log", "tiles", "Whole-map build") as record:
         record.status = 75
-    assert _lines(folder / "tiles.log")[-1].endswith("ended with exit status 75 after 0:00")
+    assert _lines(folder / "tiles.log")[-1].endswith(" ms") and "ended with exit status 75 after" in _lines(folder / "tiles.log")[-1]
 
 
 def test_the_tiles_command_leaves_its_run_in_tiles_log(folder, monkeypatch):

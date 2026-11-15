@@ -36,10 +36,10 @@ STORED = ((Star, "stars", store.STAR_FIELDS, 25), (NeutronStar, "neutron_stars",
 
 
 class _Row(dict):
-    """A stored row that answers 1.0 for any column, to learn which keys a `Field` loads."""
+    """A stored row that answers 1.0 for any column, to learn which keys a `Field` loads (the makeup column is JSON text, DB.124)."""
 
     def __missing__(self, key):
-        return 1.0
+        return "{}" if key == "makeup" else 1.0
 
 
 @pytest.mark.parametrize("cls", DECLARED)

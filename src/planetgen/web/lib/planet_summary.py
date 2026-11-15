@@ -13,8 +13,9 @@ system); everything else is written here from the row of the system detail. Impo
 from html import escape
 
 from planetgen.describe import sheet as sheet_registry
-from planetgen.physics import class_code, habitability, planet_type
+from planetgen.physics import class_code, habitability, planet_type, roundness
 from planetgen.physics.habitability_world import TIER_NAMES
+from planetgen.util.wordlist import join_words
 
 def _class_sentence(name, row, values):
     code = values.get("planet_class") or escape(str(row.get("planet_class") or ""))
@@ -22,7 +23,7 @@ def _class_sentence(name, row, values):
         code = escape(class_code.format_code(row["planet_class"], row["class_variant"]))     # GEN.1220: the digit, when it is not 0
     giant = row.get("body_type") == "g"
     ratio = row.get("roundness_ratio")
-    asteroid = not code and not giant and ratio is not None and ratio < 1.0          # GEN.1160: under a roundness ratio of 1 a body has no class, it is an Asteroid
+    asteroid = not code and not giant and ratio is not None and not roundness.is_round(ratio)          # GEN.1160: under a roundness ratio of 1 a body has no class, it is an Asteroid
     kind = "asteroid" if asteroid else ("Class " + code + " " if code else "") + ("gas giant" if giant else "world")
     zone = sheet_registry.ZONE_NAMES.get(str(row.get("zone") or "").lower())
     where = f" in the {zone}" if zone else ""
@@ -61,7 +62,7 @@ def _surface_sentence(row, values):
         parts.append(f"gravity is {values['gravity_g']}")
     if not parts:
         return None
-    sentence = ", ".join(parts[:-1]) + (", and " if len(parts) > 2 else " and ") + parts[-1] if len(parts) > 1 else parts[0]
+    sentence = join_words(parts)
     return sentence[0].upper() + sentence[1:] + "."
 
 
@@ -110,8 +111,7 @@ def _equipment_sentence(row):
         return None
     names = [escape(str(name)) for name in gear.get("required") or ()]
     if names:
-        listed = ", ".join(names[:-1]) + (", and " if len(names) > 2 else " and ") + names[-1] if len(names) > 1 else names[0]
-        return f"A person on the surface needs {listed}."
+        return f"A person on the surface needs {join_words(names)}."
     return "A person on the surface needs no safety equipment."
 
 

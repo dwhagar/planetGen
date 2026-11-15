@@ -6,6 +6,8 @@
 {% from "partials/ui_fields.html" import ui_checkbox with context %}
 {% block generate_head %}
 <script type="module" src="{{ static_url('generatelevers.js') }}"></script>
+<script type="module" src="{{ static_url('leversliders.js') }}"></script>
+<script type="module" src="{{ static_url('fielddefaults.js') }}"></script>
 <script type="module" src="{{ static_url('limitsliders.js') }}"></script>
 <script type="module" src="{{ static_url('generatestarmix.js') }}"></script>
 <script type="module" src="{{ static_url('generatefinder.js') }}"></script>
@@ -130,19 +132,20 @@
     {%- elif task.key == "new-galaxy" %}
     <p>Deletes every sector, system, and phenomenon in <code>{{ database }}</code>, plans a new galaxy,
     then generates a first neighborhood around a random populated spot. Admin logins and API keys are kept.</p>
-    <fieldset class="generate-mode">
-      <legend>Galaxy shape</legend>
-      <p class="hint">Blank boxes are drawn from the galaxy seed.</p>
+    <div data-default-toggles>
+    <details class="generate-advanced generate-section" open>
+      <summary>Galaxy shape</summary>
+      <p class="hint">Every property starts on Default, which the galaxy seed draws. Untick one to set it yourself.</p>
       {{ plan_inputs() }}
-    </fieldset>
-    <fieldset class="generate-mode">
-      <legend>First neighborhood</legend>
+    </details>
+    <details class="generate-advanced generate-section" open>
+      <summary>First neighborhood</summary>
       <div class="search-fields">
-        {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
+        {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc, hint="Blank (Default) is 12 pc, about 39 light-years.") }}
         {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
-                 hint="1.0 is as dense as the Sun's neighborhood.") }}
+                 hint="1.0 is as dense as the Sun's neighborhood. Blank (Default) takes any density.") }}
       </div>
-    </fieldset>
+    </details>
     <details class="generate-advanced"{% if advanced_open %} open{% endif %}>
       <summary>Advanced: bright stars, prevalence, and star mix</summary>
       <fieldset class="generate-mode">
@@ -151,6 +154,7 @@
       </fieldset>
       {{ prevalence_inputs() }}
     </details>
+    </div>
     <div class="search-fields">
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
@@ -158,11 +162,13 @@
     <p>Deletes every sector, system, and phenomenon in <code>{{ database }}</code> and plans a new galaxy, then stops: no
     sectors are generated and nothing is scattered. The Galaxy Map shows the sector layout, and the "Add sectors" task
     fills it in later. Admin logins and API keys are kept.</p>
-    <fieldset class="generate-mode">
-      <legend>Galaxy shape</legend>
-      <p class="hint">Blank boxes are drawn from the galaxy seed.</p>
+    <div data-default-toggles>
+    <details class="generate-advanced generate-section" open>
+      <summary>Galaxy shape</summary>
+      <p class="hint">Every property starts on Default, which the galaxy seed draws. Untick one to set it yourself.</p>
       {{ plan_inputs() }}
-    </fieldset>
+    </details>
+    </div>
     <div class="search-fields">
       {{ confirm_field("plan-only-confirm") }}
     </div>

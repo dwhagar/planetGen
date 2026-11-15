@@ -476,6 +476,27 @@ def test_phenomenon_page_lists_every_stored_property(client, fake):
     assert '<th scope="row">Mass</th>' not in html and "sheet-missing" not in html
 
 
+def test_a_remnant_page_sets_the_ejecta_beside_the_swept_gas(client, fake, monkeypatch):
+    """GEN.1272: a remnant's page holds a two-column table of the ejecta and the swept-up gas, and the At a glance panel lists the composition; a page whose sheet stores no ejecta has no such table."""
+    def sheet(db, ref):
+        rows = [("ejecta_mass_sol", "Mass thrown out by the explosion", 3.1, "sol"), ("swept_mass_sol", "Interstellar mass inside the blast wave", 40.0, "sol"),
+                ("ejecta_mass_fraction_h", "Hydrogen share of the ejecta", 0.4, "frac"), ("swept_mass_fraction_h", "Hydrogen share of the swept-up gas", 0.7, "frac"),
+                ("ejecta_mass_fraction_he", "Helium share of the ejecta", 0.3, "frac"), ("swept_mass_fraction_he", "Helium share of the swept-up gas", 0.28, "frac"),
+                ("ejecta_mass_fraction_z", "Heavy-element share of the ejecta", 0.3, "frac"), ("swept_mass_fraction_z", "Heavy-element share of the swept-up gas", 0.02, "frac"),
+                ("mass_fraction_h", "Hydrogen share of its mass (gas and dust)", 0.68, "frac")]
+        return {"kind": "supernova_remnant", "groups": [{"key": "dust", "label": "Dust", "rows": [
+            {"key": key, "label": label, "value": [f"{value} {unit}"], "text": f"{value} {unit}", "stored": True} for key, label, value, unit in rows]}]}
+
+    monkeypatch.setattr(apiclient, "get_object_sheet", sheet)
+    html = client.get("/phenomenon/supernova_remnant/4").get_data(as_text=True)
+    assert 'id="remnant-ejecta"' in html
+    table = html.split('id="remnant-ejecta"')[1].split("</section>")[0]
+    assert "<th scope=\"col\">Ejecta</th>" in table and "<th scope=\"col\">Swept-up gas</th>" in table
+    assert all(f'<th scope="row">{label}</th>' in table for label in ("Mass", "Hydrogen share", "Helium share", "Heavy-element share"))
+    glance = html.split('id="item-glance"')[1].split("</section>")[0]
+    assert "Hydrogen share of its mass (gas and dust)" in glance
+
+
 def test_phenomenon_page_has_its_paragraph_and_the_links_to_its_neighbours(client, fake):
     """UX.185: a stored nebula's page says what the generator's description says, and links to the nebula before and after."""
     fake.phenomenon = {"id": "FE81000A2B-0000004", "name": "Orion", "nebula_class": "D", "nebula_type": "emission",

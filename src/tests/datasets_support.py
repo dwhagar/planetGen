@@ -17,7 +17,7 @@ import numpy as np
 
 from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hhe_eos, hitran_cia, ir_ktables, isochrones, mamajek_sequence,
                                 neutron_star_matter,
-                                noaa_proton_events, ozone_uv, white_dwarf_models)
+                                methane_visible, noaa_proton_events, ozone_uv, white_dwarf_models)
 from tests import ir_datasets_support
 
 
@@ -40,7 +40,7 @@ def reset_caches(cache_folder, monkeypatch):
     isochrones.forget()
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
                    neutron_star_matter._load_eos, ozone_uv._load, ir_ktables.load, hitran_cia.load, harris_clusters._load,
-                   noaa_proton_events._load, baraffe_isochrones._load, mamajek_sequence._load, mamajek_sequence._edges,
+                   noaa_proton_events._load, methane_visible._load, baraffe_isochrones._load, mamajek_sequence._load, mamajek_sequence._edges,
                    mamajek_sequence._luminosity_curve, hhe_eos._load):
         loader.cache_clear()
 
@@ -254,6 +254,29 @@ def install_ozone(monkeypatch):
     return install(monkeypatch, ozone_uv, ozone_uv.DATASET, {ozone_uv.ARCHIVE: _ozone_archive()})
 
 
+# ---- Methane (GEN.949) ----
+
+def methane_fixture_coefficient(nm):
+    """The fixture's methane coefficient, 1/(km-amagat): a 40 per km-amagat band 719 to 735 nm, a weak 0.02 shoulder, 0 under 450 nm."""
+    if nm < 450.0:
+        return 0.0
+    return 40.0 if 719.0 <= nm <= 735.0 else 0.02
+
+
+def _methane_table():
+    """The fixture of `1995low.tab`: 8 columns, air wavelength in the second, 0.4 nm sampling from 300.4 to 1049.6 nm."""
+    lines = []
+    for index in range(1875):
+        vacuum = 300.4 + 0.4 * index
+        air = vacuum - 0.09
+        lines.append(f"{vacuum:6.1f} {air:7.2f} {methane_fixture_coefficient(air):7.4f} .2128 .2532 .5306 .6933 .0431")
+    return ("\n".join(lines) + "\n").encode()
+
+
+def install_methane(monkeypatch):
+    return install(monkeypatch, methane_visible, methane_visible.DATASET, {methane_visible.TABLE: _methane_table()})
+
+
 def install_isochrones(monkeypatch):
     return install(monkeypatch, isochrones, isochrones.DATASET, {isochrones.ARCHIVE: _iso_archive()})
 
@@ -386,6 +409,7 @@ def install_all(monkeypatch):
     """All the datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
     installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch),
                  install_ozone(monkeypatch), *ir_datasets_support.install(monkeypatch, os.environ[fetch.CACHE_DIR_ENV]),
-                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch), install_mamajek(monkeypatch), install_hhe_eos(monkeypatch)]
+                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch), install_mamajek(monkeypatch), install_hhe_eos(monkeypatch),
+                 install_methane(monkeypatch)]
     monkeypatch.setattr(catalogue, "ALL", tuple(installed))
     return installed

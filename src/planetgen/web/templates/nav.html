@@ -275,7 +275,7 @@
       <button type="submit" class="btn btn-small">Recalculate</button>
     </form>
     {%- if stay_error %}<p class="hint" role="alert">{{ stay_error }}</p>{% endif %}
-    <p class="hint">Each hop is timed from rest to rest at the factor's speed{% if route.stops %}, with {{ num(stay_minutes, ",.4g") }} minute{{ "" if stay_minutes == 1 else "s" }} at each of the {{ route.stops }} stop{{ "" if route.stops == 1 else "s" }} between the ends{% endif %}.</p>
+    <p class="hint">Each hop is timed from rest to rest at the factor's speed{% if route.stops %}, with {{ duration_text(stay_minutes * 60) }} at each of the {{ route.stops }} stop{{ "" if route.stops == 1 else "s" }} between the ends{% endif %}.</p>
     <div class="table-scroll"><table>
       <caption>Warp travel time by the route</caption>
       <thead><tr><th scope="col">Warp Factor</th><th scope="col">Speed</th><th scope="col">Total Time</th></tr></thead>

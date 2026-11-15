@@ -22,8 +22,11 @@ function update(mass) {
   const switches = { halo_ratio: noDarkHalo, stellar_halo_share: simple };
   for (const [name, off] of Object.entries(switches)) {
     for (const input of form.querySelectorAll(`[data-lever="${name}"]`)) {
+      input.dataset.locked = off ? "1" : "";
       input.disabled = off;
       if (off) input.value = "";
+      // The measure's slider (leversliders.js) unticks and greys with its box.
+      input.dispatchEvent(new CustomEvent("lever-lock", { bubbles: true, detail: { off } }));
     }
   }
   for (const note of form.querySelectorAll("[data-halo-reason]")) {

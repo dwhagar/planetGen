@@ -166,4 +166,4 @@ def test_a_failed_warm_up_after_a_change_exits_non_zero(database, monkeypatch, c
     with pytest.raises(SystemExit) as exit_info:
         warm_cli.run_warm(_on_change_args(database.name, database.name))
     assert exit_info.value.code == 1
-    assert "the cache warm-up after a change stopped: systems did not answer" in caplog.text
+    assert "The cache warm-up after a change stopped: systems did not answer" in caplog.text

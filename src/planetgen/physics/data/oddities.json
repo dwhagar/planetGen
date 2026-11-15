@@ -10,12 +10,14 @@
     "L4": {"label": "interior heat and structure", "inputs": ["internal_heat_flux", "tidal_power", "dynamo", "lid_regime"]},
     "L5": {"label": "history", "inputs": ["collision_count", "migration", "mass_loss", "event_age_gyr"]},
     "L6": {"label": "moon and ring set", "inputs": ["moon_origin", "moon_retrograde", "ring_mass"]},
-    "L7": {"label": "air state (bistable only)", "inputs": ["air_branch"]}
+    "L7": {"label": "air state (bistable only)", "inputs": ["air_branch"]},
+    "L8": {"label": "a name on the finished body (no input moves)", "inputs": ["hycean_box", "helium_envelope"]}
   },
   "quantities": {
     "body_type": {"label": "kind of body", "note": "'t' for a terrestrial body, 'g' for a giant"},
     "mass_earth": {"label": "mass", "unit": "Earth masses", "note": "the body's mass"},
     "radius_earth": {"label": "radius", "unit": "Earth radii", "note": "the body's radius"},
+    "envelope_helium_y": {"label": "helium share of the envelope gas", "unit": "mass fraction of the hydrogen and helium", "note": "set only when the loss left the envelope richer in helium than the star's gas (helium_fractionation)"},
     "density_g_cm3": {"label": "bulk density", "unit": "g/cm3", "note": "mass over volume"},
     "semi_major_axis_au": {"label": "distance from its star", "unit": "AU", "note": "semi-major axis of the orbit"},
     "eccentricity": {"label": "orbital eccentricity", "note": "of the orbit about its star (a moon's: about its planet)"},
@@ -38,6 +40,7 @@
     "forced_eccentricity": {"label": "eccentricity forced by resonant neighbours", "note": "from the planet's place in a resonant chain; left out for a planet in none"},
     "dayside_temperature_k": {"label": "dayside rock temperature", "unit": "K", "note": "the star's temperature times the square root of its radius over the orbit (no optical depth)"},
     "ring_from_fallen_moon": {"label": "ring from a fallen moon", "note": "1 when the planet's ring came from a moon the tide pulled inside the Roche limit, else 0"},
+    "tilt_chaotic": {"label": "tilt wanders chaotically", "note": "1 when the spin-orbit resonances of the planet's star's other bodies overlap across its tilt (obliquity_variation), else 0"},
     "distance_over_host_radius": {"label": "orbit in stellar radii", "note": "semi-major axis over the radius of the star the body goes round"}
   },
   "rows": [
@@ -129,6 +132,62 @@
       ],
       "source": "[R2571] (Mars's chaotic tilt); [R2710] (Earth without the Moon); Uranus at 98 degrees; the module is physics/seasonal_swing.py",
       "text": "Its axis lies far over, with no large moon to steady it, so the seasons are its main weather: each pole spends a season in daylight as bright as the equator's noon and a season in the dark."
+    },
+    {
+      "id": "W6",
+      "name": "Wandering tilt",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "tilt_chaotic", "equals": 1}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row OB7: the chaotic zone is the planet's own, found from the modes of its star's other planets and companions (obliquity_variation), and its tilt is already drawn from the zone (planets.settle_obliquity); the row names the planets the module put in a zone, so there is no extra draw",
+        "label": "RECALLED",
+        "tier": "T6",
+        "tweak": "L0",
+        "registry": "OB7"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "obliquity_deg",
+        "effect": "chaotic_tilt",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "obliquity_deg", "min": 0.0}
+      ],
+      "source": "[R2571, R5227] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
+      "text": "Its tilt is not steady: the pull of its neighbours on its orbit sets the spin axis wandering over tens of degrees, so its seasons change over the ages."
+    },
+    {
+      "id": "W61",
+      "name": "Wandering tilt",
+      "kind": "giant",
+      "requires": [
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "tilt_chaotic", "equals": 1}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row OB7: the chaotic zone is the planet's own, found from the modes of its star's other planets and companions (obliquity_variation), and its tilt is already drawn from the zone (planets.settle_obliquity); the row names the planets the module put in a zone, so there is no extra draw",
+        "label": "RECALLED",
+        "tier": "T6",
+        "tweak": "L0",
+        "registry": "OB7"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "obliquity_deg",
+        "effect": "chaotic_tilt",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "obliquity_deg", "min": 0.0}
+      ],
+      "source": "[R2571, R5227] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
+      "text": "Its tilt is not steady: the pull of its neighbours on its orbit sets the spin axis wandering over tens of degrees, so its seasons change over the ages."
     },
     {
       "id": "W5",
@@ -471,6 +530,69 @@
       ],
       "source": "[R2300, R3149] (Uranus at 98 degrees by a giant impact); the module is physics/giant_tilt.py",
       "text": "A giant impact knocked it over, and it turns on its side, its poles taking turns facing the star; its rings lie in the same tipped plane."
+    },
+    {
+      "id": "W26",
+      "name": "Hycean candidate",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "mass_earth", "min": 1.0},
+        {"quantity": "mass_earth", "lt": 10.0000001},
+        {"quantity": "radius_earth", "min": 1.4},
+        {"quantity": "radius_earth", "lt": 2.6000001},
+        {"quantity": "equilibrium_temperature_k", "min": 150.0},
+        {"quantity": "equilibrium_temperature_k", "lt": 500.0000001},
+        {"quantity": "density_g_cm3", "min": 1.5},
+        {"quantity": "density_g_cm3", "lt": 3.0000001}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row HC1: the Hycean box is a flag on the finished body's mass, radius, equilibrium temperature and density, so the row names the planets the box selects and there is no extra draw",
+        "label": "READ",
+        "tier": "T4",
+        "tweak": "L0",
+        "registry": "HC1"
+      },
+      "apply": {
+        "lever": "L8",
+        "input": "hycean_box",
+        "effect": "hycean_box",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "radius_earth", "min": 1.4}
+      ],
+      "source": "[R2804] (Madhusudhan and others, Hycean worlds); the module is physics/hycean_candidate.py",
+      "text": "Its size, mass, density and temperature put it in the Hycean box: a rocky core under a deep water layer that can be liquid at the top, held down by a hydrogen envelope."
+    },
+    {
+      "id": "W16",
+      "name": "Helium-rich envelope",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "envelope_helium_y", "min": 0.4}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row HF3: the helium share is worked out from the loss of the envelope (helium_fractionation, Hu and others 2015) for every planet that lost half of it or more, so the row names the planets that ended at 0.4 or over and there is no extra draw",
+        "label": "2ND-HAND",
+        "tier": "T4",
+        "tweak": "L0",
+        "registry": "HF3"
+      },
+      "apply": {
+        "lever": "L8",
+        "input": "helium_envelope",
+        "effect": "helium_enriched",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "envelope_helium_y", "min": 0.4}
+      ],
+      "source": "[R2839, R2840] (Hu and others 2015, hydrogen escapes first from a small envelope); the line of 0.4 and the radius window are registry row WR13; the module is physics/helium_fractionation.py",
+      "text": "Hydrogen left its envelope first, and the helium stayed: what is left of the gas is helium-rich, and no longer the star's mix."
     }
   ]
 }

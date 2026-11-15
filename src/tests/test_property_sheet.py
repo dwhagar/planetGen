@@ -250,7 +250,7 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and not sheet.clock_rows.is_derived_key(key) and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and not sheet.clock_rows.is_derived_key(key) and not sheet.sky_size_rows.is_derived_key(key) and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
@@ -356,7 +356,7 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         body = response.get_json()
         assert body["kind"] == kind
         rows = _rows(body)
-        assert list(rows) == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
+        assert [key for key in rows if not sheet.clock_rows.is_derived_key(key)] == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]    # GEN.1153: a brown dwarf's day and night state is derived
         assert all(row["text"] for row in rows.values()), kind
         assert any(row["stored"] for row in rows.values()), kind
 
@@ -492,6 +492,72 @@ def test_a_star_shows_its_chemistry_from_the_stored_values_with_units_and_source
     assert rows["chemistry_dredge_up_helium"]["source"]
 
 
+def _give_belt_members(mysql_config, system_id, taxa):
+    """A belt in `system_id` that stores one member of each taxon in `taxa` (heaviest first), for the sheet to read the polluting body from."""
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density, composition_summary) "
+                     "VALUES (?, 99, 4.0e8, 3.0e8, 5.0e8, 'typical', 'test belt')", (system_id,))
+        belt_id = conn.execute("SELECT MAX(id) AS id FROM asteroid_belts WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+        for rank, taxon in enumerate(taxa, start=1):
+            conn.execute("INSERT INTO belt_members (belt_id, member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, "
+                         "arg_periapsis_deg, mean_anomaly_deg, taxon, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status) "
+                         "VALUES (?, ?, ?, 100.0, 4.0e8, 0.1, 5.0, 0.0, 0.0, 0.0, ?, 2.5, 0.8, 0.2, 0.0, 0.0, 'minor body')",
+                         (belt_id, rank, 1.0e20 / rank, taxon))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_a_white_dwarf_shows_its_core_and_a_polluted_one_the_body_it_accreted(client, mysql_config):
+    """GEN.1370: a carbon-oxygen white dwarf shows the central oxygen, carbon and neon-22 of `star_makeup`; a polluted one in a system with stored belt
+    members shows the class and element ratios of the member its own draw picks (in proportion to mass), a star that is not polluted shows none."""
+    from planetgen.physics import constants, stellar_composition, white_dwarf_core
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id, star_system_id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+        distance_ly = sheet._star_distance_ly(conn, star["star_system_id"])
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    polluted = unpolluted = None
+    for hundredths in range(55, 90):
+        mass_sol = hundredths / 100.0
+        mass_kg = mass_sol * constants.SOLAR_MASS_TO_KG
+        key = stellar_composition.abundance_key(mass=mass_kg, distance_ly=distance_ly)
+        if stellar_composition.white_dwarf_polluted(9000.0, stellar_composition.key_draws(key).u_pollution):
+            polluted = polluted or (mass_sol, mass_kg, key)
+        else:
+            unpolluted = unpolluted or (mass_sol, mass_kg, key)
+    assert polluted and unpolluted
+    _give_belt_members(mysql_config, star["star_system_id"], ["M", "S"])
+    for mass_sol, mass_kg, key in (unpolluted, polluted):
+        _set_star(mysql_config, star["id"], state="white-dwarf", yerkes_class="VII", mass_kg=mass_kg, metallicity_fe_h=-0.2, age_gy=8.0, temperature_k=9000.0)
+        rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+        makeup = stellar_composition.star_makeup(stellar_composition.WHITE_DWARF, -0.2, 8.0, mass_sol, key, teff_k=9000.0)
+        core = makeup.detail["core_fractions"]
+        assert rows["chemistry_core_oxygen"]["raw"] == pytest.approx(core.oxygen) and rows["chemistry_core_carbon"]["raw"] == pytest.approx(core.carbon)
+        assert rows["chemistry_core_neon22"]["raw"] == pytest.approx(core.neon22) and rows["chemistry_core_oxygen"]["value"][0]["qty"]["unit"] == "frac"
+        assert all(rows[name]["source"] for name in ("chemistry_core_oxygen", "chemistry_core_carbon", "chemistry_core_neon22"))
+        if makeup.detail["polluted"]:
+            conn = store.get_connection(mysql_config)
+            try:
+                stored = [(found["mass_kg"], found["taxon"]) for found in conn.execute(
+                    "SELECT m.mass_kg, m.taxon FROM belt_members m JOIN asteroid_belts b ON b.id = m.belt_id WHERE b.star_system_id = ? ORDER BY b.id, m.member_rank",
+                    (star["star_system_id"],)).fetchall()]
+            finally:
+                conn.close()
+            assert len(stored) >= 2    # the two this test stored, and any the saved system has of its own
+            taxon = white_dwarf_core.accreted_taxon(stored, makeup.draws.u_pollutant)
+            found = white_dwarf_core.pollutant_of_taxon(taxon)
+            assert rows["chemistry_pollutant_class"]["text"] == sheet._POLLUTANT_WORDS[found.kind]
+            assert rows["chemistry_pollutant_class"]["source"] and rows["chemistry_pollutant_ratios"]["source"]
+            assert ("Fe/Mg" in rows["chemistry_pollutant_ratios"]["text"]) == ("Fe" in found.ratios_to_mg and "Mg" in found.ratios_to_mg)
+        else:
+            assert "chemistry_pollutant_class" not in rows and "chemistry_pollutant_ratios" not in rows
+
+
 def test_a_star_lists_the_isotopes_of_its_surface_and_a_red_giant_shows_the_dredged_carbon(client, mysql_config):
     """GEN.1488: the surface isotope lines come from the same makeup as the chemistry rows; a main-sequence star has burned its deuterium, a red giant shows the dredged carbon ratio."""
     from planetgen.physics import constants, isotope_record
@@ -572,6 +638,30 @@ def test_a_star_that_is_not_a_peculiar_dwarf_has_no_peculiar_row(client, mysql_c
     ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, 0.4)
     rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
     assert sheet.PECULIAR_KEY not in rows and sheet.PECULIAR_FIELD_KEY not in rows
+
+
+def test_the_nebula_page_glances_at_the_composition_and_a_remnant_sets_ejecta_beside_swept_gas(client, mysql_config):
+    """GEN.1272: the At a glance panel of a nebula and a remnant lists the hydrogen, helium and heavy-element shares and the dust-to-gas ratio with their units; a remnant's ejecta and swept-up gas sit in two columns."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+    from planetgen.web import item_pages
+
+    config = SystemConfig()
+    for kind, cls, stored_as in (("nebula", Nebula, "nebula"), ("supernova_remnant", SupernovaRemnant, "supernova-remnant")):
+        row_id = store.save_phenomenon(cls(config), config, stored_as, config=mysql_config)
+        body = client.get(f"/api/objects/{kind}:{pid(kind, row_id)}/sheet").get_json()
+        glance = {row["label"]: str(row["html"]) for row in item_pages.glance_view(body)}
+        for key in ("mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"):
+            label = next(row["label"] for group in body["groups"] for row in group["rows"] if row["key"] == key)
+            assert glance.get(label), (kind, key)
+        ejecta = item_pages.ejecta_view(body)
+        if kind == "nebula":
+            assert ejecta is None
+            continue
+        assert ejecta["columns"] == ["Ejecta", "Swept-up gas"]
+        assert [row["label"] for row in ejecta["rows"]] == ["Mass", "Hydrogen share", "Helium share", "Heavy-element share"]
+        assert all(len(row["cells"]) == 2 and all(str(cell) != "&mdash;" for cell in row["cells"]) for row in ejecta["rows"])
 
 
 def test_a_nebula_and_a_remnant_sheet_show_their_composition_and_dust_by_species(client, mysql_config):

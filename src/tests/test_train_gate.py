@@ -3,6 +3,7 @@
 """The merge train's gate script splits a file list by time, resumes from its results file and tells a red the train caused from a known one."""
 
 import importlib.util
+import os
 import pathlib
 
 SCRIPT = pathlib.Path(__file__).resolve().parents[2] / "scripts" / "train_gate.py"
@@ -46,3 +47,54 @@ def test_the_sampling_tests_are_real_files_and_join_when_generation_changes(monk
     assert {f"tests/{name}.py" for name in gate.SAMPLE_TESTS} <= set(gate.gate_files())
     monkeypatch.setattr(gate, "_git", lambda *args: "docs/TODO.md\n")
     assert "tests/test_sheet_fill.py" not in gate.gate_files()
+
+
+def test_lanes_share_the_files_by_claiming_them_and_a_restarted_lane_takes_back_its_own(tmp_path):
+    claims = str(tmp_path / "claims")
+    assert gate.claim(claims, "tests/test_a.py", "lane-05")
+    assert not gate.claim(claims, "tests/test_a.py", "lane-06")
+    assert gate.claim(claims, "tests/test_a.py", "lane-05")
+    assert gate.claim(claims, "tests/test_b.py", "lane-06")
+
+
+def test_the_status_counts_done_failed_running_and_waiting_and_a_dead_lanes_claim_is_released(tmp_path):
+    claims = str(tmp_path / "claims")
+    results = tmp_path / "r.txt"
+    results.write_text("PASS tests/test_a.py 5\nFAIL tests/test_b.py 5 rc=1 x\n")
+    files = ["tests/test_a.py", "tests/test_b.py", "tests/test_c.py", "tests/test_d.py"]
+    gate.claim(claims, "tests/test_c.py", "lane-07")
+    found = gate.status(files, claims, [str(results)])
+    assert found == {"done": ["tests/test_a.py"], "failed": ["tests/test_b.py"], "running": ["tests/test_c.py"], "waiting": ["tests/test_d.py"]}
+    assert gate.release_stale(claims, files, {"tests/test_a.py", "tests/test_b.py"}, 3600) == []
+    old = os.path.getmtime(gate._claim_path(claims, "tests/test_c.py")) - 7200
+    os.utime(gate._claim_path(claims, "tests/test_c.py"), (old, old))
+    assert gate.release_stale(claims, files, {"tests/test_a.py", "tests/test_b.py"}, 3600) == ["tests/test_c.py"]
+    assert gate.status(files, claims, [str(results)])["waiting"] == ["tests/test_c.py", "tests/test_d.py"]
+
+
+def test_two_lanes_running_on_one_claims_folder_run_each_file_once(tmp_path, monkeypatch):
+    ran = []
+
+    class Done:
+        returncode = 0
+
+    monkeypatch.setattr(gate.subprocess, "run", lambda command, **kw: ran.append(command[3]) or Done())
+    monkeypatch.setattr(gate, "DURATIONS", str(tmp_path / "d.json"))
+    files = ["tests/test_a.py", "tests/test_b.py", "tests/test_c.py"]
+    claims = str(tmp_path / "claims")
+    gate.run(files, str(tmp_path / "r1.txt"), claims=claims, owner="one", say=lambda line: None)
+    gate.run(files, str(tmp_path / "r2.txt"), claims=claims, owner="two", say=lambda line: None)
+    assert sorted(ran) == files
+    assert gate.status(files, claims, [str(tmp_path / "r1.txt"), str(tmp_path / "r2.txt")])["done"] == files
+
+
+def test_learning_with_replace_keeps_the_longest_pass_so_a_skipped_database_run_does_not_win(tmp_path, monkeypatch):
+    durations = tmp_path / "d.json"
+    durations.write_text('{"tests/test_db.py": 6.0}')
+    monkeypatch.setattr(gate, "DURATIONS", str(durations))
+    first, second = tmp_path / "a.txt", tmp_path / "b.txt"
+    first.write_text("PASS tests/test_db.py 2400\nFAIL tests/test_x.py 9 rc=1 y\n")
+    second.write_text("PASS tests/test_db.py 30\nPASS tests/test_y.py 12\n")
+    gate.learn([str(first), str(second)], replace=True)
+    kept = gate._load(str(durations), {})
+    assert kept == {"tests/test_db.py": 2400.0, "tests/test_y.py": 12.0}

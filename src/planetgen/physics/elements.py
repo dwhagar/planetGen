@@ -186,6 +186,40 @@ class DecaySeries:
         return tuple(step for step in self.steps if step.parent == name)
 
 
+def finite_number(owner, value):
+    """`value` as a float when it is a finite number (not a bool); `DataError` naming `owner` otherwise. The check every
+    data file's reader used to write for itself (GEN.1667)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise DataError(f"{owner}: {value!r} is not a finite number")
+    return float(value)
+
+
+def positive_number(value, what):
+    """`value` as a float when it is a finite number above 0 (not a bool); `DataError` saying `what` must be positive otherwise."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or value <= 0:
+        raise DataError(f"{what} must be a positive number, not {value!r}")
+    return float(value)
+
+
+TIERS = tuple(f"T{n}" for n in range(1, 10))
+TWEAKS = tuple(f"L{n}" for n in range(5))
+"""tuple: The stand-in tiers and tweak levels a rule file's number declares (GEN.725)."""
+
+
+def load_rule_numbers(path, error):
+    """
+    Reads the JSON rule file at `path` and checks its `numbers`: every entry has a `value`, a tier `T1`..`T9`, a
+    tweak `L0`..`L4` and a `basis` (the stand-in registry's columns, GEN.725), else `error` (the module's own
+    `ValueError` class) is raised naming the number. Returns the whole document.
+    """
+    with open(path, encoding="utf-8") as handle:
+        document = json.load(handle)
+    for name, entry in document["numbers"].items():
+        if entry.get("tier") not in TIERS or entry.get("tweak") not in TWEAKS or not entry.get("basis") or "value" not in entry:
+            raise error(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+    return document
+
+
 def _load(filename, rows_key):
     path = os.path.join(DATA_DIRECTORY, filename)
     with open(path, encoding="utf-8") as handle:

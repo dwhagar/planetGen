@@ -95,6 +95,7 @@ STEP_KINDS = {
     "population": "Population pass",
     "territories": "Territories pass",
     "habitability": "Habitability re-score",
+    "ledger": "Effect ledger refill",
     "reset": "Reset",
     "orbits": "Orbit update",
     "migrate": "Migration",
@@ -112,7 +113,7 @@ a detail bar under its step."""
 
 STEP_UNITS = {
     "sector": "sector", "generate-unplaced-sector": "sector", "link": "sector", "paths": "sector", "backfill": "sector",
-    "topup": "sector", "save": "sector", "map-luminosity": "row", "habitability": "row", "population": "pass",
+    "topup": "sector", "save": "sector", "map-luminosity": "row", "habitability": "row", "ledger": "row", "population": "pass",
     "territories": "pass", "stages": "step", "reset": "step", "migrate": "step", "db-check": "system",
 }
 """dict: What a bar's count counts, by step kind, as a singular noun (API.33: a number is never shown without its unit).
@@ -285,10 +286,10 @@ class Step:
         else:
             progress.detail_task = None
             progress.remove_task(self.task)
-        self._stop_own(keep_bar=self._is_main)
+        self._stop_own()
         self.task = None
 
-    def _stop_own(self, keep_bar=False):
+    def _stop_own(self):
         if self._own is not None:
             self._own.stop()
             log.reset_console()

@@ -26,7 +26,7 @@ from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeR
 
 from planetgen.datasets import catalogue, fetch
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
-from planetgen.util import log
+from planetgen.util import log, process
 
 
 _CONSEQUENCE = " -- generation will not start until it is fetched (it replaces: {})"
@@ -129,25 +129,28 @@ def expand_check_datasets(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def check_datasets_unit(params, report):
+def check_datasets_pieces(params, cursor):
+    """The pieces of the `check-datasets` unit (OPS.204): the key of each dataset chosen (`keys`, none means all), after the first `cursor` of them. An unknown key is refused here."""
+    return [dataset.key for dataset in _chosen(params.get("keys") or [])][cursor:]
+
+
+def check_datasets_piece(params, key, ctx):
     """
-    The `check-datasets` command (PERF.119): says where each dataset stands and fetches nothing, the data check in front
-    of every Generate job (GEN.590).
+    One piece of the `check-datasets` command (PERF.119): says where one dataset stands and fetches nothing, the data check in front of every Generate job (GEN.590).
 
     Args:
-        params (dict): `keys` (the datasets to check; none means all) and `disregard` (a missing dataset with a fallback
-            is taken as one).
-        report (callable): Unused: the unit is one step.
+        params (dict): `disregard` (a missing dataset with a fallback is taken as one).
 
     Returns:
-        dict: `lines`, what the check prints, and `absent`, how many datasets are missing for good.
+        dict: `lines`, what the check prints for the dataset, and `absent`, 1 when it is missing for good, else 0.
     """
-    lines, absent = status_lines(_chosen(params.get("keys") or []), bool(params.get("disregard")))
+    lines, absent = status_lines(_chosen([key]), bool(params.get("disregard")))
     return {"lines": lines, "absent": absent}
 
 
-def _raise_interrupt(_signum, _frame):
-    raise KeyboardInterrupt
+def check_datasets_gather(params, results, ctx):
+    """The result of the `check-datasets` command: `lines`, what the check prints, and `absent`, how many datasets are missing for good."""
+    return {"lines": [line for result in results for line in result["lines"]], "absent": sum(result["absent"] for result in results)}
 
 
 def run_status(keys, disregard_missing_data):
@@ -161,16 +164,16 @@ def run_status(keys, disregard_missing_data):
     step = commands.Step("datasets", "check-datasets", "Check the data sets",
                          {"keys": list(keys), "disregard": bool(disregard_missing_data)})
     found = []
-    previous_term = signal.signal(signal.SIGTERM, _raise_interrupt)      # Cancel ends the run as canceled in Redis
+    previous_term = process.interrupt_on_sigterm()      # Cancel ends the run as canceled in Redis
     try:
         wrapper.run("Data check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
                     kind=runrecord.CHECK, argv=sys.argv[1:])
     except runrecord.Busy as exc:       # another check holds the check place: this one reads files only, so it just answers
-        log.warning(f"another data or database check is running ({exc}); checking the data here without a run record")
+        log.warning(f"Another data or database check is running ({exc}), so the data is checked here without a run record.")
         lines, absent = status_lines(_chosen(keys), bool(disregard_missing_data))
         found.append({"lines": lines, "absent": absent})
     except (redisqueue.Unavailable, units.RunStopped) as exc:
-        log.error(f"error: the data check could not run: {exc}")
+        log.error(f"The data check could not run: {exc}")
         return 1
     finally:
         signal.signal(signal.SIGTERM, previous_term)

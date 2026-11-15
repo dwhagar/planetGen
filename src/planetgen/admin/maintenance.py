@@ -143,6 +143,11 @@ def is_on():
     return read()["enabled"]
 
 
+def _write_error(path, exc):
+    """The `MaintenanceWriteError` for a switch file that could not be written."""
+    return MaintenanceWriteError(f"The maintenance switch {path} can't be written ({exc.strerror or exc}). {FIX_HINT}")
+
+
 def _write(state):
     path = state_path()
     folder = os.path.dirname(path) or "."
@@ -150,8 +155,7 @@ def _write(state):
         os.makedirs(folder, exist_ok=True)
         handle, temp = tempfile.mkstemp(prefix=".maintenance-", dir=folder)
     except OSError as exc:
-        raise MaintenanceWriteError(
-            f"The maintenance switch {path} can't be written ({exc.strerror or exc}). {FIX_HINT}") from exc
+        raise _write_error(path, exc) from exc
     try:
         with os.fdopen(handle, "w", encoding="utf-8") as out:
             json.dump(state, out)
@@ -162,8 +166,7 @@ def _write(state):
         if os.path.exists(temp):
             os.unlink(temp)
         if isinstance(exc, OSError):
-            raise MaintenanceWriteError(
-                f"The maintenance switch {path} can't be written ({exc.strerror or exc}). {FIX_HINT}") from exc
+            raise _write_error(path, exc) from exc
         raise
     with _lock:
         _cache["key"] = None

@@ -91,6 +91,8 @@ def test_a_planet_that_passes_the_gate_is_typed_a_super_puff(young_sun):
     body.radius, young_sun.age = 9.0 * constants.EARTH_RADIUS_KM, 8.0
     assert planet_type.planet_type(body) == planet_type.SUPER_PUFF      # no age in the gate (GEN.1347): the obliquity tide keeps an old one inflated
     assert planet_type.planet_type({"envelope_mass_fraction": 0.4, "body_type": "t"}) == planet_type.TRANSITIONAL    # a stored row has no star to judge by
+    assert planet_type.planet_type({"envelope_mass_fraction": 0.4, "body_type": "t", "planet_type": planet_type.SUPER_PUFF}) == planet_type.SUPER_PUFF     # GEN.1601: unless it stores the type
+    assert planet_type.planet_type({"envelope_mass_fraction": 0.001, "body_type": "t", "planet_type": planet_type.SUPER_PUFF}) == planet_type.TERRESTRIAL      # a stored type never overrides the envelope
 
 
 def test_a_puffed_planet_is_a_super_puff_at_any_period_and_up_to_thirty_earth_masses(young_sun):

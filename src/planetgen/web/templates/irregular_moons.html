@@ -1,0 +1,62 @@
+{#- The irregular moons of a planet (/object/planet:<ID>/irregular-moons, web/irregular_moon_pages.py, GEN.1086): each stored body by designation, with its size, makeup and orbit about the planet. -#}
+{% extends "base.html" %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">Irregular moons</span>
+    <span class="badge">Planet {{ planet.designation }}</span>
+    {%- if planet.star %}<span class="badge">Goes round {{ planet.star }}</span>{% endif %}
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+<section class="panel" id="irregular-summary" aria-labelledby="irregular-summary-heading">
+  <div class="panel-header"><h2 id="irregular-summary-heading">The planet</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Page of the planet</th><td><a href="{{ planet_url }}">{{ name }}</a></td></tr>
+      <tr><th scope="row">Mass</th><td>{{ quantity(planet.mass) }}</td></tr>
+      {%- if planet.hill_radius %}<tr><th scope="row">Hill radius</th><td>{{ quantity(planet.hill_radius) }}</td></tr>{% endif %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="panel" id="irregular-bodies" aria-labelledby="irregular-bodies-heading">
+  <div class="panel-header"><h2 id="irregular-bodies-heading">Bodies kept one by one</h2></div>
+  {%- if moons %}
+  <p>These {{ moons|length }} bodies are small bodies the planet caught, far from it on tilted, stretched orbits, many of them going the wrong way round. They have a designation, not a name. Heaviest first.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead>
+      <tr><th scope="col">Designation</th><th scope="col">Mass</th><th scope="col">Diameter</th><th scope="col">Type</th><th scope="col">Made of</th><th scope="col">Distance</th>
+          <th scope="col">Share of the Hill radius</th><th scope="col">Eccentricity</th><th scope="col">Inclination</th><th scope="col">Direction</th><th scope="col">Caught through</th></tr>
+    </thead>
+    <tbody>
+      {%- for moon in moons %}
+      <tr>
+        <th scope="row"><a href="{{ moon.url }}"><code>{{ moon.designation }}</code></a></th>
+        <td>{{ quantity(moon.mass) }}</td>
+        <td>{{ quantity(moon.diameter) }}</td>
+        <td>{{ moon.analogue }} ({{ moon.taxon }})</td>
+        <td>{{ moon.composition_text }}</td>
+        <td>{{ quantity(moon.distance) }}</td>
+        <td>{% if moon.hill_fraction is not none %}{{ "%.2g"|format(moon.hill_fraction * 100) }} percent{% endif %}</td>
+        <td>{{ "%.2g"|format(moon.eccentricity) }}</td>
+        <td>{{ quantity(moon.inclination) }}</td>
+        <td>{{ "Backward" if moon.retrograde else "Forward" }}</td>
+        <td>{{ moon.window_text }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- else %}
+  <p>The planet keeps no irregular moon one by one.</p>
+  {%- endif %}
+</section>
+
+<section class="panel" id="irregular-rest" aria-labelledby="irregular-rest-heading">
+  <div class="panel-header"><h2 id="irregular-rest-heading">What is not kept one by one</h2></div>
+  <p>{{ not_stored.above_floor }} bod{{ "y" if not_stored.above_floor == 1 else "ies" }} lie above the size the planet's list starts at; the rest of the caught mass, {{ quantity(not_stored.remainder) }}, is in smaller bodies that are not listed.
+     {%- if not_stored.lost %} {{ not_stored.lost }} stored bod{{ "y was" if not_stored.lost == 1 else "ies were" }} lost because no orbit that stays was found or the planet moved.{% endif %}
+     {%- if not_stored.temporary %} The planet's zone is wide enough to hold temporary captures too.{% endif %}</p>
+</section>
+{% endblock %}

@@ -34,7 +34,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import elements
+from planetgen.physics import constants, elements
 
 TAU_MIN_GY = 0.03
 """float: The shortest merger delay, Gyr (RECALLED stand-in; see the module note)."""
@@ -42,7 +42,7 @@ TAU_MIN_GY = 0.03
 DELAY_NODES = 160
 """int: Log-spaced delay nodes of the convolution."""
 
-SECONDS_PER_GYR = 3.15576e16
+SECONDS_PER_GYR = constants.SECONDS_PER_GY
 """float: Seconds in a Gyr (Julian year)."""
 
 PRODUCTION_RATIO_RANGE = (1.667, 2.0)
@@ -127,10 +127,16 @@ def th_u_factor_of_history(history, host_age_gy, tau_min_gy=None):
     The factor `F` of a star of age `host_age_gy` in the disk of a `galaxy.disk_history.DiskHistory`: the disk began
     `history.age_gy[0]` ago, and the star formed `host_age_gy` ago (older than the disk is held at the disk's start).
     """
+    span, times, star_formation = _disk_clock(history)
+    return th_u_factor(times, star_formation, span - host_age_gy, tau_min_gy)
+
+
+def _disk_clock(history):
+    """`(span, times, rate)` of a `DiskHistory`: how long ago the disk began (Gy), the times since then of its records and the disk's star formation at each, the
+    rings summed by their areas."""
     span = float(history.age_gy[0])
     times = span - np.asarray(history.age_gy, dtype=float)
-    star_formation = np.sum(history.radius_scale_lengths[:, None] * history.rate, axis=0)
-    return th_u_factor(times, star_formation, span - host_age_gy, tau_min_gy)
+    return span, times, np.sum(history.radius_scale_lengths[:, None] * history.rate, axis=0)
 
 
 @functools.lru_cache(maxsize=4096)
@@ -146,10 +152,7 @@ def typical_th_u_factor(shape):
     """The factor `F` of a typical star of the galaxy of this shape, for a body with no host star (a rogue planet): that of the star born when
     half of the disk's stars had formed (the median of its star formation, the rings summed as `th_u_factor_of_history` does)."""
     from planetgen.galaxy import disk_history
-    history = disk_history.history_of(shape)
-    span = float(history.age_gy[0])
-    times = span - np.asarray(history.age_gy, dtype=float)
-    rate = np.sum(history.radius_scale_lengths[:, None] * history.rate, axis=0)
+    span, times, rate = _disk_clock(disk_history.history_of(shape))
     cumulative = np.concatenate(([0.0], np.cumsum(0.5 * (rate[1:] + rate[:-1]) * np.diff(times))))
     median = float(np.interp(0.5 * cumulative[-1], cumulative, times)) if cumulative[-1] > 0.0 else 0.5 * span
     return th_u_factor(times, rate, median)

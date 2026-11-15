@@ -29,7 +29,7 @@ outward flux of a belt inside the planet's orbit, gravitational focusing, and th
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import scatter
+from planetgen.physics import constants, scatter
 
 BELT_DUST_SHARE = 0.1
 """float: The share of a belt's collisional mass loss that reaches the inner system as dust and small bodies. A stand-in, in the range of the share of a cascade's mass that is in grains small enough for
@@ -80,7 +80,7 @@ def reach(reservoir, planet_au):
 
 def cross_section_share(radius_km, planet_au):
     """The share of an isotropic stream through the sphere of the planet's orbit that the planet intercepts: `R^2 / (4 a^2)`."""
-    radius_au = radius_km / 1.495978707e8
+    radius_au = radius_km / constants.AU_TO_KM
     return (radius_au / planet_au) ** 2 / 4.0 if planet_au > 0.0 else 0.0
 
 
