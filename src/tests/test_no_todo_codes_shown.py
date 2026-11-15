@@ -27,7 +27,10 @@ TODO_CODE = re.compile(rf"\b(?:{CATEGORIES})\.\d+\b")
 ALLOWED = {}
 """dict: `{path relative to src: reason}` for a file where a code is wanted. None are."""
 
-NOT_SHOWN = {("planetgen/describe/sheet.py", "OPEN_GAPS"):
+NOT_SHOWN = {("planetgen/db/body_fields.py", "FIELDS"):
+             "the comments written into schema.sql beside each body column (`scripts/build_body_tables.py`): a file the people who keep the code read, as they read a code comment, shown to no user",
+             ("planetgen/db/body_fields.py", "CLAUSES"): "the same: comment lines of the body tables' key clauses in schema.sql",
+             ("planetgen/describe/sheet.py", "OPEN_GAPS"):
              "the sheet audit's register of the open items that excuse an empty column (UX.208): read by `test_sheet_fill`, which checks each "
              "is still open, and shown to no one"}
 """dict: `{(path relative to src, module-level name): reason}` for a constant whose strings are item codes for the people who keep the
