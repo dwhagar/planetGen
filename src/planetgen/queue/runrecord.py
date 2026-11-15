@@ -535,7 +535,7 @@ def set_stage_size(conn, run_id, index, units, cost, now=None):
 
 
 def set_conclusion(conn, run_id, index, conclusion, now=None):
-    """Stores what the end of stage `index` found (`CommandSpec.conclude`) and marks the stage concluded, for the
+    """Stores what the end of stage `index` found (its `conclude` end command) and marks the stage concluded, for the
     process following the run (`conclusion`)."""
     conn.hset(stage_key(run_id, index), mapping={"conclusion": json.dumps(conclusion), "concluded": _now(now)})
 

@@ -62,7 +62,7 @@ def test_a_step_the_request_does_not_select_is_not_in_the_list():
 def test_the_habitability_re_score_makes_the_block_totals_in_its_conclude_hook():
     """PERF.202: the tail the starter used to do after the last range is the command's `conclude`, run by the unit that
     completes the stage."""
-    assert commands.conclude_function("rescore-habitability").__name__ == "conclude_rescore_habitability"
+    assert commands.end_function("rescore-habitability", "conclude").__name__ == "conclude_rescore_habitability"
 
 
 def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_of_their_passes():
