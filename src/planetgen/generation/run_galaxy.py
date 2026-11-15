@@ -571,9 +571,9 @@ def expand_backfill_bright_stars(params):
     _size, chunks = _chunks(addresses, BACKFILL_UNIT_CELLS, BACKFILL_UNITS_MAX)
     units = [({"database": params["database"], "items": [[*address, todo[address]] for address in chunk]}, float(len(chunk)))
              for chunk in chunks]
-    sky = _sky_units(params, centers) if params.get("sky_limit") is not None and centers and sky_skip is None else []
+    sky, sky_detail = _sky_units(params, centers) if params.get("sky_limit") is not None and centers and sky_skip is None else ([], {})
     return commands.Expansion((units or [({"database": params["database"], "items": []}, 1.0)]) + sky,
-                              {"sectors": len(addresses), **({"sky_cells": len(sky), "sky_costs": [cost for _unit, cost in sky]} if sky else {}),
+                              {"sectors": len(addresses), **({"sky_costs": [cost for _unit, cost in sky], **sky_detail} if sky else {}),
                                **({} if sky_skip is None else {"sky_skip": sky_skip}), **({} if skip is None else {"skip": skip})})
 
 
@@ -586,11 +586,23 @@ SKY_WRITE_FACTOR = 4.6
 one 7.5 observer cell 2,500 pc from the center, one worker: 1,826 s against 398 s predicted."""
 
 
+SKY_PARTS = 16
+"""int: How many units the sky draw of a backfill stage is cut into (OPS.253), whatever the worker count (the plan of a stage is the same at any): each draws its share of the rows of every sphere
+(`sky_charting.chart_part`). More shares than workers, so the workers that finish early take another, and few enough that the walk each makes of a sphere's rows (every share looks at them all) stays small
+beside the draw."""
+
+
 def _sky_units(params, centers):
     """
-    The units that draw the sky tiers (VIEW.25) of the observer cells the new sectors lie in: one unit for each 50 parsec cell (`sky_charting.observer_cell`) that the ledger does not hold all
-    of, drawn tier by tier from the top down (the order a cell's depth is recorded in) and, since one sky draw runs at a time in the galaxy (`sky_charting.DrawLock`), in one piece. A unit's
-    cost is the predicted seconds of its tiers (`sky_tiers.visits`) in the bar's unit of sectors.
+    The units that draw the sky tiers (VIEW.25) of the observer cells the new sectors lie in (OPS.253): the observer cells (`sky_charting.observer_cell`) that the ledger does not hold all of, in
+    order, each with the tiers it owes (what an earlier cell of the list draws is not owed again, as the draw one cell at a time finds it), and `SKY_PARTS` units that each draw their share of the rows
+    of every one of those spheres (`sky_charting.chart_part`) side by side. Nothing waits for another unit: a cell is in one share of each sphere, and a share draws its cells in the order the draw of
+    the whole takes them. The stage's `conclude` (`conclude_backfill`) records the spheres once every unit is in. A unit's cost is its share of the predicted seconds of the tiers
+    (`sky_tiers.visits`), in the bar's unit of sectors.
+
+    Returns:
+        tuple: `(units, detail)`: the `(args, cost)` pairs and what the stage's plan says of them (JSON-able): `sky_cells` (the observer cells drawn), `sky_spheres` (the spheres to record at the end
+            of the stage, in the order they are drawn) and `sky_floors` (`sky_tiers.floor_table` of the first cell).
     """
     from planetgen.generation import sky_charting, sky_tiers
     limit = float(params["sky_limit"])
@@ -598,7 +610,7 @@ def _sky_units(params, centers):
     try:
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
-            return []
+            return [], {}
         limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
         ledger = sky_tier_ledger.read(conn)
     finally:
@@ -607,16 +619,45 @@ def _sky_units(params, centers):
     for center in centers:
         cell, center = sky_charting.observer_cell(center)
         cells[cell] = center
-    units = []
+    observers, spheres, seconds, floors = [], [], 0.0, []
     for cell in sorted(cells):
         center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits, skeleton=skeleton)
         owed = sky_charting.owed_tiers(tiers, ledger, center)
-        if owed:
-            seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
-            # OPS.134: the unit's own expected seconds, which its time limit is a multiple of (`units.enqueue_units`): the stage's average is the sectors' and a cell takes half an hour
-            units.append(({"database": params["database"], "sky": {"center": list(center), "limit": limit}, "expected_seconds": seconds},
-                          max(seconds / SKY_SECTOR_SECONDS, 1.0)))
-    return units
+        if not owed:
+            continue
+        observers.append([list(center), sky_charting.tiers_owed(tiers, ledger, center)])
+        if not floors and tiers.curve is not None:
+            floors = sky_tiers.floor_table(tiers, tiers.curve, sky_tiers.FLOOR_DISTANCES_PC)
+        seconds += sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
+        drawn = [sky_charting.tier_draw(tier, center) for tier in sky_charting.tiers_in_order(tiers) if tier in owed]
+        spheres.extend({"kind": d.kind, "low": d.low, "high": d.high, "center": list(d.center), "radius": d.radius_pc} for d in drawn)
+        ledger = sky_tier_ledger.Ledger((*ledger.draws, *drawn))       # the cells after this one find these drawn
+    if not observers:
+        return [], {}
+    share = seconds / SKY_PARTS
+    # OPS.134: the unit's own expected seconds, which its time limit is a multiple of (`units.enqueue_units`): the stage's average is the sectors'
+    units = [({"database": params["database"], "sky": {"observers": observers, "limit": limit, "part": [index, SKY_PARTS]}, "expected_seconds": share},
+              max(share / SKY_SECTOR_SECONDS, 1.0)) for index in range(SKY_PARTS)]
+    return units, {"sky_cells": len(observers), "sky_spheres": spheres, "sky_floors": floors}
+
+
+def conclude_backfill(params, plan, results, seconds):
+    """
+    The `conclude` of the `scatter-backfill` command (OPS.253): once every unit is in, the spheres of the sky draw (`plan["detail"]["sky_spheres"]`) are recorded in the ledger
+    (`sky_tier_ledger.conclude_parts`), in the order they were drawn, so the readers of the ledger see them whole and only then. A stage with no sky draw records nothing.
+    """
+    spheres = plan.get("sky_spheres") or []
+    if not spheres:
+        return {}
+    from planetgen.db import sky_tier_ledger
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        recorded = sky_tier_ledger.conclude_parts(conn, [sky_tier_ledger.Draw(item["kind"], float(item["low"]), None if item["high"] is None else float(item["high"]),
+                                                                              tuple(item["center"]), float(item["radius"])) for item in spheres])
+        conn.commit()
+    finally:
+        conn.close()
+    return {"sky_spheres_recorded": recorded}
 
 
 def _progress_into(ctx, name):
@@ -698,11 +739,12 @@ SKY_UNIT_CONNECTION_TRIES = 3
 
 def _sky_cell(unit_args, ctx):
     """
-    The piece of one observer cell's sky tiers (VIEW.25, `sky_charting.chart`): every tier the ledger does not hold, from the top down, each in committed batches; a tier stopped part way
-    goes on from its last batch. The second-level count (OPS.192) is the predicted cell visits of the tiers (`sky_charting.chart`'s `progress`), so it moves with every batch (OPS.134).
+    The piece of one share of the stage's sky tiers (VIEW.25, OPS.253, `sky_charting.chart_part`): for each observer cell the stage owes tiers to, each tier from the top down over this share of its rows, in
+    committed batches; a tier stopped part way goes on from its last batch. The second-level count (OPS.192) is the predicted cell visits of the share (`sky_charting.chart_part`'s `progress`), so it
+    moves with every batch (OPS.134).
 
     Returns:
-        dict: As `backfill_do`, with `sectors` 0, `stars` the stars drawn, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn), `cell` and `floors` (`sky_charting.chart`).
+        dict: As `backfill_do`, with `sectors` 0, `stars` the stars drawn, no `shells`, and `sky`: `stars`, `seconds` and `spheres` (the shares of tiers drawn).
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
@@ -721,7 +763,8 @@ def _sky_cell(unit_args, ctx):
                 nonlocal ticked
                 ticked = time.monotonic()
 
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=progress)
+            result = sky_charting.chart_part(conn, [(tuple(center), owed) for center, owed in sky["observers"]], float(sky["limit"]), tuple(sky["part"]),
+                                             on_batch=tick, progress=progress)
             break
         except BaseException as exc:
             conn.rollback()
@@ -733,7 +776,7 @@ def _sky_cell(unit_args, ctx):
             ctx.close_db()
     drawn = [item for item in result["tiers"] if not item.skipped]
     return {"sectors": 0, "stars": result["stars"], "shells": {},
-            "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn), "cell": list(result["cell"]), "floors": result["floors"]}}
+            "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn)}}
 
 
 class BackfillFollower(followed.Follower):
@@ -765,6 +808,7 @@ class BackfillFollower(followed.Follower):
         self.sky_costs = []
         self.chunks = 0
         self.credited = {}
+        self.sky_cells, self.sky_floors = 0, []
 
     def params(self):
         from planetgen.generation import sky_charting
@@ -779,8 +823,9 @@ class BackfillFollower(followed.Follower):
             return
         if plan["detail"].get("sky_skip"):
             log.normal(f"No sky tiers are drawn: {plan['detail']['sky_skip']}.")
-        if plan["detail"].get("sky_cells"):
-            log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill.")
+        self.sky_cells, self.sky_floors = int(plan["detail"].get("sky_cells") or 0), plan["detail"].get("sky_floors") or []
+        if self.sky_cells:
+            log.normal(f"Drawing the sky tiers of {self.sky_cells} observer cell(s) in {len(plan['detail'].get('sky_costs', ()))} parts at once, next to the sectors' backfill.")
         log.normal("Backfilling the bright stars out from the edge of the run...")
         self.sky_costs = [float(cost) for cost in plan["detail"].get("sky_costs", ())]
         self.chunks = plan["units"] - len(self.sky_costs)
@@ -827,9 +872,9 @@ class BackfillFollower(followed.Follower):
         if self.sky:
             stars, seconds = sum(item["stars"] for item in self.sky), sum(item["seconds"] for item in self.sky)
             sectors = max(self.summary["sectors"], 1)
-            log.normal(f"Sky tiers: {stars:,} bright stars in {sum(item['spheres'] for item in self.sky):,} spheres around {len(self.sky)} observer cell(s), "
+            log.normal(f"Sky tiers: {stars:,} bright stars in {sum(item['spheres'] for item in self.sky):,} spheres around {self.sky_cells} observer cell(s), "
                        f"{format_duration_seconds(seconds)} of drawing ({format_duration_seconds(seconds / sectors)} a backfilled sector).")
-            floors = next((item["floors"] for item in self.sky if item.get("floors")), [])
+            floors = self.sky_floors
             if floors:
                 log.normal("Sky floor (the dimmest star the sky shows, least dust of any direction): "
                            + "; ".join(f"{row['distance_pc']:g} pc {row['floor_sol']:.3g} Lsun ({'drawn' if row['built'] else 'not drawn'}, {row['ledger']})" for row in floors) + ".")
